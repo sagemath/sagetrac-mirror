@@ -11,7 +11,7 @@ structure as an abstract group. Arithmetic on subgroups is also
 supported, including adding two subgroups together, checking
 inclusion, etc.
 
-TODO: Intersection, action of Hecke operators.
+.. TODO:: Intersection, action of Hecke operators.
 
 AUTHORS:
 
@@ -97,12 +97,13 @@ from sage.modules.module      import Module_old
 from sage.modules.free_module import is_FreeModule
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
+from sage.rings.all           import lcm, QQ, ZZ, QQbar, Integer, composite_field
 from sage.misc.misc           import prod
 
 import abvar as abelian_variety
 from sage.categories.fields import Fields
 _Fields = Fields()
+
 
 class FiniteSubgroup(Module_old):
     def __init__(self, abvar, field_of_definition=QQ):
