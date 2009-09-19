@@ -890,6 +890,144 @@ class Newform(ModularForm_abstract):
             else:
                 return -1
 
+    def anlist(self, maxn, field=None, all_embeddings=False):
+        """
+        Returns list of coefficients `a_n` for `n<`maxp of this newform as
+        elements of the given real or complex field.  If ``all_embeddings`` is
+        True, returns list of coefficients `a_n` for all of the embeddings.
+
+        INPUT:
+
+            - ``maxn`` -- positive integer
+
+            - ``field`` -- None or a field into which the coefficient field embeds
+
+            - ``all_embeddings`` -- bool (default: False)
+
+        OUTPUT:
+
+            a list or a list of lists
+
+        EXAMPLES::
+
+            sage: f = ModularForms(43,2).newforms('a')[1]; f 
+            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
+            sage: f.anlist(6)
+            [[0, 1, a1, -a1, 0, -a1 + 2]]
+            sage: f.anlist(6, RDF)
+            [[0.0, 1.0, -1.41421356237, 1.41421356237, 0.0, 3.41421356237]]
+            sage: f.anlist(6, RDF, all_embeddings=True)
+            [[0.0, 1.0, -1.41421356237, 1.41421356237, 0.0, 3.41421356237],
+             [0.0, 1.0, 1.41421356237, -1.41421356237, 0.0, 0.585786437627]]
+            sage: f.aplist(6)
+            [(a1, -a1, -a1 + 2)]
+            sage: f.aplist(6, RDF)
+            [(-1.41421356237, 1.41421356237, 3.41421356237)]
+        """
+        aplists, embeddings = self._aplist(maxn, field, all_embeddings)
+        eps = self.character()
+        k = self.weight()
+        field = aplists[0][0].parent()
+        anlists = []
+        
+        for i, aplist in enumerate(aplists):
+            anlist = [field(0)] + [field(1)] + [field(0)]*(maxn-2)
+            phi = embeddings[i]
+            for i, p in enumerate(rings.prime_range(maxn)):
+                anlist[p] = aplist[i]
+            for n in range(4, maxn):
+                if rings.is_prime(n): continue
+                F = rings.factor(n)
+                if len(F) == 1:
+                    # prime power that isn't prime
+                    p, r = F[0]
+                    # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
+                    anlist[n] * anlist[p**(r-1)] - phi(eps(p))*p**(k-1)*anlist[p**(r-2)]
+                else:
+                    e = F[0][0]**F[0][1]
+                    f = n//e
+                    anlist[n] = anlist[e] * anlist[f]
+            anlists.append(anlist)
+        return anlists
+
+    def aplist(self, maxp, field=None, all_embeddings=False):
+        """
+        Returns list of coefficients `a_p` for `p<`maxp of this newform as
+        elements of the given real or complex field.  If ``all_embeddings`` is
+        True, returns list of coefficients `a_p` for all of the embeddings.
+
+        INPUT:
+
+            - ``maxp`` -- positive integer
+
+            - ``field`` -- None or a field into which the coefficient field embeds
+
+            - ``all_embeddings`` -- bool (default: False)
+
+        OUTPUT:
+
+            a list or a list of lists
+
+        EXAMPLES::
+
+            sage: f = ModularForms(43,2).newforms('a')[1]; f 
+            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
+            sage: f.aplist(6)
+            [(a1, -a1, -a1 + 2)]
+            sage: f.aplist(6, RDF)
+            [(-1.41421356237, 1.41421356237, 3.41421356237)]
+        """
+        A, B = self._aplist(maxp, field, all_embeddings)
+        if not all_embeddings:
+            return A
+        return A
+        
+    def _aplist(self, maxp, field=None, all_embeddings=False):
+        """
+        Returns list of coefficients `a_p` for `p<`maxp of this newform as
+        elements of the given real or complex field.  If ``all_embeddings`` is
+        True, returns list of coefficients `a_p` for all of the embeddings.
+
+        INPUT:
+
+            - ``maxp`` -- positive integer
+
+            - ``field`` -- None or a field into which the coefficient field embeds
+
+            - ``all_embeddings`` -- bool (default: False)
+
+        OUTPUT:
+
+            pair, a list of lists and a list of embeddings
+
+        EXAMPLES::
+
+            sage: f = ModularForms(43,2).newforms('a')[1]; f 
+            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
+            sage: f._aplist(6, RDF)
+            ([(-1.41421356237, 1.41421356237, 3.41421356237)],
+             [Ring morphism:
+              From: Number Field in alpha with defining polynomial x^2 - 2
+              To:   Real Double Field
+              Defn: alpha |--> -1.41421356237])
+        """
+        M = self.modular_symbols(sign=1)
+        E, v = M.compact_system_of_eigenvalues(rings.prime_range(maxp))
+        K = v[0].parent()
+        if field is None:
+            field = self.hecke_eigenvalue_field()
+        X = K.embeddings(field)
+        if len(X) == 0:
+            raise ValueError, "there are no embeddings"
+        if not all_embeddings:
+            X = [X[0]]
+        Y = []
+        for phi in X:
+            w = vector([phi(x) for x in v])
+            aplist = E * w
+            Y.append(aplist)
+        return Y, X
+
     def abelian_variety(self):
         """
         Return the abelian variety associated to self.
