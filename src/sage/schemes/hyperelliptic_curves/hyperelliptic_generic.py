@@ -30,6 +30,7 @@ EXAMPLE::
 
 from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
 from sage.functions.all import log
+from sage.matrix.all import MatrixSpace, matrix
 
 import sage.schemes.plane_curves.projective_curve as plane_curve
 
@@ -221,11 +222,31 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def genus(self):
+        """
+        Return the genus of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 + 33*x^4/16 + 3*x^3/4 + 3*x^2/8 - x/4 + 1/16)
+            sage: H.genus()
+            2
+        """
         return self._genus
 
     def jacobian(self):
-        import jacobian_generic
-        return jacobian_generic.HyperellipticJacobian_generic(self)
+        """
+        Return the Jacobian of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 + 33*x^4/16 + 3*x^3/4 + 3*x^2/8 - x/4 + 1/16)
+            sage: H.jacobian()
+            Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + 33/16*x^4 + 3/4*x^3 + 3/8*x^2 - 1/4*x + 1/16
+        """
+        from jacobian_generic import HyperellipticJacobian_generic
+        return HyperellipticJacobian_generic(self)
 
     def odd_degree_model(self):
         r"""
@@ -556,3 +577,97 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.local_coordinates_at_infinity(prec, name)
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
+
+    def finite_weierstrass_points(self):
+        r"""
+        Return a list of finite Weierstrass points of ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x*(x-1)*(x+9))
+            sage: H.finite_weierstrass_points()
+            [[(1, 0)], [(0, 0)], [(-9, 0)]]
+        """
+        f = self.hyperelliptic_polynomials()[0]
+        return [j*[(i, 0)] for i, j in f.roots()]
+
+    def cup_product_matrix(self, prec=10):
+        r"""
+        Computes the matrix whose `ij`th entry is the cup product pairing
+        of elements of the basis of de Rham cohomology for the hyperelliptic
+        curve, i.e.,
+        $a_{i+1,j+1} = [w_i]\cup [w_j] = Res(w_j*\integral(w_i))$, where
+        $w_i = x^i dx/2y, i = 0,..., 2g-1$.
+
+        INPUT:
+
+        - prec -- an integer (default: 10) the precision
+
+        OUTPUT:
+
+        - a matrix
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5-23*x^3+18*x^2+40*x)
+            sage: H.cup_product_matrix()
+            [    0     0     0   1/3]
+            [    0     0     1     0]
+            [    0    -1     0 -23/3]
+            [ -1/3     0  23/3     0]
+
+            sage: H = HyperellipticCurve(x^5 + 33*x^4/16 + 3*x^3/4 + 3*x^2/8 - x/4 + 1/16)
+            sage: H.cup_product_matrix()
+            [    0     0     0   1/3]
+            [    0     0     1 -11/8]
+            [    0    -1     0   1/4]
+            [ -1/3  11/8  -1/4     0]
+
+            sage: H = HyperellipticCurve(x^3-x+1)
+            sage: H.cup_product_matrix()
+            [ 0  1]
+            [-1  0]
+
+            sage: H = HyperellipticCurve(x^9+3)
+            sage: H.cup_product_matrix()
+            [   0    0    0    0    0    0    0  1/7]
+            [   0    0    0    0    0    0  1/5    0]
+            [   0    0    0    0    0  1/3    0    0]
+            [   0    0    0    0    1    0    0    0]
+            [   0    0    0   -1    0    0    0    0]
+            [   0    0 -1/3    0    0    0    0    0]
+            [   0 -1/5    0    0    0    0    0    0]
+            [-1/7    0    0    0    0    0    0    0]
+        """
+        x, y = self.local_coordinates_at_infinity()
+        xprime = x.derivative()
+        g = self.genus()
+        w = [x**i*xprime/(2*y) for i in range(2*g)]
+        wint = [(w[i]).integral() for i in range(2*g)]
+        R = PolynomialRing(self.base_ring(), 'a')
+        A = matrix(R, 2*g, 2*g)
+        for i in range(2*g):
+            for j in range(2*g):
+                A[i, j] = (w[j]*wint[i]).residue()
+        return matrix(self.base_ring(), 2*g, 2*g, [f[0] for f in A.list()])
+
+    def cup(self, v, w):
+        """
+        Computes the cup product of the vectors v and w with respect to
+        MW cohomology
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 + 33*x^4/16 + 3*x^3/4 + 3*x^2/8 - x/4 + 1/16)
+            sage: H.cup(vector([1,2,3,4]), vector([4,3,2,1]))
+            5/2
+        """
+        M = self.cup_product_matrix()
+        sum = 0
+        for i in range(len(v.list())):
+            for j in range(len(w.list())):
+                sum += v[i]*w[j]*M[i, j]
+        return sum
