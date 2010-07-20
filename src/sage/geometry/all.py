@@ -22,6 +22,7 @@ import toric_plotter
 
 
 from hyperbolic_space.all import *
+from fundamental_domains import FundamentalDomain 
 
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
