@@ -3764,51 +3764,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 ##         """
 ##         raise NotImplementedError
 
-    @cached_method
-    def root_number(self, p=None):
-        """
-        Returns the root number of this elliptic curve.
-
-        This is 1 if the order of vanishing of the L-function L(E,s) at 1
-        is even, and -1 if it is odd.
-
-        INPUT::
-
-             - `p` -- optional, default (None); if given, return the local
-                      root number at `p`
-
-        EXAMPLES::
-
-            sage: EllipticCurve('11a1').root_number()
-            1
-            sage: EllipticCurve('37a1').root_number()
-            -1
-            sage: EllipticCurve('389a1').root_number()
-            1
-            sage: type(EllipticCurve('389a1').root_number())
-            <type 'sage.rings.integer.Integer'>
-
-            sage: E = EllipticCurve('100a1')
-            sage: E.root_number(2)
-            -1
-            sage: E.root_number(5)
-            1
-            sage: E.root_number(7)
-            1
-
-        The root number is cached::
-
-            sage: E.root_number(2) is E.root_number(2)
-            True
-            sage: E.root_number()
-            1
-        """
-        e = self.pari_mincurve()
-        if p is None:
-            return Integer(e.ellrootno())
-        else:
-            return Integer(e.ellrootno(p))
-
     def has_cm(self):
         """
         Returns True iff this elliptic curve has Complex Multiplication.
