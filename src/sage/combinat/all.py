@@ -17,6 +17,7 @@ from debruijn_sequence import DeBruijnSequences
 from schubert_polynomial import SchubertPolynomialRing, is_SchubertPolynomial
 from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
 from symmetric_group_representations import SymmetricGroupRepresentation, SymmetricGroupRepresentations
+from farahat_higman import SymmetricGroupAlgebraCenter, FarahatHigmanAlgebra, PartialClassAlgebra
 from yang_baxter_graph import YangBaxterGraph
 #from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
