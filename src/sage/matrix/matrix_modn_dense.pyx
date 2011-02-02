@@ -200,7 +200,7 @@ cpdef is_Matrix_modn_dense(self):
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_modn_dense(Matrix_mod_dense):
     ########################################################################
     # LEVEL 1 functionality
     # x * __cinit__
@@ -397,6 +397,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         to be of type IntegerMod_int.
         """
         self._matrix[i][j] = (<IntegerMod_int> value).ivalue
+
+    cdef int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Get the (i,j) entry of self as an int value, no checks.
+        """
+        return self._matrix[i][j]
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef IntegerMod_int n

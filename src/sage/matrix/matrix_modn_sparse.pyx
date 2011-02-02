@@ -81,8 +81,6 @@ include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
 cimport matrix
-cimport matrix_sparse
-cimport matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose
@@ -529,6 +527,151 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         self.cache('pivots',tuple(pivots))
         self.cache('in_echelon_form',True)
+
+    def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                        Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        """
+        Return the matrix constructed from self using the specified
+        range of rows and columns.
+
+        INPUT:
+
+        - ``row``, ``col`` - index of the starting row and column.
+          Indices start at zero.
+
+        - ``nrows``, ``ncols`` - (optional) number of rows and columns to
+          take. If not provided, take all rows below and all columns to
+          the right of the starting entry.
+
+        SEE ALSO:
+
+        The functions :func:`matrix_from_rows`,
+        :func:`matrix_from_columns`, and
+        :func:`matrix_from_rows_and_columns` allow one to select
+        arbitrary subsets of rows and/or columns.
+
+        EXAMPLES:
+
+        Take a `3 \\times 3` submatrix of a sparse matrix::
+
+            sage: A = matrix(Integers(7), 100, 100, sparse=True)
+            sage: A[25,25] = 1 ; A[26,24] = 2 ; A[24,26] = 3
+            sage: A.submatrix(24,24,3,3)
+            [0 0 3]
+            [0 1 0]
+            [2 0 0]
+
+        Note that the result is a sparse matrix::
+
+            sage: parent(A.submatrix(20,20,50,50))
+            Full MatrixSpace of 50 by 50 sparse matrices over Ring of integers modulo 7
+        """
+        cdef Py_ssize_t i, j, pos
+        cdef Matrix_modn_sparse M
+
+        if nrows == -1:
+           nrows = self._nrows - row
+        if ncols == -1:
+           ncols = self._ncols - col
+
+        M = self.new_matrix(nrows, ncols)
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < self.rows[row+i].num_nonzero:
+                pos = self.rows[row+i].positions[j] - col
+                if 0 <= pos < ncols:
+                    set_entry(&M.rows[i], pos, self.rows[row+i].entries[j])
+        return M
+
+    def dense_matrix(self):
+        """
+        If this matrix is sparse, return a dense matrix with the same
+        entries. If this matrix is dense, return this matrix (not a copy).
+
+        .. note::
+
+           The definition of "dense" and "sparse" in Sage have nothing to
+           do with the number of nonzero entries. Sparse and dense are
+           properties of the underlying representation of the matrix.
+
+        EXAMPLES::
+
+            sage: A = matrix(Integers(7), 4, [1..16], sparse=True)
+            sage: A.is_sparse()
+            True
+            sage: B = A.dense_matrix()
+            sage: parent(A)
+            Full MatrixSpace of 4 by 4 sparse matrices over Ring of integers modulo 7
+            sage: parent(B)
+            Full MatrixSpace of 4 by 4 dense matrices over Ring of integers modulo 7
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_mod_dense M
+
+        M = self.new_matrix(self._nrows, self._ncols, sparse=False)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self.rows[i].num_nonzero:
+                M.set_unsafe_int(i, self.rows[i].positions[j], self.rows[i].entries[j])
+        M.subdivide(self.get_subdivisions())
+        return M
+
+    def dense_submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                              Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        """
+        Return the matrix constructed from self using the specified
+        range of rows and columns, as a dense matrix.
+
+        INPUT:
+
+        - ``row``, ``col`` - index of the starting row and column.
+          Indices start at zero.
+
+        - ``nrows``, ``ncols`` - (optional) number of rows and columns to
+          take. If not provided, take all rows below and all columns to
+          the right of the starting entry.
+
+        EXAMPLES::
+
+        Take a `3 \\times 3` submatrix of a sparse matrix::
+
+            sage: A = matrix(Integers(7), 100, 100, sparse=True)
+            sage: A[25,25] = 1 ; A[26,24] = 2 ; A[24,26] = 3
+            sage: A.dense_submatrix(24,24,3,3)
+            [0 0 3]
+            [0 1 0]
+            [2 0 0]
+
+        Note that the result is a dense matrix::
+
+            sage: parent(A.dense_submatrix(20,20,50,50))
+            Full MatrixSpace of 50 by 50 dense matrices over Ring of integers modulo 7
+            sage: A.dense_submatrix(20,20,50,50) == A.submatrix(20,20,50,50)
+            True
+        """
+        cdef Py_ssize_t i, j, pos
+        cdef Matrix_mod_dense M
+
+        if nrows == -1:
+            nrows = self._nrows - row
+        if ncols == -1:
+            ncols = self._ncols - col
+
+        M = self.new_matrix(nrows, ncols, sparse=False)
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < self.rows[row+i].num_nonzero:
+                pos = self.rows[row+i].positions[j] - col
+                if 0 <= pos < ncols:
+                    M.set_unsafe_int(i, pos, self.rows[row+i].entries[j])
+        return M
+
+    cdef set_block_unsafe(self, Py_ssize_t row, Py_ssize_t col, Matrix_mod_dense block):
+        """
+        Sets the sub-matrix of self, with upper left corner given by row,
+        col to block. No checks.
+        """
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < block.nrows():
+            for j from 0 <= j < block.ncols():
+                set_entry(&self.rows[row+i], col+j, block.get_unsafe_int(i,j))
 
     def _nonzero_positions_by_row(self, copy=True):
         """
