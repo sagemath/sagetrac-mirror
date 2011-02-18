@@ -750,7 +750,7 @@ cdef class PowerSeries_poly(PowerSeries):
         EXAMPLES::
 
             sage: R.<I> = GF(2)[[]]
-            sage: f = 1/(1+I+O(I^8)); f
+            sage: f = (1/(1+I+O(I^8))).power_series(); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate(5)
             I^4 + I^3 + I^2 + I + 1
@@ -781,7 +781,7 @@ cdef class PowerSeries_poly(PowerSeries):
         EXAMPLES::
 
             sage: R.<I> = GF(2)[[]]
-            sage: f = 1/(1+I+O(I^8)); f
+            sage: f = (1/(1+I+O(I^8))).power_series(); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate_powerseries(5)
             1 + I + I^2 + I^3 + I^4 + O(I^5)
@@ -1030,8 +1030,6 @@ cdef class PowerSeries_poly(PowerSeries):
             ...
             ValueError: Series must have valuation one for reversion.
 
-
-
         """
         if self.valuation() != 1:
             raise ValueError("Series must have valuation one for reversion.")
@@ -1082,7 +1080,10 @@ cdef class PowerSeries_poly(PowerSeries):
         t = f.parent().gen()
         R = f.parent().base_ring()
 
-        h = t/f
+        # Since trac ticket #8972, t/f is not a power series but a Laurent
+        # polynomial. Hence, for getting the padded list, we first need
+        # to get the power series out of it
+        h = (t/f).power_series()
         k = 1
         g = 0
         for i in range(1, out_prec):

@@ -51,14 +51,14 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
         sage: Frac(GF(5)['y'])
         Fraction Field of Univariate Polynomial Ring in y over Finite Field of size 5
 
-    Here the fraction field is not just the Laurent series ring, so you
-    can't use the ``Frac`` notation to make the Laurent
-    series ring.
+    After fixing ticket #8972, this also works if the base ring is not
+    a field. In this case, the ``Frac`` constructor returns the Laurent
+    series ring over the fraction field of the base ring.
 
     ::
 
         sage: Frac(ZZ[['t']])
-        Fraction Field of Power Series Ring in t over Integer Ring
+        Laurent Series Ring in t over Rational Field
 
     Laurent series rings are determined by their variable and the base
     ring, and are globally unique.
@@ -156,6 +156,30 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                                                                     self.variable_name(),
                                                                     default_prec=default_prec,
                                                                     sparse=sparse)
+
+    def one(self):
+        from sage.all import LaurentSeries,PowerSeriesRing
+        if self._one_element is None:
+            B = self.base().base_ring()
+            if hasattr(B,'ring_of_integers'):
+                B = B.ring_of_integers()
+            x = PowerSeriesRing(B,self.variable_name(),default_prec=self.default_prec()).one()
+            x = LaurentSeries(self,x,check=False)
+            self._one_element = x
+            return x
+        return self._one_element
+
+    def zero(self):
+        from sage.all import LaurentSeries,PowerSeriesRing
+        if self._zero_element is None:
+            B = self.base().base_ring()
+            if hasattr(B,'ring_of_integers'):
+                B = B.ring_of_integers()
+            x = PowerSeriesRing(B,self.variable_name(),default_prec=self.default_prec()).zero()
+            x = LaurentSeries(self,x,check=False)
+            self._zero_element = x
+            return x
+        return self._zero_element
 
     def base_extend(self, R):
         """
@@ -327,7 +351,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                 n += x._valp()
                 bigoh = n + x.length()
                 x = self(self.polynomial_ring()(x.Vec()))
-                return (x << n).add_bigoh(bigoh)
+                return x.add_bigoh(bigoh-n) << n
             else:  # General case, pretend to be a polynomial
                 return self(self.polynomial_ring()(x)) << n
         elif is_FractionFieldElement(x) and \
@@ -336,7 +360,17 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             x = self(x.numerator())/self(x.denominator())
             return (x << n)
         else:
-            return laurent_series_ring_element.LaurentSeries(self, x, n)
+            try:
+                if self.power_series_ring().has_coerce_map_from(x.parent()):
+                    if self.power_series_ring().base_ring().has_coerce_map_from(x.parent()):
+                        return laurent_series_ring_element.LaurentSeries(self, x*self.one().power_series(internal=True), n,check=False)
+                    if x.is_zero():
+                        return laurent_series_ring_element.LaurentSeries(self, x, n, check=False)
+                    v = x.valuation()
+                    return laurent_series_ring_element.LaurentSeries(self, x>>v, v+n,check=False)
+            except:
+                pass
+        return laurent_series_ring_element.LaurentSeries(self, x, n)
 
     def _coerce_impl(self, x):
         """

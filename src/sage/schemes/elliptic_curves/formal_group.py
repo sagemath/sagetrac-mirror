@@ -300,7 +300,8 @@ class EllipticCurveFormalGroup(SageObject):
             return y + O(t**prec)
         w = self.w(prec+6) # XXX why 6?
         t = w.parent().gen()
-        y = -(w**(-1)) + O(t**prec)
+        y = O(t**prec) - (~w)
+        #y = -(w**(-1)) + O(t**prec)
         self.__y = (prec, y)
         return self.__y[1]
 

@@ -335,12 +335,12 @@ def solve_linear_differential_system(a, b, c, alpha):
         True
 
     """
-    a_recip = 1/a
+    a_recip = ~a # 1/a
     B =  b * a_recip
     C =  c * a_recip
     int_B = B.integral()
     J = int_B.exp()
-    J_recip = 1/J
+    J_recip = ~J # 1/J
     CJ = C * J
     int_CJ = CJ.integral()
     f =  J_recip * (alpha + int_CJ)

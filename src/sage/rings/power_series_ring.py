@@ -90,6 +90,8 @@ AUTHORS:
 - William Stein: the code
 - Jeremy Cho (2006-05-17): some examples (above)
 - Niles Johnson (2010-09): implement multivariate power series
+- Simon King (2010-05): make fraction_field be a cached method; conversion
+  of a Laurent series of non-negative valuation into a power series.
 - Simon King (2012-08): use category and coercion framework, :trac:`13412`
 
 TESTS::
@@ -689,6 +691,10 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             ArithmeticError: self is a not a power series
 
         """
+        try:
+            f = f.power_series()
+        except:
+            pass
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f
@@ -723,6 +729,26 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         """
         from sage.categories.pushout import CompletionFunctor
         return CompletionFunctor(self._names[0], self.default_prec()),  self._poly_ring()
+
+    def is_integral_domain(self, **kwds):
+        return self.base().is_integral_domain(**kwds)
+
+    def fraction_field(self):
+        """
+        Return the fraction field of this power series ring, which
+        is the same as the Laurent series ring over the fraction
+        field of the base ring of ``self``.
+
+        EXAMPLE::
+
+            sage: R.<x> = ZZ.quo(53)[[]]
+            sage: FractionField(R)
+            Laurent Series Ring in x over Ring of integers modulo 53
+            sage: 1/x in FractionField(R)
+            True
+        """
+        from sage.all import LaurentSeriesRing
+        return LaurentSeriesRing(self.base().fraction_field(),self.variable_names())
 
     def _coerce_impl(self, x):
         """
@@ -1073,14 +1099,46 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: S.<s> = PowerSeriesRing(ZZ)
             sage: s in R
             False
+
+        TEST:
+
+        The following was fixed in ticket #8972. If a Laurent
+        series is in fact a power series that can be interpreted
+        in ``self`` then it is considered an element of ``self``::
+
+            sage: R.<x> = ZZ[[]]
+            sage: y = (1+x)/(1-4*x)
+            sage: y in R
+            True
+            sage: y.parent()
+            Laurent Series Ring in x over Rational Field
+            sage: (1+x)/(2-x) in R
+            False
+            sage: 2/2 in R
+            True
+
         """
         if x.parent() == self:
             return True
+        # first case: x coerces into self
         try:
             self._coerce_(x)
+            return True
         except TypeError:
+            pass
+        # second case: x is a (ducktyped) Laurent series of non-negative valuation
+        try:
+            self(x.power_series())
+            return True
+        except (TypeError,AttributeError,ArithmeticError):
+            pass
+        # third case: x is anything else that can be interpreted in self
+        try:
+            self.fraction_field()._coerce_(x)
+            self(x)
+            return True
+        except:
             return False
-        return True
 
     def is_field(self, proof = True):
         """
@@ -1160,12 +1218,31 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                                                  self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
+from sage.misc.cachefunc import cached_method
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-    pass
+    @cached_method
+    def fraction_field(self):
+        """
+        Return the fraction field of this power series ring, which
+        is the same as the Laurent series ring over the fraction
+        field of the base ring of ``self``.
+
+        EXAMPLE::
+
+            sage: R1.<x> = ZZ[[]]
+            sage: FractionField(R1)
+            Laurent Series Ring in x over Rational Field
+            sage: R2.<x> = GF(3)['t'][[]]
+            sage: 1/x in FractionField(R2)
+            True
+        """
+        from sage.all import LaurentSeriesRing
+        return LaurentSeriesRing(self.base().fraction_field(),self.variable_names()) #self.laurent_series_ring().base_extend(self.base().fraction_field())
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     _default_category = CompleteDiscreteValuationRings()
 
+    @cached_method
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is

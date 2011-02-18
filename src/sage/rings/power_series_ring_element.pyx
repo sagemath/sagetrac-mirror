@@ -10,6 +10,7 @@ AUTHORS:
 - David Harvey (2006-09-11): added solve_linear_de() method
 - Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
 - Robert Bradshaw (2007-04): Cython version
+- Simon King (2010-05): optimizations; quotients of power series are *always* Laurent series
 - Simon King (2012-08): use category and coercion framework, :trac:`13412`
 
 EXAMPLE::
@@ -681,7 +682,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate(5)
-            I^4 + I^3 + I^2 + I + 1
+            1 + I + I^2 + I^3 + I^4 + O(I^5)
         """
         if prec is infinity:
             prec = self._prec
@@ -860,10 +861,12 @@ cdef class PowerSeries(AlgebraElement):
 
     def __invert__(self):
         """
-        Inverse of the power series (i.e. a series Y such that XY = 1). The
-        first nonzero coefficient must be a unit in the coefficient ring.
+        Inverse of the power series (i.e. a series Y such that XY = 1).
         If the valuation of the series is positive, this function will
-        return a Laurent series.
+        return a Laurent series, otherwise it returns a power series.
+        If the first coefficient is a unit then the base ring of the
+        output is the same as the base ring of ``self``; otherwise, it
+        is the fraction field.
 
         ALGORITHM: Uses Newton's method. Complexity is around
         `O(M(n) \log n)`, where `n` is the precision and
@@ -902,7 +905,7 @@ cdef class PowerSeries(AlgebraElement):
         ::
 
             sage: 1/(2 + q)
-             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+            1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
 
         ::
 
@@ -931,19 +934,36 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ZeroDivisionError: leading coefficient must be a unit
 
+        TEST:
+
+        The following was fixed in ticket #8972::
+
+            sage: P.<t> = ZZ[[]]
+            sage: 1 / (2+t)
+            1/2 - 1/4*t + 1/8*t^2 - 1/16*t^3 + 1/32*t^4 - 1/64*t^5 + 1/128*t^6 - 1/256*t^7 + 1/512*t^8 - 1/1024*t^9 + 1/2048*t^10 - 1/4096*t^11 + 1/8192*t^12 - 1/16384*t^13 + 1/32768*t^14 - 1/65536*t^15 + 1/131072*t^16 - 1/262144*t^17 + 1/524288*t^18 - 1/1048576*t^19 + O(t^20)
+
         AUTHORS:
 
         - David Harvey (2006-09-09): changed to use Newton's method
+        - Simon King (2010-05): change to the fraction field of the coefficient ring, if necessary.
         """
         if self == 1:
             return self
         prec = self.prec()
         if prec is infinity and self.degree() > 0:
             prec = self._parent.default_prec()
-        if self.valuation() > 0:
-            u = ~self.valuation_zero_part()    # inverse of unit part
-            R = self._parent.laurent_series_ring()
-            return R(u, -self.valuation())
+        v = self.valuation()
+        if v > 0:
+            try:
+                u = ~(self>>v)    # inverse of unit part
+            except:
+                u = ~((self>>v)*self._parent.base().fraction_field()(1))
+            try:
+                R = self._parent.fraction_field()
+            except TypeError: # no integral domain
+                R = self._parent.laurent_series_ring()
+            from sage.all import LaurentSeries
+            return LaurentSeries(R,u,-v,check=False)# R(u, -self.valuation())
 
         # Use Newton's method, i.e. start with single term approximation,
         # and then iteratively compute $x' = 2x - Ax^2$, where $A$ is the
@@ -959,7 +979,13 @@ cdef class PowerSeries(AlgebraElement):
 
         A = self.truncate()
         R = A.parent()     # R is the corresponding polynomial ring
-        current = R(first_coeff)
+        try:
+            current = R(first_coeff)
+            fracfield = False
+        except TypeError:
+            fracfield = True
+            R = R.base_extend(R.base().fraction_field())
+            current = R(first_coeff)
 
         # todo: in the case that the underlying polynomial ring is
         # implemented via NTL, the truncate() method should use NTL's
@@ -973,7 +999,9 @@ cdef class PowerSeries(AlgebraElement):
             z = current.square() * A.truncate(next_prec)
             current = 2*current - z.truncate(next_prec)
 
-        return self._parent(current, prec=prec)
+        if not fracfield:
+            return self._parent(current, prec=prec)
+        return self._parent.base_extend(R.base())(current, prec=prec)
 
     def valuation_zero_part(self):
         r"""
@@ -1028,28 +1056,50 @@ cdef class PowerSeries(AlgebraElement):
             t + O(t^21)
             sage: (t^5/(t^2 - 2)) * (t^2 -2 )
             t^5 + O(t^25)
+
+        TEST:
+
+        The following tests against bugs that were fixed in
+        ticket #8972::
+
+            sage: P.<t> = ZZ[]
+            sage: R.<x> = P[[]]
+            sage: 1/(t*x)
+            1/t*x^-1
+            sage: R.<t> = PowerSeriesRing(ZZ.quo(15))
+            sage: t/(1+t)
+            t + 14*t^2 + t^3 + 14*t^4 + t^5 + 14*t^6 + t^7 + 14*t^8 + t^9 + 14*t^10 + t^11 + 14*t^12 + t^13 + 14*t^14 + t^15 + 14*t^16 + t^17 + 14*t^18 + t^19 + 14*t^20 + O(t^21)
+            sage: t/(3+t)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
         """
         denom = <PowerSeries>denom_r
         if denom.is_zero():
             raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
-        u = denom.valuation_zero_part()
-        inv = ~u  # inverse
-
-        v = denom.valuation()
-        if v > self.valuation():
-            R = self._parent.laurent_series_ring()
-            return R(self)/R(denom)
-
+        try:
+            F = self._parent.fraction_field()
+        except:
+            # Inverses may not always exist. So, we try,
+            # and if the result exists, it will be in the
+            # parent of self.
+            return self* ~denom
         # Algorithm: Cancel common factors of q from top and bottom,
         # then invert the denominator.  We do the cancellation first
         # because we can only invert a unit (and remain in the ring
         # of power series).
-
-        if v > 0:
-            num = self >> v
-        else:
-            num = self
-        return num*inv
+        from sage.all import LaurentSeries
+        if self.is_zero():
+            return F.zero_element()
+        v = denom.valuation()
+        w = self.valuation()
+        u = denom>>v#denom.valuation_zero_part()
+        try:
+            inv = ~u
+        except: # need to change to the fraction field of the base
+            inv = ~(u*F.base().one())
+        return LaurentSeries(F,(self>>w)*inv,w-v,check=False)
 
     def __mod__(self, other):
         """
@@ -1238,6 +1288,7 @@ cdef class PowerSeries(AlgebraElement):
         - Robert Bradshaw
 
         - William Stein
+
         """
         if self.is_zero():
             ans = self._parent(0).O(self.prec()/2)
@@ -1309,7 +1360,7 @@ cdef class PowerSeries(AlgebraElement):
         s = a.parent()([s])
         for cur_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             (<PowerSeries>s)._prec = cur_prec
-            s = half * (s + a/s)
+            s = half * (s + (a * ~s))
 
         ans = s
         if val != 0:

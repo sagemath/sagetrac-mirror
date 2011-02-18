@@ -1838,6 +1838,18 @@ cdef class RingElement(ModuleElement):
                 raise ZeroDivisionError, "Cannot divide by zero"
             else:
                 raise TypeError, arith_error_message(self, right, div)
+        except TypeError:
+            try:
+                if self._parent.fraction_field() is not self._parent:
+                    return self._parent.fraction_field()(self)/self._parent.fraction_field()(right)
+                else:
+                    raise RuntimeError
+            except:
+                if not right:
+                    raise ZeroDivisionError, "Cannot divide by zero"
+                else:
+                    raise TypeError, arith_error_message(self, right, div)
+
 
     def __idiv__(self, right):
         """

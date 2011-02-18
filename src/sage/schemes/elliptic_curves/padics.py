@@ -1633,7 +1633,7 @@ def _brent(F, p, N):
         ...         g = [R.random_element() for i in range(N)]
         ...         g[0] = R(1)
         ...         g = Rx(g, len(g))
-        ...         f = g.derivative() / g
+        ...         f = g.derivative() * ~g
         ...         # perturb f by something whose integral is in I
         ...         err = [R.random_element() * p**(N-i) for i in range(N+1)]
         ...         err = Rx(err, len(err))
@@ -1661,7 +1661,7 @@ def _brent(F, p, N):
         G = Rx(G.list(), s)
 
         # extend current approximation to be correct to s terms
-        H = G.derivative() / G - F
+        H = G.derivative() * ~G - F# / G - F
         # Do the integral of H over QQ[x] to avoid division by p problems
         H = Rx(Qx(H).integral())
         G = G * (1 - H)
