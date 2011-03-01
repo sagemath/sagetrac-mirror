@@ -1229,6 +1229,116 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         return [InfinitePolynomialFunctor((x,), self._order, self._imple) for x in reversed(self._gens)]
 
 
+class SiegelModularFormsAlgebraFunctor(ConstructionFunctor):
+    """
+    this is needed to make the coercion system happy
+
+    DO NOT REMOVE!
+    """
+    rank = 9
+
+    def __init__(self, group, weights, degree, default_prec):
+        r"""
+        Initialize the functor.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
+            sage: F = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 101)
+            sage: F.rank
+            9
+        """
+        from sage.categories.all import Rings
+        Functor.__init__(self, Rings(), Rings())
+        self._group = group
+        self._weights = weights
+        self._degree = degree
+        self._default_prec = default_prec
+
+    def __call__(self, R):
+        r"""
+        Apply the functor ``self`` to the ring ``R``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
+            sage: F = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'all', 2, 41)
+            sage: F(QQ)
+            Algebra of Siegel modular forms of degree 2 and all weights on Sp(4,Z) over Rational Field
+
+        TESTS::
+
+            sage: F(3)
+            Traceback (most recent call last):
+            ...
+            TypeError: The coefficient ring must be a ring
+        """
+        from sage.modular.siegel.all import SiegelModularFormsAlgebra
+        return SiegelModularFormsAlgebra(coeff_ring=R, group=self._group, weights=self._weights, degree=self._degree, default_prec=self._default_prec)
+
+    def __cmp__(self, other):
+        r"""
+        Compare the functor ``self`` and the object ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
+            sage: F = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 101)
+            sage: G = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 101)
+            sage: F == G
+            True
+            sage: F == SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'all', 2, 41)
+            False
+            sage: F == SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 61)
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c == 0:
+            # default precision is an implementation detail, not a
+            # mathematical property, so it is ignored in comparison
+            c = cmp(self._group, other._group) or cmp(self._weights, other._weights) or cmp(self._degree, other._degree)
+        return c
+
+    def merge(self, other):
+        r"""
+        Merge the two functors ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
+            sage: F = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 101)
+            sage: G = SiegelModularFormsAlgebraFunctor('Gamma0(2)', 'all', 2, 61)
+            sage: F == G
+            False
+            sage: F.merge(G) is None
+            True
+            sage: G = SiegelModularFormsAlgebraFunctor('Sp(4,Z)', 'even', 2, 61)
+            sage: F.merge(G) is G
+            True
+        """
+        if not isinstance(other, SiegelModularFormsAlgebraFunctor):
+            return None
+        if (self._group == other._group) and (self._weights == other._weights) and (self._degree == other._degree):
+            if self._default_prec <= other._default_prec:
+                return self
+            else: # self._default_prec > other._default_prec
+                return other
+        else:
+            return None
+
+    def __str__(self):
+        r"""
+        Return a string describing the functor ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.pushout import SiegelModularFormsAlgebraFunctor
+            sage: F = SiegelModularFormsAlgebraFunctor('Gamma0(4)', 'even', 2, 41)
+            sage: F
+            SMFAlg{"Gamma0(4)", "even", 2, 41}
+        """
+        return 'SMFAlg{"%s", "%s", %s, %s}' %(self._group, self._weights, self._degree, self._default_prec)
+
 
 class MatrixFunctor(ConstructionFunctor):
     """

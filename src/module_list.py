@@ -1329,6 +1329,9 @@ ext_modules = [
               sources = ['sage/modular/modsym/p1list.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.modular.siegel.fastmult',
+              sources = ['sage/modular/siegel/fastmult.pyx']),
+
     ################################
     ##
     ## sage.modules
