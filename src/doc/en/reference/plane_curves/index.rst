@@ -26,6 +26,7 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/ell_finite_field
    sage/schemes/elliptic_curves/ell_point
+   sage/schemes/elliptic_curves/ell_int_points
    sage/schemes/elliptic_curves/ell_torsion
    sage/schemes/elliptic_curves/ell_local_data
    sage/schemes/elliptic_curves/kodaira_symbol

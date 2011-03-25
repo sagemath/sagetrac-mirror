@@ -65,6 +65,8 @@ AUTHORS:
 
 - Chris Wuthrich
 
+- Alyson Deines and Jen Balakrishnan 2011: silverman_height_bounds, faltings_height, integral_points
+
 REFERENCE:
 
 - [Sil] Silverman, Joseph H. The arithmetic of elliptic curves. Second edition. Graduate Texts in
@@ -96,6 +98,7 @@ import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors
 from sage.misc.misc import prod
+from sage.misc.all import n
 import sage.databases.cremona
 import ell_torsion
 from ell_generic import is_EllipticCurve
@@ -108,6 +111,7 @@ from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity # just for verbose output
 from sage.rings.arith import valuation
+from ell_int_points import integral_points
 
 import gal_reps_number_field
 
@@ -311,6 +315,76 @@ class EllipticCurve_number_field(EllipticCurve_field):
         prob_gens = [self(P) for P in t[2]]
         self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = (prob_rank, two_selmer_rank, prob_gens)
         return prob_rank, two_selmer_rank, prob_gens
+        
+    integral_points = integral_points
+                
+    def faltings_height(self):
+        r"""
+        Faltings's height of the elliptic curve `E`.
+        This is double the formula in Silverman Math Comp 1990 page 725.
+    
+        EXAMPLE::
+    
+            sage: K.<a> = NumberField(x^2+5)
+            sage: E = EllipticCurve(K,[-112,400])
+            sage: E.faltings_height()
+            4.29484994110149
+
+        """
+        RR=RealField()
+        K = self.base_field()
+        c = RR(2).log()
+        if self.b2().is_zero():
+            c = 0
+        from sage.schemes.elliptic_curves.ell_int_points import abs_log_height
+        h1 = abs_log_height([K(self.discriminant()), K(1)])/6
+        h2 = K(self.j_invariant()).global_height_arch()/6
+        h3 = K(self.b2()/12).global_height_arch()
+        return n(h1 + h2/2 + h3/2 + c)
+                
+    def silverman_height_bounds(self):
+        r"""
+        Return the Silverman height bound.  This is a positive real
+        (floating point) number B such that for all points `P` on the
+        curve over any number field, `|h(P) - \hat{h}(P)| \leq B`,
+        where `h(P)` is the naive logarithmic height of `P` and
+        `\hat{h}(P)` is the canonical height.
+
+        NOTES:
+
+           - Silverman's paper is 'The Difference Between the Weil
+             Height and the Canonical Height on Elliptic Curves',
+             Math. Comp., Volume 55, Number 192, pages 723-743.  We
+             use a correction by Bremner with 0.973 replaced by 0.961,
+             as explained in the source code to mwrank (htconst.cc).
+             
+        EXAMPLES::
+        
+            sage: E = EllipticCurve('37a1')
+            sage: E.silverman_height_bounds()
+            (-4.82540075818092, 4.07560050545395)
+                        
+        """
+        from sage.rings.all import CC, QQ
+        Delta   = self.discriminant()
+        j       = self.j_invariant()
+        b2      = self.b2()
+        K       = self.base_field()
+        r,s     = K.signature()
+        infplaces = K.embeddings(CC) if K is QQ else K.places()
+        nvs = [1 if i < r else 2 for i,_ in enumerate(infplaces)]
+        
+        twostar = 2 if b2 else 1
+        from math import log
+        from ell_int_points import abs_log_height
+        def h(x):
+            return abs_log_height([K(x),K(1)])
+        def h_oo(x):
+            return sum(nvs[i]*log(max(abs(v(x)),1)) for i,v in enumerate(infplaces))/K.degree()
+        mu    = h(Delta)/12 + h_oo(j)/12 + h_oo(b2/12)/2 + log(twostar)/2
+        lower = 2*(-h(j)/24 - mu - 0.961)
+        upper = 2*(mu + 1.07)
+        return lower, upper
 
     def height_pairing_matrix(self, points=None, precision=None):
         r"""

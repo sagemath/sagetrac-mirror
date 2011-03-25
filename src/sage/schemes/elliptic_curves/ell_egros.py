@@ -418,7 +418,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
         # will preserve S-integrality of points.
         E2 = E.local_minimal_model(2) if 2 in S else E
         E23 = E2.local_minimal_model(3) if 3 in S else E2
-        urst = E23.isomorphism_to(E)
+        urst = E23.isomorphism_to(E) 
 
         try:
             pts = E23.S_integral_points(S,proof=proof)
