@@ -40,8 +40,7 @@ The most useful functions that apply to isogenies are
 
 .. Warning::
 
-   Only cyclic, separable isogenies are implemented (except for [2]). Some
-   algorithms may need the isogeny to be normalized.
+   Some algorithms may need the isogeny to be normalized.
 
 AUTHORS:
 
@@ -68,7 +67,6 @@ from sage.categories.morphism import Morphism
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.all import Integer, ZZ
-from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.all import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.all import is_EllipticCurve
@@ -82,6 +80,8 @@ from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorp
 from sage.sets.set import Set
 
 from sage.misc.cachefunc import cached_function
+
+from sage.schemes.elliptic_curves import ell_isogeny_char_zero
 
 #
 # Private function for parsing input to determine the type of
@@ -460,7 +460,7 @@ class EllipticCurveIsogeny(Morphism):
     r"""
     Class Implementing Isogenies of Elliptic Curves
 
-    This class implements cyclic, separable, normalized isogenies of
+    This class implements separable, normalized isogenies of
     elliptic curves.
 
     Several different algorithms for computing isogenies are
@@ -487,11 +487,11 @@ class EllipticCurveIsogeny(Morphism):
                       set to None.
 
     - ``codomain``  - an elliptic curve (default:``None``).  If ``kernel``
-                      is ``None``, then this must be the codomain of a cyclic,
+                      is ``None``, then this must be the codomain of a
                       separable, normalized isogeny, furthermore, ``degree``
                       must be the degree of the isogeny from ``E`` to
                       ``codomain``. If ``kernel`` is not ``None``, then this
-                      must be isomorphic to the codomain of the cyclic normalized
+                      must be isomorphic to the codomain of the normalized
                       separable isogeny defined by ``kernel``, in this case, the
                       isogeny is post composed with an isomorphism so that this
                       parameter is the codomain.
@@ -701,21 +701,20 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi_s.rational_maps() == phi.rational_maps()
         True
 
-    However only cyclic normalized isogenies can be constructed this
-    way. So it won't find the isogeny [3]::
+    However only normalized isogenies can be constructed this
+    way. So it won't find the multiplication-by-3 endomorphism::
 
         sage: E.isogeny(None, codomain=E,degree=9)
         Traceback (most recent call last):
         ...
-        ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 9
+        ValueError: The two curves are not linked by a rational normalized isogeny of degree 9
 
-    Also the presumed isogeny between the domain and codomain must be
-    normalized::
+    nor the dual isogeny::
 
         sage: E2.isogeny(None,codomain=E,degree=5)
         Traceback (most recent call last):
         ...
-        ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 5
+        ValueError: The two curves are not linked by a rational normalized isogeny of degree 5
         sage: phi.dual()
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: phi.dual().is_normalized()
@@ -3489,232 +3488,11 @@ class EllipticCurveIsogeny(Morphism):
         """
         raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogenies"
 
-# no longer needed (trac 7096)
-# def starks_find_r_and_t(T, Z):
 
-def compute_isogeny_starks(E1, E2, ell):
-    r"""
-    Computes the degree ``ell`` isogeny between ``E1`` and ``E2`` via
-    Stark's algorithm.  There must be a degree ``ell``, separable,
-    normalized cyclic isogeny from ``E1`` to ``E2``.
-
-    INPUT:
-
-    - ``E1``  - an elliptic curve in short Weierstrass form.
-    - ``E2``  - an elliptic curve in short Weierstrass form.
-    - ``ell`` - the degree of the isogeny from E1 to E2.
-
-    OUTPUT:
-
-    polynomial -- over the field of definition of ``E1``, ``E2``, that is the
-                  kernel polynomial of the isogeny from ``E1`` to ``E2``.
-
-    ALGORITHM:
-
-    This function uses Starks Algorithm as presented in section 6.2 of
-    [BMSS].
-
-    .. note::
-
-       As published there, the algorithm is incorrect, and a correct
-       version (with slightly different notation) can be found in
-       [M09].  The algorithm originates in [S72]
-
-    REFERENCES:
-
-    - [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-    - [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
-    - [S72] Stark, "Class-numbers of complex quadratic fields."
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_starks, compute_sequence_of_maps
-
-        sage: E = EllipticCurve(GF(97), [1,0,1,1,0])
-        sage: R.<x> = GF(97)[]; f = x^5 + 27*x^4 + 61*x^3 + 58*x^2 + 28*x + 21
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: (isom1, isom2, E1pr, E2pr, ker_poly) = compute_sequence_of_maps(E, E2, 11)
-        sage: compute_isogeny_starks(E1pr, E2pr, 11)
-        x^10 + 37*x^9 + 53*x^8 + 66*x^7 + 66*x^6 + 17*x^5 + 57*x^4 + 6*x^3 + 89*x^2 + 53*x + 8
-
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 14) * (x + 30)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: compute_isogeny_starks(E, E2, 5)
-        x^4 + 14*x^3 + x^2 + 34*x + 21
-        sage: f**2
-        x^4 + 14*x^3 + x^2 + 34*x + 21
-
-        sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-        sage: R.<x> = QQ[]
-        sage: f = x
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: compute_isogeny_starks(E, E2, 2)
-        x
-
-    """
-
-    K = E1.base_field()
-    R = PolynomialRing(K, 'x')
-    x = R.gen()
-
-    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS claim 2*ell is enough, but it is not M09
-    wp2 = E2.weierstrass_p(prec=4*ell+4)
-
-    # viewed them as power series in Z = z^2
-    S = LaurentSeriesRing(K, 'Z')
-    Z = S.gen()
-    pe1 = 1/Z
-    pe2 = 1/Z
-    for i in xrange(2*ell+1):
-        pe1 += wp1[2*i] * Z**i
-        pe2 += wp2[2*i] * Z**i
-    pe1 = pe1.add_bigoh(2*ell+2)
-    pe2 = pe2.add_bigoh(2*ell+2)
-
-    #print 'wps = ',pe1
-    #print 'wps2 = ',pe2
-
-    n = 1
-    q = [R(1), R(0)]
-    #p = [R(0), R(1)]
-    T = pe2
-
-    while ( q[n].degree() < (ell-1) ):
-        #print 'n=', n
-
-        n += 1
-        a_n = 0
-        r = -T.valuation()
-        while (0 <= r):
-            t_r = T[-r]
-            #print '    r=',r
-            #print '    t_r=',t_r
-            #print '    T=',T
-            a_n = a_n + t_r * x**r
-            T = T - t_r*pe1**r
-            r = -T.valuation()
-
-
-        q_n = a_n*q[n-1] + q[n-2]
-        q.append(q_n)
-        #p_n = a_n*p[n-1] + q[n-2]
-        #p.append(p_n)
-
-        if (n == ell+1 or T == 0):
-            if (T == 0 or T.valuation()<2):
-                raise ValueError("The two curves are not linked by a cyclic normalized isogeny of degree %s" % ell)
-            #print 'breaks here'
-            break
-
-        T = 1/T
-        #print '  a_n=', a_n
-        #print '  q_n=', q_n
-        #print '  p_n=', p_n
-        #print '  T = ', T
-
-    qn = q[n]
-    #pn= p[n]
-    #print 'final  T = ', T
-    #print '  f =', pn/qn
-
-    qn = (1/qn.leading_coefficient())*qn
-    #pn = (1/qn.leading_coefficient())*pn
-
-    return qn
-
-def split_kernel_polynomial(E1, ker_poly, ell):
-    r"""
-    Internal helper function for ``compute_isogeny_kernel_polynomial``.
-
-    Given a full kernel polynomial (where two torsion `x`-coordinates
-    are roots of multiplicity 1, and all other roots have multiplicity
-    2.)  of degree `\ell-1`, returns the maximum separable divisor.
-    (i.e. the kernel polynomial with roots of multiplicity at most 1).
-
-    EXAMPLES:
-
-    The following example implicitly exercises this function::
-
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 10) * (x + 12) * (x + 16)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_starks
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import split_kernel_polynomial
-        sage: ker_poly = compute_isogeny_starks(E, E2, 7); ker_poly
-        x^6 + 2*x^5 + 20*x^4 + 11*x^3 + 36*x^2 + 35*x + 16
-        sage: split_kernel_polynomial(E, ker_poly, 7)
-        x^3 + x^2 + 28*x + 33
-
-    """
-
-    poly_ring = ker_poly.parent()
-
-    z = poly_ring.gen(0)
-
-    ker_poly_2tor = two_torsion_part(E1, poly_ring, ker_poly, ell)
-    ker_poly_quo = poly_ring(ker_poly/ker_poly_2tor)
-    ker_poly_quo_sqrt = ker_poly_quo.gcd(ker_poly_quo.derivative(z))
-    ker_poly = ker_poly_2tor*ker_poly_quo_sqrt
-    ker_poly = (1/ker_poly.leading_coefficient())*ker_poly
-
-    return ker_poly
-
-
-def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
-    r"""
-    Computes the kernel polynomial of the degree ``ell`` isogeny
-    between ``E1`` and ``E2``.  There must be a degree ``ell``,
-    cyclic, separable, normalized isogeny from ``E1`` to ``E2``.
-
-    INPUT:
-
-    - ``E1``        - an elliptic curve in short Weierstrass form.
-
-    - ``E2``        - an elliptic curve in short Weierstrass form.
-
-    - ``ell``       - the degree of the isogeny from ``E1`` to ``E2``.
-
-    - ``algorithm`` - currently only ``starks`` (default) is implemented.
-
-    OUTPUT:
-
-    polynomial -- over the field of definition of ``E1``, ``E2``, that is the
-                  kernel polynomial of the isogeny from ``E1`` to ``E2``.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_kernel_polynomial
-
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 14) * (x + 30)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: compute_isogeny_kernel_polynomial(E, E2, 5)
-        x^2 + 7*x + 13
-        sage: f
-        x^2 + 7*x + 13
-
-        sage: R.<x> = QQ[]
-        sage: K.<i> = NumberField(x^2 + 1)
-        sage: E = EllipticCurve(K, [0,0,0,1,0])
-        sage: E2 = EllipticCurve(K, [0,0,0,16,0])
-        sage: compute_isogeny_kernel_polynomial(E, E2, 4)
-        x^3 + x
-
-    """
-
-    ker_poly = compute_isogeny_starks(E1, E2, ell)
-    ker_poly = split_kernel_polynomial(E1, ker_poly, ell)
-
-    return ker_poly
+# these functions have been moved to ell_isogeny_char_zero.py
+from sage.misc.superseded import deprecated_function_alias
+compute_isogeny_starks = deprecated_function_alias(11095, ell_isogeny_char_zero.isogeny_Stark)
+compute_isogeny_kernel_polynomial = deprecated_function_alias(11095, ell_isogeny_char_zero.isogeny_kernel)
 
 
 def compute_intermediate_curves(E1, E2):
@@ -3737,8 +3515,8 @@ def compute_intermediate_curves(E1, E2):
 
     OUTPUT:
 
-    tuple -- (``pre_isomorphism``, ``post_isomorphism``, ``intermediate_domain``,
-              ``intermediate_codomain``):
+    tuple -- (``intermediate_domain``, ``intermediate_codomain``,
+              ``pre_isomorphism``, ``post_isomorphism``):
 
     - ``intermediate_domain``: a short Weierstrass model isomorphic to ``E1``
     - ``intermediate_codomain``: a short Weierstrass model isomorphic to ``E2``
@@ -3816,12 +3594,27 @@ def compute_intermediate_curves(E1, E2):
     return (intermediate_domain, intermediate_codomain, pre_isom, post_isom)
 
 
-def compute_sequence_of_maps(E1, E2, ell):
+def compute_sequence_of_maps(E1, E2, ell, algorithm=None):
     r"""
     Given domain ``E1`` and codomain ``E2`` such that there is a
     degree ``ell`` separable normalized isogeny from ``E1`` to ``E2``,
     returns pre/post isomorphism, as well as intermediate domain and
     codomain, and kernel polynomial.
+
+    INPUT:
+    
+    - ``E1`` - an elliptic curve
+    - ``E2`` - an elliptic curve
+    - ``ell`` - the degree of the isogeny from ``E1`` to ``E2``.
+    - ``algorithm`` - the algorithm to use. Current available choices are ``BMSS``
+      and ``Stark``
+      (see :py:mod:`sage.schemes.elliptic_curves.ell_isogeny_char_zero`).
+      If ``None`` is given, the best algorithm is figured out automatically. 
+
+    OUTPUT:
+    
+    tuple -- (``pre_isomorphism``, ``post_isomorphism``, ``intermediate_domain``,
+              ``intermediate_codomain``, ``kernel_polynomial``):
 
     EXAMPLES::
 
@@ -3875,13 +3668,20 @@ def compute_sequence_of_maps(E1, E2, ell):
          Elliptic Curve defined by y^2 = x^3 + 52*x + 31 over Finite Field of size 97,
          Elliptic Curve defined by y^2 = x^3 + 41*x + 66 over Finite Field of size 97,
          x^5 + 67*x^4 + 13*x^3 + 35*x^2 + 77*x + 69)
-
+        
     """
 
     (E1pr, E2pr, pre_isom, post_isom) = compute_intermediate_curves(E1, E2)
 
-    ker_poly = compute_isogeny_kernel_polynomial(E1pr, E2pr, ell)
-
+    if algorithm is None or algorithm in ell_isogeny_char_zero.algorithm_names:
+        try:
+            ker_poly = ell_isogeny_char_zero.isogeny_kernel(E1pr, E2pr, ell, algorithm)
+        except ZeroDivisionError as e:
+            if not algorithm is None: raise e
+            else: raise NotImplementedError, "No algorithm working on fields of small characteristic is currently implemented."
+    else:
+        raise ValueError, "Unknown algorithm '%s'" %algorithm
+    
     return (pre_isom, post_isom, E1pr, E2pr, ker_poly)
 
 
