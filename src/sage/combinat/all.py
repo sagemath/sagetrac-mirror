@@ -125,6 +125,7 @@ from set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from necklace import Necklaces
+from bracelet import Bracelets
 from lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord
 from sloane_functions import sloane
