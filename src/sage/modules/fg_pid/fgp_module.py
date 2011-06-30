@@ -1214,7 +1214,7 @@ class FGP_Module_class(Module):
         # of our new optimized V, modulo the W's.
         A = V.basis_matrix().stack(self._W.basis_matrix())
         B, d = A._clear_denom()
-        H, U = B.hermite_form(transformation=True)
+        H, U = B.echelon_form(transformation=True)
         Y = H.solve_left(d*self._V.basis_matrix())
         T = Y * U.matrix_from_columns(range(V.rank()))
         self.__T = T
