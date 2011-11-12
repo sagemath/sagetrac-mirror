@@ -25,6 +25,7 @@ from maxima import maxima, Maxima
 #from maxima_lib import maxima_lib
 from mathematica import mathematica, mathematica_console, Mathematica
 from matlab import matlab, matlab_console, matlab_version, Matlab
+from msieve import msieve
 from mupad import mupad, mupad_console, Mupad  # NOT functional yet
 from mwrank import mwrank, Mwrank, mwrank_console
 from octave import octave, octave_console, octave_version, Octave
