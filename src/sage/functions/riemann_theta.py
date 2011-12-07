@@ -22,10 +22,11 @@ is defined by the infinite series
 
     \theta( z | \Omega ) = \sum_{ n \in \ZZ^g } e^{ 2 \pi i \left( \tfrac{1}{2} n \cdot \Omega n + n \cdot z \right) }
 
-It is holomorphic in both `z` and `\Omega`. It is quasiperiodic in `z` with respect to the lattice `{N+BM | N,M \in \ZZ^g}`, meaning that
-`\theta(z|\Omega)` is periodic upon translation of `z` by vectors in `\ZZ^g` and 
-periodic up to a multiplicative exponential factor upon translation of `z` by  
-vectors in `\Omega \ZZ^g`. As a consequence, `\theta(z | \Omega)` has
+It is holomorphic in both `z` and `\Omega`. It is quasiperiodic in `z` with
+respect to the lattice `\{ M + \Omega N | M,N \in \ZZ^g \}`, meaning that
+`\theta(z|\Omega)` is periodic upon translation of `z` by vectors in `\ZZ^g`
+and periodic up to a multiplicative exponential factor upon translation of `z`
+by vectors in `\Omega \ZZ^g`. As a consequence, `\theta(z | \Omega)` has
 exponential growth in the imaginary parts of `z`.
 
 When `g=1`, the Riemann theta function is the third Jacobi theta function.
@@ -36,7 +37,7 @@ When `g=1`, the Riemann theta function is the third Jacobi theta function.
 
 Riemann theta functions are the fundamental building blocks for Abelian 
 functions, which generalize the classical elliptic functions to multiple 
-variables. Like elliptic functions, Abelian function and consequently 
+variables. Like elliptic functions, Abelian functions and consequently 
 Riemann theta functions arise in many applications such as integrable
 partial differential equations, algebraic geometry, and optimization.
 
@@ -120,16 +121,17 @@ Symbolic evaluation and differentiation work::
     sage: CC(w)
     -6.26279686008491e11 - 4.65101957990761e20*I
 
-It it important to note that the absolute value of the "oscillatory" part 
-of the Riemann theta function grows polynomially with degree equal to the number of derivatives taken. (e.g. the absolute value of the 
-oscillatory part of the first directional derivative of the function grows linearly) Therefore, a radius of accuracy (Default: 5) must 
-be specified to ensure
-that the value of the derivative(s) of the Riemann theta function for `z` in a sphere of this radius in `\ZZ^g` are accurate
-to within the 
-desired numerical accuracy specified by the base field of the Riemann matrix.
+It is important to note that the absolute value of the "oscillatory" part 
+of the Riemann theta function grows polynomially with degree equal to the
+number of derivatives taken. (e.g. the absolute value of the oscillatory part
+of the first directional derivative of the function grows linearly) Therefore,
+a radius of accuracy (Default: 5) must be specified to ensure that the value
+of the derivative(s) of the Riemann theta function for `z` in a sphere of this
+radius in `\ZZ^g` are accurate to within the desired numerical accuracy
+specified by the base field of the Riemann matrix.
 
-This radius of accuracy for values of the derivatives of the Riemann theta function can
-be adjusted::
+This radius of accuracy for values of the derivatives of the Riemann theta
+function can be adjusted::
 
     sage: theta01 = RiemannTheta(Omega, deriv=[[0,1]], deriv_accuracy_radius=2)
     sage: theta01([0.3,0.4*I])   # guaranteed accurate to 20 bits
@@ -158,7 +160,7 @@ TESTS:
 
 - http://mathworld.wolfram.com/JacobiThetaFunctions.html
 
-- Digital Library of Mathematics Functions - Riemann Theta Functions ``http://dlmf.nist.gov/21``.
+- Digital Library of Mathematics Functions - Riemann Theta Functions ( http://dlmf.nist.gov/21 ).
  
 
 
@@ -460,7 +462,8 @@ class Function_RiemannTheta(BuiltinFunction):
         # require that Omega be symmetric and the imaginary part be positive
         # positive definite. The check for positive definiteness is inherent
         # in the computation of the Cholesky decomposition below
-        assert (self.Omega - self.Omega.transpose()).norm() < 10**(-15)
+        if (self.Omega - self.Omega.transpose()).norm() > 10**(-15):
+            raise ValueError("Riemann matrix is not symmetric.")
         
         # compute real and imaginary parts of the Riemann matrix as well as 
         # the Cholesky decomposition of the imaginary part
@@ -516,7 +519,7 @@ class Function_RiemannTheta(BuiltinFunction):
                    str(self.Omega) + "\nover the base ring " + str(self._ring)
         else:
             return "Derivative of Riemann theta function in the " + \
-                   str(self.deriv) + " with defining Riemann matrix\n" + \
+                   str(self.deriv) + " direction(s) with defining Riemann matrix\n" + \
                    str(self.Omega) + "\nover the base ring " + str(self._ring)
 
 
