@@ -136,7 +136,7 @@ be adjusted::
     2.6608e-8 - 3.4254*I
     sage: z = [1.7+2.3*I,3.9+1.7*I]
     sage: theta01(z)             # not guaranteed accurate to 20 bits
-    -1.0103e12 - 4.6132e11*I
+    -9.5887e11 - 4.7112e11*I
 
 TESTS:
 
@@ -325,7 +325,7 @@ def RiemannTheta_Constructor(Omega, deriv=[], uniform=True, deriv_accuracy_radiu
 
     TESTS:
 
-        sage: RiemannTheta_Constructor == RiemannTheta
+        sage: sage.functions.riemann_theta.RiemannTheta_Constructor == RiemannTheta
         True
     """
     # set __repr__ formatting
@@ -457,6 +457,11 @@ class Function_RiemannTheta(BuiltinFunction):
         self._prec     = self._ring.prec()
         self._realring = RealField(self._prec)
 
+        # require that Omega be symmetric and the imaginary part be positive
+        # positive definite. The check for positive definiteness is inherent
+        # in the computation of the Cholesky decomposition below
+        assert (self.Omega - self.Omega.transpose()).norm() < 10**(-15)
+        
         # compute real and imaginary parts of the Riemann matrix as well as 
         # the Cholesky decomposition of the imaginary part
         self._X = self.Omega.apply_map(lambda t: t.real()).change_ring(self._realring)
@@ -506,8 +511,13 @@ class Function_RiemannTheta(BuiltinFunction):
             over the base ring Complex Field with 36 bits of precision
 
         """
-        return "Riemann theta function with defining Riemann matrix\n" + \
-               str(self.Omega) + "\nover the base ring " + str(self._ring)
+        if self.deriv == []:
+            return "Riemann theta function with defining Riemann matrix\n" + \
+                   str(self.Omega) + "\nover the base ring " + str(self._ring)
+        else:
+            return "Derivative of Riemann theta function in the " + \
+                   str(self.deriv) + " with defining Riemann matrix\n" + \
+                   str(self.Omega) + "\nover the base ring " + str(self._ring)
 
 
     def lattice(self):
