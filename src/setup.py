@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+<<<<<<< HEAD
 import os, sys, time, errno, platform, subprocess
+=======
+import os, sys, time, errno, platform
+>>>>>>> First commit - added modified files
 from distutils.core import setup
 from distutils.extension import Extension
 from glob import glob, fnmatch
@@ -17,8 +21,11 @@ from warnings import warn
 
 from module_list import ext_modules
 import sage.ext.gen_interpreters
+<<<<<<< HEAD
 import warnings
 from sage.env import *
+=======
+>>>>>>> First commit - added modified files
 
 #########################################################
 ### Configuration
@@ -29,6 +36,23 @@ if len(sys.argv) > 1 and sys.argv[1] == "sdist":
 else:
     sdist = False
 
+<<<<<<< HEAD
+=======
+if not os.environ.has_key('SAGE_ROOT'):
+    print "    ERROR: The environment variable SAGE_ROOT must be defined."
+    sys.exit(1)
+else:
+    SAGE_ROOT  = os.environ['SAGE_ROOT']
+    SAGE_LOCAL = SAGE_ROOT + '/local'
+    SAGE_DEVEL = SAGE_ROOT + '/devel'
+    SAGE_INC   = SAGE_LOCAL + '/include/'
+
+if not os.environ.has_key('SAGE_VERSION'):
+    SAGE_VERSION=0
+else:
+    SAGE_VERSION = os.environ['SAGE_VERSION']
+
+>>>>>>> First commit - added modified files
 try:
     compile_result_dir = os.environ['XML_RESULTS']
     keep_going = True
@@ -36,6 +60,7 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
+<<<<<<< HEAD
 SAGE_INC = os.path.join(SAGE_LOCAL,'include')
 
 # search for dependencies and add to gcc -I<path>
@@ -46,6 +71,37 @@ include_dirs = [SAGE_INC,
 
 # search for dependencies only
 extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
+=======
+SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0])
+if not os.path.exists(SITE_PACKAGES):
+    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
+
+if not os.path.exists('build/sage'):
+    os.makedirs('build/sage')
+
+sage_link = SITE_PACKAGES + '/sage'
+if not os.path.islink(sage_link) or not os.path.exists(sage_link):
+    os.system('rm -rf "%s"'%sage_link)
+    os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
+
+# search for dependencies and add to gcc -I<path>
+include_dirs = ['%s/include'%SAGE_LOCAL,
+                '%s/include/csage'%SAGE_LOCAL,
+                '%s/sage/sage/ext'%SAGE_DEVEL]
+
+# search for dependencies only
+extra_include_dirs = ['%s/include/python%s'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0]),
+                      # finally, standard C/C++ include dirs
+                      '/usr/local/include/',
+                      '/usr/include']
+
+try:
+    from subprocess import Popen, PIPE
+    gccinclude = Popen(['gcc', '--print-file-name=include'], stdout=PIPE).communicate()[0]
+    extra_include_dirs.extend( gccinclude.splitlines() )
+except OSError:
+    pass
+>>>>>>> First commit - added modified files
 
 extra_compile_args = [ ]
 extra_link_args = [ ]
@@ -60,6 +116,7 @@ DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
 
+<<<<<<< HEAD
 # Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
 # as witnessed by a doctest in sage/libs/gap/element.pyx if the
 # compiler flag -Og is used. See also
@@ -71,6 +128,11 @@ if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.][89]' >/dev/null """, s
 # Generate interpreters
 
 sage.ext.gen_interpreters.rebuild(os.path.join(SAGE_SRC, 'sage', 'ext', 'interpreters'))
+=======
+# Generate interpreters
+
+sage.ext.gen_interpreters.rebuild(SAGE_DEVEL + '/sage/sage/ext/interpreters')
+>>>>>>> First commit - added modified files
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 
 
@@ -78,6 +140,10 @@ ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 ### Testing related stuff
 #########################################################
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> First commit - added modified files
 class CompileRecorder(object):
 
     def __init__(self, f):
@@ -135,7 +201,10 @@ import sage.misc.lazy_import_cache
 if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
     os.unlink(sage.misc.lazy_import_cache.get_cache_file())
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> First commit - added modified files
 ######################################################################
 # CODE for generating C/C++ code from Cython and doing dependency
 # checking, etc.  In theory distutils would run Cython, but I don't
@@ -143,12 +212,21 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # checking that we need.
 ######################################################################
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> First commit - added modified files
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
 # or explicitly touch them in the respective spkg's spkg-install.]
+<<<<<<< HEAD
 lib_headers = { "gmp":     [ os.path.join(SAGE_INC,'gmp.h') ],   # cf. #8664, #9896
                 "gmpxx":   [ os.path.join(SAGE_INC,'gmpxx.h') ]
+=======
+lib_headers = { "gmp":     [ SAGE_INC+"gmp.h" ],   # cf. #8664, #9896
+                "gmpxx":   [ SAGE_INC+"gmpxx.h" ]
+>>>>>>> First commit - added modified files
               }
 
 for m in ext_modules:
@@ -210,7 +288,11 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     commands may be run at the same time.
     """
     from multiprocessing import Pool
+<<<<<<< HEAD
     import fpickle_setup #doing this import will allow instancemethods to be pickable
+=======
+    import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
+>>>>>>> First commit - added modified files
     p = Pool(nthreads)
     process_command_results(p.imap(apply_pair, command_list))
 
@@ -251,9 +333,14 @@ def execute_list_of_commands(command_list):
     # normalize the command_list to handle strings correctly
     command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
+<<<<<<< HEAD
     # No need for more threads than there are commands, but at least one
     nthreads = min(len(command_list), nthreads)
     nthreads = max(1, nthreads)
+=======
+    # No need for more threads than there are commands
+    nthreads = min(len(command_list), nthreads)
+>>>>>>> First commit - added modified files
 
     def plural(n,noun):
         if n == 1:
@@ -283,6 +370,10 @@ def execute_list_of_commands(command_list):
 ##
 ########################################################################
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> First commit - added modified files
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
 from types import ListType, TupleType
@@ -489,6 +580,7 @@ class sage_build_ext(build_ext):
 
 
 #############################################
+<<<<<<< HEAD
 ###### Cythonize
 #############################################
 
@@ -532,12 +624,334 @@ if not sdist:
     open(version_file, 'w').write(Cython.__version__)
     print "Finished compiling Cython code (time = %s seconds)" % (time.time() - t)
     sys.stdout.flush()
+=======
+###### Dependency checking
+#############################################
+
+CYTHON_INCLUDE_DIRS=[
+    SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/',
+    SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/Deprecated/',
+]
+
+# matches any dependency
+import re
+dep_regex = re.compile(r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +([\w.]+) +cimport)|(?:include *[\'"]([^\'"]+)[\'"])|(?:cdef *extern *from *[\'"]([^\'"]+)[\'"]))', re.M)
+
+class DependencyTree:
+    """
+    This class stores all the information about the dependencies of a set of
+    Cython files. It uses a lot of caching so information only needs to be
+    looked up once per build.
+    """
+    def __init__(self):
+        self._last_parse = {}
+        self._timestamps = {}
+        self._deps = {}
+        self._deps_all = {}
+        self.root = "%s/devel/sage/" % SAGE_ROOT
+
+    def __getstate__(self):
+        """
+        Used for pickling.
+
+        Timestamps and deep dependencies may change between builds,
+        so we don't want to save those.
+        """
+        state = dict(self.__dict__)
+        state['_timestamps'] = {}
+        state['_deps_all'] = {}
+        return state
+
+    def __setstate__(self, state):
+        """
+        Used for unpickling.
+        """
+        self.__dict__.update(state)
+        self._timestamps = {}
+        self._deps_all = {}
+        self.root = "%s/devel/sage/" % SAGE_ROOT
+
+    def timestamp(self, filename):
+        """
+        Look up the last modified time of a file, with caching.
+        """
+        if filename not in self._timestamps:
+            try:
+                self._timestamps[filename] = os.path.getmtime(filename)
+            except OSError:
+                self._timestamps[filename] = 0
+        return self._timestamps[filename]
+
+    def parse_deps(self, filename, ext_module, verify=True):
+        """
+        Open a Cython file and extract all of its dependencies.
+
+        INPUT:
+            filename -- the file to parse
+            verify   -- only return existing files (default True)
+
+        OUTPUT:
+            list of dependency files
+        """
+        is_cython_file = lambda f:\
+            fnmatch.fnmatch(f,'*.pyx') or \
+            fnmatch.fnmatch(f,'*.pxd') or \
+            fnmatch.fnmatch(f,'*.pxi')
+
+        # only parse cython files
+        if not is_cython_file(filename):
+            return []
+
+        dirname = os.path.split(filename)[0]
+        deps = set()
+        if filename.endswith('.pyx'):
+            pxd_file = filename[:-4] + '.pxd'
+            if os.path.exists(pxd_file):
+                deps.add(pxd_file)
+
+        raw_deps = []
+        f = open(filename)
+        for m in dep_regex.finditer(open(filename).read()):
+            groups = m.groups()
+            modules = groups[0] or groups[1] # cimport or from ... cimport
+            if modules is not None:
+                for module in modules.split(','):
+                    module = module.strip().split(' ')[0] # get rid of 'as' clause
+                    if '.' in module:
+                        path = module.replace('.', '/') + '.pxd'
+                        base_dependency_name = path
+                    else:
+                        path = "%s/%s.pxd" % (dirname, module)
+                        base_dependency_name = "%s.pxd"%module
+                    raw_deps.append((path, base_dependency_name))
+            else: # include or extern from
+                extern_file = groups[2] or groups[3]
+                path = '%s/%s'%(dirname, extern_file)
+                if not os.path.exists(path):
+                    path = extern_file
+                raw_deps.append((path, extern_file))
+
+        for path, base_dependency_name in raw_deps:
+            # if we can find the file, add it to the dependencies.
+            path = os.path.normpath(path)
+            if os.path.exists(path):
+                deps.add(path)
+            # we didn't find the file locally, so check the
+            # Cython include path.
+            else:
+                found_include = False
+                for idir in ext_module.include_dirs + CYTHON_INCLUDE_DIRS + include_dirs + extra_include_dirs:
+                    new_path = os.path.normpath(idir + '/' + base_dependency_name)
+                    if os.path.exists(new_path):
+                        deps.add(new_path)
+                        found_include = True
+                        break
+                    new_path = os.path.normpath(idir + base_dependency_name[:-4] + "/__init__.pxd")
+                    if os.path.exists(new_path):
+                        deps.add(new_path)
+                        found_include = True
+                        break
+                # so we really couldn't find the dependency -- raise
+                # an exception.
+                if not found_include:
+                    msg = 'could not find dependency %s included in %s.'%(path, filename)
+                    if is_cython_file(filename):
+                        raise IOError, msg
+                    else:
+                        warnings.warn(msg+' I will assume it is a system C/C++ header.')
+        f.close()
+        return list(deps)
+
+    def immediate_deps(self, filename, ext_module):
+        """
+        Returns a list of files directly referenced by this file.
+        """
+        if (filename not in self._deps
+                or self.timestamp(filename) < self._last_parse[filename]):
+            self._deps[filename] = self.parse_deps(filename, ext_module)
+            self._last_parse[filename] = self.timestamp(filename)
+        return self._deps[filename]
+
+    def all_deps(self, filename, ext_module, path=None):
+        """
+        Returns all files directly or indirectly referenced by this file.
+
+        A recursive algorithm is used here to maximize caching, but it is
+        still robust for circular cimports (via the path parameter).
+        """
+        if filename not in self._deps_all:
+            circular = False
+            deps = set([filename])
+            if path is None:
+                path = set([filename])
+            else:
+                path.add(filename)
+            for f in self.immediate_deps(filename, ext_module):
+                if f not in path:
+                    deps.update(self.all_deps(f, ext_module, path))
+                else:
+                    circular = True
+            path.remove(filename)
+            if circular:
+                return deps # Don't cache, as this may be incomplete
+            else:
+                self._deps_all[filename] = deps
+        return self._deps_all[filename]
+
+    def newest_dep(self, filename, ext_module):
+        """
+        Returns the most recently modified file that filename depends on,
+        along with its timestamp.
+        """
+        nfile = filename
+        ntime = self.timestamp(filename)
+        for f in self.all_deps(filename, ext_module):
+            if self.timestamp(f) > ntime:
+                nfile = f
+                ntime = self.timestamp(f)
+        return nfile, ntime
+
+
+#############################################
+###### Build code
+#############################################
+
+def process_filename(f, m):
+    base, ext = os.path.splitext(f)
+    if ext == '.pyx':
+        if m.language == 'c++':
+            return base + '.cpp'
+        else:
+            return base + '.c'
+    else:
+        return f
+
+def compile_command0(p):
+    """
+    Given a pair p = (f, m), with a .pyx file f which is a part the
+    module m, call Cython on f
+
+    INPUT:
+         p -- a 2-tuple f, m
+
+    copy the file to SITE_PACKAGES, and return a string
+    which will call Cython on it.
+    """
+    f, m = p
+    if f.endswith('.pyx'):
+        # process cython file
+
+        # find the right filename
+        outfile = f[:-4]
+        if m.language == 'c++':
+            outfile += ".cpp"
+            cplus = '--cplus'
+        else:
+            outfile += ".c"
+            cplus = ''
+
+        # call cython, abort if it failed
+        cmd = "python `which cython` %s --old-style-globals --disable-function-redefinition --embed-positions --directive cdivision=True,autotestdict=False,fast_getattr=True -I%s -o %s %s"%(cplus, os.getcwd(), outfile, f)
+        r = run_command(cmd)
+        if r:
+            return r
+
+        # if cython worked, copy the file to the build directory
+        pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
+        retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+        # we could do this more elegantly -- load the files, use
+        # os.path.exists to check that they exist, etc. ... but the
+        # *vast* majority of the time, the copy just works. so this is
+        # just specializing for the most common use case.
+        if retval:
+            dirname, filename = os.path.split(pyx_inst_file)
+            try:
+                os.makedirs(dirname)
+            except OSError, e:
+                assert e.errno==errno.EEXIST, 'Cannot create %s.' % dirname
+            retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+            if retval:
+                raise OSError, "cannot copy %s to %s"%(f,pyx_inst_file)
+        print "%s --> %s"%(f, pyx_inst_file)
+
+    elif f.endswith(('.c','.cc','.cpp')):
+        # process C/C++ file
+        cmd = "touch %s"%f
+        r = run_command(cmd)
+
+    return r
+
+# Can't pickle decorated functions.
+compile_command = record_compile(compile_command0)
+
+
+def compile_command_list(ext_modules, deps):
+    """
+    Computes a list of commands needed to compile and link the
+    extension modules given in 'ext_modules'
+    """
+    queue_compile_high = []
+    queue_compile_med = []
+    queue_compile_low = []
+
+    for m in ext_modules:
+        new_sources = []
+        for f in m.sources:
+            if f.endswith('.pyx'):
+                dep_file, dep_time = deps.newest_dep(f,m)
+                dest_file = "%s/%s"%(SITE_PACKAGES, f)
+                dest_time = deps.timestamp(dest_file)
+                if dest_time < dep_time:
+                    if dep_file == f:
+                        print "Building modified file %s."%f
+                        queue_compile_high.append([compile_command, (f,m)])
+                    elif dep_file == (f[:-4] + '.pxd'):
+                        print "Building %s because it depends on %s."%(f, dep_file)
+                        queue_compile_med.append([compile_command, (f,m)])
+                    else:
+                        print "Building %s because it depends on %s."%(f, dep_file)
+                        queue_compile_low.append([compile_command, (f,m)])
+            new_sources.append(process_filename(f, m))
+        m.sources = new_sources
+    return queue_compile_high + queue_compile_med + queue_compile_low
+
+
+## Note: the DependencyTree object created below was designed with
+## the intention of pickling it and saving it between builds. However,
+## this wasn't robust enough to handle all of the various cases we
+## run into with the Sage build process, so caching of this information
+## has been temporarily disabled (see trac #4647 and trac #4651). If
+## you want to try this out, uncomment all the lines that begin with
+## two hash marks below, and comment out the line that says
+## "deps = DependencyTree()".
+
+##import cPickle as pickle
+##CYTHON_DEPS_FILE='.cython_deps'
+
+if not sdist:
+    print "Updating Cython code...."
+    t = time.time()
+    ## try:
+    ##     f = open(CYTHON_DEPS_FILE)
+    ##     deps = pickle.load(open(CYTHON_DEPS_FILE))
+    ##     f.close()
+    ## except:
+    ##     deps = DependencyTree()
+    deps = DependencyTree()
+    queue = compile_command_list(ext_modules, deps)
+    execute_list_of_commands(queue)
+    ## f = open(CYTHON_DEPS_FILE, 'w')
+    ## pickle.dump(deps, f)
+    ## f.close()
+    print "Finished compiling Cython code (time = %s seconds)"%(time.time() - t)
+>>>>>>> First commit - added modified files
 
 
 #########################################################
 ### Distutils
 #########################################################
 
+<<<<<<< HEAD
 def python_packages():
     packages = []
     root = os.path.join(os.path.dirname(__file__))
@@ -546,6 +960,8 @@ def python_packages():
             packages.append(dirpath.replace(os.path.sep, '.'))
     return packages
 
+=======
+>>>>>>> First commit - added modified files
 code = setup(name = 'sage',
 
       version     =  SAGE_VERSION,
@@ -560,12 +976,177 @@ code = setup(name = 'sage',
 
       url         = 'http://www.sagemath.org',
 
+<<<<<<< HEAD
       packages    = python_packages(),
 
+=======
+      packages    = ['sage',
+
+                     'sage.algebras',
+                     'sage.algebras.quatalg',
+                     'sage.algebras.steenrod',
+
+                     'sage.calculus',
+
+                     'sage.categories',
+                     'sage.categories.examples',
+
+                     'sage.coding',
+                     'sage.coding.source_coding',
+
+                     'sage.combinat',
+                     'sage.combinat.crystals',
+                     'sage.combinat.designs',
+                     'sage.combinat.sf',
+                     'sage.combinat.root_system',
+                     'sage.combinat.matrices',
+                     'sage.combinat.posets',
+                     'sage.combinat.species',
+
+                     'sage.combinat.words',
+
+                     'sage.combinat.iet',
+
+                     'sage.crypto',
+                     'sage.crypto.block_cipher',
+                     'sage.crypto.mq',
+                     'sage.crypto.public_key',
+
+                     'sage.databases',
+
+                     'sage.ext',
+                     'sage.ext.interpreters',
+
+                     'sage.finance',
+
+                     'sage.functions',
+
+                     'sage.geometry',
+                     'sage.geometry.triangulation',
+
+                     'sage.games',
+
+                     'sage.gsl',
+
+                     'sage.graphs',
+                     'sage.graphs.base',
+                     'sage.graphs.modular_decomposition',
+                     'sage.graphs.graph_decompositions',
+
+                     'sage.groups',
+                     'sage.groups.abelian_gps',
+                     'sage.groups.additive_abelian',
+                     'sage.groups.matrix_gps',
+                     'sage.groups.perm_gps',
+                     'sage.groups.perm_gps.partn_ref',
+
+                     'sage.homology',
+
+                     'sage.interacts',
+
+                     'sage.interfaces',
+
+                     'sage.lfunctions',
+
+                     'sage.libs',
+                     'sage.libs.fplll',
+                     'sage.libs.linbox',
+                     'sage.libs.mwrank',
+                     'sage.libs.ntl',
+                     'sage.libs.flint',
+                     'sage.libs.pari',
+                     'sage.libs.singular',
+                     'sage.libs.symmetrica',
+                     'sage.libs.cremona',
+                     'sage.libs.mpmath',
+                     'sage.libs.lcalc',
+
+                     'sage.logic',
+
+                     'sage.matrix',
+                     'sage.media',
+                     'sage.misc',
+
+                     'sage.modules',
+                     'sage.modules.fg_pid',
+
+                     'sage.modular',
+                     'sage.modular.arithgroup',
+                     'sage.modular.abvar',
+                     'sage.modular.hecke',
+                     'sage.modular.modform',
+                     'sage.modular.modsym',
+                     'sage.modular.quatalg',
+                     'sage.modular.ssmod',
+                     'sage.modular.overconvergent',
+                     'sage.modular.overconvergent.pollack',
+
+                     'sage.monoids',
+
+                     'sage.numerical',
+                     'sage.numerical.backends',
+
+                     'sage.plot',
+                     'sage.plot.plot3d',
+
+                     'sage.probability',
+
+                     'sage.quadratic_forms',
+                     'sage.quadratic_forms.genera',
+
+                     'sage.rings',
+                     'sage.rings.finite_rings',
+                     'sage.rings.number_field',
+                     'sage.rings.padics',
+                     'sage.rings.polynomial',
+                     'sage.rings.polynomial.padics',
+                     'sage.rings.semirings',
+
+                     'sage.tests',
+                     'sage.tests.french_book',
+
+                     'sage.sandpiles',
+
+                     'sage.sets',
+
+                     'sage.stats',
+
+                     'sage.stats.hmm',
+
+                     'sage.symbolic',
+                     'sage.symbolic.integration',
+
+                     'sage.parallel',
+
+                     'sage.schemes',
+                     'sage.schemes.generic',
+                     'sage.schemes.jacobians',
+                     'sage.schemes.plane_curves',
+                     'sage.schemes.plane_conics',
+                     'sage.schemes.plane_quartics',
+                     'sage.schemes.elliptic_curves',
+                     'sage.schemes.hyperelliptic_curves',
+
+                     'sage.server',
+                     'sage.server.simple',
+                     'sage.server.notebook',
+                     'sage.server.notebook.compress',
+                     'sage.server.wiki',
+                     'sage.server.trac',
+
+                     'sage.structure',
+                     'sage.structure.proof',
+
+                     'sage.tensor'
+                     ],
+>>>>>>> First commit - added modified files
       scripts = [],
 
       cmdclass = { 'build_ext': sage_build_ext },
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)
+<<<<<<< HEAD
 
+=======
+>>>>>>> First commit - added modified files
