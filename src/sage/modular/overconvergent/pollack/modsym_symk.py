@@ -367,7 +367,7 @@ class modsym_symk(modsym):
 
         EXAMPLES:
         """
-        L = E.padic_lseries(3)  #should this be p?
+        L = E.padic_lseries(3)  #initializing the L-function at 3 to access mod sym data
         N = E.conductor()
         manin = manin_relations(N)
         v = []
