@@ -5,21 +5,44 @@ from sage.matrix.all import Matrix
 
 class modsym_symk(modsym):
 
+    ### self is a modular symbol taking values in Sym^k(K^2), where
+    ### K is a finite extension of Q
+
     def ms(self):
         r"""
         Demotes to a regular modular symbol
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         return modsym(self.level,self.data,self.manin)
         
     def weight(self):
         r"""
         Returns the weight of any value of self
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         return self.data[0].weight
 
     def base_ring(self):
         r"""
         Returns the base ring of self
+
+        INPUT:
+        
+        OUTPUT:
+
+        EXAMPLES:
         """
         return self.data[0].base_ring
 
@@ -28,13 +51,29 @@ class modsym_symk(modsym):
         Returns the valuation of self at `p` -- i.e. the exponent of the 
         largest power of `p` which divides all of the coefficients of all 
         values of self
+
+        INPUT:
+            - ``p`` -- prime
+
+        OUTPUT:
+
+        EXAMPLES:
         """
         v = self.data
         return min([v[j].valuation(p) for j in range(len(v))])
 
     def p_stabilize(self,p,alpha):
         r"""
-        `p`-stablizes self to form an eigensymbol for `U_p` with eigenvalue alpha
+        `p`-stablizes self to form an eigensymbol for `U_p` with eigenvalue `alpha`
+
+        INPUT:
+            - ``p`` -- prime of good reduction
+            - ``alpha`` -- eigenvalue for `U_p`
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         N = self.level
         assert N%p<>0, "The level isn't prime to p"
@@ -49,6 +88,16 @@ class modsym_symk(modsym):
     def p_stabilize_ordinary(self,p,ap,M):
         r"""
         Returns the unique `p`-ordinary `p`-stabilization of self
+
+        INPUT:
+            - ``p`` -- good ordinary prime
+            - ``ap`` -- Hecke eigenvalue
+            - ``M`` -- precision of `Q_p`
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         N = self.level
         k = self.data[0].weight
@@ -70,6 +119,16 @@ class modsym_symk(modsym):
 
     def p_stabilize_critical(self,p,ap,M):
         r"""
+
+        INPUT:
+            - ``p`` -- good ordinary prime
+            - ``ap`` -- Hecke eigenvalue
+            - ``M`` -- precision of `Q_p`
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         N = self.level
         assert N%p<>0, "The level isn't prime to p"
@@ -91,6 +150,16 @@ class modsym_symk(modsym):
     def is_Tq_eigen(self,q,p,M):
         r"""
         Determines if self is an eigenvector for `T_q` modulo `p^M`
+
+        INPUT:
+            - ``q`` --
+            - ``p`` --
+            - ``M`` -- 
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         selfq = self.hecke(q)
         r = 0
@@ -112,6 +181,14 @@ class modsym_symk(modsym):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments 
         which lifts self up to an Eisenstein error
+
+        INPUT:
+            - ``p`` -- 
+            - ``M`` --
+
+        OUTPUT:
+
+        EXAMPLES:
         """
         v = []
         # this loop runs through each generator and lifts the value of 
@@ -139,7 +216,7 @@ class modsym_symk(modsym):
         t = v[0].zero()
                 
         # this loops adds up around the boundary of fundamental domain 
-        # except the two verticle lines
+        # except the two vertical lines
         for j in range(2,len(self.manin.rels)):
             R = self.manin.rels[j]
             if len(R) == 1:
@@ -160,6 +237,15 @@ class modsym_symk(modsym):
         r"""
         Returns Hecke-eigensymbol OMS lifting `phi` -- `phi` must be a 
         `p`-ordinary eigensymbol
+
+        INPUT:
+            - ``p`` --
+            - ``M`` --
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         v = self.is_Tq_eigen(p,p,M)
         assert v[0], "not eigen at p!"
@@ -224,6 +310,16 @@ class modsym_symk(modsym):
 
     def map(self,psi):
         r"""
+
+        Applies psi to all polynomial coefficients of self and lifts them to `QQ`
+
+        INPUT:
+            - ``psi`` -- map from `K` to `Q_p` 
+        
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         v = [self.data[j].map(psi) for j in range(len(self.data))]
         return modsym_symk(self.level,v,self.manin)
@@ -234,6 +330,14 @@ class modsym_symk(modsym):
         `K-->Q_p` and applies them to self return a vector of 
         <modular symbol,map: `K-->Q_p`> as map varies over all such maps.  
         `M` is the accuracy
+
+        INPUT:
+            - ``p`` --
+            - ``M`` --
+
+        OUTPUT:
+
+        EXAMPLES:
         """
         K = self.base_ring()
         f = K.defining_polynomial()
@@ -254,6 +358,14 @@ class modsym_symk(modsym):
     def form_modsym_from_elliptic_curve(E):
         r"""
         Returns the modular symbol (in the sense of Stevens) associated to `E`
+        
+        INPUT:
+            - ``E`` --
+   
+
+        OUTPUT:
+
+        EXAMPLES:
         """
         L = E.padic_lseries(3)  #should this be p?
         N = E.conductor()
@@ -280,6 +392,14 @@ class modsym_symk(modsym):
         r"""
         `A` is a piece of the result from a command like 
         ModularSymbols(---).decomposition()
+        
+        INPUT:
+            - ``A`` -- 
+
+        OUTPUT:
+
+        EXAMPLES:
+
         """
         M = A.ambient_module()
         N = A.level()
@@ -313,6 +433,14 @@ class modsym_symk(modsym):
         """
         M.Greenberg method of lifting one step at a time -- slower in these 
         programs because of how I optimized things
+
+        INPUT:
+            - ``p`` --
+            - ``ap`` --
+
+        OUTPUT:
+
+        EXAMPLES:
         """
         k = self.weight()
         ans = []
