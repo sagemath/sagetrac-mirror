@@ -1078,6 +1078,7 @@ code = setup(name = 'sage',
                      'sage.modular.modsym',
                      'sage.modular.quatalg',
                      'sage.modular.ssmod',
+                     'sage.modular.btquotients',
                      'sage.modular.overconvergent',
                      'sage.modular.overconvergent.pollack',
 
