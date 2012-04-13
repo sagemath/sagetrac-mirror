@@ -1,189 +1,5 @@
 from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
 
-@cached_function
-def invert(a,b,c,d):
-    """
-    Takes the numbers a,b,c,d and returns the inverse to the matrix [a,b;c,d].  
-    Here ad-bc is assumed to be 1
-        
-    INPUT:
-        a,b,c,d -- integers such that ad-bc=1
-        
-    OUTPUT:
-        a 2x2 integer matrix
-
-    EXAMPLES:
-    """
-    return Matrix(2,2,[d,-b,-c,a])
-
-@cached_function
-def unimod_matrices_to_infty(r,s):
-    """
-    Returns a list of matrices whose associated unimodular paths connect r/s to infty.
-    (This is Manin's continued fraction trick.)
-        
-    INPUT:
-        r,s -- rational numbers
-        
-    OUTPUT:
-        a list of SL_2(Z) matrices
-
-    EXAMPLES:
-    """
-    if s!=0:
-        v = []  ## Initializes the list of matrices
-# the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
-# is very, very relevant to massively optimizing this.
-        list = convergents(r/s)  ## Computes the continued fraction convergents of r/s
-        ## This loop 
-        for j in range(0,len(list)-1):
-            a = list[j].numerator()
-            c = list[j].denominator()
-            b = list[j+1].numerator()
-            d = list[j+1].denominator()
-            v = v + [Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]])]  ## The matrix connecting two consecutive convergents is added on
-        return [Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]])]+v
-    else:
-        return []
-        
-def flip(A):
-    """
-    Takes the matrix [a,b;c,d] and returns [-c,a;-d,b] -- i.e. reverses the orientation of the associated unimodular path        
-
-    INPUT:
-        A -- 2 x 2 matrix
-        
-    OUTPUT:
-        2 x 2 matrix
-
-    EXAMPLES:
-    """
-    return Matrix(2,2,[-A[0,1],A[0,0],-A[1,1],A[1,0]])
-
-@cached_function
-def unimod_matrices_from_infty(r,s):
-    """
-    Returns a list of matrices whose associated unimodular paths connect r/s to infty.
-    (This is Manin's continued fraction trick.)
-        
-    INPUT:
-        r,s -- rational numbers
-        
-    OUTPUT:
-        a list of SL_2(Z) matrices
-
-    EXAMPLES:
-    """        
-    if s != 0:
-        v = []
-# the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
-# is very, very relevant to massively optimizing this.
-        list = convergents(QQ(r)/s)  
-        for j in range(0,len(list)-1):
-            a = list[j].numerator()
-            c = list[j].denominator()
-            b = list[j+1].numerator()
-            d = list[j+1].denominator()
-            v = v + [flip(Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]]))]
-        return [flip(Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]]))]+v
-    else:
-        return []
-
-
-def basic_hecke_matrix(a,ell):
-    """
-    Returns the matrix [1,a;0,ell] (if a<ell) and [ell,0;0,1] if a>=ell
-
-    INPUT:
-        a -- an integer or Infinity
-        ell -- a prime
-        
-    OUTPUT:
-        a 2 x 2 matrix of determinant ell
-
-    EXAMPLES:
-    """
-    if a < ell:
-        return Matrix(2,2,[1,a,0,ell])
-    else:
-        return Matrix(2,2,[ell,0,0,1])
-
-@cached_function
-def prep_hecke_individual(ell,M,m):
-    """
-    This function does some precomputations needed to compute T_ell.  In particular,
-    if phi is a modular symbol and D_m is the divisor associated to our m-th chosen 
-    generator, to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
-    gam_a run thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
-    as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
-    SL_2 matrix, we then write M=gam*M_i where gam is in Gamma_0(N) and M_i is one of our
-    chosen coset representatives.  Then phi([M]) = phi([M_i]) | gam^(-1).  Thus, one has
-    
-        (phi | gam_a)(D_m) = sum_i sum_j phi([M_i]) | gam_{ij}^(-1) * gam_a
-
-    as i runs over the indices of all coset representatives and j simply runs over however many
-    times M_i appears in the above computation.  
-
-    Finally, the output of this function is a list L enumerated by the coset representatives 
-    in M.coset_reps() where each element of this list is a list of matrices, and the entries of L
-    satisfy:
-
-        L[i][j] = gam_{ij} * gam_a  
-
-    INPUT:
-        ell -- a prime
-        M -- Manin relations of level N
-        m -- index of a generator 
-        
-    OUTPUT:
-	A list of lists (see above).
-
-    EXAMPLES:
-    """
-
-    N = M.level()
-    ans = [[] for a in range(len(M.coset_reps()))]  ## this will be the list L above enumerated by coset reps
-
-    ##  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1,a,0,ell] and carry out the computation
-    ##  described above.
-    ##  -------------------------------------
-    for a in range(ell+1):
-	if (a<ell) or (N%ell!=0):   ## if the level is not prime to ell the matrix [ell,0,0,1] is avoided.
-           gama = basic_hecke_matrix(a,ell)
-           t = gama*M.coset_reps(M.generator_indices(m))  ##  In the notation above this is gam_a * D_m
-           v = unimod_matrices_from_infty(t[0,0],t[1,0]) + unimod_matrices_to_infty(t[0,1],t[1,1])  ##  This expresses t as a sum of unimodular divisors
-
-           ## This loop runs over each such unimodular divisor
-           ## ------------------------------------------------
-           for b in range(len(v)):
-               A = v[b]    ##  A is the b-th unimodular divisor
-               i = M.P1().index(A[1,0],A[1,1])      ##  i is the index in SAGE P1 of the bottom row of A
-               j = M.P1_to_mats(i)                  ##  j is the index of our coset rep equivalent to A
-               B = M.coset_reps(j)                    ##  B is that coset rep
-               C = invert(A[0,0],A[0,1],A[1,0],A[1,1])   ##  C equals A^(-1).  This is much faster than just inverting thru SAGE
-               gaminv = B * C                              ##  gaminv = B*A^(-1)
-               ans[j] = ans[j] + [gaminv * gama]             ##  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
-
-    return ans
-
-@cached_function
-def prep_hecke(ell,M):
-    """
-    Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
-
-    INPUT:
-        ell -- a prime
-        M -- Manin relations of level N
-        
-    OUTPUT:
-	A list of lists of lists
-
-    EXAMPLES:
-    """
-    ans = []
-    for m in range(len(M.generator_indices())):
-        ans = ans + [prep_hecke_individual(ell,M,m)]
-    return ans
             
 
 ##############################
@@ -721,3 +537,187 @@ class modsym(SageObject):
             t=t+self.data(rj).act_right(R[0][1]).scale(R[0][0])
         return self.data(0)-self.data(0).act_right(Matrix(2,2,[1,1,0,1]))+t
 
+
+    @cached_function
+    def invert(a,b,c,d):
+        """
+        Takes the numbers a,b,c,d and returns the inverse to the matrix [a,b;c,d].  
+        Here ad-bc is assumed to be 1
+            
+        INPUT:
+            a,b,c,d -- integers such that ad-bc=1
+        
+        OUTPUT:
+            a 2x2 integer matrix
+
+        EXAMPLES:
+        """
+        return Matrix(2,2,[d,-b,-c,a])
+
+    @cached_function
+    def unimod_matrices_to_infty(r,s):
+        """
+        Returns a list of matrices whose associated unimodular paths connect r/s to infty.
+        (This is Manin's continued fraction trick.)
+        
+        INPUT:
+            r,s -- rational numbers
+        
+        OUTPUT:
+            a list of SL_2(Z) matrices
+
+        EXAMPLES:
+        """
+        if s!=0:
+            v = []  ## Initializes the list of matrices
+# the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
+# is very, very relevant to massively optimizing this.
+            list = convergents(r/s)  ## Computes the continued fraction convergents of r/s
+            for j in range(0,len(list)-1):
+                a = list[j].numerator()
+                c = list[j].denominator()
+                b = list[j+1].numerator()
+                d = list[j+1].denominator()
+                v = v + [Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]])]  ## The matrix connecting two consecutive convergents is added on
+            return [Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]])]+v
+        else:
+            return []
+        
+    def flip(A):
+        """
+        Takes the matrix [a,b;c,d] and returns [-c,a;-d,b] -- i.e. reverses the orientation of the associated unimodular path        
+
+        INPUT:
+            A -- 2 x 2 matrix
+        
+        OUTPUT:
+            2 x 2 matrix
+
+        EXAMPLES:
+        """
+        return Matrix(2,2,[-A[0,1],A[0,0],-A[1,1],A[1,0]])
+
+    @cached_function
+    def unimod_matrices_from_infty(r,s):
+        """
+        Returns a list of matrices whose associated unimodular paths connect r/s to infty.
+        (This is Manin's continued fraction trick.)
+        
+        INPUT:
+            r,s -- rational numbers
+        
+        OUTPUT:
+            a list of SL_2(Z) matrices
+
+        EXAMPLES:
+        """        
+        if s != 0:
+            v = []
+# the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
+# is very, very relevant to massively optimizing this.
+            list = convergents(QQ(r)/s)  
+            for j in range(0,len(list)-1):
+                a = list[j].numerator()
+                c = list[j].denominator()
+                b = list[j+1].numerator()
+                d = list[j+1].denominator()
+                v = v + [flip(Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]]))]
+            return [flip(Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]]))]+v
+        else:
+            return []
+
+
+    def basic_hecke_matrix(a,ell):
+        """
+        Returns the matrix [1,a;0,ell] (if a<ell) and [ell,0;0,1] if a>=ell
+
+        INPUT:
+            a -- an integer or Infinity
+            ell -- a prime
+        
+        OUTPUT:
+            a 2 x 2 matrix of determinant ell
+
+        EXAMPLES:
+        """
+        if a < ell:
+            return Matrix(2,2,[1,a,0,ell])
+        else:
+            return Matrix(2,2,[ell,0,0,1])
+
+    @cached_function
+    def prep_hecke_individual(ell,M,m):
+    """
+        This function does some precomputations needed to compute T_ell.  In particular,
+        if phi is a modular symbol and D_m is the divisor associated to our m-th chosen 
+        generator, to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
+        gam_a run thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
+        as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
+        SL_2 matrix, we then write M=gam*M_i where gam is in Gamma_0(N) and M_i is one of our
+        chosen coset representatives.  Then phi([M]) = phi([M_i]) | gam^(-1).  Thus, one has
+    
+            (phi | gam_a)(D_m) = sum_i sum_j phi([M_i]) | gam_{ij}^(-1) * gam_a
+
+        as i runs over the indices of all coset representatives and j simply runs over however many
+        times M_i appears in the above computation.  
+
+        Finally, the output of this function is a list L enumerated by the coset representatives 
+        in M.coset_reps() where each element of this list is a list of matrices, and the entries of L
+        satisfy:
+
+            L[i][j] = gam_{ij} * gam_a  
+
+        INPUT:
+            ell -- a prime
+            M -- Manin relations of level N
+            m -- index of a generator 
+        
+        OUTPUT:
+        	 A list of lists (see above).
+
+        EXAMPLES:
+        """
+
+        N = M.level()
+        ans = [[] for a in range(len(M.coset_reps()))]  ## this will be the list L above enumerated by coset reps
+
+        ##  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1,a,0,ell] and carry out the computation
+        ##  described above.
+        ##  -------------------------------------
+        for a in range(ell+1):
+           if (a<ell) or (N%ell!=0):   ## if the level is not prime to ell the matrix [ell,0,0,1] is avoided.
+               gama = basic_hecke_matrix(a,ell)
+               t = gama*M.coset_reps(M.generator_indices(m))  ##  In the notation above this is gam_a * D_m
+               v = unimod_matrices_from_infty(t[0,0],t[1,0]) + unimod_matrices_to_infty(t[0,1],t[1,1])  ##  This expresses t as a sum of unimodular divisors
+
+               ## This loop runs over each such unimodular divisor
+               ## ------------------------------------------------
+               for b in range(len(v)):
+                   A = v[b]    ##  A is the b-th unimodular divisor
+                   i = M.P1().index(A[1,0],A[1,1])      ##  i is the index in SAGE P1 of the bottom row of A
+                   j = M.P1_to_mats(i)                  ##  j is the index of our coset rep equivalent to A
+                   B = M.coset_reps(j)                    ##  B is that coset rep
+                   C = invert(A[0,0],A[0,1],A[1,0],A[1,1])   ##  C equals A^(-1).  This is much faster than just inverting thru SAGE
+                   gaminv = B * C                              ##  gaminv = B*A^(-1)
+                   ans[j] = ans[j] + [gaminv * gama]             ##  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
+
+        return ans
+
+    @cached_function
+    def prep_hecke(ell,M):
+        """
+        Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
+
+        INPUT:
+            ell -- a prime
+            M -- Manin relations of level N
+        
+        OUTPUT:
+            A list of lists of lists
+
+        EXAMPLES:
+        """
+        ans = []
+        for m in range(len(M.generator_indices())):
+            ans = ans + [prep_hecke_individual(ell,M,m)]
+        return ans

@@ -343,13 +343,54 @@ class manin_relations(SageObject):
     def level(self):
 	r"""
 	Returns the level `N` of `\Gamma_0(N)` that we work with.
+
+        INPUT:
+            - none
+
+        OUTPUT:
+        
+        The integer `N` of the group `\Gamma_0(N)` for which the Manin Relations are being computed.
+
+        EXAMPLES:                        
+        ::        
+            sage: A = manin_relations(11)
+            sage: A.level()
+            11
+
 	"""
 	return self.__N
 
     def coset_reps(self,n=None):
 	r"""
-	Returns the list (or individual) coset_reps created out of the constructed fundamental 
-        domain for Gamma_0(N)
+	Returns the n-th coset rep associated with our fundamental domain or all coset reps if n is not specified.
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        If n is given then the n-th coset representative is returned and otherwise all coset reps are returned.
+
+        EXAMPLES:                        
+        ::        
+            sage: A.coset_reps(0)
+            [1 0]
+            [0 1]
+            sage: A.coset_reps(1)
+            [ 1  1]
+            [-1  0]
+            sage: A.coset_reps(2)
+            [ 0 -1]
+            [ 1  3]
+            sage: A.coset_reps()
+            [
+            [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [ 1 -1]  [-1 -1]
+            [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1], [-1  2], [ 2  1],
+
+            [ 1  0]  [ 0 -1]  [ 1  0]  [ 0 -1]
+            [-1  1], [ 1  1], [-2  1], [ 1  2]
+            ]
+
 	"""
         if n is None:
             return deepcopy(self.__mats)
