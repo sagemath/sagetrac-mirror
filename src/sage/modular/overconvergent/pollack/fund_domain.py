@@ -351,8 +351,10 @@ class manin_relations(SageObject):
         
         The integer `N` of the group `\Gamma_0(N)` for which the Manin Relations are being computed.
 
-        EXAMPLES:                        
-        ::        
+        EXAMPLES:
+                        
+        ::
+
             sage: A = manin_relations(11)
             sage: A.level()
             11
@@ -371,8 +373,10 @@ class manin_relations(SageObject):
         
         If n is given then the n-th coset representative is returned and otherwise all coset reps are returned.
 
-        EXAMPLES:                        
-        ::        
+        EXAMPLES:
+                       
+        ::
+
             sage: A.coset_reps(0)
             [1 0]
             [0 1]
