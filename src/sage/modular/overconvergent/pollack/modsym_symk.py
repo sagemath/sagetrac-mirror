@@ -10,80 +10,173 @@ class modsym_symk(modsym):
 
     def ms(self):
         r"""
-        Demotes to a regular modular symbol
+        Demotes self from a modsym_symk type to a modsym type.
 
         INPUT:
+        
+            - ``phi`` - modsym_symk
 
         OUTPUT:
 
+        The same modular symbol phi but now simply thought of as a modsym type.
+
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: type(phi)
+        <class '__main__.modsym_symk'>
+        sage: psi=phi.ms(); psi
+        [-1/5, 3/2, -1/2]
+        sage: type(psi)
+        <class '__main__.modsym'>
+
         """
-        return modsym(self.level,self.data,self.manin)
+        return modsym(self.data(),self.manin())
         
     def weight(self):
         r"""
-        Returns the weight of any value of self
+        Returns the weight of any value of self.
 
         INPUT:
 
+            - ``phi`` - A Sym^k-valued modular symbols
+
         OUTPUT:
+
+        The weight of a value of self.
 
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.weight()
+        0
+
         """
-        return self.data[0].weight
+        return self.data(0).weight()
 
     def base_ring(self):
         r"""
         Returns the base ring of self
 
         INPUT:
+   
+            none
         
         OUTPUT:
 
+        The ring containing the coefficients of the values of self.
+
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.base_ring()
+        Rational Field
+
         """
-        return self.data[0].base_ring
+        return self.data(0).base_ring()
 
     def valuation(self,p):
         r"""
-        Returns the valuation of self at `p` -- i.e. the exponent of the 
-        largest power of `p` which divides all of the coefficients of all 
-        values of self
+        Returns the valuation of self at `p`.
+
+        Here the valuation if the exponent of the largest power of `p` 
+        which divides all of the coefficients of all values of self.
 
         INPUT:
-            - ``p`` -- prime
+            - ``p`` - prime
 
         OUTPUT:
 
+        The valuation of self at `p`
+
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.valuation(2)
+        -1
+        sage: phi.valuation(3)
+        0
+        sage: phi.valuation(5)
+        -1
+        sage: phi.valuation(7)
+        0
+
         """
-        v = self.data
-        return min([v[j].valuation(p) for j in range(len(v))])
+        return min([self.data(j).valuation(p) for j in range(self.ngens())])
 
     def p_stabilize(self,p,alpha):
         r"""
-        `p`-stablizes self to form an eigensymbol for `U_p` with eigenvalue `alpha`
+        Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
+
+        Note that alpha is p-adic and so the resulting symbol is just an approximation to the
+        true p-stabilization (depending on how well alpha is approximated).
 
         INPUT:
-            - ``p`` -- prime of good reduction
-            - ``alpha`` -- eigenvalue for `U_p`
+            - ``p`` -- prime not dividing the level of self.
+            - ``alpha`` -- eigenvalue for `U_p` 
 
         OUTPUT:
 
+        A modular symbol with the same Hecke-eigenvalues as self away from `p` and eigenvalue `alpha` at `p`.
+
         EXAMPLES:
+ 
+        ::
+
+        sage: p = 3
+        sage: M = 100
+        sage: R = pAdicField(p,M)['y'] 
+        sage: y = R.gen()
+        sage: f = y**2-ap*y+p
+        sage: v = f.roots()
+        sage: alpha = v[0][0]
+        sage: alpha
+        2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + 2*3^11 + 2*3^13 + 3^14 + 2*3^15 + 3^18 + 3^19 + 2*3^20 + 2*3^23 + 2*3^25 + 3^28 + 3^29 + 2*3^32 + 3^33 + 3^34 + 3^36 + 3^37 + 2*3^38 + 3^39 + 3^40 + 2*3^43 + 3^44 + 3^45 + 3^46 + 2*3^48 + 3^49 + 2*3^50 + 3^51 + 3^52 + 3^53 + 3^55 + 3^56 + 3^58 + 3^60 + 3^62 + 3^63 + 2*3^65 + 3^67 + 3^70 + 3^71 + 2*3^73 + 2*3^75 + 2*3^78 + 2*3^79 + 3^82 + 2*3^84 + 3^86 + 3^87 + 3^88 + 3^89 + 2*3^91 + 2*3^92 + 3^93 + 3^94 + 3^95 + O(3^100)
+        sage: alpha^2 - E.ap(3)*alpha + 3
+        O(3^100)
+        sage: alpha=ZZ(alpha)
+        sage: phi_alpha.hecke(2)-phi_alpha.scale(E.ap(2))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        sage: (phi_alpha.hecke(3)-phi_alpha.scale(alpha)).valuation(3)
+        101
+        sage: phi_alpha.hecke(5)-phi_alpha.scale(E.ap(5))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         """
-        N = self.level
-        assert N%p<>0, "The level isn't prime to p"
+        N = self.level()
+        assert N % p != 0, "The level isn't prime to p"
+
         pp = Matrix(ZZ,[[p,0],[0,1]])
+
         manin = manin_relations(N*p)
-        v = []
-        for j in range(len(manin.gens)):
-            rj = manin.gens[j]
-            v = v+[self.eval(manin.mats[rj])-self.eval(pp*manin.mats[rj]).act_right(pp).scale(1/alpha)]
-        return modsym_symk(N*p,v,manin)
+
+        v = [] ## this list will contain the data of the p-stabilized symbol of level N*p
+
+        ##  This loop runs through each generator at level Np and computes the value of the
+        ##  p-stabilized symbol on each generator.  Here the following formula is being used:
+        ##
+        ##    (p-stabilize phi with U_p-eigenvalue alpha) = phi - 1/alpha phi | [p,0;0,1]
+        ##  ---------------------------------------------------------------------------------
+        for j in range(len(manin.generator_indices())):
+            rj = manin.generator_indices(j)
+            v = v+[self.eval(manin.coset_reps(rj))-self.eval(pp*manin.coset_reps(rj)).act_right(pp).scale(1/alpha)]
+        return modsym_symk(v,manin)
 
     def p_stabilize_ordinary(self,p,ap,M):
         r"""
@@ -96,13 +189,42 @@ class modsym_symk(modsym):
 
         OUTPUT:
 
+        The unique modular symbol of level `N*p` with the same Hecke-eigenvalues as self away from `p` 
+        and unit eigenvalue at `p`.
+
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]        
+        sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10); phi_ord
+        [-47611/238060, 47615/95224, 95221/95224, 47611/238060, -95217/476120, 95225/95224, -5951/11903, -95229/95224, 95237/476120]
+        sage: phi_ord.hecke(2) - phi_ord.scale(E.ap(2))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        sage: phi_ord.hecke(5) - phi_ord.scale(E.ap(5))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        sage: p = 3
+        sage: M = 100
+        sage: R = pAdicField(p,M)['y'] 
+        sage: y = R.gen()
+        sage: f = y**2-ap*y+p
+        sage: v = f.roots()
+        sage: alpha = v[0][0]
+        sage: alpha
+        2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + 2*3^11 + 2*3^13 + 3^14 + 2*3^15 + 3^18 + 3^19 + 2*3^20 + 2*3^23 + 2*3^25 + 3^28 + 3^29 + 2*3^32 + 3^33 + 3^34 + 3^36 + 3^37 + 2*3^38 + 3^39 + 3^40 + 2*3^43 + 3^44 + 3^45 + 3^46 + 2*3^48 + 3^49 + 2*3^50 + 3^51 + 3^52 + 3^53 + 3^55 + 3^56 + 3^58 + 3^60 + 3^62 + 3^63 + 2*3^65 + 3^67 + 3^70 + 3^71 + 2*3^73 + 2*3^75 + 2*3^78 + 2*3^79 + 3^82 + 2*3^84 + 3^86 + 3^87 + 3^88 + 3^89 + 2*3^91 + 2*3^92 + 3^93 + 3^94 + 3^95 + O(3^100)
+        sage: alpha^2 - E.ap(3)*alpha + 3
+        O(3^100)
+        sage: alpha=ZZ(alpha)
+        sage: (phi_ord.hecke(3) - phi_ord.scale(alpha)).valuation(3)
+        11
+
         """
-        N = self.level
-        k = self.data[0].weight
-        assert N%p<>0, "The level isn't prime to p"
-        assert ap%p<>0, "Not ordinary!"
+        N = self.level()
+        k = self.data(0).weight()
+        assert N%p!=0, "The level isn't prime to p"
+        assert (ap%p)!=0, "Not ordinary!"
 
         # makes alpha the unit root of Hecke poly
         R = pAdicField(p,M)['y'] 
@@ -113,7 +235,7 @@ class modsym_symk(modsym):
             alpha = ZZ(v[0][0])
         else:
             alpha = ZZ(v[1][0])
-        if self.full_data == 0:
+        if self.full_data() == 0:
             self.compute_full_data_from_gen_data()
         return self.p_stabilize(p,alpha)
 
@@ -127,17 +249,44 @@ class modsym_symk(modsym):
 
         OUTPUT:
 
+        The unique modular symbol of level `N*p` with the same Hecke-eigenvalues as self away from `p` 
+        and non-unit eigenvalue at `p`.
+
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]        
+        sage: phi_ss = phi.p_stabilize_critical(3,E.ap(3),10)
+        sage: phi_ord.hecke(2) - phi_ord.scale(E.ap(2))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        sage: phi_ord.hecke(5) - phi_ord.scale(E.ap(5))
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        sage: p = 3
+        sage: M = 10
+        sage: R = pAdicField(p,M)['y'] 
+        sage: y = R.gen()
+        sage: f = y**2-ap*y+p
+        sage: v = f.roots()
+        sage: beta = v[1][0]
+        sage: beta^2 - E.ap(3)*beta + 3
+        O(3^10)
+        sage: beta=ZZ(beta)
+        sage: (phi_ss.hecke(3) - phi_ss.scale(beta)).valuation(3)
+        9
+
         """
-        N = self.level
+        N = self.level()
+        k = self.data(0).weight()
         assert N%p<>0, "The level isn't prime to p"
-        assert ap%p<>0, "Not ordinary!"
+        assert (ap%p)!=0, "Not ordinary!"
 
         # makes alpha the non-unit root of Hecke poly
         R = pAdicField(p,M)['y'] 
         y = R.gen()
-        f = y**2-ap*y+p
+        f = y**2-ap*y+p**(k+1)
         v = f.roots()
         if ZZ(v[0][0])%p == 0:
             alpha = ZZ(v[0][0])
@@ -152,25 +301,45 @@ class modsym_symk(modsym):
         Determines if self is an eigenvector for `T_q` modulo `p^M`
 
         INPUT:
-            - ``q`` --
-            - ``p`` --
-            - ``M`` -- 
+            - ``q`` -- prime of the Hecke operator
+            - ``p`` -- prime we are working modulo
+            - ``M`` -- degree of accuracy of approximation
 
         OUTPUT:
 
+        If there is some constant `c` such that `self|T_q - c * self` has valuation greater than 
+        or equal to M, then it returns (True, c).  Otherwise, it returns False.
+
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
+        sage: phi_ord.is_Tq_eigen(2,3,10)
+        (True, -2)
+        sage: phi_ord.is_Tq_eigen(2,3,100)
+        (True, -2)
+        sage: phi_ord.is_Tq_eigen(2,3,1000)
+        (True, -2)
+        sage: phi_ord.is_Tq_eigen(3,3,10)
+        (True, -95227/47611)
+        sage: phi_ord.is_Tq_eigen(3,3,100)
+        False
+        
         """
         selfq = self.hecke(q)
         r = 0
-        while (self.data[r].coef(0)==0) and (r<=self.ngens()):
+        while (self.data(r).coef(0)==0) and (r<=self.ngens()):
             r = r+1
         if r > self.ngens():
         #all coefficients of Y^k are zero which I think forces it 
         #not to be eigen
             return False
         else:   
-            c = selfq.data[r].coef(0)/self.data[r].coef(0)
+            c = selfq.data(r).coef(0)/self.data(r).coef(0)
             val = (selfq-self.scale(c)).valuation(p)
             if val >= M:
                 return True,c
@@ -179,8 +348,7 @@ class modsym_symk(modsym):
                 
     def lift_to_OMS(self,p,M):
         r"""
-        Returns a (`p`-adic) overconvergent modular symbol with `M` moments 
-        which lifts self up to an Eisenstein error
+        Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
 
         INPUT:
             - ``p`` -- 
@@ -355,39 +523,6 @@ class modsym_symk(modsym):
                 ans = ans+[[self.map(psi),psi]]
         return ans
 
-    def form_modsym_from_elliptic_curve(E):
-        r"""
-        Returns the modular symbol (in the sense of Stevens) associated to `E`
-        
-        INPUT:
-            - ``E`` --
-   
-
-        OUTPUT:
-
-        EXAMPLES:
-        """
-        L = E.padic_lseries(3)  #initializing the L-function at 3 to access mod sym data
-        N = E.conductor()
-        manin = manin_relations(N)
-        v = []
-        R = PolynomialRing(QQ,2,names='X,Y')
-        X,Y = R.gens()
-        for j in range(len(manin.gens)):
-            rj = manin.gens[j]
-            g = manin.mats[rj]
-            a,b,c,d = g.list()
-            if c != 0:
-                a1 = L.modular_symbol(a/c,1)+L.modular_symbol(a/c,-1)
-            else:
-                a1 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
-            if d != 0:
-                a2 = L.modular_symbol(b/d,1)+L.modular_symbol(b/d,-1)
-            else:
-                a2 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
-            v = v + [symk(0,R(a1)) - symk(0,R(a2))]
-        return modsym_symk(N,v,manin)
-
     def form_modsym_from_decomposition(A):
         r"""
         `A` is a piece of the result from a command like 
@@ -453,3 +588,38 @@ class modsym_symk(modsym):
             ans = ans + [v]     
         new = modsym_dist(self.level,ans,self.manin)
         return new.hecke(p).scale(1/ap).normalize()
+
+
+def form_modsym_from_elliptic_curve(E):
+    r"""
+    Returns the modular symbol (in the sense of Stevens) associated to `E`
+
+    INPUT:
+        - ``E`` --
+
+
+    OUTPUT:
+
+    EXAMPLES:
+    """
+    L = E.padic_lseries(3)  #initializing the L-function at 3 to access mod sym data
+    N = E.conductor()
+    manin = manin_relations(N)
+    v = []
+    R = PolynomialRing(QQ,2,names='X,Y')
+    X,Y = R.gens()
+    for j in range(len(manin.generator_indices())):
+        rj = manin.generator_indices(j)
+        g = manin.coset_reps(rj)
+        a,b,c,d = g.list()
+        if c != 0:
+            a1 = L.modular_symbol(a/c,1)+L.modular_symbol(a/c,-1)
+        else:
+            a1 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
+        if d != 0:
+            a2 = L.modular_symbol(b/d,1)+L.modular_symbol(b/d,-1)
+        else:
+            a2 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
+        v = v + [symk(0,R(a1)) - symk(0,R(a2))]
+    return modsym_symk(v,manin)
+

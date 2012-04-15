@@ -1,7 +1,6 @@
 from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-
-            
-
+from sage.structure.sage_object import SageObject
+     
 ##############################
 ##  Define the modsym class ##
 ##############################
@@ -21,19 +20,20 @@ class modsym(SageObject):
         r"""
         
         INPUT:
-           data -- the list of values of the modular symbol on our specified generator set
-           manin -- Manin Relations
-           full_data -- the list of values of the modular symbol on all coset representatives
+           ``data`` -- the list of values of the modular symbol on our specified generator set
+           ``manin`` -- the Manin Relations
+           ``full_data`` -- the list of values of the modular symbol on all coset representatives  (default: None) 
 
         OUTPUT:
-            none
+
+        none
 
         EXAMPLES:
 
         """
         self.__manin = manin  
         self._data = data      
-        if full_data!=None:
+        if full_data != None:
             self._full_data = full_data
         else:
             self._full_data = 0
@@ -45,48 +45,138 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            The manin relations defining the symbol.  
+
+        The manin relations defining the symbol.  
 
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: M = phi.manin()
+        sage: M.level()
+        11
+        sage: M.generator_indices()
+        [0, 2, 3]
+
         """
-        return deepcopy(self.__manin)
+        return self.__manin
 
     def data(self,n=None):
         r"""
         Returns the list of values of self on our generating set or simply the n-th value if n is specified.
         
         INPUT:
-            n -- integer
+            - ``n`` - integer (default: None)
 
         OUTPUT:
-            The list of values of self on our generating set or simply the n-th value if n is specified.
+
+        The list of values of self on our generating set or simply the n-th value if n is specified.
 
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.data()
+        [-1/5, 3/2, -1/2]
+        sage: phi.data(0)
+        -1/5
+        sage: phi.data(1)
+        3/2
+        sage: phi.data(2)
+        -1/2
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.data()
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.data(0)
+        0
+        sage: phi.data(1)
+        1
+
         """
         if n is None:
-	        return deepcopy(self._data)
+            return self._data
         else:
-	        return deepcopy(self._data[n])
+            return self._data[n]
+
+    def level(self):
+        r"""
+        Returns the level `N` when self is of level `Gamma_0(N)`.
+
+        INPUT:
+            none
+
+        OUTPUT:
+        
+        The level `N` when self is of level `Gamma_0(N)`
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.level()
+        11
+        """
+
+        return self.manin().level()
 
     def full_data(self,n=None):
         r"""
         Returns the value of self on all coset reps (or simply on the n-th coset rep if n is specified).
 
         INPUT:
-            n -- integer
+            - ``n`` - integer (default: None)
 
         OUTPUT:
-            The list of values of self on all coset reps or simply the n-th value if n is specified.
+
+        The list of values of self on all coset reps or simply the n-th value if n is specified.
 
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.full_data()
+        0
+        sage: phi.compute_full_data_from_gen_data()
+        sage: phi.full_data()
+        [-1/5, 1/5, 3/2, -1/2, -3/2, 1/2, 1, -1, 0, 0, -1, 1]
+        sage: phi.full_data(0)
+        -1/5
+        sage: phi.full_data(1)
+        1/5
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.full_data()
+        0
+        sage: phi.compute_full_data_from_gen_data()
+        sage: phi.full_data()
+        [0, 0, 1, 0, 0, 0, -1, 1, 0, -1, -1, 0, 0, 1, 0, 0, 1, -1, 1, -1, 1, -1, 0, 0, -1, 1, 0, 0, 1, -1, -2, 2, -2, 2, -1, 1, 1, -1]
+        sage: phi.full_data(0)
+        0
+        sage: phi.full_data(3)
+        0
+        sage: phi.full_data(2)
+        1
+
         """
         if n is None:
-	        return deepcopy(self._full_data)
+            return self._full_data
         else:
-	        return deepcopy(self._full_data[n])
+            return self._full_data[n]
 
     def __repr__(self):
         r"""
@@ -95,9 +185,16 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            The representation of self.data.  
+
+        The representation of self.data().  
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]        
 
         """
         return repr(self.data())
@@ -110,9 +207,23 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            The number of generators defining our modular symbols.  
+
+        The number of generators defining our modular symbols.  
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.ngens()
+        3
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.ngens()
+        9
 
         """
         return len(self.manin().generator_indices())
@@ -125,9 +236,23 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            The number of coset representatives stored in the manin relations.  (Just the size of P^1(Z/NZ))
+
+        The number of coset representatives stored in the manin relations.  (Just the size of P^1(Z/NZ))
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.ncoset_reps()
+        12
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.ncoset_reps()
+        38
 
         """
         return len(self.manin().coset_reps())
@@ -137,12 +262,22 @@ class modsym(SageObject):
         Returns the sum of self and right.
 
         INPUT:
-            right -- a modular symbol of the same level 
+            - ``right`` - a modular symbol of the same level 
 
         OUTPUT:
-            the sum of self and right
+
+        The sum of self and right.
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('37a')
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi + phi
+        [-2/5, 3, -1]
 
         """
         v = []  ## This list will store the values of the modular symbol on a generating set.
@@ -169,7 +304,8 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            none
+
+        none
 
         EXAMPLES:
 
@@ -183,15 +319,26 @@ class modsym(SageObject):
 
     def scale(self,left):
         r"""
-        Returns left * self
+        Returns left * self.
 
         INPUT:
-            left -- a scalar
+            - ``left`` - a scalar
 
         OUTPUT:
-            left * self
+
+        left * self
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.scale(2)
+        [-2/5, 3, -1]
+        sage: phi.scale(0)
+        [0, 0, 0]
 
         """
         v = []    ##  This will be the list of values of the answer.
@@ -212,18 +359,55 @@ class modsym(SageObject):
         Returns self minus right
 
         INPUT:
-            right -- a modular symbol of the same level 
+            - ``right`` - a modular symbol of the same level 
 
         OUTPUT:
-            self minus right
+
+        self minus right
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi - phi
+        [0, 0, 0]
+        sage: phi - phi.scale(2)
+        [1/5, -3/2, 1/2]
 
         """
         return self + right.scale(-1)
 
     def __cmp__(self,right):
-        return cmp((self.level,self.data()),(right.level,right.data()))
+        r"""
+        Checks for equality between self and right.  
+
+        INPUT:
+            - ``right`` - a modular symbol 
+
+        OUTPUT:
+
+        A boolean expressing whether or not self equals right.
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi == phi
+        True
+        sage: E = EllipticCurve('37a')
+        sage: psi = form_modsym_from_elliptic_curve(E); psi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi == psi
+        False
+
+        """
+        return cmp((self.level(),self.data()),(right.level(),right.data()))
 
     def zero_elt(self):
         r"""
@@ -233,12 +417,25 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            zero element in the space where self takes values
+
+        The zero element in the space where self takes values
 
         EXAMPLES:
 
+        ::
+        
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: z=phi.zero_elt(); z
+        0
+        sage: parent(z)
+        <class '__main__.symk'>
+        sage: z.weight()
+        0
+        sage: z.poly()
+        0        
         """
-
         return self.data(0).zero()
 
     def zero(self):
@@ -249,28 +446,60 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-            zero modular symbol
+
+        The zero modular symbol in the space of modular symbols where self takes values.
 
         EXAMPLES:
 
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: zero_sym = phi.zero(); zero_sym
+        [0, 0, 0]
+        sage: parent(zero_sym)
+        <class '__main__.modsym_symk'>
+
         """
+
         v = [self.zero_elt() for i in range(0,self.ngens())]
         C = type(self)
         return C(v,self.manin())
 
     def compute_full_data_from_gen_data(self):
         r"""
-        Computes (and stores) the values of self on all coset representatives
-        from its values on our generating set.  (Useful to have this precomputed
-        before doing larger computations -- like hecke.)
+        Computes the values of self on all coset reps from its values on our generating set.
+
+        It is useful to do this precomputation before doing larger computations like Hecke operators.
 
         INPUT:
             none
 
         OUTPUT:
-            none
+
+        none
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.full_data()
+        0
+        sage: phi.compute_full_data_from_gen_data()
+        sage: phi.full_data()
+        [-1/5, 1/5, 3/2, -1/2, -3/2, 1/2, 1, -1, 0, 0, -1, 1]
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.full_data()
+        0
+        sage: phi.compute_full_data_from_gen_data()
+        sage: phi.full_data()
+        [0, 0, 1, 0, 0, 0, -1, 1, 0, -1, -1, 0, 0, 1, 0, 0, 1, -1, 1, -1, 1, -1, 0, 0, -1, 1, 0, 0, 1, -1, -2, 2, -2, 2, -1, 1, 1, -1]
 
         """
         ans = []   ## This will be the list contained all values of phi on coset reps
@@ -295,15 +524,41 @@ class modsym(SageObject):
     
     def eval_sl2(self,A):
         r"""
-        Returns the value of self on the (unimodular) divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)} 
+        Returns the value of self on the unimodular divisor corresponding to A.
+
+        Note that A must be in SL_2(Z) for this to work.
 
         INPUT:
-            A an element of SL_2(Z) 
+            - ``A`` - an element of SL_2(Z) 
 
         OUTPUT:
-            The value of self on the divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)} 
+
+        The value of self on the divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)}.
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.manin().generator_indices()
+        [0, 2, 3]
+        sage: A = phi.manin().coset_reps(3); A
+        [-1 -1]
+        [ 3  2]
+        sage: phi.eval_sl2(A) == phi.data(2)
+        True
+        sage: sig = Matrix(2,2,[0,1,-1,0])
+        sage: A = Matrix(ZZ,2,2,[8,29,3,11]); A
+        [ 8 29]
+        [ 3 11]
+        sage: A.determinant()   
+        1
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*sig)) == phi.zero_elt()
+        True
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
+        True
 
         """
         a = A[0,0]
@@ -341,20 +596,42 @@ class modsym(SageObject):
         Returns the value of self on the divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)} 
 
         INPUT:
-            A = any 2x2 integral matrix  (not necessarily unimodular)
+            - ``A`` - any 2x2 integral matrix  (not necessarily unimodular)
 
         OUTPUT:
-            The value of self on the divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)} 
+
+        The value of self on the divisor corresponding to A -- i.e. on the divisor {A(0)} - {A(infty)} 
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: sig = Matrix(2,2,[0,1,-1,0])
+        sage: tau = Matrix(2,2,[0,-1,1,-1])
+        sage: A = random_matrix(ZZ,2,2,x=-100,y=100)
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*sig)) == phi.zero_elt()
+        True
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
+        True       
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: A = random_matrix(ZZ,2,2,x=-100,y=100)
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*sig)) == phi.zero_elt()
+        True
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
+        True
 
         """
         a = A[0,0]
         b = A[0,1]
         c = A[1,0]
         d = A[1,1]
-        v1 = unimod_matrices_to_infty(b,d)   ## Creates a list of unimodular matrices whose divisors add up to {b/d} - {infty}
-        v2 = unimod_matrices_to_infty(a,c)   ## Creates a list of unimodular matrices whose divisors add up to {a/c} - {infty}
+        v1 = self.unimod_matrices_to_infty(b,d)   ## Creates a list of unimodular matrices whose divisors add up to {b/d} - {infty}
+        v2 = self.unimod_matrices_to_infty(a,c)   ## Creates a list of unimodular matrices whose divisors add up to {a/c} - {infty}
         ans = self.zero_elt()   ## This will denote the value of self on A
         ## This loops compute self({b/d}-{infty}) by adding up the values of self on elements of v1
         for j in range(0,len(v1)):
@@ -372,18 +649,27 @@ class modsym(SageObject):
         
         This action is defined by (self | gamma)(D) = self(gamma D)|gamma
 
-    	For this to work gamma must normalize Gamma_0(N) and be able to act on the values of self.
-    	However, it can also be used to define Hecke operators.  Even if each individual self | gamma is not 
-    	really defined on Gamma_0(N), the sum over acting by the appropriate double coset reps will be defined
-    	over Gamma_0(N)
+        For this to work gamma must normalize Gamma_0(N) and be able to act on the values of self.
+        However, it can also be used to define Hecke operators.  Even if each individual self | gamma is not 
+        really defined on Gamma_0(N), the sum over acting by the appropriate double coset reps will be defined
+        over Gamma_0(N)
 
         INPUT:
-            gamma = 2 x 2 matrix which acts on the values of self
+            - ``gamma`` - 2 x 2 matrix which acts on the values of self
 
         OUTPUT:
-	    self | gamma
-	    
+
+        self | gamma
+        
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.act_right(Matrix(ZZ,2,2,[1,0,0,-1]))
+        [-1/5, -1/2, 3/2]
 
         """
         v = []  ## This will be the data defining self | gamma
@@ -391,7 +677,7 @@ class modsym(SageObject):
         for j in range(0,self.ngens()):
             rj = self.manin().generator_indices(j)   ## rj is the index of the coset rep corresponding to j-th gen
             ## The value self(gamma*(rj-th coset rep))| gamma is added to our list
-    	    v = v + [self.eval(gamma*self.manin().coset_reps(rj)).act_right(gamma)]  
+            v = v + [self.eval(gamma*self.manin().coset_reps(rj)).act_right(gamma)]  
         
         C = type(self)        
         ans = C(v,self.manin())
@@ -405,34 +691,52 @@ class modsym(SageObject):
         
         Note that we haven't divided by 2.  Is this a problem?
         
-
         INPUT:
             none
 
         OUTPUT:
-	    self | [1,0,0,-1] + self
-	    
+
+        self + self | [1,0,0,-1]
+        
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
+        True
+
         """
         return self.act_right(Matrix(2,2,[1,0,0,-1])) + self
 
     def minus_part(self):
         r"""
-        Returns the minus part of self -- i.e. self | [1,0,0,-1] - self
+        Returns the minus part of self -- i.e. self - self | [1,0,0,-1]
         
         Note that we haven't divided by 2.  Is this a problem?
-        
 
         INPUT:
             none
 
         OUTPUT:
-	    self | [1,0,0,-1] - self
-	    
-	    
+
+        self - self | [1,0,0,-1]
+        
+        
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
+        True
+
         """
-        return self.act_right(Matrix(2,2,[1,0,0,-1])) - self
+        return self - self.act_right(Matrix(2,2,[1,0,0,-1])) 
 
     def normalize_full_data(self):
         r"""
@@ -442,9 +746,8 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-	    none
-	    
-	    
+        none
+                
         EXAMPLES:
         """
         if (self.full_data() != 0):
@@ -453,19 +756,38 @@ class modsym(SageObject):
 
     def hecke_from_defn(self,ell):
         r"""
-    	Computes self | T_ell directly from the definition of acting by double coset reps
-	
+        Computes self | T_ell directly from the definition of acting by double coset reps.
+    
         That is, it computes sum_a self | [1,a,0,ell] + self | [ell,0,0,1] where the last
         term occurs only if the level is prime to ell.
         
         INPUT:
-            ell = prime
+            - ``ell`` - prime
 
         OUTPUT:
-    	    self | T_ell
-	    
-	    
+
+        self | T_ell
+        
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: ell=2
+        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=3
+        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=5
+        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=101
+        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+        True        
+
         """
         ## If needed, precomputes the value of self on all coset reps
         if self.full_data() == 0:
@@ -474,7 +796,7 @@ class modsym(SageObject):
         psi = self.zero()
         for a in range(0,ell): 
             psi = psi + self.act_right(Matrix(ZZ,[[1,a],[0,ell]]))
-        if self.level()%ell<>0:
+        if self.level()%ell != 0:
             psi = psi + self.act_right(Matrix(ZZ,[[ell,0],[0,1]]))
         
         psi.normalize()
@@ -483,15 +805,34 @@ class modsym(SageObject):
 
     def hecke(self,ell):
         r"""
-        Returns self | T_ell by making use of the precomputations in prep_hecke
+        Returns self | T_ell by making use of the precomputations in self.prep_hecke()
         
         INPUT:
-            ell = prime
+            - ``ell`` - a prime
 
         OUTPUT:
-            self | T_ell
+
+        self | T_ell
             
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: ell=2
+        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=3
+        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=5
+        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+        True
+        sage: ell=101
+        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+        True        
 
         """         
         ## The values of self on all coset reps are computed and normalized if this hasn't been done yet.
@@ -501,11 +842,12 @@ class modsym(SageObject):
             
         psi = self.zero()   ## psi will denote self | T_ell
         v = self.prep_hecke(ell)  ## v is a long list of lists of lists with the property that the value
-                                          ## of self | T_ell on the m-th generator is given by
-                                          ## 
-                                          ## sum_j sum_r self(j-th coset rep) | v[m][j][r]
-                                          ## 
-                                          ## where j runs thru all coset reps and r runs thru all entries of v[m][j]
+                                  ## of self | T_ell on the m-th generator is given by
+                                  ## 
+                                  ## sum_j sum_r self(j-th coset rep) | v[m][j][r]
+                                  ## 
+                                  ## where j runs thru all coset reps and r runs thru all entries of v[m][j]
+
         ## This loop computes (self | T_ell)(m-th generator)
         for m in range(self.ngens()):
             for j in range(self.ncoset_reps()):
@@ -516,7 +858,7 @@ class modsym(SageObject):
         
         return psi
 
-##  These two procedures are used to check that the symbol really does satisfy the Manin relations loop (for debugging)
+##  These two procedures are used to check that the symbol really does satisfy the Manin relations loop (for debugging).  Is this something one includes in SAGE?  (RP)
     def grab_relations(self):
         v=[]
         for r in range(self.ngens()):
@@ -537,6 +879,8 @@ class modsym(SageObject):
             t=t+self.data(rj).act_right(R[0][1]).scale(R[0][0])
         return self.data(0)-self.data(0).act_right(Matrix(2,2,[1,1,0,1]))+t
 
+## The functions from this point to prep_hecke don't really have anything to do with a fixed modular symbol
+## and so I didn't know if made sense to provide examples at this point.  (RP)
 
 #    @cached_function
     def invert(self,a,b,c,d):
@@ -545,12 +889,16 @@ class modsym(SageObject):
         Here ad-bc is assumed to be 1
             
         INPUT:
-            a,b,c,d -- integers such that ad-bc=1
+            -- ``a``,``b``,``c``,``d`` -- integers such that ad-bc=1
         
         OUTPUT:
-            a 2x2 integer matrix
+            a 2x2 integer matrix which is the inverse of [a,b;c,d]
 
         EXAMPLES:
+
+        ::
+
+
         """
         return Matrix(2,2,[d,-b,-c,a])
 
@@ -648,8 +996,9 @@ class modsym(SageObject):
 #    @cached_function
     def prep_hecke_individual(self,ell,m):
         """
-        This function does some precomputations needed to compute T_ell.  In particular,
-        if phi is a modular symbol and D_m is the divisor associated to our m-th chosen 
+        This function does some precomputations needed to compute T_ell.  
+
+        In particular, if phi is a modular symbol and D_m is the divisor associated to our m-th chosen
         generator, to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
         gam_a run thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
         as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
@@ -668,15 +1017,29 @@ class modsym(SageObject):
             L[i][j] = gam_{ij} * gam_a  
 
         INPUT:
-            ell -- a prime
-            m -- index of a generator 
+            -- ``ell`` - a prime
+            -- ``m`` - index of a generator 
         
         OUTPUT:
-        	 A list of lists (see above).
+
+        A list of lists (see above).
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.prep_hecke_individual(2,0)
+        [[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]], [], [], [], [], []]
 
         """
-
-        M = phi.manin()
+        M = self.manin()
         N = M.level()
 
         ans = [[] for a in range(len(M.coset_reps()))]  ## this will be the list L above enumerated by coset reps
@@ -688,9 +1051,7 @@ class modsym(SageObject):
            if (a<ell) or (N%ell!=0):   ## if the level is not prime to ell the matrix [ell,0,0,1] is avoided.
                gama = self.basic_hecke_matrix(a,ell)
                t = gama*M.coset_reps(M.generator_indices(m))  ##  In the notation above this is gam_a * D_m
-               v = self.unimod_matrices_from_infty(t[0,0],t[1,0]) 
-#+ self.unimod_matrices_to_infty(t[0,1],t[1,1])  
-##  This expresses t as a sum of unimodular divisors
+               v = self.unimod_matrices_from_infty(t[0,0],t[1,0]) + self.unimod_matrices_to_infty(t[0,1],t[1,1])  ##  This expresses t as a sum of unimodular divisors
 
                ## This loop runs over each such unimodular divisor
                ## ------------------------------------------------
@@ -711,15 +1072,52 @@ class modsym(SageObject):
         Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
 
         INPUT:
-            ell -- a prime
-            M -- Manin relations of level N
+            -- ``ell`` - a prime
         
         OUTPUT:
-            A list of lists of lists
+
+        A list of lists of lists
 
         EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.prep_hecke(2)
+        [[[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]], [], [], [], [], []], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[ 1 -2]
+        [ 0  2], [ 1 -1]
+        [ 0  2], [ 2 -1]
+        [ 0  1]], [], [[-4 -2]
+        [11  5], [-8 -3]
+        [22  8]], [], [], [], [[-5 -2]
+        [11  4], [-1  1]
+        [ 0 -2]], [[1 0]
+        [0 2]], [], [], []], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[1 0]
+        [0 2], [ 1 -1]
+        [ 0  2], [2 0]
+        [0 1]], [], [], [[-6 -4]
+        [11  7]], [[-7 -4]
+        [11  6], [-1  1]
+        [ 0 -2], [-2  0]
+        [ 0 -1]], [[-5 -2]
+        [11  4]], [], [[1 0]
+        [0 2]], [[-1  0]
+        [ 0 -2]], [], []]]
+
         """
         ans = []
-        for m in range(phi.ngens()):
+        for m in range(self.ngens()):
             ans = ans + [self.prep_hecke_individual(ell,m)]
         return ans

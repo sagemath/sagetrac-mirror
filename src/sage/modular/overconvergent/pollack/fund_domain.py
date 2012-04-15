@@ -41,6 +41,9 @@ class manin_relations(SageObject):
 
         EXAMPLES:
 
+        ::
+        
+        
         """
         ## Store the level
         self.__N = N
@@ -365,9 +368,9 @@ class manin_relations(SageObject):
 
         ::
 
-            sage: A = manin_relations(11)
-            sage: A.level()
-            11
+        sage: A = manin_relations(11)
+        sage: A.level()
+        11
 
         """
         return self.__N
@@ -386,30 +389,31 @@ class manin_relations(SageObject):
         EXAMPLES:
 
         ::        
-            sage: A = manin_relations(11)
-            sage: A.coset_reps(0)
-            [1 0]
-            [0 1]
-            sage: A.coset_reps(1)
-            [ 1  1]
-            [-1  0]
-            sage: A.coset_reps(2)
-            [ 0 -1]
-            [ 1  3]
-            sage: A.coset_reps()
-            [
-            [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [ 1 -1]  [-1 -1]
-            [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1], [-1  2], [ 2  1],
-            <BLANKLINE>
-            [ 1  0]  [ 0 -1]  [ 1  0]  [ 0 -1]
-            [-1  1], [ 1  1], [-2  1], [ 1  2]
-            ]
+
+        sage: A = manin_relations(11)
+        sage: A.coset_reps(0)
+        [1 0]
+        [0 1]
+        sage: A.coset_reps(1)
+        [ 1  1]
+        [-1  0]
+        sage: A.coset_reps(2)
+        [ 0 -1]
+        [ 1  3]
+        sage: A.coset_reps()
+        [
+        [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [ 0 -1]  [ 1  0]
+        [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1], [ 1  2], [-2  1],
+        <BLANKLINE>
+        [ 0 -1]  [ 1  0]  [-1 -1]  [ 1 -1]
+        [ 1  1], [-1  1], [ 2  1], [-1  2]
+        ]           
 
         """
         if n is None:
-            return deepcopy(self.__mats)
+            return self.__mats
         else:
-            return deepcopy(self.__mats[n])
+            return self.__mats[n]
 
     def P1(self):
         r"""
@@ -431,7 +435,7 @@ class manin_relations(SageObject):
         The projective line over the integers modulo 11
 
         """
-        return deepcopy(self.__P)
+        return self.__P
 
     def P1_to_coset_index(self,n=None):
         r"""
@@ -457,7 +461,7 @@ class manin_relations(SageObject):
         sage: a = P[ind]; a
         (1, 5)
         sage: ind2 = A.P1_to_coset_index(ind); ind2
-        10
+        7
         sage: b = A.coset_reps(ind2); b
         [ 1  0]
         [-2  1]
@@ -466,9 +470,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__P1_to_mats)
+            return self.__P1_to_mats
         else:
-            return deepcopy(self.__P1_to_mats[n])
+            return self.__P1_to_mats[n]
 
     def generator_indices(self,n=None):
         r"""
@@ -503,9 +507,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__gens)
+            return self.__gens
         else:
-            return deepcopy(self.__gens[n])
+            return self.__gens[n]
 
     def two_torsion_indices(self,n=None):
         r"""
@@ -536,9 +540,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__twotor)
+            return self.__twotor
         else:
-            return deepcopy(self.__twotor[n])
+            return self.__twotor[n]
 
     def two_torsion_relation_matrices(self,n=None):
         r"""
@@ -564,9 +568,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__twotorrels)
+            return self.__twotorrels
         else:
-            return deepcopy(self.__twotorrels[n])
+            return self.__twotorrels[n]
 
     def three_torsion_indices(self,n=None):
         r"""
@@ -601,9 +605,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__threetor)
+            return self.__threetor
         else:
-            return deepcopy(self.__threetor[n])
+            return self.__threetor[n]
 
     def three_torsion_relation_matrices(self,n=None):
         r"""
@@ -629,9 +633,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__threetorrels)
+            return self.__threetorrels
         else:
-            return deepcopy(self.__threetorrels[n])
+            return self.__threetorrels[n]
 
     def coset_relations(self,n=None):
         r"""
@@ -690,9 +694,9 @@ class manin_relations(SageObject):
 
         """
         if n is None:
-            return deepcopy(self.__rels)
+            return self.__rels
         else:
-            return deepcopy(self.__rels[n])
+            return self.__rels[n]
 
     def form_list_of_cusps(self):
         r"""
@@ -996,7 +1000,5 @@ sage: A.fd_boundary(C)
             c = C[j].denominator()
             d = C[j+1].denominator()
             mats = mats + [Matrix(2,2,[a,b,c,d])]
-
-        C.reverse()  ## reverts back because that's what the rest of the code expects
 
         return mats
