@@ -42,9 +42,6 @@ class manin_relations(SageObject):
         EXAMPLES:
 
         """
-        ## Make the identity matrix
-        Id = Matrix(2,2,[1,0,0,1])
-
         ## Store the level
         self.__N = N
 
@@ -52,24 +49,27 @@ class manin_relations(SageObject):
         P = P1List(N)
         self.__P = P
 
-        ## Solve the Manin Relations!
-        ## ==========================
-
-        ## Creates a fundamental domain for Gamma_0(N), recording the cusps 
-        ## on the real line and the associated subset of the (geometrically 
-        ## constructed) right coset representatives for Gamma_0(N) / SL_2(Z)
-        ## which correspond to the boundary of the fundamental domain
+        ## Creates a fundamental domain for Gamma_0(N) whose boundary is a union
+        ## of unimodular paths (except in the case of 3-torsion).  
+        ## We will call the intersection of this domain with the real axis the
+        ## collection of cusps (even if some are Gamma_0(N) equivalent to one another).
         cusps = self.form_list_of_cusps()
-        coset_reps = self.mat_boundary_of_fd(cusps)
+
+        ## Takes the boundary of this fundamental domain and finds SL_2(Z) matrices whose
+        ## associated unimodular path gives this boundary.  These matrices form the
+        ## beginning of our collection of coset reps for Gamma_0(N) / SL_2(Z).
+        coset_reps = self.fd_boundary(cusps)
+
+        ## Make the identity matrix
+        Id = Matrix(2,2,[1,0,0,1])
 
         ## Gives names to matrices of order 2 and 3 (in PSL_2)
         sig = Matrix(2,2,[0,1,-1,0])
         tau = Matrix(2,2,[0,-1,1,-1])
 
-        ## Creates P^1 from the geometric coset representatives arising from 
-        ## fundamental domain
+        ## Takes the bottom row of each of our current coset reps,
+        ## thinking of them as distinct elements of P^1(Z/NZ)
         p1s = [(coset_reps[j])[1] for j in range(len(coset_reps))]  
-        ## this gets the bottom rows of the 2x2 matrices
 
         ## Initializes relevant Manin data
         gens = []
@@ -77,30 +77,39 @@ class manin_relations(SageObject):
         twotorrels = []
         threetor = []
         threetorrels = [] 
-
-
-        ## --------------------------------------------------------------------
         rels = [0 for i in range(0,len(coset_reps))]  
 
+        ## the list rels (above) will give Z[Gamma_0(N)] relations between
+        ## the associated divisor of each coset representatives in terms
+        ## of our chosen set of generators.
         ## entries of rel will be lists of elements of the form (c,A,r) 
         ## with c a constant, A a Gamma_0(N) matrix, and r the index of a 
-        ## generator.  The meaning is that the value of a modular symbol phi 
-        ## on the (associated divisor) of the i-th element of coset_reps 
-        ## will be the sum of c * phi (r-th genetator) | A 
-        ## as one varies over the tuples in rel[i]
+        ## generator.  The meaning is that the divisor associated to the
+        ## j-th coset rep will equal the sum of:
+        ##
+        ##   c * A^(-1) * (divisor associated to r-th coset rep) 
+        ##
+        ## as one varies over all (c,A,r) in rel[j].  
+        ## (Here r must be in self.generator_indices().)
+        ##
+        ## This will be used for modular symbols as then the value of a
+        ## modular symbol phi on the (associated divisor) of the j-th 
+        ## element of coset_reps will be the sum of c * phi (r-th genetator) | A 
+        ## as one varies over the tuples in rel[j]
 
         boundary_checked = [False for i in range(0,len(coset_reps))]  
         
-        ## This list keeps track of which boundary pieces of the 
+        ## The list boundary_checked keeps track of which boundary pieces of the 
         ## fundamental domain have been already used as we are picking 
         ## our generators
  
-        glue_data = [0 for i in range(0,len(coset_reps))]   ## ????
+#        glue_data = [0 for i in range(0,len(coset_reps))]   ## ????
+
 
         ## The following loop will choose our generators by picking one edge 
         ## out of each pair of edges that are glued to each other and picking 
         ## each edge glued to itself (arising from two-torsion)
-        
+        ## ------------------------------------------------------------------        
         for r in range(0,len(coset_reps)):    
             if boundary_checked[r] == False:  
 
@@ -133,7 +142,7 @@ class manin_relations(SageObject):
                     ## The 2-torsion matrix gam is recorded in our list of 
                     ## 2-torsion relations.
 
-                    glue_data[r]=(r,gam)  
+#                    glue_data[r]=(r,gam)  
 
                     ## this records that the edge associated to coset_reps[r] 
                     ##is glued to itself by gam
@@ -155,11 +164,10 @@ class manin_relations(SageObject):
                         ## of generators
                         
                         rels[r] = [(1,Id,r)]  
-
                         ## this relation expresses the fact that coset_reps[r]
                         ## is one of our basic generators
-                        threetor = threetor + [r]    
-                        
+
+                        threetor = threetor + [r]                            
                         ## the index r is adding to our list of indexes of 
                         ##generators which satisfy a 3-torsion relation
                         
@@ -243,7 +251,7 @@ class manin_relations(SageObject):
                                 ## phi(D_s) = -phi(D_r)|gam 
                                 ## since gam is in Gamma_0(N) 
                                
-                                glue_data[r] = (s,gam)  ## ????
+#                                glue_data[r] = (s,gam)  ## ????
                                 found = True
                                 boundary_checked[r] = 1
                                 boundary_checked[s] = 1
@@ -310,7 +318,7 @@ class manin_relations(SageObject):
         self.__gens = gens            
         ## This is a list of indices of the (geometric) coset representatives 
         ## whose values (on the associated degree zero divisors) determine the
-        ##  modular symbol.
+        ## modular symbol.
 
         self.__twotor = twotor              
         ## A list of indices of the (geometric) coset representatives whose 
@@ -339,7 +347,7 @@ class manin_relations(SageObject):
         ## where the index i must appear in self.gens, and the slash gives the
         ##  matrix action.
 
-        self.__glue = glue_data           ## TBA... =)
+#        self.__glue = glue_data           ## TBA... =)
 
 
     def level(self):
@@ -378,7 +386,6 @@ class manin_relations(SageObject):
         EXAMPLES:
 
         ::        
-
             sage: A = manin_relations(11)
             sage: A.coset_reps(0)
             [1 0]
@@ -426,20 +433,36 @@ class manin_relations(SageObject):
         """
         return deepcopy(self.__P)
 
-    def P1_to_mats(self,n=None):
+    def P1_to_coset_index(self,n=None):
         r"""
-        Returns the translation table (or individual element) between the Sage and geometric 
-        descriptions of `P^1(Z/NZ)`.
+        Takes the n-th element of Sage's `P^1(Z/NZ)` and returns the index of the associated element in A.coset_reps().
+
+        Here by associated we mean the unique coset rep whose bottom row corresponds to the n-th element of P^1.
+        If n is not specified the entire translation table between the Sage P^1 and the coset reps P^1 is returned.
 
         INPUT:
-            - none
+            - ``n`` -- integer (default: None) 
 
         OUTPUT:
         
+        The unique integer j satisfying that the bottom row of A.coset_reps(j) is equivalent to A.P1()[n]
 
         EXAMPLES:    
 
         ::
+
+        sage: A = manin_relations(11)
+        sage: P = A.P1()
+        sage: ind = 6
+        sage: a = P[ind]; a
+        (1, 5)
+        sage: ind2 = A.P1_to_coset_index(ind); ind2
+        10
+        sage: b = A.coset_reps(ind2); b
+        [ 1  0]
+        [-2  1]
+        sage: P.index(a[0],a[1]) == P.index(b[1,0],b[1,1])
+        True
 
         """
         if n is None:
@@ -449,9 +472,35 @@ class manin_relations(SageObject):
 
     def generator_indices(self,n=None):
         r"""
-        Returns a list of indices of the (geometric) coset representatives 
-        whose values (on the associated degree zero divisors) determine the 
-        modular symbol.
+        Returns the indices of coset reps which were chosen as our generators.
+
+        In particular, the associate divisors of these coset reps generator
+        all divisors over Z[Gamma_0(N)], and thus a modular symbol is uniquely
+        determined by its values on these divisors.
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        The list of indices in self.coset_reps() of our generating set.
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.generator_indices()
+        [0, 2, 3]
+        sage: A.generator_indices(2)
+        3
+        sage: A = manin_relations(13)
+        sage: A.generator_indices()
+        [0, 2, 3, 4, 5]
+        sage: A = manin_relations(101)
+        sage: A.generator_indices()
+        [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
+
         """
         if n is None:
             return deepcopy(self.__gens)
@@ -460,9 +509,31 @@ class manin_relations(SageObject):
 
     def two_torsion_indices(self,n=None):
         r"""
-        Returns a list of indices pointing to the coset generators whose 
-        paths are identified by some 2-torsion element (which switches the 
-        path orientation).
+        Returns indices of coset rep generators which are fixed by Gamma_0(N) 2-torsion.
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        The list of indices in self.coset_reps() whose associated unimodular
+        path contains a point fixed by a Gamma_0(N) element of order 2 (where
+        the order is computed in `PSL_2(Z)`.
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.two_torsion_indices()
+        []
+        sage: A = manin_relations(13)
+        sage: A.two_torsion_indices()
+        [3, 4]
+        sage: A = manin_relations(17)
+        sage: A.two_torsion_indices()
+        [5, 7]
+
         """
         if n is None:
             return deepcopy(self.__twotor)
@@ -471,9 +542,26 @@ class manin_relations(SageObject):
 
     def two_torsion_relation_matrices(self,n=None):
         r"""
-        Returns a list of (2-torsion in `PSL_2(Z)`) matrices in `\Gamma_0(N)` 
-        that give the orientation identification in the paths indexed by 
-        two_torsion_indices().
+        Returns the order 2 matrices corresponding to the indices in self.two_torsion_indices()
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        The list of order 2 matrices which correspond to the indices in self.two_torsion_indices().
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(13)
+        sage: A.two_torsion_relation_matrices()
+        [
+        [  5   2]  [  8   5]
+        [-13  -5], [-13  -8]
+        ]
+
         """
         if n is None:
             return deepcopy(self.__twotorrels)
@@ -482,9 +570,35 @@ class manin_relations(SageObject):
 
     def three_torsion_indices(self,n=None):
         r"""
-        Returns a list of indices pointing to (geometric) coset 
-        representatives that form one side of an ideal triangle with an 
-        interior fixed point of a 3-torsion element of `\Gamma_0(N)`.
+        Returns indices of coset rep generators which are fixed by Gamma_0(N) 3-torsion.
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        The list of indices in self.coset_reps() whose associated unimodular
+        path contains a point fixed by a Gamma_0(N) element of order 3 in the
+        ideal triangle directly below that path.  Here the order is actually 
+        computed in `PSL_2(Z)`.
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.three_torsion_indices()
+        []
+        sage: A = manin_relations(13)
+        sage: A.three_torsion_indices()
+        [2, 5]
+        sage: A = manin_relations(17)
+        sage: A.three_torsion_indices()
+        []
+        sage: A = manin_relations(103)
+        sage: A.three_torsion_indices()
+        [16, 17]
+
         """
         if n is None:
             return deepcopy(self.__threetor)
@@ -493,25 +607,87 @@ class manin_relations(SageObject):
 
     def three_torsion_relation_matrices(self,n=None):
         r"""
-        A list of (3-torsion in `PSL_2(Z)`) matrices in `\Gamma_0(N)` that 
-        give the interior fixed point indexed by three_torsion_indices().
+        Returns the order 3 matrices corresponding to the indices in self.three_torsion_indices()
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        The list of order 3 matrices which correspond to the indices in self.three_torsion_indices().
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(13)
+        sage: A.three_torsion_relation_matrices()
+        [
+        [-4 -1]  [-10  -7]
+        [13  3], [ 13   9]
+        ]
+
         """
         if n is None:
-            return deepcopy(self.__threetor)
+            return deepcopy(self.__threetorrels)
         else:
-            return deepcopy(self.__threetor[n])
+            return deepcopy(self.__threetorrels[n])
 
     def coset_relations(self,n=None):
         r"""
-        Returns a list of lists of triples `(d, A, i)`, one for each coset 
-        representative of `\Gamma_0(N)` (ordered to correspond to the 
-        representatives of self.mats) expressing the value of a 
-        modular symbol on the associated unimodular path as a sum of terms 
+        Expresses the divisor attached to the n-th coset rep in terms of our chosen generators.
 
-            `d * (value on the i-th representative) | A`
+        Returns a list of triples `(d, A, i)` such that the divisor attached to the n-th coset rep
+        equals the sum over these triples of:
 
-        where the index `i` must appear in self.gens, and the slash gives 
-        the matrix action.
+            `d * A^(-1) * (divisor attached to i-th coset rep)`
+
+        Here the index `i` must appear in self.generator_indices().  This formula will allow us
+        to recover the value of a modular symbol on any coset rep in terms of its values on
+        our generating set.
+
+        If n is not specified, a list containing this info for all n is returned.
+
+        INPUT:
+            - ``n`` -- integer (default: None) 
+
+        OUTPUT:
+        
+        A Z[Gamma_0(N)]-relation expressing the divisor attached to the n-th coset rep in terms of
+        our generating set.
+
+        EXAMPLES:    
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.generator_indices()
+        [0, 2, 3]
+        sage: A.coset_relations(0)
+        [(1, [1 0]
+        [0 1], 0)]
+        sage: A.coset_relations(2)
+        [(1, [1 0]
+        [0 1], 2)]
+        sage: A.coset_relations(3)
+        [(1, [1 0]
+        [0 1], 3)]
+        sage: A.coset_relations(4)
+        [(-1, [-3 -2]
+        [11  7], 2)]
+        sage: B=A.coset_relations(4)[0][1]; B
+        [-3 -2]
+        [11  7]
+        sage: B^(-1)*A.coset_reps(2)
+        [ 2 -1]
+        [-3  2]
+        sage: A.coset_reps(4)
+        [-1 -2]
+        [ 2  3]
+        sage: sig = Matrix(2,2,[0,1,-1,0])
+        sage: B^(-1)*A.coset_reps(2) == A.coset_reps(4)*sig
+        True
+
         """
         if n is None:
             return deepcopy(self.__rels)
@@ -520,18 +696,36 @@ class manin_relations(SageObject):
 
     def form_list_of_cusps(self):
         r"""
-        Constructs a fundamental domain for `\Gamma_0(N)` as in [PS] Section 2 
-        (and Section 2.5 for the case of 3-torsion) made up of unimodular 
-        paths and returns the list of rational numbers which mark where 
-        this fundamental domain meets the real axis.
+        Returns the intersection of a fundamental domain for `\Gamma_0(N)` with the real axis.
+
+        The construction of this fundamental domain follows the arguments of [PS] Section 2.
+        The boundary of this fundamental domain consists entirely of unimodular paths when 
+        `\Gamma_0(N)` has no elements of order 3.  (See [PS] Section 2.5 for the case when
+        there are elements of order 3.)
     
         INPUT:
-            none
-        
+            - none
+
         OUTPUT:
-            a list of rational numbers
+
+        A list of rational numbers marking the intersection of a fundamental domain for 
+        `\Gamma_0(N)` with the real axis.
+
 
         EXAMPLES:
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.form_list_of_cusps()
+        [-1, -2/3, -1/2, -1/3, 0]
+        sage: A = manin_relations(13)
+        sage: A.form_list_of_cusps()
+        [-1, -2/3, -1/2, -1/3, 0]
+        sage: A = manin_relations(101)
+        sage: A.form_list_of_cusps()
+        [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
+
         """
         ## Get the level
         N = self.level()
@@ -666,16 +860,29 @@ class manin_relations(SageObject):
 
     def is_unimodular_path(self, r1, r2):
         r"""
-        Determines whether two (non-infinite) cusps are connected by a 
-        unimodular path.
+        Determines whether two (non-infinite) cusps are connected by a unimodular path.
     
         INPUT:
             ``r1, r2`` -- rational numbers
         
         OUTPUT:
-            boolean
+
+        A boolean expressing whether or not a unimodular path connects r1 to r2.
 
         EXAMPLES:
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.is_unimodular_path(0,1/3)
+        True
+        sage: A.is_unimodular_path(1/3,0)
+        True
+        sage: A.is_unimodular_path(0,2/3)
+        False
+        sage: A.is_unimodular_path(2/3,0)
+        False        
+
         """
         a = r1.numerator()
         b = r2.numerator()
@@ -686,17 +893,25 @@ class manin_relations(SageObject):
 
     def unimod_to_matrices(self, r1, r2):
         r"""
-        Returns the two matrices whose associated unimodular paths connect 
-        `r1 -> r2` and `r2 -> r1`, respectively.
+        Returns the two matrices whose associated unimodular paths connect `r1 -> r2` and `r2 -> r1`, respectively.
     
         INPUT:
-            ``r1, r2`` -- rational numbers (that are assumed to be related by 
-            a unimodular path!)
+            ``r1, r2`` -- rational numbers (that are assumed to be related by a unimodular path)
         
         OUTPUT:
-            a pair of `2 x 2` matrix of determinant 1
+            a pair of `2 x 2` matrices of determinant 1
 
         EXAMPLES:
+
+        ::
+
+        sage: A = manin_relations(11)
+        sage: A.unimod_to_matrices(0,1/3)
+        (
+        [ 0  1]  [1 0]
+        [-1  3], [3 1]
+        )
+
         """
         a = r1.numerator()
         b = r2.numerator()
@@ -708,42 +923,80 @@ class manin_relations(SageObject):
             return Matrix(2,2,[-a,b,-c,d]), Matrix(2,2,[b,a,d,c])
 
 
-    def mat_boundary_of_fd(self,C):
+    def fd_boundary(self,C):
         r"""
-        Returns a list of matrices whose associated unimodular paths gives 
-        the boundary of a fundamental domain for `\Gamma_0(N)`.  
-        (In the case when `\Gamma_0(N)` has three torsion the shape is slightly
-        smaller than a fundamental domain.  See `\S2.5` of Pollack-Stevens.)
-        
+        Finds matrices whose associated unimodular paths give the boundary of a fundamental domain.
+
+        Here the fundamental domain is for `\Gamma_0(N)`.  
+        (In the case when `\Gamma_0(N)` has elements of order three the shape cut out by these
+        unimodular matrices is a little smaller than a fundamental domain.  See `\S2.5` of Pollack-Stevens.)
+
         INPUT:
-            a list of rational numbers coming from form_list_of_cusps
+            a list of rational numbers coming from self.form_list_of_cusps()
         
         OUTPUT:
-            a list of `2 x 2` integer matrices of determinant 1
+
+        a list of `2 x 2` integer matrices of determinant 1 whose associated unimodular paths give the
+        boundary of a fundamental domain for `Gamma_0(N)` (or nearly so in the case of 3-torsion).
               
         EXAMPLES:
-        """
-        ## Make the identity matrix
-        Id = Matrix(2,2,[1,0,0,1])
 
-        C = self.form_list_of_cusps()
-                        
-        ## Now convert the finished list of cusps to matrices whose 
-        ## associated unimodular paths form the fundamental domain
-        ## --------------------------------------------------------
+        ::
 
-        C.reverse() ## ??????  Reverse the for reasons that I no longer 
-                    ## remember but without this it crashes.
+sage: A = manin_relations(11)
+sage: C = A.form_list_of_cusps(); C
+[-1, -2/3, -1/2, -1/3, 0]
+sage: A.fd_boundary(C)
+[
+[1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]
+[0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1]
+]
+sage: A = manin_relations(13)
+sage: C = A.form_list_of_cusps(); C
+[-1, -2/3, -1/2, -1/3, 0]
+sage: A.fd_boundary(C)
+[
+[1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]
+[0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1]
+]
+sage: A = manin_relations(101)
+sage: C = A.form_list_of_cusps(); C
+[-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
+sage: A.fd_boundary(C)
+[
+[1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [-1 -3]  [-3 -2]
+[0 1], [-1  0], [ 1  6], [ 6  5], [ 5  9], [ 9  4], [ 4 11], [11  7],
+<BLANKLINE>
+[-2 -1]  [-1 -4]  [-4 -3]  [-3 -2]  [-2 -7]  [-7 -5]  [-5 -3]  [-3 -4]
+[ 7  3], [ 3 11], [11  8], [ 8  5], [ 5 17], [17 12], [12  7], [ 7  9],
+<BLANKLINE>
+[-4 -1]  [-1 -4]  [ -4 -11]  [-11  -7]  [-7 -3]  [-3 -8]  [ -8 -13]
+[ 9  2], [ 2  7], [  7  19], [ 19  12], [12  5], [ 5 13], [ 13  21],
+<BLANKLINE>
+[-13  -5]  [-5 -2]  [-2 -9]  [-9 -7]  [-7 -5]  [-5 -8]  [ -8 -11]
+[ 21   8], [ 8  3], [ 3 13], [13 10], [10  7], [ 7 11], [ 11  15],
+<BLANKLINE>
+[-11  -3]  [-3 -7]  [-7 -4]  [-4 -5]  [-5 -6]  [-6 -1]
+[ 15   4], [ 4  9], [ 9  5], [ 5  6], [ 6  7], [ 7  1]
+]        
+
+"""
+
+        C.reverse() ## Reverse here to get clockwise orientation of boundary
                     
-        ## these matrices correspond to the paths from infty to 0
-        ## and -1 to infty
+        ## These matrices correspond to the paths from infty to 0 and -1 to infty
+        mats = [Matrix(2,2,[1,0,0,1]),Matrix(2,2,[1,1,-1,0])]  
 
-        mats = [Id,Matrix(2,2,[1,1,-1,0])]  
+        ## Now find SL_2(Z) matrices whose associated unimodular paths connect
+        ## the cusps listed in C.
+        ## --------------------------------------------------------
         for j in range(len(C)-1):
             a = C[j].numerator()
             b = C[j+1].numerator()
             c = C[j].denominator()
             d = C[j+1].denominator()
             mats = mats + [Matrix(2,2,[a,b,c,d])]
+
+        C.reverse()  ## reverts back because that's what the rest of the code expects
 
         return mats

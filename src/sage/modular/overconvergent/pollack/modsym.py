@@ -311,9 +311,9 @@ class modsym(SageObject):
         c = A[1,0]
         d = A[1,1]
         i = self.manin().P1().index(c,d)   ##  Finds the index in the SAGE P1 of the bottom row of A
-        m = self.manin().P1_to_mats(i)     ##  Converts this index to the index in our list of coset reps
+        m = self.manin().P1_to_coset_index(i)     ##  Converts this index to the index in our list of coset reps
         B = self.manin().coset_reps(m)     ##  B is the corresponding coset rep -- so B and A are Gamma_0(N) equivalent
-        C = invert(a,b,c,d)      ##  C = A^(-1)
+        C = self.invert(a,b,c,d)      ##  C = A^(-1)
         gaminv=B*C               ##  So A = gam B  (where gaminv = gam^(-1))
         ## Checks if the value of self on all coset reps is already precomputed
         if self.full_data()!=0: 
@@ -500,7 +500,7 @@ class modsym(SageObject):
             self.normalize_full_data()
             
         psi = self.zero()   ## psi will denote self | T_ell
-        v = prep_hecke(ell,self.manin())  ## v is a long list of lists of lists with the property that the value
+        v = self.prep_hecke(ell)  ## v is a long list of lists of lists with the property that the value
                                           ## of self | T_ell on the m-th generator is given by
                                           ## 
                                           ## sum_j sum_r self(j-th coset rep) | v[m][j][r]
@@ -538,8 +538,8 @@ class modsym(SageObject):
         return self.data(0)-self.data(0).act_right(Matrix(2,2,[1,1,0,1]))+t
 
 
-    @cached_function
-    def invert(a,b,c,d):
+#    @cached_function
+    def invert(self,a,b,c,d):
         """
         Takes the numbers a,b,c,d and returns the inverse to the matrix [a,b;c,d].  
         Here ad-bc is assumed to be 1
@@ -554,8 +554,8 @@ class modsym(SageObject):
         """
         return Matrix(2,2,[d,-b,-c,a])
 
-    @cached_function
-    def unimod_matrices_to_infty(r,s):
+#    @cached_function
+    def unimod_matrices_to_infty(self,r,s):
         """
         Returns a list of matrices whose associated unimodular paths connect r/s to infty.
         (This is Manin's continued fraction trick.)
@@ -583,7 +583,7 @@ class modsym(SageObject):
         else:
             return []
         
-    def flip(A):
+    def flip(self,A):
         """
         Takes the matrix [a,b;c,d] and returns [-c,a;-d,b] -- i.e. reverses the orientation of the associated unimodular path        
 
@@ -597,8 +597,8 @@ class modsym(SageObject):
         """
         return Matrix(2,2,[-A[0,1],A[0,0],-A[1,1],A[1,0]])
 
-    @cached_function
-    def unimod_matrices_from_infty(r,s):
+#    @cached_function
+    def unimod_matrices_from_infty(self,r,s):
         """
         Returns a list of matrices whose associated unimodular paths connect r/s to infty.
         (This is Manin's continued fraction trick.)
@@ -621,13 +621,13 @@ class modsym(SageObject):
                 c = list[j].denominator()
                 b = list[j+1].numerator()
                 d = list[j+1].denominator()
-                v = v + [flip(Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]]))]
-            return [flip(Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]]))]+v
+                v = v + [self.flip(Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]]))]
+            return [self.flip(Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]]))]+v
         else:
             return []
 
 
-    def basic_hecke_matrix(a,ell):
+    def basic_hecke_matrix(self,a,ell):
         """
         Returns the matrix [1,a;0,ell] (if a<ell) and [ell,0;0,1] if a>=ell
 
@@ -645,9 +645,9 @@ class modsym(SageObject):
         else:
             return Matrix(2,2,[ell,0,0,1])
 
-    @cached_function
-    def prep_hecke_individual(ell,M,m):
-    """
+#    @cached_function
+    def prep_hecke_individual(self,ell,m):
+        """
         This function does some precomputations needed to compute T_ell.  In particular,
         if phi is a modular symbol and D_m is the divisor associated to our m-th chosen 
         generator, to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
@@ -669,16 +669,16 @@ class modsym(SageObject):
 
         INPUT:
             ell -- a prime
-            M -- Manin relations of level N
             m -- index of a generator 
         
         OUTPUT:
         	 A list of lists (see above).
 
-        EXAMPLES:
         """
 
+        M = phi.manin()
         N = M.level()
+
         ans = [[] for a in range(len(M.coset_reps()))]  ## this will be the list L above enumerated by coset reps
 
         ##  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1,a,0,ell] and carry out the computation
@@ -686,25 +686,27 @@ class modsym(SageObject):
         ##  -------------------------------------
         for a in range(ell+1):
            if (a<ell) or (N%ell!=0):   ## if the level is not prime to ell the matrix [ell,0,0,1] is avoided.
-               gama = basic_hecke_matrix(a,ell)
+               gama = self.basic_hecke_matrix(a,ell)
                t = gama*M.coset_reps(M.generator_indices(m))  ##  In the notation above this is gam_a * D_m
-               v = unimod_matrices_from_infty(t[0,0],t[1,0]) + unimod_matrices_to_infty(t[0,1],t[1,1])  ##  This expresses t as a sum of unimodular divisors
+               v = self.unimod_matrices_from_infty(t[0,0],t[1,0]) 
+#+ self.unimod_matrices_to_infty(t[0,1],t[1,1])  
+##  This expresses t as a sum of unimodular divisors
 
                ## This loop runs over each such unimodular divisor
                ## ------------------------------------------------
                for b in range(len(v)):
                    A = v[b]    ##  A is the b-th unimodular divisor
                    i = M.P1().index(A[1,0],A[1,1])      ##  i is the index in SAGE P1 of the bottom row of A
-                   j = M.P1_to_mats(i)                  ##  j is the index of our coset rep equivalent to A
+                   j = M.P1_to_coset_index(i)                  ##  j is the index of our coset rep equivalent to A
                    B = M.coset_reps(j)                    ##  B is that coset rep
-                   C = invert(A[0,0],A[0,1],A[1,0],A[1,1])   ##  C equals A^(-1).  This is much faster than just inverting thru SAGE
+                   C = self.invert(A[0,0],A[0,1],A[1,0],A[1,1])   ##  C equals A^(-1).  This is much faster than just inverting thru SAGE
                    gaminv = B * C                              ##  gaminv = B*A^(-1)
                    ans[j] = ans[j] + [gaminv * gama]             ##  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
 
         return ans
 
-    @cached_function
-    def prep_hecke(ell,M):
+#    @cached_function
+    def prep_hecke(self,ell):
         """
         Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
 
@@ -718,6 +720,6 @@ class modsym(SageObject):
         EXAMPLES:
         """
         ans = []
-        for m in range(len(M.generator_indices())):
-            ans = ans + [prep_hecke_individual(ell,M,m)]
+        for m in range(phi.ngens()):
+            ans = ans + [self.prep_hecke_individual(ell,m)]
         return ans
