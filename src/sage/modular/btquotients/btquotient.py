@@ -1712,8 +1712,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         ::
         """
         if self._use_magma == False:
-            raise NotImplementedError
-
+            raise NotImplementedError,'Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.'
         try: return self._FF
         except AttributeError: pass
         self._compute_exact_splitting()
@@ -1782,15 +1781,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return O_units
 
     @cached_method
-    def get_CM_points_new(self,f,prec,ignore_units=False):
+    def CM_point(self,f):
         r"""
-        Find the CM points corresponding to a given order.
+        Find the CM point corresponding to a given binary quadratic form.
 
         INPUT:
-            - ``val``: An integer.
 
-            - ``ignore_units``: boolean (Default: False). If True, will return points which differ by a unit.
-            - ``prec``: Integer. The precision to which compute the points.
+            - ``f``: A tuple specifying a quadratic form.
 
         EXAMPLES:
 
@@ -1803,114 +1800,47 @@ class BTQuotient(SageObject, UniqueRepresentation):
         cond = ZZ((D/D0).sqrt())
 
         # w = (-B + delta)/2
-        self._magma.eval('K<delta> := QuadraticField(%s);'%D)
-        self._magma.eval('O<w> : = sub < MaximalOrder(K) | %s>;'%cond)
-        self._magma.eval('tau,_ : = Embed(O,R)')
-        seq = [ZZ(self._magma.eval('tau[%s]'%ii)) for ii in range(1,5)]
-        # Continue from here!!!
+        self._magma.eval('K<delta> := QuadraticField(%s)'%D)
+        self._magma.eval('O<w> := sub < MaximalOrder(K) | %s>'%cond)
+        self._magma.eval('tau,_ := Embed(O,R)')
+        elt = Matrix(ZZ,4,1,[ZZ(self._magma.eval('tau[%s]'%ii)) for ii in range(1,5)])
+        return elt
 
-        magma.eval('rf := ReducedForms(%s)'%disc)
-        h = ZZ(magma.eval(' # rf'))
-        reduced_forms = [[ZZ(magma.eval('rf[%s][%s]'%(ii,jj))) for jj in range(1,4) ] for ii in range(1,h+1)]
-        Kp=Qq(p**2,prec=prec,names='g')
-        g=Kp.gen()
-
-        out_list = []
-        for A,B,C in reduced_forms:
-            D = B**2-4*A*C
-            # Compute the square root of D in a naive way
-            for a,b in product(range(p),repeat=2):
-                y0=a+b*g
-                if((y0**2-D).valuation()>0):
-                    break
-            y1=y0
-            Dsqrt=0
-            while(Dsqrt!=y1):
-                Dsqrt=y1
-                y1=(Dsqrt**2+D)/(2*Dsqrt)
-            tau = (B + Dsqrt)/(2*A)
-            out_list.append(tau)
-        return out_list
-
-    @cached_method
-    def get_CM_points(self,val,prec,ignore_units=False):
+    def get_CM_points(self,disc,prec):
         r"""
-        Find the CM points corresponding to a given order.
+        Find the CM points corresponding to a given discriminant.
 
         INPUT:
-            - ``val``: An integer or an order. If it is an integer, consider the maximal order `O` in the field `\QQ(\sqrt{val})`.
 
-            - ``ignore_units``: boolean (Default: False). If True, will return points which differ by a unit.
-            - ``prec``: Integer. The precision to which compute the points.
+        - ``disc``: An integer. Not necessarily a fundamental discriminant.
+        - ``prec``: Integer. The precision to which compute the points.
 
-        EXAMPLES:
+        EXAMPLES::
 
+            sage: p = 7
+            sage: lev=2
+            sage: X = BTQuotient(7,2,use_magma = True) # optional - magma
+            sage: X.get_splitting_field() # optional - magma
+            Number Field in a with defining polynomial X1^2 + 1
+            sage: V = X.get_CM_points(5^4 * -11, 20) # optional - magma
+            sage: len(V) # optional - magma
+            20
         """
-        p=self._p
-        try:
-            disc=Integer(val)
-            R = QQ['x']
-            f = R([-disc, 0, 1])
-            K=NumberField(f, 'sq', check=False)
-            val=K.maximal_order()
-        except TypeError:
-            disc=val.discriminant()
-            # K=val.fraction_field()
-        w=val.ring_generators()[0]
-        trace = w.trace()
-        norm = w.norm()
-        try: all_elts=self._CM_points[val]
-        except KeyError:
-            if(not self.is_admissible(disc)):
-                return []
-            all_elts=[]
-            nn=-1
-            while(len(all_elts)==0):
-                nn+=1
-                #print 'nn=',nn
-                all_elts=self._find_elements_in_order(p**(2*nn)*norm,(p**nn)*trace)
+        p = self._p
+        self.get_splitting_field()
+        self._magma.eval('rf := ReducedForms(%s)'%disc)
+        h = ZZ(magma.eval(' # rf'))
+        reduced_forms = [(ZZ(magma.eval('rf[%s][%s]'%(ii,jj))) for jj in range(1,4)) for ii in range(1,h+1)]
 
-            all_elts=[[v[ii]/(p**nn) for ii in range(4)] for v in all_elts]
-            # Now we take into account the action of units
-            all_elts0=[self._conv(v) for v in all_elts]
-
-            if not ignore_units:
-                units=[[u[ii]/(p**nn) for ii in range(4)] for u in self._find_elements_in_order(p**(2*nn))]
-                units0=[self._conv(u) for u in units]
-            else:
-                units=[]
-                units0=[]
-
-            all_elts_purged0=[]
-            all_elts_purged=[]
-
-            while(len(all_elts0)>0):
-                v0=all_elts0.pop(0)
-                v1=all_elts.pop(0)
-                new=True
-                for tt in all_elts_purged0:
-                    #compare v1 with tt
-                    for u in units0:
-                        if(tt*u==u*v0):
-                            new=False
-                            break
-                    if(not new):
-                        break
-                if(new):
-                    all_elts_purged0.append(v0)
-                    all_elts_purged.append(v1)
-
-            self._CM_points[val]=copy(all_elts_purged)
-
-        V=self._CM_points[val]
-        all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec = prec) for y in V]
-        Kp=Qq(p**2,prec=prec,names='g')
-        g=Kp.gen()
-        W=[]
-        for m in all_elts_split:
-            m.set_immutable()
+        out_list = []
+        for f in reduced_forms:
+            elt = self.CM_point(f)
+            a,b,c,d = self.embed_quaternion(elt,prec = prec).list()
+            trace = a+d
+            norm = a*d-b*c
+            Kp=Qq(p**2,prec=prec,names='g')
+            g=Kp.gen()
             # Compute the fixed points of the matrix m acting on the Kp points of Hp.
-            a,b,c,d = m.list()
             A=Kp(a-d)
             D2=Kp(trace**2-4*norm)
             if D2==0:
@@ -1926,9 +1856,106 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 while(D!=y1):
                     D=y1
                     y1=(D**2+D2)/(2*D)
+            out_list.append((A+D)/(2*c))
+        return out_list
 
-            W.append( (A+D)/(2*c) )
-        return W
+    # @cached_method
+    # def get_CM_points(self,val,prec,ignore_units=False):
+    #     r"""
+    #     Find the CM points corresponding to a given order.
+    # 
+    #     INPUT:
+    #         - ``val``: An integer or an order. If it is an integer, consider the maximal order `O` in the field `\QQ(\sqrt{val})`.
+    # 
+    #         - ``ignore_units``: boolean (Default: False). If True, will return points which differ by a unit.
+    #         - ``prec``: Integer. The precision to which compute the points.
+    # 
+    #     EXAMPLES:
+    # 
+    #     """
+    #     p=self._p
+    #     try:
+    #         disc=Integer(val)
+    #         R = QQ['x']
+    #         f = R([-disc, 0, 1])
+    #         K=NumberField(f, 'sq', check=False)
+    #         val=K.maximal_order()
+    #     except TypeError:
+    #         disc=val.discriminant()
+    #         # K=val.fraction_field()
+    #     w=val.ring_generators()[0]
+    #     trace = w.trace()
+    #     norm = w.norm()
+    #     try: all_elts=self._CM_points[val]
+    #     except KeyError:
+    #         if(not self.is_admissible(disc)):
+    #             return []
+    #         all_elts=[]
+    #         nn=-1
+    #         while(len(all_elts)==0):
+    #             nn+=1
+    #             #print 'nn=',nn
+    #             all_elts=self._find_elements_in_order(p**(2*nn)*norm,(p**nn)*trace)
+    # 
+    #         all_elts=[[v[ii]/(p**nn) for ii in range(4)] for v in all_elts]
+    #         # Now we take into account the action of units
+    #         all_elts0=[self._conv(v) for v in all_elts]
+    # 
+    #         if not ignore_units:
+    #             units=[[u[ii]/(p**nn) for ii in range(4)] for u in self._find_elements_in_order(p**(2*nn))]
+    #             units0=[self._conv(u) for u in units]
+    #         else:
+    #             units=[]
+    #             units0=[]
+    # 
+    #         all_elts_purged0=[]
+    #         all_elts_purged=[]
+    # 
+    #         while(len(all_elts0)>0):
+    #             v0=all_elts0.pop(0)
+    #             v1=all_elts.pop(0)
+    #             new=True
+    #             for tt in all_elts_purged0:
+    #                 #compare v1 with tt
+    #                 for u in units0:
+    #                     if(tt*u==u*v0):
+    #                         new=False
+    #                         break
+    #                 if(not new):
+    #                     break
+    #             if(new):
+    #                 all_elts_purged0.append(v0)
+    #                 all_elts_purged.append(v1)
+    # 
+    #         self._CM_points[val]=copy(all_elts_purged)
+    # 
+    #     V=self._CM_points[val]
+    #     all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec = prec) for y in V]
+    #     Kp=Qq(p**2,prec=prec,names='g')
+    #     g=Kp.gen()
+    #     W=[]
+    #     for m in all_elts_split:
+    #         m.set_immutable()
+    #         # Compute the fixed points of the matrix m acting on the Kp points of Hp.
+    #         a,b,c,d = m.list()
+    #         A=Kp(a-d)
+    #         D2=Kp(trace**2-4*norm)
+    #         if D2==0:
+    #             D=D2
+    #         else:
+    #             # Compute the square root of D in a naive way
+    #             for a,b in product(range(p),repeat=2):
+    #                 y0=a+b*g
+    #                 if((y0**2-D2).valuation()>0):
+    #                     break
+    #             y1=y0
+    #             D=0
+    #             while(D!=y1):
+    #                 D=y1
+    #                 y1=(D**2+D2)/(2*D)
+    # 
+    #         W.append( (A+D)/(2*c) )
+    #     return W
 
     @cached_method
     def _get_Up_data(self):

@@ -1289,53 +1289,53 @@ class pAutomorphicForm(ModuleElement):
             sage: p = 7
             sage: lev = 2
             sage: prec = 20
-            sage: X = BTQuotient(p,lev)
-            sage: k = 2
-            sage: M = HarmonicCocycles(X,k,prec)
-            sage: B = M.basis()
-            sage: f = 3*B[0]
-            sage: MM = pAutomorphicForms(X,k,prec,overconvergent=True)
-            sage: D = -11
-            sage: X.is_admissible(D)
+            sage: X = BTQuotient(p,lev, use_magma = True) # optional - magma
+            sage: k = 2 # optional - magma
+            sage: M = HarmonicCocycles(X,k,prec) # optional - magma
+            sage: B = M.basis() # optional - magma
+            sage: f = 3*B[0] # optional - magma
+            sage: MM = pAutomorphicForms(X,k,prec,overconvergent=True) # optional - magma
+            sage: D = -11 # optional - magma
+            sage: X.is_admissible(D) # optional - magma
             True
-            sage: K.<a> = QuadraticField(D)
-            sage: CM = X.get_CM_points(D,prec=prec)
-            sage: Kp = CM[0].parent()
-            sage: P=CM[0]
-            sage: Q=P.trace()-P # The conjugate
-            sage: F=MM.lift(f, verbose = False) # long time
-            sage: J0=F.coleman(P,Q,mult=True) # long time
-            sage: E=EllipticCurve([1,0,1,4,-6])
-            sage: T=E.tate_curve(p)
-            sage: xx,yy=getcoords(T,J0,prec) # long time
-            sage: P = E.base_extend(K).lift_x(algdep(xx,1).roots(QQ)[0][0]); P # long time
+            sage: K.<a> = QuadraticField(D) # optional - magma
+            sage: CM = X.get_CM_points(D,prec=prec) # optional - magma
+            sage: Kp = CM[0].parent() # optional - magma
+            sage: P=CM[0] # optional - magma
+            sage: Q=P.trace()-P # optional - magma
+            sage: F=MM.lift(f, verbose = False) # long time optional - magma
+            sage: J0=F.coleman(P,Q,mult=True) # long time optional - magma
+            sage: E=EllipticCurve([1,0,1,4,-6]) # optional - magma
+            sage: T=E.tate_curve(p) # optional - magma
+            sage: xx,yy=getcoords(T,J0,prec) # long time optional -magma
+            sage: P = E.base_extend(K).lift_x(algdep(xx,1).roots(QQ)[0][0]); P # long time optional - magma
             (7/11 : 58/121*a - 9/11 : 1)
 
-            sage: p = 13
-            sage: lev = 2
-            sage: prec = 20
-            sage: Y = BTQuotient(p,lev)
-            sage: k = 2
-            sage: M=HarmonicCocycles(Y,k,prec)
-            sage: B=M.basis()
+            sage: p = 13 # optional - magma
+            sage: lev = 2 # optional - magma
+            sage: prec = 20 # optional - magma
+            sage: Y = BTQuotient(p,lev, use_magma = True) # optional - magma
+            sage: k = 2 # optional - magma
+            sage: M=HarmonicCocycles(Y,k,prec) # optional - magma
+            sage: B=M.basis() # optional - magma
 
-            sage: f = B[1]
-            sage: g = -4*B[0]+3*B[1]
-            sage: MM = pAutomorphicForms(Y,k,prec,overconvergent=True)
-            sage: D = -11
-            sage: Y.is_admissible(D)
+            sage: f = B[1] # optional - magma
+            sage: g = -4*B[0]+3*B[1] # optional - magma
+            sage: MM = pAutomorphicForms(Y,k,prec,overconvergent=True) # optional - magma
+            sage: D = -11 # optional - magma
+            sage: Y.is_admissible(D) # optional - magma
             True
-            sage: K.<a> = QuadraticField(D)
-            sage: CM = Y.get_CM_points(D,prec=prec)
-            sage: Kp = parent(CM[0])
-            sage: P = CM[0]
-            sage: Q = P.trace()-P
-            sage: F = MM.lift(f, verbose = False) # long time
-            sage: J11 = F.coleman(P,Q,mult = True) # long time
-            sage: E = EllipticCurve('26a2')
-            sage: T = E.tate_curve(p)
-            sage: xx,yy = getcoords(T,J11,prec) # long time
-            sage: HP = E.base_extend(K).lift_x(algdep(xx,1).roots(QQ)[0][0]); HP # long time
+            sage: K.<a> = QuadraticField(D) # optional - magma
+            sage: CM = Y.get_CM_points(D,prec=prec) # optional - magma
+            sage: Kp = parent(CM[0]) # optional - magma
+            sage: P = CM[0] # optional - magma
+            sage: Q = P.trace()-P # optional - magma
+            sage: F = MM.lift(f, verbose = False) # long time optional - magma
+            sage: J11 = F.coleman(P,Q,mult = True) # long time optional - magma
+            sage: E = EllipticCurve('26a2') # optional - magma
+            sage: T = E.tate_curve(p) # optional - magma
+            sage: xx,yy = getcoords(T,J11,prec) # long time optional - magma
+            sage: HP = E.base_extend(K).lift_x(algdep(xx,1).roots(QQ)[0][0]); HP # long time optional - magma
             (-137/11 : 2/121*a + 63/11 : 1)
 
         AUTHORS:
