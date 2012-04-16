@@ -226,7 +226,7 @@ class modsym_symk(modsym):
         assert N%p!=0, "The level isn't prime to p"
         assert (ap%p)!=0, "Not ordinary!"
 
-        # makes alpha the unit root of Hecke poly
+        # Makes alpha the unit root of the Hecke polynomial x^2-a_p*x+p^(k+1)
         R = pAdicField(p,M)['y'] 
         y = R.gen()
         f = y**2-ap*y+p**(k+1)
@@ -350,19 +350,23 @@ class modsym_symk(modsym):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
 
+        Here the Eisenstein error is a symbol whose system of Hecke eigenvalues equals `ell+1` for `T_ell` when `ell`
+        does not divide `Np` and 1 for `U_q` when `q` divides `Np`.
+
         INPUT:
-            - ``p`` -- 
-            - ``M`` --
+            - ``p`` -- prime
+            - ``M`` -- integer equal to the number of moments
 
         OUTPUT:
+      
+        An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
 
         EXAMPLES:
         """
         v = []
-        # this loop runs through each generator and lifts the value of 
-        # self on that generator to D
-        
-        for j in range(1,len(self.manin.gens)):
+
+        ##  This loop runs through each generator and lifts the value of self on that generator to D        
+        for j in range(1,len(self.ngens())):
             g = self.manin.gens[j]
             if (self.manin.twotor.count(g)==0) and (self.manin.threetor.count(g)==0):
                 #not two or three torsion
