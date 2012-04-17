@@ -49,7 +49,7 @@ def logp(p,z,M):
 
     EXAMPLES:
 
-        sage: R.<x> = QQ['z']
+        sage: R.<z> = QQ['z']
         sage: logp(5,z,10)
         -1/9*z^9 + 1/8*z^8 - 1/7*z^7 + 1/6*z^6 - 1/5*z^5 + 1/4*z^4 - 1/3*z^3 + 1/2*z^2 - z
 
