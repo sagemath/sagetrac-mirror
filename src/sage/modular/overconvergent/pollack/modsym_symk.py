@@ -381,22 +381,22 @@ class modsym_symk(modsym):
         v = []
 
         ##  This loop runs through each generator and lifts the value of self on that generator to D        
-        for j in range(1,len(self.ngens())):
-            g = self.manin.gens[j]
-            if (self.manin.twotor.count(g)==0) and (self.manin.threetor.count(g)==0):
+        for j in range(1, self.ngens()):
+            g = self.manin().gens()[j]
+            if (self.manin().two_torsion_indices().count(g)==0) and (self.manin().three_torsion_indices().count(g)==0):
                 #not two or three torsion
-                v = v + [self.data[j].lift_to_dist(p,M)]
+                v = v + [self.data()[j].lift_to_dist(p,M)]
             else:
-                if (self.manin.twotor.count(g)<>0):
+                if (self.manin().two_torsion_indices().count(g)<>0):
                     #case of two torsion (See [PS] section 4.1)
-                    rj = self.manin.twotor.index(g)
-                    gam = self.manin.twotorrels[rj]
+                    rj = self.manin().two_torsion_indices().index(g)
+                    gam = self.manin().twotorrels[rj]
                     mu = self.data[j].lift_to_dist(p,M)
                     v = v+ [(mu.act_right(gam)-mu).scale(ZZ(1)/ZZ(2))]
                 else:
                     #case of three torsion (See [PS] section 4.1)       
-                    rj = self.manin.threetor.index(g)
-                    gam = self.manin.threetorrels[rj]
+                    rj = self.manin().three_torsion_indices().index(g)
+                    gam = self.manin().three_torsion_relation_matrices[rj]
                     mu = self.data[j].lift_to_dist(p,M)
                     v = v+[(mu.scale(2)-mu.act_right(gam)-mu.act_right(gam**2)).scale(ZZ(1)/ZZ(3))]
         
@@ -404,21 +404,23 @@ class modsym_symk(modsym):
                 
         # this loops adds up around the boundary of fundamental domain 
         # except the two vertical lines
-        for j in range(2,len(self.manin.rels)):
-            R = self.manin.rels[j]
+        Id=Matrix(2,2,[1,0,0,1])        
+        for j in range(2,len(self.manin().coset_relations())):
+            R = self.manin().coset_relations()[j]
             if len(R) == 1:
                 if R[0][0] == 1:
-                    rj = self.manin.gens.index(j)
-                    t = t + self.data[rj].lift_to_dist(p,M)
+                    rj = self.manin().gens().index(j)
+                    t = t + self.data()[rj].lift_to_dist(p,M)
                 else:
                     if R[0][1]<>Id:
                     #rules out extra three torsion terms
                         index = R[0][2]
-                        rj = self.manin.gens.index(index)
-                        t = t+self.data[rj].lift_to_dist(p,M).act_right(R[0][1]).scale(R[0][0])
+                        rj = self.manin().gens().index(index)
+                        t = t+self.data()[rj].lift_to_dist(p,M).act_right(R[0][1]).scale(R[0][0])
         mu = t.solve_diff_eqn()
         v = [mu] + v
-        return modsym_dist(self.level,v,self.manin)     
+        import modsym_dist 
+        return modsym_dist.modsym_dist(v,self.manin())     
 
     def lift_to_OMS_eigen(self,p,M,verbose=True):
         r"""
@@ -509,7 +511,7 @@ class modsym_symk(modsym):
 
         """
         v = [self.data(j).map(psi) for j in range(len(self.data()))]
-        return modsym_symk(self.level,v,self.manin)
+        return modsym_symk(v,self.manin())
 
     def coerce_to_Qp(self,p,M):
         r"""

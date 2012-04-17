@@ -352,6 +352,8 @@ class manin_relations(SageObject):
 
 #        self.__glue = glue_data           ## TBA... =)
 
+    def gens(self):
+        return self.__gens    
 
     def level(self):
         r"""

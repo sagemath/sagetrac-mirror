@@ -23,8 +23,19 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     sage: Ne = S.new_subspace()
     sage: D = Ne.decomposition()
     sage: A = D[0]
+    sage: from sage.modular.overconvergent.pollack.lvalue_test import lvalue_using_OMS_split
     sage: lvalue_using_OMS_split(A,11,1,2,4,5)
 
+    
+sage: from sage.modular.overconvergent.pollack.lvalue_test import lvalue_using_OMS_split
+sage: N = 103
+sage: M = ModularSymbols(N,2,1)
+sage: S = M.cuspidal_submodule()
+sage: Ne = S.new_subspace()
+sage: D = Ne.decomposition()
+sage: A = D[0]
+sage: phi=form_modsym_from_decomposition(A)
+sage: lvalue_using_OMS_split(A,19,1,2,2,2)
     """
     coeff = ZZ(r)/ZZ(2)
     from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_decomposition    

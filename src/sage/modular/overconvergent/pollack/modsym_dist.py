@@ -1,30 +1,33 @@
+
 from sage.rings.integer_ring import ZZ
 
-class modsym_dist(modsym):
+import modsym
+
+class modsym_dist(modsym.modsym):
     
     def ms(self):
         r"""
 	Demotes to a regular modular symbol
 	"""
-	return modsym(self.level,self.data,self.manin)
+	return modsym(self.data(),self.manin())
 
     def p(self):
 	r"""
 	Returns the underlying prime
 	"""
-	return self.data[0].p
+	return self.data()[0].p
 
     def weight(self):
 	r"""
         Returns the underlying weight
         """		
-        return self.data[0].weight
+        return self.data()[0].weight
 
     def num_moments(self):
         r"""
         Returns the number of moments of each value of self
         """
-	return self.data[0].num_moments()
+	return self.data()[0].num_moments()
 
     def eval(self,A):
         r"""
@@ -40,10 +43,10 @@ class modsym_dist(modsym):
         the canonical map `D_k --> Sym^k` to all values of self
         """
 	#v = []
-	#for j in range(0,len(self.data)):
-        #    v=v+[self.data[j].specialize()]
+	#for j in range(0,len(self.data())):
+        #    v=v+[self.data()[j].specialize()]
 
-	v = [j.specialize() for j in self.data]
+	v = [j.specialize() for j in self.data()]
 	return modsym_symk(self.level,v,self.manin)
 	
     def valuation(self):
@@ -51,8 +54,8 @@ class modsym_dist(modsym):
         Returns the exponent of the highest power of `p` which divides all 
         moments of all values of self
         """
-#	return min([self.data[j].valuation() for j in range(len(self.data))])
-        return min([j.valuation() for j in self.data])
+#	return min([self.data()[j].valuation() for j in range(len(self.data()))])
+        return min([j.valuation() for j in self.data()])
 
     def normalize(self):
         r"""
@@ -62,11 +65,11 @@ class modsym_dist(modsym):
         assert self.valuation()>=0, "moments are not integral"
 
         #v = []
-        #for j in range(0,len(self.data)):
-        #     v=v+[self.data[j].normalize()]
+        #for j in range(0,len(self.data())):
+        #     v=v+[self.data()[j].normalize()]
 
-        v = [j.normalize() for j in self.data]
-	ans = modsym_dist(self.level,v,self.manin,self.full_data)
+        v = [j.normalize() for j in self.data()]
+	ans = modsym_dist(v,self.manin(),self._full_data)
         ans.normalize_full_data()
         return ans
 
@@ -75,11 +78,11 @@ class modsym_dist(modsym):
         Only holds on to `M` moments of each value of self
         """
 	#v=[]
-	#for j in range(0,len(self.data)):
-	#    v=v+[self.data[j].change_precision(M)]
+	#for j in range(0,len(self.data())):
+	#    v=v+[self.data()[j].change_precision(M)]
 
-	v = [j.change_precision(M) for j in self.data]
-	return modsym_dist(self.level,v,self.manin)
+	v = [j.change_precision(M) for j in self.data()]
+	return modsym_dist(v,self.manin())
 
     def lift(self,phi,ap):
 	r"""
@@ -88,10 +91,10 @@ class modsym_dist(modsym):
         """
 #        v=[]
 #	for a in range(self.ngens()):
-#            v=v+[self.data[a].lift()]
+#            v=v+[self.data()[a].lift()]
 
-        v = [self.data[a].lift() for a in range(self.ngens())]
-	Phi = modsym_dist(self.level,v,self.manin)
+        v = [self.data()[a].lift() for a in range(self.ngens())]
+	Phi = modsym_dist(v,self.manin())
 	k = self.weight()
 	for a in range(self.ngens()):
             for j in range(k+1):
@@ -138,6 +141,6 @@ class modsym_dist(modsym):
 		    mu = v[rj-1]
 		    t = t+mu.act_right(R[0][1]).scale(R[0][0])
 	v = [mu.scale(-1)]+v
-	Phi = modsym_dist(N*p,v,manin)	
+	Phi = modsym_dist(v,manin)	
 	return Phi
 
