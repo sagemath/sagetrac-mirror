@@ -15,11 +15,11 @@ def teich(a,p,M):
 
     INPUT:
         - ``a`` -- element of `Qp`
-	- ``p`` -- prime
-	- ``M`` -- precision, `O(p^M)`
+        - ``p`` -- prime
+        - ``M`` -- precision, `O(p^M)`
 
     OUTPUT:
-	
+        
     The Teichmuller representative of a as an element of `Z`
 
     EXAMPLES:
@@ -36,7 +36,7 @@ def teich(a,p,M):
 def logp(p,z,M):
     r"""
     Returns the truncation `\sum_{j=1}^{M-1} (-1)^j/j z^j` of `log_p(1+z)`
-	
+        
     INPUT:
         - ``p`` -- prime 
         - ``z`` -- variable
@@ -53,13 +53,14 @@ def logp(p,z,M):
         sage: logp(5,z,10)
         -1/9*z^9 + 1/8*z^8 - 1/7*z^7 + 1/6*z^6 - 1/5*z^5 + 1/4*z^4 - 1/3*z^3 + 1/2*z^2 - z
 
-	sage: R.<z> = QQ['z']
-	sage: logp(7,z,6)
-	-1/5*z^5 + 1/4*z^4 - 1/3*z^3 + 1/2*z^2 - z          
+        sage: R.<z> = QQ['z']
+        sage: logp(7,z,6)
+        -1/5*z^5 + 1/4*z^4 - 1/3*z^3 + 1/2*z^2 - z          
     """
     ans = 0
+    one = ZZ(1)
     for j in range(1,M):
-        ans=ans+((-1)**j)/j*(z**j)
+        ans=ans+((-one)**j)/j*(z**j)
     return ans
 
 # @cached_function
@@ -93,7 +94,7 @@ def loggam_binom(p,gam,z,n,M):
     logpgam = L.substitute(z = (gam-1)) #log base p of gamma
     loggam = L/logpgam                  #log base gamma 
     return z.parent()(binomial(loggam,n)).truncate(M).list()
-
+        
 # @cached_function
 def phi_on_Da(Phi,a,D):
     """
@@ -114,7 +115,7 @@ def phi_on_Da(Phi,a,D):
     p = Phi.p()
     ans = Phi.zero_elt()
     for b in range(1,abs(D)+1):
-        if gcd(b,D)==1:	
+        if gcd(b,D)==1:        
             M1 = Matrix(2,2,[1,b/abs(D),0,1])
             ans=ans+Phi.eval(M1*Matrix(2,2,[a,1,p,0])).act_right(M1).scale(kronecker(D,b)).normalize()
     return ans.normalize()
@@ -159,9 +160,9 @@ def pLfunction_coef(Phi,ap,n,D,gam,error=None):
     INPUT:
         - ``Phi`` -- overconvergent Hecke-eigensymbol
         - ``ap`` -- eigenvalue of `U_p`
-	- ``n`` -- index of desired coefficient
-	- ``D`` -- discriminant of quadratic twist
-	- ``gam`` -- topological generator of `1 + pZ_p`
+        - ``n`` -- index of desired coefficient
+        - ``D`` -- discriminant of quadratic twist
+        - ``gam`` -- topological generator of `1 + pZ_p`
     
     OUTPUT:
 
@@ -201,8 +202,8 @@ def pLfunction(Phi,ap,quad_twist=None):
 
     INPUT:
         - ``Phi`` -- overconvergent Hecke-eigensymbol
-	- ``ap`` -- eigenvalue at `p`
-	- ``quad_twist`` -- conductor of quadratic character
+        - ``ap`` -- eigenvalue at `p`
+        - ``quad_twist`` -- conductor of quadratic character
 
     OUTPUT:
 
