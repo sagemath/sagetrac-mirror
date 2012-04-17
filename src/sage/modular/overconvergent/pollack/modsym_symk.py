@@ -226,6 +226,7 @@ class modsym_symk(modsym):
         sage: M = 100
         sage: R = pAdicField(p,M)['y'] 
         sage: y = R.gen()
+        sage: ap = -1
         sage: f = y**2-ap*y+p
         sage: v = f.roots()
         sage: alpha = v[0][0]
@@ -274,17 +275,20 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]        
         sage: phi_ss = phi.p_stabilize_critical(3,E.ap(3),10)
+        sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
         sage: phi_ord.hecke(2) - phi_ord.scale(E.ap(2))
         [0, 0, 0, 0, 0, 0, 0, 0, 0]
         sage: phi_ord.hecke(5) - phi_ord.scale(E.ap(5))
         [0, 0, 0, 0, 0, 0, 0, 0, 0]
         sage: p = 3
         sage: M = 10
-        sage: R = pAdicField(p,M)['y'] 
+        sage: R = pAdicField(p,M)['y']
         sage: y = R.gen()
+        sage: ap = -1
         sage: f = y**2-ap*y+p
         sage: v = f.roots()
         sage: beta = v[1][0]
@@ -296,7 +300,7 @@ class modsym_symk(modsym):
 
         """
         N = self.level()
-        k = self.data(0).weight()
+        k = self.data(0).weight
         assert N%p<>0, "The level isn't prime to p"
         assert (ap%p)!=0, "Not ordinary!"
 
@@ -332,6 +336,7 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
@@ -379,6 +384,7 @@ class modsym_symk(modsym):
         An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
 
         EXAMPLES:
+        
         """
         v = []
 
