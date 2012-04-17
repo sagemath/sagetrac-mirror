@@ -96,7 +96,7 @@ class modsym_symk(modsym):
         Rational Field
 
         """
-        return self.data(0).base_ring()
+        return self.data(0).base_ring
 
     def valuation(self,p):
         r"""
@@ -151,6 +151,7 @@ class modsym_symk(modsym):
  
         ::
 
+        sage: E = EllipticCurve('11a')
         sage: p = 3
         sage: M = 100
         sage: R = pAdicField(p,M)['y'] 
@@ -164,15 +165,6 @@ class modsym_symk(modsym):
         sage: alpha^2 - E.ap(3)*alpha + 3
         O(3^100)
         sage: alpha=ZZ(alpha)
-
-        ###none of these work###
-        
-        sage: phi_alpha.hecke(2)-phi_alpha.scale(E.ap(2))
-        [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        sage: (phi_alpha.hecke(3)-phi_alpha.scale(alpha)).valuation(3)
-        101
-        sage: phi_alpha.hecke(5)-phi_alpha.scale(E.ap(5))
-        [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         """
         N = self.level()
@@ -550,47 +542,6 @@ class modsym_symk(modsym):
                 ans = ans+[[self.map(psi),psi]]
         return ans
 
-    def form_modsym_from_decomposition(A):
-        r"""
-        `A` is a piece of the result from a command like 
-        ModularSymbols(---).decomposition()
-        
-        INPUT:
-            - ``A`` -- 
-
-        OUTPUT:
-
-        EXAMPLES:
-
-        """
-        M = A.ambient_module()
-        N = A.level()
-        k = A.weight()
-        manin = manin_relations(N)
-        w = A.dual_eigenvector()
-        K = w.parent().base_field()
-        v = []
-        R = PolynomialRing(K,2,names='X,Y')
-        X,Y = R.gens()
-        for j in range(0,len(manin.gens)):
-            rj = manin.gens[j]
-            g = manin.mats[rj]
-            a,b,c,d = g.list()
-            ans = 0
-            if c<>0:
-                r1 = a/c
-            else:
-                r1 = oo
-            if d<>0:
-                r2 = b/d
-            else:
-                r2 = oo
-            for j in range(k-1):
-                coef = w.dot_product(M.modular_symbol([j,r1,r2]).element())
-                ans = ans+X**j*Y**(k-2-j)*binomial(k-2,j)*coef
-            v = v+[symk(k-2,ans,K)]
-        return modsym_symk(N,v,manin)
-
     def lift(self,p,ap):
         """
         M.Greenberg method of lifting one step at a time -- slower in these 
@@ -649,4 +600,46 @@ def form_modsym_from_elliptic_curve(E):
             a2 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
         v = v + [symk(0,R(a1)) - symk(0,R(a2))]
     return modsym_symk(v,manin)
+
+
+def form_modsym_from_decomposition(A):
+    r"""
+    `A` is a piece of the result from a command like 
+    ModularSymbols(---).decomposition()
+
+    INPUT:
+        - ``A`` -- 
+
+    OUTPUT:
+
+    EXAMPLES:
+
+    """
+    M = A.ambient_module()
+    N = A.level()
+    k = A.weight()
+    manin = manin_relations(N)
+    w = A.dual_eigenvector()
+    K = w.parent().base_field()
+    v = []
+    R = PolynomialRing(K,2,names='X,Y')
+    X,Y = R.gens()
+    for j in range(0,len(manin.gens)):
+        rj = manin.gens[j]
+        g = manin.mats[rj]
+        a,b,c,d = g.list()
+        ans = 0
+        if c<>0:
+            r1 = a/c
+        else:
+            r1 = oo
+        if d<>0:
+            r2 = b/d
+        else:
+            r2 = oo
+        for j in range(k-1):
+            coef = w.dot_product(M.modular_symbol([j,r1,r2]).element())
+            ans = ans+X**j*Y**(k-2-j)*binomial(k-2,j)*coef
+        v = v+[symk(k-2,ans,K)]
+    return modsym_symk(N,v,manin)
 
