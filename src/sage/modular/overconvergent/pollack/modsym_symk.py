@@ -173,7 +173,7 @@ class modsym_symk(modsym):
         pp = Matrix(ZZ,[[p,0],[0,1]])
 
         manin = manin_relations(N*p)
-
+        
         v = [] ## this list will contain the data of the p-stabilized symbol of level N*p
 
         ##  This loop runs through each generator at level Np and computes the value of the
@@ -624,9 +624,9 @@ def form_modsym_from_decomposition(A):
     v = []
     R = PolynomialRing(K,2,names='X,Y')
     X,Y = R.gens()
-    for j in range(0,len(manin.gens)):
-        rj = manin.gens[j]
-        g = manin.mats[rj]
+    for j in range(0,len(manin._manin_relations__gens)):
+        rj = manin._manin_relations__gens[j]
+        g = manin._manin_relations__mats[rj]
         a,b,c,d = g.list()
         ans = 0
         if c<>0:
