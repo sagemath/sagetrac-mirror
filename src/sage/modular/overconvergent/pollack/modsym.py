@@ -68,7 +68,7 @@ class modsym(SageObject):
 
         """
         return self.__manin
-
+    
     def data(self,n=None):
         r"""
         Returns the list of values of self on our generating set or simply the n-th value if n is specified.
@@ -391,7 +391,7 @@ class modsym(SageObject):
 
         """
         return self + right.scale(-1)
-
+    
     def __cmp__(self,right):
         r"""
         Checks for equality between self and right.  

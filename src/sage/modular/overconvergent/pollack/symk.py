@@ -1,10 +1,11 @@
-
-import sage.rings.polynomial.multi_polynomial_element as MPol
+from sage.all import *
+from copy import copy
+#import sage.rings.polynomial.multi_polynomial_element as MPol
 from sage.structure.sage_object import SageObject
-from sage.rings.rational_field import QQ
-from sage.rings.polynomial.all import PolynomialRing
-from sage.rings.arith import valuation, binomial
-from sage.modules.free_module_element import vector
+#from sage.rings.rational_field import QQ
+#from sage.rings.polynomial.all import PolynomialRing
+#from sage.rings.arith import valuation, binomial
+#from sage.modules.free_module_element import vector
 
 class symk(SageObject):
 	def __init__(self,k,poly=None,base_ring=QQ):

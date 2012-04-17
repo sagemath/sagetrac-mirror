@@ -229,13 +229,13 @@ class modsym_symk(modsym):
         sage: alpha=ZZ(alpha)
         sage: (phi_ord.hecke(3) - phi_ord.scale(alpha)).valuation(3)
         11
-
+        
         """
         N = self.level()
         k = self.data(0).weight
         assert N%p!=0, "The level isn't prime to p"
         assert (ap%p)!=0, "Not ordinary!"
-
+        
         # Makes alpha the unit root of the Hecke polynomial x^2-a_p*x+p^(k+1)
         R = pAdicField(p,M)['y'] 
         y = R.gen()
