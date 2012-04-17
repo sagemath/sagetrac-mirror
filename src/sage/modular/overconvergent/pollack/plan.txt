@@ -1,0 +1,32 @@
+Stage 1: Get all existing tests to pass in the following files (some
+have no tests right now):
+
+dist.py
+distributions.py
+fund_domain.py
+modsym.py
+modsym_dist.py
+modsym_symk.py
+pLfunction.py
+symk.py
+
+Stage 2: Come up with the simplest *design* for this functionality that
+could possibly go into Sage and do the same thing as the above.
+
+Stage 3: Implement:
+
+  - one group: write test suite (doctest/docstrings) using the new 
+    function names/classes/etc.  Use the program above to generate
+    the expected output
+
+  - another group: "quick" implementation in Python of
+    parents/elements/etc.  Will copy over a lot of code from above (or
+    just refactor things, etc.)
+
+  - make sure it *works*.
+
+Stage 4: Optimization
+
+  - depends on results of stage 3.  Fast dist code is relevant. 
+
+
