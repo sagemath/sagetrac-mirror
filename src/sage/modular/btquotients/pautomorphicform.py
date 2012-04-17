@@ -115,8 +115,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
 
         """
@@ -130,8 +128,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
         """
         return all([self._F[e].__eq__(other._F[e]) for e in range(self._nE)])
@@ -143,8 +139,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
 
         """
@@ -155,8 +149,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
         Test for being non-zero.
 
         EXAMPLES:
-
-        This example illustrates ...
 
         ::
 
@@ -170,8 +162,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
 
         """
@@ -182,7 +172,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _compute_element(self):
         r"""
-    
+
         """
         R=self._R
         A=self._parent.basis_matrix().transpose()
@@ -199,7 +189,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         - ``e1`` - a matrix corresponding to an edge of the Bruhat-Tits tree
 
-        OUTPUT
+        OUTPUT:
 
           An element of the coefficient module of the cocycle which describes 
           the value of the cocycle on e1
@@ -256,7 +246,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
         The derivative of the modular form attached to ``self``.
 
         EXAMPLES:
+
         ::
+
         """
         def F(z):
             R=PolynomialRing(z.parent(),'x,y').fraction_field()
@@ -288,13 +280,9 @@ class HarmonicCocycles(AmbientHeckeModule):
     INPUT:
 
      - ``X`` - A BTQuotient object
-
      - ``k`` - integer - The weight.
-
      - ``prec`` - integer (Default: None). If specified, the precision for the coefficient module
-
      - ``basis_matrix`` - integer (Default: None)
-
      - ``base_field`` - (Default: None)
 
     EXAMPLES:
@@ -496,22 +484,36 @@ class HarmonicCocycles(AmbientHeckeModule):
         r"""
         Returns a basis of ``self`` in matrix form.
 
-        If the coefficient module M is of finite rank then the space of Gamma invariant
-        M valued harmonic cocycles can be represented as a subspace of the finite rank
+        If the coefficient module `M` is of finite rank then the space of Gamma invariant
+        `M` valued harmonic cocycles can be represented as a subspace of the finite rank
         space of all functions from the finitely many edges in the corresponding 
-        BTQuotient into M. This function computes this representation of the space of
+        BTQuotient into `M`. This function computes this representation of the space of
         cocycles.
 
         OUTPUT:
 
-          A basis matrix describing the cocycles in the spaced of all M valued Gamma
-          invariant functions on the tree
+          A basis matrix describing the cocycles in the spaced of all `M` valued Gamma
+          invariant functions on the tree.
 
         EXAMPLES:
 
-        This example illustrates ...
+        ::
+
+            sage: X = BTQuotient(3,19)
+            sage: C = HarmonicCocycles(X,4,prec = 5)
+            sage: B = C.basis()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: The computed dimension does not agree with the expectation. Consider increasing precision!
+
+        We try increasing the precision:
 
         ::
+
+            sage: C = HarmonicCocycles(X,4,prec = 20)
+            sage: B = C.basis()
+            sage: len(B) == X.dimension_harmonic_cocycles(4)
+            True
 
         AUTHORS:
 
@@ -549,6 +551,10 @@ class HarmonicCocycles(AmbientHeckeModule):
             self._M.set_block((nV+kk)*d,v[0]*d,v[1])
 
         x1=self._M.right_kernel().matrix()
+
+        if x1.nrows() != self.rank():
+            raise RuntimeError, 'The computed dimension does not agree with the expectation. Consider increasing precision!'
+
         K=[c for c in x1.rows()]
 
         if not self._R.is_exact():
@@ -588,9 +594,6 @@ class HarmonicCocycles(AmbientHeckeModule):
             t=d1[jj]
             tmp[jj]+=(t.sign()*f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
         return HarmonicCocycleElement(self,tmp,from_values=True)
-
-    def test_app_hecke(self,l,f):
-        return self.__apply_hecke_operator(l,f)
 
     def __apply_hecke_operator(self,l,f):
         r"""
