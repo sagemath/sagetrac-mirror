@@ -137,9 +137,9 @@ Inputs:
 def form_acting_matrix_on_dist(p,M,k,a,b,c,d):
 	"""forms a large M x M matrix say G such that if v is the vector of moments of a distribution mu, then v*G is the vector of moments of mu|[a,b;c,d]"""
 
-	print("Checking...")
-	print(a,b,c,d)
-	print(p)
+#	print("Checking...")
+#	print(a,b,c,d)
+#	print(p)
 
 	assert (a%p != 0) and (c%p == 0), "acting by bad matrix"
 

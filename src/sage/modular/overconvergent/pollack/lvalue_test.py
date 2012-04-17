@@ -34,7 +34,6 @@ sage: S = M.cuspidal_submodule()
 sage: Ne = S.new_subspace()
 sage: D = Ne.decomposition()
 sage: A = D[0]
-sage: phi=form_modsym_from_decomposition(A)
 sage: lvalue_using_OMS_split(A,19,1,2,2,2)
     """
     coeff = ZZ(r)/ZZ(2)

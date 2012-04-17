@@ -396,8 +396,8 @@ class modsym_symk(modsym):
                 else:
                     #case of three torsion (See [PS] section 4.1)       
                     rj = self.manin().three_torsion_indices().index(g)
-                    gam = self.manin().three_torsion_relation_matrices[rj]
-                    mu = self.data[j].lift_to_dist(p,M)
+                    gam = self.manin().three_torsion_relation_matrices()[rj]
+                    mu = self.data()[j].lift_to_dist(p,M)
                     v = v+[(mu.scale(2)-mu.act_right(gam)-mu.act_right(gam**2)).scale(ZZ(1)/ZZ(3))]
         
         t = v[0].zero()
