@@ -1,6 +1,10 @@
 from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
 from sage.structure.sage_object import SageObject
-     
+from sage.rings.arith import convergents
+from sage.matrix.all import Matrix
+from sage.rings.all import ZZ
+
+
 ##############################
 ##  Define the modsym class ##
 ##############################

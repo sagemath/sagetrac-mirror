@@ -1,7 +1,14 @@
-from sage.rings.arith import binomial
-from sage.rings.padics.all import pAdicField
-from sage.rings.integer_ring import ZZ
-from sage.matrix.all import Matrix
+#from sage.rings.arith import binomial
+#from sage.rings.padics.all import pAdicField
+#from sage.rings.all import PolynomialRing, ZZ, QQ
+#from sage.rings.infinity import Infinity as oo
+#from sage.matrix.all import Matrix
+#from sage.modular.overconvergent.pollack.modsym import modsym
+#from sage.modular.overconvergent.pollack.
+#from sage.modular.overconvergent.pollack.fund_domain import manin_relations
+
+from sage.all import *
+
 
 class modsym_symk(modsym):
 
@@ -25,18 +32,20 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: phi
         [-1/5, 3/2, -1/2]
         sage: type(phi)
-        <class '__main__.modsym_symk'>
+        <class 'sage.modular.overconvergent.pollack.modsym_symk.modsym_symk'>
         sage: psi=phi.ms(); psi
         [-1/5, 3/2, -1/2]
         sage: type(psi)
-        <class '__main__.modsym'>
+        <class 'sage.modular.overconvergent.pollack.modsym.modsym'>
 
         """
         return modsym(self.data(),self.manin())
-        
+    
     def weight(self):
         r"""
         Returns the weight of any value of self.
@@ -54,13 +63,14 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve 
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]
         sage: phi.weight()
         0
 
         """
-        return self.data(0).weight()
+        return self.data(0).weight
 
     def base_ring(self):
         r"""
@@ -79,6 +89,7 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]
         sage: phi.base_ring()
@@ -106,6 +117,7 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]
         sage: phi.valuation(2)
@@ -143,6 +155,7 @@ class modsym_symk(modsym):
         sage: M = 100
         sage: R = pAdicField(p,M)['y'] 
         sage: y = R.gen()
+        sage: ap = -1
         sage: f = y**2-ap*y+p
         sage: v = f.roots()
         sage: alpha = v[0][0]
@@ -151,6 +164,9 @@ class modsym_symk(modsym):
         sage: alpha^2 - E.ap(3)*alpha + 3
         O(3^100)
         sage: alpha=ZZ(alpha)
+
+        ###none of these work###
+        
         sage: phi_alpha.hecke(2)-phi_alpha.scale(E.ap(2))
         [0, 0, 0, 0, 0, 0, 0, 0, 0]
         sage: (phi_alpha.hecke(3)-phi_alpha.scale(alpha)).valuation(3)
@@ -197,6 +213,7 @@ class modsym_symk(modsym):
         ::
 
         sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]        
         sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10); phi_ord
@@ -222,7 +239,7 @@ class modsym_symk(modsym):
 
         """
         N = self.level()
-        k = self.data(0).weight()
+        k = self.data(0).weight
         assert N%p!=0, "The level isn't prime to p"
         assert (ap%p)!=0, "Not ordinary!"
 

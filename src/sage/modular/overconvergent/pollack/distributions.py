@@ -16,11 +16,11 @@ class Distributions(Module):
             base = ZpCA(p,prec_cap)
         else:
             assert (isinstance(base, pAdicGeneric) and base.prime() == p) or (p.is_prime() and (base is ZZ or base is QQ))
-        from dist import Dist_vector, WeightKAction_vector, Dist_long, WeightKAction_long, 
+        from dist import Dist_vector, WeightKAction_vector, Dist_long, WeightKAction_long
         from sage.rings.padics.pow_computer import PowComputer_long
         # should eventually be the PowComputer on ZpCA once that uses longs.
         p = ZZ(p)
-        if 7*p**
+#        if 7*p**
         self._element_constructor_ = Dist_vector
         Parent.__init__(self, base)
         self._k = k
