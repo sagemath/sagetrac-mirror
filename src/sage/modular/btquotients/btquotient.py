@@ -32,6 +32,7 @@ from sage.interfaces.all import magma
 from copy import copy
 from sage.plot.colors import rainbow
 from sage.rings.number_field.all import NumberField
+from sage.modular.arithgroup.all import Gamma0
 
 
 class DoubleCosetReduction(SageObject):
@@ -339,7 +340,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             r=M[0,0]
             if r!=0:
                 r/=p**m00
-                assert val(r)==0
+                assert val(r) == 0
             g,s,_=xgcd(r,bigpower)
             assert g==1
             r=(M[1,0]*s)%bigpower
@@ -351,12 +352,12 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             if r!=0:
                 r/=p**m01
                 assert val(r)==0
-            g,s,_=xgcd(r,bigpower)
-            assert g==1
+            g,s,_ = xgcd(r,bigpower)
+            assert g == 1
             r=(M[1,1]*s)%bigpower
             newM=self._Mat_22([0,p**m01,bigpower,r])
         newM.set_immutable()
-        assert self.belongs_to_group(newM.inverse()*M,as_edge = True)
+        # assert self.belongs_to_group(newM.inverse()*M,as_edge = True)
         return newM
 
     def belongs_to_group(self,x,as_edge = False):
@@ -423,21 +424,13 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         r=M[0,0]
         if r!=0:
             r/=p**m00
-            if val(r)!=0:
-                print 'aa'
-                print M[0,0]
-                print r
-                print m00
-                assert 0
+            assert val(r) == 0
         g,s,_=xgcd(r,bigpower)
-        if g!=1:
-            print 'bb'
-            print g
-            assert 0
+        assert g == 1
         r=(M[1,0]*s)%bigpower
         newM=self._Mat_22([p**m00,0,r,bigpower])
         newM.set_immutable()
-        assert self.belongs_to_group(newM.inverse()*M,as_edge = False)
+        # assert self.belongs_to_group(newM.inverse()*M,as_edge = False)
         return newM
 
 
@@ -1156,14 +1149,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return list(self._generators)
 
     @cached_method
-    def genus(self):
+    def genus_old(self):
         r"""
         This function computes the genus of the Shimura curve corresponding to this
         quotient via Cerednik-Drinfeld. It is computed via a formula and not in terms
         of the quotient graph.
-        
+
+        INPUT:
+
+        - level: Integer (default: None) a level. By default, use that of ``self``.
+        - Nplus: Integer (default: None) a conductor. By default, use that of ``self``.
+
         OUTPUT:
-        
+
           An integer equal to the genus
 
         EXAMPLES::
@@ -1175,6 +1173,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         REFERENCE:
 
         Source: Rotger, V. "Non-elliptic Shimura curves of genus one", Proposition 5.2
+
         """
         Nplus=self._Nplus
         lev=self._p*self._Nminus
@@ -1206,10 +1205,84 @@ class BTQuotient(SageObject, UniqueRepresentation):
             einf=0
         return 1+Integer(mu/12-e3/3-e4/4-einf/2)
 
+    @cached_method
+    def genus(self):
+        r"""
+        This function computes the genus of the Shimura curve corresponding to this
+        quotient via Cerednik-Drinfeld. It is computed via a formula and not in terms
+        of the quotient graph.
+
+        INPUT:
+
+        - level: Integer (default: None) a level. By default, use that of ``self``.
+        - Nplus: Integer (default: None) a conductor. By default, use that of ``self``.
+
+        OUTPUT:
+
+          An integer equal to the genus
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(7,19)
+            sage: X.genus()
+            9
+        """
+        return self.dimension_harmonic_cocycles(2)
+
+    @cached_method
+    def dimension_harmonic_cocycles(self,k,lev = None,Nplus = None):
+        r"""
+        This function computes the dimension of the space of harmonic cocycles
+        of weight `k` on ``self``.
+
+        OUTPUT:
+
+          An integer equal to the dimension
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,7)
+            sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,20,2)]
+            [1, 4, 4, 8, 8, 12, 12, 16, 16]
+            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,20,2)] # long time
+            [1, 4, 4, 8, 8, 12, 12, 16, 16]
+
+            sage: X = BTQuotient(2,5)
+            sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,40,2)]
+            [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
+            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,40,2)] # long time
+            [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
+
+        """
+
+        k = ZZ(k)
+        if lev is None:
+            lev = self._p * self._Nminus
+        else:
+            lev = ZZ(lev)
+        if Nplus is None:
+            Nplus = self._Nplus
+        else:
+            Nplus = ZZ(Nplus)
+
+        if k == 0:
+            return 0
+
+        if lev == 1:
+            return Gamma0(Nplus).dimension_cusp_forms(k = k)
+
+        f = lev.factor()
+        if any([l[1] != 1 for l in f]):
+            raise NotImplementedError, 'The level should be squarefree for this function to work... Sorry!'
+
+        divs = lev.divisors()
+
+        return Gamma0(lev*Nplus).dimension_cusp_forms(k = k) - sum([len(ZZ(lev/d).divisors())*self.dimension_harmonic_cocycles(k,d,Nplus) for d in divs[:len(divs)-1]])
+
     def Nplus(self):
         r"""
         This function returns the tame level `N^+`.
-        
+
         OUTPUT:
 
           An integer equal to `N^+`.
@@ -1230,7 +1303,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         quaternion algebra.
 
         OUTPUT:
-        
+
           An integer equal to `N^-`.
 
         EXAMPLES::
@@ -1264,9 +1337,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def prime(self):
         r"""
         This function returns the prime one is working with.
-        
+
         OUTPUT:
-       
+
           An integer equal to the fixed prime p
 
         EXAMPLES::
@@ -1282,7 +1355,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_graph(self):
         r"""
         This returns the quotient graph (and computes it if needed).
-        
+
         OUTPUT:
 
           A graph representing the quotient of the Bruhat-Tits tree.
@@ -1302,7 +1375,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_fundom_graph(self):
         r"""
         This returns the fundamental domain (and computes it if needed).
-        
+
         OUTPUT:
 
           A fundamental domain for the action of `\Gamma`.
@@ -1618,9 +1691,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         ::
 
-            
-            
-            
         """
         return lambda g:Matrix(self._R,2,2,(self.get_embedding_matrix(prec = prec)*g).list())
 
@@ -1629,7 +1699,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for the 
         quotient graph.
-        
+
         OUTPUT:
 
           A list of edge stabilizers. Each edge stabilizer is a finite cyclic subgroup,
@@ -1641,9 +1711,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         ::
 
-            
-            
-            
         """
         try: return self._edge_stabs
         except AttributeError:
@@ -1655,21 +1722,18 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function computes the stabilizers in the arithmetic group of all
         vertices in the Bruhat-Tits tree within a fundamental domain for the 
         quotient graph.
-        
+
         OUTPUT:
 
           A list of vertex stabilizers. Each vertex stabilizer is a finite cyclic 
           subgroup, so we return generators for these subgroups.
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
 
-            
-            
-            
         """
         try: return self._vertex_stabs
         except AttributeError:
@@ -1681,7 +1745,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function returns the underlying quaternion algebra.
 
         OUTPUT:
-        
+
           The underlying definite quaternion algebra
         """
         try: return self._A
@@ -1692,7 +1756,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_eichler_order(self):
         r"""
         This function returns the underlying Eichler order of level `N^+`.
-        
+
         OUTPUT:
 
           Underlying Eichler order.
@@ -1736,7 +1800,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function returns the norm form for the underlying Eichler order
         of level Nplus. Required for finding elements in the arithmetic 
         subgroup Gamma.
-        
+
         OUTPUT:
 
           The norm form of the underlying Eichler order
@@ -1765,7 +1829,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         This function returns the units of the underlying Eichler `\ZZ`-order. This is a finite
         group since the order lives in a definite quaternion algebra over `\QQ`.
-        
+
         OUTPUT:
 
           A list of elements of the global Eichler `\ZZ`-order of level `N^+`.
@@ -2257,7 +2321,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
           - ``as_edges`` - boolean (Default: False). Tells whether the matrices should be
             interpreted as edges (if true), or as vertices (if false)
           
-            - ``twom`` - fixme: What is this?
+            - ``twom`` - integer (Default: None) If specified, indicates the valuation of the determinant of ``v1`` `\times` ``v2``.
 
         OUTPUT:
 
@@ -2269,10 +2333,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This example illustrates ...
 
         ::
-
-            
-            
-            
 
         REFERENCES:
 

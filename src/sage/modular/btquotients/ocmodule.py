@@ -34,7 +34,6 @@ class OCVnElement(ModuleElement):
 
     AUTHORS:
 
-
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
@@ -71,9 +70,22 @@ class OCVnElement(ModuleElement):
         """
         return self._val[r,0]
 
+    def __setitem__(self,r, val):
+        r"""
+        Sets the value of ``self`` on the polynomial `x^r` to ``val``.
+
+        INPUT:
+        - ``r`` - an integer. The power of `x`.
+        - ``val`` - a value.
+
+        EXAMPLES:
+
+        """
+        self._val[r,0] = val
+
     def element(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -112,7 +124,7 @@ class OCVnElement(ModuleElement):
 
     def _add_(self,y):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -124,7 +136,7 @@ class OCVnElement(ModuleElement):
 
     def _sub_(self,y):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -136,7 +148,7 @@ class OCVnElement(ModuleElement):
 
     def l_act_by(self,x):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -148,7 +160,7 @@ class OCVnElement(ModuleElement):
 
     def r_act_by(self,x):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -160,7 +172,7 @@ class OCVnElement(ModuleElement):
 
     def _l_act_by(self,a,b,c,d,extrafactor=1):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -184,7 +196,7 @@ class OCVnElement(ModuleElement):
 
     def _rmul_(self,a):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -197,7 +209,7 @@ class OCVnElement(ModuleElement):
 
     def precision_absolute(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -213,7 +225,7 @@ class OCVnElement(ModuleElement):
 
     def precision(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -229,7 +241,7 @@ class OCVnElement(ModuleElement):
 
     def precision_relative(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -245,7 +257,7 @@ class OCVnElement(ModuleElement):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -260,37 +272,30 @@ class OCVnElement(ModuleElement):
 
     def __cmp__(self,other):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
 
-            
-            
-            
         """
         return cmp(self._val,other._val)
 
     def __nonzero__(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
-
-            
-            
-            
         """
         return self._val!=0
 
     def evaluate(self,P):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -307,7 +312,7 @@ class OCVnElement(ModuleElement):
 
     def valuation(self,l=None):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -326,7 +331,6 @@ class OCVnElement(ModuleElement):
 class OCVn(Module,UniqueRepresentation):
     Element=OCVnElement
     r"""
-    fixme: finish, fix input
     This class represents objects in the overconvergent approximation modules used to
     describe overconvergent p-adic automorphic forms. 
 
@@ -342,7 +346,6 @@ class OCVn(Module,UniqueRepresentation):
 
 
     AUTHORS:
-
 
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
@@ -367,16 +370,13 @@ class OCVn(Module,UniqueRepresentation):
         self._powers=dict()
         self._populate_coercion_lists_()
 
-    
     def _an_element_(self):
         r"""
-        fixme: add
         """
         return OCVnElement(self,Matrix(self._R,self._depth,1,range(1,self._depth+1)),quick=True)
 
     def _coerce_map_from_(self, S):
         r"""
-        fixme: add
 
         EXAMPLES:
 
@@ -388,7 +388,6 @@ class OCVn(Module,UniqueRepresentation):
 
     def _element_constructor_(self,x):
         r"""
-        fixme: add
 
         EXAMPLES:
 
@@ -442,7 +441,7 @@ class OCVn(Module,UniqueRepresentation):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         """

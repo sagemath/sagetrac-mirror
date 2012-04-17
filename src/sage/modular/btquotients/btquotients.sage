@@ -32,6 +32,7 @@ from sage.interfaces.all import magma
 from copy import copy
 from sage.plot.colors import rainbow
 from sage.rings.number_field.all import NumberField
+from sage.modular.arithgroup.all import Gamma0
 
 
 class DoubleCosetReduction(SageObject):
@@ -339,7 +340,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             r=M[0,0]
             if r!=0:
                 r/=p**m00
-                assert val(r)==0
+                assert val(r) == 0
             g,s,_=xgcd(r,bigpower)
             assert g==1
             r=(M[1,0]*s)%bigpower
@@ -351,12 +352,12 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             if r!=0:
                 r/=p**m01
                 assert val(r)==0
-            g,s,_=xgcd(r,bigpower)
-            assert g==1
+            g,s,_ = xgcd(r,bigpower)
+            assert g == 1
             r=(M[1,1]*s)%bigpower
             newM=self._Mat_22([0,p**m01,bigpower,r])
         newM.set_immutable()
-        assert self.belongs_to_group(newM.inverse()*M,as_edge = True)
+        # assert self.belongs_to_group(newM.inverse()*M,as_edge = True)
         return newM
 
     def belongs_to_group(self,x,as_edge = False):
@@ -423,21 +424,13 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         r=M[0,0]
         if r!=0:
             r/=p**m00
-            if val(r)!=0:
-                print 'aa'
-                print M[0,0]
-                print r
-                print m00
-                assert 0
+            assert val(r) == 0
         g,s,_=xgcd(r,bigpower)
-        if g!=1:
-            print 'bb'
-            print g
-            assert 0
+        assert g == 1
         r=(M[1,0]*s)%bigpower
         newM=self._Mat_22([p**m00,0,r,bigpower])
         newM.set_immutable()
-        assert self.belongs_to_group(newM.inverse()*M,as_edge = False)
+        # assert self.belongs_to_group(newM.inverse()*M,as_edge = False)
         return newM
 
 
@@ -1156,14 +1149,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return list(self._generators)
 
     @cached_method
-    def genus(self):
+    def genus_old(self):
         r"""
         This function computes the genus of the Shimura curve corresponding to this
         quotient via Cerednik-Drinfeld. It is computed via a formula and not in terms
         of the quotient graph.
-        
+
+        INPUT:
+
+        - level: Integer (default: None) a level. By default, use that of ``self``.
+        - Nplus: Integer (default: None) a conductor. By default, use that of ``self``.
+
         OUTPUT:
-        
+
           An integer equal to the genus
 
         EXAMPLES::
@@ -1175,6 +1173,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         REFERENCE:
 
         Source: Rotger, V. "Non-elliptic Shimura curves of genus one", Proposition 5.2
+
         """
         Nplus=self._Nplus
         lev=self._p*self._Nminus
@@ -1206,10 +1205,84 @@ class BTQuotient(SageObject, UniqueRepresentation):
             einf=0
         return 1+Integer(mu/12-e3/3-e4/4-einf/2)
 
+    @cached_method
+    def genus(self):
+        r"""
+        This function computes the genus of the Shimura curve corresponding to this
+        quotient via Cerednik-Drinfeld. It is computed via a formula and not in terms
+        of the quotient graph.
+
+        INPUT:
+
+        - level: Integer (default: None) a level. By default, use that of ``self``.
+        - Nplus: Integer (default: None) a conductor. By default, use that of ``self``.
+
+        OUTPUT:
+
+          An integer equal to the genus
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(7,19)
+            sage: X.genus()
+            9
+        """
+        return self.dimension_harmonic_cocycles(2)
+
+    @cached_method
+    def dimension_harmonic_cocycles(self,k,lev = None,Nplus = None):
+        r"""
+        This function computes the dimension of the space of harmonic cocycles
+        of weight `k` on ``self``.
+
+        OUTPUT:
+
+          An integer equal to the dimension
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,7)
+            sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,20,2)]
+            [1, 4, 4, 8, 8, 12, 12, 16, 16]
+            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,20,2)] # long time
+            [1, 4, 4, 8, 8, 12, 12, 16, 16]
+
+            sage: X = BTQuotient(2,5)
+            sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,40,2)]
+            [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
+            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,40,2)] # long time
+            [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
+
+        """
+
+        k = ZZ(k)
+        if lev is None:
+            lev = self._p * self._Nminus
+        else:
+            lev = ZZ(lev)
+        if Nplus is None:
+            Nplus = self._Nplus
+        else:
+            Nplus = ZZ(Nplus)
+
+        if k == 0:
+            return 0
+
+        if lev == 1:
+            return Gamma0(Nplus).dimension_cusp_forms(k = k)
+
+        f = lev.factor()
+        if any([l[1] != 1 for l in f]):
+            raise NotImplementedError, 'The level should be squarefree for this function to work... Sorry!'
+
+        divs = lev.divisors()
+
+        return Gamma0(lev*Nplus).dimension_cusp_forms(k = k) - sum([len(ZZ(lev/d).divisors())*self.dimension_harmonic_cocycles(k,d,Nplus) for d in divs[:len(divs)-1]])
+
     def Nplus(self):
         r"""
         This function returns the tame level `N^+`.
-        
+
         OUTPUT:
 
           An integer equal to `N^+`.
@@ -1230,7 +1303,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         quaternion algebra.
 
         OUTPUT:
-        
+
           An integer equal to `N^-`.
 
         EXAMPLES::
@@ -1264,9 +1337,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def prime(self):
         r"""
         This function returns the prime one is working with.
-        
+
         OUTPUT:
-       
+
           An integer equal to the fixed prime p
 
         EXAMPLES::
@@ -1282,7 +1355,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_graph(self):
         r"""
         This returns the quotient graph (and computes it if needed).
-        
+
         OUTPUT:
 
           A graph representing the quotient of the Bruhat-Tits tree.
@@ -1302,7 +1375,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_fundom_graph(self):
         r"""
         This returns the fundamental domain (and computes it if needed).
-        
+
         OUTPUT:
 
           A fundamental domain for the action of `\Gamma`.
@@ -1618,9 +1691,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         ::
 
-            
-            
-            
         """
         return lambda g:Matrix(self._R,2,2,(self.get_embedding_matrix(prec = prec)*g).list())
 
@@ -1629,7 +1699,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for the 
         quotient graph.
-        
+
         OUTPUT:
 
           A list of edge stabilizers. Each edge stabilizer is a finite cyclic subgroup,
@@ -1641,9 +1711,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         ::
 
-            
-            
-            
         """
         try: return self._edge_stabs
         except AttributeError:
@@ -1655,21 +1722,18 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function computes the stabilizers in the arithmetic group of all
         vertices in the Bruhat-Tits tree within a fundamental domain for the 
         quotient graph.
-        
+
         OUTPUT:
 
           A list of vertex stabilizers. Each vertex stabilizer is a finite cyclic 
           subgroup, so we return generators for these subgroups.
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
 
-            
-            
-            
         """
         try: return self._vertex_stabs
         except AttributeError:
@@ -1681,7 +1745,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function returns the underlying quaternion algebra.
 
         OUTPUT:
-        
+
           The underlying definite quaternion algebra
         """
         try: return self._A
@@ -1692,7 +1756,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def get_eichler_order(self):
         r"""
         This function returns the underlying Eichler order of level `N^+`.
-        
+
         OUTPUT:
 
           Underlying Eichler order.
@@ -1736,7 +1800,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This function returns the norm form for the underlying Eichler order
         of level Nplus. Required for finding elements in the arithmetic 
         subgroup Gamma.
-        
+
         OUTPUT:
 
           The norm form of the underlying Eichler order
@@ -1765,7 +1829,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         This function returns the units of the underlying Eichler `\ZZ`-order. This is a finite
         group since the order lives in a definite quaternion algebra over `\QQ`.
-        
+
         OUTPUT:
 
           A list of elements of the global Eichler `\ZZ`-order of level `N^+`.
@@ -2257,7 +2321,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
           - ``as_edges`` - boolean (Default: False). Tells whether the matrices should be
             interpreted as edges (if true), or as vertices (if false)
           
-            - ``twom`` - fixme: What is this?
+            - ``twom`` - integer (Default: None) If specified, indicates the valuation of the determinant of ``v1`` `\times` ``v2``.
 
         OUTPUT:
 
@@ -2269,10 +2333,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         This example illustrates ...
 
         ::
-
-            
-            
-            
 
         REFERENCES:
 
@@ -2630,9 +2690,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
     edges as the coefficient module action may be nontrivial).
 
     INPUT:
-    fixme: describe these???
-     - ``vec`` - (default: None) 
 
+     - ``vec`` - (default: None) 
      - ``from_values`` -  (default: False) 
 
     EXAMPLES:
@@ -2640,7 +2699,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
     ::
 
     AUTHORS:
-
 
     - Cameron Franc (2012-02-20)
     - Marc Masdeu
@@ -2804,9 +2862,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def riemann_sum(self,f,center=1,level=0,E=None):
         r"""
-        fixme: what is this? where are you evaluating the form??? Is f the VALUE? This is terrible if so...
-        This function evaluates the rigid analytic modular form.
-        
+        This function evaluates the integral of the funtion ``f`` with respect to the measure determined by ``self``.
+
         EXAMPLES:
 
         This example illustrates ...
@@ -2921,17 +2978,12 @@ class HarmonicCocycles(AmbientHeckeModule):
             else:
                 self._R=base_field
             self._U=OCVn(self._k-2,self._R,self._k-1)
-        if basis_matrix is None:
-            if(self._k==2):
-                rank=self._X.genus()
-            else:
-                A=self.basis_matrix()
-                rank=A.nrows()
-            self.__rank=rank
-        else:
+        self.__rank = self._X.dimension_harmonic_cocycles(self._k)
+        if basis_matrix is not None:
             self.__matrix=basis_matrix
             self.__matrix.set_immutable()
-            self.__rank=self.__matrix.nrows()
+            assert self.__rank == self.__matrix.nrows()
+
         AmbientHeckeModule.__init__(self, self._R, self.__rank, self._X.prime()*self._X.Nplus()*self._X.Nminus(), weight=self._k)
         self._populate_coercion_lists_()
 
@@ -3090,14 +3142,13 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def basis_matrix(self):
         r"""
+        Returns a basis of ``self`` in matrix form.
+
         If the coefficient module M is of finite rank then the space of Gamma invariant
         M valued harmonic cocycles can be represented as a subspace of the finite rank
         space of all functions from the finitely many edges in the corresponding 
         BTQuotient into M. This function computes this representation of the space of
         cocycles.
-
-        fixme: if the coefficient module is not finite then this should give an
-        error message. At the moment it just breaks.
 
         OUTPUT:
 
@@ -3165,7 +3216,6 @@ class HarmonicCocycles(AmbientHeckeModule):
         INPUT:
 
           - ``q`` - an integer dividing the full level p*Nminus*Nplus
-          fixme: do we check that q divides?
 
           - ``f`` - a harmonic cocycle
 
@@ -3296,8 +3346,6 @@ class HarmonicCocycles(AmbientHeckeModule):
 
 class HarmonicCocyclesSubmodule(sage.modular.hecke.submodule.HeckeSubmodule,HarmonicCocycles):
     r"""
-    fixme:you can explain this
-    This function returns the point `(x^5,y)`.
 
     INPUT:
 
@@ -3353,7 +3401,6 @@ class pAutomorphicForm(ModuleElement):
     Greenberg's thesis for more details.
 
     INPUT:
-    fixme: describe these
      - ``vec`` - 
 
      - ``quick`` - boolean (default: False) 
@@ -3363,10 +3410,6 @@ class pAutomorphicForm(ModuleElement):
     This example illustrates ...
 
     ::
-
-        
-        
-        
 
     ...
 
@@ -3434,18 +3477,9 @@ class pAutomorphicForm(ModuleElement):
 
     def _make_invariant(self):
         r"""
-        fixme: have to double check what this does
-        This function takes
-        
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
-
-            
-            
-            
         """
         S=self._parent._X.get_edge_stabs()
         E=self._parent._E
@@ -3503,9 +3537,9 @@ class pAutomorphicForm(ModuleElement):
     def _sub_(self,g):
         r"""
         This function subtracts a p-adic automorphic form from another.
-        
+
         INPUT:
-      
+
           - ``g`` - a p-adic automorphic form
 
         OUTPUT:
@@ -3547,9 +3581,9 @@ class pAutomorphicForm(ModuleElement):
     def evaluate(self,e1):
         r"""
         Evaluates a p-adic automorphic form on a matrix in GL2(Qp).
-        
+
         INPUT:
-     
+
           - ``e1`` - a matrix in GL2(Qp)
 
         OUTPUT:
@@ -3570,7 +3604,7 @@ class pAutomorphicForm(ModuleElement):
     def _rmul_(self,a):
         r"""
         Multiplies the automorphic form by a scalar.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -3584,7 +3618,7 @@ class pAutomorphicForm(ModuleElement):
     def left_act_by(self,alpha):
         r"""
         Act by ``alpha`` on the left.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -3618,7 +3652,7 @@ class pAutomorphicForm(ModuleElement):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -3695,8 +3729,9 @@ class pAutomorphicForm(ModuleElement):
             old_val=current_val
             ii+=1
             self._F=[self._parent._U(c) for c in h2._F]
-            h2=MMM._apply_Up_operator(self,True)
+            h2=MMM._apply_Up_operator(self,scale = True)
             current_val=(h2-self).valuation()-init_val
+            # print 'val =',current_val
             if current_val is Infinity:
                 break
             if verbose == True:
@@ -4002,7 +4037,6 @@ class pAutomorphicForms(Module):
 
     AUTHORS:
 
-
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
@@ -4037,7 +4071,7 @@ class pAutomorphicForms(Module):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4096,12 +4130,27 @@ class pAutomorphicForms(Module):
         F.improve(verbose = verbose)
         return F
 
-    def _apply_Up_operator(self,f,scale=False):
+    def _apply_Up_operator(self,f,scale=False, fix_lowdeg_terms = True):
         r"""
         Apply the Up operator to ``f``.
+
+        EXAMPLES:
+
+        ::
+            sage: X = BTQuotient(3,11)
+            sage: M = HarmonicCocycles(X,4,30)
+            sage: A = pAutomorphicForms(X,4,10, overconvergent = True)
+            sage: F = A.lift(M.basis()[0], verbose = False); F
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 11 and level 1 with values in Overconvergent coefficient module of weight n=2 over the ring 3-adic Field with capped relative precision 10 and depth 10:
+            e   |   c(e)
+            0 | 3^2 + O(3^12) + O(3^32)*z + O(3^26)*z^2 + (2*3^2 + 3^3 + 2*3^5 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (2*3^5 + 2*3^6 + 2*3^7 + 3^9 + O(3^10))*z^4 + (3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 3^9 + O(3^10))*z^5 + (3^2 + 2*3^3 + 3^4 + 2*3^6 + O(3^10))*z^6 + (2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + O(3^10))*z^7 + (3^2 + 3^3 + 2*3^6 + 3^7 + 3^8 + 3^9 + O(3^10))*z^8 + (2*3^2 + 2*3^3 + 2*3^5 + 2*3^7 + 3^8 + 2*3^9 + O(3^10))*z^9
+            1 | 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^2 + O(3^12))*z + (2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12))*z^2 + (2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + O(3^10))*z^3 + (2*3^3 + 3^5 + 3^7 + 3^8 + O(3^10))*z^4 + (2*3^3 + 3^6 + 3^7 + 3^9 + O(3^10))*z^5 + (3^3 + 2*3^4 + 2*3^5 + 2*3^7 + 3^8 + 3^9 + O(3^10))*z^6 + (3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^7 + (3^3 + 2*3^4 + 3^7 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^6 + 2*3^7 + 3^8 + 2*3^9 + O(3^10))*z^9
+            2 | 3^2 + 2*3^3 + 2*3^6 + 3^7 + 2*3^8 + O(3^12) + (3 + 2*3^2 + 2*3^3 + 3^5 + 2*3^6 + 3^7 + 3^10 + O(3^11))*z + (2*3 + 2*3^2 + 3^4 + 2*3^5 + 2*3^6 + 2*3^8 + 3^10 + O(3^11))*z^2 + (2*3 + 3^2 + 2*3^7 + 3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^4 + (3 + 3^2 + 3^4 + 2*3^9 + O(3^10))*z^5 + (3^3 + 2*3^5 + 3^6 + 3^8 + 2*3^9 + O(3^10))*z^6 + (3^5 + 2*3^7 + 3^9 + O(3^10))*z^7 + (2*3 + 3^3 + 3^4 + 2*3^6 + O(3^10))*z^8 + (2*3 + 2*3^3 + 2*3^4 + 2*3^6 + O(3^10))*z^9
+            3 | 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^3 + 2*3^4 + 2*3^8 + O(3^13))*z + (3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + O(3^11))*z^2 + (3^2 + 2*3^3 + 3^4 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10))*z^4 + (3 + 3^3 + 3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^5 + (3 + 3^4 + 3^5 + 3^6 + 2*3^7 + O(3^10))*z^6 + (2*3 + 3^2 + 2*3^3 + 3^4 + 2*3^6 + 3^8 + 3^9 + O(3^10))*z^7 + (3 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^9 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^5 + 3^8 + 3^9 + O(3^10))*z^9
+
         """
         HeckeData=self._X._get_Up_data()
-        if(scale==False):
+        if scale == False:
             factor=(self._X._p)**(self._U.weight()/2)
         else:
             factor=1
@@ -4113,7 +4162,10 @@ class pAutomorphicForms(Module):
                 u=d[1][jj] # edge_list[jj]
                 r=self._X._p**(-(u.power))*(u.t()*gg)
                 tmp+=f._F[u.label+u.parity*len(self._E)].r_act_by(r)
-            Tf.append(factor*tmp)
+            tmp *= factor
+            for ii in range(self._n+1):
+                tmp[ii] = f._F[jj][ii]
+            Tf.append(tmp)
         return pAutomorphicForm(self,Tf,quick=True)
 
 #########################################################################
@@ -4152,7 +4204,6 @@ class OCVnElement(ModuleElement):
 
     AUTHORS:
 
-
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
@@ -4189,9 +4240,22 @@ class OCVnElement(ModuleElement):
         """
         return self._val[r,0]
 
+    def __setitem__(self,r, val):
+        r"""
+        Sets the value of ``self`` on the polynomial `x^r` to ``val``.
+
+        INPUT:
+        - ``r`` - an integer. The power of `x`.
+        - ``val`` - a value.
+
+        EXAMPLES:
+
+        """
+        self._val[r,0] = val
+
     def element(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4230,7 +4294,7 @@ class OCVnElement(ModuleElement):
 
     def _add_(self,y):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4242,7 +4306,7 @@ class OCVnElement(ModuleElement):
 
     def _sub_(self,y):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4254,7 +4318,7 @@ class OCVnElement(ModuleElement):
 
     def l_act_by(self,x):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4266,7 +4330,7 @@ class OCVnElement(ModuleElement):
 
     def r_act_by(self,x):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4278,7 +4342,7 @@ class OCVnElement(ModuleElement):
 
     def _l_act_by(self,a,b,c,d,extrafactor=1):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4302,7 +4366,7 @@ class OCVnElement(ModuleElement):
 
     def _rmul_(self,a):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4315,7 +4379,7 @@ class OCVnElement(ModuleElement):
 
     def precision_absolute(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4331,7 +4395,7 @@ class OCVnElement(ModuleElement):
 
     def precision(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4347,7 +4411,7 @@ class OCVnElement(ModuleElement):
 
     def precision_relative(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4363,7 +4427,7 @@ class OCVnElement(ModuleElement):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4378,37 +4442,30 @@ class OCVnElement(ModuleElement):
 
     def __cmp__(self,other):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
 
-            
-            
-            
         """
         return cmp(self._val,other._val)
 
     def __nonzero__(self):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
 
         ::
-
-            
-            
-            
         """
         return self._val!=0
 
     def evaluate(self,P):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4425,7 +4482,7 @@ class OCVnElement(ModuleElement):
 
     def valuation(self,l=None):
         r"""
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -4444,7 +4501,6 @@ class OCVnElement(ModuleElement):
 class OCVn(Module,UniqueRepresentation):
     Element=OCVnElement
     r"""
-    fixme: finish, fix input
     This class represents objects in the overconvergent approximation modules used to
     describe overconvergent p-adic automorphic forms. 
 
@@ -4460,7 +4516,6 @@ class OCVn(Module,UniqueRepresentation):
 
 
     AUTHORS:
-
 
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
@@ -4485,16 +4540,13 @@ class OCVn(Module,UniqueRepresentation):
         self._powers=dict()
         self._populate_coercion_lists_()
 
-    
     def _an_element_(self):
         r"""
-        fixme: add
         """
         return OCVnElement(self,Matrix(self._R,self._depth,1,range(1,self._depth+1)),quick=True)
 
     def _coerce_map_from_(self, S):
         r"""
-        fixme: add
 
         EXAMPLES:
 
@@ -4506,7 +4558,6 @@ class OCVn(Module,UniqueRepresentation):
 
     def _element_constructor_(self,x):
         r"""
-        fixme: add
 
         EXAMPLES:
 
@@ -4560,7 +4611,7 @@ class OCVn(Module,UniqueRepresentation):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         """

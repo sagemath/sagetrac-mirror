@@ -42,9 +42,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
     edges as the coefficient module action may be nontrivial).
 
     INPUT:
-    fixme: describe these???
-     - ``vec`` - (default: None) 
 
+     - ``vec`` - (default: None) 
      - ``from_values`` -  (default: False) 
 
     EXAMPLES:
@@ -52,7 +51,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
     ::
 
     AUTHORS:
-
 
     - Cameron Franc (2012-02-20)
     - Marc Masdeu
@@ -216,9 +214,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def riemann_sum(self,f,center=1,level=0,E=None):
         r"""
-        fixme: what is this? where are you evaluating the form??? Is f the VALUE? This is terrible if so...
-        This function evaluates the rigid analytic modular form.
-        
+        This function evaluates the integral of the funtion ``f`` with respect to the measure determined by ``self``.
+
         EXAMPLES:
 
         This example illustrates ...
@@ -333,17 +330,12 @@ class HarmonicCocycles(AmbientHeckeModule):
             else:
                 self._R=base_field
             self._U=OCVn(self._k-2,self._R,self._k-1)
-        if basis_matrix is None:
-            if(self._k==2):
-                rank=self._X.genus()
-            else:
-                A=self.basis_matrix()
-                rank=A.nrows()
-            self.__rank=rank
-        else:
+        self.__rank = self._X.dimension_harmonic_cocycles(self._k)
+        if basis_matrix is not None:
             self.__matrix=basis_matrix
             self.__matrix.set_immutable()
-            self.__rank=self.__matrix.nrows()
+            assert self.__rank == self.__matrix.nrows()
+
         AmbientHeckeModule.__init__(self, self._R, self.__rank, self._X.prime()*self._X.Nplus()*self._X.Nminus(), weight=self._k)
         self._populate_coercion_lists_()
 
@@ -502,14 +494,13 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def basis_matrix(self):
         r"""
+        Returns a basis of ``self`` in matrix form.
+
         If the coefficient module M is of finite rank then the space of Gamma invariant
         M valued harmonic cocycles can be represented as a subspace of the finite rank
         space of all functions from the finitely many edges in the corresponding 
         BTQuotient into M. This function computes this representation of the space of
         cocycles.
-
-        fixme: if the coefficient module is not finite then this should give an
-        error message. At the moment it just breaks.
 
         OUTPUT:
 
@@ -577,7 +568,6 @@ class HarmonicCocycles(AmbientHeckeModule):
         INPUT:
 
           - ``q`` - an integer dividing the full level p*Nminus*Nplus
-          fixme: do we check that q divides?
 
           - ``f`` - a harmonic cocycle
 
@@ -708,8 +698,6 @@ class HarmonicCocycles(AmbientHeckeModule):
 
 class HarmonicCocyclesSubmodule(sage.modular.hecke.submodule.HeckeSubmodule,HarmonicCocycles):
     r"""
-    fixme:you can explain this
-    This function returns the point `(x^5,y)`.
 
     INPUT:
 
@@ -765,7 +753,6 @@ class pAutomorphicForm(ModuleElement):
     Greenberg's thesis for more details.
 
     INPUT:
-    fixme: describe these
      - ``vec`` - 
 
      - ``quick`` - boolean (default: False) 
@@ -775,10 +762,6 @@ class pAutomorphicForm(ModuleElement):
     This example illustrates ...
 
     ::
-
-        
-        
-        
 
     ...
 
@@ -846,18 +829,9 @@ class pAutomorphicForm(ModuleElement):
 
     def _make_invariant(self):
         r"""
-        fixme: have to double check what this does
-        This function takes
-        
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
-
-            
-            
-            
         """
         S=self._parent._X.get_edge_stabs()
         E=self._parent._E
@@ -915,9 +889,9 @@ class pAutomorphicForm(ModuleElement):
     def _sub_(self,g):
         r"""
         This function subtracts a p-adic automorphic form from another.
-        
+
         INPUT:
-      
+
           - ``g`` - a p-adic automorphic form
 
         OUTPUT:
@@ -959,9 +933,9 @@ class pAutomorphicForm(ModuleElement):
     def evaluate(self,e1):
         r"""
         Evaluates a p-adic automorphic form on a matrix in GL2(Qp).
-        
+
         INPUT:
-     
+
           - ``e1`` - a matrix in GL2(Qp)
 
         OUTPUT:
@@ -982,7 +956,7 @@ class pAutomorphicForm(ModuleElement):
     def _rmul_(self,a):
         r"""
         Multiplies the automorphic form by a scalar.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -996,7 +970,7 @@ class pAutomorphicForm(ModuleElement):
     def left_act_by(self,alpha):
         r"""
         Act by ``alpha`` on the left.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -1030,7 +1004,7 @@ class pAutomorphicForm(ModuleElement):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -1107,8 +1081,9 @@ class pAutomorphicForm(ModuleElement):
             old_val=current_val
             ii+=1
             self._F=[self._parent._U(c) for c in h2._F]
-            h2=MMM._apply_Up_operator(self,True)
+            h2=MMM._apply_Up_operator(self,scale = True)
             current_val=(h2-self).valuation()-init_val
+            # print 'val =',current_val
             if current_val is Infinity:
                 break
             if verbose == True:
@@ -1414,7 +1389,6 @@ class pAutomorphicForms(Module):
 
     AUTHORS:
 
-
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
@@ -1449,7 +1423,7 @@ class pAutomorphicForms(Module):
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
-        
+
         EXAMPLES:
 
         This example illustrates ...
@@ -1508,12 +1482,27 @@ class pAutomorphicForms(Module):
         F.improve(verbose = verbose)
         return F
 
-    def _apply_Up_operator(self,f,scale=False):
+    def _apply_Up_operator(self,f,scale=False, fix_lowdeg_terms = True):
         r"""
         Apply the Up operator to ``f``.
+
+        EXAMPLES:
+
+        ::
+            sage: X = BTQuotient(3,11)
+            sage: M = HarmonicCocycles(X,4,30)
+            sage: A = pAutomorphicForms(X,4,10, overconvergent = True)
+            sage: F = A.lift(M.basis()[0], verbose = False); F
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 11 and level 1 with values in Overconvergent coefficient module of weight n=2 over the ring 3-adic Field with capped relative precision 10 and depth 10:
+            e   |   c(e)
+            0 | 3^2 + O(3^12) + O(3^32)*z + O(3^26)*z^2 + (2*3^2 + 3^3 + 2*3^5 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (2*3^5 + 2*3^6 + 2*3^7 + 3^9 + O(3^10))*z^4 + (3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 3^9 + O(3^10))*z^5 + (3^2 + 2*3^3 + 3^4 + 2*3^6 + O(3^10))*z^6 + (2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + O(3^10))*z^7 + (3^2 + 3^3 + 2*3^6 + 3^7 + 3^8 + 3^9 + O(3^10))*z^8 + (2*3^2 + 2*3^3 + 2*3^5 + 2*3^7 + 3^8 + 2*3^9 + O(3^10))*z^9
+            1 | 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^2 + O(3^12))*z + (2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12))*z^2 + (2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + O(3^10))*z^3 + (2*3^3 + 3^5 + 3^7 + 3^8 + O(3^10))*z^4 + (2*3^3 + 3^6 + 3^7 + 3^9 + O(3^10))*z^5 + (3^3 + 2*3^4 + 2*3^5 + 2*3^7 + 3^8 + 3^9 + O(3^10))*z^6 + (3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^7 + (3^3 + 2*3^4 + 3^7 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^6 + 2*3^7 + 3^8 + 2*3^9 + O(3^10))*z^9
+            2 | 3^2 + 2*3^3 + 2*3^6 + 3^7 + 2*3^8 + O(3^12) + (3 + 2*3^2 + 2*3^3 + 3^5 + 2*3^6 + 3^7 + 3^10 + O(3^11))*z + (2*3 + 2*3^2 + 3^4 + 2*3^5 + 2*3^6 + 2*3^8 + 3^10 + O(3^11))*z^2 + (2*3 + 3^2 + 2*3^7 + 3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^4 + (3 + 3^2 + 3^4 + 2*3^9 + O(3^10))*z^5 + (3^3 + 2*3^5 + 3^6 + 3^8 + 2*3^9 + O(3^10))*z^6 + (3^5 + 2*3^7 + 3^9 + O(3^10))*z^7 + (2*3 + 3^3 + 3^4 + 2*3^6 + O(3^10))*z^8 + (2*3 + 2*3^3 + 2*3^4 + 2*3^6 + O(3^10))*z^9
+            3 | 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^3 + 2*3^4 + 2*3^8 + O(3^13))*z + (3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + O(3^11))*z^2 + (3^2 + 2*3^3 + 3^4 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10))*z^4 + (3 + 3^3 + 3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^5 + (3 + 3^4 + 3^5 + 3^6 + 2*3^7 + O(3^10))*z^6 + (2*3 + 3^2 + 2*3^3 + 3^4 + 2*3^6 + 3^8 + 3^9 + O(3^10))*z^7 + (3 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^9 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^5 + 3^8 + 3^9 + O(3^10))*z^9
+
         """
         HeckeData=self._X._get_Up_data()
-        if(scale==False):
+        if scale == False:
             factor=(self._X._p)**(self._U.weight()/2)
         else:
             factor=1
@@ -1525,6 +1514,9 @@ class pAutomorphicForms(Module):
                 u=d[1][jj] # edge_list[jj]
                 r=self._X._p**(-(u.power))*(u.t()*gg)
                 tmp+=f._F[u.label+u.parity*len(self._E)].r_act_by(r)
-            Tf.append(factor*tmp)
+            tmp *= factor
+            for ii in range(self._n+1):
+                tmp[ii] = f._F[jj][ii]
+            Tf.append(tmp)
         return pAutomorphicForm(self,Tf,quick=True)
 
