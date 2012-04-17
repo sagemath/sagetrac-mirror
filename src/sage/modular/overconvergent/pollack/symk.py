@@ -1,3 +1,4 @@
+
 import sage.rings.polynomial.multi_polynomial_element as MPol
 from sage.structure.sage_object import SageObject
 from sage.rings.rational_field import QQ

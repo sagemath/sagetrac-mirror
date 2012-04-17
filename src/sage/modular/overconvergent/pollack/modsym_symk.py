@@ -42,7 +42,7 @@ class modsym_symk(modsym):
         [-1/5, 3/2, -1/2]
         sage: type(psi)
         <class 'sage.modular.overconvergent.pollack.modsym.modsym'>
-
+        
         """
         return modsym(self.data(),self.manin())
     
@@ -94,7 +94,7 @@ class modsym_symk(modsym):
         [-1/5, 3/2, -1/2]
         sage: phi.base_ring()
         Rational Field
-
+        
         """
         return self.data(0).base_ring
 
@@ -508,7 +508,7 @@ class modsym_symk(modsym):
         EXAMPLES:
 
         """
-        v = [self.data[j].map(psi) for j in range(len(self.data))]
+        v = [self.data(j).map(psi) for j in range(len(self.data()))]
         return modsym_symk(self.level,v,self.manin)
 
     def coerce_to_Qp(self,p,M):
@@ -599,6 +599,7 @@ def form_modsym_from_elliptic_curve(E):
         else:
             a2 = L.modular_symbol(oo,1)+L.modular_symbol(oo,-1)
         v = v + [symk(0,R(a1)) - symk(0,R(a2))]
+    print "manin = ", manin
     return modsym_symk(v,manin)
 
 
@@ -624,22 +625,22 @@ def form_modsym_from_decomposition(A):
     v = []
     R = PolynomialRing(K,2,names='X,Y')
     X,Y = R.gens()
-    for j in range(0,len(manin._manin_relations__gens)):
+    for j in range(len(manin._manin_relations__gens)):
         rj = manin._manin_relations__gens[j]
         g = manin._manin_relations__mats[rj]
         a,b,c,d = g.list()
         ans = 0
         if c<>0:
-            r1 = a/c
+            r1 = ZZ(a)/ZZ(c)
         else:
             r1 = oo
         if d<>0:
-            r2 = b/d
+            r2 = ZZ(b)/ZZ(d)
         else:
             r2 = oo
         for j in range(k-1):
             coef = w.dot_product(M.modular_symbol([j,r1,r2]).element())
-            ans = ans+X**j*Y**(k-2-j)*binomial(k-2,j)*coef
-        v = v+[symk(k-2,ans,K)]
-    return modsym_symk(N,v,manin)
+            ans = ans+X**j*Y**(ZZ(k-2-j))*binomial(ZZ(k-2),ZZ(j))*coef
+        v = v+[symk(ZZ(k-2),ans,K)]
+    return modsym_symk(v,manin)
 
