@@ -59,12 +59,14 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     #print "phi2p = ", phi2p
     Phi1 = phi1p.lift_to_OMS_eigen(p,prec1)
     #print "Phi1 = ", Phi1
-    v1 = pLfunction_coef(Phi1,alpha1,coeff,D,p+1)
-    print "v1 = ", v1
+    
     R1 = Qp(p,prec1)['x']
     x = R1.gen()
     h1 = x**2-ZZ(psi1(ap))*x+p
     alpha1 = h1.roots()[0][0]
+    v1 = pLfunction_coef(Phi1,alpha1,coeff,D,p+1)
+    print "v1 = ", v1
+        
     Phi2 = phi2p.lift_to_OMS_eigen(p,prec2)
     print "Phi2 = ", Phi2
     R2 = Qp(p,prec2)['x']
