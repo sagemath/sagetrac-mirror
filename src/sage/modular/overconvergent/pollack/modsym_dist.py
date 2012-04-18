@@ -9,7 +9,7 @@ class modsym_dist(modsym.modsym):
         r"""
 	Demotes to a regular modular symbol
 	"""
-	return modsym(self.data(),self.manin())
+	return modsym(self.data(),self.manin)
 
     def p(self):
 	r"""

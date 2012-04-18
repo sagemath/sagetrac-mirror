@@ -58,7 +58,9 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     phi2p = phi2.p_stabilize_ordinary(p,ZZ(psi2(ap)),prec2)
     #print "phi2p = ", phi2p
     Phi1 = phi1p.lift_to_OMS_eigen(p,prec1)
-    print "Phi1 = ", Phi1
+    #print "Phi1 = ", Phi1
+    v1 = pLfunction_coef(Phi1,alpha1,coeff,D,p+1)
+    print "v1 = ", v1
     R1 = Qp(p,prec1)['x']
     x = R1.gen()
     h1 = x**2-ZZ(psi1(ap))*x+p
@@ -69,5 +71,6 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     x = R2.gen()
     h2 = x**2-ZZ(psi2(ap))*x+p
     alpha2 = h2.roots()[0][0]
+    
     v2 = pLfunction_coef(Phi2,alpha2,coeff,D,p+1)
     return v1*v2

@@ -312,7 +312,7 @@ class modsym_symk(modsym):
     def is_Tq_eigen(self,q,p,M):
         r"""
         Determines if self is an eigenvector for `T_q` modulo `p^M`
-
+        
         INPUT:
             - ``q`` -- prime of the Hecke operator
             - ``p`` -- prime we are working modulo
@@ -401,7 +401,7 @@ class modsym_symk(modsym):
                     v = v+[(mu.scale(2)-mu.act_right(gam)-mu.act_right(gam**2)).scale(ZZ(1)/ZZ(3))]
         
         t = v[0].zero()
-                
+        
         # this loops adds up around the boundary of fundamental domain 
         # except the two vertical lines
         Id=Matrix(2,2,[1,0,0,1])        
@@ -421,7 +421,7 @@ class modsym_symk(modsym):
         v = [mu] + v
         import modsym_dist 
         return modsym_dist.modsym_dist(v,self.manin())     
-
+    
     def lift_to_OMS_eigen(self,p,M,verbose=True):
         r"""
         Returns Hecke-eigensymbol OMS lifting `phi` -- `phi` must be a 
@@ -434,7 +434,7 @@ class modsym_symk(modsym):
         OUTPUT:
 
         EXAMPLES:
-
+        
         """
         v = self.is_Tq_eigen(p,p,M)
         assert v[0], "not eigen at p!"
@@ -443,23 +443,24 @@ class modsym_symk(modsym):
         Phi = self.lift_to_OMS(p,M)
         #print "Phi = ", Phi
         s = -Phi.valuation()
-        print "s = ", s
         if s > 0:
             if verbose:
                 print "Scaling by ",p,"^",s
             Phi = Phi.scale(p**(-Phi.valuation()))
         Phi = Phi.normalize()
-        print "Phi = ", Phi
+        #print "Phi = ", Phi
         if verbose:
             print "Applying Hecke"
         ###first bug here###
-        Phi = Phi.hecke(p).scale(ZZ(1)/ap)
-        print "Phi = ", Phi
+        #print "this is Phi(hecke(p)): ", Phi.hecke(ZZ(p))
+        #print "ap = ", ap
+        Phi = Phi.hecke(ZZ(p)).scale(ZZ(1)/ap)
+        #print "Phi = ", Phi
         if verbose:
             print "Killing eisenstein part"
         if (ap%(p**M))<>1:
             Phi = (Phi-Phi.hecke(p)).scale(1/(1-ap))
-            print "Phi = ", Phi
+            #print "Phi = ", Phi
             e = (1-ap).valuation(p)
             if e > 0:
                 Phi = Phi.change_precision(M-e)
@@ -482,9 +483,9 @@ class modsym_symk(modsym):
         if verbose:
             print "Iterating U_p"
         Psi = Phi.hecke(p).scale(1/ap)
-        print "Psi = ", Psi
+        #print "Psi = ", Psi
         err = (Psi-Phi).valuation()
-        print "err = ", err
+        #print "err = ", err
         Phi = Psi
         while err < Infinity:
             if (Phi.valuation()>=s) and (s>0):
@@ -498,7 +499,7 @@ class modsym_symk(modsym):
                 print "error is zero modulo p^",err
             Phi = Psi
         return Phi.normalize()
-        
+    
     ### self is a modular symbol taking values in Sym^k(K^2), where 
     ### K is a finite extension of Q, psi is a map from the K to Qp and 
     ### the below function 'map' applies psi to all polynomial 
@@ -520,7 +521,7 @@ class modsym_symk(modsym):
         """
         v = [self.data(j).map(psi) for j in range(len(self.data()))]
         return modsym_symk(v,self.manin())
-
+    
     def coerce_to_Qp(self,p,M):
         r"""
         If `K` is the base_ring of self, this function takes all maps 
@@ -533,7 +534,7 @@ class modsym_symk(modsym):
             - ``M`` --
 
         OUTPUT:
-
+        
         EXAMPLES:
         """
         K = self.base_ring()
@@ -576,7 +577,7 @@ class modsym_symk(modsym):
             ans = ans + [v]     
         new = modsym_dist(self.level,ans,self.manin)
         return new.hecke(p).scale(1/ap).normalize()
-
+    
 
 def form_modsym_from_elliptic_curve(E):
     r"""

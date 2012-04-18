@@ -137,7 +137,7 @@ class modsym(SageObject):
         """
 
         return self.manin().level()
-
+    
     def full_data(self,n=None):
         r"""
         Returns the value of self on all coset reps (or simply on the n-th coset rep if n is specified).
@@ -335,6 +335,8 @@ class modsym(SageObject):
             for j in range(self.ncoset_reps()):
                 self._full_data[j].normalize()
 
+        return self
+    
     def scale(self,left):
         r"""
         Returns left * self.
@@ -489,7 +491,7 @@ class modsym(SageObject):
         v = [self.zero_elt() for i in range(0,self.ngens())]
         C = type(self)
         return C(v,self.manin())
-
+    
     def compute_full_data_from_gen_data(self):
         r"""
         Computes the values of self on all coset reps from its values on our generating set.
@@ -674,7 +676,7 @@ class modsym(SageObject):
         for j in range(0,len(v2)):
             ans = ans - self.eval_sl2(v2[j])
         return ans
- 
+    
     def act_right(self,gamma):
         r"""
         Returns self | gamma.
@@ -772,7 +774,7 @@ class modsym(SageObject):
 
         """
         return self - self.act_right(Matrix(2,2,[1,0,0,-1])) 
-
+    
     def normalize_full_data(self):
         r"""
         Normalizes the values of self on all coset reps (if they are already computed)
@@ -835,10 +837,10 @@ class modsym(SageObject):
         if self.level()%ell != 0:
             psi = psi + self.act_right(Matrix(ZZ,[[ell,0],[0,1]]))
         
-        psi.normalize()
+        #psi.normalize()
         
-        return psi
-
+        return psi.normalize()
+    
     def hecke(self,ell):
         r"""
         Returns self | T_ell by making use of the precomputations in self.prep_hecke()
@@ -870,13 +872,15 @@ class modsym(SageObject):
         sage: ell=101
         sage: phi.hecke(ell) == phi.scale(E.ap(ell))
         True        
-
+        
         """         
         ## The values of self on all coset reps are computed and normalized if this hasn't been done yet.
+        
         if self.full_data()==0:
             self.compute_full_data_from_gen_data()
             self.normalize_full_data()
             
+        
         psi = self.zero()   ## psi will denote self | T_ell
         v = self.prep_hecke(ell)  ## v is a long list of lists of lists with the property that the value
                                   ## of self | T_ell on the m-th generator is given by
@@ -884,16 +888,17 @@ class modsym(SageObject):
                                   ## sum_j sum_r self(j-th coset rep) | v[m][j][r]
                                   ## 
                                   ## where j runs thru all coset reps and r runs thru all entries of v[m][j]
-
+        #print "self.prep_hecke(ell) = ", v
         ## This loop computes (self | T_ell)(m-th generator)
         for m in range(self.ngens()):
             for j in range(self.ncoset_reps()):
                 for r in range(len(v[m][j])):
                     psi._data[m] = psi.data(m) + self.full_data(j).act_right(v[m][j][r])
-        
-        psi.normalize()
-        
-        return psi
+        #print "this is psi before normalize: ", psi
+        #psi.normalize()
+        #print "this is psi after normalize: ", psi.normalize()
+
+        return psi.normalize()
 
 ##  These two procedures are used to check that the symbol really does satisfy the Manin relations loop (for debugging).  Is this something one includes in SAGE?  (RP)
     def grab_relations(self):
@@ -905,7 +910,7 @@ class modsym(SageObject):
                     if R[0][0]<>-1 or R[0][1]<>Id:
                         v=v+[R]
         return v
-
+    
     def check_loop(self):
         list=self.grab_relations()
         t=self.zero_elt()
@@ -918,8 +923,8 @@ class modsym(SageObject):
 
 ## The functions from this point to prep_hecke don't really have anything to do with a fixed modular symbol
 ## and so I didn't know if made sense to provide examples at this point.  (RP)
-
-#    @cached_function
+    
+    #    @cached_function
     def invert(self,a,b,c,d):
         """
         Takes the numbers a,b,c,d and returns the inverse to the matrix [a,b;c,d].  
@@ -1006,7 +1011,7 @@ class modsym(SageObject):
                 c = list[j].denominator()
                 b = list[j+1].numerator()
                 d = list[j+1].denominator()
-                v = v + [self.flip(Matrix(ZZ,[[(-1)**(j+1)*a,b],[(-1)**(j+1)*c,d]]))]
+                v = v + [self.flip(Matrix(ZZ,[[ZZ(-1)**(j+1)*a,b],[ZZ(-1)**(j+1)*c,d]]))]
             return [self.flip(Matrix(ZZ,[[1,list[0].numerator()],[0,list[0].denominator()]]))]+v
         else:
             return []
@@ -1090,7 +1095,7 @@ class modsym(SageObject):
         N = M.level()
 
         ans = [[] for a in range(len(M.coset_reps()))]  ## this will be the list L above enumerated by coset reps
-
+        
         ##  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1,a,0,ell] and carry out the computation
         ##  described above.
         ##  -------------------------------------
@@ -1110,7 +1115,7 @@ class modsym(SageObject):
                    C = self.invert(A[0,0],A[0,1],A[1,0],A[1,1])   ##  C equals A^(-1).  This is much faster than just inverting thru SAGE
                    gaminv = B * C                              ##  gaminv = B*A^(-1)
                    ans[j] = ans[j] + [gaminv * gama]             ##  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
-
+                   
         return ans
 
 #    @cached_function
@@ -1200,3 +1205,4 @@ class modsym(SageObject):
         for m in range(self.ngens()):
             ans = ans + [self.prep_hecke_individual(ell,m)]
         return ans
+    
