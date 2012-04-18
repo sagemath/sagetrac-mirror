@@ -47,11 +47,12 @@ cdef class Dist(ModuleElement):
     def scale(self,left):
         return self * left
 
-    def valuation(self):
+    def valuation(self, p=None):
         """
 	returns the highest power of p which divides all moments of the distribution
 	"""
-        p = self.parent()._p
+        if p is None:
+            p = self.parent()._p
         return min([self.moment(a).valuation(p) for a in range(self.num_moments())])
 
     def specialize(self):

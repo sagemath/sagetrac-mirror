@@ -566,16 +566,7 @@ class modsym_symk(modsym):
 
         EXAMPLES:
         """
-        k = self.weight()
-        ans = []
-        for a in range(self.ngens()):
-            #v = []
-            #for j in range(k+1):
-            #    v = v + [phi.data[a].coef(j)]
-            v = [phi.data[a].coeff(j) for j in range(k+1)]
-            v = dist(p,k,vector(v+[0]))
-            ans = ans + [v]     
-        new = modsym_dist(self.level,ans,self.manin)
+        new = modsym_dist(self.level, [self.data[a].lift() for a in range(self.ngens())], self.manin)
         return new.hecke(p).scale(1/ap).normalize()
     
 

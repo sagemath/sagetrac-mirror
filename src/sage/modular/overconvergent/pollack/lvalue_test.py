@@ -35,6 +35,7 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     sage: D = Ne.decomposition()
     sage: A = D[0]
     sage: lvalue_using_OMS_split(A,19,1,2,2,2)
+    13 + O(19)
     """
     coeff = ZZ(r)/ZZ(2)
     from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_decomposition    
