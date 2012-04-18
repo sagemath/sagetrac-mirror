@@ -55,6 +55,26 @@ class ManinMap(object):
         # for our matrices.
         raise NotImplementedError
 
+    def apply(self, f):
+        """
+        Returns Manin map given by x |--> f(self(x)), where f is
+        anything that can be called with elements of the coefficient
+        module.
+
+        This might be used to normalize, reduce modulo a prime, change
+        base ring, etc.
+        """
+        raise NotImplementedError
+
+    def __iter__(self):
+        """
+        Returns iterator over the values of this map on the reduced
+        representatives.
+
+        This might be used to compute the valuation.
+        """
+        raise NotImplementedError
+
     def _right_action(self, gamma):
         """
         Returns self | gamma, where gamma is a 2x2 integer matrix.
