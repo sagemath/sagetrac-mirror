@@ -1,15 +1,15 @@
+from sage.all import *
+#from sage.rings.integer_ring import ZZ
 
-from sage.rings.integer_ring import ZZ
+#import modsym
 
-import modsym
-
-class modsym_dist(modsym.modsym):
+class modsym_dist(modsym):
     
     def ms(self):
         r"""
 	Demotes to a regular modular symbol
 	"""
-	return modsym(self.data(),self.manin)
+	return modsym(self.data(),self.manin())
 
     def p(self):
 	r"""

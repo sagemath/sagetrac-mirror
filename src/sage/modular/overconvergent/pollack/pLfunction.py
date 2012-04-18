@@ -186,7 +186,8 @@ def pLfunction_coef(Phi,ap,n,D,gam,error=None):
             err = min([j+lb[j].valuation(p) for j in range(M,len(lb))])
         else:
             err = error
-#        lb = [lb[a] for a in range(M)]
+        lb = [lb[a] for a in range(M)]
+        
     for j in range(len(lb)):
         cjn = lb[j]
         temp = 0
