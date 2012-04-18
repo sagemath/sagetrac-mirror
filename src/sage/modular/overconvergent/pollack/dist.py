@@ -8,7 +8,6 @@ from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.all import Matrix
 from sage.misc.prandom import random
 from sage.functions.other import floor
-from sage.modular.overconvergent.pollack.symk import symk
 
 
 class dist(SageObject):

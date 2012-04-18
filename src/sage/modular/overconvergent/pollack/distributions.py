@@ -11,10 +11,10 @@ from sage.rings.fast_arith import prime_range
 from sage.modular.overconvergent.pollack.dist import get_dist_classes, Dist_long
 
 class Distributions(Module):
-    def __init__(self, k, p=None, prec_cap=20, base=None, character=(None,None), tuplegen=None, act_on_left=False):
+    def __init__(self, k, p=None, prec_cap=20, base=None, character=None, tuplegen=None, act_on_left=False):
         """
         - ``character`` --
-          - (None, None) (default)
+          - None (default)
           - (chi, None)
           - (None, n) (n integral)
           - (chi, n)
@@ -61,5 +61,11 @@ class Distributions(Module):
         V = self.approx_module(M)
         return [self(v) for v in V.basis()]
 
-    def get_action(self):
-        return self._act
+    def _an_element_(self):
+        if self._prec_cap > 1:
+            return self([2,1])
+        else:
+            return self([1])
+
+    #def get_action(self):
+    #    return self._act

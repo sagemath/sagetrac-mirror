@@ -18,6 +18,7 @@ from sage.rings.padics.padic_capped_absolute_element cimport pAdicCappedAbsolute
 from sage.rings.padics.padic_capped_relative_element cimport pAdicCappedRelativeElement
 from sage.rings.padics.padic_fixed_mod_element cimport pAdicFixedModElement
 from sage.rings.integer cimport Integer
+from sage.misc.misc import verbose, cputime
 
 cdef extern from "zn_poly/zn_poly.h":
     pass
@@ -216,6 +217,7 @@ cdef class Dist_long(Dist):
         for i in range(len(moments)):
             self.moments[i] = int(moments[i])
         self.prec = len(moments)
+        self.prime_pow = <PowComputer_long?>parent.prime_pow
         #gather = 2**(4*sizeof(long)-1) // p**len(moments)
         #if gather >= len(moments):
         #    gather = 0
@@ -369,15 +371,32 @@ cdef class WeightKAction(Action):
     def __init__(self, Dk, character, tuplegen, on_left):
         self._k = Dk._k
         if self._k < 0: raise ValueError("k must not be negative")
-        self._character = character
-        self._p = Dk._p
         if tuplegen is None:
             tuplegen = lambda g: (g[0,0], g[0,1], g[1,0], g[1,1])
         self._tuplegen = tuplegen
-        if character is None:
-            self._Np = Dk._p
+        if isinstance(character, tuple):
+            if len(character) != 2:
+                raise ValueError("character must have length 2")
+            if character[0] is None and character[1] is None:
+                self._character = None
+                self._Np = Dk._p
+            else:
+                chr = character[0]
+                dettwist = character[1]
+                if chr is None:
+                    self._character = lambda a, b, c, d: (a*d - b*c)**dettwist
+                elif dettwist is None:
+                    self._character = lambda a, b, c, d: chr(a)
+                else:
+                    self._character = lambda a, b, c, d: chr(a) * (a*d - b*c)**dettwist
+                if chr is None:
+                    self._Np = Dk._p
+                else:
+                    self._Np = Dk._p * chr.conductor()
         else:
-            self._Np = Dk._p * character.conductor()
+            self._character = character
+            self._Np = Dk._p # need to get conductor somehow in the case character = lambda g: ...
+        self._p = Dk._p
         self._actmat = {}
         self._maxprecs = {}
         Action.__init__(self, M2Z, Dk, on_left, operator.mul)
@@ -432,21 +451,27 @@ cdef class WeightKAction(Action):
 
 cdef class WeightKAction_vector(WeightKAction):
     cpdef _compute_acting_matrix(self, g, M):
+        t = verbose("Starting")
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
         k = self._k
         ZpM = Zmod(self._p**M)
         R = PowerSeriesRing(ZpM, 'y', default_prec = M)
         y = R.gen()
+        t = verbose("Checked, made R",t)
         # special case for small precision, large weight
         scale = (b+d*y)/(a+c*y)
         t = (a+c*y)**k # will already have precision M
+        if self._character is not None:
+            t *= self._character(a, b, c, d)
         cdef Matrix B = matrix(ZpM,M,M)
         cdef long row, col
+        t = verbose("Made matrix",t)
         for col in range(M):
             for row in range(M):
                 B.set_unsafe(row, col, t[row])
             t *= scale
+        verbose("Finished loop")
         return B
 
     cpdef _call_(self, _v, g):
@@ -473,6 +498,24 @@ cdef class SimpleMat(SageObject):
         self._inited = True
 
     def __getitem__(self, i):
+        cdef Py_ssize_t r, c, Mnew, Morig = self.M
+        cdef SimpleMat ans
+        if PyTuple_Check(i) and PyTuple_Size(i) == 2:
+            a, b = i
+            if PySlice_Check(a) and PySlice_Check(b):
+                r0, r1, rs = a.indices(Morig)
+                c0, c1, cs = b.indices(Morig)
+                if r0 != 0 or c0 != 0 or rs != 1 or cs != 1: raise NotImplementedError
+                Mr = r1
+                Mc = c1
+                if Mr != Mc: raise ValueError("result not square")
+                Mnew = Mr
+                if Mnew > Morig: raise IndexError("index out of range")
+                ans = SimpleMat(Mnew)
+                for r in range(Mnew):
+                    for c in range(Mnew):
+                        ans._mat[Mnew*c + r] = self._mat[Morig*c + r]
+                return ans
         raise NotImplementedError
 
     def __dealloc__(self):
@@ -481,6 +524,7 @@ cdef class SimpleMat(SageObject):
 cdef class WeightKAction_long(WeightKAction):
     cpdef _compute_acting_matrix(self, g, _M):
         _a, _b, _c, _d = self._tuplegen(g)
+        if self._character is not None: raise NotImplementedError
         self._check_mat(_a, _b, _c, _d)
         cdef long k = self._k
         cdef Py_ssize_t row, col, M = _M
