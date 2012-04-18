@@ -4,7 +4,7 @@
 # 2. Apply a patch to the Sage library:
      sage -sh
      cd $SAGE_ROOT/devel/sage
-     hg qimport changes_to_sagelib.patch
+     hg qimport /path/to/changes_to_sagelib.patch
      hg qpush
 
 # 3. Make symlinks:
