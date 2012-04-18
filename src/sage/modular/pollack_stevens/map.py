@@ -1,8 +1,21 @@
+"""
+Manin Maps.
+
+This is a class that represents maps from a set of right coset
+representatives to a coefficient module.  This is a basic building
+block for implementing modular symbols, and provides basic arithmetic
+and right action of matrices.
+
+
+"""
+
+
 
 class ManinMap(object):
     """
-    Map from the set of right cosets of Gamma0(N) in SL_2(Z) to a
-    coefficient module that satisfies the Manin relations.
+    Map from a set of right coset representatives of Gamma0(N) in
+    SL_2(Z) to a coefficient module that satisfies the Manin
+    relations.
     """
     def __init__(self, manin_relations, defining_data):
         self._manin_relations = manin_relations
@@ -23,11 +36,13 @@ class ManinMap(object):
         """
         raise NotImplementedError
 
-    def __mul__(self, left):
+    def __mul__(self, right):
         """
-        Return scalar multiplication left*self, where left acts on the
-        codomain.
+        Return scalar multiplication self*right, where right is in the
+        base ring of the codomain.
         """
+        if isinstance(right, sage.matrix.matrix_integer_2x2.Matrix_integer_2x2):
+            return self._right_action(right)
         raise NotImplementedError
 
     def __repr__(self):
@@ -40,7 +55,7 @@ class ManinMap(object):
         # for our matrices.
         raise NotImplementedError
 
-    def right_action(self, gamma):
+    def _right_action(self, gamma):
         """
         Returns self | gamma, where gamma is a 2x2 integer matrix.
         
@@ -57,7 +72,7 @@ class ManinMap(object):
 
         - ``gamma`` - 2 x 2 matrix which acts on the values of self
 
-        OUTPU:
+        OUTPUT:
 
         - ManinMap
         """
