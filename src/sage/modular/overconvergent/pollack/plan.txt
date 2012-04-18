@@ -47,6 +47,10 @@ sage: L
 7-adic L-series of Overconvergent modular symbol attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
 sage: L.series(2)  # not sure about input/output
 5 + 7 + 5*7^2 + 4*7^3 + O(7^4) + (5 + O(7))*T + (6 + O(7))*T^2 + O(7)*T^3 + (4 + O(7))*T^4 + O(T^5)
+sage: L = f.padic_lseries(7, -3)  # twist by -3
+sage: L
+7-adic L-series of twist by -3 of Overconvergent modular symbol attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+
 sage: f.domain()
 ?
 sage: f(...)
