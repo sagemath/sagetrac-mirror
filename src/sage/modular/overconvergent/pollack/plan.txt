@@ -10,6 +10,8 @@ modsym_symk.py
 pLfunction.py
 symk.py
 
+sage -tp 4 fund_domain.py lvalue_test.py modsym.py modsym_symk.py pLfunction.py
+
 Stage 2: Come up with the simplest *design* for this functionality that
 could possibly go into Sage and do the same thing as the above.
 
@@ -30,11 +32,11 @@ Elements:
 
  - OverconvergentModSymElement
 
-Other Classes:
+Other Objects:
 
  - p-adic L-series (attached to overconvergent eigenform)
- - Manin symbol 
- - Space of Manin symbols
+ - ManinRelations
+ - ManinSymbol 
 
 Example code:
 
@@ -87,7 +89,28 @@ Stage 3: Implement:
     parents/elements/etc.  Will copy over a lot of code from above (or
     just refactor things, etc.)
 
-  - make sure it *works*.
+
+TASKS:
+
+[x] Create: modular/pollack_stevens
+[x] dist.pyx, dist.pxd, fund_domain.py: Copy over dist cython code and fund_domain.
+[ ] (*) map.py: Create pure Python Map Object that represents map from coset reps
+        to coefficient module using Python dicts and establishes the API:
+[ ] doctest coverage of map.py to 100%
+[ ] (optimization) map_QQ.pyx:   Create Cython Map Object for special cases of codomain QQ (=Sym0)
+[ ] doctest coverage of map_QQ.pyx to 100%
+[ ] (optimization) map_dist.pyx: Create Cython Map Object for general distributions based on David's dist cython code
+[ ] doctest coverage of map_dist.pyx to 100%
+[ ] modsym.py:  Create element: ModularSymbolElement class 
+[ ] space.py :  Create parent: ModularSymbolSpace class
+[ ] (*) rewrite various functions from modsym.py to use map object (new code in modsym.py, space.py)
+[ ] rewrite various functions from modsym_dist.py to use map object (new code in modsym.py, space.py)
+[ ] rewrite various functions from modsym_symk.py to use map object (new code in modsym.py, space.py)
+[ ] doctest coverage of modsym.py to 100%
+[ ] doctest coverage of space.py to 100%
+[ ] padic_lseries.py: rewrite pLfunction.py and lvalue_test.py to use above 
+[ ] doctest coverage of padic_lseries.py to 100%
+
 
 Stage 4: Optimization
 
