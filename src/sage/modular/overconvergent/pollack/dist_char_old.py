@@ -6,7 +6,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.arith import binomial, bernoulli
 from sage.modular.overconvergent.pollack.symk import symk
-from sage.modular.overconvergent.pollack.dist import form_acting_matrix_on_dist
+#from sage.modular.overconvergent.pollack.dist import form_acting_matrix_on_dist
 from sage.misc.prandom import random
 from sage.functions.other import floor
 

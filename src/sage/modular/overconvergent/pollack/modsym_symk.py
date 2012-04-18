@@ -566,7 +566,7 @@ class modsym_symk(modsym):
 
         EXAMPLES:
         """
-        new = modsym_dist(self.level, [self.data[a].lift() for a in range(self.ngens())], self.manin)
+        new = modsym_dist([self.data[a].lift() for a in range(self.ngens())], self.manin())
         return new.hecke(p).scale(1/ap).normalize()
     
 
