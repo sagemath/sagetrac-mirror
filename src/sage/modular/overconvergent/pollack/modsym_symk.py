@@ -22,7 +22,7 @@ class modsym_symk(modsym):
         INPUT:
         
             - ``phi`` - modsym_symk
-
+            
         OUTPUT:
 
         The same modular symbol phi but now simply thought of as a modsym type.
@@ -231,9 +231,9 @@ class modsym_symk(modsym):
         11
         
         """
-        N = self.level()
+#        N = self.level()
         k = self.data(0).weight
-        assert N%p!=0, "The level isn't prime to p"
+#        assert N%p!=0, "The level isn't prime to p"
         assert (ap%p)!=0, "Not ordinary!"
         
         # Makes alpha the unit root of the Hecke polynomial x^2-a_p*x+p^(k+1)

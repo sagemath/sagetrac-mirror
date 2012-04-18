@@ -112,6 +112,7 @@ class modsym(SageObject):
         else:
             return self._data[n]
 
+
     def level(self):
         r"""
         Returns the level `N` when self is of level `Gamma_0(N)`.
