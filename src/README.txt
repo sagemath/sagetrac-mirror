@@ -2,7 +2,8 @@
      git clone  git@github.com:haikona/OMS.git
 
 # 2. Apply a patch to the Sage library:
-     cd SAGE_ROOT/devel/sage
+     sage -sh
+     cd $SAGE_ROOT/devel/sage
      hq qimport changes_to_sagelib.patch
      hg qpush
 
@@ -20,8 +21,9 @@
      git push
 
 If changes_to_sagelib.patch changes, do this:
-     
-     cd SAGE_ROOT/devel/sage/
+
+     sage -sh
+     cd $SAGE_ROOT/devel/sage/
      hg qpop
      hg qrm   changes_to_sagelib.patch
      hq qimport /path/to/changes_to_sagelib.patch
