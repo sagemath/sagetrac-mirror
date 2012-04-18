@@ -142,11 +142,11 @@ class modsym_symk(modsym):
         INPUT:
             - ``p`` -- prime not dividing the level of self.
             - ``alpha`` -- eigenvalue for `U_p` 
-
+            
         OUTPUT:
-
+        
         A modular symbol with the same Hecke-eigenvalues as self away from `p` and eigenvalue `alpha` at `p`.
-
+        
         EXAMPLES:
  
         ::
@@ -175,7 +175,7 @@ class modsym_symk(modsym):
         manin = manin_relations(N*p)
         
         v = [] ## this list will contain the data of the p-stabilized symbol of level N*p
-
+        
         ##  This loop runs through each generator at level Np and computes the value of the
         ##  p-stabilized symbol on each generator.  Here the following formula is being used:
         ##
@@ -363,10 +363,10 @@ class modsym_symk(modsym):
     def lift_to_OMS(self,p,M):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
-
+        
         Here the Eisenstein error is a symbol whose system of Hecke eigenvalues equals `ell+1` for `T_ell` when `ell`
         does not divide `Np` and 1 for `U_q` when `q` divides `Np`.
-
+        
         INPUT:
             - ``p`` -- prime
             - ``M`` -- integer equal to the number of moments
@@ -441,25 +441,31 @@ class modsym_symk(modsym):
         ap = v[1]
         k = self.weight()
         Phi = self.lift_to_OMS(p,M)
+        #print "Phi = ", Phi
         s = -Phi.valuation()
+        print "s = ", s
         if s > 0:
             if verbose:
                 print "Scaling by ",p,"^",s
             Phi = Phi.scale(p**(-Phi.valuation()))
         Phi = Phi.normalize()
+        print "Phi = ", Phi
         if verbose:
             print "Applying Hecke"
-        Phi = Phi.hecke(p).scale(1/ap)
+        ###first bug here###
+        Phi = Phi.hecke(p).scale(ZZ(1)/ap)
+        print "Phi = ", Phi
         if verbose:
             print "Killing eisenstein part"
         if (ap%(p**M))<>1:
             Phi = (Phi-Phi.hecke(p)).scale(1/(1-ap))
+            print "Phi = ", Phi
             e = (1-ap).valuation(p)
             if e > 0:
                 Phi = Phi.change_precision(M-e)
                 print "change precision to",M-e
         else:
-            q = 2
+            q = ZZ(2)
             v = self.is_Tq_eigen(q,p,M)
             assert v[0],"not eigen at q"
             aq = v[1]
@@ -476,15 +482,17 @@ class modsym_symk(modsym):
         if verbose:
             print "Iterating U_p"
         Psi = Phi.hecke(p).scale(1/ap)
+        print "Psi = ", Psi
         err = (Psi-Phi).valuation()
+        print "err = ", err
         Phi = Psi
         while err < Infinity:
             if (Phi.valuation()>=s) and (s>0):
-                Phi = Phi.scale(1/p**s)
+                Phi = Phi.scale(ZZ(1)/p**s)
                 Phi = Phi.change_precision(Phi.num_moments()-s).normalize()
                 print "unscaling by p^",s
                 s = Infinity
-            Psi = Phi.hecke(p).scale(1/ap)
+            Psi = Phi.hecke(p).scale(ZZ(1)/ap)
             err = (Psi-Phi).valuation()
             if verbose:
                 print "error is zero modulo p^",err
