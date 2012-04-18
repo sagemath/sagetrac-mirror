@@ -13,6 +13,66 @@ symk.py
 Stage 2: Come up with the simplest *design* for this functionality that
 could possibly go into Sage and do the same thing as the above.
 
+Parents:
+   
+ - CoefficientModule
+    - Symk(k, base_field)
+    - Distribution(...?)
+
+ - OverconvergentModSymSpace(level, coefficient_module)
+
+
+Elements:
+
+ - CoefficientModuleElement
+    - SymkElement
+    - DistributionElement
+
+ - OverconvergentModSymElement
+
+Other Classes:
+
+ - p-adic L-series (attached to overconvergent eigenform)
+ - Manin symbol 
+ - Space of Manin symbols
+
+Example code:
+
+sage: E = EllipticCurve('11a')
+sage: f = E.overconvergent_modsym()
+sage: f
+Overconvergent modular symbol attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+sage: L = f.padic_lseries(7)
+sage: L
+7-adic L-series of Overconvergent modular symbol attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+sage: L.series(2)  # not sure about input/output
+5 + 7 + 5*7^2 + 4*7^3 + O(7^4) + (5 + O(7))*T + (6 + O(7))*T^2 + O(7)*T^3 + (4 + O(7))*T^4 + O(T^5)
+sage: f.domain()
+?
+sage: f(...)
+?
+sage: f.parent()
+Space of overconvergent modular symbols of level 11
+
+sage: f.minus_part()
+Overconvergent modular symbol ...
+sage: f.plus_part()
+Overconvergent modular symbol ...
+
+sage: f + f
+?
+sage: 2*f
+?
+
+sage: X = OverconvergentModularSymbols(...); X
+?
+sage: T2 = X.hecke_operator(2); T2
+?
+sage: T2(f)
+?
+
+
+
 Stage 3: Implement:
 
   - one group: write test suite (doctest/docstrings) using the new 
