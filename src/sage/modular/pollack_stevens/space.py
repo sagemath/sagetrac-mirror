@@ -7,7 +7,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from modsym import ModularSymbolElement
 
-class ModularSymbols_constructor(UniqueFactory):
+class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group=None, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
@@ -28,9 +28,9 @@ class ModularSymbols_constructor(UniqueFactory):
     def create_object(self, version, key):
         return ModularSymbolSpace(*key)
 
-ModularSymbols = ModularSymbols_constructor('ModularSymbols')
+PSModularSymbols = PSModularSymbols_constructor('PSModularSymbols')
 
-class ModularSymbolSpace(Module):
+class PSModularSymbolSpace(Module):
     """
     A class for spaces of modular symbols that use Glenn Stevens'
     conventions.
