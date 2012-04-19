@@ -200,7 +200,8 @@ class manin_relations(SageObject):
                         a = coset_reps[r][0][0]
                         b = coset_reps[r][0][1]
                         A = M2Z([-b,a,-d,c])
-                        coset_reps = coset_reps + [A]
+                        A.set_immutable()
+                        coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
 
@@ -971,10 +972,12 @@ class manin_relations(SageObject):
         c = r1.denominator()
         d = r2.denominator()
         if (a*d-b*c)==1:
-            return M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
+            ans = M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
         else:
-            return M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
-
+            ans = M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
+        ans[0].set_immutable()
+        ans[1].set_immutable()
+        return ans
 
     def fd_boundary(self,C):
         r"""
@@ -1043,6 +1046,8 @@ class manin_relations(SageObject):
 
         ## These matrices correspond to the paths from infty to 0 and -1 to infty
         mats = [M2Z([1,0,0,1]),M2Z([1,1,-1,0])]
+        mats[0].set_immutable()
+        mats[1].set_immutable()
 
         ## Now find SL_2(Z) matrices whose associated unimodular paths connect
         ## the cusps listed in C.
@@ -1052,6 +1057,8 @@ class manin_relations(SageObject):
             b = C[j+1].numerator()
             c = C[j].denominator()
             d = C[j+1].denominator()
-            mats = mats + [M2Z([a,b,c,d])]
+            new_mat = M2Z([a,b,c,d])
+            new_mat.set_immutable()
+            mats.append(new_mat)
 
         return mats
