@@ -28,6 +28,8 @@ class ModularSymbols_constructor(UniqueFactory):
     def create_object(self, version, key):
         return ModularSymbolSpace(*key)
 
+ModularSymbols = ModularSymbols_constructor('ModularSymbols')
+
 class ModularSymbolSpace(Module):
     """
     A class for spaces of modular symbols that use Glenn Stevens'
