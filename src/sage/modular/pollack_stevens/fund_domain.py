@@ -17,14 +17,16 @@
 ##
 ######################################################################
 
-from sage.matrix.all import Matrix
+from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.modular.modsym.all import P1List
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import zero_vector
-from copy import deepcopy     
-        
+from copy import deepcopy
+
+M2Z = MatrixSpace_ZZ_2x2()
+
 ######################################
 ##  Define the Manin Relation Class ##
 ######################################
@@ -64,11 +66,11 @@ class manin_relations(SageObject):
         coset_reps = self.fd_boundary(cusps)
 
         ## Make the identity matrix
-        Id = Matrix(2,2,[1,0,0,1])
+        Id = M2Z([1,0,0,1])
 
         ## Gives names to matrices of order 2 and 3 (in PSL_2)
-        sig = Matrix(2,2,[0,1,-1,0])
-        tau = Matrix(2,2,[0,-1,1,-1])
+        sig = M2Z([0,1,-1,0])
+        tau = M2Z([0,-1,1,-1])
 
         ## Takes the bottom row of each of our current coset reps,
         ## thinking of them as distinct elements of P^1(Z/NZ)
@@ -194,7 +196,7 @@ class manin_relations(SageObject):
                         
                         a = coset_reps[r][0][0]
                         b = coset_reps[r][0][1]
-                        A = Matrix(2,2,[-b,a,-d,c])
+                        A = M2Z([-b,a,-d,c])
                         coset_reps = coset_reps + [A]  
                         ## A (representing the reversed edge) is included in 
                         ## our list of coset reps
@@ -690,7 +692,9 @@ class manin_relations(SageObject):
         sage: A.coset_reps(4)
         [-1 -2]
         [ 2  3]
-        sage: sig = Matrix(2,2,[0,1,-1,0])
+        sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+        sage: M2Z = MatrixSpace_ZZ_2x2()
+        sage: sig = M2Z([0,1,-1,0])
         sage: B^(-1)*A.coset_reps(2) == A.coset_reps(4)*sig
         True
 
@@ -924,9 +928,9 @@ class manin_relations(SageObject):
         c = r1.denominator()
         d = r2.denominator()
         if (a*d-b*c)==1:
-            return Matrix(2,2,[a,b,c,d]), Matrix(2,2,[-b,a,-d,c])
+            return M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
         else:
-            return Matrix(2,2,[-a,b,-c,d]), Matrix(2,2,[b,a,d,c])
+            return M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
 
 
     def fd_boundary(self,C):
@@ -990,7 +994,7 @@ class manin_relations(SageObject):
         C.reverse() ## Reverse here to get clockwise orientation of boundary
                     
         ## These matrices correspond to the paths from infty to 0 and -1 to infty
-        mats = [Matrix(2,2,[1,0,0,1]),Matrix(2,2,[1,1,-1,0])]  
+        mats = [M2Z([1,0,0,1]),M2Z([1,1,-1,0])]  
 
         ## Now find SL_2(Z) matrices whose associated unimodular paths connect
         ## the cusps listed in C.
@@ -1000,6 +1004,6 @@ class manin_relations(SageObject):
             b = C[j+1].numerator()
             c = C[j].denominator()
             d = C[j+1].denominator()
-            mats = mats + [Matrix(2,2,[a,b,c,d])]
+            mats = mats + [M2Z([a,b,c,d])]
 
         return mats
