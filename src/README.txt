@@ -7,6 +7,7 @@
      hg qimport /path/to/changes_to_sagelib.patch
      hg qpush
 
+## The following will not work, since dist.pyx uses a relative link.
 # 3. Make symlinks:
      sage -sh
      cd $SAGE_ROOT/devel/sage-main/sage/modular/
@@ -15,6 +16,22 @@
      cd $SAGE_ROOT/devel/sage-main/sage/modular/overconvergent/
      ln -s /path/to/OMS/sage/modular/overconvergent/pollack .
 
+## Instead, you can do the following and develop in place
+# 3'. Copy files from your clone
+
+      sage -sh
+      cd $SAGE_ROOT/devel/sage-main/
+      cp -r /path/to/OMS/.git .git
+      rm README.txt
+      cp /path/to/OMS/README.txt .
+      cp /path/to/OMS/changes_to_sagelib.patch .
+      cd sage/modular/
+      cp -r /path/to/OMS/sage/modular/btquotients btquotients
+      cp -r /path/to/OMS/sage/modular/pollack_stevens pollack_stevens
+      cd overconvergent/
+      cp -r /path/to/OMS/sage/modular/overconvergent/pollack pollack
+
+## You should run git commands in /path/to/OMS if you went with option 3, or $SAGE_ROOT/devel/sage-main in option 3'.
 # 4. Synchronize
 
      git pull

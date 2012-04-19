@@ -14,6 +14,8 @@ class PSModularSymbols_constructor(UniqueFactory):
         if base_ring is None and p is None:
             base_ring = QQ
         if coefficients is None:
+            if p is not None and prec_cap is None:
+                prec_cap = 20
             if isinstance(group, DirichletCharacter):
                 character = group.minimize_base_ring()
                 group = Gamma0(character.modulus())
@@ -26,7 +28,7 @@ class PSModularSymbols_constructor(UniqueFactory):
         return (group, coefficients, sign)
 
     def create_object(self, version, key):
-        return ModularSymbolSpace(*key)
+        return PSModularSymbolSpace(*key)
 
 PSModularSymbols = PSModularSymbols_constructor('PSModularSymbols')
 
