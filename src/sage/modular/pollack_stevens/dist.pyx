@@ -30,12 +30,11 @@ M2Z = MatrixSpace_ZZ_2x2()
 cdef long overflow = 1 << (4*sizeof(long)-1)
 cdef long underflow = -overflow
 
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
+include "stdsage.pxi"
+include "cdefs.pxi"
 
 def get_dist_classes(p, prec_cap, base):
-    if isinstance(base, pAdicGeneric) and base.degree() > 1:
-        return Dist_vector, WeightKAction_vector
+    if isinstance(base, pAdicGeneric) and base.degree() > 1:        return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
         return Dist_long, WeightKAction_long
     else:
