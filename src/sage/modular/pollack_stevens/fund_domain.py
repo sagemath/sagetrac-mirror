@@ -26,6 +26,10 @@ from sage.modules.free_module_element import zero_vector
 from copy import deepcopy
 
 M2Z = MatrixSpace_ZZ_2x2()
+t00 = (0,0)
+t10 = (1,0)
+t01 = (0,1)
+t11 = (1,1)
 
 ######################################
 ##  Define the Manin Relation Class ##
@@ -423,9 +427,35 @@ class manin_relations(SageObject):
         else:
             return self._mats[n]
 
+    def find_coset_rep(self, A):
+        """
+        Returns a coset representative that is equivalent to A modulo `\Gamma_0(N)`.
+
+        INPUT:
+
+        - ``A`` -- a matrix in `SL_2(\ZZ)`
+
+        OUTPUT:
+
+        - a matrix in `SL_2(\ZZ)` congruent to ``A`` modulo `\Gamma_0(N)`.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
+            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+            sage: M2Z = MatrixSpace_ZZ_2x2()
+            sage: A = M2Z([5,3,38,23])
+            sage: manin_relations(60).find_coset_rep(A)
+            [-7 -3]
+            [26 11]
+        """
+        i = self._P.index(A[t10],A[t11])
+        m = self._P1_to_mats[i]
+        return self._mats[m]
+
     def P1(self):
         r"""
-        Returns the Sage representation of `P^1(Z/NZ)`.
+        Returns the Sage representation of `P^1(\ZZ/N\ZZZ)`.
 
         OUTPUT:
 

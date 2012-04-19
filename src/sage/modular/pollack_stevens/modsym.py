@@ -8,17 +8,17 @@ from sage.categories.action import Action
 M2Z = MatrixSpace_ZZ_2x2()
 minusproj = M2Z([1,0,0,-1])
 
-class ModSymAction(Action):
+class PSModSymAction(Action):
     def __init__(self, MSspace):
         Action.__init__(self, M2Z, MSspace, False, operator.mul)
 
     def _call_(self, sym, g):
         return sym.__class__(sym._map * g, sym.parent())
 
-class ModularSymbolElement(ModuleElement):
+class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent):
         ModuleElement.__init__(self, parent)
-        self._map = ManinMap(parent._manin_relations, map_data)
+        self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
 
     def _add_(self, right):
         return self.__class__(self._map + right._map, self.parent())
