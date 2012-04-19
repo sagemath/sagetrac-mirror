@@ -54,13 +54,13 @@ class PSModularSymbolSpace(Module):
 
     - ``domain`` -- a set or None, giving the domain 
     """
-    Element = ModularSymbolElement
+    Element = PSModularSymbolElement
     def __init__(self, group, coefficients, sign):
         self._group = group
         self._coefficients = coefficients
         self._sign = sign
         self._manin_relations = manin_relations(group.level()) # should distingish between Gamma0 and Gamma1...
-        act = ModSymAction(self)
+        act = PSModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])
 
     def ngens(self):
