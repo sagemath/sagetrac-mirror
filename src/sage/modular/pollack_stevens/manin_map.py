@@ -19,6 +19,7 @@ class ManinMap(object):
     """
     def __init__(self, manin_relations, defining_data):
         self._manin_relations = manin_relations
+        
         raise NotImplementedError
         #self._codomain = ?
 

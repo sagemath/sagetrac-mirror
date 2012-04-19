@@ -7,8 +7,18 @@
      hg qimport /path/to/changes_to_sagelib.patch
      hg qpush
 
+# 3. Edit $SAGE_ROOT/local/include/zn_poly/zn_poly.h
+     sage -sh
+     cd $SAGE_ROOT/local/include/zn_poly
+     emacs zn_poly.h
+
+     DELETE line 72:  typedef unsigned long ulong
+     ADD three lines: #ifndef ulong
+                      #define ulong unsigned long
+		      #endif
+
 ## The following will not work, since dist.pyx uses a relative link.
-# 3. Make symlinks:
+# 4. Make symlinks:
      sage -sh
      cd $SAGE_ROOT/devel/sage-main/sage/modular/
      ln -s /path/to/OMS/sage/modular/btquotients .
@@ -17,7 +27,7 @@
      ln -s /path/to/OMS/sage/modular/overconvergent/pollack .
 
 ## Instead, you can do the following and develop in place
-# 3'. Copy files from your clone
+# 4'. Copy files from your clone
 
       sage -sh
       cd $SAGE_ROOT/devel/sage-main/
@@ -31,8 +41,8 @@
       cd overconvergent/
       cp -r /path/to/OMS/sage/modular/overconvergent/pollack pollack
 
-## You should run git commands in /path/to/OMS if you went with option 3, or $SAGE_ROOT/devel/sage-main in option 3'.
-# 4. Synchronize
+## You should run git commands in /path/to/OMS if you went with option 4, or $SAGE_ROOT/devel/sage-main in option 4'.
+# 5. Synchronize
 
      git pull
      git push
