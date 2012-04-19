@@ -5,7 +5,7 @@ from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from modsym import ModularSymbolElement
+from modsym import ModularSymbolElement, ModSymAction
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group=None, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
