@@ -51,3 +51,27 @@ class ModularSymbolElement(ModuleElement):
         True
         """
         return self * minusproj + self
+
+    def minus_part(self):
+        r"""
+        Returns the minus part of self -- i.e. self - self | [1,0,0,-1]
+
+        Note that we haven't divided by 2.  Is this a problem?
+
+        OUTPUT:
+
+        self - self | [1,0,0,-1]
+
+        EXAMPLES:
+
+        ::
+        
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
+        True   
+        """
+        return self - self * minusproj
+
