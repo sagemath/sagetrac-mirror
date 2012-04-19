@@ -110,4 +110,3 @@ class PSModularSymbolSpace(Module):
         38
         """
         return len(self._manin_relations.coset_reps())
-        
