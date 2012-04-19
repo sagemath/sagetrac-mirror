@@ -82,7 +82,7 @@ class DoubleCosetReduction(SageObject):
         sage: d = DoubleCosetReduction(Y,x)
         sage: d.sign()
         -1
-        sage: d.igamma()*Y._edge_list[d.label].opposite.rep*d.t()==x
+        sage: d.igamma()*Y._edge_list[d.label - len(Y.get_edge_list())].opposite.rep*d.t()==x
         True
         sage: x = Matrix(ZZ,2,2,[1423,113553,11231,12313])
         sage: d = DoubleCosetReduction(Y,x)
@@ -115,7 +115,8 @@ class DoubleCosetReduction(SageObject):
 
         self._parent=Y
         self.parity=parity
-        self.label=label
+        self._num_edges = len(Y.get_edge_list())
+        self.label=label + parity * self._num_edges # The label will encode whether it is an edge or its opposite !
         self.gamma=g[0]
         self.x=x
         self.power=g[1]+extrapow
@@ -133,12 +134,11 @@ class DoubleCosetReduction(SageObject):
         representative in the quotient (sign = +1), or to the
        opposite of one of the representatives (sign = -1).
         """
-        if(self.parity==0):
+        if self.parity == 0:
             return 1
         else:
             return -1
 
-    
     def igamma(self,embedding = None):
         r"""
         Image under gamma.
@@ -192,7 +192,7 @@ class DoubleCosetReduction(SageObject):
             prec = Y._prec
         if(self._t_prec>=prec):
             return self._cached_t #.change_ring(self._parent._R)
-        e=Y._edge_list[self.label]
+        e=Y._edge_list[self.label % self._num_edges]
         self._t_prec=prec
         if(self.parity==0):
             self._cached_t=(self.igamma(prec)*e.rep).inverse()*self.x
@@ -1105,6 +1105,20 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._compute_quotient()
             return self._edge_list
 
+    def get_list(self):
+        r"""
+        This function returns a list of ``Edge``s which represent a fundamental domain
+        inside the Bruhat-Tits tree for the quotient, together with a list of the
+        opposite edges. This is used to work with automorphic forms.
+
+        OUTPUT:
+
+          A list of ``Edge``s.
+
+        """
+        E = self.get_edge_list()
+        return E + [e.opposite for e in E]
+
     def get_generators(self):
         r"""
         This function uses a fundamental domain in the Bruhat-Tits tree, and certain gluing
@@ -1509,17 +1523,17 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(3,7)
             sage: A = X._compute_embedding_matrix(10); A
-            [1 1 1 2]
-            [2 0 1 1]
-            [2 1 1 1]
-            [0 2 2 1]
+            [26830 29524 53659 59048]
+            [29525 26829     1 53659]
+            [29525 26830     1 53659]
+            [32220 29525  5390     1]
             sage: R = A.base_ring()
             sage: B = X.get_eichler_order_basis()
             sage: R(B[0,0].reduced_trace()) == A[0,0]+A[3,0]
             True
 
         """
-        if self._use_magma==True:
+        if self._use_magma == True:
             try: return Matrix(Zmod(self._pN),4,4,self._cached_Iota0_matrix)
             except AttributeError: pass
             Ord=self.get_eichler_order()
@@ -1531,7 +1545,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             phi=self._local_splitting_map(prec)
             B=self.get_eichler_order_basis()
-            return Matrix(Zmod(self._pN),4,4,[phi(B[kk,0])[ii,jj] for ii in range(2) for jj in range(2) for kk in range(4)])
+            return Matrix(Zmod(self._p**prec),4,4,[phi(B[kk,0])[ii,jj] for ii in range(2) for jj in range(2) for kk in range(4)])
 
     def _increase_precision(self,amount=1):
         r"""
@@ -1655,6 +1669,25 @@ class BTQuotient(SageObject, UniqueRepresentation):
         except AttributeError:
             self._edge_stabs=[self._stabilizer(e.rep,as_edge=True) for e in self.get_edge_list()]
             return self._edge_stabs
+
+    def get_stabilizers(self):
+        r"""
+        This function computes the stabilizers in the arithmetic group of all
+        edges in the Bruhat-Tits tree within a fundamental domain for the
+        quotient graph, as well as those of opposite edges. Used for automorphic forms.
+
+        OUTPUT:
+
+          A list of edge stabilizers. Each edge stabilizer is a finite cyclic subgroup,
+          so we return generators for these subgroups.
+
+        EXAMPLES:
+
+        ::
+
+        """
+        S = self.get_edge_stabs()
+        return S + S
 
     def get_vertex_stabs(self):
         r"""

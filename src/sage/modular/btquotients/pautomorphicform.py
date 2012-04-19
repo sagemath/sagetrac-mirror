@@ -199,7 +199,13 @@ class HarmonicCocycleElement(HeckeModuleElement):
         X=self._parent._X
         p=X._p
         u=DoubleCosetReduction(X,e1)
-        return (u.sign()*self._F[u.label]).l_act_by(u.igamma(self._parent.embed_quaternion)*(p**(-u.power)))
+        if u.label < self._nE:
+            val = self._F[u.label]
+        else:
+            val = -self._F[u.label-self._nE]
+
+        return val.l_act_by(u.igamma(self._parent.embed_quaternion)*(p**(-u.power)))
+        #return (u.sign()*self._F[u.label])
 
     #In HarmonicCocycle
     def riemann_sum(self,f,center=1,level=0,E=None):
@@ -330,7 +336,7 @@ class HarmonicCocycles(AmbientHeckeModule):
     def base_extend(self,base_ring):
         r"""
         This function extends the base ring of the coefficient module.
-        
+
         INPUT:
 
         - ``base_ring`` - a ring that has a coerce map from the current base ring
@@ -442,7 +448,7 @@ class HarmonicCocycles(AmbientHeckeModule):
         #Admissible values of x?
         if isinstance(x,HarmonicCocycleElement):
             return HarmonicCocycleElement(self,x)
-        elif isinstance(x,pAutomorphicForm):
+        elif isinstance(x,pAutomorphicFormElement):
             tmp=[self._U.element_class(_parent._U,x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
             return HarmonicCocycleElement(self,tmp,from_values=True)
         else:
@@ -590,9 +596,15 @@ class HarmonicCocycles(AmbientHeckeModule):
         tmp=[self._U.element_class(self._U,zero_matrix(self._R,self._k-1,1),quick=True) for jj in range(len(self._E))]
         d1=Data[1]
         mga=self.embed_quaternion(Data[0])
-        for jj in range(len(self._E)):
+        nE = len(self._E)
+        for jj in range(nE):
             t=d1[jj]
-            tmp[jj]+=(t.sign()*f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+            if t.label < nE:
+                tmp[jj]+=(f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+            else:
+                tmp[jj]+=(-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+
+
         return HarmonicCocycleElement(self,tmp,from_values=True)
 
     def __apply_hecke_operator(self,l,f):
@@ -626,9 +638,14 @@ class HarmonicCocycles(AmbientHeckeModule):
         for ii in range(len(HeckeData)):
             d1=HeckeData[ii][1]
             mga=self.embed_quaternion(HeckeData[ii][0])*alphamat
-            for jj in range(len(self._E)):
+            nE = len(self._E)
+            for jj in range(nE):
                 t=d1[jj]
-                tmp[jj]+=(t.sign()*f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                if t.label < nE:
+                    tmp[jj]+=f._F[t.label].l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                else:
+                    tmp[jj]+=(-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+
         return HarmonicCocycleElement(self,[factor*x for x in tmp],from_values=True)
 
     def _compute_atkin_lehner_matrix(self,d):
@@ -690,14 +707,9 @@ class HarmonicCocycles(AmbientHeckeModule):
             g=T(basis[rr])
             B.set_block(0,rr,Matrix(R,len(self._E)*(self._k-1),1,[g._F[e]._val[ii,0]  for e in range(len(self._E)) for ii in range(self._k-1) ]))
 
-        try:
-            res=(A.solve_right(B)).transpose()
-            res.set_immutable()
-            return res
-        except ValueError:
-            print A
-            print B
-            raise ValueError
+        res=(A.solve_right(B)).transpose()
+        res.set_immutable()
+        return res
 
 class HarmonicCocyclesSubmodule(sage.modular.hecke.submodule.HeckeSubmodule,HarmonicCocycles):
     r"""
@@ -747,7 +759,7 @@ class HarmonicCocyclesSubmodule(sage.modular.hecke.submodule.HeckeSubmodule,Harm
         return "Subspace of %s of dimension %s"%(self.ambient(),self.dimension())
 
 
-class pAutomorphicForm(ModuleElement):
+class pAutomorphicFormElement(ModuleElement):
     r"""
     This class is a rudimentary implementation of a class for a p-adic automorphic
     form on a definite quaternion algebra over Q. These are required in order to
@@ -756,13 +768,11 @@ class pAutomorphicForm(ModuleElement):
     Greenberg's thesis for more details.
 
     INPUT:
-     - ``vec`` - 
 
+     - ``vec`` - Quite flexible input
      - ``quick`` - boolean (default: False) 
 
     EXAMPLES:
-
-    This example illustrates ...
 
     ::
 
@@ -779,80 +789,55 @@ class pAutomorphicForm(ModuleElement):
 
 
     """
-    def __init__(self,_parent,vec,quick=False):
-        ModuleElement.__init__(self,_parent)
-        self._parent=_parent
-        self._nE=2*len(_parent._E) # We record the values at the opposite edges
+    def __init__(self,parent,vec,quick=False):
+        ModuleElement.__init__(self,parent)
+        self._parent=parent
+        self._num_generators=len(parent._list)
         self._cached_values=dict()
-        self._R=Qp(_parent._X._p,prec=_parent._prec)
-        if(quick):
-                self._F=[v for v in vec]
+        self._R=Qp(parent.prime(),prec=parent._prec)
+        if quick:
+            self._value=[ self._parent._U(v) for v in vec ]
         else:
-            if(isinstance(vec,pAutomorphicForm)):
-                self._F=[self._parent._U(vec._F[ii]) for ii in range(self._nE)]
-                self._make_invariant()
+            if isinstance(vec,pAutomorphicFormElement):
+                self._value = self._parent._make_invariant([self._parent._U(vec._value[ii]) for ii in range(self._num_generators)])
 
-            elif(isinstance(vec,HarmonicCocycleElement)):
-                assert(_parent._U.weight()==vec._wt-2)
-                self._F=[]
-                assert(2*len(vec._F)==self._nE)
-                assert(isinstance(_parent._U,OCVn))
-                E=self._parent._E
+            elif isinstance(vec,HarmonicCocycleElement):
+                assert(parent._U.weight()==vec._wt-2)
+                F=[]
+                assert(2*len(vec._F) == self._num_generators)
+                assert(isinstance(parent._U,OCVn))
+                E=parent._list
 
-
-                MMM=vec._parent._U.element_class
+                MMM=vec.parent()._U.element_class
                 tmp=[]
                 for ii in range(len(vec._F)):
-                    newtmp=MMM(vec._parent._U,vec._F[ii]).l_act_by(E[ii].rep.inverse())
+                    newtmp=MMM(vec.parent()._U,vec._F[ii]).l_act_by(E[ii].rep.inverse())
                     tmp.append(newtmp)
-                    self._F.append(_parent._U(newtmp))
-                A=Matrix(QQ,2,2,[0,-1/_parent._X._p,-1,0])
+                    F.append(parent._U(newtmp))
+                A=Matrix(QQ,2,2,[0,-1/parent.prime(),-1,0])
                 for ii in range(len(vec._F)):
-                    self._F.append(_parent._U(-1*tmp[ii].r_act_by(A)))
-                self._make_invariant()
+                    F.append(parent._U(-1*tmp[ii].r_act_by(A)))
+                self._value = self._parent._make_invariant(F)
 
-            elif(isinstance(vec,list) and len(vec)==self._nE):
+            elif(isinstance(vec,list) and len(vec)==self._num_generators):
                 try:
-                    self._F=[self._parent._U(v) for v in vec]
+                    self._value=[self._parent._U(v) for v in vec]
                 except:
                     try:
-                        veczp=_parent._U._R(vec)
-                        self._parent=_parent
-                        self._F=[self._parent._U(veczp) for ii in range(self._nE)]
+                        veczp=parent._U._R(vec)
+                        self._parent=parent
+                        self._value=[self._parent._U(veczp) for ii in range(self._num_generators)]
                     except:
                         print vec
                         assert(0)
             else:
                 try:
-                    veczp=_parent._U._R(vec)
-                    self._parent=_parent
-                    self._F=[self._parent._U(veczp) for ii in range(self._nE)]
+                    veczp=parent._U._R(vec)
+                    self._parent=parent
+                    self._value=[self.parent._U(veczp) for ii in range(self._num_generators)]
                 except:
                     raise ValueError,"Cannot initialize a p-adic automorphic form with the given input="+str(vec)
 
-    def _make_invariant(self):
-        r"""
-        EXAMPLES:
-
-        ::
-        """
-        S=self._parent._X.get_edge_stabs()
-        E=self._parent._E
-        M=[e.rep for e in E]+[e.opposite.rep for e in E]
-        lS=len(S)
-        assert(2*len(S)==self._nE)
-        MMM=self._parent._U.element_class
-        for ii in range(self._nE):
-            Si=S[ii%lS]
-            if(any([v[2] for v in Si])):
-                x=MMM(self._F[ii].parent(),self._F[ii]._val,quick=True)
-                self._F[ii]=MMM(self._F[ii].parent(),0)
-                s=QQ(0)
-                m=M[ii]
-                for v in Si:
-                    s+=1
-                    self._F[ii]+=x.r_act_by(m.adjoint()*self._parent.embed_quaternion(v[0])*m)
-                self._F[ii]=(1/s)*self._F[ii]
 
     def precision(self):
         r"""
@@ -860,17 +845,16 @@ class pAutomorphicForm(ModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
-
         ::
 
+
         """
-        return min(x.precision() for x in self._F)
+        return min(x.precision() for x in self._value)
 
     def _add_(self,g):
         r"""
         This function adds two p-adic automorphic forms.
-        
+
         INPUT:
 
           - ``g`` - a p-adic automorphic form
@@ -881,14 +865,13 @@ class pAutomorphicForm(ModuleElement):
 
         EXAMPLES:
 
-        This example illustrates ...
 
         ::
         """
         #Should ensure that self and g are of the same weight and on the same curve
-        vec=[self._F[e]+g._F[e] for e in range(self._nE)]
-        return pAutomorphicForm(self._parent,vec,quick=True)
-    
+        vec=[self._value[e]+g._value[e] for e in range(self._num_generators)]
+        return pAutomorphicFormElement(self._parent,vec,quick=True)
+
     def _sub_(self,g):
         r"""
         This function subtracts a p-adic automorphic form from another.
@@ -909,8 +892,8 @@ class pAutomorphicForm(ModuleElement):
 
         """
         #Should ensure that self and g are of the same weight and on the same curve
-        vec=[self._F[e]-g._F[e] for e in range(self._nE)]
-        return pAutomorphicForm(self._parent,vec,quick=True)
+        vec=[self._value[e]-g._value[e] for e in range(self._num_generators)]
+        return pAutomorphicFormElement(self._parent,vec,quick=True)
 
     def _getitem_(self,e1):
         r"""
@@ -952,9 +935,10 @@ class pAutomorphicForm(ModuleElement):
         ::
 
         """
-        X=self._parent._X
+        X=self._parent._source
+        p = self._parent.prime()
         u=DoubleCosetReduction(X,e1)
-        return (self._F[u.label+u.parity*self._nE/2]).r_act_by((u.t())*X._p**(u.power))
+        return self._value[u.label].r_act_by((u.t())*p**(u.power))
 
     def _rmul_(self,a):
         r"""
@@ -968,7 +952,7 @@ class pAutomorphicForm(ModuleElement):
 
         """
         #Should ensure that 'a' is a scalar
-        return pAutomorphicForm(self._parent,[a*self._F[e] for e in range(self._nE)],quick=True)
+        return pAutomorphicFormElement(self._parent,[a*self._value[e] for e in range(self._num_generators)],quick=True)
 
     def left_act_by(self,alpha):
         r"""
@@ -981,27 +965,21 @@ class pAutomorphicForm(ModuleElement):
         ::
 
         """
-        Y=self._parent._X
-        E=self._parent._E
-        p=Y._p
+        Y=self._parent._source
+        E=self._parent._list
+        p=self._parent.prime()
         Tf=[]
         for e in E:
             u=DoubleCosetReduction(Y,alpha*e.rep)
             r=u.t()*p**(-(u.power))
-            if(u.parity==0):
-                tmp=self._F[u.label].r_act_by(r)
-            else:
-                tmp=self._F[u.label+len(E)].r_act_by(r)
+            tmp=self._value[u.label].r_act_by(r)
             Tf.append(tmp)
         for e in E:
             u=DoubleCosetReduction(Y,alpha*e.opposite.rep)
             r=u.t()*gg*p**(-(u.power))
-            if(u.parity==0):
-                tmp=self._F[u.label].r_act_by(r)
-            else:
-                tmp=self._F[u.label+len(E)].r_act_by(r)
+            tmp=self._value[u.label].r_act_by(r)
             Tf.append(tmp)
-        return pAutomorphicForm(self._parent,Tf,quick=True)
+        return pAutomorphicFormElement(self._parent,Tf,quick=True)
 
 
     def _repr_(self):
@@ -1018,8 +996,8 @@ class pAutomorphicForm(ModuleElement):
         tmp='p-adic automorphic form on '+str(self._parent)+':\n'
         tmp+='   e   |   c(e)'
         tmp+='\n'
-        for e in range(Integer(self._nE/2)):
-            tmp+='  '+str(e)+' | '+str(self._F[e])+'\n'
+        for e in range(Integer(self._num_generators/2)):
+            tmp+='  '+str(e)+' | '+str(self._value[e])+'\n'
         return tmp
 
     def valuation(self):
@@ -1036,12 +1014,12 @@ class pAutomorphicForm(ModuleElement):
         if not self.__nonzero__():
             return oo
         else:
-            return(min([self._F[e].valuation() for e in range(self._nE)]))
+            return(min([self._value[e].valuation() for e in range(self._num_generators)]))
 
     def __nonzero__(self):
         r"""
         """
-        return(any([self._F[e].__nonzero__() for e in range(self._nE)]))
+        return(any([self._value[e].__nonzero__() for e in range(self._num_generators)]))
 
     def improve(self, verbose = True):
         r"""
@@ -1083,7 +1061,7 @@ class pAutomorphicForm(ModuleElement):
         while(current_val>old_val):
             old_val=current_val
             ii+=1
-            self._F=[self._parent._U(c) for c in h2._F]
+            self._value=[self._parent._U(c) for c in h2._value]
             h2=MMM._apply_Up_operator(self,scale = True)
             current_val=(h2-self).valuation()-init_val
             # print 'val =',current_val
@@ -1094,7 +1072,7 @@ class pAutomorphicForm(ModuleElement):
                 sys.stdout.flush()
         if verbose == True:
             print ''
-        self._F=[self._parent._U(c) for c in h2._F]
+        self._value=[self._parent._U(c) for c in h2._value]
 
     def integrate(self,f,center=1,level=0,method='moments'):
         r"""
@@ -1108,11 +1086,8 @@ class pAutomorphicForm(ModuleElement):
         INPUT:
 
          - ``f`` - An analytic function.
-
          - ``center`` - 2x2 matrix over Qp (default: 1)
-
          - ``level`` - integer (default: 0)
-
          - ``method`` - string (default: 'moments'). Which method of integration to use. Either 'moments' or 'riemann_sum'.
 
 
@@ -1127,7 +1102,7 @@ class pAutomorphicForm(ModuleElement):
         - Cameron Franc (2012-02-20)
 
         """
-        E=self._parent._X._BT.get_balls(center,level)
+        E=self._parent._source._BT.get_balls(center,level)
         R1=LaurentSeriesRing(f.base_ring(),'r1')
         R2=PolynomialRing(f.base_ring(),'r2')
         value=0
@@ -1158,13 +1133,11 @@ class pAutomorphicForm(ModuleElement):
     def modular_form(self,z=None,level=0,method='moments'):
         r"""
         Returns the modular form corresponding to ``self``.
-        
+
         INPUT:
 
           - ``z`` - (default: None). If specified, returns the value of the form at the point ``zz`` in the `p`-adic upper half plane.
-
           - ``level`` - integer (default: 0). If ``method`` is 'riemann_sum', will use a covering of `\PP^1(\QQ_p)` with balls of size `p^-\mbox{level]`.
-        
           - ``method`` - string (default: ``moments``). It must be either ``moments`` or ``riemann_sum``.
 
         OUTPUT:
@@ -1183,11 +1156,8 @@ class pAutomorphicForm(ModuleElement):
 
           - ``z`` - (Default: None). If specified, evaluates the derivative
               at the point ``z`` in the `p`-adic upper half plane.
-
           - ``level`` - integer (default: 0). If ``method`` is 'riemann_sum', will use a covering of `\PP^1(\QQ_p)` with balls of size `p^-\mbox{level]`.
-        
           - ``method`` - string (default: ``moments``). It must be either ``moments`` or ``riemann_sum``.
-
           - ``order`` - integer (Default: 1). The order of the derivative to be computed.
 
         OUTPUT:
@@ -1203,7 +1173,7 @@ class pAutomorphicForm(ModuleElement):
             x1=Rx.gen()
             subst=R.hom([x1,z],codomain=Rx)
             x,y=R.gens()
-            center=self._parent._X._BT.find_containing_affinoid(z)
+            center=self._parent._source._BT.find_containing_affinoid(z)
             zbar=z.trace()-z
             f=R(1)/(x-y)
             k=self._parent._n+2
@@ -1323,14 +1293,14 @@ class pAutomorphicForm(ModuleElement):
         """
         if(mult and delta>=0):
             raise NotImplementedError, "Need to figure out how to implement the multiplicative part."
-        p=self._parent._X._p
+        p=self._parent.prime()
         K=t1.parent()
         R=PolynomialRing(K,'x')
         x=R.gen()
         R1=LaurentSeriesRing(K,'r1')
         r1=R1.gen()
         if(E is None):
-            E=self._parent._X._BT.find_covering(t1,t2)
+            E=self._parent._source._BT.find_covering(t1,t2)
             # print 'Got %s open balls.'%len(E)
         value=0
         ii=0
@@ -1370,18 +1340,18 @@ class pAutomorphicForm(ModuleElement):
                 new=c_e.evaluate(poly)
                 value+=new
                 if mult:
-                    value_exp *= K.teichmuller((b-d*t1)/(b-d*t2))**Integer(c_e[0].rational_reconstruction())
+                    value_exp *= K.teichmuller(((b-d*t1)/(b-d*t2)))**Integer(c_e[0].rational_reconstruction())
 
         else:
             print 'The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should not be used in practice.'
             return False
         if mult:
-            return value_exp * value.exp()
+            return K.teichmuller(value_exp) * value.exp()
         return value
 
 
 class pAutomorphicForms(Module):
-    Element=pAutomorphicForm
+    Element=pAutomorphicFormElement
     r"""
     The module of (quaternionic) `p`-adic automorphic forms.
 
@@ -1395,33 +1365,36 @@ class pAutomorphicForms(Module):
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
-    def __init__(self,X,U,prec=None,t=None,R=None,overconvergent=False):
+    def __init__(self,domain,U,prec=None,t=None,R=None,overconvergent=False):
         if(R is None):
-            if(not isinstance(U,Integer)):
+            if not isinstance(U,Integer):
                 self._R=U.base_ring()
             else:
                 if(prec is None):
                     prec=100
-                self._R=Qp(X._p,prec)
+                self._R=Qp(domain._p,prec)
         else:
             self._R=R
         #U is a CoefficientModuleSpace
-        if(isinstance(U,Integer)):
-            if(t is None):
-                if(overconvergent):
+        if isinstance(U,Integer):
+            if t is None:
+                if overconvergent:
                     t=prec-U+1
                 else:
                     t=0
             self._U=OCVn(U-2,self._R,U-1+t)
         else:
             self._U=U
-        self._X=X
-        self._V=self._X.get_vertex_list()
-        self._E=self._X.get_edge_list()
+        self._source=domain
+        self._list=self._source.get_list() # Contains also the opposite edges
         self._prec=self._R.precision_cap()
         self._n=self._U.weight()
-        Module.__init__(self,base=self._R)
+        self._p = self._source._p
+        Module.__init__(self,base = self._R)
         self._populate_coercion_lists_()
+
+    def prime(self):
+        return self._p
 
     def _repr_(self):
         r"""
@@ -1433,7 +1406,7 @@ class pAutomorphicForms(Module):
 
         ::
         """
-        s='Space of automorphic forms on '+str(self._X)+' with values in '+str(self._U)
+        s='Space of automorphic forms on '+str(self._source)+' with values in '+str(self._U)
         return s
 
     def _coerce_map_from_(self, S):
@@ -1441,15 +1414,15 @@ class pAutomorphicForms(Module):
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
         """
         if(isinstance(S,HarmonicCocycles)):
-            if(S._k-2!=self._n):
+            if(S.weight()-2!=self._n):
                 return False
-            if(S._X!=self._X):
+            if(S._source!=self._source):
                 return False
             return True
         if(isinstance(S,pAutomorphicForms)):
             if(S._n!=self._n):
                 return False
-            if(S._X!=self._X):
+            if(S._source!=self._source):
                 return False
             return True
         return False
@@ -1459,21 +1432,14 @@ class pAutomorphicForms(Module):
         """
         #Code how to coherce x into the space
         #Admissible values of x?
-        if isinstance(x,(HarmonicCocycleElement,pAutomorphicForm)):
-            return pAutomorphicForm(self,x)
+        if isinstance(x,(HarmonicCocycleElement,pAutomorphicFormElement)):
+            return pAutomorphicFormElement(self,x)
 
     def _an_element_(self):
         r"""
         Returns an element of the module.
         """
-        return pAutomorphicForm(self,1)
-
-    def embed_quaternion(self,g):
-        r"""
-        Returns the image of ``g`` under the embedding
-        of the quaternion algebra into 2x2 matrices.
-        """
-        return self._X.embed_quaternion(g,prec = self._prec)
+        return pAutomorphicFormElement(self,1)
 
     def lift(self,f, verbose = True):
         r"""
@@ -1484,6 +1450,31 @@ class pAutomorphicForms(Module):
         F=self.element_class(self,f)
         F.improve(verbose = verbose)
         return F
+
+    def _make_invariant(self, F):
+        r"""
+        EXAMPLES:
+
+        ::
+        """
+        S=self._source.get_stabilizers()
+        M =[e.rep for e in self._list]
+        coeff_module_class=self._U.element_class
+        newF = []
+        for ii in range(len(S)):
+            Si=S[ii]
+            x=coeff_module_class(F[ii].parent(),F[ii]._val,quick=True)
+            if(any([v[2] for v in Si])):
+                newFi=coeff_module_class(F[ii].parent(),0)
+                s=QQ(0)
+                m=M[ii]
+                for v in Si:
+                    s+=1
+                    newFi += x.r_act_by(m.adjoint()*self._source.embed(v[0],prec = self._prec)*m) # self._source should has a embed method that, given stabilizers, returns 2x2 matrices that can act on the distributions.
+                newF.apend((1/s)*newFi)
+            else:
+                newF.append(x)
+        return newF
 
     def _apply_Up_operator(self,f,scale=False, fix_lowdeg_terms = True):
         r"""
@@ -1504,22 +1495,23 @@ class pAutomorphicForms(Module):
             3 | 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^3 + 2*3^4 + 2*3^8 + O(3^13))*z + (3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + O(3^11))*z^2 + (3^2 + 2*3^3 + 3^4 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10))*z^4 + (3 + 3^3 + 3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^5 + (3 + 3^4 + 3^5 + 3^6 + 2*3^7 + O(3^10))*z^6 + (2*3 + 3^2 + 2*3^3 + 3^4 + 2*3^6 + 3^8 + 3^9 + O(3^10))*z^7 + (3 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^9 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^5 + 3^8 + 3^9 + O(3^10))*z^9
 
         """
-        HeckeData=self._X._get_Up_data()
+        HeckeData=self._source._get_Up_data()
         if scale == False:
-            factor=(self._X._p)**(self._U.weight()/2)
+            factor=(self._p)**(self._U.weight()/2)
         else:
             factor=1
         Tf=[]
-        for jj in range(2*len(self._E)):
+        for jj in range(len(self._list)):
             tmp=self._U(0)
             for d in HeckeData:
                 gg=d[0] # acter
                 u=d[1][jj] # edge_list[jj]
-                r=self._X._p**(-(u.power))*(u.t()*gg)
-                tmp+=f._F[u.label+u.parity*len(self._E)].r_act_by(r)
+                r=self._p**(-(u.power))*(u.t()*gg)
+                tmp+=f._value[u.label].r_act_by(r)
             tmp *= factor
             for ii in range(self._n+1):
-                tmp[ii] = f._F[jj][ii]
+                tmp[ii] = f._value[jj][ii]
             Tf.append(tmp)
-        return pAutomorphicForm(self,Tf,quick=True)
+        return pAutomorphicFormElement(self,Tf,quick=True)
+
 
