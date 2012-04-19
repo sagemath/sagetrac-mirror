@@ -1,5 +1,7 @@
 from sage.structure.element import ModuleElement
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+from manin_map import ManinMap
+import operator
 
 from sage.categories.action import Action
 
@@ -14,9 +16,9 @@ class ModSymAction(Action):
         return sym.__class__(sym._map * g, sym.parent())
 
 class ModularSymbolElement(ModuleElement):
-    def __init__(self, map, parent):
+    def __init__(self, map_data, parent):
         ModuleElement.__init__(self, parent)
-        self._map = map
+        self._map = ManinMap(map_data)
 
     def _add_(self, right):
         return self.__class__(self._map + right._map, self.parent())
