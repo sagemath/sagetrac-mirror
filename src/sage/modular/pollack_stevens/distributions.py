@@ -8,7 +8,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.action import PrecomposedAction
 from sage.matrix.all import MatrixSpace
 from sage.rings.fast_arith import prime_range
-from sage.modular.overconvergent.pollack.dist import get_dist_classes, Dist_long
+from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long
 
 class Distributions(Module):
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
