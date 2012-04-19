@@ -6,6 +6,7 @@ from sage.modular.arithgroup.all import Gamma0
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from modsym import ModularSymbolElement, ModSymAction
+from fund_domain import manin_relations
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group=None, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
@@ -58,5 +59,6 @@ class PSModularSymbolSpace(Module):
         self._group = group
         self._coefficients = coefficients
         self._sign = sign
+        self._manin_relations = manin_relations(group.level()) # should distingish between Gamma0 and Gamma1...
         act = ModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])

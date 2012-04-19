@@ -25,7 +25,8 @@ cdef extern from "zn_poly/zn_poly.h":
 from sage.libs.flint.zmod_poly cimport *, zmod_poly_t
 from sage.libs.flint.long_extras cimport *
 
-M2Z = MatrixSpace(ZZ,2,2)
+from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+M2Z = MatrixSpace_ZZ_2x2()
 cdef long overflow = 1 << (4*sizeof(long)-1)
 cdef long underflow = -overflow
 
