@@ -110,3 +110,29 @@ class PSModularSymbolSpace(Module):
         38
         """
         return len(self._manin_relations.coset_reps())
+
+    def level(self):
+        r"""
+        Returns the level `N` when self is of level `Gamma_0(N)`.
+
+        INPUT:
+            none
+
+        OUTPUT:
+        
+        The level `N` when self is of level `Gamma_0(N)`
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve 
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.level()
+        11
+        """
+
+        return self._manin_relations.level()
+
