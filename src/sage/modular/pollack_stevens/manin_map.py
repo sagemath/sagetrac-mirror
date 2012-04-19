@@ -19,9 +19,15 @@ class ManinMap(object):
     """
     def __init__(self, manin_relations, defining_data):
         self._manin_relations = manin_relations
-        
+        self._dict = {}
+        if isinstance(defining_data, (list, tuple)):
+            if len(defining_data) != len(manin_relations.gens()):
+                raise ValueError("length of defining data must be the same as number of manin generators")
+            for i in range(len(defining_data)):
+                self._dict[manin_relations.coset_reps(i)] = defining_data[i]
+        elif isinstance(defining_data, dict):
+            self._dict.update(defining_data)
         raise NotImplementedError
-        #self._codomain = ?
 
     def __add__(self, right):
         """
