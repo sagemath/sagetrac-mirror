@@ -70,7 +70,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
             self._F = [_parent._U.element_class(_parent._U,vec._F[ii],quick = True) for ii in range(self._nE)]
             return
         # When vec contains coordinates for the basis
-        self._R  =  parent._R
+        self._R = parent._R
         try:
             v = [self._R(x) for x in vec.list()]
         except AttributeError:
@@ -184,9 +184,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
         p = X._p
         u = DoubleCosetReduction(X,e1)
         if u.label < self._nE:
-            val  =  self._F[u.label]
+            val = self._F[u.label]
         else:
-            val  =  -self._F[u.label-self._nE]
+            val = -self._F[u.label-self._nE]
 
         return val.l_act_by(u.igamma(self.parent().embed_quaternion) * (p**(-u.power)))
         #return (u.sign()*self._F[u.label])
@@ -388,9 +388,9 @@ class HarmonicCocycles(AmbientHeckeModule):
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
         """
         if isinstance(S,(HarmonicCocycles,pAutomorphicForms)):
-            if(S._k! = self._k):
+            if(S._k != self._k):
                 return False
-            if(S._X! = self._X):
+            if(S._X != self._X):
                 return False
             return True
         return False
@@ -519,7 +519,7 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         x1 = self._M.right_kernel().matrix()
 
-        if x1.nrows() ! =  self.rank():
+        if x1.nrows()  !=  self.rank():
             raise RuntimeError, 'The computed dimension does not agree with the expectation. Consider increasing precision!'
 
         K = [c for c in x1.rows()]
@@ -1312,15 +1312,15 @@ class pAutomorphicForms(Module):
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
         """
         if(isinstance(S,HarmonicCocycles)):
-            if(S.weight()-2! = self._n):
+            if(S.weight()-2 != self._n):
                 return False
-            if(S._source! = self._source):
+            if(S._source != self._source):
                 return False
             return True
         if(isinstance(S,pAutomorphicForms)):
-            if(S._n! = self._n):
+            if(S._n != self._n):
                 return False
-            if(S._source! = self._source):
+            if(S._source != self._source):
                 return False
             return True
         return False
