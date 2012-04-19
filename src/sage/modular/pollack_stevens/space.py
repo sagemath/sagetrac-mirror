@@ -58,4 +58,5 @@ class PSModularSymbolSpace(Module):
         self._group = group
         self._coefficients = coefficients
         self._sign = sign
-
+        act = ModSymAction(self)
+        self._populate_coercion_lists_(action_list=[act])
