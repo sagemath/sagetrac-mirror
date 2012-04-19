@@ -62,3 +62,52 @@ class PSModularSymbolSpace(Module):
         self._manin_relations = manin_relations(group.level()) # should distingish between Gamma0 and Gamma1...
         act = ModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])
+
+    def ngens(self):
+        r"""
+        Returns the number of generators defining self.
+
+        EXAMPLES:
+
+        ::
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.ngens()
+        3
+        sage: E = EllipticCurve('37a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.ngens()
+        9
+        """
+        return len(self._manin_relations.generator_indices())
+
+    def ncoset_reps(self):
+        r"""
+        Returns the number of coset representatives defining the full_data of self
+
+        OUTPUT:
+        The number of coset representatives stored in the manin relations. (Just the size
+        of P^1(Z/NZ))
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.ncoset_reps()
+        12
+        sage: E = EllipticCurve('37a')
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [0, 1, 0, 0, 0, -1, 1, 0, 0]
+        sage: phi.ncoset_reps()
+        38
+        """
+        return len(self._manin_relations.coset_reps())
+        
