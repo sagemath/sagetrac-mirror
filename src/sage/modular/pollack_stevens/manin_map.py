@@ -39,15 +39,62 @@ def unimod_matrices_to_infty(r, s):
     # the function contfrac_q in
     # https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
     # is very, very relevant to massively optimizing this.
-    L = convergents(r/s)  ## Computes the continued fraction convergents of r/s
-    v = [M2Z([1,L[0].numerator(),0,L[0].denominator()])]  ## Initializes the list of matrices
-    for j in range(0,len(L)-1):
+    L = convergents(r / s)  ## Computes the continued fraction convergents of r/s
+    v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]  ## Initializes the list of matrices
+    for j in range(0, len(L)-1):
         a = L[j].numerator()
         c = L[j].denominator()
-        b = L[j+1].numerator()
-        d = L[j+1].denominator()
-        v.append(M2Z([(-1)**(j+1)*a,b,(-1)**(j+1)*c,d]))  ## The matrix connecting two consecutive convergents is added on
+        b = L[j + 1].numerator()
+        d = L[j + 1].denominator()
+        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))  ## The matrix connecting two consecutive convergents is added on
     return v
+
+def unimod_matrices_from_infty(self, r, s):
+    """
+    Returns a list of matrices whose associated unimodular paths connect r/s to infty.
+    (This is Manin's continued fraction trick.)
+
+    INPUT:
+        r, s -- rational numbers
+
+    OUTPUT:
+        a list of SL_2(Z) matrices
+
+    EXAMPLES:
+    """
+    if s != 0:
+        L = convergents(r / s)  ## Computes the continued fraction convergents of r/s
+        v = [M2Z([-L[0].numerator(), 1, -L[0].denominator(), 0])]  ## Initializes the list of matrices
+        # the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
+        # is very, very relevant to massively optimizing this.
+        for j in range(0, len(L) - 1):
+            a = L[j].numerator()
+            c = L[j].denominator()
+            b = L[j + 1].numerator()
+            d = L[j + 1].denominator()
+            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))  ## The matrix connecting two consecutive convergents is added on
+        return v
+    else:
+        return []
+
+
+def basic_hecke_matrix(self, a, ell):
+    """
+    Returns the matrix [1, a, 0, ell] (if a<ell) and [ell, 0, 0, 1] if a>=ell
+
+    INPUT:
+        a -- an integer or Infinity
+        ell -- a prime
+
+    OUTPUT:
+        a 2 x 2 matrix of determinant ell
+
+    EXAMPLES:
+    """
+    if a < ell:
+        return M2Z([1, a, 0, ell])
+    else:
+        return M2Z([ell, 0, 0, 1])
 
 class ManinMap(object):
     """

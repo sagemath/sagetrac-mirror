@@ -52,7 +52,7 @@ class PSModularSymbolSpace(Module):
 
     - ``V`` -- the coefficient module, which should have a right action of `M_2(\ZZ)`
 
-    - ``domain`` -- a set or None, giving the domain 
+    - ``domain`` -- a set or None, giving the domain
     """
     Element = PSModularSymbolElement
     def __init__(self, group, coefficients, sign):
@@ -119,7 +119,7 @@ class PSModularSymbolSpace(Module):
             none
 
         OUTPUT:
-        
+
         The level `N` when self is of level `Gamma_0(N)`
 
         EXAMPLES:
@@ -127,7 +127,7 @@ class PSModularSymbolSpace(Module):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve 
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
         [-1/5, 3/2, -1/2]
         sage: phi.level()
