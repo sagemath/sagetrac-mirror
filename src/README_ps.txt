@@ -29,11 +29,15 @@
 ## Instead, you can do the following and develop in place
 # 4'. Copy files from your clone
 
+#     The following should work fine (notice the trailing slash after OMS):
+      sage -sh
+      cp -r /path/to/OMS/ $SAGE_ROOT/devel/sage-main/
+
+#     But if you're worried about overwriting things you can do the following instead:
       sage -sh
       cd $SAGE_ROOT/devel/sage-main/
       cp -r /path/to/OMS/.git .git
-      rm README.txt
-      cp /path/to/OMS/README.txt .
+      cp /path/to/OMS/README_ps.txt .
       cp /path/to/OMS/changes_to_sagelib.patch .
       cd sage/modular/
       cp -r /path/to/OMS/sage/modular/btquotients btquotients
