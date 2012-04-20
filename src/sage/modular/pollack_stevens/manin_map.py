@@ -134,7 +134,6 @@ def basic_hecke_matrix(a, ell):
         return M2Z([1, a, 0, ell])
     else:
         return M2Z([ell, 0, 0, 1])
->>>>>>> 908895353ee98a4b1bb0bdd1aff74ae15d1640db
 
 class ManinMap(object):
     """
