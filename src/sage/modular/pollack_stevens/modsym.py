@@ -233,3 +233,6 @@ class PSModularSymbolElement(ModuleElement):
         r"""
         """
         
+class PSModularSymbolElement_symk(PSModularSymbolElment):
+    
+class PSModularSymbolElement_dist(PSModularSymbolElement):
