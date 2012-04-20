@@ -234,5 +234,13 @@ class PSModularSymbolElement(ModuleElement):
         """
         
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    
+    def __init__():
+        
 class PSModularSymbolElement_dist(PSModularSymbolElement):
+    def __init__():
+
+    def reduce_precision(self, M):
+        r"""
+        Only holds on to `M` moments of each value of self
+        """
+        
