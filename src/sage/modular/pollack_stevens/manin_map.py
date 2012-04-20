@@ -331,7 +331,7 @@ class ManinMap(object):
             D[ky] = self(gamma*ky) * gamma
         return self.__class__(self._codomain, self._manin, D, check=False)
 
-    def _prep_hecke_on_gen(self, ell, m):
+    def _prep_hecke_on_gen(self, ell, gen):
         """
         This function does some precomputations needed to compute T_ell.
 
@@ -398,8 +398,8 @@ class ManinMap(object):
         for a in range(ell + 1):
            if (a < ell) or (N % ell != 0):
                # if the level is not prime to ell the matrix [ell, 0, 0, 1] is avoided.
-               gama = basic_hecke_matrix(a, ell)
-               t = gama*M.reps(M.indices(m))
+               gamma = basic_hecke_matrix(a, ell)
+               t = gamma*M.reps(M.indices(m))
                #  In the notation above this is gam_a * D_m
                v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
                #  This expresses t as a sum of unimodular divisors
@@ -415,97 +415,122 @@ class ManinMap(object):
                    C = A._invert_unit()
                    #  gaminv = B*A^(-1)
                    gaminv = B * C
-                   #  The matrix gaminv * gama is added to our list in the j-th slot 
+                   #  The matrix gaminv * gamma is added to our list in the j-th slot 
                    #  (as described above)
-                   ans[j].append(gaminv * gama)
+                   ans[j].append(gaminv * gamma)
 
         return ans
 
-    def prep_hecke(self, ell):
+    def hecke(self, ell, algorithm = 'prep'):
         """
-        Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
+        Returns the image of this Manin map under the Hecke operator T_ell.
 
         INPUT:
-            -- ``ell`` - a prime
+
+        - ``ell`` -- a prime
+
+        - ``algorithm`` -- a string, either 'prep' (default) or
+          'naive'
 
         OUTPUT:
 
-        A list of lists of lists
+        - The image of this ManinMap under the Hecke operator
+          `T_{\ell}`
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+            sage: phi = form_modsym_from_elliptic_curve(E); phi
+            [-1/5, 3/2, -1/2]
+            sage: phi.prep_hecke(2)
+            [[[[1 0]
+            [0 2], [1 1]
+            [0 2], [2 0]
+            [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
+            [ 0  2]]], [[[1 2]
+            [0 2], [1 1]
+            [0 2], [2 1]
+            [0 1]], [[ 1 -2]
+            [ 0  2], [ 1 -1]
+            [ 0  2], [ 2 -1]
+            [ 0  1]], [], [[-4 -2]
+            [11  5], [-8 -3]
+            [22  8]], [], [], [], [], [], [[1 0]
+            [0 2]], [[-5 -2]
+            [11  4], [-1  1]
+            [ 0 -2]], []], [[[1 2]
+            [0 2], [1 1]
+            [0 2], [2 1]
+            [0 1]], [[1 0]
+            [0 2], [ 1 -1]
+            [ 0  2], [2 0]
+            [0 1]], [], [], [[-6 -4]
+            [11  7]], [[-7 -4]
+            [11  6], [-1  1]
+            [ 0 -2], [-2  0]
+            [ 0 -1]], [], [], [[-1  0]
+            [ 0 -2]], [[1 0]
+            [0 2]], [], [[-5 -2]
+            [11  4]]]]
 
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: phi.prep_hecke(2)
-        [[[[1 0]
-        [0 2], [1 1]
-        [0 2], [2 0]
-        [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
-        [ 0  2]]], [[[1 2]
-        [0 2], [1 1]
-        [0 2], [2 1]
-        [0 1]], [[ 1 -2]
-        [ 0  2], [ 1 -1]
-        [ 0  2], [ 2 -1]
-        [ 0  1]], [], [[-4 -2]
-        [11  5], [-8 -3]
-        [22  8]], [], [], [], [], [], [[1 0]
-        [0 2]], [[-5 -2]
-        [11  4], [-1  1]
-        [ 0 -2]], []], [[[1 2]
-        [0 2], [1 1]
-        [0 2], [2 1]
-        [0 1]], [[1 0]
-        [0 2], [ 1 -1]
-        [ 0  2], [2 0]
-        [0 1]], [], [], [[-6 -4]
-        [11  7]], [[-7 -4]
-        [11  6], [-1  1]
-        [ 0 -2], [-2  0]
-        [ 0 -1]], [], [], [[-1  0]
-        [ 0 -2]], [[1 0]
-        [0 2]], [], [[-5 -2]
-        [11  4]]]]
+        WARNING: changed from this (which disagreed with .sage file)::
 
-        WARNING: changed from this (which disagreed with .sage file):
-        [[[[1 0]
-        [0 2], [1 1]
-        [0 2], [2 0]
-        [0 1]], [], [], [], [], [], [[ 1 -1]
-        [ 0  2]], [], [], [], [], []], [[[1 2]
-        [0 2], [1 1]
-        [0 2], [2 1]
-        [0 1]], [[ 1 -2]
-        [ 0  2], [ 1 -1]
-        [ 0  2], [ 2 -1]
-        [ 0  1]], [], [[-4 -2]
-        [11  5], [-8 -3]
-        [22  8]], [], [], [], [[-5 -2]
-        [11  4], [-1  1]
-        [ 0 -2]], [[1 0]
-        [0 2]], [], [], []], [[[1 2]
-        [0 2], [1 1]
-        [0 2], [2 1]
-        [0 1]], [[1 0]
-        [0 2], [ 1 -1]
-        [ 0  2], [2 0]
-        [0 1]], [], [], [[-6 -4]
-        [11  7]], [[-7 -4]
-        [11  6], [-1  1]
-        [ 0 -2], [-2  0]
-        [ 0 -1]], [[-5 -2]
-        [11  4]], [], [[1 0]
-        [0 2]], [[-1  0]
-        [ 0 -2]], [], []]]
-
+            sage: phi.prep_hecke(2)
+            [[[[1 0]
+            [0 2], [1 1]
+            [0 2], [2 0]
+            [0 1]], [], [], [], [], [], [[ 1 -1]
+            [ 0  2]], [], [], [], [], []], [[[1 2]
+            [0 2], [1 1]
+            [0 2], [2 1]
+            [0 1]], [[ 1 -2]
+            [ 0  2], [ 1 -1]
+            [ 0  2], [ 2 -1]
+            [ 0  1]], [], [[-4 -2]
+            [11  5], [-8 -3]
+            [22  8]], [], [], [], [[-5 -2]
+            [11  4], [-1  1]
+            [ 0 -2]], [[1 0]
+            [0 2]], [], [], []], [[[1 2]
+            [0 2], [1 1]
+            [0 2], [2 1]
+            [0 1]], [[1 0]
+            [0 2], [ 1 -1]
+            [ 0  2], [2 0]
+            [0 1]], [], [], [[-6 -4]
+            [11  7]], [[-7 -4]
+            [11  6], [-1  1]
+            [ 0 -2], [-2  0]
+            [ 0 -1]], [[-5 -2]
+            [11  4]], [], [[1 0]
+            [0 2]], [[-1  0]
+            [ 0 -2]], [], []]]
         """
-        ans = []
-        for m in range(len(self._manin.generator_indices())):
-            ans = ans + [self._prep_hecke_individual(ell, m)]
-        return ans
+        self.compute_full_data()
+        self.normalize()
+        if algorithm == 'prep':
+            ## psi will denote self | T_ell
+            psi = {}
+            for g in self._manin.gens():
+                ## v is a dictionary so that the value of self | T_ell
+                ## on g is given by
+                ## sum_h sum_A self(h) * A
+                ## where h runs over all coset reps and A runs over
+                ## the entries of v[h] (a list)
+                v = self._prep_hecke_on_gen(ell, g)
+                psi[g] = self._codomain.zero_element()
+                for h in self._manin:
+                    for A in v[h]:
+                        psi[g] += self[h] * A
+                psi[g].normalize()
+            return self.__class__(self._codomain, self._manin, psi, check=False)
+        elif algorithm == 'naive':
+            psi = self._right_action(M2Z([1,0,0,ell]))
+            for a in range(1, ell):
+                psi += self._right_action(M2Z([1,a,0,ell]))
+            if self._manin.level() % ell != 0:
+                psi += self._right_action(M2Z([ell,0,0,1]))
+            return psi.normalize()
 
 

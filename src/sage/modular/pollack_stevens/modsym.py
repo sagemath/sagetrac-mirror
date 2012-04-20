@@ -13,7 +13,7 @@ class PSModSymAction(Action):
         Action.__init__(self, M2Z, MSspace, False, operator.mul)
 
     def _call_(self, sym, g):
-        return sym.__class__(sym._map * g, sym.parent())
+        return sym.__class__(sym._map * g, sym.parent(), construct=True)
 
 class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent, construct=False):
@@ -24,13 +24,13 @@ class PSModularSymbolElement(ModuleElement):
             self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
 
     def _add_(self, right):
-        return self.__class__(self._map + right._map, self.parent())
+        return self.__class__(self._map + right._map, self.parent(), construct=True)
 
     def _lmul_(self, right):
-        return self.__class__(self._map * right, self.parent())
+        return self.__class__(self._map * right, self.parent(), construct=True)
 
     def _sub_(self, right):
-        return self.__class__(self._map - right._map, self.parent())
+        return self.__class__(self._map - right._map, self.parent(), construct=True)
 
     def plus_part(self):
         r"""
@@ -80,61 +80,47 @@ class PSModularSymbolElement(ModuleElement):
     
 ## the methods below need the new dict (currently using old code with indices)
 
-    def hecke(self, ell):
+    def hecke(self, ell, algorithm="prep"):
         r"""
         Returns self | T_ell by making use of the precomputations in
         self.prep_hecke()
 
         INPUT:
-            - ``ell`` - a prime
+
+        - ``ell`` -- a prime
+
+        - ``algorithm`` -- a string, either 'prep' (default) or
+          'naive'
 
         OUTPUT:
-        
-        self | T_ell 
 
-        EXAMPLES:
+        - The image of this element under the hecke operator
+          `T_{\ell}`
 
-        ::
+        ALGORITHMS:
 
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: ell=2
-        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell=3
-        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell=5
-        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell=101
-        sage: phi.hecke(ell) == phi.scale(E.ap(ell))
-        True
+        - If ``algorithm`` == 'prep', precomputes a list of matrices that only depend on the level
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+            sage: phi = form_modsym_from_elliptic_curve(E); phi
+            [-1/5, 3/2, -1/2]
+            sage: ell=2
+            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell=3
+            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell=5
+            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell=101
+            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            True
         """
-            
-        if self._data == 0:
-            self.compute_full_data_from_gen_data()
-            self.normalize_full_data()
-        psi = self.zero()   ## psi will denote self | T_ell
-
-        ## v is a long list of lists of lists with the property that the value
-        ## of self | T_ell on the m-th generator is given by
-        ## sum_j sum_r self(j-th coset rep) | v[m][j][r]
-        ## where j runs thru all coset reps and r runs thru all entries
-        ## of v[m][j]
-        
-        v = self.prep_hecke(ell)
-
-        ## This loop computes (self | T_ell)(m-th generator) 
-
-        for m in range(self.parent().ngens()):
-            for j in range(self.parent().ncoset_reps()):
-                for r in range(len(v[m][j])):
-                     psi._data[m] = psi.data(m) + self.full_data(j).act_right(v[m][j][r])
-
-        return psi.normalize()
+        return self.__class__(self._map.hecke(ell, algorithm), self.parent(), construct=True)
 
     def hecke_from_defn(self,ell):
         r"""
@@ -145,7 +131,8 @@ class PSModularSymbolElement(ModuleElement):
         where the last term occurs only if the level is prime to ell.
 
         INPUT:
-             - ``ell`` - prime
+
+        - ``ell`` - prime
 
         OUTPUT:
 
