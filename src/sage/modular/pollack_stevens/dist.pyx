@@ -52,17 +52,17 @@ cdef class Dist(ModuleElement):
 
     def valuation(self, p=None):
         """
-	returns the highest power of p which divides all moments of the distribution
-	"""
+        returns the highest power of p which divides all moments of the distribution
+        """
         if p is None:
             p = self.parent()._p
         return min([self.moment(a).valuation(p) for a in
-            range(self.precision_cap())])
+            range(self.precision_absolute())])
 
     def specialize(self):
         """
-	Specializes to weight k -- i.e. projects to Sym^k
-	"""
+        Specializes to weight k -- i.e. projects to Sym^k
+        """
         from sage.modular.overconvergent.pollack.symk import symk
         k=self.parent()._k
         assert k >= 0,"negative weight"
@@ -76,23 +76,24 @@ cdef class Dist(ModuleElement):
 
     def act_right(self,gam):
         """
-	Return self|gam
-	"""
+    Return self|gam
+    """
         return self.parent()._act(self, gam)
 
 cdef class Dist_vector(Dist):
     def __init__(self,moments,parent,check=True):
         """
-	A distribution is stored as a vector whose j-th entry is the j-th moment of the distribution.
+        A distribution is stored as a vector whose j-th entry is the j-th moment of the distribution.
+
         The j-th entry is stored modulo p^(N-j) where N is the total number of moments.
         (This is the accuracy that is maintained after acting by Gamma_0(p).)
 
         INPUTS:
 
         - ``parent`` -- a :class:`distributions.Distributions_Zp` instance
-	- ``moments`` -- the list of moments given as a vector
+        - ``moments`` -- the list of moments given as a vector
         - ``check`` -- boolean, whether to coerce the vector into the appropriate module
-	"""
+        """
         Dist.__init__(self,parent)
         if check:
             base = parent.base_ring()
@@ -111,15 +112,15 @@ cdef class Dist_vector(Dist):
 
     def _repr_(self):
         """
-	Displays the moments of the distribution
-	"""
+        Displays the moments of the distribution
+        """
         self.normalize()
         return repr(self.moments)
 
     def moment(self,n):
         """
-	Returns the n-th moment
-	"""
+        Returns the n-th moment
+        """
         return self.moments[n]
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
@@ -149,10 +150,10 @@ cdef class Dist_vector(Dist):
         ans.moments = self.moments * right
         return ans
 
-    def precision_cap(self):
+    def precision_absolute(self):
         """
-	Returns the number of moments of the distribution
-	"""
+    Returns the number of moments of the distribution
+    """
         return len(self.moments)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -165,22 +166,25 @@ cdef class Dist_vector(Dist):
 
     cpdef normalize(self):
         """
-	reduced modulo Fil^N -- that is the i-th moments is reduced modulo p^(N-i)
-	"""
+    reduced modulo Fil^N -- that is the i-th moments is reduced modulo p^(N-i)
+    """
         p=self.parent()._p
-        if p is None:
-            return self # classical
-        assert self.valuation() >= 0, "moments not integral in normalization"
-        V = self.moments.parent()
-        n = self.precision_cap()
-        self.moments = V([self.moment(i)%(p**(n-i)) for i in range(n)])
+        if p is not None: # non-classical
+            assert self.valuation() >= 0, "moments not integral in normalization"
+            V = self.moments.parent()
+            R = V.base_ring()
+            n = self.precision_absolute()
+            if isinstance(R, pAdicGeneric):
+                self.moments = V([self.moment(i).add_bigoh(n-i) for i in range(n)])
+            else:
+                self.moments = V([self.moment(i)%(p**(n-i)) for i in range(n)])
         return self
 
     def reduce_precision(self, M):
         """
-	Only holds on to M moments
-	"""
-        assert M<=self.precision_cap(),"not enough moments"
+    Only holds on to M moments
+    """
+        assert M<=self.precision_absolute(),"not enough moments"
 
         cdef Dist_vector ans = self._new_c()
         ans.moments = self.moments[:M]
@@ -190,7 +194,7 @@ cdef class Dist_vector(Dist):
         # assert self.moments[0][0]==0, "not total measure zero"
         # print "result accurate modulo p^",self.moment(0).valuation(self.p)
         #v=[0 for j in range(0,i)]+[binomial(j,i)*bernoulli(j-i) for j in range(i,M)]
-        M = self.precision_cap()
+        M = self.precision_absolute()
         K = self.parent().base_ring().fraction_field()
         V = self.moments.parent()
         v = [K(0) for i in range(M)]
@@ -204,8 +208,8 @@ cdef class Dist_vector(Dist):
 
     def lift(self):
         """
-	Increases the number of moments by 1
-	"""
+        Increases the number of moments by 1
+        """
         n = len(self.moments)
         if n >= self.parent()._prec_cap:
             raise ValueError("Cannot lift above precision cap")
@@ -330,7 +334,7 @@ cdef class Dist_long(Dist):
         ans.quasi_normalize()
         return ans
 
-    def precision_cap(self):
+    def precision_absolute(self):
         return self.prec
 
     cdef int _cmp_c_impl(left, Element _right) except -2:

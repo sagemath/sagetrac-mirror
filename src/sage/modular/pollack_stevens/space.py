@@ -109,7 +109,7 @@ class PSModularSymbolSpace(Module):
         sage: phi.ngens()
         9
         """
-        return len(self._manin_relations.generator_indices())
+        return len(self._manin_relations.indices())
 
     def ncoset_reps(self):
         r"""
@@ -135,7 +135,7 @@ class PSModularSymbolSpace(Module):
         sage: phi.ncoset_reps()
         38
         """
-        return len(self._manin_relations.coset_reps())
+        return len(self._manin_relations.reps())
 
     def level(self):
         r"""
@@ -166,10 +166,10 @@ class PSModularSymbolSpace(Module):
 
         # Should this return a dictionary as opposed to a list?
         v = []
-        for r in range(len(self._manin_relations.coset_reps())):
-            for j in range(self._manin_relations.coset_reps()):
-                R = self._manin.relations[j]
-                if (len(R) == 1) and (R[0][2] == self._manin_relations.generator_indices(r)):
+        for r in range(len(self._manin_relations.reps())):
+            for j in range(self._manin_relations.reps()):
+                R = self._manin_relations[j]
+                if (len(R) == 1) and (R[0][2] == self._manin_relations.indices(r)):
                     if R[0][0] <> -1 or R[0][1] <> Id:
                         v = v + [R]
         return v
@@ -231,7 +231,7 @@ class PSModularSymbolSpace(Module):
         """
 
         dd = {}
-        for rep in self._manin_relations.coset_reps():
+        for rep in self._manin_relations.reps():
             dd[rep] = self.zero_elt()
         #v = [self.zero_elt() for i in range(0, self.ngens())]
         #return C(v, self._manin_relations)
