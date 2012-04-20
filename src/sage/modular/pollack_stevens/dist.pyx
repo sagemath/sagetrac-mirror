@@ -115,7 +115,10 @@ cdef class Dist_vector(Dist):
         Displays the moments of the distribution
         """
         self.normalize()
-        return repr(self.moments)
+        if len(self.moments) == 0:
+            return repr(self.moments[0])
+        else:
+            return repr(self.moments)
 
     def moment(self,n):
         r"""
@@ -245,7 +248,10 @@ cdef class Dist_long(Dist):
 
     def _repr_(self):
         self.normalize()
-        return "(" + ", ".join([repr(self.moments[i]) for i in range(self.prec)]) + ")"
+        if self.prec == 1:
+            return repr(self.moments[0])
+        else:
+            return "(" + ", ".join([repr(self.moments[i]) for i in range(self.prec)]) + ")"
 
     cdef int quasi_normalize(self) except -1:
         cdef int i

@@ -133,36 +133,18 @@ class PSModularSymbolElement(ModuleElement):
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-            sage: phi = form_modsym_from_elliptic_curve(E); phi
+            sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
             [-1/5, 3/2, -1/2]
-            sage: ell=2
-            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            sage: phi.hecke(2) == phi * E.ap(2)
             True
-            sage: ell=3
-            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            sage: phi.hecke(3) == phi * E.ap(3)
             True
-            sage: ell=5
-            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            sage: phi.hecke(5) == phi * E.ap(5)
             True
-            sage: ell=101
-            sage: phi.hecke(ell) == phi.scale(E.ap(ell))
+            sage: phi.hecke(101) == phi * E.ap(101)
             True
 
-            sage: E = EllipticCurve('11a')
-            sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-            sage: phi = form_modsym_from_elliptic_curve(E); phi
-            [-1/5, 3/2, -1/2]
-            sage: ell = 2
-            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-            True
-            sage: ell = 3
-            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-            True
-            sage: ell=5
-            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-            True
-            sage: ell=101
-            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+            sage: all([phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]])
             True
         """
         return self.__class__(self._map.hecke(ell, algorithm), self.parent(), construct=True)
@@ -187,7 +169,7 @@ class PSModularSymbolElement(ModuleElement):
 
         sage: E = EllipticCurve('11a')
         sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.valuation(2)
         -1
