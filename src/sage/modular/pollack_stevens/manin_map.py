@@ -49,7 +49,7 @@ def unimod_matrices_to_infty(r, s):
         v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))  ## The matrix connecting two consecutive convergents is added on
     return v
 
-def unimod_matrices_from_infty(self, r, s):
+def unimod_matrices_from_infty( r, s):
     """
     Returns a list of matrices whose associated unimodular paths connect r/s to infty.
     (This is Manin's continued fraction trick.)
@@ -78,7 +78,7 @@ def unimod_matrices_from_infty(self, r, s):
         return []
 
 
-def basic_hecke_matrix(self, a, ell):
+def basic_hecke_matrix( a, ell):
     """
     Returns the matrix [1, a, 0, ell] (if a<ell) and [ell, 0, 0, 1] if a>=ell
 
