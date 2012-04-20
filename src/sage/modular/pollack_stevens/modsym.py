@@ -16,9 +16,12 @@ class PSModSymAction(Action):
         return sym.__class__(sym._map * g, sym.parent())
 
 class PSModularSymbolElement(ModuleElement):
-    def __init__(self, map_data, parent):
+    def __init__(self, map_data, parent, construct=False):
         ModuleElement.__init__(self, parent)
-        self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
+        if construct:
+            self._map = map_data
+        else:
+            self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
 
     def _add_(self, right):
         return self.__class__(self._map + right._map, self.parent())

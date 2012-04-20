@@ -9,7 +9,7 @@ from modsym import PSModularSymbolElement, PSModSymAction
 from fund_domain import manin_relations
 
 class PSModularSymbols_constructor(UniqueFactory):
-    def create_key(self, group=None, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
+    def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
         if base_ring is None and p is None:
@@ -26,6 +26,9 @@ class PSModularSymbols_constructor(UniqueFactory):
             if weight is None: raise ValueError("you must specify a weight or coefficient module")
             k = weight - 2
             coefficients = Distributions(k, p, prec_cap, base_ring, character)
+        else:
+            # TODO: require other stuff to be None
+            pass
         return (group, coefficients, sign)
 
     def create_object(self, version, key):
@@ -135,4 +138,14 @@ class PSModularSymbolSpace(Module):
         """
 
         return self._manin_relations.level()
+
+    def _grab_relations(self):
+        v = []
+        for r in range(len(self._manin_relations.coset_reps())):
+            for j in range(self._manin_relations.coset_reps()):
+                R = self._manin.coset_relations[j]
+                if (len(R) == 1) and (R[0][2] == self._manin_relations.generator_indices(r)):
+                    if R[0][0] <> -1 or R[0][1] <> Id:
+                        v = v + [R]
+        return v
 

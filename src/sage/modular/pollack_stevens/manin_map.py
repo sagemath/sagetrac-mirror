@@ -1,5 +1,5 @@
 """
-Manin Maps.
+Manin Maps
 
 This is a class that represents maps from a set of right coset
 representatives to a coefficient module.  This is a basic building
@@ -39,17 +39,21 @@ def unimod_matrices_to_infty(r, s):
     # the function contfrac_q in
     # https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
     # is very, very relevant to massively optimizing this.
-    L = convergents(r / s)  ## Computes the continued fraction convergents of r/s
-    v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]  ## Initializes the list of matrices
+    L = convergents(r / s)
+    # Computes the continued fraction convergents of r/s
+    v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]
+    # Initializes the list of matrices
     for j in range(0, len(L)-1):
         a = L[j].numerator()
         c = L[j].denominator()
         b = L[j + 1].numerator()
         d = L[j + 1].denominator()
-        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))  ## The matrix connecting two consecutive convergents is added on
+        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))
+        # The matrix connecting two consecutive convergents is added on
     return v
 
-def unimod_matrices_from_infty( r, s):
+
+def unimod_matrices_from_infty(r, s):
     """
     Returns a list of matrices whose associated unimodular paths connect r/s to infty.
     (This is Manin's continued fraction trick.)
@@ -63,8 +67,10 @@ def unimod_matrices_from_infty( r, s):
     EXAMPLES:
     """
     if s != 0:
-        L = convergents(r / s)  ## Computes the continued fraction convergents of r/s
-        v = [M2Z([-L[0].numerator(), 1, -L[0].denominator(), 0])]  ## Initializes the list of matrices
+        L = convergents(r / s)
+        # Computes the continued fraction convergents of r/s
+        v = [M2Z([-L[0].numerator(), 1, -L[0].denominator(), 0])]
+        # Initializes the list of matrices
         # the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
         # is very, very relevant to massively optimizing this.
         for j in range(0, len(L) - 1):
@@ -72,13 +78,13 @@ def unimod_matrices_from_infty( r, s):
             c = L[j].denominator()
             b = L[j + 1].numerator()
             d = L[j + 1].denominator()
-            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))  ## The matrix connecting two consecutive convergents is added on
+            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))
+            # The matrix connecting two consecutive convergents is added on
         return v
     else:
         return []
 
-
-def basic_hecke_matrix( a, ell):
+def basic_hecke_matrix(a, ell):
     """
     Returns the matrix [1, a, 0, ell] (if a<ell) and [ell, 0, 0, 1] if a>=ell
 
@@ -125,7 +131,8 @@ class ManinMap(object):
             self._dict = defining_data
 
     def _compute_image_from_gens(self, B):
-        L = self._manin._rel_dict[B] # could raise KeyError if B is not a coset rep
+        L = self._manin._rel_dict[B]
+        # could raise KeyError if B is not a coset rep
         if len(L) == 0:
             t = self._codomain(0)
         else:
@@ -200,18 +207,18 @@ class ManinMap(object):
         b = A[t01]
         c = A[t10]
         d = A[t11]
-        ## v1: a list of unimodular matrices whose divisors add up to {b/d} - {infty}
+        # v1: a list of unimodular matrices whose divisors add up to {b/d} - {infty}
         v1 = unimod_matrices_to_infty(b,d)
-        ## v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
+        # v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
         v2 = unimod_matrices_to_infty(a,c)
-        ## ans: the value of self on A
+        # ans: the value of self on A
         ans = self._codomain(0)
-        ## This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
+        # This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
         for B in v1:
             ans = ans + self._eval_sl2(B)
 
-        ## This loops subtracts away the value self({a/c}-{infty}) from ans by subtracting away the values of self on elements of v2
-        ## and so in the end ans becomes self({b/d}-{a/c}) = self({A(0)} - {A(infty)}
+        # This loops subtracts away the value self({a/c}-{infty}) from ans by subtracting away the values of self on elements of v2
+        # and so in the end ans becomes self({b/d}-{a/c}) = self({A(0)} - {A(infty)}
         for B in v2:
             ans = ans - self._eval_sl2(B)
         return ans
@@ -268,4 +275,185 @@ class ManinMap(object):
         for ky, val in sd.iteritems():
             D[ky] = self(gamma*ky) * gamma
         return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def _prep_hecke_on_gen(self, ell, m):
+        """
+        This function does some precomputations needed to compute T_ell.
+
+        In particular, if phi is a modular symbol and D_m is the divisor associated to our m-th chosen
+        generator, to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
+        gam_a run thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
+        as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
+        SL_2 matrix, we then write M=gam*M_i where gam is in Gamma_0(N) and M_i is one of our
+        chosen coset representatives.  Then phi([M]) = phi([M_i]) | gam^(-1).  Thus, one has
+
+            (phi | gam_a)(D_m) = sum_i sum_j phi([M_i]) | gam_{ij}^(-1) * gam_a
+
+        as i runs over the indices of all coset representatives and j simply runs over however many
+        times M_i appears in the above computation.
+
+        Finally, the output of this function is a list L enumerated by the coset representatives
+        in M.coset_reps() where each element of this list is a list of matrices, and the entries of L
+        satisfy:
+
+            L[i][j] = gam_{ij} * gam_a
+
+        INPUT:
+            -- ``ell`` - a prime
+            -- ``m`` - index of a generator
+
+        OUTPUT:
+
+        A list of lists (see above).
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.prep_hecke_individual(2,0)
+        [[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]]]
+
+        The output the original version of this file claimed is the
+        following, but this disagrees with what we get, and with the
+        .sage version (which agree with each other)::
+        [[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]], [], [], [], [], []]
+
+        """
+        M = self._manin
+        N = M.level()
+
+        ans = [[] for a in range(len(M.coset_reps()))]
+        # this will be the list L above enumerated by coset reps
+
+        #  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1, a, 0, ell] and carry out the computation
+        #  described above.
+        #  -------------------------------------
+        for a in range(ell + 1):
+           if (a < ell) or (N % ell != 0):
+               # if the level is not prime to ell the matrix [ell, 0, 0, 1] is avoided.
+               gama = basic_hecke_matrix(a, ell)
+               t = gama*M.coset_reps(M.generator_indices(m))
+               #  In the notation above this is gam_a * D_m
+               v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
+               #  This expresses t as a sum of unimodular divisors
+
+               # This loop runs over each such unimodular divisor
+               # ------------------------------------------------
+               for b in range(len(v)):
+                   A = v[b]
+                   #  A is the b-th unimodular divisor
+                   i = M.P1().index(A[1, 0], A[1, 1])
+                   #  i is the index in SAGE P1 of the bottom row of A
+                   j = M.P1_to_coset_index(i)
+                   #  j is the index of our coset rep equivalent to A
+                   B = M.coset_reps(j)
+                   #  B is that coset rep
+                   C = M2Z([A[1, 1], -A[0, 1], -A[1, 0], A[0, 0]])
+                   #  C equals A^(-1).  This is much faster than just inverting thru SAGE
+                   gaminv = B * C
+                   #  gaminv = B*A^(-1)
+                   ans[j] = ans[j] + [gaminv * gama]
+                   #  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
+
+        return ans
+
+    def prep_hecke(self, ell):
+        """
+        Carries out prep_hecke_individual for each generator index and puts all of the answers in a long list.
+
+        INPUT:
+            -- ``ell`` - a prime
+
+        OUTPUT:
+
+        A list of lists of lists
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.prep_hecke(2)
+        [[[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]]], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[ 1 -2]
+        [ 0  2], [ 1 -1]
+        [ 0  2], [ 2 -1]
+        [ 0  1]], [], [[-4 -2]
+        [11  5], [-8 -3]
+        [22  8]], [], [], [], [], [], [[1 0]
+        [0 2]], [[-5 -2]
+        [11  4], [-1  1]
+        [ 0 -2]], []], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[1 0]
+        [0 2], [ 1 -1]
+        [ 0  2], [2 0]
+        [0 1]], [], [], [[-6 -4]
+        [11  7]], [[-7 -4]
+        [11  6], [-1  1]
+        [ 0 -2], [-2  0]
+        [ 0 -1]], [], [], [[-1  0]
+        [ 0 -2]], [[1 0]
+        [0 2]], [], [[-5 -2]
+        [11  4]]]]
+
+        WARNING: changed from this (which disagreed with .sage file):
+        [[[[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [], [], [], [], [], [[ 1 -1]
+        [ 0  2]], [], [], [], [], []], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[ 1 -2]
+        [ 0  2], [ 1 -1]
+        [ 0  2], [ 2 -1]
+        [ 0  1]], [], [[-4 -2]
+        [11  5], [-8 -3]
+        [22  8]], [], [], [], [[-5 -2]
+        [11  4], [-1  1]
+        [ 0 -2]], [[1 0]
+        [0 2]], [], [], []], [[[1 2]
+        [0 2], [1 1]
+        [0 2], [2 1]
+        [0 1]], [[1 0]
+        [0 2], [ 1 -1]
+        [ 0  2], [2 0]
+        [0 1]], [], [], [[-6 -4]
+        [11  7]], [[-7 -4]
+        [11  6], [-1  1]
+        [ 0 -2], [-2  0]
+        [ 0 -1]], [[-5 -2]
+        [11  4]], [], [[1 0]
+        [0 2]], [[-1  0]
+        [ 0 -2]], [], []]]
+
+        """
+        ans = []
+        for m in range(len(self._manin.generator_indices())):
+            ans = ans + [self._prep_hecke_individual(ell, m)]
+        return ans
+
 
