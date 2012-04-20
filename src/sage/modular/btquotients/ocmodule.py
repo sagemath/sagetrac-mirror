@@ -445,7 +445,7 @@ class OCVn(Module,UniqueRepresentation):
         EXAMPLES:
 
         """
-        s='Overconvergent coefficient module of weight n='+str(self._n)+' over the ring '+ str(self._R)+' and depth '+str(self._depth)
+        s='Overconvergent coefficient module of weight n = %s over the ring %s and depth %s'%(self._n,self._R,self._depth)
         return s
 
     def basis(self):

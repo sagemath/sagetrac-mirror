@@ -67,11 +67,9 @@ class DoubleCosetReduction(SageObject):
     INPUT:
 
     - ``Y`` -  BTQuotient object in which to work
-
     - ``x`` -  Something coercible into a matrix in `\GL_2(\ZZ)`. In 
        principle we should allow elements in `\GL_2(\QQ_p)`, but for what 
        we do it is enough to work with integral entries
-
     - ``extrapow`` - gets added to the power attribute, and it is 
        used for the Hecke action.
 

@@ -70,15 +70,15 @@ class HarmonicCocycleElement(HeckeModuleElement):
             self._F = [_parent._U.element_class(_parent._U,vec._F[ii],quick = True) for ii in range(self._nE)]
             return
         # When vec contains coordinates for the basis
-        self._R = parent._R
+        self._R  =  _parent._R
         try:
             v = [self._R(x) for x in vec.list()]
         except AttributeError:
-            v = [self._R(vec) for ii in range(parent.dimension())]
+            v = [self._R(vec) for ii in range(_parent.dimension())]
         self._wt = _parent._k
         self._nE = len(_parent._E)
-        vmat = Matrix(self._R,1,parent.dimension(),v)
-        tmp = (vmat*parent.ambient_module().basis_matrix()).row(0)
+        vmat = Matrix(self._R,1,_parent.dimension(),v)
+        tmp = (vmat*_parent.ambient_module().basis_matrix()).row(0)
         self._F = [_parent._U.element_class(_parent._U,Matrix(self._R,self._wt-1,1,tmp[e*(self._wt-1):(e+1)*(self._wt-1)]),quick = True) for e in range(self._nE)]
         return
 
@@ -184,9 +184,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
         p = X._p
         u = DoubleCosetReduction(X,e1)
         if u.label < self._nE:
-            val = self._F[u.label]
+            val  =  self._F[u.label]
         else:
-            val = -self._F[u.label-self._nE]
+            val  =  -self._F[u.label-self._nE]
 
         return val.l_act_by(u.igamma(self.parent().embed_quaternion) * (p**(-u.power)))
         #return (u.sign()*self._F[u.label])
@@ -388,9 +388,9 @@ class HarmonicCocycles(AmbientHeckeModule):
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
         """
         if isinstance(S,(HarmonicCocycles,pAutomorphicForms)):
-            if(S._k != self._k):
+            if S._k != self._k:
                 return False
-            if(S._X != self._X):
+            if S._X != self._X:
                 return False
             return True
         return False
@@ -519,7 +519,7 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         x1 = self._M.right_kernel().matrix()
 
-        if x1.nrows()  !=  self.rank():
+        if x1.nrows() !=  self.rank():
             raise RuntimeError, 'The computed dimension does not agree with the expectation. Consider increasing precision!'
 
         K = [c for c in x1.rows()]
@@ -882,30 +882,6 @@ class pAutomorphicFormElement(ModuleElement):
         #Should ensure that 'a' is a scalar
         return pAutomorphicFormElement(self.parent(),[a*self._value[e] for e in range(self._num_generators)],quick = True)
 
-    def left_act_by(self,alpha):
-        r"""
-        Act by ``alpha`` on the left.
-
-        EXAMPLES::
-
-        """
-        Y = self.parent()._source
-        E = self.parent()._list
-        p = self.parent().prime()
-        Tf = []
-        for e in E:
-            u = DoubleCosetReduction(Y,alpha*e.rep)
-            r = u.t()*p**(-(u.power))
-            tmp = self._value[u.label].r_act_by(r)
-            Tf.append(tmp)
-        for e in E:
-            u = DoubleCosetReduction(Y,alpha*e.opposite.rep)
-            r = u.t()*gg*p**(-(u.power))
-            tmp = self._value[u.label].r_act_by(r)
-            Tf.append(tmp)
-        return pAutomorphicFormElement(self.parent(),Tf,quick = True)
-
-
     def _repr_(self):
         r"""
         This returns the representation of self as a string.
@@ -1196,7 +1172,7 @@ class pAutomorphicFormElement(ModuleElement):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu (2012-02-20)
         """
-        if(mult and delta> = 0):
+        if(mult and delta >= 0):
             raise NotImplementedError, "Need to figure out how to implement the multiplicative part."
         p = self.parent().prime()
         K = t1.parent()
@@ -1239,7 +1215,7 @@ class pAutomorphicFormElement(ModuleElement):
                 for jj in range(1,R1.default_prec()+10):
                     poly += (-1)**(jj+1)*ypow/jj
                     ypow *= y
-                if(delta> = 0):
+                if(delta >= 0):
                     poly *= ((r1-t1)**delta*(r1-t2)**(self.parent()._n-delta))
                 c_e = self.evaluate(e)
                 new = c_e.evaluate(poly)
@@ -1311,16 +1287,16 @@ class pAutomorphicForms(Module):
         r"""
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
         """
-        if(isinstance(S,HarmonicCocycles)):
-            if(S.weight()-2 != self._n):
+        if isinstance(S,HarmonicCocycles):
+            if S.weight()-2 != self._n:
                 return False
-            if(S._source != self._source):
+            if S._source != self._source:
                 return False
             return True
-        if(isinstance(S,pAutomorphicForms)):
-            if(S._n != self._n):
+        if isinstance(S,pAutomorphicForms):
+            if S._n != self._n:
                 return False
-            if(S._source != self._source):
+            if S._source != self._source:
                 return False
             return True
         return False
@@ -1388,6 +1364,7 @@ class pAutomorphicForms(Module):
             1 | 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^2 + O(3^12))*z + (2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12))*z^2 + (2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 3^6 + 2*3^7 + 2*3^8 + O(3^10))*z^3 + (2*3^3 + 3^5 + 3^7 + 3^8 + O(3^10))*z^4 + (2*3^3 + 3^6 + 3^7 + 3^9 + O(3^10))*z^5 + (3^3 + 2*3^4 + 2*3^5 + 2*3^7 + 3^8 + 3^9 + O(3^10))*z^6 + (3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^7 + (3^3 + 2*3^4 + 3^7 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^6 + 2*3^7 + 3^8 + 2*3^9 + O(3^10))*z^9
             2 | 3^2 + 2*3^3 + 2*3^6 + 3^7 + 2*3^8 + O(3^12) + (3 + 2*3^2 + 2*3^3 + 3^5 + 2*3^6 + 3^7 + 3^10 + O(3^11))*z + (2*3 + 2*3^2 + 3^4 + 2*3^5 + 2*3^6 + 2*3^8 + 3^10 + O(3^11))*z^2 + (2*3 + 3^2 + 2*3^7 + 3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^4 + (3 + 3^2 + 3^4 + 2*3^9 + O(3^10))*z^5 + (3^3 + 2*3^5 + 3^6 + 3^8 + 2*3^9 + O(3^10))*z^6 + (3^5 + 2*3^7 + 3^9 + O(3^10))*z^7 + (2*3 + 3^3 + 3^4 + 2*3^6 + O(3^10))*z^8 + (2*3 + 2*3^3 + 2*3^4 + 2*3^6 + O(3^10))*z^9
             3 | 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + O(3^12) + (3^3 + 2*3^4 + 2*3^8 + O(3^13))*z + (3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + O(3^11))*z^2 + (3^2 + 2*3^3 + 3^4 + 3^7 + 3^8 + 2*3^9 + O(3^10))*z^3 + (3 + 2*3^2 + 2*3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10))*z^4 + (3 + 3^3 + 3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10))*z^5 + (3 + 3^4 + 3^5 + 3^6 + 2*3^7 + O(3^10))*z^6 + (2*3 + 3^2 + 2*3^3 + 3^4 + 2*3^6 + 3^8 + 3^9 + O(3^10))*z^7 + (3 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^9 + O(3^10))*z^8 + (2*3^2 + 3^4 + 3^5 + 3^8 + 3^9 + O(3^10))*z^9
+
 
         """
         HeckeData = self._source._get_Up_data()
