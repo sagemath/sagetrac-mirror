@@ -34,7 +34,8 @@ include "stdsage.pxi"
 include "cdefs.pxi"
 
 def get_dist_classes(p, prec_cap, base):
-    if isinstance(base, pAdicGeneric) and base.degree() > 1:        return Dist_vector, WeightKAction_vector
+    if p is None or (isinstance(base, pAdicGeneric) and base.degree() > 1):
+        return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
         return Dist_long, WeightKAction_long
     else:
@@ -164,6 +165,8 @@ cdef class Dist_vector(Dist):
 	reduced modulo Fil^N -- that is the i-th moments is reduced modulo p^(N-i)
 	"""
         p=self.parent()._p
+        if p is None:
+            return self # classical
         assert self.valuation() >= 0, "moments not integral in normalization"
         V = self.moments.parent()
         n = self.num_moments()
@@ -437,10 +440,11 @@ cdef class WeightKAction(Action):
     cpdef _check_mat(self, a, b, c, d):
         if a*d == b*c:
             raise ValueError("zero determinant")
-        if self._p.divides(a):
-            raise ValueError("p divides a")
-        if not self._Np.divides(c):
-            raise ValueError("Np does not divide c")
+        if self._p is not None:
+            if self._p.divides(a):
+                raise ValueError("p divides a")
+            if not self._Np.divides(c):
+                raise ValueError("Np does not divide c")
 
     cpdef _compute_acting_matrix(self, g, M):
         """
@@ -456,8 +460,11 @@ cdef class WeightKAction_vector(WeightKAction):
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
         k = self._k
-        ZpM = Zmod(self._p**M)
-        R = PowerSeriesRing(ZpM, 'y', default_prec = M)
+        if self._p is None:
+            base_ring = QQ
+        else:
+            base_ring = Zmod(self._p**M)
+        R = PowerSeriesRing(base_ring, 'y', default_prec = M)
         y = R.gen()
         tim = verbose("Checked, made R",tim)
         # special case for small precision, large weight
@@ -465,7 +472,7 @@ cdef class WeightKAction_vector(WeightKAction):
         t = (a+c*y)**k # will already have precision M
         if self._character is not None:
             t *= self._character(a, b, c, d)
-        cdef Matrix B = matrix(ZpM,M,M)
+        cdef Matrix B = matrix(base_ring,M,M)
         cdef long row, col
         tim = verbose("Made matrix",tim)
         for col in range(M):

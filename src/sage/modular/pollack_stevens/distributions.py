@@ -23,8 +23,16 @@ class Distributions(Module):
         if p is not None:
             p = ZZ(p)
         if base is None:
-            if p is None: raise ValueError("specify p or a base")
-            base = ZpCA(p,prec_cap)
+            if p is None:
+                if prec_cap is None:
+                    base = QQ
+                    prec_cap = k + 1
+                else:
+                    raise ValueError("prec cap cannot be specified if p and base are both None")
+            else:
+                if prec_cap is None:
+                    prec_cap = 20
+                base = ZpCA(p,prec_cap)
         elif isinstance(base, pAdicGeneric):
             if p is None:
                 p = base.prime()

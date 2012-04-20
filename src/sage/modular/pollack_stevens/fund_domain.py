@@ -450,6 +450,7 @@ class manin_relations(SageObject):
             [-7 -3]
             [26 11]
         """
+        #fix this to use a dict
         i = self._P.index(A[t10],A[t11])
         m = self._P1_to_mats[i]
         return self._mats[m]
