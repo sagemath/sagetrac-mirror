@@ -307,7 +307,7 @@ class PSModularSymbolSpace(Module):
 	        rj = manin.twotor_index[g]
 		gam = manin.twotorrels[rj]
 	   	mu = self.coefficient_module().random_element(M)
-                dd[mu] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2)
+                dd[mu] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2))
 	t = self.zero()
 	for j in range(2, len(manin.coset_relations())):
 	    R = manin.coset_relations(j)
