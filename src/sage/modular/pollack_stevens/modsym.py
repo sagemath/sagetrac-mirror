@@ -177,7 +177,7 @@ class PSModularSymbolElement(ModuleElement):
         if self.full_data() == 0:
             self.compute_full_data_from_gen_data()
             
-        psi = self.zero() + [self.act_right(M2Z([1,a,0,ell])) for a in range(ell)]
+        psi = self.parent().zero() + [self.act_right(M2Z([1,a,0,ell])) for a in range(ell)]
         if self.parent().level() % ell != 0:
             psi = psi + self.act_right(M2Z([ell,0,0,1]))
         return psi.normalize()
@@ -217,18 +217,78 @@ class PSModularSymbolElement(ModuleElement):
         sd = self._map._dict
         return min([val.valuation(p) for  ky,val in sd.iteritems()])
 
-    def change_ring(self):
+    def change_ring(self,R):
         r"""
+        Changes the base ring of self to `R`
         """
         pass
 
-    def is_Tq_eigensymbol(self):
+    def is_Tq_eigensymbol(self,q,p,M):
         r"""
+        Determines if self is an eigenvector for `T_q` modulo `p^M` 
+
+        INPUT:
+            - ``q`` -- prime of the Hecke operator
+            - ``p`` -- prime we are working modulo
+            - ``M`` -- degree of accuracy of approximation
+
+        OUTPUT:
+        True/False
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
+        sage: phi_ord.is_Tq_eigensymbol(2,3,10)
+        True
+        sage: phi_ord.is_Tq_eigensymbol(2,3,100)
+        True
+        sage: phi_ord.is_Tq_eigensymbol(2,3,1000)
+        True
+        sage: phi_ord.is_Tq_eigensymbol(3,3,10)
+        True
+        sage: phi_ord.is_Tq_eigensymbol(3,3,100)
+        False
         """
         pass
     
-    def Tq_eigenvalue(self):
+    def Tq_eigenvalue(self,q,p,M):
         r"""
+        Eigenvalue of T_q modulo p^M
+
+        INPUT:
+        - ``q`` -- prime of the Hecke operator
+        - ``p`` -- prime we are working modulo
+        - ``M`` -- degree of accuracy of approximation     
+        
+        OUTPUT:
+
+        Constant `c` such that `self|T_q - c * self` has valuation greater than
+        or equal to M (if it exists), otherwise raises ValueError
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
+        sage: phi_ord.Tq_eigenvalue(2,3,10)
+        -2
+        sage: phi_ord.Tq_eigenvalue(2,3,100)
+        -2
+        sage: phi_ord.Tq_eigenvalue(2,3,1000)
+        -2
+        sage: phi_ord.Tq_eigenvalue(3,3,10)
+        ...
+        ValueError: No eigenvalue exists modulo 3^10
         """
         pass
     

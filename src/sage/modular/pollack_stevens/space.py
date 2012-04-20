@@ -7,6 +7,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from modsym import PSModularSymbolElement, PSModSymAction
 from fund_domain import ManinRelations
+from sage.rings.padics.precision_error import PrecisionError
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
@@ -258,38 +259,57 @@ class PSModularSymbolSpace(Module):
 
 	return self._coefficient_module()._p
 
-    def random_OMS(self,N,p,k,M):
+    def random_element(self, M):
         r"""
         Returns a random OMS with tame level `N`, prime `p`, weight `k`, and
         `M` moments --- requires no `2` or `3`-torsion
+        INPUT:
+
+        - M: the number of moments
+
+        OUTPUT:
+
+        - A random element of self
+
+        EXAMPLES:
+
+        ::
+
+
         """
+
+        if M > self.precision_cap():
+            raise PrecisionError ("Too many moments for self.")
+
         N = self.level()
         p = self.prime()
-	manin = manin_relations(N*p)
-	v = []
-	for j in range(1,len(manin.gens)):
-	    g = manin.gens[j]
-	    if manin.twotor.count(g)==0:
-                v = v+[random_dist(p,k,M)]
+	manin = ManinRelations(N * p)
+	dd = {}
+	for j in range(1, len(manin.gens())):
+	    g = manin._gens(j)
+	    if g in manin.reps_with_two_torsion:
+                dd[g] = self._coefficient_module().random_element(M)
 	    else:
-	        rj = manin.twotor.index(g)
+	        rj = manin.twotor_index[g]
 		gam = manin.twotorrels[rj]
-	   	mu = random_dist(p,k,M)
-		v = v+[(mu.act_right(gam)-mu).scale(ZZ(1)/ZZ(2))]
-	t = v[0].zero()
-	for j in range(2,len(manin.rels)):
-	    R = manin.rels[j]
+	   	mu = self._coefficient_module().random_element(M)
+                dd[mu] = mu.act_right(gam)._sub_(mu))._lmul_(ZZ(1) / ZZ(2)
+	t = self.zero()
+	for j in range(2, len(manin.coset_relations())):
+	    R = manin.coset_relations(j)
             if len(R) == 1:
 		if R[0][0] == 1:
-	            rj = manin.gens.index(j)
-		    t = t+v[rj-1]
+	            rj = manin.gens(j - 1)
+		    t = t + dd[rj]
+                    # Should t do something?
                 else:
 	            index = R[0][2]
-	            rj = manin.gens.index(index)
-		    mu = v[rj-1]
-		    t = t+mu.act_right(R[0][1]).scale(R[0][0])
-	v = [mu.scale(-1)]+v
-	Phi = modsym_dist(v,manin)
-	return Phi
+	            rj = manin.gens(index - 1)
+		    mu = dd[rj]
+		    t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
+                    # Should t do something?
+        dd[manin.gens(0)] =  mu._lmul_(-1)
+      # 	v = [mu._lmul_(-1)] + v
+	return modsym_dist(dd, self)
 
 
