@@ -80,7 +80,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def hecke(self, ell, algorithm="prep"):
         r"""
-        Returns self | T_ell by making use of the precomputations in
+        Returns self | `T_{\ell}` by making use of the precomputations in
         self.prep_hecke()
 
         INPUT:
@@ -219,7 +219,7 @@ class PSModularSymbolElement(ModuleElement):
     
     def Tq_eigenvalue(self,q,p,M):
         r"""
-        Eigenvalue of T_q modulo p^M
+        Eigenvalue of `T_q` modulo `p^M`
 
         INPUT:
         - ``q`` -- prime of the Hecke operator
@@ -229,7 +229,7 @@ class PSModularSymbolElement(ModuleElement):
         OUTPUT:
 
         Constant `c` such that `self|T_q - c * self` has valuation greater than
-        or equal to M (if it exists), otherwise raises ValueError
+        or equal to `M` (if it exists), otherwise raises ValueError
 
         EXAMPLES:
 

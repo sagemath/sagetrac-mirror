@@ -51,8 +51,8 @@ cdef class Dist(ModuleElement):
         return self._lmul_(_left)
 
     def valuation(self, p=None):
-        """
-        returns the highest power of p which divides all moments of the distribution
+        r"""
+        Returns the highest power of `p` which divides all moments of the distribution
         """
         if p is None:
             p = self.parent()._p
@@ -60,8 +60,8 @@ cdef class Dist(ModuleElement):
             range(self.precision_absolute())])
 
     def specialize(self):
-        """
-        Specializes to weight k -- i.e. projects to Sym^k
+        r"""
+        Specializes to weight `k` -- i.e. projects to `Sym^k`
         """
         from sage.modular.overconvergent.pollack.symk import symk
         k=self.parent()._k
@@ -75,18 +75,18 @@ cdef class Dist(ModuleElement):
         return symk(k,P)
 
     def act_right(self,gam):
+        r"""
+        Return self|gam
         """
-    Return self|gam
-    """
         return self.parent()._act(self, gam)
 
 cdef class Dist_vector(Dist):
     def __init__(self,moments,parent,check=True):
-        """
-        A distribution is stored as a vector whose j-th entry is the j-th moment of the distribution.
+        r"""
+        A distribution is stored as a vector whose `j`-th entry is the `j`-th moment of the distribution.
 
-        The j-th entry is stored modulo p^(N-j) where N is the total number of moments.
-        (This is the accuracy that is maintained after acting by Gamma_0(p).)
+        The `j`-th entry is stored modulo `p^(N-j)` where `N` is the total number of moments.
+        (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
 
         INPUTS:
 
@@ -111,15 +111,15 @@ cdef class Dist_vector(Dist):
         return ans
 
     def _repr_(self):
-        """
+        r"""
         Displays the moments of the distribution
         """
         self.normalize()
         return repr(self.moments)
 
     def moment(self,n):
-        """
-        Returns the n-th moment
+        r"""
+        Returns the `n`-th moment
         """
         return self.moments[n]
 
@@ -151,9 +151,9 @@ cdef class Dist_vector(Dist):
         return ans
 
     def precision_absolute(self):
+        r"""
+        Returns the number of moments of the distribution
         """
-    Returns the number of moments of the distribution
-    """
         return len(self.moments)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -165,10 +165,10 @@ cdef class Dist_vector(Dist):
         return ans
 
     cpdef normalize(self):
+        r"""
+        Reduce modulo `Fil^N` -- that is the `i`-th moment is reduced modulo `p^(N-i)`
         """
-    reduced modulo Fil^N -- that is the i-th moments is reduced modulo p^(N-i)
-    """
-        p=self.parent()._p
+        p = self.parent()._p
         if p is not None: # non-classical
             assert self.valuation() >= 0, "moments not integral in normalization"
             V = self.moments.parent()
@@ -181,9 +181,9 @@ cdef class Dist_vector(Dist):
         return self
 
     def reduce_precision(self, M):
+        r"""
+        Only holds on to `M` moments.
         """
-    Only holds on to M moments
-    """
         assert M<=self.precision_absolute(),"not enough moments"
 
         cdef Dist_vector ans = self._new_c()
@@ -191,6 +191,9 @@ cdef class Dist_vector(Dist):
         return ans
 
     def solve_diff_eqn(self):
+        r"""
+        Solves the difference equation.
+        """
         # assert self.moments[0][0]==0, "not total measure zero"
         # print "result accurate modulo p^",self.moment(0).valuation(self.p)
         #v=[0 for j in range(0,i)]+[binomial(j,i)*bernoulli(j-i) for j in range(i,M)]
@@ -207,8 +210,8 @@ cdef class Dist_vector(Dist):
         return ans
 
     def lift(self):
-        """
-        Increases the number of moments by 1
+        r"""
+        Increases the number of moments by `1`.
         """
         n = len(self.moments)
         if n >= self.parent()._prec_cap:

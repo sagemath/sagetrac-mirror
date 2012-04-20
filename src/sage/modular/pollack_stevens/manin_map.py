@@ -137,8 +137,8 @@ def basic_hecke_matrix(a, ell):
 
 class ManinMap(object):
     """
-    Map from a set of right coset representatives of Gamma0(N) in
-    SL_2(Z) to a coefficient module that satisfies the Manin
+    Map from a set of right coset representatives of `\Gamma_0(N)` in
+    `SL_2(Z)` to a coefficient module that satisfies the Manin
     relations.
     """
     def __init__(self, codomain, manin_relations, defining_data, check=True):
@@ -156,13 +156,18 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
-            sage: D     = Distributions(0, 5, 10)
+            sage: D = Distributions(0, 5, 10); D
+            Space of 5-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data); f
-            Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Rational Field
+            Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
             (1, 2)
+            sage: f(M2Z([0,-1,1,3]))
+            (3, 5)
+            sage: f(M2Z([-1,-1,3,2]))
+            (1, 1)
         """
         self._codomain = codomain
         self._manin = manin_relations
@@ -205,13 +210,16 @@ class ManinMap(object):
             return self._dict[B]
 
     def compute_full_data(self):
+        r"""
+        Computes the values of self on all coset reps from its values on our generating set.
+        """
         for B in self._manin.reps():
             if not self._dict.has_key(B):
                 self._dict[B] = self._compute_image_from_gens(B)
 
     def __add__(self, right):
         """
-        Return difference self + right, where self and right are
+        Return sum self + right, where self and right are
         assumed to have identical codomains and Manin relations.
         """
         D = {}
@@ -253,6 +261,46 @@ class ManinMap(object):
             self._manin.level(), self._codomain)
 
     def _eval_sl2(self, A):
+        r"""
+        Returns the value of self on the unimodular divisor corresponding to `A`.
+
+        Note that `A` must be in `SL_2(Z)` for this to work.
+
+        INPUT:
+            - ``A`` - an element of `SL_2(Z)`
+
+        OUTPUT:
+
+        The value of self on the divisor corresponding to `A` -- i.e. on the divisor `{A(0)} - {A(\infty)}`.
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: phi.manin().generator_indices()
+        [0, 2, 3]
+        sage: A = phi.manin().coset_reps(3); A
+        [-1 -1]
+        [ 3  2]
+        sage: phi.eval_sl2(A) == phi.data(2)
+        True
+        sage: sig = Matrix(2,2,[0,1,-1,0])
+        sage: A = Matrix(ZZ,2,2,[8,29,3,11]); A
+        [ 8 29]
+        [ 3 11]
+        sage: A.determinant()
+        1
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*sig)) == phi.zero_elt()
+        True
+        sage: tau = Matrix(2,2,[0,-1,1,-1])
+        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
+        True
+        """
+        
         B = self._manin.equivalent_rep(A)
         gaminv = B * A._invert_unit()
         return self[B] * gaminv
@@ -280,7 +328,7 @@ class ManinMap(object):
 
     def apply(self, f):
         """
-        Returns Manin map given by x |--> f(self(x)), where f is
+        Returns Manin map given by `x |--> f(self(x))`, where `f` is
         anything that can be called with elements of the coefficient
         module.
 
@@ -307,12 +355,12 @@ class ManinMap(object):
         """
         Returns self | gamma, where gamma is a 2x2 integer matrix.
 
-        The action is defined by (self | gamma)(D) = self(gamma D)|gamma
+        The action is defined by `(self | gamma)(D) = self(gamma D)|gamma`
 
         For the action by a single element gamma to be well defined,
-        gamma must normalize Gamma_0(N).  However, this right action
+        gamma must normalize `\Gamma_0(N)`.  However, this right action
         can also be used to define Hecke operators, in which case each
-        individual self | gamma is not a modular symbol on Gamma_0(N),
+        individual self | gamma is not a modular symbol on `\Gamma_0(N)`,
         but the sum over acting by the appropriate double coset
         representatives is.
 
@@ -343,7 +391,7 @@ class ManinMap(object):
 
     def hecke(self, ell, algorithm = 'prep'):
         """
-        Returns the image of this Manin map under the Hecke operator T_ell.
+        Returns the image of this Manin map under the Hecke operator `T_{\ell}`.
 
         INPUT:
 

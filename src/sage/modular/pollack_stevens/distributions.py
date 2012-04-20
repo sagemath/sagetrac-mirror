@@ -13,14 +13,45 @@ from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long, iScal
 import operator
 
 class Distributions(Module):
+    """
+    Parent object for distributions.
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions
+        sage: Distributions(2, 17, 100)
+        Space of 17-adic distributions with k=2 action and precision cap 100
+    """
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
         """
+        INPUT:
+
+        - `k` -- integer; k is the usual modular forms weight minus 2
+        - `p` -- None or prime
+        - ``prec_cap`` -- None or positive integer
+        - ``base`` -- None or TODO
         - ``character`` --
           - None (default)
           - (chi, None)
           - (None, n) (n integral)
           - (chi, n)
           - lambda (for n half-integral use this form)
+        - ``tuplegen`` -- None or TODO
+        - ``act_on_left`` -- bool (default: False)
+
+        EXAMPLES::
+
+            sage: D = Distributions(2, 3, 5); D
+            Space of 3-adic distributions with k=2 action and precision cap 5
+            sage: type(D)
+            <class 'sage.modular.pollack_stevens.distributions.Distributions'>
+
+        p must be a prime, but p=6 below, which is not prime::
+        
+            sage: Distributions(k=0, p=6, prec_cap=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime
         """
         if p is not None:
             p = ZZ(p)
@@ -63,8 +94,52 @@ class Distributions(Module):
         self._act = act
         self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
 
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: Distributions(0, 5, 10)._repr_()
+            'Space of 5-adic distributions with k=0 action and precision cap 10'
+            sage: Distributions(0, 5, 10)
+            Space of 5-adic distributions with k=0 action and precision cap 10
+        """
+        # TODO: maybe account for character, etc. 
+        return "Space of %s-adic distributions with k=%s action and precision cap %s"%(
+            self._p, self._k, self._prec_cap)
+
     @cached_method
     def approx_module(self, M=None):
+        """
+        Return the M-th approximation module, or if M is not specified,
+        return the largest approximation module.
+
+        INPUT::
+
+        - `M` -- None or nonnegative integer that is at most the precision cap
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: D = Distributions(0, 5, 10)
+            sage: D.approx_module()
+            Ambient free module of rank 10 over the principal ideal domain 5-adic Ring with capped absolute precision 10
+            sage: D.approx_module(1)
+            Ambient free module of rank 1 over the principal ideal domain 5-adic Ring with capped absolute precision 10
+            sage: D.approx_module(0)
+            Ambient free module of rank 0 over the principal ideal domain 5-adic Ring with capped absolute precision 10
+
+        Note that M must be at most the precision cap, and must be nonnegative::
+        
+            sage: D.approx_module(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: M must be less than the precision cap
+            sage: D.approx_module(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: rank (=-1) must be nonnegative
+        """
         if M is None:
             M = self._prec_cap
         elif M > self._prec_cap:
@@ -72,6 +147,32 @@ class Distributions(Module):
         return self.base_ring()**M
 
     def random_element(self, M=None):
+        """
+        Return a random element of the M-th approximation module.
+
+        INPUT:
+
+        - `M` -- None or a nonnegative integer
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: D = Distributions(0, 5, 10)
+            sage: D.random_element()
+            (..., ..., ..., ..., ..., ..., ..., ..., ..., ...)
+            sage: D.random_element(0)
+            ()
+            sage: D.random_element(5)
+            (..., ..., ..., ..., ...)
+            sage: D.random_element(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: rank (=-1) must be nonnegative
+            sage: D.random_element(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: M must be less than the precision cap
+        """
         return self(self.approx_module(M).random_element())
 
     def clear_cache(self):

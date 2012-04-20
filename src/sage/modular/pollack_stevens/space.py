@@ -60,11 +60,15 @@ class PSModularSymbolSpace(Module):
     - ``domain`` -- a set or None, giving the domain
     """
     Element = PSModularSymbolElement
-    def __init__(self, group, coefficients, sign):
+    def __init__(self, group, coefficients, sign=None):
+        if sign == None:
+            sign = 0
+            # sign should be 0, 1 or -1
         self._group = group
         self._coefficients = coefficients
         self._sign = sign
-        self._manin_relations = ManinRelations(group.level()) # should distingish between Gamma0 and Gamma1...
+        self._manin_relations = ManinRelations(group.level())
+        # should distingish between Gamma0 and Gamma1...
         act = PSModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])
 
@@ -75,9 +79,8 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the coefficient module of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
 
         """
         return self._coefficients
@@ -86,32 +89,54 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the congruence subgroup of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
+            sage: D = Distributions(2, 5)
+            sage: G = Gamma0(23)
+            sage: M = PSModularSymbolSpace(G, D)
+            sage: M.group()
+            Congruence Subgroup Gamma0(23)
+            sage: D = Distributions(4)
+            sage: G = Gamma1(11)
+            sage: M = PSModularSymbolSpace(G, D)
+            sage: M.group()
+            Congruence Subgroup Gamma1(11)
 
         """
         return self._group
+
+    def sign(self):
+        r"""
+        Returns the sign of self.
+
+        EXAMPLES::
+
+            sage: D = Distributions(3, 17)
+            sage: M = PSModularSymbolSpace(Gamma0(5), D)
+            sage: M.sign()
+            0
+            sage: D = Distributions(4)
+            sage: M = PSModularSymbolSpace(Gamma1(8), D, -1)
+            sage: M.sign()
+            -1
+
+        """
+        return self._sign
 
     def ngens(self):
         r"""
         Returns the number of generators defining self.
 
-        EXAMPLES:
+        EXAMPLES::
+            sage: D = Distributions(4, 29)
+            sage: M = PSModularSymbolSpace(Gamma1(12), D)
+            sage: M.ngens()
+            5
+            sage: D = Distributions(2)
+            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M.ngens()
+            2
 
-        ::
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: phi.ngens()
-        3
-        sage: E = EllipticCurve('37a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [0, 1, 0, 0, 0, -1, 1, 0, 0]
-        sage: phi.ngens()
-        9
         """
         return len(self._manin_relations.indices())
 
@@ -123,21 +148,12 @@ class PSModularSymbolSpace(Module):
         The number of coset representatives stored in the manin relations. (Just the size
         of P^1(Z/NZ))
 
-        EXAMPLES:
+        EXAMPLES::
+            sage: D = Distributions(2)
+            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M.ngens()
+            3
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: phi.ncoset_reps()
-        12
-        sage: E = EllipticCurve('37a')
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [0, 1, 0, 0, 0, -1, 1, 0, 0]
-        sage: phi.ncoset_reps()
-        38
         """
         return len(self._manin_relations.reps())
 
@@ -152,16 +168,12 @@ class PSModularSymbolSpace(Module):
 
         The level `N` when self is of level `Gamma_0(N)`
 
-        EXAMPLES:
+        EXAMPLES::
+            sage: D = Distributions(7, 11)
+            sage: M = PSModularSymbolSpace(Gamma1(14), D)
+            sage: M.level()
+            14
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: phi.level()
-        11
         """
 
         return self._manin_relations.level()
@@ -178,7 +190,7 @@ class PSModularSymbolSpace(Module):
                         v = v + [R]
         return v
 
-    def zero_elt(self):
+    def zero_element(self):
         r"""
         Returns the zero element of the space where self takes values.
 
@@ -189,24 +201,14 @@ class PSModularSymbolSpace(Module):
 
         The zero element in the space where self takes values
 
-        EXAMPLES:
+        EXAMPLES::
+            sage: D = Distributions(2)
+            sage: M = PSModularSymbolSpace(Gamma0(3), D)
+            sage: M.zero_element()
+            (0, 0, 0)
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: z=phi.zero_elt(); z
-        0
-        sage: parent(z)
-        <class 'sage.modular.overconvergent.pollack.symk.symk'>
-        sage: z.weight
-        0
-        sage: z.poly
-        0
         """
-        return self.coefficient_module().zero()
+        return self.coefficient_module().zero_element()
 
     def zero(self):
         r"""
@@ -219,24 +221,17 @@ class PSModularSymbolSpace(Module):
 
         The zero modular symbol of self.
 
-        EXAMPLES:
-
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: zero_sym = phi.zero(); zero_sym
-        [0, 0, 0]
-        sage: parent(zero_sym)
-        <class 'sage.modular.overconvergent.pollack.modsym_symk.modsym_symk'>
+        EXAMPLES::
+          #  sage: D = Distributions(4,2)
+          #  sage: M = PSModularSymbolSpace(Gamma1(6), D)
+          #  sage: M.zero()
+          #  0
 
         """
 
         dd = {}
         for rep in self._manin_relations.reps():
-            dd[rep] = self.zero_elt()
+            dd[rep] = self.zero_element()
         #v = [self.zero_elt() for i in range(0, self.ngens())]
         #return C(v, self._manin_relations)
         return PSModularSymbolElement(dd, self)
@@ -245,9 +240,15 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the number of moments of each value of self
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
+            sage: D = Distributions(2, 5)
+            sage: M = PSModularSymbolSpace(Gamma1(13), D)
+            sage: M.precision_cap()
+            20
+            sage: D = Distributions(3, 7, prec_cap=10)
+            sage: M = PSModularSymbolSpace(Gamma0(7), D)
+            sage: M.precision_cap()
+            10
 
         """
         return self.coefficient_module()._prec_cap
@@ -256,9 +257,11 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the weight of self
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
+            sage: D = Distributions(5)
+            sage: M = PSModularSymbolSpace(Gamma1(7), D)
+            sage: M.weight()
+            5
 
         """
         return self.coefficient_module()._k
@@ -296,9 +299,12 @@ class PSModularSymbolSpace(Module):
         if M > self.precision_cap():
             raise PrecisionError ("Too many moments for self.")
 
+
         # Somebody who understands the details should take a careful look.
         N = self.level()
         p = self.prime()
+        if p == None:
+            p = 1
         manin = ManinRelations(N * p)
         dd = {}
         for g in manin.gens()[1:]:
