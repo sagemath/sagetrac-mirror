@@ -10,7 +10,15 @@ and right action of matrices.
 """
 from sage.rings.arith import convergents
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
-M2Z = MatrixSpace_ZZ_2x2()
+
+from distributions import Distributions
+
+M2ZSpace = MatrixSpace_ZZ_2x2()
+def M2Z(x):
+    a = M2ZSpace(x)
+    a.set_immutable()
+    return a
+    
 t00 = (0,0)
 t10 = (1,0)
 t01 = (0,1)
@@ -19,11 +27,13 @@ t11 = (1,1)
 def unimod_matrices_to_infty(r, s):
     """
     Returns a list of matrices whose associated unimodular paths
-    connect r/s to infty.  (This is Manin's continued fraction trick.)
+    connect 0 to r/s.  This is Manin's continued fraction trick, which
+    gives an expression {0,r/s} = {0,oo} + ... + {a,b} + ... + {*,r/s},
+    where each {a,b} is the image of {0,oo} under a matrix in SL_2(ZZ).
 
     INPUT:
 
-    - r,s -- rational numbers
+    - `r`, `s` -- rational numbers
 
     OUTPUT:
 
@@ -31,8 +41,13 @@ def unimod_matrices_to_infty(r, s):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.manin_map import unimod_matrices_to_infty
-        sage:
+        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(19,23); v
+        [
+        [1 0]  [ 0  1]  [1 4]  [-4  5]  [ 5 19]
+        [0 1], [-1  1], [1 5], [-5  6], [ 6 23]
+        ]
+        sage: [a.det() for a in v]
+        [1, 1, 1, 1, 1]
     """
     if s == 0:
         return []
@@ -55,16 +70,28 @@ def unimod_matrices_to_infty(r, s):
 
 def unimod_matrices_from_infty(r, s):
     """
-    Returns a list of matrices whose associated unimodular paths connect r/s to infty.
-    (This is Manin's continued fraction trick.)
+    Returns a list of matrices whose associated unimodular paths
+    connect 0 to r/s.  This is Manin's continued fraction trick, which
+    gives an expression {oo,r/s} = {oo,0} + ... + {a,b} + ... + {*,r/s},
+    where each {a,b} is the image of {0,oo} under a matrix in SL_2(ZZ).
 
     INPUT:
-        r, s -- rational numbers
+
+    - `r`, `s` -- rational numbers
 
     OUTPUT:
-        a list of SL_2(Z) matrices
+
+    - a list of SL_2(Z) matrices
 
     EXAMPLES:
+
+        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(19,23); v
+        [
+        [ 0  1]  [-1  0]  [-4  1]  [-5 -4]  [-19   5]
+        [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
+        ]
+        sage: [a.det() for a in v]
+        [1, 1, 1, 1, 1]    
     """
     if s != 0:
         L = convergents(r / s)
@@ -89,14 +116,30 @@ def basic_hecke_matrix(a, ell):
     Returns the matrix [1, a, 0, ell] (if a<ell) and [ell, 0, 0, 1] if a>=ell
 
     INPUT:
-        a -- an integer or Infinity
-        ell -- a prime
+
+    - `a` -- an integer or Infinity
+    - ``ell`` -- a prime
 
     OUTPUT:
-        a 2 x 2 matrix of determinant ell
+
+    - a 2 x 2 matrix of determinant ell
 
     EXAMPLES:
+
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
+        [1 0]
+        [0 7]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(5, 7)
+        [1 5]
+        [0 7]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(7, 7)
+        [7 0]
+        [0 1]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
+        [7 0]
+        [0 1]    
     """
+    # TODO: probably a bottleneck.
     if a < ell:
         return M2Z([1, a, 0, ell])
     else:
@@ -109,6 +152,28 @@ class ManinMap(object):
     relations.
     """
     def __init__(self, codomain, manin_relations, defining_data, check=True):
+        """
+        INPUT:
+
+            - ``codomain`` -- coefficient module
+            - ``manin_relations`` -- a ManinRelations object
+            - ``defining_data`` -- a dictionary whose keys are a superset of
+              manin_relations.gens() and a subset of manin_relations.reps(),
+              and whose values are in the codomain.
+            - ``check`` -- do numerous (slow) checks and transformations to
+              ensure that the input data is perfect. 
+        
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
+            sage: D     = Distributions(0, 5, 10)
+            sage: manin = sage.modular.pollack_stevens.fund_domain.manin_relations(11)
+            sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, manin, data)
+            Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Rational Field
+            sage: f(M2Z([1,0,0,1]))
+            ???
+        """
         self._codomain = codomain
         self._manin = manin_relations
         if check:
@@ -199,7 +264,7 @@ class ManinMap(object):
 
     def _eval_sl2(self, A):
         B = self._manin.find_coset_rep(A)
-        gaminv = B * A.__invert__unit()
+        gaminv = B * A._invert_unit()
         return self[A] * gaminv
 
     def __call__(self, A):
