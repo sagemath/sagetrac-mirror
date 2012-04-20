@@ -246,7 +246,7 @@ class PSModularSymbolSpace(Module):
         ::
 
         """
-	return self.coefficient_module()._prec_cap
+    return self.coefficient_module()._prec_cap
 
     def weight(self):
         r"""
@@ -258,7 +258,7 @@ class PSModularSymbolSpace(Module):
 
         """
 
-	return self.coefficient_module()._k
+    return self.coefficient_module()._k
 
     def prime(self):
         r"""
@@ -270,7 +270,7 @@ class PSModularSymbolSpace(Module):
 
         """
 
-	return self.coefficient_module()._p
+    return self.coefficient_module()._p
 
     def random_element(self, M):
         r"""
@@ -297,32 +297,32 @@ class PSModularSymbolSpace(Module):
         # Somebody who understands the details should take a careful look.
         N = self.level()
         p = self.prime()
-	manin = ManinRelations(N * p)
-	dd = {}
-	for j in range(1, len(manin.gens())):
-	    g = manin._gens(j)
-	    if g in manin.reps_with_two_torsion:
+    manin = ManinRelations(N * p)
+    dd = {}
+    for j in range(1, len(manin.gens())):
+        g = manin._gens(j)
+        if g in manin.reps_with_two_torsion:
                 dd[g] = self.coefficient_module().random_element(M)
-	    else:
-	        rj = manin.twotor_index[g]
-		gam = manin.twotorrels[rj]
-	   	mu = self.coefficient_module().random_element(M)
+        else:
+            rj = manin.twotor_index[g]
+        gam = manin.twotorrels[rj]
+           mu = self.coefficient_module().random_element(M)
                 dd[mu] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2))
-	t = self.zero()
-	for j in range(2, len(manin.coset_relations())):
-	    R = manin.coset_relations(j)
+    t = self.zero()
+    for j in range(2, len(manin.coset_relations())):
+        R = manin.coset_relations(j)
             if len(R) == 1:
-		if R[0][0] == 1:
-	            rj = manin.gens(j - 1)
-		    t = t + dd[rj]
+        if R[0][0] == 1:
+                rj = manin.gens(j - 1)
+            t = t + dd[rj]
                     # Should t do something?
                 else:
-	            index = R[0][2]
-	            rj = manin.gens(index - 1)
-		    mu = dd[rj]
-		    t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
+                index = R[0][2]
+                rj = manin.gens(index - 1)
+            mu = dd[rj]
+            t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
                     # Should t do something?
         dd[manin.gens(0)] =  mu._lmul_(-1)
-	return modsym_dist(dd, self)
+    return modsym_dist(dd, self)
 
 
