@@ -271,7 +271,8 @@ def find_divisor(F,x):
     gens=R.gens()
     y=gens[(gens.index(x)+1)%len(gens)]
     F1=[f.subs(dict([(x,0),(y,1)])) for f in F]
-    S.<y>=PolynomialRing(RationalField())
+    S = PolynomialRing(RationalField(), 'y')
+    y = S.gen()
     others=[]
     for f in F1:
         if list(f.degrees()).count(0)==len(gens)-1:

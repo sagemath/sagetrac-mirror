@@ -485,17 +485,15 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: MR = ManinRelations(11)
             sage: A = matrix(ZZ,2,2,[3,5,16,27])
             sage: j = MR.equivalent_index(A); j
-            sage: P = A.P1()
-            sage: ind = 6
-            sage: a = P[ind]; a
-            (1, 5)
-            sage: ind2 = A.P1_to_coset_index(ind); ind2
-            7
-            sage: b = A.coset_reps(ind2); b
-            [ 1  0]
-            [-2  1]
-            sage: P.index(a[0],a[1]) == P.index(b[1,0],b[1,1])
-            True
+            8
+            sage: MR.reps(8)
+            [ 0 -1]
+            [ 1  1]
+            sage: MR.equivalent_rep(A)
+            [ 0 -1]
+            [ 1  1]
+            sage: MR.P1().normalize(16,27)
+            (1, 1)
         """
         ky = self._P.normalize(A[t10],A[t11])
         return self._equiv_ind[ky]
