@@ -54,7 +54,8 @@ cdef class Dist(ModuleElement):
 	"""
         if p is None:
             p = self.parent()._p
-        return min([self.moment(a).valuation(p) for a in range(self.num_moments())])
+        return min([self.moment(a).valuation(p) for a in
+            range(self.precision_cap())])
 
     def specialize(self):
         """
@@ -146,7 +147,7 @@ cdef class Dist_vector(Dist):
         ans.moments = self.moments * right
         return ans
 
-    def num_moments(self):
+    def precision_cap(self):
         """
 	Returns the number of moments of the distribution
 	"""
@@ -169,7 +170,7 @@ cdef class Dist_vector(Dist):
             return self # classical
         assert self.valuation() >= 0, "moments not integral in normalization"
         V = self.moments.parent()
-        n = self.num_moments()
+        n = self.precision_cap()
         self.moments = V([self.moment(i)%(p**(n-i)) for i in range(n)])
         return self
 
@@ -177,7 +178,7 @@ cdef class Dist_vector(Dist):
         """
 	Only holds on to M moments
 	"""
-        assert M<=self.num_moments(),"not enough moments"
+        assert M<=self.precision_cap(),"not enough moments"
 
         cdef Dist_vector ans = self._new_c()
         ans.moments = self.moments[:M]
@@ -187,7 +188,7 @@ cdef class Dist_vector(Dist):
         # assert self.moments[0][0]==0, "not total measure zero"
         # print "result accurate modulo p^",self.moment(0).valuation(self.p)
         #v=[0 for j in range(0,i)]+[binomial(j,i)*bernoulli(j-i) for j in range(i,M)]
-        M = self.num_moments()
+        M = self.precision_cap()
         K = self.parent().base_ring().fraction_field()
         V = self.moments.parent()
         v = [K(0) for i in range(M)]
@@ -327,7 +328,7 @@ cdef class Dist_long(Dist):
         ans.quasi_normalize()
         return ans
 
-    def num_moments(self):
+    def precision_cap(self):
         return self.prec
 
     cdef int _cmp_c_impl(left, Element _right) except -2:

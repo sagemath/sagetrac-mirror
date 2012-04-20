@@ -6,7 +6,7 @@ from sage.modular.arithgroup.all import Gamma0
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from modsym import PSModularSymbolElement, PSModSymAction
-from fund_domain import manin_relations
+from fund_domain import ManinRelations
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
@@ -62,9 +62,20 @@ class PSModularSymbolSpace(Module):
         self._group = group
         self._coefficients = coefficients
         self._sign = sign
-        self._manin_relations = manin_relations(group.level()) # should distingish between Gamma0 and Gamma1...
+        self._manin_relations = ManinRelations(group.level()) # should distingish between Gamma0 and Gamma1...
         act = PSModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])
+
+    def coefficient_module(self):
+        r"""
+        Returns the coefficient module of self.
+
+        EXAMPLES:
+
+        ::
+
+        """
+        return self._coefficients
 
     def ngens(self):
         r"""
@@ -148,4 +159,137 @@ class PSModularSymbolSpace(Module):
                     if R[0][0] <> -1 or R[0][1] <> Id:
                         v = v + [R]
         return v
+
+    def zero_elt(self):
+        r"""
+        Returns the zero element of the space where self takes values.
+
+        INPUT:
+            none
+
+        OUTPUT:
+
+        The zero element in the space where self takes values
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: z=phi.zero_elt(); z
+        0
+        sage: parent(z)
+        <class 'sage.modular.overconvergent.pollack.symk.symk'>
+        sage: z.weight
+        0
+        sage: z.poly
+        0
+        """
+        return self.coefficient_module().zero()
+
+    def zero(self):
+        r"""
+        Returns the modular symbol all of whose values are zero.
+
+        INPUT:
+            none
+
+        OUTPUT:
+
+        The zero modular symbol of self.
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        [-1/5, 3/2, -1/2]
+        sage: zero_sym = phi.zero(); zero_sym
+        [0, 0, 0]
+        sage: parent(zero_sym)
+        <class 'sage.modular.overconvergent.pollack.modsym_symk.modsym_symk'>
+
+        """
+
+        dd = {}
+        for rep in self._manin_relations.coset_reps():
+            dd[rep] = self.zero_elt()
+        #v = [self.zero_elt() for i in range(0, self.ngens())]
+        #return C(v, self._manin_relations)
+        return PSModularSymbolElement(dd, self)
+
+    def precision_cap(self):
+        r"""
+        Returns the number of moments of each value of self
+
+        EXAMPLES:
+
+        ::
+
+        """
+	return self._coefficient_module()._prec_cap
+
+    def weight(self):
+        r"""
+        Returns the weight of self
+
+        EXAMPLES:
+
+        ::
+
+        """
+
+	return self._coefficient_module()._k
+
+    def prime(self):
+        r"""
+        Returns the prime of self
+
+        EXAMPLES:
+
+        ::
+
+        """
+
+	return self._coefficient_module()._p
+
+    def random_OMS(self,N,p,k,M):
+        r"""
+        Returns a random OMS with tame level `N`, prime `p`, weight `k`, and
+        `M` moments --- requires no `2` or `3`-torsion
+        """
+        N = self.level()
+        p = self.prime()
+	manin = manin_relations(N*p)
+	v = []
+	for j in range(1,len(manin.gens)):
+	    g = manin.gens[j]
+	    if manin.twotor.count(g)==0:
+                v = v+[random_dist(p,k,M)]
+	    else:
+	        rj = manin.twotor.index(g)
+		gam = manin.twotorrels[rj]
+	   	mu = random_dist(p,k,M)
+		v = v+[(mu.act_right(gam)-mu).scale(ZZ(1)/ZZ(2))]
+	t = v[0].zero()
+	for j in range(2,len(manin.rels)):
+	    R = manin.rels[j]
+            if len(R) == 1:
+		if R[0][0] == 1:
+	            rj = manin.gens.index(j)
+		    t = t+v[rj-1]
+                else:
+	            index = R[0][2]
+	            rj = manin.gens.index(index)
+		    mu = v[rj-1]
+		    t = t+mu.act_right(R[0][1]).scale(R[0][0])
+	v = [mu.scale(-1)]+v
+	Phi = modsym_dist(v,manin)
+	return Phi
+
 

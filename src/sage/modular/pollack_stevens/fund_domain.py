@@ -31,11 +31,102 @@ t10 = (1,0)
 t01 = (0,1)
 t11 = (1,1)
 
+class PSModularSymbolsDomain(SageObject):
+    def __init__(self, N, reps, indices, equiv_ind):
+        self._N = N
+        self._reps = reps
+        self._indices = sorted(indices)
+        self._gens = [reps[i] for i in self._indices]
+        self._equiv_ind = equiv_ind
+        self._equiv_rep = {}
+        for ky in equiv_ind:
+            self._equiv_rep[ky] = reps[equiv_ind[ky]]
+
+    def __len__(self):
+        return len(self._reps)
+
+    def __getitem__(self, i):
+        return self._reps[i]
+
+    def __iter__(self):
+        return iter(self._reps)
+
+    def gens(self):
+        return self._gens
+
+    def gen(self, n=0):
+        return self._gens[n]
+
+    def ngens(self):
+        return len(self._gens)
+
+    def level(self):
+        r"""
+        Returns the level `N` of `\Gamma_0(N)` that we work with.
+
+        OUTPUT:
+
+        - The integer `N` of the group `\Gamma_0(N)` for which the
+          Manin Relations are being computed.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A.level()
+            11
+        """
+        return self._N
+
+    def indices(self):
+        return self._indices
+
+    def reps(self, n=None):
+        r"""
+        Returns the n-th coset rep associated with our fundamental
+        domain or all coset reps if n is not specified.
+
+        INPUT:
+
+        - ``n`` -- integer (default: None)
+
+        OUTPUT:
+
+        - If n is given then the n-th coset representative is returned
+          and otherwise all coset reps are returned.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A.reps(0)
+            [1 0]
+            [0 1]
+            sage: A.reps(1)
+            [ 1  1]
+            [-1  0]
+            sage: A.reps(2)
+            [ 0 -1]
+            [ 1  3]
+            sage: A.reps()
+            [
+            [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [ 0 -1]  [ 1  0]
+            [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1], [ 1  2], [-2  1],
+            <BLANKLINE>
+            [ 0 -1]  [ 1  0]  [-1 -1]  [ 1 -1]
+            [ 1  1], [-1  1], [ 2  1], [-1  2]
+            ]
+        """
+        if n is None:
+            return self._reps
+        else:
+            return self._reps[n]
+
 ######################################
 ##  Define the Manin Relation Class ##
 ######################################
 
-class manin_relations(SageObject):
+class ManinRelations(SageObject):
     """
     This class gives a description of Div^0(P^1(QQ)) as a
     `\ZZ[\Gamma_0(N)]`-module.
@@ -48,7 +139,7 @@ class manin_relations(SageObject):
         r"""
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
         """
         ## Store the level
         self._N = N
@@ -319,10 +410,10 @@ class manin_relations(SageObject):
         ## Make the translation table between the Sage and Geometric
         ## descriptions of P^1
 
-        v = zero_vector(len(coset_reps))
-        for r in range(len(coset_reps)):
-            v[P.index(coset_reps[r][1,0], coset_reps[r][1,1])] = r
-        self._P1_to_mats = v
+        equiv_ind = {}
+        for i, rep in enumerate(coset_reps):
+            ky = P.normalize(rep[t10],rep[t11])
+            equiv_ind[ky] = i
 
         self._gens_index = gens_index
         ## This is a list of indices of the (geometric) coset representatives
@@ -366,69 +457,11 @@ class manin_relations(SageObject):
 
 #        self._glue = glue_data           ## TBA... =)
 
-    def gens_index(self):
-        return self._gens_index
+    def equivalent_index(self, A):
+        ky = self._P.normalize(A[t10],A[t11])
+        return self._equiv_ind[ky]
 
-    def level(self):
-        r"""
-        Returns the level `N` of `\Gamma_0(N)` that we work with.
-
-        OUTPUT:
-
-        - The integer `N` of the group `\Gamma_0(N)` for which the
-          Manin Relations are being computed.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
-            sage: A.level()
-            11
-        """
-        return self._N
-
-    def coset_reps(self,n=None):
-        r"""
-        Returns the n-th coset rep associated with our fundamental
-        domain or all coset reps if n is not specified.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - If n is given then the n-th coset representative is returned
-          and otherwise all coset reps are returned.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
-            sage: A.coset_reps(0)
-            [1 0]
-            [0 1]
-            sage: A.coset_reps(1)
-            [ 1  1]
-            [-1  0]
-            sage: A.coset_reps(2)
-            [ 0 -1]
-            [ 1  3]
-            sage: A.coset_reps()
-            [
-            [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [ 0 -1]  [ 1  0]
-            [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1], [ 1  2], [-2  1],
-            <BLANKLINE>
-            [ 0 -1]  [ 1  0]  [-1 -1]  [ 1 -1]
-            [ 1  1], [-1  1], [ 2  1], [-1  2]
-            ]
-        """
-        if n is None:
-            return self._mats
-        else:
-            return self._mats[n]
-
-    def find_coset_rep(self, A):
+    def equivalent_rep(self, A):
         """
         Returns a coset representative that is equivalent to A modulo `\Gamma_0(N)`.
 
@@ -442,14 +475,21 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
             sage: M2Z = MatrixSpace_ZZ_2x2()
             sage: A = M2Z([5,3,38,23])
-            sage: manin_relations(60).find_coset_rep(A)
+            sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
             [26 11]
         """
+        ky = self._P.normalize(A[t10],A[t11])
+        return self._equiv_rep[ky]
+
+    def gens_index(self):
+        return self._gens_index
+
+    def find_coset_rep(self, A):
         #fix this to use a dict
         i = self._P.index(A[t10],A[t11])
         m = self._P1_to_mats[i]
@@ -465,8 +505,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.P1()
             The projective line over the integers modulo 11
         """
@@ -492,8 +532,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: P = A.P1()
             sage: ind = 6
             sage: a = P[ind]; a
@@ -531,16 +571,16 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.generator_indices()
             [0, 2, 3]
             sage: A.generator_indices(2)
             3
-            sage: A = manin_relations(13)
+            sage: A = ManinRelations(13)
             sage: A.generator_indices()
             [0, 2, 3, 4, 5]
-            sage: A = manin_relations(101)
+            sage: A = ManinRelations(101)
             sage: A.generator_indices()
             [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
         """
@@ -567,14 +607,14 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.two_torsion_indices()
             []
-            sage: A = manin_relations(13)
+            sage: A = ManinRelations(13)
             sage: A.two_torsion_indices()
             [3, 4]
-            sage: A = manin_relations(17)
+            sage: A = ManinRelations(17)
             sage: A.two_torsion_indices()
             [5, 7]
         """
@@ -599,8 +639,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(13)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(13)
             sage: A.two_torsion_relation_matrices()
             [
             [  5   2]  [  8   5]
@@ -630,17 +670,17 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.three_torsion_indices()
             []
-            sage: A = manin_relations(13)
+            sage: A = ManinRelations(13)
             sage: A.three_torsion_indices()
             [2, 5]
-            sage: A = manin_relations(17)
+            sage: A = ManinRelations(17)
             sage: A.three_torsion_indices()
             []
-            sage: A = manin_relations(103)
+            sage: A = ManinRelations(103)
             sage: A.three_torsion_indices()
             [16, 17]
         """
@@ -665,8 +705,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(13)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(13)
             sage: A.three_torsion_relation_matrices()
             [
             [-4 -1]  [-10  -7]
@@ -710,8 +750,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.generator_indices()
             [0, 2, 3]
             sage: A.coset_relations(0)
@@ -767,14 +807,14 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.form_list_of_cusps()
             [-1, -2/3, -1/2, -1/3, 0]
-            sage: A = manin_relations(13)
+            sage: A = ManinRelations(13)
             sage: A.form_list_of_cusps()
             [-1, -2/3, -1/2, -1/3, 0]
-            sage: A = manin_relations(101)
+            sage: A = ManinRelations(101)
             sage: A.form_list_of_cusps()
             [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
         """
@@ -925,8 +965,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.is_unimodular_path(0,1/3)
             True
             sage: A.is_unimodular_path(1/3,0)
@@ -959,8 +999,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: A.unimod_to_matrices(0,1/3)
             (
             [ 0  1]  [1 0]
@@ -1004,8 +1044,8 @@ class manin_relations(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import manin_relations
-            sage: A = manin_relations(11)
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
             sage: C = A.form_list_of_cusps(); C
             [-1, -2/3, -1/2, -1/3, 0]
             sage: A.fd_boundary(C)
@@ -1013,7 +1053,7 @@ class manin_relations(SageObject):
             [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]
             [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1]
             ]
-            sage: A = manin_relations(13)
+            sage: A = ManinRelations(13)
             sage: C = A.form_list_of_cusps(); C
             [-1, -2/3, -1/2, -1/3, 0]
             sage: A.fd_boundary(C)
@@ -1021,7 +1061,7 @@ class manin_relations(SageObject):
             [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]
             [0 1], [-1  0], [ 1  3], [ 3  2], [ 2  3], [ 3  1]
             ]
-            sage: A = manin_relations(101)
+            sage: A = ManinRelations(101)
             sage: C = A.form_list_of_cusps(); C
             [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
             sage: A.fd_boundary(C)
