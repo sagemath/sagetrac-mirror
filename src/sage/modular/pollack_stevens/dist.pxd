@@ -52,3 +52,6 @@ cdef class SimpleMat(SageObject):
 
 cdef class WeightKAction_long(WeightKAction):
     pass
+
+cdef class iScale(Action):
+    pass

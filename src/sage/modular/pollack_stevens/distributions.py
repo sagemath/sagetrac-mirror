@@ -6,9 +6,11 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.categories.action import PrecomposedAction
+from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
 from sage.matrix.all import MatrixSpace
 from sage.rings.fast_arith import prime_range
-from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long
+from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long, iScale
+import operator
 
 class Distributions(Module):
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
@@ -56,11 +58,14 @@ class Distributions(Module):
         self._prec_cap = prec_cap
         act = WeightKAction(self, character, tuplegen, act_on_left)
         self._act = act
-        self._populate_coercion_lists_(action_list=[act])
+        self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
 
     @cached_method
-    def approx_module(self, M):
-        assert M <= self._prec_cap
+    def approx_module(self, M=None):
+        if M is None:
+            M = self._prec_cap
+        elif M > self._prec_cap:
+            raise ValueError("M must be less than the precision cap")
         return self.base_ring()**M
 
     def random_element(self, M):
@@ -71,7 +76,7 @@ class Distributions(Module):
         self._act.clear_cache()
 
     @cached_method
-    def basis(self, M):
+    def basis(self, M=None):
         V = self.approx_module(M)
         return [self(v) for v in V.basis()]
 
@@ -80,6 +85,23 @@ class Distributions(Module):
             return self([2,1])
         else:
             return self([1])
+
+    def zero_element(self, M=None):
+        return self(self.approx_module(M)(0))
+
+#    def _get_action_(self, S, op, self_on_left):
+#        if S is self.base_ring():
+#            if self_on_left:
+#                return LeftModuleAction(self.base_ring(), self)
+#            else:
+#                return RightModuleAction(self.base_ring(), self)
+#        f = self.base_ring().coerce_map_from(S)
+#        if op is operator.mul and f is not None:
+#            A = self.get_action(self.base_ring(), op, self_on_left)
+#            if self_on_left:
+#                return PrecomposedAction(A, f, None)
+#            else:
+#                return PrecomposedAction(A, None, f)
 
     #def get_action(self):
     #    return self._act

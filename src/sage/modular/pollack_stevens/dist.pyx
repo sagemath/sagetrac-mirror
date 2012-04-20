@@ -7,7 +7,7 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.arith import binomial, bernoulli
 from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.matrix cimport Matrix
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import matrix
 from sage.misc.prandom import random
 from sage.functions.other import floor
 from sage.structure.element cimport RingElement, Element
@@ -25,8 +25,7 @@ cdef extern from "zn_poly/zn_poly.h":
 from sage.libs.flint.zmod_poly cimport *, zmod_poly_t
 from sage.libs.flint.long_extras cimport *
 
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-M2Z = MatrixSpace_ZZ_2x2()
+from fund_domain import M2ZSpace
 cdef long overflow = 1 << (4*sizeof(long)-1)
 cdef long underflow = -overflow
 
@@ -47,6 +46,9 @@ cdef class Dist(ModuleElement):
 
     def scale(self,left):
         return self * left
+
+    cpdef ModuleElement _rmul_(self, RingElement _left):
+        return self._lmul_(_left)
 
     def valuation(self, p=None):
         """
@@ -220,7 +222,7 @@ cdef class Dist_long(Dist):
             if len(moments) > 100 or 7*p**len(moments) > ZZ(2)**(4*sizeof(long) - 1): # 6 is so that we don't overflow on gathers
                 raise ValueError("moments too long")
         for i in range(len(moments)):
-            self.moments[i] = int(moments[i])
+            self.moments[i] = ZZ(moments[i])
         self.prec = len(moments)
         self.prime_pow = <PowComputer_long?>parent.prime_pow
         #gather = 2**(4*sizeof(long)-1) // p**len(moments)
@@ -404,14 +406,13 @@ cdef class WeightKAction(Action):
         self._p = Dk._p
         self._actmat = {}
         self._maxprecs = {}
-        Action.__init__(self, M2Z, Dk, on_left, operator.mul)
+        Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)
 
     def clear_cache(self):
         self._actmat = {}
         self._maxprecs = {}
 
     cpdef acting_matrix(self, g, M):
-        g.set_immutable() # a bit sketchy
         if not self._maxprecs.has_key(g):
             self._maxprecs[g] = M
             A = self._compute_acting_matrix(g, M)
@@ -551,8 +552,8 @@ cdef class WeightKAction_long(WeightKAction):
         zmod_poly_init2_precomp(xM, pM, pMinv, M+1)
         zmod_poly_init2_precomp(bdy, pM, pMinv, 2)
         zmod_poly_set_coeff_ui(xM, M, 1)
-        zmod_poly_set_coeff_ui(t, 0, c)
-        zmod_poly_set_coeff_ui(t, 1, a)
+        zmod_poly_set_coeff_ui(t, 0, a)
+        zmod_poly_set_coeff_ui(t, 1, c)
         zmod_poly_newton_invert(scale, t, M)
         zmod_poly_set_coeff_ui(bdy, 0, b)
         zmod_poly_set_coeff_ui(bdy, 1, d)
@@ -580,6 +581,16 @@ cdef class WeightKAction_long(WeightKAction):
                 entry += 1
         ans.prec = M
         return ans
+
+cdef class iScale(Action):
+    def __init__(self, Dk, on_left):
+        Action.__init__(self, ZZ, Dk, on_left, operator.mul)
+
+    cpdef _call_(self, a, b):
+        if PY_TYPE_CHECK(a, Dist):
+            return (<Dist>a)._lmul_(b)
+        else:
+            return (<Dist?>b)._lmul_(a)
 
 #@cached_function
 #def eta(Dk, i, M):

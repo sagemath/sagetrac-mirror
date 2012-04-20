@@ -19,6 +19,7 @@
 
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.modular.modsym.all import P1List
+from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
@@ -27,6 +28,20 @@ from copy import deepcopy
 
 M2ZSpace = MatrixSpace_ZZ_2x2()
 def M2Z(x):
+    """
+    Creates an immutable 2x2 integer matrix
+
+    INPUT:
+
+    - ``x`` -- a list of four integers.
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.fund_domain import M2Z
+        sage: A = M2Z([1,2,3,4])
+        sage: hash(A)
+        8
+    """
     a = M2ZSpace(x)
     a.set_immutable()
     return a
@@ -65,7 +80,7 @@ class PSModularSymbolsDomain(SageObject):
             self._rel_dict[reps[j]] = [(d, A, reps[i]) for (d, A, i) in L]
         ## A list of lists of triples (d, A, i), one for each coset
         ## representative of Gamma_0(N) (ordered to correspond to the
-        ## representatives of self.coset_reps) expressing the value of a
+        ## representatives of self.reps) expressing the value of a
         ## modular symbol on the associated unimodular path as a sum of terms
         ##    d * (value on the i-th coset rep) | A
         ## where the index i must appear in self.gens_index, and the slash gives the
@@ -77,21 +92,102 @@ class PSModularSymbolsDomain(SageObject):
             self._equiv_rep[ky] = reps[equiv_ind[ky]]
 
     def __len__(self):
+        """
+        Returns the number of coset representatives.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: len(A)
+            12
+        """
         return len(self._reps)
 
     def __getitem__(self, i):
+        """
+        Returns the `i`-th coset rep.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A[4]
+            [-1 -2]
+            [ 2  3]
+        """
         return self._reps[i]
 
     def __iter__(self):
+        """
+        Returns an iterator over all coset representatives.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: for rep in A:
+            ...       if rep[1,0] == 1:
+            ...           print rep
+            [ 0 -1]
+            [ 1  3]
+            [ 0 -1]
+            [ 1  2]
+            [ 0 -1]
+            [ 1  1]
+        """
         return iter(self._reps)
 
     def gens(self):
+        """
+        Returns the list of coset representatives chosen as generators.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A.gens()
+            [
+            [1 0]  [ 0 -1]  [-1 -1]
+            [0 1], [ 1  3], [ 3  2]
+            ]
+        """
         return self._gens
 
     def gen(self, n=0):
+        """
+        Returns the `n`-th generator.
+
+        INPUT:
+
+        - ``n`` -- integer (default: 0), which generator is desired
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(137)
+            sage: A.gen(17)
+            [-4 -1]
+            [ 9  2]
+        """
         return self._gens[n]
 
     def ngens(self):
+        """
+        Returns the number of generators.
+
+        OUTPUT:
+
+        - the number of coset representatives from which a modular
+          symbol's value on any coset can be derived.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(1137)
+            sage: A.ngens()
+            255
+        """
         return len(self._gens)
 
     def level(self):
@@ -112,8 +208,43 @@ class PSModularSymbolsDomain(SageObject):
         """
         return self._N
 
-    def indices(self):
-        return self._indices
+    def indices(self, n=None):
+        r"""
+        Returns the indices of coset reps which were chosen as our
+        generators.
+
+        In particular, the divisors associated to these coset reps
+        generate all divisors over `\ZZ[\Gamma_0(N)]`, and thus a modular
+        symbol is uniquely determined by its values on these divisors.
+
+        INPUT:
+
+        - ``n`` -- integer (default: None)
+
+        OUTPUT:
+
+        - The list of indices in self.reps() of our generating
+          set.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A.indices()
+            [0, 2, 3]
+            sage: A.indices(2)
+            3
+            sage: A = ManinRelations(13)
+            sage: A.indices()
+            [0, 2, 3, 4, 5]
+            sage: A = ManinRelations(101)
+            sage: A.indices()
+            [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
+        """
+        if n is None:
+            return self._indices
+        else:
+            return self._indices[n]
 
     def reps(self, n=None):
         r"""
@@ -157,6 +288,88 @@ class PSModularSymbolsDomain(SageObject):
             return self._reps[n]
 
     def relations(self, A=None, indices=False):
+        r"""
+        Expresses the divisor attached to the coset rep of A in terms
+        of our chosen generators.
+
+        INPUT:
+
+        - ``A`` -- None, integer or a coset rep (default: None)
+
+        - ``indices`` -- boolean (default: False), determines output
+          type when ``A`` is None.
+
+        OUTPUT:
+
+        - A `\ZZ[\Gamma_0(N)]`-relation expressing the divisor
+          attached to one (or all) coset rep(s) in terms of our
+          generating set.  The type of the return value depends on
+          ``A`` and ``indices``.
+
+          - If ``A`` is a 2x2 matrix that is among the coset
+            represetatives, returns a list of triples `(d, B, C)` such
+            that the divisor attached to ``A`` equals the sum over
+            these triples of:
+
+              `d * B^{-1} * (divisor attached to C)`
+
+            Here `C` will be one of the chosen generating coset reps.
+
+          - If ``A`` is an integer, returns a list of triples `(d, B,
+            i)` such that the divisor attached to the `i`-th coset rep
+            equals the sum over these triples of:
+
+              `d * B^{-1} * (divisor attached to i-th coset rep)`
+
+            Here each index `i` must appear in ``self.indices()``.
+
+          - If ``A`` is None and ``indices`` is False, returns a
+            dictionary whose keys are the cosets reps and the values
+            are the lists of triples `(d, B, C)` described above.
+
+          - If ``A`` is None and ``indices`` is True, returns a list
+            of triples `(d, B, i)` in the same order as the coset reps
+            to which they correspond.
+
+        .. NOTE::
+
+            These relations allow us to recover the value of a modular
+            symbol on any coset rep in terms of its values on our
+            generating set.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: A = ManinRelations(11)
+            sage: A.indices()
+            [0, 2, 3]
+            sage: A.relations(0)
+            [(1, [1 0]
+            [0 1], 0)]
+            sage: A.relations(2)
+            [(1, [1 0]
+            [0 1], 2)]
+            sage: A.relations(3)
+            [(1, [1 0]
+            [0 1], 3)]
+            sage: A.relations(4)
+            [(-1, [-3 -2]
+            [11  7], 2)]
+            sage: B=A.relations(4)[0][1]; B
+            [-3 -2]
+            [11  7]
+            sage: B^(-1)*A.reps(2)
+            [ 2 -1]
+            [-3  2]
+            sage: A.reps(4)
+            [-1 -2]
+            [ 2  3]
+            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+            sage: M2Z = MatrixSpace_ZZ_2x2()
+            sage: sig = M2Z([0,1,-1,0])
+            sage: B^(-1)*A.reps(2) == A.reps(4)*sig
+            True
+        """
         if A is None:
             if indices:
                 return self._rels
@@ -212,19 +425,19 @@ class ManinRelations(PSModularSymbolsDomain):
         [-3 -2]  [-3 -1]
         [ 5  3], [ 4  1]
         ]
+        sage: path = MR.reps_with_two_torsion[0]; path
+        [-3 -2]
+        [ 5  3]
 
-    The corresponding matrices of order two are listed in
+    The corresponding matrices of order two are contained in
     ``MR.two_torsion``::
 
-        sage: A, B = MR.two_torsion; A
+        sage: A = MR.two_torsion[path]; A
         [ 21  13]
         [-34 -21]
         sage: A^2
         [-1  0]
         [ 0 -1]
-        sage: path = MR.reps_with_two_torsion[0]; path
-        [-3 -2]
-        [ 5  3]
 
     You can see that multiplication by A just interchanges the
     rational cusps determined by the columns of the matrix ``path``::
@@ -233,7 +446,7 @@ class ManinRelations(PSModularSymbolsDomain):
         [ 2 -3]
         [-3  5]
 
-        sage: ManinRelations(13).two_torsion
+        sage: sorted(ManinRelations(13).two_torsion.values())
         [
         [  5   2]  [  8   5]
         [-13  -5], [-13  -8]
@@ -269,19 +482,19 @@ class ManinRelations(PSModularSymbolsDomain):
         [-4 -1]  [-1 -5]
         [ 9  2], [ 2  9]
         ]
+        sage: path = MR.reps_with_three_torsion[0]; path
+        [-4 -1]
+        [ 9  2]
 
-    The corresponding matrices of order three are listed in
+    The corresponding matrices of order three are contained in
     ``MR.three_torsion``::
 
-        sage: A, B = MR.three_torsion; A
+        sage: A = MR.three_torsion[path]; A
         [-47 -21]
         [103  46]
         sage: A^3
         [1 0]
         [0 1]
-        sage: path = MR.reps_with_three_torsion[0]; path
-        [-4 -1]
-        [ 9  2]
 
     You can see that the columns of path, A*path and A^2*path give the
     same rational cusps::
@@ -293,10 +506,10 @@ class ManinRelations(PSModularSymbolsDomain):
         [  5  -4]
         [-11   9]
 
-        sage: ManinRelations(13).three_torsion
+        sage: sorted(ManinRelations(13).three_torsion.values())
         [
-        [-4 -1]  [-10  -7]
-        [13  3], [ 13   9]
+        [-10  -7]  [-4 -1]
+        [ 13   9], [13  3]
         ]
     """
     def __init__(self, N):
@@ -456,23 +669,19 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## 3-torsion intervenes.
                         ## The below loop searches through the remaining edges
                         ## and finds which one is equivalent to the reverse of
-                        ##  coset_reps[r]
+                        ## coset_reps[r]
                         ## ---------------------------------------------------
-                        found = False
-
-                        s = r + 1
-                        ## s is the index we use to run through the
-                        ## remaining edges
-
-                        while (not found):
-                            if P.index(p1s[s][0],p1s[s][1]) == P.index(-p1s[r][1],p1s[r][0]):
+                        for s in range(r+1, len(coset_reps)):
+                            if boundary_checked[s]:
+                                continue
+                            if P.normalize(p1s[s][0],p1s[s][1]) == P.normalize(-p1s[r][1],p1s[r][0]):
                                 ## the reverse of coset_reps[r] is
                                 ## Gamma_0(N)-equivalent to coset_reps[s]
                                 ## coset_reps[r] will now be made a generator
                                 ## and we need to express phi(coset_reps[s])
                                 ## in terms of phi(coset_reps[r])
 
-                                gens_index = gens_index + [r]
+                                gens_index.append(r)
                                 ## the index r is adding to our list of
                                 ## indexes of generators
 
@@ -498,12 +707,9 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## phi(D_s) = -phi(D_r)|gam
                                 ## since gam is in Gamma_0(N)
 
-                                found = True
                                 boundary_checked[r] = True
                                 boundary_checked[s] = True
-
-                            else:
-                                s = s + 1  ## moves on to the next edge
+                                break
 
         ## We now need to complete our list of coset representatives by
         ## finding all unimodular paths in the interior of the fundamental
@@ -525,7 +731,7 @@ class ManinRelations(PSModularSymbolsDomain):
                     A,B = self.unimod_to_matrices(cusp1,cusp2)
                     ## A and B are the matrices whose associated paths
                     ## connect cusp1 to cusp2 and cusp2 to cusp1 (respectively)
-                    coset_reps = coset_reps + [A,B]
+                    coset_reps.extend([A,B])
                     ## A and B are added to our coset reps
                     vA = []
                     vB = []
@@ -536,12 +742,14 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## below the path attached to A (as they form a triangle)
                     ## Similarly, this is also done for B.
 
-                    for j in range(r+2,s+2):
+                    for rel in rels[r+2:s+2]:
                     ## Running between the cusps between cusp1 and cusp2
-                        vA = vA + rels[j]  ## Edge relation added
-                        t = (-rels[j][0][0],rels[j][0][1],rels[j][0][2]) ## This is simply the negative of the above edge relation.
-                        vB = vB + [t]  ## Negative of edge relation added
-                    rels = rels + [vA,vB]  ## Relations for A and B adding to relations list
+                        ## Add edge relation
+                        vA.append(rel[0])
+                        ## Add negative of edge relation
+                        vB.append((-rel[0][0], rel[0][1], rel[0][2]))
+                    ## Add relations for A and B to relations list
+                    rels.extend([vA,vB])
 
         ## Make the translation table between the Sage and Geometric
         ## descriptions of P^1
@@ -558,9 +766,11 @@ class ManinRelations(PSModularSymbolsDomain):
         self.indices_with_two_torsion = twotor_index
         self.reps_with_two_torsion = [coset_reps[i] for i in twotor_index]
 
-        ## A list of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
+        ## A dictionary of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the orientation identification in the paths listed in twotor_index above!
-        self.two_torsion = twotorrels
+        self.two_torsion = {}
+        for j, tor_elt in zip(twotor_index, twotorrels):
+            self.two_torsion[coset_reps[j]] = tor_elt
 
         ## A list of indices of the (geometric) coset representatives that
         ## form one side of an ideal triangle with an interior fixed point of
@@ -568,9 +778,11 @@ class ManinRelations(PSModularSymbolsDomain):
         self.indices_with_three_torsion = threetor_index
         self.reps_with_three_torsion = [coset_reps[i] for i in threetor_index]
 
-        ## A list of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
+        ## A dictionary of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the interior fixed point described in threetor_index above!
-        self.three_torsion = threetorrels
+        self.three_torsion = {}
+        for j, tor_elt in zip(threetor_index, threetorrels):
+            self.three_torsion[coset_reps[j]] = tor_elt
 
     def equivalent_index(self, A):
         r"""
@@ -648,118 +860,6 @@ class ManinRelations(PSModularSymbolsDomain):
             The projective line over the integers modulo 11
         """
         return self._P
-
-    def P1_to_coset_index(self,n=None):
-        if n is None:
-            return self._P1_to_mats
-        else:
-            return self._P1_to_mats[n]
-
-    def generator_indices(self,n=None):
-        r"""
-        Returns the indices of coset reps which were chosen as our
-        generators.
-
-        In particular, the associate divisors of these coset reps
-        generator all divisors over Z[Gamma_0(N)], and thus a modular
-        symbol is uniquely determined by its values on these divisors.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The list of indices in self.coset_reps() of our generating
-          set.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.generator_indices()
-            [0, 2, 3]
-            sage: A.generator_indices(2)
-            3
-            sage: A = ManinRelations(13)
-            sage: A.generator_indices()
-            [0, 2, 3, 4, 5]
-            sage: A = ManinRelations(101)
-            sage: A.generator_indices()
-            [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
-        """
-        if n is None:
-            return self._gens_index
-        else:
-            return self._gens_index[n]
-
-    def coset_relations(self,n=None):
-        r"""
-        Expresses the divisor attached to the n-th coset rep in terms
-        of our chosen generators.
-
-        Returns a list of triples `(d, A, i)` such that the divisor
-        attached to the n-th coset rep equals the sum over these
-        triples of:
-
-            `d * A^(-1) * (divisor attached to i-th coset rep)`
-
-        Here the index `i` must appear in self.generator_indices().
-        This formula will allow us to recover the value of a modular
-        symbol on any coset rep in terms of its values on our
-        generating set.
-
-        If n is not specified, a list containing this info for all n
-        is returned.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - A `\ZZ[\Gamma_0(N)]`-relation expressing the divisor
-          attached to the `n`-th coset rep in terms of our generating
-          set.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.generator_indices()
-            [0, 2, 3]
-            sage: A.coset_relations(0)
-            [(1, [1 0]
-            [0 1], 0)]
-            sage: A.coset_relations(2)
-            [(1, [1 0]
-            [0 1], 2)]
-            sage: A.coset_relations(3)
-            [(1, [1 0]
-            [0 1], 3)]
-            sage: A.coset_relations(4)
-            [(-1, [-3 -2]
-            [11  7], 2)]
-            sage: B=A.coset_relations(4)[0][1]; B
-            [-3 -2]
-            [11  7]
-            sage: B^(-1)*A.coset_reps(2)
-            [ 2 -1]
-            [-3  2]
-            sage: A.coset_reps(4)
-            [-1 -2]
-            [ 2  3]
-            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: M2Z = MatrixSpace_ZZ_2x2()
-            sage: sig = M2Z([0,1,-1,0])
-            sage: B^(-1)*A.coset_reps(2) == A.coset_reps(4)*sig
-            True
-
-        """
-        if n is None:
-            return self._rels
-        else:
-            return self._rels[n]
 
     def form_list_of_cusps(self):
         r"""

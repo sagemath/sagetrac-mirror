@@ -157,22 +157,22 @@ class ManinMap(object):
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D     = Distributions(0, 5, 10)
-            sage: manin = sage.modular.pollack_stevens.fund_domain.manin_relations(11)
+            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
-            sage: f = ManinMap(D, manin, data)
+            sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Rational Field
             sage: f(M2Z([1,0,0,1]))
-            ???
+            (1, 2)
         """
         self._codomain = codomain
         self._manin = manin_relations
         if check:
             self._dict = {}
             if isinstance(defining_data, (list, tuple)):
-                if len(defining_data) != len(manin_relations.gens()):
+                if len(defining_data) != manin_relations.ngens():
                     raise ValueError("length of defining data must be the same as number of manin generators")
                 for i in range(len(defining_data)):
-                    self._dict[manin_relations.coset_reps(i)] = defining_data[i]
+                    self._dict[manin_relations.gen(i)] = defining_data[i]
             elif isinstance(defining_data, dict):
                 for ky, val in defining_data.iteritems():
                     if not isinstance(ky, Matrix_integer_2x2):
@@ -186,10 +186,10 @@ class ManinMap(object):
             self._dict = defining_data
 
     def _compute_image_from_gens(self, B):
-        L = self._manin._rel_dict[B]
+        L = self._manin.relations(B)
         # could raise KeyError if B is not a coset rep
         if len(L) == 0:
-            t = self._codomain(0)
+            t = self._codomain.zero_element()
         else:
             c, A, g = L[0]
             t = (self._dict[g] * A) * c
@@ -253,9 +253,9 @@ class ManinMap(object):
             self._manin.level(), self._codomain)
 
     def _eval_sl2(self, A):
-        B = self._manin.find_coset_rep(A)
+        B = self._manin.equivalent_rep(A)
         gaminv = B * A._invert_unit()
-        return self[A] * gaminv
+        return self[B] * gaminv
 
     def __call__(self, A):
         a = A[t00]
@@ -267,7 +267,7 @@ class ManinMap(object):
         # v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
         v2 = unimod_matrices_to_infty(a,c)
         # ans: the value of self on A
-        ans = self._codomain(0)
+        ans = self._codomain.zero_element()
         # This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
         for B in v1:
             ans = ans + self._eval_sl2(B)
@@ -300,7 +300,7 @@ class ManinMap(object):
 
         This might be used to compute the valuation.
         """
-        for A in self._manin._gens:
+        for A in self._manin.gens():
             yield self._dict[A]
 
     def _right_action(self, gamma):
@@ -389,7 +389,7 @@ class ManinMap(object):
         M = self._manin
         N = M.level()
 
-        ans = [[] for a in range(len(M.coset_reps()))]
+        ans = [[] for a in range(len(M.reps()))]
         # this will be the list L above enumerated by coset reps
 
         #  This loop will runs thru the ell+1 (or ell) matrices defining T_ell of the form [1, a, 0, ell] and carry out the computation
@@ -399,7 +399,7 @@ class ManinMap(object):
            if (a < ell) or (N % ell != 0):
                # if the level is not prime to ell the matrix [ell, 0, 0, 1] is avoided.
                gama = basic_hecke_matrix(a, ell)
-               t = gama*M.coset_reps(M.generator_indices(m))
+               t = gama*M.reps(M.indices(m))
                #  In the notation above this is gam_a * D_m
                v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
                #  This expresses t as a sum of unimodular divisors
@@ -407,20 +407,17 @@ class ManinMap(object):
                # This loop runs over each such unimodular divisor
                # ------------------------------------------------
                for b in range(len(v)):
-                   A = v[b]
                    #  A is the b-th unimodular divisor
-                   i = M.P1().index(A[1, 0], A[1, 1])
-                   #  i is the index in SAGE P1 of the bottom row of A
-                   j = M.P1_to_coset_index(i)
-                   #  j is the index of our coset rep equivalent to A
-                   B = M.coset_reps(j)
-                   #  B is that coset rep
-                   C = M2Z([A[1, 1], -A[0, 1], -A[1, 0], A[0, 0]])
-                   #  C equals A^(-1).  This is much faster than just inverting thru SAGE
-                   gaminv = B * C
+                   A = v[b]
+                   #  B is the coset rep equivalent to A
+                   B = M.equivalent_rep(A)
+                   #  C equals A^(-1).
+                   C = A._invert_unit()
                    #  gaminv = B*A^(-1)
-                   ans[j] = ans[j] + [gaminv * gama]
-                   #  The matrix gaminv * gama is added to our list in the j-th slot (as described above)
+                   gaminv = B * C
+                   #  The matrix gaminv * gama is added to our list in the j-th slot 
+                   #  (as described above)
+                   ans[j].append(gaminv * gama)
 
         return ans
 
