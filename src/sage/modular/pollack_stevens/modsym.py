@@ -1,16 +1,17 @@
 from sage.structure.element import ModuleElement
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+from sage.rings.integer_ring import ZZ
 from manin_map import ManinMap
 import operator
 
 from sage.categories.action import Action
 
-M2Z = MatrixSpace_ZZ_2x2()
+from fund_domain import M2ZSpace, M2Z
 minusproj = M2Z([1,0,0,-1])
 
 class PSModSymAction(Action):
-    def __init__(self, MSspace):
-        Action.__init__(self, M2Z, MSspace, False, operator.mul)
+    def __init__(self, actor, MSspace):
+        Action.__init__(self, actor, MSspace, False, operator.mul)
 
     def _call_(self, sym, g):
         return sym.__class__(sym._map * g, sym.parent(), construct=True)
@@ -23,10 +24,32 @@ class PSModularSymbolElement(ModuleElement):
         else:
             self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
 
+    def _repr_(self):
+        return "A modular symbol with values in %s"%(self.parent().coefficient_module())
+
+    def dict(self):
+        D = {}
+        for g in self.parent().source().gens():
+            D[g] = self._map[g]
+        return D
+
+    def values(self):
+        return [self._map[g] for g in self.parent().source().gens()]
+
+    def __cmp__(self, other):
+        gens = self.parent().source().gens()
+        for g in gens:
+            c = cmp(self._map[g], other._map[g])
+            if c: return c
+        return 0
+
     def _add_(self, right):
         return self.__class__(self._map + right._map, self.parent(), construct=True)
 
     def _lmul_(self, right):
+        return self.__class__(self._map * right, self.parent(), construct=True)
+
+    def _rmul_(self, right):
         return self.__class__(self._map * right, self.parent(), construct=True)
 
     def _sub_(self, right):

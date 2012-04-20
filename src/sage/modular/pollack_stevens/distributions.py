@@ -103,10 +103,27 @@ class Distributions(Module):
             'Space of 5-adic distributions with k=0 action and precision cap 10'
             sage: Distributions(0, 5, 10)
             Space of 5-adic distributions with k=0 action and precision cap 10
+
+            sage: Distributions(0)
+            Sym^0 Q^2
         """
-        # TODO: maybe account for character, etc. 
-        return "Space of %s-adic distributions with k=%s action and precision cap %s"%(
-            self._p, self._k, self._prec_cap)
+        # TODO: maybe account for character, etc.
+        if self._p is None:
+            if self.base_ring() is QQ:
+                V = 'Q^2'
+            elif self.base_ring() is ZZ:
+                V = 'Z^2'
+            elif isinstance(self.base_ring(), pAdicGeneric) and self.base_ring().degree() == 1:
+                if self.base_ring().is_field():
+                    V = 'Q_%s^2'%(self._p)
+                else:
+                    V = 'Z_%s^2'%(self._p)
+            else:
+                V = '(%s)^2'%(self.base_ring())
+            return "Sym^%s %s"%(self._k, V)
+        else:
+            return "Space of %s-adic distributions with k=%s action and precision cap %s"%(
+                self._p, self._k, self._prec_cap)
 
     @cached_method
     def approx_module(self, M=None):
