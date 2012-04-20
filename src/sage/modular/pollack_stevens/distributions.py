@@ -55,7 +55,10 @@ class Distributions(Module):
         Parent.__init__(self, base)
         self._k = k
         self._p = p
-        self._prec_cap = prec_cap
+        if prec_cap is None:
+            self._prec_cap = k + 1
+        else:
+            self._prec_cap = prec_cap
         act = WeightKAction(self, character, tuplegen, act_on_left)
         self._act = act
         self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
@@ -68,7 +71,7 @@ class Distributions(Module):
             raise ValueError("M must be less than the precision cap")
         return self.base_ring()**M
 
-    def random_element(self, M):
+    def random_element(self, M=None):
         return self(self.approx_module(M).random_element())
 
     def clear_cache(self):

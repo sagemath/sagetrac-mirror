@@ -8,6 +8,7 @@ from sage.rings.rational_field import QQ
 from modsym import PSModularSymbolElement, PSModSymAction
 from fund_domain import ManinRelations
 from sage.rings.padics.precision_error import PrecisionError
+from sage.rings.infinity import infinity as oo
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
@@ -66,6 +67,9 @@ class PSModularSymbolSpace(Module):
         self._manin_relations = ManinRelations(group.level()) # should distingish between Gamma0 and Gamma1...
         act = PSModSymAction(self)
         self._populate_coercion_lists_(action_list=[act])
+
+    def source(self):
+        return self._manin_relations
 
     def coefficient_module(self):
         r"""
@@ -322,4 +326,44 @@ class PSModularSymbolSpace(Module):
         dd[manin.gens(0)] =  mu._lmul_(-1)
         return modsym_dist(dd, self)
 
+def cusps_from_mat(g):
+    a, b, c, d = g.list()
+    if c: ac = a/c
+    else: ac = oo
+    if d: bd = b/d
+    else: bd = oo
+    return ac, bd
 
+def form_modsym_from_elliptic_curve(E):
+    N = E.conductor()
+    V = PSModularSymbols(Gamma0(N), 2)
+    D = V.coefficient_module()
+    manin = V.source()
+    plus_sym = E.modular_symbol(sign = 1)
+    minus_sym = E.modular_symbol(sign = -1)
+    val = {}
+    for g in manin.gens():
+        ac, bd = cusps_from_mat(g)
+        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd) - plus_sym(bd)])
+    return V(val)
+
+def form_modsym_from_decomposition(A):
+    """
+    """
+    M = A.ambient_module()
+    w = A.dual_eigenvector()
+    K = w.base_ring()
+    V = PSModularSymbols(A.group(), A.weight(), base=K) # should eventually add sign as well.
+    D = V.coefficient_module()
+    N = V.level()
+    k = V.weight() # = A.weight() - 2
+    manin = V.source()
+    val = {}
+    for g in manin.gens():
+        ac, bd = cusps_from_mat(g)
+        v = []
+        for j in range(k+1):
+            # The following might be backward: it should be the coefficient of X^j Y^(k-j)
+            v.append(w.dot_product(M.modular_symbol([j, ac, bd]).element()) * binomial(k, j))
+        val[g] = D(v)
+    return V(val)

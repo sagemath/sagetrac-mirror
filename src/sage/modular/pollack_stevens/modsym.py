@@ -175,8 +175,7 @@ class PSModularSymbolElement(ModuleElement):
         sage: phi.valuation(7)
         0
         """
-        sd = self._map._dict
-        return min([val.valuation(p) for val in sd.itervalues()])
+        return min([val for val in self._map])
 
     def change_ring(self,R):
         r"""

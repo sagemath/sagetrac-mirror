@@ -205,7 +205,7 @@ class ManinMap(object):
             return self._dict[B]
 
     def compute_full_data(self):
-        for B in self._manin.coset_reps():
+        for B in self._manin.reps():
             if not self._dict.has_key(B):
                 self._dict[B] = self._compute_image_from_gens(B)
 
