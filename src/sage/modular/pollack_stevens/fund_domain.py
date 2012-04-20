@@ -172,6 +172,125 @@ class ManinRelations(PSModularSymbolsDomain):
     INPUT:
 
     - ``N`` -- a positive integer
+
+    EXAMPLES::
+
+
+
+    ``MR.reps_with_two_torsion`` is a list of coset reps whose
+    associated unimodular path contains a point fixed by a
+    `\Gamma_0(N)` element of order 2 (where the order is computed in
+    `PSL_2(Z)`).
+
+    ``MR.indices_with_two_torsion`` gives the corresponding indices in
+    ``MR.reps()``::
+
+        sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+        sage: MR = ManinRelations(11)
+        sage: MR.indices_with_two_torsion
+        []
+        sage: MR = ManinRelations(13)
+        sage: MR.indices_with_two_torsion
+        [3, 4]
+        sage: MR.reps_with_two_torsion
+        [
+        [-1 -1]  [-1 -2]
+        [ 3  2], [ 2  3]
+        ]
+        sage: MR.reps_with_two_torsion[0] == MR.reps(3)
+        True
+        sage: MR = ManinRelations(17)
+        sage: MR.reps_with_two_torsion
+        [
+        [-3 -2]  [-3 -1]
+        [ 5  3], [ 4  1]
+        ]
+
+    The corresponding matrices of order two are listed in
+    ``MR.two_torsion``::
+
+        sage: A, B = MR.two_torsion; A
+        [ 21  13]
+        [-34 -21]
+        sage: A^2
+        [-1  0]
+        [ 0 -1]
+        sage: path = MR.reps_with_two_torsion[0]; path
+        [-3 -2]
+        [ 5  3]
+
+    You can see that multiplication by A just interchanges the
+    rational cusps determined by the columns of the matrix ``path``::
+
+        sage: A * path
+        [ 2 -3]
+        [-3  5]
+
+        sage: ManinRelations(13).two_torsion
+        [
+        [  5   2]  [  8   5]
+        [-13  -5], [-13  -8]
+        ]
+
+    ``MR.reps_with_three_torsion`` is a list of coset reps whose
+    associated unimodular path contains a point fixed by a
+    `\Gamma_0(N)` element of order 3 in the ideal triangle directly
+    below that path.  Here the order is again computed in `PSL_2(Z)`).
+
+    ``MR.indices_with_three_torsion`` gives the corresponding indices
+    in ``MR.reps()``::
+
+        sage: MR = ManinRelations(11)
+        sage: MR.indices_with_three_torsion
+        []
+        sage: MR = ManinRelations(13)
+        sage: MR.indices_with_three_torsion
+        [2, 5]
+        sage: MR.reps_with_three_torsion
+        [
+        [ 0 -1]  [-2 -1]
+        [ 1  3], [ 3  1]
+        ]
+        sage: MR.reps_with_three_torsion[0] == MR.reps(2)
+        True
+        sage: MR = ManinRelations(17)
+        sage: MR.reps_with_three_torsion
+        []
+        sage: MR = ManinRelations(103)
+        sage: MR.reps_with_three_torsion
+        [
+        [-4 -1]  [-1 -5]
+        [ 9  2], [ 2  9]
+        ]
+
+    The corresponding matrices of order three are listed in
+    ``MR.three_torsion``::
+
+        sage: A, B = MR.three_torsion; A
+        [-47 -21]
+        [103  46]
+        sage: A^3
+        [1 0]
+        [0 1]
+        sage: path = MR.reps_with_three_torsion[0]; path
+        [-4 -1]
+        [ 9  2]
+
+    You can see that the columns of path, A*path and A^2*path give the
+    same rational cusps::
+
+        sage: A * path
+        [ -1   5]
+        [  2 -11]
+        sage: A^2*path
+        [  5  -4]
+        [-11   9]
+
+        sage: ManinRelations(13).three_torsion
+        [
+        [-4 -1]  [-10  -7]
+        [13  3], [ 13   9]
+        ]
     """
     def __init__(self, N):
         r"""
@@ -213,7 +332,7 @@ class ManinRelations(PSModularSymbolsDomain):
         twotorrels = []
         threetor_index = []
         threetorrels = []
-        rels = [0 for i in range(0,len(coset_reps))]
+        rels = [0] * len(coset_reps)
 
         ## the list rels (above) will give Z[Gamma_0(N)] relations between
         ## the associated divisor of each coset representatives in terms
@@ -233,37 +352,37 @@ class ManinRelations(PSModularSymbolsDomain):
         ## element of coset_reps will be the sum of c * phi (r-th genetator) | A
         ## as one varies over the tuples in rel[j]
 
-        boundary_checked = [False for i in range(0,len(coset_reps))]
+        boundary_checked = [False] * len(coset_reps)
 
         ## The list boundary_checked keeps track of which boundary pieces of the
         ## fundamental domain have been already used as we are picking
         ## our generators
 
-#        glue_data = [0 for i in range(0,len(coset_reps))]   ## ????
-
-
         ## The following loop will choose our generators by picking one edge
         ## out of each pair of edges that are glued to each other and picking
         ## each edge glued to itself (arising from two-torsion)
         ## ------------------------------------------------------------------
-        for r in range(0,len(coset_reps)):
+        for r in range(len(coset_reps)):
             if boundary_checked[r] == False:
 
                 ## We now check if this boundary edge is glued to itself by
                 ## Gamma_0(N)
 
-                if P.index(p1s[r][0],p1s[r][1]) == P.index(-p1s[r][1],p1s[r][0]):
+                if P.normalize(p1s[r][0],p1s[r][1]) == P.normalize(-p1s[r][1],p1s[r][0]):
                     ## This edge is glued to itself and so coset_reps[r]
                     ## needs to be added to our generator list.
-                    rels[r] = [(1,Id,r)] ## this relation expresses the fact
-                                              ## that coset_reps[r] is one of our
-                                                   ## basic generators
 
-                    gens_index = gens_index + [r]    ## the index r is adding to our list
-                                                  ## of indexes of generators
-                    twotor_index = twotor_index + [r]  ## the index r is adding to our
-                                                         ## list of indexes of generators
-                                          ## which satisfy a 2-torsion relation
+                    ## this relation expresses the fact that
+                    ## coset_reps[r] is one of our basic generators
+                    rels[r] = [(1,Id,r)]
+
+                    ## the index r is adding to our list
+                    ## of indexes of generators
+                    gens_index.append(r)
+
+                    ## the index r is adding to our list of indexes of
+                    ## generators which satisfy a 2-torsion relation
+                    twotor_index.append(r)
 
                     gam = coset_reps[r] * sig * coset_reps[r]**(-1)
                     ## gam is 2-torsion matrix and in Gamma_0(N).
@@ -273,39 +392,33 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## This gives a restriction to the possible values of
                     ## modular symbols on D
 
-                    twotorrels = twotorrels + [gam]
-
                     ## The 2-torsion matrix gam is recorded in our list of
                     ## 2-torsion relations.
-
-#                    glue_data[r]=(r,gam)
-
-                    ## this records that the edge associated to coset_reps[r]
-                    ##is glued to itself by gam
-
-                    boundary_checked[r] = True
+                    twotorrels.append(gam)
 
                     ## We have now finished with this edge.
+                    boundary_checked[r] = True
 
                 else:
                     c = coset_reps[r][1,0]
                     d = coset_reps[r][1,1]
-                    if (c**2+d**2+c*d)%N == 0:
-                    ## If true, then the ideal triangle below the unimodular
-                    ## path described by coset_reps[r] contains a point
-                    ## fixed by a 3-torsion element.
 
-                        gens_index = gens_index + [r]
+                    ## In the following case the ideal triangle below
+                    ## the unimodular path described by coset_reps[r]
+                    ## contains a point fixed by a 3-torsion element.
+                    if (c**2+d**2+c*d)%N == 0:
+
                         ## the index r is adding to our list of indexes
                         ## of generators
+                        gens_index.append(r)
 
-                        rels[r] = [(1,Id,r)]
                         ## this relation expresses the fact that coset_reps[r]
                         ## is one of our basic generators
+                        rels[r] = [(1,Id,r)]
 
-                        threetor_index = threetor_index + [r]
                         ## the index r is adding to our list of indexes of
                         ##generators which satisfy a 3-torsion relation
+                        threetor_index.append(r)
 
                         gam = coset_reps[r] * tau * coset_reps[r]**(-1)
                         ## gam is 3-torsion matrix and in Gamma_0(N).
@@ -314,21 +427,18 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## This gives a restriction to the possible values of
                         ## modular symbols on D
 
-                        threetorrels = threetorrels + [gam]
-
                         ## The 3-torsion matrix gam is recorded in our list of
-                        ## 2-torsion relations.
-                        ###  DID I EVER ADD THE GLUE DATA HERE?  DO I NEED IT?
+                        ## 3-torsion relations.
+                        threetorrels.append(gam)
 
                         ## The reverse of the unimodular path associated to
                         ## coset_reps[r] is not Gamma_0(N) equivalent to it, so
                         ## we need to include it in our list of coset
                         ## representatives and record the relevant relations.
 
-                        a = coset_reps[r][0][0]
-                        b = coset_reps[r][0][1]
+                        a = coset_reps[r][0,0]
+                        b = coset_reps[r][0,1]
                         A = M2Z([-b,a,-d,c])
-                        A.set_immutable()
                         coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
@@ -388,10 +498,9 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## phi(D_s) = -phi(D_r)|gam
                                 ## since gam is in Gamma_0(N)
 
-#                                glue_data[r] = (s,gam)  ## ????
                                 found = True
-                                boundary_checked[r] = 1
-                                boundary_checked[s] = 1
+                                boundary_checked[r] = True
+                                boundary_checked[s] = True
 
                             else:
                                 s = s + 1  ## moves on to the next edge
@@ -446,22 +555,22 @@ class ManinRelations(PSModularSymbolsDomain):
         ## A list of indices of the (geometric) coset representatives whose
         ## paths are identified by some 2-torsion element (which switches the
         ## path orientation)
-        self._twotor_index = twotor_index
-        self._twotor = [coset_reps[i] for i in twotor_index]
+        self.indices_with_two_torsion = twotor_index
+        self.reps_with_two_torsion = [coset_reps[i] for i in twotor_index]
 
         ## A list of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the orientation identification in the paths listed in twotor_index above!
-        self._twotorrels = twotorrels
+        self.two_torsion = twotorrels
 
         ## A list of indices of the (geometric) coset representatives that
         ## form one side of an ideal triangle with an interior fixed point of
         ## a 3-torsion element of Gamma_0(N)
-        self._threetor_index = threetor_index
-        self._threetor = [coset_reps[i] for i in threetor_index]
+        self.indices_with_three_torsion = threetor_index
+        self.reps_with_three_torsion = [coset_reps[i] for i in threetor_index]
 
         ## A list of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the interior fixed point described in threetor_index above!
-        self._threetorrels = threetorrels
+        self.three_torsion = threetorrels
 
     def equivalent_index(self, A):
         r"""
@@ -583,136 +692,6 @@ class ManinRelations(PSModularSymbolsDomain):
             return self._gens_index
         else:
             return self._gens_index[n]
-
-    def two_torsion_indices(self,n=None):
-        r"""
-        Returns indices of coset rep generators which are fixed by
-        Gamma_0(N) 2-torsion.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The list of indices in self.coset_reps() whose associated
-          unimodular path contains a point fixed by a Gamma_0(N)
-          element of order 2 (where the order is computed in
-          `PSL_2(Z)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.two_torsion_indices()
-            []
-            sage: A = ManinRelations(13)
-            sage: A.two_torsion_indices()
-            [3, 4]
-            sage: A = ManinRelations(17)
-            sage: A.two_torsion_indices()
-            [5, 7]
-        """
-        if n is None:
-            return self._twotor_index
-        else:
-            return self._twotor_index[n]
-
-    def two_torsion_relation_matrices(self,n=None):
-        r"""
-        Returns the order 2 matrices corresponding to the indices in
-        self.two_torsion_indices()
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The list of order 2 matrices which correspond to the indices
-          in self.two_torsion_indices().
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(13)
-            sage: A.two_torsion_relation_matrices()
-            [
-            [  5   2]  [  8   5]
-            [-13  -5], [-13  -8]
-            ]
-        """
-        if n is None:
-            return self._twotorrels
-        else:
-            return self._twotorrels[n]
-
-    def three_torsion_indices(self,n=None):
-        r"""
-        Returns indices of coset rep generators which are fixed by
-        `\Gamma_0(N)` 3-torsion.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The list of indices in self.coset_reps() whose associated
-          unimodular path contains a point fixed by a `\Gamma_0(N)`
-          element of order 3 in the ideal triangle directly below that
-          path.  Here the order is actually computed in `PSL_2(Z)`.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.three_torsion_indices()
-            []
-            sage: A = ManinRelations(13)
-            sage: A.three_torsion_indices()
-            [2, 5]
-            sage: A = ManinRelations(17)
-            sage: A.three_torsion_indices()
-            []
-            sage: A = ManinRelations(103)
-            sage: A.three_torsion_indices()
-            [16, 17]
-        """
-        if n is None:
-            return self._threetor_index
-        else:
-            return self._threetor_index[n]
-
-    def three_torsion_relation_matrices(self,n=None):
-        r"""
-        Returns the order 3 matrices corresponding to the indices in
-        self.three_torsion_indices()
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The list of order 3 matrices which correspond to the indices
-          in ``self.three_torsion_indices()``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(13)
-            sage: A.three_torsion_relation_matrices()
-            [
-            [-4 -1]  [-10  -7]
-            [13  3], [ 13   9]
-            ]
-
-        """
-        if n is None:
-            return self._threetorrels
-        else:
-            return self._threetorrels[n]
 
     def coset_relations(self,n=None):
         r"""
