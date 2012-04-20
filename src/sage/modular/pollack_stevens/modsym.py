@@ -235,6 +235,40 @@ class PSModularSymbolElement(ModuleElement):
         
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def __init__():
+
+    def p_stabilize(alpha = None, ap = None, ordinary = True):
+
+    def completions(self, p, M):
+        r"""
+        If `K` is the base_ring of self, this function takes all maps
+        `K-->Q_p` and applies them to self return a vector of
+        <modular symbol,map: `K-->Q_p`> as map varies over all such maps.
+
+        NOTE: This only returns all completions when `p` splits completely in `K`
+
+        INPUT:
+            - ``p`` -- prime
+            - ``M`` -- precision
+
+        OUTPUT:
+
+        EXAMPLES:
+        """
+        K = self.base_ring()
+        f = K.defining_polynomial()
+        R = pAdicField(p,M+10)['x']
+        x = R.gen()
+        v = R(f).roots()
+        if len(v) == 0:
+            raise ValueError, "No coercion possible -- no prime over p has degree 1"
+        else:
+            roots = [r[0] for r in v]
+            ans = []
+            for r in root:
+                psi = K.hom([root],pAdicField(p,M))
+                ans.append([self.map(psi),psi])
+            return ans
+        
         
 class PSModularSymbolElement_dist(PSModularSymbolElement):
     def __init__():
@@ -243,4 +277,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         r"""
         Only holds on to `M` moments of each value of self
         """
-        
+
+    def precision_absolute( ):
+
+    def specialize( ):
