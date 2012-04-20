@@ -32,11 +32,34 @@ t01 = (0,1)
 t11 = (1,1)
 
 class PSModularSymbolsDomain(SageObject):
-    def __init__(self, N, reps, indices, equiv_ind):
+    def __init__(self, N, reps, indices, rels, equiv_ind):
+        ## Store the level
         self._N = N
+
+        ## Coset representatives of Gamma_0(N) coming from the geometric
+        ## fundamental domain algorithm
         self._reps = reps
+
+        ## This is a list of indices of the (geometric) coset representatives
+        ## whose values (on the associated degree zero divisors) determine the
+        ## modular symbol.
         self._indices = sorted(indices)
+
         self._gens = [reps[i] for i in self._indices]
+        self._ngens = len(indices)
+
+        self._rels = rels
+        self._rel_dict = {}
+        for j, L in enumerate(rels):
+            self._rel_dict[reps[j]] = [(d, A, reps[i]) for (d, A, i) in L]
+        ## A list of lists of triples (d, A, i), one for each coset
+        ## representative of Gamma_0(N) (ordered to correspond to the
+        ## representatives of self.coset_reps) expressing the value of a
+        ## modular symbol on the associated unimodular path as a sum of terms
+        ##    d * (value on the i-th coset rep) | A
+        ## where the index i must appear in self.gens_index, and the slash gives the
+        ##  matrix action.
+
         self._equiv_ind = equiv_ind
         self._equiv_rep = {}
         for ky in equiv_ind:
@@ -122,11 +145,26 @@ class PSModularSymbolsDomain(SageObject):
         else:
             return self._reps[n]
 
+    def relations(self, A=None, indices=False):
+        if A is None:
+            if indices:
+                return self._rels
+            else:
+                return self._rel_dict
+        if isinstance(A, (int, Integer, slice)):
+            return self._rels[A]
+        else:
+            return self._rel_dict[A]
+        self._rels = rels
+        self._rel_dict = {}
+        for j, L in enumerate(rels):
+            self._rel_dict[reps[j]] = [(d, A, reps[i]) for (d, A, i) in L]
+
 ######################################
 ##  Define the Manin Relation Class ##
 ######################################
 
-class ManinRelations(SageObject):
+class ManinRelations(PSModularSymbolsDomain):
     """
     This class gives a description of Div^0(P^1(QQ)) as a
     `\ZZ[\Gamma_0(N)]`-module.
@@ -141,7 +179,6 @@ class ManinRelations(SageObject):
 
             sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
         """
-        ## Store the level
         self._N = N
 
         ## Creates and stores the Sage representation of P^1(Z/NZ)
@@ -396,68 +433,70 @@ class ManinRelations(SageObject):
                         t = (-rels[j][0][0],rels[j][0][1],rels[j][0][2]) ## This is simply the negative of the above edge relation.
                         vB = vB + [t]  ## Negative of edge relation added
                     rels = rels + [vA,vB]  ## Relations for A and B adding to relations list
-####        return [coset_reps,gens_index,twotor_index,twotorrels,threetor_index,threetorrels,rels,glue_data]
-
-
-        ## Store the data coming from solving the Manin Relations
-        ## ======================================================
-
-        self._mats = coset_reps
-
-        ## Coset representatives of Gamma_0(N) coming from the geometric
-        ## fundamental domain algorithm
 
         ## Make the translation table between the Sage and Geometric
         ## descriptions of P^1
-
         equiv_ind = {}
         for i, rep in enumerate(coset_reps):
             ky = P.normalize(rep[t10],rep[t11])
             equiv_ind[ky] = i
 
-        self._gens_index = gens_index
-        ## This is a list of indices of the (geometric) coset representatives
-        ## whose values (on the associated degree zero divisors) determine the
-        ## modular symbol.
+        PSModularSymbolsDomain.__init__(self, N, coset_reps, gens_index, rels, equiv_ind)
 
-        self._ngens = len(self._gens_index)
-        self._gens = [self._mats[i] for i in self._gens_index]
-
-        self._twotor_index = twotor_index
         ## A list of indices of the (geometric) coset representatives whose
         ## paths are identified by some 2-torsion element (which switches the
         ## path orientation)
-        self._twotor = [self._mats[i] for i in self._twotor_index]
+        self._twotor_index = twotor_index
+        self._twotor = [coset_reps[i] for i in twotor_index]
 
-        self._twotorrels = twotorrels
         ## A list of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the orientation identification in the paths listed in twotor_index above!
+        self._twotorrels = twotorrels
 
-        self._threetor_index = threetor_index
         ## A list of indices of the (geometric) coset representatives that
         ## form one side of an ideal triangle with an interior fixed point of
         ## a 3-torsion element of Gamma_0(N)
-        self._threetor = [self._mats[i] for i in self._threetor_index]
+        self._threetor_index = threetor_index
+        self._threetor = [coset_reps[i] for i in threetor_index]
 
-        self._threetorrels = threetorrels
         ## A list of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the interior fixed point described in threetor_index above!
-
-        self._rels = rels
-        self._rel_dict = {}
-        for j, L in enumerate(rels):
-            self._rel_dict[self._mats[j]] = [(d, A, self._mats[i]) for (d, A, i) in L]
-        ## A list of lists of triples (d, A, i), one for each coset
-        ## representative of Gamma_0(N) (ordered to correspond to the
-        ## representatives of self.coset_reps) expressing the value of a
-        ## modular symbol on the associated unimodular path as a sum of terms
-        ##    d * (value on the i-th coset rep) | A
-        ## where the index i must appear in self.gens_index, and the slash gives the
-        ##  matrix action.
-
-#        self._glue = glue_data           ## TBA... =)
+        self._threetorrels = threetorrels
 
     def equivalent_index(self, A):
+        r"""
+        Returns the index of the rep equivalent to A.
+
+        Here by equivalent we mean the unique coset rep whose bottom
+        row is equivalent to the bottom row of A in `P^1(\ZZ/N\ZZ)`.
+
+        INPUT:
+
+        - ``A`` -- an element of `SL_2(\ZZ)`
+
+        OUTPUT:
+
+        - The unique integer j satisfying that the bottom row of
+          self.reps(j) is equivalent to the bottom row of A.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: MR = ManinRelations(11)
+            sage: A = matrix(ZZ,2,2,[3,5,16,27])
+            sage: j = MR.equivalent_index(A); j
+            sage: P = A.P1()
+            sage: ind = 6
+            sage: a = P[ind]; a
+            (1, 5)
+            sage: ind2 = A.P1_to_coset_index(ind); ind2
+            7
+            sage: b = A.coset_reps(ind2); b
+            [ 1  0]
+            [-2  1]
+            sage: P.index(a[0],a[1]) == P.index(b[1,0],b[1,1])
+            True
+        """
         ky = self._P.normalize(A[t10],A[t11])
         return self._equiv_ind[ky]
 
@@ -486,15 +525,6 @@ class ManinRelations(SageObject):
         ky = self._P.normalize(A[t10],A[t11])
         return self._equiv_rep[ky]
 
-    def gens_index(self):
-        return self._gens_index
-
-    def find_coset_rep(self, A):
-        #fix this to use a dict
-        i = self._P.index(A[t10],A[t11])
-        m = self._P1_to_mats[i]
-        return self._mats[m]
-
     def P1(self):
         r"""
         Returns the Sage representation of `P^1(\ZZ/N\ZZZ)`.
@@ -513,39 +543,6 @@ class ManinRelations(SageObject):
         return self._P
 
     def P1_to_coset_index(self,n=None):
-        r"""
-        Takes the n-th element of Sage's `P^1(Z/NZ)` and returns the
-        index of the associated element in A.coset_reps().
-
-        Here by associated we mean the unique coset rep whose bottom
-        row corresponds to the n-th element of P^1.  If n is not
-        specified the entire translation table between the Sage P^1
-        and the coset reps P^1 is returned.
-
-        INPUT:
-
-        - ``n`` -- integer (default: None)
-
-        OUTPUT:
-
-        - The unique integer j satisfying that the bottom row of A.coset_reps(j) is equivalent to A.P1()[n]
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: P = A.P1()
-            sage: ind = 6
-            sage: a = P[ind]; a
-            (1, 5)
-            sage: ind2 = A.P1_to_coset_index(ind); ind2
-            7
-            sage: b = A.coset_reps(ind2); b
-            [ 1  0]
-            [-2  1]
-            sage: P.index(a[0],a[1]) == P.index(b[1,0],b[1,1])
-            True
-        """
         if n is None:
             return self._P1_to_mats
         else:
