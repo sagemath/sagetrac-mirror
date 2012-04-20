@@ -217,29 +217,27 @@ class PSModularSymbolElement(ModuleElement):
         sd = self._map._dict
         return min([val.valuation(p) for  ky,val in sd.iteritems()])
 
-    def change_ring():
+    def change_ring(self):
         r"""
         """
         pass
 
-    def is_Tq_eigensymbol():
+    def is_Tq_eigensymbol(self):
         r"""
         """
         pass
     
-    def Tq_eigenvalue():
+    def Tq_eigenvalue(self):
         r"""
         """
         pass
     
-    def lift(self, algorithm = ..., eigensymbol = ...):
+    def lift(self, algorithm = None, eigensymbol = None):
         r"""
         """
         pass
     
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    def __init__():
-        pass
     
     def p_stabilize(alpha = None, ap = None, ordinary = True):
         pass
@@ -277,8 +275,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         
         
 class PSModularSymbolElement_dist(PSModularSymbolElement):
-    def __init__():
-        pass
+
     
     def reduce_precision(self, M):
         r"""
@@ -286,7 +283,8 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         pass
     
-    def precision_absolute( ):
+    def precision_absolute(self):
         pass
-    def specialize( ):
+    
+    def specialize(self):
         pass
