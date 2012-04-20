@@ -78,6 +78,17 @@ class PSModularSymbolSpace(Module):
         """
         return self._coefficients
 
+    def group(self):
+        r"""
+        Returns the congruence subgroup of self.
+
+        EXAMPLES:
+
+        ::
+
+        """
+        return self._group
+
     def ngens(self):
         r"""
         Returns the number of generators defining self.
@@ -152,10 +163,12 @@ class PSModularSymbolSpace(Module):
         return self._manin_relations.level()
 
     def _grab_relations(self):
+
+        # Should this return a dictionary as opposed to a list?
         v = []
         for r in range(len(self._manin_relations.coset_reps())):
             for j in range(self._manin_relations.coset_reps()):
-                R = self._manin.coset_relations[j]
+                R = self._manin.relations[j]
                 if (len(R) == 1) and (R[0][2] == self._manin_relations.generator_indices(r)):
                     if R[0][0] <> -1 or R[0][1] <> Id:
                         v = v + [R]
@@ -233,7 +246,7 @@ class PSModularSymbolSpace(Module):
         ::
 
         """
-	return self._coefficient_module()._prec_cap
+	return self.coefficient_module()._prec_cap
 
     def weight(self):
         r"""
@@ -245,7 +258,7 @@ class PSModularSymbolSpace(Module):
 
         """
 
-	return self._coefficient_module()._k
+	return self.coefficient_module()._k
 
     def prime(self):
         r"""
@@ -257,7 +270,7 @@ class PSModularSymbolSpace(Module):
 
         """
 
-	return self._coefficient_module()._p
+	return self.coefficient_module()._p
 
     def random_element(self, M):
         r"""
@@ -281,6 +294,7 @@ class PSModularSymbolSpace(Module):
         if M > self.precision_cap():
             raise PrecisionError ("Too many moments for self.")
 
+        # Somebody who understands the details should take a careful look.
         N = self.level()
         p = self.prime()
 	manin = ManinRelations(N * p)
@@ -288,12 +302,12 @@ class PSModularSymbolSpace(Module):
 	for j in range(1, len(manin.gens())):
 	    g = manin._gens(j)
 	    if g in manin.reps_with_two_torsion:
-                dd[g] = self._coefficient_module().random_element(M)
+                dd[g] = self.coefficient_module().random_element(M)
 	    else:
 	        rj = manin.twotor_index[g]
 		gam = manin.twotorrels[rj]
-	   	mu = self._coefficient_module().random_element(M)
-                dd[mu] = mu.act_right(gam)._sub_(mu))._lmul_(ZZ(1) / ZZ(2)
+	   	mu = self.coefficient_module().random_element(M)
+                dd[mu] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2)
 	t = self.zero()
 	for j in range(2, len(manin.coset_relations())):
 	    R = manin.coset_relations(j)
@@ -309,7 +323,6 @@ class PSModularSymbolSpace(Module):
 		    t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
                     # Should t do something?
         dd[manin.gens(0)] =  mu._lmul_(-1)
-      # 	v = [mu._lmul_(-1)] + v
 	return modsym_dist(dd, self)
 
 
