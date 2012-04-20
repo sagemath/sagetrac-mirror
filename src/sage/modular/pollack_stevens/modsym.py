@@ -70,8 +70,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
         True
@@ -93,10 +93,10 @@ class PSModularSymbolElement(ModuleElement):
         ::
         
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
-        sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
+        sage: (phi.plus_part()+phi.minus_part()) == phi * 2
         True   
         """
         return self - self * minusproj
@@ -132,7 +132,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+            sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
             sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi.hecke(2) == phi * E.ap(2)
@@ -168,7 +168,7 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.valuation(2)
@@ -205,8 +205,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
         sage: phi_ord.is_Tq_eigensymbol(2,3,10)
@@ -241,8 +241,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize_ordinary(3,E.ap(3),10)
         sage: phi_ord.Tq_eigenvalue(2,3,10)
@@ -264,8 +264,63 @@ class PSModularSymbolElement(ModuleElement):
     
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     
-    def p_stabilize(alpha = None, ap = None, ordinary = True):
-        pass
+    def p_stabilize(p=None, M=None, alpha = None, ap = None, ordinary = True, check=True):
+        k = self.parent().weight()
+        p = p or self.parent().prime() or ((alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime())
+        if not p:
+            pass
+        V = self.parent().p_stabilize(p)
+        if alpha is None:
+            if p is None:
+                p = self.parent().prime()
+            if M is None:
+                M = self.parent().precision_cap()
+            if p is None or M is None:
+                raise ValueError("you must specify either alpha or p and M")
+            if ap is None:
+                f = self.hecke(p)
+                gens = self.parent().source().gens()
+                g = gens[0]
+                ap = f._map[g] / self._map[g]
+                if check:
+                    for g in gens[1:]:
+                        if f._map[g] != ap * self._map[g]:
+                            raise ValueError("not an eigensymbol")
+            if check and ap % p == 0:
+                raise ValueError("p is not ordinary")
+            if p == 2:
+                R = Qp(2, M+1)
+            else:
+                R = Qp(p, M)
+            sdisc = R(ap**2 - 4*p**(k+1)).sqrt()
+            v0 = (R(ap) + sdisc) / 2
+            v1 = (R(ap) - sdisc) / 2
+            if v0.valuation() > 0:
+                v0, v1 = v1, v0
+            if ordinary:
+                alpha = ZZ(v0) # why not have alpha be p-adic?
+            else:
+                alpha = ZZ(v1) # why not have alpha be p-adic?
+        elif check:
+            apar = alpha.parent()
+            pp = self.parent().prime()
+            if pp is not None:
+                if p is None:
+                    p = pp
+                elif p != pp:
+                    raise ValueError("inconsistent prime")
+            if p is None:
+                if hasattr(apar, 'prime'):
+                    p = apar.prime()
+                else:
+                    raise ValueError("you must specify a prime")
+            elif hasattr(apar, 'prime') and p != apar.prime():
+                raise ValueError("p inconsistent with alpha")
+            elif not p.is_prime():
+                raise ValueError("p must be prime")
+            if M is None:
+                M = self.parent().precision_cap()
+        
     
     def completions(self, p, M):
         r"""
