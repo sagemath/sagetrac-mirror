@@ -220,24 +220,30 @@ class PSModularSymbolElement(ModuleElement):
     def change_ring():
         r"""
         """
+        pass
 
     def is_Tq_eigensymbol():
         r"""
         """
-
+        pass
+    
     def Tq_eigenvalue():
         r"""
         """
-
+        pass
+    
     def lift(self, algorithm = ..., eigensymbol = ...):
         r"""
         """
-        
+        pass
+    
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def __init__():
-
+        pass
+    
     def p_stabilize(alpha = None, ap = None, ordinary = True):
-
+        pass
+    
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
@@ -272,12 +278,15 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         
 class PSModularSymbolElement_dist(PSModularSymbolElement):
     def __init__():
-
+        pass
+    
     def reduce_precision(self, M):
         r"""
         Only holds on to `M` moments of each value of self
         """
-
+        pass
+    
     def precision_absolute( ):
-
+        pass
     def specialize( ):
+        pass
