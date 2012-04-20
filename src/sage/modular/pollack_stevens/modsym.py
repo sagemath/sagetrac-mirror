@@ -77,8 +77,6 @@ class PSModularSymbolElement(ModuleElement):
         True   
         """
         return self - self * minusproj
-    
-## the methods below need the new dict (currently using old code with indices)
 
     def hecke(self, ell, algorithm="prep"):
         r"""
@@ -99,7 +97,14 @@ class PSModularSymbolElement(ModuleElement):
 
         ALGORITHMS:
 
-        - If ``algorithm`` == 'prep', precomputes a list of matrices that only depend on the level
+        - If ``algorithm == 'prep'``, precomputes a list of matrices
+          that only depend on the level, then uses them to speed up
+          the action.
+
+        - If ``algorithm == 'naive'``, just acts by the matrices
+          defining the Hecke operator.  That is, it computes
+          sum_a self | [1,a,0,ell] + self | [ell,0,0,1],
+          the last term occurring only if the level is prime to ell.
 
         EXAMPLES::
 
@@ -119,56 +124,25 @@ class PSModularSymbolElement(ModuleElement):
             sage: ell=101
             sage: phi.hecke(ell) == phi.scale(E.ap(ell))
             True
+
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
+            sage: phi = form_modsym_from_elliptic_curve(E); phi
+            [-1/5, 3/2, -1/2]
+            sage: ell = 2
+            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell = 3
+            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell=5
+            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+            True
+            sage: ell=101
+            sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
+            True
         """
         return self.__class__(self._map.hecke(ell, algorithm), self.parent(), construct=True)
-
-    def hecke_from_defn(self,ell):
-        r"""
-        Computes self | T_ell directly from the definition of acting by double
-        coset reps.
-
-        That is, it computes sum_a self | [1,a,0,ell] + self | [ell,0,0,1]
-        where the last term occurs only if the level is prime to ell.
-
-        INPUT:
-
-        - ``ell`` - prime
-
-        OUTPUT:
-
-        self | T_ell
-
-        EXAMPLES:
-
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
-        [-1/5, 3/2, -1/2]
-        sage: ell = 2
-        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell = 3
-        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell=5
-        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-        True
-        sage: ell=101
-        sage: phi.hecke_from_defn(ell) == phi.scale(E.ap(ell))
-        True
-
-        """
-        # If needed, precomputes the value of self on all coset reps
-        if self.full_data() == 0:
-            self.compute_full_data_from_gen_data()
-            
-        psi = self.parent().zero() + [self.act_right(M2Z([1,a,0,ell])) for a in range(ell)]
-        if self.parent().level() % ell != 0:
-            psi = psi + self.act_right(M2Z([ell,0,0,1]))
-        return psi.normalize()
-   
 
     def valuation(self, p):
         r"""
