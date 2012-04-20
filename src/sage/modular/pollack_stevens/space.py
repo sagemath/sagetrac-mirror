@@ -75,6 +75,13 @@ class PSModularSymbolSpace(Module):
         actions = [PSModSymAction(ZZ, self), PSModSymAction(M2ZSpace, self)]
         self._populate_coercion_lists_(action_list=actions)
 
+    def _repr_(self):
+        r"""
+        Returns print representation.
+        """
+        s = "Space of overconvergent modular symbols for %s with sign %s and values in %s"%(self.group(), self.sign(), self.coefficient_module())
+        return s
+
     def source(self):
         return self._manin_relations
 
@@ -131,6 +138,7 @@ class PSModularSymbolSpace(Module):
         Returns the number of generators defining self.
 
         EXAMPLES::
+
             sage: D = Distributions(4, 29)
             sage: M = PSModularSymbolSpace(Gamma1(12), D)
             sage: M.ngens()
@@ -152,9 +160,10 @@ class PSModularSymbolSpace(Module):
         of P^1(Z/NZ))
 
         EXAMPLES::
+
             sage: D = Distributions(2)
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
-            sage: M.ngens()
+            sage: M.ncoset_reps()
             3
 
         """
@@ -172,6 +181,7 @@ class PSModularSymbolSpace(Module):
         The level `N` when self is of level `Gamma_0(N)`
 
         EXAMPLES::
+
             sage: D = Distributions(7, 11)
             sage: M = PSModularSymbolSpace(Gamma1(14), D)
             sage: M.level()
@@ -182,14 +192,30 @@ class PSModularSymbolSpace(Module):
         return self._manin_relations.level()
 
     def _grab_relations(self):
+        r"""
 
-        # Should this return a dictionary as opposed to a list?
+
+        EXAMPLES::
+
+            sage: D = Distributions(4, 3)
+            sage: M = PSModularSymbolSpace(Gamma1(13), D)
+            sage: M._grab_relations()
+            [[(1, [1 0]
+            [0 1], 0)], [(-1, [-1 -1]
+            [ 0 -1], 0)], [(1, [1 0]
+            [0 1], 2)], [(1, [1 0]
+                [0 1], 3)], [(1, [1 0]
+                    [0 1], 4)], [(1, [1 0]
+                        [0 1], 5)]]
+
+        """
+
         v = []
-        for r in range(len(self._manin_relations.reps())):
-            for j in range(self._manin_relations.reps()):
-                R = self._manin_relations[j]
+        for r in range(len(self._manin_relations.gens())):
+            for j in range(len(self._manin_relations.reps())):
+                R = self._manin_relations.relations(j)
                 if (len(R) == 1) and (R[0][2] == self._manin_relations.indices(r)):
-                    if R[0][0] <> -1 or R[0][1] <> Id:
+                    if R[0][0] <> -1 or R[0][1] <> M2ZSpace.one():
                         v = v + [R]
         return v
 
@@ -205,6 +231,7 @@ class PSModularSymbolSpace(Module):
         The zero element in the space where self takes values
 
         EXAMPLES::
+
             sage: D = Distributions(2)
             sage: M = PSModularSymbolSpace(Gamma0(3), D)
             sage: M.zero_element()
@@ -225,10 +252,12 @@ class PSModularSymbolSpace(Module):
         The zero modular symbol of self.
 
         EXAMPLES::
-          #  sage: D = Distributions(4,2)
-          #  sage: M = PSModularSymbolSpace(Gamma1(6), D)
-          #  sage: M.zero()
-          #  0
+
+            sage: D = Distributions(4,2)
+            sage: M = PSModularSymbolSpace(Gamma1(6), D)
+            sage: M.zero()
+            A modular symbol with values in Space of 2-adic distributions with
+            k=4 action and precision cap 20
 
         """
 
@@ -244,6 +273,7 @@ class PSModularSymbolSpace(Module):
         Returns the number of moments of each value of self
 
         EXAMPLES::
+
             sage: D = Distributions(2, 5)
             sage: M = PSModularSymbolSpace(Gamma1(13), D)
             sage: M.precision_cap()
@@ -261,6 +291,7 @@ class PSModularSymbolSpace(Module):
         Returns the weight of self
 
         EXAMPLES::
+
             sage: D = Distributions(5)
             sage: M = PSModularSymbolSpace(Gamma1(7), D)
             sage: M.weight()
@@ -274,8 +305,10 @@ class PSModularSymbolSpace(Module):
         Returns the prime of self
 
         EXAMPLES:
-
-        ::
+            sage: D = Distributions(2, 11)
+            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M.prime()
+            11
 
         """
         return self.coefficient_module()._p
@@ -300,6 +333,7 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES:
 
+
         ::
 
 
@@ -308,7 +342,7 @@ class PSModularSymbolSpace(Module):
         if M > self.precision_cap():
             raise PrecisionError ("Too many moments for self.")
 
-
+        # Sorry, I messed this up.
         # Somebody who understands the details should take a careful look.
         N = self.level()
         p = self.prime()
@@ -319,26 +353,30 @@ class PSModularSymbolSpace(Module):
         for g in manin.gens()[1:]:
             mu = self.coefficient_module().random_element(M)
             if g in manin.reps_with_two_torsion:
-                rj = manin.twotor_index[g]
-                gam = manin.twotorrels[rj]
+                rj = manin.indices_with_two_torsion[g]
+                gam = manin.two_torsion[rj]
                 dd[g] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2))
             else:
                 dd[g] = mu
-        t = self.zero()
-        for j in range(2, len(manin.coset_relations())):
-            R = manin.coset_relations(j)
+        #t = self.zero()
+        print "gens", manin.gens()
+        for j in range(2, len(manin.relations())):
+            R = manin.relations(j)
             if len(R) == 1:
+                print "R=", R
                 if R[0][0] == 1:
-                    rj = manin.gens(j - 1)
-                    t = t + dd[rj]
+                    print "j=", j
+                    print "indices(j)", manin.indices(j)
+                    rj = manin.gens()[j -1] #manin.indices(j - 1)]
+                    #t = t + dd[rj]
                     # Should t do something?
                 else:
                     index = R[0][2]
-                    rj = manin.gens(index - 1)
+                    rj = manin.gens()[index - 1]
                     mu = dd[rj]
-                    t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
+                    #t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
                     # Should t do something?
-        dd[manin.gens(0)] =  mu._lmul_(-1)
+        dd[manin.gens()[0]] = mu._lmul_(-1)
         return modsym_dist(dd, self)
 
 def cusps_from_mat(g):

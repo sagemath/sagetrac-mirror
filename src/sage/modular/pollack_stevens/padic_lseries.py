@@ -20,7 +20,7 @@ class pAdicLseries(SageObject):
         """
         Return print representation.
         """
-        s = "%s-adic L-series of $s"%(self._p, self._M)
+        s = "%s-adic L-series of %s"%(self._p, self._M)
         return s
 
     def series(self, n, quadratic_twist, prec):
