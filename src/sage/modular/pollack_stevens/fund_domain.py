@@ -26,6 +26,7 @@ from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import zero_vector
 from copy import deepcopy
 from sage.misc.cachefunc import cached_method
+from sage.rings.arith import convergents
 
 M2ZSpace = MatrixSpace_ZZ_2x2()
 def M2Z(x):
@@ -598,7 +599,7 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## generators which satisfy a 2-torsion relation
                     twotor_index.append(r)
 
-                    gam = coset_reps[r] * sig * coset_reps[r]**(-1)
+                    gam = coset_reps[r] * sig * coset_reps[r]._invert_unit()
                     ## gam is 2-torsion matrix and in Gamma_0(N).
                     ## if D is the divisor associated to coset_reps[r]
                     ## then gam * D = - D and so (1+gam)D=0.
@@ -634,7 +635,7 @@ class ManinRelations(PSModularSymbolsDomain):
                         ##generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
-                        gam = coset_reps[r] * tau * coset_reps[r]**(-1)
+                        gam = coset_reps[r] * tau * coset_reps[r]._invert_unit()
                         ## gam is 3-torsion matrix and in Gamma_0(N).
                         ## if D is the divisor associated to coset_reps[r]
                         ## then (1+gam+gam^2)D=0.
@@ -694,7 +695,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## A corresponds to reversing the orientation
                                 ## of the edge corr. to coset_reps[r]
 
-                                gam = coset_reps[r] * A**(-1)
+                                gam = coset_reps[r] * A._invert_unit()
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 

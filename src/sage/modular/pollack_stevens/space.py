@@ -277,6 +277,12 @@ class PSModularSymbolSpace(Module):
         """
         return self.coefficient_module()._p
 
+    def _an_element_(self):
+        D = {}
+        for g in self.source().gens():
+            D[g] = self.coefficient_module().an_element()
+        return self(D)
+
     def random_element(self, M):
         r"""
         Returns a random OMS with tame level `N`, prime `p`, weight `k`, and
@@ -350,7 +356,7 @@ def form_modsym_from_elliptic_curve(E):
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)
-        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd) - plus_sym(bd)])
+        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd) - minus_sym(bd)])
     return V(val)
 
 def form_modsym_from_decomposition(A):

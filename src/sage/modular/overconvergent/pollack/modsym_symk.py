@@ -584,6 +584,7 @@ def form_modsym_from_elliptic_curve(E):
     """
     L = E.padic_lseries(3)  #initializing the L-function at 3 to access mod sym data
     N = E.conductor()
+    from fund_domain import manin_relations
     manin = manin_relations(N)
     v = []
     R = PolynomialRing(QQ,2,names='X,Y')
