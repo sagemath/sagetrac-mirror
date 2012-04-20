@@ -12,17 +12,7 @@ from sage.rings.arith import convergents
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
 from distributions import Distributions
-
-M2ZSpace = MatrixSpace_ZZ_2x2()
-def M2Z(x):
-    a = M2ZSpace(x)
-    a.set_immutable()
-    return a
-    
-t00 = (0,0)
-t10 = (1,0)
-t01 = (0,1)
-t11 = (1,1)
+from fund_domain import M2Z, t00, t10, t01, t11, Id
 
 def unimod_matrices_to_infty(r, s):
     """

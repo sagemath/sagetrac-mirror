@@ -25,7 +25,18 @@ from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import zero_vector
 from copy import deepcopy
 
-M2Z = MatrixSpace_ZZ_2x2()
+M2ZSpace = MatrixSpace_ZZ_2x2()
+def M2Z(x):
+    a = M2ZSpace(x)
+    a.set_immutable()
+    return a
+
+Id = M2Z([1,0,0,1])
+sig = M2Z([0,1,-1,0])
+tau = M2Z([0,-1,1,-1])
+minone_inf_path = M2Z([1,1,-1,0])
+
+# We store these so that we don't have to constantly create them.
 t00 = (0,0)
 t10 = (1,0)
 t01 = (0,1)
@@ -155,10 +166,6 @@ class PSModularSymbolsDomain(SageObject):
             return self._rels[A]
         else:
             return self._rel_dict[A]
-        self._rels = rels
-        self._rel_dict = {}
-        for j, L in enumerate(rels):
-            self._rel_dict[reps[j]] = [(d, A, reps[i]) for (d, A, i) in L]
 
 ######################################
 ##  Define the Manin Relation Class ##
@@ -315,13 +322,6 @@ class ManinRelations(PSModularSymbolsDomain):
         ## beginning of our collection of coset reps for Gamma_0(N) / SL_2(Z).
         coset_reps = self.fd_boundary(cusps)
 
-        ## Make the identity matrix
-        Id = M2Z([1,0,0,1])
-
-        ## Gives names to matrices of order 2 and 3 (in PSL_2)
-        sig = M2Z([0,1,-1,0])
-        tau = M2Z([0,-1,1,-1])
-
         ## Takes the bottom row of each of our current coset reps,
         ## thinking of them as distinct elements of P^1(Z/NZ)
         p1s = [(coset_reps[j])[1] for j in range(len(coset_reps))]
@@ -400,8 +400,8 @@ class ManinRelations(PSModularSymbolsDomain):
                     boundary_checked[r] = True
 
                 else:
-                    c = coset_reps[r][1,0]
-                    d = coset_reps[r][1,1]
+                    c = coset_reps[r][t10]
+                    d = coset_reps[r][t11]
 
                     ## In the following case the ideal triangle below
                     ## the unimodular path described by coset_reps[r]
@@ -436,14 +436,14 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## we need to include it in our list of coset
                         ## representatives and record the relevant relations.
 
-                        a = coset_reps[r][0,0]
-                        b = coset_reps[r][0,1]
+                        a = coset_reps[r][t00]
+                        b = coset_reps[r][t01]
                         A = M2Z([-b,a,-d,c])
                         coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
 
-                        rels = rels + [[(-1,Id,r)]]
+                        rels.append([(-1,Id,r)])
                         ## This relation means that phi on the reversed edge
                         ## equals -phi on original edge
 
@@ -1060,9 +1060,7 @@ class ManinRelations(PSModularSymbolsDomain):
         C.reverse() ## Reverse here to get clockwise orientation of boundary
 
         ## These matrices correspond to the paths from infty to 0 and -1 to infty
-        mats = [M2Z([1,0,0,1]),M2Z([1,1,-1,0])]
-        mats[0].set_immutable()
-        mats[1].set_immutable()
+        mats = [Id, minone_inf_path]
 
         ## Now find SL_2(Z) matrices whose associated unimodular paths connect
         ## the cusps listed in C.
@@ -1073,7 +1071,6 @@ class ManinRelations(PSModularSymbolsDomain):
             c = C[j].denominator()
             d = C[j+1].denominator()
             new_mat = M2Z([a,b,c,d])
-            new_mat.set_immutable()
             mats.append(new_mat)
 
         return mats
