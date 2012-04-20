@@ -14,6 +14,128 @@ from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x
 from distributions import Distributions
 from fund_domain import M2Z, t00, t10, t01, t11, Id, unimod_matrices_to_infty
 
+def unimod_matrices_to_infty(r, s):
+    r"""
+    Returns a list of matrices whose associated unimodular paths
+    connect `0` to `r/s`.  This is Manin's continued fraction trick, which
+    gives an expression `{0,r/s} = {0,oo} + ... + {a,b} + ... + {*,r/s}`,
+    where each `{a,b}` is the image of `{0,oo}` under a matrix in `SL_2(ZZ)`.
+
+    INPUT:
+
+    - ``r``, ``s`` -- rational numbers
+
+    OUTPUT:
+
+    - a list of matrices in `SL_2(\ZZ)`
+
+    EXAMPLES::
+
+        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(19,23); v
+        [
+        [1 0]  [ 0  1]  [1 4]  [-4  5]  [ 5 19]
+        [0 1], [-1  1], [1 5], [-5  6], [ 6 23]
+        ]
+        sage: [a.det() for a in v]
+        [1, 1, 1, 1, 1]
+    """
+    if s == 0:
+        return []
+    # the function contfrac_q in
+    # https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
+    # is very, very relevant to massively optimizing this.
+    L = convergents(r / s)
+    # Computes the continued fraction convergents of r/s
+    v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]
+    # Initializes the list of matrices
+    for j in range(0, len(L)-1):
+        a = L[j].numerator()
+        c = L[j].denominator()
+        b = L[j + 1].numerator()
+        d = L[j + 1].denominator()
+        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))
+        # The matrix connecting two consecutive convergents is added on
+    return v
+
+
+def unimod_matrices_from_infty(r, s):
+    r"""
+    Returns a list of matrices whose associated unimodular paths
+    connect `0` to `r/s`.  This is Manin's continued fraction trick, which
+    gives an expression `{oo,r/s} = {oo,0} + ... + {a,b} + ... + {*,r/s}`,
+    where each `{a,b}` is the image of `{0,oo}` under a matrix in `SL_2(ZZ)`.
+
+    INPUT:
+
+    - ``r``, ``s`` -- rational numbers
+
+    OUTPUT:
+
+    - a list of `SL_2(Z)` matrices
+
+    EXAMPLES:
+
+        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(19,23); v
+        [
+        [ 0  1]  [-1  0]  [-4  1]  [-5 -4]  [-19   5]
+        [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
+        ]
+        sage: [a.det() for a in v]
+        [1, 1, 1, 1, 1]    
+    """
+    if s != 0:
+        L = convergents(r / s)
+        # Computes the continued fraction convergents of r/s
+        v = [M2Z([-L[0].numerator(), 1, -L[0].denominator(), 0])]
+        # Initializes the list of matrices
+        # the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
+        # is very, very relevant to massively optimizing this.
+        for j in range(0, len(L) - 1):
+            a = L[j].numerator()
+            c = L[j].denominator()
+            b = L[j + 1].numerator()
+            d = L[j + 1].denominator()
+            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))
+            # The matrix connecting two consecutive convergents is added on
+        return v
+    else:
+        return []
+
+def basic_hecke_matrix(a, ell):
+    r"""
+    Returns the matrix [1, a, 0, ell] (if `a < ell`) and [ell, 0, 0, 1] if `a \geq ell`
+
+    INPUT:
+
+    - ``a`` -- an integer or Infinity
+    - ``ell`` -- a prime
+
+    OUTPUT:
+
+    - a 2 x 2 matrix of determinant `ell`
+
+    EXAMPLES:
+
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
+        [1 0]
+        [0 7]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(5, 7)
+        [1 5]
+        [0 7]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(7, 7)
+        [7 0]
+        [0 1]
+        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
+        [7 0]
+        [0 1]    
+    """
+    # TODO: probably a bottleneck.
+    if a < ell:
+        return M2Z([1, a, 0, ell])
+    else:
+        return M2Z([ell, 0, 0, 1])
+>>>>>>> 908895353ee98a4b1bb0bdd1aff74ae15d1640db
+
 class ManinMap(object):
     """
     Map from a set of right coset representatives of Gamma0(N) in
@@ -135,7 +257,7 @@ class ManinMap(object):
         B = self._manin.equivalent_rep(A)
         gaminv = B * A._invert_unit()
         return self[B] * gaminv
-
+    
     def __call__(self, A):
         a = A[t00]
         b = A[t01]
