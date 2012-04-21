@@ -118,7 +118,7 @@ cdef class Dist(ModuleElement):
 
     def lift(self, p=None, M=None, new_base_ring=None):
         V = self.parent().lift(p, M, new_base_ring)
-        k = V.weight()
+        k = V._k
         p = V.prime()
         M = V.precision_cap()
         R = V.base_ring()

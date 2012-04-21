@@ -6,6 +6,7 @@ import operator
 from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.categories.action import Action
 
@@ -406,29 +407,29 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             if twotor:
                 # See [PS] section 4.1
                 gam = manin.two_torsion[g]
-                mu = self._map[g].unspecialize(p, M)
+                mu = self._map[g].lift(p, M, new_base_ring)
                 D[g] = (mu * gam - mu) * half
             elif threetor:
                 # See [PS] section 4.1
                 gam = manin.three_torsion[g]
-                mu = self._map[g].unspecialize(p, M)
+                mu = self._map[g].lift(p, M, new_base_ring)
                 D[g] = (2 * mu - mu * gam - mu * (gam**2)) * half
             else:
                 # no two or three torsion
-                D[g] = self._map[g].unspecialize(p, M)
+                D[g] = self._map[g].lift(p, M, new_base_ring)
 
-        t = self.parent().coefficient_module().unspecialize(p, M).zero_element()
+        t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero_element()
         for h in manin[2:]:
             R = manin.relations(h)
             if len(R) == 1:
                 c, A, g = R[0]
                 if c == 1:
-                    t += self._map[h].unspecialize(p, M)
+                    t += self._map[h].lift(p, M, new_base_ring)
                 elif A is not Id:
                     # rules out extra three torsion terms
-                    t += c * self._map[g].unspecialize(p, M) * A
+                    t += c * self._map[g].lift(p, M, new_base_ring) * A
         D[manin.gen(0)] = t.solve_diff_eqn()
-        return self.parent().lift(p, M)(D)
+        return MSS(D)
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 

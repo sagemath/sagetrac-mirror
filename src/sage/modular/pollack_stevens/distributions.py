@@ -119,6 +119,12 @@ class Distributions_class(Module):
     def prime(self):
         return self._p
 
+    def weight(self):
+        return self._k
+
+    def precision_cap(self):
+        return self._prec_cap
+
     def _repr_(self):
         """
         EXAMPLES::
