@@ -549,13 +549,41 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         return min([a.precision_absolute() for a in self._map])
 
-    def specialize(self):
+    def specialize(self, new_base_ring=None):
         r"""
         Returns the underlying classical symbol of weight `k` -- i.e.,
         applies the canonical map `D_k --> Sym^k` to all values of
         self.
+
+        EXAMPLES::
+
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbolSpace(Gamma0(2), D); M
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: f = M(1)
+            sage: f.specialize()
+            Modular symbol with values in Space of 5-adic distributions with k=0 action and precision cap 1
+            sage: f.specialize().values()
+            [1 + O(5^10), 1 + O(5^10)]
+            sage: f.values()
+            [1, 1]
+            sage: f.specialize().parent()
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 1
+            sage: f.specialize().parent().coefficient_module()
+            Space of 5-adic distributions with k=0 action and precision cap 1
+            sage: f.specialize().parent().coefficient_module().is_symk()
+            True
+
+            sage: f.specialize(QQ)
+            Modular symbol with values in Sym^0 Q^2
+            sage: f.specialize(QQ).values()
+            [1, 1]
+            sage: f.specialize(QQ).parent().coefficient_module()
+            Sym^0 Q^2            
         """
-        return self.__class__(self._map.specialize(new_base_ring), self.parent()._specialize_parent_space(new_base_ring()), construct=True)
+        if new_base_ring is None:
+            new_base_ring = self.base_ring()
+        return self.__class__(self._map.specialize(new_base_ring),
+                              self.parent()._specialize_parent_space(new_base_ring), construct=True)
 
     def _consistency_check(self):
         """

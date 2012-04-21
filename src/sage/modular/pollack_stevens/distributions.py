@@ -252,7 +252,8 @@ class Distributions_class(Module):
             raise NotImplementedError
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring, symk=self._symk, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring,
+                             symk=True, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
     def lift(self, p=None, M=None, new_base_ring=None):
         if self._character is not None:

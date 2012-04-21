@@ -372,7 +372,23 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(G, coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
     def _specialize_parent_space(self, new_base_ring):
-        return PSModularSymbols(G, coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
+        """
+        Internal function that is used by the specialize method on
+        elements.  It returns a space with same parameters as this
+        one, but over new_base_ring.
+        
+        EXAMPLES::
+
+            sage: D = Distributions(7, 5);  M = PSModularSymbolSpace(Gamma0(2), D); M
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=7 action and precision cap 8
+            sage: M._specialize_parent_space(QQ)
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Sym^7 Q^2
+            sage: M.base_ring()
+            5-adic Ring with capped absolute precision 20
+            sage: M._specialize_parent_space(QQ).base_ring()
+            Rational Field        
+        """
+        return PSModularSymbols(self.group(), coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
 
     def _lift_parent_space(self, p, M, new_base_ring):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
@@ -386,7 +402,7 @@ class PSModularSymbolSpace(Module):
         
             sage: D = Distributions(4)
             sage: M = PSModularSymbolSpace(Gamma(6), D)
-            sage: x = M.an_element(); x
+            sage: x = M.an_element(); x       # indirect doctest
             Modular symbol with values in Sym^4 Q^2
             sage: x.values()
             [(2, 1), (2, 1), (2, 1)]
@@ -399,67 +415,6 @@ class PSModularSymbolSpace(Module):
         """
         return self(self.coefficient_module().an_element())
 
-    def random_element(self, M):
-        r"""
-        Returns a random OMS with tame level `N`, prime `p`, weight
-        `k`, and `M` moments --- requires no `2` or `3`-torsion.
-
-        INPUT:
-
-        - M: the number of moments
-
-        OUTPUT:
-
-        - A random element of self
-
-        EXAMPLES:
-
-
-        ::
-
-
-        """
-        raise NotImplementedError, "todo"
-    
-        if M > self.precision_cap():
-            raise PrecisionError ("Too many moments requested.")
-
-        # Sorry, I messed this up.
-        # Somebody who understands the details should take a careful look.
-        N = self.level()
-        p = self.prime()
-        if p == None:
-            p = 1
-        manin = ManinRelations(N * p)
-        D = {}
-        for g in manin.gens()[1:]:
-            mu = self.coefficient_module().random_element(M)
-            if g in manin.reps_with_two_torsion:
-                rj = manin.indices_with_two_torsion[g]
-                gam = manin.two_torsion[rj]
-                D[g] = mu.act_right(gam)._sub_(mu)._lmul_(ZZ(1) / ZZ(2))
-            else:
-                D[g] = mu
-        #t = self.zero()
-        #print "gens", manin.gens()
-        for j in range(2, len(manin.relations())):
-            R = manin.relations(j)
-            if len(R) == 1:
-                #print "R=", R
-                if R[0][0] == 1:
-                    #print "j=", j
-                    #print "indices(j)", manin.indices(j)
-                    rj = manin.gens()[j -1] #manin.indices(j - 1)]
-                    #t = t + D[rj]
-                    # Should t do something?
-                else:
-                    index = R[0][2]
-                    rj = manin.gens()[index - 1]
-                    mu = D[rj]
-                    #t = t + mu.act_right(R[0][1])._lmul_(R[0][0])
-                    # Should t do something?
-        D[manin.gens()[0]] = mu._lmul_(-1)
-        return modsym_dist(D, self)
 
 def cusps_from_mat(g):
     r"""
