@@ -16,7 +16,7 @@ class pAdicLseries(SageObject):
 
         INPUT:
             - ``symb`` -- overconvergent eigensymbol
-            - ``gamma`` -- topological generator of `1 + pZ_p1
+            - ``gamma`` -- topological generator of `1 + pZ_p`
             - ``quad_twist`` -- conductor of quadratic twist `\chi`, default 1
             - ``precision`` -- if None is specified, the correct precision bound is computed and the answer is returned modulo
               that accuracy
@@ -79,7 +79,6 @@ class pAdicLseries(SageObject):
         """
         return self._quad_twist
 
-
     def _repr_(self):
         r"""
         Return print representation.
@@ -108,7 +107,7 @@ class pAdicLseries(SageObject):
 
         OUTPUT:
 
-        `\Phi_{\chi}(\{a/p\}-\{\infty\})`, which is a distribution
+        The distribution `\Phi_{\chi}(\{a/p\}-\{\infty\})`.
 
         EXAMPLES:
 
