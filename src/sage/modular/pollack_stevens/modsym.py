@@ -373,6 +373,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         D = {}
         manin = self.parent().source()
         # This skipped the 0th generator in the original code....
+        for g in manin.gens():
+            if len(manin.two_torsion) == 0 and len(manin.three_torsion) == 0:
+                # no two or three torsion
+                D[g] = 4
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
