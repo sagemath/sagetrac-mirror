@@ -188,6 +188,18 @@ class PSModularSymbolElement(ModuleElement):
         """
         pass
 
+    @cached_method
+    def ap(self, p, check=True):
+        f = self.hecke(p)
+        gens = self.parent().source().gens()
+        g = gens[0]
+        ap = self.parent().base_ring()(f._map[g] / self._map[g])
+        if check:
+            for g in gens[1:]:
+                if f._map[g] != ap * self._map[g]:
+                    raise ValueError("not an eigensymbol")
+        return ap
+
     def is_Tq_eigensymbol(self,q,p,M):
         r"""
         Determines if self is an eigenvector for `T_q` modulo `p^M` 
@@ -263,29 +275,22 @@ class PSModularSymbolElement(ModuleElement):
         pass
     
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    
     def p_stabilize(p=None, M=None, alpha = None, ap = None, ordinary = True, check=True):
-        k = self.parent().weight()
-        p = p or self.parent().prime() or ((alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime())
-        if not p:
-            pass
-        V = self.parent().p_stabilize(p)
-        if alpha is None:
-            if p is None:
-                p = self.parent().prime()
+        if check:
+            pp = self.parent().prime()
+            ppp = (alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime()
+            p = p or pp or ppp
+            if not p:
+                raise ValueError("you must specify a prime")
+            if (pp and p != pp) or (ppp and p != ppp):
+                raise ValueError("inconsistent prime")
             if M is None:
                 M = self.parent().precision_cap()
-            if p is None or M is None:
-                raise ValueError("you must specify either alpha or p and M")
+        V = self.parent().p_stabilize(p)
+        k = self.parent().weight()
+        if alpha is None:
             if ap is None:
-                f = self.hecke(p)
-                gens = self.parent().source().gens()
-                g = gens[0]
-                ap = f._map[g] / self._map[g]
-                if check:
-                    for g in gens[1:]:
-                        if f._map[g] != ap * self._map[g]:
-                            raise ValueError("not an eigensymbol")
+                ap = self.ap(p, check=check)
             if check and ap % p == 0:
                 raise ValueError("p is not ordinary")
             if p == 2:
@@ -301,27 +306,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 alpha = ZZ(v0) # why not have alpha be p-adic?
             else:
                 alpha = ZZ(v1) # why not have alpha be p-adic?
-        elif check:
-            apar = alpha.parent()
-            pp = self.parent().prime()
-            if pp is not None:
-                if p is None:
-                    p = pp
-                elif p != pp:
-                    raise ValueError("inconsistent prime")
-            if p is None:
-                if hasattr(apar, 'prime'):
-                    p = apar.prime()
-                else:
-                    raise ValueError("you must specify a prime")
-            elif hasattr(apar, 'prime') and p != apar.prime():
-                raise ValueError("p inconsistent with alpha")
-            elif not p.is_prime():
-                raise ValueError("p must be prime")
-            if M is None:
-                M = self.parent().precision_cap()
+        pmat = M2Z([p,0,0,1])
         
-    
+
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
