@@ -366,7 +366,10 @@ class PSModularSymbolSpace(Module):
             raise NotImplementedError
         return PSModularSymbols(G, coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
-    def lift(self, p, M, new_base_ring):
+    def _specialize_parent_space(self, new_base_ring):
+        return PSModularSymbols(G, coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
+
+    def _lift_parent_space(self, p, M, new_base_ring):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
 
     def _an_element_(self):
