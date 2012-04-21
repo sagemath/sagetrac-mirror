@@ -889,7 +889,7 @@ class ManinRelations(PSModularSymbolsDomain):
             The projective line over the integers modulo 11
         """
         return self._P
-
+    
     def form_list_of_cusps(self):
         r"""
         Returns the intersection of a fundamental domain for
@@ -1242,8 +1242,8 @@ class ManinRelations(PSModularSymbolsDomain):
         ::
         
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.prep_hecke_individual(2,0)

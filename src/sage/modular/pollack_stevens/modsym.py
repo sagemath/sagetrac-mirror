@@ -172,11 +172,12 @@ class PSModularSymbolElement(ModuleElement):
         which divides all of the coefficients of all values of self.
 
         INPUT:
-            - ``p`` - prime
+
+        - ``p`` - prime
 
         OUTPUT:
 
-        The valuation of self at `p`
+        - The valuation of self at `p`
 
         EXAMPLES:
 
@@ -184,7 +185,8 @@ class PSModularSymbolElement(ModuleElement):
 
         sage: E = EllipticCurve('11a')
         sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.valuation(2)
         -1
@@ -209,12 +211,14 @@ class PSModularSymbolElement(ModuleElement):
         Determines if self is an eigenvector for `T_q` modulo `p^M`
 
         INPUT:
-            - ``q`` -- prime of the Hecke operator
-            - ``p`` -- prime we are working modulo
-            - ``M`` -- degree of accuracy of approximation
+
+        - ``q`` -- prime of the Hecke operator
+        - ``p`` -- prime we are working modulo
+        - ``M`` -- degree of accuracy of approximation
 
         OUTPUT:
-        True/False
+
+        - True/False
 
         EXAMPLES:
 
@@ -222,7 +226,8 @@ class PSModularSymbolElement(ModuleElement):
 
         sage: E = EllipticCurve('11a')
         sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
         sage: phi_ord.is_Tq_eigensymbol(2,3,10)
@@ -250,22 +255,24 @@ class PSModularSymbolElement(ModuleElement):
         Eigenvalue of `T_q` modulo `p^M`
 
         INPUT:
+
         - ``q`` -- prime of the Hecke operator
         - ``p`` -- prime we are working modulo
         - ``M`` -- degree of accuracy of approximation
 
         OUTPUT:
 
-        Constant `c` such that `self|T_q - c * self` has valuation greater than
-        or equal to `M` (if it exists), otherwise raises ValueError
+        - Constant `c` such that `self|T_q - c * self` has valuation greater than
+          or equal to `M` (if it exists), otherwise raises ValueError
 
         EXAMPLES:
 
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve 
+        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
         sage: phi_ord.Tq_eigenvalue(2,3,10)
@@ -349,7 +356,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
                 if self.hecke(p) != ap * self:
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
-        V = self.parent().p_stabilize(p, new_base_ring)
+        V = self.parent()._p_stabilize_parent_space(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
     
     def completions(self, p, M):

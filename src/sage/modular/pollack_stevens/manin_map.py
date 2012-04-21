@@ -8,7 +8,7 @@ and right action of matrices.
 
 
 """
-from sage.rings.arith import convergents
+from sage.rings.arith.space import convergents
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
 from distributions import Distributions
@@ -81,7 +81,7 @@ def unimod_matrices_from_infty(r, s):
         [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
         ]
         sage: [a.det() for a in v]
-        [1, 1, 1, 1, 1]    
+        [1, 1, 1, 1, 1]
     """
     if s != 0:
         L = convergents(r / s)
@@ -127,7 +127,7 @@ def basic_hecke_matrix(a, ell):
         [0 1]
         sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
         [7 0]
-        [0 1]    
+        [0 1]
     """
     # TODO: probably a bottleneck.
     if a < ell:
@@ -151,8 +151,8 @@ class ManinMap(object):
               manin_relations.gens() and a subset of manin_relations.reps(),
               and whose values are in the codomain.
             - ``check`` -- do numerous (slow) checks and transformations to
-              ensure that the input data is perfect. 
-        
+              ensure that the input data is perfect.
+
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
@@ -278,8 +278,8 @@ class ManinMap(object):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: symb = form_modsym_from_elliptic_curve(E); symb.values()
         [-1/5, 3/2, -1/2]
         sage: phi.manin().generator_indices()
         [0, 2, 3]
@@ -300,11 +300,11 @@ class ManinMap(object):
         sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
         True
         """
-        
+
         B = self._manin.equivalent_rep(A)
         gaminv = B * A._invert_unit()
         return self[B] * gaminv
-    
+
     def __call__(self, A):
         a = A[t00]
         b = A[t01]
@@ -425,69 +425,6 @@ class ManinMap(object):
             sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
             sage: phi = form_modsym_from_elliptic_curve(E); phi
             [-1/5, 3/2, -1/2]
-            sage: phi.prep_hecke(2)
-            [[[[1 0]
-            [0 2], [1 1]
-            [0 2], [2 0]
-            [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
-            [ 0  2]]], [[[1 2]
-            [0 2], [1 1]
-            [0 2], [2 1]
-            [0 1]], [[ 1 -2]
-            [ 0  2], [ 1 -1]
-            [ 0  2], [ 2 -1]
-            [ 0  1]], [], [[-4 -2]
-            [11  5], [-8 -3]
-            [22  8]], [], [], [], [], [], [[1 0]
-            [0 2]], [[-5 -2]
-            [11  4], [-1  1]
-            [ 0 -2]], []], [[[1 2]
-            [0 2], [1 1]
-            [0 2], [2 1]
-            [0 1]], [[1 0]
-            [0 2], [ 1 -1]
-            [ 0  2], [2 0]
-            [0 1]], [], [], [[-6 -4]
-            [11  7]], [[-7 -4]
-            [11  6], [-1  1]
-            [ 0 -2], [-2  0]
-            [ 0 -1]], [], [], [[-1  0]
-            [ 0 -2]], [[1 0]
-            [0 2]], [], [[-5 -2]
-            [11  4]]]]
-
-        WARNING: changed from this (which disagreed with .sage file)::
-
-            sage: phi.prep_hecke(2)
-            [[[[1 0]
-            [0 2], [1 1]
-            [0 2], [2 0]
-            [0 1]], [], [], [], [], [], [[ 1 -1]
-            [ 0  2]], [], [], [], [], []], [[[1 2]
-            [0 2], [1 1]
-            [0 2], [2 1]
-            [0 1]], [[ 1 -2]
-            [ 0  2], [ 1 -1]
-            [ 0  2], [ 2 -1]
-            [ 0  1]], [], [[-4 -2]
-            [11  5], [-8 -3]
-            [22  8]], [], [], [], [[-5 -2]
-            [11  4], [-1  1]
-            [ 0 -2]], [[1 0]
-            [0 2]], [], [], []], [[[1 2]
-            [0 2], [1 1]
-            [0 2], [2 1]
-            [0 1]], [[1 0]
-            [0 2], [ 1 -1]
-            [ 0  2], [2 0]
-            [0 1]], [], [], [[-6 -4]
-            [11  7]], [[-7 -4]
-            [11  6], [-1  1]
-            [ 0 -2], [-2  0]
-            [ 0 -1]], [[-5 -2]
-            [11  4]], [], [[1 0]
-            [0 2]], [[-1  0]
-            [ 0 -2]], [], []]]
         """
         self.compute_full_data()
         self.normalize()
