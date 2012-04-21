@@ -108,16 +108,28 @@ cdef class Dist(ModuleElement):
         r"""
         Specializes to weight `k` -- i.e. projects to `Sym^k`
         """
-        from sage.modular.overconvergent.pollack.symk import symk
         k=self.parent()._k
-        assert k >= 0,"negative weight"
-        # R.<X,Y>=PolynomialRing(QQ,2)
-        R = PolynomialRing(QQ,('X','Y'))
-        X,Y = R.gens()
-        P=0
-        for j in range(0,k+1):
-            P=P+binomial(k,j)*((-1)**j)*self.moment(j)*(X**j)*(Y**(k-j))
-        return symk(k,P)
+        if k < 0:
+            raise ValueError("negative weight")
+        if self.precision_absolute() < k+1:
+            raise ValueError("not enough moments")
+        V = self.parent().specialize()
+        return V([binomial(k, j) * (-1)**j * self.moment(j) for j in range(k+1)])
+
+    def unspecialize(self, p, M):
+        k = self.parent()._k
+        V = self.parent().unspecialize(p, M)
+        R = V.base_ring()
+        moments = [self.moment(j) * (-1)**j / binomial(k, j) for j in range(k+1)]
+        zero = R(0)
+        moments.extend([zero] * (M - k - 1))
+        mu = V(moments)
+        val = mu.valuation()
+        if val < 0:
+            # This seems unnatural
+            print "scaling by %s^%s to keep things integral"%(p, -val)
+            mu *= p**(-val)
+        return mu
 
     def act_right(self,gam):
         r"""

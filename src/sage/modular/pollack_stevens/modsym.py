@@ -273,7 +273,7 @@ class PSModularSymbolElement(ModuleElement):
         if check:
             if p is None or M is None:
                 for g in gens[1:]:
-                    if f._map[g] != aq * self._map[g]):
+                    if f._map[g] != aq * self._map[g]:
                         raise ValueError("not a scalar multiple")
             elif (f - aq * self).valuation(p) < M:
                 raise ValueError("not a scalar multiple")
