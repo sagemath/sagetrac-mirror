@@ -8,6 +8,7 @@ and right action of matrices.
 
 
 """
+
 from sage.rings.arith import convergents
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
@@ -186,7 +187,13 @@ class ManinMap(object):
                         ky = M2Z(ky)
                     self._dict[ky] = val
             else:
-                raise TypeError("unrecognized type for defining_data")
+                # constant function
+                try:
+                    c = codomain(defining_data)
+                except TypeError:
+                    raise TypeError("unrecognized type for defining_data")
+                g = manin_relations.gens()
+                self._dict = dict(zip(g, [c]*len(g)))
         else:
             self._dict = defining_data
 
@@ -422,8 +429,9 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: from sage.modular.overconvergent.pollack.modsym_symk import ps_modsym_from_elliptic_curve
-            sage: phi = ps_modsym_from_elliptic_curve(E); phi
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.values()
             [-1/5, 3/2, -1/2]
         """
         self.compute_full_data()

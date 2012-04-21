@@ -27,8 +27,11 @@ class PSModularSymbolElement(ModuleElement):
             self._map = map_data
         else:
             self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
-
+            
     def _repr_(self):
+        r"""
+        Return the print representation
+        """
         return "Modular symbol with values in %s"%(self.parent().coefficient_module())
 
     def dict(self):
@@ -39,11 +42,10 @@ class PSModularSymbolElement(ModuleElement):
 
     def weight(self):
         """
-        Return the weight of this Pollack-Stevens modular symbols.
+        Return the weight of this Pollack-Stevens modular symbol.
 
         This is k-2, where k is the usual notion of weight for modular
         forms!!!
-
         
         """
         return self.parent().weight()
@@ -59,15 +61,79 @@ class PSModularSymbolElement(ModuleElement):
         return 0
 
     def _add_(self, right):
+        """
+        Returns self + right
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
+        [-1/5, 3/2, -1/2]
+        sage: phi + phi
+        Modular symbol with values in Sym^0 Q^2
+        sage: (phi + phi).values()
+        [-2/5, 3, -1]
+        """
         return self.__class__(self._map + right._map, self.parent(), construct=True)
 
     def _lmul_(self, right):
+        """
+        Returns self * right
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
+        [-1/5, 3/2, -1/2]
+        sage: 2*phi
+        Modular symbol with values in Sym^0 Q^2
+        sage: (2*phi).values()
+        [-2/5, 3, -1]
+        """
         return self.__class__(self._map * right, self.parent(), construct=True)
 
     def _rmul_(self, right):
+        """
+        Returns self * right
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
+        [-1/5, 3/2, -1/2]
+        sage: phi*2
+        Modular symbol with values in Sym^0 Q^2
+        sage: (phi*2).values()
+        [-2/5, 3, -1]
+        """
         return self.__class__(self._map * right, self.parent(), construct=True)
 
     def _sub_(self, right):
+        """
+        Returns self - right
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
+        [-1/5, 3/2, -1/2]
+        sage: phi - phi
+        Modular symbol with values in Sym^0 Q^2
+        sage: (phi - phi).values()
+        [0, 0, 0]
+        """
         return self.__class__(self._map - right._map, self.parent(), construct=True)
 
     def plus_part(self):
@@ -78,7 +144,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        self + self | [1,0,0,-1]
+        - self + self | [1,0,0,-1]
 
         EXAMPLES:
 
@@ -101,7 +167,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        self - self | [1,0,0,-1]
+        - self - self | [1,0,0,-1]
 
         EXAMPLES:
 
@@ -368,10 +434,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         NOTE: This only returns all completions when `p` splits completely in `K`
 
         INPUT:
-            - ``p`` -- prime
-            - ``M`` -- precision
+
+        - ``p`` -- prime
+        - ``M`` -- precision
 
         OUTPUT:
+
+        - 
 
         EXAMPLES:
         """

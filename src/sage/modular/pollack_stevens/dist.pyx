@@ -326,11 +326,18 @@ cdef class Dist_long(Dist):
         p = parent._p
         cdef int i
         if check:
-            if len(moments) > 100 or 7*p**len(moments) > ZZ(2)**(4*sizeof(long) - 1): # 6 is so that we don't overflow on gathers
+            try:
+                M = len(moments)
+            except TypeError:
+                M = 1
+                moments = [moments]
+            if M > 100 or 7*p**M > ZZ(2)**(4*sizeof(long) - 1): # 6 is so that we don't overflow on gathers
                 raise ValueError("moments too long")
-        for i in range(len(moments)):
+            
+        for i in range(M):
+            # TODO: shouldn't be doing the conversion to ZZ when check=False?
             self.moments[i] = ZZ(moments[i])
-        self.prec = len(moments)
+        self.prec = M
         self.prime_pow = <PowComputer_long?>parent.prime_pow
         #gather = 2**(4*sizeof(long)-1) // p**len(moments)
         #if gather >= len(moments):

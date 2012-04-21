@@ -151,15 +151,15 @@ class pAdicLseries(SageObject):
         """
         symb = self.symb()
         p = symb.parent().prime()
-        twisted_dist = symb.parent().zero_element()
+        twisted_dist = symb.parent().coefficient_module().zero_element()
         m_map = symb._map
         D = self._quadratic_twist
         for b in range(1, abs(D) + 1):
             if gcd(b, D) == 1:
                 M1 = M2Z([1, b / abs(D), 0, 1])
-                new_dist = m_map.__call__(M1 * M2Z[a, 1, p, 0])._rmul_(M1)
+                new_dist = m_map(M1 * M2Z[a, 1, p, 0])*(M1)
                 new_dist = new_dist.scale(kronecker(D, b)).normalize()
-                twisted_dist = twisted_dist._add(new_dist)
+                twisted_dist = twisted_dist + new_dist 
                 #ans = ans + self.eval(M1 * M2Z[a, 1, p, 0])._right_action(M1)._lmul_(kronecker(D, b)).normalize()
         return twisted_dist.normalize()
 
@@ -177,7 +177,7 @@ class pAdicLseries(SageObject):
         ap = symb.ap(p)
         ap = ap * kronecker(D, p)
         K = Qp(p, M)
-        symb_twisted = twisted_symbol_on_Da(symb, a)
+        symb_twisted = self.twisted_symbol_on_Da(symb, a)
         return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a)))**(j - r)) *
                 (p**r) * self.phi_on_Da(a, D).moment(r) for r in range(j + 1)) / ap
 

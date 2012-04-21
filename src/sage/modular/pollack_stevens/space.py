@@ -193,9 +193,7 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma1(14), D)
             sage: M.level()
             14
-
         """
-
         return self._manin_relations.level()
 
     def _grab_relations(self):
@@ -214,9 +212,7 @@ class PSModularSymbolSpace(Module):
                 [0 1], 3)], [(1, [1 0]
                     [0 1], 4)], [(1, [1 0]
                         [0 1], 5)]]
-
         """
-
         v = []
         for r in range(len(self._manin_relations.gens())):
             for j in range(len(self._manin_relations.reps())):
@@ -226,56 +222,13 @@ class PSModularSymbolSpace(Module):
                         v = v + [R]
         return v
 
-    def zero_element(self):
-        r"""
-        Returns the zero element of the space where self takes values.
-
-        INPUT:
-            none
-
-        OUTPUT:
-
-        The zero element in the space where self takes values.
-
-        EXAMPLES::
-
-            sage: D = Distributions(2)
-            sage: M = PSModularSymbolSpace(Gamma(3), D)
-            sage: M.zero_element()
-            (0, 0, 0)
-        """
-        return self.coefficient_module().zero_element()
-
-    def zero(self):
-        r"""
-        Returns the modular symbol all of whose values are zero.
-
-        INPUT:
-            none
-
-        OUTPUT:
-
-        The zero modular symbol of self.
-
-        EXAMPLES::
-
-            sage: D = Distributions(4,2)
-            sage: M = PSModularSymbolSpace(Gamma1(6), D)
-            sage: M.zero()
-            Modular symbol with values in Space of 2-adic distributions with
-            k=4 action and precision cap 5
-
-        """
-        D = {}
-        for rep in self._manin_relations.reps():
-            D[rep] = self.zero_element()
-        #v = [self.zero_elt() for i in range(0, self.ngens())]
-        #return C(v, self._manin_relations)
-        return self(D)
-
     def precision_cap(self):
         r"""
         Returns the number of moments of each value of self.
+
+        OUTPUT:
+
+        - Integer
 
         EXAMPLES::
 
@@ -287,14 +240,20 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma0(7), D)
             sage: M.precision_cap()
             10
-
         """
-
         return self.coefficient_module()._prec_cap
 
     def weight(self):
-        r"""
+        r""" 
         Returns the weight of self.
+
+        We emphasize that in the Pollack-Stevens notation, this is the
+        usual weight minus 2, so a classical weight 2 modular form corresponds
+        to a modular symbol of "weight 0".
+
+        OUTPUT:
+
+        - Integer
 
         EXAMPLES::
 
@@ -302,7 +261,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma1(7), D)
             sage: M.weight()
             5
-
         """
         return self.coefficient_module()._k
 
@@ -310,12 +268,15 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the prime of self.
 
+        OUTPUT:
+
+        - Integer
+
         EXAMPLES:
             sage: D = Distributions(2, 11)
             sage: M = PSModularSymbolSpace(Gamma(2), D)
             sage: M.prime()
             11
-
         """
         return self.coefficient_module()._p
 
@@ -387,14 +348,12 @@ class PSModularSymbolSpace(Module):
             [(2, 1), (2, 1), (2, 1)]
             sage: D = Distributions(2, 11)
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
-            sage: M.an_element()
-            Modular symbol with values in Space of 11-adic distributions with
-            k=2 action and precision cap 3
+            sage: x = M.an_element(); x.values()
+            [(2, 1), (2, 1)]
+            sage: x in M
+            True
         """
-        g = self.source().gens()
-        c = self.coefficient_module().an_element()
-        # constant map that sends every gen of self to c
-        return self(dict(zip(g, [c]*len(g))))
+        return self(self.coefficient_module().an_element())
 
     def random_element(self, M):
         r"""
