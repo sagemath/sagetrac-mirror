@@ -472,4 +472,4 @@ class ManinMap(object):
             # construction functor in order to scale by something
             # outside the base ring.
             D[g] = self._eval_sl2(g).scale(one) - (self(pmat * g) * pmat).scale(1/alpha)
-        return self.__class__(self._codomain, manin, D, check=False)
+        return self.__class__(self._codomain.change_ring(scalar.parent()), manin, D, check=False)
