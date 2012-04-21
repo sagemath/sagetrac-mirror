@@ -6,18 +6,20 @@ from sage.rings.arith import binomial, gcd, kronecker
 
 from fund_domain import M2Z
 
+from sage.structure.sage_object import SageObject
+
 class pAdicLseries(SageObject):
     r"""
     The `p`-adic `L`-series associated to an overconvergent eigensymbol.
     """
-    
-    def __init__(self, symb, gamma = None, quad_twist = 1, precision = None):
+
+    def __init__(self, symb, gamma=None, quadratic_twist=1, precision=None):
         r"""
 
         INPUT:
             - ``symb`` -- overconvergent eigensymbol
             - ``gamma`` -- topological generator of `1 + pZ_p`
-            - ``quad_twist`` -- conductor of quadratic twist `\chi`, default 1
+            - ``quadratic_twist`` -- conductor of quadratic twist `\chi`, default 1
             - ``precision`` -- if None is specified, the correct precision bound is computed and the answer is returned modulo
               that accuracy
 
@@ -31,12 +33,12 @@ class pAdicLseries(SageObject):
             gamma = 1 + self._symb.parent().prime()
 
         self._gamma = gamma
-        self._quad_twist = quad_twist
+        self._quadratic_twist = quadratic_twist
         self._precision = precision
-        
+
     def __getitem__(self, n):
         """
-        This needs more work to make sense for e.g., our higher dim examples
+        Returns the `n`-th coefficient of the `p`-adic `L`-series
         """
         try:
             return self.series[n]
@@ -83,7 +85,7 @@ class pAdicLseries(SageObject):
         r"""
         Returns the discriminant of the quadratic twist
         """
-        return self._quad_twist
+        return self._quadratic_twist
 
     def _repr_(self):
         r"""
@@ -94,12 +96,10 @@ class pAdicLseries(SageObject):
 
     def series(self, n, prec):
         r"""
-        This should eventually return the `n`-th approximation to the
-        `p`-adic `L`-series, as a power series in `T` (corresponding to
-        `\gamma-1` with `\gamma=1 + p` as a generator of `1+p\ZZ_p`).
+        Returns the `n`-th approximation to the `p`-adic `L`-series
+        associated to self, as a power series in `T` (corresponding to
+        `\gamma-1` with `\gamma= 1 + p` as a generator of `1+p\ZZ_p`).
 
-        Right now it doesn't necessarily do so. It needs to take into account
-        completions, etc.
         """
         p = self.prime()
         M = self.symb().precision_cap()
@@ -116,10 +116,10 @@ class pAdicLseries(SageObject):
         M = self.symb().precision_cap()
         p = self.prime()
         ap = self.symb().Tq_eigenvalue(p, check = check)
-        if check and ap %p == 0:
+        if check and ap % p == 0:
             raise ValueError("p is not ordinary")
         if p == 2:
-            R = Qp(2, M+1)
+            R = Qp(2, M + 1)
         else:
             R = Qp(p, M)
         eps = 1
@@ -133,14 +133,11 @@ class pAdicLseries(SageObject):
             alpha = v0
             eps = eps * (1 - 1/alpha)**2
         return eps
-        
-            
 
     def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
         """
         Returns `\Phi_{\chi}(\{a/p}-{\infty})` where `Phi` is the OMS and
         `\chi` is a the quadratic character corresponding to self
-
 
         INPUT:
             - ``a`` -- integer in [0..p-1]
@@ -156,7 +153,7 @@ class pAdicLseries(SageObject):
         p = symb.parent().prime()
         twisted_dist = symb.parent().zero_element()
         m_map = symb._map
-        D = self._quad_twist
+        D = self._quadratic_twist
         for b in range(1, abs(D) + 1):
             if gcd(b, D) == 1:
                 M1 = M2Z([1, b / abs(D), 0, 1])
@@ -206,11 +203,12 @@ def log_gamma_binomial(p,gamma,z,n,M):
     EXAMPLES:
 
         sage: R.<z> = QQ['z']
-        sage: loggam_binom(5,1+5,z,2,4)
+        from sage.modular.pollack_stevens.padic_lseries import log_gamma_binomial
+        sage: log_gamma_binomial(5,1+5,z,2,4)
         [0, -3/205, 651/84050, -223/42025]
-        sage: loggam_binom(5,1+5,z,3,4)
+        sage: log_gamma_binomial(5,1+5,z,3,4)
         [0, 2/205, -223/42025, 95228/25845375]
     """
-    L = sum([ZZ(-1)**j/j*(gamma-1)**j for j in range (1,M)]) #log_p(1+z)
-    loggam = L/(L(gamma-1))                  #log_{gamma}(1+z)= log_p(1+z)/log_p(gamma)
+    L = sum([ZZ(-1)**j / j*z**j for j in range (1,M)]) #log_p(1+z)
+    loggam = L / (L(gamma - 1))                  #log_{gamma}(1+z)= log_p(1+z)/log_p(gamma)
     return z.parent()(binomial(loggam,n)).truncate(M).list()

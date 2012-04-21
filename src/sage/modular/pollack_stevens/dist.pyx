@@ -179,6 +179,30 @@ cdef class Dist_vector(Dist):
         else:
             return repr(self.moments)
 
+    def _rational_(self):
+        """
+        Convert to a rational number.
+        
+        EXAMPLES::
+
+            sage: D = Distributions(0); d = D(4/3); d
+            4/3
+            sage: QQ(d)
+            4/3
+
+        We get a TypeError if there is more than 1 moment::
+
+            sage: D = Distributions(1); d = D([1,2]); d
+            (1, 2)
+            sage: QQ(d)
+            Traceback (most recent call last):
+            ...
+            TypeError: k must be 0
+        """
+        if len(self.moments) == 1:
+            return QQ(self.moments[0])
+        raise TypeError, "k must be 0"
+
     def moment(self,n):
         r"""
         Returns the `n`-th moment

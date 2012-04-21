@@ -1,14 +1,16 @@
+"""
+Manin Relations
+
+Code to create the Manin Relations class, which solves the "Manin
+relations".  That is, a description of Div^0(P^1(Q)) as a Z[Gamma_0(N)]-module
+in terms of generators and relations is found.  The method used is
+geometric, constructing a nice fundamental domain for Gamma_0(N) and
+reading the relevant Manin relations off of that picture.  The
+algorithm follows the paper of Pollack and Stevens "Overconvergent
+modular symbols and p-adic L-functions".
+"""
+
 ######################################################################
-##
-##  Code to create the Manin Relations class, which solves the "Manin
-##  relations".  That is, a description of Div^0(P^1(Q)) as a
-##  Z[Gamma_0(N)]-module in terms of generators and relations is
-##  found.  The method used is geometric, constructing a nice
-##  fundamental domain for Gamma_0(N) and reading the relevant Manin
-##  relations off of that picture.  The algorithm follows the paper of
-##  Pollack and Stevens "Overconvergent modular symbols and p-adic
-##  L-functions"
-##
 ##  Copyright (c) 2012, Rob Pollack and Jonathan Hanke
 ##      <rpollack@math.bu.edu>
 ##      <jonhanke@gmail.com>
@@ -61,8 +63,33 @@ t11 = (1,1)
 
 class PSModularSymbolsDomain(SageObject):
     def __init__(self, N, reps, indices, rels, equiv_ind):
+        """
+        INPUT:
+
+        - `N` -- positive integer
+        - ``reps`` -- TODO
+        - ``indices`` -- TODO
+        - ``rels`` -- TODO
+        - ``equiv_ind`` -- TODO
+
+        EXAMPLES::
+
+        TODO: some good examples
+
+        The level N must be an integer::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain
+            sage: PSModularSymbolsDomain(1/2, None, None, None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: PSModularSymbolsDomain(Gamma0(11), None, None, None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer        
+        """
         ## Store the level
-        self._N = N
+        self._N = ZZ(N)
 
         ## Coset representatives of Gamma_0(N) coming from the geometric
         ## fundamental domain algorithm
@@ -897,12 +924,13 @@ class ManinRelations(PSModularSymbolsDomain):
         ## Get the level
         N = self.level()
 
-        ## Checks that the level N is a positive integer > 1
-        if not ((N in ZZ) and (N > 1)):
-            raise TypeError, "Error in form_list_of_cusps: level should be > 1"
+        ## Checks that the level N is > 1
+        # TODO: I'm commenting this out; I see no reason not to allow level 1, except
+        # possibly the bug here that I fixed: http://trac.sagemath.org/sage_trac/ticket/12772
+        #if not (N > 1):
+        #    raise TypeError, "Error in form_list_of_cusps: level should be > 1"
 
         ## Some convenient shortcuts
-
         P = self.P1()
         sP = len(P.list())   ## Size of P^1(Z/NZ)
 
