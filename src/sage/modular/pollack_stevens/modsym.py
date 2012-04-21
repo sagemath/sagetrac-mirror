@@ -19,7 +19,7 @@ class PSModSymAction(Action):
 
     def _call_(self, sym, g):
         return sym.__class__(sym._map * g, sym.parent(), construct=True)
-
+    
 class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent, construct=False):
         ModuleElement.__init__(self, parent)
@@ -294,7 +294,7 @@ class PSModularSymbolElement(ModuleElement):
             elif (f - aq * self).valuation(p) < M:
                 raise ValueError("not a scalar multiple")
         return aq
-
+    
     def lift(self, algorithm = None, eigensymbol = None):
         r"""
         """

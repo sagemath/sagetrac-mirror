@@ -166,7 +166,7 @@ class PSModularSymbolsDomain(SageObject):
             [ 1  1]
         """
         return iter(self._reps)
-
+    
     def gens(self):
         """
         Returns the list of coset representatives chosen as generators.
@@ -593,7 +593,7 @@ class ManinRelations(PSModularSymbolsDomain):
         ## modular symbol phi on the (associated divisor) of the j-th
         ## element of coset_reps will be the sum of c * phi (r-th genetator) | A
         ## as one varies over the tuples in rel[j]
-
+        
         boundary_checked = [False] * len(coset_reps)
 
         ## The list boundary_checked keeps track of which boundary pieces of the
@@ -688,7 +688,7 @@ class ManinRelations(PSModularSymbolsDomain):
                         rels.append([(-1,Id,r)])
                         ## This relation means that phi on the reversed edge
                         ## equals -phi on original edge
-
+                        
                         boundary_checked[r] = True
                         ## We have now finished with this edge.
 
@@ -1240,10 +1240,11 @@ class ManinRelations(PSModularSymbolsDomain):
         EXAMPLES:
 
         ::
-
+        
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi
+        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
+        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.prep_hecke_individual(2,0)
         [[[1 0]
@@ -1311,7 +1312,7 @@ def basic_hecke_matrix(a, ell):
     - a 2 x 2 matrix of determinant ell
 
     EXAMPLES:
-
+    
         sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
         [1 0]
         [0 7]

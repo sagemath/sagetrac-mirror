@@ -22,7 +22,7 @@ class pAdicLseries(SageObject):
             - ``quadratic_twist`` -- conductor of quadratic twist `\chi`, default 1
             - ``precision`` -- if None is specified, the correct precision bound is computed and the answer is returned modulo
               that accuracy
-
+              
         """
         if symb.parent().prime() == None:
             raise ValueError ("Not a p-adic overconvergent modular symbol.")
@@ -203,7 +203,7 @@ def log_gamma_binomial(p,gamma,z,n,M):
     EXAMPLES:
 
         sage: R.<z> = QQ['z']
-        from sage.modular.pollack_stevens.padic_lseries import log_gamma_binomial
+        sage: from sage.modular.pollack_stevens.padic_lseries import log_gamma_binomial
         sage: log_gamma_binomial(5,1+5,z,2,4)
         [0, -3/205, 651/84050, -223/42025]
         sage: log_gamma_binomial(5,1+5,z,3,4)
