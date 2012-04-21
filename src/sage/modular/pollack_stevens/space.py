@@ -6,7 +6,7 @@ from sage.modular.arithgroup.all import Gamma0
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from modsym import PSModularSymbolElement, PSModSymAction
+from modsym import PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
 from fund_domain import ManinRelations, M2ZSpace
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
@@ -56,7 +56,6 @@ class PSModularSymbolSpace(Module):
 
     - ``domain`` -- a set or None, giving the domain
     """
-    Element = PSModularSymbolElement
     def __init__(self, group, coefficients, sign=None):
         Module.__init__(self, coefficients.base_ring())
         if sign == None:
@@ -266,7 +265,7 @@ class PSModularSymbolSpace(Module):
             dd[rep] = self.zero_element()
         #v = [self.zero_elt() for i in range(0, self.ngens())]
         #return C(v, self._manin_relations)
-        return PSModularSymbolElement(dd, self)
+        return self(dd)
 
     def precision_cap(self):
         r"""
@@ -313,7 +312,7 @@ class PSModularSymbolSpace(Module):
         """
         return self.coefficient_module()._p
 
-    def p_stabilize(self, p, check=True):
+    def p_stabilize(self, p, M, check=True):
         N = self.level()
         if check and N % p == 0:
             raise ValueError("the level isn't prime to p")
@@ -327,7 +326,7 @@ class PSModularSymbolSpace(Module):
             G = Gamma(N*p)
         else:
             raise NotImplementedError
-        return PSModularSymbols(G, coefficients=self.coefficient_module(), sign=self.sign())
+        return PSModularSymbols(G, coefficients=self.coefficient_module().lift(p, M), sign=self.sign())
 
     def _an_element_(self):
         D = {}

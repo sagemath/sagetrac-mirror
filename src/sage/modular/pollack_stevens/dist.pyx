@@ -47,6 +47,51 @@ cdef class Dist(ModuleElement):
     def scale(self,left):
         return self * left
 
+    def find_scalar(self, other, p, M, check=True):
+        """
+        Returns an alpha with other = self * alpha, or raises a ValueError.
+
+        self should be nonzero
+        """
+        p = self.parent().prime()
+        i = 0
+        n = self.precision_absolute()
+        a = self.moment(i)
+        if p is None:
+            while a == 0:
+                if other.moment(i) != 0:
+                    raise ValueError("not a scalar multiple")
+                i += 1
+                a = self.moment(i)
+            alpha = other.moment(i) / a
+            if check:
+                i += 1
+                while i < n:
+                    if self.moment(i) != alpha * other.moment(i):
+                        raise ValueError("not a scalar multiple")
+                    i += 1
+        else:
+            v = a.valuation(p)
+            while v >= n - i:
+                i += 1
+                a = self.moment(i)
+                v = a.valuation(p)
+            relprec = n - i - v
+            alpha = other.moment(i) / a % p**(n-i)
+            i += 1
+            while i < n:
+                a = self.moment(i)
+                if check and a % p**(n-i) != alpha * other.moment(i) % p**(n-i):
+                    raise ValueError("not a scalar multiple")
+                v = a.valuation(p)
+                if n - i - v > relprec:
+                    relprec = n - i - v
+                    alpha = other.moment(i) / a % p**(n-i)
+        try:
+            return self.parent().base_ring()(alpha)
+        except ValueError:
+            return alpha
+
     cpdef ModuleElement _rmul_(self, RingElement _left):
         return self._lmul_(_left)
 

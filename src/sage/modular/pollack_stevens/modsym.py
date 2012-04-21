@@ -4,6 +4,7 @@ from sage.rings.integer_ring import ZZ
 from manin_map import ManinMap
 import operator
 from sage.misc.cachefunc import cached_method
+from sage.rings.padics.factory import Qp
 
 from sage.categories.action import Action
 
@@ -190,20 +191,9 @@ class PSModularSymbolElement(ModuleElement):
         pass
 
     @cached_method
-    def ap(self, p, check=True):
-        f = self.hecke(p)
-        gens = self.parent().source().gens()
-        g = gens[0]
-        ap = self.parent().base_ring()(f._map[g] / self._map[g])
-        if check:
-            for g in gens[1:]:
-                if f._map[g] != ap * self._map[g]:
-                    raise ValueError("not an eigensymbol")
-        return ap
-
-    def is_Tq_eigensymbol(self,q,p,M):
+    def is_Tq_eigensymbol(self,q,p=None,M=None):
         r"""
-        Determines if self is an eigenvector for `T_q` modulo `p^M` 
+        Determines if self is an eigenvector for `T_q` modulo `p^M`
 
         INPUT:
             - ``q`` -- prime of the Hecke operator
@@ -233,17 +223,23 @@ class PSModularSymbolElement(ModuleElement):
         sage: phi_ord.is_Tq_eigensymbol(3,3,100)
         False
         """
-        pass
-    
-    def Tq_eigenvalue(self,q,p,M):
+        try:
+            aq = self.Tq_eigenvalue(q, p, M)
+            return True
+        except ValueError:
+            return False
+
+    # what happens if a cached method raises an error?  Is it recomputed each time?
+    @cached_method
+    def Tq_eigenvalue(self, q, p=None, M=None, check=True):
         r"""
         Eigenvalue of `T_q` modulo `p^M`
 
         INPUT:
         - ``q`` -- prime of the Hecke operator
         - ``p`` -- prime we are working modulo
-        - ``M`` -- degree of accuracy of approximation     
-        
+        - ``M`` -- degree of accuracy of approximation
+
         OUTPUT:
 
         Constant `c` such that `self|T_q - c * self` has valuation greater than
@@ -268,15 +264,28 @@ class PSModularSymbolElement(ModuleElement):
         ...
         ValueError: No eigenvalue exists modulo 3^10
         """
-        pass
-    
+        f = self.hecke(q)
+        gens = self.parent().source().gens()
+        g = gens[0]
+        if p is None:
+            p = self.parent().prime()
+        aq = self._map[g].find_scalar(f._map[g], p, M, check)
+        if check:
+            if p is None or M is None:
+                for g in gens[1:]:
+                    if f._map[g] != aq * self._map[g]):
+                        raise ValueError("not a scalar multiple")
+            elif (f - aq * self).valuation(p) < M:
+                raise ValueError("not a scalar multiple")
+        return aq
+
     def lift(self, algorithm = None, eigensymbol = None):
         r"""
         """
-        pass
-    
+        raise NotImplementedError
+
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    def p_stabilize(p=None, M=None, alpha = None, ap = None, ordinary = True, check=True):
+    def p_stabilize(self, p=None, M=None, alpha = None, ap = None, ordinary = True, check=True):
         if check:
             pp = self.parent().prime()
             ppp = (alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime()
@@ -287,11 +296,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 raise ValueError("inconsistent prime")
             if M is None:
                 M = self.parent().precision_cap()
-        V = self.parent().p_stabilize(p)
+        V = self.parent().p_stabilize(p, M)
         k = self.parent().weight()
         if alpha is None:
             if ap is None:
-                ap = self.ap(p, check=check)
+                ap = self.Tq_eigenvalue(p, check=check)
             if check and ap % p == 0:
                 raise ValueError("p is not ordinary")
             if p == 2:
@@ -339,8 +348,32 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 psi = K.hom([root],pAdicField(p,M))
                 ans.append([self.map(psi),psi])
             return ans
-        
-        
+
+    def lift(self, p=None, M=None, algorithm = None, eigensymbol = None):
+        r"""
+        """
+        if p is None:
+            p = self.parent().prime()
+            if p is None:
+                raise ValueError("must specify a prime")
+        elif self.parent().prime() is not None and p != self.parent().prime()
+        if M is None:
+            M = self.parent().precision_cap() + 1
+        if algorithm is None:
+            raise NotImplementedError
+        if algorithm == 'stevens':
+            if eigensymbol:
+                return self._lift_to_OMS_eigen(p, M)
+            else:
+                return self._lift_to_OMS(p, M)
+        else:
+            return self._lift_greenberg(p, M)
+
+    def _lift_to_OMS(self, p, M):
+        D = {}
+        manin = self.parent().source()
+        # This skipped the 0th generator in the original code....
+
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     
