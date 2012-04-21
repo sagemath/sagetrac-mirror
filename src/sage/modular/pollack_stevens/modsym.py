@@ -85,8 +85,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
         True
@@ -108,8 +108,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
         sage: (phi.plus_part()+phi.minus_part()) == phi * 2
         True
@@ -147,8 +147,8 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-            sage: phi = form_modsym_from_elliptic_curve(E); phi.values()
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi.hecke(2) == phi * E.ap(2)
             True
@@ -184,8 +184,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi.valuation(2)
@@ -225,8 +225,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve
-        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
@@ -270,8 +270,8 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import form_modsym_from_elliptic_curve 
-        sage: phi = form_modsym_from_elliptic_curve(E)
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve 
+        sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
         sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
