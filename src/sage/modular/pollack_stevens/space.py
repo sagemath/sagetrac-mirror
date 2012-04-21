@@ -312,9 +312,9 @@ class PSModularSymbolSpace(Module):
         """
         return self.coefficient_module()._p
 
-    def p_stabilize(self, p, M, check=True):
+    def p_stabilize(self, p, new_base_ring):
         N = self.level()
-        if check and N % p == 0:
+        if N % p == 0:
             raise ValueError("the level isn't prime to p")
         from sage.modular.arithgroup.all import Gamma, is_Gamma, Gamma0, is_Gamma0, Gamma1, is_Gamma1
         G = self.group()
@@ -326,7 +326,10 @@ class PSModularSymbolSpace(Module):
             G = Gamma(N*p)
         else:
             raise NotImplementedError
-        return PSModularSymbols(G, coefficients=self.coefficient_module().lift(p, M), sign=self.sign())
+        return PSModularSymbols(G, coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
+
+    def lift(self, p, M, new_base_ring):
+        return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
 
     def _an_element_(self):
         D = {}

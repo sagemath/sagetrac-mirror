@@ -5,6 +5,7 @@ from manin_map import ManinMap
 import operator
 from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
+from sage.rings.polynomial.all import PolynomialRing
 
 from sage.categories.action import Action
 
@@ -285,37 +286,55 @@ class PSModularSymbolElement(ModuleElement):
         raise NotImplementedError
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    def p_stabilize(self, p=None, M=None, alpha = None, ap = None, ordinary = True, check=True):
+    def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         if check:
             pp = self.parent().prime()
             ppp = (alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime()
-            p = p or pp or ppp
+            p = ZZ(p) or pp or ppp
             if not p:
                 raise ValueError("you must specify a prime")
             if (pp and p != pp) or (ppp and p != ppp):
                 raise ValueError("inconsistent prime")
             if M is None:
                 M = self.parent().precision_cap()
-        V = self.parent().p_stabilize(p, M)
         k = self.parent().weight()
         if alpha is None:
             if ap is None:
                 ap = self.Tq_eigenvalue(p, check=check)
             if check and ap % p == 0:
                 raise ValueError("p is not ordinary")
-            if p == 2:
-                R = Qp(2, M+1)
-            else:
-                R = Qp(p, M)
-            sdisc = R(ap**2 - 4*p**(k+1)).sqrt()
-            v0 = (R(ap) + sdisc) / 2
-            v1 = (R(ap) - sdisc) / 2
-            if v0.valuation() > 0:
+            if new_base_ring is None:
+                disc = ap**2 - 4*p**(k+1)
+                if M is None:
+                    if disc.is_square():
+                        new_base_ring = disc.parent()
+                    else:
+                        poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
+                        new_base_ring = disc.parent().extension(poly, 'a')
+                elif p == 2:
+                    new_base_ring = Qp(2, M+1)
+                else:
+                    new_base_ring = Qp(p, M)
+            sdisc = new_base_ring(disc).sqrt()
+            v0 = (new_base_ring(ap) + sdisc) / 2
+            v1 = (new_base_ring(ap) - sdisc) / 2
+            if v0.valuation(p) > 0:
                 v0, v1 = v1, v0
             if ordinary:
-                alpha = ZZ(v0) # why not have alpha be p-adic?
+                alpha = v0
             else:
-                alpha = ZZ(v1) # why not have alpha be p-adic?
+                alpha = v1
+        else:
+            if new_base_ring is None:
+                new_base_ring = alpha.parent()
+            if check:
+                if ap is None:
+                    ap = alpha + p**(k+1)/alpha
+                elif alpha**2 - ap * alpha + p**(k+1) != 0:
+                    raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
+                if self.hecke(p) != ap * self:
+                    raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
+        V = self.parent().p_stabilize(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
 
     def completions(self, p, M):
@@ -349,7 +368,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 ans.append([self.map(psi),psi])
             return ans
 
-    def lift(self, p=None, M=None, algorithm = None, eigensymbol = None):
+    def lift(self, p=None, M=None, new_base_ring=None, algorithm = None, eigensymbol = None):
         r"""
         """
         if p is None:
@@ -360,19 +379,26 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             raise ValueError("inconsistent prime")
         if M is None:
             M = self.parent().precision_cap() + 1
+        if new_base_ring is None:
+            if isinstance(self.parent().base_ring(), pAdicGeneric):
+                new_base_ring = self.parent().base_ring()
+            else:
+                # should eventually be a completion
+                new_base_ring = Qp(p, M)
         if algorithm is None:
             raise NotImplementedError
         if algorithm == 'stevens':
             if eigensymbol:
-                return self._lift_to_OMS_eigen(p, M)
+                return self._lift_to_OMS_eigen(p, M, new_base_ring)
             else:
-                return self._lift_to_OMS(p, M)
+                return self._lift_to_OMS(p, M, new_base_ring)
         else:
-            return self._lift_greenberg(p, M)
+            return self._lift_greenberg(p, M, new_base_ring)
 
-    def _lift_to_OMS(self, p, M):
+    def _lift_to_OMS(self, p, M, new_base_ring):
         D = {}
         manin = self.parent().source()
+        MSS = self.parent().lift(p, M, new_base_ring)
         half = ZZ(1) / ZZ(2)
         for g in manin.gens()[1:]:
             twotor = g in manin.reps_with_two_torsion

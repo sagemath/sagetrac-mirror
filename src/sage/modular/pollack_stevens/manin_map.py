@@ -507,5 +507,8 @@ class ManinMap(object):
         pmat = M2Z([p,0,0,1])
         D = {}
         for g in manin.gens():
-            D[g] = self._eval_sl2(g) - 1/alpha * self(pmat * g) * pmat
+            # we use scale here so that we don't need to define a
+            # construction functor in order to scale by something
+            # outside the base ring.
+            D[g] = self._eval_sl2(g) - self(pmat * g).scale(1/alpha) * pmat
         return self.__class__(self._codomain, manin, D, check=False)

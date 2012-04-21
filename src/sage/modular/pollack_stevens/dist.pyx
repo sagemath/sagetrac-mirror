@@ -116,9 +116,11 @@ cdef class Dist(ModuleElement):
         V = self.parent().specialize()
         return V([binomial(k, j) * (-1)**j * self.moment(j) for j in range(k+1)])
 
-    def unspecialize(self, p, M):
-        k = self.parent()._k
-        V = self.parent().unspecialize(p, M)
+    def lift(self, p=None, M=None, new_base_ring=None):
+        V = self.parent().lift(p, M, new_base_ring)
+        k = V.weight()
+        p = V.prime()
+        M = V.precision_cap()
         R = V.base_ring()
         moments = [self.moment(j) * (-1)**j / binomial(k, j) for j in range(k+1)]
         zero = R(0)
@@ -269,16 +271,16 @@ cdef class Dist_vector(Dist):
         ans.moments = V(v)
         return ans
 
-    def lift(self):
-        r"""
-        Increases the number of moments by `1`.
-        """
-        n = len(self.moments)
-        if n >= self.parent()._prec_cap:
-            raise ValueError("Cannot lift above precision cap")
-        cdef Dist_vector ans = self._new_c()
-        ans.moments = self.parent().approx_module(n+1)(list(self.moments) + [0])
-        return ans
+    #def lift(self):
+    #    r"""
+    #    Increases the number of moments by `1`.
+    #    """
+    #    n = len(self.moments)
+    #    if n >= self.parent()._prec_cap:
+    #        raise ValueError("Cannot lift above precision cap")
+    #    cdef Dist_vector ans = self._new_c()
+    #    ans.moments = self.parent().approx_module(n+1)(list(self.moments) + [0])
+    #    return ans
 
 cdef class Dist_long(Dist):
     def __init__(self, moments, parent, check=True):
@@ -434,15 +436,15 @@ cdef class Dist_long(Dist):
     def solve_diff_eqn(self):
         raise NotImplementedError
 
-    def lift(self):
-        if self.prec >= self.parent()._prec_cap:
-            raise ValueError("Cannot lift above precision cap")
-        cdef Dist_long ans = self._new_c()
-        ans.prec = self.prec + 1
-        cdef int i
-        for i in range(self.prec):
-            ans.moments[i] = self.moments[i]
-        return ans
+    #def lift(self):
+    #    if self.prec >= self.parent()._prec_cap:
+    #        raise ValueError("Cannot lift above precision cap")
+    #    cdef Dist_long ans = self._new_c()
+    #    ans.prec = self.prec + 1
+    #    cdef int i
+    #    for i in range(self.prec):
+    #        ans.moments[i] = self.moments[i]
+    #    return ans
 
 cdef class WeightKAction(Action):
     def __init__(self, Dk, character, tuplegen, on_left):
@@ -552,13 +554,16 @@ cdef class WeightKAction_vector(WeightKAction):
                 B.set_unsafe(row, col, t[row])
             t *= scale
         verbose("Finished loop",tim)
-        return B
+        # the changering here is annoying, but otherwise we have to change ring each time we multiply
+        return B.change_ring(self.codomain().base_ring())
 
     cpdef _call_(self, _v, g):
         # if g is a matrix it needs to be immutable
         # hashing on arithmetic_subgroup_elements is by str
         cdef Dist_vector v = <Dist_vector?>_v
         cdef Dist_vector ans = v._new_c()
+        verbose(str(v.moments))
+        verbose(str(self.acting_matrix(g, len(v.moments))))
         ans.moments = v.moments * self.acting_matrix(g, len(v.moments))
         return ans
 

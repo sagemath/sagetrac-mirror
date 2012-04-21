@@ -188,13 +188,6 @@ class Distributions_class(Module):
             raise ValueError("M must be less than the precision cap")
         return self.base_ring()**M
 
-    def lift(self, p=None, M=None):
-        if M <= self._prec_cap:
-            return self
-        if p is None:
-            p = self._p
-        return Distributions(self._k, p, M, self.base_ring(), self._character, self._act._tuplegen, self._act.is_left())
-
     def random_element(self, M=None):
         """
         Return a random element of the M-th approximation module.
@@ -247,10 +240,21 @@ class Distributions_class(Module):
             raise NotImplementedError
         return Distributions(k=self._k, p=None, prec_cap=None, base=self.base_ring(), tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
-    def unspecialize(self, p, prec_cap):
+    def lift(self, p=None, M=None, new_base_ring=None):
         if self._character is not None:
+            # need to change coefficient ring for character
             raise NotImplementedError
-        return Distributions(k=self._k, p=p, prec_cap=prec_cap, base=self.base_ring(), tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        if M is None:
+            M = self._prec_cap + 1
+        elif M <= self._prec_cap:
+            return self
+        if p is None:
+            p = self._p
+        elif self._p and self._p != p:
+            raise ValueError("inconsistent prime")
+        if new_base_ring is None:
+            new_base_ring = self.base_ring()
+        return Distributions(self._k, p, M, new_base_ring, self._character, self._act._tuplegen, self._act.is_left())
 
 #    def _get_action_(self, S, op, self_on_left):
 #        if S is self.base_ring():
