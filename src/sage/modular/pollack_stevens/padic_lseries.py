@@ -10,7 +10,7 @@ class pAdicLseries(SageObject):
     r"""
     The `p`-adic `L`-series associated to an overconvergent eigensymbol.
     """
-
+    
     def __init__(self, symb, gamma = None, quad_twist = 1, precision = None):
         r"""
 
@@ -66,28 +66,34 @@ class pAdicLseries(SageObject):
 
     def symb(self):
         r"""
+        Returns the overconvergent modular symbol
         """
         return self._symb
 
     def prime(self):
         r"""
+        Returns the prime associatd to the OMS
         """
         return self._symb.parent().prime()
 
-    def quadratic_twist(self)
+    def quadratic_twist(self):
         r"""
+        Returns the discriminant of the quadratic twist
         """
         return self._quad_twist
 
     def _repr_(self):
         r"""
-        Return print representation.
+        Returns the print representation
         """
         s = "%s-adic L-series of $s"%(self.prime(), self.symb())
         return s
 
     def series(self, n, prec):
         r"""
+        Returns the `n`-th approximation to the `p`-adic `L`-series, as a
+        power series in `T` (corresponding to `\gamma-1` with `\gamma=1 + p`
+        as a generator of `1+p\ZZ_p`).
         """
         p = self.prime()
         M = self.symb.precision_cap()
@@ -95,6 +101,33 @@ class pAdicLseries(SageObject):
         R = PowerSeriesRing(K, 'T', prec)
         T = R(R.gen(), prec)
         return sum(self.series[i] * T**i for i in range(n)) + O(T**n)
+
+    def interpolation_factor(self):
+        r"""
+        For `K` the field of definition of ap, returns the interpolation
+        factor `\eps`
+        """
+        p = self.prime()
+        ap = self.symb().Tq_eigenvalue(p, check = check)
+        if check and ap %p == 0:
+            raise ValueError("p is not ordinary")
+        if p == 2:
+            R = Qp(2, M+1)
+        else:
+            R = Qp(p, M)
+        eps = 1
+        for psi in self.completions():
+            ap = psi[1](ap)
+            sdisc = R(ap**2 - 4*p)).sqrt()
+            v0 = (R(ap) + sdisc) / 2
+            v1 = (R(ap) - sdisc) / 2
+            if v0.valuation() > 0:
+                v0, v1 = v1, v0
+            alpha = v0
+            eps = eps * (1 - 1/alpha)**2
+        return eps
+        
+            
 
     def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
         """
