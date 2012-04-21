@@ -268,7 +268,7 @@ class Distributions_class(Module):
             raise ValueError("inconsistent prime")
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Distributions(self._k, p, M, new_base_ring, self._symk, self._character, self._act._tuplegen, self._act.is_left())
+        return Distributions(self._k, p, M, new_base_ring, False, self._character, self._act._tuplegen, self._act.is_left())
 
     def change_ring(self, new_base_ring):
         return Distributions(self._k, self._p, self._prec_cap, new_base_ring, self._symk, self._character, self._act._tuplegen, self._act.is_left())
