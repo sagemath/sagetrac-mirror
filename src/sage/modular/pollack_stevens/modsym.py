@@ -356,7 +356,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             p = self.parent().prime()
             if p is None:
                 raise ValueError("must specify a prime")
-        elif self.parent().prime() is not None and p != self.parent().prime()
+        elif self.parent().prime() is not None and p != self.parent().prime():
+            raise ValueError("inconsistent prime")
         if M is None:
             M = self.parent().precision_cap() + 1
         if algorithm is None:
