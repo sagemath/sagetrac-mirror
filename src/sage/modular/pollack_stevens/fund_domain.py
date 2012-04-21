@@ -546,7 +546,35 @@ class ManinRelations(PSModularSymbolsDomain):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: ManinRelations(11)
+            Manin Relations of level 11
+            sage: type(ManinRelations(30))
+            <class 'sage.modular.pollack_stevens.fund_domain.ManinRelations'>
+            sage: ManinRelations(1)
+            Manin Relations of level 1
+
+        Error checking::
+
+            sage: ManinRelations(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: N must be a positive integer
+            sage: ManinRelations(-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: N must be a positive integer        
+
+        Implementation limits::
+        
+            sage: ManinRelations(2^20)
+            Traceback (most recent call last):
+            ...
+            OverflowError: Modulus is too large (must be < 46340)
         """
+        N = ZZ(N)
+        if N <= 0:
+            raise ValueError, "N must be a positive integer"
+        
         self._N = N
 
         ## Creates and stores the Sage representation of P^1(Z/NZ)
@@ -812,6 +840,16 @@ class ManinRelations(PSModularSymbolsDomain):
         self.three_torsion = {}
         for j, tor_elt in zip(threetor_index, threetorrels):
             self.three_torsion[coset_reps[j]] = tor_elt
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
+            sage: ManinRelations(11)._repr_()
+            'Manin Relations of level 11'
+        """
+        return "Manin Relations of level %s"%self._N
 
     def equivalent_index(self, A):
         r"""

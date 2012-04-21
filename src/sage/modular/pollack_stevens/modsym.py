@@ -26,8 +26,8 @@ class PSModularSymbolElement(ModuleElement):
         if construct:
             self._map = map_data
         else:
-            self._map = ManinMap(parent._coefficients, parent._manin_relations, map_data)
-            
+            self._map = ManinMap(parent._coefficients, parent._source, map_data)
+
     def _repr_(self):
         r"""
         Return the print representation
@@ -347,8 +347,10 @@ class PSModularSymbolElement(ModuleElement):
         -2
         sage: phi_ord.Tq_eigenvalue(2,3,1000)
         -2
+
+        
         sage: phi_ord.Tq_eigenvalue(3,3,10)
-        -2136133753/1068066874
+        -95227/47611
         sage: phi_ord.Tq_eigenvalue(3,3,100)
         ...
         ValueError: not a scalar multiple
@@ -370,6 +372,7 @@ class PSModularSymbolElement(ModuleElement):
     
     def lift(self, algorithm = None, eigensymbol = None):
         r"""
+        
         """
         raise NotImplementedError
 
@@ -540,7 +543,18 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         r"""
         Returns the underlying classical symbol of weight `k` -- i.e.,
         applies the canonical map `D_k --> Sym^k` to all values of
-        self
+        self.
         """
         return self.__class__(self._map.specialize(new_base_ring), self.parent()._specialize_parent_space(new_base_ring()), construct=True)
 
+    def _consistency_check(self):
+        """
+        Check that the map really does satisfy the Manin relations loop (for debugging).
+        """
+        rels = self.parent()._grab_relations()
+        # TODO: no clue how to do this until this object fully works again...
+        raise NotImplementedError
+
+
+
+>>>>>>> 0294e6987d349815708ae9645d111ebba5cb147b

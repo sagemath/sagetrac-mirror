@@ -61,14 +61,32 @@ class PSModularSymbolSpace(Module):
     INPUT:
 
     - ``V`` -- the coefficient module, which should have a right action of `M_2(\ZZ)`
-
     - ``domain`` -- a set or None, giving the domain
     """
-    def __init__(self, group, coefficients, sign=None):
+    def __init__(self, group, coefficients, sign=0):
+        """
+        INPUT:
+
+        - ``group`` -- congruence subgroup
+        - ``coefficients`` -- a coefficient module
+        - ``sign`` -- (default: 0); 0, -1, 1
+
+        EXAMPLES::
+
+            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: type(M)
+            <class 'sage.modular.pollack_stevens.space.PSModularSymbolSpace_with_category'>
+            sage: M.sign()
+            0
+            sage: M = PSModularSymbolSpace(Gamma0(2), D, sign=-1); M.sign()
+            -1
+            sage: M = PSModularSymbolSpace(Gamma0(2), D, sign=1); M.sign()
+            1        
+        """
         Module.__init__(self, coefficients.base_ring())
-        if sign == None:
-            sign = 0
-            # sign should be 0, 1 or -1
+        if sign not in [0,-1,1]:
+            # sign must be be 0, -1 or 1
+            raise ValueError, "sign must be 0, -1, or 1"
         self._group = group
         self._coefficients = coefficients
         if coefficients.is_symk():
@@ -77,7 +95,7 @@ class PSModularSymbolSpace(Module):
             self.Element = PSModularSymbolElement_dist
         self._sign = sign
         # should distingish between Gamma0 and Gamma1...
-        self._manin_relations = ManinRelations(group.level())
+        self._source = ManinRelations(group.level())
         # We have to include the first action so that scaling by Z doesn't try to pass through matrices
         actions = [PSModSymAction(ZZ, self), PSModSymAction(M2ZSpace, self)]
         self._populate_coercion_lists_(action_list=actions)
@@ -85,20 +103,49 @@ class PSModularSymbolSpace(Module):
     def _repr_(self):
         r"""
         Returns print representation.
+
+        EXAMPLES::
+
+            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D); M._repr_()
+            'Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 11-adic distributions with k=2 action and precision cap 3'
         """
         s = "Space of overconvergent modular symbols for %s with sign %s and values in %s"%(self.group(), self.sign(), self.coefficient_module())
         return s
 
     def source(self):
-        return self._manin_relations
+        """
+        Return object that represents the domain of the modular
+        symbol elements.
+
+        OUTPUT:
+
+        - object of type fund_domain.PSModularSymbolsDomain
+
+        EXAMPLES::
+
+            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M.source()
+            Manin Relations of level 2        
+        """
+        return self._source
 
     def coefficient_module(self):
         r"""
         Returns the coefficient module of self.
 
+        OUTPUT:
+
+        - module
+
         EXAMPLES::
 
-
+            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M.coefficient_module()
+            Space of 11-adic distributions with k=2 action and precision cap 3
+            sage: M.coefficient_module() == D
+            True
+            sage: M.coefficient_module() is D
+            True
         """
         return self._coefficients
 
@@ -118,7 +165,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(G, D)
             sage: M.group()
             Congruence Subgroup Gamma1(11)
-
         """
         return self._group
 
@@ -136,7 +182,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma1(8), D, -1)
             sage: M.sign()
             -1
-
         """
         return self._sign
 
@@ -154,17 +199,18 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
             sage: M.ngens()
             2
-
         """
-        return len(self._manin_relations.indices())
+        return len(self._source.indices())
 
     def ncoset_reps(self):
         r"""
-        Returns the number of coset representatives defining the full_data of self
+        Returns the number of coset representatives defining the
+        full_data of self.
 
         OUTPUT:
-        The number of coset representatives stored in the manin relations. (Just the size
-        of P^1(Z/NZ))
+
+        - The number of coset representatives stored in the manin
+          relations. (Just the size of P^1(Z/NZ))
 
         EXAMPLES::
 
@@ -172,20 +218,16 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
             sage: M.ncoset_reps()
             3
-
         """
-        return len(self._manin_relations.reps())
+        return len(self._source.reps())
 
     def level(self):
         r"""
-        Returns the level `N` when self is of level `Gamma_0(N)`.
-
-        INPUT:
-            none
+        Returns the level `N`, where self is of level `Gamma_0(N)`.
 
         OUTPUT:
 
-        The level `N` when self is of level `Gamma_0(N)`
+        - The level `N`, where self is of level `Gamma_0(N)`
 
         EXAMPLES::
 
@@ -194,11 +236,11 @@ class PSModularSymbolSpace(Module):
             sage: M.level()
             14
         """
-        return self._manin_relations.level()
+        return self._source.level()
 
     def _grab_relations(self):
         r"""
-
+        This is used internally as part of a consistency check.
 
         EXAMPLES::
 
@@ -214,13 +256,15 @@ class PSModularSymbolSpace(Module):
                         [0 1], 5)]]
         """
         v = []
-        for r in range(len(self._manin_relations.gens())):
-            for j in range(len(self._manin_relations.reps())):
-                R = self._manin_relations.relations(j)
-                if (len(R) == 1) and (R[0][2] == self._manin_relations.indices(r)):
-                    if R[0][0] <> -1 or R[0][1] <> M2ZSpace.one():
+        for r in range(len(self._source.gens())):
+            for j in range(len(self._source.reps())):
+                R = self._source.relations(j)
+                if len(R) == 1 and R[0][2] == self._source.indices(r):
+                    if R[0][0] != -1 or R[0][1] != M2ZSpace.one():
                         v = v + [R]
         return v
+
+
 
     def precision_cap(self):
         r"""
