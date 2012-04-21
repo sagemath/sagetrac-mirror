@@ -33,7 +33,7 @@ include "stdsage.pxi"
 include "cdefs.pxi"
 
 def get_dist_classes(p, prec_cap, base):
-    if p is None or (isinstance(base, pAdicGeneric) and base.degree() > 1):
+    if p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
         return Dist_long, WeightKAction_long

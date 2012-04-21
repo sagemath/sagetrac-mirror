@@ -8,7 +8,7 @@ from sage.rings.padics.factory import Qp
 
 from sage.categories.action import Action
 
-from fund_domain import M2ZSpace, M2Z
+from fund_domain import M2ZSpace, M2Z, Id
 minusproj = M2Z([1,0,0,-1])
 
 class PSModSymAction(Action):
@@ -373,11 +373,36 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _lift_to_OMS(self, p, M):
         D = {}
         manin = self.parent().source()
-        # This skipped the 0th generator in the original code....
-        for g in manin.gens():
-            if len(manin.two_torsion) == 0 and len(manin.three_torsion) == 0:
+        half = ZZ(1) / ZZ(2)
+        for g in manin.gens()[1:]:
+            twotor = g in manin.reps_with_two_torsion
+            threetor = g in manin.reps_with_three_torsion
+            if twotor:
+                # See [PS] section 4.1
+                gam = manin.two_torsion[g]
+                mu = self._map[g].unspecialize(p, M)
+                D[g] = (mu * gam - mu) * half
+            elif threetor:
+                # See [PS] section 4.1
+                gam = manin.three_torsion[g]
+                mu = self._map[g].unspecialize(p, M)
+                D[g] = (2 * mu - mu * gam - mu * (gam**2)) * half
+            else:
                 # no two or three torsion
-                D[g] = 4
+                D[g] = self._map[g].unspecialize(p, M)
+
+        t = self.parent().coefficient_module().unspecialize(p, M).zero_element()
+        for h in manin[2:]:
+            R = manin.relations(h)
+            if len(R) == 1:
+                c, A, g = R[0]
+                if c == 1:
+                    t += self._map[h].unspecialize(p, M)
+                elif A is not Id:
+                    # rules out extra three torsion terms
+                    t += c * self._map[g].unspecialize(p, M) * A
+        D[manin.gen(0)] = t.solve_diff_eqn()
+        return self.parent().lift(p, M)(D)
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 

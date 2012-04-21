@@ -250,7 +250,7 @@ class Distributions_class(Module):
     def unspecialize(self, p, prec_cap):
         if self._character is not None:
             raise NotImplementedError
-        return Distribution(k=self._k, p=p, prec_cap=prec_cap, base=self.base_ring(), tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=p, prec_cap=prec_cap, base=self.base_ring(), tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
 #    def _get_action_(self, S, op, self_on_left):
 #        if S is self.base_ring():
