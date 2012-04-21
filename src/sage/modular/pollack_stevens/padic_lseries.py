@@ -118,7 +118,7 @@ class pAdicLseries(SageObject):
         eps = 1
         for psi in self.completions():
             ap = psi[1](ap)
-            sdisc = R(ap**2 - 4*p)).sqrt()
+            sdisc = R(ap**2 - 4*p).sqrt()
             v0 = (R(ap) + sdisc) / 2
             v1 = (R(ap) - sdisc) / 2
             if v0.valuation() > 0:
