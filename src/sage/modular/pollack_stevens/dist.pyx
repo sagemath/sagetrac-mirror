@@ -70,7 +70,7 @@ cdef class Dist(ModuleElement):
         i = 0
         n = self.precision_absolute()
         a = self.moment(i)
-        if p is None:
+        if self.parent().is_symk():
             while a == 0:
                 if other.moment(i) != 0:
                     raise ValueError("not a scalar multiple")
