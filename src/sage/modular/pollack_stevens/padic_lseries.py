@@ -33,8 +33,11 @@ class pAdicLseries(SageObject):
         self._gamma = gamma
         self._quad_twist = quad_twist
         self._precision = precision
-
+        
     def __getitem__(self, n):
+        """
+        This needs more work to make sense for e.g., our higher dim examples
+        """
         try:
             return self.series[n]
         except IndexError:
@@ -74,7 +77,7 @@ class pAdicLseries(SageObject):
         r"""
         Returns the prime associatd to the OMS
         """
-        return self._symb.parent().prime()
+        return self._symb().parent().prime()
 
     def quadratic_twist(self):
         r"""
@@ -91,12 +94,15 @@ class pAdicLseries(SageObject):
 
     def series(self, n, prec):
         r"""
-        Returns the `n`-th approximation to the `p`-adic `L`-series, as a
-        power series in `T` (corresponding to `\gamma-1` with `\gamma=1 + p`
-        as a generator of `1+p\ZZ_p`).
+        This should eventually return the `n`-th approximation to the
+        `p`-adic `L`-series, as a power series in `T` (corresponding to
+        `\gamma-1` with `\gamma=1 + p` as a generator of `1+p\ZZ_p`).
+
+        Right now it doesn't necessarily do so. It needs to take into account
+        completions, etc.
         """
         p = self.prime()
-        M = self.symb.precision_cap()
+        M = self.symb().precision_cap()
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, 'T', prec)
         T = R(R.gen(), prec)
@@ -107,6 +113,7 @@ class pAdicLseries(SageObject):
         For `K` the field of definition of ap, returns the interpolation
         factor `\eps`
         """
+        M = self.symb().precision_cap()
         p = self.prime()
         ap = self.symb().Tq_eigenvalue(p, check = check)
         if check and ap %p == 0:
@@ -116,7 +123,7 @@ class pAdicLseries(SageObject):
         else:
             R = Qp(p, M)
         eps = 1
-        for psi in self.completions():
+        for psi in self.symb().completions(p,M):
             ap = psi[1](ap)
             sdisc = R(ap**2 - 4*p).sqrt()
             v0 = (R(ap) + sdisc) / 2
