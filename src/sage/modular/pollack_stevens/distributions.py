@@ -241,10 +241,12 @@ class Distributions_class(Module):
     def zero_element(self, M=None):
         return self(self.approx_module(M)(0))
 
-    def specialize(self):
+    def specialize(self, new_base_ring=None):
         if self._character is not None:
             raise NotImplementedError
-        return Distributions(k=self._k, p=None, prec_cap=None, base=self.base_ring(), tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        if new_base_ring is None:
+            new_base_ring = self.base_ring()
+        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
     def lift(self, p=None, M=None, new_base_ring=None):
         if self._character is not None:

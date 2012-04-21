@@ -104,7 +104,7 @@ cdef class Dist(ModuleElement):
         return min([self.moment(a).valuation(p) for a in
             range(self.precision_absolute())])
 
-    def specialize(self):
+    def specialize(self, new_base_ring=None):
         r"""
         Specializes to weight `k` -- i.e. projects to `Sym^k`
         """
@@ -113,8 +113,9 @@ cdef class Dist(ModuleElement):
             raise ValueError("negative weight")
         if self.precision_absolute() < k+1:
             raise ValueError("not enough moments")
-        V = self.parent().specialize()
-        return V([binomial(k, j) * (-1)**j * self.moment(j) for j in range(k+1)])
+        V = self.parent().specialize(new_base_ring)
+        new_base_ring = V.base_ring()
+        return V([binomial(k, j) * (-1)**j * new_base_ring(self.moment(j)) for j in range(k+1)])
 
     def lift(self, p=None, M=None, new_base_ring=None):
         V = self.parent().lift(p, M, new_base_ring)

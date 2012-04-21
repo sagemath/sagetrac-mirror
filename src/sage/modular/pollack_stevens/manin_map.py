@@ -389,6 +389,20 @@ class ManinMap(object):
             val.normalize()
         return self
 
+    def reduce_precision(self, M):
+        D = {}
+        sd = self._dict
+        for ky, val in sd.iteritems():
+            D[ky] = val.reduce_precision(M)
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def specialize(self, new_base_ring):
+        D = {}
+        sd = self._dict
+        for ky, val in sd.iteritems():
+            D[ky] = val.specialize(new_base_ring)
+        return self.__class__(self._codomain.specialize(new_base_ring), self._manin, D, check=False)
+
     def hecke(self, ell, algorithm = 'prep'):
         """
         Returns the image of this Manin map under the Hecke operator `T_{\ell}`.

@@ -452,16 +452,13 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         r"""
         Only holds on to `M` moments of each value of self
         """
-        sd = self._dict
-        for val in sd.itervalues():
-            val.reduce_precision(M)
-        return self
+        return self.__class__(self._map.reduce_precision(M), self.parent(), construct=True)
 
     def precision_absolute(self):
         r"""
         Returns the number of moments of each value of self
         """
-        return self.precision_cap()
+        return min([a.precision_absolute() for a in self._map])
 
     def specialize(self):
         r"""
