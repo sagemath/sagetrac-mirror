@@ -20,13 +20,16 @@ class _default_tuplegen(UniqueRepresentation):
         return g[0,0], g[0,1], g[1,0], g[1,1]
 
 class Distributions_factory(UniqueFactory):
-    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
+    def create_key(self, k, p=None, prec_cap=None, base=None, symk=None, character=None, tuplegen=None, act_on_left=False):
         if tuplegen is None:
             tuplegen = _default_tuplegen()
         if p is not None:
             p = ZZ(p)
         if prec_cap is None:
-            symk = True
+            if symk is None:
+                symk = True
+            elif not symk:
+                raise ValueError("you must specify a precision or use symk=True")
             prec_cap = k+1
             if base is None:
                 if p is None:
@@ -34,7 +37,10 @@ class Distributions_factory(UniqueFactory):
                 else:
                     base = ZpCA(p)
         else:
-            symk = False
+            if symk is None:
+                symk = False
+            elif symk and prec_cap != k+1:
+                raise ValueError("precision must be k+1 for symk")
             if base is None:
                 if p is not None:
                     base = ZpCA(p, prec_cap)
@@ -99,7 +105,7 @@ class Distributions_class(Module):
         """
         from sage.rings.padics.pow_computer import PowComputer_long
         # should eventually be the PowComputer on ZpCA once that uses longs.
-        Dist, WeightKAction = get_dist_classes(p, prec_cap, base)
+        Dist, WeightKAction = get_dist_classes(p, prec_cap, base, symk)
         self.Element = Dist
         if Dist is Dist_long:
             self.prime_pow = PowComputer_long(p, prec_cap, prec_cap, prec_cap, 0)
@@ -246,7 +252,7 @@ class Distributions_class(Module):
             raise NotImplementedError
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring, symk=self._symk, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
     def lift(self, p=None, M=None, new_base_ring=None):
         if self._character is not None:
@@ -262,10 +268,10 @@ class Distributions_class(Module):
             raise ValueError("inconsistent prime")
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Distributions(self._k, p, M, new_base_ring, self._character, self._act._tuplegen, self._act.is_left())
+        return Distributions(self._k, p, M, new_base_ring, self._symk, self._character, self._act._tuplegen, self._act.is_left())
 
     def change_ring(self, new_base_ring):
-        return Distributions(self._k, self._p, self._prec_cap, new_base_ring, self._character, self._act._tuplegen, self._act.is_left())
+        return Distributions(self._k, self._p, self._prec_cap, new_base_ring, self._symk, self._character, self._act._tuplegen, self._act.is_left())
 
 #    def _get_action_(self, S, op, self_on_left):
 #        if S is self.base_ring():

@@ -32,8 +32,8 @@ cdef long underflow = -overflow
 include "stdsage.pxi"
 include "cdefs.pxi"
 
-def get_dist_classes(p, prec_cap, base):
-    if p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
+def get_dist_classes(p, prec_cap, base, symk):
+    if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
         return Dist_long, WeightKAction_long
@@ -45,7 +45,20 @@ cdef class Dist(ModuleElement):
         raise NotImplementedError
 
     def scale(self,left):
-        return self * left
+        if isinstance(self, Dist_long) and isinstance(left, (Integer, pAdicCappedRelativeElement, pAdicCappedAbsoluteElement, pAdicFixedModElement)):
+            return self._lmul_(left)
+        R = left.parent()
+        base = self.parent().base_ring()
+        if base is R:
+            return self._lmul_(left)
+        elif base.has_coerce_map_from(R):
+            return self._lmul_(base(left))
+        else:
+            from sage.categories.pushout import pushout
+            new_base = pushout(base, R)
+            V = self.parent().change_ring(new_base)
+            scalar = new_base(left)
+            return V([scalar * new_base(self.moment(i)) for i in range(self.precision_absolute())])
 
     def find_scalar(self, other, p, M, check=True):
         """
@@ -256,7 +269,7 @@ cdef class Dist_vector(Dist):
         Reduce modulo `Fil^N` -- that is the `i`-th moment is reduced modulo `p^(N-i)`
         """
         p = self.parent()._p
-        if p is not None: # non-classical
+        if not self.parent().is_symk(): # non-classical
             assert self.valuation() >= 0, "moments not integral in normalization"
             V = self.moments.parent()
             R = V.base_ring()
@@ -501,6 +514,7 @@ cdef class WeightKAction(Action):
             self._character = character
             self._Np = Dk._p # need to get conductor somehow in the case character = lambda g: ...
         self._p = Dk._p
+        self._symk = Dk._symk
         self._actmat = {}
         self._maxprecs = {}
         Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)
@@ -539,7 +553,7 @@ cdef class WeightKAction(Action):
     cpdef _check_mat(self, a, b, c, d):
         if a*d == b*c:
             raise ValueError("zero determinant")
-        if self._p is not None:
+        if not self._symk:
             if self._p.divides(a):
                 raise ValueError("p divides a")
             if not self._Np.divides(c):
@@ -559,7 +573,7 @@ cdef class WeightKAction_vector(WeightKAction):
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
         k = self._k
-        if self._p is None:
+        if self._symk:
             base_ring = QQ
         else:
             base_ring = Zmod(self._p**M)
