@@ -115,7 +115,7 @@ cdef class Dist_vector(Dist):
         Displays the moments of the distribution
         """
         self.normalize()
-        if len(self.moments) == 0:
+        if len(self.moments) == 1:
             return repr(self.moments[0])
         else:
             return repr(self.moments)

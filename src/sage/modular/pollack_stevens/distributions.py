@@ -47,7 +47,7 @@ class Distributions(Module):
             <class 'sage.modular.pollack_stevens.distributions.Distributions'>
 
         p must be a prime, but p=6 below, which is not prime::
-        
+
             sage: Distributions(k=0, p=6, prec_cap=10)
             Traceback (most recent call last):
             ...
@@ -55,16 +55,18 @@ class Distributions(Module):
         """
         if p is not None:
             p = ZZ(p)
+        if prec_cap is None:
+            self._symk = True
+            prec_cap = k+1
+        else:
+            self._symk = False
         if base is None:
             if p is None:
                 if prec_cap is None:
                     base = QQ
-                    prec_cap = k + 1
                 else:
                     raise ValueError("prec cap cannot be specified if p and base are both None")
             else:
-                if prec_cap is None:
-                    prec_cap = 20
                 base = ZpCA(p,prec_cap)
         elif isinstance(base, pAdicGeneric):
             if p is None:
@@ -86,13 +88,13 @@ class Distributions(Module):
         Parent.__init__(self, base)
         self._k = k
         self._p = p
-        if prec_cap is None:
-            self._prec_cap = k + 1
-        else:
-            self._prec_cap = prec_cap
+        self._prec_cap = prec_cap
         act = WeightKAction(self, character, tuplegen, act_on_left)
         self._act = act
         self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
+
+    def is_symk(self):
+        return self._prec_cap
 
     def _repr_(self):
         """

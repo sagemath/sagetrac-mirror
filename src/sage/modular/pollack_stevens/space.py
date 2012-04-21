@@ -15,11 +15,7 @@ class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
-        if base_ring is None and p is None:
-            base_ring = QQ
         if coefficients is None:
-            if p is not None and prec_cap is None:
-                prec_cap = 20
             if isinstance(group, DirichletCharacter):
                 character = group.minimize_base_ring()
                 group = Gamma0(character.modulus())
@@ -68,6 +64,10 @@ class PSModularSymbolSpace(Module):
             # sign should be 0, 1 or -1
         self._group = group
         self._coefficients = coefficients
+        if coefficients.is_symk():
+            self.Element = PSModularSymbolElement_symk
+        else:
+            self.Element = PSModularSymbolElement_dist
         self._sign = sign
         # should distingish between Gamma0 and Gamma1...
         self._manin_relations = ManinRelations(group.level())

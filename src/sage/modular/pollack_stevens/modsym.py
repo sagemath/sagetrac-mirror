@@ -3,6 +3,7 @@ from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.rings.integer_ring import ZZ
 from manin_map import ManinMap
 import operator
+from sage.misc.cachefunc import cached_method
 
 from sage.categories.action import Action
 
@@ -306,8 +307,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 alpha = ZZ(v0) # why not have alpha be p-adic?
             else:
                 alpha = ZZ(v1) # why not have alpha be p-adic?
-        pmat = M2Z([p,0,0,1])
-        
+        return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
 
     def completions(self, p, M):
         r"""

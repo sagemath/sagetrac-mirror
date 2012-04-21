@@ -502,4 +502,10 @@ class ManinMap(object):
                 psi += self._right_action(M2Z([ell,0,0,1]))
             return psi.normalize()
 
-
+    def p_stabilize(self, p, alpha, V):
+        manin = V.source()
+        pmat = M2Z([p,0,0,1])
+        D = {}
+        for g in manin.gens():
+            D[g] = self._eval_sl2(g) - 1/alpha * self(pmat * g) * pmat
+        return self.__class__(self._codomain, manin, D, check=False)
