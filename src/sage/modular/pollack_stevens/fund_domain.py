@@ -86,7 +86,7 @@ class PSModularSymbolsDomain(SageObject):
             sage: PSModularSymbolsDomain(Gamma0(11), None, None, None, None)
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer        
+            TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer
         """
         ## Store the level
         self._N = ZZ(N)
@@ -166,7 +166,7 @@ class PSModularSymbolsDomain(SageObject):
             [ 1  1]
         """
         return iter(self._reps)
-    
+
     def gens(self):
         """
         Returns the list of coset representatives chosen as generators.
@@ -621,7 +621,7 @@ class ManinRelations(PSModularSymbolsDomain):
         ## modular symbol phi on the (associated divisor) of the j-th
         ## element of coset_reps will be the sum of c * phi (r-th genetator) | A
         ## as one varies over the tuples in rel[j]
-        
+
         boundary_checked = [False] * len(coset_reps)
 
         ## The list boundary_checked keeps track of which boundary pieces of the
@@ -716,7 +716,7 @@ class ManinRelations(PSModularSymbolsDomain):
                         rels.append([(-1,Id,r)])
                         ## This relation means that phi on the reversed edge
                         ## equals -phi on original edge
-                        
+
                         boundary_checked[r] = True
                         ## We have now finished with this edge.
 
@@ -927,7 +927,7 @@ class ManinRelations(PSModularSymbolsDomain):
             The projective line over the integers modulo 11
         """
         return self._P
-    
+
     def form_list_of_cusps(self):
         r"""
         Returns the intersection of a fundamental domain for
@@ -1250,7 +1250,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         In particular, if phi is a modular symbol and D_m is the divisor associated to the generator ``gen``,
         to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
-        gam_a run thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
+        gam_a runs thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
         as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
         SL_2 matrix, we then write M=gam*h where gam is in Gamma_0(N) and h is one of our
         chosen coset representatives.  Then phi([M]) = phi([h]) | gam^(-1).  Thus, one has
@@ -1278,13 +1278,33 @@ class ManinRelations(PSModularSymbolsDomain):
         EXAMPLES:
 
         ::
-        
+
         sage: E = EllipticCurve('11a')
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
-        sage: phi.prep_hecke_individual(2,0)
+        sage: M = phi.parent().source()
+        sage: M.prep_hecke_on_gen(2, M.gens()[0])
+        {[ 1  0]
+        [-1  1]: [], [1 0]
+        [0 1]: [[1 0]
+        [0 2], [1 1]
+        [0 2], [2 0]
+        [0 1]], [ 1 -1]
+        [-1  2]: [[ 1 -1]
+        [ 0  2]], [ 1  0]
+        [-2  1]: [], [ 0 -1]
+        [ 1  1]: [], [-1 -2]
+        [ 2  3]: [], [ 0 -1]
+        [ 1  3]: [], [-1 -1]
+        [ 2  1]: [], [ 0 -1]
+        [ 1  2]: [], [-2 -1]
+        [ 3  1]: [], [ 1  1]
+        [-1  0]: [], [-1 -1]
+        [ 3  2]: []}
+
+        This was the output when the output was still a list::
         [[[1 0]
         [0 2], [1 1]
         [0 2], [2 0]
@@ -1308,7 +1328,7 @@ class ManinRelations(PSModularSymbolsDomain):
             ans[h] = []
         # this will be the dictionary D above enumerated by coset reps
 
-        #  This loop will runs thru the ell+1 (or ell) matrices
+        #  This loop will run thru the ell+1 (or ell) matrices
         #  defining T_ell of the form [1, a, 0, ell] and carry out the
         #  computation described above.
         #  -------------------------------------
@@ -1316,7 +1336,7 @@ class ManinRelations(PSModularSymbolsDomain):
            if (a < ell) or (N % ell != 0):
                # if the level is not prime to ell the matrix [ell, 0, 0, 1] is avoided.
                gamma = basic_hecke_matrix(a, ell)
-               t = gamma*gen
+               t = gamma * gen
                #  In the notation above this is gam_a * D_m
                v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
                #  This expresses t as a sum of unimodular divisors
@@ -1330,7 +1350,7 @@ class ManinRelations(PSModularSymbolsDomain):
                    C = A._invert_unit()
                    #  gaminv = B*A^(-1)
                    gaminv = B * C
-                   #  The matrix gaminv * gamma is added to our list in the j-th slot 
+                   #  The matrix gaminv * gamma is added to our list in the j-th slot
                    #  (as described above)
                    ans[B].append(gaminv * gamma)
 
@@ -1350,7 +1370,7 @@ def basic_hecke_matrix(a, ell):
     - a 2 x 2 matrix of determinant ell
 
     EXAMPLES:
-    
+
         sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
         [1 0]
         [0 7]
@@ -1362,7 +1382,7 @@ def basic_hecke_matrix(a, ell):
         [0 1]
         sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
         [7 0]
-        [0 1]    
+        [0 1]
     """
     # TODO: probably a bottleneck.
     if a < ell:
@@ -1437,7 +1457,7 @@ def unimod_matrices_from_infty(r, s):
         [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
         ]
         sage: [a.det() for a in v]
-        [1, 1, 1, 1, 1]    
+        [1, 1, 1, 1, 1]
     """
     if s != 0:
         L = convergents(r / s)

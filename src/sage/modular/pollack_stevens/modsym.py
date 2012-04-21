@@ -19,7 +19,7 @@ class PSModSymAction(Action):
 
     def _call_(self, sym, g):
         return sym.__class__(sym._map * g, sym.parent(), construct=True)
-    
+
 class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent, construct=False):
         ModuleElement.__init__(self, parent)
@@ -30,7 +30,17 @@ class PSModularSymbolElement(ModuleElement):
 
     def _repr_(self):
         r"""
-        Return the print representation
+        Returns the print representation.
+
+        EXAMPLES:
+
+        ::
+
+        sage: E = EllipticCurve('11a')
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: phi = ps_modsym_from_elliptic_curve(E)
+        sage: phi._repr_()
+        'Modular symbol with values in Sym^0 Q^2'
         """
         return "Modular symbol with values in %s"%(self.parent().coefficient_module())
 
@@ -42,11 +52,11 @@ class PSModularSymbolElement(ModuleElement):
 
     def weight(self):
         """
-        Return the weight of this Pollack-Stevens modular symbol.
+        Returns the weight of this Pollack-Stevens modular symbol.
 
         This is k-2, where k is the usual notion of weight for modular
         forms!!!
-        
+
         """
         return self.parent().weight()
 
@@ -312,7 +322,7 @@ class PSModularSymbolElement(ModuleElement):
             return True
         except ValueError:
             return False
-        
+
 
     # what happens if a cached method raises an error?  Is it recomputed each time?
     @cached_method
@@ -336,7 +346,7 @@ class PSModularSymbolElement(ModuleElement):
         ::
 
         sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve 
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: phi = ps_modsym_from_elliptic_curve(E)
         sage: phi.values()
         [-1/5, 3/2, -1/2]
@@ -348,7 +358,7 @@ class PSModularSymbolElement(ModuleElement):
         sage: phi_ord.Tq_eigenvalue(2,3,1000)
         -2
 
-        
+
         sage: phi_ord.Tq_eigenvalue(3,3,10)
         -95227/47611
         sage: phi_ord.Tq_eigenvalue(3,3,100)
@@ -369,10 +379,10 @@ class PSModularSymbolElement(ModuleElement):
             elif (f - aq * self).valuation(p) < M:
                 raise ValueError("not a scalar multiple")
         return aq
-    
+
     def lift(self, algorithm = None, eigensymbol = None):
         r"""
-        
+
         """
         raise NotImplementedError
 
@@ -427,7 +437,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
         V = self.parent()._p_stabilize_parent_space(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
-    
+
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
@@ -443,7 +453,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         OUTPUT:
 
-        - 
+        -
 
         EXAMPLES:
         """
@@ -555,6 +565,3 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         # TODO: no clue how to do this until this object fully works again...
         raise NotImplementedError
 
-
-
->>>>>>> 0294e6987d349815708ae9645d111ebba5cb147b
