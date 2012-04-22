@@ -69,6 +69,7 @@ class PSModularSymbolElement(ModuleElement):
     def _normalize(self):
         for val in self._map:
             val.normalize()
+        return self
 
     def __cmp__(self, other):
         """
@@ -505,10 +506,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         else:
             roots = [r[0] for r in v]
             ans = []
+            V = self.parent().change_ring(Qp(p, M))
+            Dist = V.coefficient_module()
             for r in roots:
                 psi = K.hom([r],Qp(p,M))
                 print "psi = ", psi
-                ans.append((self.parent()(,psi))
+                embedded_sym = self.__class__(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
+                ans.append((embedded_sym,psi))
             return ans
 
     def lift(self, p=None, M=None, new_base_ring=None, algorithm = None, eigensymbol = None):
@@ -610,7 +614,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         Psi = apinv * Phi.hecke(p)
         err = (Psi - Phi).diagonal_valuation(p)
         Phi = Psi
-        while err < infinity:
+        while err < M:
             if need_unscaling and Phi.valuation(p) >= s:
                 Phi *= (1 / p**s)
                 # Can't we get this to better precision....

@@ -421,7 +421,7 @@ class ManinMap(object):
             ans = ans - self._eval_sl2(B)
         return ans
 
-    def apply(self, f):
+    def apply(self, f, codomain=None, to_moments=False):
         """
         Returns Manin map given by `x |--> f(self(x))`, where `f` is
         anything that can be called with elements of the coefficient
@@ -432,9 +432,14 @@ class ManinMap(object):
         """
         D = {}
         sd = self._dict
+        if codomain is None:
+            codomain = self._codomain
         for ky, val in sd.iteritems():
-            D[ky] = f(val)
-        return self.__class__(self._codomain, self._manin, D, check=False)
+            if to_moments:
+                D[ky] = codomain([f(val.moment(a)) for a in range(val.precision_absolute())])
+            else:
+                D[ky] = f(val)
+        return self.__class__(codomain, self._manin, D, check=False)
 
     def __iter__(self):
         """
