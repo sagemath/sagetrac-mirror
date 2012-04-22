@@ -7,6 +7,9 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
+from sage.rings.arith import next_prime
+from sage.rings.infinity import infinity
+from sage.misc.misc import verbose
 
 from sage.categories.action import Action
 
@@ -62,6 +65,10 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         return [self._map[g] for g in self.parent().source().gens()]
+
+    def _normalize(self):
+        for val in self._map:
+            val.normalize()
 
     def __cmp__(self, other):
         gens = self.parent().source().gens()
@@ -533,6 +540,55 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     t += c * self._map[g].lift(p, M, new_base_ring) * A
         D[manin.gen(0)] = t.solve_diff_eqn()
         return MSS(D)
+
+    def _lift_to_OMS_eigen(self, p, M, new_base_ring):
+        ap = self.Tq_eigenvalue(p, p, M)
+        k = self.parent().weight()
+        Phi = self._lift_to_OMS(p, M, new_base_ring)
+        s = - Phi.valuation(p)
+        if s > 0:
+            verbose("scaling by %s^%s"%(p, s))
+            Phi = p**s * Phi
+            need_unscaling = True
+        else:
+            need_unscaling = False
+        Phi._normalize()
+        verbose("Applying Hecke")
+        Phi = Phi.hecke(p).scale(~ap)
+        verbose("Killing eisenstein part")
+        if ap % p**M != 1:
+            Phi = 1 / (1 - ap) * (Phi - Phi.hecke(p))
+            e = (1 - ap).valuation(p)
+            if e > 0:
+                verbose("change precision to %s"%(M - e))
+                Phi = Phi.reduce_precision(M - e)
+        else:
+            q = ZZ(2)
+            aq = self.Tq_eigenvalue(q, p, M)
+            while q != p and (aq - q**(k+1) - 1) % p**M == 0:
+                q = next_prime(q)
+                aq = self.Tq_eigenvalue(q, p, M)
+            Phi = (Phi.scale(q**(k+1) + 1) - Phi.hecke(q)).scale(1 / (q**(k+1) + 1 - aq))
+            e = (q**(k+1) + 1 - aq).valuation(p)
+            if e > 0:
+                verbose("change precision to %s"%(M - e))
+                Phi = Phi.reduce_precision(M - e)
+        verbose("Iterating U_p")
+        Psi = Phi.hecke(p).scale(1/ap)
+        err = (Psi - Phi).valuation(p)
+        Phi = Psi
+        while err < infinity:
+            if need_unscaling and Phi.valuation(p) >= s:
+                Phi *= (1 / p**s)
+                # Can't we get this to better precision....
+                Phi = Phi.reduce_precision(Phi.precision_absolute() - s)._normalize()
+                verbose("unscaling by %s^%s"%(p, s))
+                need_unscaling = False
+            Psi = Phi.hecke(p) * 1/ap
+            err = (Psi - Phi).valuation(p)
+            verbose("error is zero modulo p^%s"%(error))
+            Phi = Psi
+        return Phi._normalize()
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
