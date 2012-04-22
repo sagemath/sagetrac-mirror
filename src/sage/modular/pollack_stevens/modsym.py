@@ -46,6 +46,22 @@ class PSModularSymbolElement(ModuleElement):
         return "Modular symbol with values in %s"%(self.parent().coefficient_module())
 
     def dict(self):
+        """
+        Returns dictionary on self, where keys are generators and values are the corresponding values of self on generators
+
+        EXAMPLES::
+        
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.dict()
+            {[1 0]
+            [0 1]: -1/5, [ 0 -1]
+            [ 1  3]: 3/2, [-1 -1]
+            [ 3  2]: -1/2}
+            
+    
+        """
         D = {}
         for g in self.parent().source().gens():
             D[g] = self._map[g]
@@ -70,6 +86,22 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         """
+        Returns the values of self on our chosen generators (generators are listed in self.dict().keys())
+
+        EXAMPLES::
+        
+             sage: E = EllipticCurve('11a')
+             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+             sage: phi = ps_modsym_from_elliptic_curve(E)
+             sage: phi.values()
+             [-1/5, 3/2, -1/2]
+             sage: phi.dict().keys()
+             [
+             [1 0]  [ 0 -1]  [-1 -1]
+             [0 1], [ 1  3], [ 3  2]
+             ]
+             sage: phi.values() == phi.dict().values()
+             True
         
         """
         return [self._map[g] for g in self.parent().source().gens()]
