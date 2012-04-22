@@ -46,8 +46,8 @@ class PSModularSymbolElement(ModuleElement):
         return "Modular symbol with values in %s"%(self.parent().coefficient_module())
 
     def dict(self):
-        """
-        Returns dictionary on self, where keys are generators and values are the corresponding values of self on generators
+        r"""
+        Returns dictionary on the modular symbol self, where keys are generators and values are the corresponding values of self on generators
 
         EXAMPLES::
         
@@ -68,7 +68,7 @@ class PSModularSymbolElement(ModuleElement):
         return D
 
     def weight(self):
-        """
+        r"""
         Returns the weight of this Pollack-Stevens modular symbol.
 
         This is `k-2`, where `k` is the usual notion of weight for modular
@@ -85,8 +85,8 @@ class PSModularSymbolElement(ModuleElement):
         return self.parent().weight()
 
     def values(self):
-        """
-        Returns the values of self on our chosen generators (generators are listed in self.dict().keys())
+        r"""
+        Returns the values of the symbol self on our chosen generators (generators are listed in self.dict().keys())
 
         EXAMPLES::
         
@@ -107,6 +107,19 @@ class PSModularSymbolElement(ModuleElement):
         return [self._map[g] for g in self.parent().source().gens()]
 
     def _normalize(self):
+        """
+        Normalizes all of the values of the symbol self
+
+        EXAMPLES::
+        
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E) 
+            sage: phi._normalize()
+            Modular symbol with values in Sym^0 Q^2
+            sage: phi._normalize().values()
+            [-1/5, 3/2, -1/2]
+        """
         for val in self._map:
             val.normalize()
         return self
