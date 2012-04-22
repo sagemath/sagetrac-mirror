@@ -686,6 +686,8 @@ cdef class Dist_vector(Dist):
         r"""
         
 
+        See Lemma 4.4 of [PS].
+
         OUTPUT:
 
         - 
