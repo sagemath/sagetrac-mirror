@@ -303,7 +303,9 @@ cdef class Dist(ModuleElement):
 
     def specialize(self, new_base_ring=None):
         """
-        
+        Returns the image of this overconvergent distribution under
+        the canonical projection from distributions of weight k to
+        Sym^k.
 
         INPUT:
 
@@ -312,15 +314,12 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - 
+        - An element of Sym^k(K), where K is the specified base ring.
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: 
-        """
-        r"""
-        Specializes to weight `k` -- i.e. projects to `Sym^k`
         """
         k=self.parent()._k
         if k < 0:
@@ -333,11 +332,12 @@ cdef class Dist(ModuleElement):
 
     def lift(self, p=None, M=None, new_base_ring=None):
         r"""
-        
+        Lifts a distribution or element of Sym^k to an overconvergent distribution.
 
         INPUT:
 
-        - ``p`` -- (default: None) a positive integral prime
+        - ``p`` -- (default: None) a positive integral prime.  If None
+          then p must be available in the parent.
 
         - ``M`` -- (default: None) a positive integer giving the
           desired number of moments.
@@ -347,7 +347,8 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - 
+        - An overconvergent distribution with `M` moments whose image
+          under the specialization map is this element.
 
         EXAMPLES::
 
@@ -372,7 +373,8 @@ cdef class Dist(ModuleElement):
 
     def act_right(self,gamma):
         r"""
-        
+        The image of this element under the right action by a
+        `2 \times 2` matrix.
 
         INPUT:
 
@@ -380,15 +382,16 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - 
+        - ``self | gamma``
+
+        .. NOTE::
+
+            You may also just use multiplication ``self * gamma``.
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: 
-        """
-        r"""
-        Return self|gam
         """
         return self.parent()._act(self, gamma)
 
@@ -401,9 +404,11 @@ cdef class Dist_vector(Dist):
 
     INPUTS:
 
-    - ``parent`` -- a :class:`distributions.Distributions_Zp` instance
+    - ``moments`` -- the list of moments.  If ``check == False`` it
+      must be a vector in the appropriate approximation module.
 
-    - ``moments`` -- the list of moments given as a vector
+    - ``parent`` -- a :class:`distributions.Distributions_class` or
+      :class:`distributions.Symk_class` instance
 
     - ``check`` -- (default: True) boolean, whether to validate input
 
@@ -412,7 +417,7 @@ cdef class Dist_vector(Dist):
         sage: from sage.modular.pollack_stevens.distributions import Distributions
         sage: 
     """
-    def __init__(self,moments,parent,check=True):
+    def __init__(self,moments, parent, check=True):
         """
         Initialization.
 
@@ -434,11 +439,12 @@ cdef class Dist_vector(Dist):
 
     cdef Dist_vector _new_c(self):
         r"""
-        
+        Creates an empty distribution.
 
         OUTPUT:
 
-        - 
+        - A distribution with no moments.  The moments are then filled
+          in by the calling function.
 
         EXAMPLES::
 
@@ -451,7 +457,7 @@ cdef class Dist_vector(Dist):
 
     def _repr_(self):
         r"""
-        
+        String representation.
 
         EXAMPLES::
 
@@ -491,9 +497,9 @@ cdef class Dist_vector(Dist):
             return QQ(self.moments[0])
         raise TypeError, "k must be 0"
 
-    def moment(self,n):
+    def moment(self, n):
         r"""
-        
+        Returns the `n`-th moment.
 
         INPUT:
 
@@ -501,7 +507,8 @@ cdef class Dist_vector(Dist):
 
         OUTPUT:
 
-        - 
+        - the `n`-th moment, or a list of moments in the case that `n`
+          is a slice.
 
         EXAMPLES::
 
@@ -515,7 +522,7 @@ cdef class Dist_vector(Dist):
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
         r"""
-        
+        Sum of two distributions.
 
         EXAMPLES::
 
@@ -534,7 +541,7 @@ cdef class Dist_vector(Dist):
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         r"""
-        
+        Difference of two distributions.
 
         EXAMPLES::
 
@@ -553,7 +560,7 @@ cdef class Dist_vector(Dist):
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         r"""
-        
+        Scalar product of a distribution with a ring element that coerces into the base ring.
 
         EXAMPLES::
 
@@ -566,11 +573,16 @@ cdef class Dist_vector(Dist):
 
     def precision_absolute(self):
         r"""
-        
+        Returns the precision of this distribution.
+
+        The precision is just the number of moments stored, which is
+        also k+1 in the case of Sym^k(R).  For overconvergent
+        distributions, the precision is the integer `m` so that the
+        sequence of moments is known modulo `Fil^m`.
 
         OUTPUT:
 
-        - 
+        - An integer giving the number of moments.
 
         EXAMPLES::
 
@@ -584,7 +596,7 @@ cdef class Dist_vector(Dist):
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         r"""
-        
+        Comparison.
 
         EXAMPLES::
 
@@ -611,19 +623,24 @@ cdef class Dist_vector(Dist):
 
     cpdef normalize(self):
         r"""
-        
+        Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
+
+        If the parent is Symk, then normalize has no effect.  If the
+        parent is a space of distributions, then normalize reduces the
+        `i`-th moment modulo `p^{N-i}`.
 
         OUTPUT:
 
-        - 
+        - this distribtion, after normalizing.
+
+        .. WARNING::
+
+            This function modifies the distribution in place as well as returning it.
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
-        """
-        r"""
-        Reduce modulo `Fil^N` -- that is the `i`-th moment is reduced modulo `p^(N-i)`
         """
         p = self.parent()._p
         if not self.parent().is_symk(): # non-classical
@@ -642,7 +659,7 @@ cdef class Dist_vector(Dist):
 
     def reduce_precision(self, M):
         r"""
-        
+        Only hold on to `M` moments.
 
         INPUT:
 
@@ -651,15 +668,13 @@ cdef class Dist_vector(Dist):
 
         OUTPUT:
 
-        - 
+        - a new distribution with `M` moments equal to the first `M`
+          moments of this distribution.
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
-        """
-        r"""
-        Only holds on to `M` moments.
         """
         assert M<=self.precision_absolute(),"not enough moments"
 
