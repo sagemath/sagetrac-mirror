@@ -190,7 +190,7 @@ class PSModularSymbolElement(ModuleElement):
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
         [-1/5, 3/2, -1/2]
-        sage: (phi.plus_part()+phi.minus_part()) == phi.scale(2)
+        sage: (phi.plus_part()+phi.minus_part()) == 2 * phi
         True
         """
         return self * minusproj + self
@@ -300,6 +300,9 @@ class PSModularSymbolElement(ModuleElement):
         0
         """
         return min([val.valuation(p) for val in self._map])
+
+    def diagonal_valuation(self, p):
+        return min([val.diagonal_valuation(p) for val in self._map])
 
     def change_ring(self,R):
         r"""
@@ -562,9 +565,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def _lift_to_OMS_eigen(self, p, M, new_base_ring):
         ap = self.Tq_eigenvalue(p, p, M)
+        apinv = ~ap
         k = self.parent().weight()
         Phi = self._lift_to_OMS(p, M, new_base_ring)
-        s = - Phi.valuation(p)
+        s = - Phi.diagonal_valuation(p)
         if s > 0:
             verbose("scaling by %s^%s"%(p, s))
             Phi = p**s * Phi
@@ -573,7 +577,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             need_unscaling = False
         Phi._normalize()
         verbose("Applying Hecke")
-        Phi = Phi.hecke(p).scale(~ap)
+        Phi = apinv * Phi.hecke(p)
         verbose("Killing eisenstein part")
         if ap % p**M != 1:
             Phi = 1 / (1 - ap) * (Phi - Phi.hecke(p))
@@ -587,14 +591,14 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             while q != p and (aq - q**(k+1) - 1) % p**M == 0:
                 q = next_prime(q)
                 aq = self.Tq_eigenvalue(q, p, M)
-            Phi = (Phi.scale(q**(k+1) + 1) - Phi.hecke(q)).scale(1 / (q**(k+1) + 1 - aq))
+            Phi = (q**(k+1) + 1 - aq) * ((q**(k+1) + 1) * Phi - Phi.hecke(q))
             e = (q**(k+1) + 1 - aq).valuation(p)
             if e > 0:
                 verbose("change precision to %s"%(M - e))
                 Phi = Phi.reduce_precision(M - e)
         verbose("Iterating U_p")
-        Psi = Phi.hecke(p).scale(1/ap)
-        err = (Psi - Phi).valuation(p)
+        Psi = apinv * Phi.hecke(p)
+        err = (Psi - Phi).diagonal_valuation(p)
         Phi = Psi
         while err < infinity:
             if need_unscaling and Phi.valuation(p) >= s:
@@ -604,8 +608,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 verbose("unscaling by %s^%s"%(p, s))
                 need_unscaling = False
             Psi = Phi.hecke(p) * 1/ap
-            err = (Psi - Phi).valuation(p)
-            verbose("error is zero modulo p^%s"%(error))
+            err = (Psi - Phi).diagonal_valuation(p)
+            verbose("error is zero modulo p^%s"%(err))
             Phi = Psi
         return Phi._normalize()
 

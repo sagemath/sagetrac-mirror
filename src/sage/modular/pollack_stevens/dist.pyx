@@ -111,14 +111,20 @@ cdef class Dist(ModuleElement):
     cpdef ModuleElement _rmul_(self, RingElement _left):
         return self._lmul_(_left)
 
+    def diagonal_valuation(self, p=None):
+        if p is None:
+            p = self.parent()._p
+        n = self.precision_absolute()
+        return min([n] + [a + self.moment(a).valuation(p) for a in range(n)])
+
     def valuation(self, p=None):
         r"""
         Returns the highest power of `p` which divides all moments of the distribution
         """
         if p is None:
             p = self.parent()._p
-        return min([self.moment(a).valuation(p) for a in
-            range(self.precision_absolute())])
+        n = self.precision_absolute()
+        return min([self.moment(a).valuation(p) for a in range(n)])
 
     def specialize(self, new_base_ring=None):
         r"""
@@ -579,7 +585,7 @@ cdef class WeightKAction(Action):
 
 cdef class WeightKAction_vector(WeightKAction):
     cpdef _compute_acting_matrix(self, g, M):
-        tim = verbose("Starting")
+        #tim = verbose("Starting")
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
         k = self._k
@@ -589,7 +595,7 @@ cdef class WeightKAction_vector(WeightKAction):
             base_ring = Zmod(self._p**M)
         R = PowerSeriesRing(base_ring, 'y', default_prec = M)
         y = R.gen()
-        tim = verbose("Checked, made R",tim)
+        #tim = verbose("Checked, made R",tim)
         # special case for small precision, large weight
         scale = (b+d*y)/(a+c*y)
         t = (a+c*y)**k # will already have precision M
@@ -597,12 +603,12 @@ cdef class WeightKAction_vector(WeightKAction):
             t *= self._character(a, b, c, d)
         cdef Matrix B = matrix(base_ring,M,M)
         cdef long row, col
-        tim = verbose("Made matrix",tim)
+        #tim = verbose("Made matrix",tim)
         for col in range(M):
             for row in range(M):
                 B.set_unsafe(row, col, t[row])
             t *= scale
-        verbose("Finished loop",tim)
+        #verbose("Finished loop",tim)
         # the changering here is annoying, but otherwise we have to change ring each time we multiply
         return B.change_ring(self.codomain().base_ring())
 
@@ -611,8 +617,6 @@ cdef class WeightKAction_vector(WeightKAction):
         # hashing on arithmetic_subgroup_elements is by str
         cdef Dist_vector v = <Dist_vector?>_v
         cdef Dist_vector ans = v._new_c()
-        verbose(str(v.moments))
-        verbose(str(self.acting_matrix(g, len(v.moments))))
         ans.moments = v.moments * self.acting_matrix(g, len(v.moments))
         return ans
 
