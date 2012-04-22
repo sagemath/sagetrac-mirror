@@ -55,13 +55,23 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns the weight of this Pollack-Stevens modular symbol.
 
-        This is k-2, where k is the usual notion of weight for modular
-        forms!!!
+        This is `k-2`, where `k` is the usual notion of weight for modular
+        forms!
+
+        EXAMPLES::
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)  
+            sage: phi.weight()
+            0
 
         """
         return self.parent().weight()
 
     def values(self):
+        """
+        
+        """
         return [self._map[g] for g in self.parent().source().gens()]
 
     def _normalize(self):
