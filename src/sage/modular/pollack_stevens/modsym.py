@@ -514,6 +514,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         return M
 
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
+        """
+        """
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
         if check and ap.valuation(p) > 0:
@@ -570,6 +572,39 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         return alpha, new_base_ring, newM, eisenloss, q, aq
     
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
+        r"""
+
+        Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
+
+        Note that `alpha` is `p`-adic and so the resulting symbol is just an approximation to the
+        true `p`-stabilization (depending on how well `alpha` is approximated).
+
+        INPUT:
+
+        - ``p`` -- prime not dividing the level of self.
+        - ``M`` -- precision of `Q_p`
+        - ``alpha`` -- 
+        - ``ap`` -- Hecke eigenvalue
+        - ``new_base_ring``
+        - ``ordinary`` -- 
+
+        OUTPUT:
+
+        A modular symbol with the same Hecke-eigenvalues as self away from `p` and eigenvalue `alpha` at `p`.
+        
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a')
+            sage: p = 5
+            sage: prec = 4
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi_stabilized = phi.p_stabilize(p,M = prec)
+            sage: phi_stabilized
+            Modular symbol with values in Sym^0 Q_5^2
+
+        """
+        
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
