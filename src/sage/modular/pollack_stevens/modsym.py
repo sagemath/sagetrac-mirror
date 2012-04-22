@@ -567,7 +567,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 new_base_ring = self.parent().base_ring()
             else:
                 # should eventually be a completion
-                new_base_ring = Qp(p, M)
+                new_base_ring = Qp(p, M+3)
         if algorithm is None:
             raise NotImplementedError
         if algorithm == 'stevens':
@@ -629,7 +629,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 elif A is not Id:
                     # rules out extra three torsion terms
                     t += c * self._map[g].lift(p, M, new_base_ring) * A
-        D[manin.gen(0)] = t.solve_diff_eqn()
+        D[manin.gen(0)] = t.solve_diff_eqn()  ###### Check this!
         return MSS(D)
 
     def _lift_to_OMS_eigen(self, p, M, new_base_ring):
@@ -649,11 +649,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         
         """
         
-        ap = self.Tq_eigenvalue(p, p, M)
+        ap = self.Tq_eigenvalue(p, p, M+3)
         apinv = ~ap
         k = self.parent().weight()
+        verbose("computing naive lift")
         Phi = self._lift_to_OMS(p, M, new_base_ring)
-        s = - Phi.diagonal_valuation(p)
+        s = - Phi.valuation(p)
         if s > 0:
             verbose("scaling by %s^%s"%(p, s))
             Phi = p**s * Phi
@@ -694,6 +695,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 need_unscaling = False
             Psi = Phi.hecke(p) * 1/ap
             err = (Psi - Phi).diagonal_valuation(p)
+            print (Psi - Phi).values()[0]
             verbose("error is zero modulo p^%s"%(err))
             Phi = Psi
         return Phi._normalize()

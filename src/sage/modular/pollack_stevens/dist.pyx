@@ -123,7 +123,7 @@ cdef class Dist(ModuleElement):
                 verbose("comparing p moment %s"%i)
                 a = self.moment(i)
                 if check:
-                    verbose("self.moment=%s, other.moment=%s, ratio = %s"%(a, other.moment(i), other.moment(i) / a))
+                    verbose("self.moment=%s, other.moment=%s"%(a, other.moment(i)))
                     if (padic and other.moment(i) != alpha * a) or \
                        (not padic and other.moment() % p**(n-i) != alpha * a % p**(n-i)):
                         raise ValueError("not a scalar multiple")
@@ -312,7 +312,10 @@ cdef class Dist_vector(Dist):
         """
         p = self.parent()._p
         if not self.parent().is_symk(): # non-classical
-            assert self.valuation() >= 0, "moments not integral in normalization"
+            if self.valuation() < 0:
+                verbose("Negative valuation!")
+                verbose("%s"%(self.moments))
+            #assert self.valuation() >= 0, "moments not integral in normalization"
             V = self.moments.parent()
             R = V.base_ring()
             n = self.precision_absolute()
