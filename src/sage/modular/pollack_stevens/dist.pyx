@@ -70,31 +70,41 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - 
+        - Normalized entries of the distribution
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
+            sage: D = Distributions(5, 7, 15)
+            sage: D
+            Space of 7-adic distributions with k=5 action and precision cap 15
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: v.normalize()
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
         """
         raise NotImplementedError
 
     def scale(self,left):
         r"""
-        
+        Scales the moments of the distribution by `left`
 
         INPUT:
 
-        - ``left`` -- 
+        - ``left`` -- scalar
 
         OUTPUT:
 
-        - 
+        - Scales the moments by `left`
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: v.scale(2)
+            (2 + O(7^5), 4 + O(7^4), 6 + O(7^3), 1 + 7 + O(7^2), 3 + O(7))
         """
         if isinstance(self, Dist_long) and isinstance(left, (Integer, pAdicCappedRelativeElement, pAdicCappedAbsoluteElement, pAdicFixedModElement)):
             return self._lmul_(left)
@@ -113,22 +123,29 @@ cdef class Dist(ModuleElement):
 
     def is_zero(self, p=None, M=None):
         r"""
-        
+        Returns True if all of the moments are either identically zero or zero modulo p^M
 
         INPUT:
 
-        - ``p`` -- 
+        - ``p`` -- prime
 
-        - ``M`` -- 
+        - ``M`` -- precision
 
         OUTPUT:
 
-        - 
+        - True/False
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5]); v
+            (1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))
+            sage: v.is_zero()
+            False
+            sage: v = D(5*[0])
+            sage: v.is_zero()
+            True
         """
         n = self.precision_absolute()
         if M is None:
