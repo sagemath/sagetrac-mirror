@@ -21,6 +21,21 @@ from sage.rings.infinity import infinity as oo
 
 class PSModularSymbols_constructor(UniqueFactory):
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
+        """
+        INPUT:
+
+        - ``group`` -- integer or congruence subgroup
+        - ``weight`` -- nonnegative integer or None
+        - ``sign`` -- integer; -1, 0, 1
+        - ``base_ring`` -- ring or None
+        - `p` -- prime or None
+        - ``prec_cap`` -- positive integer or None
+        - ``coefficients`` -- the coefficient module (a special type of module, typically distributions)
+        
+        EXAMPLES::
+        
+            sage: D = Distributions(3, 7, prec_cap=10); M = PSModularSymbolSpace(Gamma0(7), D) # indirect doctest
+        """
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
         if coefficients is None:
@@ -39,6 +54,11 @@ class PSModularSymbols_constructor(UniqueFactory):
         return (group, coefficients, sign)
 
     def create_object(self, version, key):
+        """
+        EXAMPLES::
+        
+            sage: D = Distributions(5, 7, 15); M = PSModularSymbolSpace(Gamma0(7), D) # indirect doctest
+        """
         return PSModularSymbolSpace(*key)
 
 PSModularSymbols = PSModularSymbols_constructor('PSModularSymbols')
@@ -342,18 +362,17 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 7)
-            sage: M = PSModularSymbolSpace(Gamma(13), D)
+            sage: D = Distributions(2, 7); M = PSModularSymbolSpace(Gamma(13), D)
             sage: M._p_stabilize_parent_space(7, M.base_ring())
             Space of overconvergent modular symbols for Congruence Subgroup
             Gamma(91) with sign 0 and values in Space of 7-adic distributions
             with k=2 action and precision cap 3
-            sage: D = Distributions(4, 17)
-            sage: M = PSModularSymbolSpace(Gamma1(3), D)
-            sage: M._p_stabilize_parent_space(17, 15)
-            Space of overconvergent modular symbols for Congruence Subgroup
-            Gamma1(51) with sign 0 and values in Space of 17-adic distributions
-            with k=4 action and precision cap 15
+            
+            sage: D = Distributions(4, 17); M = PSModularSymbolSpace(Gamma1(3), D)
+            sage: M._p_stabilize_parent_space(17, Qp(17))
+            Space of overconvergent modular symbols for Congruence
+            Subgroup Gamma1(51) with sign 0 and values in Space of
+            17-adic distributions with k=4 action and precision cap 5
         """
 
         N = self.level()
@@ -391,6 +410,23 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
 
     def _lift_parent_space(self, p, M, new_base_ring):
+        """
+        Used internally when lifting modular symbols.
+        
+        INPUT:
+
+        - `p` -- prime
+        - `M` -- precision cap
+        - ``new_base_ring`` -- ring
+        
+        EXAMPLES::
+
+            sage: D = Distributions(4, 17, 0); M = PSModularSymbolSpace(Gamma1(3), D)
+            sage: D.is_symk()
+            False
+            sage: M._lift_parent_space(17, 10, Qp(17))
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma1(3) with sign 0 and values in Space of 17-adic distributions with k=4 action and precision cap 10            
+        """
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
 
     def _an_element_(self):
@@ -406,10 +442,9 @@ class PSModularSymbolSpace(Module):
             Modular symbol with values in Sym^4 Q^2
             sage: x.values()
             [(2, 1), (2, 1), (2, 1)]
-            sage: D = Distributions(2, 11)
-            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Distributions(2, 11); M = PSModularSymbolSpace(Gamma0(2), D)
             sage: x = M.an_element(); x.values()
-            [(2, 1), (2, 1)]
+            [(2 + O(11^20), 1 + O(11^20)), (2 + O(11^20), 1 + O(11^20))]
             sage: x in M
             True
         """
