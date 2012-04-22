@@ -35,9 +35,7 @@ class PSModularSymbolElement(ModuleElement):
         r"""
         Returns the print representation.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -75,9 +73,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Checks if self == other
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -101,9 +97,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns self + right
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
         
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -120,9 +114,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns self * right
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -139,9 +131,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns self * right
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -158,9 +148,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns self - right
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES:;
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -183,16 +171,14 @@ class PSModularSymbolElement(ModuleElement):
 
         - self + self | [1,0,0,-1]
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
-        [-1/5, 3/2, -1/2]
-        sage: (phi.plus_part()+phi.minus_part()) == 2 * phi
-        True
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
+            [-1/5, 3/2, -1/2]
+            sage: (phi.plus_part()+phi.minus_part()) == 2 * phi
+            True
         """
         return self * minusproj + self
 
@@ -206,9 +192,7 @@ class PSModularSymbolElement(ModuleElement):
 
         - self - self | [1,0,0,-1]
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')  
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -282,34 +266,26 @@ class PSModularSymbolElement(ModuleElement):
 
         - The valuation of self at `p`
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi.values()
-        [-1/5, 3/2, -1/2]
-        sage: phi.valuation(2)
-        -1
-        sage: phi.valuation(3)
-        0
-        sage: phi.valuation(5)
-        -1
-        sage: phi.valuation(7)
-        0
+           sage: E = EllipticCurve('11a')
+           sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+           sage: phi = ps_modsym_from_elliptic_curve(E)
+           sage: phi.values()
+           [-1/5, 3/2, -1/2]
+           sage: phi.valuation(2)
+           -1
+           sage: phi.valuation(3)
+           0
+           sage: phi.valuation(5)
+           -1
+           sage: phi.valuation(7)
+           0
         """
         return min([val.valuation(p) for val in self._map])
 
     def diagonal_valuation(self, p):
         return min([val.diagonal_valuation(p) for val in self._map])
-
-    def change_ring(self,R):
-        r"""
-        Changes the base ring of self to `R`
-        """
-        pass
 
     @cached_method
     def is_Tq_eigensymbol(self,q,p=None,M=None):
@@ -326,26 +302,24 @@ class PSModularSymbolElement(ModuleElement):
 
         - True/False
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi.values()
-        [-1/5, 3/2, -1/2]
-        sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
-        sage: phi_ord.is_Tq_eigensymbol(2,3,10)
-        True
-        sage: phi_ord.is_Tq_eigensymbol(2,3,100)
-        True
-        sage: phi_ord.is_Tq_eigensymbol(2,3,1000)
-        True
-        sage: phi_ord.is_Tq_eigensymbol(3,3,10)
-        True
-        sage: phi_ord.is_Tq_eigensymbol(3,3,100)
-        False
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.values()
+            [-1/5, 3/2, -1/2]
+            sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
+            sage: phi_ord.is_Tq_eigensymbol(2,3,10)
+            True
+            sage: phi_ord.is_Tq_eigensymbol(2,3,100)
+            True
+            sage: phi_ord.is_Tq_eigensymbol(2,3,1000)
+            True
+            sage: phi_ord.is_Tq_eigensymbol(3,3,10)
+            True
+            sage: phi_ord.is_Tq_eigensymbol(3,3,100)
+            False
         """
         try:
             aq = self.Tq_eigenvalue(q, p, M)
@@ -371,29 +345,28 @@ class PSModularSymbolElement(ModuleElement):
         - Constant `c` such that `self|T_q - c * self` has valuation greater than
           or equal to `M` (if it exists), otherwise raises ValueError
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi.values()
-        [-1/5, 3/2, -1/2]
-        sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
-        sage: phi_ord.Tq_eigenvalue(2,3,10)
-        -2
-        sage: phi_ord.Tq_eigenvalue(2,3,100)
-        -2
-        sage: phi_ord.Tq_eigenvalue(2,3,1000)
-        -2
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.values()
+            [-1/5, 3/2, -1/2]
+            sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
+            sage: phi_ord.Tq_eigenvalue(2,3,10)
+            -2
+            sage: phi_ord.Tq_eigenvalue(2,3,100)
+            -2
+            sage: phi_ord.Tq_eigenvalue(2,3,1000)
+            -2
 
 
-        sage: phi_ord.Tq_eigenvalue(3,3,10)
-        -95227/47611
-        sage: phi_ord.Tq_eigenvalue(3,3,100)
-        ...
-        ValueError: not a scalar multiple
+            sage: phi_ord.Tq_eigenvalue(3,3,10)
+            -95227/47611
+            sage: phi_ord.Tq_eigenvalue(3,3,100)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a scalar multiple
         """
         f = self.hecke(q)
         gens = self.parent().source().gens()
@@ -409,12 +382,6 @@ class PSModularSymbolElement(ModuleElement):
             elif (f - aq * self).valuation(p) < M:
                 raise ValueError("not a scalar multiple")
         return aq
-
-    def lift(self, algorithm = None, eigensymbol = None):
-        r"""
-
-        """
-        raise NotImplementedError
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
@@ -485,9 +452,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         - A vector of <modular symbol,map: `K-->Q_p`> as map varies over all such maps
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: D = ModularSymbols(67,2,1).cuspidal_submodule().new_subspace().decomposition()[1]
@@ -548,6 +513,25 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             return self._lift_greenberg(p, M, new_base_ring)
 
     def _lift_to_OMS(self, p, M, new_base_ring):
+        """
+        Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
+
+        Here the Eisenstein error is a symbol whose system of Hecke eigenvalues equals `ell+1` for `T_ell` when `ell`
+        does not divide `Np` and 1 for `U_q` when `q` divides `Np`.
+
+        INPUT:
+            - ``p`` -- prime
+            - ``M`` -- integer equal to the number of moments
+            - ``new_base_ring`` -- new base ring
+
+        OUTPUT: 
+
+        An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
+
+        EXAMPLES:
+
+        """
+        
         D = {}
         manin = self.parent().source()
         MSS = self.parent()._lift_parent_space(p, M, new_base_ring)
@@ -583,6 +567,22 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         return MSS(D)
 
     def _lift_to_OMS_eigen(self, p, M, new_base_ring):
+        r"""
+        Returns Hecke-eigensymbol OMS lifting self -- self must be a  
+        `p`-ordinary eigensymbol
+
+        INPUT:
+            - ``p`` -- prime
+            - ``M`` -- integer equal to the number of moments  
+            - ``new_base_ring`` -- new base ring
+
+        OUTPUT:
+
+        EXAMPLES:
+        
+        
+        """
+        
         ap = self.Tq_eigenvalue(p, p, M)
         apinv = ~ap
         k = self.parent().weight()
