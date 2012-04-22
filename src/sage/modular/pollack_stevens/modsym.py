@@ -10,6 +10,7 @@ from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.rings.arith import next_prime
 from sage.rings.infinity import infinity
 from sage.misc.misc import verbose
+from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 
@@ -525,7 +526,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 # is this the right precision adjustment for p=2?
                 new_base_ring = Qp(2, M+1)
             else:
-                new_base_ring = Qp(p, M)
+                new_base_ring = Qp(p, M+6)
         if sdisc is None:
             sdisc = new_base_ring(disc).sqrt()
         v0 = (new_base_ring(ap) + sdisc) / 2
@@ -547,7 +548,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             elif (alpha - 1).precision_relative() < M:
                 prec_cap = M + (alpha - 1).valuation() + (1 if p == 2 else 0)
             if prec_cap is not None:
-                new_base_ring = Qp(p, prec_cap)
+                new_base_ring = Qp(p, prec_cap+6)
                 alpha, new_base_ring = self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False)
         return alpha, new_base_ring
     
@@ -746,8 +747,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         # We also need to add precision to account for denominators appearing while solving the difference equation.
         eplog = (newM -1).exact_log(p)
-        while eplog < (newM + eplog - 1).exact_log(p):
-            eplog = (newM + eplog - 1).exact_log(p)
+        while eplog < (newM + eplog).exact_log(p):
+            verbose("M = %s, newM = %s, eplog=%s"%(M, newM, eplog), level=2)
+            eplog = (newM + eplog).exact_log(p)
         newM += eplog
         return newM, eisenloss, q, aq
 
@@ -833,6 +835,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
+        if M is None:
+            M = self.parent().precision_cap() + 1
+        elif M <= 1:
+            raise ValueError("M must be at least 2")
+        else:
+            M = ZZ(M)
         if alpha is None:
             alpha, new_base_ring = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
         else:
@@ -841,12 +849,6 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             if hasattr(new_base_ring, 'precision_cap') and M > new_base_ring.precision_cap():
                 raise ValueError("Cannot lift above the precision cap")
         # alpha will be the eigenvalue of Up
-        if M is None:
-            M = self.parent().precision_cap() + 1
-        elif M <= 1:
-            raise ValueError("M must be at least 2")
-        else:
-            M = ZZ(M)
         newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
         
         # Now we can stabilize

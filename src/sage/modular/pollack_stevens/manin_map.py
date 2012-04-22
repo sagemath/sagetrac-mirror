@@ -538,7 +538,7 @@ class ManinMap(object):
                 ## sum_h sum_A self(h) * A
                 ## where h runs over all coset reps and A runs over
                 ## the entries of v[h] (a list)
-                verbose("prepping for T_%s: %s"%(ell, g), level = 2)
+                # verbose("prepping for T_%s: %s"%(ell, g), level = 2)
                 v = M.prep_hecke_on_gen(ell, g)
                 psi[g] = self._codomain.zero_element()
                 for h in M:
