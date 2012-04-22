@@ -61,38 +61,23 @@ class Distributions_factory(UniqueFactory):
         k = ZZ(k)
         if tuplegen is None:
             tuplegen = _default_tuplegen()
-        if p is not None:
-            p = ZZ(p)
-        if prec_cap is None:
-            if symk is None:
-                symk = True
-            elif not symk:
-                raise ValueError("you must specify a precision or use symk=True")
-            prec_cap = k+1
-            if base is None:
-                if p is None:
-                    base = QQ
-                else:
-                    base = ZpCA(p)
+        if p is None:
+            try:
+                p = base.prime()
+            except AttributeError:
+                raise ValueError("You must specify a prime")
         else:
-            if symk is None:
-                symk = False
-            elif symk and prec_cap != k+1:
-                raise ValueError("precision must be k+1 for symk")
-            if base is None:
-                if p is not None:
-                    base = ZpCA(p, prec_cap)
-                elif prec_cap > k+1:
-                    raise ValueError("you must specify a prime for non-classical weight")
-                else:
-                    base = QQ
-            elif p is None:
-                p = base.prime()
-        if isinstance(base, pAdicGeneric):
-            if p is None:
-                p = base.prime()
-            elif base.prime() != p:
-                raise ValueError("p must be the same as the prime of base")
+            p = ZZ(p)
+        if base is None:
+            if prec_cap is None:
+                base = ZpCA(p)
+            else:
+                base = ZpCA(p, prec_cap)
+        if prec_cap is None:
+            try:
+                prec_cap = base.precision_cap()
+            except AttributeError:
+                raise ValueError("You must specify a base or precision cap")
         return (k, p, prec_cap, base, character, tuplegen, act_on_left, symk)
 
     def create_object(self, version, key):
@@ -104,9 +89,25 @@ class Distributions_factory(UniqueFactory):
         """
         return Distributions_class(*key)
 
-Distributions = Distributions_factory('Distributions')
+class Symk_factory(UniqueFactory):
+    def create_key(self, k, base=None, character=None, tuplegen=None, act_on_left=False):
+        k = ZZ(k)
+        if tuplegen is None:
+            tuplegen = _default_tuplegen()
+        prec_cap = k+1
+        if base is None:
+            base = QQ
+        if isinstance(base, pAdicGeneric):
+            p = base.prime()
+        return (k, base, character, tuplegen, act_on_left)
 
-class Distributions_class(Module):
+    def create_object(self, version, key):
+        return Symk_class(*key)
+
+Distributions = Distributions_factory('Distributions')
+Symk = Symk_factory('Symk')
+
+class Distributions_abstract(Module):
     """
     Parent object for distributions.
 
@@ -163,31 +164,10 @@ class Distributions_class(Module):
         self._act = act
         self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
 
-    def is_symk(self):
-        """
-        Whether or not this distributions space is Sym^k(field).
-        
-        EXAMPLES::
-
-            sage: D = Distributions(4, 17, 10); D
-            Space of 17-adic distributions with k=4 action and precision cap 10
-            sage: D.is_symk()
-            False
-            sage: D = Distributions(4); D
-            Sym^4 Q^2
-            sage: D.is_symk()
-            True
-            sage: D = Distributions(4, base=GF(7)); D
-            Sym^4 (Finite Field of size 7)^2
-            sage: D.is_symk()
-            True
-        """
-        return self._symk
-
     def prime(self):
         """
         Return prime `p` such that this is a space of `p`-adic distributions.
-        
+
         In case this space is Symk of a non-padic field, this makes no
         sense, and we raise a ValueError.
 
@@ -197,12 +177,11 @@ class Distributions_class(Module):
 
         EXAMPLES::
 
-        
             sage: D = Distributions(0, 7); D
             Space of 7-adic distributions with k=0 action and precision cap 1
             sage: D.prime()
             7
-            sage: D = Distributions(4, base=GF(7)); D
+            sage: D = Symk(4, base=GF(7)); D
             Sym^4 (Finite Field of size 7)^2
             sage: D.prime()
             Traceback (most recent call last):
@@ -211,8 +190,8 @@ class Distributions_class(Module):
 
         But Symk of a `p`-adic field does work::
 
-            sage: D = Distributions(4, base=Qp(7)); D
-            Space of 7-adic distributions with k=4 action and precision cap 5
+            sage: D = Symk(4, base=Qp(7)); D
+            Sym^4 (7-adic with capped relative precision 20)^2
             sage: D.prime()
             7
             sage: D.is_symk()
@@ -249,46 +228,17 @@ class Distributions_class(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 10); D
             Space of 7-adic distributions with k=0 action and precision cap 10
             sage: D.precision_cap()
             10
-            sage: D = Distributions(389, base=QQ); D
+            sage: D = Symk(389, base=QQ); D
             Sym^389 Q^2
             sage: D.precision_cap()
             390
         """
         return self._prec_cap
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: Distributions(0, 5, 10)._repr_()
-            'Space of 5-adic distributions with k=0 action and precision cap 10'
-            sage: Distributions(0, 5, 10)
-            Space of 5-adic distributions with k=0 action and precision cap 10
-            sage: Distributions(0)
-            Sym^0 Q^2
-        """
-        # TODO: maybe account for character, etc.
-        if self._p is None:
-            if self.base_ring() is QQ:
-                V = 'Q^2'
-            elif self.base_ring() is ZZ:
-                V = 'Z^2'
-            elif isinstance(self.base_ring(), pAdicGeneric) and self.base_ring().degree() == 1:
-                if self.base_ring().is_field():
-                    V = 'Q_%s^2'%(self._p)
-                else:
-                    V = 'Z_%s^2'%(self._p)
-            else:
-                V = '(%s)^2'%(self.base_ring())
-            return "Sym^%s %s"%(self._k, V)
-        else:
-            return "Space of %s-adic distributions with k=%s action and precision cap %s"%(
-                self._p, self._k, self._prec_cap)
 
     @cached_method
     def approx_module(self, M=None):
@@ -312,7 +262,7 @@ class Distributions_class(Module):
             Ambient free module of rank 0 over the principal ideal domain 5-adic Ring with capped absolute precision 10
 
         Note that M must be at most the precision cap, and must be nonnegative::
-        
+
             sage: D.approx_module(11)
             Traceback (most recent call last):
             ...
@@ -360,7 +310,7 @@ class Distributions_class(Module):
     def clear_cache(self):
         """
         Clear some caches that are created only for speed purposes.
-        
+
         EXAMPLES::
 
             sage: D = Distributions(0, 7, 10)
@@ -376,12 +326,13 @@ class Distributions_class(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.basis()
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
 
-            sage: D = Distributions(3, base=QQ); D
+            sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]            
@@ -395,7 +346,8 @@ class Distributions_class(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(3, base=QQ); D
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.an_element()                  # indirect doctest
             (2, 1)
@@ -440,31 +392,78 @@ class Distributions_class(Module):
         """
         return self(self.approx_module(M)(0))
 
-    def specialize(self, new_base_ring=None):
+class Symk_class(Distributions_abstract):
+    def __init__(self, k, base, character, tuplegen, act_on_left):
+        if hasattr(base, 'prime'):
+            p = base.prime()
+        else:
+            p = None
+        Distributions_abstract.__init__(self, k, p, k+1, base, character, tuplegen, act_on_left)
+
+    def _repr_(self):
         """
-        Return distribution space got by specializing to Sym^k, over
-        the new_base_ring.  If new_base_ring is not given, use current
-        base_ring.
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Symk
+            sage: Distributions(0, 5, 10)._repr_()
+            'Space of 5-adic distributions with k=0 action and precision cap 10'
+            sage: Distributions(0, 5, 10)
+            Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: Symk(0)
+            Sym^0 Q^2
+        """
+        # TODO: maybe account for character, etc.
+        if self.base_ring() is QQ:
+            V = 'Q^2'
+        elif self.base_ring() is ZZ:
+            V = 'Z^2'
+        elif isinstance(self.base_ring(), pAdicGeneric) and self.base_ring().degree() == 1:
+            if self.base_ring().is_field():
+                V = 'Q_%s^2'%(self._p)
+            else:
+                V = 'Z_%s^2'%(self._p)
+        else:
+            V = '(%s)^2'%(self.base_ring())
+        return "Sym^%s %s"%(self._k, V)
+
+    def is_symk(self):
+        """
+        Whether or not this distributions space is Sym^k (ring).
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens import Distributions, Symk
+            sage: D = Distributions(4, 17, 10); D
+            Space of 17-adic distributions with k=4 action and precision cap 10
+            sage: D.is_symk()
+            False
+            sage: D = Symk(4); D
+            Sym^4 Q^2
+            sage: D.is_symk()
+            True
+            sage: D = Symk(4, base=GF(7)); D
+            Sym^4 (Finite Field of size 7)^2
+            sage: D.is_symk()
+            True
+        """
+        return True
+
+    def change_ring(self, new_base_ring):
+        """
+        Return a Symk with the same k but a different base ring.
 
         EXAMPLES::
 
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
-            sage: D.is_symk()
-            False
-            sage: D2 = D.specialize(); D2
-            Space of 7-adic distributions with k=0 action and precision cap 1
-            sage: D2.is_symk()
-            True
-            sage: D2 = D.specialize(QQ); D2
-            Sym^0 Q^2
+            sage: D.base_ring()
+            7-adic Ring with capped absolute precision 4
+            sage: D2 = D.change_ring(QpCR(7)); D2
+            Space of 7-adic distributions with k=0 action and precision cap 4
+            sage: D2.base_ring()
+            7-adic Field with capped relative precision 20
         """
-        if self._character is not None:
-            raise NotImplementedError
-        if new_base_ring is None:
-            new_base_ring = self.base_ring()
-        return Distributions(k=self._k, p=None, prec_cap=None, base=new_base_ring,
-                             symk=True, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Symk(k=self._k, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
     def lift(self, p=None, M=None, new_base_ring=None):
         """
@@ -493,22 +492,59 @@ class Distributions_class(Module):
             raise NotImplementedError
         if M is None:
             M = self._prec_cap + 1
-        elif M <= self._prec_cap:
-            return self
         if p is None:
-            p = self._p
-        elif self._p and self._p != p:
-            raise ValueError("inconsistent prime")
+            try:
+                p = self.base_ring().prime()
+            except AttributeError:
+                raise ValueError("You must specify a prime")
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, symk=False, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+
+class Distributions_class(Distributions_abstract):
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: Distributions(0, 5, 10)._repr_()
+            'Space of 5-adic distributions with k=0 action and precision cap 10'
+            sage: Distributions(0, 5, 10)
+            Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: Symk(0)
+            Sym^0 Q^2
+        """
+        # TODO: maybe account for character, etc.
+        return "Space of %s-adic distributions with k=%s action and precision cap %s"%(self._p, self._k, self._prec_cap)
+
+    def is_symk(self):
+        """
+        Whether or not this distributions space is Sym^k (ring).
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens import Distributions, Symk
+            sage: D = Distributions(4, 17, 10); D
+            Space of 17-adic distributions with k=4 action and precision cap 10
+            sage: D.is_symk()
+            False
+            sage: D = Symk(4); D
+            Sym^4 Q^2
+            sage: D.is_symk()
+            True
+            sage: D = Symk(4, base=GF(7)); D
+            Sym^4 (Finite Field of size 7)^2
+            sage: D.is_symk()
+            True
+        """
+        return False
 
     def change_ring(self, new_base_ring):
         """
         Return space of distributions like this one, but with the base ring changed.
 
         EXAMPLES::
-        
+
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.base_ring()
@@ -516,23 +552,31 @@ class Distributions_class(Module):
             sage: D2 = D.change_ring(QpCR(7)); D2
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D2.base_ring()
-            7-adic Field with capped relative precision 20        
+            7-adic Field with capped relative precision 20
         """
-        return Distributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, symk=self._symk, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
-#    def _get_action_(self, S, op, self_on_left):
-#        if S is self.base_ring():
-#            if self_on_left:
-#                return LeftModuleAction(self.base_ring(), self)
-#            else:
-#                return RightModuleAction(self.base_ring(), self)
-#        f = self.base_ring().coerce_map_from(S)
-#        if op is operator.mul and f is not None:
-#            A = self.get_action(self.base_ring(), op, self_on_left)
-#            if self_on_left:
-#                return PrecomposedAction(A, f, None)
-#            else:
-#                return PrecomposedAction(A, None, f)
+    def specialize(self, new_base_ring=None):
+        """
+        Return distribution space got by specializing to Sym^k, over
+        the new_base_ring.  If new_base_ring is not given, use current
+        base_ring.
 
-    #def get_action(self):
-    #    return self._act
+        EXAMPLES::
+
+            sage: D = Distributions(0, 7, 4); D
+            Space of 7-adic distributions with k=0 action and precision cap 4
+            sage: D.is_symk()
+            False
+            sage: D2 = D.specialize(); D2
+            Space of 7-adic distributions with k=0 action and precision cap 1
+            sage: D2.is_symk()
+            True
+            sage: D2 = D.specialize(QQ); D2
+            Sym^0 Q^2
+        """
+        if self._character is not None:
+            raise NotImplementedError
+        if new_base_ring is None:
+            new_base_ring = self.base_ring()
+        return Symk(k=self._k, base=new_base_ring, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())

@@ -6,7 +6,7 @@ Pollack-Stevens Modular Symbols Space
 
 from sage.modules.module import Module
 from sage.structure.factory import UniqueFactory
-from distributions import Distributions
+from distributions import Distributions, Symk
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
@@ -47,7 +47,10 @@ class PSModularSymbols_constructor(UniqueFactory):
                 character = None
             if weight is None: raise ValueError("you must specify a weight or coefficient module")
             k = weight - 2
-            coefficients = Distributions(k, p, prec_cap, base_ring, character)
+            if prec_cap is None:
+                coefficients = Symk(k, base_ring, character)
+            else:
+                coefficients = Distributions(k, p, prec_cap, base_ring, character)
         else:
             # TODO: require other stuff to be None
             pass
@@ -180,7 +183,7 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(G, D)
             sage: M.group()
             Congruence Subgroup Gamma0(23)
-            sage: D = Distributions(4)
+            sage: D = Symk(4)
             sage: G = Gamma1(11)
             sage: M = PSModularSymbolSpace(G, D)
             sage: M.group()
@@ -198,7 +201,7 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma(5), D)
             sage: M.sign()
             0
-            sage: D = Distributions(4)
+            sage: D = Symk(4)
             sage: M = PSModularSymbolSpace(Gamma1(8), D, -1)
             sage: M.sign()
             -1
@@ -215,7 +218,7 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbolSpace(Gamma1(12), D)
             sage: M.ngens()
             5
-            sage: D = Distributions(2)
+            sage: D = Symk(2)
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
             sage: M.ngens()
             2
@@ -234,7 +237,7 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2)
+            sage: D = Symk(2)
             sage: M = PSModularSymbolSpace(Gamma0(2), D)
             sage: M.ncoset_reps()
             3
@@ -321,7 +324,7 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(5)
+            sage: D = Symk(5)
             sage: M = PSModularSymbolSpace(Gamma1(7), D)
             sage: M.weight()
             5
@@ -451,7 +454,7 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
         
-            sage: D = Distributions(4)
+            sage: D = Symk(4)
             sage: M = PSModularSymbolSpace(Gamma(6), D)
             sage: x = M.an_element(); x       # indirect doctest
             Modular symbol with values in Sym^4 Q^2

@@ -208,14 +208,14 @@ cdef class Dist_vector(Dist):
         
         EXAMPLES::
 
-            sage: D = Distributions(0); d = D(4/3); d
+            sage: D = Symk(0); d = D(4/3); d
             4/3
             sage: QQ(d)
             4/3
 
         We get a TypeError if there is more than 1 moment::
 
-            sage: D = Distributions(1); d = D([1,2]); d
+            sage: D = Symk(1); d = D([1,2]); d
             (1, 2)
             sage: QQ(d)
             Traceback (most recent call last):
@@ -530,7 +530,7 @@ cdef class WeightKAction(Action):
             self._character = character
             self._Np = Dk._p # need to get conductor somehow in the case character = lambda g: ...
         self._p = Dk._p
-        self._symk = Dk._symk
+        self._symk = Dk.is_symk()
         self._actmat = {}
         self._maxprecs = {}
         Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)

@@ -12,7 +12,6 @@ and right action of matrices.
 from sage.rings.arith import convergents
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
-from distributions import Distributions
 from fund_domain import M2Z, t00, t10, t01, t11, Id, unimod_matrices_to_infty
 
 def unimod_matrices_to_infty(r, s):
