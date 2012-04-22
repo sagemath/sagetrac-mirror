@@ -2,9 +2,9 @@
 Manin Relations
 
 Code to create the Manin Relations class, which solves the "Manin
-relations".  That is, a description of Div^0(P^1(Q)) as a Z[Gamma_0(N)]-module
+relations".  That is, a description of `Div^0(P^1(Q))` as a `\ZZ[\Gamma_0(N)]`-module
 in terms of generators and relations is found.  The method used is
-geometric, constructing a nice fundamental domain for Gamma_0(N) and
+geometric, constructing a nice fundamental domain for `\Gamma_0(N)` and
 reading the relevant Manin relations off of that picture.  The
 algorithm follows the paper of Pollack and Stevens "Overconvergent
 modular symbols and p-adic L-functions".
