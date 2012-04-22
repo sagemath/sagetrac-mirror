@@ -364,8 +364,7 @@ class PSModularSymbolElement(ModuleElement):
         r"""
         Returns the valuation of self at `p`.
 
-        Here the valuation if the exponent of the largest power of `p`
-        which divides all of the coefficients of all values of self.
+        Here the valuation is the minimum of the valuations of the values of self.
 
         INPUT:
 
@@ -394,6 +393,29 @@ class PSModularSymbolElement(ModuleElement):
         return min([val.valuation(p) for val in self._map])
 
     def diagonal_valuation(self, p):
+        """
+        Retuns the minimum of the diagonal valuation on the values of self
+
+        INPUT:
+
+        - ``p`` -- a positive integral prime
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.values()
+            [-1/5, 3/2, -1/2]
+            sage: phi.diagonal_valuation(2)
+            -1
+            sage: phi.diagonal_valuation(3)
+            0
+            sage: phi.diagonal_valuation(5)
+            -1
+            sage: phi.diagonal_valuation(7)
+            0
+        """
         return min([val.diagonal_valuation(p) for val in self._map])
 
     @cached_method
@@ -435,7 +457,6 @@ class PSModularSymbolElement(ModuleElement):
             return True
         except ValueError:
             return False
-        
 
     # what happens if a cached method raises an error?  Is it recomputed each time?
     @cached_method
