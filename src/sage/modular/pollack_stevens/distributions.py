@@ -33,9 +33,10 @@ class _default_tuplegen(UniqueRepresentation):
         """
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: T = sage.modular.pollack_stevens.distributions._default_tuplegen()
             sage: T(matrix(ZZ,2,[1..4]))
-            (1, 2, 3, 4)        
+            (1, 2, 3, 4)
         """
         return g[0,0], g[0,1], g[1,0], g[1,1]
 
@@ -55,6 +56,7 @@ class Distributions_factory(UniqueFactory):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: Distributions(20, 3, 10)              # indirect doctest
             Space of 3-adic distributions with k=20 action and precision cap 10
         """
@@ -84,6 +86,7 @@ class Distributions_factory(UniqueFactory):
         """
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: Distributions(0, 7, 5)              # indirect doctest
             Space of 7-adic distributions with k=0 action and precision cap 5
         """
@@ -136,6 +139,7 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(2, 3, 5); D
             Space of 3-adic distributions with k=2 action and precision cap 5
             sage: type(D)
@@ -177,8 +181,9 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7); D
-            Space of 7-adic distributions with k=0 action and precision cap 1
+            Space of 7-adic distributions with k=0 action and precision cap 20
             sage: D.prime()
             7
             sage: D = Symk(4, base=GF(7)); D
@@ -191,7 +196,7 @@ class Distributions_abstract(Module):
         But Symk of a `p`-adic field does work::
 
             sage: D = Symk(4, base=Qp(7)); D
-            Sym^4 (7-adic with capped relative precision 20)^2
+            Sym^4 Q_7^2
             sage: D.prime()
             7
             sage: D.is_symk()
@@ -210,15 +215,16 @@ class Distributions_abstract(Module):
         OUTPUT:
 
         - nonnegative integer
-        
+
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7); D
-            Space of 7-adic distributions with k=0 action and precision cap 1
+            Space of 7-adic distributions with k=0 action and precision cap 20
             sage: D.weight()
             0
             sage: Distributions(389, 7).weight()
-            389            
+            389
         """
         return self._k
 
@@ -313,6 +319,7 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 10)
             sage: D.clear_cache()
         """
@@ -335,7 +342,7 @@ class Distributions_abstract(Module):
             sage: D = Symk(3, base=QQ); D
             Sym^3 Q^2
             sage: D.basis()
-            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]            
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
         V = self.approx_module(M)
         return [self(v) for v in V.basis()]
@@ -354,7 +361,7 @@ class Distributions_abstract(Module):
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.an_element()
-            (2, 1)        
+            (2, 1)
         """
         if self._prec_cap > 1:
             return self([2,1])
@@ -371,6 +378,7 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.zero_element()
@@ -388,7 +396,7 @@ class Distributions_abstract(Module):
             sage: D.zero_element(5)
             Traceback (most recent call last):
             ...
-            ValueError: M must be less than or equal to the precision cap        
+            ValueError: M must be less than or equal to the precision cap
         """
         return self(self.approx_module(M)(0))
 
@@ -432,7 +440,7 @@ class Symk_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens import Distributions, Symk
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(4, 17, 10); D
             Space of 17-adic distributions with k=4 action and precision cap 10
             sage: D.is_symk()
@@ -454,6 +462,7 @@ class Symk_class(Distributions_abstract):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.base_ring()
@@ -478,14 +487,15 @@ class Symk_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 7, 4); D
-            Space of 7-adic distributions with k=0 action and precision cap 4
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Symk(0, Qp(7)); D
+            Sym^0 Q_7^2
             sage: D.lift(M=20)
             Space of 7-adic distributions with k=0 action and precision cap 20
             sage: D.lift(p=7, M=10)
             Space of 7-adic distributions with k=0 action and precision cap 10
-            sage: D.lift(p=7, M=10, new_base_ring=QpCR(7)).base_ring()
-            7-adic Field with capped relative precision 20
+            sage: D.lift(p=7, M=10, new_base_ring=QpCR(7,15)).base_ring()
+            7-adic Field with capped relative precision 15
         """
         if self._character is not None:
             # need to change coefficient ring for character
@@ -523,7 +533,7 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens import Distributions, Symk
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(4, 17, 10); D
             Space of 17-adic distributions with k=4 action and precision cap 10
             sage: D.is_symk()
@@ -545,6 +555,7 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.base_ring()
@@ -564,12 +575,13 @@ class Distributions_class(Distributions_abstract):
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.is_symk()
             False
             sage: D2 = D.specialize(); D2
-            Space of 7-adic distributions with k=0 action and precision cap 1
+            Sym^0 Z_7^2
             sage: D2.is_symk()
             True
             sage: D2 = D.specialize(QQ); D2
