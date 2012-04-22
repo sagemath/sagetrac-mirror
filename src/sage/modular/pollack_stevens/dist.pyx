@@ -33,6 +33,28 @@ include "stdsage.pxi"
 include "cdefs.pxi"
 
 def get_dist_classes(p, prec_cap, base, symk):
+    """
+    Determines the element and action classes to be used for given inputs.
+
+    INPUT:
+
+    - ``p`` -- 
+
+    - ``prec_cap`` -- 
+
+    - ``base`` -- 
+
+    - ``symk`` -- 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.dist import get_dist_classes
+        sage: 
+    """
     if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
     if 7*p**(prec_cap) < ZZ(2)**(4*sizeof(long)-1):
@@ -42,9 +64,37 @@ def get_dist_classes(p, prec_cap, base, symk):
 
 cdef class Dist(ModuleElement):
     cpdef normalize(self):
+        """
+        
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         raise NotImplementedError
 
     def scale(self,left):
+        """
+        
+
+        INPUT:
+
+        - ``left`` -- 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         if isinstance(self, Dist_long) and isinstance(left, (Integer, pAdicCappedRelativeElement, pAdicCappedAbsoluteElement, pAdicFixedModElement)):
             return self._lmul_(left)
         R = left.parent()
@@ -61,6 +111,24 @@ cdef class Dist(ModuleElement):
             return V([scalar * new_base(self.moment(i)) for i in range(self.precision_absolute())])
 
     def is_zero(self, p=None, M=None):
+        """
+        
+
+        INPUT:
+
+        - ``p`` -- 
+
+        - ``M`` -- 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         n = self.precision_absolute()
         if M is None:
             return all([self.moment(a).is_zero() for a in range(n)])
@@ -68,6 +136,28 @@ cdef class Dist(ModuleElement):
             return all([self.moment(a).valuation(p) >= M for a in range(n)])
 
     def find_scalar(self, other, p, M, check=True):
+        """
+        
+
+        INPUT:
+
+        - ``other`` -- 
+
+        - ``p`` -- 
+
+        - ``M`` -- 
+
+        - ``check`` -- (default: True) boolean, whether to validate input
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         """
         Returns an alpha with other = self * alpha, or raises a ValueError.
 
@@ -142,15 +232,55 @@ cdef class Dist(ModuleElement):
             return alpha
 
     cpdef ModuleElement _rmul_(self, RingElement _left):
+        """
+        
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         return self._lmul_(_left)
 
     def diagonal_valuation(self, p=None):
+        """
+        
+
+        INPUT:
+
+        - ``p`` -- (default: None) a positive integral prime
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         if p is None:
             p = self.parent()._p
         n = self.precision_absolute()
         return min([n] + [a + self.moment(a).valuation(p) for a in range(n)])
 
     def valuation(self, p=None):
+        """
+        
+
+        INPUT:
+
+        - ``p`` -- (default: None) a positive integral prime
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         r"""
         Returns the highest power of `p` which divides all moments of the distribution
         """
@@ -160,6 +290,23 @@ cdef class Dist(ModuleElement):
         return min([self.moment(a).valuation(p) for a in range(n)])
 
     def specialize(self, new_base_ring=None):
+        """
+        
+
+        INPUT:
+
+        - ``new_base_ring`` -- (default: None) a ring giving the
+          desired base ring of the result.
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         r"""
         Specializes to weight `k` -- i.e. projects to `Sym^k`
         """
@@ -173,6 +320,28 @@ cdef class Dist(ModuleElement):
         return V([binomial(k, j) * (-1)**j * new_base_ring(self.moment(j)) for j in range(k+1)])
 
     def lift(self, p=None, M=None, new_base_ring=None):
+        r"""
+        
+
+        INPUT:
+
+        - ``p`` -- (default: None) a positive integral prime
+
+        - ``M`` -- (default: None) a positive integer giving the
+          desired number of moments.
+
+        - ``new_base_ring`` -- (default: None) a ring giving the
+          desired base ring of the result.
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         V = self.parent().lift(p, M, new_base_ring)
         k = V._k
         p = V.prime()
@@ -189,11 +358,27 @@ cdef class Dist(ModuleElement):
             mu *= p**(-val)
         return mu
 
-    def act_right(self,gam):
+    def act_right(self,gamma):
+        r"""
+        
+
+        INPUT:
+
+        - ``gamma`` -- the matrix by which to act
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         r"""
         Return self|gam
         """
-        return self.parent()._act(self, gam)
+        return self.parent()._act(self, gamma)
 
 cdef class Dist_vector(Dist):
     def __init__(self,moments,parent,check=True):
@@ -207,6 +392,7 @@ cdef class Dist_vector(Dist):
 
         - ``parent`` -- a :class:`distributions.Distributions_Zp` instance
         - ``moments`` -- the list of moments given as a vector
+        - ``check`` -- (default: True) boolean, whether to validate input
         - ``check`` -- boolean, whether to coerce the vector into the appropriate module
         """
         Dist.__init__(self,parent)
@@ -221,11 +407,43 @@ cdef class Dist_vector(Dist):
         self.moments = moments
 
     cdef Dist_vector _new_c(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         cdef Dist_vector ans = PY_NEW(Dist_vector)
         ans._parent = self._parent
         return ans
 
     def _repr_(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
+        """
         r"""
         Displays the moments of the distribution
         """
@@ -261,11 +479,43 @@ cdef class Dist_vector(Dist):
 
     def moment(self,n):
         r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
+        r"""
         Returns the `n`-th moment
         """
         return self.moments[n]
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_vector ans = self._new_c()
         cdef Dist_vector right = _right
         if len(self.moments) == len(right.moments):
@@ -277,6 +527,22 @@ cdef class Dist_vector(Dist):
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_vector ans = self._new_c()
         cdef Dist_vector right = _right
         if len(self.moments) == len(right.moments):
@@ -288,25 +554,104 @@ cdef class Dist_vector(Dist):
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_vector ans = self._new_c()
         ans.moments = self.moments * right
         return ans
 
     def precision_absolute(self):
         r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
+        r"""
         Returns the number of moments of the distribution
         """
         return len(self.moments)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         return cmp(left.moments, right.moments)
 
     def zero(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage:
+        """
         cdef Dist_vector ans = self._new_c()
         ans.moments = 0 * self.moments # could make this faster
         return ans
 
     cpdef normalize(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         r"""
         Reduce modulo `Fil^N` -- that is the `i`-th moment is reduced modulo `p^(N-i)`
         """
@@ -327,6 +672,22 @@ cdef class Dist_vector(Dist):
 
     def reduce_precision(self, M):
         r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
+        r"""
         Only holds on to `M` moments.
         """
         assert M<=self.precision_absolute(),"not enough moments"
@@ -336,6 +697,22 @@ cdef class Dist_vector(Dist):
         return ans
 
     def solve_diff_eqn(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         r"""
         Solves the difference equation.
         """
@@ -366,6 +743,24 @@ cdef class Dist_vector(Dist):
     #    return ans
 
 cdef class Dist_long(Dist):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    - ``check`` -- (default: True) boolean, whether to validate input
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     def __init__(self, moments, parent, check=True):
         Dist.__init__(self, parent)
         p = parent._p
@@ -390,12 +785,44 @@ cdef class Dist_long(Dist):
         #self._gather = gather
 
     cdef Dist_long _new_c(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long ans = PY_NEW(Dist_long)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         return ans
 
     def _repr_(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         self.normalize()
         if self.prec == 1:
             return repr(self.moments[0])
@@ -403,6 +830,22 @@ cdef class Dist_long(Dist):
             return "(" + ", ".join([repr(self.moments[i]) for i in range(self.prec)]) + ")"
 
     cdef int quasi_normalize(self) except -1:
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef int i
         for i in range(self.prec):
             if self.moments[i] > overflow:
@@ -412,6 +855,22 @@ cdef class Dist_long(Dist):
                 self.moments[i] += self.prime_pow.small_powers[self.prec-i]
 
     cpdef normalize(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef int i
         for i in range(self.prec):
             if self.moments[i] < 0:
@@ -422,6 +881,22 @@ cdef class Dist_long(Dist):
         return self
 
     def moment(self, _n):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef int n = _n
         if n < 0:
             n += self.prec
@@ -430,6 +905,22 @@ cdef class Dist_long(Dist):
         return self.moments[n]
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long ans = self._new_c()
         cdef Dist_long right = _right
         ans.prec = self.prec if self.prec < right.prec else right.prec
@@ -442,6 +933,22 @@ cdef class Dist_long(Dist):
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long ans = self._new_c()
         cdef Dist_long right = _right
         ans.prec = self.prec if self.prec < right.prec else right.prec
@@ -454,6 +961,22 @@ cdef class Dist_long(Dist):
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement _right):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long ans = self._new_c()
         ans.prec = self.prec
         self.quasi_normalize()
@@ -493,9 +1016,41 @@ cdef class Dist_long(Dist):
         return ans
 
     def precision_absolute(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         return self.prec
 
     cdef int _cmp_c_impl(left, Element _right) except -2:
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef int i
         cdef Dist_long right = _right
         for i in range(left.prec):
@@ -506,6 +1061,22 @@ cdef class Dist_long(Dist):
         return 0
 
     def zero(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long ans = self._new_c()
         ans.prec = self.prec
         cdef int i
@@ -514,6 +1085,22 @@ cdef class Dist_long(Dist):
         return ans
 
     def change_precision(self, M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         if M > self.prec: raise ValueError("not enough moments")
         if M < 0: raise ValueError("precision must be non-negative")
         cdef Dist_long ans = self._new_c()
@@ -524,6 +1111,22 @@ cdef class Dist_long(Dist):
         return ans
 
     def solve_diff_eqn(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         raise NotImplementedError
 
     #def lift(self):
@@ -537,7 +1140,39 @@ cdef class Dist_long(Dist):
     #    return ans
 
 cdef class WeightKAction(Action):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     def __init__(self, Dk, character, tuplegen, on_left):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         self._k = Dk._k
         if self._k < 0: raise ValueError("k must not be negative")
         if tuplegen is None:
@@ -572,10 +1207,42 @@ cdef class WeightKAction(Action):
         Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)
 
     def clear_cache(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         self._actmat = {}
         self._maxprecs = {}
 
     cpdef acting_matrix(self, g, M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         if not self._maxprecs.has_key(g):
             self._maxprecs[g] = M
             A = self._compute_acting_matrix(g, M)
@@ -603,6 +1270,22 @@ cdef class WeightKAction(Action):
             return A
 
     cpdef _check_mat(self, a, b, c, d):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         if a*d == b*c:
             raise ValueError("zero determinant")
         if not self._symk:
@@ -612,6 +1295,22 @@ cdef class WeightKAction(Action):
                 raise ValueError("Np does not divide c")
 
     cpdef _compute_acting_matrix(self, g, M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         """
         Forms a large M x M matrix say G such that if v is the vector of
         moments of a distribution mu, then v*G is the vector of moments of
@@ -620,7 +1319,39 @@ cdef class WeightKAction(Action):
         raise NotImplementedError
 
 cdef class WeightKAction_vector(WeightKAction):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     cpdef _compute_acting_matrix(self, g, M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         #tim = verbose("Starting")
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
@@ -649,6 +1380,22 @@ cdef class WeightKAction_vector(WeightKAction):
         return B.change_ring(self.codomain().base_ring())
 
     cpdef _call_(self, _v, g):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         # if g is a matrix it needs to be immutable
         # hashing on arithmetic_subgroup_elements is by str
         cdef Dist_vector v = <Dist_vector?>_v
@@ -663,7 +1410,39 @@ cdef inline long mymod(long a, unsigned long pM):
     return a
 
 cdef class SimpleMat(SageObject):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     def __cinit__(self, unsigned long M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         self._inited = False
         self.M = M
         self._mat = <long*>sage_malloc(M*M*sizeof(long))
@@ -672,6 +1451,22 @@ cdef class SimpleMat(SageObject):
         self._inited = True
 
     def __getitem__(self, i):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Py_ssize_t r, c, Mnew, Morig = self.M
         cdef SimpleMat ans
         if PyTuple_Check(i) and PyTuple_Size(i) == 2:
@@ -693,10 +1488,58 @@ cdef class SimpleMat(SageObject):
         raise NotImplementedError
 
     def __dealloc__(self):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         sage_free(self._mat)
 
 cdef class WeightKAction_long(WeightKAction):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     cpdef _compute_acting_matrix(self, g, _M):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         _a, _b, _c, _d = self._tuplegen(g)
         if self._character is not None: raise NotImplementedError
         self._check_mat(_a, _b, _c, _d)
@@ -732,6 +1575,22 @@ cdef class WeightKAction_long(WeightKAction):
         return B
 
     cpdef _call_(self, _v, g):
+        r"""
+        
+
+        INPUT:
+
+        - 
+
+        OUTPUT:
+
+        - 
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         cdef Dist_long v = <Dist_long?>_v
         cdef Dist_long ans = v._new_c()
         cdef long M = v.prec
@@ -747,6 +1606,22 @@ cdef class WeightKAction_long(WeightKAction):
         return ans
 
 cdef class iScale(Action):
+    r"""
+    
+
+    INPUT:
+
+    - 
+
+    OUTPUT:
+
+    - 
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        sage: 
+    """
     def __init__(self, Dk, on_left):
         Action.__init__(self, ZZ, Dk, on_left, operator.mul)
 
@@ -755,21 +1630,3 @@ cdef class iScale(Action):
             return (<Dist>a)._lmul_(b)
         else:
             return (<Dist?>b)._lmul_(a)
-
-#@cached_function
-#def eta(Dk, i, M):
-#    """
-#    Helper function in solving the difference equation -- see Lemma 4.4 of [PS]
-#    """
-#    v=[0 for j in range(0,i)]+[binomial(j,i)*bernoulli(j-i) for j in range(i,M)]
-#    return dist(p,k,vector(v))
-#
-#def random_dist(p,k,M):
-#    """
-#    Returns a random distribution with prime p, weight k, and M moments
-#    """
-#    moments=vector([ZZ(floor(random()*(p**M))) for i in range(1,M+1)])
-#
-#    return dist(p,k,moments)
-
-

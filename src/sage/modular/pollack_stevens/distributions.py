@@ -18,6 +18,7 @@ from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long, iScal
 from sage.structure.factory import UniqueFactory
 from sage.structure.unique_representation import UniqueRepresentation
 import operator
+import sage.rings.ring as ring
 
 # Need this to be pickleable
 class _default_tuplegen(UniqueRepresentation):
@@ -152,6 +153,8 @@ class Distributions_abstract(Module):
             ...
             ValueError: p must be prime
         """
+        if not isinstance(base, ring.Ring):
+            raise TypeError("base must be a ring")
         from sage.rings.padics.pow_computer import PowComputer_long
         # should eventually be the PowComputer on ZpCA once that uses longs.
         Dist, WeightKAction = get_dist_classes(p, prec_cap, base, symk)

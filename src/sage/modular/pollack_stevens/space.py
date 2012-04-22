@@ -447,9 +447,7 @@ class PSModularSymbolSpace(Module):
         """
         Changes base ring of self to new_base_ring
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: D = Symk(4)
