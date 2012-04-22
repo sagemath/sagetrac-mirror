@@ -505,13 +505,13 @@ class Symk_class(Distributions_abstract):
             raise NotImplementedError
         if M is None:
             M = self._prec_cap + 1
-        if p is None:
-            try:
-                p = self.base_ring().prime()
-            except AttributeError:
-                raise ValueError("You must specify a prime")
         if new_base_ring is None:
             new_base_ring = self.base_ring()
+        if p is None:
+            try:
+                p = new_base_ring.prime()
+            except AttributeError:
+                raise ValueError("You must specify a prime")
         return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
 class Distributions_class(Distributions_abstract):

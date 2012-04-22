@@ -33,7 +33,7 @@ include "stdsage.pxi"
 include "cdefs.pxi"
 
 def get_dist_classes(p, prec_cap, base, symk):
-    """
+    r"""
     Determines the element and action classes to be used for given inputs.
 
     INPUT:
@@ -64,8 +64,9 @@ def get_dist_classes(p, prec_cap, base, symk):
 
 cdef class Dist(ModuleElement):
     cpdef normalize(self):
-        """
-        
+        r"""
+        Normalize so that the precision of the `i`-th moment is `n-i`,
+        where `n` is the number of moments.
 
         OUTPUT:
 
@@ -79,7 +80,7 @@ cdef class Dist(ModuleElement):
         raise NotImplementedError
 
     def scale(self,left):
-        """
+        r"""
         
 
         INPUT:
@@ -111,7 +112,7 @@ cdef class Dist(ModuleElement):
             return V([scalar * new_base(self.moment(i)) for i in range(self.precision_absolute())])
 
     def is_zero(self, p=None, M=None):
-        """
+        r"""
         
 
         INPUT:
@@ -135,23 +136,27 @@ cdef class Dist(ModuleElement):
         else:
             return all([self.moment(a).valuation(p) >= M for a in range(n)])
 
-    def find_scalar(self, other, p, M, check=True):
-        """
-        
+    def find_scalar(self, other, p, M = None, check=True):
+        r"""
+        Returns an ``alpha`` with ``other = self * alpha``, or raises a ValueError.
+
+        It will also raise a ValueError if this distribution is zero.
 
         INPUT:
 
-        - ``other`` -- 
+        - ``other`` -- another distribution
 
-        - ``p`` -- 
+        - ``p`` -- an integral prime (only used if the parent is not a Symk)
 
-        - ``M`` -- 
+        - ``M`` -- (default: None) an integer, the relative precision
+          to which the scalar must be determined
 
-        - ``check`` -- (default: True) boolean, whether to validate input
+        - ``check`` -- (default: True) boolean, whether to validate
+          that ``other`` is actually a multiple of this element.
 
         OUTPUT:
 
-        - 
+        - A scalar ``alpha`` with ``other = self * alpha``.
 
         EXAMPLES::
 
@@ -159,9 +164,6 @@ cdef class Dist(ModuleElement):
             sage: 
         """
         """
-        Returns an alpha with other = self * alpha, or raises a ValueError.
-
-        self should be nonzero
         """
         i = 0
         n = self.precision_absolute()
@@ -226,6 +228,8 @@ cdef class Dist(ModuleElement):
                     else:
                         alpha = (other.moment(i) / a) % p**(n-i)
                     verbose("alpha=%s"%(alpha))
+            if relprec < M:
+                raise ValueError("result not determined to high enough precision")
         try:
             return self.parent().base_ring()(alpha)
         except ValueError:
@@ -233,7 +237,7 @@ cdef class Dist(ModuleElement):
 
     cpdef ModuleElement _rmul_(self, RingElement _left):
         """
-        
+        Scalar multiplication.
 
         EXAMPLES::
 
@@ -244,7 +248,7 @@ cdef class Dist(ModuleElement):
 
     def diagonal_valuation(self, p=None):
         """
-        
+        Returns the largest `m` so that this distribution lies in `Fil^m`.
 
         INPUT:
 
@@ -252,7 +256,8 @@ cdef class Dist(ModuleElement):
 
         OUTPUT:
 
-        - 
+        - the largest integer `m` so that `p^m` divides the `0`-th
+          moment, `p^{m-1}` divides the first moment, etc.
 
         EXAMPLES::
 
@@ -266,7 +271,7 @@ cdef class Dist(ModuleElement):
 
     def valuation(self, p=None):
         """
-        
+        Returns the minimum valuation of any moment.
 
         INPUT:
 
@@ -275,6 +280,13 @@ cdef class Dist(ModuleElement):
         OUTPUT:
 
         - 
+
+        .. WARNING::
+
+            Since only finitely many moments are computed, this
+            valuation may be larger than the actual valuation of this
+            distribution.  Moreover, since distributions are
+            normalized so that the top moment has precision 1, this valuation may be smaller than the actual valuation (for example, if the actual valuation is 2)
 
         EXAMPLES::
 
@@ -347,7 +359,7 @@ cdef class Dist(ModuleElement):
         p = V.prime()
         M = V.precision_cap()
         R = V.base_ring()
-        moments = [self.moment(j) * (-1)**j / binomial(k, j) for j in range(k+1)]
+        moments = [R(self.moment(j) * (-1)**j / binomial(k, j)) for j in range(k+1)]
         zero = R(0)
         moments.extend([zero] * (M - k - 1))
         mu = V(moments)
@@ -1520,13 +1532,28 @@ cdef class iScale(Action):
         sage: 
     """
     def __init__(self, Dk, on_left):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         Action.__init__(self, ZZ, Dk, on_left, operator.mul)
 
     cpdef _call_(self, a, b):
         """
         Application of the action.
 
-        
+        INPUT:
+
+        - ``a``, ``b`` -- a :class:`Dist` or scalar, in either order.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
         """
         if PY_TYPE_CHECK(a, Dist):
             return (<Dist>a)._lmul_(b)
