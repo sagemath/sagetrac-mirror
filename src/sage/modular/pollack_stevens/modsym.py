@@ -548,9 +548,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 prec_cap = M + (alpha - 1).valuation() + (1 if p == 2 else 0)
             if prec_cap is not None:
                 new_base_ring = Qp(p, prec_cap)
-                alpha = self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False)
+                alpha, new_base_ring = self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False)
         return alpha, new_base_ring
-
+    
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         if check:
             p = self._get_prime(p, alpha)
@@ -745,9 +745,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         newM = M + eisenloss
 
         # We also need to add precision to account for denominators appearing while solving the difference equation.
-        eplog = (newM-1).exact_log(p)
-        while eplog < (newM+eplog).exact_log(p):
-            eplog = (newM-1).exact_log(p)
+        eplog = (newM -1).exact_log(p)
+        while eplog < (newM + eplog - 1).exact_log(p):
+            eplog = (newM + eplog - 1).exact_log(p)
         newM += eplog
         return newM, eisenloss, q, aq
 
@@ -848,7 +848,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         else:
             M = ZZ(M)
         newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
-
+        
         # Now we can stabilize
         self = self.p_stabilize(p=p, alpha=alpha, M=newM, new_base_ring = new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
