@@ -504,6 +504,15 @@ class PSModularSymbolElement(ModuleElement):
         return aq
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
+    def _find_M(self, M):
+        if M is None:
+            M = self.parent().precision_cap() + 1
+        elif M <= 1:
+            raise ValueError("M must be at least 2")
+        else:
+            M = ZZ(M)
+        return M
+
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
@@ -513,23 +522,23 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         sdisc = None
         set_padicbase = False
         if new_base_ring is None:
-            if M is None:
-                Q = disc.parent().fraction_field() # usually QQ
-                if disc.is_square():
-                    new_base_ring = Q
-                    sdisc = disc.sqrt()
-                else:
-                    poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
-                    new_base_ring = Q.extension(poly, 'a')
-                    sdisc = new_base_ring.gen()
+            #if M is None:
+            #    Q = disc.parent().fraction_field() # usually QQ
+            #    if disc.is_square():
+            #        new_base_ring = Q
+            #        sdisc = disc.sqrt()
+            #    else:
+            #        poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
+            #        new_base_ring = Q.extension(poly, 'a')
+            #        sdisc = new_base_ring.gen()
             # These should be completions
+            #else:
+            if p == 2:
+                # is this the right precision adjustment for p=2?
+                new_base_ring = Qp(2, M+1)
             else:
-                if p == 2:
-                    # is this the right precision adjustment for p=2?
-                    new_base_ring = Qp(2, M+1)
-                else:
-                    new_base_ring = Qp(p, M)
-                set_padicbase = True
+                new_base_ring = Qp(p, M)
+            set_padicbase = True
         if sdisc is None:
             sdisc = new_base_ring(disc).sqrt()
         v0 = (new_base_ring(ap) + sdisc) / 2
@@ -564,6 +573,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
+        M = self._find_M(M)
         if alpha is None:
             alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, False)
         else:
@@ -843,12 +853,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
-        if M is None:
-            M = self.parent().precision_cap() + 1
-        elif M <= 1:
-            raise ValueError("M must be at least 2")
-        else:
-            M = ZZ(M)
+        M = self._find_M(M)
         # alpha will be the eigenvalue of Up
         if alpha is None:
             alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
