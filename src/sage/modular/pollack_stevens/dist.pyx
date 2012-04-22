@@ -73,6 +73,7 @@ cdef class Dist(ModuleElement):
         verbose("n = %s"%n)
         verbose("moment 0")
         a = self.moment(i)
+        padic = isinstance(a.parent(), pAdicGeneric)
         if self.parent().is_symk():
             while a == 0:
                 if other.moment(i) != 0:
@@ -104,20 +105,28 @@ cdef class Dist(ModuleElement):
                 v = a.valuation(p)
             relprec = n - i - v
             verbose("p=%s, n-i=%s\nself.moment=%s, other.moment=%s"%(p, n-i, a, other.moment(i)),level=2)
-            alpha = other.moment(i) / a % p**(n-i)
+            if padic:
+                alpha = (other.moment(i) / a).add_bigoh(n-i)
+            else:
+                alpha = (other.moment(i) / a) % p**(n-i)
+            verbose("alpha = %s"%(alpha))
             while i < n-1:
                 i += 1
                 verbose("comparing p moment %s"%i)
                 a = self.moment(i)
-                if check and a % p**(n-i) != alpha * other.moment(i) % p**(n-i):
-                    raise ValueError("not a scalar multiple")
+                if check:
+                    if (padic and a != alpha * other.moment(i)) or \
+                       (not padic and a % p**(n-i) != alpha * other.moment(i) % p**(n-i)):
+                        raise ValueError("not a scalar multiple")
                 v = a.valuation(p)
                 if n - i - v > relprec:
-                    verbose("Reseting alpha")
-                    verbose("")
+                    verbose("Reseting alpha: relprec=%s, n-i=%s, v=%s"%(relprec, n-i, v))
                     relprec = n - i - v
-                    alpha = other.moment(i) / a % p**(n-i)
-        print "alpha = %s"%alpha
+                    if padic:
+                        alpha = (other.moment(i) / a).add_bigoh(n-i)
+                    else:
+                        alpha = (other.moment(i) / a) % p**(n-i)
+                    verbose("alpha=%s"%(alpha))
         try:
             return self.parent().base_ring()(alpha)
         except ValueError:
