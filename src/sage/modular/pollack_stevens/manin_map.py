@@ -10,6 +10,7 @@ and right action of matrices.
 """
 
 from sage.rings.arith import convergents
+from sage.misc.misc import verbose
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
 from fund_domain import M2Z, t00, t10, t01, t11, Id, unimod_matrices_to_infty
@@ -546,6 +547,7 @@ class ManinMap(object):
                 ## sum_h sum_A self(h) * A
                 ## where h runs over all coset reps and A runs over
                 ## the entries of v[h] (a list)
+                verbose("prepping for T_%s: %s"%(ell, g), level = 2)
                 v = M.prep_hecke_on_gen(ell, g)
                 psi[g] = self._codomain.zero_element()
                 for h in M:

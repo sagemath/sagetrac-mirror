@@ -68,17 +68,26 @@ cdef class Dist(ModuleElement):
         """
         i = 0
         n = self.precision_absolute()
+        if n != other.precision_absolute():
+            raise ValueError("other should have the same number of moments")
+        verbose("n = %s"%n)
+        verbose("moment 0")
         a = self.moment(i)
         if self.parent().is_symk():
             while a == 0:
                 if other.moment(i) != 0:
                     raise ValueError("not a scalar multiple")
                 i += 1
-                a = self.moment(i)
+                verbose("moment %s"%i)
+                try:
+                    a = self.moment(i)
+                except IndexError:
+                    raise ValueError("self is zero")
             alpha = other.moment(i) / a
             if check:
                 i += 1
                 while i < n:
+                    verbose("comparing moment %s"%i)
                     if self.moment(i) != alpha * other.moment(i):
                         raise ValueError("not a scalar multiple")
                     i += 1
@@ -87,22 +96,28 @@ cdef class Dist(ModuleElement):
             v = a.valuation(p)
             while v >= n - i:
                 i += 1
+                verbose("p moment %s"%i)
                 try:
                     a = self.moment(i)
                 except IndexError:
                     raise ValueError("self is zero")
                 v = a.valuation(p)
             relprec = n - i - v
+            verbose("p=%s, n-i=%s\nself.moment=%s, other.moment=%s"%(p, n-i, a, other.moment(i)),level=2)
             alpha = other.moment(i) / a % p**(n-i)
-            i += 1
-            while i < n:
+            while i < n-1:
+                i += 1
+                verbose("comparing p moment %s"%i)
                 a = self.moment(i)
                 if check and a % p**(n-i) != alpha * other.moment(i) % p**(n-i):
                     raise ValueError("not a scalar multiple")
                 v = a.valuation(p)
                 if n - i - v > relprec:
+                    verbose("Reseting alpha")
+                    verbose("")
                     relprec = n - i - v
                     alpha = other.moment(i) / a % p**(n-i)
+        print "alpha = %s"%alpha
         try:
             return self.parent().base_ring()(alpha)
         except ValueError:

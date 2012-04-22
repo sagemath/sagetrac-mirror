@@ -428,8 +428,10 @@ class PSModularSymbolElement(ModuleElement):
         g = gens[0]
         if p is None:
             p = self.parent().prime()
+        verbose("Computing eigenvalue")
         aq = self._map[g].find_scalar(f._map[g], p, M, check)
         if check:
+            verbose("Checking that this is actually an eigensymbol")
             if p is None or M is None:
                 for g in gens[1:]:
                     if f._map[g] != aq * self._map[g]:
