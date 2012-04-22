@@ -524,7 +524,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         sdisc = None
         set_padicbase = False
         if new_base_ring is None:
-            #if M is None:
+            if M is None:
+                raise ValueError
             #    Q = disc.parent().fraction_field() # usually QQ
             #    if disc.is_square():
             #        new_base_ring = Q
@@ -534,13 +535,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             #        new_base_ring = Q.extension(poly, 'a')
             #        sdisc = new_base_ring.gen()
             # These should be completions
-            #else:
-            if p == 2:
-                # is this the right precision adjustment for p=2?
-                new_base_ring = Qp(2, M+1)
             else:
-                new_base_ring = Qp(p, M)
-            set_padicbase = True
+                if p == 2:
+                    # is this the right precision adjustment for p=2?
+                    new_base_ring = Qp(2, M+1)
+                else:
+                    new_base_ring = Qp(p, M)
+                set_padicbase = True
         if sdisc is None:
             sdisc = new_base_ring(disc).sqrt()
         v0 = (new_base_ring(ap) + sdisc) / 2
