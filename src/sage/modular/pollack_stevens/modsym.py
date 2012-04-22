@@ -456,8 +456,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 ap = self.Tq_eigenvalue(p, check=check)
             if check and ap % p == 0:
                 raise ValueError("p is not ordinary")
+            disc = ap**2 - 4*p**(k+1)
             if new_base_ring is None:
-                disc = ap**2 - 4*p**(k+1)
                 if M is None:
                     if disc.is_square():
                         new_base_ring = disc.parent()
