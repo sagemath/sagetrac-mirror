@@ -483,7 +483,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         OUTPUT:
 
-        -
+        - A vector of <modular symbol,map: `K-->Q_p`> as map varies over all such maps
 
         EXAMPLES:
 
@@ -495,11 +495,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: f.completions(41,10)
             [(Modular symbol with values in Space of 41-adic distributions with k=0 action and precision cap 1, Ring morphism:
               From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
-                To:   41-adic Field with capped relative precision 10
-                  Defn: alpha |--> 5 + 22*41 + 19*41^2 + 10*41^3 + 28*41^4 + 22*41^5 + 9*41^6 + 25*41^7 + 40*41^8 + 8*41^9 + O(41^10)), (Modular symbol with values in Space of 41-adic distributions with k=0 action and precision cap 1, Ring morphism:
-                    From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
-                      To:   41-adic Field with capped relative precision 10
-                        Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
+              To:   41-adic Field with capped relative precision 10
+              Defn: alpha |--> 5 + 22*41 + 19*41^2 + 10*41^3 + 28*41^4 + 22*41^5 + 9*41^6 + 25*41^7 + 40*41^8 + 8*41^9 + O(41^10)), (Modular symbol with values in Space of 41-adic distributions with k=0 action and precision cap 1, Ring morphism:
+              From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
+              To:   41-adic Field with capped relative precision 10
+              Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
         
         """
         K = self.base_ring()
