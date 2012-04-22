@@ -198,6 +198,23 @@ class ManinMap(object):
             self._dict = defining_data
             
     def _compute_image_from_gens(self, B):
+        """
+        Compute the image of self evaluated at `B` by using generators
+
+        INPUT:
+            - ``B`` -- coset representative of Manin relations
+        
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
+            sage: D = Distributions(0, 5, 10)
+            sage: MR = ManinRelations(11)
+            sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, MR, data)
+            sage: f._compute_image_from_gens(MR.reps()[1])
+            (24, 0)
+        
+        """
         L = self._manin.relations(B)
         # could raise KeyError if B is not a coset rep
         if len(L) == 0:
@@ -289,12 +306,10 @@ class ManinMap(object):
 
     def __mul__(self, right):
         """
-        Return scalar multiplication self*right, where right is in the
+        Return scalar multiplication self * right, where right is in the
         base ring of the codomain.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D = Distributions(0, 5, 10)
@@ -321,9 +336,7 @@ class ManinMap(object):
         """
         Returns print representation of self.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
  
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D = Distributions(0, 5, 10); D
@@ -344,38 +357,22 @@ class ManinMap(object):
         Note that `A` must be in `SL_2(Z)` for this to work.
         
         INPUT:
-            - ``A`` - an element of `SL_2(Z)`
+        - ``A`` - an element of `SL_2(Z)`
 
         OUTPUT:
 
-        The value of self on the divisor corresponding to `A` -- i.e. on the divisor `{A(0)} - {A(\infty)}`.
+        - The value of self on the divisor corresponding to `A` -- i.e. on the divisor `{A(0)} - {A(\infty)}`.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: symb = ps_modsym_from_elliptic_curve(E); symb.values()
-        [-1/5, 3/2, -1/2]
-        sage: phi.manin().generator_indices()
-        [0, 2, 3]
-        sage: A = phi.manin().coset_reps(3); A
-        [-1 -1]
-        [ 3  2]
-        sage: phi.eval_sl2(A) == phi.data(2)
-        True
-        sage: sig = Matrix(2,2,[0,1,-1,0])
-        sage: A = Matrix(ZZ,2,2,[8,29,3,11]); A
-        [ 8 29]
-        [ 3 11]
-        sage: A.determinant()
-        1
-        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*sig)) == phi.zero_elt()
-        True
-        sage: tau = Matrix(2,2,[0,-1,1,-1])
-        sage: (phi.eval_sl2(A)+phi.eval_sl2(A*tau)+phi.eval_sl2(A*tau*tau)) == phi.zero_elt()
-        True
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
+            sage: D = Distributions(0, 5, 10)
+            sage: MR = ManinRelations(11)
+            sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, MR, data)   
+            sage: A = MR.reps()[1]
+            sage: f._eval_sl2(A)
+            (15, 0)
         """
 
         B = self._manin.equivalent_rep(A)
@@ -386,9 +383,7 @@ class ManinMap(object):
         """
         Evaluates self at A.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D = Distributions(0, 5, 10); D
