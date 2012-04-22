@@ -66,7 +66,6 @@ cdef class Dist(ModuleElement):
 
         self should be nonzero
         """
-        p = self.parent().prime()
         i = 0
         n = self.precision_absolute()
         a = self.moment(i)
@@ -84,7 +83,7 @@ cdef class Dist(ModuleElement):
                         raise ValueError("not a scalar multiple")
                     i += 1
         else:
-            print a
+            p = self.parent().prime()
             v = a.valuation(p)
             while v >= n - i:
                 i += 1
@@ -92,7 +91,6 @@ cdef class Dist(ModuleElement):
                     a = self.moment(i)
                 except IndexError:
                     raise ValueError("self is zero")
-                print a
                 v = a.valuation(p)
             relprec = n - i - v
             alpha = other.moment(i) / a % p**(n-i)
