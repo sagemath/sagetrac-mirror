@@ -425,10 +425,19 @@ class PSModularSymbolElement(ModuleElement):
         """
         f = self.hecke(q)
         gens = self.parent().source().gens()
-        g = gens[0]
         if p is None:
             p = self.parent().prime()
+        i = 0
+        g = gens[i]
         verbose("Computing eigenvalue")
+        while self._map[g].is_zero(p, M):
+            if not f._map[g].is_zero(p, M):
+                raise ValueError("not a scalar multiple")
+            i += 1
+            try:
+                g = gens[i]
+            except IndexError:
+                raise ValueError("self is zero")
         aq = self._map[g].find_scalar(f._map[g], p, M, check)
         if check:
             verbose("Checking that this is actually an eigensymbol")

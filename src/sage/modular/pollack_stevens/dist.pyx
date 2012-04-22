@@ -60,6 +60,13 @@ cdef class Dist(ModuleElement):
             scalar = new_base(left)
             return V([scalar * new_base(self.moment(i)) for i in range(self.precision_absolute())])
 
+    def is_zero(self, p=None, M=None):
+        n = self.precision_absolute()
+        if M is None:
+            return all([self.moment(a).is_zero() for a in range(n)])
+        else:
+            return all([self.moment(a).valuation(p) >= M for a in range(n)])
+
     def find_scalar(self, other, p, M, check=True):
         """
         Returns an alpha with other = self * alpha, or raises a ValueError.
@@ -73,6 +80,7 @@ cdef class Dist(ModuleElement):
         verbose("n = %s"%n)
         verbose("moment 0")
         a = self.moment(i)
+        verbose("a = %s"%(a))
         padic = isinstance(a.parent(), pAdicGeneric)
         if self.parent().is_symk():
             while a == 0:
@@ -95,7 +103,7 @@ cdef class Dist(ModuleElement):
         else:
             p = self.parent().prime()
             v = a.valuation(p)
-            while v >= n - i - 1:
+            while v >= n - i:
                 i += 1
                 verbose("p moment %s"%i)
                 try:
@@ -116,8 +124,8 @@ cdef class Dist(ModuleElement):
                 a = self.moment(i)
                 if check:
                     verbose("self.moment=%s, other.moment=%s, ratio = %s"%(a, other.moment(i), other.moment(i) / a))
-                    if (padic and a != alpha * other.moment(i)) or \
-                       (not padic and a % p**(n-i) != alpha * other.moment(i) % p**(n-i)):
+                    if (padic and other.moment(i) != alpha * a) or \
+                       (not padic and other.moment() % p**(n-i) != alpha * a % p**(n-i)):
                         raise ValueError("not a scalar multiple")
                 v = a.valuation(p)
                 if n - i - v > relprec:
