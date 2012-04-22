@@ -435,7 +435,7 @@ class PSModularSymbolElement(ModuleElement):
             return True
         except ValueError:
             return False
-
+        
 
     # what happens if a cached method raises an error?  Is it recomputed each time?
     @cached_method
@@ -577,35 +577,48 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         Returns the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
 
-        Note that `alpha` is `p`-adic and so the resulting symbol is just an approximation to the
+        Note that since `alpha` is `p`-adic, the resulting symbol is just an approximation to the
         true `p`-stabilization (depending on how well `alpha` is approximated).
 
         INPUT:
 
-        - ``p`` -- prime not dividing the level of self.
+        - ``p`` -- prime not dividing the level of self
         - ``M`` -- precision of `Q_p`
-        - ``alpha`` -- 
+        - ``alpha`` -- U_p eigenvalue
         - ``ap`` -- Hecke eigenvalue
-        - ``new_base_ring``
-        - ``ordinary`` -- 
+        - ``new_base_ring`` -- change of base ring
 
         OUTPUT:
 
-        A modular symbol with the same Hecke-eigenvalues as self away from `p` and eigenvalue `alpha` at `p`.
-        
+        A modular symbol with the same Hecke eigenvalues as self away from `p` and eigenvalue `alpha` at `p`.
+        The eigenvalue `alpha` depends on the parameter `ordinary`.
+
+        If ordinary == True: the unique modular symbol of level `N*p` with the same Hecke eigenvalues
+        as self away from `p` and unit eigenvalue at `p`; else  the unique modular symbol of level `N*p`
+        with the same Hecke eigenvalues as self away from `p` and non-unit eigenvalue at `p`.
 
         EXAMPLES::
 
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('11a')
             sage: p = 5
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,M = prec)
-            sage: phi_stabilized
+            sage: phis = phi.p_stabilize(p,M = prec)
+            sage: phis
             Modular symbol with values in Sym^0 Q_5^2
-
+            sage: phis.hecke(7) == phis*E.ap(7)
+            True
+            sage: phis.hecke(5) == phis*E.ap(5)
+            False
+            sage: phis.hecke(3) == phis*E.ap(3)
+            True
+            sage: phis.Tq_eigenvalue(5)
+            1 + 4*5 + 3*5^2 + 2*5^3 + O(5^4)
+            sage: phis = phi.p_stabilize(p,M = prec,ordinary=False)
+            sage: phis.Tq_eigenvalue(5)
+            5 + 5^2 + 2*5^3 + O(5^4)
         """
-        
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
@@ -676,6 +689,24 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def lift(self, p=None, M=None, alpha=None, new_base_ring=None, algorithm = None, eigensymbol = False, check=True):
         r"""
+        Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
+
+        Here the Eisenstein error is a symbol whose system of Hecke eigenvalues equals `ell+1` for `T_ell` when `ell`
+        does not divide `Np` and 1 for `U_q` when `q` divides `Np`.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``M`` -- integer equal to the number of moments
+        - ``alpha`` -- `U_p` eigenvalue
+        - ``new_base_ring`` -- change of base ring
+        - ``algorithm`` -- 'stevens' or 'greenberg'
+        - ``eigensymbol`` -- if True, lifts to Hecke eigensymbol (self must be a `p`-ordinary eigensymbol)
+
+        OUTPUT:
+
+        An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
+
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -741,7 +772,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         EXAMPLES::
 
-            
+
         """
         D = {}
         manin = self.parent().source()
@@ -873,6 +904,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
                                ordinary=True, algorithm=None, eigensymbol=False, check=True):
         """
+        `p`-stabilizes and lifts
+        
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
