@@ -504,13 +504,14 @@ class PSModularSymbolElement(ModuleElement):
         return aq
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
-    def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True):
+    def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
         if check and ap.valuation(p) > 0:
             raise ValueError("p is not ordinary")
         disc = ap**2 - 4*p**(k+1)
         sdisc = None
+        set_padicbase = False
         if new_base_ring is None:
             if M is None:
                 Q = disc.parent().fraction_field() # usually QQ
@@ -522,11 +523,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     new_base_ring = Q.extension(poly, 'a')
                     sdisc = new_base_ring.gen()
             # These should be completions
-            elif p == 2:
-                # is this the right precision adjustment for p=2?
-                new_base_ring = Qp(2, M+1)
             else:
-                new_base_ring = Qp(p, M+6)
+                if p == 2:
+                    # is this the right precision adjustment for p=2?
+                    new_base_ring = Qp(2, M+1)
+                else:
+                    new_base_ring = Qp(p, M)
+                set_padicbase = True
         if sdisc is None:
             sdisc = new_base_ring(disc).sqrt()
         v0 = (new_base_ring(ap) + sdisc) / 2
@@ -537,27 +540,32 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             alpha = v0
         else:
             alpha = v1
-        if hasattr(alpha, 'precision_relative') and M is not None:
-            # We want to ensure that the relative precision of alpha and (alpha-1) are both at least M
+        if find_extraprec:
+            newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
+        else:
+            newM, eisenloss, q, aq = M, None, None, None
+        if set_padicbase:
+            # We want to ensure that the relative precision of alpha and (alpha-1) are both at least *newM*,
+            # where newM is obtained from self._find_extraprec
             prec_cap = None
-            if alpha.precision_relative() < M:
-                prec_cap = M + alpha.valuation() + (1 if p == 2 else 0)
+            if alpha.precision_relative() < newM:
+                prec_cap = newM + alpha.valuation() + (1 if p == 2 else 0)
             elif ap == 1 + p**(k+1) and ordinary:
                 # here alpha = 1, so we need to give up and use an aq.
                 pass
-            elif (alpha - 1).precision_relative() < M:
-                prec_cap = M + (alpha - 1).valuation() + (1 if p == 2 else 0)
+            elif (alpha - 1).precision_relative() < newM:
+                prec_cap = newM + (alpha - 1).valuation() + (1 if p == 2 else 0)
             if prec_cap is not None:
-                new_base_ring = Qp(p, prec_cap+6)
-                alpha, new_base_ring = self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False)
-        return alpha, new_base_ring
+                new_base_ring = Qp(p, prec_cap)
+                return self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False, find_extraprec=find_extraprec)
+        return alpha, new_base_ring, newM, eisenloss, q, aq
     
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         if check:
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
         if alpha is None:
-            alpha, new_base_ring = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
+            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, False)
         else:
             if new_base_ring is None:
                 new_base_ring = alpha.parent()
@@ -841,16 +849,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             raise ValueError("M must be at least 2")
         else:
             M = ZZ(M)
+        # alpha will be the eigenvalue of Up
         if alpha is None:
-            alpha, new_base_ring = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
+            alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
         else:
             if new_base_ring is None:
                 new_base_ring = alpha.parent()
-            if hasattr(new_base_ring, 'precision_cap') and M > new_base_ring.precision_cap():
-                raise ValueError("Cannot lift above the precision cap")
-        # alpha will be the eigenvalue of Up
-        newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
-        
+            newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
+            if hasattr(new_base_ring, 'precision_cap') and newM > new_base_ring.precision_cap():
+                raise ValueError("Not enough precision in new base ring")
+
         # Now we can stabilize
         self = self.p_stabilize(p=p, alpha=alpha, M=newM, new_base_ring = new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
