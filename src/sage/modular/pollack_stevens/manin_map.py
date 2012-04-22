@@ -74,7 +74,7 @@ def unimod_matrices_from_infty(r, s):
 
     - a list of `SL_2(Z)` matrices
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(19,23); v
         [
@@ -115,7 +115,7 @@ def basic_hecke_matrix(a, ell):
 
     - a 2 x 2 matrix of determinant `ell`
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
         [1 0]
@@ -389,7 +389,7 @@ class ManinMap(object):
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
-            (1, 2)   
+            (1, 2)
         
         """
         a = A[t00]
