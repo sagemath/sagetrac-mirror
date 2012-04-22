@@ -34,7 +34,7 @@ class PSModularSymbols_constructor(UniqueFactory):
         
         EXAMPLES::
         
-            sage: D = Distributions(3, 7, prec_cap=10); M = PSModularSymbolSpace(Gamma0(7), D) # indirect doctest
+            sage: D = Distributions(3, 7, prec_cap=10); M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
         """
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
@@ -60,7 +60,7 @@ class PSModularSymbols_constructor(UniqueFactory):
         """
         EXAMPLES::
         
-            sage: D = Distributions(5, 7, 15); M = PSModularSymbolSpace(Gamma0(7), D) # indirect doctest
+            sage: D = Distributions(5, 7, 15); M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
         """
         return PSModularSymbolSpace(*key)
 
@@ -96,14 +96,14 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Distributions(2, 11);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: type(M)
             <class 'sage.modular.pollack_stevens.space.PSModularSymbolSpace_with_category'>
             sage: M.sign()
             0
-            sage: M = PSModularSymbolSpace(Gamma0(2), D, sign=-1); M.sign()
+            sage: M = PSModularSymbols(Gamma0(2), coefficients=D, sign=-1); M.sign()
             -1
-            sage: M = PSModularSymbolSpace(Gamma0(2), D, sign=1); M.sign()
+            sage: M = PSModularSymbols(Gamma0(2), coefficients=D, sign=1); M.sign()
             1        
         """
         Module.__init__(self, coefficients.base_ring())
@@ -129,10 +129,14 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D); M._repr_()
-            'Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 11-adic distributions with k=2 action and precision cap 3'
+            sage: D = Distributions(2, 11);  M = PSModularSymbols(Gamma0(2), coefficients=D); M._repr_()
+            'Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 11-adic distributions with k=2 action and precision cap 20'
         """
-        s = "Space of overconvergent modular symbols for %s with sign %s and values in %s"%(self.group(), self.sign(), self.coefficient_module())
+        if self.coefficient_module().is_symk():
+            s = "Space of modular symbols for "
+        else:
+            s = "Space of overconvergent modular symbols for "
+        s += "%s with sign %s and values in %s"%(self.group(), self.sign(), self.coefficient_module())
         return s
 
     def source(self):
@@ -146,9 +150,9 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Distributions(2, 11);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.source()
-            Manin Relations of level 2        
+            Manin Relations of level 2
         """
         return self._source
 
@@ -162,9 +166,9 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 11);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Distributions(2, 11);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.coefficient_module()
-            Space of 11-adic distributions with k=2 action and precision cap 3
+            Space of 11-adic distributions with k=2 action and precision cap 20
             sage: M.coefficient_module() == D
             True
             sage: M.coefficient_module() is D
@@ -180,12 +184,12 @@ class PSModularSymbolSpace(Module):
 
             sage: D = Distributions(2, 5)
             sage: G = Gamma0(23)
-            sage: M = PSModularSymbolSpace(G, D)
+            sage: M = PSModularSymbols(G, coefficients=D)
             sage: M.group()
             Congruence Subgroup Gamma0(23)
             sage: D = Symk(4)
             sage: G = Gamma1(11)
-            sage: M = PSModularSymbolSpace(G, D)
+            sage: M = PSModularSymbols(G, coefficients=D)
             sage: M.group()
             Congruence Subgroup Gamma1(11)
         """
@@ -198,11 +202,11 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(3, 17)
-            sage: M = PSModularSymbolSpace(Gamma(5), D)
+            sage: M = PSModularSymbols(Gamma(5), coefficients=D)
             sage: M.sign()
             0
             sage: D = Symk(4)
-            sage: M = PSModularSymbolSpace(Gamma1(8), D, -1)
+            sage: M = PSModularSymbols(Gamma1(8), coefficients=D, sign=-1)
             sage: M.sign()
             -1
         """
@@ -215,11 +219,11 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(4, 29)
-            sage: M = PSModularSymbolSpace(Gamma1(12), D)
+            sage: M = PSModularSymbols(Gamma1(12), coefficients=D)
             sage: M.ngens()
             5
             sage: D = Symk(2)
-            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.ngens()
             2
         """
@@ -238,7 +242,7 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Symk(2)
-            sage: M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.ncoset_reps()
             3
         """
@@ -255,7 +259,7 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(7, 11)
-            sage: M = PSModularSymbolSpace(Gamma1(14), D)
+            sage: M = PSModularSymbols(Gamma1(14), coefficients=D)
             sage: M.level()
             14
         """
@@ -268,7 +272,7 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(4, 3)
-            sage: M = PSModularSymbolSpace(Gamma1(13), D)
+            sage: M = PSModularSymbols(Gamma1(13), coefficients=D)
             sage: M._grab_relations()
             [[(1, [1 0]
             [0 1], 0)], [(-1, [-1 -1]
@@ -300,11 +304,11 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(2, 5)
-            sage: M = PSModularSymbolSpace(Gamma1(13), D)
+            sage: M = PSModularSymbols(Gamma1(13), coefficients=D)
             sage: M.precision_cap()
-            3
+            20
             sage: D = Distributions(3, 7, prec_cap=10)
-            sage: M = PSModularSymbolSpace(Gamma0(7), D)
+            sage: M = PSModularSymbols(Gamma0(7), coefficients=D)
             sage: M.precision_cap()
             10
         """
@@ -325,7 +329,7 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Symk(5)
-            sage: M = PSModularSymbolSpace(Gamma1(7), D)
+            sage: M = PSModularSymbols(Gamma1(7), coefficients=D)
             sage: M.weight()
             5
         """
@@ -341,7 +345,7 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES:
             sage: D = Distributions(2, 11)
-            sage: M = PSModularSymbolSpace(Gamma(2), D)
+            sage: M = PSModularSymbols(Gamma(2), coefficients=D)
             sage: M.prime()
             11
         """
@@ -365,17 +369,17 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-            sage: D = Distributions(2, 7); M = PSModularSymbolSpace(Gamma(13), D)
+            sage: D = Distributions(2, 7); M = PSModularSymbols(Gamma(13), coefficients=D)
             sage: M._p_stabilize_parent_space(7, M.base_ring())
             Space of overconvergent modular symbols for Congruence Subgroup
             Gamma(91) with sign 0 and values in Space of 7-adic distributions
-            with k=2 action and precision cap 3
-            
-            sage: D = Distributions(4, 17); M = PSModularSymbolSpace(Gamma1(3), D)
+            with k=2 action and precision cap 20
+
+            sage: D = Distributions(4, 17); M = PSModularSymbols(Gamma1(3), coefficients=D)
             sage: M._p_stabilize_parent_space(17, Qp(17))
             Space of overconvergent modular symbols for Congruence
             Subgroup Gamma1(51) with sign 0 and values in Space of
-            17-adic distributions with k=4 action and precision cap 5
+            17-adic distributions with k=4 action and precision cap 20
         """
 
         N = self.level()
@@ -398,39 +402,46 @@ class PSModularSymbolSpace(Module):
         Internal function that is used by the specialize method on
         elements.  It returns a space with same parameters as this
         one, but over new_base_ring.
-        
+
         EXAMPLES::
 
-            sage: D = Distributions(7, 5);  M = PSModularSymbolSpace(Gamma0(2), D); M
-            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=7 action and precision cap 8
+            sage: D = Distributions(7, 5);  M = PSModularSymbols(Gamma0(2), coefficients=D); M
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=7 action and precision cap 20
             sage: M._specialize_parent_space(QQ)
-            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Sym^7 Q^2
+            Space of modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Sym^7 Q^2
             sage: M.base_ring()
             5-adic Ring with capped absolute precision 20
             sage: M._specialize_parent_space(QQ).base_ring()
-            Rational Field        
+            Rational Field
         """
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
 
     def _lift_parent_space(self, p, M, new_base_ring):
         """
         Used internally when lifting modular symbols.
-        
+
         INPUT:
 
         - `p` -- prime
         - `M` -- precision cap
         - ``new_base_ring`` -- ring
-        
+
         EXAMPLES::
 
-            sage: D = Distributions(4, 17, 0); M = PSModularSymbolSpace(Gamma1(3), D)
+            sage: D = Distributions(4, 17, 2); M = PSModularSymbols(Gamma1(3), coefficients=D)
             sage: D.is_symk()
             False
             sage: M._lift_parent_space(17, 10, Qp(17))
-            Space of overconvergent modular symbols for Congruence Subgroup Gamma1(3) with sign 0 and values in Space of 17-adic distributions with k=4 action and precision cap 10            
+            Traceback (most recent call last):
+            ...
+            TypeError: Coefficient module must be a Symk
+            sage: PSModularSymbols(Gamma1(3), weight=3)._lift_parent_space(17,10,Qp(17))
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma1(3) with sign 0 and values in Space of 17-adic distributions with k=1 action and precision cap 10
         """
-        return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
+        if self.coefficient_module().is_symk():
+            return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
+        else:
+            raise TypeError("Coefficient module must be a Symk")
 
     def change_ring(self, new_base_ring):
         """
@@ -440,10 +451,12 @@ class PSModularSymbolSpace(Module):
 
         ::
 
-            sage: D = Distributions(4)
-            sage: M = PSModularSymbolSpace(Gamma(6), D)
+            sage: from sage.modular.pollack_stevens.distributions import Symk
+            sage: D = Symk(4)
+            sage: M = PSModularSymbols(Gamma(6), coefficients=D); M
+            Space of modular symbols for Congruence Subgroup Gamma(6) with sign 0 and values in Sym^4 Q^2
             sage: M.change_ring(Qp(5,8))
-            Modular Symbols space of dimension 11 for Gamma_0(67) of weight 2 with sign 0 over 5-adic Field with capped relative precision 8
+            Space of modular symbols for Congruence Subgroup Gamma(6) with sign 0 and values in Sym^4 Q_5^2
         """
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
@@ -453,14 +466,14 @@ class PSModularSymbolSpace(Module):
         to an element of the coefficient module.
 
         EXAMPLES::
-        
+
             sage: D = Symk(4)
-            sage: M = PSModularSymbolSpace(Gamma(6), D)
+            sage: M = PSModularSymbols(Gamma(6), coefficients=D)
             sage: x = M.an_element(); x       # indirect doctest
             Modular symbol with values in Sym^4 Q^2
             sage: x.values()
             [(2, 1), (2, 1), (2, 1)]
-            sage: D = Distributions(2, 11); M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Symk(2, Qp(11)); M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: x = M.an_element(); x.values()
             [(2 + O(11^20), 1 + O(11^20)), (2 + O(11^20), 1 + O(11^20))]
             sage: x in M
