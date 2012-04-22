@@ -351,11 +351,11 @@ cdef class Dist(ModuleElement):
         zero = R(0)
         moments.extend([zero] * (M - k - 1))
         mu = V(moments)
-        val = mu.valuation()
-        if val < 0:
-            # This seems unnatural
-            print "scaling by %s^%s to keep things integral"%(p, -val)
-            mu *= p**(-val)
+        #val = mu.valuation()
+        #if val < 0:
+        #    # This seems unnatural
+        #    print "scaling by %s^%s to keep things integral"%(p, -val)
+        #    mu *= p**(-val)
         return mu
 
     def act_right(self,gamma):
@@ -1232,22 +1232,6 @@ cdef class WeightKAction(Action):
         raise NotImplementedError
 
 cdef class WeightKAction_vector(WeightKAction):
-    r"""
-    
-
-    INPUT:
-
-    - 
-
-    OUTPUT:
-
-    - 
-
-    EXAMPLES::
-
-        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
-    """
     cpdef _compute_acting_matrix(self, g, M):
         r"""
         
@@ -1302,11 +1286,12 @@ cdef class WeightKAction_vector(WeightKAction):
 
         INPUT:
 
-        - ``_v`` -- a :class:`Dist_vector` instance
+        - ``_v`` -- a :class:`Dist_vector` instance, the distribution
+          on which to act.
 
         - ``g`` -- a
           :class:`sage.matrix.matrix_integer_2x2.Matrix_integer_2x2`
-          instance.
+          instance, the `2 \times 2` matrix that is acting.
 
         OUTPUT:
 
@@ -1379,11 +1364,12 @@ cdef class SimpleMat(SageObject):
 
         INPUT:
 
-        - 
+        - ``i`` -- a tuple containing two slices, each from `0` to `M'` for some `M' < M`
 
         OUTPUT:
 
-        - 
+        - A new SimpleMat of size `M'` with the top left `M' \times
+          M'` block of values copied over.
 
         EXAMPLES::
 
@@ -1422,33 +1408,24 @@ cdef class SimpleMat(SageObject):
         sage_free(self._mat)
 
 cdef class WeightKAction_long(WeightKAction):
-    r"""
-    
-
-    INPUT:
-
-    - 
-
-    OUTPUT:
-
-    - 
-
-    EXAMPLES::
-
-        sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
-    """
     cpdef _compute_acting_matrix(self, g, _M):
         r"""
         
 
         INPUT:
 
-        - 
+        - ``g`` -- an instance of
+          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+
+        - ``_M`` -- a positive integer giving the precision at which
+          ``g`` should act.
 
         OUTPUT:
 
-        - 
+        - A :class:`SimpleMat` that gives the action of ``g`` at
+          precision ``_M`` in the sense that the moments of the result
+          are obtained from the moments of the input by a
+          vector-matrix multiplication.
 
         EXAMPLES::
 
@@ -1491,15 +1468,20 @@ cdef class WeightKAction_long(WeightKAction):
 
     cpdef _call_(self, _v, g):
         r"""
-        
+        Application of the action.
 
         INPUT:
 
-        - 
+        - ``_v`` -- a :class:`Dist_long` instance, the distribution on
+          which to act.
+
+        - ``g`` -- a
+          :class:`sage.matrix.matrix_integer_2x2.Matrix_integer_2x2`
+          instance, the `2 \times 2` matrix that is acting.
 
         OUTPUT:
 
-        - 
+        - The image of ``_v`` under the action of ``g``.
 
         EXAMPLES::
 
@@ -1541,6 +1523,11 @@ cdef class iScale(Action):
         Action.__init__(self, ZZ, Dk, on_left, operator.mul)
 
     cpdef _call_(self, a, b):
+        """
+        Application of the action.
+
+        
+        """
         if PY_TYPE_CHECK(a, Dist):
             return (<Dist>a)._lmul_(b)
         else:

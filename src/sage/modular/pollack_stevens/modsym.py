@@ -756,8 +756,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         # We also need to add precision to account for denominators appearing while solving the difference equation.
         eplog = (newM -1).exact_log(p)
         while eplog < (newM + eplog).exact_log(p):
-            verbose("M = %s, newM = %s, eplog=%s"%(M, newM, eplog), level=2)
             eplog = (newM + eplog).exact_log(p)
+            verbose("M = %s, newM = %s, eplog=%s"%(M, newM, eplog), level=2)
         newM += eplog
         return newM, eisenloss, q, aq
 
