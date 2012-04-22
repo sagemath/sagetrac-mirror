@@ -104,7 +104,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES:
 
         ::
-
+        
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
@@ -490,10 +490,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         ::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
-            sage: A = ModularSymbols(23, sign=-1, weight=2).decomposition()[0]
-            sage: f = ps_modsym_from_simple_modsym_space(A); f.values()
-            [0, 1, -alpha, alpha, -1]
-            sage: f.completions()
+            sage: D = ModularSymbols(67,2,1).cuspidal_submodule().new_subspace().decomposition()[1]
+            sage: f = ps_modsym_from_simple_modsym_space(D)
+            sage: f.completions(41,10)
+            [(Modular symbol with values in Space of 41-adic distributions with k=0 action and precision cap 1, Ring morphism:
+              From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
+                To:   41-adic Field with capped relative precision 10
+                  Defn: alpha |--> 5 + 22*41 + 19*41^2 + 10*41^3 + 28*41^4 + 22*41^5 + 9*41^6 + 25*41^7 + 40*41^8 + 8*41^9 + O(41^10)), (Modular symbol with values in Space of 41-adic distributions with k=0 action and precision cap 1, Ring morphism:
+                    From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
+                      To:   41-adic Field with capped relative precision 10
+                        Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
         
         """
         K = self.base_ring()
@@ -510,7 +516,6 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             Dist = V.coefficient_module()
             for r in roots:
                 psi = K.hom([r],Qp(p,M))
-                print "psi = ", psi
                 embedded_sym = self.__class__(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
                 ans.append((embedded_sym,psi))
             return ans

@@ -430,6 +430,9 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().lift(p, M, new_base_ring), sign=self.sign())
 
     def change_ring(self, new_base_ring):
+        """
+        
+        """
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
     def _an_element_(self):
