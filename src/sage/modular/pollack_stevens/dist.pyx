@@ -381,19 +381,33 @@ cdef class Dist(ModuleElement):
         return self.parent()._act(self, gamma)
 
 cdef class Dist_vector(Dist):
+    r"""
+    A distribution is stored as a vector whose `j`-th entry is the `j`-th moment of the distribution.
+
+    The `j`-th entry is stored modulo `p^(N-j)` where `N` is the total number of moments.
+    (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
+
+    INPUTS:
+
+    - ``parent`` -- a :class:`distributions.Distributions_Zp` instance
+
+    - ``moments`` -- the list of moments given as a vector
+
+    - ``check`` -- (default: True) boolean, whether to validate input
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions
+        sage: 
+    """
     def __init__(self,moments,parent,check=True):
-        r"""
-        A distribution is stored as a vector whose `j`-th entry is the `j`-th moment of the distribution.
+        """
+        Initialization.
 
-        The `j`-th entry is stored modulo `p^(N-j)` where `N` is the total number of moments.
-        (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
+        TESTS::
 
-        INPUTS:
-
-        - ``parent`` -- a :class:`distributions.Distributions_Zp` instance
-        - ``moments`` -- the list of moments given as a vector
-        - ``check`` -- (default: True) boolean, whether to validate input
-        - ``check`` -- boolean, whether to coerce the vector into the appropriate module
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: 
         """
         Dist.__init__(self,parent)
         if check:
@@ -409,10 +423,6 @@ cdef class Dist_vector(Dist):
     cdef Dist_vector _new_c(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -431,14 +441,6 @@ cdef class Dist_vector(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
@@ -456,7 +458,7 @@ cdef class Dist_vector(Dist):
     def _rational_(self):
         """
         Convert to a rational number.
-        
+
         EXAMPLES::
 
             sage: D = Symk(0); d = D(4/3); d
@@ -483,7 +485,7 @@ cdef class Dist_vector(Dist):
 
         INPUT:
 
-        - 
+        - ``n`` -- an integer or slice, to be passed on to moments.
 
         OUTPUT:
 
@@ -502,14 +504,6 @@ cdef class Dist_vector(Dist):
     cpdef ModuleElement _add_(self, ModuleElement _right):
         r"""
         
-
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
 
         EXAMPLES::
 
@@ -530,14 +524,6 @@ cdef class Dist_vector(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -557,14 +543,6 @@ cdef class Dist_vector(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -577,10 +555,6 @@ cdef class Dist_vector(Dist):
     def precision_absolute(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -600,14 +574,6 @@ cdef class Dist_vector(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -618,10 +584,6 @@ cdef class Dist_vector(Dist):
     def zero(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -638,10 +600,6 @@ cdef class Dist_vector(Dist):
     cpdef normalize(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -676,7 +634,8 @@ cdef class Dist_vector(Dist):
 
         INPUT:
 
-        - 
+        - ``M`` -- a positive integer less than the precision of this
+          distribution.
 
         OUTPUT:
 
@@ -699,10 +658,6 @@ cdef class Dist_vector(Dist):
     def solve_diff_eqn(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -762,6 +717,14 @@ cdef class Dist_long(Dist):
         sage: 
     """
     def __init__(self, moments, parent, check=True):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: 
+        """
         Dist.__init__(self, parent)
         p = parent._p
         cdef int i
@@ -788,10 +751,6 @@ cdef class Dist_long(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
         OUTPUT:
 
         - 
@@ -809,10 +768,6 @@ cdef class Dist_long(Dist):
     def _repr_(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -832,10 +787,6 @@ cdef class Dist_long(Dist):
     cdef int quasi_normalize(self) except -1:
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -857,10 +808,6 @@ cdef class Dist_long(Dist):
     cpdef normalize(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -886,7 +833,8 @@ cdef class Dist_long(Dist):
 
         INPUT:
 
-        - 
+        - ``_n`` -- an integer or slice giving an index into the
+          moments.
 
         OUTPUT:
 
@@ -897,6 +845,9 @@ cdef class Dist_long(Dist):
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
         """
+        if isinstance(_n, slice):
+            a, b, c = _n.indices(self.prec)
+            return [self.moment(i) for i in range(a, b, c)]
         cdef int n = _n
         if n < 0:
             n += self.prec
@@ -907,14 +858,6 @@ cdef class Dist_long(Dist):
     cpdef ModuleElement _add_(self, ModuleElement _right):
         r"""
         
-
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
 
         EXAMPLES::
 
@@ -936,14 +879,6 @@ cdef class Dist_long(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -963,14 +898,6 @@ cdef class Dist_long(Dist):
     cpdef ModuleElement _lmul_(self, RingElement _right):
         r"""
         
-
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
 
         EXAMPLES::
 
@@ -1019,10 +946,6 @@ cdef class Dist_long(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
         OUTPUT:
 
         - 
@@ -1037,14 +960,6 @@ cdef class Dist_long(Dist):
     cdef int _cmp_c_impl(left, Element _right) except -2:
         r"""
         
-
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
 
         EXAMPLES::
 
@@ -1064,10 +979,6 @@ cdef class Dist_long(Dist):
         r"""
         
 
-        INPUT:
-
-        - 
-
         OUTPUT:
 
         - 
@@ -1084,13 +995,14 @@ cdef class Dist_long(Dist):
             ans.moments[i] = 0
         return ans
 
-    def change_precision(self, M):
+    def reduce_precision(self, M):
         r"""
         
 
         INPUT:
 
-        - 
+        - ``M`` -- a positive integer less than the precision of this
+          distribution.
 
         OUTPUT:
 
@@ -1113,10 +1025,6 @@ cdef class Dist_long(Dist):
     def solve_diff_eqn(self):
         r"""
         
-
-        INPUT:
-
-        - 
 
         OUTPUT:
 
@@ -1145,7 +1053,17 @@ cdef class WeightKAction(Action):
 
     INPUT:
 
-    - 
+    - ``Dk`` -- a space of distributions
+
+    - ``character`` -- data specifying a Dirichlet character to apply
+      to the top right corner, and a power of the determinant by which
+      to scale.  See the documentation of
+      :class:`sage.modular.pollack_stevens.distributions.Distributions_factory`
+      for more details.
+
+    - ``tuplegen`` -- a callable object that turns matrices into 4-tuples.
+
+    - ``on_left`` -- whether this action should be on the left.
 
     OUTPUT:
 
@@ -1158,25 +1076,15 @@ cdef class WeightKAction(Action):
     """
     def __init__(self, Dk, character, tuplegen, on_left):
         r"""
-        
+        Initialization.
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
         """
         self._k = Dk._k
         if self._k < 0: raise ValueError("k must not be negative")
-        if tuplegen is None:
-            tuplegen = lambda g: (g[0,0], g[0,1], g[1,0], g[1,1])
         self._tuplegen = tuplegen
         if isinstance(character, tuple):
             if len(character) != 2:
@@ -1210,14 +1118,6 @@ cdef class WeightKAction(Action):
         r"""
         
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -1232,11 +1132,22 @@ cdef class WeightKAction(Action):
 
         INPUT:
 
-        - 
+        - ``g`` -- an instance of
+          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+
+        - ``M`` -- a positive integer giving the precision at which
+          ``g`` should act.
 
         OUTPUT:
 
-        - 
+        - An `M \times M` matrix so that the action of `g` on a
+          distribution with `M` moments is given by a vector-matrix
+          multiplication.
+
+        .. NOTE::
+
+            This function caches its results.  To clear the cache use
+            :meth:`clear_cache`.
 
         EXAMPLES::
 
@@ -1275,11 +1186,9 @@ cdef class WeightKAction(Action):
 
         INPUT:
 
-        - 
-
-        OUTPUT:
-
-        - 
+        - ``a``, ``b``, ``c``, ``d`` -- integers, playing the role of
+          the corresponding entries of the `2 \times 2` matrix that is
+          acting.
 
         EXAMPLES::
 
@@ -1300,7 +1209,11 @@ cdef class WeightKAction(Action):
 
         INPUT:
 
-        - 
+        - ``g`` -- an instance of
+          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+
+        - ``M`` -- a positive integer giving the precision at which
+          ``g`` should act.
 
         OUTPUT:
 
@@ -1341,7 +1254,11 @@ cdef class WeightKAction_vector(WeightKAction):
 
         INPUT:
 
-        - 
+        - ``g`` -- an instance of
+          :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+
+        - ``M`` -- a positive integer giving the precision at which
+          ``g`` should act.
 
         OUTPUT:
 
@@ -1385,7 +1302,11 @@ cdef class WeightKAction_vector(WeightKAction):
 
         INPUT:
 
-        - 
+        - ``_v`` -- a :class:`Dist_vector` instance
+
+        - ``g`` -- a
+          :class:`sage.matrix.matrix_integer_2x2.Matrix_integer_2x2`
+          instance.
 
         OUTPUT:
 
@@ -1404,6 +1325,19 @@ cdef class WeightKAction_vector(WeightKAction):
         return ans
 
 cdef inline long mymod(long a, unsigned long pM):
+    """
+    Returns the remainder ``a % pM``.
+
+    INPUT:
+
+    - ``a`` -- a long
+
+    - ``pM`` -- an unsigned long
+
+    OUPUT:
+
+    - ``a % pM`` as a positive integer.
+    """
     a = a % pM
     if a < 0:
         a += pM
@@ -1411,15 +1345,12 @@ cdef inline long mymod(long a, unsigned long pM):
 
 cdef class SimpleMat(SageObject):
     r"""
-    
+    A simple class emulating a square matrix that holds its values as
+    a C array of longs.
 
     INPUT:
 
-    - 
-
-    OUTPUT:
-
-    - 
+    - ``M`` -- a positive integer, the dimension of the matrix
 
     EXAMPLES::
 
@@ -1428,17 +1359,9 @@ cdef class SimpleMat(SageObject):
     """
     def __cinit__(self, unsigned long M):
         r"""
-        
+        Memory initialization.
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
@@ -1489,17 +1412,9 @@ cdef class SimpleMat(SageObject):
 
     def __dealloc__(self):
         r"""
-        
+        Deallocation.
 
-        INPUT:
-
-        - 
-
-        OUTPUT:
-
-        - 
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
