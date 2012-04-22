@@ -50,7 +50,7 @@ class PSModularSymbolElement(ModuleElement):
         Returns dictionary on the modular symbol self, where keys are generators and values are the corresponding values of self on generators
 
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: phi = ps_modsym_from_elliptic_curve(E)
@@ -59,8 +59,6 @@ class PSModularSymbolElement(ModuleElement):
             [0 1]: -1/5, [ 0 -1]
             [ 1  3]: 3/2, [-1 -1]
             [ 3  2]: -1/2}
-            
-    
         """
         D = {}
         for g in self.parent().source().gens():
@@ -77,7 +75,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: phi = ps_modsym_from_elliptic_curve(E)  
+            sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi.weight()
             0
 
@@ -89,7 +87,7 @@ class PSModularSymbolElement(ModuleElement):
         Returns the values of the symbol self on our chosen generators (generators are listed in self.dict().keys())
 
         EXAMPLES::
-        
+
              sage: E = EllipticCurve('11a')
              sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
              sage: phi = ps_modsym_from_elliptic_curve(E)
@@ -102,7 +100,6 @@ class PSModularSymbolElement(ModuleElement):
              ]
              sage: phi.values() == phi.dict().values()
              True
-        
         """
         return [self._map[g] for g in self.parent().source().gens()]
 
@@ -111,10 +108,10 @@ class PSModularSymbolElement(ModuleElement):
         Normalizes all of the values of the symbol self
 
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: phi = ps_modsym_from_elliptic_curve(E) 
+            sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi._normalize()
             Modular symbol with values in Sym^0 Q^2
             sage: phi._normalize().values()
@@ -140,7 +137,6 @@ class PSModularSymbolElement(ModuleElement):
             sage: psi = ps_modsym_from_elliptic_curve(EllipticCurve('37a'))
             sage: psi == phi
             False
-        
         """
         gens = self.parent().source().gens()
         for g in gens:
@@ -153,7 +149,7 @@ class PSModularSymbolElement(ModuleElement):
         Returns self + right
 
         EXAMPLES::
-        
+
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
@@ -216,6 +212,63 @@ class PSModularSymbolElement(ModuleElement):
         """
         return self.__class__(self._map - right._map, self.parent(), construct=True)
 
+    def _get_prime(self, p=None, alpha = None, allow_none=False):
+        """
+        Combines a prime specified by the user with the prime from the parent.
+
+        INPUT:
+
+        - ``p`` -- an integer or None (default None); if specified
+          needs to match the prime of the parent.
+
+        - ``alpha`` -- an element or None (default None); if p-adic
+          can contribute a prime.
+
+        - ``allow_none`` -- boolean (default False); whether to allow
+          no prime to be specified.
+
+        OUTPUT:
+
+        - a prime or None.  If ``allow_none`` is False then a
+          ValueError will be raised rather than returning None if no
+          prime can be determined.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: f = M(1); f._get_prime()
+            5
+            sage: f._get_prime(5)
+            5
+            sage: f._get_prime(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: inconsistent prime
+            sage: f._get_prime(alpha=Qp(5)(1))
+            5
+            sage: D = Symk(0);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: f = M(1); f._get_prime(allow_none=True) is None
+            True
+            sage: f._get_prime(alpha=Qp(7)(1))
+            7
+            sage: f._get_prime(7,alpha=Qp(7)(1))
+            7
+            sage: f._get_prime()
+            Traceback (most recent call last):
+            ...
+            ValueError: you must specify a prime
+        """
+        pp = self.parent().prime()
+        ppp = (alpha is not None) and hasattr(alpha.parent(),'prime') and alpha.parent().prime()
+        p = ZZ(p) or pp or ppp
+        if not p:
+            if not allow_none:
+                raise ValueError("you must specify a prime")
+        elif (pp and p != pp) or (ppp and p != ppp):
+            raise ValueError("inconsistent prime")
+        return p
+
     def plus_part(self):
         r"""
         Returns the plus part of self -- i.e. self + self | [1,0,0,-1].
@@ -249,7 +302,7 @@ class PSModularSymbolElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('11a')  
+            sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: phi = ps_modsym_from_elliptic_curve(E); phi.values()
             [-1/5, 3/2, -1/2]
@@ -423,7 +476,7 @@ class PSModularSymbolElement(ModuleElement):
             ...
             ValueError: not a scalar multiple
         """
-        f = self.hecke(q)
+        qhecke = self.hecke(q)
         gens = self.parent().source().gens()
         if p is None:
             p = self.parent().prime()
@@ -431,69 +484,85 @@ class PSModularSymbolElement(ModuleElement):
         g = gens[i]
         verbose("Computing eigenvalue")
         while self._map[g].is_zero(p, M):
-            if not f._map[g].is_zero(p, M):
+            if not qhecke._map[g].is_zero(p, M):
                 raise ValueError("not a scalar multiple")
             i += 1
             try:
                 g = gens[i]
             except IndexError:
                 raise ValueError("self is zero")
-        aq = self._map[g].find_scalar(f._map[g], p, M, check)
+        aq = self._map[g].find_scalar(qhecke._map[g], p, M, check)
         if check:
             verbose("Checking that this is actually an eigensymbol")
             if p is None or M is None:
                 for g in gens[1:]:
-                    if f._map[g] != aq * self._map[g]:
+                    if qhecke._map[g] != aq * self._map[g]:
                         raise ValueError("not a scalar multiple")
-            elif (f - aq * self).valuation(p) < M:
+            elif (qhecke - aq * self).valuation(p) < M:
                 raise ValueError("not a scalar multiple")
         return aq
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
+    def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True):
+        if ap is None:
+            ap = self.Tq_eigenvalue(p, check=check)
+        if check and ap.valuation(p) > 0:
+            raise ValueError("p is not ordinary")
+        disc = ap**2 - 4*p**(k+1)
+        sdisc = None
+        if new_base_ring is None:
+            if M is None:
+                Q = disc.parent().fraction_field() # usually QQ
+                if disc.is_square():
+                    new_base_ring = Q
+                    sdisc = disc.sqrt()
+                else:
+                    poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
+                    new_base_ring = Q.extension(poly, 'a')
+                    sdisc = new_base_ring.gen()
+            # These should be completions
+            elif p == 2:
+                # is this the right precision adjustment for p=2?
+                new_base_ring = Qp(2, M+1)
+            else:
+                new_base_ring = Qp(p, M)
+        if sdisc is None:
+            sdisc = new_base_ring(disc).sqrt()
+        v0 = (new_base_ring(ap) + sdisc) / 2
+        v1 = (new_base_ring(ap) - sdisc) / 2
+        if v0.valuation(p) > 0:
+            v0, v1 = v1, v0
+        if ordinary:
+            alpha = v0
+        else:
+            alpha = v1
+        if hasattr(alpha, 'precision_relative') and M is not None:
+            # We want to ensure that the relative precision of alpha and (alpha-1) are both at least M
+            prec_cap = None
+            if alpha.precision_relative() < M:
+                prec_cap = M + alpha.valuation() + (1 if p == 2 else 0)
+            elif ap == 1 + p**(k+1) and ordinary:
+                # here alpha = 1, so we need to give up and use an aq.
+                pass
+            elif (alpha - 1).precision_relative() < M:
+                prec_cap = M + (alpha - 1).valuation() + (1 if p == 2 else 0)
+            if prec_cap is not None:
+                new_base_ring = Qp(p, prec_cap)
+                alpha = self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False)
+        return alpha, new_base_ring
+
     def p_stabilize(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         if check:
-            pp = self.parent().prime()
-            ppp = (alpha is not None) and alpha.parent().hasattr('prime') and alpha.parent().prime()
-            p = ZZ(p) or pp or ppp
-            if not p:
-                raise ValueError("you must specify a prime")
-            if (pp and p != pp) or (ppp and p != ppp):
-                raise ValueError("inconsistent prime")
-            if M is None:
-                M = self.parent().precision_cap()
+            p = self._get_prime(p, alpha)
         k = self.parent().weight()
         if alpha is None:
-            if ap is None:
-                ap = self.Tq_eigenvalue(p, check=check)
-            if check and ap % p == 0:
-                raise ValueError("p is not ordinary")
-            disc = ap**2 - 4*p**(k+1)
-            if new_base_ring is None:
-                if M is None:
-                    if disc.is_square():
-                        new_base_ring = disc.parent()
-                    else:
-                        poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
-                        new_base_ring = disc.parent().extension(poly, 'a')
-                elif p == 2:
-                    new_base_ring = Qp(2, M+1)
-                else:
-                    new_base_ring = Qp(p, M)
-            sdisc = new_base_ring(disc).sqrt()
-            v0 = (new_base_ring(ap) + sdisc) / 2
-            v1 = (new_base_ring(ap) - sdisc) / 2
-            if v0.valuation(p) > 0:
-                v0, v1 = v1, v0
-            if ordinary:
-                alpha = v0
-            else:
-                alpha = v1
+            alpha, new_base_ring = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
         else:
             if new_base_ring is None:
                 new_base_ring = alpha.parent()
             if check:
                 if ap is None:
-                    ap = alpha + p**(k+1)/alpha
+                    ap = self.base_ring()(alpha + p**(k+1)/alpha)
                 elif alpha**2 - ap * alpha + p**(k+1) != 0:
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
                 if self.hecke(p) != ap * self:
@@ -531,7 +600,6 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
               From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
               To:   41-adic Field with capped relative precision 10
               Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
-        
         """
         K = self.base_ring()
         f = K.defining_polynomial()
@@ -551,8 +619,18 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 ans.append((embedded_sym,psi))
             return ans
 
-    def lift(self, p=None, M=None, new_base_ring=None, algorithm = None, eigensymbol = None):
+    def lift(self, p=None, M=None, alpha=None, new_base_ring=None, algorithm = None, eigensymbol = False, check=True):
         r"""
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('11a')
+            sage: f = ps_modsym_from_elliptic_curve(E)
+            sage: g = f.lift(11,4,algorithm='stevens',eigensymbol=True)
+            sage: g.Tq_eigenvalue(3)
+            10 + 10*11 + 10*11^2 + 10*11^3 + O(11^4)
+            sage: g.Tq_eigenvalue(11)
+            1 + O(11^4)
         """
         if p is None:
             p = self.parent().prime()
@@ -562,23 +640,34 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             raise ValueError("inconsistent prime")
         if M is None:
             M = self.parent().precision_cap() + 1
+        elif M <= 1:
+            raise ValueError("M must be at least 2")
+        else:
+            M = ZZ(M)
         if new_base_ring is None:
             if isinstance(self.parent().base_ring(), pAdicGeneric):
                 new_base_ring = self.parent().base_ring()
             else:
+                # We may need extra precision in solving the difference equation
+                extraprec = (M-1).exact_log(p)
                 # should eventually be a completion
-                new_base_ring = Qp(p, M+3)
+                new_base_ring = Qp(p, M+extraprec)
         if algorithm is None:
             raise NotImplementedError
         if algorithm == 'stevens':
             if eigensymbol:
-                return self._lift_to_OMS_eigen(p, M, new_base_ring)
+                # We need some extra precision due to the fact that solving
+                # the difference equation can give denominators.
+                if alpha is None:
+                    alpha = self.Tq_eigenvalue(p, check=check)
+                newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
+                return self._lift_to_OMS_eigen(p, M, new_base_ring, alpha, newM, eisenloss, q, aq, check)
             else:
-                return self._lift_to_OMS(p, M, new_base_ring)
+                return self._lift_to_OMS(p, M, new_base_ring, check)
         else:
-            return self._lift_greenberg(p, M, new_base_ring)
+            return self._lift_greenberg(p, M, new_base_ring, check)
 
-    def _lift_to_OMS(self, p, M, new_base_ring):
+    def _lift_to_OMS(self, p, M, new_base_ring, check):
         """
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
 
@@ -586,18 +675,19 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         does not divide `Np` and 1 for `U_q` when `q` divides `Np`.
 
         INPUT:
-            - ``p`` -- prime
-            - ``M`` -- integer equal to the number of moments
-            - ``new_base_ring`` -- new base ring
 
-        OUTPUT: 
+        - ``p`` -- prime
+        - ``M`` -- integer equal to the number of moments
+        - ``new_base_ring`` -- new base ring
 
-        An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
+        OUTPUT:
 
-        EXAMPLES:
+        - An overconvergent modular symbol whose specialization equals self up to some Eisenstein error.
 
+        EXAMPLES::
+
+            
         """
-        
         D = {}
         manin = self.parent().source()
         MSS = self.parent()._lift_parent_space(p, M, new_base_ring)
@@ -632,73 +722,137 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         D[manin.gen(0)] = t.solve_diff_eqn()  ###### Check this!
         return MSS(D)
 
-    def _lift_to_OMS_eigen(self, p, M, new_base_ring):
+    def _find_aq(self, p, M, check):
+        q = ZZ(2)
+        k = self.parent().weight()
+        aq = self.Tq_eigenvalue(q, check=check)
+        eisenloss = (aq - q**(k+1) - 1).valuation(p)
+        while q != p and eisenloss >= M:
+            q = next_prime(q)
+            aq = self.Tq_eigenvalue(q, check=check)
+            eisenloss = (aq - q**(k+1) - 1).valuation(p)
+        return q, aq, eisenloss
+
+    def _find_extraprec(self, p, M, alpha, check):
+        eisenloss = (alpha - 1).valuation(p)
+        # Here we make a judgement that lifting to higher precision is cheaper than computing extra Hecke operators.
+        if eisenloss < M:
+            q = None
+            aq = None
+        else:
+            # ap = 1 (mod p^M), so we need to use other Hecke eigenvalues
+            q, aq, eisenloss = self._find_aq(p, M, check)
+        newM = M + eisenloss
+
+        # We also need to add precision to account for denominators appearing while solving the difference equation.
+        eplog = (newM-1).exact_log(p)
+        while eplog < (newM+eplog).exact_log(p):
+            eplog = (newM-1).exact_log(p)
+        newM += eplog
+        return newM, eisenloss, q, aq
+
+    def _lift_to_OMS_eigen(self, p, M, new_base_ring, ap, newM, eisenloss, q, aq, check):
         r"""
-        Returns Hecke-eigensymbol OMS lifting self -- self must be a  
+        Returns Hecke-eigensymbol OMS lifting self -- self must be a
         `p`-ordinary eigensymbol
 
         INPUT:
-            - ``p`` -- prime
-            - ``M`` -- integer equal to the number of moments  
-            - ``new_base_ring`` -- new base ring
+
+        - ``p`` -- prime
+        - ``M`` -- integer equal to the number of moments
+        - ``new_base_ring`` -- new base ring
 
         OUTPUT:
 
-        EXAMPLES:
-        
-        
+        - 
+
+        EXAMPLES::
+
+            
         """
-        
-        ap = self.Tq_eigenvalue(p, p, M+3)
-        apinv = ~ap
-        k = self.parent().weight()
         verbose("computing naive lift")
-        Phi = self._lift_to_OMS(p, M, new_base_ring)
+        Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
         s = - Phi.valuation(p)
         if s > 0:
             verbose("scaling by %s^%s"%(p, s))
             Phi = p**s * Phi
             need_unscaling = True
         else:
+            s = 0
             need_unscaling = False
-        Phi._normalize()
+        Phi = Phi.reduce_precision(M + s + eisenloss)._normalize()
         verbose("Applying Hecke")
+        apinv = ~ap
         Phi = apinv * Phi.hecke(p)
         verbose("Killing eisenstein part")
-        if ap % p**M != 1:
+        if q is None:
             Phi = 1 / (1 - ap) * (Phi - Phi.hecke(p))
-            e = (1 - ap).valuation(p)
-            if e > 0:
-                verbose("change precision to %s"%(M - e))
-                Phi = Phi.reduce_precision(M - e)
+            if eisenloss > 0:
+                verbose("change precision to %s"%(M + s))
+                Phi = Phi.reduce_precision(M + s)
         else:
-            q = ZZ(2)
-            aq = self.Tq_eigenvalue(q, p, M)
-            while q != p and (aq - q**(k+1) - 1) % p**M == 0:
-                q = next_prime(q)
-                aq = self.Tq_eigenvalue(q, p, M)
+            k = self.parent().weight()
             Phi = (q**(k+1) + 1 - aq) * ((q**(k+1) + 1) * Phi - Phi.hecke(q))
-            e = (q**(k+1) + 1 - aq).valuation(p)
-            if e > 0:
-                verbose("change precision to %s"%(M - e))
-                Phi = Phi.reduce_precision(M - e)
+            if eisenloss > 0:
+                verbose("change precision to %s"%(M + s))
+                Phi = Phi.reduce_precision(M + s)
         verbose("Iterating U_p")
         Psi = apinv * Phi.hecke(p)
         err = (Psi - Phi).diagonal_valuation(p)
         Phi = Psi
         while err < M:
             if need_unscaling and Phi.valuation(p) >= s:
+                verbose("unscaling by %s^%s"%(p, s))
                 Phi *= (1 / p**s)
                 # Can't we get this to better precision....
-                Phi = Phi.reduce_precision(Phi.precision_absolute() - s)._normalize()
-                verbose("unscaling by %s^%s"%(p, s))
+                Phi = Phi.reduce_precision(M)._normalize()
                 need_unscaling = False
-            Psi = Phi.hecke(p) * 1/ap
+            Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case.
             err = (Psi - Phi).diagonal_valuation(p)
-            print (Psi - Phi).values()[0]
+            verbose(str((Psi - Phi)._map[Phi.parent().source().gen(0)]), level=2)
             verbose("error is zero modulo p^%s"%(err))
             Phi = Psi
         return Phi._normalize()
+
+    def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
+                               ordinary=True, algorithm=None, eigensymbol=False, check=True):
+        """
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('11a')
+            sage: f = ps_modsym_from_elliptic_curve(E)
+            sage: g = f.p_stabilize_and_lift(3,10)
+            sage: g.Tq_eigenvalue(5)
+            1 + O(3^10)
+            sage: g.Tq_eigenvalue(7)
+            1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
+            sage: g.Tq_eigenvalue(3)
+            2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + O(3^10)
+        """
+        if check:
+            p = self._get_prime(p, alpha)
+        k = self.parent().weight()
+        if alpha is None:
+            alpha, new_base_ring = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check)
+        else:
+            if new_base_ring is None:
+                new_base_ring = alpha.parent()
+            if hasattr(new_base_ring, 'precision_cap') and M > new_base_ring.precision_cap():
+                raise ValueError("Cannot lift above the precision cap")
+        # alpha will be the eigenvalue of Up
+        if M is None:
+            M = self.parent().precision_cap() + 1
+        elif M <= 1:
+            raise ValueError("M must be at least 2")
+        else:
+            M = ZZ(M)
+        newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
+
+        # Now we can stabilize
+        self = self.p_stabilize(p=p, alpha=alpha, M=newM, new_base_ring = new_base_ring, check=check)
+        # And use the standard lifting function for eigensymbols
+        return self._lift_to_OMS_eigen(p=p, M=M, new_base_ring=new_base_ring, ap=alpha, newM=newM, eisenloss=eisenloss, q=q, aq=aq, check=check)
 
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
@@ -744,7 +898,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
             sage: f.specialize(QQ).values()
             [1, 1]
             sage: f.specialize(QQ).parent().coefficient_module()
-            Sym^0 Q^2            
+            Sym^0 Q^2
         """
         if new_base_ring is None:
             new_base_ring = self.base_ring()
