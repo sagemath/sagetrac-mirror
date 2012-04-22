@@ -23,7 +23,6 @@ class pAdicLseries(SageObject):
             - ``precision`` -- if None is specified, the correct precision bound is computed and the answer is returned modulo
               that accuracy
 
-
         EXAMPLES::
 
             from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -60,7 +59,24 @@ class pAdicLseries(SageObject):
             sage: L1 = E.padic_lseries(5)
             sage: L1.series(4)[1]
             3*5 + 5^2 + O(5^3)
-                    
+
+        An example of a `p`-adic `L`-series associated to a modular abelian surface:
+        
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
+            sage: p = 19
+            sage: prec = 4
+            sage: phi = ps_modsym_from_simple_modsym_space(A)
+            sage: ap = phi.Tq_eigenvalue(p,prec)
+            sage: c1,c2 = phi.completions(p,prec)
+            sage: phi1,psi1 = c1
+            sage: phi2,psi2 = c2
+            sage: phi1p = phi1.p_stabilize_and_lift(p,ap = psi1(ap), M = prec, algorithm='stevens')
+            sage: L1 = pAdicLseries(phi1p)
+            sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec, algorithm='stevens')
+            sage: L2  = pAdicLseries(phi2p)
+            sage: L1[1]*L2[1]
+            13 + 9*19 + O(19^2)
         """
         self._coefficients = {}
         
@@ -79,7 +95,6 @@ class pAdicLseries(SageObject):
     def __getitem__(self, n):
         """
         Returns the `n`-th coefficient of the `p`-adic `L`-series
-
         
         EXAMPLES::
 
@@ -165,7 +180,7 @@ class pAdicLseries(SageObject):
             1
         """
         return self._symb.parent().prime()
-
+    
     def quadratic_twist(self):
         r"""
         Returns the discriminant of the quadratic twist
@@ -231,36 +246,49 @@ class pAdicLseries(SageObject):
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names = 'T')
         T = R.gens()[0]
-        R.set_default_prec(prec) 
+        R.set_default_prec(prec)
         return sum(self[i] * T**i for i in range(n))
 
-    def interpolation_factor(self):
+    def interpolation_factor(self, ap, psi = None):
         r"""
-        For `K` the field of definition of ap, returns the interpolation
-        factor `\eps`
+        Returns the interpolation factor associated to self
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('57a')
+            sage: p = 5
+            sage: prec = 4
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi_stabilized = phi.p_stabilize(p,M = prec)
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens')
+            sage: L = pAdicLseries(Phi)
+            sage: ap = phi.Tq_eigenvalue(p)
+            sage: L.interpolation_factor(ap)
+            4 + 2*5 + 4*5^3 + O(5^4)
+
+        Comparing against a different implementation:
+        
+            sage: L = E.padic_lseries(5)
+            sage: (1-1/L.alpha(prec=4))^2
+            4 + 2*5 + 4*5^3 + O(5^4)
+        
         """
         M = self.symb().precision_absolute()
         p = self.prime()
-        ap = self.symb().Tq_eigenvalue(p, check = check)
-        if check and ap % p == 0:
-            raise ValueError("p is not ordinary")
         if p == 2:
-            R = Qp(2, M + 1)
+            R = pAdicField(2, M + 1)
         else:
-            R = Qp(p, M)
-        eps = 1
-        for psi in self.symb().completions(p,M):
-            ap = psi[1](ap)
-            sdisc = R(ap**2 - 4*p).sqrt()
-            v0 = (R(ap) + sdisc) / 2
-            v1 = (R(ap) - sdisc) / 2
-            if v0.valuation() > 0:
-                v0, v1 = v1, v0
-            alpha = v0
-            eps = eps * (1 - 1/alpha)**2
-        return eps
+            R = pAdicField(p, M)
+        if psi != None:
+            ap = psi(ap)
+        sdisc = R(ap**2 - 4*p).sqrt()
+        v0 = (R(ap) + sdisc) / 2
+        v1 = (R(ap) - sdisc) / 2
+        if v0.valuation() > 0:
+            v0, v1 = v1, v0
+        alpha = v0
+        return (1 - 1/alpha)**2
 
     def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
         """
@@ -296,7 +324,7 @@ class pAdicLseries(SageObject):
                 M1 = M2Z([ZZ(1), b / abs(D), 0, ZZ(1)])
                 new_dist = m_map(M1 * M2Z([a, ZZ(1), p, 0]))*(M1)
                 new_dist = new_dist.scale(kronecker(D, b)).normalize()
-                twisted_dist = twisted_dist + new_dist 
+                twisted_dist = twisted_dist + new_dist
                 #ans = ans + self.eval(M1 * M2Z[a, 1, p, 0])._right_action(M1)._lmul_(kronecker(D, b)).normalize()
         return twisted_dist.normalize()
 
@@ -338,7 +366,6 @@ class pAdicLseries(SageObject):
         return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a)))**(j - r)) *
                 (p**r) * self.eval_twisted_symbol_on_Da(a).moment(r) for r in range(j + 1)) / ap
 
-    
 def log_gamma_binomial(p,gamma,z,n,M):
     r"""
     Returns the list of coefficients in the power series
