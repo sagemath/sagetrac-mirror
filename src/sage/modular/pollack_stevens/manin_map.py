@@ -246,9 +246,7 @@ class ManinMap(object):
         Return sum self + right, where self and right are
         assumed to have identical codomains and Manin relations.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D = Distributions(0, 5, 10); D
@@ -277,9 +275,7 @@ class ManinMap(object):
         Return difference self - right, where self and right are
         assumed to have identical codomains and Manin relations.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
             sage: D = Distributions(0, 5, 10); D
