@@ -485,10 +485,19 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         -
 
         EXAMPLES:
+
+        ::
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: A = ModularSymbols(23, sign=-1, weight=2).decomposition()[0]
+            sage: f = ps_modsym_from_simple_modsym_space(A); f.values()
+            [0, 1, -alpha, alpha, -1]
+            sage: f.completions()
+        
         """
         K = self.base_ring()
         f = K.defining_polynomial()
-        R = pAdicField(p,M+10)['x']
+        R = Qp(p,M+10)['x']
         x = R.gen()
         v = R(f).roots()
         if len(v) == 0:
@@ -496,9 +505,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         else:
             roots = [r[0] for r in v]
             ans = []
-            for r in root:
-                psi = K.hom([root],pAdicField(p,M))
-                ans.append([self.map(psi),psi])
+            for r in roots:
+                psi = K.hom([r],Qp(p,M))
+                print "psi = ", psi
+                ans.append((self.parent()(,psi))
             return ans
 
     def lift(self, p=None, M=None, new_base_ring=None, algorithm = None, eigensymbol = None):
