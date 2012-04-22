@@ -279,7 +279,12 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
+            sage: D = Distributions(8, 7, 15)
+            sage: v = D([7^(5-i) for i in range(1,5)])
+            sage: v
+            (O(7^4), O(7^3), O(7^2), O(7))
+            sage: v.diagonal_valuation(7)
+            4
         """
         if p is None:
             p = self.parent()._p
@@ -308,7 +313,12 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
+            sage: sage: D = Distributions(8, 7, 15)
+            sage: v = D([7^(5-i) for i in range(1,5)])
+            sage: v
+            (O(7^4), O(7^3), O(7^2), O(7))
+            sage: v.valuation(7)
+            1
         """
         r"""
         Returns the highest power of `p` which divides all moments of the distribution
