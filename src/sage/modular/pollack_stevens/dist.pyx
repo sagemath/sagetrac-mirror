@@ -95,7 +95,7 @@ cdef class Dist(ModuleElement):
         else:
             p = self.parent().prime()
             v = a.valuation(p)
-            while v >= n - i:
+            while v >= n - i - 1:
                 i += 1
                 verbose("p moment %s"%i)
                 try:
@@ -115,6 +115,7 @@ cdef class Dist(ModuleElement):
                 verbose("comparing p moment %s"%i)
                 a = self.moment(i)
                 if check:
+                    verbose("self.moment=%s, other.moment=%s, ratio = %s"%(a, other.moment(i), other.moment(i) / a))
                     if (padic and a != alpha * other.moment(i)) or \
                        (not padic and a % p**(n-i) != alpha * other.moment(i) % p**(n-i)):
                         raise ValueError("not a scalar multiple")
