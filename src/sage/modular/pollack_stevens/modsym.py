@@ -658,7 +658,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
         V = self.parent()._p_stabilize_parent_space(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
-
+    
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
@@ -696,7 +696,15 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         x = R.gen()
         v = R(f).roots()
         if len(v) == 0:
-            raise ValueError, "No coercion possible -- no prime over p has degree 1"
+            L = Qp(p,M).extension(f,names='a')
+            a = L.gen()
+            V = self.parent().change_ring(L)
+            Dist = V.coefficient_module()
+            psi = K.hom([K.gen()],L)
+            embedded_sym = self.__class__(self._map.apply(psi,codomain=Dist, to_moments=True),V, construct=True)
+            ans = [embedded_sym,psi]
+            return ans
+            #raise ValueError, "No coercion possible -- no prime over p has degree 1"
         else:
             roots = [r[0] for r in v]
             ans = []
@@ -707,7 +715,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 embedded_sym = self.__class__(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
                 ans.append((embedded_sym,psi))
             return ans
-
+        
     def lift(self, p=None, M=None, alpha=None, new_base_ring=None, algorithm = None, eigensymbol = False, check=True):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
@@ -773,7 +781,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 return self._lift_to_OMS(p, M, new_base_ring, check)
         else:
             return self._lift_greenberg(p, M, new_base_ring, check)
-
+        
     def _lift_to_OMS(self, p, M, new_base_ring, check):
         """
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error
@@ -875,8 +883,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         - 
 
         EXAMPLES::
-
-            
+        
+        
         """
         verbose("computing naive lift")
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
@@ -953,12 +961,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
             if hasattr(new_base_ring, 'precision_cap') and newM > new_base_ring.precision_cap():
                 raise ValueError("Not enough precision in new base ring")
-
+            
         # Now we can stabilize
-        self = self.p_stabilize(p=p, alpha=alpha, M=newM, new_base_ring = new_base_ring, check=check)
+        self = self.p_stabilize(p=p, alpha=alpha,ap=ap, M=newM, new_base_ring = new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
         return self._lift_to_OMS_eigen(p=p, M=M, new_base_ring=new_base_ring, ap=alpha, newM=newM, eisenloss=eisenloss, q=q, aq=aq, check=check)
-
+    
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
 
