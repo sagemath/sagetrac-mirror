@@ -316,6 +316,17 @@ class pAdicLseries(SageObject):
             sage: L.eval_twisted_symbol_on_Da(1)
             (2 + 2*5 + 2*5^2 + 2*5^3 + O(5^4), 2 + 3*5 + 2*5^2 + O(5^3), 4*5 + O(5^2), 3 + O(5))
 
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve 
+            sage: E = EllipticCurve('40a4')
+            sage: p = 7
+            sage: prec = 4
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: ap = phi.Tq_eigenvalue(p,prec)
+            sage: Phi = phi.p_stabilize_and_lift(p,ap = ap, M = prec, algorithm='stevens')
+            sage: L = pAdicLseries(Phi)
+            sage: L.eval_twisted_symbol_on_Da(1)
+            (4 + 6*7 + 3*7^2 + O(7^4), 2 + 7 + O(7^3), 4 + 6*7 + O(7^2), 6 + O(7))
+
         """
         symb = self.symb()
         p = symb.parent().prime()
