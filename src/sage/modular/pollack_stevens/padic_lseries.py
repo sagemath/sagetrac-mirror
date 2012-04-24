@@ -330,13 +330,16 @@ class pAdicLseries(SageObject):
         """
         symb = self.symb()
         p = symb.parent().prime()
-        twisted_dist = symb.parent().coefficient_module().zero_element()
+        Dists = symb.parent().coefficient_module()
+        M = Dists.precision_cap()
+        p = Dists.prime()
+        twisted_dist = Dists.zero_element()
         m_map = symb._map
         D = self._quadratic_twist
         for b in range(1, abs(D) + 1):
             if gcd(b, D) == 1:
-                M1 = M2Z([ZZ(1), b / abs(D), 0, ZZ(1)])
-                new_dist = m_map(M1 * M2Z([a, ZZ(1), p, 0]))*(M1)
+                M1 = M2Z([1, (b / abs(D)) % p**M, 0, 1])
+                new_dist = m_map(M1 * M2Z([a, 1, p, 0]))*(M1)
                 new_dist = new_dist.scale(kronecker(D, b)).normalize()
                 twisted_dist = twisted_dist + new_dist
                 #ans = ans + self.eval(M1 * M2Z[a, 1, p, 0])._right_action(M1)._lmul_(kronecker(D, b)).normalize()
