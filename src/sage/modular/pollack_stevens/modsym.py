@@ -672,10 +672,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def completions(self, p, M):
         r"""
         If `K` is the base_ring of self, this function takes all maps
-        `K-->Q_p` and applies them to self return a vector of
-        <modular symbol,map: `K-->Q_p`> as map varies over all such maps.
+        `K-->Q_p` and applies them to self return a list of
+        (modular symbol,map: `K-->Q_p`) as map varies over all such maps.
 
-        NOTE: This only returns all completions when `p` splits completely in `K`
+        .. NOTE::
+
+            This only returns all completions when `p` splits completely in `K`
 
         INPUT:
 
@@ -684,7 +686,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         OUTPUT:
 
-        - A vector of <modular symbol,map: `K-->Q_p`> as map varies over all such maps
+        - A list of tuples (modular symbol,map: `K-->Q_p`) as map varies over all such maps
 
         EXAMPLES::
 
