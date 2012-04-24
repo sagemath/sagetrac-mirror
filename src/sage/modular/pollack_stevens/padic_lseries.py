@@ -111,7 +111,7 @@ class pAdicLseries(SageObject):
             sage: L1 = E.padic_lseries(5)
             sage: L1.series(4)[1]
             3*5 + 5^2 + O(5^3)
-                                                
+            
         """
         if self._coefficients.has_key(n):
             return self._coefficients[n]
@@ -121,6 +121,7 @@ class pAdicLseries(SageObject):
             ap = symb.Tq_eigenvalue(p)
             gamma = self._gamma
             precision = self._precision
+            
             S = QQ[['z']]
             z = S.gen()
             M = symb.precision_absolute()
@@ -249,7 +250,7 @@ class pAdicLseries(SageObject):
         R.set_default_prec(prec)
         return sum(self[i] * T**i for i in range(n))
 
-    def interpolation_factor(self, ap, psi = None):
+    def interpolation_factor(self, ap,chip=1, psi = None):
         r"""
         Returns the interpolation factor associated to self
 
@@ -272,7 +273,7 @@ class pAdicLseries(SageObject):
             sage: L = E.padic_lseries(5)
             sage: (1-1/L.alpha(prec=4))^2
             4 + 2*5 + 4*5^3 + O(5^4)
-        
+            
         """
         M = self.symb().precision_absolute()
         p = self.prime()
@@ -282,6 +283,7 @@ class pAdicLseries(SageObject):
             R = pAdicField(p, M)
         if psi != None:
             ap = psi(ap)
+        ap = ap*chip
         sdisc = R(ap**2 - 4*p).sqrt()
         v0 = (R(ap) + sdisc) / 2
         v1 = (R(ap) - sdisc) / 2
@@ -289,7 +291,7 @@ class pAdicLseries(SageObject):
             v0, v1 = v1, v0
         alpha = v0
         return (1 - 1/alpha)**2
-
+    
     def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
         """
         Returns `\Phi_{\chi}(\{a/p}-{\infty})` where `Phi` is the OMS and
