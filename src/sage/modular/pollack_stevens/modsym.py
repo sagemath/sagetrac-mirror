@@ -483,15 +483,11 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi.values()
             [-1/5, 3/2, -1/2]
             sage: phi_ord = phi.p_stabilize(p = 3, ap = E.ap(3), M = 10, ordinary = True)
-            sage: phi_ord.Tq_eigenvalue(2,3,10)
-            -2
-            sage: phi_ord.Tq_eigenvalue(2,3,100)
-            -2
-            sage: phi_ord.Tq_eigenvalue(2,3,1000)
-            -2
-
+            sage: phi_ord.Tq_eigenvalue(2,3,10) + 2
+            O(3^10)
 
             sage: phi_ord.Tq_eigenvalue(3,3,10)
+            2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + O(3^10)
             -95227/47611
             sage: phi_ord.Tq_eigenvalue(3,3,100)
             Traceback (most recent call last):
@@ -526,6 +522,23 @@ class PSModularSymbolElement(ModuleElement):
 
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _find_M(self, M):
+        """
+        Determines M from user input.
+
+        INPUT:
+
+        - ``M`` -- an integer at least 2 or None.  If None, sets M to
+          be one more than the precision cap of the parent (the
+          minimum amount of lifting).
+
+        OUTPUT:
+
+        - An updated ``M``.
+
+        EXAMPLES::
+
+            sage: 
+        """
         if M is None:
             M = self.parent().precision_cap() + 1
         elif M <= 1:
@@ -541,32 +554,22 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             ap = self.Tq_eigenvalue(p, check=check)
         if check and ap.valuation(p) > 0:
             raise ValueError("p is not ordinary")
-        disc = ap**2 - 4*p**(k+1)
-        sdisc = None
-        set_padicbase = False
+        poly = PolynomialRing(ap.parent(), 'x')([p**(k+1), -ap, 1])
         if new_base_ring is None:
-            if M is None:
-                raise ValueError
-            #    Q = disc.parent().fraction_field() # usually QQ
-            #    if disc.is_square():
-            #        new_base_ring = Q
-            #        sdisc = disc.sqrt()
-            #    else:
-            #        poly = PolynomialRing(disc.parent(), 'x')([-disc, 0, 1])
-            #        new_base_ring = Q.extension(poly, 'a')
-            #        sdisc = new_base_ring.gen()
-            # These should be completions
+            # These should actually be completions of disc.parent()
+            if p == 2:
+                # is this the right precision adjustment for p=2?
+                new_base_ring = Qp(2, M+1)
             else:
-                if p == 2:
-                    # is this the right precision adjustment for p=2?
-                    new_base_ring = Qp(2, M+1)
-                else:
-                    new_base_ring = Qp(p, M)
-                set_padicbase = True
-        if sdisc is None:
-            sdisc = new_base_ring(disc).sqrt()
-        v0 = (new_base_ring(ap) + sdisc) / 2
-        v1 = (new_base_ring(ap) - sdisc) / 2
+                new_base_ring = Qp(p, M)
+            set_padicbase = True
+        else:
+            set_padicbase = False
+        try:
+            verbose("finding alpha: rooting %s in %s"%(poly, new_base_ring))
+            (v0,e0),(v1,e1) = poly.roots(new_base_ring)
+        except TypeError, ValueError:
+            raise ValueError("new base ring must contain a root of x^2 - ap * x + p^(k+1)")
         if v0.valuation(p) > 0:
             v0, v1 = v1, v0
         if ordinary:
@@ -581,13 +584,18 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             # We want to ensure that the relative precision of alpha and (alpha-1) are both at least *newM*,
             # where newM is obtained from self._find_extraprec
             prec_cap = None
+            verbose("testing prec_rel: newM = %s, alpha = %s"%(newM, alpha), level=2)
             if alpha.precision_relative() < newM:
-                prec_cap = newM + alpha.valuation() + (1 if p == 2 else 0)
-            elif ap == 1 + p**(k+1) and ordinary:
-                # here alpha = 1, so we need to give up and use an aq.
-                pass
-            elif (alpha - 1).precision_relative() < newM:
-                prec_cap = newM + (alpha - 1).valuation() + (1 if p == 2 else 0)
+                prec_cap = newM + alpha.valuation(p) + (1 if p == 2 else 0)
+            if ordinary:
+                a1val = (alpha - 1).valuation(p)
+                verbose("a1val = %s"%a1val, level=2)
+                if a1val > 0 and ap != 1 + p**(k+1): # if ap = 1 + p**(k+1) then alpha = 1 and we need to give up.
+                    if prec_cap is None:
+                        prec_cap = newM + a1val + (1 if p == 2 else 0)
+                    else:
+                        prec_cap = max(prec_cap, newM + a1val + (1 if p == 2 else 0))
+            verbose("prec_cap = %s"%(prec_cap), level=2)
             if prec_cap is not None:
                 new_base_ring = Qp(p, prec_cap)
                 return self._find_alpha(p=p, k=k, M=M, ap=ap, new_base_ring=new_base_ring, ordinary=ordinary, check=False, find_extraprec=find_extraprec)
@@ -644,6 +652,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             p = self._get_prime(p, alpha)
         k = self.parent().weight()
         M = self._find_M(M)
+        verbose("p stabilizing: M = %s"%M, level=2)
         if alpha is None:
             alpha, new_base_ring, newM, eisenloss, q, aq = self._find_alpha(p, k, M, ap, new_base_ring, ordinary, check, False)
         else:
@@ -656,6 +665,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
                 if self.hecke(p) != ap * self:
                     raise ValueError("alpha must be a root of x^2 - a_p*x + p^(k+1)")
+        verbose("found alpha = %s"%(alpha))
         V = self.parent()._p_stabilize_parent_space(p, new_base_ring)
         return self.__class__(self._map.p_stabilize(p, alpha, V), V, construct=True)
     
@@ -806,6 +816,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         D = {}
         manin = self.parent().source()
         MSS = self.parent()._lift_parent_space(p, M, new_base_ring)
+        verbose("Naive lifting: newM=%s, new_base_ring=%s"%(M, MSS.base_ring()))
         half = ZZ(1) / ZZ(2)
         for g in manin.gens()[1:]:
             twotor = g in manin.reps_with_two_torsion
@@ -886,8 +897,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         
         
         """
-        verbose("computing naive lift")
+        verbose("computing naive lift: M=%s, newM=%s, new_base_ring=%s"%(M, newM, new_base_ring))
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
+        verbose(Phi._show_malformed_dist("naive lift"), level=2)
         s = - Phi.valuation(p)
         if s > 0:
             verbose("scaling by %s^%s"%(p, s))
@@ -897,6 +909,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             s = 0
             need_unscaling = False
         Phi = Phi.reduce_precision(M + s + eisenloss)._normalize()
+        verbose(Phi._show_malformed_dist("after reduction"), level=2)
         verbose("Applying Hecke")
         apinv = ~ap
         Phi = apinv * Phi.hecke(p)
@@ -912,10 +925,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             if eisenloss > 0:
                 verbose("change precision to %s"%(M + s))
                 Phi = Phi.reduce_precision(M + s)
+        verbose(Phi._show_malformed_dist("Eisenstein killed"), level=2)
         verbose("Iterating U_p")
         Psi = apinv * Phi.hecke(p)
         err = (Psi - Phi).diagonal_valuation(p)
         Phi = Psi
+        old_err = err - 1
         while err < M:
             if need_unscaling and Phi.valuation(p) >= s:
                 verbose("unscaling by %s^%s"%(p, s))
@@ -925,8 +940,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 need_unscaling = False
             Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case.
             err = (Psi - Phi).diagonal_valuation(p)
-            verbose(str((Psi - Phi)._map[Phi.parent().source().gen(0)]), level=2)
             verbose("error is zero modulo p^%s"%(err))
+            verbose((Psi - Phi)._show_malformed_dist("loop %s"%err), level=2)
+            if err == old_err:
+                raise RuntimeError("Precision problem in lifting -- precision did not increase.")
+            else:
+                old_err = err
             Phi = Psi
         return Phi._normalize()
 
@@ -969,6 +988,14 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
+    def _show_malformed_dist(self, location_str):
+        malformed = []
+        gens = self.parent().source().gens()
+        for j, g in enumerate(gens):
+            val = self._map[g]
+            if val._is_malformed():
+                malformed.append((j, val))
+        return location_str + ": (%s/%s malformed)%s"%(len(malformed), len(gens), ", %s -- %s"%(malformed[0][0], str(malformed[0][1])) if len(malformed) > 0 else "")
 
     def reduce_precision(self, M):
         r"""
