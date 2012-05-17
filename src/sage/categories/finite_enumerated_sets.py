@@ -223,6 +223,37 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C._unrank_from_list(1)
                 2
+
+            .. note::
+
+                By default, :meth:`__getitem__`` is defined as an
+                alias to this method to implement the short hand
+                ``self[n]`` to returns the `n^{th}` item (or slice) of
+                ``self``, as if it was a list::
+
+                    sage: MatrixSpace(GF(3), 2, 2)[9]
+                    [0 2]
+                    [0 0]
+                    sage: MatrixSpace(GF(3), 2, 2)[0]
+                    [0 0]
+                    [0 0]
+                    sage: VectorSpace(GF(7), 3)[:10]
+                    [(0, 0, 0),
+                     (1, 0, 0),
+                     (2, 0, 0),
+                     (3, 0, 0),
+                     (4, 0, 0),
+                     (5, 0, 0),
+                     (6, 0, 0),
+                     (0, 1, 0),
+                     (1, 1, 0),
+                     (2, 1, 0)]
+
+                This is only meant as a short hand for interactive
+                use. Programs should use the :meth:`unrank`
+                method. Finite enumerated sets should feel free to
+                change the semantic of indexed access whenever
+                meaningful.
             """
             # We access directly the cache self._list to bypass the
             # copy that self.list() currently does each time.
@@ -348,6 +379,52 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             return self._list[:]
 
         _list_default  = list # needed by the check system.
+
+        def __getitem__(self, i):
+            r"""
+            Return the index at position ``i``.
+
+            EXAMPLES::
+
+                sage: VectorSpace(GF(7), 3)[:10]
+                [(0, 0, 0),
+                 (1, 0, 0),
+                 (2, 0, 0),
+                 (3, 0, 0),
+                 (4, 0, 0),
+                 (5, 0, 0),
+                 (6, 0, 0),
+                 (0, 1, 0),
+                 (1, 1, 0),
+                 (2, 1, 0)]
+            """
+            if isinstance(i, slice):
+                return self._list[i]
+            else:
+                return self.unrank(i)
+
+        def __len__(self):
+            """
+            Returns the number of elements in ``self``.
+
+            This calls :meth:`cardinality` and casts the result to an
+            int according to Python's specification for :function:`len`.
+
+            EXAMPLES::
+
+                sage: len(GF(5))
+                5
+                sage: len(MatrixSpace(GF(2), 3, 3))
+                512
+
+                sage: F = FiniteEnumeratedSets().example()
+                sage: F.cardinality()
+                sage: len(F)
+                3
+                sage: F.__len__.__module__
+                'sage.categories.finite_enumerated_sets'
+            """
+            return int(self.cardinality())
 
         def _random_element_from_unrank(self):
             """
