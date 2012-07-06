@@ -1987,6 +1987,13 @@ class Partition(CombinatorialObject, Element):
             ...
             ValueError: (4,2)=(row+1,col) must be inside the diagram
 
+        TEST:
+
+            sage: Partition([5,4,3,2]).top_garnir_tableau(0,(3,2)).pp()
+            Traceback (most recent call last):
+            ...
+            ValueError: (4,2)=(row+1,col) must be inside the diagram
+
         REFERENCE:
 
         - [KMR]_
@@ -2046,7 +2053,6 @@ class Partition(CombinatorialObject, Element):
             gens.extend([c for c in range(m+1,m+row)])
             m+=row
         return gens
-
 
     def arm_length(self, i, j):
         r"""
