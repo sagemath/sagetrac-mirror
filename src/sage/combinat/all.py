@@ -79,6 +79,7 @@ from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, Semist
 from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from composition_tableau import CompositionTableau, CompositionTableaux
+from tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples, ResidueSequence
 #deprecated
 from ribbon import Ribbon, StandardRibbons
 
