@@ -599,7 +599,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_vector ans = self._new_c()
         ans.moments = self.moments * right
@@ -621,7 +620,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         r"""
         Returns the number of moments of the distribution
@@ -635,7 +633,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         return cmp(left.moments, right.moments)
 
@@ -674,7 +671,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         p = self.parent()._p
         if not self.parent().is_symk(): # non-classical
