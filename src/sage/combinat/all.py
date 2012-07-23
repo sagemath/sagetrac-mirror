@@ -170,6 +170,9 @@ from multichoose_nk import MultichooseNK
 
 from kazhdan_lusztig import KazhdanLusztigPolynomial
 
+# from constellation import Constellation, Constellations
+lazy_import("sage.combinat.constellation", ["Constellation", "Constellations"])
+
 from degree_sequences import DegreeSequences
 
 from cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingCheck
