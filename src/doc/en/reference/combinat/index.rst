@@ -1,7 +1,6 @@
 Combinatorics
 =============
 
-.. automodule:: sage.combinat
 
 
 Comprehensive Module List
