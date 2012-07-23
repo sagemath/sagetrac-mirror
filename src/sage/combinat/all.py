@@ -1,3 +1,5 @@
+from sage.misc.lazy_import import lazy_import
+
 from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
@@ -169,6 +171,9 @@ from species.all import *
 from multichoose_nk import MultichooseNK
 
 from kazhdan_lusztig import KazhdanLusztigPolynomial
+
+# from constellation import Constellation, Constellations
+lazy_import("sage.combinat.constellation", ["Constellation", "Constellations"])
 
 from degree_sequences import DegreeSequences
 
