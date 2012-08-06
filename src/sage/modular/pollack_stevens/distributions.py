@@ -121,22 +121,24 @@ class Distributions_abstract(Module):
         sage: Distributions(2, 17, 100)
         Space of 17-adic distributions with k=2 action and precision cap 100
     """
-    def __init__(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False, symk=False):
+    def __init__(self, k, p=None, prec_cap=None, base=None, character=None, \
+                 tuplegen=None, act_on_left=False, symk=False):
         """
         INPUT:
 
-        - `k` -- integer; k is the usual modular forms weight minus 2
-        - `p` -- None or prime
-        - ``prec_cap`` -- None or positive integer
-        - ``base`` -- None or TODO
-        - ``character`` --
+        - `k`             -- integer; k is the usual modular forms weight minus 2
+        - `p`             -- None or prime
+        - ``prec_cap``    -- None or positive integer
+        - ``base``        -- None or TODO
+        - ``character``   --
           - None (default)
           - (chi, None)
           - (None, n) (n integral)
           - (chi, n)
           - lambda (for n half-integral use this form)
-        - ``tuplegen`` -- None or TODO
+        - ``tuplegen``    -- None or TODO
         - ``act_on_left`` -- bool (default: False)
+        - ``symk``        -- ??
 
         EXAMPLES::
 

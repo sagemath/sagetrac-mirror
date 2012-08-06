@@ -38,22 +38,24 @@ def get_dist_classes(p, prec_cap, base, symk):
 
     INPUT:
 
-    - ``p`` -- 
+    - ``p``        -- prime
 
-    - ``prec_cap`` -- 
+    - ``prec_cap`` -- The p-adic precision cap
 
-    - ``base`` -- 
+    - ``base``     -- The base ring
 
-    - ``symk`` -- 
+    - ``symk``     -- An element of Symk
 
     OUTPUT:
 
-    - 
+    - Either a Dist_vector and WeightKAction_vector, or a Dist_vector_long
+       and WeightKAction_vector_long
 
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.dist import get_dist_classes
         sage: 
+        sage: Dist,WeightKAction = get_dist_classes( 
     """
     if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
@@ -63,6 +65,11 @@ def get_dist_classes(p, prec_cap, base, symk):
         return Dist_vector, WeightKAction_vector
 
 cdef class Dist(ModuleElement):
+    r"""
+        The main p-adic distribution class, implemented as per the paper
+        'Overconvergent Modular Symbols and p-adic L-functions' by Pollack
+        & Stevens
+    """
     cpdef normalize(self):
         r"""
         Normalize so that the precision of the `i`-th moment is `n-i`,
@@ -178,9 +185,18 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
-        """
-        """
+            sage: D = Distributions(5, 7, 15)
+            sage: v = D([1,2,3,4,5])
+            sage: w = D([3,6,9,12,15])
+            sage: v.find_scalar(w,p=7)
+            3 + O(7^5)
+
+            sage: u = D([1,4,9,16,25])
+            sage: v.find_scalar(u,p=7)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a scalar multiple
+
         """
         i = 0
         n = self.precision_absolute()
