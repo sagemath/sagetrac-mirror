@@ -86,6 +86,7 @@ from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
@@ -3060,6 +3061,127 @@ class Tableau(CombinatorialObject, Element):
                 key[i].insert(0,key_val)
         return Tableau(key).conjugate()
 
+    def residue_sequence(self, e, multicharge=(0,)):
+        """
+       INPUT:
+            - an integer `k`, with 1\le k\le n,
+            - an integer `e` in {0,2,3,4,5,...} (not checked!)
+            - an (optional) sequence of integers the `multicharge` of length 1.
+
+        OUTPUT:
+
+        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
+
+        The `multicharge` is a list of length 1 which gives an offset for all of
+        the contents. It is included mainly for compatabilty with TableauTuples.
+
+        EXAMPLES::
+
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(2)
+            Residue sequence (0,1,1,0)
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(3)
+            Residue sequence (0,1,2,0)
+            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
+            Residue sequence (0,1,3,0)
+        """
+        from tableau_tuple import ResidueSequence
+        Ze=IntegerModRing(e)
+        res=[0]*self.size()
+        for r in range(len(self)):
+            for c in range(len(self[r])):
+                res[self[r][c]-1]=Ze(multicharge[0]-r+c )
+        return ResidueSequence(e,multicharge,res)
+
+    def degree(self,e, multicharge=(0,)):
+        """
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` - the multicharge (default: ``[0]``).
+
+        OUTPUT:
+
+        The **degree** of the tableau ``self`` which is a integer.
+
+        This is defined recursively by successively stripping off the number
+        `k`, for `k=n,n-1,...,1` and at stage adding the number of addable cell
+        of the same residue minus the number of removable cells of the same
+        residue as `k` and which are below `k` in the diagram.
+
+        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by ``self``.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,2,5],[3,4]]).degree(3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
+            1
+
+        REFERENCE:
+
+        .. [BKW]  J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
+                  J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        n=self.size()
+        if n==0: return 0
+
+        deg=self.shape()._initial_degree(e,multicharge)
+        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r]==res[r+1]: 
+                deg-=2
+            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
+                deg+=(e==2 and 2 or 1)
+            res=res.swap_residues(r,r+1)
+        return deg
+
+    def codegree(self,e, multicharge=(0,)):
+        """
+        INPUT:
+
+        - ``e`` -- the **quantum characteristic** ``e``
+        - ``multicharge`` - the multicharge (default: ``[0]``).
+
+        OUTPUT:
+
+        The **codegree** of the tableau ``self`` which is a integer.
+
+        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
+        standard tableau ``self``.
+
+        This is defined recursively by successively stripping off the number `k`,
+        for `k=n,n-1,...,1` and at stage adding the number of addable cell
+        of the same residue minus the number of removable cells of the same
+        residue as `k` and which are above `k` in the diagram.
+
+        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
+        element of the Graded Specht module which is indexed by ``self``.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1,3,5],[2,4]]).codegree(3)
+            0
+            sage: StandardTableau([[1,2,5],[3,4]]).codegree(3)
+            1
+            sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
+            0
+
+        REFERENCE:
+            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
+              J. Reine Angew. Math., 655 (2011), 61-87.
+        """
+        if self==[]: return 0  # the trivial case
+
+        codeg=self.shape().conjugate()._initial_degree(e,multicharge)
+        res=self.shape().conjugate().initial_tableau().residue_sequence(e, multicharge)
+        for r in self.reduced_row_word():
+            if res[r]==res[r+1]: 
+                codeg-=2
+            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
+                codeg+=(e==2 and 2 or 1)
+            res=res.swap_residues(r,r+1)
+        return codeg
 
 
 class SemistandardTableau(Tableau):
@@ -3306,6 +3428,37 @@ class StandardTableau(SemistandardTableau):
             raise ValueError("the entries in a standard tableau must be in bijection with 1,2,...,n")
 
 
+    def dominates(self, t):
+        r"""
+        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
+        if the shape of the tableau restricted to `k` dominates the shape of
+        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
+
+        When the two tableaux have the same shape, then this ordering
+        coincides with the Bruhat ordering for the correspomding permutations.
+
+        INPUT:
+
+        - ``t`` -- A tableaux
+
+        EXAMPLES::
+
+            sage: s=StandardTableau([[1,2,3],[4,5]])
+            sage: t=StandardTableau([[1,2],[3,5],[4]])
+            sage: s.dominates(t)
+            True
+            sage: t.dominates(s)
+            False
+            sage: all(StandardTableau(s).dominates(t) for t in StandardTableaux([3,2]))
+            True
+            sage: s.dominates([[1,2,3,4,5]])
+            False
+
+        """
+        t=StandardTableau(t)
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
+                        for m in xrange(1,1+self.size()))
+
 
     def content(self, k, multicharge=[0]):
         """
@@ -3333,6 +3486,7 @@ class StandardTableau(SemistandardTableau):
           except ValueError:
             pass
         raise ValueError("%d does not appear in tableau"%k)
+
 
     def residue(self, k, e, multicharge=[0]):
         """
@@ -3376,84 +3530,6 @@ class StandardTableau(SemistandardTableau):
             pass
         raise ValueError, '%d does not appear in the tableau'%k
 
-    def residue_sequence(self, e, multicharge=[0]):
-        """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - an (optional) sequence of integers the `multicharge` of length 1.
-
-        OUTPUT:
-
-        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
-
-        The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatabilty with TableauTuples.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(2)
-            Residue sequence (0,1,1,0)
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(3)
-            Residue sequence (0,1,2,0)
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
-            Residue sequence (0,1,3,0)
-        """
-        from tableau_tuple import ResidueSequence
-        Ze=IntegerModRing(e)
-        res=[0]*self.size()
-        for r in range(len(self)):
-            for c in range(len(self[r])):
-                res[self[r][c]-1]=Ze(multicharge[0]-r+c )
-        return ResidueSequence(e,multicharge,res)
-
-    def degree(self,e, multicharge=[0]):
-        """
-        INPUT: self.degree( e )
-
-        Return the integer which is the Brundan-Kleshchev-Wang degree of the standard tableau t.
-
-        This is defined recursively by successively stripping off the number k,
-        for k=n,n-1,...,1, and at stage adding the count of the number of addable cell
-        ofthe same residue minus the number of removable cells of them same
-        residue as k and which are below k in the diagram.
-
-        The degrees of the tableau t gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by t.
-
-        EXAMPLES::
-
-            sage: StandardTableau([[1,2,5],[3,4]]).degree(3)
-            0
-            sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
-            1
-
-        REFERENCE:
-            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-              J. Reine Angew. Math., 655 (2011), 61-87.
-        """
-        if self==[]: return 0  # the trivial case
-
-        n=self.size()
-        if n==0: return 0
-
-        Ze=IntegerModRing(e)      # We can't use k%e instead because e can be zero
-
-        deg=self.restrict(n-1).degree(e,multicharge)   # compute by induction
-        tlen=[ len(row) for row in self ]  # lengths of the rows + 0 for the final row
-        tlen.append(0)
-        row=0
-        while not n in self[row]:
-            row+=1  # first find row containing n
-        i=Ze(tlen[row]-row)    # residue of n in self
-        while row<len(self):
-            row+=1             # row initially points at n: start by moving to the next row
-            if tlen[row]<tlen[row-1] and i==Ze(tlen[row]+1-row):
-                deg+=1         # addable i-node
-            elif row<len(self) and tlen[row]>tlen[row+1] and i==Ze(tlen[row]-row):
-                deg-=1         # removable i-node
-
-        return deg
 
     def dominates(self, t):
         r"""
@@ -3465,21 +3541,9 @@ class StandardTableau(SemistandardTableau):
         coincides with the Bruhat ordering for the corresponding permutations.
 
         INPUT:
-
         - ``t`` -- A tableau
 
         EXAMPLES::
-
-            sage: s=StandardTableau([[1,2,3],[4,5]])
-            sage: t=StandardTableau([[1,2],[3,5],[4]])
-            sage: s.dominates(t)
-            True
-            sage: t.dominates(s)
-            False
-            sage: all(StandardTableau(s).dominates(t) for t in StandardTableaux([3,2]))
-            True
-            sage: s.dominates([[1,2,3,4,5]])
-            False
 
         """
         t=StandardTableau(t)
@@ -3501,7 +3565,6 @@ class StandardTableau(SemistandardTableau):
         """
         An iterator for all the standard tableaux that can be
         obtained from ``self`` by adding a cell.
-
         EXAMPLES::
 
             sage: t = StandardTableau([[1,2]])
@@ -3972,7 +4035,7 @@ class Tableaux(UniqueRepresentation, Parent):
 
 #    def list(self):
 #        """
-#        Raises a ``NotImplementedError`` since there is not a method to
+#        Raises a ``NotImplementedError`` since there is no method to
 #        enumerate all tableaux.
 #
 #        TESTS::
@@ -5724,20 +5787,19 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        if self.cardinality() == 1:
-            last_tableau = True
-        else:
-            last_tableau = False
+        # iterate until we reach the last tableau which is 
+        # filled with the row indices.
+        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 
-        while not last_tableau:
-            #Convert the tableau to "vector format"
-            #tableau_vector[i] is the row that number i
-            #is in
-            tableau_vector = [None]*size
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    tableau_vector[tableau[row][col]-1] = row
+        #Convert the tableau to "vector format"
+        #tableau_vector[i] is the row that number i
+        #is in
+        tableau_vector = [None]*size
+        for row in range(len(pi)):
+            for col in range(pi[row]):
+                tableau_vector[tableau[row][col]-1] = row
 
+        while tableau_vector!=last_tableau:
             #Locate the smallest integer j such that j is not
             #in the lowest corner of the subtableau T_j formed by
             #1,...,j.  This happens to be first j such that
@@ -5788,20 +5850,6 @@ class StandardTableaux_shape(StandardTableaux):
                 row_count[tableau_vector[i]] += 1
 
             yield self.element_class(self, tableau)
-
-            #Check to see if we are at the last tableau
-            #The last tableau if given by filling in the
-            #partition along the rows.  For example, the
-            #last partition corresponding to [3,2] is
-            #[[1,2,3],
-            # [4,5]]
-            last_tableau = True
-            i = 1
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    if tableau[row][col] != i:
-                        last_tableau = False
-                    i += 1
 
         return
 
