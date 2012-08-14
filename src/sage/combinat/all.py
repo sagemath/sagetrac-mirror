@@ -50,6 +50,7 @@ from partition import partitions_set, RestrictedPartitions, number_of_partitions
      cyclic_permutations_of_partition, cyclic_permutations_of_partition_iterator,\
      partitions_greatest, partitions_greatest_eq, partitions_tuples,\
      number_of_partitions_tuples, partition_power
+from partition_tuple import PartitionTuple, PartitionTuples, KleshchevPartitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from skew_partition import SkewPartition, SkewPartitions
