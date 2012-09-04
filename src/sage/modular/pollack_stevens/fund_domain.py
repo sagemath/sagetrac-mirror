@@ -28,7 +28,7 @@ from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import zero_vector
 from copy import deepcopy
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import convergents
+from sage.rings.arith import convergents,xgcd,gcd
 
 M2ZSpace = MatrixSpace_ZZ_2x2()
 def M2Z(x):
@@ -408,6 +408,116 @@ class PSModularSymbolsDomain(SageObject):
             return self._rels[A]
         else:
             return self._rel_dict[A]
+
+
+### Normalize elements of P^1(Z/N) for N arbitrary in ZZ (no overflows)
+def p1_normalize_arbitrary(N, u, v,compute_s = False):
+    r"""
+    p1_normalize_arbitrary(N, u, v):
+    
+    Computes the canonical representative of
+    `\mathbb{P}^1(\ZZ/N\ZZ)` equivalent to `(u,v)` along
+    with a transforming scalar 's' (if compute_s is 1).
+    
+    INPUT:
+    
+    
+    -  ``N`` - an integer (the modulus or level)
+    
+    -  ``u`` - an integer (the first coordinate of (u:v))
+    
+    -  ``v`` - an integer (the second coordinate of (u:v))
+    
+    -  ``compute_s`` - a boolean (int)
+    
+    
+    OUTPUT: If gcd(u,v,N) = 1, then returns
+   
+    
+    -  ``uu`` - an integer
+    
+    -  ``vv`` - an integer
+    
+    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is equivalent to `(u,v)` mod `N`;
+
+       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+
+    EXAMPLES::
+
+        sage: p1_normalize_arbitary(90,7,77)
+        (1, 11, 7)
+        sage: p1_normalize_arbitrary(90,7,78)
+        (1, 24, 7)
+        sage: (7*24-78*1) % 90
+        0
+        sage: (7*24) % 90
+        78
+    """
+    if N == 1:
+        if compute_s == True:
+            return 0,0,1
+        else:
+            return 0,0
+
+    u = u % N
+    v = v % N
+    if u<0: u += N
+    if v<0: v += N
+    if u == 0:
+        uu = 0
+        if gcd(v,N) == 1:
+            vv = 1
+        else:
+            vv = 0
+        ss = v
+        if compute_s == True:
+            return uu,vv,ss
+        else:
+            return uu,vv
+
+    g,s,t = xgcd(u, N)
+    s = s % N
+    t = t % N
+    if s<0: s += N
+    if gcd(g, v) != 1:
+        if compute_s == True:
+            return 0, 0, 0
+        else:
+            return 0, 0
+
+    # Now g = s*u + t*N, so s is a "pseudo-inverse" of u mod N
+    # Adjust s modulo N/g so it is coprime to N.
+    if g!=1:
+        d = N/g
+        while gcd(s,N) != 1:
+            s = (s+d) % N
+
+    # Multiply [u,v] by s; then [s*u,s*v] = [g,s*v] (mod N)
+    u = g
+    # v = (s*v) % N
+    v = (s*v) % N
+
+    min_v = v; min_t = 1
+    if g!=1:
+        Ng = N/g
+        vNg = ZZ((v*Ng) % N)
+        t = 1
+        for k in range(2,g+1):
+            v = (v + vNg) % N
+            t = (t + Ng) % N
+            if v<min_v and gcd(t,N)==1:
+                min_v = v; min_t = t
+    v = min_v
+    if u<0: u = u+N
+    if v<0: v = v+N
+    uu = u
+    vv = v
+    if compute_s:
+        ss = (Zmod(N)(s*min_t)**(-1)).lift()
+        ss = ss % N
+        return uu,vv,ss
+    else:
+        return uu,vv
 
 ######################################
 ##  Define the Manin Relation Class ##
@@ -883,7 +993,11 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: MR.P1().normalize(16,27)
             (1, 1)
         """
-        ky = self._P.normalize(A[t10],A[t11])
+        try:
+            ky = self._P.normalize(A[t10],A[t11])
+        except OverflowError:
+            ky = p1_normalize_arbitrary(self._P.N(),A[t10],A[t11])
+
         return self._equiv_ind[ky]
 
     def equivalent_rep(self, A):
@@ -908,7 +1022,10 @@ class ManinRelations(PSModularSymbolsDomain):
             [-7 -3]
             [26 11]
         """
-        ky = self._P.normalize(A[t10],A[t11])
+        try:
+            ky = self._P.normalize(A[t10],A[t11])
+        except OverflowError:
+            ky = p1_normalize_arbitrary(self._P.N(),A[t10],A[t11])
         return self._equiv_rep[ky]
 
     def P1(self):
@@ -1352,7 +1469,9 @@ class ManinRelations(PSModularSymbolsDomain):
                    gaminv = B * C
                    #  The matrix gaminv * gamma is added to our list in the j-th slot
                    #  (as described above)
-                   ans[B].append(gaminv * gamma)
+                   tmp = M2Z(gaminv * gamma)
+                   tmp.set_immutable()
+                   ans[B].append(tmp)
 
         return ans
 

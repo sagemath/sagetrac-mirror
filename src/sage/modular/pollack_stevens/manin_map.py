@@ -221,17 +221,25 @@ class ManinMap(object):
             t = self._codomain.zero_element()
         else:
             c, A, g = L[0]
-            t = (self._dict[g] * A) * c
+            A=M2Z(A)
+            A.set_immutable()
+            g1 = (self._dict[g] * A)
+            t = g1 * c
             for c, A, g in L[1:]:
-                t += (self._dict[g] * A) * c
+                A=M2Z(A)
+                A.set_immutable()
+                g1 = (self._dict[g] * A)
+                t += g1 * c
         return t
 
     def __getitem__(self, B):
         try:
             return self._dict[B]
         except KeyError:
-            self._dict[B] = self._compute_image_from_gens(B)
-            return self._dict[B]
+            # To prevent memory overflow
+            return self._compute_image_from_gens(B)
+            # self._dict[B] = self._compute_image_from_gens(B)
+            # return self._dict[B]
 
     def compute_full_data(self):
         r"""
@@ -372,7 +380,8 @@ class ManinMap(object):
         """
 
         B = self._manin.equivalent_rep(A)
-        gaminv = B * A._invert_unit()
+        gaminv = M2Z(B * A._invert_unit())
+        gaminv.set_immutable()
         return self[B] * gaminv
 
     def __call__(self, A):
@@ -466,7 +475,8 @@ class ManinMap(object):
         D = {}
         sd = self._dict
         # we should eventually replace the for loop with a call to apply_many
-        for ky in sd:
+        keys = [ky for ky in sd.iterkeys()]
+        for ky in keys:
             D[ky] = self(gamma*ky) * gamma
         return self.__class__(self._codomain, self._manin, D, check=False)
 

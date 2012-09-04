@@ -362,7 +362,7 @@ class pAdicLseries(SageObject):
             sage: prec = 4
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p,prec,None,'stevens',True)
+            sage: Phi = phi_stabilized.lift(p,prec,None,algorithm = 'stevens',eigensymbol = True)
             sage: L = pAdicLseries(Phi)
             sage: L.eval_twisted_symbol_on_Da(1)
             (2 + 2*5 + 2*5^2 + 2*5^3 + O(5^4), 2 + 3*5 + 2*5^2 + O(5^3), 4*5 + O(5^2), 3 + O(5))
@@ -381,7 +381,7 @@ class pAdicLseries(SageObject):
         K = pAdicField(p, M)
         symb_twisted = self.eval_twisted_symbol_on_Da(a)
         return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a)))**(j - r)) *
-                (p**r) * self.eval_twisted_symbol_on_Da(a).moment(r) for r in range(j + 1)) / ap
+                (p**r) * symb_twisted.moment(r) for r in range(j + 1)) / ap
 
 def log_gamma_binomial(p,gamma,z,n,M):
     r"""

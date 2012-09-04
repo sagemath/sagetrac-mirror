@@ -25,7 +25,7 @@ cdef extern from "zn_poly/zn_poly.h":
 from sage.libs.flint.zmod_poly cimport *, zmod_poly_t
 from sage.libs.flint.long_extras cimport *
 
-from fund_domain import M2ZSpace
+from fund_domain import M2ZSpace,M2Z
 cdef long overflow = 1 << (4*sizeof(long)-1)
 cdef long underflow = -overflow
 
@@ -486,6 +486,9 @@ cdef class Dist_vector(Dist):
                 moments = [moments]
             moments = parent.approx_module(M)(moments)
         self.moments = moments
+
+    def __reduce__(self):
+        return (self.__class__,(self.moments,self.parent(),False))
 
     cdef Dist_vector _new_c(self):
         r"""
@@ -1226,6 +1229,8 @@ cdef class WeightKAction(Action):
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: 
         """
+        g = M2Z(g)
+        g.set_immutable()
         if not self._maxprecs.has_key(g):
             self._maxprecs[g] = M
             A = self._compute_acting_matrix(g, M)
@@ -1378,6 +1383,10 @@ cdef class WeightKAction_vector(WeightKAction):
         # hashing on arithmetic_subgroup_elements is by str
         cdef Dist_vector v = <Dist_vector?>_v
         cdef Dist_vector ans = v._new_c()
+        try:
+            g.set_immutable()
+        except AttributeError:
+            pass
         ans.moments = v.moments * self.acting_matrix(g, len(v.moments))
         return ans
 

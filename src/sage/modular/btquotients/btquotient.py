@@ -1103,6 +1103,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._compute_quotient()
             return self._edge_list
 
+    def gens(self):
+        return self.get_list()
+
     def get_list(self):
         r"""
         This function returns a list of ``Edge``s which represent a fundamental domain

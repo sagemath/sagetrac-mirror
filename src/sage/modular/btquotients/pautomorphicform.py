@@ -28,6 +28,179 @@ import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
 
 
+class BTMap(object):
+    """
+    Map from a set of edges in a fundamental domain for the
+    action of Gamma on the Bruhat-Tits tree to a
+    coefficient module, satisfying harmonicity relations.
+    """
+    def __init__(self, codomain, source, defining_data, check=True):
+        self._codomain = codomain
+        self._source = source
+        self._nE = len(self._source.get_edge_list())
+        if check:
+            self._dict = {}
+            if isinstance(defining_data, (list, tuple)):
+                if len(defining_data) != len(source.gens()):
+                    raise ValueError("length of defining data must be the same as number of manin generators")
+                E = source.get_edge_list()
+                for i in range(len(defining_data)):
+                    self._dict[E[i].rep] = defining_data[i]
+            elif isinstance(defining_data, dict):
+                for ky, val in defining_data.iteritems():
+                    if not isinstance(ky, Matrix_integer_2x2):
+                        ky = M2Z(ky)
+                    self._dict[ky] = val
+            else:
+                raise TypeError("unrecognized type for defining_data")
+        else:
+            self._dict = defining_data
+
+    def _compute_image_from_gens(self, B):
+        u = DoubleCosetReduction(self._source,e1)
+        p = self._source.prime()
+
+        if u.label < self._nE:
+            val  =  self._F[u.label]
+        else:
+            val  =  -self._F[u.label-self._nE]
+
+        return (u.igamma(lambda g : self._source.embed_quaternion(g,exact = self.codomain.base_ring().is_exact(), prec = self._codomain.precision_cap()) * (p**(-u.power)))*val
+
+    def __getitem__(self, B):
+        try:
+            return self._dict[B]
+        except KeyError:
+            self._dict[B] = self._compute_image_from_gens(B)
+            return self._dict[B]
+
+    def compute_full_data(self):
+        for B in self._manin.coset_reps():
+            if not self._dict.has_key(B):
+                self._dict[B] = self._compute_image_from_gens(B)
+
+    def __add__(self, right):
+        """
+        Return difference self + right, where self and right are
+        assumed to have identical codomains and Manin relations.
+        """
+        D = {}
+        sd = self._dict
+        rd = right._dict
+        for ky, val in sd.iteritems():
+            if ky in rd:
+                D[ky] = val + rd[ky]
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def __sub__(self, right):
+        """
+        Return difference self - right, where self and right are
+        assumed to have identical codomains and Manin relations.
+        """
+        D = {}
+        sd = self._dict
+        rd = right._dict
+        for ky, val in sd.iteritems():
+            if ky in rd:
+                D[ky] = val - rd[ky]
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def __mul__(self, right):
+        """
+        Return scalar multiplication self*right, where right is in the
+        base ring of the codomain.
+        """
+        if isinstance(right, Matrix_integer_2x2):
+            return self._right_action(right)
+        D = {}
+        sd = self._dict
+        for ky, val in sd.iteritems():
+            D[ky] = val * right
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def __repr__(self):
+        return "Map from the set of edges of %s to %s"%(
+                self._source, self._codomain)
+
+    def _eval_sl2(self, A):
+        B = self._manin.find_coset_rep(A)
+        gaminv = B * A.__invert__unit()
+        return self[A] * gaminv
+
+    def __call__(self, A):
+        a = A[t00]
+        b = A[t01]
+        c = A[t10]
+        d = A[t11]
+        ## v1: a list of unimodular matrices whose divisors add up to {b/d} - {infty}
+        v1 = unimod_matrices_to_infty(b,d)
+        ## v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
+        v2 = unimod_matrices_to_infty(a,c)
+        ## ans: the value of self on A
+        ans = self._codomain(0)
+        ## This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
+        for B in v1:
+            ans = ans + self._eval_sl2(B)
+
+        ## This loops subtracts away the value self({a/c}-{infty}) from ans by subtracting away the values of self on elements of v2
+        ## and so in the end ans becomes self({b/d}-{a/c}) = self({A(0)} - {A(infty)}
+        for B in v2:
+            ans = ans - self._eval_sl2(B)
+        return ans
+
+    def apply(self, f):
+        """
+        Returns Manin map given by x |--> f(self(x)), where f is
+        anything that can be called with elements of the coefficient
+        module.
+
+        This might be used to normalize, reduce modulo a prime, change
+        base ring, etc.
+        """
+        D = {}
+        sd = self._dict
+        for ky, val in sd.iteritems():
+            D[ky] = f(val)
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
+    def __iter__(self):
+        """
+        Returns iterator over the values of this map on the reduced
+        representatives.
+
+        This might be used to compute the valuation.
+        """
+        for A in self._manin._gens:
+            yield self._dict[A]
+
+    def _right_action(self, gamma):
+        """
+        Returns self | gamma, where gamma is a 2x2 integer matrix.
+
+        The action is defined by (self | gamma)(D) = self(gamma D)|gamma
+
+        For the action by a single element gamma to be well defined,
+        gamma must normalize Gamma_0(N).  However, this right action
+        can also be used to define Hecke operators, in which case each
+        individual self | gamma is not a modular symbol on Gamma_0(N),
+        but the sum over acting by the appropriate double coset
+        representatives is.
+
+        INPUT:
+
+        - ``gamma`` - 2 x 2 matrix which acts on the values of self
+
+        OUTPUT:
+
+        - ManinMap
+        """
+        D = {}
+        sd = self._dict
+        # we should eventually replace the for loop with a call to apply_many
+        for ky, val in sd.iteritems():
+            D[ky] = self(gamma*ky) * gamma
+        return self.__class__(self._codomain, self._manin, D, check=False)
+
 class HarmonicCocycleElement(HeckeModuleElement):
     r"""
     Objects of this type are Gamma-invariant harmonic cocycles on the 
@@ -167,7 +340,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def evaluate(self,e1):
         r"""
-        This function evaluates the cocycle on an edge of the Bruhat-Tits tree.
+        Evaluates a harmonic cocycle on an edge of the Bruhat-Tits tree.
 
         INPUT:
 
