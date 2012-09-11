@@ -1232,9 +1232,9 @@ cdef class WeightKAction(Action):
         g = M2Z(g)
         g.set_immutable()
         if not self._maxprecs.has_key(g):
-            self._maxprecs[g] = M
             A = self._compute_acting_matrix(g, M)
             self._actmat[g] = {M:A}
+            self._maxprecs[g] = M
             return A
         else:
             mats = self._actmat[g]

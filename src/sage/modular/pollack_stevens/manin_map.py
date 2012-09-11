@@ -241,6 +241,10 @@ class ManinMap(object):
             # self._dict[B] = self._compute_image_from_gens(B)
             # return self._dict[B]
 
+    def clear_cache(self):
+        self._dict = {}
+        self.compute_full_data()
+
     def compute_full_data(self):
         r"""
         Computes the values of self on all coset reps from its values on our generating set.
