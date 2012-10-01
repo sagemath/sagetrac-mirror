@@ -62,13 +62,13 @@ We demonstrate 3 ways to create an SFT from different input objects.
        ::
 
             sage: M = matrix(2, 2, [1,2, 3,0])
-            sage: X = SFT(M, format='edge', alph=[str(i) for i in range(6)]); X
+            sage: X = SFT(M, format='edge', alphabet=[str(i) for i in range(6)]); X
             A 1-step subshift of finite type on the alphabet ['0', '1', '2', '3', '4', '5'].
 
     #. A list of forbidden words (note that the word '010' is implicitly
        forbidden as well, so the order of the SFT is 2 and not 3)::
 
-            sage: X = SFT(["0101", "100"], alph=["0", "1"]); X
+            sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
             A 2-step subshift of finite type on the alphabet ['0', '1'].
 
        ::
@@ -79,7 +79,7 @@ We demonstrate 3 ways to create an SFT from different input objects.
     #. A list of forbidden words in list format (containing a forbidden
        symbol)::
 
-            sage: X = SFT([['1', '1'], ['2']], alph=["0", "1", "2"], name='Fibonacci shift'); X
+            sage: X = SFT([['1', '1'], ['2']], alphabet=["0", "1", "2"], name='Fibonacci shift'); X
             The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
 
     #. A list of forbidden words over an alphabet with symbols of distinct
@@ -207,8 +207,8 @@ class SFT(SageObject):
       alphabet will be created. If neither this parameter nor an alphabet
       is given the empty shift will be created.
 
-    - ``alph`` - (default: None) a list of symbols (the alphabet) used in the
-      definition of the SFT. If this parameter is not provided a standard
+    - ``alphabet`` - (default: None) a list of symbols (the alphabet) used in
+      the definition of the SFT. If this parameter is not provided a standard
       alphabet will be created (whenever possible) from the ``init_obj``. The
       elements of the alphabet can be general SAGE objects which do not
       contain the substring ``symb_sep`` in their string representation.
@@ -282,7 +282,7 @@ class SFT(SageObject):
            ::
 
                 sage: M = matrix(2, 2, [1,2, 3,0])
-                sage: X = SFT(M, format='edge', alph=[str(i) for i in range(6)]); X
+                sage: X = SFT(M, format='edge', alphabet=[str(i) for i in range(6)]); X
                 A 1-step subshift of finite type on the alphabet ['0', '1', '2', '3', '4', '5'].
 
            Note that to produce a vertex representation the matrix has to be
@@ -293,7 +293,7 @@ class SFT(SageObject):
            that the word "010" is implicitly forbidden as well, hence the
            order of this example SFT is 2 and not 3)::
 
-                sage: X = SFT(["0101", "100"], alph=["0", "1"]); X
+                sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
                 A 2-step subshift of finite type on the alphabet ['0', '1'].
 
            ::
@@ -306,7 +306,7 @@ class SFT(SageObject):
            shift from scratch (i.e. without using its predefined version in
            class ``sfts``)::
 
-                sage: X = SFT([['1', '1'], ['2']], alph=["0", "1", "2"], name='Fibonacci shift'); X
+                sage: X = SFT([['1', '1'], ['2']], alphabet=["0", "1", "2"], name='Fibonacci shift'); X
                 The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
 
         #. A list of forbidden words over an alphabet with symbols of distinct
@@ -352,7 +352,7 @@ class SFT(SageObject):
       class SFT into SAGE
     """
 
-    def __init__(self, init_obj=None, alph=None, format='edge',
+    def __init__(self, init_obj=None, alphabet=None, format='edge',
                  symb_sep=None, name=None):
         r"""
         The __init__ method for creating an SFT.
@@ -406,7 +406,7 @@ class SFT(SageObject):
 
         ::
 
-            sage: SFT([[1, 0, 1]], alph=[2, 0], symb_sep='.')
+            sage: SFT([[1, 0, 1]], alphabet=[2, 0], symb_sep='.')
             UserWarning: forbidden words contain symbols not in the given alphabet. Will enlarge alphabet.
             A 2-step subshift of finite type on the alphabet [0, 1, 2].
 
@@ -431,11 +431,11 @@ class SFT(SageObject):
             self._format = format
         else:
             raise ValueError("format not valid; must be 'vertex' or 'edge'")
-        if alph == None:
+        if alphabet == None:
             self._alph = []
         else: # force it to be a list (+ print a warning)
             try:
-                self._alph = list(alph)
+                self._alph = list(alphabet)
             except:
                 warnings.warn("alphabet must be a list. Will create a " +
                               "standard alphabet.")
@@ -529,7 +529,7 @@ class SFT(SageObject):
         ## initialize with a list of forbidden words ##
         elif isinstance(init_obj, (list, tuple, set, frozenset)):
             self._fwords = []
-            alph = set([])
+            alphabet = set([])
             for fword in init_obj:
                 if isinstance(fword, basestring) and not self._symb_sep == "":
                     l = fword.split(self._symb_sep)
@@ -540,11 +540,11 @@ class SFT(SageObject):
                         raise TypeError("forbidden words must be of type " +
                                         "string, list, tuple, Word etc.")
                 self._fwords.append(l)
-                alph.update(l)
+                alphabet.update(l)
             if self._alph == []:
-                self._alph = list(alph)
+                self._alph = list(alphabet)
             else:
-                symbs = filter(lambda a: not a in self._alph, alph)
+                symbs = filter(lambda a: not a in self._alph, alphabet)
                 if not symbs == []:
                     warnings.warn("forbidden words contain symbols not in" +
                                   " the given alphabet. Will enlarge " +
@@ -580,7 +580,7 @@ class SFT(SageObject):
 
 ## __METHODS__ ##
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         A string representation of the SFT.
 
@@ -597,7 +597,7 @@ class SFT(SageObject):
 
         #. An unnamed example SFT::
 
-            sage: X = SFT(["0101", "100"], alph=["0", "1"]); X
+            sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
             A 2-step subshift of finite type on the alphabet ['0', '1'].
 
         #. A named well-known example SFT::
@@ -634,7 +634,7 @@ class SFT(SageObject):
 
         #. An unnamed example SFT::
 
-            sage: X = SFT(["0101", "100"], alph=["0", "1"]); X
+            sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
             A 2-step subshift of finite type on the alphabet ['0', '1'].
 
         #. A named well-known example SFT::
@@ -858,7 +858,7 @@ class SFT(SageObject):
 
         #. Forbidden words of some SFTs::
 
-                sage: X = SFT(matrix(2, 2, [1,0, 1,1]), alph=["a", "b", "c"])
+                sage: X = SFT(matrix(2, 2, [1,0, 1,1]), alphabet=["a", "b", "c"])
                 sage: X.forbidden_words()
                 ['ab', 'ac', 'bb', 'bc', 'ca']
 
@@ -1628,13 +1628,16 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
     def an_element(self):
         r"""
-        Returns an iterator over the symbols in a random point of the SFT.
+        Returns a random element of the SFT.
 
-        The iterator actually yields consecutive symbols of such a point.
+        The element, being a (bi-)infinite sequence of symbols, is given as an
+        iterator over the symbols in a random point of the SFT. The iterator
+        thus actually yields consecutive symbols of such a point/sequence.
 
         OUTPUT:
 
-        - yields consecutive symbols of a random point in the SFT
+        - yields an iterator providing consecutive symbols of a random point
+          in the SFT
 
         EXAMPLES:
 
@@ -2691,8 +2694,8 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             return self
         if other._is_empty:
             return other
-        alph = [(a, b) for a in self.alphabet() for b in other.alphabet()]
-        alph_str = [str(a) for a in alph]
+        alphabet = [(a, b) for a in self.alphabet() for b in other.alphabet()]
+        alph_str = [str(a) for a in alphabet]
         if not (self._symb_sep == "" or
                 filter(lambda s: self._symb_sep in s, alph_str) == []):
             if not (other._symb_sep == "" or
@@ -2714,7 +2717,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             for u in self._allwords(len(w)):
                 fwords.append([(u[i], w[i]) for i in range(len(w))])
         # have to create a new SFT ???
-        return SFT(fwords, alph, format=self._format, symb_sep=symb_sep,
+        return SFT(fwords, alphabet, format=self._format, symb_sep=symb_sep,
                    name=name)
 
 ## AUXILIARY_METHODS ##
