@@ -231,9 +231,259 @@ class pAdicFieldGeneric(pAdicGeneric, Field):
 class pAdicFixedModRingGeneric(pAdicRingGeneric, FixedModGeneric):
     pass
 class pAdicCappedAbsoluteRingGeneric(pAdicRingGeneric, CappedAbsoluteGeneric):
-    pass
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        Compute a greatest common divisor of the polynomials ``f`` and ``g``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`. Its
+        implementation relies on
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric._gcd_univariate_polynomial_fixed`
+        which should be consulted for further details and examples.
+
+        INPUT:
+
+            - ``f``, ``g`` -- two polynomials defined over ``self``.
+
+        OUTPUT:
+
+        A polynomial defined over ``self``. The precision of the coefficients
+        of this polynomial might be less than that of the input polynomials.
+        (see
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.__xgcd_univariate_polynomial_fixed`
+        for the precise meaning of that accuracy.)
+
+        AUTHORS:
+
+        - Julian Rueth (2012-09-05): initial version
+
+        EXAMPLES::
+
+            sage: R.<t> = ZpCA(3,20)[]
+            sage: (t + 1).gcd( (t - 1) * (t + 1) )
+            (1 + O(3^20))*t + (1 + O(3^20))
+            sage: (t^3).gcd( t^5 )
+            (1 + O(3^20))*t^3
+
+        Also works over extensions::
+
+            sage: K = ZpCA(3,20)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 3 ) # Eisenstein extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g = f.gcd(f.derivative())
+            sage: g == ((t - a1) * (t - a2)^2)
+            True
+
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 2 ) # unramified extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g = f.gcd(f.derivative())
+            sage: g == ((t - a1) * (t - a2)^2)
+            True
+
+        """
+        ret, prec = self._gcd_univariate_polynomial_fixed(f, g)
+        return ret.map_coefficients(lambda c:c.add_bigoh(prec))
+
+    def _xgcd_univariate_polynomial(self, f, g):
+        """
+        Compute a extended greatest common divisor of the polynomials ``f`` and
+        ``g``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.xgcd`. Its
+        implementation relies on
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric._xgcd_univariate_polynomial_fixed`
+        which should be consulted for further details and examples.
+
+        INPUT:
+
+            - ``f``, ``g`` -- two polynomials defined over ``self``.
+
+        OUTPUT:
+
+        A tuple ``r,s,t`` of polynomials defined over ``self`` such that ``r =
+        s*f + t*g``. The precision of the coefficients of these polynomials
+        might be less than that of the input polynomials.  (see
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.__xgcd_univariate_polynomial_fixed`
+        for the precise meaning of that accuracy.)
+
+        AUTHORS:
+
+        - Julian Rueth (2012-09-05): initial version
+
+        EXAMPLES::
+
+            sage: R.<t> = ZpCA(3,20)[]
+            sage: (t + 1).xgcd( (t - 1) * (t + 1) )
+            ((1 + O(3^20))*t + (1 + O(3^20)), (1 + O(3^20)), 0)
+            sage: (t^3).xgcd( t^5 )
+            ((1 + O(3^20))*t^3, (1 + O(3^20)), 0)
+
+        Also works over extensions::
+
+            sage: K = ZpCA(3,20)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 3 ) # Eisenstein extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g,u,v = f.xgcd(f.derivative())
+            sage: h = g.leading_coefficient() * ((t - a1) * (t - a2)^2)
+            sage: g == h
+            True
+            sage: g == u*f + v*f.derivative()
+            True
+
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 2 ) # unramified extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g,u,v = f.xgcd(f.derivative())
+            sage: h = g.leading_coefficient() * ((t - a1) * (t - a2)^2)
+            sage: g == h
+            True
+            sage: g == u*f + v*f.derivative()
+            True
+
+        """
+        r, prec, s, t = self._xgcd_univariate_polynomial_fixed(f, g)
+        return r.map_coefficients(lambda c:c.add_bigoh(prec)), s, t
+
+
 class pAdicCappedRelativeRingGeneric(pAdicRingGeneric, CappedRelativeRingGeneric):
-    pass
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        Compute a greatest common divisor of the polynomials ``f`` and ``g``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`. Its
+        implementation relies on
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric._gcd_univariate_polynomial_fixed`
+        which should be consulted for further details and examples.
+
+        INPUT:
+
+            - ``f``, ``g`` -- two polynomials defined over ``self``.
+
+        OUTPUT:
+
+        A polynomial defined over ``self``. The precision of the coefficients
+        of this polynomial might be less than that of the input polynomials.
+        (see
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.__xgcd_univariate_polynomial_fixed`
+        for the precise meaning of that accuracy.)
+
+        AUTHORS:
+
+        - Julian Rueth (2012-09-05): initial version
+
+        EXAMPLES::
+
+            sage: R.<t> = ZpCR(3,20)[]
+            sage: (t + 1).gcd( (t - 1) * (t + 1) )
+            (1 + O(3^20))*t + (1 + O(3^20))
+            sage: (t^3).gcd( t^5 )
+            (1 + O(3^20))*t^3
+
+        Also works over extensions::
+
+            sage: K = ZpCR(3,20)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 3 ) # Eisenstein extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g = f.gcd(f.derivative())
+            sage: g == ((t - a1) * (t - a2)^2)
+            True
+
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 2 ) # unramified extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g = f.gcd(f.derivative())
+            sage: g == ((t - a1) * (t - a2)^2)
+            True
+
+        """
+        ret, prec = self._gcd_univariate_polynomial_fixed(f, g)
+        return ret.map_coefficients(lambda c:c.add_bigoh(prec))
+
+    def _xgcd_univariate_polynomial(self, f, g):
+        """
+        Compute a extended greatest common divisor of the polynomials ``f`` and
+        ``g``.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.xgcd`. Its
+        implementation relies on
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric._xgcd_univariate_polynomial_fixed`
+        which should be consulted for further details and examples.
+
+        INPUT:
+
+            - ``f``, ``g`` -- two polynomials defined over ``self``.
+
+        OUTPUT:
+
+        A tuple ``r,s,t`` of polynomials defined over ``self`` such that ``r =
+        s*f + t*g``. The precision of the coefficients of these polynomials
+        might be less than that of the input polynomials.  (see
+        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.__xgcd_univariate_polynomial_fixed`
+        for the precise meaning of that accuracy.)
+
+        AUTHORS:
+
+        - Julian Rueth (2012-09-05): initial version
+
+        EXAMPLES::
+
+            sage: R.<t> = ZpCR(3,20)[]
+            sage: (t + 1).xgcd( (t - 1) * (t + 1) )
+            ((1 + O(3^20))*t + (1 + O(3^20)), (1 + O(3^20)), 0)
+            sage: (t^3).xgcd( t^5 )
+            ((1 + O(3^20))*t^3, (1 + O(3^20)), 0)
+
+        Also works over extensions::
+
+            sage: K = ZpCR(3,20)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 3 ) # Eisenstein extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g,u,v = f.xgcd(f.derivative())
+            sage: h = g.leading_coefficient() * ((t - a1) * (t - a2)^2)
+            sage: g == h
+            True
+            sage: g == u*f + v*f.derivative()
+            True
+
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension( a^2 - 2 ) # unramified extension
+            sage: R.<t> = L[]
+            sage: a0,a1,a2 = 12345678+a,90123456-a,78901234*a
+            sage: f = (t - a0) * (t - a1)^2 * (t - a2)^3
+            sage: g,u,v = f.xgcd(f.derivative())
+            sage: h = g.leading_coefficient() * ((t - a1) * (t - a2)^2)
+            sage: g == h
+            True
+            sage: g == u*f + v*f.derivative()
+            True
+
+        """
+        r, prec, s, t = self._xgcd_univariate_polynomial_fixed(f, g)
+        return r.map_coefficients(lambda c:c.add_bigoh(prec)), s, t
+
+
 class pAdicCappedRelativeFieldGeneric(pAdicFieldGeneric, CappedRelativeFieldGeneric):
     pass
 
