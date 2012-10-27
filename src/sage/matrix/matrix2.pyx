@@ -5354,20 +5354,59 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.eigenvalues(extend=False)
             [2]
 
+        Computation of the eigenvalues over the field ``RR`` or ``CC``
+        defaults to computing over ``RDF`` or ``CDF``, respectively,
+        instead. A warning is provided about this change.::
+
+            sage: M = matrix([[1.2, 2],[2, 3]])
+            sage: M.eigenvalues()
+            doctest:...: UserWarning: Computing the eigenvalues over the
+            RDF field since the generic algorithm for the inexact ring RR
+            may give incorrect results due to numerical precision issues.
+            [-0.0931712199461, 4.29317121995]
+            sage: M = matrix(CC, [[1.2, I],[2, 3]])
+            sage: M.eigenvalues()
+            doctest:...: UserWarning: Computing the eigenvalues over the
+            CDF field since the generic algorithm for the inexact ring CC
+            may give incorrect results due to numerical precision issues.
+            [0.881845698329 - 0.820914065343*I, 3.31815430167 + 0.820914065343*I]
+
         """
         x = self.fetch('eigenvalues')
+        self_ring = self.base_ring()
         if not x is None:
             if not extend:
                 x1=Sequence([])
                 for i in x:
-                    if i in self.base_ring():
+                    if i in self_ring:
                         x1.append(i)
                 x=x1
             return x
 
-        if not self.base_ring().is_exact():
+        if not self_ring.is_exact():
             from warnings import warn
-            warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
+            from sage.rings.real_mpfr import RealField_class
+            from sage.rings.complex_field import ComplexField_class
+            if isinstance(self_ring, RealField_class):
+                warn("Computing the eigenvalues over the RDF field since "
+                     "the generic algorithm for the inexact ring RR may give "
+                     "incorrect results due to numerical precision issues.")
+                # Over RDF we get both real and complex eigenvalues
+                V = self.change_ring(RDF).eigenvalues()
+                self.cache('eigenvalues', V)
+                return V
+            elif isinstance(self_ring, ComplexField_class):
+                warn("Computing the eigenvalues over the CDF field since "
+                     "the generic algorithm for the inexact ring CC may give "
+                     "incorrect results due to numerical precision issues.")
+                # Over CDF we get both real and complex eigenvalues
+                V = self.change_ring(CDF).eigenvalues()
+                self.cache('eigenvalues', V)
+                return V
+            else:
+                warn("Using generic algorithm for an inexact ring, which "
+                     "will probably give incorrect results due to numerical "
+                     "precision issues.")
 
         from sage.rings.qqbar import QQbar
         G = self.fcp()   # factored charpoly of self.
@@ -5383,7 +5422,10 @@ cdef class Matrix(matrix1.Matrix):
                     try:
                         alpha = F.gen(0).galois_conjugates(QQbar)
                     except AttributeError:
-                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+                        raise NotImplementedError("eigenvalues() is not "
+                            "implemented for matrices with eigenvalues that "
+                            "are not in the fraction field of the base ring "
+                            "or in QQbar")
                     V.extend(alpha*e)
             i+=1
         V = Sequence(V)
@@ -5392,7 +5434,7 @@ cdef class Matrix(matrix1.Matrix):
         if not extend:
             V1=Sequence([])
             for i in V:
-                if i in self.base_ring():
+                if i in self_ring:
                     V1.append(i)
             V=V1
         return V
@@ -5445,14 +5487,51 @@ cdef class Matrix(matrix1.Matrix):
             (0, 0, 1)
             ], 1)]
 
+        Computation of the eigenvectors over the field ``RR`` or ``CC``
+        defaults to computing over ``RDF`` or ``CDF``, respectively,
+        instead. A warning is provided about this change.::
+
+            sage: M = matrix([[1.2, 2],[2, 3]])
+            sage: M.eigenvectors_left()
+            doctest:1: UserWarning: Computing the eigenvectors over the RDF field since the generic algorithm for the inexact ring RR may give incorrect results due to numerical precision issues.
+            [(-0.0931712199461, [(-0.839751355262, 0.542971142268)], 1),
+            (4.29317121995, [(-0.542971142268, -0.839751355262)], 1)]
+            sage: M = matrix(CC, [[1.2, I],[2, 3]])
+            sage: M.eigenvectors_left()
+            doctest:1: UserWarning: Computing the eigenvectors over the CDF field since the generic algorithm for the inexact ring CC may give incorrect results due to numerical precision issues.
+            [(0.881845698329 - 0.820914065343*I, [(0.915245825866, -0.145594698293 + 0.37566908585*I)], 1),
+            (3.31815430167 + 0.820914065343*I, [(0.616145932705 + 0.238794153033*I, 0.750560818381)], 1)]
+
         """
         x = self.fetch('eigenvectors_left')
         if not x is None:
             return x
 
-        if not self.base_ring().is_exact():
+        self_ring = self.base_ring()
+        if not self_ring.is_exact():
             from warnings import warn
-            warn("Using generic algorithm for an inexact ring, which may result in garbage from numerical precision issues.")
+            from sage.rings.real_mpfr import RealField_class
+            from sage.rings.complex_field import ComplexField_class
+            if isinstance(self_ring, RealField_class):
+                warn("Computing the eigenvectors over the RDF field since "
+                     "the generic algorithm for the inexact ring RR may give "
+                     "incorrect results due to numerical precision issues.")
+                # Over RDF we get both real and complex eigenvalues
+                evec_eval_list = self.change_ring(RDF).eigenvectors_left()
+                self.cache('eigenvectors_left', evec_eval_list)
+                return evec_eval_list
+            elif isinstance(self_ring, ComplexField_class):
+                warn("Computing the eigenvectors over the CDF field since "
+                     "the generic algorithm for the inexact ring CC may give "
+                     "incorrect results due to numerical precision issues.")
+                # Over CDF we get both real and complex eigenvalues
+                evec_eval_list = self.change_ring(CDF).eigenvectors_left()
+                self.cache('eigenvectors_left', evec_eval_list)
+                return evec_eval_list
+            else:
+                warn("Using generic algorithm for an inexact ring, which "
+                     "may result in garbage from numerical "
+                     "precision issues.")
 
         V = []
         from sage.rings.qqbar import QQbar
@@ -5461,19 +5540,22 @@ cdef class Matrix(matrix1.Matrix):
         evec_list=[]
         n = self._nrows
         evec_eval_list = []
-        F = self.base_ring().fraction_field()
+        F = self_ring.fraction_field()
         for ev in eigenspaces:
             eigval = ev[0]
             eigbasis = ev[1].basis()
             eigmult = ev[2]
-            if eigval in self.base_ring() or extend:
+            if eigval in self_ring or extend:
                 if eigval.parent().fraction_field() == F:
                     evec_eval_list.append((eigval, eigbasis, eigmult))
                 else:
                     try:
                         eigval_conj = eigval.galois_conjugates(QQbar)
                     except AttributeError:
-                        raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+                        raise NotImplementedError("eigenvectors are not "
+                            "implemented for matrices with eigenvalues that "
+                            "are not in the fraction field of the base ring "
+                            "or in QQbar")
 
                     for e in eigval_conj:
                         m = hom(eigval.parent(), e.parent(), e)
