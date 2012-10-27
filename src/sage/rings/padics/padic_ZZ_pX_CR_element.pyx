@@ -163,9 +163,11 @@ NOTES::
 
 AUTHORS:
 
-- David Roe  (2008-01-01) initial version
+- David Roe (2008-01-01): initial version
 
-- Robert Harron (2011-09) fixes/enhancements
+- Robert Harron (2011-09): fixes/enhancements
+
+- Julian Rueth (2012-10-25): fixed a bug in _internal_lshift()
 
 """
 
@@ -1286,7 +1288,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Multiplies ``self.unit`` by ``x^shift``.
 
         Note that ``self.relprec`` must be set before calling this
-        function and should not be 0, and self.unit must be defined to
+        function and must not be 0, and self.unit must be defined to
         precision ``self.relprec - shift``
 
         This function does not alter ``self.ordp`` even though it WILL
@@ -1295,6 +1297,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Also note that if you call this function you should usually
         manually set ``self.relprec = -self.relprec`` since this function
         will usually unnormalize ``self``.
+
+        AUTHORS:
+
+            - Julian Rueth (2012-10-27): rewrote the implementation for the
+              ramified case and ``shift>0``.
 
         TESTS::
 
@@ -1306,11 +1313,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = z - 1
             sage: y # indirect doctest
             w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
+
         """
         if self.relprec == 0:
             raise ValueError("p-adic Internal l-shift called with relative precision 0")
-        cdef ZZ_pX_c tmpP
-        cdef ZZ_pX_Modulus_c* mod
+
+        cdef ZZ_pX_c low_terms
+
         if self.prime_pow.e == 1:
             if shift > 0:
                 ZZ_pX_left_pshift(self.unit, self.unit, self.prime_pow.pow_ZZ_tmp(shift)[0], self.prime_pow.get_context(self.relprec).x)
@@ -1319,9 +1328,34 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         else:
             if shift > 0:
                 self.prime_pow.restore_context_capdiv(self.relprec)
-                mod = self.prime_pow.get_modulus_capdiv(self.relprec)
-                ZZ_pX_PowerXMod_long_pre(tmpP, shift, mod[0])
-                ZZ_pX_MulMod_pre(self.unit, self.unit, tmpP, mod[0])
+
+                if shift % self.prime_pow.e == 0:
+                    # to shift by a multiple of the ramification index e, we
+                    # can multiply by a power of (x^e/p)
+                    self._pshift_self(-shift//self.prime_pow.e)
+                    # and then multiply all entries of self.unit with a power of p
+                    ZZ_pX_mul_long(self.unit, self.unit, self.prime_pow.prime**(shift//self.prime_pow.e))
+                    self.ordp += shift
+                else:
+                    # if shift is not a multiple of the ramification index e,
+                    # we first shift by a multiple of the ramification index so
+                    # that only a shift < e is left
+                    self._internal_lshift(shift - shift % self.prime_pow.e)
+                    shift = shift % self.prime_pow.e
+
+                    # we now split self.unit into terms which correspond to
+                    # exponents < (e - shift) and the rest
+                    ZZ_pX_trunc(low_terms, self.unit, self.prime_pow.e - shift)
+
+                    # we shift up the low_terms by shift (which by construction does not overflow)
+                    ZZ_pX_LeftShift(low_terms, low_terms, shift)
+
+                    # and shift down the high terms so that we reduce to the shift % e == 0 case
+                    ZZ_pX_RightShift(self.unit, self.unit, self.prime_pow.e - shift)
+                    self._internal_lshift(self.prime_pow.e)
+
+                    # finally, add both pieces
+                    ZZ_pX_add(self.unit, self.unit, low_terms)
             elif shift < 0:
                 self.prime_pow.eis_shift_capdiv(&self.unit, &self.unit, -shift, self.relprec)
 
@@ -2288,8 +2322,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             Traceback (most recent call last):
             ...
             ValueError: This element not well approximated by an integer.
-            sage: ZZ(W(5)) # todo: this should be different...
-            381469726562505
+            sage: ZZ(W(5))
+            5
+
         """
         cdef Integer ans
         cdef ZZ_c tmp_z
@@ -2422,12 +2457,12 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: a = W(566); b = W(209)
-            sage: c = a + b; c._ntl_rep_abs()
-            ([775], 0)
-            sage: c
+            sage: c = a + b; c
             w^10 + 4*w^12 + 2*w^14 + w^15 + 2*w^16 + 4*w^17 + w^18 + w^20 + 2*w^21 + 3*w^22 + w^23 + w^24 + O(w^25)
             sage: c._ntl_rep_abs()
             ([775], 0)
+            sage: W(775)
+            w^10 + 4*w^12 + 2*w^14 + w^15 + 2*w^16 + 4*w^17 + w^18 + w^20 + 2*w^21 + 3*w^22 + w^23 + w^24 + 4*w^25 + w^26 + 2*w^27 + 4*w^28 + w^29 + 4*w^31 + 2*w^32 + 3*w^33 + 3*w^34 + O(w^35)
             sage: (~c)._ntl_rep_abs()
             ([121], -2)
             sage: ~c
@@ -2436,44 +2471,91 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             1 + 4*w^5 + 3*w^7 + w^9 + 4*w^10 + 2*w^11 + 3*w^12 + w^13 + 4*w^14 + O(w^15)
             sage: W(121)
             1 + 4*w^5 + 3*w^7 + w^9 + 4*w^10 + 2*w^11 + 3*w^12 + w^13 + 4*w^14 + 2*w^16 + 3*w^17 + 3*w^18 + 4*w^19 + 4*w^20 + 3*w^21 + w^22 + w^23 + 4*w^24 + O(w^25)
+
+        TESTS:
+
+        Check that :trac:`13651` has been resolved::
+
+            sage: R = Qp(3,5)
+            sage: S.<a> = R[]
+            sage: L.<a> = R.extension(a^2-3)
+            sage: L(3)._ntl_rep_abs()
+            ([3], 0)
+
+            sage: R = Zp(5,print_mode="val-unit")
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x -5
+            sage: W.<w> = R.ext(f)
+            sage: y = (1+w)^5 - 1; y
+            w^5 * (2090041 + 19073486126901*w + 1258902*w^2 + 674*w^3 + 16785*w^4) + O(w^100)
+            sage: y._ntl_rep_abs()
+            ([5 95367431640505 25 95367431640560 5], 0)
+            sage: (5 + 95367431640505*w + 25*w^2 + 95367431640560*w^3 + 5*w^4).add_bigoh(100)
+            w^5 * (2090041 + 19073486126901*w + 1258902*w^2 + 674*w^3 + 16785*w^4) + O(w^100)
+
+        Check that the output is correct on a larger set of inputs (for
+        Eisenstein extensions)::
+
+            sage: R = Zp(3,5)
+            sage: S.<a> = R[]
+            sage: L.<a> = R.extension(a^4-3)
+            sage: all([Integer(L(i)._ntl_rep_abs()[0][0]) == i for i in range(1,3^5)])
+            True
+            sage: all([Integer(L(i*a)._ntl_rep_abs()[0][1]) == i for i in range(1,3^5)])
+            True
+
+        For unramified extensions::
+
+            sage: R = Zp(3,5)
+            sage: S.<u> = R[]
+            sage: L.<u> = R.extension(u^4+u-1)
+            sage: all([Integer(L(i)._ntl_rep_abs()[0][0]) == i for i in range(1,3^5)])
+            True
+            sage: all([Integer(L(i*u)._ntl_rep_abs()[0][1]) == i for i in range(1,3^5)])
+            True
+
         """
         self._normalize()
+
         if self.ordp == 0:
             return self._ntl_rep(), Integer(0)
-        cdef ntl_ZZ_pContext_class ctx
-        cdef long little_shift, ppow
+
+        # we copy self to ``dummy`` which we use to do all computations in and
+        # multiply dummy.unit by a power of the uniformizer so that:
+        # - dummy.unit has valuation self.ordp (if self.ordp is positive)
+        # - the valuation of dummy.unit and self.ordp differ by a multiple of
+        #   the ramification index (if self.ordp is negative)
+
+        cdef long pi_shift
         if self.ordp > 0:
-            ctx = self.prime_pow.get_context_capdiv(self.ordp + self.relprec)
+            pi_shift = self.ordp
         else:
-            little_shift = ((-self.ordp) % self.prime_pow.e)
-            if little_shift != 0:
-                little_shift = self.prime_pow.e - little_shift
-            ctx = self.prime_pow.get_context_capdiv(self.relprec + little_shift)
+            pi_shift = ( self.prime_pow.e - ((-self.ordp)%self.prime_pow.e) ) % self.prime_pow.e
+
+        # copy self to dummy
+        ctx = self.prime_pow.get_context_capdiv(self.relprec + pi_shift)
         ctx.restore_c()
         cdef pAdicZZpXCRElement dummy = PY_NEW(pAdicZZpXCRElement)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
-        cdef Integer ans_k = PY_NEW(Integer)
         dummy.unit = self.unit
         dummy.prime_pow = self.prime_pow
-        if self.ordp > 0:
-            dummy.relprec = self.ordp + self.relprec
-            dummy._internal_lshift(self.ordp)
-            ans.x = dummy.unit
-        else:
-            ppow = (self.ordp - little_shift) / self.prime_pow.e
-            mpz_set_si(ans_k.value, ppow)
-            dummy.ordp = 0 # _pshift_self wants ordp set
-            dummy.relprec = self.relprec + little_shift
-            # self = x^(self.prime_pow.e * ppow) * x^(little_shift) * self.unit
-            # so we want to _internal_lshift dummy.unit by little_shift
-            dummy._internal_lshift(little_shift)
-            # and then write
-            # self = p^(ppow) * (x^e/p)^(ppow) * dummy.unit
-            # so we need to multiply dummy.unit by (p/x^e)^(-ppow) in the Eisenstein case
-            # which we can do by _pshift_self
-            dummy._pshift_self(-ppow)
-            ans.x = dummy.unit
+        dummy.ordp = self.ordp
+
+        # multiply dummy.unit with pi^pi_shift and adapt its ordp accordingly
+        dummy.relprec = self.relprec + pi_shift
+        dummy._internal_lshift(pi_shift)
+        dummy.ordp -= pi_shift
+
+        # now dummy.ordp is a mutliple of the ramification index, so can
+        # determine k and multiply dummy.unit with p^-k
+        cdef long k = dummy.ordp / self.prime_pow.e
+        if k:
+            dummy._pshift_self(-k)
+
+        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        ans.x = dummy.unit
         ans.c = ctx
+        cdef Integer ans_k = PY_NEW(Integer)
+        mpz_set_si(ans_k.value, k)
         return ans, ans_k
 
     cdef ZZ_p_c _const_term(self):
