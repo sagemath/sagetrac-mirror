@@ -43,13 +43,13 @@ We demonstrate 3 ways to create an SFT from different input objects.
 
             sage: G = DiGraph({"0":{"0":["a", "b"], "1":["c"]}, "1":{"1":["d"]}}, multiedges=True)
             sage: X = SFT(G); X
-            A 1-step subshift of finite type on the alphabet ['a', 'b', 'c', 'd'].
+            A 1-step SFT on ['a', 'b', 'c', 'd'].
 
        ::
 
             sage: G = DiGraph({0:{0:["a"], 1:["b"]}, 1:{0:["c"]}}, multiedges=True)
             sage: X = SFT(G, format='vertex'); X
-            A 1-step subshift of finite type on the alphabet [0, 1].
+            A 1-step SFT on [0, 1].
 
     #. A square matrix either in vertex or in edge representation (note
        that as the alphabet is not specified, a standard alphabet is
@@ -57,41 +57,41 @@ We demonstrate 3 ways to create an SFT from different input objects.
 
             sage: M = matrix(4, 4, [1,1,1,1, 0,1,0,1, 1,0,1,1, 0,0,0,1])
             sage: X = SFT(M, format='vertex'); X
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3].
+            A 1-step SFT on [0, 1, 2, 3].
 
        ::
 
             sage: M = matrix(2, 2, [1,2, 3,0])
             sage: X = SFT(M, format='edge', alphabet=[str(i) for i in range(6)]); X
-            A 1-step subshift of finite type on the alphabet ['0', '1', '2', '3', '4', '5'].
+            A 1-step SFT on ['0', '1', '2', '3', '4', '5'].
 
     #. A list of forbidden words (note that the word '010' is implicitly
        forbidden as well, so the order of the SFT is 2 and not 3)::
 
             sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
-            A 2-step subshift of finite type on the alphabet ['0', '1'].
+            A 2-step SFT on ['0', '1'].
 
        ::
 
             sage: X = SFT([Word("0101"), Word(["1", "0", "0"])]); X
-            A 2-step subshift of finite type on the alphabet ['0', '1'].
+            A 2-step SFT on ['0', '1'].
 
     #. A list of forbidden words in list format (containing a forbidden
        symbol)::
 
             sage: X = SFT([['1', '1'], ['2']], alphabet=["0", "1", "2"], name='Fibonacci shift'); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+            The Fibonacci shift of order 1 on ['0', '1'].
 
     #. A list of forbidden words over an alphabet with symbols of distinct
        lengths using a simple symbol separator::
 
             sage: X = SFT(['1.1'], ['0', '1'], name='Fibonacci shift', symb_sep="."); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+            The Fibonacci shift of order 1 on ['0', '1'].
 
        ::
 
             sage: X = SFT(['1.11', '11.0.11.00'], symb_sep="."); X
-            A 3-step subshift of finite type on the alphabet ['0', '00', '1', '11'].
+            A 3-step SFT on ['0', '00', '1', '11'].
 """
 
 #*****************************************************************************
@@ -260,13 +260,13 @@ class SFT(SageObject):
 
                 sage: G = DiGraph({"0":{"0":["a", "b"], "1":["c"]}, "1":{"1":["d"]}}, multiedges=True)
                 sage: X = SFT(G); X
-                A 1-step subshift of finite type on the alphabet ['a', 'b', 'c', 'd'].
+                A 1-step SFT on ['a', 'b', 'c', 'd'].
 
            ::
 
                 sage: G = DiGraph({0:{0:["a"], 1:["b"]}, 1:{0:["c"]}}, multiedges=True)
                 sage: X = SFT(G, format='vertex'); X
-                A 1-step subshift of finite type on the alphabet [0, 1].
+                A 1-step SFT on [0, 1].
 
            Note that for a vertex representation the graph may not contain any
            multi-edges.
@@ -277,13 +277,13 @@ class SFT(SageObject):
 
                 sage: M = matrix(4, 4, [1,1,1,1, 0,1,0,1, 1,0,1,1, 0,0,0,1])
                 sage: X = SFT(M, format='vertex'); X
-                A 1-step subshift of finite type on the alphabet [0, 1, 2, 3].
+                A 1-step SFT on [0, 1, 2, 3].
 
            ::
 
                 sage: M = matrix(2, 2, [1,2, 3,0])
                 sage: X = SFT(M, format='edge', alphabet=[str(i) for i in range(6)]); X
-                A 1-step subshift of finite type on the alphabet ['0', '1', '2', '3', '4', '5'].
+                A 1-step SFT on ['0', '1', '2', '3', '4', '5'].
 
            Note that to produce a vertex representation the matrix has to be
            defined over 0 and 1 only while for an edge representation it can
@@ -294,12 +294,12 @@ class SFT(SageObject):
            order of this example SFT is 2 and not 3)::
 
                 sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
-                A 2-step subshift of finite type on the alphabet ['0', '1'].
+                A 2-step SFT on ['0', '1'].
 
            ::
 
                 sage: X = SFT([Word("0101"), Word(["1", "0", "0"])]); X
-                A 2-step subshift of finite type on the alphabet ['0', '1'].
+                A 2-step SFT on ['0', '1'].
 
         #. A list of forbidden words in list format (containing a forbidden
            symbol); this is an unusual way to define the well known Fibonacci
@@ -307,23 +307,23 @@ class SFT(SageObject):
            class ``sfts``)::
 
                 sage: X = SFT([['1', '1'], ['2']], alphabet=["0", "1", "2"], name='Fibonacci shift'); X
-                The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+                The Fibonacci shift of order 1 on ['0', '1'].
 
         #. A list of forbidden words over an alphabet with symbols of distinct
            lengths using a simple symbol separator::
 
                 sage: X = SFT(['1.1'], ['0', '1'], name='Fibonacci shift', symb_sep="."); X
-                The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+                The Fibonacci shift of order 1 on ['0', '1'].
 
            ::
 
                 sage: X = SFT(['1:11', '11:0:11:00'], symb_sep=":"); X
-                A 3-step subshift of finite type on the alphabet ['0', '00', '1', '11'].
+                A 3-step SFT on ['0', '00', '1', '11'].
 
            ::
 
                 sage: X = SFT(['one two', 'two zero two three'], symb_sep=" "); X
-                A 3-step subshift of finite type on the alphabet ['one', 'three', 'two', 'zero'].
+                A 3-step SFT on ['one', 'three', 'two', 'zero'].
 
         #. To avoid confusion we strongly recommend to define SFTs over
            ambiguous alphabets only by using either forbidden words being
@@ -336,7 +336,7 @@ class SFT(SageObject):
                 ValueError: need a valid symbol separator symb_sep
 
                 sage: X = SFT(['1.2'], ['1', '2', '12'], symb_sep="."); X
-                A 1-step subshift of finite type on the alphabet ['1', '12', '2'].
+                A 1-step SFT on ['1', '12', '2'].
 
     AUTHORS:
 
@@ -391,11 +391,11 @@ class SFT(SageObject):
             sage: M = matrix(2, 2, [2,1, 1,0])
             sage: SFT(M, format='vertex')
             UserWarning: matrix must be 0/1 to create a vertex shift. Will try to create an edge shift instead.
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3].
+            A 1-step SFT on [0, 1, 2, 3].
             sage: G = DiGraph({0:{0:['a'], 1:['b','c']}, 1:{0:['d']}}, multiedges=True)
             sage: SFT(G, format='vertex')
             UserWarning: digraph must not have multiple edges to create a vertex shift. Will try to create an edge shift instead.
-            A 1-step subshift of finite type on the alphabet ['a', 'b', 'c', 'd'].
+            A 1-step SFT on ['a', 'b', 'c', 'd'].
 
         ::
 
@@ -408,7 +408,7 @@ class SFT(SageObject):
 
             sage: SFT([[1, 0, 1]], alphabet=[2, 0], symb_sep='.')
             UserWarning: forbidden words contain symbols not in the given alphabet. Will enlarge alphabet.
-            A 2-step subshift of finite type on the alphabet [0, 1, 2].
+            A 2-step SFT on [0, 1, 2].
 
         ::
 
@@ -598,12 +598,12 @@ class SFT(SageObject):
         #. An unnamed example SFT::
 
             sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
-            A 2-step subshift of finite type on the alphabet ['0', '1'].
+            A 2-step SFT on ['0', '1'].
 
         #. A named well-known example SFT::
 
             sage: X = SFT(['1.1'], ['0', '1'], name='Fibonacci shift', symb_sep="."); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+            The Fibonacci shift of order 1 on ['0', '1'].
 
         AUTHORS:
 
@@ -613,9 +613,9 @@ class SFT(SageObject):
             return "The empty shift."
         else:
             if self._name == None:
-                return "A %d-step subshift of finite type on the alphabet %s." % (self.order(), self._alph)
+                return "A %d-step SFT on %s." % (self.order(), self._alph)
             else:
-                return "The %s. It has order %d and is defined over the alphabet %s." % (self._name, self.order(), self._alph)
+                return "The %s of order %d on %s." % (self._name, self.order(), self._alph)
 
     def __latex__(self):
         r"""
@@ -635,12 +635,12 @@ class SFT(SageObject):
         #. An unnamed example SFT::
 
             sage: X = SFT(["0101", "100"], alphabet=["0", "1"]); X
-            A 2-step subshift of finite type on the alphabet ['0', '1'].
+            A 2-step SFT on ['0', '1'].
 
         #. A named well-known example SFT::
 
             sage: X = SFT(['1.1'], ['0', '1'], name='Fibonacci shift', symb_sep="."); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet ['0', '1'].
+            The Fibonacci shift of order 1 on ['0', '1'].
 
         AUTHORS:
 
@@ -650,9 +650,9 @@ class SFT(SageObject):
             return "The empty shift."
         else:
             if self._name == None:
-                return "A %d-step subshift of finite type on the alphabet %s." % (self.order(), self._alph)
+                return "A %d-step SFT on %s." % (self.order(), self._alph)
             else:
-                return "The %s. It has order %d and is defined over the alphabet %s." % (self._name, self.order(), self._alph)
+                return "The %s of order %d on %s." % (self._name, self.order(), self._alph)
 
 ## METHODS ##
 
@@ -940,7 +940,7 @@ class SFT(SageObject):
         #. Forbidden words iterator of the S-Gap shift::
 
             sage: X = sfts.S_Gap([1,2,4,5,7,8]); X
-            The [1, 2, 4, 5, 7, 8]-Gap shift. It has order 9 and is defined over the alphabet [0, 1].
+            The [1, 2, 4, 5, 7, 8]-Gap shift of order 9 on [0, 1].
             sage: T = X.forbidden_words_iter()
             sage: for t in range(6): T.next()
             '101'
@@ -1060,7 +1060,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         #. Reducing a non-essential graph presentation::
 
             sage: X = SFT([[0,1,0], [0,1,1], [1,1,0]]); X
-            A 2-step subshift of finite type on the alphabet [0, 1].
+            A 2-step SFT on [0, 1].
             sage: X.graph()
             Looped multi-digraph on 4 vertices
             sage: X.reduce().graph()
@@ -1070,9 +1070,9 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: G = DiGraph({1:[2,7], 2:[3,8], 3:[4,9], 4:[5,9,10,11], 5:[6,11], 6:[12], 7:[8,13], 8:[14], 9:[8,15], 10:[16], 11:[16,17], 12:[11], 13:[14], 14:[15], 15:[10], 17:[12]})
             sage: X = SFT(G, format='vertex', symb_sep='.'); X
-            A 1-step subshift of finite type on the alphabet [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].
+            A 1-step SFT on [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].
             sage: X.reduce()
-            A 1-step subshift of finite type on the alphabet [11, 12, 17].
+            A 1-step SFT on [11, 12, 17].
 
         AUTHORS:
 
@@ -1555,7 +1555,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            15::
 
             sage: F = sfts.Fibonacci(); F
-            The Fibonacci shift. It has order 1 and is defined over the alphabet [0, 1].
+            The Fibonacci shift of order 1 on [0, 1].
             sage: F.admissible_words(2, 4)
             ['00', '01', '10', '000', '001', '010', '100', '101', '0000', '0001', '0010', '0100', '0101', '1000', '1001', '1010']
             sage: [len(F.admissible_words(n)) for n in range(1, 16)]
@@ -1626,7 +1626,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         else:
             raise ValueError("format has to be 'string', 'list' or 'Word'")
 
-    def an_element(self):
+    def a_point_iter(self):
         r"""
         Returns a random element of the SFT.
 
@@ -1645,7 +1645,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            "11"::
 
             sage: F = sfts.Fibonacci()
-            sage: I = F.an_element()
+            sage: I = F.a_point_iter()
             sage: w = "".join([str(I.next()) for i in range(10000)])
             sage: "11" in w
             False
@@ -1654,7 +1654,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            contains the subword "010" but does not contain the subword "101"::
 
             sage: X = sfts.RLL(2,7)
-            sage: I = X.an_element()
+            sage: I = X.a_point_iter()
             sage: w = "".join([str(I.next()) for i in range(10)])
             sage: "010" in w
             True
@@ -2090,21 +2090,21 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         #. Zeta function of the full-4-shift::
 
             sage: X = sfts.Full(4); X
-            The full-shift on 4 symbols. It has order 0 and is defined over the alphabet [0, 1, 2, 3].
+            The full-shift on 4 symbols of order 0 on [0, 1, 2, 3].
             sage: X.zeta_function()
             -1/(4*t - 1)
 
         #. Zeta function of the Fibonacci shift::
 
             sage: X = sfts.Fibonacci(); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet [0, 1].
+            The Fibonacci shift of order 1 on [0, 1].
             sage: X.zeta_function()
             -1/(t^2 + t - 1)
 
         #. Zeta function of the RLL-(2,4) shift::
 
             sage: X = sfts.RLL(2, 4); X
-            The (2,4)-RLL shift. It has order 4 and is defined over the alphabet [0, 1].
+            The (2,4)-RLL shift of order 4 on [0, 1].
             sage: X.zeta_function()
             -1/(t^5 + t^4 + t^3 - 1)
 
@@ -2139,7 +2139,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         #. Spectrum away from zero of the Fibonacci shift::
 
             sage: X = sfts.Fibonacci(); X; X.nonzero_spectrum()
-            The Fibonacci shift. It has order 1 and is defined over the alphabet [0, 1].
+            The Fibonacci shift of order 1 on [0, 1].
             [-0.618033988749895?, 1.618033988749895?]
 
         #. Spectrum away from zero of a given SFT::
@@ -2151,9 +2151,9 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         #. Spectrum away from zero of two conjugate shifts::
 
             sage: X = SFT([], ['a', 'b', 'c']); X
-            The full-shift on 3 symbols. It has order 0 and is defined over the alphabet ['a', 'b', 'c'].
+            The full-shift on 3 symbols of order 0 on ['a', 'b', 'c'].
             sage: Y = SFT(matrix(3, 3, [1,1,1, 1,1,1, 1,1,1])); Y
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3, 4, 5, 6, 7, 8].
+            A 1-step SFT on [0, 1, 2, 3, 4, 5, 6, 7, 8].
             sage: X.nonzero_spectrum(); Y.nonzero_spectrum()
             [3]
             [3]
@@ -2237,7 +2237,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
         #. The ordinary Bowen-Franks group of a given shift::
 
             sage: X = SFT(matrix(2, 2, [4,1, 1,0])); X
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3, 4, 5].
+            A 1-step SFT on [0, 1, 2, 3, 4, 5].
             sage: X.bowen_franks_group()
             [1 0]
             [0 4]
@@ -2246,7 +2246,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            cyclic group of order (N-1)::
 
             sage: X = sfts.Full(3); X
-            The full-shift on 3 symbols. It has order 0 and is defined over the alphabet [0, 1, 2].
+            The full-shift on 3 symbols of order 0 on [0, 1, 2].
             sage: X.bowen_franks_group()
             [2]
             sage: X.bowen_franks_group(format='group')
@@ -2256,9 +2256,9 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            equivalent (i.e. conjugate) SFTs::
 
             sage: X = SFT(matrix(2, 2, [1,3, 2,1])); X
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3, 4, 5, 6].
+            A 1-step SFT on [0, 1, 2, 3, 4, 5, 6].
             sage: Y = SFT(matrix(2, 2, [1,6, 1,1])); Y
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3, 4, 5, 6, 7, 8].
+            A 1-step SFT on [0, 1, 2, 3, 4, 5, 6, 7, 8].
             sage: X.bowen_franks_group(); Y.bowen_franks_group()
             [1 0]
             [0 6]
@@ -2434,7 +2434,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
            ::
 
                 sage: X = sfts.Full(2); X
-                The full-shift on 2 symbols. It has order 0 and is defined over the alphabet [0, 1].
+                The full-shift on 2 symbols of order 0 on [0, 1].
                 sage: X.parry_measure()
                 UserWarning: the SFT has to be a vertex shift; will convert it
                 (
@@ -2518,7 +2518,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
                 sage: X = SFT(['0.0.0.0','1.1.0','0.1.1.1','1.0.1'], symb_sep='.')
                 sage: Y = SFT(['1,1,1','1,1,0,1','0,1,1,1'], symb_sep=',')
                 sage: Z = X.intersection(Y); Z
-                A 3-step subshift of finite type on the alphabet ['0', '1'].
+                A 3-step SFT on ['0', '1'].
                 sage: Z.forbidden_words()
                 ['0.0.0.0', '1.1.0', '0.1.1.1', '1.0.1', '1.1.1', '1.1.0.1']
 
@@ -2527,7 +2527,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
                 sage: X = SFT(matrix(3, 3, [1,1,0, 0,1,1, 0,1,0]), [0, 1, 2], format='vertex')
                 sage: Y = SFT([[1, 1, 2], [2, 2], [2, 3, 2], [3, 1]])
                 sage: Z = X.intersection(Y, 'SFT'); Z
-                The SFT. It has order 2 and is defined over the alphabet [1, 2].
+                The SFT of order 2 on [1, 2].
                 sage: Z.forbidden_words()
                 ['22', '112']
                 sage: Z.get_info()
@@ -2547,9 +2547,9 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             sage: X = SFT(matrix(2, 2, [1,1, 0,1]), format='vertex')
             sage: F = sfts.Fibonacci()
             sage: X.intersection(F)
-            A 0-step subshift of finite type on the alphabet [0, 1].
+            A 0-step SFT on [0, 1].
             sage: X.intersection(F).reduce()
-            The full-shift on 1 symbols. It has order 0 and is defined over the alphabet [0].
+            The full-shift on 1 symbols of order 0 on [0].
 
         #. An intersection resulting in the empty shift::
 
@@ -2564,7 +2564,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             sage: F = SFT(matrix(2, 2, [1,1, 1,1]), ['a', 'b', 'c', 'd'])
             sage: X = SFT(['ab'], ['a', 'b', 'c'])
             sage: Y = X.intersection(F); Y
-            A 1-step subshift of finite type on the alphabet ['a', 'b', 'c'].
+            A 1-step SFT on ['a', 'b', 'c'].
             sage: Y.forbidden_words()
             ['ab', 'ac', 'ba', 'bb', 'cc']
             sage: Y.admissible_words(1, 2)
@@ -2639,7 +2639,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = SFT(); Y = SFT(matrix(2, 2, [1,1, 1,1])); X; Y
             The empty shift.
-            A 1-step subshift of finite type on the alphabet [0, 1, 2, 3].
+            A 1-step SFT on [0, 1, 2, 3].
             sage: Z = X.cartesian_product(Y); Z
             The empty shift.
 
@@ -2648,7 +2648,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = SFT(matrix(2, 2, [2,0, 1,1])); F = sfts.Fibonacci()
             sage: Y = X.cartesian_product(F, name='SFT'); Y
-            The SFT. It has order 1 and is defined over the alphabet [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)].
+            The SFT of order 1 on [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)].
             sage: (F.entropy() + X.entropy()).n() == Y.entropy()
             True
 
@@ -2656,7 +2656,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
 
             sage: X = SFT(matrix(2, 2, [0,1, 1,0])); F = sfts.Full(3)
             sage: Y = X.cartesian_product(F); Y
-            A 1-step subshift of finite type on the alphabet [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)].
+            A 1-step SFT on [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)].
             sage: Y.entropy()
             log(3)
             sage: Y.matrix()
@@ -2672,7 +2672,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
             sage: X = SFT(matrix(2, 2, [2,0, 1,1]), symb_sep=',')
             sage: Y = SFT(matrix(2, 2, [1,1, 1,0]), format='vertex', symb_sep=' ')
             sage: X.cartesian_product(Y)
-            A 1-step subshift of finite type on the alphabet [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)].
+            A 1-step SFT on [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)].
             sage: X = SFT(matrix(2, 2, [2,0, 1,1]), [0, 1, 2, 33], symb_sep=',')
             sage: X.cartesian_product(Y)
             Traceback (most recent call last):
@@ -2981,7 +2981,7 @@ class SFTGenerators(SageObject):
         EXAMPLES::
 
             sage: X = sfts.Full(3); X
-            The full-shift on 3 symbols. It has order 0 and is defined over the alphabet [0, 1, 2].
+            The full-shift on 3 symbols of order 0 on [0, 1, 2].
             sage: X.entropy()
             log(3)
 
@@ -3019,7 +3019,7 @@ class SFTGenerators(SageObject):
         EXAMPLES::
 
             sage: X = sfts.Fibonacci(); X
-            The Fibonacci shift. It has order 1 and is defined over the alphabet [0, 1].
+            The Fibonacci shift of order 1 on [0, 1].
             sage: X.forbidden_words()
             ['11']
             sage: exp(X.entropy())
@@ -3086,7 +3086,7 @@ class SFTGenerators(SageObject):
         #. Some run-lenth-limited shifts::
 
                 sage: X = sfts.RLL(1, 3); X
-                The (1,3)-RLL shift. It has order 3 and is defined over the alphabet [0, 1].
+                The (1,3)-RLL shift of order 3 on [0, 1].
                 sage: X.forbidden_words()
                 ['0000', '11']
                 sage: X.entropy()
@@ -3095,14 +3095,14 @@ class SFTGenerators(SageObject):
            ::
 
                 sage: X = sfts.RLL(2, +Infinity); X
-                The (2,+Infinity)-RLL shift. It has order 2 and is defined over the alphabet [0, 1].
+                The (2,+Infinity)-RLL shift of order 2 on [0, 1].
                 sage: X.forbidden_words()
                 ['11', '101']
 
            ::
 
                 sage: X = sfts.RLL(2, 6, 2); X
-                The (2,6,2)-RLL shift. It has order 6 and is defined over the alphabet [0, 1].
+                The (2,6,2)-RLL shift of order 6 on [0, 1].
                 sage: X.forbidden_words()
                 ['0000000', '11', '101', '10001', '1000001']
 
@@ -3110,7 +3110,7 @@ class SFTGenerators(SageObject):
            smaller than expected::
 
             sage: X = sfts.RLL(2, 5, 2); X
-            The (2,5,2)-RLL shift. It has order 4 and is defined over the alphabet [0, 1].
+            The (2,5,2)-RLL shift of order 4 on [0, 1].
             sage: X.forbidden_words()
             ['000000', '11', '101', '10001', '1000001']
             sage: X.first_offenders()
@@ -3175,7 +3175,7 @@ class SFTGenerators(SageObject):
            and ``1010``::
 
             sage: X = sfts.WhistleFree([('01',2), ('10',2)]); X
-            The generalized Whistle-Free shift. It has order 3 and is defined over the alphabet [0, 1].
+            The generalized Whistle-Free shift of order 3 on [0, 1].
             sage: X.forbidden_words()
             ['0101', '1010']
             sage: X.entropy()
@@ -3184,7 +3184,7 @@ class SFTGenerators(SageObject):
         #. A generalized Whistle-Free shift::
 
             sage: X = sfts.WhistleFree([(Word('1'),5), (Word('01'), 3), (Word('101'), 3)]); X
-            The generalized Whistle-Free shift. It has order 8 and is defined over the alphabet [0, 1].
+            The generalized Whistle-Free shift of order 8 on [0, 1].
             sage: X.forbidden_words()
             ['11111', '010101', '101101101']
 
@@ -3243,7 +3243,7 @@ class SFTGenerators(SageObject):
         EXAMPLES::
 
             sage: sfts.S_Gap([1, 0, 4])
-            The [0, 1, 4]-Gap shift. It has order 5 and is defined over the alphabet [0, 1].
+            The [0, 1, 4]-Gap shift of order 5 on [0, 1].
 
         AUTHORS:
 
