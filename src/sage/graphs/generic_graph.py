@@ -272,6 +272,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.show3d` | Plots the graph using Tachyon, and shows the resulting plot.
     :meth:`~GenericGraph.graphviz_string` | Returns a representation in the dot language.
     :meth:`~GenericGraph.graphviz_to_file_named` | Write a representation in the dot in a file.
+    :meth:`~GenericGraph.g_ivank_string` | Returns a representation in the format used by g.ivank.net web site.
 
 **Algorithmically hard stuff:**
 
@@ -16472,6 +16473,78 @@ class GenericGraph(GenericGraph_pyx):
             }
         """
         return open(filename, 'wt').write(self.graphviz_string(**options))
+
+    def g_ivank_string(self):
+        r"""
+        Return a string representation in the format used by Ivan Kuckir's
+        interactive graph drawer at http://g.ivank.net.
+
+        The format is easily understood from an example. For the triangle
+        graph, the string is ``'3:1-2,2-3,3-1'``. So first the size of the
+        graph, then the edges. The vertices must be consecutive integers
+        starting from ``1`` (no ``0``). Thus, in the code, canonical labels
+        of the vertices ``+1`` are used.
+
+        With an internet connection, one can `look at the result`__ by appending
+        the string to the above url. Note that there are similar open source
+        programs, like `arborjs`__, that can be used locally.
+
+        __ http://g.ivank.net/#3:1-2,2-3,3-1
+        __ http://arborjs.org/
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.g_ivank_string()
+            '10:1-8,1-9,1-10,2-5,2-7,2-10,3-4,3-7,3-9,4-6,4-10,5-6,5-9,6-8,7-8'
+
+        ::
+
+            sage: g = graphs.WagnerGraph()
+            sage: g.g_ivank_string()
+            '8:1-6,1-7,1-8,2-3,2-5,2-7,3-4,3-6,4-7,4-8,5-6,5-8'
+
+        Works if vertices are not integers::
+
+            sage: g = Graph({0:[2,'a'], 1:[4]})
+            sage: g.g_ivank_string()
+            '5:1-2,3-5,4-5'
+
+        Works for digraphs as well, but information about edges orientation
+        is lost::
+
+            sage: g = DiGraph({0:[2], 1:[4]})
+            sage: g.g_ivank_string()
+            '4:1-4,2-3'
+
+        One may insert the graph inside the Sage Notebook by creating an
+        iframe and using the ``html`` command in the following way::
+
+            sage: g = graphs.PetersenGraph()
+            sage: url = "http://g.ivank.net/g.html#%s" % g.g_ivank_string()
+            sage: width = 500
+            sage: height = 500
+            sage: s = '<iframe src="%s" width="%s" height="%s" ' % (url, width, height)
+            sage: s += 'style= "border:none;"></iframe>'
+            sage: html(s)
+            <html><font color='black'><iframe
+            src="http://g.ivank.net/g.html#10:1-8,1-9,1-10,2-5,2-7,2-10,3-4,3-7,3-9,4-6,4-10,5-6,5-9,6-8,7-8"
+            width="500" height="500" style=
+            "border:none;"></iframe></font></html>
+
+        REFERENCES:
+
+        - http://www.chromeexperiments.com/detail/graph-drawer/
+        - http://g.ivank.net/
+
+        AUTHORS:
+
+        - Sebastien Labbe, Sept-Nov 2012
+        """
+        size = len(self)
+        g = self.canonical_label()
+        edges = ','.join("%s-%s" % (e[0]+1,e[1]+1) for e in g.edges())
+        return "%s:%s" % (size, edges)
 
     ### Spectrum
 
