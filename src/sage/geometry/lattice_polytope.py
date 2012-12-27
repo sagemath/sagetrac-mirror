@@ -1062,7 +1062,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return r
         else:
             data = vector(QQ, data)
-            return self._sublattice.coordinates(data - self._shift_vector)
+            return self._sublattice.vector_space().coordinates(data - self._shift_vector)
 
     def _read_equations(self, data):
         r"""

@@ -138,6 +138,8 @@ AUTHORS:
 
 - Simon King (2010-12): Trac #8800: Fixing a bug in ``denominator()``.
 
+- Charles Bouillaguet (2013-1), :trac:`13853`: ``coordinates()`` and the likes correctly implement the ``check`` flag
+
 """
 
 ###########################################################################
@@ -1106,7 +1108,9 @@ done from the right side.""")
             Vector space of dimension 3 over Rational Field
             sage: w in V
             False
-            sage: V.coordinates(w)
+            sage: w in V.vector_space()
+            True
+            sage: V.vector_space().coordinates(w)
             [1/2]
         """
         if not isinstance(v, free_module_element.FreeModuleElement):
@@ -1115,20 +1119,9 @@ done from the right side.""")
             return True
         try:
             c = self.coordinates(v)
-        except (ArithmeticError, TypeError):
+            return True
+        except (TypeError, ArithmeticError):
             return False
-        # Finally, check that each coordinate lies in the base ring.
-        R = self.base_ring()
-        if not self.base_ring().is_field():
-            for a in c:
-                try:
-                    b = R(a)
-                except (TypeError, ValueError):
-                    return False
-                except NotImplementedError:
-                    from sage.rings.all import ZZ
-                    print "bad " + str((R, R._element_constructor, R is ZZ, type(R)))
-        return True
 
     def __iter__(self):
         """
@@ -1381,15 +1374,27 @@ done from the right side.""")
 
     def coordinates(self, v, check=True):
         r"""
-        Write `v` in terms of the basis for self.
+        Write `v` in terms of the basis for the module.
+
+        If ``check==True``, then check that `v` belongs to the module,
+        and return list of coefficients in the base ring. Otherwise
+        raise an ``ArithmeticError`` exception.
+
+        If ``check==False`` and `v` belongs to the associated vector
+        space (as returned by
+        :meth:`~sage.modules.free_module.FreeModule_ambient_domain.vector_space`,
+        if it exists), then the result will be a list of coefficients
+        in the fraction field of the base ring. The result may be
+        non-sensical if `v` does not belong to the associated vector
+        space.
 
         INPUT:
 
 
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
+        - ``check`` - bool (default: ``True``); if ``True``, verify that `v`
+           is really in the module.
 
 
         OUTPUT: list
@@ -1402,8 +1407,10 @@ done from the right side.""")
                              \sum c_i B_i = v.
 
 
-        If `v` is not in self, raises an
-        ``ArithmeticError`` exception.
+        .. SEEALSO::
+
+           This method is identical to :meth:`coordinate_vector`, but
+           it returns a list instead of a vector.
 
         EXAMPLES::
 
@@ -1411,6 +1418,57 @@ done from the right side.""")
             sage: W = M.submodule([M0 + M1, M0 - 2*M1])
             sage: W.coordinates(2*M0-M1)
             [2, -1]
+
+        By default, an exception is raised when the vector is not in
+        the free module::
+
+            sage: W.coordinates(1/2*M0+M1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in submodule
+
+        Vectors in the ambient vector space are allowed with
+        ``check==False``; in this case coordinates over the fraction
+        field of the base ring are returned::
+
+            sage: W.coordinates(1/2*M0+M1, check=False)
+            [1/2, 1/6]
+
+        A cleaner way to obtain the same result is to use::
+
+            sage: W.vector_space().coordinates(1/2*M0+M1)
+            [1/2, 1/6]
+
+        You are warned that using ``check==False`` may lead to wrong results::
+
+            sage: M = (ZZ^3).span( [[1,2,3], [3,4,5]] )
+            sage: v = M.coordinates( [4,7,8], check=False ); v
+            [4, 7/2]
+            sage: 4*M.gen(0) + 7/2*M.gen(1)
+            (4, 7, 10)
+
+        The argument must be in the ambient free module, or in the
+        ambient vector space if it exists, otherwise it will be
+        rejected with a ``TypeError`` exception::
+
+            sage: (ZZ^3).coordinates( [0,1,sqrt(2)] )
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert sqrt(2) to a rational
+ 
+        ::
+
+            sage: (ZZ^3).coordinates( [0,1] )
+            Traceback (most recent call last):
+            ...
+            TypeError: entries must be a list of length 3
+
+        Nonsensical arguments are presumably caught with a ``TypeError`` exception::
+
+            sage: (ZZ^3).coordinates( QQ )
+            Traceback (most recent call last):
+            ...
+            TypeError: can't initialize vector from nonzero non-list
         """
         return self.coordinate_vector(v, check=check).list()
 
@@ -1418,24 +1476,6 @@ done from the right side.""")
         """
         Return the vector whose coefficients give `v` as a linear
         combination of the basis for self.
-
-        INPUT:
-
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        EXAMPLES::
-
-            sage: M = FreeModule(ZZ, 2); M0,M1=M.gens()
-            sage: W = M.submodule([M0 + M1, M0 - 2*M1])
-            sage: W.coordinate_vector(2*M0 - M1)
-            (2, -1)
         """
         raise NotImplementedError
 
@@ -2305,7 +2345,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             raise ArithmeticError, "self must be contained in the vector space spanned by other."
 
         try:
-            C = [other.coordinates(b) for b in self.basis()]
+            C = [other.vector_space().coordinates(b) for b in self.basis()]
         except ArithmeticError:
             raise
 
@@ -4487,18 +4527,21 @@ class FreeModule_ambient(FreeModule_generic):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the standard basis for self and
-        return the resulting coefficients in a vector over the fraction
-        field of the base ring.
+        Write `v` in terms of the user basis for the module and
+        return the resulting coefficients in a vector over the base
+        ring.
 
-        Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. SEEALSO::
 
-                             \sum c_i B_i = v.
+            This method is identical to :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`
+            except that it returns a vector instead of a list.
 
-        If `v` is not in self, raises an ArithmeticError
-        exception.
+        .. NOTE::
+
+            The ``check`` flag is actually ignored ; an
+            ``ArithmeticError`` exception is always raised when `v`
+            does not belong to the free module.
 
         EXAMPLES::
 
@@ -4507,75 +4550,44 @@ class FreeModule_ambient(FreeModule_generic):
             (1, 5, 9)
             sage: v.parent()
             Ambient free module of rank 3 over Ring of integers modulo 16
+
+        ::
+
+            V.coordinate_vector( [1/2, 1,1])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: element is not in the free module
         """
-        return self(v)
+        try:
+            return self(v)
+        except (TypeError, ValueError):
+            raise ArithmeticError("element is not in the free module")
+
 
     def echelon_coordinate_vector(self, v, check=True):
         r"""
-        Same as ``self.coordinate_vector(v)``, since self is
-        an ambient free module.
+        Write `v` in terms of the echelonized basis for the module and
+        return the resulting coefficients in a vector over the base
+        ring.
 
-        INPUT:
+        .. SEEALSO::
 
+            Identical to :meth:`coordinate_vector`, since ambient
+            modules over a ring which is not a PID cannot have a user
+            basis, and the only possible basis is echelonized.
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        EXAMPLES::
-
-            sage: V = QQ^4
-            sage: v = V([-1/2,1/2,-1/2,1/2])
-            sage: v
-            (-1/2, 1/2, -1/2, 1/2)
-            sage: V.coordinate_vector(v)
-            (-1/2, 1/2, -1/2, 1/2)
-            sage: V.echelon_coordinate_vector(v)
-            (-1/2, 1/2, -1/2, 1/2)
-            sage: W = V.submodule_with_basis([[1/2,1/2,1/2,1/2],[1,0,1,0]])
-            sage: W.coordinate_vector(v)
-            (1, -1)
-            sage: W.echelon_coordinate_vector(v)
-            (-1/2, 1/2)
         """
         return self.coordinate_vector(v, check=check)
 
     def echelon_coordinates(self, v, check=True):
         """
-        Returns the coordinate vector of v in terms of the echelon basis
-        for self.
+        Write `v` in terms of the echelonized basis for the module.
 
-        EXAMPLES::
+        .. SEEALSO::
 
-            sage: U = VectorSpace(QQ,3)
-            sage: [ U.coordinates(v) for v in U.basis() ]
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-            sage: [ U.echelon_coordinates(v) for v in U.basis() ]
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-            sage: V = U.submodule([[1,1,0],[0,1,1]])
-            sage: V
-            Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  1]
-            sage: [ V.coordinates(v) for v in V.basis() ]
-            [[1, 0], [0, 1]]
-            sage: [ V.echelon_coordinates(v) for v in V.basis() ]
-            [[1, 0], [0, 1]]
-            sage: W = U.submodule_with_basis([[1,1,0],[0,1,1]])
-            sage: W
-            Vector space of degree 3 and dimension 2 over Rational Field
-            User basis matrix:
-            [1 1 0]
-            [0 1 1]
-            sage: [ W.coordinates(v) for v in W.basis() ]
-            [[1, 0], [0, 1]]
-            sage: [ W.echelon_coordinates(v) for v in W.basis() ]
-            [[1, 1], [0, 1]]
+            Identical to :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`, since ambient
+            modules over a ring which is not a PID cannot have a user
+            basis, and the only possible basis is echelonized.
         """
         return self.coordinates(v, check=check)
 
@@ -4754,28 +4766,14 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the standard basis for self and
-        return the resulting coefficients in a vector over the fraction
-        field of the base ring.
+        Write `v` in terms of the user basis of the module and return
+        the resulting coefficients in a vector.
 
-        INPUT:
+        .. SEEALSO::
 
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        Returns a vector `c` such that if `B` is the basis for self, then
-
-        .. math::
-
-                             \sum c_i B_i = v.
-
-        If `v` is not in self, raises an ArithmeticError exception.
+            This is the same as
+            :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`,
+            except that it returns a vector instead of a list.
 
         EXAMPLES::
 
@@ -4783,9 +4781,42 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             sage: v = V.coordinate_vector([1,5,9]); v
             (1, 5, 9)
             sage: v.parent()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        With ``check==False``, the result is a vector over the fraction field of the base ring::
+
+            sage: v = V.coordinate_vector([1,5,9], check=False);
+            sage: v.parent()
             Vector space of dimension 3 over Rational Field
+
+        By default, vectors not in the free module raise an exception::
+
+            sage: V.coordinate_vector( [1/2, 1, 1] )
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: element is not in the free module
+
+        But with ``check==False``, vectors in the associated vector space are admissible::
+
+            sage: V.coordinate_vector( [1/2, 1, 1], check=False )
+            (1/2, 1, 1)
+
+        The vector must belong to the ambient vector space::
+
+            sage: V.coordinate_vector( [sqrt(2), 1, 1] )
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert sqrt(2) to a rational
+
         """
-        return self.ambient_vector_space()(v)
+        # if this raises an exception, then v is very wrong
+        c = self.ambient_vector_space()(v)
+        if check:
+            try:
+                return self(v)
+            except (TypeError, ValueError):
+                raise ArithmeticError("element is not in the free module")
+        return c
 
     def vector_space(self, base_field=None):
         """
@@ -5408,29 +5439,38 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinates(self, v, check=True):
         r"""
-        Write `v` in terms of the echelonized basis for self.
+        Write `v` in terms of the echelonized basis of the module.
+
+        Raise an exception if `v` is not in the vector space
+        associated to this free module (as returned by the
+        :meth:`vector_space` method). If ``check==True``, then check
+        that `v` actually belongs to the submodule.
+
+        .. SEEALSO::
+
+            Identical to
+            :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`,
+            except that the result is a list of coordinates w.r.t. the
+            echelonized basis (returned by :meth:`echelonized_basis`)
+            instead of the user basis (returned by :meth:`basis`).
 
         INPUT:
 
-
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
+        -  ``check`` - bool (default: False); if ``True``, also
+           verify that `v` is really in the submodule.
 
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis
-        for self, then
+        Return a list `c` such that if `B` is the echelonized basis fo
+        the submodule, then
 
         .. math::
 
                              \sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an
-        ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -5459,26 +5499,70 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             ]
             sage: W.echelon_coordinates([0,0,2,0,-1/2])
             [0, 2]
+
+        We see the effect of the ``check`` flag::
+
+            sage: A = ZZ^3
+            sage: M = A.span_of_basis([[1,2,'3/7'],[4,5,6]])
+            sage: x = 1/2 * M.gen(0) + M.gen(1)
+            sage: M.echelon_coordinates( x )
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in submodule
+
+        ::
+
+            sage: M.echelon_coordinates( x, check=False )
+            [9/2, -1]
+
+        The argument must belong to the associated vector space::
+
+            sage: M.echelon_coordinates( [1,1,1] )
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
         """
+        return self.echelon_coordinate_vector(v, check=check).list()
+
+    def echelon_coordinate_vector(self, v, check=True):
+        """
+        Write `v` in terms of the echelonized basis for self.
+
+        .. SEEALSO::
+
+          This function is identical to :meth:`echelon_coordinates`,
+          except that it returns a vector instead of a list.
+        """
+        E = self.ambient_vector_space()
         if not isinstance(v, free_module_element.FreeModuleElement):
-            v = self.ambient_vector_space()(v)
-        elif v.degree() != self.degree():
-            raise ArithmeticError, "vector is not in free module"
+            try:
+                v = E(v)
+            except TypeError:
+                raise ArithmeticError, "vector is not in submodule"
+        if v.degree() != self.degree():
+            raise ArithmeticError, "vector is not in submodule"
         # Find coordinates of v with respect to rref basis.
-        E = self.echelonized_basis_matrix()
-        P = E.pivots()
+        M = self.echelonized_basis_matrix()
+        P = M.pivots()
         w = v.list_from_positions(P)
         # Next use the transformation matrix from the rref basis
         # to the echelon basis.
         T = self._rref_to_echelon_matrix()
-        x = T.linear_combination_of_rows(w).list(copy=False)
-        if not check:
-            return x
-        if v.parent() is self:
-            return x
-        lc = E.linear_combination_of_rows(x)
-        if lc != v and list(lc) != list(v):
-            raise ArithmeticError, "vector is not in free module"
+        x = T.linear_combination_of_rows(w)
+        if check:
+            if v.parent() is self:
+                return x
+            # check that `v` is actually in the associated vector space
+            lc = M.linear_combination_of_rows(x)
+            if E(lc) != v:
+                raise ArithmeticError("vector is not in free module")
+            R = self.base_ring()
+            if not self.base_ring().is_field():
+                for a in x:
+                    try:
+                        b = R(a)
+                    except (TypeError, ValueError):
+                        raise ArithmeticError("vector is not in submodule")
         return x
 
     def user_to_echelon_matrix(self):
@@ -5829,32 +5913,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Return the vector whose coefficients give `v` as a linear
+        combination of the user basis for self.
 
-        INPUT:
+        .. SEEALSO::
 
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        Returns a vector `c` such that if `B` is the basis for self, then
-
-        .. math::
-
-
-        If `v` is not in self, raises an ArithmeticError exception.
-
-        EXAMPLES::
-
-            sage: V = ZZ^3
-            sage: M = V.span_of_basis([['1/8',2,1]])
-            sage: M.coordinate_vector([1,16,8])
-            (8)
+            This method is identical to
+            :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`,
+            except that it returns a vector instead of a list.
         """
         # First find the coordinates of v wrt echelon basis.
         w = self.echelon_coordinate_vector(v, check=check)
@@ -5886,42 +5952,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         return self.__echelonized_basis
 
-    def echelon_coordinate_vector(self, v, check=True):
-        """
-        Write `v` in terms of the echelonized basis for self.
-
-        INPUT:
-
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-        Returns a list `c` such that if `B` is the echelonized basis
-        for self, then
-
-        .. math::
-
-                             \sum c_i B_i = v.
-
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
-
-        EXAMPLES::
-
-            sage: V = ZZ^3
-            sage: M = V.span_of_basis([['1/2',3,1], [0,'1/6',0]])
-            sage: B = M.echelonized_basis(); B
-            [
-            (1/2, 0, 1),
-            (0, 1/6, 0)
-            ]
-            sage: M.echelon_coordinate_vector(['1/2', 3, 1])
-            (1, 18)
-        """
-        return FreeModule(self.base_ring().fraction_field(), self.rank())(self.echelon_coordinates(v, check=check))
-
+ 
     def has_user_basis(self):
         """
         Return ``True`` if the basis of this free module is
@@ -6040,34 +6071,45 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Return the vector whose coefficients give `v` as a linear
+        combination of the basis for self.
 
-        INPUT:
+        .. SEEALSO::
 
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        Returns a list `c` such that if `B` is the basis for self, then
-
-        .. math::
-
-                             \sum c_i B_i = v.
-
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+            This method is identical to
+            :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`,
+            except that it returns a vector instead of a list. Because
+            this submodule has no user-specified basis, this method is
+            also identical to
+            :meth:`~sage.modules.free_module.FreeModule_submodule_with_basis_pid.echelon_coordinate_vector`
+            and to
+            :meth:`~sage.modules.free_module.FreeModule_submodule_with_basis_pid.echelon_coordinates`.
 
         EXAMPLES::
 
             sage: V = ZZ^3
-            sage: W = V.span_of_basis([[1,2,3],[4,5,6]])
+            sage: W = V.span([[1,2,3],[4,5,6]])
             sage: W.coordinate_vector([1,5,9])
-            (5, -1)
+            (1, 1)
+
+        ::
+
+            sage: W.coordinate_vector([2,5,9])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+
+        ::
+
+            sage: W.coordinate_vector( W.gen(0)*1/2 + W.gen(1)*5/4 )
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in submodule
+
+        ::
+
+            sage: W.coordinate_vector( W.gen(0)*1/2 + W.gen(1)*5/4, check=False )
+            (1/2, 5/4)
         """
         return self.echelon_coordinate_vector(v, check=check)
 
@@ -6436,118 +6478,35 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
                 self.degree(), self.dimension(), self.base_field()) + \
                 "Basis matrix:\n%s"%self.basis_matrix()
 
-    def echelon_coordinates(self, v, check=True):
-        """
-        Write `v` in terms of the echelonized basis of self.
+    def coordinate_vector(self, v, check=True):
+        r"""
+        Return the vector whose coefficients give `v` as a linear
+        combination of the basis for self.
 
-        INPUT:
+        .. SEEALSO::
 
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        Returns a list `c` such that if `B` is the basis for self, then
-
-        .. math::
-
-                             \sum c_i B_i = v.
-
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+            This method is identical to
+            :meth:`~sage.modules.free_module.FreeModule_generic.coordinates`,
+            except that it returns a vector instead of a list. Because
+            this submodule has no user-specified basis, this method is
+            also identical to
+            :meth:`~sage.modules.free_module.FreeModule_submodule_with_basis_pid.echelon_coordinate_vector`
+            and to
+            :meth:`~sage.modules.free_module.FreeModule_submodule_with_basis_pid.echelon_coordinates`.
 
         EXAMPLES::
 
             sage: V = QQ^3
             sage: W = V.span([[1,2,3],[4,5,6]])
-            sage: W
-            Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  2]
-
-        ::
-
-            sage: v = V([1,5,9])
-            sage: W.echelon_coordinates(v)
-            [1, 5]
-            sage: vector(QQ, W.echelon_coordinates(v)) * W.basis_matrix()
-            (1, 5, 9)
-        """
-        if not isinstance(v, free_module_element.FreeModuleElement):
-            v = self.ambient_vector_space()(v)
-        if v.degree() != self.degree():
-            raise ArithmeticError, "v (=%s) is not in self"%v
-        E = self.echelonized_basis_matrix()
-        P = E.pivots()
-        if len(P) == 0:
-            if check and v != 0:
-                raise ArithmeticError, "vector is not in free module"
-            return []
-        w = v.list_from_positions(P)
-        if not check:
-            # It's really really easy.
-            return w
-        if v.parent() is self:   # obvious that v is really in here.
-            return w
-        # the "linear_combination_of_rows" call dominates the runtime
-        # of this function, in the check==False case when the parent
-        # of v is not self.
-        lc = E.linear_combination_of_rows(w)
-        if lc != v:
-            raise ArithmeticError, "vector is not in free module"
-        return w
-
-    def coordinate_vector(self, v, check=True):
-        """
-        Write `v` in terms of the user basis for self.
-
-        INPUT:
-
-
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
-
-        OUTPUT: list
-
-        Returns a list `c` such that if `B` is the basis for self, then
-
-        .. math::
-
-                             \sum c_i B_i = v.
-
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
-
-        EXAMPLES::
-
-            sage: V = QQ^3
-            sage: W = V.span([[1,2,3],[4,5,6]]); W
-            Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  2]
-            sage: v = V([1,5,9])
-            sage: W.coordinate_vector(v)
+            sage: W.coordinate_vector([1,5,9])
             (1, 5)
-            sage: W.coordinates(v)
-            [1, 5]
-            sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
-            (1, 5, 9)
 
         ::
 
-            sage: V = VectorSpace(QQ,5, sparse=True)
-            sage: W = V.subspace([[0,1,2,0,0], [0,-1,0,0,-1/2]])
-            sage: W.coordinate_vector([0,0,2,0,-1/2])
-            (0, 2)
+            sage: W.coordinate_vector([2,5,9])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
         """
         return self.echelon_coordinate_vector(v, check=check)
 
@@ -6617,17 +6576,33 @@ def basis_seq(V, vecs):
 
 class RealDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
-        FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
+        """
+        TESTS::
 
-    def coordinates(self,v):
-        return v
+            sage: vector([0.2, 0.3]) in RDF^2
+            True
+
+        ::
+
+            sage: vector([0.2, 0.3*I]) in RDF^2
+            False
+
+        ::
+
+            sage: vector([0.2, sqrt(2)]) in RDF^2
+            True
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: vector([1, x]) in RDF^2
+            False
+        """
+        FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
 
 class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.complex_double.CDF,n)
-
-    def coordinates(self,v):
-        return v
 
 
 
