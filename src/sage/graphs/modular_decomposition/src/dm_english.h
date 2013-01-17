@@ -66,7 +66,7 @@ Output : definition of modular decomposition tree.
 Each internal node is labelled SERIE (for series), PARALLELE (for parallel) or PREMIER (for prime) depending of the quotient's type.
 Each leaf is labelled FEUILLE and also contains the vertex number of the leaf.
 As the tree is an inclusion tree, the vertex-set corresponding to an internal node correspond to the vertices numbers of the leaves that descend from that tree. The function decomposition_modulaire() return a pointer to the root of the tree.
-
+*/
 
 
 /* define the type of nodes. UNKN,MODULE,ARTEFACT are for internal use*/
@@ -85,15 +85,13 @@ typedef struct Noeud {
   int type;	// is FEUILLE, SERIE, PARALLELE or PREMIER
   struct Noeud *pere;	// adress of parent node, NULL if root
   struct Fils *fpere;	// points the head of the linked list of sons (if type is not FEUILLE, else is NULL)
-  int ps;	// internal use
-  int bg;	// internal use
-  int ds;       // internal use
-  int bd;	// internal use
-  int sommet;	// internal use
   int nom;	// if type=FEUILLE, number of the corresponding vertex of the graph
   struct Fils *fils; // points the head of the linked list of sons
   struct Fils *lastfils;  // internal use (points the last item in the listed list of sons)
   int id;	// internal use (node unique ID)
+  int fv;  // internal use (first vertex in factorizing permutation)
+  int lv;  // internal use (last vertex in factorizing permutation)
+
 } noeud;
 
 /* linked list that strore the sons of an internal node (in any order) */

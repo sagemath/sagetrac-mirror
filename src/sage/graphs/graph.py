@@ -5893,6 +5893,14 @@ class Graph(GenericGraph):
 
         - :meth:`is_prime` -- Tests whether a graph is prime.
 
+        TESTS:
+
+        :trac:`13744`::
+
+            sage: P = Graph('Dl_')
+            sage: P.is_prime()
+            False
+
         REFERENCE:
 
         .. [FMDec] Fabien de Montgolfier

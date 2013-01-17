@@ -30,15 +30,19 @@ Le premier realise une permutation factorisante des sommets du graphe
 (pour cette notion, cf these de Christian Capelle)
 grace a une technique d'affinage de partitions (cf Habib, Paul & Viennot)
 Le second construit l'arbre de decomposition modulaire a partir de cette
-permutation, cf mon memoire de DEA
-Montpellier, decembre 2000
++permutation, cf
+[Anne Bergeron, Cedric Chauve, Fabien de Montgolfier, Mathieu Raffinot,
+ Computing Common Intervals of K Permutations, with Applications to Modular
+ Decomposition of Graphs. SIAM J. Discrete Math. 22(3): 1022-1039 (2008)]
+
+Montpellier, decembre 2000 et Paris, novembre 2010
 ********************************************************/
 
 #include "dm_english.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG 0                        /* si 0 aucune sortie graphique!! */
+#define DEBUG 0                /* si 0 aucune sortie graphique!! */
 
 /* dm.h definit les constantes FEUILLE, MODULE, etc...
 ainsi que les structures noeud et fils. Les autres
@@ -139,7 +143,7 @@ void printS(sommet ** S, int n)
   for (s = S[0]->classe; s != NULL; s = s->suiv) {
     printf("[ ");
     for (i = s->debut; i <= s->fin; i++)
-      printf("%i ", 1 + S[i]->nom);
+      printf("%i ", S[i]->nom);
     printf("] ");
   }
   printf("\n");
@@ -192,7 +196,7 @@ void Raffiner(sommet ** S, sommet * p, sommet * centre, info * I)
   int *ipivot, *imodule, *numclasse, n;
 
   if (DEBUG)
-    printf("Raffinage avec le pivot %i\n", 1 + p->nom);
+    printf("Raffinage avec le pivot %i\n", p->nom);
   pivot = I->pivot;
   module = I->module;
   ipivot = I->ipivot;
@@ -302,8 +306,8 @@ void Raffiner(sommet ** S, sommet * p, sommet * centre, info * I)
           X->inmodule = -1;
           if (DEBUG)
             printf("Dans module %i-%i ecrase %i-%i\n",
-                   1 + S[Xa->debut]->nom, 1 + S[Xa->fin]->nom,
-                   1 + S[X->debut]->nom, 1 + S[X->fin]->nom);
+                    S[Xa->debut]->nom, S[Xa->fin]->nom,
+                    S[X->debut]->nom, S[X->fin]->nom);
         }
         else {
           if (X->inmodule == -1) {
@@ -317,7 +321,7 @@ void Raffiner(sommet ** S, sommet * p, sommet * centre, info * I)
             (*imodule)++;
             if (DEBUG)
               printf("module empile:%i-%i\n",
-                     1 + S[Z->debut]->nom, 1 + S[Z->fin]->nom);
+                      S[Z->debut]->nom, S[Z->fin]->nom);
           }
         }
       }
@@ -333,8 +337,8 @@ void Raffiner(sommet ** S, sommet * p, sommet * centre, info * I)
       Z->inpivot = (*ipivot);
       (*ipivot)++;
       if (DEBUG)
-        printf("pivot empile: %i-%i\n", 1 + S[Z->debut]->nom,
-               1 + S[Z->fin]->nom);
+        printf("pivot empile: %i-%i\n", S[Z->debut]->nom,
+                S[Z->fin]->nom);
       X->whereXa = 0;
       Xa->whereXa = 0;
     }
@@ -366,7 +370,8 @@ sommet **algo1(graphe G)
     sclasse *C1;                /*premiere classe, tete de la chaine */
     sclasse *Y;                        /*classe qui raffine */
     sclasse *X;                        /*classe raffinee */
-    sclasse *Xa, *Xc;                /* morceaux de X */
+    sclasse *Xc;                /* morceau utilise de X */
+    /* sclasse *Xa, *Xc; morceau inutilise de X */
     sommet *x;                        /* x in X */
     sommet *y;                        /* y in Y */
     sommet *centre;                /* le centre du raffinage actuel */
@@ -461,8 +466,8 @@ sommet **algo1(graphe G)
                 Y->firstpivot = y;        /* le premier!! */
                 if (DEBUG)
                     printf("module-pivot %i-%i: sommet %i\n",
-                           1 + S[Y->debut]->nom, 1 + S[Y->fin]->nom,
-                           1 + y->nom);
+                            S[Y->debut]->nom, S[Y->fin]->nom,
+                            y->nom);
                 Raffiner(S, y, centre, &Inf);
             }
         }
@@ -498,7 +503,7 @@ sommet **algo1(graphe G)
 
         if (DEBUG)
             printf("Relance dans le module %i-%i avec le sommet %i\n",
-                   1 + S[X->debut]->nom, 1 + S[X->fin]->nom, 1 + x->nom);
+                    S[X->debut]->nom, S[X->fin]->nom, x->nom);
 
         centre = x;                /*important! */
         /* astuce: on place {x} en tete de X
@@ -537,6 +542,8 @@ sommet **algo1(graphe G)
         if (DEBUG)
             printS(S, n);
     }
+  free(module);
+  free(pivot);
 }
 
 /***************************************************************
@@ -656,7 +663,7 @@ void TrierTous(sommet **S, int n, int m)
  etablir l'arbre de decomposition modulaire.
  Tous les details sont dans mon memoire de DEA
 ****************************************************************/
-noeud *nouvnoeud(int type, noeud * pere, int sommet, int n)
+noeud *nouvnoeud(int type, noeud * pere, int sommet, int fv, int lv)
 {
     /* cree un nouveau noeud. Noter que l'on est oblige de passer n
        comme parametre car les bords et separateurs droits doivent
@@ -669,15 +676,9 @@ noeud *nouvnoeud(int type, noeud * pere, int sommet, int n)
     nn->type = type;
     nn->pere = pere;
     /* nn->fpere ne peut etre deja mis a jour... */
-    nn->sommet = sommet;
-    nn->ps = n + 2;
-    nn->ds = -2;
-    /*ces valeurs pour distinguer "non calcule" (-2) */
-    /*   de "abscence de separateur" (-1). De plus, on fera des min et des */
-    /*   max sur les bords */
-    nn->bg = n + 2;
-    nn->bd = -2;                /* idem */
-
+    nn->nom = sommet;
+    nn->fv=fv;
+    nn->lv=lv;
     nn->fils = NULL;
     nn->lastfils = NULL;
     nn->id = compteur;
@@ -699,65 +700,6 @@ void ajoutfils(noeud * pere, noeud * nfils)
     pere->lastfils = nf;
     nfils->pere = pere;                /* normalement: redondant,mais... */
     nfils->fpere = nf;
-}
-
-void fusionne(noeud * pere, noeud * artefact)
-{
-    /*fusionne un artefact a son pere.
-       utilise le champ fpere qui permet de savoir ou se greffer
-       une structure fils sera detruite dans l'operation: artefact->fils */
-    fils *greffe;
-    fils *f;
-    /* met a jour la liste des peres */
-    f = artefact->fils;
-    while (f != NULL) {
-        f->pointe->pere = pere;        /*avant c'etait ancien... */
-        /* f->pointe->fpere est inchange */
-        f = f->suiv;
-    }
-    /* greffe la liste */
-    greffe = artefact->fpere;
-    artefact->lastfils->suiv = greffe->suiv;
-    greffe->pointe = artefact->fils->pointe;
-    greffe->suiv = artefact->fils->suiv;
-    artefact->fils->pointe->fpere = greffe;        /*artefact->fils a disparu */
-    if (pere->lastfils == greffe)
-        pere->lastfils = artefact->lastfils;
-}
-
-void
-extraire(noeud * ancien, noeud * nouveau, fils * premier, fils * dernier)
-{
-    /* extrait la liste [premier...dernier] des fils de l'ancien noeud,
-       et en fait la liste des fils du nouveau noeud */
-    fils *nf;                        /* il faut une structure fils de plus */
-    fils *f;                        /*indice de mise a jour */
-    nf = (fils *) fabmalloc(sizeof(fils));
-    nf->pointe = premier->pointe;
-    nf->suiv = premier->suiv;
-    premier->pointe->fpere = nf;
-    nouveau->pere = ancien;
-    nouveau->fils = nf;
-    nouveau->lastfils = dernier;
-    nouveau->bg = premier->pointe->bg;
-    nouveau->bd = dernier->pointe->bd;
-    nouveau->ps = premier->pointe->bg;        /* nouveau est suppose etre un */
-    nouveau->ds = dernier->pointe->bd;        /* module, donc bords=separateurs! */
-    if (ancien->lastfils == dernier)
-        ancien->lastfils = premier;
-    /* ecrase l'ancier premier */
-    nouveau->fpere = premier;
-    premier->pointe = nouveau;
-    premier->suiv = dernier->suiv;
-    /* met a jour dernier */
-    dernier->suiv = NULL;
-    /* met a jour la liste des peres */
-    f = nf;
-    while (f != dernier->suiv) {
-        f->pointe->pere = nouveau;        /*avant c'etait ancien... */
-        f->pointe->fpere = premier;
-        f = f->suiv;
-    }
 }
 
 void printnoeud(noeud * N, int level)
@@ -801,7 +743,7 @@ void printnoeud(noeud * N, int level)
             for (i = 0; i < level; i++)
                 printf("  |");
             printf("  +--");
-            printf("%i\n", 1 + nfils->nom);
+            printf("%i\n", nfils->nom);
         }
         else {
             printnoeud(nfils, level + 1);
@@ -816,6 +758,65 @@ void printarbre(noeud * N)
     printnoeud(N, 0);
 }
 
+
+void typenoeud(noeud * N, int *L2, int *R2, sommet **S)
+{
+  // type recursivement l'arbre
+  if(N->type == FEUILLE)
+    return;
+  else if (N->type != UNKN)
+    {
+      printf("Erreur typage!\n");
+      return;
+    }
+  // maintenant N est supposé avoir deux fils
+  noeud *premier, *second;
+  premier = N->fils->pointe;
+  if(premier==NULL)
+    {
+      printf("Erreur typage!\n");
+      return;
+    }
+  second = N->fils->suiv->pointe;
+  if(second==NULL)
+    {
+      printf("Erreur typage!\n");
+      return;
+    }
+
+  sadj *a1;
+  int i = premier->fv;
+  int j = second->lv;
+  if(L2[j]<=i && j<= R2[i])
+    // ah ah les deux premiers fils forment un module
+    // on recherche si adjacents
+    {
+      N->type = PARALLELE; // sera modifie si adjacence
+      a1=S[i]->adj;
+      while(a1!=NULL)
+        {
+          if(a1->pointe->place == S[j]->place)
+            // adjacence trouvee !
+            {
+              N->type = SERIE;
+              break;
+            }
+          a1=a1->suiv;
+        }
+    }
+  else
+    N->type = PREMIER;
+
+    fils *ffils;
+    ffils = N->fils;
+    do {
+      typenoeud( ffils -> pointe, L2, R2, S);
+      ffils = ffils->suiv;
+    }
+    while (ffils != NULL);
+}
+
+
 noeud *algo2(graphe G, sommet **S)
 {
 /* algorithme de decomposition modulaire, deuxieme passe
@@ -824,12 +825,7 @@ sortie: un pointeur sur un arbre de decomposition modulaire
 */
     /* debug: S n'est utilise que pour mettre vrainom a jour */
     int n; //nombre de sommets du graphe
-    int *ouvrantes;                /* tableau du nombre de parentheses ouvrantes */
-    /* ouvrante[i]=3 ssi i-1(((i  */
-    /* ouvrante [0]=3: (((0 */
 
-    int *fermantes;                /* idem fermantes[i]=2 ssi i)))i+1
-                                   fermante [n-1]=2 ssi n))) */
     int *ps;                        /* ps[i]=premier separateur de (i,i+1) */
     int *ds;
 
@@ -837,50 +833,42 @@ sortie: un pointeur sur un arbre de decomposition modulaire
 
     sadj *a1, *a2;                /* parcours de liste d'adjacence */
 
-    noeud *racine;                /*racine du pseudocoardre */
-    noeud *courant, *nouveau;        /* noeud courant du pseudocoarbre */
-    noeud **pileinterne;        /* pile des modules pour les passes 3,5,5 */
-    int indicepileinterne = 0;        /*pointeur dans cette pile */
-    int taillepileinterne;        /* taille de la pile apres la 2eme passe */
 
-    int *adjii;                 /* adjii[i]=1 ssi S[i] et S[i+1] sont */
-                                   /*                             adjacents */
+    int *R2, *L2; // le generateur des intervalle-modules produit Capelle-like en phase 2
+    int *R, *L; // le  generateur canonique des intervalle-modules
+    int *SupR, *SupL; // le  support pour passer de (R2,L2) a (R,L)
+
+    int *pile;  // pile utilisee pour calcule generateur
+    int sommet; // sommet de ladite pile. Indique la derniere place PLEINE
+
+    int *tab1,*tab2; // utilise pour le tri lineaire avant algo 6
+    int *fortg, *fortd; // bornes de mes modules forts
+    int nb_forts=0; // nombre de modules forts
+
+    int *newfortg, *newfortd; // tableau de modules forts utilises temporairement pour bucket sort
+
     /*PROPHASE : initialisations */
     n=G.n;
-    ouvrantes = (int *) fabmalloc(n * sizeof(int));
-    fermantes = (int *) fabmalloc(n * sizeof(int));
     ps = (int *) fabmalloc(n * sizeof(int));
     ds = (int *) fabmalloc(n * sizeof(int));
-    pileinterne = (noeud **) fabmalloc((2 * n + 4) * sizeof(noeud *));
-    adjii= (int *) fabmalloc(n*sizeof(int));
-    /*pas plus de 2n+4 noeuds internes dans le pseudocoarbre */
-    for (i = 0; i < n; i++) {
-      ouvrantes[i] = 0;
-      fermantes[i] = 0;
-      adjii[i]=0;
-    }
-
-    /* remplit adjii qui dit si S[i] adjacent a S[i+1] */
-    for(i=0; i<n-1; i++)
-      {
-         a1=S[i]->adj;
-         while((a1!=NULL)&&(a1->pointe->place != i+1))
-           a1=a1->suiv;
-         if( a1 == NULL)
-           adjii[i]=0;
-         else // a1->pointe->place==i+1, donc i adj i+1
-           adjii[i]=1;
-      }
-    adjii[n-1]=0; //perfectionnisme
+    R2 = (int *)fabmalloc(n * sizeof(int));
+    L2 = (int *)fabmalloc(n * sizeof(int));
+    SupR = (int *)fabmalloc(n * sizeof(int));
+    SupL = (int *)fabmalloc(n * sizeof(int));
+    R = (int *)fabmalloc(n * sizeof(int));
+    L = (int *)fabmalloc(n * sizeof(int));
+    pile = (int *)fabmalloc(n * sizeof(int));
+    tab1 = (int *)fabmalloc(4 * n * sizeof(int));
+    tab2 = (int *)fabmalloc(2 * n * sizeof(int));
+    fortg=fabmalloc(2 * n * sizeof(int));
+    fortd=fabmalloc(2 * n * sizeof(int));
+    newfortg= (int *)fabmalloc(2 * n * sizeof(int));
+    newfortd=(int *) fabmalloc(2 * n * sizeof(int));
 
     /* PREMIERE PASSE
        on va parentheser la permutation factorisante.
-       tout bonnement, on lit S et on cherche les separateurs;
-       apres quoi ouvrantes et fermantes sont ecrites
-       complexite: O(n^2) */
-
-    ouvrantes[0] = 1;
-    fermantes[n - 1] = 1;        /* parentheses des bords */
+       complexite: O(m) */
+    // utilise ps ds
 
     for (i = 0; i < n - 1; i++) {
       /*recherche de ps(i,i+1) */
@@ -899,7 +887,7 @@ sortie: un pointeur sur un arbre de decomposition modulaire
           ||((a2==NULL) && (a1->pointe->place >= i))
           ||((a1!=NULL) && (a2!=NULL) && (a1->pointe->place >= i) && (a2->pointe->place >= i)))
         //pas de separateur
-        ps[i]=i+1;
+        ps[i]=-1;
       else
         {
           if((a1==NULL) || (a1->pointe->place >= i))
@@ -915,12 +903,10 @@ sortie: un pointeur sur un arbre de decomposition modulaire
               else
                 ps[i]=min(a1->pointe->place , a2->pointe->place);
             }
-          ouvrantes[ps[i]]++;        /* marque la fracture gauche, if any */
-          fermantes[i]++;
         }
       if (DEBUG)
-        printf("ps(%i,%i)=%i\n", i , i+1, ps[i]);
-
+        printf("ps(%i,%i)=%i ps(%i,%i)=%i\n", i , i+1, ps[i],
+               S[i]->nom, S[i + 1]->nom, ps[i]==-1?-1:S[ps[i]]->nom );
         /*recherche de ds(i,i+1)
           plus penible encore!*/
       a1=S[i]->adj;
@@ -942,7 +928,7 @@ sortie: un pointeur sur un arbre de decomposition modulaire
           ||((a2==NULL) && (a1->pointe->place <= i+1))
           ||((a1!=NULL) && (a2!=NULL) && (a1->pointe->place <= i+1) && (a2->pointe->place <= i+1)))
         //pas de separateur
-        ds[i]=i+1;
+        ds[i]=-1;
       else
         {
           if((a1==NULL) || (a1->pointe->place <= i+1))
@@ -961,256 +947,309 @@ sortie: un pointeur sur un arbre de decomposition modulaire
 
 
           //ds[i] = j;
-        ouvrantes[i + 1]++;        /* marque la fracture gauche, if any */
-        fermantes[ds[i]]++;        /* attention aux decalages d'indices */
         }
       if (DEBUG)
-        printf("ds(%i,%i)=%i\n", i,i+1,ds[i]);
-      //S[i]->nom + 1,               S[i + 1]->nom + 1, S[ds[i]]->nom + 1);
+        printf("ds(%i,%i)=%i ds(%i,%i)=%i\n", i,i+1,ds[i],
+               S[i]->nom, S[i + 1]->nom, ds[i]==-1?-1:S[ds[i]]->nom );
     }
 
-    /*DEUXIEME PASSE: construction du pseudocoarbre */
+    /* DEUXIEMME PASSE
+       Calcule le generateur des interval-modules comme algo 9 du papier DAM
+    */
+    int v;
+    // utilise ps ds L2 R2 pile
 
-    racine = nouvnoeud(UNKN, NULL, -1, n);
-    courant = racine;
-    for (i = 0; i < n; i++) {
-        /*1: on lit des parentheses ouvrantes: descentes */
-        for (j = 0; j < ouvrantes[i]; j++) {
-            /*Descente vers un nouveau noeud */
-            nouveau = nouvnoeud(UNKN, courant, -1, n);
-            ajoutfils(courant, nouveau);        /*on l'ajoute... */
-            courant = nouveau;        /* et on descent */
-            if (DEBUG)
-                printf("(");
-        }
-        /* 2: on lit le sommet: feuille */
-        nouveau = nouvnoeud(FEUILLE, courant, i, n);
-        ajoutfils(courant, nouveau);        /*on ajoute le bebe... */
-        (*nouveau).ps = i;
-        (*nouveau).ds = i;
-        (*nouveau).bg = i;
-        (*nouveau).bd = i;
-        nouveau->nom = S[i]->nom;
-        /* et pourquoi pas i ? Je m'embrouille... */
-        if (DEBUG)
-            printf(" %i ", S[i]->nom + 1);
+    // algo 9
+    // Attention s[v] dans l'algo est  ds[v-1] !!
+    sommet = -1;
 
-        /*3: on lit des parentheses fermantes: remontees */
-        for (j = 0; j < fermantes[i]; j++) {
-            /*ASTUCE: ici on va en profiter pour supprimer les
-               noeuds a un fils, afin d'economiser une passe */
-            if (courant->fils == courant->lastfils) {        /*just one son */
-                courant->pere->lastfils->pointe = courant->fils->pointe;
-                courant->fils->pointe->pere = courant->pere;
-                courant->fils->pointe->fpere = courant->pere->lastfils;
-                /* explication: le dernier fils de courant.pere est
-                   actuellement courant himself. Il est donc pointe par
-                   courant.pere.lastfils.pointe. Il suffit de changer ce
-                   pointeur pour qu'il pointe maintenant non plus sur courant,
-                   mais sur l'unique fils de courant: courant.fils.pointe.
-                   Ouf! */
-                /* NB: courant est maintenant deconnecte de l'arbre.
-                   on pourrait faire un free() mais bon... */
-            }
-            else {
-                /*on empile ce noeud interne.
-                   L'ordre est celui de la postvisite d'un DFS */
-                pileinterne[indicepileinterne] = courant;
-                indicepileinterne++;
-            }
-            /* et dans tous les cas: on remonte! */
-            courant = courant->pere;
-            if (DEBUG)
-                printf(")");
+    for(v = n-1; v>=0; v--)
+      if(ds[v-1] != -1)
+        {
+          L2[v]=v;
+          while( pile[sommet] < ds[v-1])
+            L2[pile[sommet--]]=v;
         }
-    }
+      else
+        pile[++sommet]=v;
+
+    while(sommet>=0)
+      L2[pile[sommet--]]=0;
+
+    sommet = -1;
+    // algo 9 symétrique
+    //re-attention là c'est ps[v]
+    for(v = 0 ; v<=n-1; v++)
+      if(ps[v] != -1)
+        {
+          R2[v]=v;
+          while(  pile[sommet] > ps[v])
+            R2[pile[sommet--]]=v;
+        }
+      else
+        pile[++sommet]=v;
+
+    while(sommet>=0)
+      R2[pile[sommet--]]=n-1;
+
     if (DEBUG)
+      {    printf("L2 = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",L2[v]);
+        printf("]\nR2 = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",R2[v]);
+        printf("]\n");
+        for(i=0;i<n;i++)
+          for(j=i+1;j<n;j++)
+            if(L2[j]<=i && j<= R2[i])
+              printf("[%i-%i] module\n",i,j);
+
+      }
+
+
+
+    /* TROISIEME PASSE
+       generateur canonique. Algos 3 et 5 du papier de DAM
+    */
+
+    // Algo 3, R
+    pile[0]=0;
+    sommet =0;
+    for(i=1;i<n;i++)
+      {
+        while(R2[pile[sommet]] < i)
+          sommet --;
+        SupR[i]=pile[sommet];
+        pile[++sommet]=i;
+      }
+
+    // Algo 3, L
+
+    pile[0]=n-1;
+    sommet =0;
+    for(i=n-2;i>=0;i--)
+      {
+        while(L2[pile[sommet]] > i)
+          sommet --;
+        SupL[i]=pile[sommet];
+        pile[++sommet]=i;
+      }
+
+    if (DEBUG)
+      {
+        printf("SupL = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",SupL[v]);
+        printf("]\nSupR = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",SupR[v]);
+        printf("]\n");
+      }
+
+    // Algo 5, R
+    int k;
+    R[0]=n-1;
+    for(k=1;k<n;k++)
+      R[k]=k;
+    for(k=n-1;k>=1;k--)
+      if(L2[R[k]] <= SupR[k] && R[k] <= R2[SupR[k]])
+        R[SupR[k]] = max(R[k], R[SupR[k]]);
+
+    // Algo 5, L
+    L[n-1]=0;
+    for(k=0;k<n-1;k++)
+      L[k]=k;
+    for(k=0;k<n-1;k++)
+      if(L2[SupL[k]] <= L[k] && SupL[k] <= R2[L[k]])
+        L[SupL[k]] = min(L[k], L[SupL[k]]);
+
+    if (DEBUG)
+      {    printf("L = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",L[v]);
+        printf("]\nR = [");
+        for(v = 0;v<n;v++)
+          printf("%i ",R[v]);
+        printf("]\n");
+        for(i=0;i<n;i++)
+          for(j=i+1;j<n;j++)
+            if(L[j]<=i && j<= R[i])
+              printf("[%i-%i] module\n",i,j);
+
+      }
+
+    /* QUATRIEME PASSE
+       strong modules. Algo 6 du papier de DAM
+    */
+    //1 remplit le tableau des bornes
+    // astuce : on met 2a pour a borne gauche et 2a+1 pour a borne droite. Puis tri lineaire
+
+    for(i = 0; i<n; i++)
+      {
+        // intervalle (L[i]..i)
+        tab1[4*i] = 2*L[i];
+        tab1[4*i+1] = 2*i+1;
+        // intervalle (i..R[i])
+        tab1[4*i+2] = 2*i;
+        tab1[4*i+3] = 2*R[i]+1;
+      }
+    // tableau des fréquences
+
+    for( i=0;i<2*n;i++)
+      tab2[i]=0;
+    for( i=0;i<4*n;i++)
+      tab2[tab1[i]]++;
+    // tri
+    j = 0;
+    for( i=0;i<2*n;i++)
+      while(tab2[i]-->0)
+        {
+          tab1[j++] = i;
+        }
+
+    // Algo 6 du papier de DAM
+    // j'utilise maintenant tab2 comme stack de sommet : sommet
+    sommet = -1;
+
+
+    for( i=0;i<4*n;i++)
+      {
+        int ai,s; //meme noms de variables que papier
+        ai=tab1[i];
+        if((ai%2)==0)
+          tab2[++sommet] = ai;
+        else
+          {
+            ai/=2;
+            s = tab2[sommet--]/2;
+
+            if(nb_forts == 0 || (fortg[nb_forts - 1] != s) || (fortd[nb_forts - 1] != ai))
+              {
+                fortg[nb_forts] = s;
+                fortd[nb_forts] = ai;
+                nb_forts++;
+              }
+          }
+      }
+    if(DEBUG)
+      {
+        printf("Modules forts :\n");
+        for( i=0;i<nb_forts;i++)
+          printf("[%i %i] ", fortg[i], fortd[i]);
         printf("\n");
+      }
 
-    /* on enleve un ptit defaut */
-    racine = racine->fils->pointe;
-    racine->pere = NULL;
-    racine->fpere = NULL;
-    if (DEBUG) {
-        printf("Arbre apres la deuxieme passe:\n");
-        printnoeud(racine, 0);
-    }
+    // TRI des modules forts par bornes droites decroissantes
+    for( i=0;i<n;i++)
+      tab1[i]=0;
+    for( i=0;i<nb_forts;i++)
+      tab1[fortd[i]]++;
+    for( i=1;i<n;i++)
+      tab1[i]+=tab1[i-1];
 
-    /*TROISIEME PASSE */
-    /* A ce stade, on a un pseudocoarbre de racine racine,
-       sans noeuds a un fils, et dont les etiquettes sont
-       FEUIILLE ou UNKN. Il y a une pile des noeuds UNKN, stockes
-       dans l'ordre de la postvisite d'un parcours en profondeur.
-       On va s'en servir pour faire remonter les bords et les
-       separateurs de bas en haut */
+    // tab1 = tableau des frequences cumulées
+    for( i=0;i<nb_forts;i++)
+      {
+        int pos = (nb_forts-1)-(tab1[fortd[i]]-1);
+        newfortg[ pos ] = fortg[i];
+        newfortd[ pos ] = fortd[i];
+        tab1[fortd[i]]--;
+      }
+    if(DEBUG)
+      {
+        printf("Modules forts :\n");
+        for( i=0;i<nb_forts;i++)
+          printf("[%i %i] ", newfortg[i], newfortd[i]);
+        printf("\n");
+      }
 
-    taillepileinterne = indicepileinterne;
-    for (indicepileinterne = 0; indicepileinterne < taillepileinterne;
-         indicepileinterne++) {
-        noeud *scanne;
-        fils *nextfils;
-        noeud *succourant;
-        /* scanne est le noeud (pere) que l'on regarde;
-           nextfils parcours sa liste de fils;
-           courant est le fils actuellement examine et
-           succourant=succ(courant) */
-        noeud *debutnoeud;
-        fils *debutfils;
-        /*deux variables utilise pour la recherche de jumeaux:
-           debut du bloc max */
+   // now tri par bornes gauches croissantes
+    for( i=0;i<n;i++)
+      tab1[i]=0;
+    for( i=0;i<nb_forts;i++)
+      tab1[newfortg[i]]++;
+    for( i=1;i<n;i++)
+      tab1[i]+=tab1[i-1];
 
-        scanne = pileinterne[indicepileinterne];        /*he oui, la pile */
-        nextfils = scanne->fils;        /*on commence au premier fils */
-        do {
-            /*la boucle chiante... cf mon memoire de DEA */
-            courant = nextfils->pointe;
-            /* bords */
-            scanne->bg = min(scanne->bg, courant->bg);
-            scanne->bd = max(scanne->bd, courant->bd);
-            /*separateurs */
-            scanne->ps = min(scanne->ps, courant->ps);
-            if (scanne->fils->pointe != courant)
-                /*ce n'est pas le premier fils */
-                scanne->ps = min(scanne->ps, ps[(courant->bg) - 1]);
-            scanne->ds = max(scanne->ds, courant->ds);
-            if (scanne->lastfils->pointe != courant)
-                /*ce n'est pas le dernier fils */
-                scanne->ds = max(scanne->ds, ds[courant->bd]);
+    // tab1 = tableau des frequences cumulées
+    for( i = nb_forts-1 ; i>=0 ; i--)// parcours de droite a gauche car on retourne tout
+      {
+        int pos = tab1[newfortg[i]]-1;
+        // printf("[%i %i] en pos %i\n",newfortg[i],newfortd[i],pos);
+        fortg[ pos ] = newfortg[i];
+        fortd[ pos ] = newfortd[i];
+        tab1[newfortg[i]]--;
+      }
+    if(DEBUG)
+      {
+        printf("Modules forts :\n");
+        for( i=0;i<nb_forts;i++)
+          printf("[%i %i] ", fortg[i], fortd[i]);
+        printf("\n");
+      }
 
-            nextfils = nextfils->suiv;
-        }
-        while (nextfils != NULL);
+    // Finally algo 7 du papier : construit l'arbre
+    noeud* racine = nouvnoeud( UNKN, NULL, -1, 0, n-1);
+
+    noeud *F = racine;
+    noeud *Nouv;
+    for(k=1; k< nb_forts; )
+      {
+        if(F->fv <= fortg[k] && F->lv >= fortd[k] )
+          {
+            if(fortg[k]==fortd[k]) // on a une feuille
+              Nouv = nouvnoeud(FEUILLE, F, S[fortg[k]]->nom, fortg[k], fortd[k]);
+            else
+              Nouv = nouvnoeud(UNKN, F, -1, fortg[k], fortd[k]);
+            ajoutfils(F, Nouv);
+            // printf("nouv [%i %i] de pere [%i %i]\n",
+            // fortg[k], fortd[k], F->fv, F->lv);
+            F = Nouv;
+            k++;
+
+          }
+        else
+          {
+            // printf("remonte car [%i %i] pas fils de [%i %i]\n",
+            // fortg[k], fortd[k], F->fv, F->lv);
+            F = F->pere;
+          }
+      }
+    if(DEBUG)
+      {
+        printf("arbre avant typage :\n");
+        printarbre(racine);
+      }
+
+    /* CINQUIEME PASSE : typage */
+    // Methode : on teste grace au generateur la modularite des deux premiers fils.
+    // Ensuite si module est serie si adjacence parallele sinon
+    typenoeud(racine, L2, R2, S);
+
+    if(DEBUG)
+      {
+        printf("\n arbre final :\n");
+        printarbre(racine);
+      }
+    /* nettoie un peu */
+    free(ps);
+    free(ds);
+    free(R2);
+    free(L2);
+    free(SupR);
+    free(SupL);
+    free(R);
+    free(L);
+    free(pile);
+    free(tab1);
+    free(tab2);
+    free(fortg);
+    free(fortd);
+    free(newfortg);
+    free(newfortd);
 
 
-        if (DEBUG)
-            printf("noeud %i-%i: ps=%i ds=%i", 1 + scanne->bg,
-                   1 + scanne->bd, 1 + scanne->ps, 1 + scanne->ds);
-
-        /* maintenant le test tout simple pour savoir si on a un module: */
-        if (((scanne->ps) == (scanne->bg))
-            && ((scanne->ds) == (scanne->bd))) {
-            /*on a un module */
-            scanne->type = MODULE;
-            if (DEBUG)
-                printf(" Module.\n");
-        }
-        else {
-            scanne->type = ARTEFACT;
-            if (DEBUG)
-                printf(" artefact.\n");
-        }
-    }
-
-    if (DEBUG) {
-        printf("Arbre apres la troisieme passe:\n");
-        printnoeud(racine, 0);
-    }
-
-    /* QUATRIEME PASSE */
-    /* technique:on se contente de fusionner les artefacts a leurs parents
-       ca se fait de bas en haut grace a pileinterne (toujours elle!) */
-
-    for (indicepileinterne = 0; indicepileinterne < taillepileinterne;
-         indicepileinterne++) {
-        noeud *scanne;
-        scanne = pileinterne[indicepileinterne];        /*he oui, la pile */
-        if (scanne->type == ARTEFACT) {
-            /*attention! La pile peut contenir des noeuds deconnectes */
-            fusionne(scanne->pere, scanne);
-            if (DEBUG)
-                printf("Artefact elimine: %i-%i\n", 1 + scanne->bg,
-                       1 + scanne->bd);
-        }
-    }
-    if (DEBUG) {
-        printf("Arbre apres la quatrieme passe:\n");
-        printnoeud(racine, 0);
-    }
-
-    /* CINQIEME ET DERNIERE PASSE */
-    /* on va typer les noeuds et extraire les fusions.
-       comment on fait? Ben, la pile.... */
-    for (indicepileinterne = 0; indicepileinterne < taillepileinterne;
-         indicepileinterne++) {
-        noeud *scanne;
-        fils *nextfils;
-        noeud *succourant;
-        /* scanne est le noeud (pere) que l'on regarde;
-           nextfils parcours sa liste de fils;
-           courant est le fils actuellement examine et
-           succourant=succ(courant) */
-        noeud *debutnoeud;
-        fils *debutfils;
-        /*deux variables utilise pour la recherche de jumeaux:
-           debut du bloc max */
-
-        scanne = pileinterne[indicepileinterne];
-        if (scanne->type != MODULE)
-            continue;                /* je traite que les modules */
-
-        nextfils = scanne->fils;        /*on commence au premier fils */
-        while (1) {
-            courant = nextfils->pointe;
-            succourant = nextfils->suiv->pointe;
-            if (ps[courant->bd] >= courant->bg
-                && ds[courant->bd] <= succourant->bd) {
-                /*Des jumeaux!! ->serie ou parallele! */
-                /* on va determiner le bloc max de jumeaux consecutifs */
-                debutnoeud = courant;
-                debutfils = nextfils;
-                while (ps[courant->bd] >= courant->bg &&
-                       ds[courant->bd] <= succourant->bd &&
-                       nextfils->suiv != NULL) {
-                    nextfils = nextfils->suiv;
-                    courant = nextfils->pointe;
-                    if (nextfils->suiv == NULL)
-                        break;
-                    succourant = nextfils->suiv->pointe;
-                }
-                /*maintenant on connait la taille du bloc: il va de
-                   debutnoeud a courant inclus,
-                   et dans la liste des fils de scanne,
-                   il s'etend de debutfils a nextfils inclus.
-                   On extrait cette liste pour en faire les fils d'un
-                   nouveau noeud... sauf si pas la peine! */
-                if (debutfils == scanne->fils
-                    && nextfils == scanne->lastfils) {
-                    /* le noeud scanne etait serie ou parallele */
-                  if ( adjii[debutnoeud->bd] !=0)
-                        scanne->type = SERIE;
-                    else
-                        scanne->type = PARALLELE;
-                }
-                else {
-                  if ( adjii[debutnoeud->bd]!=0)
-                    /*seule cette ligne distingue G de G' !! */
-                    {
-                        nouveau = nouvnoeud(SERIE, scanne, -1, n);
-                        if (DEBUG)
-                            printf("Module serie extrait: %i-%i\n",
-                                   1 + debutnoeud->bg, 1 + courant->bd);
-                    }
-                    else {
-                        nouveau = nouvnoeud(PARALLELE, scanne, -1, n);
-                        if (DEBUG)
-                            printf("Module parallele extrait: %i-%i\n",
-                                   1 + debutnoeud->bg, 1 + courant->bd);
-                    }
-                    extraire(scanne, nouveau, debutfils, nextfils);
-                }
-            }
-            if (scanne->type == MODULE)
-                scanne->type = PREMIER;
-            if (nextfils->suiv == NULL || nextfils->suiv->suiv == NULL
-                || nextfils->suiv->suiv->suiv == NULL)
-                break;
-            nextfils = nextfils->suiv;
-        }
-    }
-    if (DEBUG) {
-        printf("Arbre final:\n");
-        printnoeud(racine, 0);
-    }
     return racine;
 }
 
@@ -1252,15 +1291,40 @@ void PrintS2(sommet **S, int n)
      /* affiche la permutation factorisante */
 {
   int i;
-  printf(  "Place (nouvelle num) ");
+  printf("Attention dans debug maintenant usage des NOUVEAUX noms\n");
+  printf(  "Place (nouveaux noms, nouvelle numerotation) ");
   for(i=0;i<n;i++)
     printf("%3i ",S[i]->place);
-  printf("\nNom (ancienne num) : ");
+   printf("\nNom (ancienne num) :                         ");
   for(i=0;i<n;i++)
     printf("%3i ",S[i]->nom);
   printf("\n");
 }
 
+void nettoie(sommet **S, int n)
+{
+  // Detruit la copie locale du graphe
+  // normalement, apres, tous les mallocs sont
+  // annules sauf ceux de l'arbre (le resultat)
+  int i;
+  sommet * scourant;
+  sadj *a,*atmp;
+  for (i = 0; i < n; i++) {
+        /* initialisation des sommets */
+        /* notre bebe est le sommet i dans M */
+    scourant = S[i];
+    a=scourant->adj;
+      while(a!=NULL)
+        {
+          atmp=a->suiv;
+          free(a);
+          a=atmp;
+        }
+      free(scourant->classe); // efface toutes les classes car sont singletons
+      free(scourant);
+  }
+  free(S);
+}
 
 /* la fonction principale; qui fait pas grand'chose....*/
 noeud *decomposition_modulaire(graphe G)
@@ -1282,5 +1346,8 @@ noeud *decomposition_modulaire(graphe G)
         PrintS2(S,G.n);
       }
     Racine = algo2(G, S);       /* deuxieme partie: calcul de l'arbre */
+
+    nettoie(S, G.n);
+
     return Racine;
 }
