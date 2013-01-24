@@ -410,6 +410,14 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         return self._cartan_type
 
+    def is_finite(self):
+        if self.cartan_type():
+            return self.cartan_type().is_finite()
+
+    def is_affine(self):
+        if self.cartan_type():
+            return self.cartan_type().is_affine()
+
     def rank(self):
         r"""
         Returns the index set for this Dynkin diagram
