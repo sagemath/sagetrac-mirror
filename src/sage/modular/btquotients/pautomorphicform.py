@@ -14,7 +14,6 @@ from sage.modules.module import Module
 from sage.rings.all import Integer
 from sage.structure.element import Element
 from sage.matrix.constructor import Matrix, zero_matrix
-from sage.matrix.matrix_space import MatrixSpace_generic
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import Qp
 from sage.rings.all import RationalField
@@ -24,6 +23,7 @@ from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
+from sage.rings.infinity import Infinity
 import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
 
@@ -65,7 +65,12 @@ class BTMap(object):
         else:
             val  =  -self._F[u.label-self._nE]
 
-        return (u.igamma(lambda g : self._source.embed_quaternion(g,exact = self.codomain.base_ring().is_exact(), prec = self._codomain.precision_cap()) * (p**(-u.power)))*val
+        return u.igamma(
+            lambda g : self._source.embed_quaternion(
+                g,
+                exact = self.codomain.base_ring().is_exact(), 
+                prec = self._codomain.precision_cap()
+            ) * p**(-u.power)) *val
 
     def __getitem__(self, B):
         try:
@@ -323,7 +328,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         EXAMPLES::
         """
         if not self.__nonzero__():
-            return oo
+            return Infinity
         else:
             return min([self._F[e].valuation() for e in range(self._nE)])
 
@@ -1077,7 +1082,7 @@ class pAutomorphicFormElement(ModuleElement):
 
         """
         if not self.__nonzero__():
-            return oo
+            return Infinity
         else:
             return(min([self._value[e].valuation() for e in range(self._num_generators)]))
 

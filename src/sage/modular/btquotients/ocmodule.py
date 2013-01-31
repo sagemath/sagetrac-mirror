@@ -9,10 +9,10 @@
 from sage.structure.element import ModuleElement
 from sage.modules.module import Module
 from sage.matrix.constructor import Matrix
-from sage.matrix.matrix_space import MatrixSpace_generic
 from sage.matrix.matrix_space import MatrixSpace
 from copy import copy
 from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.all import Integer
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -221,7 +221,7 @@ class OCVnElement(ModuleElement):
         if not self._parent.base_ring().is_exact():
             return [self._val[ii,0].precision_absolute() for ii in range(self._depth)]
         else:
-            return oo
+            return Infinity
 
     def precision(self):
         r"""
@@ -237,7 +237,7 @@ class OCVnElement(ModuleElement):
         if not self._parent.base_ring().is_exact():
             return min([self._val[ii,0].precision_absolute() for ii in range(self._depth)])
         else:
-            return oo
+            return Infinity
 
     def precision_relative(self):
         r"""
@@ -252,7 +252,7 @@ class OCVnElement(ModuleElement):
         if not self._parent.base_ring().is_exact():
             return [self._val[ii,0].precision_relative() for ii in range(self._depth)]
         else:
-            return oo
+            return Infinity
 
     def _repr_(self):
         r"""
