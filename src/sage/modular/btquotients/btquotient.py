@@ -75,6 +75,7 @@ class DoubleCosetReduction(SageObject):
 
     EXAMPLES::
 
+        sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
         sage: Y = BTQuotient(5,13)
         sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
         sage: d = DoubleCosetReduction(Y,x)
@@ -178,6 +179,7 @@ class DoubleCosetReduction(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
             sage: Y = BTQuotient(5,13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1232])
             sage: d = DoubleCosetReduction(Y,x)
