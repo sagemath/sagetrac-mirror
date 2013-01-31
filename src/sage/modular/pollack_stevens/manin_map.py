@@ -14,6 +14,7 @@ from sage.misc.misc import verbose
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 
 from fund_domain import M2Z, t00, t10, t01, t11, Id, unimod_matrices_to_infty
+from distributions import Distributions
 
 def unimod_matrices_to_infty(r, s):
     r"""
@@ -165,10 +166,6 @@ class ManinMap(object):
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f(M2Z([1,0,0,1]))
             (1, 2)
-            sage: f(M2Z([0,-1,1,3]))
-            (3, 5)
-            sage: f(M2Z([-1,-1,3,2]))
-            (1, 1)
         """
         self._codomain = codomain
         self._manin = manin_relations
@@ -289,7 +286,8 @@ class ManinMap(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(0, 5, 10); D
             Space of 5-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11) 

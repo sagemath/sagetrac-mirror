@@ -23,6 +23,7 @@ from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import zero_vector
@@ -444,9 +445,12 @@ def p1_normalize_arbitrary(N, u, v,compute_s = False):
 
     EXAMPLES::
 
-        sage: p1_normalize_arbitary(90,7,77)
+        sage: from sage.modular.pollack_stevens.fund_domain import p1_normalize_arbitrary
+        sage: p1_normalize_arbitrary(90,7,77)
+        (1, 11)
+        sage: p1_normalize_arbitrary(90,7,77, compute_s=True)
         (1, 11, 7)
-        sage: p1_normalize_arbitrary(90,7,78)
+        sage: p1_normalize_arbitrary(90,7,78, True)
         (1, 24, 7)
         sage: (7*24-78*1) % 90
         0

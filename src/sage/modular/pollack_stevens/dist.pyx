@@ -54,8 +54,7 @@ def get_dist_classes(p, prec_cap, base, symk):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.dist import get_dist_classes
-        sage: 
-        sage: Dist,WeightKAction = get_dist_classes( 
+        sage: pass
     """
     if symk or p is None or base.is_field() or (isinstance(base, pAdicGeneric) and base.degree() > 1):
         return Dist_vector, WeightKAction_vector
@@ -275,7 +274,6 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         return self._lmul_(_left)
 
@@ -329,7 +327,7 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: sage: D = Distributions(8, 7, 15)
+            sage: D = Distributions(8, 7, 15)
             sage: v = D([7^(5-i) for i in range(1,5)])
             sage: v
             (O(7^4), O(7^3), O(7^2), O(7))
@@ -362,7 +360,6 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         k=self.parent()._k
         if k < 0:
@@ -396,7 +393,6 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         V = self.parent().lift(p, M, new_base_ring)
         k = V._k
@@ -441,7 +437,6 @@ cdef class Dist(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         return self.parent()._act(self, gamma)
 
@@ -465,7 +460,6 @@ cdef class Dist_vector(Dist):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions
-        sage: 
     """
     def __init__(self,moments, parent, check=True):
         """
@@ -474,7 +468,6 @@ cdef class Dist_vector(Dist):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         Dist.__init__(self,parent)
         if check:
@@ -502,7 +495,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         cdef Dist_vector ans = PY_NEW(Dist_vector)
         ans._parent = self._parent
@@ -515,7 +507,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions
-            sage: 
         """
         r"""
         Displays the moments of the distribution
@@ -566,7 +557,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         r"""
         Returns the `n`-th moment
@@ -580,7 +570,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_vector ans = self._new_c()
         cdef Dist_vector right = _right
@@ -599,7 +588,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_vector ans = self._new_c()
         cdef Dist_vector right = _right
@@ -663,9 +651,6 @@ cdef class Dist_vector(Dist):
 
         - 
 
-        EXAMPLES::
-
-            sage:
         """
         cdef Dist_vector ans = self._new_c()
         ans.moments = 0 * self.moments # could make this faster
@@ -723,7 +708,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         assert M<=self.precision_absolute(),"not enough moments"
 
@@ -744,7 +728,6 @@ cdef class Dist_vector(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         # assert self.moments[0][0]==0, "not total measure zero"
         # print "result accurate modulo p^",self.moment(0).valuation(self.p)
@@ -789,7 +772,6 @@ cdef class Dist_long(Dist):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
     """
     def __init__(self, moments, parent, check=True):
         """
@@ -798,7 +780,6 @@ cdef class Dist_long(Dist):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         Dist.__init__(self, parent)
         p = parent._p
@@ -833,7 +814,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long ans = PY_NEW(Dist_long)
         ans._parent = self._parent
@@ -851,7 +831,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         self.normalize()
         if self.prec == 1:
@@ -870,7 +849,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef int i
         for i in range(self.prec):
@@ -891,7 +869,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef int i
         for i in range(self.prec):
@@ -918,7 +895,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         if isinstance(_n, slice):
             a, b, c = _n.indices(self.prec)
@@ -937,7 +913,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long ans = self._new_c()
         cdef Dist_long right = _right
@@ -957,7 +932,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long ans = self._new_c()
         cdef Dist_long right = _right
@@ -977,7 +951,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long ans = self._new_c()
         ans.prec = self.prec
@@ -1028,7 +1001,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         return self.prec
 
@@ -1039,7 +1011,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef int i
         cdef Dist_long right = _right
@@ -1061,7 +1032,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long ans = self._new_c()
         ans.prec = self.prec
@@ -1086,7 +1056,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         if M > self.prec: raise ValueError("not enough moments")
         if M < 0: raise ValueError("precision must be non-negative")
@@ -1108,7 +1077,6 @@ cdef class Dist_long(Dist):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         raise NotImplementedError
 
@@ -1147,7 +1115,6 @@ cdef class WeightKAction(Action):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
     """
     def __init__(self, Dk, character, tuplegen, on_left):
         r"""
@@ -1156,7 +1123,6 @@ cdef class WeightKAction(Action):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         self._k = Dk._k
         if self._k < 0: raise ValueError("k must not be negative")
@@ -1196,7 +1162,6 @@ cdef class WeightKAction(Action):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         self._actmat = {}
         self._maxprecs = {}
@@ -1227,7 +1192,6 @@ cdef class WeightKAction(Action):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         g = M2Z(g)
         g.set_immutable()
@@ -1270,7 +1234,6 @@ cdef class WeightKAction(Action):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         if a*d == b*c:
             raise ValueError("zero determinant")
@@ -1299,7 +1262,6 @@ cdef class WeightKAction(Action):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         """
         Forms a large M x M matrix say G such that if v is the vector of
@@ -1328,7 +1290,6 @@ cdef class WeightKAction_vector(WeightKAction):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         #tim = verbose("Starting")
         a, b, c, d = self._tuplegen(g)
@@ -1377,7 +1338,6 @@ cdef class WeightKAction_vector(WeightKAction):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         # if g is a matrix it needs to be immutable
         # hashing on arithmetic_subgroup_elements is by str
@@ -1421,7 +1381,6 @@ cdef class SimpleMat(SageObject):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
     """
     def __cinit__(self, unsigned long M):
         r"""
@@ -1430,7 +1389,6 @@ cdef class SimpleMat(SageObject):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         self._inited = False
         self.M = M
@@ -1455,7 +1413,6 @@ cdef class SimpleMat(SageObject):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Py_ssize_t r, c, Mnew, Morig = self.M
         cdef SimpleMat ans
@@ -1484,7 +1441,6 @@ cdef class SimpleMat(SageObject):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         sage_free(self._mat)
 
@@ -1511,7 +1467,6 @@ cdef class WeightKAction_long(WeightKAction):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         _a, _b, _c, _d = self._tuplegen(g)
         if self._character is not None: raise NotImplementedError
@@ -1567,7 +1522,6 @@ cdef class WeightKAction_long(WeightKAction):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         cdef Dist_long v = <Dist_long?>_v
         cdef Dist_long ans = v._new_c()
@@ -1598,7 +1552,6 @@ cdef class iScale(Action):
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-        sage: 
     """
     def __init__(self, Dk, on_left):
         """
@@ -1607,7 +1560,6 @@ cdef class iScale(Action):
         TESTS::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
         """
         Action.__init__(self, ZZ, Dk, on_left, operator.mul)
 
@@ -1622,7 +1574,7 @@ cdef class iScale(Action):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: 
+            sage: pass # XXX FIX THIS
         """
         if PY_TYPE_CHECK(a, Dist):
             return (<Dist>a)._lmul_(b)
