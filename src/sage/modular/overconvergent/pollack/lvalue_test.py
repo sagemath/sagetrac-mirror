@@ -25,7 +25,6 @@ def lvalue_using_OMS_split(A,p,D,r,prec1,prec2):
     sage: A = D[0]
     sage: from sage.modular.overconvergent.pollack.lvalue_test import lvalue_using_OMS_split
     sage: lvalue_using_OMS_split(A,11,1,2,4,5)
-
     
     sage: from sage.modular.overconvergent.pollack.lvalue_test import lvalue_using_OMS_split
     sage: N = 103

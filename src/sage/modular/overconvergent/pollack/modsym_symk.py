@@ -359,7 +359,7 @@ class modsym_symk(modsym):
                 return True,c
             else:
                 return False
-                
+            
     def lift_to_OMS(self,p,M):
         r"""
         Returns a (`p`-adic) overconvergent modular symbol with `M` moments which lifts self up to an Eisenstein error

@@ -119,7 +119,7 @@ class modsym(SageObject):
 
         INPUT:
             none
-
+            
         OUTPUT:
 
         The level `N` when self is of level `Gamma_0(N)`
@@ -127,7 +127,7 @@ class modsym(SageObject):
         EXAMPLES:
 
         ::
-
+        
         sage: E = EllipticCurve('11a')
         sage: from sage.modular.overconvergent.pollack.modsym_symk import form_modsym_from_elliptic_curve
         sage: phi = form_modsym_from_elliptic_curve(E); phi
@@ -185,13 +185,13 @@ class modsym(SageObject):
         0
         sage: phi.full_data(2)
         1
-
+        
         """
         if n is None:
             return self._full_data
         else:
             return self._full_data[n]
-
+        
     def __repr__(self):
         r"""
 
@@ -241,10 +241,10 @@ class modsym(SageObject):
         [0, 1, 0, 0, 0, -1, 1, 0, 0]
         sage: phi.ngens()
         9
-
+        
         """
         return len(self.manin().generator_indices())
-
+    
     def ncoset_reps(self):
         r"""
         Returns the number of coset representatives defining the full_data of phi.
@@ -253,7 +253,7 @@ class modsym(SageObject):
             none
 
         OUTPUT:
-
+        
         The number of coset representatives stored in the manin relations.  (Just the size of P^1(Z/NZ))
 
         EXAMPLES:

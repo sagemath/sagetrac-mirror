@@ -170,7 +170,7 @@ cdef class Dist_vector(Dist):
         self.moments = V([self.moment(i)%(p**(n-i)) for i in range(n)])
         return self
 
-    def change_precision(self, M):
+    def reduce_precision(self, M):
         """
 	Only holds on to M moments
 	"""
