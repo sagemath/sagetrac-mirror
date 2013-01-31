@@ -261,7 +261,7 @@ class PSModularSymbolElement(ModuleElement):
             ValueError: you must specify a prime
         """
         pp = self.parent().prime()
-        ppp = (alpha is not None) and hasattr(alpha.parent(),'prime') and alpha.parent().prime()
+        ppp = ((alpha is not None) and hasattr(alpha.parent(),'prime') and alpha.parent().prime()) or None
         p = ZZ(p) or pp or ppp
         if not p:
             if not allow_none:
@@ -444,9 +444,9 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi_ord.is_Tq_eigensymbol(2,3,10)
             True
             sage: phi_ord.is_Tq_eigensymbol(2,3,100)
-            True
+            False
             sage: phi_ord.is_Tq_eigensymbol(2,3,1000)
-            True
+            False
             sage: phi_ord.is_Tq_eigensymbol(3,3,10)
             True
             sage: phi_ord.is_Tq_eigensymbol(3,3,100)
@@ -488,7 +488,6 @@ class PSModularSymbolElement(ModuleElement):
 
             sage: phi_ord.Tq_eigenvalue(3,3,10)
             2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + O(3^10)
-            -95227/47611
             sage: phi_ord.Tq_eigenvalue(3,3,100)
             Traceback (most recent call last):
             ...
@@ -1027,7 +1026,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
             sage: f.specialize()
             Modular symbol with values in Sym^0 Z_5^2
             sage: f.specialize().values()
-            [1 + O(5^10), 1 + O(5^10)]
+            [1, 1]
             sage: f.values()
             [1, 1]
             sage: f.specialize().parent()
