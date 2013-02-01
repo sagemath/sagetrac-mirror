@@ -2,6 +2,14 @@
 Spaces of Distributions
 
 """
+#*****************************************************************************
+#       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.module import Module
 from sage.structure.parent import Parent

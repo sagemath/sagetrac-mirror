@@ -1183,7 +1183,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         # if len(Nminus.factor())%2 != 1:
         #     raise ValueError, "Nminus should be divisible by an odd number of primes"
 
-
         self._pN=p
         self._p=p
         self._Nminus=Nminus
@@ -1469,6 +1468,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
         lev=self._Nminus
         return 2*Integer(self.mu/12+self.e3/3+self.e4/4)
 
+    @cached_method
+    def num_ordered_edges(self):
+        """
+        Returns the number of ordered edges in the quotient.
+
+        OUTPUT:
+
+          - An integer
+        
+        EXAMPLES:
+            sage: X = BTQuotient(3,2)
+            sage: X.num_ordered_edges()
+            2
+        """        
+        return 2*self._num_edges
+
     def genus_no_formula(self):
         """
         Computes the genus of the quotient from the data of the quotient graph. This should agree with self.genus().
@@ -1689,6 +1704,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(7,23)
             sage: X.plot()
+
         """
         S=self.get_graph()
         vertex_colors = {}
@@ -1712,11 +1728,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def plot_fundom(self,*args,**kwargs):
         r"""
-        This function plots a fundamental domain.
+        Plots a fundamental domain.
 
         OUTPUT:
 
           A plot of the fundamental domain.
+
+        EXAMPLES::
+            sage: X = BTQuotient(7,23)
+            sage: X.plot_fundom()
 
         """
         S=self.get_fundom_graph()
@@ -1737,15 +1757,16 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return S.plot(*args,**my_args)
 
     def is_admissible(self,D):
-        r"""
-        This function tests whether the imaginary quadratic field of
-        discriminant `D` embeds in the quaternion algebra. It furthermore
-        tests the Heegner hypothesis in this setting (e.g., is `p` inert
-        in the field, etc).
+        r""" 
+        Tests whether the imaginary quadratic field of
+        discriminant `D` embeds in the quaternion algebra. It
+        furthermore tests the Heegner hypothesis in this setting
+        (e.g., is `p` inert in the field, etc).
 
         INPUT:
 
-        - ``D`` - an integer whose squarefree part will define the quadratic field
+        - ``D`` - an integer whose squarefree part will define the
+          quadratic field
 
         OUTPUT:
 
@@ -1756,7 +1777,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(5,7)
             sage: print [X.is_admissible(D) for D in range(-1,-20,-1)]
             [False, True, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, True, False]
-
         """
         disc = fundamental_discriminant(D)
         for f in self.level().factor():
@@ -1787,7 +1807,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: B.<i,j,k> = QuaternionAlgebra(3)
             sage: phi(i)**2 == QQ(i**2)*phi(B(1))
             True
-
         """
         I,J,K=self._local_splitting(prec)
         def phi(q):
@@ -1803,7 +1822,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - prec -- Integer. The precision of the splitting.
+        - prec - Integer. The precision of the splitting.
 
         OUTPUT:
 
@@ -1816,7 +1835,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: B.<i,j,k> = QuaternionAlgebra(3)
             sage: phi(i)**2 == QQ(i**2)*phi(B(1))
             True
-
         """
         assert self._use_magma == False
         if(prec<=self._prec):
@@ -1853,12 +1871,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._II, self._JJ, self._KK
 
     def _compute_embedding_matrix(self,prec, force_computation = False):
-        r"""
-        Returns a matrix representing the embedding with the given precision.
+        r""" 
+        Returns a matrix representing the embedding with the
+        given precision.
 
         INPUT:
 
             - prec - Integer. The precision of the embedding matrix.
+        
         EXAMPLES:
 
         Note that the entries of the matrix are elements of Zmod:
@@ -1873,7 +1893,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: B = X.get_eichler_order_basis()
             sage: R(B[0].reduced_trace()) == A[0,0]+A[3,0]
             True
-
         """
         if self._use_magma == True:
             if force_computation == False:
@@ -1898,12 +1917,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Returns a list of  matrices representing the different embeddings.
 
-        NOTE: The precision is very low (currently set to 5 digits), since these
-        embeddings are only used to apply a character.
+        NOTE: The precision is very low (currently set to 5 digits),
+        since these embeddings are only used to apply a character.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
         """
         try: return self._extra_embedding_matrices
@@ -1952,8 +1969,23 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-           - ``amount`` Integer (Default: 1). The amount by which to increase the precision.
+           - ``amount`` Integer (Default: 1). The amount by which to
+             increase the precision.
 
+        EXAMPLES:
+
+            sage: X = BTQuotient(3,7)
+            sage: X.get_embedding_matrix()
+            [1 + O(3) 1 + O(3) 1 + O(3) 2 + O(3)]
+            [2 + O(3)     O(3) 1 + O(3) 1 + O(3)]
+            [2 + O(3) 1 + O(3) 1 + O(3) 1 + O(3)]
+            [    O(3) 2 + O(3) 2 + O(3) 1 + O(3)]
+            sage: X._increase_precision(5)
+            sage: X.get_embedding_matrix()
+            [                1 + 2*3^2 + 3^4 + 2*3^5 + O(3^6)           1 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6) 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)]
+            [          2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)                     2*3^2 + 3^4 + 2*3^5 + O(3^6)                                       1 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6)]
+            [          2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)                 1 + 2*3^2 + 3^4 + 2*3^5 + O(3^6)                                       1 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6)]
+            [                      3^2 + 2*3^3 + 3^4 + O(3^6)           2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)               2 + 2*3 + 3^2 + 3^3 + 3^5 + O(3^6)                                       1 + O(3^6)]
         """
         if amount >= 1:
             self.get_embedding_matrix(prec = self._prec+amount)
@@ -1961,29 +1993,56 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             return
 
-    def get_embedding_matrix(self, exact = False, prec = None):
+    def get_embedding_matrix(self, prec = None, exact = False):
         r"""
         Returns the matrix of the embedding.
 
         INPUT:
 
-        - ``exact`` boolean (Default: False). If True, return an embedding into a matrix algebra with coefficients
-        in a number field. Otherwise, embed into matrices over `p`-adic numbers.
+        - ``exact`` boolean (Default: False). If True, return an
+          embedding into a matrix algebra with coefficients in a
+          number field. Otherwise, embed into matrices over `p`-adic
+          numbers.
 
-        - ``prec`` Integer (Default: None). If specified, return the marix with precision ``prec``. Otherwise,
-          return the the cached matrix (with the current working precision).
+        - ``prec`` Integer (Default: None). If specified, return the
+          matrix with precision ``prec``. Otherwise, return the the
+          cached matrix (with the current working precision).
 
         OUTPUT:
 
         - A 4x4 matrix representing the embedding.
+
+        EXAMPLES::
+            sage: X = BTQuotient(7,2*3*5)
+            sage: X.get_embedding_matrix(4)
+            [                      1 + O(7^4)         5 + 2*7 + 3*7^3 + O(7^4) 4 + 5*7 + 6*7^2 + 6*7^3 + O(7^4)       6 + 3*7^2 + 4*7^3 + O(7^4)]
+            [                          O(7^4)                           O(7^4)                   3 + 7 + O(7^4) 1 + 6*7 + 3*7^2 + 2*7^3 + O(7^4)]
+            [                          O(7^4)         2 + 5*7 + 6*7^3 + O(7^4) 3 + 5*7 + 6*7^2 + 6*7^3 + O(7^4)         3 + 3*7 + 3*7^2 + O(7^4)]
+            [                      1 + O(7^4) 3 + 4*7 + 6*7^2 + 3*7^3 + O(7^4)                   3 + 7 + O(7^4) 1 + 6*7 + 3*7^2 + 2*7^3 + O(7^4)]
+            sage: X.get_embedding_matrix(3)
+            [                      1 + O(7^4)         5 + 2*7 + 3*7^3 + O(7^4) 4 + 5*7 + 6*7^2 + 6*7^3 + O(7^4)       6 + 3*7^2 + 4*7^3 + O(7^4)]
+            [                          O(7^4)                           O(7^4)                   3 + 7 + O(7^4) 1 + 6*7 + 3*7^2 + 2*7^3 + O(7^4)]
+            [                          O(7^4)         2 + 5*7 + 6*7^3 + O(7^4) 3 + 5*7 + 6*7^2 + 6*7^3 + O(7^4)         3 + 3*7 + 3*7^2 + O(7^4)]
+            [                      1 + O(7^4) 3 + 4*7 + 6*7^2 + 3*7^3 + O(7^4)                   3 + 7 + O(7^4) 1 + 6*7 + 3*7^2 + 2*7^3 + O(7^4)]
+            sage: X.get_embedding_matrix(5)
+            [                              1 + O(7^5)         5 + 2*7 + 3*7^3 + 6*7^4 + O(7^5) 4 + 5*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)       6 + 3*7^2 + 4*7^3 + 5*7^4 + O(7^5)]
+            [                                  O(7^5)                                   O(7^5)                           3 + 7 + O(7^5)   1 + 6*7 + 3*7^2 + 2*7^3 + 7^4 + O(7^5)]
+            [                                  O(7^5)         2 + 5*7 + 6*7^3 + 5*7^4 + O(7^5) 3 + 5*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)         3 + 3*7 + 3*7^2 + 5*7^4 + O(7^5)]
+            [                              1 + O(7^5)         3 + 4*7 + 6*7^2 + 3*7^3 + O(7^5)                           3 + 7 + O(7^5)   1 + 6*7 + 3*7^2 + 2*7^3 + 7^4 + O(7^5)]
         """
-        if exact:
+        if exact is True:
             try:
                 return self._Iota_exact
             except:
                 raise RuntimeError, 'Exact splitting not available.'
         else:
-            if(prec is None or prec is self._prec):
+            if prec is None:
+                prec = self._prec
+
+            if prec < 0:
+                prec = 1
+
+            if prec == self._prec:
                 try:
                     return self._Iota
                 except AttributeError: pass
@@ -2006,15 +2065,35 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``g`` a column vector of size `4` whose entries represent a quaternion in our basis.
-        - ``exact`` boolean (Default: False) - If True, tries to embed ``g`` into a matrix
-          algebra over a number field. If False, the target is the matrix algebra over `\QQ_p`.
+        - ``g`` a row vector of size `4` whose entries represent a
+          quaternion in our basis.
+
+        - ``exact`` boolean (Default: False) - If True, tries to embed
+          ``g`` into a matrix algebra over a number field. If False,
+          the target is the matrix algebra over `\QQ_p`.
 
         OUTPUT:
 
-          A 2x2 matrix with coefficients in `\QQ_p` if ``exact`` is False, or a number field
-          if ``exact`` is True.
+          A 2x2 matrix with coefficients in `\QQ_p` if ``exact`` is
+          False, or a number field if ``exact`` is True.
 
+        EXAMPLES::
+            sage: X = BTQuotient(7,2)
+            sage: l = X.get_units_of_order()
+            sage: len(l)
+            12
+            sage: l[3]
+            [-1]
+            [ 0]
+            [ 1]
+            [ 1]
+            sage: X.embed_quaternion(l[3])
+            [    O(7) 3 + O(7)]
+            [2 + O(7) 6 + O(7)]
+            sage: X._increase_precision(5)
+            sage: X.embed_quaternion(l[3])
+            [                7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6)             3 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6)]
+            [            2 + 7 + 3*7^2 + 7^3 + 4*7^4 + O(7^6) 6 + 5*7 + 3*7^2 + 5*7^3 + 2*7^4 + 6*7^5 + O(7^6)]
         """
         if exact == True:
             return Matrix(self.get_splitting_field(),2,2,(self.get_embedding_matrix(exact = True)*g).list())
@@ -2023,12 +2102,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return Matrix(self._R,2,2,A.list())
 
     def get_embedding(self,prec=None):
-        r"""
-        Returns a function which embeds quaternions into a matrix algebra.
+        r""" 
+        Returns a function which embeds quaternions into a matrix
+        algebra.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(5,3)
             sage: f = X.get_embedding(prec = 4)
@@ -2036,25 +2114,23 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: f(b)
             [2 + 3*5 + 2*5^2 + 4*5^3 + O(5^4)       3 + 2*5^2 + 4*5^3 + O(5^4)]
             [        5 + 5^2 + 3*5^3 + O(5^4)           4 + 5 + 2*5^2 + O(5^4)]
-
         """
         A = self.get_embedding_matrix(prec = prec)
         return lambda g: Matrix(self._R,2,2,(A*g).list())
 
     def get_edge_stabs(self):
-        r"""
-        This function computes the stabilizers in the arithmetic group of all
-        edges in the Bruhat-Tits tree within a fundamental domain for the 
-        quotient graph.
+        r""" 
+        Computes the stabilizers in the arithmetic group of all
+        edges in the Bruhat-Tits tree within a fundamental domain for
+        the quotient graph.
 
         OUTPUT:
 
-          A list of edge stabilizers. Each edge stabilizer is a finite cyclic subgroup,
-          so we return generators for these subgroups.
+          A list of edge stabilizers. Each edge stabilizer is a finite
+          cyclic subgroup, so we return generators for these
+          subgroups.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(13,2)
             sage: S = X.get_edge_stabs()
@@ -2062,7 +2138,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: e = X.get_edge_list()[0].rep
             sage: X._BT.edge(gamma*e) == e
             True
-
         """
         try: return self._edge_stabs
         except AttributeError:
@@ -2070,46 +2145,64 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._edge_stabs
 
     def get_stabilizers(self):
-        r"""
-        This function computes the stabilizers in the arithmetic group of all
-        edges in the Bruhat-Tits tree within a fundamental domain for the
-        quotient graph, as well as those of opposite edges. Used for automorphic forms.
+        r""" 
+        Computes the stabilizers in the arithmetic group of all
+        edges in the Bruhat-Tits tree within a fundamental domain for
+        the quotient graph. The stabilizers of an edge and its
+        opposite are equal, and so we only store half the data.
 
         OUTPUT:
 
-          A list of edge stabilizers. Each edge stabilizer is a finite cyclic subgroup,
-          so we return generators for these subgroups.
+          A list of lists encoding edge stabilizers. It contains one entry for each edge. Each entry is a list of data corresponding to the group elements in the stabilizer of the edge. The data consists of: (0) a column matrix representing a quaternion, (1) the power of `p` that one needs to divide by in order to obtain a quaternion of norm 1, and hence an element of the arithmetic group `\Gamma`, (2) a boolean 
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
+##I was trying to write a doctest and found this bug:
+sage: X=BTQuotient(3,2)
+sage: s = X.get_edge_stabs()
+sage: len(s) == X.num_ordered_edges()/2
+True
+sage: s[0]
+[[[ 2]
+[-1]
+[-1]
+[-1], 0, False], [[ 1]
+[-1]
+[-1]
+[-1], 0, True], [[1]
+[0]
+[0]
+[0], 0, True]]
+sage: X.embed_quaternion(s[0][1][0])
+[2 + 2*3 + 3^2 + O(3^3) 1 + 2*3 + 3^2 + O(3^3)]
+[    2*3 + 3^2 + O(3^3)       2 + 3^2 + O(3^3)]
+sage: newe = X.embed_quaternion(s[0][1][0])
+sage: X._find_equivalent_edge(newe)
+TypeError: mutable matrices are unhashable
         """
         S = self.get_edge_stabs()
         return S + S
 
     def get_vertex_stabs(self):
-        r"""
-        This function computes the stabilizers in the arithmetic group of all
-        vertices in the Bruhat-Tits tree within a fundamental domain for the 
-        quotient graph.
+        r""" 
+        This function computes the stabilizers in the arithmetic
+        group of all vertices in the Bruhat-Tits tree within a
+        fundamental domain for the quotient graph.
 
         OUTPUT:
 
-          A list of vertex stabilizers. Each vertex stabilizer is a finite cyclic 
-          subgroup, so we return generators for these subgroups.
+          A list of vertex stabilizers. Each vertex stabilizer is a
+          finite cyclic subgroup, so we return generators for these
+          subgroups.
 
-        EXAMPLES:
-
-        ::
-
+        EXAMPLES::
+            ##This is an unintuitive way to do this!
             sage: X = BTQuotient(13,2)
             sage: S = X.get_vertex_stabs()
             sage: gamma = X.embed_quaternion(S[0][0][0][0],prec = 20)
             sage: v = X.get_vertex_list()[0].rep
             sage: X._BT.vertex(gamma*v) == v
             True
-
         """
         try: return self._vertex_stabs
         except AttributeError:
@@ -2118,20 +2211,17 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_quaternion_algebra(self):
         r"""
-        This function returns the underlying quaternion algebra.
+        Returns the underlying quaternion algebra.
 
         OUTPUT:
 
           The underlying definite quaternion algebra
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(5,7)
             sage: X.get_quaternion_algebra()
             Quaternion Algebra (-1, -7) with base ring Rational Field
-
         """
         try: return self._A
         except AttributeError: pass
@@ -2140,20 +2230,17 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_eichler_order(self, magma = False, force_computation = False):
         r"""
-        This function returns the underlying Eichler order of level `N^+`.
+        Returns the underlying Eichler order of level `N^+`.
 
         OUTPUT:
 
           Underlying Eichler order.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(5,7)
             sage: X.get_eichler_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
-
         """
         if magma == True:
             if force_computation == False:
@@ -2168,21 +2255,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._O
 
     def get_maximal_order(self, magma = False, force_computation = False):
-        r"""
-        This function returns the underlying maximal order containing the Eichler order.
+        r""" 
+        Returns the underlying maximal order containing the
+        Eichler order.
 
         OUTPUT:
 
           Underlying maximal order.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(5,7)
             sage: X.get_maximal_order()
             Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
-
         """
         if magma == True:
             if force_computation == False:
@@ -2198,11 +2283,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_splitting_field(self):
         r"""
-        Returns an quadratic field splitting the quaternion algebra attached to ``self``. Currently requires Magma.
+        Returns a quadratic field that splits the quaternion algebra attached to ``self``. Currently requires Magma.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(5,11)
             sage: X.get_splitting_field()
@@ -2217,7 +2300,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(5,11,use_magma = True) # optional - magma
             sage: X.get_splitting_field() # optional - magma
             Number Field in a with defining polynomial X1^2 + 11
-
         """
         if self._use_magma == False:
             raise NotImplementedError,'Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.'
@@ -2228,20 +2310,17 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_eichler_order_basis(self):
         r"""
-        This function returns an basis for the global Eichler order.
+        Returns a basis for the global Eichler order.
 
         OUTPUT:
 
           Basis for the underlying Eichler order of level Nplus.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(7,11)
             sage: X.get_eichler_order_basis()
             [1/2 + 1/2*j, 1/2*i + 1/2*k, j, k]
-
         """
         try: return self._B
         except AttributeError: pass
@@ -2249,18 +2328,16 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._B
 
     def get_eichler_order_quadform(self):
-        r"""
-        This function returns the norm form for the underlying Eichler order
-        of level Nplus. Required for finding elements in the arithmetic 
-        subgroup Gamma.
+        r""" 
+        This function returns the norm form for the underlying
+        Eichler order of level Nplus. Required for finding elements in
+        the arithmetic subgroup Gamma.
 
         OUTPUT:
 
           The norm form of the underlying Eichler order
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(7,11)
             sage: X.get_eichler_order_quadform()
@@ -2269,7 +2346,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             [ * 3 0 11 ]
             [ * * 11 0 ]
             [ * * * 11 ]
-
         """
         try: return self._OQuadForm
         except AttributeError: pass
@@ -2277,17 +2353,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._OQuadForm
 
     def get_eichler_order_quadmatrix(self):
-        r"""
-        This function returns the matrix of the quadratic form of the underlying
-        Eichler order in the fixed basis.
+        r""" 
+        This function returns the matrix of the quadratic form of
+        the underlying Eichler order in the fixed basis.
 
         OUTPUT:
 
           A 4x4 integral matrix describing the norm form.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(7,11)
             sage: X.get_eichler_order_quadmatrix()
@@ -2295,7 +2369,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             [ 0  6  0 11]
             [11  0 22  0]
             [ 0 11  0 22]
-
         """
         try: return self._OM
         except AttributeError: pass
@@ -2304,22 +2377,26 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def get_units_of_order(self):
-        r"""
-        This function returns the units of the underlying Eichler `\ZZ`-order. This is a finite
-        group since the order lives in a definite quaternion algebra over `\QQ`.
+        r""" 
+        Returns the units of the underlying Eichler
+        `\ZZ`-order. This is a finite group since the order lives in a
+        definite quaternion algebra over `\QQ`.
 
         OUTPUT:
 
-          A list of elements of the global Eichler `\ZZ`-order of level `N^+`.
+          A list of elements of the global Eichler `\ZZ`-order of
+          level `N^+`.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: X = BTQuotient(7,11)
             sage: X.get_units_of_order()
-            [[ 0 -2  0  1], [-2  0  1  0]]
-
+            [
+            [ 0]  [-2]
+            [-2]  [ 0]
+            [ 0]  [ 1]
+            [ 1], [ 0]
+            ]
         """
         OM=self.get_eichler_order_quadmatrix()
         v=pari('qfminim(%s,2,0, flag = 0)'%(OM._pari_()))
@@ -2327,7 +2404,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         v=pari('qfminim(%s,2,%s, flag = 2)'%((OM._pari_()),n_units))
         O_units=[]
         for jj in range(n_units):
-            vec=Matrix(ZZ,1,4,[v[2][ii,jj].python() for ii in range(4)])
+            vec=Matrix(ZZ,4,1,[v[2][ii,jj].python() for ii in range(4)])
             O_units.append(vec)
         return O_units
 
@@ -2338,110 +2415,112 @@ class BTQuotient(SageObject, UniqueRepresentation):
                     return False
         return True
 
-    def get_CM_points(self,disc,prec, twist = None):
-        p=self._p
-        R = self.get_eichler_order()
-        D = fundamental_discriminant(disc)
-        if disc%D != 0:
-            raise ValueError,'disc (= %s) should be a fundamental discriminant times a square'%disc
-        c = ZZ(sqrt(disc/D))
+    #def get_CM_points(self,disc,prec, twist = None):
+    #    p=self._p
+    #    R = self.get_eichler_order()
+    #    D = fundamental_discriminant(disc)
+    #    if disc%D != 0:
+    #        raise ValueError,'disc (= %s) should be a fundamental discriminant times a square'%disc
+    #    c = ZZ(sqrt(disc/D))
 
-        if c > 1:
-            raise NotImplementedError,'For now we only accept maximal orders (trivial conductor)'
+    #    if c > 1:
+    #        raise NotImplementedError,'For now we only accept maximal orders (trivial conductor)'
 
-        K = QuadraticField(D) #, 'sq', check=False)
-        h = K.class_number()
-        Omax = K.maximal_order()
-        O = K.order(c*Omax.ring_generators()[0])
-        w = O.ring_generators()[0]
-        pol = w.minpoly()
-        try:
-            all_elts_purged=self._CM_points[disc]
-        except KeyError:
-            if not self.is_admissible(disc):
-                return []
+    #    K = QuadraticField(D) #, 'sq', check=False)
+    #    h = K.class_number()
+    #    Omax = K.maximal_order()
+    #    O = K.order(c*Omax.ring_generators()[0])
+    #    w = O.ring_generators()[0]
+    #    pol = w.minpoly()
+    #    try:
+    #        all_elts_purged=self._CM_points[disc]
+    #    except KeyError:
+    #        if not self.is_admissible(disc):
+    #            return []
+    #
+    #        all_elts=[]
 
-            all_elts=[]
+    #        all_elts_purged0=[]
+    #        all_elts_purged=[]
 
-            all_elts_purged0=[]
-            all_elts_purged=[]
-
-            all_elts = self._find_elements_in_order(w.norm(),w.trace())
-            if len(all_elts) == 0:
-                all_elts = self._find_elements_in_order(w.norm()*p**2,w.trace()*p)
-                all_elts = [[xx/p for xx in x] for x in all_elts]
-
-            # all_elts=[[v[ii] for ii in range(4)] for v in all_elts]
+    #        all_elts = self._find_elements_in_order(w.norm(),w.trace())
+    #        if len(all_elts) == 0:
+    #            all_elts = self._find_elements_in_order(w.norm()*p**2,w.trace()*p)
+    #            all_elts = [[xx/p for xx in x] for x in all_elts]
 
             # Now we take into account the action of units
-            units=self._find_elements_in_order(1)
-            units0=[self._conv(u) for u in units]
+    #        units=self._find_elements_in_order(1)
+    #        units0=[self._conv(u) for u in units]
 
-            all_elts0=[self._conv(v) for v in all_elts]
-            for v1 in all_elts:
-                v0=self._conv(v1)
-                if self._is_new_element(v0,all_elts_purged0,units0):
-                    all_elts_purged0.append(v0)
-                    all_elts_purged.append(v1)
+    #        all_elts0=[self._conv(v) for v in all_elts]
+    #        for v1 in all_elts:
+    #            v0=self._conv(v1)
+    #            if self._is_new_element(v0,all_elts_purged0,units0):
+    #                all_elts_purged0.append(v0)
+    #                all_elts_purged.append(v1)
 
-            self._CM_points[disc]=all_elts_purged
-            if c == 1 and 4*h != len(self._CM_points[disc])*K.unit_group().order():
-                print 'K.class_number()=',K.class_number()
-                print 'Found ',len(self._CM_points[disc]), 'points...'
+    #        self._CM_points[disc]=all_elts_purged
+    #        if c == 1 and 4*h != len(self._CM_points[disc])*K.unit_group().order():
+    #            print 'K.class_number()=',K.class_number()
+    #            print 'Found ',len(self._CM_points[disc]), 'points...'
 
-        all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec=prec) for y in all_elts_purged]
-        # Kp=Qq(p**2,prec=prec,names='g')
-        assert not Qp(p,prec)(pol.discriminant()).is_square()
-        Kp=Qp(p,prec = prec).extension(pol,names='g')
-        g = Kp.gen()
-        W=[]
-        for m1 in all_elts_split:
-            if twist is not None:
-                m = twist.inverse()*m1*twist
-            else:
-                m = m1
-            a,b,c,d = m.list()
+    #    all_elts_split=[self.embed_quaternion(matrix(4,1,y),prec=prec) for y in all_elts_purged]
+    #    assert not Qp(p,prec)(pol.discriminant()).is_square()
+    #    Kp=Qp(p,prec = prec).extension(pol,names='g')
+    #    g = Kp.gen()
+    #    W=[]
+    #    for m1 in all_elts_split:
+    #        if twist is not None:
+    #            m = twist.inverse()*m1*twist
+    #        else:
+    #            m = m1
+    #        a,b,c,d = m.list()
             # Compute the fixed points of the matrix [a,b,c,d] acting on the Kp points of Hp.
-            A=Kp(a-d)
-            trace = a+d
-            norm = a*d-b*c
+    #        A=Kp(a-d)
+    #        trace = a+d
+    #        norm = a*d-b*c
 
-            D2=Kp(trace**2-4*norm)
-            if D2==0:
-                D=D2
-            else:
+    #        D2=Kp(trace**2-4*norm)
+    #        if D2==0:
+    #            D=D2
+    #        else:
                 # Compute the square root of D in a naive way
-                for a0,b0 in product(range(p),repeat = 2):
-                    y0=a0+b0*g
-                    if (y0**2-D2).valuation() > 0:
-                        break
-                y1=y0
-                D=0
-                while(D!=y1):
-                    D=y1
-                    y1=(D**2+D2)/(2*D)
-            z1 = (A+D)/(2*c)
-            assert  a*z1+b ==z1*(c*z1+d)
-            if c*z1+d != g:
-                z1 = (A-D)/(2*c)
-                assert a*z1+b == g*z1
-                assert c*z1+d == g
-            W.append(z1)
-        return W
+    #            for a0,b0 in product(range(p),repeat = 2):
+    #                y0=a0+b0*g
+    #                if (y0**2-D2).valuation() > 0:
+    #                    break
+    #            y1=y0
+    #            D=0
+    #            while(D!=y1):
+    #                D=y1
+    #                y1=(D**2+D2)/(2*D)
+    #        z1 = (A+D)/(2*c)
+    #        assert  a*z1+b ==z1*(c*z1+d)
+    #        if c*z1+d != g:
+    #            z1 = (A-D)/(2*c)
+    #            assert a*z1+b == g*z1
+    #            assert c*z1+d == g
+    #        W.append(z1)
+    #    return W
 
     @cached_method
     def _get_Up_data(self):
         r"""
         Returns (computes if necessary) Up data.
 
-        This is a vector of length p,
-        and each entry consists of the corresponding data for the matrix [p,a,0,1]
-        where a varies from 0 to p-1.
-        The data is a tuple (acter,edge_images), with edge images being of type
-        ``DoubleCosetReduction``.
+        The Up data is a vector of length p, and each entry consists
+        of the corresponding data for the matrix [p,a,0,1] where a
+        varies from 0 to p-1. The data is a tuple (acter,edge_images),
+        with edge images being of type ``DoubleCosetReduction``.
 
-        EXAMPLES:
+        EXAMPLES::
 
+            sage: X = BTQuotient(3,7)
+            sage: X._get_Up_data()
+            [[[1/3   0]
+            [  0   1], [<class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>]], [[-1/3  1/3]
+            [   1    0], [<class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>]], [[-2/3  1/3]
+            [   1    0], [<class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>]]]
         """
         E=self.get_edge_list()
         vec_a=self._BT.subdivide([1],1)
@@ -2449,8 +2528,16 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def _get_atkin_lehner_data(self,q):
-        r"""
+        r""" 
+        Returns (computes if necessary) data to compute the
+        Atkin-Lehner involution.
 
+        INPUT:
+
+          - ``q`` - integer dividing p*Nminus*Nplus
+
+        EXAMPLES::
+        
         """
         E=self.get_edge_list()
         # self._increase_precision(20)
@@ -2512,7 +2599,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             nninc+=2
             V = filter(lambda g:prod([self._character(ZZ((v*Matrix(ZZ,4,1,g))[0,0]))/self._character((p**ZZ(nninc/2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(l*p**nninc))
 
-
         alpha1 = V[0]
         alpha0 = self._conv(alpha1)
 
@@ -2553,19 +2639,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Finds a vertex in ``V`` equivalent to ``v0``.
 
-        INPUT:
-        - ``v0`` -- a 2x2 matrix in `\ZZ_p` representing a vertex in the Bruhat-Tits tree.
+        INPUT: 
+        - ``v0`` -- a 2x2 matrix in `\ZZ_p` representing a
+            vertex in the Bruhat-Tits tree.
 
-        - ``V`` -- list (Default: None) If a list of Vertex is given, restrict the search
-            to the vertices in ``V``. Otherwise use all the vertices in a fundamental domain.
+        - ``V`` -- list (Default: None) If a list of Vertex is given,
+            restrict the search to the vertices in ``V``. Otherwise
+            use all the vertices in a fundamental domain.
 
-        - ``valuation`` -- an integer (Default: None): The valuation of the determinant
-            of ``v0``, if known (otherwise it is calculated).
+        - ``valuation`` -- an integer (Default: None): The valuation
+            of the determinant of ``v0``, if known (otherwise it is
+            calculated).
 
         OUTPUT:
 
-        A pair ``g``, ``v``, where ``v`` is a Vertex in ``V`` equivalent to ``v0``, and
-         ``g`` is such that `g\cdot v_0= v`.
+        A pair ``g``, ``v``, where ``v`` is a Vertex in ``V``
+        equivalent to ``v0``, and ``g`` is such that `g\cdot v_0= v`.
 
         EXAMPLES::
 
@@ -2589,19 +2678,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Finds an edge in ``E`` equivalent to ``e0``.
 
-        INPUT:
-        - ``e0`` -- a 2x2 matrix in `\ZZ_p` representing an edge in the Bruhat-Tits tree.
+        INPUT: 
+        - ``e0`` -- a 2x2 matrix in `\ZZ_p` representing an
+            edge in the Bruhat-Tits tree.
 
-        - ``E`` -- list (Default: None) If a list of Edge is given, restrict the search
-            to the vertices in ``E``. Otherwise use all the edges in a fundamental domain.
+        - ``E`` -- list (Default: None) If a list of Edge is given,
+            restrict the search to the vertices in ``E``. Otherwise
+            use all the edges in a fundamental domain.
 
-        - ``valuation`` -- an integer (Default: None): The valuation of the determinant
-            of ``e0``, if known (otherwise it is calculated).
+        - ``valuation`` -- an integer (Default: None): The valuation
+            of the determinant of ``e0``, if known (otherwise it is
+            calculated).
 
         OUTPUT:
 
-        A pair ``g``, ``e``, where ``e`` is an Edge in ``E`` equivalent to ``e0``, and
-         ``g`` is such that `g\cdot e_0= e`.
+        A pair ``g``, ``e``, where ``e`` is an Edge in ``E``
+        equivalent to ``e0``, and ``g`` is such that `g\cdot e_0= e`.
 
         EXAMPLES::
 
@@ -2634,7 +2726,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-        - A ``Vertex`` equivalent to ``v1``, in the fundamental domain.
+        A ``Vertex`` equivalent to ``v1``, in the fundamental domain.
 
         EXAMPLES:
 
@@ -2653,16 +2745,20 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._cached_paths[v0]=v
         return v
 
-
     def _find_lattice(self,v1,v2,as_edges,m):
         r"""
         Find the lattice attached to the pair ``v1``,``v2``.
 
         INPUT:
 
-        - ``v1``, ``v2`` - 2x2 matrices. They represent either a pair of normalized vertices or a pair of normalized edges.
-        - ``as_edges`` - boolean. If True, the inputs will be considered as edges instead of vertices.
-        - ``m`` - integer - The valuation of the determinant of ``v1``*``v2``.
+        - ``v1``, ``v2`` - 2x2 matrices. They represent either a pair
+          of normalized vertices or a pair of normalized edges.
+        
+        - ``as_edges`` - boolean. If True, the inputs will be
+          considered as edges instead of vertices.
+        
+        - ``m`` - integer - The valuation of the determinant of
+          ``v1``*``v2``.
 
         EXAMPLES:
 
@@ -2686,8 +2782,25 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Finds the stabilizer of an edge or vertex.
 
-        EXAMPLES:
+        INPUT:
+        - ``e`` - A 2x2 matrix representing an edge or vertex
 
+        - ``as_edge`` - Boolean (Default = True). Determines whether
+          ``e`` is treated as an edge or vertex
+
+        OUTPUT:
+
+        A list of data describing the (finite) stabilizing subgroup
+        of e.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,7)
+            sage: X._stabilizer(Matrix(ZZ,2,2,[3,8,2,9]))
+            [[([ 2]
+            [ 0]
+            [-1]
+            [ 0], 0), 0, False]]
         """
         p=self._p
         m=e.determinant().valuation(p)
@@ -2695,7 +2808,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         E,A = self._find_lattice(e,e,as_edge,twom)
         n_units=len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        mat = pari('qfminim(%s,0,%s,flag = 2)'%(A._pari_(),2*n_units))[2].python().transpose()
+        ## We used to pass qfminim flag = 2
+        mat = pari('qfminim(%s,0,%s)'%(A._pari_(),2*n_units))[2].python().transpose()
         n_vecs=mat.nrows()
         stabs=[]
         for jj in range(n_vecs):
@@ -2714,6 +2828,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return stabs
 
     def _extra_level_check(self,vec, twom, E, A, flag = 0):
+        """
+        """
         if self._use_magma == False or len(self._extra_level) == 0:
             return E*vec, True
         m = ZZ(twom/2)
@@ -2732,34 +2848,38 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
 
     def _are_equivalent(self,v1,v2,as_edges=False,twom=None,check_parity = False):
-        r"""
-        This function determines whether two vertices (or edges) of the Bruhat-Tits
-        tree are equivalent under the arithmetic group in question. The computation
-        boils down to an application of the LLL short-vector algorithm to a 
-        particular lattice; for details see [FM].
+        r""" 
+        This function determines whether two vertices (or edges)
+        of the Bruhat-Tits tree are equivalent under the arithmetic
+        group in question. The computation boils down to an
+        application of the LLL short-vector algorithm to a particular
+        lattice; for details see [FM].
         
         INPUT:
 
-          - ``v1``, ``v2`` - two 2x2 integral matrices representing either vertices or edges
-          - ``as_edges`` - boolean (Default: False). Tells whether the matrices should be
-            interpreted as edges (if true), or as vertices (if false)
-          - ``twom`` - integer (Default: None) If specified, indicates the valuation of the determinant of ``v1`` `\times` ``v2``.
+          - ``v1``, ``v2`` - two 2x2 integral matrices representing
+            either vertices or edges
+          
+          - ``as_edges`` - boolean (Default: False). Tells whether the
+            matrices should be interpreted as edges (if true), or as
+            vertices (if false)
+          
+            - ``twom`` - integer (Default: None) If specified,
+              indicates the valuation of the determinant of ``v1``
+              `\times` ``v2``.
 
         OUTPUT:
 
-          If the objects are equivalent, this returns an element of the arithemtic
-          group Gamma that takes v1 to v2. Otherwise is returns false.
+          If the objects are equivalent, this returns an element of
+          the arithemtic group Gamma that takes v1 to v2. Otherwise it
+          returns false.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        This example illustrates ...
-
-        ::
 
         REFERENCES:
 
           [FM] "Computing quotients of the Bruhat-Tits tree...", Cameron Franc, Marc Masdeu.
-
         """
         try:
             return self._cached_equivalent[(v1,v2,as_edges)]
@@ -2809,9 +2929,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
         Initialize the order of the quaternion algebra. Here we
         possibly use Magma to split it.
 
-        EXAMPLES:
-
-            sage: X = BTQuotient(2,3,5,use_magma = False)
+        EXAMPLES::
+            sage: X = BTQuotient(3,23)
+            sage: X._init_order()
         """
         if self._use_magma == True:
             A=self._magma.QuaternionAlgebra(self._Nminus)
@@ -2846,16 +2966,16 @@ class BTQuotient(SageObject, UniqueRepresentation):
         self._BB=Matrix(QQ,4,4,[[self._B[ii][jj] for ii in range(4)] for jj in range(4)]).inverse()
 
     def B_one(self):
-        r"""
-        Returns the coordinates of `1` in the basis for the quaternion order.
+        r""" 
+        Returns the coordinates of `1` in the basis for the
+        quaternion order.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BTQuotient(7,11)
             sage: v,pow = X.B_one()
             sage: X._conv(v) == 1
             True
-
         """
         try: return self._B_one
         except AttributeError:
@@ -2877,11 +2997,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
 
     def _conv(self,v):
-        r"""
-        Returns a quaternion having coordinates in the fixed basis for the
-        order given by ``v``.
+        r""" 
+        Returns a quaternion having coordinates in the fixed
+        basis for the order given by ``v``.
 
-        EXAMPLES:
+        OUTPUT:
+
+        A quaternion.
+
+        EXAMPLES::
 
             sage: X = BTQuotient(5,7)
             sage: A = X.get_quaternion_algebra()
@@ -2889,7 +3013,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: B = X.get_eichler_order_basis()
             sage: X._conv([1,2,3,4]) == B[0]+2*B[1]+3*B[2]+4*B[3]
             True
-
         """
         if hasattr(v,"list"):
             v=v.list()
@@ -2898,17 +3021,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def _find_elements_in_order(self, norm, trace = None, primitive=False):
-        r"""
-        Returns elements in the order of the quaternion algebra of specified
-        reduced norm, and possibly reduced trace.
+        r""" Returns elements in the order of the quaternion algebra
+        of specified reduced norm. One may optionally choose to
+        specify the reduced trace.
 
         INPUT:
 
         - ``norm`` - integer. The required reduced norm.
-        - ``trace`` - integer (Default: None). If specified, returns elements only
-        reduced trace ``trace``.
-        - ``primitive`` boolean (Default: False). If True, return only elements that
-        cannot be divided by `p`.
+
+        - ``trace`` - integer (Default: None). If specified, returns
+        elements only reduced trace ``trace``.
+
+        - ``primitive`` boolean (Default: False). If True, return only
+        elements that cannot be divided by `p`.
 
         EXAMPLES:
 
@@ -2917,7 +3042,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             [[2, 9, -1, -5], [0, 8, 0, -5], [-2, 9, 1, -5], [6, 7, -3, -4], [2, 5, -1, -4], [0, 6, -1, -4], [0, 8, -1, -4], [2, 9, -1, -4], [-2, 5, 1, -4], [0, 6, 1, -4], [0, 8, 1, -4], [-2, 9, 1, -4], [-6, 7, 3, -4], [7, 6, -4, -3], [7, 6, -3, -3], [6, 7, -3, -3], [0, 8, 0, -3], [-7, 6, 3, -3], [-6, 7, 3, -3], [-7, 6, 4, -3], [0, 1, -1, -2], [0, 6, -1, -2], [0, 1, 1, -2], [0, 6, 1, -2], [9, 2, -5, -1], [6, 0, -4, -1], [8, 0, -4, -1], [5, 2, -4, -1], [9, 2, -4, -1], [1, 0, -2, -1], [6, 0, -2, -1], [0, -1, -1, -1], [-1, 0, -1, -1], [5, 2, -1, -1], [2, 5, -1, -1], [0, -1, 1, -1], [1, 0, 1, -1], [-5, 2, 1, -1], [-2, 5, 1, -1], [-6, 0, 2, -1], [-1, 0, 2, -1], [-8, 0, 4, -1], [-6, 0, 4, -1], [-9, 2, 4, -1], [-5, 2, 4, -1], [-9, 2, 5, -1], [8, 0, -5, 0], [8, 0, -3, 0]]
             sage: X._find_elements_in_order(23,1)
             [[1, 0, -2, -1], [1, 0, 1, -1]]
-
         """
         OQuadForm=self.get_eichler_order_quadform()
         if norm > 10^3:
@@ -2930,7 +3054,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Computes the quotient graph.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BTQuotient(11,2)
             sage: X.get_graph()
@@ -2966,7 +3090,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         - Cameron Franc (2012-02-20)
         - Marc Masdeu
-
         """
         generators=set([])
         genus=self.genus()
@@ -2981,7 +3104,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         Sfun = Graph(0)
         edge_list=[]
         vertex_list=[v0]
-        self._num_edges=0
+        num_edges = 0
         num_verts+=1
         total_verts = self.get_num_verts()
         total_edges = genus + total_verts -1
@@ -3021,7 +3144,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
                         V.append(v1)
                     else:
                         generators.add(g1[0])
-
 
                     # Add the edge to the list
                     new_e=Edge(self,num_edges,e,v,v1,determinant = edge_det,valuation = edge_valuation)
@@ -3064,7 +3186,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         self._boundary = dict([(v.rep,v) for v in vertex_list])
         self._edge_list = edge_list
         self._vertex_list = vertex_list
+        self._num_edges = num_edges
         self._S = S
         self._Sfun = Sfun
-
-

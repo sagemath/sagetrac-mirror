@@ -9,15 +9,15 @@ reading the relevant Manin relations off of that picture.  The
 algorithm follows the paper of Pollack and Stevens "Overconvergent
 modular symbols and p-adic L-functions".
 """
-
-######################################################################
-##  Copyright (c) 2012, Rob Pollack and Jonathan Hanke
-##      <rpollack@math.bu.edu>
-##      <jonhanke@gmail.com>
-##
-##  Released under the GNU Public License, 2012.
-##
-######################################################################
+#*****************************************************************************
+#       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
+#                          Jonathan Hanke <jonhanke@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.modular.modsym.all import P1List
