@@ -11,6 +11,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.categories.action import PrecomposedAction
+from sage.categories.modules import Modules
 from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
 from sage.matrix.all import MatrixSpace
 from sage.rings.fast_arith import prime_range
@@ -27,8 +28,9 @@ class _default_tuplegen(UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: sage.modular.pollack_stevens.distributions._default_tuplegen()
+        sage: A = sage.modular.pollack_stevens.distributions._default_tuplegen(); A
         <sage.modular.pollack_stevens.distributions._default_tuplegen object at 0x...>
+        sage: TestSuite(A).run()
     """
     def __call__(self, g):
         """
@@ -42,19 +44,22 @@ class _default_tuplegen(UniqueRepresentation):
         return g[0,0], g[0,1], g[1,0], g[1,1]
 
 class Distributions_factory(UniqueFactory):
+    """
+    Create a space of distributions.
+
+    INPUT:
+
+    - `k` -- nonnegative integer
+    - `p` -- prime number or None
+    - ``prec_cap`` -- positive integer or None
+    - ``base`` -- ring or None
+    - ``symk`` -- bool or None
+    - ``character`` -- a dirichlet character or None
+    - ``tuplegen`` -- None or callable that turns 2x2 matrices into a 4-tuple
+    - ``act_on_left`` -- bool (default: False)
+    """
     def create_key(self, k, p=None, prec_cap=None, base=None, symk=None, character=None, tuplegen=None, act_on_left=False):
         """
-        INPUT:
-
-        - `k` -- nonnegative integer
-        - `p` -- prime number or None
-        - ``prec_cap`` -- positive integer or None
-        - ``base`` -- ring or None
-        - ``symk`` -- bool or None
-        - ``character`` -- a dirichlet character or None
-        - ``tuplegen`` -- None or callable that turns 2x2 matrices into a 4-tuple
-        - ``act_on_left`` -- bool (default: False)
-
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
@@ -113,7 +118,8 @@ Symk = Symk_factory('Symk')
 
 class Distributions_abstract(Module):
     """
-    Parent object for distributions.
+    Parent object for distributions. Not to be used directly, see derived
+    classes :class:`Symk_class` and :class:`Distributions_class`.
 
     EXAMPLES::
 
@@ -138,7 +144,8 @@ class Distributions_abstract(Module):
           - lambda (for n half-integral use this form)
         - ``tuplegen``    -- None or TODO
         - ``act_on_left`` -- bool (default: False)
-        - ``symk``        -- ??
+        - ``symk``        -- flag to store whether this is a space of Sym^k
+            distributions (which need to be handled slightly differently).
 
         EXAMPLES::
 
@@ -146,7 +153,7 @@ class Distributions_abstract(Module):
             sage: D = Distributions(2, 3, 5); D
             Space of 3-adic distributions with k=2 action and precision cap 5
             sage: type(D)
-            <class 'sage.modular.pollack_stevens.distributions.Distributions_class'>
+            <class 'sage.modular.pollack_stevens.distributions.Distributions_class_with_category'>
 
         p must be a prime, but p=6 below, which is not prime::
 
@@ -163,7 +170,7 @@ class Distributions_abstract(Module):
         self.Element = Dist
         if Dist is Dist_long:
             self.prime_pow = PowComputer_long(p, prec_cap, prec_cap, prec_cap, 0)
-        Parent.__init__(self, base)
+        Parent.__init__(self, base, category=Modules(base))
         self._k = k
         self._p = p
         self._prec_cap = prec_cap
@@ -287,6 +294,8 @@ class Distributions_abstract(Module):
             M = self._prec_cap
         elif M > self._prec_cap:
             raise ValueError("M must be less than or equal to the precision cap")
+        elif M < self._prec_cap and self._symk:
+            raise ValueError("Sym^k objects do not support approximation modules")
         return self.base_ring()**M
 
     def random_element(self, M=None):
@@ -358,11 +367,7 @@ class Distributions_abstract(Module):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Symk(3, base=QQ); D
-            Sym^3 Q^2
-            sage: D.an_element()                  # indirect doctest
-            (2, 1)
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
             sage: D.an_element()
@@ -373,45 +378,35 @@ class Distributions_abstract(Module):
         else:
             return self([1])
 
-    def zero_element(self, M=None):
-        """
-        Return zero element in the M-th approximating module.
-
-        INPUT:
-
-        - `M` -- None (default), or a nonnegative integer, less than or equal to the precision cap
-
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 7, 4); D
-            Space of 7-adic distributions with k=0 action and precision cap 4
-            sage: D.zero_element()
-            (0, 0, 0, 0)
-            sage: D.zero_element(0)
-            ()
-            sage: D.zero_element(1)
-            0
-            sage: D.zero_element(2)
-            (0, 0)
-            sage: D.zero_element(3)
-            (0, 0, 0)
-            sage: D.zero_element(4)
-            (0, 0, 0, 0)
-            sage: D.zero_element(5)
-            Traceback (most recent call last):
-            ...
-            ValueError: M must be less than or equal to the precision cap
-        """
-        return self(self.approx_module(M)(0))
-
 class Symk_class(Distributions_abstract):
+
     def __init__(self, k, base, character, tuplegen, act_on_left):
+        r"""
+        EXAMPLE::
+
+            sage: D = sage.modular.pollack_stevens.distributions.Symk(4); D
+            Sym^4 Q^2
+            sage: TestSuite(D).run() # indirect doctest
+        """
         if hasattr(base, 'prime'):
             p = base.prime()
         else:
             p = None
-        Distributions_abstract.__init__(self, k, p, k+1, base, character, tuplegen, act_on_left)
+        Distributions_abstract.__init__(self, k, p, k+1, base, character, tuplegen, act_on_left, symk=True)
+
+    def _an_element_(self):
+        r"""
+        Return a representative element of self.
+
+        EXAMPLE::
+
+            sage: from sage.modular.pollack_stevens.distributions import Symk
+            sage: D = Symk(3, base=QQ); D
+            Sym^3 Q^2
+            sage: D.an_element()                  # indirect doctest
+            (0, 1, 2, 3)
+        """
+        return self(range(self.weight() + 1))
 
     def _repr_(self):
         """
@@ -517,6 +512,14 @@ class Symk_class(Distributions_abstract):
         return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
 class Distributions_class(Distributions_abstract):
+    r"""
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.distributions import Distributions
+        sage: D = Distributions(0, 5, 10)
+        sage: TestSuite(D).run()
+    """
+    
     def _repr_(self):
         """
         EXAMPLES::
@@ -526,8 +529,6 @@ class Distributions_class(Distributions_abstract):
             'Space of 5-adic distributions with k=0 action and precision cap 10'
             sage: Distributions(0, 5, 10)
             Space of 5-adic distributions with k=0 action and precision cap 10
-            sage: Symk(0)
-            Sym^0 Q^2
         """
         # TODO: maybe account for character, etc.
         return "Space of %s-adic distributions with k=%s action and precision cap %s"%(self._p, self._k, self._prec_cap)

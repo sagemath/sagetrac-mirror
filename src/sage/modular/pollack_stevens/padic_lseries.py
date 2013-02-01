@@ -272,11 +272,11 @@ class pAdicLseries(SageObject):
             4 + 2*5 + 4*5^3 + O(5^4)
 
         Comparing against a different implementation:
-        
+
             sage: L = E.padic_lseries(5)
             sage: (1-1/L.alpha(prec=4))^2
             4 + 2*5 + 4*5^3 + O(5^4)
-            
+
         """
         M = self.symb().precision_absolute()
         p = self.prime()
@@ -319,7 +319,7 @@ class pAdicLseries(SageObject):
             sage: L.eval_twisted_symbol_on_Da(1)
             (2 + 2*5 + 2*5^2 + 2*5^3 + O(5^4), 2 + 3*5 + 2*5^2 + O(5^3), 4*5 + O(5^2), 3 + O(5))
 
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve 
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('40a4')
             sage: p = 7
             sage: prec = 4
@@ -355,8 +355,8 @@ class pAdicLseries(SageObject):
 
         INPUT:
 
-        - a -- integer in range(p)
-        - j -- integer in range(self.symb().precision_absolute())
+        - ``a`` -- integer in range(p)
+        - ``j`` -- integer in range(self.symb().precision_absolute())
 
         EXAMPLES::
 
