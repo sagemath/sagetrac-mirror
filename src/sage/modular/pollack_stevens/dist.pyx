@@ -230,7 +230,7 @@ cdef class Dist(ModuleElement):
                 i += 1
                 while i < n:
                     verbose("comparing moment %s"%i)
-                    if self.moment(i) != alpha * other.moment(i):
+                    if alpha * self.moment(i) != other.moment(i):
                         raise ValueError("not a scalar multiple")
                     i += 1
         else:

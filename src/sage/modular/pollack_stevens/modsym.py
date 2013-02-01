@@ -507,7 +507,7 @@ class PSModularSymbolElement(ModuleElement):
         if p is None:
             p = self.parent().prime()
         i = 0
-        g = gens[i]
+        g = gens[i]	
         verbose("Computing eigenvalue")
         while self._map[g].is_zero(p, M):
             if not qhecke._map[g].is_zero(p, M):
