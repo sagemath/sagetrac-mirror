@@ -1001,7 +1001,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         `p`-ordinary eigensymbol
 
         INPUT:
-git exit
+
         - ``p`` -- prime
         - ``M`` -- integer equal to the number of moments
         - ``new_base_ring`` -- new base ring
@@ -1014,6 +1014,8 @@ git exit
         
         
         """
+        if new_base_ring(ap).valuation() > 0: 
+            raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
         verbose("computing naive lift: M=%s, newM=%s, new_base_ring=%s"%(M, newM, new_base_ring))
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
         verbose(Phi._show_malformed_dist("naive lift"), level=2)
