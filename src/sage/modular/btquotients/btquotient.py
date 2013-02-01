@@ -1144,6 +1144,14 @@ class Edge(SageObject):
 class BTQuotient(SageObject, UniqueRepresentation):
     @staticmethod
     def __classcall__(cls,p,Nminus,Nplus=1, character = None, use_magma = False, seed = None):
+        """
+        Ensures that a canonical BTQuotient is created.
+
+        EXAMPLES:
+        
+            sage: BTQuotient(3,17) is BTQuotient(3,17,1)
+            True
+        """
         return super(BTQuotient,cls).__classcall__(cls,p,Nminus,Nplus,character,use_magma,seed)
 
     r"""
@@ -1876,21 +1884,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         I,J,K=self._local_splitting(prec)
         def phi(q):
-            """
-            Evalute the splitting on a quaternion
-
-            INPUT:
-
-            - ``q`` - a quaternion.
-
-            OUTPUT:
-
-            A 2x2 p-adic matrix
-
-            EXAMPLES::
-                sage: 4
-                4
-            """
             R=I.parent()
             v=q.coefficient_tuple()
             return R(v[0] + I*v[1] + J*v[2] + K*v[3])
@@ -2295,45 +2288,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X=BTQuotient(3,5)
-            sage: s = X.get_edge_stabs()
-            sage: len(s) == X.num_ordered_edges()/2
+            sage: s = X.get_stabilizers()
+            sage: len(s) == X.num_ordered_edges()
             True
-            sage: s[0]
-            [[[-2]
-            [ 0]
-            [ 1]
-            [ 1], 0, True], [[-1]
-            [-1]
-            [ 1]
-            [ 1], 0, True], [[-1]
-            [ 1]
-            [ 0]
-            [ 0], 0, True]]
-
-            The second element of `s` should stabilize the first edge
-            of X, which corresponds to the identity matrix::
-
-            sage: X.embed_quaternion(s[0][1][0])
-            [    1 + 2*3 + O(3^3) 2 + 3 + 3^2 + O(3^3)]
-            [  3 + 2*3^2 + O(3^3)   1 + 2*3^2 + O(3^3)]
-            sage: newe = X.embed_quaternion(s[0][1][0])
-            sage: newe.set_immutable()
-            sage: X._find_equivalent_edge(newe)
-            (([-2]
-            [ 0]
-            [ 1]
-            [ 1], 0), <class 'sage.modular.btquotients.btquotient.Edge'>)
-
-        The first entry above encodes an element that maps the edge
-        corresponding to newe to something in the fundamental domain
-        of X. Note that this quaternion is in fact in the
-        stabilizer. We check the representative matrix of the edge and
-        ensure that it's the identity, which is the edge we started
-        with::
-
-            sage: X._find_equivalent_edge(newe)[1].rep
-            [1 0]
-            [0 1]       
+            sage: gamma = X.embed_quaternion(s[1][0][0][0],prec = 20)
+            sage: v = X.get_edge_list()[0].rep
+            sage: X._BT.edge(gamma*v) == v
+            True
         """
         S = self.get_edge_stabs()
         return S + S
@@ -2561,14 +2522,12 @@ class BTQuotient(SageObject, UniqueRepresentation):
             O_units.append(vec)
         return O_units
 
-    def _is_new_element(self,x,old_list,unit_list):
-        """
-        """
-        for tt in old_list:
-            for u in unit_list:
-                if tt*u == u*x:
-                    return False
-        return True
+#    def _is_new_element(self,x,old_list,unit_list):
+#        for tt in old_list:
+#            for u in unit_list:
+#                if tt*u == u*x:
+#                    return False
+#        return True
 
     #def get_CM_points(self,disc,prec, twist = None):
     #    p=self._p
