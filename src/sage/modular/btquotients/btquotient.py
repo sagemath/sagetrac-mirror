@@ -144,6 +144,7 @@ class DoubleCosetReduction(SageObject):
         opposite of one of the representatives (sign = -1).
 
         OUTPUT :
+       
         - an int that is +1 or -1 according to the sign of self
 
         EXAMPLES::
@@ -225,10 +226,12 @@ class DoubleCosetReduction(SageObject):
         Return the 't part' of the decomposition using the rest of the data.
 
         INPUT: 
+       
         - ``prec`` - a p-adic precision that t will be computed
         to. Default is the default working precision of self
 
         OUTPUT: 
+        
         - ``cached_t`` - a 2x2 p-adic matrix with entries of
         precision 'prec' that is the 't-part' of the decomposition of
         self
@@ -409,6 +412,23 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         M_orig = M
 
         def lift(a):
+            """
+            Naively approximates a p-adic integer by a positive integer.
+
+            INPUT:
+
+            - ``a`` - a p-adic integer.
+
+            OUTPUT:
+
+            An integer.
+
+            EXAMPLES::
+
+                sage: x = Zp(3)(-17)
+                sage: lift(x)
+                3486784384
+            """
             try: return ZZ(a.lift())
             except AttributeError: return ZZ(a)
 
@@ -985,6 +1005,8 @@ class Vertex(SageObject):
 
     INPUT:
 
+     - ``p`` - a prime integer.
+
      - ``label`` - An integer which uniquely identifies this vertex.
      
      - ``rep`` - A 2x2 matrix in reduced form representing this
@@ -1005,14 +1027,7 @@ class Vertex(SageObject):
     EXAMPLES::
 
         sage: from sage.modular.btquotients.btquotient import Vertex
-
-    We first make a BTQuotient that will be the owner of our vertices::
-        
-        sage: X = BTQuotient(5,13)
-
-    And then we make a vertex and check some of its features::
-
-        sage: v1 = Vertex(X,0,Matrix(ZZ,2,2,[1,2,3,18]),determinant = 12,valuation =0)
+        sage: v1 = Vertex(5,0,Matrix(ZZ,2,2,[1,2,3,18]))
         sage: v1.rep
         [ 1  2]
         [ 3 18]
@@ -1023,7 +1038,7 @@ class Vertex(SageObject):
 
     - Marc Masdeu (2012-02-20)
     """
-    def __init__(self,owner,label,rep,leaving_edges=None,entering_edges=None,determinant=None,valuation=None):
+    def __init__(self,p,label,rep,leaving_edges=None,entering_edges=None,determinant=None,valuation=None):
         """ 
         This initializes a structure to represent vertices of
         quotients of the Bruhat-Tits tree. It is useful to enrich the
@@ -1033,7 +1048,7 @@ class Vertex(SageObject):
 
             sage: from sage.modular.btquotients.btquotient import Vertex
             sage: Y = BTQuotient(5,13)
-            sage: v1 = Vertex(Y,0,Matrix(ZZ,2,2,[1,2,3,18]),determinant = 12, valuation =0)
+            sage: v1 = Vertex(5,0,Matrix(ZZ,2,2,[1,2,3,18]),determinant = 12, valuation =0)
             sage: TestSuite(v1).run()
         """
         if leaving_edges is None:
@@ -1043,8 +1058,7 @@ class Vertex(SageObject):
         if determinant is None:
             determinant = rep.determinant()
         if valuation is None:
-            valuation = determinant.valuation(owner._p)
-        self.owner=owner
+            valuation = determinant.valuation(p)
         self.label=label
         self.rep=rep
         self.rep.set_immutable()
@@ -1062,6 +1076,8 @@ class Edge(SageObject):
     edge as a matrix with extra data.
 
     INPUT:
+
+     - ``p`` - a prime integer.
 
      - ``label`` - An integer which uniquely identifies this edge.
      
@@ -1086,21 +1102,14 @@ class Edge(SageObject):
     EXAMPLES::
 
         sage: from sage.modular.btquotients.btquotient import Edge
-
-    We first make a BTQuotient that will be the owner of our edges::
-        
-        sage: X = BTQuotient(5,13)
-
-    And then we make an edge and check some of its features::
-
-        sage: e1 = Edge(X,0,Matrix(ZZ,2,2,[1,2,3,18]),Matrix(ZZ,2,2,[5,10,3,18]),determinant = 12,valuation =0)
+        sage: e1 = Edge(7,0,Matrix(ZZ,2,2,[1,2,3,18]),Matrix(ZZ,2,2,[5,10,3,18]),determinant = 12,valuation =0)
         sage: e1.rep
 
     AUTHORS:
 
     - Marc Masdeu (2012-02-20)
     """
-    def __init__(self,owner,label,rep,origin,target,links = None,opposite = None,determinant = None,valuation = None):
+    def __init__(self,p,label,rep,origin,target,links = None,opposite = None,determinant = None,valuation = None):
         """
         This is a structure to represent edges of quotients of the
         Bruhat-Tits tree. It is useful to enrich the representation of
@@ -1112,7 +1121,7 @@ class Edge(SageObject):
             sage: Y = BTQuotients(5,11)
             sage: el = Y.get_edge_list() 
             sage: e1 = el.pop() 
-            sage: e2 = Edge(Y,e1.label,e1.rep,e1.origin,e1.target)
+            sage: e2 = Edge(5,e1.label,e1.rep,e1.origin,e1.target)
             sage: TestSuite(e2).run()
         """
         if links is None:
@@ -1120,8 +1129,7 @@ class Edge(SageObject):
         if determinant is None:
             determinant=rep.determinant()
         if valuation is None:
-            valuation = determinant.valuation(owner._p)
-        self.owner=owner
+            valuation = determinant.valuation(p)
         self.label=label
         self.rep=rep
         self.rep.set_immutable()
@@ -1161,8 +1169,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
        inability to compute well with nonmaximal Eichler orders in
        rational (definite) quaternion algebras.
     
-     - ``character`` - a Dirichlet character (Default: 1). Its modulus
-       must divide the product `p N^- N^+`.
+     - ``character`` - a Dirichlet character (Default: None) of modulus
+       `pN^-N^+`.
      
      - ``use_magma`` - boolean (default: False). If True, uses magma
        for quaternion arithmetic.
@@ -1342,8 +1350,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(37,3)
-            sage: X.get_edge_list()
-            [<class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>]
+            sage: len(X.get_edge_list())
+            8
         """
         try: return self._edge_list
         except AttributeError:
@@ -1364,8 +1372,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(37,3)
-            sage: X.get_list()
-            [<class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>, <class 'sage.modular.btquotients.btquotient.Edge'>]
+            sage: len(X.get_list())
+            16
         """
         E = self.get_edge_list()
         return E + [e.opposite for e in E]
@@ -1481,8 +1489,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         self._compute_invariants()
         return self.e4
+
     @lazy_attribute
     def mu(self):
+        """
+        Computes the mu invariant of self.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(29,3)
+            sage: X.mu
+            2
+        """
         self._compute_invariants()
         return self.mu
 
@@ -1854,6 +1876,21 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         I,J,K=self._local_splitting(prec)
         def phi(q):
+            """
+            Evalute the splitting on a quaternion
+
+            INPUT:
+
+            - ``q`` - a quaternion.
+
+            OUTPUT:
+
+            A 2x2 p-adic matrix
+
+            EXAMPLES::
+                sage: 4
+                4
+            """
             R=I.parent()
             v=q.coefficient_tuple()
             return R(v[0] + I*v[1] + J*v[2] + K*v[3])
@@ -2314,7 +2351,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
           subgroups.
 
         EXAMPLES::
-            ##This is an unintuitive way to do this!
             sage: X = BTQuotient(13,2)
             sage: S = X.get_vertex_stabs()
             sage: gamma = X.embed_quaternion(S[0][0][0][0],prec = 20)
@@ -2526,6 +2562,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return O_units
 
     def _is_new_element(self,x,old_list,unit_list):
+        """
+        """
         for tt in old_list:
             for u in unit_list:
                 if tt*u == u*x:
@@ -2683,7 +2721,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 nn=x.determinant().valuation()
                 T=[beta1,[DoubleCosetReduction(self,x.adjoint()*e.rep,extrapow=nn) for e in E]]
                 success=True
-            except PrecisionError:
+            except (PrecisionError,NotImplementedError):
                 self._increase_precision(10)
         return T
 
@@ -2763,7 +2801,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                         nn = x.determinant().valuation()
                         T.append([v1,[DoubleCosetReduction(self,x.adjoint()*e.rep,extrapow=nn) for e in E]])
                         success = True
-                    except PrecisionError:
+                    except (PrecisionError,NotImplementedError):
                         self._increase_precision(10)
                         alphamat = self.embed_quaternion(alpha)
                 T0.append(v0)
@@ -2794,9 +2832,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
         
-            sage: X.BTQuotient(3,7)
-            sage: X._find_equivalent_vertex(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
-            AttributeError: 'NoneType' object has no attribute 'determinant'
+            sage: X = BTQuotient(3,7)
+            sage: M = Matrix(ZZ,2,2,[1,3,2,7])
+            sage: M.set_immutable()
+            sage: X._find_equivalent_vertex(M)
+            (([ 0]
+            [-2]
+            [ 0]
+            [ 1], 0), <class 'sage.modular.btquotients.btquotient.Vertex'>)
         """
         try:
             return self._cached_vertices[v0]
@@ -2836,9 +2879,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
         equivalent to ``e0``, and ``g`` is such that `g\cdot e_0= e`.
 
         EXAMPLES::
-            sage: X.BTQuotient(3,7)
-            sage: X._find_equivalent_edge(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
-            AttributeError: 'NoneType' object has no attribute 'determinant'
+
+            sage: X = BTQuotient(3,7)
+            sage: M = Matrix(ZZ,2,2,[1,3,2,7])
+            sage: M.set_immutable()
+            sage: X._find_equivalent_edge(M)
+            (([ 0]
+            [-2]
+            [ 0]
+            [ 1], 0), <class 'sage.modular.btquotients.btquotient.Edge'>)
         """
         try:
             return self._cached_edges[e0]
@@ -2871,10 +2920,12 @@ class BTQuotient(SageObject, UniqueRepresentation):
         A ``Vertex`` equivalent to ``v1``, in the fundamental domain.
 
         EXAMPLES::
-        
-            sage: X.BTQuotient(3,7)
-            sage: X.fundom_rep(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
-            AttributeError: 'NoneType' object has no attribute 'base_ring'
+
+            sage: X = BTQuotient(3,7)
+            sage: M = Matrix(ZZ,2,2,[1,3,2,7])
+            sage: M.set_immutable()
+            sage: X.fundom_rep(M)           
+            <class 'sage.modular.btquotients.btquotient.Vertex'>
         """
         try:
             tmp=self._cached_paths[v1]
@@ -2904,6 +2955,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
         
         - ``m`` - integer - The valuation of the determinant of
           ``v1``*``v2``.
+
+        OUTPUT:
+
 
         EXAMPLES::
 
@@ -2971,7 +3025,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             vec = vect.transpose()
             nrd=Integer((vect*A*vec)[0,0]/2)
             if nrd == p**twom:
-                g, ans = self._extra_level_check(vec, twom, E,A,flag = 0)
+                g, ans = self._nebentype_check(vec, twom, E,A,flag = 0)
                 if ans == True:
                     x=self._conv(g.transpose())
                     g.set_immutable()
@@ -2981,8 +3035,50 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             return stabs
 
-    def _extra_level_check(self,vec, twom, E, A, flag = 0):
+    def _nebentype_check(self,vec, twom, E, A, flag = 0):
         """
+        Checks if a quaternion maps into a subgroup of matrices
+        determined by a nontrivial Dirichlet character (associated to
+        self). If `N^+ = 1` then the condition is trivially satisfied.
+
+        INPUT:
+
+        - ``vec`` - 4x1 integer matrix. It encodes the quaternion to
+          test in the basis defined by the columns of E.
+
+        - ``twom`` - An integer.
+
+        - ``E`` - 4x4 integer matrix. Its columns should form a
+          basis for an order in the quaternion algebra.
+
+        - ``A`` - 4x4 integer matrix. It encodes the quadratic form on the order defined by the columns of E.
+
+        - ``flag`` - integer (Default = 0). Passed to Pari for finding
+          minimal elements in a positive definite lattice.
+
+        OUTPUT:
+        
+        A pair consisting of a quaternion (represented by a 4x1 column
+        matrix) and a boolean saying whether the quaternion is in the
+        subgroup of `M_2(\Qp)` determined by the Dirichlet
+        character. Note that if `N^+` is trivial then this function
+        aways outputs true.
+        
+        EXAMPLES::
+
+            sage: f = DirichletGroup(6)[1]
+            sage: X = BTQuotient(3,2,1,f)
+            sage: e = Matrix(ZZ,2,2,[1,2,5,7])
+            sage: m = e.determinant().valuation(3)
+            sage: twom = 2*m
+            sage: E,A = X._find_lattice(e,e,True,twom)
+            sage: X._nebentype_check(E**(-1)*Matrix(ZZ,4,1,[1,0,0,0]),twom,E,A)
+            (
+            [1]      
+            [0]      
+            [0]      
+            [0], True
+            )
         """
         if self._use_magma == False or len(self._extra_level) == 0:
             return E*vec, True
@@ -3035,7 +3131,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: M2 = Matrix(ZZ,2,2,[1,2,3,4]).set_immutable()
             sage: X._are_equivalent(M1,M1)
             AttributeError: 'NoneType' object has no attribute 'determinant'
-
         REFERENCES:
 
           [FM] "Computing quotients of the Bruhat-Tits tree...", Cameron Franc, Marc Masdeu.
@@ -3057,7 +3152,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         vect=vec.transpose()
         nrd=Integer((vect*A*vec)[0,0]/2)
         if nrd == p**twom:
-            g, ans = self._extra_level_check(vec, twom, E,A)
+            g, ans = self._nebentype_check(vec, twom, E,A)
             if ans == True:
                 m=Integer(twom/2)
                 g.set_immutable()
@@ -3211,13 +3306,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
         W=V if not primitive else filter(lambda v: any((vi%self._p != 0 for vi in v)),V)
         return W if trace is None else filter(lambda v:self._conv(v).reduced_trace() == trace,W)
 
-    def _compute_quotient(self, use_formulas = True):
+    def _compute_quotient(self, check = True):
         r"""
         Computes the quotient graph.
 
         INPUT:
 
-        - ``use_formulas`` - Boolean (Default = True). 
+        - ``check`` - Boolean (Default = True). 
 
         EXAMPLES::
 
@@ -3263,7 +3358,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         self.get_extra_embedding_matrices()
         self.get_embedding_matrix(prec = 1)
         p=self._p
-        v0=Vertex(self,num_verts,self._Mat_22([1,0,0,1]),determinant = 1,valuation = 0)
+        v0=Vertex(p,num_verts,self._Mat_22([1,0,0,1]),determinant = 1,valuation = 0)
         V=collections.deque([v0])
         S=Graph(0,multiedges=True,weighted=True)
         Sfun = Graph(0)
@@ -3302,7 +3397,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                     g1,v1=self._find_equivalent_vertex(target,V,valuation=new_valuation)
                     if v1 is None:
                         #The vertex is also new
-                        v1=Vertex(self,num_verts,target,determinant = new_det,valuation = new_valuation)
+                        v1=Vertex(p,num_verts,target,determinant = new_det,valuation = new_valuation)
                         vertex_list.append(v1)
                         num_verts+=1
                         #Add the vertex to the list of pending vertices
@@ -3311,7 +3406,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                         generators.add(g1[0])
 
                     # Add the edge to the list
-                    new_e=Edge(self,num_edges,e,v,v1,determinant = edge_det,valuation = edge_valuation)
+                    new_e=Edge(p,num_edges,e,v,v1,determinant = edge_det,valuation = edge_valuation)
                     new_e.links.append(self.B_one())
                     Sfun.add_edge(v.rep,target,label = num_edges)
                     Sfun.set_vertex(target,v1)
@@ -3324,7 +3419,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                     # Find the opposite edge
                     opp=self._BT.opposite(e)
                     opp_det=opp.determinant()
-                    new_e_opp=Edge(self,num_edges,opp,v1,v,opposite = new_e)
+                    new_e_opp=Edge(p,num_edges,opp,v1,v,opposite = new_e)
                     new_e.opposite=new_e_opp
 
                     if new_e.parity == 0:
@@ -3338,7 +3433,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                     v1.leaving_edges.append(new_e_opp)
                     num_edges += 1
         computed_genus=Integer(1- len(vertex_list)+num_edges)
-        if use_formulas == True:
+        if check == True:
             if computed_genus != genus:
                 print 'You found a bug! Please report!'
                 print 'Computed genus =',computed_genus

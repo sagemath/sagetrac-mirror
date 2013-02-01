@@ -26,7 +26,6 @@ from sage.rings.infinity import Infinity
 import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
 
-
 class BTMap(object):
     """
     Map from a set of edges in a fundamental domain for the
@@ -34,6 +33,12 @@ class BTMap(object):
     coefficient module, satisfying harmonicity relations.
     """
     def __init__(self, codomain, source, defining_data, check=True):
+        """
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,7)
+            
+        """
         self._codomain = codomain
         self._source = source
         self._nE = len(self._source.get_edge_list())
@@ -206,10 +211,10 @@ class BTMap(object):
         return self.__class__(self._codomain, self._manin, D, check=False)
 
 class HarmonicCocycleElement(HeckeModuleElement):
-    r"""
-    Objects of this type are Gamma-invariant harmonic cocycles on the 
-    Bruhat-Tits tree. Gamma-invariance is necessary so that the cocycle
-    can be stored in terms of a finite amount of data.
+    r""" 
+    Gamma-invariant harmonic cocycles on the Bruhat-Tits
+    tree. Gamma-invariance is necessary so that the cocycle can be
+    stored in terms of a finite amount of data.
 
     More precisely, given a BTQuotient T, we store harmonic cocycles as 
     a list of values in some coefficient module (e.g. for weight 2 forms
@@ -429,16 +434,21 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
 class HarmonicCocycles(AmbientHeckeModule):
     Element = HarmonicCocycleElement
-    r"""
-    This object represents a space of Gamma invariant harmonic cocycles valued in
-    a cofficient module.
+    r""" 
+    This object represents a space of Gamma invariant harmonic
+    cocycles valued in a cofficient module.
 
     INPUT:
 
     - ``X`` - A BTQuotient object
+    
     - ``k`` - integer - The weight.
-    - ``prec`` - integer (Default: None). If specified, the precision for the coefficient module
+    
+    - ``prec`` - integer (Default: None). If specified, the precision
+      for the coefficient module
+    
     - ``basis_matrix`` - integer (Default: None)
+    
     - ``base_field`` - (Default: None)
 
     EXAMPLES::
@@ -449,6 +459,9 @@ class HarmonicCocycles(AmbientHeckeModule):
     - Marc Masdeu
     """
     def __init__(self,X,k,prec = None,basis_matrix = None,base_field = None):
+        """
+        Compute the space of harmonic cocycles.
+        """
         self._k = k
         self._X = X
         self._E = self._X.get_edge_list()
