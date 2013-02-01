@@ -25,6 +25,7 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.rings.infinity import Infinity
 import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
+from sage.modular.pollack_stevens.distributions import Distributions, Symk
 
 class BTMap(object):
     """
@@ -239,7 +240,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         HeckeModuleElement.__init__(self,_parent,None)
         self._parent = _parent
         if from_values:
-            self._R = _parent._U._R
+            self._R = _parent._U.base_ring()
             self._wt = _parent._k
             self._nE = len(_parent._E)
             self._F = copy(vec)
@@ -249,7 +250,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
             self._R = vec._R
             self._nE = vec._nE
             self._wt = vec._wt
-            self._F = [_parent._U.element_class(_parent._U,vec._F[ii],quick = True) for ii in range(self._nE)]
+            self._F = [_parent._U(o,check = False) for o in vec._F]
             return
         # When vec contains coordinates for the basis
         self._R  =  _parent._R
@@ -261,7 +262,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         self._nE = len(_parent._E)
         vmat = Matrix(self._R,1,_parent.dimension(),v)
         tmp = (vmat*_parent.ambient_module().basis_matrix()).row(0)
-        self._F = [_parent._U.element_class(_parent._U,Matrix(self._R,self._wt-1,1,tmp[e*(self._wt-1):(e+1)*(self._wt-1)]),quick = True) for e in range(self._nE)]
+        self._F = [_parent._U(Matrix(self._R,self._wt-1,1,tmp[e*(self._wt-1):(e+1)*(self._wt-1)]),check = False) for e in range(self._nE)]
         return
 
     def _add_(self,g):
@@ -478,6 +479,7 @@ class HarmonicCocycles(AmbientHeckeModule):
                 pol = X.get_splitting_field().defining_polynomial().factor()[0][0]
                 self._R = base_field.extension(pol,pol.variable_name()).absolute_field(name = 'r')
             self._U = OCVn(self._k-2,self._R)
+            self._Unew = Symk(self._k-2,self._R)
         else:
             self._prec = prec
             if base_field is None:
@@ -485,6 +487,7 @@ class HarmonicCocycles(AmbientHeckeModule):
             else:
                 self._R = base_field
             self._U = OCVn(self._k-2,self._R,self._k-1)
+            self._Unew = Symk(self._k-2,self._R)
         self.__rank = self._X.dimension_harmonic_cocycles(self._k)
         if basis_matrix is not None:
             self.__matrix = basis_matrix
@@ -604,7 +607,7 @@ class HarmonicCocycles(AmbientHeckeModule):
         if isinstance(x,HarmonicCocycleElement):
             return HarmonicCocycleElement(self,x)
         elif isinstance(x,pAutomorphicFormElement):
-            tmp = [self._U.element_class(_parent._U,x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
+            tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
             return HarmonicCocycleElement(self,tmp,from_values = True)
         else:
             return HarmonicCocycleElement(self,x)
@@ -743,7 +746,7 @@ class HarmonicCocycles(AmbientHeckeModule):
         R = self._R
         Data = self._X._get_atkin_lehner_data(q)
         p = self._X._p
-        tmp = [self._U.element_class(self._U,zero_matrix(self._R,self._k-1,1),quick = True) for jj in range(len(self._E))]
+        tmp = [self._U(0) for jj in range(len(self._E))]
         d1 = Data[1]
         mga = self.embed_quaternion(Data[0])
         nE = len(self._E)
@@ -783,7 +786,7 @@ class HarmonicCocycles(AmbientHeckeModule):
             factor = QQ(l**(Integer((self._k-2)/2)))
         p = self._X._p
         alphamat = self.embed_quaternion(alpha)
-        tmp = [self._U.element_class(self._U,zero_matrix(self._R,self._k-1,1),quick = True) for jj in range(len(self._E))]
+        tmp = [self._U(0) for jj in range(len(self._E))]
         for ii in range(len(HeckeData)):
             d1 = HeckeData[ii][1]
             mga = self.embed_quaternion(HeckeData[ii][0])*alphamat
@@ -946,13 +949,12 @@ class pAutomorphicFormElement(ModuleElement):
                 assert(parent._U.weight() == vec._wt-2)
                 F = []
                 assert(2*len(vec._F) == self._num_generators)
-                assert(isinstance(parent._U,OCVn))
+                # assert(isinstance(parent._U,OCVn))
                 E = parent._list
 
-                MMM = vec.parent()._U.element_class
                 tmp = []
                 for ii in range(len(vec._F)):
-                    newtmp = MMM(vec.parent()._U,vec._F[ii]).l_act_by(E[ii].rep.inverse())
+                    newtmp = vec.parent()(vec._F[ii]).l_act_by(E[ii].rep.inverse())
                     tmp.append(newtmp)
                     F.append(parent._U(newtmp))
                 A = Matrix(QQ,2,2,[0,-1/parent.prime(),-1,0])
@@ -965,7 +967,7 @@ class pAutomorphicFormElement(ModuleElement):
                     self._value = [parent._U(v) for v in vec]
                 except:
                     try:
-                        veczp = parent._U._R(vec)
+                        veczp = parent._U.base_ring()(vec)
 
                         self._value = [parent._U(veczp) for ii in range(self._num_generators)]
                     except:
@@ -973,7 +975,7 @@ class pAutomorphicFormElement(ModuleElement):
                         assert(0)
             else:
                 try:
-                    veczp = parent._U._R(vec)
+                    veczp = parent._U.base_ring()(vec)
                     self._value = [parent._U(veczp) for ii in range(self._num_generators)]
                 except:
                     raise ValueError,"Cannot initialize a p-adic automorphic form with the given input = "+str(vec)
@@ -1195,7 +1197,7 @@ class pAutomorphicFormElement(ModuleElement):
                 new = self.evaluate(e).evaluate(exp.truncate(self.parent()._U.weight()+1))
                 value += new
         elif(method == 'moments'):
-            R1.set_default_prec(self.parent()._U.dimension())
+            R1.set_default_prec(self.parent()._U.precision_cap())
             for e in E:
                 ii += 1
                 #print ii,"/",len(E)
@@ -1391,7 +1393,7 @@ class pAutomorphicFormElement(ModuleElement):
                     value_exp  *=  K.teichmuller(y)**Integer(c_e[0].rational_reconstruction())
 
         elif(method == 'moments'):
-            R1.set_default_prec(self.parent()._U.dimension())
+            R1.set_default_prec(self.parent()._U.precision_cap())
             for e in E:
                 ii += 1
                 f = (x-t1)/(x-t2)
@@ -1451,6 +1453,7 @@ class pAutomorphicForms(Module):
                 else:
                     t = 0
             self._U = OCVn(U-2,self._R,U-1+t)
+            self._Unew = Distributions(U-2,base_ring = self._R,precision_cap = U - 1 + t )
         else:
             self._U = U
         self._source = domain
@@ -1521,13 +1524,12 @@ class pAutomorphicForms(Module):
         """
         S = self._source.get_stabilizers()
         M  = [e.rep for e in self._list]
-        coeff_module_class = self._U.element_class
         newF = []
         for ii in range(len(S)):
             Si = S[ii]
-            x = coeff_module_class(F[ii].parent(),F[ii]._val,quick = True)
+            x = self._U(F[ii]._val,check = False)
             if(any([v[2] for v in Si])):
-                newFi = coeff_module_class(F[ii].parent(),0)
+                newFi = self._U(0)
                 s = QQ(0)
                 m = M[ii]
                 for v in Si:

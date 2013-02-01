@@ -377,7 +377,7 @@ cdef class Dist(ModuleElement):
             raise ValueError("not enough moments")
         V = self.parent().specialize(new_base_ring)
         new_base_ring = V.base_ring()
-        return V([binomial(k, j) * (-1)**j * new_base_ring(self.moment(j)) for j in range(k+1)])
+        return V([new_base_ring.coerce(self.moment(j)) for j in range(k+1)])
 
     def lift(self, p=None, M=None, new_base_ring=None):
         r"""
@@ -389,10 +389,11 @@ cdef class Dist(ModuleElement):
           then p must be available in the parent.
 
         - ``M`` -- (default: None) a positive integer giving the
-          desired number of moments.
+          desired number of moments. If None, returns a distribution having one
+          more moment than this one.
 
-        - ``new_base_ring`` -- (default: None) a ring giving the
-          desired base ring of the result.
+        - ``new_base_ring`` -- (default: None) a ring giving the desired base
+          ring of the result. If None, a base ring is chosen automatically.
 
         OUTPUT:
 
@@ -401,14 +402,20 @@ cdef class Dist(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
+            sage: V = Symk(0)      
+            sage: x = V(1/4)       
+            sage: y = x.lift(17, 5)
+            sage: y                
+            (13 + 12*17 + 12*17^2 + 12*17^3 + 12*17^4 + O(17^5), O(17^4), O(17^3), O(17^2), O(17))
+            sage: y.specialize().moments == x.moments 
+            True
         """
         V = self.parent().lift(p, M, new_base_ring)
         k = V._k
         p = V.prime()
         M = V.precision_cap()
         R = V.base_ring()
-        moments = [R(self.moment(j) * (-1)**j / binomial(k, j)) for j in range(k+1)]
+        moments = [R.coerce(self.moment(j)) for j in range(k+1)]
         zero = R(0)
         moments.extend([zero] * (M - k - 1))
         mu = V(moments)
@@ -1142,6 +1149,8 @@ cdef class WeightKAction(Action):
 
     - ``on_left`` -- whether this action should be on the left.
 
+    - ``padic`` -- if True, define an action of Sigma_0(p)
+
     OUTPUT:
 
     - 
@@ -1150,7 +1159,7 @@ cdef class WeightKAction(Action):
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
     """
-    def __init__(self, Dk, character, tuplegen, on_left):
+    def __init__(self, Dk, character, tuplegen, on_left, padic = False):
         r"""
         Initialization.
 

@@ -29,7 +29,7 @@ class OCVnElement(ModuleElement):
        coercible to a column vector) which represents the values of the element applied to
        the polynomials `1`, `x`, `x^2`, ... ,`x^n`.
 
-     - ``quick`` - boolean (default: False). If set to true, no checks are done and ``val`` is
+     - ``check`` - boolean (default: True). If set to False, no checks are done and ``val`` is
        assumed to be the a column vector.
 
     AUTHORS:
@@ -37,15 +37,13 @@ class OCVnElement(ModuleElement):
     - Cameron Franc (2012-02-20)
     - Marc Masdeu (2012-02-20)
     """
-    def __init__(self,parent,val=0,quick=False):
+    def __init__(self,parent,val = 0,check = False):
         ModuleElement.__init__(self,parent)
         self._parent=parent
         self._n=self._parent._n
         self._nhalf=Integer(self._n/2)
         self._depth=self._parent._depth
-        if quick:
-            self._val=copy(val)
-        else:
+        if check:
             if isinstance(val,self.__class__):
                 d=min([val._parent._depth,parent._depth])
                 assert(val._parent.weight()==parent.weight())
@@ -54,9 +52,10 @@ class OCVnElement(ModuleElement):
                     self._val[ii,0]=val._val[ii,0]
             else:
                 try:
-                    self._val=MatrixSpace(self._parent._R,self._depth,1)(val)
+                    self._val = MatrixSpace(self._parent._R,self._depth,1)(val)
                 except:
-                    self._val=val*ones_matrix(self._parent._R,self._depth,1)
+                    self._val=val * ones_matrix(self._parent._R,self._depth,1)
+        self._val=copy(val)
 
     def __getitem__(self,r):
         r"""
@@ -132,7 +131,7 @@ class OCVnElement(ModuleElement):
         ::
         """
         val=self._val+y._val
-        return self.__class__(self._parent,val,quick=True)
+        return self.__class__(self._parent,val, check = False)
 
     def _sub_(self,y):
         r"""
@@ -144,7 +143,7 @@ class OCVnElement(ModuleElement):
         ::
         """
         val=self._val-y._val
-        return self.__class__(self._parent,val,quick=True)
+        return self.__class__(self._parent,val, check = False)
 
     def l_act_by(self,x):
         r"""
@@ -188,11 +187,11 @@ class OCVnElement(ModuleElement):
             factor=R.prime()**(-t)
         try:
             x=self._parent._powers[(factor*a,factor*b,factor*c,factor*d)]
-            return self.__class__(self._parent,(extrafactor*factor**(-self._n))*(x*self._val),quick=True)
+            return self.__class__(self._parent,(extrafactor*factor**(-self._n))*(x*self._val), check = False)
         except KeyError:
             tmp=self._parent._get_powers_and_mult(factor*a,factor*b,factor*c,factor*d,extrafactor*factor**(-self._n),self._val)
 
-            return self.__class__(self._parent,tmp,quick=True)
+            return self.__class__(self._parent,tmp, check = False)
 
     def _rmul_(self,a):
         r"""
@@ -205,7 +204,7 @@ class OCVnElement(ModuleElement):
 
         """
         #assume that a is a scalar
-        return self.__class__(self._parent,a*self._val,quick=True)
+        return self.__class__(self._parent,a*self._val, check = False)
 
     def precision_absolute(self):
         r"""
@@ -373,7 +372,7 @@ class OCVn(Module,UniqueRepresentation):
     def _an_element_(self):
         r"""
         """
-        return OCVnElement(self,Matrix(self._R,self._depth,1,range(1,self._depth+1)),quick=True)
+        return OCVnElement(self,Matrix(self._R,self._depth,1,range(1,self._depth+1)), check = False)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -470,7 +469,7 @@ class OCVn(Module,UniqueRepresentation):
         """
         try: return self._basis
         except: pass
-        self._basis=[OCVnElement(self,Matrix(self._R,self._depth,1,{(jj,0):1},sparse=False),quick=True) for jj in range(self._depth)]
+        self._basis=[OCVnElement(self,Matrix(self._R,self._depth,1,{(jj,0):1},sparse=False),check = False) for jj in range(self._depth)]
         return self._basis
 
     def base_ring(self):
@@ -493,6 +492,12 @@ class OCVn(Module,UniqueRepresentation):
         return self._depth
 
     def dimension(self):
+        r"""
+        Returns the dimension (rank) of the module.
+        """
+        return self._depth
+
+    def precision_cap(self):
         r"""
         Returns the dimension (rank) of the module.
         """

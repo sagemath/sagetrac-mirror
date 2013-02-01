@@ -1,3 +1,6 @@
+r"""
+P-adic L-series attached to overconvergent eigensymbols
+"""
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
@@ -20,73 +23,87 @@ from sage.structure.sage_object import SageObject
 class pAdicLseries(SageObject):
     r"""
     The `p`-adic `L`-series associated to an overconvergent eigensymbol.
-    """
+
+    INPUT:
     
+    - ``symb`` -- overconvergent eigensymbol
+    - ``gamma`` -- topological generator of `1 + pZ_p`
+    - ``quadratic_twist`` -- conductor of quadratic twist `\chi`, default 1
+    - ``precision`` -- if None is specified, the correct precision bound is
+      computed and the answer is returned modulo that accuracy
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: E = EllipticCurve('37a')
+        sage: p = 5
+        sage: prec = 4
+        sage: phi = ps_modsym_from_elliptic_curve(E)
+        sage: phi_stabilized = phi.p_stabilize(p,prec+3)
+        sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens',eigensymbol=True)
+        sage: L = pAdicLseries(Phi)
+        sage: L[1]
+        2 + 3*5 + O(5^2)
+        sage: L[0]
+        O(5^2)
+        
+    Using the existing algorithm in Sage, it seems we're off by a factor of 2:
+        
+        sage: L = E.padic_lseries(5)
+        sage: L.series(4)[1]
+        1 + 4*5 + 2*5^2 + O(5^3)
+
+    But here, we're correct without the factor of 2:
+
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+        sage: E = EllipticCurve('57a')
+        sage: p = 5
+        sage: prec = 4
+        sage: phi = ps_modsym_from_elliptic_curve(E)
+        sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
+        sage: Phi = phi_stabilized.lift(p=5, M=prec, alpha=None, algorithm='stevens', eigensymbol=True)
+        sage: L = pAdicLseries(Phi)
+        sage: L[1]
+        3*5 + 5^2 + O(5^3)
+
+        sage: L1 = E.padic_lseries(5)
+        sage: L1.series(4)[1]
+        3*5 + 5^2 + O(5^3)
+
+    An example of a `p`-adic `L`-series associated to a modular abelian surface:
+        
+        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+        sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
+        sage: p = 19
+        sage: prec = 4
+        sage: phi = ps_modsym_from_simple_modsym_space(A)
+        sage: ap = phi.Tq_eigenvalue(p,prec)
+        sage: c1,c2 = phi.completions(p,prec)
+        sage: phi1,psi1 = c1
+        sage: phi2,psi2 = c2
+        sage: phi1p = phi1.p_stabilize_and_lift(p,ap = psi1(ap), M = prec, algorithm='stevens') # long time
+        sage: L1 = pAdicLseries(phi1p) # long time
+        sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec, algorithm='stevens') # long time
+        sage: L2  = pAdicLseries(phi2p) # long time
+        sage: L1[1]*L2[1] # long time
+        13 + 9*19 + O(19^2)
+    """
     def __init__(self, symb, gamma=None, quadratic_twist=1, precision=None):
         r"""
 
-        INPUT:
-            - ``symb`` -- overconvergent eigensymbol
-            - ``gamma`` -- topological generator of `1 + pZ_p`
-            - ``quadratic_twist`` -- conductor of quadratic twist `\chi`, default 1
-            - ``precision`` -- if None is specified, the correct precision bound is computed and the answer is returned modulo
-              that accuracy
-
-        EXAMPLES::
+        EXAMPLE::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
-            sage: p = 5
-            sage: prec = 4
+            sage: p = 37
+            sage: prec = 3
             sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,prec+3)
-            sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens',eigensymbol=True)
+            sage: Phi = phi.lift(p,prec,algorithm='stevens',eigensymbol=True)
             sage: L = pAdicLseries(Phi)
             sage: L[1]
-            2 + 3*5 + O(5^2)
-            sage: L[0]
-            O(5^2)
-        
-        Using the existing algorithm in Sage, it seems we're off by a factor of 2:
-        
-            sage: L = E.padic_lseries(5)
-            sage: L.series(4)[1]
-            1 + 4*5 + 2*5^2 + O(5^3)
+            4 + 37 + O(37^2)
 
-        But here, we're correct without the factor of 2:
-
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-            sage: E = EllipticCurve('57a')
-            sage: p = 5
-            sage: prec = 4
-            sage: phi = ps_modsym_from_elliptic_curve(E)
-            sage: phi_stabilized = phi.p_stabilize(p,M = prec+3)
-            sage: Phi = phi_stabilized.lift(p=5, M=prec, alpha=None, algorithm='stevens', eigensymbol=True)
-            sage: L = pAdicLseries(Phi)
-            sage: L[1]
-            3*5 + 5^2 + O(5^3)
-
-            sage: L1 = E.padic_lseries(5)
-            sage: L1.series(4)[1]
-            3*5 + 5^2 + O(5^3)
-
-        An example of a `p`-adic `L`-series associated to a modular abelian surface:
-        
-            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
-            sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
-            sage: p = 19
-            sage: prec = 4
-            sage: phi = ps_modsym_from_simple_modsym_space(A)
-            sage: ap = phi.Tq_eigenvalue(p,prec)
-            sage: c1,c2 = phi.completions(p,prec)
-            sage: phi1,psi1 = c1
-            sage: phi2,psi2 = c2
-            sage: phi1p = phi1.p_stabilize_and_lift(p,ap = psi1(ap), M = prec, algorithm='stevens') # long time
-            sage: L1 = pAdicLseries(phi1p) # long time
-            sage: phi2p = phi2.p_stabilize_and_lift(p,ap = psi2(ap), M = prec, algorithm='stevens') # long time
-            sage: L2  = pAdicLseries(phi2p) # long time
-            sage: L1[1]*L2[1] # long time
-            13 + 9*19 + O(19^2)
+            sage: TestSuite(L).run()
         """
         self._coefficients = {}
         
@@ -154,6 +171,25 @@ class pAdicLseries(SageObject):
             self._coefficients[n] = dn + O(p**precision)
             return self._coefficients[n]
 
+    def __cmp__(self, other):
+        r"""
+        Compare self and other.
+
+        EXAMPLE::
+
+            sage: E = EllipticCurve('11a')
+            sage: S = sage.modular.pollack_stevens.space.ps_modsym_from_elliptic_curve(E)
+            sage: SS = S.lift(11, M=10, algorithm='stevens')
+            sage: L = pAdicLseries(SS)
+            sage: L == loads(dumps(L)) # indirect doctest
+            True
+        """
+        return cmp(type(self), type(other)) \
+            or cmp(self._symb, other._symb) \
+            or cmp(self._quadratic_twist, other._quadratic_twist) \
+            or cmp(self._gamma, other._gamma) \
+            or cmp(self._precision, other._precision)
+
     def symb(self):
         r"""
         Returns the overconvergent modular symbol
@@ -168,10 +204,8 @@ class pAdicLseries(SageObject):
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
             sage: Phi = phi_stabilized.lift(p=p,M=prec,alpha=None,algorithm='stevens',eigensymbol=True)
             sage: L = pAdicLseries(Phi)
-            sage: L.symb()
-            Modular symbol with values in Space of 5-adic distributions with k=0 action and precision cap 6
-
-        ### TODO: This fails (what is returned has precision 7 for some reason)
+            sage: L.symb() is Phi
+            True
         """
         return self._symb
 
@@ -226,6 +260,8 @@ class pAdicLseries(SageObject):
             sage: phi_stabilized = phi.p_stabilize(p,M = prec)
             sage: Phi = phi_stabilized.lift(p,prec,None,algorithm='stevens',eigensymbol=True)
             sage: L = pAdicLseries(Phi)
+            sage: L._repr_()
+            '5-adic L-series of Modular symbol with values in Space of 5-adic distributions with k=0 action and precision cap 7'
         """
         s = "%s-adic L-series of %s"%(self.prime(), self.symb())
         return s

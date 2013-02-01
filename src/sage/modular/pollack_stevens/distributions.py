@@ -13,7 +13,7 @@ Spaces of Distributions
 
 from sage.modules.module import Module
 from sage.structure.parent import Parent
-from sage.rings.padics.factory import ZpCA
+from sage.rings.padics.factory import ZpCA, QpCR
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -70,9 +70,10 @@ class Distributions_factory(UniqueFactory):
         """
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: Distributions(20, 3, 10)              # indirect doctest
             Space of 3-adic distributions with k=20 action and precision cap 10
+            sage: TestSuite(Distributions).run()
         """
         k = ZZ(k)
         if tuplegen is None:
@@ -107,6 +108,30 @@ class Distributions_factory(UniqueFactory):
         return Distributions_class(*key)
 
 class Symk_factory(UniqueFactory):
+    r"""
+    Create the space of polynomial distributions of degree k (stored as a sequence of k + 1 moments).
+
+    INPUT:
+
+    - ``k`` (integer): the degree (degree `k` corresponds to weight `k + 2` modular forms)
+    - ``base`` (ring, default None): the base ring (None is interpreted as `\QQ`)
+    - ``character`` (Dirichlet character or None, default None) the character
+    - ``tuplegen`` (None or a callable that turns 2x2 matrices into a 4-tuple, default None)
+    - ``act_on_left`` (boolean, default False) whether to have the group acting
+      on the left rather than the right.
+
+    EXAMPLE::
+
+        sage: from sage.modular.pollack_stevens.distributions import Symk
+        sage: Symk(5)
+        Sym^5 Q^2
+        sage: Symk(5, RR)
+        Sym^5 (Real Field with 53 bits of precision)^2
+        sage: Symk(5, oo.parent()) # don't do this
+        Sym^5 (The Infinity Ring)^2
+        sage: Symk(5, act_on_left = True)
+        Sym^5 Q^2
+    """
     def create_key(self, k, base=None, character=None, tuplegen=None, act_on_left=False):
         r"""
         Sanitize input.
@@ -118,6 +143,7 @@ class Symk_factory(UniqueFactory):
             Sym^6 Q^2
             sage: Symk(6, Qp(7)) # indirect doctest
             Sym^6 Q_7^2
+            sage: TestSuite(Symk).run()
         """
         k = ZZ(k)
         if tuplegen is None:
@@ -203,8 +229,10 @@ class Distributions_abstract(Module):
         self._character = character
         self._symk = symk
         act = WeightKAction(self, character, tuplegen, act_on_left)
+        act_S0p = WeightKAction(self, character, tuplegen, act_on_left, padic = True)
         self._act = act
-        self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act])
+        self._act_S0p = act_S0p
+        self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act,act_S0p])
 
     def prime(self):
         """
@@ -528,13 +556,23 @@ class Symk_class(Distributions_abstract):
             raise NotImplementedError
         if M is None:
             M = self._prec_cap + 1
+
+        # sanitize new_base_ring. Don't want it to end up being QQ!
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        if p is None:
-            try:
-                p = new_base_ring.prime()
-            except AttributeError:
-                raise ValueError("You must specify a prime")
+        try:
+            pp = new_base_ring.prime()
+        except AttributeError:
+            pp = None
+
+        if p is None and pp is None:
+            raise ValueError("You must specify a prime")
+        elif pp is None:
+            new_base_ring = QpCR(p, M)
+        elif p is None:
+            p = pp
+        elif p != pp:
+            raise ValueError("Inconsistent primes")
         return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
 
 class Distributions_class(Distributions_abstract):

@@ -60,6 +60,10 @@ class PSModularSymbols_factory(UniqueFactory):
         sage: D = Distributions(3, 7, prec_cap=10)
         sage: PSModularSymbols(Gamma0(7), coefficients=D)
         Space of overconvergent modular symbols for Congruence Subgroup Gamma0(7) with sign 0 and values in Space of 7-adic distributions with k=3 action and precision cap 10 
+
+    TESTS::
+
+        sage: TestSuite(PSModularSymbols).run()
     """
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
         """
@@ -69,6 +73,7 @@ class PSModularSymbols_factory(UniqueFactory):
         
             sage: D = Distributions(3, 7, prec_cap=10)
             sage: M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
+            sage: TestSuite(PSModularSymbols).run()
         """
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
