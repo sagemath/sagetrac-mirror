@@ -108,6 +108,17 @@ class Distributions_factory(UniqueFactory):
 
 class Symk_factory(UniqueFactory):
     def create_key(self, k, base=None, character=None, tuplegen=None, act_on_left=False):
+        r"""
+        Sanitize input.
+
+        EXAMPLE::
+
+            sage: from sage.modular.pollack_stevens.distributions import Symk
+            sage: Symk(6) # indirect doctest
+            Sym^6 Q^2
+            sage: Symk(6, Qp(7)) # indirect doctest
+            Sym^6 Q_7^2
+        """
         k = ZZ(k)
         if tuplegen is None:
             tuplegen = _default_tuplegen()
@@ -119,6 +130,13 @@ class Symk_factory(UniqueFactory):
         return (k, base, character, tuplegen, act_on_left)
 
     def create_object(self, version, key):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.modular.pollack_stevens.distributions import Symk
+            sage: Symk(6) # indirect doctest
+            Sym^6 Q^2
+        """
         return Symk_class(*key)
 
 Distributions = Distributions_factory('Distributions')
@@ -378,7 +396,7 @@ class Distributions_abstract(Module):
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(0, 7, 4); D
             Space of 7-adic distributions with k=0 action and precision cap 4
-            sage: D.an_element()
+            sage: D.an_element() # indirect doctest
             (2, 1)
         """
         if self._prec_cap > 1:

@@ -246,7 +246,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: f = M(1); f._get_prime()
             5
             sage: f._get_prime(5)
@@ -257,7 +257,7 @@ class PSModularSymbolElement(ModuleElement):
             ValueError: inconsistent prime
             sage: f._get_prime(alpha=Qp(5)(1))
             5
-            sage: D = Symk(0);  M = PSModularSymbolSpace(Gamma0(2), D)
+            sage: D = Symk(0);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: f = M(1); f._get_prime(allow_none=True) is None
             True
             sage: f._get_prime(alpha=Qp(7)(1))
@@ -1029,13 +1029,13 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbolSpace(Gamma0(2), D); M
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(2), coefficients=D); M
             Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f = M(1)
             sage: f.specialize()
             Modular symbol with values in Sym^0 Z_5^2
             sage: f.specialize().values()
-            [1, 1]
+            [1 + O(5^10), 1 + O(5^10)]
             sage: f.values()
             [1, 1]
             sage: f.specialize().parent()
