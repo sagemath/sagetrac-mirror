@@ -20,6 +20,7 @@ from sage.plot import plot
 from sage.rings.padics.precision_error import PrecisionError
 from itertools import islice
 import collections
+from sage.misc.misc_c import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import gcd,xgcd,kronecker_symbol
@@ -178,17 +179,19 @@ class DoubleCosetReduction(SageObject):
 
         INPUT:
 
-          - ``embedding`` - an integer, or a function (Default: none). If
-            ``embedding`` is None, then the image of ``self.gamma`` under the local splitting
-            associated to ``self.Y`` is used. If ``embedding`` is an integer, then the
-            precision of the local splitting of self.Y is raised (if necessary)
-            to be larger than this integer, and this new local splitting is
-            used. If a function is passed, then map ``self.gamma``
-            under ``embedding``.
+          - ``embedding`` - an integer, or a function (Default:
+            none). If ``embedding`` is None, then the image of
+            ``self.gamma`` under the local splitting associated to
+            ``self.Y`` is used. If ``embedding`` is an integer, then
+            the precision of the local splitting of self.Y is raised
+            (if necessary) to be larger than this integer, and this
+            new local splitting is used. If a function is passed, then
+            map ``self.gamma`` under ``embedding``.
 
         OUTPUT:
 
-            - ``cached_igamma`` - a 2x2 matrix with p-adic entries encoding the image of self under the local splitting 
+            - ``cached_igamma`` - a 2x2 matrix with p-adic entries
+              encoding the image of self under the local splitting
 
         EXAMPLES::
 
@@ -221,11 +224,14 @@ class DoubleCosetReduction(SageObject):
         r"""
         Return the 't part' of the decomposition using the rest of the data.
 
-        INPUT:
-            - ``prec`` - a p-adic precision that t will be computed to. Default is the default working precision of self
+        INPUT: 
+        - ``prec`` - a p-adic precision that t will be computed
+        to. Default is the default working precision of self
 
-        OUTPUT:
-            - ``cached_t`` - a 2x2 p-adic matrix with entries of precision 'prec' that is the 't-part' of the decomposition of self
+        OUTPUT: 
+        - ``cached_t`` - a 2x2 p-adic matrix with entries of
+        precision 'prec' that is the 't-part' of the decomposition of
+        self
 
         EXAMPLES::
 
@@ -263,9 +269,9 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
     - ``p`` - a prime number. The corresponding tree is then p+1 regular 
 
-    EXAMPLES::
+    EXAMPLES:
 
-    Here we create the tree for `\GL_2(\QQ_5)`:
+    We create the tree for `\GL_2(\QQ_5)`::
 
         sage: from sage.modular.btquotients.btquotient import BruhatTitsTree
         sage: p = 5
@@ -285,7 +291,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         sage: T.target(T.opposite(e)) == v0
         True
 
-    A value error is raised if a prime is not passed:
+    A value error is raised if a prime is not passed::
 
         sage: T = BruhatTitsTree(4)
         Traceback (most recent call last):
@@ -326,7 +332,8 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUPUT:
 
-            - ``e`` - 2x2 integer matrix representing the target of the input edge
+            - ``e`` - 2x2 integer matrix representing the target of
+              the input edge
 
         EXAMPLES::
 
@@ -334,7 +341,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             sage: T = BruhatTitsTree(7)
             sage: T.target(Matrix(ZZ,2,2,[1,5,8,9]))
             [1 0]
-[0 1]
+            [0 1]
         """
         if normalized:
             #then the normalized target vertex is also M and we save some
@@ -366,8 +373,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             sage: T = BruhatTitsTree(7)
             sage: T.origin(Matrix(ZZ,2,2,[1,5,8,9]))
             [1 0]
-[1 7]
-
+            [1 7]
         """
         if not normalized:
             #then normalize
@@ -558,8 +564,11 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         INPUT:
 
         - ``v1`` - 2x2 integer matrix
+
         - ``v2`` - 2x2 integer matrix
-        - ``normalized`` - boolean (Default: False) Whether the vertices are normalized.
+
+        - ``normalized`` - boolean (Default: False) Whether the
+          vertices are normalized.
 
         OUTPUT:
 
@@ -912,9 +921,9 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return [self.vertex(gamma*x) for x in chain+[v0]]
 
     def find_covering(self,z1,z2,level = 0):
-        r"""
-        This function computes a covering of P1(Qp) adapted to a 
-        certain geodesic in self.
+        r""" 
+        Computes a covering of P1(Qp) adapted to a certain
+        geodesic in self.
 
         More precisely, the `p`-adic upper half plane points ``z1``
         and ``z2`` reduce to vertices `v_1`, `v_2`.
@@ -943,7 +952,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             [3 0], [0 1], [3 2], [9 1], [9 4], [9 7]
             ]
 
-        NOTES::
+        NOTES:
 
           This function is used to compute certain Coleman integrals
           on `\PP^1`. That's why the input consists of two points of
@@ -992,6 +1001,23 @@ class Vertex(SageObject):
      
      - ``valuation`` - (Default: None) The valuation of the
        determinant of ``rep``, if known.
+
+    EXAMPLES::
+
+        sage: from sage.modular.btquotients.btquotient import Vertex
+
+    We first make a BTQuotient that will be the owner of our vertices::
+        
+        sage: X = BTQuotient(5,13)
+
+    And then we make a vertex and check some of its features::
+
+        sage: v1 = Vertex(X,0,Matrix(ZZ,2,2,[1,2,3,18]),determinant = 12,valuation =0)
+        sage: v1.rep
+        [ 1  2]
+        [ 3 18]
+        sage: v1.entering_edges
+        []
 
     AUTHORS:
 
@@ -1056,6 +1082,19 @@ class Edge(SageObject):
      
      - ``valuation`` - (Default: None) The valuation of the
        determinant of ``rep``, if known.
+
+    EXAMPLES::
+
+        sage: from sage.modular.btquotients.btquotient import Edge
+
+    We first make a BTQuotient that will be the owner of our edges::
+        
+        sage: X = BTQuotient(5,13)
+
+    And then we make an edge and check some of its features::
+
+        sage: e1 = Edge(X,0,Matrix(ZZ,2,2,[1,2,3,18]),Matrix(ZZ,2,2,[5,10,3,18]),determinant = 12,valuation =0)
+        sage: e1.rep
 
     AUTHORS:
 
@@ -1128,13 +1167,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
      - ``use_magma`` - boolean (default: False). If True, uses magma
        for quaternion arithmetic.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Here is an example without a Dirichlet character::
 
         sage: X = BTQuotient(13,19)
         sage: X.genus()
         19
         sage: G = X.get_graph(); G
         Multi-graph on 4 vertices
+
+    And an example with a Dirichlet character::
+  
+      sage: f = DirichletGroup(6)[1] 
+      sage: X = BTQuotient(3,2*5*7,character = f)
+      sage: X.genus()
+      5
 
     NOTES::
 
@@ -1148,11 +1196,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def __init__(self,p,Nminus,Nplus=1,character = None, use_magma = False, seed = None):
         """
         Computes the quotient of the Bruhat-Tits tree by an arithmetic
-        quaternionic group. The group in question is the group of norm
-        1 elements in an eichler Z[1/p]-order of some (tame) level
-        inside of a definite quaternion algebra that is unramified at
-        the prime p. Note that this routine relies in Magma in the
-        case `p = 2` or when `Nplus > 1`.
+        quaternionic group. 
 
         EXAMPLES::
 
@@ -1229,7 +1273,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13); X
+            sage: X = BTQuotient(5,13); X 
             Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 13 and level 1
         """
         return "Quotient of the Bruhat Tits tree of GL_2(QQ_%s) with discriminant %s and level %s"%(self.prime(),self.Nminus().factor(),self.Nplus().factor())
@@ -1288,9 +1332,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_edge_list(self):
         r""" 
-        This function returns a list of ``Edge``s which represent
-        a fundamental domain inside the Bruhat-Tits tree for the
-        quotient.
+        Returns a list of ``Edge``s which represent a fundamental
+        domain inside the Bruhat-Tits tree for the quotient.
 
         OUTPUT:
 
@@ -1309,10 +1352,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def get_list(self):
         r""" 
-        Returns a list of ``Edge``s which represent
-        a fundamental domain inside the Bruhat-Tits tree for the
-        quotient, together with a list of the opposite edges. This is
-        used to work with automorphic forms.
+        Returns a list of ``Edge``s which represent a fundamental 
+        domain inside the Bruhat-Tits tree for the quotient, 
+        together with a list of the opposite edges. This is used 
+        to work with automorphic forms.
 
         OUTPUT:
 
@@ -1363,11 +1406,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         which allow one to compute the genus of the curve.
 
         ## Reference: Theorem 9 of our paper "Computing fundamental domains for the Bruhat-Tits tree for GL2 (Qp ), p-adic automorphic forms, and the canonical embedding of Shimura curves". 
-
-        OUTPUT:
-
-          - none
-
+        
         EXAMPLES::
 
             sage: X = BTQuotient(23,11)
@@ -1459,7 +1498,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
           - An integer (the number of vertices)
         
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = BTQuotient(29,11)
             sage: X.get_num_verts()
             4
@@ -1477,7 +1517,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
           - An integer
         
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = BTQuotient(3,2)
             sage: X.num_ordered_edges()
             2
@@ -1486,7 +1527,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     def genus_no_formula(self):
         """
-        Computes the genus of the quotient from the data of the quotient graph. This should agree with self.genus().
+        Computes the genus of the quotient from the data of the
+        quotient graph. This should agree with self.genus().
 
         OUTPUT:
 
@@ -1514,8 +1556,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - level: Integer (default: None) a level. By default, use that of ``self``.
-        - Nplus: Integer (default: None) a conductor. By default, use that of ``self``.
+        - level: Integer (default: None) a level. By default, use that
+          of ``self``.
+
+        - Nplus: Integer (default: None) a conductor. By default, use
+          that of ``self``.
 
         OUTPUT:
 
@@ -1704,7 +1749,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(7,23)
             sage: X.plot()
-
         """
         S=self.get_graph()
         vertex_colors = {}
@@ -1735,9 +1779,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
           A plot of the fundamental domain.
 
         EXAMPLES::
+
             sage: X = BTQuotient(7,23)
             sage: X.plot_fundom()
-
         """
         S=self.get_fundom_graph()
         vertex_colors = {}
@@ -1877,11 +1921,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-            - prec - Integer. The precision of the embedding matrix.
+        - ``prec`` - Integer. The precision of the embedding matrix.
         
         EXAMPLES:
 
-        Note that the entries of the matrix are elements of Zmod:
+        Note that the entries of the matrix are elements of Zmod::
 
             sage: X = BTQuotient(3,7)
             sage: A = X._compute_embedding_matrix(10); A
@@ -1920,8 +1964,17 @@ class BTQuotient(SageObject, UniqueRepresentation):
         NOTE: The precision is very low (currently set to 5 digits),
         since these embeddings are only used to apply a character.
 
-        EXAMPLES::
+        EXAMPLES:
+        
+        This portion of the code is only relevant when working with a
+        nontrivial Dirichlet character. If there is no such character
+        then the code returns an empty list. Even if the character is
+        not trivial it might return an empty list::
 
+            sage: f = DirichletGroup(6)[1] 
+            sage: X = BTQuotient(3,2*5*7,character = f)
+            sage: X.get_extra_embedding_matrices()
+            []
         """
         try: return self._extra_embedding_matrices
         except AttributeError: pass
@@ -2122,22 +2175,62 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r""" 
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
-        the quotient graph.
+        the quotient graph. The stabilizers of an edge and its
+        opposite are equal, and so we only store half the data.
 
         OUTPUT:
 
-          A list of edge stabilizers. Each edge stabilizer is a finite
-          cyclic subgroup, so we return generators for these
-          subgroups.
+          A list of lists encoding edge stabilizers. It contains one
+          entry for each edge. Each entry is a list of data
+          corresponding to the group elements in the stabilizer of the
+          edge. The data consists of: (0) a column matrix representing
+          a quaternion, (1) the power of `p` that one needs to divide
+          by in order to obtain a quaternion of norm 1, and hence an
+          element of the arithmetic group `\Gamma`, (2) a boolean that
+          is only used to compute spaces of modular forms.
 
         EXAMPLES::
 
-            sage: X = BTQuotient(13,2)
-            sage: S = X.get_edge_stabs()
-            sage: gamma = X.embed_quaternion(S[0][0][0][0],prec = 20)
-            sage: e = X.get_edge_list()[0].rep
-            sage: X._BT.edge(gamma*e) == e
+            sage: X=BTQuotient(3,2)
+            sage: s = X.get_edge_stabs()
+            sage: len(s) == X.num_ordered_edges()/2
             True
+            sage: s[0]
+            [[[ 2]
+            [-1]
+            [-1]
+            [-1], 0, False], [[ 1]
+            [-1]
+            [-1]
+            [-1], 0, True], [[1]
+            [0]
+            [0]
+            [0], 0, True]]
+
+        The second element of `s` should stabilize the first edge of
+        X, which corresponds to the identity matrix::
+
+            sage: X.embed_quaternion(s[0][1][0])
+            [2 + 2*3 + 3^2 + O(3^3) 1 + 2*3 + 3^2 + O(3^3)]
+            [    2*3 + 3^2 + O(3^3)       2 + 3^2 + O(3^3)]
+            sage: newe = X.embed_quaternion(s[0][1][0])
+            sage: newe.set_immutable()
+            sage: X._find_equivalent_edge(newe)
+            (([ 2]
+            [-1]
+            [-1]
+            [-1], 0), <class 'sage.modular.btquotients.btquotient.Edge'>)
+
+        The first entry above encodes an element that maps the edge
+        corresponding to newe to something in the fundamental domain
+        of X. Note that this quaternion is in fact in the
+        stabilizer. We check the representative matrix of the edge and
+        ensure that it's the identity, which is the edge we started
+        with::
+
+            sage: X._find_equivalent_edge(newe)[1].rep
+            [1 0]
+            [0 1]
         """
         try: return self._edge_stabs
         except AttributeError:
@@ -2148,37 +2241,62 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r""" 
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
-        the quotient graph. The stabilizers of an edge and its
-        opposite are equal, and so we only store half the data.
+        the quotient graph. This is similar to get_edge_stabs, except
+        that here we also store the stabilizers of the opposites.
 
         OUTPUT:
 
-          A list of lists encoding edge stabilizers. It contains one entry for each edge. Each entry is a list of data corresponding to the group elements in the stabilizer of the edge. The data consists of: (0) a column matrix representing a quaternion, (1) the power of `p` that one needs to divide by in order to obtain a quaternion of norm 1, and hence an element of the arithmetic group `\Gamma`, (2) a boolean 
+          A list of lists encoding edge stabilizers. It contains one
+          entry for each edge. Each entry is a list of data
+          corresponding to the group elements in the stabilizer of the
+          edge. The data consists of: (0) a column matrix representing
+          a quaternion, (1) the power of `p` that one needs to divide
+          by in order to obtain a quaternion of norm 1, and hence an
+          element of the arithmetic group `\Gamma`, (2) a boolean that
+          is only used to compute spaces of modular forms.
 
         EXAMPLES::
 
-##I was trying to write a doctest and found this bug:
-sage: X=BTQuotient(3,2)
-sage: s = X.get_edge_stabs()
-sage: len(s) == X.num_ordered_edges()/2
-True
-sage: s[0]
-[[[ 2]
-[-1]
-[-1]
-[-1], 0, False], [[ 1]
-[-1]
-[-1]
-[-1], 0, True], [[1]
-[0]
-[0]
-[0], 0, True]]
-sage: X.embed_quaternion(s[0][1][0])
-[2 + 2*3 + 3^2 + O(3^3) 1 + 2*3 + 3^2 + O(3^3)]
-[    2*3 + 3^2 + O(3^3)       2 + 3^2 + O(3^3)]
-sage: newe = X.embed_quaternion(s[0][1][0])
-sage: X._find_equivalent_edge(newe)
-TypeError: mutable matrices are unhashable
+            sage: X=BTQuotient(3,5)
+            sage: s = X.get_edge_stabs()
+            sage: len(s) == X.num_ordered_edges()/2
+            True
+            sage: s[0]
+            [[[-2]
+            [ 0]
+            [ 1]
+            [ 1], 0, True], [[-1]
+            [-1]
+            [ 1]
+            [ 1], 0, True], [[-1]
+            [ 1]
+            [ 0]
+            [ 0], 0, True]]
+
+            The second element of `s` should stabilize the first edge
+            of X, which corresponds to the identity matrix::
+
+            sage: X.embed_quaternion(s[0][1][0])
+            [    1 + 2*3 + O(3^3) 2 + 3 + 3^2 + O(3^3)]
+            [  3 + 2*3^2 + O(3^3)   1 + 2*3^2 + O(3^3)]
+            sage: newe = X.embed_quaternion(s[0][1][0])
+            sage: newe.set_immutable()
+            sage: X._find_equivalent_edge(newe)
+            (([-2]
+            [ 0]
+            [ 1]
+            [ 1], 0), <class 'sage.modular.btquotients.btquotient.Edge'>)
+
+        The first entry above encodes an element that maps the edge
+        corresponding to newe to something in the fundamental domain
+        of X. Note that this quaternion is in fact in the
+        stabilizer. We check the representative matrix of the edge and
+        ensure that it's the identity, which is the edge we started
+        with::
+
+            sage: X._find_equivalent_edge(newe)[1].rep
+            [1 0]
+            [0 1]       
         """
         S = self.get_edge_stabs()
         return S + S
@@ -2234,7 +2352,7 @@ TypeError: mutable matrices are unhashable
 
         OUTPUT:
 
-          Underlying Eichler order.
+        Underlying Eichler order.
 
         EXAMPLES::
 
@@ -2282,8 +2400,9 @@ TypeError: mutable matrices are unhashable
             return self._OMax
 
     def get_splitting_field(self):
-        r"""
-        Returns a quadratic field that splits the quaternion algebra attached to ``self``. Currently requires Magma.
+        r""" 
+        Returns a quadratic field that splits the quaternion
+        algebra attached to ``self``. Currently requires Magma.
 
         EXAMPLES::
 
@@ -2293,9 +2412,7 @@ TypeError: mutable matrices are unhashable
             ...
             NotImplementedError: Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.
 
-        If we do have Magma installed, then it works:
-
-        ::
+        If we do have Magma installed, then it works::
 
             sage: X = BTQuotient(5,11,use_magma = True) # optional - magma
             sage: X.get_splitting_field() # optional - magma
@@ -2314,7 +2431,7 @@ TypeError: mutable matrices are unhashable
 
         OUTPUT:
 
-          Basis for the underlying Eichler order of level Nplus.
+        Basis for the underlying Eichler order of level Nplus.
 
         EXAMPLES::
 
@@ -2335,7 +2452,7 @@ TypeError: mutable matrices are unhashable
 
         OUTPUT:
 
-          The norm form of the underlying Eichler order
+        The norm form of the underlying Eichler order
 
         EXAMPLES::
 
@@ -2359,7 +2476,7 @@ TypeError: mutable matrices are unhashable
 
         OUTPUT:
 
-          A 4x4 integral matrix describing the norm form.
+        A 4x4 integral matrix describing the norm form.
 
         EXAMPLES::
 
@@ -2384,8 +2501,8 @@ TypeError: mutable matrices are unhashable
 
         OUTPUT:
 
-          A list of elements of the global Eichler `\ZZ`-order of
-          level `N^+`.
+        A list of elements of the global Eichler `\ZZ`-order of
+        level `N^+`.
 
         EXAMPLES::
 
@@ -2537,7 +2654,15 @@ TypeError: mutable matrices are unhashable
           - ``q`` - integer dividing p*Nminus*Nplus
 
         EXAMPLES::
-        
+
+            sage: X = BTQuotient(3,5)
+            sage: X._get_atkin_lehner_data(3)
+            [
+            [ 2]                                                                                                                                    
+            [ 4]                                                                                                                                      
+            [-3]                                                                                                                                      
+            [-2], [<class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>, <class 'sage.modular.btquotients.btquotient.DoubleCosetReduction'>]
+            ]
         """
         E=self.get_edge_list()
         # self._increase_precision(20)
@@ -2555,7 +2680,7 @@ TypeError: mutable matrices are unhashable
         while not success:
             try:
                 x=self.embed_quaternion(beta1)
-                nn=ceil(x.determinant().valuation())
+                nn=x.determinant().valuation()
                 T=[beta1,[DoubleCosetReduction(self,x.adjoint()*e.rep,extrapow=nn) for e in E]]
                 success=True
             except PrecisionError:
@@ -2565,7 +2690,17 @@ TypeError: mutable matrices are unhashable
     @cached_method
     def _get_hecke_data(self,l):
         r"""
+        Returns (computes if necessary) data to compute the
+        Hecke operator at a prime.
 
+        INPUT:
+
+        - ``l`` - a prime l.
+
+        EXAMPLES::
+            sage: X = BTQuotient(3,17)
+            sage: X._get_hecke_data(5)
+            NotImplementedError: non-integral exponents not supported
         """
         # print 'Getting hecke data for prime ',l,'...'
         def enumerate_words(v):
@@ -2625,7 +2760,7 @@ TypeError: mutable matrices are unhashable
                 while not success:
                     try:
                         x = self.embed_quaternion(v1)*alphamat
-                        nn = ceil(x.determinant().valuation())
+                        nn = x.determinant().valuation()
                         T.append([v1,[DoubleCosetReduction(self,x.adjoint()*e.rep,extrapow=nn) for e in E]])
                         success = True
                     except PrecisionError:
@@ -2640,6 +2775,7 @@ TypeError: mutable matrices are unhashable
         Finds a vertex in ``V`` equivalent to ``v0``.
 
         INPUT: 
+
         - ``v0`` -- a 2x2 matrix in `\ZZ_p` representing a
             vertex in the Bruhat-Tits tree.
 
@@ -2657,7 +2793,10 @@ TypeError: mutable matrices are unhashable
         equivalent to ``v0``, and ``g`` is such that `g\cdot v_0= v`.
 
         EXAMPLES::
-
+        
+            sage: X.BTQuotient(3,7)
+            sage: X._find_equivalent_vertex(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
+            AttributeError: 'NoneType' object has no attribute 'determinant'
         """
         try:
             return self._cached_vertices[v0]
@@ -2679,6 +2818,7 @@ TypeError: mutable matrices are unhashable
         Finds an edge in ``E`` equivalent to ``e0``.
 
         INPUT: 
+
         - ``e0`` -- a 2x2 matrix in `\ZZ_p` representing an
             edge in the Bruhat-Tits tree.
 
@@ -2696,7 +2836,9 @@ TypeError: mutable matrices are unhashable
         equivalent to ``e0``, and ``g`` is such that `g\cdot e_0= e`.
 
         EXAMPLES::
-
+            sage: X.BTQuotient(3,7)
+            sage: X._find_equivalent_edge(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
+            AttributeError: 'NoneType' object has no attribute 'determinant'
         """
         try:
             return self._cached_edges[e0]
@@ -2728,8 +2870,11 @@ TypeError: mutable matrices are unhashable
 
         A ``Vertex`` equivalent to ``v1``, in the fundamental domain.
 
-        EXAMPLES:
-
+        EXAMPLES::
+        
+            sage: X.BTQuotient(3,7)
+            sage: X.fundom_rep(Matrix(ZZ,2,2,[1,3,2,7]).set_immutable())
+            AttributeError: 'NoneType' object has no attribute 'base_ring'
         """
         try:
             tmp=self._cached_paths[v1]
@@ -2760,8 +2905,16 @@ TypeError: mutable matrices are unhashable
         - ``m`` - integer - The valuation of the determinant of
           ``v1``*``v2``.
 
-        EXAMPLES:
+        EXAMPLES::
 
+            sage: X = BTQuotient(3,17)
+            sage: X._find_lattice(Matrix(ZZ,2,2,[1,2,3,4]),Matrix(ZZ,2,2,[3,2,1,5]), True,0) 
+            (
+            [1 0 0 0]  [138 204 -35 102]
+            [2 3 0 0]  [204 306 -51 153]
+            [0 0 1 0]  [-35 -51  12 -34]
+            [0 0 0 1], [102 153 -34 102]
+            )
         """
         if(as_edges):
             X=self._Xe
@@ -2783,6 +2936,7 @@ TypeError: mutable matrices are unhashable
         Finds the stabilizer of an edge or vertex.
 
         INPUT:
+
         - ``e`` - A 2x2 matrix representing an edge or vertex
 
         - ``as_edge`` - Boolean (Default = True). Determines whether
@@ -2849,33 +3003,38 @@ TypeError: mutable matrices are unhashable
 
     def _are_equivalent(self,v1,v2,as_edges=False,twom=None,check_parity = False):
         r""" 
-        This function determines whether two vertices (or edges)
-        of the Bruhat-Tits tree are equivalent under the arithmetic
-        group in question. The computation boils down to an
-        application of the LLL short-vector algorithm to a particular
-        lattice; for details see [FM].
+        Determines whether two vertices (or edges) of the
+        Bruhat-Tits tree are equivalent under the arithmetic group in
+        question. The computation boils down to an application of the
+        LLL short-vector algorithm to a particular lattice; for
+        details see [FM].
         
         INPUT:
 
-          - ``v1``, ``v2`` - two 2x2 integral matrices representing
-            either vertices or edges
+        - ``v1``, ``v2`` - two 2x2 integral matrices representing
+          either vertices or edges
           
-          - ``as_edges`` - boolean (Default: False). Tells whether the
-            matrices should be interpreted as edges (if true), or as
-            vertices (if false)
+        - ``as_edges`` - boolean (Default: False). Tells whether the
+          matrices should be interpreted as edges (if true), or as
+          vertices (if false)
           
-            - ``twom`` - integer (Default: None) If specified,
-              indicates the valuation of the determinant of ``v1``
-              `\times` ``v2``.
+        - ``twom`` - integer (Default: None) If specified,
+          indicates the valuation of the determinant of ``v1``
+          `\times` ``v2``.
 
         OUTPUT:
 
-          If the objects are equivalent, this returns an element of
-          the arithemtic group Gamma that takes v1 to v2. Otherwise it
+          If the objects are equivalent, returns an element of
+          the arithemtic group Gamma that takes v1 to v2. Otherwise
           returns false.
 
         EXAMPLES::
 
+            sage: X = BTQuotient(7,5) 
+            sage: M1 = Matrix(ZZ,2,2,[88,3,1,1]).set_immutable()
+            sage: M2 = Matrix(ZZ,2,2,[1,2,3,4]).set_immutable()
+            sage: X._are_equivalent(M1,M1)
+            AttributeError: 'NoneType' object has no attribute 'determinant'
 
         REFERENCES:
 
@@ -2930,6 +3089,7 @@ TypeError: mutable matrices are unhashable
         possibly use Magma to split it.
 
         EXAMPLES::
+
             sage: X = BTQuotient(3,23)
             sage: X._init_order()
         """
@@ -3021,7 +3181,8 @@ TypeError: mutable matrices are unhashable
 
     @cached_method
     def _find_elements_in_order(self, norm, trace = None, primitive=False):
-        r""" Returns elements in the order of the quaternion algebra
+        r""" 
+        Returns elements in the order of the quaternion algebra
         of specified reduced norm. One may optionally choose to
         specify the reduced trace.
 
@@ -3035,7 +3196,7 @@ TypeError: mutable matrices are unhashable
         - ``primitive`` boolean (Default: False). If True, return only
         elements that cannot be divided by `p`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BTQuotient(5,7)
             sage: X._find_elements_in_order(23)
@@ -3053,6 +3214,10 @@ TypeError: mutable matrices are unhashable
     def _compute_quotient(self, use_formulas = True):
         r"""
         Computes the quotient graph.
+
+        INPUT:
+
+        - ``use_formulas`` - Boolean (Default = True). 
 
         EXAMPLES::
 
