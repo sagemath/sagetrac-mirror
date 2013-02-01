@@ -32,7 +32,7 @@ class PSModSymAction(Action):
 
     def _call_(self, sym, g):
         return sym.__class__(sym._map * g, sym.parent(), construct=True)
-
+    
 class PSModularSymbolElement(ModuleElement):
     def __init__(self, map_data, parent, construct=False):
         ModuleElement.__init__(self, parent)
@@ -130,7 +130,7 @@ class PSModularSymbolElement(ModuleElement):
         for val in self._map:
             val.normalize()
         return self
-
+    
     def __cmp__(self, other):
         """
         Checks if self == other
@@ -507,7 +507,7 @@ class PSModularSymbolElement(ModuleElement):
         if p is None:
             p = self.parent().prime()
         i = 0
-        g = gens[i]	
+        g = gens[i]
         verbose("Computing eigenvalue")
         while self._map[g].is_zero(p, M):
             if not qhecke._map[g].is_zero(p, M):
@@ -531,11 +531,11 @@ class PSModularSymbolElement(ModuleElement):
 class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _find_M(self, M):
         """
-        Determines M from user input.
+        Determines `M` from user input.
 
         INPUT:
 
-        - ``M`` -- an integer at least 2 or None.  If None, sets M to
+        - ``M`` -- an integer at least 2 or None.  If None, sets `M` to
           be one more than the precision cap of the parent (the
           minimum amount of lifting).
 
@@ -557,6 +557,40 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         """
+        Finds `alpha`, a `U_p` eigenvalue, which is found as a root of
+        the polynomial `x^2 - ap * x + p^(k+1)`.
+        
+        INPUT:
+
+        - ``p`` -- prime
+        - ``k`` -- Pollack-Stevens weight
+        - ``M`` -- precision (default = None) of `Q_p`
+        - ``ap`` -- Hecke eigenvalue at p (default = None)
+        - ``new_base_ring`` -- field of definition of `alpha` (default = None)
+        - ``ordinary`` -- True if the prime is ordinary (default = True)
+        - ``check`` -- check to see if the prime is ordinary (default = True)
+        - ``find_extraprec`` -- setting this to True finds extra precision (default = True)
+
+        OUTPUT:
+
+        - ``alpha`` --  `U_p` eigenvalue
+        - ``new_base_ring`` -- field of definition of `alpha` with precision at least `newM`
+        - ``newM`` -- new precision
+        - ``eisenloss`` -- loss of precision
+        - ``q`` -- a prime not equal to p which was used to find extra precision
+        - ``aq`` -- the Hecke eigenvalue `aq` corresponding to `q`
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('11a')
+            sage: p = 5
+            sage: M = 10
+            sage: k = 0
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi._find_alpha(p,k,M)
+            (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + O(5^13), 5-adic Field with capped relative precision 13, 12, 1, None, None)
+
         """
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
@@ -965,7 +999,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                                ordinary=True, algorithm=None, eigensymbol=False, check=True):
         """
         `p`-stabilizes and lifts
-        
+
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -992,12 +1026,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             newM, eisenloss, q, aq = self._find_extraprec(p, M, alpha, check)
             if hasattr(new_base_ring, 'precision_cap') and newM > new_base_ring.precision_cap():
                 raise ValueError("Not enough precision in new base ring")
-            
+
         # Now we can stabilize
         self = self.p_stabilize(p=p, alpha=alpha,ap=ap, M=newM, new_base_ring = new_base_ring, check=check)
         # And use the standard lifting function for eigensymbols
         return self._lift_to_OMS_eigen(p=p, M=M, new_base_ring=new_base_ring, ap=alpha, newM=newM, eisenloss=eisenloss, q=q, aq=aq, check=check)
-    
+
 class PSModularSymbolElement_dist(PSModularSymbolElement):
 
     def _show_malformed_dist(self, location_str):
@@ -1026,7 +1060,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         Returns the underlying classical symbol of weight `k` -- i.e.,
         applies the canonical map `D_k --> Sym^k` to all values of
         self.
-
+        
         EXAMPLES::
 
             sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(2), coefficients=D); M

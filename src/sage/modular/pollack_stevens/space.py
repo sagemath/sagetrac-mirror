@@ -30,7 +30,7 @@ from fund_domain import ManinRelations, M2ZSpace
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
 
-class PSModularSymbols_constructor(UniqueFactory):
+class PSModularSymbols_factory(UniqueFactory):
     r"""
     Create a space of Pollack-Stevens modular symbols.
 
@@ -98,7 +98,7 @@ class PSModularSymbols_constructor(UniqueFactory):
         """
         return PSModularSymbolSpace(*key)
 
-PSModularSymbols = PSModularSymbols_constructor('PSModularSymbols')
+PSModularSymbols = PSModularSymbols_factory('PSModularSymbols')
 
 class PSModularSymbolSpace(Module):
     """
@@ -658,7 +658,7 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: f = ps_modsym_from_simple_modsym_space(A); f
         Modular symbol with values in Sym^10 Q^2
         sage: f.values()
-        [(-1620/691, 0, 45, 0, -135, 0, 135, 0, -45, 0, 1620/691), (1620/691, -16200/691, 41805/691, 54360/691, -437175/691, 773370/691, -530460/691, 54360/691, 72900/691, -16200/691, 0), (0, 16200/691, -72900/691, -54360/691, 530460/691, -773370/691, 437175/691, -54360/691, -41805/691, 16200/691, -1620/691)]    
+        [(-1620/691, 0, 1, 0, -9/14, 0, 9/14, 0, -1, 0, 1620/691), (1620/691, 1620/691, 929/691, -453/691, -29145/9674, -42965/9674, -2526/691, -453/691, 1620/691, 1620/691, 0), (0, -1620/691, -1620/691, 453/691, 2526/691, 42965/9674, 29145/9674, 453/691, -929/691, -1620/691, -1620/691)]
 
     And, the -1 modular symbol attached to Delta::
 
@@ -666,8 +666,7 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: f = ps_modsym_from_simple_modsym_space(A); f
         Modular symbol with values in Sym^10 Q^2
         sage: f.values()
-        [(0, -10, 0, 125/2, 0, -105, 0, 125/2, 0, -10, 0), (0, 10, -90, 595/2, -805/2, 105/2, 805/2, -360, 90, 0, 0), (0, 0, 90, -360, 805/2, 105/2, -805/2, 595/2, -90, 10, 0)]
-
+        [(0, 1, 0, -25/48, 0, 5/12, 0, -25/48, 0, 1, 0), (0, -1, -2, -119/48, -23/12, -5/24, 23/12, 3, 2, 0, 0), (0, 0, 2, 3, 23/12, -5/24, -23/12, -119/48, -2, -1, 0)]
 
     A consistency check with ps_modsym_from_simple_modsym_space::
 
@@ -683,7 +682,7 @@ def ps_modsym_from_simple_modsym_space(A):
         [0, 1, -1]
 
     We find that a linear combination of the plus and minus parts
-    equals the Pollack-Stevens symbol attached to E.  This illustrates
+    equals the Pollack-Stevens symbol attached to E. This illustrates
     how ps_modsym_from_simple_modsym_space is only well-defined up to
     a nonzero scalar.
     
