@@ -754,6 +754,6 @@ def ps_modsym_from_simple_modsym_space(A):
         v = []
         for j in range(k+1):
             # TODO: The following might be backward: it should be the coefficient of X^j Y^(k-j)
-            v.append(w.dot_product(M.modular_symbol([j, ac, bd]).element()) * binomial(k, j))
+            v.append(w.dot_product(M.modular_symbol([j, ac, bd]).element()) * (-1)**(k-j))
         val[g] = D(v)
     return V(val)
