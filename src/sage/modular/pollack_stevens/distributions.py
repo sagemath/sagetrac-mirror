@@ -233,7 +233,7 @@ class Distributions_abstract(Module):
         act_S0p = WeightKAction(self, character, tuplegen, act_on_left, padic = True)
         self._act = act
         self._act_S0p = act_S0p
-        self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act,act_S0p])
+        self._populate_coercion_lists_(action_list=[iScale(self, ZZ,True),iScale(self, ZZ,False),iScale(self, QQ,True),iScale(self, QQ,False),iScale(self, base,True),iScale(self, base,False), act,act_S0p])
 
     def acting_matrix(self,g,M,padic = False):
         g.set_immutable()

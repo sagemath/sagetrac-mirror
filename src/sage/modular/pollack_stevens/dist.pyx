@@ -1612,7 +1612,7 @@ cdef class iScale(Action):
 
         sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
     """
-    def __init__(self, Dk, on_left):
+    def __init__(self, Dk, ring, on_left):
         """
         Initialization.
 
@@ -1620,7 +1620,7 @@ cdef class iScale(Action):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        Action.__init__(self, ZZ, Dk, on_left, operator.mul)
+        Action.__init__(self, ring, Dk, on_left, operator.mul)
 
     cpdef _call_(self, a, b):
         """
