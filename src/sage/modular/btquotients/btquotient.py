@@ -3278,9 +3278,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         TESTS::
 
-            sage: X = BTQuotient(3,23,use_magma = True)
+            sage: X = BTQuotient(3,23,use_magma = True) # optional - magma
             sage: X._compute_exact_splitting() # optional - magma
-
         """
 
         self._init_order()
