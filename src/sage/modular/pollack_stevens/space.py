@@ -437,6 +437,14 @@ class PSModularSymbolSpace(Module):
         Internal function that is used by the specialize method on
         elements.  It returns a space with same parameters as this
         one, but over new_base_ring.
+        
+        INPUT:
+        
+        - ``new_base_ring`` -- The base of the ring 
+        
+        OUTPUT:
+        
+        - A space of modular symbols to which our space specializes.
 
         EXAMPLES::
 
@@ -460,6 +468,10 @@ class PSModularSymbolSpace(Module):
         - `p` -- prime
         - `M` -- precision cap
         - ``new_base_ring`` -- ring
+        
+        OUTPUT:
+        
+        - Space of distribution valued modular symbols.
 
         EXAMPLES::
 
@@ -481,6 +493,14 @@ class PSModularSymbolSpace(Module):
     def change_ring(self, new_base_ring):
         r"""
         Changes base ring of self to new_base_ring
+        
+        INPUT:
+        
+        - ``new_base_ring`` -- the ring you want to change the base to'
+        
+        OUTPUT:
+        
+        - A space of modular symbols over the specified base. 
 
         EXAMPLES::
 
@@ -495,6 +515,14 @@ class PSModularSymbolSpace(Module):
 
     def _an_element_(self):
         r"""
+            Returns the cusps associated to an element of a congruence
+            subgroup.
+    
+        OUTPUT:
+        
+        - an element of the modular symbol space. 
+
+        
         Returns a "typical" element of self; in this case the constant map sending every element
         to an element of the coefficient module.
 

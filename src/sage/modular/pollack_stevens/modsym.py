@@ -47,7 +47,7 @@ class PSModularSymbolElement(ModuleElement):
     def _repr_(self):
         r"""
         Returns the print representation of the symbol.
-
+ 
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
