@@ -1,11 +1,5 @@
-#*****************************************************************************
-#       Copyright (C) 2013 Robert Harron <rharron@dyn-72-33-202-15.uwnet.wisc.edu>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+from dist import WeightKAction_vector
+from families_util import automorphy_factor_matrix
 
 class WeightKAction_fam(WeightKAction_vector):
     """
