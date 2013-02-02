@@ -1360,7 +1360,6 @@ cdef class WeightKAction_vector(WeightKAction):
         t = (a+c*y)**k # will already have precision M
         if self._character is not None:
             t *= self._character(a, b, c, d)
-        print 'base_ring=',base_ring
         cdef Matrix B = matrix(base_ring,M,M)
         cdef long row, col
         #tim = verbose("Made matrix",tim)

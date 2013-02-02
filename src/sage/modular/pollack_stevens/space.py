@@ -378,6 +378,8 @@ class PSModularSymbolSpace(Module):
             10
 
         """
+### WARNING -- IF YOU ARE WORKING IN SYM^K(Q^2) THIS WILL JUST RETURN K-1.  NOT GOOD
+
         return self.coefficient_module()._prec_cap
 
     def weight(self):

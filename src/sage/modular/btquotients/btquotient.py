@@ -1120,6 +1120,28 @@ class Vertex(SageObject):
         """
         return "Vertex of BT-tree for p = %s"%(self.p)
 
+    def __cmp__(self,other):
+        """
+        Returns self == other
+        """
+        c = cmp(self.p,other.p)
+        if c: return c
+        c = cmp(self.label,other.label)
+        if c: return c
+        c = cmp(self.rep,other.rep)
+        if c: return c
+        c = cmp(self.determinant,other.determinant)
+        if c: return c
+        c = cmp(self.valuation,other.valuation)
+        if c: return c
+        c = cmp(self.parity,other.parity)
+        if c: return c
+        c = cmp(self.leaving_edges,other.leaving_edges)
+        if c: return c
+        c = cmp(self.leaving_edges,other.entering_edges)
+        if c: return c
+        return 0
+
 class Edge(SageObject):
     r""" 
     This is a structure to represent edges of quotients of the
@@ -1208,6 +1230,32 @@ class Edge(SageObject):
             Edge of BT-tree for p = 3
         """
         return "Edge of BT-tree for p = %s"%(self.p)
+
+    def __cmp__(self,other):
+        """
+        Returns self == other
+        """
+        c = cmp(self.p,other.p)
+        if c: return c
+        c = cmp(self.label,other.label)
+        if c: return c
+        c = cmp(self.rep,other.rep)
+        if c: return c
+        c = cmp(self.origin,other.origin)
+        if c: return c
+        c = cmp(self.target,other.target)
+        if c: return c
+        c = cmp(self.links,other.links)
+        if c: return c
+        c = cmp(self.opposite,other.opposite)
+        if c: return c
+        c = cmp(self.determinant,other.determinant)
+        if c: return c
+        c = cmp(self.valuation,other.valuation)
+        if c: return c
+        c = cmp(self.parity,other.parity)
+        if c: return c
+        return 0
 
 class BTQuotient(SageObject, UniqueRepresentation):
     @staticmethod

@@ -47,7 +47,7 @@ class PSModularSymbolElement(ModuleElement):
     def _repr_(self):
         r"""
         Returns the print representation of the symbol.
- 
+
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
@@ -212,7 +212,7 @@ class PSModularSymbolElement(ModuleElement):
         """
         Returns self - right
 
-        EXAMPLES:;
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -552,7 +552,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: pass
         """
         if M is None:
-            M = self.parent().precision_cap() + 1
+            M = ZZ(20)
         elif M <= 1:
             raise ValueError("M must be at least 2")
         else:
@@ -888,10 +888,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             return self._lift_greenberg(p, M, new_base_ring, check)
         else:
             raise ValueError("algorithm %s not recognized" % algorithm)
-    
+
     def _lift_greenberg(self, p, M, new_base_ring, check):
         raise NotImplementedError("Working on the implementation at Sage Days 44.")
-        
+
 
     def _lift_to_OMS(self, p, M, new_base_ring, check):
         r"""
@@ -949,7 +949,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 D[g] = self._map[g].lift(p, M, new_base_ring)
 
         t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero_element()
-        ## This loops adds up around the boundary of fundamental domain except the two verticle lines
+        ## This loops adds up around the boundary of fundamental domain except the two vertical lines
         for g in manin.gens()[1:]:
             twotor = g in manin.reps_with_two_torsion()
             threetor = g in manin.reps_with_three_torsion()
@@ -961,6 +961,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         ## (Here I'm using the opposite sign convention of [PS1] regarding D'_i and D''_i)
 
         D[manin.gen(0)] = -t.solve_diff_eqn()  ###### Check this!
+
         return MSS(D)
 
     def _find_aq(self, p, M, check):
@@ -998,18 +999,14 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         while q != p and eisenloss >= M:
             q = next_prime(q)
             aq = self.Tq_eigenvalue(q, check=check)
-            eisenloss = (aq - q**(k+1) - 1).valuation(p)
+            if q != p:
+                eisenloss = (aq - q**(k+1) - 1).valuation(p)
+            else:
+                eisenloss = (aq - 1).valuation(p)                
         return q, aq, eisenloss
 
     def _find_extraprec(self, p, M, alpha, check):
-        eisenloss = (alpha - 1).valuation(p)
-        # Here we make a judgement that lifting to higher precision is cheaper than computing extra Hecke operators.
-        if eisenloss < M:
-            q = None
-            aq = None
-        else:
-            # ap = 1 (mod p^M), so we need to use other Hecke eigenvalues
-            q, aq, eisenloss = self._find_aq(p, M, check)
+        q, aq, eisenloss = self._find_aq(p, M, check)
         newM = M + eisenloss
 
         # We also need to add precision to account for denominators appearing while solving the difference equation.
@@ -1042,7 +1039,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
         verbose("computing naive lift: M=%s, newM=%s, new_base_ring=%s"%(M, newM, new_base_ring))
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
+        ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+        verbose("Applying Hecke")
+        apinv = ~ap
+        Phi = apinv * Phi.hecke(p)
         verbose(Phi._show_malformed_dist("naive lift"), level=2)
+        ## I (RP) am worried that scaling by s here isn't enough -- do you need to clear p^(log(M))?
         s = - Phi.valuation(p)
         if s > 0:
             verbose("scaling by %s^%s"%(p, s))
@@ -1051,46 +1053,32 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         else:
             s = 0
             need_unscaling = False
-        Phi = Phi.reduce_precision(M + s + eisenloss)._normalize()
         verbose(Phi._show_malformed_dist("after reduction"), level=2)
-        verbose("Applying Hecke")
-        apinv = ~ap
-        Phi = apinv * Phi.hecke(p)
         verbose("Killing eisenstein part")
         if q is None:
             Phi = 1 / (1 - ap) * (Phi - Phi.hecke(p))
-            if eisenloss > 0:
-                verbose("change precision to %s"%(M + s))
-                Phi = Phi.reduce_precision(M + s)
         else:
             k = self.parent().weight()
-            Phi = ~(q**(k+1) + 1 - aq) * ((q**(k+1) + 1) * Phi - Phi.hecke(q))
-            if eisenloss > 0:
-                verbose("change precision to %s"%(M + s))
-                Phi = Phi.reduce_precision(M + s)
+            Phi = ((q**(k+1) + 1) * Phi - Phi.hecke(q))
         verbose(Phi._show_malformed_dist("Eisenstein killed"), level=2)
         verbose("Iterating U_p")
         Psi = apinv * Phi.hecke(p)
         err = (Psi - Phi).diagonal_valuation(p)
         Phi = Psi
-        old_err = err - 1
-        while err < M:
-            if need_unscaling and Phi.valuation(p) >= s:
-                verbose("unscaling by %s^%s"%(p, s))
-                Phi *= (1 / p**s)
-                # Can't we get this to better precision....
-                Phi = Phi.reduce_precision(M)._normalize()
-                need_unscaling = False
-            Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case.
+        attempts = 0
+        while (err < M+s-eisenloss) and (attempts < 2*newM):
+            Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case. ????
             err = (Psi - Phi).diagonal_valuation(p)
             verbose("error is zero modulo p^%s"%(err))
             verbose((Psi - Phi)._show_malformed_dist("loop %s"%err), level=2)
-            if err == old_err:
-                raise RuntimeError("Precision problem in lifting -- precision did not increase.")
-            else:
-                old_err = err
             Phi = Psi
-        return Phi._normalize()
+        if attempts >= 2*newM:
+            raise RuntimeError("Precision problem in lifting -- precision did not increase.")
+        Phi =  ~(q**(k+1) + 1 - aq) * Phi
+        if need_unscaling:
+            Phi = p**(-s) * Phi
+        
+        return Phi.reduce_precision(M)
 
     def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
                                ordinary=True, algorithm=None, eigensymbol=False, check=True):
@@ -1201,7 +1189,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         Return the p-adic L-series of this modular symbol.
 
         EXAMPLE::
-            
+
             sage: f = Newform("37a")
             sage: f.PS_modular_symbol().lift(37, M=6, algorithm="stevens").padic_lseries()
             37-adic L-series of Modular symbol with values in Space of 37-adic distributions with k=0 action and precision cap 6

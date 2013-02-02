@@ -1,37 +1,37 @@
 r"""
-    Represents maps from a set of right coset representatives to a coefficient module.
-    
-    This is a basic building block for implementing modular symbols, and provides basic arithmetic
-    and right action of matrices. 
-    
-    EXAMPLES::
-    
-    sage: E = EllipticCurve('11a')
-    sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-    sage: phi = ps_modsym_from_elliptic_curve(E)
-    sage: phi
-    Modular symbol with values in Sym^0 Q^2
-    sage: phi.values()
-    [-1/5, 3/2, -1/2]
-    sage: phi.Tq_eigenvalue(13,13,10)
-    4
-    
-    sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
-    sage: D = Distributions(0, 5, 10)
-    sage: MR = ManinRelations(11)
-    sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
-    sage: f = ManinMap(D, MR, data)
-    sage: f(M2Z([1,0,0,1]))
-    (1, 2)
-    
-    sage: S = Symk(0,QQ)
-    sage: MR = ManinRelations(37)
-    sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
-    sage: f = ManinMap(S,MR,data)
-    sage: f(M2Z([2,3,4,5]))
-    1
-    
-    """
+Represents maps from a set of right coset representatives to a coefficient module.
+
+This is a basic building block for implementing modular symbols, and provides basic arithmetic
+and right action of matrices.
+
+EXAMPLES::
+
+sage: E = EllipticCurve('11a')
+sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+sage: phi = ps_modsym_from_elliptic_curve(E)
+sage: phi
+Modular symbol with values in Sym^0 Q^2
+sage: phi.values()
+[-1/5, 3/2, -1/2]
+sage: phi.Tq_eigenvalue(13,13,10)
+4
+
+sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
+sage: D = Distributions(0, 5, 10)
+sage: MR = ManinRelations(11)
+sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
+sage: f = ManinMap(D, MR, data)
+sage: f(M2Z([1,0,0,1]))
+(1, 2)
+
+sage: S = Symk(0,QQ)
+sage: MR = ManinRelations(37)
+sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
+sage: f = ManinMap(S,MR,data)
+sage: f(M2Z([2,3,4,5]))
+1
+
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -404,7 +404,7 @@ class ManinMap(object):
             sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(0, 5, 10); D
             Space of 5-adic distributions with k=0 action and precision cap 10
-            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11) 
+            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
             sage: f = ManinMap(D, manin, data); f
             Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 5-adic distributions with k=0 action and precision cap 10
@@ -500,7 +500,7 @@ class ManinMap(object):
             sage: D = Distributions(0, 5, 10)
             sage: MR = ManinRelations(11)
             sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
-            sage: f = ManinMap(D, MR, data)   
+            sage: f = ManinMap(D, MR, data)
             sage: A = MR.reps()[1]
             sage: f._eval_sl2(A)
             (15, 0)
