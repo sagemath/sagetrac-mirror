@@ -41,16 +41,16 @@ from sage.rings.arith import fundamental_discriminant
 
 class DoubleCosetReduction(SageObject):
     r"""
-    Edges in the Bruhat-tits tree are represented by cosets of 
-    matrices in `\GL_2`. Given a matrix `x` in `\GL_2`, this 
-    class computes and stores the data corresponding to the 
-    double coset representation of `x` in terms of a fundamental 
+    Edges in the Bruhat-tits tree are represented by cosets of
+    matrices in `\GL_2`. Given a matrix `x` in `\GL_2`, this
+    class computes and stores the data corresponding to the
+    double coset representation of `x` in terms of a fundamental
     domain of edges for the action of the arithmetic group `\Gamma'.
 
     More precisely:
-    Initialized with an element `x` of `\GL_2(\ZZ)`, finds elements 
-    `\gamma` in `\Gamma`, `t` and an edge `e` such that `get=x`. It 
-    stores these values as members ``gamma``, ``label`` and functions 
+    Initialized with an element `x` of `\GL_2(\ZZ)`, finds elements
+    `\gamma` in `\Gamma`, `t` and an edge `e` such that `get=x`. It
+    stores these values as members ``gamma``, ``label`` and functions
     ``self.sign()``,  ``self.t()`` and ``self.igamma()``, satisfying:
         if ``self.sign()==+1``:
             ``igamma()*edge_list[label].rep*t()==x``
@@ -59,24 +59,24 @@ class DoubleCosetReduction(SageObject):
 
     It also stores a member called power so that:
         ``p**(2*power)=gamma.reduced_norm()``
-   
+
     The usual decomposition ``get=x`` would be:
         g=gamma/(p**power)
         e=edge_list[label]
         t'=t*p**power
     Here usual denotes that we've rescaled gamma to have unit
-    determinant, and so that the result is honestly an element 
-    of the arithmetic quarternion group under consideration. In 
-    practice we store integral multiples and keep track of the 
+    determinant, and so that the result is honestly an element
+    of the arithmetic quarternion group under consideration. In
+    practice we store integral multiples and keep track of the
     powers of `p`.
 
     INPUT:
 
     - ``Y`` -  BTQuotient object in which to work
-    - ``x`` -  Something coercible into a matrix in `\GL_2(\ZZ)`. In 
-       principle we should allow elements in `\GL_2(\QQ_p)`, but it is 
+    - ``x`` -  Something coercible into a matrix in `\GL_2(\ZZ)`. In
+       principle we should allow elements in `\GL_2(\QQ_p)`, but it is
        enough to work with integral entries
-    - ``extrapow`` - gets added to the power attribute, and it is 
+    - ``extrapow`` - gets added to the power attribute, and it is
        used for the Hecke action.
 
     EXAMPLES::
@@ -184,14 +184,14 @@ class DoubleCosetReduction(SageObject):
         r"""
         The direction of the edge.
 
-        The BT quotients are directed graphs but we only store 
-        half the edges (we treat them more like unordered graphs). 
-        The sign tells whether the matrix self.x is equivalent to the 
+        The BT quotients are directed graphs but we only store
+        half the edges (we treat them more like unordered graphs).
+        The sign tells whether the matrix self.x is equivalent to the
         representative in the quotient (sign = +1), or to the
         opposite of one of the representatives (sign = -1).
 
         OUTPUT :
-       
+
         - an int that is +1 or -1 according to the sign of self
 
         EXAMPLES::
@@ -220,8 +220,8 @@ class DoubleCosetReduction(SageObject):
         Image under gamma.
 
         Elements of the arithmetic group can be regarded as elements
-        of the global quarterion order, and hence may be represented 
-        exactly. This function computes the image of such an element 
+        of the global quarterion order, and hence may be represented
+        exactly. This function computes the image of such an element
         under the local splitting and returns the corresponding p-adic
         approximation.
 
@@ -245,7 +245,7 @@ class DoubleCosetReduction(SageObject):
 
             sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
             sage: Y = BTQuotient(7,11)
-            sage: d = DoubleCosetReduction(Y,Matrix(ZZ,2,2,[123,45,88,1])) 
+            sage: d = DoubleCosetReduction(Y,Matrix(ZZ,2,2,[123,45,88,1]))
             sage: d.igamma()
             [6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)                                   O(7^5)]
             [                                  O(7^5) 6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)]
@@ -272,13 +272,13 @@ class DoubleCosetReduction(SageObject):
         r"""
         Return the 't part' of the decomposition using the rest of the data.
 
-        INPUT: 
-       
+        INPUT:
+
         - ``prec`` - a p-adic precision that t will be computed
         to. Default is the default working precision of self
 
-        OUTPUT: 
-        
+        OUTPUT:
+
         - ``cached_t`` - a 2x2 p-adic matrix with entries of
         precision 'prec' that is the 't-part' of the decomposition of
         self
@@ -317,7 +317,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
     INPUT:
 
-    - ``p`` - a prime number. The corresponding tree is then p+1 regular 
+    - ``p`` - a prime number. The corresponding tree is then p+1 regular
 
     EXAMPLES:
 
@@ -357,7 +357,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         Initializes a BruhatTitsTree object for a given prime p
 
         EXAMPLES::
-            
+
             sage: from sage.modular.btquotients.btquotient import BruhatTitsTree
             sage: T = BruhatTitsTree(17)
             sage: TestSuite(T).run()
@@ -377,7 +377,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
           - ``e`` - a 2x2 matrix with integer entries
 
-          - ``normalized`` - boolean (default: false). If true 
+          - ``normalized`` - boolean (default: false). If true
             then the input matrix is assumed to be normalized.
 
         OUPUT:
@@ -410,7 +410,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
           - ``e`` - a 2x2 matrix with integer entries
 
-          - ``normalized`` - boolean (default: false). If true 
+          - ``normalized`` - boolean (default: false). If true
             then the input matrix M is assumed to be normalized
 
         OUTPUT:
@@ -517,7 +517,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
     # def is_in_group(self,t,as_edge = True):
     #     """
     #     INPUT:
-    #       - ``t`` - 
+    #       - ``t`` -
     #       - ``as_edge`` - a boolean
 
     #     OUTPUT:
@@ -1759,13 +1759,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(3,7)
             sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,20,2)]
             [1, 4, 4, 8, 8, 12, 12, 16, 16]
-            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,20,2)] # long time
-            [1, 4, 4, 8, 8, 12, 12, 16, 16]
 
             sage: X = BTQuotient(2,5) # optional - magma
             sage: print [X.dimension_harmonic_cocycles(k) for k in range(2,40,2)] # optional - magma
-            [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
-            sage: print [len(HarmonicCocycles(X,k,100).basis()) for k in range(2,40,2)] # optional - magma
             [0, 1, 3, 1, 3, 5, 3, 5, 7, 5, 7, 9, 7, 9, 11, 9, 11, 13, 11]
         """
 
