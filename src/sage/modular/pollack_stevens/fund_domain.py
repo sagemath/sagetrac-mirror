@@ -1,13 +1,22 @@
-"""
+r"""
 Manin Relations
 
-Code to create the Manin Relations class, which solves the "Manin
-relations".  That is, a description of `Div^0(P^1(Q))` as a `\ZZ[\Gamma_0(N)]`-module
-in terms of generators and relations is found.  The method used is
-geometric, constructing a nice fundamental domain for `\Gamma_0(N)` and
-reading the relevant Manin relations off of that picture.  The
-algorithm follows the paper of Pollack and Stevens "Overconvergent
-modular symbols and p-adic L-functions".
+Code to create the Manin Relations class, which solves the "Manin relations".
+That is, a description of `Div^0(P^1(\QQ))` as a `\ZZ[\Gamma_0(N)]`-module in
+terms of generators and relations is found. The method used is geometric,
+constructing a nice fundamental domain for `\Gamma_0(N)` and reading the
+relevant Manin relations off of that picture. The algorithm follows [PS2011].
+
+REFERENCES:
+
+.. [PS2011] R. Pollack, and G. Stevens. "Overconvergent modular symobals and
+p-adic L-functions." Annales scientifiques de l'Ecole normale superieure. Vol.
+44. No. 1. Elsevier, 2011.
+
+AUTHORS:
+
+    - Robert Pollack, Jonathan Hanke (2012): initial version
+
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -33,8 +42,8 @@ from sage.rings.arith import convergents,xgcd,gcd
 
 M2ZSpace = MatrixSpace_ZZ_2x2()
 def M2Z(x):
-    """
-    Creates an immutable 2x2 integer matrix
+    r"""
+    Creates an immutable 2x2 integer matrix.
 
     INPUT:
 
@@ -63,98 +72,128 @@ t01 = (0,1)
 t11 = (1,1)
 
 class PSModularSymbolsDomain(SageObject):
+    r"""
+    The domain of a modular symbol.
+
+    INPUT:
+
+        - ``N`` -- a positive integer, the level of the congruence subgroup
+          `\Gamma_0(N)`
+
+        - ``reps`` -- a list of 2x2 matrices, the coset representatives of
+          `Div^0(P^1(\QQ))`
+
+        - ``indices`` -- a list of integers; indices of elements in ``reps``
+          which are generators
+
+        - ``rels`` -- a list of list of triples ``(d, A, i)``, one for each
+          coset representative of ``reps`` which describes how to express the
+          elements of ``reps`` in terms of generators specified by ``indices``.
+          See :meth:`relations` for a detailed explanations of these triples.
+
+        - ``equiv_ind`` -- a dictionary which maps normalized coordinates on
+          `P^1(\ZZ/N\ZZ)` to an integer such that a matrix whose bottom row is
+          equivalent to `[a:b]` in `P^1(\ZZ/N\ZZ)` is in the coset of
+          ``reps[equiv_ind[(a,b)]]``
+
+    EXAMPLES::
+
+        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
+        sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
+        Modular Symbol domain of level 2
+
+    TESTS:
+
+    The level ``N`` must be an integer::
+
+        sage: PSModularSymbolsDomain(1/2, None, None, None, None)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+        sage: PSModularSymbolsDomain(Gamma0(11), None, None, None, None)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer
+
+    """
     def __init__(self, N, reps, indices, rels, equiv_ind):
-        """
+        r"""
         INPUT:
 
-        - `N` -- positive integer
-        - ``reps`` -- TODO
-        - ``indices`` -- TODO
-        - ``rels`` -- TODO
-        - ``equiv_ind`` -- TODO
+            See :class:`PSModularSymbolsDomain`.
 
         EXAMPLES::
 
-        TODO: some good examples
-
-        The level N must be an integer::
-
             sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain
-            sage: PSModularSymbolsDomain(1/2, None, None, None, None)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this rational to integer
-            sage: PSModularSymbolsDomain(Gamma0(11), None, None, None, None)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to coerce <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'> to an integer
-        """
-        ## Store the level
-        self._N = ZZ(N)
+            sage: isinstance(ManinRelations(11), PSModularSymbolsDomain) # indirect doctest
+            True
 
-        ## Coset representatives of Gamma_0(N) coming from the geometric
-        ## fundamental domain algorithm
+        """
+        self._N = ZZ(N)
         self._reps = reps
 
-        ## This is a list of indices of the (geometric) coset representatives
-        ## whose values (on the associated degree zero divisors) determine the
-        ## modular symbol.
         self._indices = sorted(indices)
-
         self._gens = [reps[i] for i in self._indices]
         self._ngens = len(indices)
 
+        if len(rels) != len(reps):
+            raise ValueError("length of reps and length of rels must be equal")
         self._rels = rels
         self._rel_dict = {}
         for j, L in enumerate(rels):
-            self._rel_dict[reps[j]] = [(d, A, reps[i]) for (d, A, i) in L]
-        ## A list of lists of triples (d, A, i), one for each coset
-        ## representative of Gamma_0(N) (ordered to correspond to the
-        ## representatives of self.reps) expressing the value of a
-        ## modular symbol on the associated unimodular path as a sum of terms
-        ##    d * (value on the i-th coset rep) | A
-        ## where the index i must appear in self.gens_index, and the slash gives the
-        ##  matrix action.
+            self._rel_dict[reps[j]] = L
 
         self._equiv_ind = equiv_ind
         self._equiv_rep = {}
         for ky in equiv_ind:
             self._equiv_rep[ky] = reps[equiv_ind[ky]]
 
-    def __len__(self):
+    def _repr_(self):
+        r"""
+        A string representation of this domain.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
+            sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
+            'Modular Symbol domain of level 2'
+
         """
+        return "Modular Symbol domain of level %s"%self._N
+
+    def __len__(self):
+        r"""
         Returns the number of coset representatives.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: len(A)
             12
+
         """
         return len(self._reps)
 
     def __getitem__(self, i):
-        """
-        Returns the `i`-th coset rep.
+        r"""
+        Returns the ``i``-th coset representative.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A[4]
             [-1 -2]
             [ 2  3]
+
         """
         return self._reps[i]
 
     def __iter__(self):
-        """
+        r"""
         Returns an iterator over all coset representatives.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: for rep in A:
             ...       if rep[1,0] == 1:
@@ -165,28 +204,29 @@ class PSModularSymbolsDomain(SageObject):
             [ 1  2]
             [ 0 -1]
             [ 1  1]
+
         """
         return iter(self._reps)
 
     def gens(self):
-        """
+        r"""
         Returns the list of coset representatives chosen as generators.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.gens()
             [
             [1 0]  [ 0 -1]  [-1 -1]
             [0 1], [ 1  3], [ 3  2]
             ]
+
         """
         return self._gens
 
     def gen(self, n=0):
-        """
-        Returns the `n`-th generator.
+        r"""
+        Returns the ``n``-th generator.
 
         INPUT:
 
@@ -194,29 +234,29 @@ class PSModularSymbolsDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(137)
             sage: A.gen(17)
             [-4 -1]
             [ 9  2]
+
         """
         return self._gens[n]
 
     def ngens(self):
-        """
+        r"""
         Returns the number of generators.
 
         OUTPUT:
 
-        - the number of coset representatives from which a modular
-          symbol's value on any coset can be derived.
+        The number of coset representatives from which a modular symbol's value
+        on any coset can be derived.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(1137)
             sage: A.ngens()
             255
+
         """
         return len(self._gens)
 
@@ -226,24 +266,24 @@ class PSModularSymbolsDomain(SageObject):
 
         OUTPUT:
 
-        - The integer `N` of the group `\Gamma_0(N)` for which the
-          Manin Relations are being computed.
+        The integer `N` of the group `\Gamma_0(N)` for which the Manin
+        Relations are being computed.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.level()
             11
+
         """
         return self._N
 
     def indices(self, n=None):
         r"""
-        Returns the indices of coset reps which were chosen as our
-        generators.
+        Returns the ``n``-th index of the coset representatives which were
+        chosen as our generators.
 
-        In particular, the divisors associated to these coset reps
+        In particular, the divisors associated to these coset representatives
         generate all divisors over `\ZZ[\Gamma_0(N)]`, and thus a modular
         symbol is uniquely determined by its values on these divisors.
 
@@ -253,23 +293,26 @@ class PSModularSymbolsDomain(SageObject):
 
         OUTPUT:
 
-        - The list of indices in self.reps() of our generating
-          set.
+        The ``n``-th index of the generating set in ``self.reps()`` or all
+        indices if ``n`` is ``None``.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.indices()
             [0, 2, 3]
+
             sage: A.indices(2)
             3
+
             sage: A = ManinRelations(13)
             sage: A.indices()
             [0, 2, 3, 4, 5]
+
             sage: A = ManinRelations(101)
             sage: A.indices()
             [0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14, 16, 17, 19, 20, 23, 24, 26, 28]
+
         """
         if n is None:
             return self._indices
@@ -278,8 +321,8 @@ class PSModularSymbolsDomain(SageObject):
 
     def reps(self, n=None):
         r"""
-        Returns the n-th coset rep associated with our fundamental
-        domain or all coset reps if n is not specified.
+        Returns the ``n``-th coset representative associated with our
+        fundamental domain.
 
         INPUT:
 
@@ -287,12 +330,11 @@ class PSModularSymbolsDomain(SageObject):
 
         OUTPUT:
 
-        - If n is given then the n-th coset representative is returned
-          and otherwise all coset reps are returned.
+        The ``n``-th coset representative or all coset representatives if ``n``
+        is ``None``.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.reps(0)
             [1 0]
@@ -311,384 +353,251 @@ class PSModularSymbolsDomain(SageObject):
             [ 0 -1]  [ 1  0]  [-1 -1]  [ 1 -1]
             [ 1  1], [-1  1], [ 2  1], [-1  2]
             ]
+
         """
         if n is None:
             return self._reps
         else:
             return self._reps[n]
 
-    def relations(self, A=None, indices=False):
+    def relations(self, A=None):
         r"""
-        Expresses the divisor attached to the coset rep of A in terms
-        of our chosen generators.
+        Expresses the divisor attached to the coset representative of ``A`` in
+        terms of our chosen generators.
 
         INPUT:
 
-        - ``A`` -- None, integer or a coset rep (default: None)
-
-        - ``indices`` -- boolean (default: False), determines output
-          type when ``A`` is None.
+        - ``A`` -- ``None``, an integer, or a coset representative (default:
+          ``None``)
 
         OUTPUT:
 
-        - A `\ZZ[\Gamma_0(N)]`-relation expressing the divisor
-          attached to one (or all) coset rep(s) in terms of our
-          generating set.  The type of the return value depends on
-          ``A`` and ``indices``.
+        A `\ZZ[\Gamma_0(N)]`-relation expressing the divisor attached to ``A``
+        in terms of the generating set. The relation is given as a list of
+        triples ``(d, B, i)`` such that the divisor attached to `A`` is the sum
+        of ``d`` times the divisor attached to ``B^{-1} * self.reps(i)``.
 
-          - If ``A`` is a 2x2 matrix that is among the coset
-            represetatives, returns a list of triples `(d, B, C)` such
-            that the divisor attached to ``A`` equals the sum over
-            these triples of:
+        If ``A`` is an integer, then return this data for the ``A``-th
+        coset representative.
 
-              `d * B^{-1} * (divisor attached to C)`
-
-            Here `C` will be one of the chosen generating coset reps.
-
-          - If ``A`` is an integer, returns a list of triples `(d, B,
-            i)` such that the divisor attached to the `i`-th coset rep
-            equals the sum over these triples of:
-
-              `d * B^{-1} * (divisor attached to i-th coset rep)`
-
-            Here each index `i` must appear in ``self.indices()``.
-
-          - If ``A`` is None and ``indices`` is False, returns a
-            dictionary whose keys are the cosets reps and the values
-            are the lists of triples `(d, B, C)` described above.
-
-          - If ``A`` is None and ``indices`` is True, returns a list
-            of triples `(d, B, i)` in the same order as the coset reps
-            to which they correspond.
+        If ``A`` is ``None``, then return this data in a list for all coset
+        representatives.
 
         .. NOTE::
 
-            These relations allow us to recover the value of a modular
-            symbol on any coset rep in terms of its values on our
+            These relations allow us to recover the value of a modular symbol
+            on any coset representative in terms of its values on our
             generating set.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.indices()
+            sage: MR = ManinRelations(11)
+            sage: MR.indices()
             [0, 2, 3]
-            sage: A.relations(0)
+            sage: MR.relations(0)
             [(1, [1 0]
             [0 1], 0)]
-            sage: A.relations(2)
+            sage: MR.relations(2)
             [(1, [1 0]
             [0 1], 2)]
-            sage: A.relations(3)
+            sage: MR.relations(3)
             [(1, [1 0]
             [0 1], 3)]
-            sage: A.relations(4)
-            [(-1, [-3 -2]
-            [11  7], 2)]
-            sage: B=A.relations(4)[0][1]; B
-            [-3 -2]
-            [11  7]
-            sage: B^(-1)*A.reps(2)
-            [ 2 -1]
-            [-3  2]
-            sage: A.reps(4)
+
+        The fourth coset representative can be expressed through the second coset representative::
+
+            sage: MR.reps(4)
             [-1 -2]
             [ 2  3]
-            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: M2Z = MatrixSpace_ZZ_2x2()
-            sage: sig = M2Z([0,1,-1,0])
-            sage: B^(-1)*A.reps(2) == A.reps(4)*sig
-            True
+            sage: d, B, i = MR.relations(4)[0]
+            sage: P = ~B*MR.reps(i); P
+            [ 2 -1]
+            [-3  2]
+            sage: d # the above corresponds to minus the divisor of A.reps(4) since d is -1
+            -1
+
+        The sixth coset representative can be expressed as the sum of the second and the third::
+
+            sage: MR.reps(6)
+            [ 0 -1]
+            [ 1  2]
+            sage: MR.relations(6)
+            [(1, [1 0]
+            [0 1], 2), (1, [1 0]
+            [0 1], 3)]
+            sage: MR.reps(2), MR.reps(3) # MR.reps(6) is the sum of these divisors
+            (
+            [ 0 -1]  [-1 -1]
+            [ 1  3], [ 3  2]
+            )
+
+        TESTS:
+
+        Test that the other ways of calling this method work::
+
+            sage: MR.relations(MR.reps(6))
+            [(1, [1 0]
+            [0 1], 2), (1, [1 0]
+            [0 1], 3)]
+            sage: MR.relations(None)
+            [[(1, [1 0]
+            [0 1], 0)], [(-1, [-1 -1]
+            [ 0 -1], 0)], [(1, [1 0]
+            [0 1], 2)], [(1, [1 0]
+            [0 1], 3)], [(-1, [-3 -2]
+            [11  7], 2)], [(-1, [-4 -3]
+            [11  8], 3)], [(1, [1 0]
+            [0 1], 2), (1, [1 0]
+            [0 1], 3)], [(-1, [1 0]
+            [0 1], 2), (-1, [1 0]
+            [0 1], 3)], [(1, [1 0]
+            [0 1], 2), (1, [1 0]
+            [0 1], 3), (-1, [-3 -2]
+            [11  7], 2), (-1, [-4 -3]
+            [11  8], 3)], [(-1, [1 0]
+            [0 1], 2), (-1, [1 0]
+            [0 1], 3), (1, [-3 -2]
+            [11  7], 2), (1, [-4 -3]
+            [11  8], 3)], [(-1, [-3 -2]
+            [11  7], 2), (-1, [-4 -3]
+            [11  8], 3)], [(1, [-3 -2]
+            [11  7], 2), (1, [-4 -3]
+            [11  8], 3)]]
+
         """
         if A is None:
-            if indices:
-                return self._rels
-            else:
-                return self._rel_dict
-        if isinstance(A, (int, Integer, slice)):
+            return self._rels
+        elif isinstance(A, (int, Integer, slice)):
             return self._rels[A]
         else:
             return self._rel_dict[A]
 
+    def equivalent_index(self, A):
+        r"""
+        Returns the index of the coset representative equivalent to ``A``.
 
-### Normalize elements of P^1(Z/N) for N arbitrary in ZZ (no overflows)
-def p1_normalize_arbitrary(N, u, v,compute_s = False):
-    r"""
-    p1_normalize_arbitrary(N, u, v):
-    
-    Computes the canonical representative of
-    `\mathbb{P}^1(\ZZ/N\ZZ)` equivalent to `(u,v)` along
-    with a transforming scalar 's' (if compute_s is 1).
-    
-    INPUT:
-    
-    
-    -  ``N`` - an integer (the modulus or level)
-    
-    -  ``u`` - an integer (the first coordinate of (u:v))
-    
-    -  ``v`` - an integer (the second coordinate of (u:v))
-    
-    -  ``compute_s`` - a boolean (int)
-    
-    
-    OUTPUT: If gcd(u,v,N) = 1, then returns
-   
-    
-    -  ``uu`` - an integer
-    
-    -  ``vv`` - an integer
-    
-    - ``ss`` - an integer such that `(ss*uu, ss*vv)` is equivalent to `(u,v)` mod `N`;
+        Here by equivalent we mean the unique coset representative whose bottom
+        row is equivalent to the bottom row of ``A`` in `P^1(\ZZ/N\ZZ)`.
 
-       if `\gcd(u,v,N) \not= 1`, returns 0, 0, 0.
+        INPUT:
 
-    EXAMPLES::
+        - ``A`` -- an element of `SL_2(\ZZ)`
 
-        sage: from sage.modular.pollack_stevens.fund_domain import p1_normalize_arbitrary
-        sage: p1_normalize_arbitrary(90,7,77)
-        (1, 11)
-        sage: p1_normalize_arbitrary(90,7,77, compute_s=True)
-        (1, 11, 7)
-        sage: p1_normalize_arbitrary(90,7,78, True)
-        (1, 24, 7)
-        sage: (7*24-78*1) % 90
-        0
-        sage: (7*24) % 90
-        78
-    """
-    if N == 1:
-        if compute_s == True:
-            return 0,0,1
-        else:
-            return 0,0
+        OUTPUT:
 
-    u = u % N
-    v = v % N
-    if u<0: u += N
-    if v<0: v += N
-    if u == 0:
-        uu = 0
-        if gcd(v,N) == 1:
-            vv = 1
-        else:
-            vv = 0
-        ss = v
-        if compute_s == True:
-            return uu,vv,ss
-        else:
-            return uu,vv
+        The unique integer ``j`` satisfying that the bottom row of
+        ``self.reps(j)`` is equivalent to the bottom row of ``A``.
 
-    g,s,t = xgcd(u, N)
-    s = s % N
-    t = t % N
-    if s<0: s += N
-    if gcd(g, v) != 1:
-        if compute_s == True:
-            return 0, 0, 0
-        else:
-            return 0, 0
+        EXAMPLES::
 
-    # Now g = s*u + t*N, so s is a "pseudo-inverse" of u mod N
-    # Adjust s modulo N/g so it is coprime to N.
-    if g!=1:
-        d = N/g
-        while gcd(s,N) != 1:
-            s = (s+d) % N
+            sage: MR = ManinRelations(11)
+            sage: A = matrix(ZZ,2,2,[1,5,3,16])
+            sage: j = MR.equivalent_index(A); j
+            11
+            sage: MR.reps(11)
+            [ 1 -1]
+            [-1  2]
+            sage: MR.equivalent_rep(A)
+            [ 1 -1]
+            [-1  2]
+            sage: MR.P1().normalize(3,16)
+            (1, 9)
 
-    # Multiply [u,v] by s; then [s*u,s*v] = [g,s*v] (mod N)
-    u = g
-    # v = (s*v) % N
-    v = (s*v) % N
+        """
+        return self._equiv_ind[self._P.normalize(A[t10],A[t11])]
 
-    min_v = v; min_t = 1
-    if g!=1:
-        Ng = N/g
-        vNg = ZZ((v*Ng) % N)
-        t = 1
-        for k in range(2,g+1):
-            v = (v + vNg) % N
-            t = (t + Ng) % N
-            if v<min_v and gcd(t,N)==1:
-                min_v = v; min_t = t
-    v = min_v
-    if u<0: u = u+N
-    if v<0: v = v+N
-    uu = u
-    vv = v
-    if compute_s:
-        ss = (Zmod(N)(s*min_t)**(-1)).lift()
-        ss = ss % N
-        return uu,vv,ss
-    else:
-        return uu,vv
+    def equivalent_rep(self, A):
+        r"""
+        Returns a coset representative that is equivalent to ``A`` modulo
+        `\Gamma_0(N)`.
 
-######################################
-##  Define the Manin Relation Class ##
-######################################
+        INPUT:
+
+        - ``A`` -- a matrix in `SL_2(\ZZ)`
+
+        OUTPUT:
+
+        The unique generator congruent to ``A`` modulo `\Gamma_0(N)`.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
+            sage: M2Z = MatrixSpace_ZZ_2x2()
+            sage: A = M2Z([5,3,38,23])
+            sage: ManinRelations(60).equivalent_rep(A)
+            [-7 -3]
+            [26 11]
+
+        """
+        return self._reps[self.equivalent_index(A)]
+
+    def P1(self):
+        r"""
+        Returns the Sage representation of `P^1(\ZZ/N\ZZ)`.
+
+        EXAMPLES::
+
+            sage: A = ManinRelations(11)
+            sage: A.P1()
+            The projective line over the integers modulo 11
+
+        """
+        return self._P
 
 class ManinRelations(PSModularSymbolsDomain):
-    """
-    This class gives a description of Div^0(P^1(QQ)) as a
+    r"""
+    This class gives a description of `Div^0(P^1(\QQ))` as a
     `\ZZ[\Gamma_0(N)]`-module.
 
     INPUT:
 
-    - ``N`` -- a positive integer
+    - ``N`` -- a positive integer, the level of `\Gamma_0(N)` to work with
 
     EXAMPLES::
 
+        sage: ManinRelations(1)
+        Manin Relations of level 1
+        sage: ManinRelations(11)
+        Manin Relations of level 11
 
+    Large values of ``N`` are not supported::
 
-    ``MR.reps_with_two_torsion`` is a list of coset reps whose
-    associated unimodular path contains a point fixed by a
-    `\Gamma_0(N)` element of order 2 (where the order is computed in
-    `PSL_2(Z)`).
+        sage: ManinRelations(2^20)
+        Traceback (most recent call last):
+        ...
+        OverflowError: Modulus is too large (must be < 46340)
 
-    ``MR.indices_with_two_torsion`` gives the corresponding indices in
-    ``MR.reps()``::
+    TESTS:
 
-        sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-        sage: MR = ManinRelations(11)
-        sage: MR.indices_with_two_torsion
-        []
-        sage: MR = ManinRelations(13)
-        sage: MR.indices_with_two_torsion
-        [3, 4]
-        sage: MR.reps_with_two_torsion
-        [
-        [-1 -1]  [-1 -2]
-        [ 3  2], [ 2  3]
-        ]
-        sage: MR.reps_with_two_torsion[0] == MR.reps(3)
-        True
-        sage: MR = ManinRelations(17)
-        sage: MR.reps_with_two_torsion
-        [
-        [-3 -2]  [-3 -1]
-        [ 5  3], [ 4  1]
-        ]
-        sage: path = MR.reps_with_two_torsion[0]; path
-        [-3 -2]
-        [ 5  3]
+    ``N`` has to be a positive integer::
 
-    The corresponding matrices of order two are contained in
-    ``MR.two_torsion``::
+        sage: ManinRelations(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: N must be a positive integer
+        sage: ManinRelations(-5)
+        Traceback (most recent call last):
+        ...
+        ValueError: N must be a positive integer
 
-        sage: A = MR.two_torsion[path]; A
-        [ 21  13]
-        [-34 -21]
-        sage: A^2
-        [-1  0]
-        [ 0 -1]
-
-    You can see that multiplication by A just interchanges the
-    rational cusps determined by the columns of the matrix ``path``::
-
-        sage: A * path
-        [ 2 -3]
-        [-3  5]
-
-        sage: sorted(ManinRelations(13).two_torsion.values())
-        [
-        [  5   2]  [  8   5]
-        [-13  -5], [-13  -8]
-        ]
-
-    ``MR.reps_with_three_torsion`` is a list of coset reps whose
-    associated unimodular path contains a point fixed by a
-    `\Gamma_0(N)` element of order 3 in the ideal triangle directly
-    below that path.  Here the order is again computed in `PSL_2(Z)`).
-
-    ``MR.indices_with_three_torsion`` gives the corresponding indices
-    in ``MR.reps()``::
-
-        sage: MR = ManinRelations(11)
-        sage: MR.indices_with_three_torsion
-        []
-        sage: MR = ManinRelations(13)
-        sage: MR.indices_with_three_torsion
-        [2, 5]
-        sage: MR.reps_with_three_torsion
-        [
-        [ 0 -1]  [-2 -1]
-        [ 1  3], [ 3  1]
-        ]
-        sage: MR.reps_with_three_torsion[0] == MR.reps(2)
-        True
-        sage: MR = ManinRelations(17)
-        sage: MR.reps_with_three_torsion
-        []
-        sage: MR = ManinRelations(103)
-        sage: MR.reps_with_three_torsion
-        [
-        [-4 -1]  [-1 -5]
-        [ 9  2], [ 2  9]
-        ]
-        sage: path = MR.reps_with_three_torsion[0]; path
-        [-4 -1]
-        [ 9  2]
-
-    The corresponding matrices of order three are contained in
-    ``MR.three_torsion``::
-
-        sage: A = MR.three_torsion[path]; A
-        [-47 -21]
-        [103  46]
-        sage: A^3
-        [1 0]
-        [0 1]
-
-    You can see that the columns of path, A*path and A^2*path give the
-    same rational cusps::
-
-        sage: A * path
-        [ -1   5]
-        [  2 -11]
-        sage: A^2*path
-        [  5  -4]
-        [-11   9]
-
-        sage: sorted(ManinRelations(13).three_torsion.values())
-        [
-        [-10  -7]  [-4 -1]
-        [ 13   9], [13  3]
-        ]
     """
     def __init__(self, N):
         r"""
+        Create an instance of this class.
+
+        INPUT:
+
+        - ``N`` -- a positive integer, the level of `\Gamma_0(N)` to work with
+
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: ManinRelations(11)
-            Manin Relations of level 11
             sage: type(ManinRelations(30))
             <class 'sage.modular.pollack_stevens.fund_domain.ManinRelations'>
-            sage: ManinRelations(1)
-            Manin Relations of level 1
 
-        Error checking::
-
-            sage: ManinRelations(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: N must be a positive integer
-            sage: ManinRelations(-5)
-            Traceback (most recent call last):
-            ...
-            ValueError: N must be a positive integer        
-
-        Implementation limits::
-        
-            sage: ManinRelations(2^20)
-            Traceback (most recent call last):
-            ...
-            OverflowError: Modulus is too large (must be < 46340)
         """
         N = ZZ(N)
         if N <= 0:
             raise ValueError, "N must be a positive integer"
-        
         self._N = N
 
         ## Creates and stores the Sage representation of P^1(Z/NZ)
@@ -722,20 +631,20 @@ class ManinRelations(PSModularSymbolsDomain):
         ## the list rels (above) will give Z[Gamma_0(N)] relations between
         ## the associated divisor of each coset representatives in terms
         ## of our chosen set of generators.
-        ## entries of rel will be lists of elements of the form (c,A,r)
+        ## entries of rels will be lists of elements of the form (c,A,r)
         ## with c a constant, A a Gamma_0(N) matrix, and r the index of a
         ## generator.  The meaning is that the divisor associated to the
         ## j-th coset rep will equal the sum of:
         ##
         ##   c * A^(-1) * (divisor associated to r-th coset rep)
         ##
-        ## as one varies over all (c,A,r) in rel[j].
+        ## as one varies over all (c,A,r) in rels[j].
         ## (Here r must be in self.generator_indices().)
         ##
         ## This will be used for modular symbols as then the value of a
         ## modular symbol phi on the (associated divisor) of the j-th
         ## element of coset_reps will be the sum of c * phi (r-th genetator) | A
-        ## as one varies over the tuples in rel[j]
+        ## as one varies over the tuples in rels[j]
 
         boundary_checked = [False] * len(coset_reps)
 
@@ -802,7 +711,7 @@ class ManinRelations(PSModularSymbolsDomain):
                         rels[r] = [(1,Id,r)]
 
                         ## the index r is adding to our list of indexes of
-                        ##generators which satisfy a 3-torsion relation
+                        ## generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
                         gam = coset_reps[r] * tau * coset_reps[r]._invert_unit()
@@ -836,7 +745,6 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## We have now finished with this edge.
 
                     else:
-
                         ## This is the generic case where neither 2 or
                         ## 3-torsion intervenes.
                         ## The below loop searches through the remaining edges
@@ -896,10 +804,9 @@ class ManinRelations(PSModularSymbolsDomain):
         ## -------------------------------------------------------------------
 
         for r in range(len(cusps)-2):
-
-        ## r is the index of the cusp on the left of the path.  We only run
-        ## thru to the number of cusps - 2 since you can't start an interior
-        ## path on either of the last two cusps
+            ## r is the index of the cusp on the left of the path.  We only run
+            ## thru to the number of cusps - 2 since you can't start an
+            ## interior path on either of the last two cusps
 
             for s in range(r+2,len(cusps)):
             ## s is in the index of the cusp on the the right of the path
@@ -920,8 +827,8 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## below the path attached to A (as they form a triangle)
                     ## Similarly, this is also done for B.
 
-                    for rel in rels[r+2:s+2]:
                     ## Running between the cusps between cusp1 and cusp2
+                    for rel in rels[r+2:s+2]:
                         ## Add edge relation
                         vA.append(rel[0])
                         ## Add negative of edge relation
@@ -942,142 +849,279 @@ class ManinRelations(PSModularSymbolsDomain):
         ## A list of indices of the (geometric) coset representatives whose
         ## paths are identified by some 2-torsion element (which switches the
         ## path orientation)
-        self.indices_with_two_torsion = twotor_index
-        self.reps_with_two_torsion = [coset_reps[i] for i in twotor_index]
+        self._indices_with_two_torsion = twotor_index
+        self._reps_with_two_torsion = [coset_reps[i] for i in twotor_index]
 
         ## A dictionary of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the orientation identification in the paths listed in twotor_index above!
-        self.two_torsion = {}
+        self._two_torsion = {}
         for j, tor_elt in zip(twotor_index, twotorrels):
-            self.two_torsion[coset_reps[j]] = tor_elt
+            self._two_torsion[coset_reps[j]] = tor_elt
 
         ## A list of indices of the (geometric) coset representatives that
         ## form one side of an ideal triangle with an interior fixed point of
         ## a 3-torsion element of Gamma_0(N)
-        self.indices_with_three_torsion = threetor_index
-        self.reps_with_three_torsion = [coset_reps[i] for i in threetor_index]
+        self._indices_with_three_torsion = threetor_index
+        self._reps_with_three_torsion = [coset_reps[i] for i in threetor_index]
 
         ## A dictionary of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
         ## the interior fixed point described in threetor_index above!
-        self.three_torsion = {}
+        self._three_torsion = {}
         for j, tor_elt in zip(threetor_index, threetorrels):
-            self.three_torsion[coset_reps[j]] = tor_elt
+            self._three_torsion[coset_reps[j]] = tor_elt
 
     def _repr_(self):
-        """
+        r"""
+        A printable representation of this domain.
+
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: ManinRelations(11)._repr_()
             'Manin Relations of level 11'
+
         """
         return "Manin Relations of level %s"%self._N
 
-    def equivalent_index(self, A):
+    def indices_with_two_torsion(self):
         r"""
-        Returns the index of the rep equivalent to A.
-
-        Here by equivalent we mean the unique coset rep whose bottom
-        row is equivalent to the bottom row of A in `P^1(\ZZ/N\ZZ)`.
-
-        INPUT:
-
-        - ``A`` -- an element of `SL_2(\ZZ)`
+        The indices of coset representatives whose associated unimodular path
+        contains a point fixed by a `\Gamma_0(N)` element of order 2 (where the
+        order is computed in `PSL_2(\ZZ)`).
 
         OUTPUT:
 
-        - The unique integer j satisfying that the bottom row of
-          self.reps(j) is equivalent to the bottom row of A.
+        A list of integers.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: MR = ManinRelations(11)
-            sage: A = matrix(ZZ,2,2,[3,5,16,27])
-            sage: j = MR.equivalent_index(A); j
-            8
-            sage: MR.reps(8)
-            [ 0 -1]
-            [ 1  1]
-            sage: MR.equivalent_rep(A)
-            [ 0 -1]
-            [ 1  1]
-            sage: MR.P1().normalize(16,27)
-            (1, 1)
-        """
-        try:
-            ky = self._P.normalize(A[t10],A[t11])
-        except OverflowError:
-            ky = p1_normalize_arbitrary(self._P.N(),A[t10],A[t11])
+            sage: MR.indices_with_two_torsion()
+            []
+            sage: MR = ManinRelations(13)
+            sage: MR.indices_with_two_torsion()
+            [3, 4]
+            sage: MR.reps(3), MR.reps(4)
+            (
+            [-1 -1]  [-1 -2]
+            [ 3  2], [ 2  3]
+            )
 
-        return self._equiv_ind[ky]
+        The coresponding matrix of order 2::
 
-    def equivalent_rep(self, A):
+            sage: A = MR.two_torsion_matrix(MR.reps(3)); A
+            [  5   2]
+            [-13  -5]
+            sage: A^2
+            [-1  0]
+            [ 0 -1]
+
+        You can see that multiplication by ``A`` just interchanges the rational
+        cusps determined by the columns of the matrix ``MR.reps(3)``::
+
+            sage: MR.reps(3), A*MR.reps(3)
+            (
+            [-1 -1]  [ 1 -1]
+            [ 3  2], [-2  3]
+            )
+
         """
-        Returns a coset representative that is equivalent to A modulo `\Gamma_0(N)`.
+        return self._indices_with_two_torsion
+
+    def reps_with_two_torsion(self):
+        r"""
+        The coset representatives whose associated unimodular path contains a
+        point fixed by a `\Gamma_0(N)` element of order 2 (where the order is
+        computed in `PSL_2(\ZZ)`).
+
+        OUTPUT:
+
+        A list of matrices.
+
+        EXAMPLES::
+
+            sage: MR = ManinRelations(11)
+            sage: MR.reps_with_two_torsion()
+            []
+            sage: MR = ManinRelations(13)
+            sage: MR.reps_with_two_torsion()
+            [
+            [-1 -1]  [-1 -2]
+            [ 3  2], [ 2  3]
+            ]
+            sage: B = MR.reps_with_two_torsion()[0]
+
+        The coresponding matrix of order 2::
+
+            sage: A = MR.two_torsion_matrix(B); A
+            [  5   2]
+            [-13  -5]
+            sage: A^2
+            [-1  0]
+            [ 0 -1]
+
+        You can see that multiplication by ``A`` just interchanges the rational
+        cusps determined by the columns of the matrix ``MR.reps(3)``::
+
+            sage: B, A*B
+            (
+            [-1 -1]  [ 1 -1]
+            [ 3  2], [-2  3]
+            )
+
+        """
+        return self._reps_with_two_torsion
+
+    def two_torsion_matrix(self, A):
+        r"""
+        Return the matrix of order two in `\Gamma_0(N)` which corresponds to an
+        ``A`` in ``self.reps_with_two_torsion()``.
 
         INPUT:
 
-        - ``A`` -- a matrix in `SL_2(\ZZ)`
-
-        OUTPUT:
-
-        - a matrix in `SL_2(\ZZ)` congruent to ``A`` modulo `\Gamma_0(N)`.
+            - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: M2Z = MatrixSpace_ZZ_2x2()
-            sage: A = M2Z([5,3,38,23])
-            sage: ManinRelations(60).equivalent_rep(A)
-            [-7 -3]
-            [26 11]
-        """
-        try:
-            ky = self._P.normalize(A[t10],A[t11])
-        except OverflowError:
-            ky = p1_normalize_arbitrary(self._P.N(),A[t10],A[t11])
-        return self._equiv_rep[ky]
+            sage: MR = ManinRelations(25)
+            sage: B = MR.reps_with_two_torsion()[0]
 
-    def P1(self):
+        The coresponding matrix of order 2::
+
+            sage: A = MR.two_torsion_matrix(B); A
+            [  7   2]
+            [-25  -7]
+            sage: A^2
+            [-1  0]
+            [ 0 -1]
+
+        """
+        return self._two_torsion[A]
+
+    def indices_with_three_torsion(self):
         r"""
-        Returns the Sage representation of `P^1(\ZZ/N\ZZZ)`.
-
-        OUTPUT:
-
-        - `P^1(Z/NZ)` where N is the level of the relations.
+        A list of indices of coset representatives whose associated unimodular
+        path contains a point fixed by a `\Gamma_0(N)` element of order 3 in
+        the ideal triangle directly below that path (the order is computed in
+        `PSL_2(\ZZ)`).
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
-            sage: A = ManinRelations(11)
-            sage: A.P1()
-            The projective line over the integers modulo 11
+            sage: MR = ManinRelations(11)
+            sage: MR.indices_with_three_torsion()
+            []
+            sage: MR = ManinRelations(13)
+            sage: MR.indices_with_three_torsion()
+            [2, 5]
+            sage: B = MR.reps(2); B
+            [ 0 -1]
+            [ 1  3]
+
+        The corresponding matrix of order three::
+
+            sage: A = MR.three_torsion_matrix(B); A
+            [-4 -1]
+            [13  3]
+            sage: A^3
+            [1 0]
+            [0 1]
+
+        The columns of ``B`` and the columns of ``A*B`` and ``A^2*B`` give the
+        same rational cusps::
+
+            sage: B
+            [ 0 -1]
+            [ 1  3]
+            sage: A*B, A^2*B
+            (
+            [-1  1]  [ 1  0]
+            [ 3 -4], [-4  1]
+            )
+
         """
-        return self._P
+        return self._indices_with_three_torsion
+
+    def reps_with_three_torsion(self):
+        r"""
+        A list of coset representatives whose associated unimodular path
+        contains a point fixed by a `\Gamma_0(N)` element of order 3 in the
+        ideal triangle directly below that path (the order is computed in
+        `PSL_2(\ZZ)`).
+
+        EXAMPLES::
+
+            sage: MR = ManinRelations(13)
+            sage: B = MR.reps_with_three_torsion()[0]; B
+            [ 0 -1]
+            [ 1  3]
+
+        The corresponding matrix of order three::
+
+            sage: A = MR.three_torsion_matrix(B); A
+            [-4 -1]
+            [13  3]
+            sage: A^3
+            [1 0]
+            [0 1]
+
+        The columns of ``B`` and the columns of ``A*B`` and ``A^2*B`` give the
+        same rational cusps::
+
+            sage: B
+            [ 0 -1]
+            [ 1  3]
+            sage: A*B, A^2*B
+            (
+            [-1  1]  [ 1  0]
+            [ 3 -4], [-4  1]
+            )
+
+        """
+        return self._reps_with_three_torsion
+
+    def three_torsion_matrix(self, A):
+        """
+        Return the matrix of order two in `\Gamma_0(N)` which corresponds to an
+        ``A`` in ``self.reps_with_two_torsion()``.
+
+        INPUT:
+
+            - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
+
+        EXAMPLES::
+
+            sage: MR = ManinRelations(37)
+            sage: B = MR.reps_with_three_torsion()[0]
+
+        The coresponding matrix of order 3::
+
+            sage: A = MR.three_torsion_matrix(B); A
+            [-11  -3]
+            [ 37  10]
+            sage: A^3
+            [1 0]
+            [0 1]
+
+        """
+        return self._three_torsion[A]
 
     def form_list_of_cusps(self):
         r"""
-        Returns the intersection of a fundamental domain for
-        `\Gamma_0(N)` with the real axis.
+        Returns the intersection of a fundamental domain for `\Gamma_0(N)` with
+        the real axis.
 
-        The construction of this fundamental domain follows the
-        arguments of [PS] Section 2.  The boundary of this fundamental
-        domain consists entirely of unimodular paths when
-        `\Gamma_0(N)` has no elements of order 3.  (See [PS] Section
-        2.5 for the case when there are elements of order 3.)
+        The construction of this fundamental domain follows the arguments of
+        [PS2011] Section 2.  The boundary of this fundamental domain consists
+        entirely of unimodular paths when `\Gamma_0(N)` has no elements of
+        order 3.  (See [PS2011] Section 2.5 for the case when there are
+        elements of order 3.)
 
         OUTPUT:
 
-        - A sorted list of rational numbers marking the intersection
-          of a fundamental domain for `\Gamma_0(N)` with the real
-          axis.
-
+        A sorted list of rational numbers marking the intersection of a
+        fundamental domain for `\Gamma_0(N)` with the real axis.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.form_list_of_cusps()
             [-1, -2/3, -1/2, -1/3, 0]
@@ -1087,6 +1131,7 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: A = ManinRelations(101)
             sage: A.form_list_of_cusps()
             [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
+
         """
         ## Get the level
         N = self.level()
@@ -1231,12 +1276,11 @@ class ManinRelations(PSModularSymbolsDomain):
 
         OUTPUT:
 
-        - A boolean expressing whether or not a unimodular path
-          connects r1 to r2.
+        A boolean expressing whether or not a unimodular path connects ``r1``
+        to ``r2``.
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.is_unimodular_path(0,1/3)
             True
@@ -1246,6 +1290,7 @@ class ManinRelations(PSModularSymbolsDomain):
             False
             sage: A.is_unimodular_path(2/3,0)
             False
+
         """
         a = r1.numerator()
         b = r2.numerator()
@@ -1253,24 +1298,22 @@ class ManinRelations(PSModularSymbolsDomain):
         d = r2.denominator()
         return (a*d - b*c)**2 == 1
 
-
     def unimod_to_matrices(self, r1, r2):
         r"""
-        Returns the two matrices whose associated unimodular paths
-        connect `r1 -> r2` and `r2 -> r1`, respectively.
+        Returns the two matrices whose associated unimodular paths connect
+        ``r1`` and ``r2`` and ``r2`` and ``r1``, respectively.
 
         INPUT:
 
-        - ``r1, r2`` -- rational numbers (that are assumed to be
-          related by a unimodular path)
+        - ``r1, r2`` -- rational numbers (that are assumed to be connected by a
+          unimodular path)
 
         OUTPUT:
 
-        - a pair of `2 x 2` matrices of determinant 1
+        A pair of 2x2 matrices of determinant 1
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: A.unimod_to_matrices(0,1/3)
             (
@@ -1299,23 +1342,21 @@ class ManinRelations(PSModularSymbolsDomain):
         Here the fundamental domain is for `\Gamma_0(N)`.  (In the
         case when `\Gamma_0(N)` has elements of order three the shape
         cut out by these unimodular matrices is a little smaller than
-        a fundamental domain.  See `\S2.5` of Pollack-Stevens.)
+        a fundamental domain.  See Section 2.5 of [PS2011].)
 
         INPUT:
 
-        - a list of rational numbers coming from
-          self.form_list_of_cusps()
+        - ``C`` -- a list of rational numbers coming from
+          ``self.form_list_of_cusps()``
 
         OUTPUT:
 
-        - a list of `2 x 2` integer matrices of determinant 1 whose
-          associated unimodular paths give the boundary of a
-          fundamental domain for `Gamma_0(N)` (or nearly so in the
-          case of 3-torsion).
+        A list of 2x2 integer matrices of determinant 1 whose associated
+        unimodular paths give the boundary of a fundamental domain for
+        `Gamma_0(N)` (or nearly so in the case of 3-torsion).
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
             sage: A = ManinRelations(11)
             sage: C = A.form_list_of_cusps(); C
             [-1, -2/3, -1/2, -1/3, 0]
@@ -1352,8 +1393,8 @@ class ManinRelations(PSModularSymbolsDomain):
             [-11  -3]  [-3 -7]  [-7 -4]  [-4 -5]  [-5 -6]  [-6 -1]
             [ 15   4], [ 4  9], [ 9  5], [ 5  6], [ 6  7], [ 7  1]
             ]
-        """
 
+        """
         C.reverse() ## Reverse here to get clockwise orientation of boundary
 
         ## These matrices correspond to the paths from infty to 0 and -1 to infty
@@ -1373,81 +1414,70 @@ class ManinRelations(PSModularSymbolsDomain):
         return mats
 
     @cached_method
-    def prep_hecke_on_gen(self, ell, gen):
-        """
-        This function does some precomputations needed to compute T_ell.
+    def prep_hecke_on_gen(self, l, gen):
+        r"""
+        This function does some precomputations needed to compute `T_l`.
 
-        In particular, if phi is a modular symbol and D_m is the divisor associated to the generator ``gen``,
-        to compute (phi|T_ell)(D_m) one needs to compute phi(gam_a D_m)|gam_a where
-        gam_a runs thru the ell+1 matrices defining T_ell.  One then takes gam_a D_m and writes it
-        as a sum of unimodular divisors.  For each such unimodular divisor, say [M] where M is a
-        SL_2 matrix, we then write M=gam*h where gam is in Gamma_0(N) and h is one of our
-        chosen coset representatives.  Then phi([M]) = phi([h]) | gam^(-1).  Thus, one has
+        In particular, if `phi` is a modular symbol and `D_m` is the divisor
+        associated to the generator ``gen``, to compute `(\phi|T_{l})(D_m)` one
+        needs to compute `\phi(\gamma_a D_m)|\gamma_a` where `\gamma_a` runs
+        through the `l+1` matrices defining `T_l`.  One
+        then takes `\gamma_a D_m` and writes it as a sum of unimodular
+        divisors.  For each such unimodular divisor, say `[M]` where `M` is a
+        `SL_2` matrix, we then write `M=\gamma*h` where `\gamma` is in
+        `\Gamma_0(N)` and `h` is one of our chosen coset representatives.  Then
+        `\phi([M]) = \phi([h]) | `\gamma^{-1}`.  Thus, one has
 
-            (phi | gam_a)(D_m) = sum_h sum_j phi([h]) | gam_{hj}^(-1) * gam_a
+        .. MATH::
 
-        as h runs over all coset representatives and j simply runs over however many
-        times M_h appears in the above computation.
+            (\phi | \gamma_a)(D_m) = \sum_h \sum_j \phi([h]) | \gamma_{hj}^(-1) * \gamma_a
 
-        Finally, the output of this function is a dictionary D whose keys are the coset representatives
-        in ``self.reps()`` where each value is a list of matrices, and the entries of D
-        satisfy:
+        as `h` runs over all coset representatives and `j` simply runs over
+        however many times `M_h` appears in the above computation.
 
-            D[h][j] = gam_{hj} * gam_a
+        Finally, the output of this function is a dictionary ``D`` whose keys are
+        the coset representatives in ``self.reps()`` where each value is a list
+        of matrices, and the entries of ``D`` satisfy:
+
+        .. MATH::
+
+            D[h][j] = \gamma_{hj} * \gamma_a
 
         INPUT:
 
-        - ``ell`` -- a prime
+        - ``l`` -- a prime
         - ``gen`` -- a generator
 
         OUTPUT:
 
         A list of lists (see above).
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
-
-        sage: E = EllipticCurve('11a')
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
-        sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi.values()
-        [-1/5, 3/2, -1/2]
-        sage: M = phi.parent().source()
-        sage: M.prep_hecke_on_gen(2, M.gens()[0])
-        {[ 1  0]
-        [-1  1]: [], [1 0]
-        [0 1]: [[1 0]
-        [0 2], [1 1]
-        [0 2], [2 0]
-        [0 1]], [ 1 -1]
-        [-1  2]: [[ 1 -1]
-        [ 0  2]], [ 1  0]
-        [-2  1]: [], [ 0 -1]
-        [ 1  1]: [], [-1 -2]
-        [ 2  3]: [], [ 0 -1]
-        [ 1  3]: [], [-1 -1]
-        [ 2  1]: [], [ 0 -1]
-        [ 1  2]: [], [-2 -1]
-        [ 3  1]: [], [ 1  1]
-        [-1  0]: [], [-1 -1]
-        [ 3  2]: []}
-
-        This was the output when the output was still a list::
-        [[[1 0]
-        [0 2], [1 1]
-        [0 2], [2 0]
-        [0 1]], [], [], [], [], [], [], [], [], [], [], [[ 1 -1]
-        [ 0  2]]]
-
-        The output the original version of this file claimed is the
-        following, but this disagrees with what we get, and with the
-        .sage version (which agree with each other)::
-        [[[1 0]
-        [0 2], [1 1]
-        [0 2], [2 0]
-        [0 1]], [], [], [], [], [], [[ 1 -1]
-        [ 0  2]], [], [], [], [], []]
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: phi.values()
+            [-1/5, 3/2, -1/2]
+            sage: M = phi.parent().source()
+            sage: M.prep_hecke_on_gen(2, M.gens()[0])
+            {[ 1  0]
+            [-1  1]: [], [1 0]
+            [0 1]: [[1 0]
+            [0 2], [1 1]
+            [0 2], [2 0]
+            [0 1]], [ 1 -1]
+            [-1  2]: [[ 1 -1]
+            [ 0  2]], [ 1  0]
+            [-2  1]: [], [ 0 -1]
+            [ 1  1]: [], [-1 -2]
+            [ 2  3]: [], [ 0 -1]
+            [ 1  3]: [], [-1 -1]
+            [ 2  1]: [], [ 0 -1]
+            [ 1  2]: [], [-2 -1]
+            [ 3  1]: [], [ 1  1]
+            [-1  0]: [], [-1 -1]
+            [ 3  2]: []}
 
         """
         N = self.level()
@@ -1457,16 +1487,17 @@ class ManinRelations(PSModularSymbolsDomain):
             ans[h] = []
         # this will be the dictionary D above enumerated by coset reps
 
-        #  This loop will run thru the ell+1 (or ell) matrices
-        #  defining T_ell of the form [1, a, 0, ell] and carry out the
+        #  This loop will run thru the l+1 (or l) matrices
+        #  defining T_l of the form [1, a, 0, l] and carry out the
         #  computation described above.
         #  -------------------------------------
-        for a in range(ell + 1):
-           if (a < ell) or (N % ell != 0):
-               # if the level is not prime to ell the matrix [ell, 0, 0, 1] is avoided.
-               gamma = basic_hecke_matrix(a, ell)
+        for a in range(l + 1):
+           if (a < l) or (N % l != 0):
+               # if the level is not prime to l the matrix [l, 0, 0, 1] is avoided.
+               gamma = basic_hecke_matrix(a, l)
                t = gamma * gen
                #  In the notation above this is gam_a * D_m
+               from manin_map import unimod_matrices_to_infty, unimod_matrices_from_infty
                v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
                #  This expresses t as a sum of unimodular divisors
 
@@ -1487,123 +1518,40 @@ class ManinRelations(PSModularSymbolsDomain):
 
         return ans
 
-def basic_hecke_matrix(a, ell):
-    """
-    Returns the matrix [1, a, 0, ell] (if a<ell) and [ell, 0, 0, 1] if a>=ell
+def basic_hecke_matrix(a, l):
+    r"""
+    Returns the 2x2 matrix with entries ``[1, a, 0, l]`` if ``a<l`` and ``[l, 0, 0, 1]`` if ``a>=l``.
 
     INPUT:
 
     - `a` -- an integer or Infinity
-    - ``ell`` -- a prime
+    - ``l`` -- a prime
 
     OUTPUT:
 
-    - a 2 x 2 matrix of determinant ell
-
-    EXAMPLES:
-
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
-        [1 0]
-        [0 7]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(5, 7)
-        [1 5]
-        [0 7]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(7, 7)
-        [7 0]
-        [0 1]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
-        [7 0]
-        [0 1]
-    """
-    # TODO: probably a bottleneck.
-    if a < ell:
-        return M2Z([1, a, 0, ell])
-    else:
-        return M2Z([ell, 0, 0, 1])
-
-def unimod_matrices_to_infty(r, s):
-    """
-    Returns a list of matrices whose associated unimodular paths
-    connect 0 to r/s.  This is Manin's continued fraction trick, which
-    gives an expression {0,r/s} = {0,oo} + ... + {a,b} + ... + {*,r/s},
-    where each {a,b} is the image of {0,oo} under a matrix in SL_2(ZZ).
-
-    INPUT:
-
-    - `r`, `s` -- rational numbers
-
-    OUTPUT:
-
-    - a list of matrices in `SL_2(\ZZ)`
+    A 2x2 matrix of determinant l
 
     EXAMPLES::
 
-        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(19,23); v
-        [
-        [1 0]  [ 0  1]  [1 4]  [-4  5]  [ 5 19]
-        [0 1], [-1  1], [1 5], [-5  6], [ 6 23]
-        ]
-        sage: [a.det() for a in v]
-        [1, 1, 1, 1, 1]
+        sage: from sage.modular.pollack_stevens.fund_domain import basic_hecke_matrix
+        sage: basic_hecke_matrix(0, 7)
+        [1 0]
+        [0 7]
+        sage: basic_hecke_matrix(5, 7)
+        [1 5]
+        [0 7]
+        sage: basic_hecke_matrix(7, 7)
+        [7 0]
+        [0 1]
+        sage: basic_hecke_matrix(19, 7)
+        [7 0]
+        [0 1]
+        sage: basic_hecke_matrix(infinity, 7)
+        [7 0]
+        [0 1]
+
     """
-    if s == 0:
-        return []
-    # the function contfrac_q in
-    # https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
-    # is very, very relevant to massively optimizing this.
-    L = convergents(r / s)
-    # Computes the continued fraction convergents of r/s
-    v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]
-    # Initializes the list of matrices
-    for j in range(0, len(L)-1):
-        a = L[j].numerator()
-        c = L[j].denominator()
-        b = L[j + 1].numerator()
-        d = L[j + 1].denominator()
-        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))
-        # The matrix connecting two consecutive convergents is added on
-    return v
-
-
-def unimod_matrices_from_infty(r, s):
-    """
-    Returns a list of matrices whose associated unimodular paths
-    connect 0 to r/s.  This is Manin's continued fraction trick, which
-    gives an expression {oo,r/s} = {oo,0} + ... + {a,b} + ... + {*,r/s},
-    where each {a,b} is the image of {0,oo} under a matrix in SL_2(ZZ).
-
-    INPUT:
-
-    - `r`, `s` -- rational numbers
-
-    OUTPUT:
-
-    - a list of SL_2(Z) matrices
-
-    EXAMPLES:
-
-        sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(19,23); v
-        [
-        [ 0  1]  [-1  0]  [-4  1]  [-5 -4]  [-19   5]
-        [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
-        ]
-        sage: [a.det() for a in v]
-        [1, 1, 1, 1, 1]
-    """
-    if s != 0:
-        L = convergents(r / s)
-        # Computes the continued fraction convergents of r/s
-        v = [M2Z([-L[0].numerator(), 1, -L[0].denominator(), 0])]
-        # Initializes the list of matrices
-        # the function contfrac_q in https://github.com/williamstein/psage/blob/master/psage/modform/rational/modular_symbol_map.pyx
-        # is very, very relevant to massively optimizing this.
-        for j in range(0, len(L) - 1):
-            a = L[j].numerator()
-            c = L[j].denominator()
-            b = L[j + 1].numerator()
-            d = L[j + 1].denominator()
-            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))
-            # The matrix connecting two consecutive convergents is added on
-        return v
+    if a < l:
+        return M2Z([1, a, 0, l])
     else:
-        return []
+        return M2Z([l, 0, 0, 1])

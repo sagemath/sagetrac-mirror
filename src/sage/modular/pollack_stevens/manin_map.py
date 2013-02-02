@@ -21,7 +21,7 @@ r"""
 from sage.rings.arith import convergents
 from sage.misc.misc import verbose
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
-from fund_domain import M2Z, t00, t10, t01, t11, Id, unimod_matrices_to_infty
+from fund_domain import M2Z, t00, t10, t01, t11, Id
 from distributions import Distributions
 
 def unimod_matrices_to_infty(r, s):
@@ -256,12 +256,12 @@ class ManinMap(object):
             c, A, g = L[0]
             A=M2Z(A)
             A.set_immutable()
-            g1 = (self._dict[g] * A)
+            g1 = (self._dict[self._manin.reps(g)] * A)
             t = g1 * c
             for c, A, g in L[1:]:
                 A=M2Z(A)
                 A.set_immutable()
-                g1 = (self._dict[g] * A)
+                g1 = (self._dict[self._manin.reps(g)] * A)
                 t += g1 * c
         return t
 

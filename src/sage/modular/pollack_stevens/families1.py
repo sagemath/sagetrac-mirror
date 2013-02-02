@@ -14,10 +14,18 @@ from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from sage.modular.pollack_stevens.modsym import PSModularSymbolElement
-
 class PSModularSymbolElement_fam(PSModularSymbolElement):
-
+    """
+    A note on precision in families.  Precision can now be specified by M (as before) and 
+    a new parameter D.  This means that mu(1) will be known modulo p^M + w^D, mu(z) will
+    known modulo p^(M-1) + w^D, and in general, mu(z^k) will be stored modulo p^(M-k) + w^D
+    """
+    
     def _show_malformed_dist(self, location_str):
+        r"""
+        This checks if the distribution is malformed.
+        """
+
         malformed = []
         gens = self.parent().source().gens()
         for j, g in enumerate(gens):
@@ -29,25 +37,34 @@ class PSModularSymbolElement_fam(PSModularSymbolElement):
         I guess, it should check whether the Family is given correctly (in the right filtration)
         """
 
-    def reduce_precision(self, M, w):
+    def reduce_precision(self, M, D):
         r"""
         Reduce the number of moments and also reduce w
         """
-        return self.__class__(self._map.reduce_precision(M, W), self.parent(), construct=True)
+        return self.__class__(self._map.reduce_precision(M, D), self.parent(), construct=True)
 
     def precision_absolute(self):
         r"""
-        Returns the number of moments and w
+        Returns the smallest p-adic/moment precision (M) and the smallest w-adic
+        precision (D).
         """
-        return min([a.precision_absolute() for a in self._map])
+        precision_l = []
+        for a in self._map:
+            precision_l.append(a.precision_absolute())
+        minM = min(p[0] for p in precision_l)
+        minD = min(p[1] for p in precision_l)
+        return (minM,minD)
         """
         We need to think here, we have two kinds of precision
+        The simplest, to me, seems to be return the minimum of M and the minimum of D, taken over
+        the whole map.
         """
 
-    def specialize(self, new_base_ring=None):
+    def specialize(self, weight):
         """
-        We want to specialize to k.
+        This is different than the specialize() in PSModularSymbolElement_fam
         """
+        raise NotImplementedError
 
     def _consistency_check(self):
         """

@@ -46,7 +46,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _repr_(self):
         r"""
-        Returns the print representation.
+        Returns the print representation of the symbol.
 
         EXAMPLES::
 
@@ -932,16 +932,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         verbose("Naive lifting: newM=%s, new_base_ring=%s"%(M, MSS.base_ring()))
         half = ZZ(1) / ZZ(2)
         for g in manin.gens()[1:]:
-            twotor = g in manin.reps_with_two_torsion
-            threetor = g in manin.reps_with_three_torsion
+            twotor = g in manin.reps_with_two_torsion()
+            threetor = g in manin.reps_with_three_torsion()
             if twotor:
                 # See [PS] section 4.1
-                gam = manin.two_torsion[g]
+                gam = manin.two_torsion_matrix(g)
                 mu = self._map[g].lift(p, M, new_base_ring)
                 D[g] = (mu - mu * gam) * half
             elif threetor:
                 # See [PS] section 4.1
-                gam = manin.three_torsion[g]
+                gam = manin.three_torsion_matrix(g)
                 mu = self._map[g].lift(p, M, new_base_ring)
                 D[g] = (2 * mu - mu * gam - mu * (gam**2)) * half
             else:
@@ -951,8 +951,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         t = self.parent().coefficient_module().lift(p, M, new_base_ring).zero_element()
         ## This loops adds up around the boundary of fundamental domain except the two verticle lines
         for g in manin.gens()[1:]:
-            twotor = g in manin.reps_with_two_torsion
-            threetor = g in manin.reps_with_three_torsion
+            twotor = g in manin.reps_with_two_torsion()
+            threetor = g in manin.reps_with_three_torsion()
             if twotor or threetor:
                t = t - D[g]
             else:
