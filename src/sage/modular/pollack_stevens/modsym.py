@@ -224,7 +224,7 @@ class PSModularSymbolElement(ModuleElement):
             [0, 0, 0]
         """
         return self.__class__(self._map - right._map, self.parent(), construct=True)
-
+    
     def _get_prime(self, p=None, alpha = None, allow_none=False):
         """
         Combines a prime specified by the user with the prime from the parent.
@@ -438,7 +438,9 @@ class PSModularSymbolElement(ModuleElement):
         INPUT:
 
         - ``q`` -- prime of the Hecke operator
+
         - ``p`` -- prime we are working modulo
+
         - ``M`` -- degree of accuracy of approximation
 
         OUTPUT:
@@ -479,9 +481,12 @@ class PSModularSymbolElement(ModuleElement):
         INPUT:
 
         - ``q`` -- prime of the Hecke operator
+
         - ``p`` -- prime we are working modulo (default: None)
+
         - ``M`` -- degree of accuracy of approximation (default: None)
-        - ``check`` --
+
+        - ``check`` -- check that `self` is an eigensymbol
 
         OUTPUT:
 
@@ -607,8 +612,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: k = 0
             sage: phi = ps_modsym_from_elliptic_curve(E)
             sage: phi._find_alpha(p,k,M)
-            (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + O(5^13), 5-adic Field with capped relative precision 13, 12, 1, None, None)
-
+            (1 + 4*5 + 3*5^2 + 2*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + 3*5^9 + 3*5^10 + 3*5^12 + O(5^13), 5-adic Field with capped relative precision 13, 12, 1, 2, -2)
         """
         if ap is None:
             ap = self.Tq_eigenvalue(p, check=check)
@@ -966,9 +970,10 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def _find_aq(self, p, M, check):
         r"""
-        Helper function for finding Hecke eigenvalue `aq` and `q`
-        (with `q` not equal to `p`) in the case when `ap = 1 (mod p^M)`,
-        which creates the need to use other Hecke eigenvalues
+        Helper function for finding Hecke eigenvalue `aq` for a prime `q`
+        not equal to `p`. This is called in the case when `alpha = 1 (mod p^M)`
+        (with `alpha` a `U_p`-eigenvalue), which creates the need to use
+        other Hecke eigenvalues (and `alpha`s), because of division by `(alpha - 1)`.
 
         INPUT:
 
@@ -976,7 +981,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         - ``M`` -- precision
 
-        - ``check`` --
+        - ``check`` -- checks that `self` is a `Tq` eigensymbol
 
         OUTPUT:
 
@@ -990,7 +995,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         EXAMPLES::
 
-
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: E = EllipticCurve('11a')
+            sage: f = ps_modsym_from_elliptic_curve(E)
+            sage: f._find_aq(5,10,True)
+            (2, -2, 1)
         """
         q = ZZ(2)
         k = self.parent().weight()
@@ -1008,7 +1017,6 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _find_extraprec(self, p, M, alpha, check):
         q, aq, eisenloss = self._find_aq(p, M, check)
         newM = M + eisenloss
-
         # We also need to add precision to account for denominators appearing while solving the difference equation.
         eplog = (newM -1).exact_log(p)
         while eplog < (newM + eplog).exact_log(p):
