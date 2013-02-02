@@ -46,7 +46,7 @@ class PSModularSymbols_factory(UniqueFactory):
 
     - ``group`` -- integer or congruence subgroup
 
-    - ``weight`` -- integer `\ge 2`, or ``None``
+    - ``weight`` -- integer `\ge 0`, or ``None``
 
     - ``sign`` -- integer; -1, 0, 1
 
@@ -64,9 +64,15 @@ class PSModularSymbols_factory(UniqueFactory):
     They are only relevant if ``coefficients`` is ``None``, in which case the
     coefficient module is inferred from the other data.
 
+    .. WARNING::
+
+        We emphasize that in the Pollack-Stevens notation, the ``weight`` is
+        the usual weight minus 2, so a classical weight 2 modular form
+        corresponds to a modular symbol of "weight 0".
+
     EXAMPLES::
 
-        sage: M = PSModularSymbols(Gamma0(7), weight=2, prec_cap = None); M
+        sage: M = PSModularSymbols(Gamma0(7), weight=0, prec_cap = None); M
         Space of modular symbols for Congruence Subgroup Gamma0(7) with sign 0 and values in Sym^0 Q^2
 
     An example with an explict coefficient module::
@@ -105,11 +111,10 @@ class PSModularSymbols_factory(UniqueFactory):
                 character = None
             if weight is None: raise ValueError("you must specify a weight or coefficient module")
 
-            k = weight - 2
             if prec_cap is None:
-                coefficients = Symk(k, base_ring, character)
+                coefficients = Symk(weight, base_ring, character)
             else:
-                coefficients = Distributions(k, p, prec_cap, base_ring, character)
+                coefficients = Distributions(weight, p, prec_cap, base_ring, character)
         else:
             if weight is not None or base_ring is not None or p is not None or prec_cap is not None:
                 raise ValueError("if coefficients are specified, then weight, base_ring, p, and prec_cap must take their default value None")
@@ -513,7 +518,7 @@ class PSModularSymbolSpace(Module):
             Traceback (most recent call last):
             ...
             TypeError: Coefficient module must be a Symk
-            sage: PSModularSymbols(Gamma1(3), weight=3)._lift_parent_space(17,10,Qp(17))
+            sage: PSModularSymbols(Gamma1(3), weight=1)._lift_parent_space(17,10,Qp(17))
             Space of overconvergent modular symbols for Congruence Subgroup Gamma1(3) with sign 0 and values in Space of 17-adic distributions with k=1 action and precision cap 10
 
         """
@@ -653,7 +658,7 @@ def ps_modsym_from_elliptic_curve(E):
     if not (E.base_ring() is QQ):
         raise ValueError("The elliptic curve must be defined over the rationals.")
     N = E.conductor()
-    V = PSModularSymbols(Gamma0(N), 2)
+    V = PSModularSymbols(Gamma0(N), 0)
     D = V.coefficient_module()
     manin = V.source()
     plus_sym = E.modular_symbol(sign = 1)
@@ -813,7 +818,7 @@ def ps_modsym_from_simple_modsym_space(A):
     M = A.ambient_module()
     w = A.dual_eigenvector()
     K = w.base_ring()
-    V = PSModularSymbols(A.group(), A.weight(), base_ring=K, sign=A.sign())
+    V = PSModularSymbols(A.group(), A.weight()-2, base_ring=K, sign=A.sign())
     D = V.coefficient_module()
     N = V.level()
     k = V.weight() # = A.weight() - 2
