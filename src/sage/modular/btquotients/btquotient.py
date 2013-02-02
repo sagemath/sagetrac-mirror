@@ -107,7 +107,7 @@ class DoubleCosetReduction(SageObject):
         Initializes and computes the reduction as a double coset.
 
         EXAMPLES::
-            
+
             sage: Y = BTQuotient(5,13)
             sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
             sage: d = DoubleCosetReduction(Y,x)
@@ -147,6 +147,30 @@ class DoubleCosetReduction(SageObject):
             DoubleCosetReduction
         """
         return "DoubleCosetReduction"
+
+    def __cmp__(self,other):
+        """
+        Return self == other
+        """
+        c = cmp(self._parent,other._parent)
+        if c: return c
+        c = cmp(self.parity,other.parity)
+        if c: return c
+        c = cmp(self._num_edges,other._num_edges)
+        if c: return c
+        c = cmp(self.label,other.label)
+        if c: return c
+        c = cmp(self.gamma,other.gamma)
+        if c: return c
+        c = cmp(self.x,other.x)
+        if c: return c
+        c = cmp(self.power,other.power)
+        if c: return c
+        c = cmp(self._t_prec,other._t_prec)
+        if c: return c
+        c = cmp(self._igamma_prec,other._igamma_prec)
+        if c: return c
+        return 0
 
     def sign(self):
         r"""
@@ -1091,7 +1115,7 @@ class Vertex(SageObject):
         EXAMPLES::
         
             sage: X = BTQuotient(3,5)
-            sage: X.get_vertex_list[0]
+            sage: X.get_vertex_list()[0]
             Vertex of BT-tree for p = 3
         """
         return "Vertex of BT-tree for p = %s"%(self.p)
@@ -2101,18 +2125,15 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES:
 
-            sage: X = BTQuotient(3,7)
+            sage: X = BTQuotient(3,101)
             sage: X.get_embedding_matrix()
-            [1 + O(3) 1 + O(3) 1 + O(3) 2 + O(3)]
-            [2 + O(3)     O(3) 1 + O(3) 1 + O(3)]
-            [2 + O(3) 1 + O(3) 1 + O(3) 1 + O(3)]
-            [    O(3) 2 + O(3) 2 + O(3) 1 + O(3)]
+            [    O(3) 1 + O(3) 1 + O(3) 1 + O(3)]
+            [2 + O(3)     O(3) 2 + O(3) 2 + O(3)]
+            [1 + O(3) 1 + O(3)     O(3) 2 + O(3)]
+            [1 + O(3) 2 + O(3) 2 + O(3) 2 + O(3)]
             sage: X._increase_precision(5)
-            sage: X.get_embedding_matrix()
-            [                1 + 2*3^2 + 3^4 + 2*3^5 + O(3^6)           1 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6) 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)]
-            [          2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)                     2*3^2 + 3^4 + 2*3^5 + O(3^6)                                       1 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6)]
-            [          2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)                 1 + 2*3^2 + 3^4 + 2*3^5 + O(3^6)                                       1 + O(3^6)             1 + 3^2 + 3^3 + 2*3^4 + 3^5 + O(3^6)]
-            [                      3^2 + 2*3^3 + 3^4 + O(3^6)           2 + 3 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^6)               2 + 2*3 + 3^2 + 3^3 + 3^5 + O(3^6)                                       1 + O(3^6)]
+            sage: X.get_embedding_matrix()[0,0]
+            2*3^3 + 2*3^5 + O(3^6)
         """
         if amount >= 1:
             self.get_embedding_matrix(prec = self._prec+amount)
@@ -2929,7 +2950,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
-            sage: X.fundom_rep(M)           
+            sage: X.fundom_rep(M)
             Vertex of BT-tree for p = 3
         """
         try:
