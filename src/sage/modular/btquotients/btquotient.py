@@ -1504,7 +1504,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         Compute the `e_3` invariant defined by the formula 
 
-        ..math::
+        .. math::
 
         e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-3}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-3}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(3)
 
@@ -1525,7 +1525,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         Compute the `e_4` invariant defined by the formula
 
-        ..math::
+        .. math::
 
         e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-k}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-k}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(k)
 
