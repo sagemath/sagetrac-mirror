@@ -274,11 +274,12 @@ class ManinMap(object):
             [
             [1 0]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -3]  [-3 -1]  [-1 -4]  [-4 -3]
             [0 1], [ 1  4], [ 4  3], [ 3  5], [ 5  7], [ 7  2], [ 2  7], [ 7  5],
-            
+            <BLANKLINE>
             [-2 -3]
             [ 3  4]
             ]
             sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
+            sage: D = Distributions(2,23,40)
             sage: f = ManinMap(D,MR,data)
             sage: f.__getitem__(MR.gens()[1])
             1
@@ -298,28 +299,6 @@ class ManinMap(object):
             # self._dict[B] = self._compute_image_from_gens(B)
             # return self._dict[B]
 
-    def clear_cache(self):
-        r"""
-        Clear the cache of this element.
-            
-        EXAMPLES::
-            
-            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap, Distributions
-            sage: D = Distributions(2,23,40)
-            sage: MR = ManinRelations(13)
-            sage: data  = {M2Z([1,0,0,1]):D([1,2]), M2Z([0,-1,1,3]):D([3,5]), M2Z([-1,-1,3,2]):D([1,1])}
-            sage: f = ManinMap(D,MR,data)
-            sage: f._dict == {}
-            False
-            sage: f.clear_cache
-            <bound method ManinMap.clear_cache of Map from the set of right cosets of Gamma0(13) in SL_2(Z) to Space of 23-adic distributions with k=2 action and precision cap 40>
-            sage: f._dict == {}
-            True
-            
-        """
-        self._dict = {}
-        self.compute_full_data()
-
     def compute_full_data(self):
         r"""
         Compute the values of self on all coset reps from its values on our generating set.
@@ -332,7 +311,7 @@ class ManinMap(object):
             [
             [1 0]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -3]  [-3 -1]  [-1 -4]  [-4 -3]
             [0 1], [ 1  4], [ 4  3], [ 3  5], [ 5  7], [ 7  2], [ 2  7], [ 7  5],
-            
+            <BLANKLINE>
             [-2 -3]
             [ 3  4]
             ]
@@ -636,26 +615,28 @@ class ManinMap(object):
         OUTPUT:
 
         - the image of self under the action of gamma -- a Manin map.
-            
+
         EXAMPLES::
-            
-        sage: f = Newforms(7, 4)[0]
-        sage: f.modular_symbols(1)
-        Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(7) of weight 4 with sign 1 over Rational Field
-        sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))._map
-        sage: psi = phi._right_action(M2Z([2,3,4,5]))
-        Map from the set of right cosets of Gamma0(7) in SL_2(Z) to Sym^2 Q^2
-            
-        sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
-        sage: M = ModularSymbols(17,4,1).cuspidal_subspace()
-        sage: A = M.decomposition()
-        sage: f = ps_modsym_from_simple_modsym_space(A[0])._map
-        sage: g = f._right_action(M2Z([1,2,0,1]))
-        sage: g
-        Map from the set of right cosets of Gamma0(17) in SL_2(Z) to Sym^2 Q^2
-        sage: g(M2Z([2,3,1,0]))
-        (17, -34, 69)
-            
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: from sage.modular.pollack_stevens.fund_domain import M2Z
+            sage: f = Newforms(7, 4)[0]
+            sage: f.modular_symbols(1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(7) of weight 4 with sign 1 over Rational Field
+            sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))._map
+            sage: psi = phi._right_action(M2Z([2,3,4,5])); psi
+            Map from the set of right cosets of Gamma0(7) in SL_2(Z) to Sym^2 Q^2
+
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: M = ModularSymbols(17,4,1).cuspidal_subspace()
+            sage: A = M.decomposition()
+            sage: f = ps_modsym_from_simple_modsym_space(A[0])._map
+            sage: g = f._right_action(M2Z([1,2,0,1]))
+            sage: g
+            Map from the set of right cosets of Gamma0(17) in SL_2(Z) to Sym^2 Q^2
+            sage: g(M2Z([2,3,1,0]))
+            (17, -34, 69)
+
         """
         D = {}
         sd = self._dict
