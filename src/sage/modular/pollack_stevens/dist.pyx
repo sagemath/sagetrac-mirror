@@ -16,6 +16,7 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.arith import binomial, bernoulli
 from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.matrix cimport Matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.all import matrix
 from sage.misc.prandom import random
 from sage.functions.other import floor
@@ -1181,10 +1182,12 @@ cdef class WeightKAction(Action):
                 dettwist = character[1]
                 if chr is None:
                     self._character = lambda a, b, c, d: (a*d - b*c)**dettwist
+
                 elif dettwist is None:
                     self._character = lambda a, b, c, d: chr(a)
                 else:
                     self._character = lambda a, b, c, d: chr(a) * (a*d - b*c)**dettwist
+
                 if chr is None:
                     self._Np = Dk._p
                 else:
@@ -1196,7 +1199,10 @@ cdef class WeightKAction(Action):
         self._symk = Dk.is_symk()
         self._actmat = {}
         self._maxprecs = {}
-        Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)
+        if not padic:
+            Action.__init__(self, M2ZSpace, Dk, on_left, operator.mul)
+        else:
+            Action.__init__(self, MatrixSpace(Dk.base_ring(),2,2), Dk, on_left, operator.mul)
 
     def clear_cache(self):
         r"""
@@ -1217,6 +1223,7 @@ cdef class WeightKAction(Action):
 
         - ``g`` -- an instance of
           :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+          or of :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
 
         - ``M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1236,8 +1243,6 @@ cdef class WeightKAction(Action):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
-        g = M2Z(g)
-        g.set_immutable()
         if not self._maxprecs.has_key(g):
             A = self._compute_acting_matrix(g, M)
             self._actmat[g] = {M:A}
@@ -1322,6 +1327,7 @@ cdef class WeightKAction_vector(WeightKAction):
 
         - ``g`` -- an instance of
           :class:`sage.matrices.matrix_integer_2x2.Matrix_integer_2x2`
+          or :class:`sage.matrix.matrix_generic_dense.Matrix_generic_dense`
 
         - ``M`` -- a positive integer giving the precision at which
           ``g`` should act.
@@ -1338,10 +1344,14 @@ cdef class WeightKAction_vector(WeightKAction):
         a, b, c, d = self._tuplegen(g)
         self._check_mat(a, b, c, d)
         k = self._k
-        if self._symk:
-            base_ring = QQ
+        if g.parent().base_ring().is_exact():
+            if self._symk:
+                base_ring = QQ
+            else:
+                base_ring = Zmod(self._p**M)
         else:
-            base_ring = Zmod(self._p**M)
+            base_ring = self.underlying_set().base_ring()
+
         R = PowerSeriesRing(base_ring, 'y', default_prec = M)
         y = R.gen()
         #tim = verbose("Checked, made R",tim)
@@ -1350,6 +1360,7 @@ cdef class WeightKAction_vector(WeightKAction):
         t = (a+c*y)**k # will already have precision M
         if self._character is not None:
             t *= self._character(a, b, c, d)
+        print 'base_ring=',base_ring
         cdef Matrix B = matrix(base_ring,M,M)
         cdef long row, col
         #tim = verbose("Made matrix",tim)
@@ -1384,6 +1395,8 @@ cdef class WeightKAction_vector(WeightKAction):
         """
         # if g is a matrix it needs to be immutable
         # hashing on arithmetic_subgroup_elements is by str
+        if self.is_left():
+            _v,g = g,_v
         cdef Dist_vector v = <Dist_vector?>_v
         cdef Dist_vector ans = v._new_c()
         try:
@@ -1566,11 +1579,15 @@ cdef class WeightKAction_long(WeightKAction):
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
         """
+        if self.is_left():
+            _v,g = g,_v
+
         cdef Dist_long v = <Dist_long?>_v
         cdef Dist_long ans = v._new_c()
         cdef long M = v.prec
         cdef long pM = self._p**M
-        cdef SimpleMat B = <SimpleMat>self.acting_matrix(g, M)
+        cdef SimpleMat B
+        B = <SimpleMat>self.acting_matrix(g, M)
         cdef long row, col, entry = 0
         for col in range(M):
             ans.moments[col] = 0
@@ -1619,6 +1636,9 @@ cdef class iScale(Action):
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
             sage: pass # XXX FIX THIS
         """
+        if self.is_left():
+            a,b = b,a
+
         if PY_TYPE_CHECK(a, Dist):
             return (<Dist>a)._lmul_(b)
         else:

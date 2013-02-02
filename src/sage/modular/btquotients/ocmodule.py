@@ -385,7 +385,7 @@ class OCVn(Module,UniqueRepresentation):
         # Nothing coherces here, except OCVnElement
         return False
 
-    def _element_constructor_(self,x):
+    def _element_constructor_(self,x,check = True):
         r"""
 
         EXAMPLES:
@@ -393,7 +393,7 @@ class OCVn(Module,UniqueRepresentation):
         """
         #Code how to coherce x into the space
         #Admissible values of x?
-        return OCVnElement(self,x)
+        return OCVnElement(self,x,check)
 
     def _get_powers_and_mult(self,a,b,c,d,lambd,vect):
         r"""

@@ -27,189 +27,27 @@ import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
 from sage.modular.pollack_stevens.distributions import Distributions, Symk
 
-class BTMap(object):
+# Need this to be pickleable
+class _btquot_tuplegen(UniqueRepresentation):
     """
-    Map from a set of edges in a fundamental domain for the
-    action of Gamma on the Bruhat-Tits tree to a
-    coefficient module, satisfying harmonicity relations.
+    Callable object that turns matrices into 4-tuples.
+
+    EXAMPLES::
+
+        sage: A = sage.modular.pollack_stevens.distributions._default_tuplegen(); A
+        <sage.modular.pollack_stevens.distributions._default_tuplegen object at 0x...>
+        sage: TestSuite(A).run()
     """
-    def __init__(self, codomain, source, defining_data, check=True):
+    def __call__(self, g):
         """
         EXAMPLES::
 
-            sage: X = BTQuotient(3,7)
-            
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: T = sage.modular.pollack_stevens.distributions._default_tuplegen()
+            sage: T(matrix(ZZ,2,[1..4]))
+            (4, 2, 3, 1)
         """
-        self._codomain = codomain
-        self._source = source
-        self._nE = len(self._source.get_edge_list())
-        if check:
-            self._dict = {}
-            if isinstance(defining_data, (list, tuple)):
-                if len(defining_data) != len(source.gens()):
-                    raise ValueError("length of defining data must be the same as number of manin generators")
-                E = source.get_edge_list()
-                for i in range(len(defining_data)):
-                    self._dict[E[i].rep] = defining_data[i]
-            elif isinstance(defining_data, dict):
-                for ky, val in defining_data.iteritems():
-                    if not isinstance(ky, Matrix_integer_2x2):
-                        ky = M2Z(ky)
-                    self._dict[ky] = val
-            else:
-                raise TypeError("unrecognized type for defining_data")
-        else:
-            self._dict = defining_data
-
-    def _compute_image_from_gens(self, B):
-        u = DoubleCosetReduction(self._source,e1)
-        p = self._source.prime()
-
-        if u.label < self._nE:
-            val  =  self._F[u.label]
-        else:
-            val  =  -self._F[u.label-self._nE]
-
-        return u.igamma(
-            lambda g : self._source.embed_quaternion(
-                g,
-                exact = self.codomain.base_ring().is_exact(), 
-                prec = self._codomain.precision_cap()
-            ) * p**(-u.power)) * val
-
-    def __getitem__(self, B):
-        try:
-            return self._dict[B]
-        except KeyError:
-            self._dict[B] = self._compute_image_from_gens(B)
-            return self._dict[B]
-
-    def compute_full_data(self):
-        for B in self._manin.coset_reps():
-            if not self._dict.has_key(B):
-                self._dict[B] = self._compute_image_from_gens(B)
-
-    def __add__(self, right):
-        """
-        Return difference self + right, where self and right are
-        assumed to have identical codomains and Manin relations.
-        """
-        D = {}
-        sd = self._dict
-        rd = right._dict
-        for ky, val in sd.iteritems():
-            if ky in rd:
-                D[ky] = val + rd[ky]
-        return self.__class__(self._codomain, self._manin, D, check=False)
-
-    def __sub__(self, right):
-        """
-        Return difference self - right, where self and right are
-        assumed to have identical codomains and Manin relations.
-        """
-        D = {}
-        sd = self._dict
-        rd = right._dict
-        for ky, val in sd.iteritems():
-            if ky in rd:
-                D[ky] = val - rd[ky]
-        return self.__class__(self._codomain, self._manin, D, check=False)
-
-    def __mul__(self, right):
-        """
-        Return scalar multiplication self*right, where right is in the
-        base ring of the codomain.
-        """
-        if isinstance(right, Matrix_integer_2x2):
-            return self._right_action(right)
-        D = {}
-        sd = self._dict
-        for ky, val in sd.iteritems():
-            D[ky] = val * right
-        return self.__class__(self._codomain, self._manin, D, check=False)
-
-    def __repr__(self):
-        return "Map from the set of edges of %s to %s"%(
-                self._source, self._codomain)
-
-    def _eval_sl2(self, A):
-        B = self._manin.find_coset_rep(A)
-        gaminv = B * A.__invert__unit()
-        return self[A] * gaminv
-
-    def __call__(self, A):
-        a = A[t00]
-        b = A[t01]
-        c = A[t10]
-        d = A[t11]
-        ## v1: a list of unimodular matrices whose divisors add up to {b/d} - {infty}
-        v1 = unimod_matrices_to_infty(b,d)
-        ## v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
-        v2 = unimod_matrices_to_infty(a,c)
-        ## ans: the value of self on A
-        ans = self._codomain(0)
-        ## This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
-        for B in v1:
-            ans = ans + self._eval_sl2(B)
-
-        ## This loops subtracts away the value self({a/c}-{infty}) from ans by subtracting away the values of self on elements of v2
-        ## and so in the end ans becomes self({b/d}-{a/c}) = self({A(0)} - {A(infty)}
-        for B in v2:
-            ans = ans - self._eval_sl2(B)
-        return ans
-
-    def apply(self, f):
-        """
-        Returns Manin map given by x |--> f(self(x)), where f is
-        anything that can be called with elements of the coefficient
-        module.
-
-        This might be used to normalize, reduce modulo a prime, change
-        base ring, etc.
-        """
-        D = {}
-        sd = self._dict
-        for ky, val in sd.iteritems():
-            D[ky] = f(val)
-        return self.__class__(self._codomain, self._manin, D, check=False)
-
-    def __iter__(self):
-        """
-        Returns iterator over the values of this map on the reduced
-        representatives.
-
-        This might be used to compute the valuation.
-        """
-        for A in self._manin._gens:
-            yield self._dict[A]
-
-    def _right_action(self, gamma):
-        """
-        Returns self | gamma, where gamma is a 2x2 integer matrix.
-
-        The action is defined by (self | gamma)(D) = self(gamma D)|gamma
-
-        For the action by a single element gamma to be well defined,
-        gamma must normalize Gamma_0(N).  However, this right action
-        can also be used to define Hecke operators, in which case each
-        individual self | gamma is not a modular symbol on Gamma_0(N),
-        but the sum over acting by the appropriate double coset
-        representatives is.
-
-        INPUT:
-
-        - ``gamma`` - 2 x 2 matrix which acts on the values of self
-
-        OUTPUT:
-
-        - ManinMap
-        """
-        D = {}
-        sd = self._dict
-        # we should eventually replace the for loop with a call to apply_many
-        for ky, val in sd.iteritems():
-            D[ky] = self(gamma*ky) * gamma
-        return self.__class__(self._codomain, self._manin, D, check=False)
+        return g[1,1], g[0,1], g[1,0], g[0,0]
 
 class HarmonicCocycleElement(HeckeModuleElement):
     r""" 
@@ -262,7 +100,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
         self._nE = len(_parent._E)
         vmat = Matrix(self._R,1,_parent.dimension(),v)
         tmp = (vmat*_parent.ambient_module().basis_matrix()).row(0)
-        self._F = [_parent._U(Matrix(self._R,self._wt-1,1,tmp[e*(self._wt-1):(e+1)*(self._wt-1)]),check = False) for e in range(self._nE)]
+        # self._F = [_parent._U(Matrix(self._R,self._wt-1,1,tmp[e*(self._wt-1):(e+1)*(self._wt-1)]),check = False) for e in range(self._nE)]
+        self._F = [_parent._U(tmp[e*(self._wt-1):(e+1)*(self._wt-1)],check = False) for e in range(self._nE)]
         return
 
     def _add_(self,g):
@@ -343,7 +182,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
-        B = Matrix(R,self._nE*(self.parent()._k-1),1,[self._F[e]._val[ii,0]  for e in range(self._nE) for ii in range(self.parent()._k-1) ])
+        B = Matrix(R,self._nE*(self.parent()._k-1),1,[self._F[e].moment(ii)  for e in range(self._nE) for ii in range(self.parent()._k-1) ])
         res = (A.solve_right(B)).transpose()
         return self.parent().free_module()(res.row(0))
 
@@ -371,7 +210,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
         else:
             val  =  -self._F[u.label-self._nE]
 
-        return val.l_act_by(u.igamma(self.parent().embed_quaternion) * (p**(-u.power)))
+        # return val.l_act_by(u.igamma(self.parent().embed_quaternion) * (p**(-u.power)))
+        return (u.igamma(self.parent().embed_quaternion) * (p**(-u.power))) * val
         #return (u.sign()*self._F[u.label])
 
     #In HarmonicCocycle
@@ -394,7 +234,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
         for e in E:
             ii += 1
             exp = R1([e[1,1],e[1,0]])**(self.parent()._k-2)*e.determinant()**(-(self.parent()._k-2)/2)*f(R1([e[0,1],e[0,0]])/R1([e[1,1],e[1,0]])).truncate(self.parent()._k-1)
-            new = self.evaluate(e).l_act_by(e.inverse()).evaluate(exp)
+            # new = self.evaluate(e).l_act_by(e.inverse()).evaluate(exp)
+            new = (e.inverse() * self.evaluate(e) ).evaluate(exp)
             value += new
         return value
 
@@ -478,16 +319,16 @@ class HarmonicCocycles(AmbientHeckeModule):
             else:
                 pol = X.get_splitting_field().defining_polynomial().factor()[0][0]
                 self._R = base_field.extension(pol,pol.variable_name()).absolute_field(name = 'r')
-            self._U = OCVn(self._k-2,self._R)
-            self._Unew = Symk(self._k-2,self._R)
+            # self._U = OCVn(self._k-2,self._R)
+            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
         else:
             self._prec = prec
             if base_field is None:
                 self._R = Qp(self._X._p,prec = prec)
             else:
                 self._R = base_field
-            self._U = OCVn(self._k-2,self._R,self._k-1)
-            self._Unew = Symk(self._k-2,self._R)
+            # self._U = OCVn(self._k-2,self._R,self._k-1)
+            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
         self.__rank = self._X.dimension_harmonic_cocycles(self._k)
         if basis_matrix is not None:
             self.__matrix = basis_matrix
@@ -607,7 +448,8 @@ class HarmonicCocycles(AmbientHeckeModule):
         if isinstance(x,HarmonicCocycleElement):
             return HarmonicCocycleElement(self,x)
         elif isinstance(x,pAutomorphicFormElement):
-            tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
+            # tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
+            tmp = [self._E[ii].rep * self._U(x._F[ii]) for ii in range(self._nE)]
             return HarmonicCocycleElement(self,tmp,from_values = True)
         else:
             return HarmonicCocycleElement(self,x)
@@ -691,8 +533,10 @@ class HarmonicCocycles(AmbientHeckeModule):
         for e in self._E:
             try:
                 g = filter(lambda g:g[2],S[e.label])[0]
-                C = self._U.l_matrix_representation(self.embed_quaternion(g[0]))
-                C -= self._U.l_matrix_representation(Matrix(QQ,2,2,p**g[1]))
+                # C = self._U.l_matrix_representation(self.embed_quaternion(g[0]))
+                # C -= self._U.l_matrix_representation(Matrix(QQ,2,2,p**g[1]))
+                C = self._U.acting_matrix(self.embed_quaternion(g[0]),d,True).transpose()
+                C -= self._U.acting_matrix(Matrix(QQ,2,2,p**g[1]),d,True).transpose()
                 stab_conds.append([e.label,C])
             except IndexError: pass
 
@@ -700,10 +544,12 @@ class HarmonicCocycles(AmbientHeckeModule):
         self._M = Matrix(self._R,(nV+n_stab_conds)*d,nE*d,0,sparse = True)
         for v in self._V:
             for e in filter(lambda e:e.parity == 0,v.leaving_edges):
-                C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.links],Matrix(self._R,d,d,0))
+                # C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.links],Matrix(self._R,d,d,0))
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d,True) for x in e.links],Matrix(self._R,d,d,0)).transpose()
                 self._M.set_block(v.label*d,e.label*d,C)
             for e in filter(lambda e:e.parity == 0,v.entering_edges):
-                C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.opposite.links],Matrix(self._R,d,d,0))
+                # C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.opposite.links],Matrix(self._R,d,d,0))
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d,True) for x in e.opposite.links],Matrix(self._R,d,d,0)).transpose()
                 self._M.set_block(v.label*d,e.opposite.label*d,C)
 
         for kk in range(n_stab_conds):
@@ -753,9 +599,11 @@ class HarmonicCocycles(AmbientHeckeModule):
         for jj in range(nE):
             t = d1[jj]
             if t.label < nE:
-                tmp[jj] += (f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                # tmp[jj] += (f._F[t.label]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                tmp[jj] += (p**(-t.power)*mga*t.igamma(self.embed_quaternion)) * f._F[t.label]
             else:
-                tmp[jj] += (-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                # tmp[jj] += (-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                tmp[jj] += (p**(-t.power)*mga*t.igamma(self.embed_quaternion)) * (-f._F[t.label-nE])
 
 
         return HarmonicCocycleElement(self,tmp,from_values = True)
@@ -794,9 +642,11 @@ class HarmonicCocycles(AmbientHeckeModule):
             for jj in range(nE):
                 t = d1[jj]
                 if t.label < nE:
-                    tmp[jj] += f._F[t.label].l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                    # tmp[jj] += f._F[t.label].l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                    tmp[jj] += (p**(-t.power)*mga*t.igamma(self.embed_quaternion)) * f._F[t.label]
                 else:
-                    tmp[jj] += (-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                    # tmp[jj] += (-f._F[t.label-nE]).l_act_by(p**(-t.power)*mga*t.igamma(self.embed_quaternion))
+                    tmp[jj] += (p**(-t.power)*mga*t.igamma(self.embed_quaternion)) * (-f._F[t.label-nE])
 
         return HarmonicCocycleElement(self,[factor*x for x in tmp],from_values = True)
 
@@ -854,7 +704,7 @@ class HarmonicCocycles(AmbientHeckeModule):
         B = zero_matrix(R,len(self._E) * (self._k-1),self.dimension())
         for rr in range(len(basis)):
             g = T(basis[rr])
-            B.set_block(0,rr,Matrix(R,len(self._E) * (self._k-1),1,[g._F[e]._val[ii,0]  for e in range(len(self._E)) for ii in range(self._k-1) ]))
+            B.set_block(0,rr,Matrix(R,len(self._E) * (self._k-1),1,[g._F[e].moment(ii)  for e in range(len(self._E)) for ii in range(self._k-1) ]))
 
         res = (A.solve_right(B)).transpose()
         res.set_immutable()
@@ -954,7 +804,8 @@ class pAutomorphicFormElement(ModuleElement):
 
                 tmp = []
                 for ii in range(len(vec._F)):
-                    newtmp = vec.parent()(vec._F[ii]).l_act_by(E[ii].rep.inverse())
+                    # newtmp = vec.parent()(vec._F[ii]).l_act_by(E[ii].rep.inverse())
+                    newtmp = (E[ii].rep.inverse()) * (vec.parent()(vec._F[ii]))
                     tmp.append(newtmp)
                     F.append(parent._U(newtmp))
                 A = Matrix(QQ,2,2,[0,-1/parent.prime(),-1,0])
@@ -1452,8 +1303,8 @@ class pAutomorphicForms(Module):
                     t = prec-U+1
                 else:
                     t = 0
-            self._U = OCVn(U-2,self._R,U-1+t)
-            self._Unew = Distributions(U-2,base_ring = self._R,precision_cap = U - 1 + t )
+            # self._U = OCVn(U-2,self._R,U-1+t)
+            self._U = Distributions(U-2,base = self._R,precision_cap = U - 1 + t ,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
         else:
             self._U = U
         self._source = domain
@@ -1527,7 +1378,7 @@ class pAutomorphicForms(Module):
         newF = []
         for ii in range(len(S)):
             Si = S[ii]
-            x = self._U(F[ii]._val,check = False)
+            x = self._U(F[ii],check = False)
             if(any([v[2] for v in Si])):
                 newFi = self._U(0)
                 s = QQ(0)

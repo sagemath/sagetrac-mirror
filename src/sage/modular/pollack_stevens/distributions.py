@@ -51,6 +51,7 @@ class _default_tuplegen(UniqueRepresentation):
         """
         return g[0,0], g[0,1], g[1,0], g[1,1]
 
+
 class Distributions_factory(UniqueFactory):
     """
     Create a space of distributions.
@@ -233,6 +234,13 @@ class Distributions_abstract(Module):
         self._act = act
         self._act_S0p = act_S0p
         self._populate_coercion_lists_(action_list=[iScale(self, act_on_left), act,act_S0p])
+
+    def acting_matrix(self,g,M,padic = False):
+        g.set_immutable()
+        if padic:
+            return self._act_S0p.acting_matrix(g,M)
+        else:
+            return self._act.acting_matrix(g,M)
 
     def prime(self):
         """
