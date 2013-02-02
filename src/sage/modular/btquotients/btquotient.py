@@ -151,6 +151,14 @@ class DoubleCosetReduction(SageObject):
     def __cmp__(self,other):
         """
         Return self == other
+
+        TESTS::
+
+            sage: Y = BTQuotient(5,13)
+            sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
+            sage: d1 = DoubleCosetReduction(Y,x)
+            sage: d1 == d1
+            True
         """
         c = cmp(self._parent,other._parent)
         if c: return c
@@ -1123,6 +1131,14 @@ class Vertex(SageObject):
     def __cmp__(self,other):
         """
         Returns self == other
+
+        TESTS::
+
+            sage: from sage.modular.btquotients.btquotient import Vertex
+            sage: v1 = Vertex(7,0,Matrix(ZZ,2,2,[1,2,3,18]))
+            sage: v1 == v1
+            True
+
         """
         c = cmp(self.p,other.p)
         if c: return c
@@ -1135,10 +1151,6 @@ class Vertex(SageObject):
         c = cmp(self.valuation,other.valuation)
         if c: return c
         c = cmp(self.parity,other.parity)
-        if c: return c
-        c = cmp(self.leaving_edges,other.leaving_edges)
-        if c: return c
-        c = cmp(self.leaving_edges,other.entering_edges)
         if c: return c
         return 0
 
@@ -1226,7 +1238,7 @@ class Edge(SageObject):
         EXAMPLES::
         
             sage: X = BTQuotient(3,5)
-            sage: X.get_edge_list[0]
+            sage: X.get_edge_list()[0]
             Edge of BT-tree for p = 3
         """
         return "Edge of BT-tree for p = %s"%(self.p)
@@ -1234,6 +1246,16 @@ class Edge(SageObject):
     def __cmp__(self,other):
         """
         Returns self == other
+
+        TESTS::
+
+            sage: from sage.modular.btquotients.btquotient import Edge,Vertex
+            sage: v1 = Vertex(7,0,Matrix(ZZ,2,2,[1,2,3,18]))
+            sage: v2 = Vertex(7,0,Matrix(ZZ,2,2,[3,2,1,18]))
+            sage: e1 = Edge(7,0,Matrix(ZZ,2,2,[1,2,3,18]),v1,v2)
+            sage: e1 == e1
+            True
+
         """
         c = cmp(self.p,other.p)
         if c: return c
@@ -1379,7 +1401,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._use_magma = False
 
         self._BT=BruhatTitsTree(p)
-        self._prec=-1
+        self._prec = -1
         self._cached_vertices=dict()
         self._cached_edges=dict()
         self._cached_paths=dict()
@@ -2027,9 +2049,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             True
         """
         assert self._use_magma == False
-        if(prec<=self._prec):
+        if prec <= self._prec:
             return self._II,self._JJ,self._KK
-        self._prec=prec
+
         A=self.get_quaternion_algebra()
 
         ZZp=Zp(self._p,prec)
@@ -2246,13 +2268,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._pN=self._p**prec
             self._R=Qp(self._p,prec = prec)
 
-            if(prec>self._prec):
-                Iotamod=self._compute_embedding_matrix(prec)
-                self._Iotainv_lift=Iotamod.inverse().lift()
-                self._Iota=Matrix(self._R,4,4,[Iotamod[ii,jj] for ii in range(4) for jj in range(4)])
+            if prec > self._prec:
+                Iotamod = self._compute_embedding_matrix(prec)
+                self._Iotainv_lift = Iotamod.inverse().lift()
+                self._Iota = Matrix(self._R,4,4,[Iotamod[ii,jj] for ii in range(4) for jj in range(4)])
 
-            self._prec=prec
-            self._Iotainv=self._Mat_44([self._Iotainv_lift[ii,jj]%self._pN for ii in range(4) for jj in range(4)])
+            self._prec = prec
+            self._Iotainv = self._Mat_44([self._Iotainv_lift[ii,jj]%self._pN for ii in range(4) for jj in range(4)])
             return self._Iota
 
     def embed_quaternion(self, g, exact = False, prec=None):
@@ -2511,7 +2533,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._OMax
 
     def get_splitting_field(self):
-        r""" 
+        r"""
         Returns a quadratic field that splits the quaternion
         algebra attached to ``self``. Currently requires Magma.
 
@@ -3253,6 +3275,18 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return None
 
     def _compute_exact_splitting(self):
+        r"""
+        Uses Magma to calculate a splitting of the order into
+        the Matrix algebra with coefficients in an appropriate
+        number field.
+
+        TESTS::
+
+            sage: X = BTQuotient(3,23,use_magma = True)
+            sage: X._compute_exact_splitting() # optional - magma
+
+        """
+
         self._init_order()
         self._magma.eval('f:=MatrixRepresentation(R)')
         f=self._magma.function_call('MatrixRepresentation',args=[self._OMaxmagma],nvals=1)
@@ -3410,11 +3444,11 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(11,2)
-            sage: X.get_graph()
+            sage: X.get_graph() # indirect doctest
             Multi-graph on 2 vertices
 
             sage: X = BTQuotient(17,19)
-            sage: X.get_graph()
+            sage: X.get_graph() # indirect doctest
             Multi-graph on 4 vertices
 
        The following examples require magma::
@@ -3451,7 +3485,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         num_verts=0
         num_edges=0
         self.get_extra_embedding_matrices()
-        self.get_embedding_matrix(prec = 1)
+        self.get_embedding_matrix(prec = 3)
         p=self._p
         v0=Vertex(p,num_verts,self._Mat_22([1,0,0,1]),determinant = 1,valuation = 0)
         V=collections.deque([v0])
