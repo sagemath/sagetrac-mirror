@@ -21,12 +21,12 @@ r"""
 from sage.rings.arith import convergents
 from sage.misc.misc import verbose
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
-from fund_domain import M2Z, t00, t10, t01, t11, Id
+from fund_domain import M2Z, t00, t10, t01, t11, Id, basic_hecke_matrix
 from distributions import Distributions
 
 def unimod_matrices_to_infty(r, s):
     r"""
-    Return a list of matrices whose associated unimodular paths connect `0` to `r/s`.  
+    Return a list of matrices whose associated unimodular paths connect `0` to ``r/s``.
 
     INPUT:
 
@@ -45,19 +45,19 @@ def unimod_matrices_to_infty(r, s):
         ]
         sage: [a.det() for a in v]
         [1, 1, 1, 1, 1]
-        
+
         sage: sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(11,25)
         [
         [1 0]  [ 0  1]  [1 3]  [-3  4]  [ 4 11]
         [0 1], [-1  2], [2 7], [-7  9], [ 9 25]
         ]
-        
+
     ALGORITHM:
-        
-    This is Manin's continued fraction trick, which gives 
-    an expression `{0,r/s} = {0,\infty} + ... + {a,b} + ... + {*,r/s}`, 
-    where each `{a,b}` is the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
-        
+
+    This is Manin's continued fraction trick, which gives an expression
+    `{0,r/s} = {0,\infty} + ... + {a,b} + ... + {*,r/s}`, where each `{a,b}` is
+    the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
+
     """
     if s == 0:
         return []
@@ -80,7 +80,7 @@ def unimod_matrices_to_infty(r, s):
 
 def unimod_matrices_from_infty(r, s):
     r"""
-    Return a list of matrices whose associated unimodular paths connect `\infty` to `r/s`.  
+    Return a list of matrices whose associated unimodular paths connect `\infty` to ``r/s``.
 
     INPUT:
 
@@ -108,9 +108,9 @@ def unimod_matrices_from_infty(r, s):
         
     ALGORITHM:
         
-    This is Manin's continued fraction trick, which gives an expression 
-    `{\infty,r/s} = {\infty,0} + ... + {a,b} + ... + {*,r/s}`, 
-    where each `{a,b}` is the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
+    This is Manin's continued fraction trick, which gives an expression
+    `{\infty,r/s} = {\infty,0} + ... + {a,b} + ... + {*,r/s}`, where each
+    `{a,b}` is the image of `{0,\infty}` under a matrix in `SL_2(\ZZ)`.
         
     """
     if s != 0:
@@ -130,41 +130,6 @@ def unimod_matrices_from_infty(r, s):
         return v
     else:
         return []
-
-def basic_hecke_matrix(a, ell):
-    r"""
-    Returns the matrix [1, a, 0, ell] (if `a < ell`) and [ell, 0, 0, 1] if `a \geq ell`
-
-    INPUT:
-
-    - ``a`` -- an integer or Infinity
-    - ``ell`` -- a prime
-
-    OUTPUT:
-
-    - a 2 x 2 matrix of determinant `ell`
-
-    EXAMPLES::
-
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(0, 7)
-        [1 0]
-        [0 7]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(5, 7)
-        [1 5]
-        [0 7]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(7, 7)
-        [7 0]
-        [0 1]
-        sage: sage.modular.pollack_stevens.manin_map.basic_hecke_matrix(19, 7)
-        [7 0]
-        [0 1]
-        
-    """
-    # TODO: probably a bottleneck.
-    if a < ell:
-        return M2Z([1, a, 0, ell])
-    else:
-        return M2Z([ell, 0, 0, 1])
 
 class ManinMap(object):
     r"""
@@ -226,7 +191,7 @@ class ManinMap(object):
             
     def _compute_image_from_gens(self, B):
         r"""
-        Compute image of `B` under self.
+        Compute image of ``B`` under ``self``.
 
         INPUT:
             
@@ -234,8 +199,7 @@ class ManinMap(object):
             
         OUTPUT:
             
-        - an element in the codomain of self (e.g. a distribution), the image of B under self.
-            
+        - an element in the codomain of self (e.g. a distribution), the image of ``B`` under ``self``.
         
         EXAMPLES::
 
@@ -268,7 +232,7 @@ class ManinMap(object):
     def __getitem__(self, B):
         r"""
         
-        Compute image of `B` under self.
+        Compute image of ``B`` under ``self``.
         
         INPUT:
             
@@ -276,7 +240,7 @@ class ManinMap(object):
             
         OUTPUT:
             
-        - an element in the codomain of self (e.g. a distribution), the image of B under self.
+        - an element in the codomain of self (e.g. a distribution), the image of ``B`` under ``self``.
             
         EXAMPLES::
             
@@ -310,7 +274,7 @@ class ManinMap(object):
 
     def clear_cache(self):
         r"""
-        Clear the cache of self.
+        Clear the cache of ``self``.
             
         EXAMPLES::
             
