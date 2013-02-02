@@ -1002,7 +1002,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             if q != p:
                 eisenloss = (aq - q**(k+1) - 1).valuation(p)
             else:
-                eisenloss = (aq - 1).valuation(p)                
+                eisenloss = (aq - 1).valuation(p)
         return q, aq, eisenloss
 
     def _find_extraprec(self, p, M, alpha, check):
@@ -1035,7 +1035,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         EXAMPLES::
 
         """
-        if new_base_ring(ap).valuation() > 0: 
+        if new_base_ring(ap).valuation() > 0:
             raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
         verbose("computing naive lift: M=%s, newM=%s, new_base_ring=%s"%(M, newM, new_base_ring))
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
@@ -1077,7 +1077,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         Phi =  ~(q**(k+1) + 1 - aq) * Phi
         if need_unscaling:
             Phi = p**(-s) * Phi
-        
+
         return Phi.reduce_precision(M)
 
     def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
