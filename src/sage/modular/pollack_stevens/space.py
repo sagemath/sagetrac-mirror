@@ -1,4 +1,4 @@
-"""
+r"""
 Pollack-Stevens Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
@@ -14,6 +14,14 @@ and the ones in :mod:`sage.modular.modsym`:
   `Div^0(P^1(\QQ))` (cohomological objects), the others are formal linear
   combinations of `Div^0(P^1(\QQ))` (homological objects).
 """
+#*****************************************************************************
+#       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.modules.module import Module
 from sage.structure.factory import UniqueFactory
@@ -48,7 +56,7 @@ class PSModularSymbols_factory(UniqueFactory):
     If an explicit coefficient module is given, then the arguments ``weight``,
     ``base_ring``, ``prec_cap`` and possibly also ``p`` are redundant and are
     ignored. They are only relevant if ``coefficients`` is None, in which case
-    the coefficient module is inferred from the other data. 
+    the coefficient module is inferred from the other data.
 
     EXAMPLES::
 
@@ -66,11 +74,11 @@ class PSModularSymbols_factory(UniqueFactory):
         sage: TestSuite(PSModularSymbols).run()
     """
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
-        """
+        r"""
         Sanitize input.
-        
+
         EXAMPLES::
-        
+
             sage: D = Distributions(3, 7, prec_cap=10)
             sage: M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
             sage: TestSuite(PSModularSymbols).run()
@@ -96,9 +104,9 @@ class PSModularSymbols_factory(UniqueFactory):
         return (group, coefficients, sign)
 
     def create_object(self, version, key):
-        """
+        r"""
         EXAMPLES::
-        
+
             sage: D = Distributions(5, 7, 15); M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
         """
         return PSModularSymbolSpace(*key)
@@ -106,14 +114,14 @@ class PSModularSymbols_factory(UniqueFactory):
 PSModularSymbols = PSModularSymbols_factory('PSModularSymbols')
 
 class PSModularSymbolSpace(Module):
-    """
+    r"""
     A class for spaces of modular symbols that use Glenn Stevens'
     conventions. This class should not be instantiated directly by the user:
     this is handled by the factory object ``PSModularSymbols``.
     """
 
     def __init__(self, group, coefficients, sign=0):
-        """
+        r"""
         INPUT:
 
         - ``group`` -- congruence subgroup
@@ -130,7 +138,7 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma0(2), coefficients=D, sign=-1); M.sign()
             -1
             sage: M = PSModularSymbols(Gamma0(2), coefficients=D, sign=1); M.sign()
-            1        
+            1
             sage: TestSuite(M).run()
         """
         Module.__init__(self, coefficients.base_ring())
@@ -167,7 +175,7 @@ class PSModularSymbolSpace(Module):
         return s
 
     def source(self):
-        """
+        r"""
         Return object that represents the domain of the modular
         symbol elements.
 
@@ -342,7 +350,7 @@ class PSModularSymbolSpace(Module):
         return self.coefficient_module()._prec_cap
 
     def weight(self):
-        r""" 
+        r"""
         Returns the weight of self.
 
         We emphasize that in the Pollack-Stevens notation, this is the
@@ -425,7 +433,7 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(G, coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
     def _specialize_parent_space(self, new_base_ring):
-        """
+        r"""
         Internal function that is used by the specialize method on
         elements.  It returns a space with same parameters as this
         one, but over new_base_ring.
@@ -444,7 +452,7 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().specialize(new_base_ring), sign=self.sign())
 
     def _lift_parent_space(self, p, M, new_base_ring):
-        """
+        r"""
         Used internally when lifting modular symbols.
 
         INPUT:
@@ -471,7 +479,7 @@ class PSModularSymbolSpace(Module):
             raise TypeError("Coefficient module must be a Symk")
 
     def change_ring(self, new_base_ring):
-        """
+        r"""
         Changes base ring of self to new_base_ring
 
         EXAMPLES::
@@ -521,7 +529,7 @@ def cusps_from_mat(g):
     - The cusps associated to `g`.
 
     EXAMPLES::
-    
+
         sage: from sage.modular.pollack_stevens.space import cusps_from_mat
         sage: g = SL2Z.one()
         sage: cusps_from_mat(g)
@@ -536,11 +544,11 @@ def cusps_from_mat(g):
 
 
     Another example::
-    
+
         sage: from sage.modular.pollack_stevens.space import cusps_from_mat
         sage: g = GammaH(3, [2]).generators()[1].matrix(); g
         [-1  1]
-        [-3  2]        
+        [-3  2]
         sage: cusps_from_mat(g)
         (1/3, 1/2)
     """
@@ -557,7 +565,7 @@ def ps_modsym_from_elliptic_curve(E):
     r"""
     Returns the PS modular symbol associated to an elliptic curve
     defined over the rationals.
-    
+
     INPUT:
 
     - ``E`` -- an elliptic curve defined over the rationals
@@ -576,7 +584,7 @@ def ps_modsym_from_elliptic_curve(E):
         sage: symb.values()
         [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
         0, 2, 0, 0]
-        
+
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: E = EllipticCurve([0,1])
         sage: symb = ps_modsym_from_elliptic_curve(E)
@@ -598,10 +606,10 @@ def ps_modsym_from_elliptic_curve(E):
     return V(val)
 
 def ps_modsym_from_simple_modsym_space(A):
-    """
+    r"""
     Returns some choice -- only well defined up a nonzero scalar (!)
     -- of a Pollack-Stevens modular symbol that corresponds to A.
-    
+
     INPUT:
 
     - `A` -- nonzero simple Hecke equivariant new space of modular
@@ -612,7 +620,7 @@ def ps_modsym_from_simple_modsym_space(A):
     - A choice of corresponding Pollack-Stevens modular symbols; when
       dim(A)>1, we make an arbitrary choice of defining polynomial for
       the codomain field.
-    
+
     EXAMPLES::
 
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
@@ -641,9 +649,9 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: A.is_cuspidal()
         False
         sage: f = ps_modsym_from_simple_modsym_space(A); f
-        Modular symbol with values in Sym^0 Q^2    
+        Modular symbol with values in Sym^0 Q^2
         sage: f.values()
-        [1, 0, 0]        
+        [1, 0, 0]
 
     We create the simplest weight 2 example in which A has dimension
     bigger than 1::
@@ -690,7 +698,7 @@ def ps_modsym_from_simple_modsym_space(A):
     equals the Pollack-Stevens symbol attached to E. This illustrates
     how ps_modsym_from_simple_modsym_space is only well-defined up to
     a nonzero scalar.
-    
+
         sage: (-1/5)*vector(QQ, f_plus.values()) + vector(QQ, f_minus.values())
         (-1/5, 3/2, -1/2)
         sage: vector(QQ, f_E.values())
@@ -705,7 +713,7 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: ps_modsym_from_simple_modsym_space(A)
         Traceback (most recent call last):
         ...
-        ValueError: A must be new        
+        ValueError: A must be new
 
     A must be simple::
 
@@ -727,14 +735,14 @@ def ps_modsym_from_simple_modsym_space(A):
 
         sage: A = ModularSymbols(10).cuspidal_subspace(); A
         Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 3 for Gamma_0(10) of weight 2 with sign 0 over Rational Field
-        sage: ps_modsym_from_simple_modsym_space(A)    
+        sage: ps_modsym_from_simple_modsym_space(A)
         Traceback (most recent call last):
         ...
         ValueError: A must positive dimension
     """
     if A.dimension() == 0:
         raise ValueError, "A must positive dimension"
-    
+
     if A.sign() == 0:
         raise ValueError, "A must have sign +1 or -1 (otherwise it is not simple)"
 
@@ -747,7 +755,7 @@ def ps_modsym_from_simple_modsym_space(A):
     M = A.ambient_module()
     w = A.dual_eigenvector()
     K = w.base_ring()
-    V = PSModularSymbols(A.group(), A.weight(), base_ring=K, sign=A.sign()) 
+    V = PSModularSymbols(A.group(), A.weight(), base_ring=K, sign=A.sign())
     D = V.coefficient_module()
     N = V.level()
     k = V.weight() # = A.weight() - 2
