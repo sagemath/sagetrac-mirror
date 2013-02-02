@@ -27,6 +27,8 @@ import sage.rings.arith as arith
 import sage.modular.hecke.hecke_operator
 from sage.modular.pollack_stevens.distributions import Distributions, Symk
 
+# act_S0p = WeightKAction(self, character, tuplegen, act_on_left, padic = True)
+
 # Need this to be pickleable
 class _btquot_tuplegen(UniqueRepresentation):
     """
@@ -77,6 +79,12 @@ class HarmonicCocycleElement(HeckeModuleElement):
     def __init__(self,_parent,vec = None,from_values = False):
         HeckeModuleElement.__init__(self,_parent,None)
         self._parent = _parent
+        print '..'
+        print _parent
+        print vec
+        print from_values
+        print '-'
+
         if from_values:
             self._R = _parent._U.base_ring()
             self._wt = _parent._k
@@ -320,7 +328,7 @@ class HarmonicCocycles(AmbientHeckeModule):
                 pol = X.get_splitting_field().defining_polynomial().factor()[0][0]
                 self._R = base_field.extension(pol,pol.variable_name()).absolute_field(name = 'r')
             # self._U = OCVn(self._k-2,self._R)
-            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
+            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)),monoid = MatrixSpace(self._R,2,2))
         else:
             self._prec = prec
             if base_field is None:
@@ -328,7 +336,7 @@ class HarmonicCocycles(AmbientHeckeModule):
             else:
                 self._R = base_field
             # self._U = OCVn(self._k-2,self._R,self._k-1)
-            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
+            self._U = Symk(self._k-2,base = self._R,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)),monoid = MatrixSpace(self._R,2,2))
         self.__rank = self._X.dimension_harmonic_cocycles(self._k)
         if basis_matrix is not None:
             self.__matrix = basis_matrix
@@ -482,7 +490,9 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         EXAMPLES::
         """
-        return self._X.embed_quaternion(g,exact = self._R.is_exact(), prec = self._prec)
+        tmp = self._X.embed_quaternion(g,exact = self._R.is_exact(), prec = self._prec)
+        tmp.set_immutable()
+        return tmp
 
     def basis_matrix(self):
         r"""
@@ -535,8 +545,8 @@ class HarmonicCocycles(AmbientHeckeModule):
                 g = filter(lambda g:g[2],S[e.label])[0]
                 # C = self._U.l_matrix_representation(self.embed_quaternion(g[0]))
                 # C -= self._U.l_matrix_representation(Matrix(QQ,2,2,p**g[1]))
-                C = self._U.acting_matrix(self.embed_quaternion(g[0]),d,True).transpose()
-                C -= self._U.acting_matrix(Matrix(QQ,2,2,p**g[1]),d,True).transpose()
+                C = self._U.acting_matrix(self.embed_quaternion(g[0]),d).transpose()
+                C -= self._U.acting_matrix(Matrix(QQ,2,2,p**g[1]),d).transpose()
                 stab_conds.append([e.label,C])
             except IndexError: pass
 
@@ -545,11 +555,11 @@ class HarmonicCocycles(AmbientHeckeModule):
         for v in self._V:
             for e in filter(lambda e:e.parity == 0,v.leaving_edges):
                 # C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.links],Matrix(self._R,d,d,0))
-                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d,True) for x in e.links],Matrix(self._R,d,d,0)).transpose()
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d) for x in e.links],Matrix(self._R,d,d,0)).transpose()
                 self._M.set_block(v.label*d,e.label*d,C)
             for e in filter(lambda e:e.parity == 0,v.entering_edges):
                 # C = sum([self._U.l_matrix_representation(self.embed_quaternion(x[0])) for x in e.opposite.links],Matrix(self._R,d,d,0))
-                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d,True) for x in e.opposite.links],Matrix(self._R,d,d,0)).transpose()
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d) for x in e.opposite.links],Matrix(self._R,d,d,0)).transpose()
                 self._M.set_block(v.label*d,e.opposite.label*d,C)
 
         for kk in range(n_stab_conds):
@@ -805,7 +815,7 @@ class pAutomorphicFormElement(ModuleElement):
                 tmp = []
                 for ii in range(len(vec._F)):
                     # newtmp = vec.parent()(vec._F[ii]).l_act_by(E[ii].rep.inverse())
-                    newtmp = (E[ii].rep.inverse()) * (vec.parent()(vec._F[ii]))
+                    newtmp = (E[ii].rep.inverse()) * (vec._F[ii])
                     tmp.append(newtmp)
                     F.append(parent._U(newtmp))
                 A = Matrix(QQ,2,2,[0,-1/parent.prime(),-1,0])
@@ -1304,7 +1314,7 @@ class pAutomorphicForms(Module):
                 else:
                     t = 0
             # self._U = OCVn(U-2,self._R,U-1+t)
-            self._U = Distributions(U-2,base = self._R,precision_cap = U - 1 + t ,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((self._k-2)/2)))
+            self._U = Distributions(U-2,base = self._R,prec_cap = U - 1 + t ,act_on_left = True,tuplegen = _btquot_tuplegen(),character = (None,-ZZ((U-2)/2)),monoid = MatrixSpace(self._R,2,2))
         else:
             self._U = U
         self._source = domain
