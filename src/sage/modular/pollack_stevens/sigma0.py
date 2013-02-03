@@ -11,24 +11,46 @@ from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
+from sage.structure.unique_representation import UniqueRepresentation
+
+# Need this to be pickleable
+class _default_tuplegen(UniqueRepresentation):
+    """
+    Callable object that turns matrices into 4-tuples.
+
+    EXAMPLES::
+
+        sage: A = sage.modular.pollack_stevens.distributions._default_tuplegen(); A
+        <sage.modular.pollack_stevens.distributions._default_tuplegen object at 0x...>
+        sage: TestSuite(A).run()
+    """
+    def __call__(self, g):
+        """
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: T = sage.modular.pollack_stevens.distributions._default_tuplegen()
+            sage: T(matrix(ZZ,2,[1..4]))
+            (1, 2, 3, 4)
+        """
+        return g[0,0], g[0,1], g[1,0], g[1,1]
 
 class Sigma0_factory(UniqueFactory):
 
-    def create_key(self, p, base_ring=ZZ):
+    def create_key(self, p, base_ring=ZZ,tuplegen = None):
         p = ZZ(p)
         if not (p == 0 or p.is_prime()):
             raise ValueError("Primes should be prime")
+        if tuplegen is None:
+            tuplegen = _default_tuplegen()
+
         if base_ring not in (QQ, ZZ):
-            if p==0:
-                raise ValueError("Base ring must be QQ or ZZ if prime not specified")
-            else:
-                try:
-                    if base_ring.prime() != p:
-                        raise ValueError("Base ring and prime do not match")
-                except AttributeError:
-                    raise ValueError("Base ring must be QQ, ZZ or a p-adic field")
-        
-        return (p, base_ring)
+            try:
+                if p!= 0 and base_ring.prime() != p:
+                    raise ValueError("Base ring and prime do not match")
+            except AttributeError:
+                raise ValueError("Base ring must be QQ, ZZ or a p-adic field")
+        return (p, base_ring,tuplegen)
 
     def create_object(self, version, key):
         return Sigma0_class(*key)
@@ -63,9 +85,10 @@ class Sigma0_class(Parent):
 
     Element = Sigma0Element
 
-    def __init__(self, p, base_ring):
+    def __init__(self, p, base_ring,tuplegen):
         self._prime = p
         self._base_ring = base_ring
+        self._tuplegen = tuplegen
         if base_ring == ZZ:
             self._matrix_space = MatrixSpace_ZZ_2x2()
         else:
@@ -73,7 +96,7 @@ class Sigma0_class(Parent):
         Parent.__init__(self, category=Monoids())
 
     def _an_element_(self):
-        return self([1,3,0,1])
+        return self([1,0,0,1])
 
     def __cmp__(self, other):
         return cmp(type(self), type(other)) \
@@ -104,9 +127,10 @@ class Sigma0_class(Parent):
         if check:
             x = self._matrix_space(x)
             if self.prime() != 0:
-                if x[1,0].valuation(self.prime()) <= 0:
+                a,b,c,d = self._tuplegen(x)
+                if c.valuation(self.prime()) <= 0:
                     raise ValueError("p must divide c")
-                if x[0,0].valuation(self.prime()) != 0:
+                if a.valuation(self.prime()) != 0:
                     raise ValueError("a must be a p-adic unit")
             if x.det() == 0:
                 raise ValueError("matrix must be nonsingular")
@@ -115,6 +139,8 @@ class Sigma0_class(Parent):
 
     def _repr_(self):
         if self.prime() == 0:
-            return 'Monoid of invertible 2x2 integer matrices'
-        else:
-            return 'Monoid of invertible 2x2 matrices over %s, upper-triangular modulo %s' % (self.base_ring(), self.prime())
+            if self.base_ring() is ZZ:
+                return 'Monoid of invertible 2x2 integer matrices'
+            elif self.base_ring() is QQ:
+                return 'Monoid of invertible 2x2 rational matrices'
+        return 'Monoid of invertible 2x2 matrices over %s, upper-triangular modulo %s' % (self.base_ring(), self.prime())

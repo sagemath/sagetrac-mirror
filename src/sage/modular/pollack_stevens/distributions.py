@@ -233,8 +233,10 @@ class Distributions_abstract(Module):
         self._act = act
 
         actlist = [iScale(self, ZZ,True),iScale(self, ZZ,False),iScale(self, QQ,True),
-            iScale(self, QQ,False),iScale(self, base,True),iScale(self, base,False), act]
-        
+            iScale(self, QQ,False),iScale(self, base,True),iScale(self, base,False)]
+        if symk:
+            actlist.append(act)
+
         if not symk: 
             act_S0p = WeightKAction(self, character, tuplegen, act_on_left, padic=True)
             self._act_S0p = act_S0p
@@ -243,7 +245,6 @@ class Distributions_abstract(Module):
         self._populate_coercion_lists_(action_list=actlist)
 
     def acting_matrix(self,g,M,padic = False):
-        g.set_immutable()
         if padic:
             return self._act_S0p.acting_matrix(g,M)
         else:

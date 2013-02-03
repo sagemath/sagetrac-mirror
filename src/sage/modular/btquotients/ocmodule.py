@@ -52,10 +52,15 @@ class OCVnElement(ModuleElement):
                     self._val[ii,0]=val._val[ii,0]
             else:
                 try:
-                    self._val = MatrixSpace(self._parent._R,self._depth,1)(val)
+                    self._val = Matrix(self._parent._R,self._depth,1,val)
                 except:
-                    self._val=val * ones_matrix(self._parent._R,self._depth,1)
-        self._val=copy(val)
+                    self._val= val * MatrixSpace(self._parent._R,self._depth)(1)
+        else:
+            self._val=copy(val)
+        self.moments = self._val
+
+    def moment(self, i):
+        return self.moments[i,0]
 
     def __getitem__(self,r):
         r"""
@@ -304,10 +309,11 @@ class OCVnElement(ModuleElement):
         """
         p=self._parent._R.prime()
         try:
+            R = P.parent().base_ring()
             r=min([P.degree()+1,self._depth])
-            return sum([self._val[ii,0]*P[ii] for ii in range(r)])
+            return sum([R(self._val[ii,0])*P[ii] for ii in range(r)])
         except:
-            return self._val[0,0]*P
+            return P.parent().base_ring()(self._val[0,0])*P
 
     def valuation(self,l=None):
         r"""
@@ -435,7 +441,7 @@ class OCVn(Module,UniqueRepresentation):
             xnew=x.change_ring(self._R.base_ring())
             xnew=xnew.change_ring(self._R)
         self._powers[(a,b,c,d)]=xnew
-        return self._R(lambd)*xnew*vect
+        return self._R(lambd) * xnew * vect
 
     def _repr_(self):
         r"""
@@ -509,15 +515,16 @@ class OCVn(Module,UniqueRepresentation):
         """
         return self._n
 
-    def l_matrix_representation(self,g,B=None):
+    def acting_matrix(self,g,d,B=None):
         r"""
         Matrix representation of ``g`` in a given basis.
 
         """
+        if d is None:
+            d = self.dimension()
         if B is None:
             B=self.basis()
         A=[(b.l_act_by(g)).matrix_rep(B) for b in B]
-        d=self.dimension()
-        return Matrix(self._R,d,d,[A[jj][ii,0] for ii in range(d) for jj in range(d)])
+        return Matrix(self._R,d,d,[A[jj][ii,0] for ii in range(d) for jj in range(d)]).transpose()
 
 

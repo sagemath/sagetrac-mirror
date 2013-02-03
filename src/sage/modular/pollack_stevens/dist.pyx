@@ -1201,9 +1201,9 @@ cdef class WeightKAction(Action):
         self._actmat = {}
         self._maxprecs = {}
         if not padic:
-            Action.__init__(self, Sigma0(self._p), Dk, on_left, operator.mul)
+            Action.__init__(self, Sigma0(0,base_ring = QQ,tuplegen = self._tuplegen), Dk, on_left, operator.mul)
         else:
-            Action.__init__(self, Sigma0(self._p, base_ring = Dk.base_ring()), Dk, on_left, operator.mul)
+            Action.__init__(self, Sigma0(self._p, base_ring = Dk.base_ring(),tuplegen = self._tuplegen), Dk, on_left, operator.mul)
 
     def clear_cache(self):
         r"""
@@ -1344,10 +1344,10 @@ cdef class WeightKAction_vector(WeightKAction):
         """
         #tim = verbose("Starting")
         a, b, c, d = self._tuplegen(g)
-        if g.parent().base_ring().is_exact():
-            self._check_mat(a, b, c, d)
+        # if g.parent().base_ring().is_exact():
+        #     self._check_mat(a, b, c, d)
         k = self._k
-        if g.parent().base_ring().is_exact():
+        if g.parent().base_ring() is ZZ:
             if self._symk:
                 base_ring = QQ
             else:
@@ -1529,7 +1529,7 @@ cdef class WeightKAction_long(WeightKAction):
         """
         _a, _b, _c, _d = self._tuplegen(g)
         if self._character is not None: raise NotImplementedError
-        self._check_mat(_a, _b, _c, _d)
+        # self._check_mat(_a, _b, _c, _d)
         cdef long k = self._k
         cdef Py_ssize_t row, col, M = _M
         cdef zmod_poly_t t, scale, xM, bdy
