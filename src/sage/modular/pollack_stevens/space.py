@@ -34,9 +34,10 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from modsym import PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
-from fund_domain import ManinRelations, M2ZSpace
+from fund_domain import ManinRelations
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
+from sigma0 import Sigma0, Sigma0Element
 
 class PSModularSymbols_factory(UniqueFactory):
     r"""
@@ -198,7 +199,7 @@ class PSModularSymbolSpace(Module):
         # should distingish between Gamma0 and Gamma1...
         self._source = ManinRelations(group.level())
         # We have to include the first action so that scaling by Z doesn't try to pass through matrices
-        actions = [PSModSymAction(ZZ, self), PSModSymAction(M2ZSpace, self)]
+        actions = [PSModSymAction(ZZ, self), PSModSymAction(Sigma0(self.prime()), self)]
         self._populate_coercion_lists_(action_list=actions)
 
     def _repr_(self):
@@ -552,6 +553,9 @@ class PSModularSymbolSpace(Module):
         return PSModularSymbols(self.group(), coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
 
     def _an_element_(self):
+#        WARNING -- THIS ISN'T REALLY AN ELEMENT OF THE SPACE BECAUSE IT DOESN'T
+#       SATISFY THE MANIN RELATIONS
+
         r"""
         Returns the cusps associated to an element of a congruence subgroup.
 
@@ -578,6 +582,99 @@ class PSModularSymbolSpace(Module):
 
         """
         return self(self.coefficient_module().an_element())
+
+    def random_element(self):
+        r"""
+        Returns a random OMS in this space
+
+        OUTPUT:
+
+        An element of the modular symbol space.
+
+        Returns a random element in this space by randomly choosing values of distributions
+        on all but one divisor, and solves the difference equation to determine the value
+        on the last divisor.
+
+        """
+        if self.coefficient_module().is_symk():
+            raise ValueError("Not implemented for symk yet")
+
+        k = self.coefficient_module()._k
+## is this right?  is this the max number of moments?
+        M = self.coefficient_module().precision_cap()
+        p = self.prime()
+        manin = self.source()
+
+        ## There must be a problem here with that +1 -- should be variable depending on a c of some matrix
+        ## We'll need to divide by some power of p and so we add extra accuracy here.
+        if k != 0:
+            MM = M + valuation(k,p) + 1 + M.exact_log(p)
+        else:
+            MM = M + M.exact_log(p) + 1
+
+        ## this loop runs thru all of the generators (except (0)-(infty)) and randomly chooses a distribution 
+        ## to assign to this generator (in the 2,3-torsion cases care is taken to satisfy the relevant relation)
+        D = {}
+        for g in manin.gens():
+            D[g] = self.coefficient_module().random_element()
+            if g in manin.reps_with_two_torsion() and g in manin.reps_with_three_torsion:
+                raise ValueError("Level 1 not implemented")
+            if g in manin.reps_with_two_torsion():
+                gamg = manin.two_torsion_matrix(g)
+                D[g] = D[g] - D[g] * gamg 
+            else:
+                if g in manin.reps_with_three_torsion():
+                    gamg = manin.three_torsion_matrix(g)
+                    D[g] = 2*D[g] - D[g] * gamg - D[g] * gamg**2
+
+        ## now we compute nu_infty of Prop 5.1 of [PS1]
+        t = self.coefficient_module().zero_element()
+        for g in manin.gens()[1:]:
+            if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
+                t += D[g] * manin.gammas[g] - D[g]
+            else:
+                if g in MR.reps_with_two_torsion():
+                    t -= D[g] 
+                else:
+                    t -= D[g]
+
+        ## If k = 0, then t has total measure zero.  However, this is not true when k != 0  
+        ## (unlike Prop 5.1 of [PS1] this is not a lift of classical symbol).  
+        ## So instead we simply add (const)*mu_1 to some (non-torsion) v[j] to fix this
+        ## here since (mu_1 |_k ([a,b,c,d]-1))(trival char) = chi(a) k a^{k-1} c , 
+        ## we take the constant to be minus the total measure of t divided by (chi(a) k a^{k-1} c)
+
+        if k != 0:
+            j = 1
+            g = manin.gens[j]
+            while (g in manin.reps_with_two_torsion()) or (g in manin.reps_with_three_torsion()) and (j < len(manin.gens())):
+                j = j + 1
+                g = manin.gens[j]
+            if j == len(manin.gens):
+                raise ValueError("everything is 2 or 3 torsion!  NOT YET IMPLEMENTED IN THIS CASE")
+
+            gam = manin._gammas(g)
+            a = gam[0,0]
+            c = gam[1,0]
+
+            if self.coefficient_module().character != None:
+                chara = self.coefficient_module().character(a)
+            else:
+                chara = 1
+            err = -t.moment(0)/(chara*k*a**(k-1)*c)
+            v = [0 for j in range(M)]
+            v[1] = err
+            mu_1 = self.coefficient_module(v)
+            D[g] += mu_1
+            t = t + mu_1.act_right(gam) - mu_1
+
+        mu = t.solve_diff_eqn()
+        Id = manin.gens()[0]
+        D[Id] = -mu
+
+        return self(D)
+
+
 
 def cusps_from_mat(g):
     r"""
@@ -615,7 +712,7 @@ def cusps_from_mat(g):
         (1/3, 1/2)
 
     """
-    if isinstance(g, ArithmeticSubgroupElement):
+    if isinstance(g, ArithmeticSubgroupElement) or isinstance(g, Sigma0Element):
         g = g.matrix()
     a, b, c, d = g.list()
     if c: ac = a/c

@@ -23,11 +23,13 @@ from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
-from fund_domain import M2ZSpace, M2Z, Id
+from fund_domain import Id
 from manin_map import ManinMap
 from padic_lseries import pAdicLseries
+from sigma0 import Sigma0
+S0 = Sigma0(0)
 
-minusproj = M2Z([1,0,0,-1])
+minusproj = S0([1,0,0,-1])
 
 
 class PSModSymAction(Action):

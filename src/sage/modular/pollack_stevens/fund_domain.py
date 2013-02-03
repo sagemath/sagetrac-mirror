@@ -40,30 +40,14 @@ from copy import deepcopy
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import convergents,xgcd,gcd
 
-M2ZSpace = MatrixSpace_ZZ_2x2()
-def M2Z(x):
-    r"""
-    Creates an immutable 2x2 integer matrix.
 
-    INPUT:
+from sigma0 import Sigma0, Sigma0Element
+S0 = Sigma0(0)
 
-    - ``x`` -- a list of four integers.
-
-    EXAMPLES::
-
-        sage: from sage.modular.pollack_stevens.fund_domain import M2Z
-        sage: A = M2Z([1,2,3,4])
-        sage: hash(A)
-        8
-    """
-    a = M2ZSpace(x)
-    a.set_immutable()
-    return a
-
-Id = M2Z([1,0,0,1])
-sig = M2Z([0,1,-1,0])
-tau = M2Z([0,-1,1,-1])
-minone_inf_path = M2Z([1,1,-1,0])
+Id = S0([1,0,0,1])
+sig = S0([0,1,-1,0])
+tau = S0([0,-1,1,-1])
+minone_inf_path = S0([1,1,-1,0])
 
 # We store these so that we don't have to constantly create them.
 t00 = (0,0)
@@ -732,7 +716,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
                         a = coset_reps[r][t00]
                         b = coset_reps[r][t01]
-                        A = M2Z([-b,a,-d,c])
+                        A = S0([-b,a,-d,c])
                         coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
@@ -1327,11 +1311,9 @@ class ManinRelations(PSModularSymbolsDomain):
         c = r1.denominator()
         d = r2.denominator()
         if (a*d-b*c)==1:
-            ans = M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
+            ans = S0([a,b,c,d]), S0([-b,a,-d,c])
         else:
-            ans = M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
-        ans[0].set_immutable()
-        ans[1].set_immutable()
+            ans = S0([-a,b,-c,d]), S0([b,a,d,c])
         return ans
 
     def fd_boundary(self,C):
@@ -1408,7 +1390,7 @@ class ManinRelations(PSModularSymbolsDomain):
             b = C[j+1].numerator()
             c = C[j].denominator()
             d = C[j+1].denominator()
-            new_mat = M2Z([a,b,c,d])
+            new_mat = S0([a,b,c,d])
             mats.append(new_mat)
 
         return mats
@@ -1512,8 +1494,7 @@ class ManinRelations(PSModularSymbolsDomain):
                    gaminv = B * C
                    #  The matrix gaminv * gamma is added to our list in the j-th slot
                    #  (as described above)
-                   tmp = M2Z(gaminv * gamma)
-                   tmp.set_immutable()
+                   tmp = gaminv * gamma
                    ans[B].append(tmp)
 
         return ans
@@ -1552,6 +1533,6 @@ def basic_hecke_matrix(a, l):
 
     """
     if a < l:
-        return M2Z([1, a, 0, l])
+        return S0([1, a, 0, l])
     else:
-        return M2Z([l, 0, 0, 1])
+        return S0([l, 0, 0, 1])
