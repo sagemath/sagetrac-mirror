@@ -40,7 +40,7 @@ class pAdicLseries(SageObject):
         sage: p = 5
         sage: prec = 4
         sage: phi = ps_modsym_from_elliptic_curve(E)
-        sage: phi_stabilized = phi.p_stabilize(p,prec+3)
+        sage: phi_stabilized = phi.p_stabilize(p,20)
         sage: Phi = phi_stabilized.lift(p,prec,algorithm='stevens',eigensymbol=True)
         sage: L = pAdicLseries(Phi)
         sage: L[1]

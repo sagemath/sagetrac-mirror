@@ -905,9 +905,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
               Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
         """
         K = self.base_ring()
-        f = K.defining_polynomial()
         R = Qp(p,M+10)['x']
         x = R.gen()
+        if K == QQ:
+            f = x-1
+        else:
+            f = K.defining_polynomial()
         v = R(f).roots()
         if len(v) == 0:
             L = Qp(p,M).extension(f,names='a')
@@ -989,8 +992,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             p = self.parent().prime()
             if p == 0:
                 raise ValueError("must specify a prime")
-        elif self.parent().prime() != 0 and p != self.parent().prime():
-
+        elif (self.parent().prime() != 0) and p != self.parent().prime():
             raise ValueError("inconsistent prime")
         if M is None:
             M = self.parent().precision_cap() + 1
@@ -1028,9 +1030,8 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     
     def _lift_greenberg(self, p, M, new_base_ring=None, check=False):
         """
-        
         This is the Greenberg algorithm for lifting a modular eigensymbol to
-        an overconvergent modular symbol. Once first lifts to any set of numbers
+        an overconvergent modular symbol. One first lifts to any set of numbers
         (not necessarily satifying the Manin relations). Then one applies the U_p,
         and normalizes this result to get a lift satisfying the manin relations.
        
@@ -1057,8 +1058,21 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: Phi.values()
             [(2 + 2*11 + 2*11^2 + 2*11^3 + 2*11^4 + O(11^5), 8 + 6*11 + 3*11^2 + 5*11^3 + O(11^4), 5 + 4*11 + 4*11^2 + O(11^3), 5 + 6*11 + O(11^2), 7 + O(11)), (7 + 5*11 + 5*11^2 + 5*11^3 + 5*11^4 + O(11^5), 7 + 7*11 + 11^2 + 10*11^3 + O(11^4), 6 + 8*11 + O(11^3), 6 + 5*11 + O(11^2), 9 + O(11)), (5 + 5*11 + 5*11^2 + 5*11^3 + 5*11^4 + O(11^5), 7 + 4*11 + 11^2 + 11^3 + O(11^4), 10 + 11 + 7*11^2 + O(11^3), 2 + 3*11 + O(11^2), 5 + O(11))]
 
-        
+        An example in higher weight::
+
+            sage: f = Newforms(7, 4)[0].PS_modular_symbol()
+            sage: fs = f.p_stabilize(5)
+            sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg') 
+            sage: FsG.values()[0]
+            (2 + 5 + 3*5^2 + 4*5^3 + 2*5^5 + O(5^6), O(5^5), 2*5 + 3*5^2 + O(5^4), O(5^3), 5 + O(5^2), O(5))
+            sage: FsS = fs.lift(M=6, eigensymbol=True,algorithm='stevens') 
+            sage: FsS.values()[0]                                         
+            (2 + 5 + 3*5^2 + 4*5^3 + O(5^7), O(5^6), 2*5 + 3*5^2 + 2*5^4 + O(5^5), O(5^4), 5 + 2*5^2 + O(5^3), O(5^2), O(5))
         """
+        #FIXME: The above doctests show a discrepancy! Presumably the Stevens
+        #algorithm is correct as FsS is an eigensymbol, whereas FsG isn't.
+        p = self._get_prime(p)
+
         #Right now this is actually slower than the Stevens algorithm. Probably due to bad coding.
         
         #get a lift that is not a modular symbol
@@ -1066,12 +1080,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         gens = MS.source().gens()
         if new_base_ring == None:
             new_base_ring = MS.base_ring()
-        MS1 = MS._lift_parent_space(11,2, new_base_ring)
+        MS1 = MS._lift_parent_space(p, self.weight() + 2, new_base_ring)
         CM1 = MS1.coefficient_module()
         D = {}
         gens = MS.source().gens()
         for j in range(len(gens)):
-            D[ gens[j]] = CM1( [self.values()[j], 0] )
+            D[gens[j]] = CM1( self.values()[j]._moments.list() + [0] )
         Phi1bad = MS1(D)
         
         #fix the lift by applying a hecke operator
@@ -1085,26 +1099,27 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         else:
             padic_prec=15 #FIXME: 
             R = Qp(p,padic_prec)
-            def green_lift_once(Phi1, self, MS1, r):
+
+            def green_lift_once(Phi1, self, r):
                 MS2 = MS._lift_parent_space(p,r+1,new_base_ring)
                 CM2 = MS2.coefficient_module()
                 newvalues = []
                 for adist in Phi1.values():
                     newdist = [R(moment).lift_to_precision(moment.precision_absolute()+1) for moment in adist._moments] + [0]
-                    newdist[0] = R(self.values()[Phi1.values().index(adist)],r+1)
+                    for s in xrange(self.weight()):
+                        newdist[s] = R(self.values()[Phi1.values().index(adist)].moment(s), r+1)
                     newvalues.append(newdist)
                 D2 = {}
                 for j in range(len(gens)):
                     D2[ gens[j]] = CM2( newvalues[j] )
                 Phi2 = MS2(D2)
                 Phi2 = Phi2.hecke(p)
-                return Phi2/Phi2.Tq_eigenvalue(p), MS2
-    
-            for r in range(2,M):
-                Phi1, MS1 = green_lift_once(Phi1,self,MS1,r)
+                return Phi2 / self.Tq_eigenvalue(p)
+ 
+            for r in range(self.weight() + 2, M):
+                Phi1 = green_lift_once(Phi1,self,r)
         
             return Phi1
-
 
     def _lift_to_OMS(self, p, M, new_base_ring, check):
         r"""
@@ -1210,11 +1225,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: f._find_aq(5,10,True)
             (2, -2, 1)
         """
+        N = self.parent().level()
         q = ZZ(2)
         k = self.parent().weight()
         aq = self.Tq_eigenvalue(q, check=check)
         eisenloss = (aq - q**(k+1) - 1).valuation(p)
-        while q != p and eisenloss >= M:
+        while (q == p) or (N % q == 0) or (eisenloss >= M):
             q = next_prime(q)
             aq = self.Tq_eigenvalue(q, check=check)
             if q != p:
@@ -1275,73 +1291,43 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         """
         if new_base_ring(ap).valuation() > 0:
             raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
+
         verbose("computing naive lift: M=%s, newM=%s, new_base_ring=%s"%(M, newM, new_base_ring))
         Phi = self._lift_to_OMS(p, newM, new_base_ring, check)
-        ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+
+        ## Scale by a large enough power of p to clear denominators from solving difference equation
+#        s = newM.exact_log(p)+1
+#        Phi = Phi * p**s
+
+        ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation        
         verbose("Applying Hecke")
         apinv = ~ap
         Phi = apinv * Phi.hecke(p)
+
         verbose(Phi._show_malformed_dist("naive lift"), level=2)
-        ## I (RP) am worried that scaling by s here isn't enough -- do you need to clear p^(log(M))?
-        s = - Phi.valuation(p)
-        if s > 0:
-            verbose("scaling by %s^%s"%(p, s))
-            Phi = p**s * Phi
-            need_unscaling = True
-        else:
-            s = 0
-            need_unscaling = False
         verbose(Phi._show_malformed_dist("after reduction"), level=2)
-        verbose("Killing eisenstein part")
+
+        ## Killing eisenstein part
+        verbose("Killing eisenstein part with q = %s"%(q))
         k = self.parent().weight()
         Phi = ((q**(k+1) + 1) * Phi - Phi.hecke(q))
         verbose(Phi._show_malformed_dist("Eisenstein killed"), level=2)
+
+        ## Iterating U_p
         verbose("Iterating U_p")
         Psi = apinv * Phi.hecke(p)
-#        err = (Psi - Phi).diagonal_valuation(p)
-#        verbose("Error is zero modulo p^%s"%(err))
         attempts = 0
-        while (Phi - Psi).diagonal_valuation(p) < newM and (attempts < 2*newM):
+        while (Phi != Psi) and (attempts < 2*newM):
+            verbose("%s attempt"%(attempts+1))
             Phi = Psi
-            Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case. ????
-#            err = (Psi - Phi).diagonal_valuation(p)
- #           verbose("error is zero modulo p^%s out of %s"%(err,newM))
-#            verbose((Psi - Phi)._show_malformed_dist("loop %s"%err), level=2)
-            print "In first loop: ",(Phi-Psi).valuation(p)
-            print "--In first loop: ",(Phi-Psi).diagonal_valuation(p)
-            print (Phi-Psi).values()
+            Psi = Phi.hecke(p) * apinv 
             attempts += 1
         if attempts >= 2*newM:
             raise RuntimeError("Precision problem in lifting -- applied U_p many times without success")
         Phi =  ~(q**(k+1) + 1 - aq) * Phi
-        if need_unscaling:
-            Phi = p**(-s) * Phi
-        Phi = Phi.reduce_precision(M)
-        
-        ## Now we check if the above division lost any accuracy
-        verbose("Now checking if scaling lost accuracy")
-        Psi = apinv * Phi.hecke(p)
-#        err = (Psi - Phi).diagonal_valuation(p)
-#        verbose("Error is zero modulo p^%s"%(err))
-        attempts = 0
-        while ((Phi-Psi).diagonal_valuation(p) < M) and (attempts < M):
-            Phi = Psi
-            Psi = Phi.hecke(p) * apinv # this won't handle precision right in the critical slope case. ????
-#            err = (Psi - Phi).diagonal_valuation(p)
- #           verbose("error is zero modulo p^%s"%(err))
-  #          verbose((Psi - Phi)._show_malformed_dist("loop %s"%err), level=2)
-            attempts += 1
-            print "In second loop",(Phi-Psi).valuation(p)
-            print "--In second loop: ",(Phi-Psi).diagonal_valuation(p)
-            print (Phi-Psi).values()
-            print (Phi-Psi).is_zero()
-
-        if attempts >= M:
- #           return Psi-Phi
-            raise RuntimeError("Precision problem in lifting -- applied U_p many times without success after rescaling")
 
         return Phi
-
+        
     def p_stabilize_and_lift(self, p=None, M=None, alpha=None, ap=None, new_base_ring=None, \
                                ordinary=True, algorithm=None, eigensymbol=False, check=True):
         """
