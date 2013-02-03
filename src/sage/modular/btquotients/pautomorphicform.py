@@ -140,6 +140,14 @@ class HarmonicCocycleElement(HeckeModuleElement):
         r"""
         Add two cocycles componentwise.
 
+        INPUT:
+
+        - `g` - a harmonic cocycle
+
+        OUTPUT:
+
+        A harmonic cocycle
+
         EXAMPLES::
 
             sage: X = BTQuotient(5,23)
@@ -156,6 +164,14 @@ class HarmonicCocycleElement(HeckeModuleElement):
     def _sub_(self,g):
         r"""
         Computes the difference of two cocycles.
+
+        INPUT:
+
+        - `g` - a harmonic cocycle
+
+        OUTPUT:
+
+        A harmonic cocycle
 
         EXAMPLES::
 
@@ -174,6 +190,14 @@ class HarmonicCocycleElement(HeckeModuleElement):
         r"""
         Multiplies a cocycle by a scalar.
 
+        INPUT:
+
+        - `a` - a ring element
+
+        OUTPUT:
+
+        A harmonic cocycle
+
         EXAMPLES::
 
             sage: X = BTQuotient(5,23)
@@ -190,7 +214,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _repr_(self):
         r"""
-        Retuns a string describing the cocycle.
+        Returns a string describing the cocycle.
 
         EXAMPLES::
 
@@ -204,9 +228,18 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _eq_(self,other):
         r"""
-        Test for equality with another cocycle. Two cocycles are
-        equal if they take the same values on all the edges in a
-        fundamental domain.
+        Test for equality with another cocycle.
+
+        Two cocycles are equal if they take the same values on all the
+        edges in a fundamental domain.
+
+        INPUT:
+
+        - `other` - a harmonic cocycle
+
+        OUTPUT:
+
+        A boolean value
 
         EXAMPLES::
 
@@ -218,14 +251,23 @@ class HarmonicCocycleElement(HeckeModuleElement):
             sage: v1 == v1
             True
         """
-        #This is needs work. For example, comparison with zero won't work.
+        #This needs work. For example, comparison with zero won't work.
         return all([self._F[e].__eq__(other._F[e]) for e in range(self._nE)])
 
     def __ne__(self,other):
         r"""
-        Test for non-equality with another cocycle. Two cocycles
-        are non-equal if they take the different values on at least
-        one edge in a fundamental domain.
+        Test for non-equality with another cocycle.
+
+        Two cocycles are non-equal if they take different values on at
+        least one edge in a fundamental domain.
+
+        INPUT:
+
+        - `other` - a harmonic cocycle
+
+        OUTPUT:
+
+        A boolean value
 
         EXAMPLES::
 
@@ -242,6 +284,10 @@ class HarmonicCocycleElement(HeckeModuleElement):
     def __nonzero__(self):
         r"""
         Test for being non-zero.
+
+        OUTPUT:
+
+        A boolean value
 
         EXAMPLES::
 
@@ -287,7 +333,22 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def _compute_element(self):
         r"""
-        
+        Express a harmonic cocycle in a coordinate vector.
+
+        OUTPUT:
+
+        A coordinate vector encoding self in terms of the ambient
+        basis in self.parent
+
+        EXAMPLES::
+
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: H.basis()[0]._compute_element()
+            (1 + O(3^9), O(3^9), 0)
+            sage: H.basis()[1]._compute_element()
+            (0, 1 + O(3^9), 0)
+            sage: H.basis()[2]._compute_element()
+            (0, O(3^9), 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
@@ -302,14 +363,25 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         INPUT:
 
-        - ``e1`` - a matrix corresponding to an edge of the Bruhat-Tits tree
+        - ``e1`` - a matrix corresponding to an edge of the
+          Bruhat-Tits tree
 
         OUTPUT:
 
         - An element of the coefficient module of the cocycle which
           describes the value of the cocycle on e1
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: X = BTQuotient(5,17)
+            sage: e0 = X._edge_list[0]
+            sage: e1 = X._edge_list[1]
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: b = H.basis()[0]
+            sage: b.evaluate(e0.rep)
+            1 + O(5^10)
+            sage: b.evaluate(e1.rep)
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
         """
         X = self.parent()._X
         p = X._p
@@ -326,10 +398,41 @@ class HarmonicCocycleElement(HeckeModuleElement):
     #In HarmonicCocycle
     def riemann_sum(self,f,center = 1,level = 0,E = None):
         r"""
-        Evaluates the integral of the funtion ``f`` with respect
-        to the measure determined by ``self``.
+        Evaluates the integral of the function ``f`` with respect
+        to the measure determined by ``self`` over `\mathbf{P}_1(\Qp)`.
+
+        INPUT:
+
+        - `f` - a function that accepts p-adic arguments (e.g. a
+          polynomial).
+
+        - `center` - An integer (Default = 1). Center of integration.
+
+        - `level` - An integer (Default = 0). Determines the size of
+          the covering when computing the Riemann sum. Runtime is
+          exponential in the level.
+
+        - `E` - A list of edges (Default = None). They should describe
+          a covering of `\mathbf{P}_1(\Qp)`.
+
+        OUTPUT:
+
+        A p-adic number.
 
         EXAMPLES::
+
+            sage: X = BTQuotient(5,7)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: b = H.basis()[0]
+            sage: R.<z> = PolynomialRing(QQ,1)
+            sage: f = z^2
+            sage: b.riemann_sum(f,level=0)
+            -11/144
+            sage: b.riemann_sum(f,level=1)
+            -3339762892110427/187516871942400
+            sage: x = b.riemann_sum(f,level=0)-b.riemann_sum(f,level=1)
+            sage: x.valuation(5)
+            -2
         """
         R1 = LaurentSeriesRing(f.base_ring(),'r1')
         R1.set_default_prec(self.parent()._k-1)
@@ -351,17 +454,92 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     def modular_form(self,z = None,level = 0):
         r"""
+        Integrates Teitelbaum's `p`-adic Poisson kernel against
+        the measure corresponding to self to evaluate the associated
+        modular form at z.
+
+        If z = None, a function is returned that encodes the modular form.
+
+        NOTE: This function uses the integration method of Riemann
+        summation and is incredibly slow! It should only be used for
+        testing and bug-finding. Overconvergent methods are quicker.
+
+        INPUT:
+
+        - `z` - an element in the quadratic unramified extension of
+          `\Qp` that is not contained in `\Qp` (Default = None).
+
+        - `level` - an integer. How fine of a mesh should the Riemann
+          sum use.
+
+        OUTPUT:
+
+        An element of the quadratic unramified extension of `\Qp`.
 
         EXAMPLES::
+
+            sage: X = BTQuotient(3,23)
+            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: b = H.basis()[0]
+            sage: R.<a> = Qq(9,prec=10)
+            sage: b.modular_form(a,level = 0)
+            a + (2*a + 1)*3 + (a + 1)*3^2 + (a + 1)*3^3 + O(3^4)
+            sage: b.modular_form(a,level = 1)
+            a + (a + 2)*3 + (2*a + 1)*3^3 + O(3^4)
+            sage: b.modular_form(a,level = 2)
+            a + (a + 2)*3 + (2*a + 2)*3^2 + O(3^4)
         """
         return self.derivative(z,level,order = 0)
 
     # In HarmonicCocycle
     def derivative(self,z = None,level = 0,order = 1):
         r"""
-        The derivative of the modular form attached to ``self``.
+        Integrates Teitelbaum's `p`-adic Poisson kernel against
+        the measure corresponding to self to evaluate the rigid
+        analytic Shimura-Maass derivatives of the associated modular
+        form at z.
+
+        If z = None, a function is returned that encodes the
+        derivative of the modular form.
+
+        NOTE: This function uses the integration method of Riemann
+        summation and is incredibly slow! It should only be used for
+        testing and bug-finding. Overconvergent methods are quicker.
+
+        INPUT:
+
+        - `z` - an element in the quadratic unramified extension of
+          `\Qp` that is not contained in `\Qp` (Default = None). If `z
+          = None` then a function encoding the derivative is returned.
+
+        - `level` - an integer. How fine of a mesh should the Riemann
+          sum use.
+
+        - `order` - an integer. How many derivatives to take.
+
+        OUTPUT:
+
+        An element of the quadratic unramified extension of `\Qp`, or
+        a function encoding the derivative.
 
         EXAMPLES::
+
+            sage: X = BTQuotient(3,23)
+            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: b = H.basis()[0]
+            sage: R.<a> = Qq(9,prec=10)
+            sage: b.modular_form(a,level=0) == b.derivative(a,level=0,order=0)
+            True
+            sage: b.derivative(a,level=1,order=1)
+            (2*a + 2)*3 + (a + 2)*3^2 + 2*a*3^3 + O(3^4)
+            sage: b.derivative(a,level=2,order=1)
+            (2*a + 2)*3 + 2*a*3^2 + 3^3 + O(3^4)
+
+        REFERENCES:
+
+        For a discussion of nearly rigid analytic modular forms and
+        the rigid analytic Shimura-Maass operator, see the thesis of
+        C. Franc [2011].
         """
         def F(z):
             R = PolynomialRing(z.parent(),'x,y').fraction_field()
@@ -399,9 +577,9 @@ class HarmonicCocycles(AmbientHeckeModule):
     - ``prec`` - integer (Default: None). If specified, the precision
       for the coefficient module
 
-    - ``basis_matrix`` - integer (Default: None)
+    - ``basis_matrix`` - a matrix (Default: None).
 
-    - ``base_field`` - (Default: None)
+    - ``base_field`` - a ring (Default: None)
 
     EXAMPLES::
 
@@ -410,6 +588,7 @@ class HarmonicCocycles(AmbientHeckeModule):
         sage: H.dimension()
         3
         sage: X.genus()
+        3
 
     Higher even weights are implemented::
 
@@ -677,7 +856,22 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def __cmp__(self,other):
         r"""
+        Tests whether two HarmonicCocycle spaces are equal.
 
+        INPUT:
+
+        - `other` - a HarmonicCocycles class.
+
+        OUTPUT:
+
+        A boolean value
+
+        EXAMPLES::
+
+            sage: H1 = HarmonicCocycles(X,2,prec=10)
+            sage: H2 = HarmonicCocycles(X,2,prec=10)
+            sage: H1 == H2
+            True
         """
         try:
             res = (self.base_ring() == other.base_ring() and self._X == other._X and self._k == other._k)
@@ -687,7 +881,22 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def _element_constructor_(self,x):
         r"""
+        Constructor for harmonic cocycles.
 
+        INPUT:
+
+        - `x` - an object coercible into a harmonic cocycle.
+
+        OUTPUT:
+
+        A harmonic cocycle.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: H._element_constructor(H.an_element())
+            Element of Space of harmonic cocycles of weight 2 on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 17 and level 1
         """
         #Code how to coherce x into the space
         #Admissible values of x?
@@ -708,7 +917,11 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def free_module(self):
         r"""
-        This function returns the underlying free module
+        Returns the underlying free module
+
+        OUTPUT:
+
+        A free module.
 
         EXAPLES::
 
@@ -725,7 +938,11 @@ class HarmonicCocycles(AmbientHeckeModule):
 
     def character(self):
         r"""
-        Only implemented the trivial character so far.
+        The trivial character.
+
+        OUTPUT:
+
+        The identity map.
 
         EXAMPLES::
 
@@ -867,6 +1084,12 @@ class HarmonicCocycles(AmbientHeckeModule):
           Atkin-Lehner at q
 
         EXAMPLES::
+
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=30)
+            sage: f = H.an_element()
+            sage: H.__apply_atkin_lehner(3,f)
+            ???
         """
         R = self._R
         Data = self._X._get_atkin_lehner_data(q)
@@ -904,6 +1127,11 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=30)
+            sage: f = H.an_element()
+            sage: H.__apply_hecke_operator(5,f)
+            ???
         """
         R = self._R
         HeckeData,alpha = self._X._get_hecke_data(l)
@@ -937,7 +1165,8 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         INPUT:
 
-        - ``d`` - an integer dividing p*Nminus*Nplus
+        - ``d`` - an integer dividing p*Nminus*Nplus, where these
+          quantities are associated to the BTQuotient self._X
 
         OUTPUT:
 
@@ -946,6 +1175,12 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: H._compute_atkin_lehner_matrix(3)
+            [2 + 2*3 + 2*3^2 + 2*3^3 + O(3^4)                           O(3^4)                       1 + O(3^4)]
+            [                               0 2 + 2*3 + 2*3^2 + 2*3^3 + O(3^4)                       1 + O(3^4)]
+            [                               0                           O(3^4)                       1 + O(3^4)]
         """
         res = self.__compute_operator_matrix(lambda f:self.__apply_atkin_lehner(d,f))
         return res
@@ -958,7 +1193,7 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         INPUT:
 
-        - ``l`` - an integer prime
+        - ``l`` - a prime integer
 
         OUTPUT:
 
@@ -967,6 +1202,10 @@ class HarmonicCocycles(AmbientHeckeModule):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: H._compute_hecke_matrix_prime(5)
+            ???
         """
         res = self.__compute_operator_matrix(lambda f:self.__apply_hecke_operator(l,f))
         return res
@@ -975,8 +1214,23 @@ class HarmonicCocycles(AmbientHeckeModule):
         r"""
         Compute the matrix of the operator `T`.
 
+        Used primarily to compute matrices of Hecke operators
+        in a streamlined way.
+
+        INPUT:
+
+        - ``T`` - A linear function on the space of harmonic cocycles.
+
+        OUTPUT:
+
+        The matrix of `T` acting on the space of harmonic cocycles.
+
         EXAMPLES::
 
+            sage: X = BTQuotient(3,17)
+            sage: H = HarmonicCocycles(X,2,prec=5)
+            sage: H._compute_hecke_matrix_prime(5) # indirect doctest
+            ???
         """
         R = self._R
         A = self.basis_matrix().transpose()
@@ -1021,13 +1275,13 @@ class HarmonicCocyclesSubmodule(sage.modular.hecke.submodule.HeckeSubmodule,Harm
 
         INPUT:
 
-        - `ambient_module` - HarmonicCocycles
+        - ``ambient_module`` - HarmonicCocycles
 
-        - `submodule` - submodule of the ambient space.
+        - ``submodule`` - submodule of the ambient space.
 
-        - `dual_module` - (default: None) ignored
+        - ``dual_module`` - (default: None) ignored
 
-        - `check` - (default: False) whether to check that the
+        - ``check`` - (default: False) whether to check that the
           submodule is Hecke equivariant
 
         EXAMPLES::
@@ -1094,9 +1348,24 @@ class pAutomorphicFormElement(ModuleElement):
     INPUT:
 
     - ``vec`` - Quite flexible input
+
     - ``quick`` - boolean (default: False)
 
     EXAMPLES::
+
+        sage: X = BTQuotient(17,3)
+        sage: H = HarmonicCocycles(X,2,prec=10)
+        sage: h = H.an_element()
+        sage: a = pAutomorphicFormElement(h)
+        sage: A = pAutomorphicForms(X,2,prec=10)
+        sage: a = pAutomorphicFormElement(A,h)
+        sage: a
+        p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_17) with discriminant 3 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 17-adic Field with capped relative precision 10 and depth 1:
+        e   |   c(e)
+        0 | 1 + O(17^10)
+        1 | 0
+        2 | 0
+        3 | 8 + 8*17 + 8*17^2 + 8*17^3 + 8*17^4 + 8*17^5 + 8*17^6 + 8*17^7 + 8*17^8 + 8*17^9 + O(17^10)
 
     REFERENCES:
 
@@ -1109,6 +1378,15 @@ class pAutomorphicFormElement(ModuleElement):
 
     """
     def __init__(self,parent,vec,quick = False):
+        """
+        Create a pAutomorphicFormElement
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: TestSuite(A.an_element()).run()
+        """
         ModuleElement.__init__(self,parent)
         self._num_generators = len(parent._list)
         self._cached_values = dict()
@@ -1157,14 +1435,22 @@ class pAutomorphicFormElement(ModuleElement):
                 except:
                     raise ValueError,"Cannot initialize a p-adic automorphic form with the given input = "+str(vec)
 
-
     def precision(self):
         r"""
         The precision of ``self``, which is the minimum among the
         precision of the values on a fundamental domain.
 
+        OUTPUT:
+
+        An integer.
+
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_element()
+            sage: a.precision()
+            10
         """
         return min(x.precision() for x in self._value)
 
@@ -1181,6 +1467,11 @@ class pAutomorphicFormElement(ModuleElement):
         - the result of adding g to self
 
         EXAMPLES::
+
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_elemenet()
+            sage: b = a + a # indirect doctest
         """
         #Should ensure that self and g are of the same weight and on the same curve
         vec = [self._value[e]+g._value[e] for e in range(self._num_generators)]
@@ -1200,6 +1491,12 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_elemenet()
+            sage: b = a - a # indirect doctest
+            sage: b.is_zero()
+            True
         """
         #Should ensure that self and g are of the same weight and on the same curve
         vec = [self._value[e]-g._value[e] for e in range(self._num_generators)]
@@ -1207,11 +1504,11 @@ class pAutomorphicFormElement(ModuleElement):
 
     def _getitem_(self,e1):
         r"""
-        Evaluates a p-adic automorphic form on a matrix in GL2(Qp).
+        Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
         INPUT:
 
-        - ``e1`` - a matrix in GL2(Qp)
+        - ``e1`` - a matrix in `\GL_2(\Qp)`
 
         OUTPUT:
 
@@ -1219,16 +1516,23 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_elemenet()
+            sage: a._getitem_(Matrix(ZZ,2,2,[1,2,3,4]))
+            1 + O(17^10)
+            sage: a._getitem_(Matrix(ZZ,2,2,[17,0,0,1]))
+            1 + O(17^10)
         """
         return self.evaluate(e1)
 
     def evaluate(self,e1):
         r"""
-        Evaluates a p-adic automorphic form on a matrix in GL2(Qp).
+        Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
         INPUT:
 
-        - ``e1`` - a matrix in GL2(Qp)
+        - ``e1`` - a matrix in `\GL_2(\Qp)`
 
         OUTPUT:
 
@@ -1236,6 +1540,13 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_elemenet()
+            sage: a.evaluate(Matrix(ZZ,2,2,[1,2,3,4]))
+            1 + O(17^10)
+            sage: a.evaluate(Matrix(ZZ,2,2,[17,0,0,1]))
+            1 + O(17^10)
         """
         X = self.parent()._source
         p = self.parent().prime()
@@ -1249,6 +1560,14 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_element()
+            sage: a.evaluate(Matrix(ZZ,2,2,[1,2,3,4]))
+            1 + O(17^5)
+            sage: b = 2*a # indirect doctest
+            sage: b.evaluate(Matrix(ZZ,2,2,[1,2,3,4]))
+            2 + O(17^5)
         """
         #Should ensure that 'a' is a scalar
         return pAutomorphicFormElement(self.parent(),[a*self._value[e] for e in range(self._num_generators)],quick = True)
@@ -1257,8 +1576,17 @@ class pAutomorphicFormElement(ModuleElement):
         r"""
         This returns the representation of self as a string.
 
+        OUTPUT:
+
+        A string.
+
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_element()
+            sage: a._repr_()
+            'p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_17) with discriminant 3 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 17-adic Field with capped relative precision 10 and depth 1:\n   e   |   c(e)\n  0 | 1 + O(17^10)\n  1 | 1 + O(17^10)\n  2 | 1 + O(17^10)\n  3 | 1 + O(17^10)\n'
         """
         tmp = 'p-adic automorphic form on '+str(self.parent())+':\n'
         tmp += '   e   |   c(e)'
@@ -1273,8 +1601,17 @@ class pAutomorphicFormElement(ModuleElement):
         valuations of the values that it takes on a set of edge
         representatives.
 
+        OUTPUT:
+
+        An integer.
+
         EXAMPLES::
 
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_element()
+            sage: a.valuation()
+            0
         """
         if self == 0:
             return Infinity
@@ -1283,6 +1620,23 @@ class pAutomorphicFormElement(ModuleElement):
 
     def __nonzero__(self):
         r"""
+        Returns whether self is zero or not.
+
+        OUTPUT:
+
+        A boolean value.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(17,3)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: a = A.an_element()
+            sage: a.__nonzero__()
+            True
+            sage: b = a - a
+            sage: b.__nonzero__()
+            sage:
+            False
         """
         return(any([self._value[e].__nonzero__() for e in range(self._num_generators)]))
 
@@ -1300,6 +1654,22 @@ class pAutomorphicFormElement(ModuleElement):
 
         EXAMPLES::
 
+            sage: X=BTQuotient(7,2)
+            sage: H=HarmonicCocycles(X,2,prec=5)
+            sage: h=H.an_element()
+            sage: A=pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: a = A.lift(h)
+            sage: a
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_7) with discriminant 2 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 7-adic Field with capped relative precision 5 and depth 5:
+            e   |   c(e)
+            0 | 1 + O(7^5) + (3 + 7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5))*z + (2 + 6*7 + 4*7^2 + 4*7^3 + 6*7^4 + O(7^5))*z^2 + (4*7 + 2*7^2 + 7^3 + 4*7^4 + O(7^5))*z^3 + (2 + 2*7 + 7^2 + 2*7^3 + 6*7^4 + O(7^5))*z^4
+            1 | 6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5) + (6 + 2*7 + 7^2 + 5*7^3 + 3*7^4 + O(7^5))*z + (6 + 6*7^2 + 5*7^3 + 6*7^4 + O(7^5))*z^2 + (5 + 5*7 + 7^3 + 2*7^4 + O(7^5))*z^3 + (2 + 6*7 + 5*7^2 + 2*7^3 + 2*7^4 + O(7^5))*z^4
+            sage: a.improve()
+            sage: a
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_7) with discriminant 2 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 7-adic Field with capped relative precision 5 and depth 5:
+            e   |   c(e)
+            0 | 1 + O(7^5) + (3 + 7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5))*z + (2 + 6*7 + 4*7^2 + 4*7^3 + 6*7^4 + O(7^5))*z^2 + (4*7 + 2*7^2 + 7^3 + 4*7^4 + O(7^5))*z^3 + (2 + 2*7 + 7^2 + 2*7^3 + 6*7^4 + O(7^5))*z^4
+            1 | 6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5) + (6 + 2*7 + 7^2 + 5*7^3 + 3*7^4 + O(7^5))*z + (6 + 6*7^2 + 5*7^3 + 6*7^4 + O(7^5))*z^2 + (5 + 5*7 + 7^3 + 2*7^4 + O(7^5))*z^3 + (2 + 6*7 + 5*7^2 + 2*7^3 + 2*7^4 + O(7^5))*z^4
 
         REFERENCES:
 
@@ -1352,8 +1722,40 @@ class pAutomorphicFormElement(ModuleElement):
         - ``method`` - string (default: 'moments'). Which method of
           integration to use. Either 'moments' or 'riemann_sum'.
 
+        EXAMPLES:
 
-        EXAMPLES::
+        Integrating the Poisson kernel against a measure yields a
+        value of the associated modular form. Such values can be
+        computed efficiently using the overconvergent method, as long
+        as one starts with an ordinary form::
+
+            sage: X=BTQuotient(7,2)
+            sage: X.genus()
+            1
+
+        Since the genus is 1, the space of weight 2 forms is 1
+        dimensional. Hence any nonzero form will be a `U_7`
+        eigenvector. By Jacquet-Langlands and Cerednik-Drinfeld, in
+        this case the Hecke eigenvalues correspond to that of any
+        nonzero form on `\Gamma_0(14)` of weight `2`. Such a form is
+        ordinary at `7`, and so we can apply the overconvergent method
+        directly to this form without `p`-stabilizing::
+
+            sage: H=HarmonicCocycles(X,2,prec=5)
+            sage: h=H.an_element()
+            sage: A=pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: a = A.lift(h)
+
+        Now that we've lifted our harmonic cocycle to an
+        overconvergent automorphic form we simply need to define the
+        Teitelbaum-Poisson Kernel, and then integrate::
+
+            sage: R.<z> = PolynomialRing(QQ,1)
+            sage: K = R.fraction_field()
+            sage: T.<x> = Qq(49,prec=10)
+            sage: PK = (z-x)^(-1)
+            sage: a.integrate(PK)
+            (5*x + 5) + (4*x + 4)*7 + (5*x + 5)*7^2 + (5*x + 6)*7^3 + O(7^5)
 
         AUTHORS:
 
@@ -1412,6 +1814,40 @@ class pAutomorphicFormElement(ModuleElement):
           an argument ``z`` was passed, returns instead the value at
           that point.
 
+        EXAMPLES::
+
+        Integrating the Poisson kernel against a measure yields a
+        value of the associated modular form. Such values can be
+        computed efficiently using the overconvergent method, as long
+        as one starts with an ordinary form::
+
+            sage: X=BTQuotient(7,2)
+            sage: X.genus()
+            1
+
+        Since the genus is 1, the space of weight 2 forms is 1
+        dimensional. Hence any nonzero form will be a `U_7`
+        eigenvector. By Jacquet-Langlands and Cerednik-Drinfeld, in
+        this case the Hecke eigenvalues correspond to that of any
+        nonzero form on `\Gamma_0(14)` of weight `2`. Such a form is
+        ordinary at `7`, and so we can apply the overconvergent method
+        directly to this form without `p`-stabilizing::
+
+            sage: H=HarmonicCocycles(X,2,prec=5)
+            sage: h=H.an_element()
+            sage: A=pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: a = A.lift(h)
+
+        Now that we've lifted our harmonic cocycle to an
+        overconvergent automorphic form, we extract the associated
+        modular form as a function and test the modular property::
+
+            sage: T.<x> = Qq(49,prec=10)
+            sage: f = a.modular_form()
+            sage: g = X.get_embedding_matrix()*X.get_units_of_order()[1]
+            sage: (g[1,0]*x+g[1,1])^2*f(x)-f((g[0,0]*x+g[0,1])/(g[1,0]*x+g[1,1]))
+            OUTPUT IS BAD:
+            TypeError: unsupported operand parent(s) for '*': '7-adic Field with capped relative precision 245' and 'Unramified Extension of 7-adic Field with capped relative precision 10 in x defined by (1 + O(7^10))*x^2 + (6 + O(7^10))*x + (3 + O(7^10))'
         """
         return self.derivative(z,level,method,order = 0)
 
@@ -1441,8 +1877,54 @@ class pAutomorphicFormElement(ModuleElement):
           an argument ``z`` was passed, returns instead the value of
           the derivative at that point.
 
-        EXAMPLES::
+        EXAMPLES:
 
+        Integrating the Poisson kernel against a measure yields a
+        value of the associated modular form. Such values can be
+        computed efficiently using the overconvergent method, as long
+        as one starts with an ordinary form::
+
+            sage: X=BTQuotient(7,2)
+            sage: X.genus()
+            1
+
+        Since the genus is 1, the space of weight 2 forms is 1
+        dimensional. Hence any nonzero form will be a `U_7`
+        eigenvector. By Jacquet-Langlands and Cerednik-Drinfeld, in
+        this case the Hecke eigenvalues correspond to that of any
+        nonzero form on `\Gamma_0(14)` of weight `2`. Such a form is
+        ordinary at `7`, and so we can apply the overconvergent method
+        directly to this form without `p`-stabilizing::
+
+            sage: H=HarmonicCocycles(X,2,prec=5)
+            sage: h=H.an_element()
+            sage: A=pAutomorphicForms(X,2,prec=5,overconvergent=True)
+            sage: a = A.lift(h)
+
+        Now that we've lifted our harmonic cocycle to an
+        overconvergent automorphic form, we extract the associated
+        modular form as a function and test the modular property::
+
+            sage: T.<x> = Qq(49,prec=10)
+            sage: f = a.modular_form()
+            sage: g = X.get_embedding_matrix()*X.get_units_of_order()[1]
+            sage: (g[1,0]*x+g[1,1])^2*f(x)-f((g[0,0]*x+g[0,1])/(g[1,0]*x+g[1,1]))
+            OUTPUT IS BAD:
+            TypeError: unsupported operand parent(s) for '*': '7-adic Field with capped relative precision 245' and 'Unramified Extension of 7-adic Field with capped relative precision 10 in x defined by (1 + O(7^10))*x^2 + (6 + O(7^10))*x + (3 + O(7^10))'
+
+        We can also compute the Shimura-Maass derivative, which is a
+        nearly rigid analytic modular forms of weight 4::
+
+            sage: f = a.derivative()
+            sage: (g[1,0]*x+g[1,1])^4*f(x)-f((g[0,0]*x+g[0,1])/(g[1,0]*x+g[1,1]))
+            OUTPUT IS BAD:
+            TypeError: unsupported operand parent(s) for '*': '7-adic Field with capped relative precision 245' and 'Unramified Extension of 7-adic Field with capped relative precision 10 in x defined by (1 + O(7^10))*x^2 + (6 + O(7^10))*x + (3 + O(7^10))'
+
+        REFERENCES:
+
+        For a discussion of nearly rigid analytic modular forms and
+        the rigid analytic Shimura-Maass operator, see the thesis of
+        C. Franc [2011].
         """
         def F(z,level = 0,method = 'moments'):
             R = PolynomialRing(z.parent(),'x,y').fraction_field()
@@ -1615,11 +2097,15 @@ class pAutomorphicForms(Module):
 
     - `overconvergent` - Boolean (Default = False).
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The space of weight 2 p-automorphic forms is isomorphic with the space of scalar valued invariant harmonic cocycles::
 
         sage: X = BTQuotient(11,5)
         sage: H = HarmonicCocycles(X,2,prec=10)
         sage: A = pAutomorphicForms(X,H)
+        sage: A == H
+        True
 
     AUTHORS:
 
@@ -1687,9 +2173,13 @@ class pAutomorphicForms(Module):
 
     def _repr_(self):
         r"""
-        This returns the representation of self as a string.
+        Returns the representation of self as a string.
 
         EXAMPLES::
+            sage: X = BTQuotient(3,7)
+            sage: A = pAutomorphicForms(X,2)
+            sage: A._repr_()
+            'Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_3) with discriminant 7 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 3-adic Field with capped relative precision 100 and depth 1'
         """
         s = 'Space of automorphic forms on '+str(self._source)+' with values in '+str(self._U)
         return s
@@ -1697,6 +2187,23 @@ class pAutomorphicForms(Module):
     def _coerce_map_from_(self, S):
         r"""
         Can coerce from other HarmonicCocycles or from pAutomorphicForms
+
+        INPUT:
+
+        - ``S`` - a HarmonicCocycle or pAutomorphicForm
+
+        OUTPUT:
+
+        A boolean value. True iff S is coercible into self.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,7)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: h = H.an_element()
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A._coerce_map_from_(h)
+            True
         """
         if isinstance(S,HarmonicCocycles):
             if S.weight()-2 != self._n:
@@ -1714,6 +2221,31 @@ class pAutomorphicForms(Module):
 
     def _element_constructor_(self,x):
         r"""
+        Constructs a p-automorphic form.
+
+        INPUT:
+
+        - ``x`` -
+
+        OUTPUT:
+
+        A p-automorphic form.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(13,5)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: h=H.an_element()
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A._element_constructor_(h)
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_13) with discriminant 5 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 13-adic Field with capped relative precision 10 and depth 1:
+            e   |   c(e)
+            0 | 1 + O(13^10)
+            1 | 0
+            2 | 0
+            3 | 0
+            4 | 0
+            5 | 10 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
         """
         #Code how to coherce x into the space
         #Admissible values of x?
@@ -1723,17 +2255,88 @@ class pAutomorphicForms(Module):
     def _an_element_(self):
         r"""
         Returns an element of the module.
+
+        OUTPUT:
+
+        A harmonic cocycle.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(13,5)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: h=H.an_element()
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A.an_element()
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_13) with discriminant 5 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 13-adic Field with capped relative precision 10 and depth 1:
+            e   |   c(e)
+            0 | 1 + O(13^10)
+            1 | 1 + O(13^10)
+            2 | 1 + O(13^10)
+            3 | 1 + O(13^10)
+            4 | 1 + O(13^10)
+            5 | 1 + O(13^10)
         """
         return pAutomorphicFormElement(self,1)
 
     def precision_cap(self):
+        """
+        Return the precision of self.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(13,11)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A.precision_cap()
+            10
+        """
         return self._prec
 
     def lift(self,f):
         r"""
-        Lifts the harmonic cocycle ``f`` to an
-        overconvegent automorphic form, thus computing
-        all the moments.
+        Lifts the harmonic cocycle ``f`` to a p-automorphic form.
+
+        If one is using overconvergent coefficients, then this will
+        compute all of the moments of the measure associated to ``f``.
+
+        INPUT:
+
+        - ``f`` - a harmonic cocycle
+
+        OUTPUT:
+
+        A p-automorphic form
+
+        EXAMPLES:
+
+        If one does not work with an overconvergent form then lift
+        does nothing::
+
+            sage: X = BTQuotient(13,5)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: h=H.an_element()
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: A.lift(h)
+            p-adic automorphic form on Space of automorphic forms on Quotient of the Bruhat Tits tree of GL_2(QQ_13) with discriminant 5 and level 1 with values in Overconvergent coefficient module of weight n = 0 over the ring 13-adic Field with capped relative precision 10 and depth 1:
+            e   |   c(e)
+            0 | 1 + O(13^10)
+            1 | 0
+            2 | 0
+            3 | 0
+            4 | 0
+            5 | 10 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
+
+        With overconvergent forms, the input is lifted naively and its
+        moments are computed::
+
+            sage: X = BTQuotient(13,11)
+            sage: A1 = pAutomorphicForms(X,2,prec=10)
+            sage: A2 = pAutomorphicForms(X,2,prec=10,overconvergent=True)
+            sage: a=A1.an_element()
+            sage: b=A2.lift(a)
         """
         F = self.element_class(self,f)
         F.improve()
@@ -1741,7 +2344,26 @@ class pAutomorphicForms(Module):
 
     def _make_invariant(self, F):
         r"""
+        Naively lifts a ``classical`` automorphic form to an
+        overconvergent form.
+
+        INPUT:
+
+        - ``F`` - a classical (nonoverconvergent) pAutomorphicForm or
+          HarmonicCocycle.
+
+        OUTPUT:
+
+        An overconvergent pAutomorphicForm
+
         EXAMPLES::
+
+            sage: X = BTQuotient(13,11)
+            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: A = pAutomorphicForms(X,2,prec=10)
+            sage: h = H.an_element()
+            sage: A._make_invariant(h)
+            TypeError!
         """
         S = self._source.get_stabilizers()
         M  = [e.rep for e in self._list]
@@ -1802,5 +2424,3 @@ class pAutomorphicForms(Module):
                 tmp.moments[ii,0] = f._value[jj].moments[ii,0] # TBC
             Tf.append(tmp)
         return pAutomorphicFormElement(self,Tf,quick = True)
-
-
