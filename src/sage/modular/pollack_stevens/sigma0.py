@@ -116,9 +116,17 @@ class Sigma0_class(Parent):
         The *only* thing that coerces canonically into `\Sigma_0` is another
         `\Sigma_0`. It is *very bad* if integers are allowed to coerce in, as
         this leads to a noncommutative coercion diagram.
+
+        EXAMPLES::
+
+            sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
+            sage: Sigma0(0, QQ).has_coerce_map_from(Sigma0(3, ZZ))
+            True
+            sage: Sigma0(0, ZZ).has_coerce_map_from(ZZ)
+            False
         """
         if isinstance(other, Sigma0_class) \
-            and self.prime().divides(other.prime()) \
+            and other.prime().divides(self.prime()) \
             and self.base_ring().has_coerce_map_from(other.base_ring()): 
             return True
         else:

@@ -23,9 +23,9 @@ and the ones in :mod:`sage.modular.modsym`:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import types
+
 from sage.modules.module import Module
-from sage.structure.factory import UniqueFactory
-from distributions import Distributions, Symk
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
@@ -33,11 +33,20 @@ from sage.rings.arith import binomial
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.arith import valuation
 from modsym import PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
 from fund_domain import ManinRelations
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
+from sage.structure.factory import UniqueFactory
+
+from distributions import Distributions, Symk
+from dist import Dist
+from modsym import PSModularSymbolElement, PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
+from fund_domain import ManinRelations
+from manin_map import ManinMap
 from sigma0 import Sigma0, Sigma0Element
+
 S0 = Sigma0(0)
 
 class PSModularSymbols_factory(UniqueFactory):
@@ -202,6 +211,51 @@ class PSModularSymbolSpace(Module):
         # We have to include the first action so that scaling by Z doesn't try to pass through matrices
         actions = [PSModSymAction(ZZ, self), PSModSymAction(Sigma0(self.prime()), self)]
         self._populate_coercion_lists_(action_list=actions)
+
+    def _element_constructor_(self, data):
+        r"""
+        Construct an element of self from data.
+        """
+        if isinstance(data, PSModularSymbolElement):
+            data = data._map
+        elif isinstance(data, ManinMap):
+            pass
+        else:
+            # a dict, or a single distribution specifying a constant symbol, etc
+            data = ManinMap(self._coefficients, self._source, data)
+
+        if data._codomain != self._coefficients:
+            data = data.extend_codomain(self._coefficients)
+ 
+        return self.element_class(data, self, construct=True)
+
+    def _coerce_map_from_(self, other):
+        r"""
+        Used for comparison and coercion.
+
+        EXAMPLE::
+
+            sage: M1 = PSModularSymbols(Gamma0(11), coefficients=Symk(3))
+            sage: M2 = PSModularSymbols(Gamma0(11), coefficients=Symk(3,Qp(11)))
+            sage: M3 = PSModularSymbols(Gamma0(11), coefficients=Symk(4))
+            sage: M4 = PSModularSymbols(Gamma0(11), coefficients=Distributions(3, 11, 10))
+            sage: M1.has_coerce_map_from(M2)
+            False
+            sage: M2.has_coerce_map_from(M1)
+            True
+            sage: M1.has_coerce_map_from(M3)
+            False
+            sage: M1.has_coerce_map_from(M4)
+            False
+            sage: M2.has_coerce_map_from(M4)
+            True
+        """
+        if isinstance(other, PSModularSymbolSpace):
+            if other.group() == self.group() \
+                and self.coefficient_module().has_coerce_map_from(other.coefficient_module()):
+                return True
+        else:
+            return False
 
     def _repr_(self):
         r"""
@@ -572,7 +626,7 @@ class PSModularSymbolSpace(Module):
             sage: D = Symk(4)
             sage: M = PSModularSymbols(Gamma(6), coefficients=D)
             sage: x = M.an_element(); x       # indirect doctest
-            Modular symbol with values in Sym^4 Q^2
+            Modular symbol of level 6 with values in Sym^4 Q^2
             sage: x.values()
             [(0, 1, 2, 3, 4), (0, 1, 2, 3, 4), (0, 1, 2, 3, 4)]
             sage: D = Symk(2, Qp(11)); M = PSModularSymbols(Gamma0(2), coefficients=D)
@@ -584,13 +638,17 @@ class PSModularSymbolSpace(Module):
         """
         return self(self.coefficient_module().an_element())
 
-    def random_element(self):
+    def random_element(self,M):
         r"""
-        Returns a random OMS in this space
+        Returns a random OMS in this space with M moments
+
+        INPUT:
+
+        - ``M`` -- positive integer
 
         OUTPUT:
 
-        An element of the modular symbol space.
+        An element of the modular symbol space with ``M`` moments
 
         Returns a random element in this space by randomly choosing values of distributions
         on all but one divisor, and solves the difference equation to determine the value
@@ -601,17 +659,15 @@ class PSModularSymbolSpace(Module):
             raise ValueError("Not implemented for symk yet")
 
         k = self.coefficient_module()._k
-## is this right?  is this the max number of moments?
-        M = self.coefficient_module().precision_cap()
         p = self.prime()
         manin = self.source()
 
-        ## There must be a problem here with that +1 -- should be variable depending on a c of some matrix
-        ## We'll need to divide by some power of p and so we add extra accuracy here.
-        if k != 0:
-            MM = M + valuation(k,p) + 1 + M.exact_log(p)
-        else:
-            MM = M + M.exact_log(p) + 1
+#        ## There must be a problem here with that +1 -- should be variable depending on a c of some matrix
+#        ## We'll need to divide by some power of p and so we add extra accuracy here.
+#        if k != 0:
+#            MM = M + valuation(k,p) + 1 + M.exact_log(p)
+#        else:
+#            MM = M + M.exact_log(p) + 1
 
         ## this loop runs thru all of the generators (except (0)-(infty)) and randomly chooses a distribution 
         ## to assign to this generator (in the 2,3-torsion cases care is taken to satisfy the relevant relation)
@@ -647,27 +703,30 @@ class PSModularSymbolSpace(Module):
 
         if k != 0:
             j = 1
-            g = manin.gens[j]
+            g = manin.gens()[j]
             while (g in manin.reps_with_two_torsion()) or (g in manin.reps_with_three_torsion()) and (j < len(manin.gens())):
                 j = j + 1
-                g = manin.gens[j]
-            if j == len(manin.gens):
+                g = manin.gens()[j]
+            if j == len(manin.gens()):
                 raise ValueError("everything is 2 or 3 torsion!  NOT YET IMPLEMENTED IN THIS CASE")
 
-            gam = manin._gammas(g)
+            gam = manin.gammas[g]
             a = gam[0,0]
             c = gam[1,0]
 
-            if self.coefficient_module().character != None:
-                chara = self.coefficient_module().character(a)
+            if self.coefficient_module()._character != None:
+                chara = self.coefficient_module()._character(a)
             else:
                 chara = 1
             err = -t.moment(0)/(chara*k*a**(k-1)*c)
             v = [0 for j in range(M)]
             v[1] = err
-            mu_1 = self.coefficient_module(v)
+            mu_1 = self.coefficient_module()(v)
             D[g] += mu_1
-            t = t + mu_1.act_right(gam) - mu_1
+            t = t + mu_1 * gam - mu_1
+
+#        for g in manin.gens()[1:]:
+#            print g,"--",D[g]
 
         mu = t.solve_diff_eqn()
         Id = manin.gens()[0]
@@ -741,7 +800,7 @@ def ps_modsym_from_elliptic_curve(E):
         sage: E = EllipticCurve('113a1')
         sage: symb = ps_modsym_from_elliptic_curve(E)
         sage: symb
-        Modular symbol with values in Sym^0 Q^2
+        Modular symbol of level 113 with values in Sym^0 Q^2
         sage: symb.values()
         [-1/2, 3/2, -2, 1/2, 0, 1, 2, -3/2, 0, -3/2, 0, -1/2, 0, 1, -2, 1/2, 0,
         0, 2, 0, 0]
@@ -791,7 +850,7 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: A.is_cuspidal()
         True
         sage: f = ps_modsym_from_simple_modsym_space(A); f
-        Modular symbol with values in Sym^0 Q^2
+        Modular symbol of level 11 with values in Sym^0 Q^2
         sage: f.values()
         [1, -5/2, -5/2]
         sage: f.weight()         # this is A.weight()-2  !!!!!!
@@ -809,7 +868,7 @@ def ps_modsym_from_simple_modsym_space(A):
         sage: A.is_cuspidal()
         False
         sage: f = ps_modsym_from_simple_modsym_space(A); f
-        Modular symbol with values in Sym^0 Q^2
+        Modular symbol of level 11 with values in Sym^0 Q^2
         sage: f.values()
         [1, 0, 0]
 
@@ -829,7 +888,7 @@ def ps_modsym_from_simple_modsym_space(A):
 
         sage: A = ModularSymbols(1, sign=+1, weight=12).decomposition()[0]
         sage: f = ps_modsym_from_simple_modsym_space(A); f
-        Modular symbol with values in Sym^10 Q^2
+        Modular symbol of level 1 with values in Sym^10 Q^2
         sage: f.values()
         [(-1620/691, 0, 1, 0, -9/14, 0, 9/14, 0, -1, 0, 1620/691), (1620/691, 1620/691, 929/691, -453/691, -29145/9674, -42965/9674, -2526/691, -453/691, 1620/691, 1620/691, 0), (0, -1620/691, -1620/691, 453/691, 2526/691, 42965/9674, 29145/9674, 453/691, -929/691, -1620/691, -1620/691)]
 
@@ -837,7 +896,7 @@ def ps_modsym_from_simple_modsym_space(A):
 
         sage: A = ModularSymbols(1, sign=-1, weight=12).decomposition()[0]
         sage: f = ps_modsym_from_simple_modsym_space(A); f
-        Modular symbol with values in Sym^10 Q^2
+        Modular symbol of level 1 with values in Sym^10 Q^2
         sage: f.values()
         [(0, 1, 0, -25/48, 0, 5/12, 0, -25/48, 0, 1, 0), (0, -1, -2, -119/48, -23/12, -5/24, 23/12, 3, 2, 0, 0), (0, 0, 2, 3, 23/12, -5/24, -23/12, -119/48, -2, -1, 0)]
 

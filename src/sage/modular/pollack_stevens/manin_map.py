@@ -13,8 +13,6 @@ sage: phi
 Modular symbol with values in Sym^0 Q^2
 sage: phi.values()
 [-1/5, 3/2, -1/2]
-sage: phi.Tq_eigenvalue(13,13,10)
-4
 
 sage: from sage.modular.pollack_stevens.manin_map import ManinMap, S0
 sage: D = Distributions(0, 5, 10)
@@ -24,6 +22,7 @@ sage: f = ManinMap(D, MR, data)
 sage: f(S0([1,0,0,1]))
 (1, 2)
 
+sage: from sage.modular.pollack_stevens.manin_map import ManinMap, S0
 sage: S = Symk(0,QQ)
 sage: MR = ManinRelations(37)
 sage: data  = {S0([-2,-3,5,7]): S(0), S0([1,0,0,1]): S(0), S0([-1,-2,3,5]): S(0), S0([-1,-4,2,7]): S(1), S0([0,-1,1,4]): S(1), S0([-3,-1,7,2]): S(-1), S0([-2,-3,3,4]): S(0), S0([-4,-3,7,5]): S(0), S0([-1,-1,4,3]): S(0)}
@@ -64,18 +63,22 @@ def unimod_matrices_to_infty(r, s):
     EXAMPLES::
 
         sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(19,23); v
-        [
-        [1 0]  [ 0  1]  [1 4]  [-4  5]  [ 5 19]
-        [0 1], [-1  1], [1 5], [-5  6], [ 6 23]
-        ]
+        [[1 0]
+        [0 1], [ 0  1]
+        [-1  1], [1 4]
+        [1 5], [-4  5]
+        [-5  6], [ 5 19]
+        [ 6 23]]
         sage: [a.matrix().det() for a in v]
         [1, 1, 1, 1, 1]
 
         sage: sage.modular.pollack_stevens.manin_map.unimod_matrices_to_infty(11,25)
-        [
-        [1 0]  [ 0  1]  [1 3]  [-3  4]  [ 4 11]
-        [0 1], [-1  2], [2 7], [-7  9], [ 9 25]
-        ]
+        [[1 0]
+        [0 1], [ 0  1]
+        [-1  2], [1 3]
+        [2 7], [-3  4]
+        [-7  9], [ 4 11]
+        [ 9 25]]
 
     ALGORITHM:
 
@@ -118,18 +121,22 @@ def unimod_matrices_from_infty(r, s):
     EXAMPLES::
 
         sage: v = sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(19,23); v
-        [
-        [ 0  1]  [-1  0]  [-4  1]  [-5 -4]  [-19   5]
-        [-1  0], [-1 -1], [-5  1], [-6 -5], [-23   6]
-        ]
+        [[ 0  1]
+        [-1  0], [-1  0]
+        [-1 -1], [-4  1]
+        [-5  1], [-5 -4]
+        [-6 -5], [-19   5]
+        [-23   6]]
         sage: [a.matrix().det() for a in v]
         [1, 1, 1, 1, 1]
         
         sage: sage.modular.pollack_stevens.manin_map.unimod_matrices_from_infty(11,25)
-        [
-        [ 0  1]  [-1  0]  [-3  1]  [-4 -3]  [-11   4]
-        [-1  0], [-2 -1], [-7  2], [-9 -7], [-25   9]
-        ]
+        [[ 0  1]
+        [-1  0], [-1  0]
+        [-2 -1], [-3  1]
+        [-7  2], [-4 -3]
+        [-9 -7], [-11   4]
+        [-25   9]]
         
     ALGORITHM:
         
@@ -198,32 +205,35 @@ class ManinMap(object):
                     self._dict[manin_relations.gen(i)] = defining_data[i]
             elif isinstance(defining_data, dict):
                 for ky, val in defining_data.iteritems():
-                    if not isinstance(ky, Matrix_integer_2x2):
-                        # should eventually check that ky is actually a coset rep,
-                        # handle elements of P^1, make sure that we cover all cosets....
-                        ky = S0(ky)
+                    ky = S0(ky)
                     self._dict[ky] = val
             else:
                 # constant function
                 try:
                     c = codomain(defining_data)
                 except TypeError:
-                    raise TypeError("unrecognized type for defining_data")
+                    raise TypeError("unrecognized type %s for defining_data" % type(defining_data))
                 g = manin_relations.gens()
                 self._dict = dict(zip(g, [c]*len(g)))
         else:
             self._dict = defining_data
-            
-    def _compute_image_from_gens(self, B):
+
+    def extend_codomain(self, new_codomain, check=True):
+        new_dict = {}
+        for g in self._manin.gens():
+            new_dict[g] = new_codomain(self._dict[g])
+        return ManinMap(new_codomain, self._manin, new_dict, check)
+
+    def _compute_image_from_gens(self, B):  
         r"""
         Compute image of ``B`` under ``self``.
 
         INPUT:
-            
+
         - ``B`` --  generator of Manin relations.
-            
+
         OUTPUT:
-            
+
         - an element in the codomain of self (e.g. a distribution), the image of ``B`` under ``self``.
         
         EXAMPLES::
@@ -269,13 +279,16 @@ class ManinMap(object):
             sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37); MR.gens()
-            [
-            [1 0]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -3]  [-3 -1]  [-1 -4]  [-4 -3]
-            [0 1], [ 1  4], [ 4  3], [ 3  5], [ 5  7], [ 7  2], [ 2  7], [ 7  5],
-            <BLANKLINE>
-            [-2 -3]
-            [ 3  4]
-            ]
+            [[1 0]
+            [0 1], [ 0 -1]
+            [ 1  4], [-1 -1]
+            [ 4  3], [-1 -2]
+            [ 3  5], [-2 -3]
+            [ 5  7], [-3 -1]
+            [ 7  2], [-1 -4]
+            [ 2  7], [-4 -3]
+            [ 7  5], [-2 -3]
+            [ 3  4]]
             sage: data  = {S0([-2,-3,5,7]): S(0), S0([1,0,0,1]): S(0), S0([-1,-2,3,5]): S(0), S0([-1,-4,2,7]): S(1), S0([0,-1,1,4]): S(1), S0([-3,-1,7,2]): S(-1), S0([-2,-3,3,4]): S(0), S0([-4,-3,7,5]): S(0), S0([-1,-1,4,3]): S(0)}
             sage: D = Distributions(2,23,40)
             sage: f = ManinMap(D,MR,data)
@@ -306,13 +319,16 @@ class ManinMap(object):
             sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
             sage: S = Symk(0,QQ)
             sage: MR = ManinRelations(37); MR.gens()
-            [
-            [1 0]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -3]  [-3 -1]  [-1 -4]  [-4 -3]
-            [0 1], [ 1  4], [ 4  3], [ 3  5], [ 5  7], [ 7  2], [ 2  7], [ 7  5],
-            <BLANKLINE>
-            [-2 -3]
-            [ 3  4]
-            ]
+            [[1 0]
+            [0 1], [ 0 -1]
+            [ 1  4], [-1 -1]
+            [ 4  3], [-1 -2]
+            [ 3  5], [-2 -3]
+            [ 5  7], [-3 -1]
+            [ 7  2], [-1 -4]
+            [ 2  7], [-4 -3]
+            [ 7  5], [-2 -3]
+            [ 3  4]]
             sage: data  = {S0([-2,-3,5,7]): S(0), S0([1,0,0,1]): S(0), S0([-1,-2,3,5]): S(0), S0([-1,-4,2,7]): S(1), S0([0,-1,1,4]): S(1), S0([-3,-1,7,2]): S(-1), S0([-2,-3,3,4]): S(0), S0([-4,-3,7,5]): S(0), S0([-1,-1,4,3]): S(0)}
             sage: f = ManinMap(S,MR,data)
             sage: len(f._dict)
@@ -378,7 +394,6 @@ class ManinMap(object):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
-            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(0, 5, 10); D
             Space of 5-adic distributions with k=0 action and precision cap 10
             sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
@@ -617,6 +632,7 @@ class ManinMap(object):
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: from sage.modular.pollack_stevens.fund_domain import S0
+            sage: from sage.modular.pollack_stevens.manin_map import ManinMap
             sage: f = Newforms(7, 4)[0]
             sage: f.modular_symbols(1)
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(7) of weight 4 with sign 1 over Rational Field
@@ -647,6 +663,21 @@ class ManinMap(object):
         r"""
         Normalize every value of self -- e.g., reduces each value's
         `j`-th moment modulo `p^(N-j)`
+            
+        EXAMPLES::
+            
+            sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
+            sage: D = Distributions(0, 5, 10); D
+            Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
+            sage: data  = {S0([1,0,0,1]):D([1,2]), S0([0,-1,1,3]):D([3,5]), S0([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, manin, data)
+            sage: f._dict[S0([1,0,0,1])]
+            (1, 2)
+            sage: g = f.normalize()
+            sage: g._dict[S0([1,0,0,1])]
+            (1, 2)
+            
         """
         sd = self._dict
         for val in sd.itervalues():
@@ -655,6 +686,25 @@ class ManinMap(object):
 
     def reduce_precision(self, M):
         r"""
+        Reduce the precision of all the values of the Manin map. 
+            
+        INPUT:
+            
+            - ``M`` -- an integer, the new precision.
+            
+        EXAMPLES::
+            
+            sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
+            sage: D = Distributions(0, 5, 10); D
+            Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
+            sage: data  = {S0([1,0,0,1]):D([1,2]), S0([0,-1,1,3]):D([3,5]), S0([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, manin, data)
+            sage: f._dict[S0([1,0,0,1])]
+            (1, 2)
+            sage: g = f.reduce_precision(1)
+            sage: g._dict[S0([1,0,0,1])]
+            1            
         
         """
         D = {}
@@ -664,6 +714,21 @@ class ManinMap(object):
         return self.__class__(self._codomain, self._manin, D, check=False)
 
     def specialize(self, new_base_ring):
+        r"""
+        Specializes all the values of the Manin map to a new base ring. 
+            
+        EXAMPLES::
+            
+            sage: from sage.modular.pollack_stevens.manin_map import S0, ManinMap
+            sage: D = Distributions(0, 5, 10); D
+            Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: manin = sage.modular.pollack_stevens.fund_domain.ManinRelations(11)
+            sage: data  = {S0([1,0,0,1]):D([1,2]), S0([0,-1,1,3]):D([3,5]), S0([-1,-1,3,2]):D([1,1])}
+            sage: f = ManinMap(D, manin, data)
+            sage: g = f.specialize(pAdicRing(5))
+            sage: g._codomain
+            Sym^0 Z_5^2
+        """
         D = {}
         sd = self._dict
         for ky, val in sd.iteritems():
@@ -701,7 +766,6 @@ class ManinMap(object):
             [2/5, -3, 1]
             sage: phi.Tq_eigenvalue(7,7,10)
             -2
-            
         """
         self.compute_full_data()
         self.normalize()
@@ -732,6 +796,33 @@ class ManinMap(object):
             return psi.normalize()
 
     def p_stabilize(self, p, alpha, V):
+        r"""
+        Return the `p`-stablization of self to level `N*p` on which `U_p` acts by `alpha`.
+        
+        INPUT:
+            
+        - ``p`` -- a prime.
+            
+        - ``alpha`` -- a `U_p`-eigenvalue.
+            
+        - ``V`` -- a space of modular symbols.
+            
+        OUTPUT:
+            
+        - The image of this ManinMap under the Hecke operator `T_{\ell}`
+            
+        EXAMPLES:
+            
+            ::
+            
+            sage: E = EllipticCurve('11a')
+            sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
+            sage: phi = ps_modsym_from_elliptic_curve(E)
+            sage: f = phi._map
+            sage: V = phi.parent()
+            sage: f.p_stabilize(5,1,V)
+            Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Sym^0 Q^2            
+        """
         manin = V.source()
         pmat = S0([p,0,0,1])
         D = {}
