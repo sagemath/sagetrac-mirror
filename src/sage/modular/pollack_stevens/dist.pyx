@@ -1436,7 +1436,7 @@ cdef class WeightKAction(Action):
         if not padic:
             Action.__init__(self, Sigma0(0,base_ring = QQ,tuplegen = self._tuplegen), Dk, on_left, operator.mul)
         else:
-            Action.__init__(self, Sigma0(self._p, base_ring = Dk.base_ring(),tuplegen = self._tuplegen), Dk, on_left, operator.mul)
+            Action.__init__(self, Sigma0(0, base_ring = Dk.base_ring(),tuplegen = self._tuplegen), Dk, on_left, operator.mul)
 
     def clear_cache(self):
         r"""

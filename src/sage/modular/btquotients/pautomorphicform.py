@@ -31,7 +31,7 @@ from sage.structure.parent import Parent
 
 from sage.modular.pollack_stevens.sigma0 import Sigma0
 
-use_ps_dists = True
+use_ps_dists = False
 
 # Need this to be pickleable
 class _btquot_tuplegen(UniqueRepresentation):
@@ -2304,7 +2304,7 @@ class pAutomorphicForms(Module):
             A = Matrix(QQ,2,2,[0,-1/self.prime(),-1,0])
             for ii in range(len(x._F)):
                 if use_ps_dists:
-                    F.append(- (parent._Sigma0(A.adjoint()) * F[ii])) # TBC
+                    F.append(- (self._Sigma0(A.adjoint()) * F[ii])) # TBC
                 else:
                     F.append(Uold(-1*tmp[ii]).r_act_by(A)) # TBC
             vals = self._make_invariant([self._U(o) for o in F])
@@ -2429,7 +2429,7 @@ class pAutomorphicForms(Module):
         for ii in range(len(S)):
             Si = S[ii]
             if use_ps_dists:
-                x = self._U(F[ii].moments) # TBC
+                x = self._U(F[ii]._moments) # TBC
             else:
                 x = self._U(F[ii]) # TBC
 
@@ -2478,14 +2478,14 @@ class pAutomorphicForms(Module):
                 u = d[1][jj] # edge_list[jj]
                 r = (self._p**(-(u.power)) * (u.t(self.precision_cap()+1)*gg))
                 if use_ps_dists:
-                    tmp +=  (self._Sigma0(r) * f._value[u.label]) #TBC
+                    tmp +=  (self._Sigma0(r.adjoint(),check = False) * f._value[u.label]) #TBC
                 else:
                     tmp += f._value[u.label].r_act_by(r) #TBC
 
             tmp  *=  factor
             for ii in range(self._n+1):
                 if use_ps_dists:
-                    tmp.moments[ii] = f._value[jj].moments[ii] # TBC
+                    tmp._moments[ii] = f._value[jj]._moments[ii] # TBC
                 else:
                     tmp.moments[ii,0] = f._value[jj].moments[ii,0] # TBC
             Tf.append(tmp)
