@@ -351,17 +351,29 @@ cdef class Dist(ModuleElement):
         r"""
         Comparison.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+        Equality of two :class:`Dist_long`::
+
+            sage: D = Distributions(0, 5, 10)
+            sage: D([1, 2]) == D([1])
+            True
+            sage: D([1]) == D([1, 2])
+            True
+
+        Equality of two :class:`Dist_vector`::
+
+            # XXX FIXME
+
+        Equality of a :class:`Dist_vector` and a :class:`Dist_long`::
+
+            # XXX FIXME
         """
         cdef Dist left = _left
         cdef Dist right = _right
         left.normalize()
         right.normalize()
         cdef long rprec = min(left._relprec(), right._relprec())
-        lmoments = left._moments
-        rmoments = right._moments
         cdef long i
         p = left.parent().prime()
         if left.ordp > right.ordp:
@@ -422,10 +434,11 @@ cdef class Dist(ModuleElement):
 
         .. WARNING::
 
-            Since only finitely many moments are computed, this
-            valuation may be larger than the actual valuation of this
-            distribution.  Moreover, since distributions are
-            normalized so that the top moment has precision 1, this valuation may be smaller than the actual valuation (for example, if the actual valuation is 2)
+            Since only finitely many moments are computed, this valuation may
+            be larger than the actual valuation of this distribution.
+            Moreover, since distributions are normalized so that the top moment
+            has precision 1, this valuation may be smaller than the actual
+            valuation (for example, if the actual valuation is 2)
 
         EXAMPLES::
 
@@ -436,9 +449,6 @@ cdef class Dist(ModuleElement):
             (O(7^4), O(7^3), O(7^2), O(7))
             sage: v.valuation(7)
             1
-        """
-        r"""
-        Returns the highest power of `p` which divides all moments of the distribution
         """
         if p is None:
             p = self.parent()._p
@@ -1352,7 +1362,7 @@ cdef class Dist_long(Dist):
 
             sage: D = Distributions(0, 5, 10)
             sage: D([1,2,3,4]).__reduce__()
-            (<type 'sage.modular.pollack_stevens.dist.Dist_long'>, ([1, 2, 3, 4], Space of 5-adic distributions with k=0 action and precision cap 10, False))
+            (<type 'sage.modular.pollack_stevens.dist.Dist_long'>, ([1, 2, 3, 4], Space of 5-adic distributions with k=0 action and precision cap 10, 0, False))
         """
         return (self.__class__,([self._moments[i] for i in xrange(self.relprec)], self.parent(), self.ordp, False))
 

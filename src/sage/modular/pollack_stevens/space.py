@@ -38,6 +38,7 @@ from fund_domain import ManinRelations
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
 from sigma0 import Sigma0, Sigma0Element
+S0 = Sigma0(0)
 
 class PSModularSymbols_factory(UniqueFactory):
     r"""
@@ -364,7 +365,7 @@ class PSModularSymbolSpace(Module):
             for j in range(len(self._source.reps())):
                 R = self._source.relations(j)
                 if len(R) == 1 and R[0][2] == self._source.indices(r):
-                    if R[0][0] != -1 or R[0][1] != M2ZSpace.one():
+                    if R[0][0] != -1 or R[0][1] != S0(1):
                         v = v + [R]
         return v
 
