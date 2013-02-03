@@ -44,8 +44,7 @@ def logpp_binom(n, p, p_prec):
     
     return ps_normalize(ans.truncate(p_prec), p, p_prec)
 
-#@cached_function
-def automorphy_factor_matrix(p, a, c, k, chi, p_prec, var_prec, R):
+def automorphy_factor_vector(p, a, c, k, chi, p_prec, var_prec, R):
     S = PolynomialRing(R, 'z')
     z = S.gens()[0]
     w = R.gen()
@@ -58,9 +57,11 @@ def automorphy_factor_matrix(p, a, c, k, chi, p_prec, var_prec, R):
     aut *= (ta ** k)
     if not (chi is None):
         aut *= chi(a)    
-    aut = Sequence(aut)
-    #if len(aut) < p_prec:
-    #    aut += [0] * (p_prec - len(aut))
+    return Sequence(aut)
+
+#@cached_function
+def automorphy_factor_matrix(p, a, c, k, chi, p_prec, var_prec, R):
+    aut = automorphy_factor_vector(p, a, c, k, chi, p_prec, var_prec, R)
     M = Matrix(R, p_prec)
     for c in range(min(p_prec, len(aut))):
         for r in range(min(p_prec, len(aut) - c)):

@@ -137,7 +137,7 @@ class DoubleCosetReduction(SageObject):
         self._igamma_prec=-1
 
     def _repr_(self):
-        r""" 
+        r"""
         Returns the representation of self as a string.
 
         EXAMPLES::
@@ -598,7 +598,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return newM
 
     def edges_leaving_origin(self):
-        r""" 
+        r"""
         Find normalized representatives for the `p+1` edges
         leaving the origin vertex corresponding to the homothety class
         of `\ZZ_p^2`. These are cached.
@@ -702,7 +702,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return [self.edge(M*A) for A in self.edges_leaving_origin()]
 
     def opposite(self,e):
-        r""" 
+        r"""
         This function returns the edge oriented oppositely to a
         given edge.
 
@@ -757,7 +757,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return [self.opposite(e) for e in self.leaving_edges(v)]
 
     def subdivide(self,edgelist,level):
-        r""" 
+        r"""
         (Ordered) edges of self may be regarded as open balls in
         P_1(Qp).  Given a list of edges, this function return a list
         of edges corresponding to the level-th subdivision of the
@@ -800,7 +800,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             return self.subdivide(newEgood,level-1)
 
     def get_balls(self,center=1,level=1):
-        r""" 
+        r"""
         Returns a decomposition of `\PP^1(\QQ_p)` into compact
         open balls.
 
@@ -812,7 +812,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         corresponding to ``center`` into `(p+1)p^\mbox{level}` balls.
 
         EXAMPLES::
-            
+
             sage: from sage.modular.btquotients.btquotient import BruhatTitsTree
             sage: p = 2
             sage: T = BruhatTitsTree(p)
@@ -825,7 +825,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return self.subdivide(self.leaving_edges(center),level)
 
     def find_path(self,v,boundary=None):
-        r""" 
+        r"""
         Computes a path from a vertex to a given set of so-called
         boundary vertices, whose interior must contain the origin
         vertex.  In the case that the boundary is not specified, it
@@ -836,7 +836,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         INPUT:
 
           - ``v`` - a 2x2 matrix representing a vertex ``boundary`` -
-          
+
           - a list of matrices (default: None). If ommitted, finds the
           geodesic from ``v`` to the central vertex.
 
@@ -892,7 +892,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         raise RuntimeError
 
     def find_containing_affinoid(self,z):
-        r""" 
+        r"""
         Returns the vertex corresponding to the affinoid in the
         `p`-adic upper half plane that a given (unramified!) point
         reduces to.
@@ -989,7 +989,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         return [self.vertex(gamma*x) for x in chain+[v0]]
 
     def find_covering(self,z1,z2,level = 0):
-        r""" 
+        r"""
         Computes a covering of P1(Qp) adapted to a certain
         geodesic in self.
 
@@ -1046,7 +1046,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
 
 class Vertex(SageObject):
-    r""" 
+    r"""
     This is a structure to represent vertices of quotients of the
     Bruhat-Tits tree.  It is useful to enrich the representation of
     the vertex as a matrix with extra data.
@@ -1056,19 +1056,19 @@ class Vertex(SageObject):
      - ``p`` - a prime integer.
 
      - ``label`` - An integer which uniquely identifies this vertex.
-     
+
      - ``rep`` - A 2x2 matrix in reduced form representing this
        vertex.
-     
+
      - ``leaving_edges`` - (Default: empty list) A list of edges
        leaving this vertex.
-     
+
      - ``entering_edges`` - (Default: empty list) A list of edges
        entering this vertex.
-     
+
      - ``determinant`` - (Default: None) The determinant of ``rep``,
        if known.
-     
+
      - ``valuation`` - (Default: None) The valuation of the
        determinant of ``rep``, if known.
 
@@ -1087,7 +1087,7 @@ class Vertex(SageObject):
     - Marc Masdeu (2012-02-20)
     """
     def __init__(self,p,label,rep,leaving_edges=None,entering_edges=None,determinant=None,valuation=None):
-        """ 
+        """
         This initializes a structure to represent vertices of
         quotients of the Bruhat-Tits tree. It is useful to enrich the
         representation of the vertex as a matrix with extra data.
@@ -1116,13 +1116,13 @@ class Vertex(SageObject):
         self.parity=valuation%2
         self.leaving_edges=leaving_edges
         self.entering_edges=entering_edges
-        
+
     def _repr_(self):
         r"""
         Returns the representation of self as a string.
 
         EXAMPLES::
-        
+
             sage: X = BTQuotient(3,5)
             sage: X.get_vertex_list()[0]
             Vertex of BT-tree for p = 3
@@ -1156,7 +1156,7 @@ class Vertex(SageObject):
         return 0
 
 class Edge(SageObject):
-    r""" 
+    r"""
     This is a structure to represent edges of quotients of the
     Bruhat-Tits tree. It is useful to enrich the representation of an
     edge as a matrix with extra data.
@@ -1166,22 +1166,22 @@ class Edge(SageObject):
      - ``p`` - a prime integer.
 
      - ``label`` - An integer which uniquely identifies this edge.
-     
+
      - ``rep`` - A 2x2 matrix in reduced form representing this edge.
-     
+
      - ``origin`` - The origin vertex of ``self``.
-     
+
      - ``target`` - The target vertex of ``self``.
-     
+
      - ``links`` - (Default: empty list) A list of elements of
        `\Gamma` which identify different edges in the Bruhat-Tits tree
        which are equivalent to ``self``.
-     
+
      - ``opposite`` - (Default: None) The edge opposite to ``self``
-     
+
      - ``determinant`` - (Default: None) The determinant of ``rep``,
        if known.
-     
+
      - ``valuation`` - (Default: None) The valuation of the
        determinant of ``rep``, if known.
 
@@ -1209,8 +1209,8 @@ class Edge(SageObject):
 
             sage: from sage.modular.btquotients.btquotient import Edge
             sage: Y = BTQuotient(5,11)
-            sage: el = Y.get_edge_list() 
-            sage: e1 = el.pop() 
+            sage: el = Y.get_edge_list()
+            sage: e1 = el.pop()
             sage: e2 = Edge(5,e1.label,e1.rep,e1.origin,e1.target)
             sage: TestSuite(e2).run()
         """
@@ -1231,13 +1231,13 @@ class Edge(SageObject):
         self.determinant=determinant
         self.valuation=valuation
         self.parity=valuation%2
-        
+
     def _repr_(self):
         r"""
         Returns the representation of self as a string.
 
         EXAMPLES::
-        
+
             sage: X = BTQuotient(3,5)
             sage: X.get_edge_list()[0]
             Edge of BT-tree for p = 3
@@ -1287,7 +1287,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         Ensures that a canonical BTQuotient is created.
 
         EXAMPLES:
-        
+
             sage: BTQuotient(3,17) is BTQuotient(3,17,1)
             True
         """
@@ -1304,21 +1304,21 @@ class BTQuotient(SageObject, UniqueRepresentation):
     INPUT:
 
      - ``p`` - a prime number
-     
+
      - ``Nminus`` - squarefree integer divisible by an odd number of
        distinct primes and relatively prime to p. This is the
        discriminant of the definite quaternion algebra that one is
        quotienting by.
-     
+
      - ``Nplus`` - an integer corpime to pNminus (Default: 1). This is
        the tame level. It need not be squarefree! If Nplus is not 1
        then the user currently needs magma installed due to sage's
        inability to compute well with nonmaximal Eichler orders in
        rational (definite) quaternion algebras.
-    
+
      - ``character`` - a Dirichlet character (Default: None) of modulus
        `pN^-N^+`.
-     
+
      - ``use_magma`` - boolean (default: False). If True, uses magma
        for quaternion arithmetic.
 
@@ -1333,8 +1333,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         Multi-graph on 4 vertices
 
     And an example with a Dirichlet character::
-  
-      sage: f = DirichletGroup(6)[1] 
+
+      sage: f = DirichletGroup(6)[1]
       sage: X = BTQuotient(3,2*5*7,character = f)
       sage: X.genus()
       5
@@ -1351,7 +1351,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     def __init__(self,p,Nminus,Nplus=1,character = None, use_magma = False, seed = None):
         """
         Computes the quotient of the Bruhat-Tits tree by an arithmetic
-        quaternionic group. 
+        quaternionic group.
 
         EXAMPLES::
 
@@ -1402,7 +1402,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._use_magma = False
 
         self._BT=BruhatTitsTree(p)
+
+        # This value for self._prec was chosen to agree with a hardcoded
+        # value in _compute_quotient (the line:
+        # self.get_embedding_matrix(prec = 3))
+        # It was previously -1 and caused the program to default to
+        # exact splittings (hence magma) in many situations
         self._prec = -1
+
         self._cached_vertices=dict()
         self._cached_edges=dict()
         self._cached_paths=dict()
@@ -1428,7 +1435,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(5,13); X 
+            sage: X = BTQuotient(5,13); X
             Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 13 and level 1
         """
         return "Quotient of the Bruhat Tits tree of GL_2(QQ_%s) with discriminant %s and level %s"%(self.prime(),self.Nminus().factor(),self.Nplus().factor())
@@ -1486,7 +1493,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._vertex_list
 
     def get_edge_list(self):
-        r""" 
+        r"""
         Returns a list of ``Edge``s which represent a fundamental
         domain inside the Bruhat-Tits tree for the quotient.
 
@@ -1506,10 +1513,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._edge_list
 
     def get_list(self):
-        r""" 
-        Returns a list of ``Edge``s which represent a fundamental 
-        domain inside the Bruhat-Tits tree for the quotient, 
-        together with a list of the opposite edges. This is used 
+        r"""
+        Returns a list of ``Edge``s which represent a fundamental
+        domain inside the Bruhat-Tits tree for the quotient,
+        together with a list of the opposite edges. This is used
         to work with automorphic forms.
 
         OUTPUT:
@@ -1526,7 +1533,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return E + [e.opposite for e in E]
 
     def get_generators(self):
-        r""" 
+        r"""
         Uses a fundamental domain in the Bruhat-Tits tree, and
         certain gluing data for boundary vertices, in order to compute
         a collection of generators for the arithmetic quaternionic
@@ -1560,8 +1567,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         Compute certain invariants from the level data of the quotient
         which allow one to compute the genus of the curve.
 
-        ## Reference: Theorem 9 of our paper "Computing fundamental domains for the Bruhat-Tits tree for GL2 (Qp ), p-adic automorphic forms, and the canonical embedding of Shimura curves". 
-        
+        ## Reference: Theorem 9 of our paper "Computing fundamental domains for the Bruhat-Tits tree for GL2 (Qp ), p-adic automorphic forms, and the canonical embedding of Shimura curves".
+
         EXAMPLES::
 
             sage: X = BTQuotient(23,11)
@@ -1597,7 +1604,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     @lazy_attribute
     def e3(self):
         """
-        Compute the `e_3` invariant defined by the formula 
+        Compute the `e_3` invariant defined by the formula
 
         .. math::
 
@@ -1627,7 +1634,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
             - an integer
-        
+
         EXAMPLES::
 
             sage: X = BTQuotient(31,3)
@@ -1666,7 +1673,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
           - An integer (the number of vertices)
-        
+
         EXAMPLES::
 
             sage: X = BTQuotient(29,11)
@@ -1685,13 +1692,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
           - An integer
-        
+
         EXAMPLES::
 
             sage: X = BTQuotient(3,2)
             sage: X.get_num_ordered_edges()
             2
-        """        
+        """
         return 2*(self.genus() + self.get_num_verts()-1)
 
     def genus_no_formula(self):
@@ -1715,7 +1722,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def genus(self):
-        r""" 
+        r"""
         Computes the genus of the quotient graph using a formula
         This should agree with self.genus_no_formula().
 
@@ -1747,7 +1754,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def dimension_harmonic_cocycles(self,k,lev = None,Nplus = None,character = None):
-        r""" 
+        r"""
         Computes the dimension of the space of harmonic cocycles
         of weight `k` on ``self``.
 
@@ -1830,7 +1837,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def level(self):
-        r""" 
+        r"""
         Returns `p N^-`, which is the discriminant of the
         indefinite quaternion algebra that is uniformed by
         Cerednik-Drinfeld.
@@ -1909,7 +1916,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         OUTPUT:
 
           A plot of the quotient graph
-        
+
         EXAMPLES::
 
             sage: X = BTQuotient(7,23)
@@ -1966,7 +1973,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return S.plot(*args,**my_args)
 
     def is_admissible(self,D):
-        r""" 
+        r"""
         Tests whether the imaginary quadratic field of
         discriminant `D` embeds in the quaternion algebra. It
         furthermore tests the Heegner hypothesis in this setting
@@ -2080,14 +2087,14 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._II, self._JJ, self._KK
 
     def _compute_embedding_matrix(self,prec, force_computation = False):
-        r""" 
+        r"""
         Returns a matrix representing the embedding with the
         given precision.
 
         INPUT:
 
         - ``prec`` - Integer. The precision of the embedding matrix.
-        
+
         EXAMPLES:
 
         Note that the entries of the matrix are elements of Zmod::
@@ -2130,13 +2137,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
         since these embeddings are only used to apply a character.
 
         EXAMPLES:
-        
+
         This portion of the code is only relevant when working with a
         nontrivial Dirichlet character. If there is no such character
         then the code returns an empty list. Even if the character is
         not trivial it might return an empty list::
 
-            sage: f = DirichletGroup(6)[1] 
+            sage: f = DirichletGroup(6)[1]
             sage: X = BTQuotient(3,2*5*7,character = f)
             sage: X.get_extra_embedding_matrices()
             []
@@ -2318,7 +2325,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return Matrix(self._R,2,2,A.list())
 
     def get_embedding(self,prec=None):
-        r""" 
+        r"""
         Returns a function which embeds quaternions into a matrix
         algebra.
 
@@ -2335,7 +2342,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return lambda g: Matrix(self._R,2,2,(A*g).list())
 
     def get_edge_stabs(self):
-        r""" 
+        r"""
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
         the quotient graph. The stabilizers of an edge and its
@@ -2401,7 +2408,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._edge_stabs
 
     def get_stabilizers(self):
-        r""" 
+        r"""
         Computes the stabilizers in the arithmetic group of all
         edges in the Bruhat-Tits tree within a fundamental domain for
         the quotient graph. This is similar to get_edge_stabs, except
@@ -2433,7 +2440,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return S + S
 
     def get_vertex_stabs(self):
-        r""" 
+        r"""
         This function computes the stabilizers in the arithmetic
         group of all vertices in the Bruhat-Tits tree within a
         fundamental domain for the quotient graph.
@@ -2504,7 +2511,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             return self._O
 
     def get_maximal_order(self, magma = False, force_computation = False):
-        r""" 
+        r"""
         Returns the underlying maximal order containing the
         Eichler order.
 
@@ -2576,7 +2583,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._B
 
     def get_eichler_order_quadform(self):
-        r""" 
+        r"""
         This function returns the norm form for the underlying
         Eichler order of level Nplus. Required for finding elements in
         the arithmetic subgroup Gamma.
@@ -2589,7 +2596,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(7,11)
             sage: X.get_eichler_order_quadform()
-            Quadratic form in 4 variables over Integer Ring with coefficients: 
+            Quadratic form in 4 variables over Integer Ring with coefficients:
             [ 3 0 11 0 ]
             [ * 3 0 11 ]
             [ * * 11 0 ]
@@ -2601,7 +2608,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return self._OQuadForm
 
     def get_eichler_order_quadmatrix(self):
-        r""" 
+        r"""
         This function returns the matrix of the quadratic form of
         the underlying Eichler order in the fixed basis.
 
@@ -2625,7 +2632,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def get_units_of_order(self):
-        r""" 
+        r"""
         Returns the units of the underlying Eichler
         `\ZZ`-order. This is a finite group since the order lives in a
         definite quaternion algebra over `\QQ`.
@@ -2776,7 +2783,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def _get_atkin_lehner_data(self,q):
-        r""" 
+        r"""
         Returns (computes if necessary) data to compute the
         Atkin-Lehner involution.
 
@@ -2789,9 +2796,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(3,5)
             sage: X._get_atkin_lehner_data(3)
             [
-            [ 2]                                                                                                                                    
-            [ 4]                                                                                                                                      
-            [-3]                                                                                                                                      
+            [ 2]
+            [ 4]
+            [-3]
             [-2], [DoubleCosetReduction, DoubleCosetReduction]
             ]
         """
@@ -2906,7 +2913,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Finds a vertex in ``V`` equivalent to ``v0``.
 
-        INPUT: 
+        INPUT:
 
         - ``v0`` -- a 2x2 matrix in `\ZZ_p` representing a
             vertex in the Bruhat-Tits tree.
@@ -2925,7 +2932,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         equivalent to ``v0``, and ``g`` is such that `g\cdot v_0= v`.
 
         EXAMPLES::
-        
+
             sage: X = BTQuotient(3,7)
             sage: M = Matrix(ZZ,2,2,[1,3,2,7])
             sage: M.set_immutable()
@@ -2954,7 +2961,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         r"""
         Finds an edge in ``E`` equivalent to ``e0``.
 
-        INPUT: 
+        INPUT:
 
         - ``e0`` -- a 2x2 matrix in `\ZZ_p` representing an
             edge in the Bruhat-Tits tree.
@@ -3043,10 +3050,10 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         - ``v1``, ``v2`` - 2x2 matrices. They represent either a pair
           of normalized vertices or a pair of normalized edges.
-        
+
         - ``as_edges`` - boolean. If True, the inputs will be
           considered as edges instead of vertices.
-        
+
         - ``m`` - integer - The valuation of the determinant of
           ``v1``*``v2``.
 
@@ -3057,7 +3064,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(3,17)
-            sage: X._find_lattice(Matrix(ZZ,2,2,[1,2,3,4]),Matrix(ZZ,2,2,[3,2,1,5]), True,0) 
+            sage: X._find_lattice(Matrix(ZZ,2,2,[1,2,3,4]),Matrix(ZZ,2,2,[3,2,1,5]), True,0)
             (
             [1 0 0 0]  [138 204 -35 102]
             [2 3 0 0]  [204 306 -51 153]
@@ -3152,13 +3159,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
           minimal elements in a positive definite lattice.
 
         OUTPUT:
-        
+
         A pair consisting of a quaternion (represented by a 4x1 column
         matrix) and a boolean saying whether the quaternion is in the
         subgroup of `M_2(\Qp)` determined by the Dirichlet
         character. Note that if `N^+` is trivial then this function
         aways outputs true.
-        
+
         EXAMPLES::
 
             sage: f = DirichletGroup(6)[1]
@@ -3169,9 +3176,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: E,A = X._find_lattice(e,e,True,twom)
             sage: X._nebentype_check(E**(-1)*Matrix(ZZ,4,1,[1,0,0,0]),twom,E,A)
             (
-            [1]      
-            [0]      
-            [0]      
+            [1]
+            [0]
+            [0]
             [0], True
             )
         """
@@ -3193,22 +3200,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
 
     def _are_equivalent(self,v1,v2,as_edges=False,twom=None,check_parity = False):
-        r""" 
+        r"""
         Determines whether two vertices (or edges) of the
         Bruhat-Tits tree are equivalent under the arithmetic group in
         question. The computation boils down to an application of the
         LLL short-vector algorithm to a particular lattice; for
         details see [FM].
-        
+
         INPUT:
 
         - ``v1``, ``v2`` - two 2x2 integral matrices representing
           either vertices or edges
-          
+
         - ``as_edges`` - boolean (Default: False). Tells whether the
           matrices should be interpreted as edges (if true), or as
           vertices (if false)
-          
+
         - ``twom`` - integer (Default: None) If specified,
           indicates the valuation of the determinant of ``v1``
           `\times` ``v2``.
@@ -3226,19 +3233,19 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: M1.set_immutable()
             sage: X._are_equivalent(M1,M1)
             (
-            [-2]   
-            [ 0]   
-            [ 1]   
+            [-2]
+            [ 0]
+            [ 1]
             [ 1], 0
             )
             sage: M2 = Matrix(ZZ,2,2,[1,2,8,1]); M2.set_immutable()
             sage: print X._are_equivalent(M1,M2, as_edges=True)
             None
-            sage: X._are_equivalent(M1,M2)                     
+            sage: X._are_equivalent(M1,M2)
             (
-            [-2]   
-            [ 0]   
-            [ 1]   
+            [-2]
+            [ 0]
+            [ 1]
             [ 1], 0
             )
 
@@ -3343,7 +3350,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         self._BB=Matrix(QQ,4,4,[[self._B[ii][jj] for ii in range(4)] for jj in range(4)]).inverse()
 
     def B_one(self):
-        r""" 
+        r"""
         Returns the coordinates of `1` in the basis for the
         quaternion order.
 
@@ -3374,7 +3381,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
 
     def _conv(self,v):
-        r""" 
+        r"""
         Returns a quaternion having coordinates in the fixed
         basis for the order given by ``v``.
 
@@ -3398,7 +3405,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def _find_elements_in_order(self, norm, trace = None, primitive=False):
-        r""" 
+        r"""
         Returns elements in the order of the quaternion algebra
         of specified reduced norm. One may optionally choose to
         specify the reduced trace.
@@ -3436,7 +3443,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``check`` - Boolean (Default = True). 
+        - ``check`` - Boolean (Default = True).
 
         EXAMPLES::
 
@@ -3452,9 +3459,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(5,7,12) # optional - magma
             sage: X.get_graph()          # optional - magma
-            Multi-graph on 24 vertices   
+            Multi-graph on 24 vertices
             sage: len(X._edge_list)      # optional - magma
-            72 
+            72
 
             sage: X = BTQuotient(2,3,5)  # optional - magma
             sage: X.get_graph() # optional - magma

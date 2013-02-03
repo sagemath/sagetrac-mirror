@@ -55,13 +55,16 @@ class Sigma0_factory(UniqueFactory):
     def create_object(self, version, key):
         return Sigma0_class(*key)
 
-Sigma0 = Sigma0_factory('Sigma0')
+Sigma0 = Sigma0_factory('sage.modular.pollack_stevens.sigma0.Sigma0')
 
 class Sigma0Element(MonoidElement):
 
     def __init__(self, parent, mat):
         self._mat = mat
         MonoidElement.__init__(self, parent)
+
+    def __hash__(self):
+        return hash(self.matrix())
 
     def _mul_(self, other):
         return self.parent()(self._mat * other._mat, check=False)
@@ -78,7 +81,7 @@ class Sigma0Element(MonoidElement):
     def __getitem__(self, *args):
         return self._mat.__getitem__(*args)
 
-    def _invert_unit(self):
+    def inverse(self):
         return self.parent()(self._mat._invert_unit())
 
 class Sigma0_class(Parent):

@@ -82,8 +82,8 @@ class PSModularSymbolsDomain(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
-        sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
+        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, S0
+        sage: PSModularSymbolsDomain(2 , [S0([1,0,0,1]), S0([1,1,-1,0]), S0([0,-1,1,1])], [0,2], [[(1, S0([1,0,0,1]), 0)], [(-1,S0([-1,-1,0,-1]),0)], [(1, S0([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
         Modular Symbol domain of level 2
 
     TESTS:
@@ -138,8 +138,8 @@ class PSModularSymbolsDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
-            sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
+            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, S0
+            sage: PSModularSymbolsDomain(2 , [S0([1,0,0,1]), S0([1,1,-1,0]), S0([0,-1,1,1])], [0,2], [[(1, S0([1,0,0,1]), 0)], [(-1,S0([-1,-1,0,-1]),0)], [(1, S0([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
             'Modular Symbol domain of level 2'
 
         """
@@ -394,7 +394,7 @@ class PSModularSymbolsDomain(SageObject):
             [-1 -2]
             [ 2  3]
             sage: d, B, i = MR.relations(4)[0]
-            sage: P = ~B*MR.reps(i); P
+            sage: P = B.inverse()*MR.reps(i); P
             [ 2 -1]
             [-3  2]
             sage: d # the above corresponds to minus the divisor of A.reps(4) since d is -1
@@ -506,8 +506,8 @@ class PSModularSymbolsDomain(SageObject):
         EXAMPLES::
 
             sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: M2Z = MatrixSpace_ZZ_2x2()
-            sage: A = M2Z([5,3,38,23])
+            sage: S0 = MatrixSpace_ZZ_2x2()
+            sage: A = S0([5,3,38,23])
             sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
             [26 11]
@@ -662,7 +662,7 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## generators which satisfy a 2-torsion relation
                     twotor_index.append(r)
 
-                    gam = coset_reps[r] * sig * coset_reps[r]._invert_unit()
+                    gam = coset_reps[r] * sig * coset_reps[r].inverse()
                     ## gam is 2-torsion matrix and in Gamma_0(N).
                     ## if D is the divisor associated to coset_reps[r]
                     ## then gam * D = - D and so (1+gam)D=0.
@@ -698,7 +698,7 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
-                        gam = coset_reps[r] * tau * coset_reps[r]._invert_unit()
+                        gam = coset_reps[r] * tau * coset_reps[r].inverse()
                         ## gam is 3-torsion matrix and in Gamma_0(N).
                         ## if D is the divisor associated to coset_reps[r]
                         ## then (1+gam+gam^2)D=0.
@@ -757,7 +757,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## A corresponds to reversing the orientation
                                 ## of the edge corr. to coset_reps[r]
 
-                                gam = coset_reps[r] * A._invert_unit()
+                                gam = coset_reps[r] * A.inverse()
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 
@@ -1489,7 +1489,7 @@ class ManinRelations(PSModularSymbolsDomain):
                    #  B is the coset rep equivalent to A
                    B = self.equivalent_rep(A)
                    #  C equals A^(-1).
-                   C = A._invert_unit()
+                   C = A.inverse()
                    #  gaminv = B*A^(-1)
                    gaminv = B * C
                    #  The matrix gaminv * gamma is added to our list in the j-th slot

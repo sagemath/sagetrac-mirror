@@ -67,7 +67,7 @@ class Distributions_factory(UniqueFactory):
     - ``tuplegen`` -- None or callable that turns 2x2 matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
     """
-    def create_key(self, k, p=None, prec_cap=None, base=None, symk=None, character=None, tuplegen=None, act_on_left=False):
+    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
         """
         EXAMPLES::
 
@@ -96,7 +96,7 @@ class Distributions_factory(UniqueFactory):
                 prec_cap = base.precision_cap()
             except AttributeError:
                 raise ValueError("You must specify a base or precision cap")
-        return (k, p, prec_cap, base, character, tuplegen, act_on_left, symk)
+        return (k, p, prec_cap, base, character, tuplegen, act_on_left, False)
 
     def create_object(self, version, key):
         """
@@ -142,9 +142,9 @@ class Symk_factory(UniqueFactory):
             sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: Symk(6) # indirect doctest
             Sym^6 Q^2
-            sage: Symk(6, Qp(7)) # indirect doctest
-            Sym^6 Q_7^2
-            sage: TestSuite(Symk).run()
+
+            sage: V = Symk(6, Qp(7))
+            sage: TestSuite(V).run()
         """
         k = ZZ(k)
         if tuplegen is None:
@@ -152,8 +152,6 @@ class Symk_factory(UniqueFactory):
         prec_cap = k+1
         if base is None:
             base = QQ
-        if isinstance(base, pAdicGeneric):
-            p = base.prime()
         return (k, base, character, tuplegen, act_on_left)
 
     def create_object(self, version, key):
@@ -244,6 +242,36 @@ class Distributions_abstract(Module):
 
         self._populate_coercion_lists_(action_list=actlist)
 
+    def _coerce_map_from_(self, other):
+        """
+        Determine if self has a coerce map from other.
+
+        EXAMPLES::
+            
+            sage: V = Symk(4)             
+            sage: W = V.base_extend(QQ[i])
+            sage: W.has_coerce_map_from(V) # indirect doctest
+            True
+
+        Test some coercions::
+
+            sage: v = V.an_element()
+            sage: w = W.an_element()
+            sage: v + w
+            (0, 2, 4, 6, 8)
+            sage: v == w
+            True
+        """
+        if isinstance(other, Distributions_abstract) \
+            and other._k == self._k \
+            and self._character == other._character \
+            and self.base_ring().has_coerce_map_from(other.base_ring()) \
+            and (self._symk or not other._symk):
+            return True
+        else:
+            return False
+            
+
     def acting_matrix(self,g,M,padic = False):
         if padic:
             return self._act_S0p.acting_matrix(g,M)
@@ -254,12 +282,11 @@ class Distributions_abstract(Module):
         """
         Return prime `p` such that this is a space of `p`-adic distributions.
 
-        In case this space is Symk of a non-padic field, this makes no
-        sense, and we raise a ValueError.
+        In case this space is Symk of a non-padic field, we return 0.
 
         OUTPUT:
 
-        - bool
+        - a prime
 
         EXAMPLES::
 
@@ -271,9 +298,7 @@ class Distributions_abstract(Module):
             sage: D = Symk(4, base=GF(7)); D
             Sym^4 (Finite Field of size 7)^2
             sage: D.prime()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a space of p-adic distributions
+            0
 
         But Symk of a `p`-adic field does work::
 
@@ -284,8 +309,6 @@ class Distributions_abstract(Module):
             sage: D.is_symk()
             True
         """
-        if self._p is None:
-            raise ValueError, "not a space of p-adic distributions"
         return self._p
 
     def weight(self):
@@ -461,7 +484,7 @@ class Symk_class(Distributions_abstract):
         if hasattr(base, 'prime'):
             p = base.prime()
         else:
-            p = None
+            p = ZZ(0)
         Distributions_abstract.__init__(self, k, p, k+1, base, character, tuplegen, act_on_left, symk=True)
 
     def _an_element_(self):
@@ -543,6 +566,11 @@ class Symk_class(Distributions_abstract):
             7-adic Field with capped relative precision 20
         """
         return Symk(k=self._k, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+
+    def base_extend(self, new_base_ring):
+        if not new_base_ring.has_coerce_map_from(self.base_ring()):
+            raise ValueError("New base ring (%s) does not have a coercion from %s" % (new_base_ring, self.base_ring()))
+        return self.change_ring(new_base_ring)
 
     def lift(self, p=None, M=None, new_base_ring=None):
         """
