@@ -38,6 +38,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.arith import fundamental_discriminant
+from sage.misc.misc import verbose, cputime
 
 class DoubleCosetReduction(SageObject):
     r"""
@@ -307,7 +308,7 @@ class DoubleCosetReduction(SageObject):
             else:
                 self._cached_t = (self.igamma(tmp_prec)*e.opposite.rep).inverse()*self.x
                 # assert self._cached_t[1,0].valuation()>self._cached_t[1,1].valuation()
-            tmp_prec += 5
+            tmp_prec += 7
             self._t_prec = min([xx.precision_absolute() for xx in self._cached_t.list()])
         return self._cached_t
 
@@ -2265,6 +2266,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._R=Qp(self._p,prec = prec)
 
             if prec > self._prec:
+                verbose('self._prec = %s, prec = %s'%(self._prec,prec))
                 Iotamod = self._compute_embedding_matrix(prec)
                 self._Iotainv_lift = Iotamod.inverse().lift()
                 self._Iota = Matrix(self._R,4,4,[Iotamod[ii,jj] for ii in range(4) for jj in range(4)])
