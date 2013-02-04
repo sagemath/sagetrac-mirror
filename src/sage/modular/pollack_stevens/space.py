@@ -47,8 +47,6 @@ from fund_domain import ManinRelations
 from manin_map import ManinMap
 from sigma0 import Sigma0, Sigma0Element
 
-S0 = Sigma0(0)
-
 class PSModularSymbols_factory(UniqueFactory):
     r"""
     Create a space of Pollack-Stevens modular symbols.
@@ -117,9 +115,11 @@ class PSModularSymbols_factory(UniqueFactory):
             if isinstance(group, DirichletCharacter):
                 character = group.minimize_base_ring()
                 group = Gamma0(character.modulus())
-                character = (character, None)
+                if character.is_trivial():
+                    character = None
             else:
                 character = None
+
             if weight is None: raise ValueError("you must specify a weight or coefficient module")
 
             if prec_cap is None:
@@ -189,7 +189,7 @@ class PSModularSymbolSpace(Module):
         EXAMPLES::
 
             sage: D = Distributions(2, 11)
-            sage: M = PSModularSymbols(Gamma0(2), coefficients=D)
+            sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
             sage: type(M)
             <class 'sage.modular.pollack_stevens.space.PSModularSymbolSpace_with_category'>
             sage: TestSuite(M).run()
@@ -208,9 +208,15 @@ class PSModularSymbolSpace(Module):
         self._sign = sign
         # should distingish between Gamma0 and Gamma1...
         self._source = ManinRelations(group.level())
-        # We have to include the first action so that scaling by Z doesn't try to pass through matrices
-        actions = [PSModSymAction(ZZ, self), PSModSymAction(Sigma0(self.prime()), self)]
-        self._populate_coercion_lists_(action_list=actions)
+
+        # Register the action of 2x2 matrices on self. 
+        
+        if coefficients.is_symk():
+            action = PSModSymAction(Sigma0(1), self)
+        else:
+            action = PSModSymAction(Sigma0(self.prime()), self)
+            
+        self._populate_coercion_lists_(action_list=[action])
 
     def _element_constructor_(self, data):
         r"""
@@ -414,12 +420,13 @@ class PSModularSymbolSpace(Module):
                     [0 1], 4)], [(1, [1 0]
                         [0 1], 5)]]
         """
+        S0N = Sigma0(self._source._N)
         v = []
         for r in range(len(self._source.gens())):
             for j in range(len(self._source.reps())):
                 R = self._source.relations(j)
                 if len(R) == 1 and R[0][2] == self._source.indices(r):
-                    if R[0][0] != -1 or R[0][1] != S0(1):
+                    if R[0][0] != -1 or R[0][1] != S0N(1):
                         v = v + [R]
         return v
 
@@ -638,7 +645,7 @@ class PSModularSymbolSpace(Module):
         """
         return self(self.coefficient_module().an_element())
 
-    def random_element(self,M):
+    def random_element(self,M=None):
         r"""
         Returns a random OMS in this space with M moments
 
@@ -655,8 +662,6 @@ class PSModularSymbolSpace(Module):
         on the last divisor.
 
         """
-        if self.coefficient_module().is_symk():
-            raise ValueError("Not implemented for symk yet")
 
         k = self.coefficient_module()._k
         p = self.prime()
@@ -688,6 +693,11 @@ class PSModularSymbolSpace(Module):
         t = self.coefficient_module().zero_element()
         for g in manin.gens()[1:]:
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
+#                print "g:", g
+ #               print "D[g]:",D[g]
+  #              print "manin",manin.gammas[g]
+   #             print "D*m:",D[g] * manin.gammas[g]
+    #            print "-------"
                 t += D[g] * manin.gammas[g] - D[g]
             else:
                 if g in MR.reps_with_two_torsion():
@@ -711,8 +721,8 @@ class PSModularSymbolSpace(Module):
                 raise ValueError("everything is 2 or 3 torsion!  NOT YET IMPLEMENTED IN THIS CASE")
 
             gam = manin.gammas[g]
-            a = gam[0,0]
-            c = gam[1,0]
+            a = gam.matrix()[0,0]
+            c = gam.matrix()[1,0]
 
             if self.coefficient_module()._character != None:
                 chara = self.coefficient_module()._character(a)
@@ -725,16 +735,17 @@ class PSModularSymbolSpace(Module):
             D[g] += mu_1
             t = t + mu_1 * gam - mu_1
 
-#        for g in manin.gens()[1:]:
-#            print g,"--",D[g]
-
-        mu = t.solve_diff_eqn()
         Id = manin.gens()[0]
-        D[Id] = -mu
+        if not self.coefficient_module().is_symk():
+            mu = t.solve_diff_eqn()
+            D[Id] = -mu
+        else:
+            if self.coefficient_module()._k == 0:
+                D[Id] = self.coefficient_module().random_element()
+            else:
+                raise ValueError("Not implemented for symk with k>0 yet")
 
         return self(D)
-
-
 
 def cusps_from_mat(g):
     r"""
@@ -826,7 +837,7 @@ def ps_modsym_from_elliptic_curve(E):
         val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd) - minus_sym(bd)])
     return V(val)
 
-def ps_modsym_from_simple_modsym_space(A):
+def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     r"""
     Returns some choice -- only well defined up a nonzero scalar (!) -- of a
     Pollack-Stevens modular symbol that corresponds to ``A``.
@@ -959,6 +970,14 @@ def ps_modsym_from_simple_modsym_space(A):
         ...
         ValueError: A must positive dimension
 
+    We check that forms of nontrivial character are getting handled correctly::
+
+        sage: f = Newforms(Gamma1(13), names='a')[0]                 
+        sage: phi = f.PS_modular_symbol()
+        sage: phi.hecke(7)
+        Modular symbol of level 13 with values in Sym^0 (Number Field in alpha with defining polynomial x^2 + 3*x + 3)^2
+        sage: phi.hecke(7).values()
+        [0, 0, 0, 0, 0]
     """
     if A.dimension() == 0:
         raise ValueError, "A must positive dimension"
@@ -973,9 +992,10 @@ def ps_modsym_from_simple_modsym_space(A):
         raise ValueError, "A must be simple"
 
     M = A.ambient_module()
-    w = A.dual_eigenvector()
+    w = A.dual_eigenvector(name)
     K = w.base_ring()
-    V = PSModularSymbols(A.group(), A.weight()-2, base_ring=K, sign=A.sign())
+    chi = A.q_eigenform_character(name)
+    V = PSModularSymbols(chi, A.weight()-2, base_ring=K, sign=A.sign())
     D = V.coefficient_module()
     N = V.level()
     k = V.weight() # = A.weight() - 2

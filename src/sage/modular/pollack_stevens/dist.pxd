@@ -37,14 +37,14 @@ cdef class Dist_long(Dist):
 cdef class WeightKAction(Action):
     cdef public _k
     cdef public _character
-    cdef public _tuplegen
+    cdef public _adjuster
     cdef public _p
     cdef public _Np
     cdef public _actmat
     cdef public _maxprecs
     cdef public _symk
+    cdef public _dettwist
 
-    cpdef _check_mat(self, a, b, c, d)
     cpdef acting_matrix(self, g, M)
     cpdef _compute_acting_matrix(self, g, M)
 

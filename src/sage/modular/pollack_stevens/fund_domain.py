@@ -40,14 +40,22 @@ from copy import deepcopy
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import convergents,xgcd,gcd
 
-
 from sigma0 import Sigma0, Sigma0Element
-S0 = Sigma0(0)
 
-Id = S0([1,0,0,1])
-sig = S0([0,1,-1,0])
-tau = S0([0,-1,1,-1])
-minone_inf_path = S0([1,1,-1,0])
+M2ZSpace = MatrixSpace_ZZ_2x2()
+
+def M2Z(x):
+    r"""
+    Create an immutable 2x2 integer matrix from x.
+    """
+    x = M2ZSpace(x)
+    x.set_immutable()
+    return x
+
+Id = M2Z([1,0,0,1])
+sig = M2Z([0,1,-1,0])
+tau = M2Z([0,-1,1,-1])
+minone_inf_path = M2Z([1,1,-1,0])
 
 # We store these so that we don't have to constantly create them.
 t00 = (0,0)
@@ -82,8 +90,8 @@ class PSModularSymbolsDomain(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, S0
-        sage: PSModularSymbolsDomain(2 , [S0([1,0,0,1]), S0([1,1,-1,0]), S0([0,-1,1,1])], [0,2], [[(1, S0([1,0,0,1]), 0)], [(-1,S0([-1,-1,0,-1]),0)], [(1, S0([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
+        sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
+        sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})
         Modular Symbol domain of level 2
 
     TESTS:
@@ -117,7 +125,7 @@ class PSModularSymbolsDomain(SageObject):
         self._reps = reps
 
         self._indices = sorted(indices)
-        self._gens = [reps[i] for i in self._indices]
+        self._gens = [M2Z(reps[i]) for i in self._indices]
         self._ngens = len(indices)
 
         if len(rels) != len(reps):
@@ -138,8 +146,8 @@ class PSModularSymbolsDomain(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, S0
-            sage: PSModularSymbolsDomain(2 , [S0([1,0,0,1]), S0([1,1,-1,0]), S0([0,-1,1,1])], [0,2], [[(1, S0([1,0,0,1]), 0)], [(-1,S0([-1,-1,0,-1]),0)], [(1, S0([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
+            sage: from sage.modular.pollack_stevens.fund_domain import PSModularSymbolsDomain, M2Z
+            sage: PSModularSymbolsDomain(2 , [M2Z([1,0,0,1]), M2Z([1,1,-1,0]), M2Z([0,-1,1,1])], [0,2], [[(1, M2Z([1,0,0,1]), 0)], [(-1,M2Z([-1,-1,0,-1]),0)], [(1, M2Z([1,0,0,1]), 2)]], {(0,1): 0, (1,0): 1, (1,1): 2})._repr_()
             'Modular Symbol domain of level 2'
 
         """
@@ -506,8 +514,8 @@ class PSModularSymbolsDomain(SageObject):
         EXAMPLES::
 
             sage: from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
-            sage: S0 = MatrixSpace_ZZ_2x2()
-            sage: A = S0([5,3,38,23])
+            sage: M2Z = MatrixSpace_ZZ_2x2()
+            sage: A = M2Z([5,3,38,23])
             sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
             [26 11]
@@ -583,10 +591,12 @@ class ManinRelations(PSModularSymbolsDomain):
         if N <= 0:
             raise ValueError, "N must be a positive integer"
         self._N = N
+        SN = Sigma0(N)
 
         ## Creates and stores the Sage representation of P^1(Z/NZ)
         P = P1List(N)
         self._P = P
+        IdN = SN([1,0,0,1])
 
         ## Creates a fundamental domain for Gamma_0(N) whose boundary is a union
         ## of unimodular paths (except in the case of 3-torsion).
@@ -627,7 +637,7 @@ class ManinRelations(PSModularSymbolsDomain):
         ##
         ## This will be used for modular symbols as then the value of a
         ## modular symbol phi on the (associated divisor) of the j-th
-        ## element of coset_reps will be the sum of c * phi (r-th genetator) | A
+        ## element of coset_reps will be the sum of c * phi (r-th generator) | A
         ## as one varies over the tuples in rels[j]
 
         boundary_checked = [False] * len(coset_reps)
@@ -652,7 +662,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
                     ## this relation expresses the fact that
                     ## coset_reps[r] is one of our basic generators
-                    rels[r] = [(1,Id,r)]
+                    rels[r] = [(1,IdN,r)]
 
                     ## the index r is adding to our list
                     ## of indexes of generators
@@ -662,7 +672,7 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## generators which satisfy a 2-torsion relation
                     twotor_index.append(r)
 
-                    gam = coset_reps[r] * sig * coset_reps[r].inverse()
+                    gam = SN(coset_reps[r] * sig * coset_reps[r].inverse())
                     ## gam is 2-torsion matrix and in Gamma_0(N).
                     ## if D is the divisor associated to coset_reps[r]
                     ## then gam * D = - D and so (1+gam)D=0.
@@ -692,13 +702,13 @@ class ManinRelations(PSModularSymbolsDomain):
 
                         ## this relation expresses the fact that coset_reps[r]
                         ## is one of our basic generators
-                        rels[r] = [(1,Id,r)]
+                        rels[r] = [(1,IdN,r)]
 
                         ## the index r is adding to our list of indexes of
                         ## generators which satisfy a 3-torsion relation
                         threetor_index.append(r)
 
-                        gam = coset_reps[r] * tau * coset_reps[r].inverse()
+                        gam = SN(coset_reps[r] * tau * coset_reps[r].inverse())
                         ## gam is 3-torsion matrix and in Gamma_0(N).
                         ## if D is the divisor associated to coset_reps[r]
                         ## then (1+gam+gam^2)D=0.
@@ -716,12 +726,13 @@ class ManinRelations(PSModularSymbolsDomain):
 
                         a = coset_reps[r][t00]
                         b = coset_reps[r][t01]
-                        A = S0([-b,a,-d,c])
+
+                        A = M2Z([-b,a,-d,c])
                         coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
 
-                        rels.append([(-1,Id,r)])
+                        rels.append([(-1,IdN,r)])
                         ## This relation means that phi on the reversed edge
                         ## equals -phi on original edge
 
@@ -749,7 +760,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## the index r is adding to our list of
                                 ## indexes of generators
 
-                                rels[r] = [(1,Id,r)]
+                                rels[r] = [(1,IdN,r)]
                                 ## this relation expresses the fact that
                                 ## coset_reps[r] is one of our basic generators
 
@@ -757,7 +768,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## A corresponds to reversing the orientation
                                 ## of the edge corr. to coset_reps[r]
 
-                                gam = coset_reps[r] * A.inverse()
+                                gam = SN(coset_reps[r] * A.inverse())
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 
@@ -1311,9 +1322,9 @@ class ManinRelations(PSModularSymbolsDomain):
         c = r1.denominator()
         d = r2.denominator()
         if (a*d-b*c)==1:
-            ans = S0([a,b,c,d]), S0([-b,a,-d,c])
+            ans = M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
         else:
-            ans = S0([-a,b,-c,d]), S0([b,a,d,c])
+            ans = M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
         return ans
 
     def fd_boundary(self,C):
@@ -1390,7 +1401,7 @@ class ManinRelations(PSModularSymbolsDomain):
             b = C[j+1].numerator()
             c = C[j].denominator()
             d = C[j+1].denominator()
-            new_mat = S0([a,b,c,d])
+            new_mat = M2Z([a,b,c,d])
             mats.append(new_mat)
 
         return mats
@@ -1463,6 +1474,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         """
         N = self.level()
+        SN = Sigma0(N)
 
         ans = {}
         for h in self:
@@ -1494,7 +1506,7 @@ class ManinRelations(PSModularSymbolsDomain):
                    gaminv = B * C
                    #  The matrix gaminv * gamma is added to our list in the j-th slot
                    #  (as described above)
-                   tmp = gaminv * gamma
+                   tmp = SN(gaminv * gamma)
                    ans[B].append(tmp)
 
         return ans
@@ -1533,6 +1545,6 @@ def basic_hecke_matrix(a, l):
 
     """
     if a < l:
-        return S0([1, a, 0, l])
+        return M2Z([1, a, 0, l])
     else:
-        return S0([l, 0, 0, 1])
+        return M2Z([l, 0, 0, 1])

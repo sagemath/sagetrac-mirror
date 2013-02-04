@@ -1,4 +1,4 @@
-#*****************************************************************************
+
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -24,12 +24,11 @@ from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from fund_domain import Id
-from manin_map import ManinMap
+from manin_map import ManinMap, M2Z
 from padic_lseries import pAdicLseries
 from sigma0 import Sigma0
-S0 = Sigma0(0)
 
-minusproj = S0([1,0,0,-1])
+minusproj = [1,0,0,-1]
 
 
 class PSModSymAction(Action):
@@ -252,7 +251,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(2), coefficients=D)
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(5), coefficients=D)
             sage: f = M(1); f._get_prime()
             5
             sage: f._get_prime(5)
@@ -304,7 +303,8 @@ class PSModularSymbolElement(ModuleElement):
             sage: (phi.plus_part()+phi.minus_part()) == 2 * phi
             True
         """
-        return self * minusproj + self
+        S0N = Sigma0(self.parent().level())
+        return self + self * S0N(minusproj)
 
     def minus_part(self):
         r"""
@@ -325,7 +325,8 @@ class PSModularSymbolElement(ModuleElement):
             sage: (phi.plus_part()+phi.minus_part()) == phi * 2
             True
         """
-        return self - self * minusproj
+        S0N = Sigma0(self.parent().level())
+        return self - self * S0N(minusproj)
 
     def hecke(self, ell, algorithm="prep"):
         r"""
@@ -662,6 +663,8 @@ class PSModularSymbolElement(ModuleElement):
                     
         id = MR.gens()[0]
         if f[id]*MR.gammas[id] - f[id] != -t:
+            print t
+            print f[id]*MR.gammas[id] - f[id]
             raise ValueError("Does not add up correctly around loop")
 
         print "This modular symbol satisfies the manin relations"
@@ -696,7 +699,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     def _find_alpha(self, p, k, M=None, ap=None, new_base_ring=None, ordinary=True, check=True, find_extraprec=True):
         r"""
         Finds `alpha`, a `U_p` eigenvalue, which is found as a root of
-        the polynomial `x^2 - ap * x + p^(k+1)`.
+        the polynomial `x^2 - ap * x + p^(k+1)*chi(p)`.
 
         INPUT:
 
@@ -747,7 +750,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             ap = self.Tq_eigenvalue(p, check=check)
         if check and ap.valuation(p) > 0:
             raise ValueError("p is not ordinary")
-        poly = PolynomialRing(ap.parent(), 'x')([p**(k+1), -ap, 1])
+
+        chi = self._map._codomain._character
+        if chi is not None:
+            eps = chi(p)
+        else:
+            eps = 1
+        poly = PolynomialRing(ap.parent(), 'x')([p**(k+1) * eps, -ap, 1])
         if new_base_ring is None:
             # These should actually be completions of disc.parent()
             if p == 2:
@@ -848,6 +857,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: phis = phi.p_stabilize(p,M = prec,ordinary=False)
             sage: phis.Tq_eigenvalue(5)
             5 + 5^2 + 2*5^3 + O(5^4)
+
+        A complicated example (with nontrivial character)::
+
+            sage: chi = DirichletGroup(24)([-1, -1, -1])
+            sage: f = Newforms(chi,names='a')[0]
+            sage: phi = f.PS_modular_symbol()
+            sage: phi11, h11 = phi.completions(11,5)[0]
+            sage: phi11s = phi11.p_stabilize()
+            sage: phi11s.is_Tq_eigensymbol(11)         
+            True
         """
         if check:
             p = self._get_prime(p, alpha)
@@ -895,7 +914,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: D = ModularSymbols(67,2,1).cuspidal_submodule().new_subspace().decomposition()[1]
             sage: f = ps_modsym_from_simple_modsym_space(D)
-            sage: f.completions(41,10)
+            sage: S = f.completions(41,10); S
             [(Modular symbol of level 67 with values in Sym^0 Q_41^2, Ring morphism:
               From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
               To:   41-adic Field with capped relative precision 10
@@ -903,6 +922,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
               From: Number Field in alpha with defining polynomial x^2 + 3*x + 1
               To:   41-adic Field with capped relative precision 10
               Defn: alpha |--> 33 + 18*41 + 21*41^2 + 30*41^3 + 12*41^4 + 18*41^5 + 31*41^6 + 15*41^7 + 32*41^9 + O(41^10))]
+            sage: TestSuite(S[0][0]).run()
         """
         K = self.base_ring()
         R = Qp(p,M+10)['x']
@@ -918,7 +938,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             V = self.parent().change_ring(L)
             Dist = V.coefficient_module()
             psi = K.hom([K.gen()],L)
-            embedded_sym = self.__class__(self._map.apply(psi,codomain=Dist, to_moments=True),V, construct=True)
+            embedded_sym = self.parent().element_class(self._map.apply(psi,codomain=Dist, to_moments=True),V, construct=True)
             ans = [embedded_sym,psi]
             return ans
         else:
@@ -928,7 +948,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             Dist = V.coefficient_module()
             for r in roots:
                 psi = K.hom([r],Qp(p,M))
-                embedded_sym = self.__class__(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
+                embedded_sym = self.parent().element_class(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
                 ans.append((embedded_sym,psi))
             return ans
 
@@ -1051,8 +1071,9 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: E = EllipticCurve('11a')
             sage: phi = E.PS_modular_symbol()
             sage: Phi = phi.lift(11,5,algorithm='greenberg')
-            sage: Phi.values()
-            [(2 + 2*11 + 2*11^2 + 2*11^3 + 2*11^4 + O(11^5), 8 + 6*11 + 3*11^2 + 5*11^3 + O(11^4), 5 + 4*11 + 4*11^2 + O(11^3), 5 + 6*11 + O(11^2), 7 + O(11)), (7 + 5*11 + 5*11^2 + 5*11^3 + 5*11^4 + O(11^5), 7 + 7*11 + 11^2 + 10*11^3 + O(11^4), 6 + 8*11 + O(11^3), 6 + 5*11 + O(11^2), 9 + O(11)), (5 + 5*11 + 5*11^2 + 5*11^3 + 5*11^4 + O(11^5), 7 + 4*11 + 11^2 + 11^3 + O(11^4), 10 + 11 + 7*11^2 + O(11^3), 2 + 3*11 + O(11^2), 5 + O(11))]
+            sage: Phi2 = phi.lift(11,5,algorithm='stevens',eigensymbol=True)
+            sage: Phi == Phi2
+            True
 
         An example in higher weight::
 
@@ -1060,13 +1081,11 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: fs = f.p_stabilize(5)
             sage: FsG = fs.lift(M=6, eigensymbol=True,algorithm='greenberg') 
             sage: FsG.values()[0]
-            (2 + 5 + 3*5^2 + 4*5^3 + 2*5^5 + O(5^6), O(5^5), 2*5 + 3*5^2 + O(5^4), O(5^3), 5 + O(5^2), O(5))
+            (2 + 5 + 3*5^2 + 4*5^3 + O(5^6), O(5^5), 2*5 + 3*5^2 + O(5^4), O(5^3), 5 + O(5^2), O(5))
             sage: FsS = fs.lift(M=6, eigensymbol=True,algorithm='stevens') 
-            sage: FsS.values()[0]                                         
-            (2 + 5 + 3*5^2 + 4*5^3 + O(5^6), O(5^5), 2*5 + 3*5^2 + O(5^4), O(5^3), 5 + O(5^2), O(5))            
+            sage: FsS == FsG
+            True
         """
-        #FIXME: The above doctests show a discrepancy! Presumably the Stevens
-        #algorithm is correct as FsS is an eigensymbol, whereas FsG isn't.
         p = self._get_prime(p)
 
         #Right now this is actually slower than the Stevens algorithm. Probably due to bad coding.
@@ -1076,13 +1095,13 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         gens = MS.source().gens()
         if new_base_ring == None:
             new_base_ring = MS.base_ring()
-        MS1 = MS._lift_parent_space(p, self.weight() + 2, new_base_ring)
-        CM1 = MS1.coefficient_module()
+        MSnew = MS._lift_parent_space(p, M, new_base_ring)
+        CMnew = MSnew.coefficient_module()
         D = {}
         gens = MS.source().gens()
         for j in range(len(gens)):
-            D[gens[j]] = CM1( self.values()[j]._moments.list() + [0] )
-        Phi1bad = MS1(D)
+            D[gens[j]] = CMnew( self.values()[j]._moments.list() + [0] )
+        Phi1bad = MSnew(D)
         
         #fix the lift by applying a hecke operator
         Phi1 = Phi1bad.hecke(p)
@@ -1093,22 +1112,20 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         if M<=2:
             return Phi1
         else:
-            padic_prec=15 #FIXME: 
+            padic_prec=M + 1
             R = Qp(p,padic_prec)
 
             def green_lift_once(Phi1, self, r):
-                MS2 = MS._lift_parent_space(p,r+1,new_base_ring)
-                CM2 = MS2.coefficient_module()
                 newvalues = []
                 for adist in Phi1.values():
                     newdist = [R(moment).lift_to_precision(moment.precision_absolute()+1) for moment in adist._moments] + [0]
-                    for s in xrange(self.weight()):
+                    for s in xrange(self.weight()+1):
                         newdist[s] = R(self.values()[Phi1.values().index(adist)].moment(s), r+1)
                     newvalues.append(newdist)
                 D2 = {}
                 for j in range(len(gens)):
-                    D2[ gens[j]] = CM2( newvalues[j] )
-                Phi2 = MS2(D2)
+                    D2[ gens[j]] = CMnew( newvalues[j] )
+                Phi2 = MSnew(D2)
                 Phi2 = Phi2.hecke(p)
                 return Phi2 / self.Tq_eigenvalue(p)
  
@@ -1284,13 +1301,15 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         k = self.parent().weight()
         aq = self.Tq_eigenvalue(q, check=check)
         eisenloss = (aq - q**(k+1) - 1).valuation(p)
-        while (q == p) or (N % q == 0) or (eisenloss >= M):
+        while ((q == p) or (N % q == 0) or (eisenloss >= M)) and (q<50):
             q = next_prime(q)
             aq = self.Tq_eigenvalue(q, check=check)
             if q != p:
                 eisenloss = (aq - q**(k+1) - 1).valuation(p)
             else:
                 eisenloss = (aq - 1).valuation(p)
+        if q >= 50:
+            raise ValueError("The symbol appears to be eisenstein -- not implemented yet")
         return q, aq, eisenloss
 
     def _find_extraprec(self, p, M, alpha, check):
@@ -1474,26 +1493,26 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
 
         EXAMPLES::
 
-            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(2), coefficients=D); M
-            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
+            sage: D = Distributions(0, 5, 10);  M = PSModularSymbols(Gamma0(5), coefficients=D); M
+            Space of overconvergent modular symbols for Congruence Subgroup Gamma0(5) with sign 0 and values in Space of 5-adic distributions with k=0 action and precision cap 10
             sage: f = M(1)
             sage: f.specialize()
-            Modular symbol of level 2 with values in Sym^0 Z_5^2
+            Modular symbol of level 5 with values in Sym^0 Z_5^2
             sage: f.specialize().values()
-            [1 + O(5^10), 1 + O(5^10)]
+            [1 + O(5^10), 1 + O(5^10), 1 + O(5^10)]
             sage: f.values()
-            [1, 1]
+            [1, 1, 1]
             sage: f.specialize().parent()
-            Space of modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Sym^0 Z_5^2
+            Space of modular symbols for Congruence Subgroup Gamma0(5) with sign 0 and values in Sym^0 Z_5^2
             sage: f.specialize().parent().coefficient_module()
             Sym^0 Z_5^2
             sage: f.specialize().parent().coefficient_module().is_symk()
             True
 
             sage: f.specialize(QQ)
-            Modular symbol of level 2 with values in Sym^0 Q^2
+            Modular symbol of level 5 with values in Sym^0 Q^2
             sage: f.specialize(QQ).values()
-            [1, 1]
+            [1, 1, 1]
             sage: f.specialize(QQ).parent().coefficient_module()
             Sym^0 Q^2
         """

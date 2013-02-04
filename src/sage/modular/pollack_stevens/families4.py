@@ -4,10 +4,10 @@ from families_util import automorphy_factor_matrix
 class WeightKAction_fam(WeightKAction_vector):
     """
     """
-    def __init__(self, Dk, character, tuplegen, on_left):
+    def __init__(self, Dk, character, adjuster, on_left):
         #Only difference is that it adds a cache for automorphy factors.
         self._autfactors = {}
-        WeightKAction_vector.__init___(self, Dk, character, tuplegen, on_left)
+        WeightKAction_vector.__init___(self, Dk, character, adjuster, on_left)
     
     def clear_cache(self):
         #Only difference is that it clears the cache for automorphy factors.

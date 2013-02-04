@@ -23,34 +23,13 @@ from sage.categories.modules import Modules
 from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
 from sage.matrix.all import MatrixSpace
 from sage.rings.fast_arith import prime_range
-from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long, iScale
+from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long
 from sage.structure.factory import UniqueFactory
 from sage.structure.unique_representation import UniqueRepresentation
 import operator
 import sage.rings.ring as ring
 
-# Need this to be pickleable
-class _default_tuplegen(UniqueRepresentation):
-    """
-    Callable object that turns matrices into 4-tuples.
-
-    EXAMPLES::
-
-        sage: A = sage.modular.pollack_stevens.distributions._default_tuplegen(); A
-        <sage.modular.pollack_stevens.distributions._default_tuplegen object at 0x...>
-        sage: TestSuite(A).run()
-    """
-    def __call__(self, g):
-        """
-        EXAMPLES::
-
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
-            sage: T = sage.modular.pollack_stevens.distributions._default_tuplegen()
-            sage: T(matrix(ZZ,2,[1..4]))
-            (1, 2, 3, 4)
-        """
-        return g[0,0], g[0,1], g[1,0], g[1,1]
-
+from sigma0 import _default_adjuster
 
 class Distributions_factory(UniqueFactory):
     """
@@ -64,10 +43,10 @@ class Distributions_factory(UniqueFactory):
     - ``base`` -- ring or None
     - ``symk`` -- bool or None
     - ``character`` -- a dirichlet character or None
-    - ``tuplegen`` -- None or callable that turns 2x2 matrices into a 4-tuple
+    - ``adjuster`` -- None or callable that turns 2x2 matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
     """
-    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, tuplegen=None, act_on_left=False):
+    def create_key(self, k, p=None, prec_cap=None, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
         """
         EXAMPLES::
 
@@ -77,8 +56,7 @@ class Distributions_factory(UniqueFactory):
             sage: TestSuite(Distributions).run()
         """
         k = ZZ(k)
-        if tuplegen is None:
-            tuplegen = _default_tuplegen()
+
         if p is None:
             try:
                 p = base.prime()
@@ -86,17 +64,28 @@ class Distributions_factory(UniqueFactory):
                 raise ValueError("You must specify a prime")
         else:
             p = ZZ(p)
+        
         if base is None:
             if prec_cap is None:
                 base = ZpCA(p)
             else:
                 base = ZpCA(p, prec_cap)
+        
         if prec_cap is None:
             try:
                 prec_cap = base.precision_cap()
             except AttributeError:
                 raise ValueError("You must specify a base or precision cap")
-        return (k, p, prec_cap, base, character, tuplegen, act_on_left, False)
+
+        if adjuster is None:
+            adjuster = _default_adjuster()
+
+        if dettwist is not None:
+            dettwist = ZZ(dettwist)
+            if dettwist == 0: 
+                dettwist = None
+
+        return (k, p, prec_cap, base, character, adjuster, act_on_left, dettwist)
 
     def create_object(self, version, key):
         """
@@ -117,7 +106,7 @@ class Symk_factory(UniqueFactory):
     - ``k`` (integer): the degree (degree `k` corresponds to weight `k + 2` modular forms)
     - ``base`` (ring, default None): the base ring (None is interpreted as `\QQ`)
     - ``character`` (Dirichlet character or None, default None) the character
-    - ``tuplegen`` (None or a callable that turns 2x2 matrices into a 4-tuple, default None)
+    - ``adjuster`` (None or a callable that turns 2x2 matrices into a 4-tuple, default None)
     - ``act_on_left`` (boolean, default False) whether to have the group acting
       on the left rather than the right.
 
@@ -133,7 +122,7 @@ class Symk_factory(UniqueFactory):
         sage: Symk(5, act_on_left = True)
         Sym^5 Q^2
     """
-    def create_key(self, k, base=None, character=None, tuplegen=None, act_on_left=False):
+    def create_key(self, k, base=None, character=None, adjuster=None, act_on_left=False):
         r"""
         Sanitize input.
 
@@ -147,12 +136,12 @@ class Symk_factory(UniqueFactory):
             sage: TestSuite(V).run()
         """
         k = ZZ(k)
-        if tuplegen is None:
-            tuplegen = _default_tuplegen()
+        if adjuster is None:
+            adjuster = _default_adjuster()
         prec_cap = k+1
         if base is None:
             base = QQ
-        return (k, base, character, tuplegen, act_on_left)
+        return (k, base, character, adjuster, act_on_left)
 
     def create_object(self, version, key):
         r"""
@@ -179,7 +168,7 @@ class Distributions_abstract(Module):
         Space of 17-adic distributions with k=2 action and precision cap 100
     """
     def __init__(self, k, p=None, prec_cap=None, base=None, character=None, \
-                 tuplegen=None, act_on_left=False, symk=False):
+                 adjuster=None, act_on_left=False, dettwist=None):
         """
         INPUT:
 
@@ -187,20 +176,14 @@ class Distributions_abstract(Module):
         - `p`             -- None or prime
         - ``prec_cap``    -- None or positive integer
         - ``base``        -- None or TODO
-        - ``character``   --
-          - None (default)
-          - (chi, None)
-          - (None, n) (n integral)
-          - (chi, n)
-          - lambda (for n half-integral use this form)
-        - ``tuplegen``    -- None or TODO
+        - ``character``   -- None or Dirichlet character
+        - ``adjuster``    -- None or TODO
         - ``act_on_left`` -- bool (default: False)
-        - ``symk``        -- flag to store whether this is a space of Sym^k
-            distributions (which need to be handled slightly differently).
+        - ``dettwist``    -- None or integer (twist by determinant). Ignored for Symk spaces
 
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Distributions, Symk
+            sage: from sage.modular.pollack_stevens.distributions import Distributions
             sage: D = Distributions(2, 3, 5); D
             Space of 3-adic distributions with k=2 action and precision cap 5
             sage: type(D)
@@ -217,7 +200,7 @@ class Distributions_abstract(Module):
             raise TypeError("base must be a ring")
         from sage.rings.padics.pow_computer import PowComputer_long
         # should eventually be the PowComputer on ZpCA once that uses longs.
-        Dist, WeightKAction = get_dist_classes(p, prec_cap, base, symk)
+        Dist, WeightKAction = get_dist_classes(p, prec_cap, base, self.is_symk())
         self.Element = Dist
         if Dist is Dist_long:
             self.prime_pow = PowComputer_long(p, prec_cap, prec_cap, prec_cap, 0)
@@ -226,21 +209,14 @@ class Distributions_abstract(Module):
         self._p = p
         self._prec_cap = prec_cap
         self._character = character
-        self._symk = symk
-        act = WeightKAction(self, character, tuplegen, act_on_left)
-        self._act = act
+        self._adjuster=adjuster
 
-        actlist = [iScale(self, ZZ,True),iScale(self, ZZ,False),iScale(self, QQ,True),
-            iScale(self, QQ,False),iScale(self, base,True),iScale(self, base,False)]
-        if symk:
-            actlist.append(act)
+        if self.is_symk() or character is not None:
+            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist)
+        else: 
+            self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist, padic=True)
 
-        if not symk: 
-            act_S0p = WeightKAction(self, character, tuplegen, act_on_left, padic=True)
-            self._act_S0p = act_S0p
-            actlist += [act_S0p]
-
-        self._populate_coercion_lists_(action_list=actlist)
+        self._populate_coercion_lists_(action_list=[self._act])
 
     def _coerce_map_from_(self, other):
         """
@@ -266,17 +242,28 @@ class Distributions_abstract(Module):
             and other._k == self._k \
             and self._character == other._character \
             and self.base_ring().has_coerce_map_from(other.base_ring()) \
-            and (self._symk or not other._symk):
+            and (self.is_symk() or not other.is_symk()):
             return True
         else:
             return False
             
 
-    def acting_matrix(self,g,M,padic = False):
-        if padic:
-            return self._act_S0p.acting_matrix(g,M)
-        else:
-            return self._act.acting_matrix(g,M)
+    def acting_matrix(self, g, M):
+        r"""
+        Return the matrix for the action of g on self, truncated to the first M moments.
+        
+        EXAMPLE::
+
+            sage: V = Symk(3)
+            sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
+            sage: V.acting_matrix(Sigma0(1)([3,4,0,1]), 4)
+            [27 36 48 64]
+            [ 0  9 24 48]
+            [ 0  0  3 12]
+            [ 0  0  0  1]
+        """
+        # TODO: Add examples with a non-default action adjuster
+        return self._act.acting_matrix(g,M)
 
     def prime(self):
         """
@@ -387,7 +374,7 @@ class Distributions_abstract(Module):
             M = self._prec_cap
         elif M > self._prec_cap:
             raise ValueError("M must be less than or equal to the precision cap")
-        elif M < self._prec_cap and self._symk:
+        elif M < self._prec_cap and self.is_symk():
             raise ValueError("Sym^k objects do not support approximation modules")
         return self.base_ring()**M
 
@@ -473,7 +460,7 @@ class Distributions_abstract(Module):
 
 class Symk_class(Distributions_abstract):
 
-    def __init__(self, k, base, character, tuplegen, act_on_left):
+    def __init__(self, k, base, character, adjuster, act_on_left):
         r"""
         EXAMPLE::
 
@@ -485,7 +472,7 @@ class Symk_class(Distributions_abstract):
             p = base.prime()
         else:
             p = ZZ(0)
-        Distributions_abstract.__init__(self, k, p, k+1, base, character, tuplegen, act_on_left, symk=True)
+        Distributions_abstract.__init__(self, k, p, k+1, base, character, adjuster, act_on_left, None)
 
     def _an_element_(self):
         r"""
@@ -565,9 +552,17 @@ class Symk_class(Distributions_abstract):
             sage: D2.base_ring()
             7-adic Field with capped relative precision 20
         """
-        return Symk(k=self._k, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Symk(k=self._k, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
 
     def base_extend(self, new_base_ring):
+        r"""
+        Extend scalars to a new base ring.
+
+        EXAMPLE::
+
+            sage: Symk(3).base_extend(Qp(3))
+            Sym^3 Q_3^2
+        """
         if not new_base_ring.has_coerce_map_from(self.base_ring()):
             raise ValueError("New base ring (%s) does not have a coercion from %s" % (new_base_ring, self.base_ring()))
         return self.change_ring(new_base_ring)
@@ -596,8 +591,9 @@ class Symk_class(Distributions_abstract):
             7-adic Field with capped relative precision 15
         """
         if self._character is not None:
+            if self._character.base_ring() != QQ:
             # need to change coefficient ring for character
-            raise NotImplementedError
+                raise NotImplementedError
         if M is None:
             M = self._prec_cap + 1
 
@@ -617,7 +613,7 @@ class Symk_class(Distributions_abstract):
             p = pp
         elif p != pp:
             raise ValueError("Inconsistent primes")
-        return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=p, prec_cap=M, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
 
 class Distributions_class(Distributions_abstract):
     r"""
@@ -679,7 +675,7 @@ class Distributions_class(Distributions_abstract):
             sage: D2.base_ring()
             7-adic Field with capped relative precision 20
         """
-        return Distributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, character=self._character, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Distributions(k=self._k, p=self._p, prec_cap=self._prec_cap, base=new_base_ring, character=self._character, adjuster=self._adjuster, act_on_left=self._act.is_left())
 
     def specialize(self, new_base_ring=None):
         """
@@ -705,4 +701,4 @@ class Distributions_class(Distributions_abstract):
             raise NotImplementedError
         if new_base_ring is None:
             new_base_ring = self.base_ring()
-        return Symk(k=self._k, base=new_base_ring, tuplegen=self._act._tuplegen, act_on_left=self._act.is_left())
+        return Symk(k=self._k, base=new_base_ring, adjuster=self._adjuster, act_on_left=self._act.is_left())
