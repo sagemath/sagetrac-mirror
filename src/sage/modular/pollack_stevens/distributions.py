@@ -41,10 +41,23 @@ class Distributions_factory(UniqueFactory):
     - `p` -- prime number or None
     - ``prec_cap`` -- positive integer or None
     - ``base`` -- ring or None
-    - ``symk`` -- bool or None
     - ``character`` -- a dirichlet character or None
     - ``adjuster`` -- None or callable that turns 2x2 matrices into a 4-tuple
     - ``act_on_left`` -- bool (default: False)
+    - ``dettwist`` -- integer or None (interpreted as 0)
+
+    EXAMPLES::
+
+        sage: D = Distributions(3, 11, 20)                                  
+        sage: D                     
+        Space of 11-adic distributions with k=3 action and precision cap 20
+        sage: v = D([1,0,0,0,0])
+        sage: v.act_right([2,1,0,1])
+        (8 + O(11^5), 4 + O(11^4), 2 + O(11^3), 1 + O(11^2), 6 + O(11))
+        sage: D = Distributions(3, 11, 20, dettwist=1)
+        sage: v = D([1,0,0,0,0])                      
+        sage: v.act_right([2,1,0,1])                  
+        (5 + 11 + O(11^5), 8 + O(11^4), 4 + O(11^3), 2 + O(11^2), 1 + O(11))
     """
     def create_key(self, k, p=None, prec_cap=None, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
         """
@@ -109,6 +122,7 @@ class Symk_factory(UniqueFactory):
     - ``adjuster`` (None or a callable that turns 2x2 matrices into a 4-tuple, default None)
     - ``act_on_left`` (boolean, default False) whether to have the group acting
       on the left rather than the right.
+    - ``dettwist`` (integer or None) -- power of determinant to twist by
 
     EXAMPLE::
 
@@ -121,8 +135,19 @@ class Symk_factory(UniqueFactory):
         Sym^5 (The Infinity Ring)^2
         sage: Symk(5, act_on_left = True)
         Sym^5 Q^2
+
+    The ``dettwist`` attribute::
+
+        sage: V = Symk(6) 
+        sage: v = V([1,0,0,0,0,0,0])
+        sage: v.act_right([2,1,0,1])
+        (64, 32, 16, 8, 4, 2, 1)
+        sage: V = Symk(6, dettwist=-1)
+        sage: v = V([1,0,0,0,0,0,0])                     
+        sage: v.act_right([2,1,0,1])
+        (32, 16, 8, 4, 2, 1, 1/2)
     """
-    def create_key(self, k, base=None, character=None, adjuster=None, act_on_left=False):
+    def create_key(self, k, base=None, character=None, adjuster=None, act_on_left=False, dettwist=None):
         r"""
         Sanitize input.
 
@@ -141,7 +166,7 @@ class Symk_factory(UniqueFactory):
         prec_cap = k+1
         if base is None:
             base = QQ
-        return (k, base, character, adjuster, act_on_left)
+        return (k, base, character, adjuster, act_on_left, dettwist)
 
     def create_object(self, version, key):
         r"""
@@ -210,6 +235,7 @@ class Distributions_abstract(Module):
         self._prec_cap = prec_cap
         self._character = character
         self._adjuster=adjuster
+        self._dettwist=dettwist
 
         if self.is_symk() or character is not None:
             self._act = WeightKAction(self, character, adjuster, act_on_left, dettwist)
@@ -460,7 +486,7 @@ class Distributions_abstract(Module):
 
 class Symk_class(Distributions_abstract):
 
-    def __init__(self, k, base, character, adjuster, act_on_left):
+    def __init__(self, k, base, character, adjuster, act_on_left, dettwist):
         r"""
         EXAMPLE::
 
@@ -472,7 +498,7 @@ class Symk_class(Distributions_abstract):
             p = base.prime()
         else:
             p = ZZ(0)
-        Distributions_abstract.__init__(self, k, p, k+1, base, character, adjuster, act_on_left, None)
+        Distributions_abstract.__init__(self, k, p, k+1, base, character, adjuster, act_on_left, dettwist)
 
     def _an_element_(self):
         r"""
@@ -492,15 +518,16 @@ class Symk_class(Distributions_abstract):
         """
         EXAMPLES::
 
-            sage: from sage.modular.pollack_stevens.distributions import Symk
-            sage: Distributions(0, 5, 10)._repr_()
-            'Space of 5-adic distributions with k=0 action and precision cap 10'
-            sage: Distributions(0, 5, 10)
-            Space of 5-adic distributions with k=0 action and precision cap 10
-            sage: Symk(0)
-            Sym^0 Q^2
+            sage: Symk(6)
+            Sym^6 Q^2
+            sage: Symk(6,dettwist=3)
+            Sym^6 Q^2 * det^3
+            sage: Symk(6,character=DirichletGroup(7,QQ).0) 
+            Sym^6 Q^2 twisted by Dirichlet character modulo 7 of conductor 7 mapping 3 |--> -1
+            sage: Symk(6,character=DirichletGroup(7,QQ).0,dettwist=3)
+            Sym^6 Q^2 * det^3 twisted by Dirichlet character modulo 7 of conductor 7 mapping 3 |--> -1
+
         """
-        # TODO: maybe account for character, etc.
         if self.base_ring() is QQ:
             V = 'Q^2'
         elif self.base_ring() is ZZ:
@@ -512,7 +539,12 @@ class Symk_class(Distributions_abstract):
                 V = 'Z_%s^2'%(self._p)
         else:
             V = '(%s)^2'%(self.base_ring())
-        return "Sym^%s %s"%(self._k, V)
+        s = "Sym^%s %s" % (self._k, V)
+        if self._dettwist is not None:
+            s += " * det^%s" % self._dettwist
+        if self._character is not None:
+            s += " twisted by %s" % self._character
+        return s
 
     def is_symk(self):
         """
@@ -633,9 +665,27 @@ class Distributions_class(Distributions_abstract):
             'Space of 5-adic distributions with k=0 action and precision cap 10'
             sage: Distributions(0, 5, 10)
             Space of 5-adic distributions with k=0 action and precision cap 10
+
+        Examples with twists::
+
+            sage: Distributions(0,3,4)                               
+            Space of 3-adic distributions with k=0 action and precision cap 4
+            sage: Distributions(0,3,4,dettwist=-1)
+            Space of 3-adic distributions with k=0 action and precision cap 4 twistted by det^-1
+            sage: Distributions(0,3,4,character=DirichletGroup(3).0)
+            Space of 3-adic distributions with k=0 action and precision cap 4 twistted by (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1)
+            sage: Distributions(0,3,4,character=DirichletGroup(3).0,dettwist=-1)
+            Space of 3-adic distributions with k=0 action and precision cap 4 twistted by det^-1 * (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1)
         """
-        # TODO: maybe account for character, etc.
-        return "Space of %s-adic distributions with k=%s action and precision cap %s"%(self._p, self._k, self._prec_cap)
+        s = "Space of %s-adic distributions with k=%s action and precision cap %s"%(self._p, self._k, self._prec_cap)
+        twiststuff = []
+        if self._dettwist is not None:
+           twiststuff.append("det^%s" % self._dettwist)
+        if self._character is not None:
+            twiststuff.append("(%s)" % self._character)
+        if twiststuff:
+            s += " twistted by " + " * ".join(twiststuff)
+        return s
 
     def is_symk(self):
         """
