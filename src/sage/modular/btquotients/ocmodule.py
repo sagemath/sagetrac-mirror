@@ -258,7 +258,7 @@ class OCVnElement(ModuleElement):
         """
         #This needs to be thought more carefully...
         if not self._parent.base_ring().is_exact():
-            return [self._val[ii,0].precision_relative() for ii in range(self._depth)]
+            return min([self._val[ii,0].precision_relative() for ii in range(self._depth)])
         else:
             return Infinity
 

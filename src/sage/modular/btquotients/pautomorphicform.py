@@ -32,7 +32,7 @@ from itertools import imap,starmap,izip
 from sage.modular.pollack_stevens.sigma0 import Sigma0,Sigma0ActionAdjuster
 from operator import mul
 
-use_ps_dists = False
+use_ps_dists = True
 
 def eval_dist_at_powseries(phi,f):
     """
@@ -1600,9 +1600,9 @@ class pAutomorphicFormElement(ModuleElement):
         EXAMPLES::
 
             sage: X = BTQuotient(7,2)
-            sage: H = HarmonicCocycles(X,2,prec=10)
+            sage: H = HarmonicCocycles(X,2,prec = 10)
             sage: h = H.gen(0)
-            sage: A = pAutomorphicForms(X,2,prec=10,overconvergent=True)
+            sage: A = pAutomorphicForms(X,2,prec = 10,overconvergent=True)
             sage: a = A.lift(h) # indirect doctest
 
         REFERENCES:
@@ -1618,7 +1618,14 @@ class pAutomorphicFormElement(ModuleElement):
 
         """
         MMM = self.parent()
-        h2 = MMM._apply_Up_operator(self,True)
+        if use_ps_dists:
+            if MMM._U.is_symk():
+                return
+        U = MMM._U
+        h1 = MMM(self)
+        if use_ps_dists:
+            h1._value = [o.lift(M = MMM.precision_cap()) for o in h1._value]
+        h2 = MMM._apply_Up_operator(h1,True)
         verbose("Applied Up once")
         ii = 0
         current_val = 0
@@ -1627,14 +1634,14 @@ class pAutomorphicFormElement(ModuleElement):
         while ii < MMM.precision_cap(): #current_val > old_val:
             old_val = current_val
             ii += 1
-            self._value = [self.parent()._U(c) for c in h2._value]
+            self._value = [U(c) for c in h2._value]
             h2 = MMM._apply_Up_operator(self,scale = True)
             current_val = (h2-self).valuation()-init_val
             verbose('val  = %s'%current_val)
             if current_val is Infinity:
                 break
             verbose('Applied Up %s times'%(ii+1))
-        self._value = [self.parent()._U(c) for c in h2._value]
+        self._value = [U(c) for c in h2._value]
 
     def integrate(self,f,center = 1,level = 0,method = 'moments'):
         r"""
@@ -1679,6 +1686,8 @@ class pAutomorphicFormElement(ModuleElement):
             sage: h = H.gen(0)
             sage: A = pAutomorphicForms(X,2,prec = 5,overconvergent=True)
             sage: a = A.lift(h)
+            sage: a._value[0].moment(2)
+            2 + 6*7 + 4*7^2 + 4*7^3 + 6*7^4 + O(7^5)
 
         Now that we've lifted our harmonic cocycle to an
         overconvergent automorphic form we simply need to define the
@@ -2387,9 +2396,9 @@ class pAutomorphicForms(Module,UniqueRepresentation):
         EXAMPLES::
 
             sage: X = BTQuotient(3,11)
-            sage: M = HarmonicCocycles(X,4,30)
-            sage: A = pAutomorphicForms(X,4,30, overconvergent = True)
-            sage: F = A.lift(M.basis()[0]); F
+            sage: M = HarmonicCocycles(X,4,10)
+            sage: A = pAutomorphicForms(X,4,10, overconvergent = True)
+            sage: F = A.lift(M.basis()[0]); F # indirect doctest
             p-adic automorphic form of cohomological weight 2
         """
         HeckeData = self._source._get_Up_data()
@@ -2399,9 +2408,12 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             factor = 1
 
         # Save original moments
-        # orig_moments = [ [fval._moments[ii] for ii in range(self._n+1)] for fval in f._value]
+        if use_ps_dists:
+            orig_moments = [ [fval._moments[ii] for ii in range(self._n+1)] for fval in f._value]
+
 
         Tf = []
+        M = f._value[0].precision_relative() + 1
         for jj in range(len(self._list)):
             tmp = self._U(0)
             for d in HeckeData:
@@ -2410,15 +2422,15 @@ class pAutomorphicForms(Module,UniqueRepresentation):
                 # self._U._prec_cap += 1 # Warning!!
                 r = (self._p**(-(u.power)) * (u.t(self._U.base_ring().precision_cap() + 2*u.power + 1)*gg))
                 if use_ps_dists:
-                    tmp +=  self._Sigma0(r.adjoint(),check = False) * self._U(f._value[u.label])  # Warning: should activate check...
+                    tmp +=  self._Sigma0(r.adjoint(),check = False) * f._value[u.label]  # Warning: should activate check...
                 else:
                     tmp += f._value[u.label].r_act_by(r)
 
             tmp  *=  factor
             for ii in range(self._n+1):
                 if use_ps_dists:
-                    tmp._moments[ii] = f._value[jj]._moments[ii]
-                    # tmp._moments[ii] = orig_moments[jj][ii]
+                    # tmp._moments[ii] = f._value[jj]._moments[ii]
+                    tmp._moments[ii] = orig_moments[jj][ii]
                 else:
                     tmp.moments[ii,0] = f._value[jj].moments[ii,0]
             Tf.append(tmp)
