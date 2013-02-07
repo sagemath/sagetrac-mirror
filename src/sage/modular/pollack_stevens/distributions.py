@@ -540,7 +540,7 @@ class Symk_class(Distributions_abstract):
         else:
             V = '(%s)^2'%(self.base_ring())
         s = "Sym^%s %s" % (self._k, V)
-        if self._dettwist is not None:
+        if self._dettwist is not None and self._dettwist != 0:
             s += " * det^%s" % self._dettwist
         if self._character is not None:
             s += " twisted by %s" % self._character

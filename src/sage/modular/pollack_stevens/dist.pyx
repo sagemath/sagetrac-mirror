@@ -1415,9 +1415,10 @@ cdef class WeightKAction(Action):
             self._Np = self._Np.lcm(self._p)
 
         if padic:
-            Action.__init__(self, Sigma0(self._Np, base_ring=Dk.base_ring(), adjuster=self._adjuster), Dk, on_left, operator.mul)
+            self._Sigma0 = Sigma0(self._Np, base_ring=Dk.base_ring(), adjuster=self._adjuster)
         else:
-            Action.__init__(self, Sigma0(self._Np, base_ring=ZZ, adjuster=self._adjuster), Dk, on_left, operator.mul)
+            self._Sigma0 = Sigma0(self._Np, base_ring=ZZ, adjuster=self._adjuster)
+        Action.__init__(self, self._Sigma0, Dk, on_left, operator.mul)
 
     def clear_cache(self):
         r"""

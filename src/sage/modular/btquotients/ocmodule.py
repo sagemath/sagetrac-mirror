@@ -58,9 +58,9 @@ class OCVnElement(ModuleElement):
                 try:
                     self._val = Matrix(self._parent._R,self._depth,1,val)
                 except:
-                    self._val= val * MatrixSpace(self._parent._R,self._depth)(1)
+                    self._val= self._parent._R(val) * MatrixSpace(self._parent._R,self._depth)(1)
         else:
-            self._val=copy(val)
+            self._val= MatrixSpace(self._parent._R,self._depth,1)(val)
         self.moments = self._val
 
     def moment(self, i):
@@ -198,9 +198,9 @@ class OCVnElement(ModuleElement):
             x=self._parent._powers[(factor*a,factor*b,factor*c,factor*d)]
             return self.__class__(self._parent,(extrafactor*factor**(-self._n))*(x*self._val), check = False)
         except KeyError:
-            tmp=self._parent._get_powers_and_mult(factor*a,factor*b,factor*c,factor*d,extrafactor*factor**(-self._n),self._val)
+            tmp = self._parent._get_powers_and_mult(factor*a,factor*b,factor*c,factor*d,extrafactor*factor**(-self._n),self._val)
 
-            return self.__class__(self._parent,tmp, check = False)
+            return self.__class__(self._parent,tmp)
 
     def _rmul_(self,a):
         r"""

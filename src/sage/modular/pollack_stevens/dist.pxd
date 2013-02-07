@@ -44,6 +44,8 @@ cdef class WeightKAction(Action):
     cdef public _maxprecs
     cdef public _symk
     cdef public _dettwist
+    cdef public _Sigma0
+
 
     cpdef acting_matrix(self, g, M)
     cpdef _compute_acting_matrix(self, g, M)

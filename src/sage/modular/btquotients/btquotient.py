@@ -216,7 +216,7 @@ class DoubleCosetReduction(SageObject):
         else:
             return -1
 
-    def igamma(self,embedding = None):
+    def igamma(self,embedding = None, scale = 1):
         r"""
         Image under gamma.
 
@@ -263,11 +263,11 @@ class DoubleCosetReduction(SageObject):
                 prec = ZZ(embedding)
             except TypeError:
                 # The user knows what she is doing, so let it go
-                return embedding(self.gamma)
+                return embedding(self.gamma,scale = scale)
         if prec > self._igamma_prec:
             self._igamma_prec = prec
             self._cached_igamma = Y.embed_quaternion(self.gamma,exact = False, prec = prec)
-        return self._cached_igamma
+        return scale * self._cached_igamma
 
     def t(self, prec = None):
         r"""
