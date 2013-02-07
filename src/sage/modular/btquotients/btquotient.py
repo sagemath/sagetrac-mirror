@@ -265,8 +265,8 @@ class DoubleCosetReduction(SageObject):
                 # The user knows what she is doing, so let it go
                 return embedding(self.gamma)
         if prec > self._igamma_prec:
-            self._igamma_prec=prec
-            self._cached_igamma=Y.embed_quaternion(self.gamma,exact = False, prec = prec)
+            self._igamma_prec = prec
+            self._cached_igamma = Y.embed_quaternion(self.gamma,exact = False, prec = prec)
         return self._cached_igamma
 
     def t(self, prec = None):
@@ -308,7 +308,7 @@ class DoubleCosetReduction(SageObject):
             else:
                 self._cached_t = (self.igamma(tmp_prec)*e.opposite.rep).inverse()*self.x
                 # assert self._cached_t[1,0].valuation()>self._cached_t[1,1].valuation()
-            tmp_prec += 5
+            tmp_prec += 1
             self._t_prec = min([xx.precision_absolute() for xx in self._cached_t.list()])
         return self._cached_t
 
@@ -1439,6 +1439,28 @@ class BTQuotient(SageObject, UniqueRepresentation):
             Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 13 and level 1
         """
         return "Quotient of the Bruhat Tits tree of GL_2(QQ_%s) with discriminant %s and level %s"%(self.prime(),self.Nminus().factor(),self.Nplus().factor())
+
+    def __eq__(self,other):
+        r"""
+        Compares self with other.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(5,13)
+            sage: Y = BTQuotient(p = 5, Nminus = 13, Nplus = 1,seed = 1231)
+            sage: X == Y
+            True
+        """
+        if self._p != other._p:
+            return False
+        elif self._Nminus != other._Nminus:
+            return False
+        elif self._Nplus != other._Nplus:
+            return False
+        elif self._character != other._character:
+            return False
+        else:
+            return True
 
     def _latex_(self):
         r"""
@@ -2838,7 +2860,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         EXAMPLES::
             sage: X = BTQuotient(3,17)
             sage: len(X._get_hecke_data(5))
-            Warning: norm (= 45) is quite large, this may take some time!
             2
         """
         # print 'Getting hecke data for prime ',l,'...'
@@ -3077,7 +3098,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         else:
             X=self._Xv
         p=self._p
-        if m+1>self._prec:
+        if m+1 > self._prec:
             self.get_embedding_matrix(prec = m+1)
         v1adj=v1.adjoint()
         R=self._Mat_44
@@ -3424,15 +3445,13 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
             sage: X = BTQuotient(5,7)
             sage: X._find_elements_in_order(23)
-            Warning: norm (= 23) is quite large, this may take some time!
             [[2, 9, -1, -5], [0, 8, 0, -5], [-2, 9, 1, -5], [6, 7, -3, -4], [2, 5, -1, -4], [0, 6, -1, -4], [0, 8, -1, -4], [2, 9, -1, -4], [-2, 5, 1, -4], [0, 6, 1, -4], [0, 8, 1, -4], [-2, 9, 1, -4], [-6, 7, 3, -4], [7, 6, -4, -3], [7, 6, -3, -3], [6, 7, -3, -3], [0, 8, 0, -3], [-7, 6, 3, -3], [-6, 7, 3, -3], [-7, 6, 4, -3], [0, 1, -1, -2], [0, 6, -1, -2], [0, 1, 1, -2], [0, 6, 1, -2], [9, 2, -5, -1], [6, 0, -4, -1], [8, 0, -4, -1], [5, 2, -4, -1], [9, 2, -4, -1], [1, 0, -2, -1], [6, 0, -2, -1], [0, -1, -1, -1], [-1, 0, -1, -1], [5, 2, -1, -1], [2, 5, -1, -1], [0, -1, 1, -1], [1, 0, 1, -1], [-5, 2, 1, -1], [-2, 5, 1, -1], [-6, 0, 2, -1], [-1, 0, 2, -1], [-8, 0, 4, -1], [-6, 0, 4, -1], [-9, 2, 4, -1], [-5, 2, 4, -1], [-9, 2, 5, -1], [8, 0, -5, 0], [8, 0, -3, 0]]
             sage: X._find_elements_in_order(23,1)
-            Warning: norm (= 23) is quite large, this may take some time!
             [[1, 0, -2, -1], [1, 0, 1, -1]]
         """
         OQuadForm=self.get_eichler_order_quadform()
         if norm > 10^3:
-            print 'Warning: norm (= %s) is quite large, this may take some time!'%norm
+            verbose('Warning: norm (= %s) is quite large, this may take some time!'%norm)
         V=OQuadForm.vectors_by_length(norm)[norm]
         W=V if not primitive else filter(lambda v: any((vi%self._p != 0 for vi in v)),V)
         return W if trace is None else filter(lambda v:self._conv(v).reduced_trace() == trace,W)

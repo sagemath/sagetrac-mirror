@@ -15,6 +15,10 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.all import Integer
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.padics.padic_generic import pAdicGeneric
+from sage.categories.pushout import pushout
 
 class OCVnElement(ModuleElement):
     r"""
@@ -297,7 +301,7 @@ class OCVnElement(ModuleElement):
         """
         return self._val!=0
 
-    def evaluate(self,P):
+    def evaluate_at_poly(self,P):
         r"""
 
         EXAMPLES:
@@ -307,13 +311,18 @@ class OCVnElement(ModuleElement):
         ::
 
         """
-        p=self._parent._R.prime()
+        p = self._parent._R.prime()
         try:
-            R = P.parent().base_ring()
-            r=min([P.degree()+1,self._depth])
-            return sum([R(self._val[ii,0])*P[ii] for ii in range(r)])
-        except:
-            return P.parent().base_ring()(self._val[0,0])*P
+            R = pushout(P.parent().base_ring(),self.parent().base_ring())
+        except AttributeError:
+            R = self.parent().base_ring()
+
+        if hasattr(P,'degree'):
+            try:
+                r = min([P.degree()+1,self._depth])
+                return sum([R(self._val[ii,0])*P[ii] for ii in range(r)])
+            except NotImplementedError: pass
+        return R(self._val[0,0])*P
 
     def valuation(self,l=None):
         r"""
@@ -374,6 +383,9 @@ class OCVn(Module,UniqueRepresentation):
         self._PowerSeries=PowerSeriesRing(self._Rmod,default_prec=self._depth,name='z')
         self._powers=dict()
         self._populate_coercion_lists_()
+
+    def is_overconvergent(self):
+        return self._depth != self._n+1
 
     def _an_element_(self):
         r"""
@@ -450,7 +462,22 @@ class OCVn(Module,UniqueRepresentation):
         EXAMPLES:
 
         """
-        s='Overconvergent coefficient module of weight n = %s over the ring %s and depth %s'%(self._n,self._R,self._depth)
+        if self.is_overconvergent():
+            return "Space of %s-adic distributions with k=%s action and precision cap %s"%(self._R.prime(), self._n, self._depth - 1)
+        else:
+            if self.base_ring() is QQ:
+                V = 'Q^2'
+            elif self.base_ring() is ZZ:
+                V = 'Z^2'
+            elif isinstance(self.base_ring(), pAdicGeneric) and self.base_ring().degree() == 1:
+                if self.base_ring().is_field():
+                    V = 'Q_%s^2'%(self._R.prime())
+                else:
+                    V = 'Z_%s^2'%(self._R.prime())
+            else:
+                V = '(%s)^2'%(self.base_ring())
+            return "Sym^%s %s"%(self._n, V)
+        # s='Overconvergent coefficient module of weight n = %s over the ring %s and depth %s'%(self._n,self._R,self._depth)
         return s
 
     def basis(self):
