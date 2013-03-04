@@ -129,7 +129,7 @@ from copy import copy
 def sft_warning_style(msg, category, filename, lineno, file=None, line=None):
     return "%s: %s\n" % (category.__name__, msg)
 
-warnings.formatwarning = sft_warning_style
+# warnings.formatwarning = sft_warning_style
 warnings.filterwarnings(action="always",
                         module="sage.dynamics.symbolic.finite_type_shift")
 
@@ -392,11 +392,11 @@ class SFT(SageObject):
 
             sage: M = matrix(2, 2, [2,1, 1,0])
             sage: SFT(M, format='vertex')
-            UserWarning: matrix must be 0/1 to create a vertex shift. Will try to create an edge shift instead.
+            doctest:...: UserWarning: matrix must be 0/1 to create a vertex shift. Will try to create an edge shift instead.
             A 1-step SFT over [0, 1, 2, 3].
             sage: G = DiGraph({0:{0:['a'], 1:['b','c']}, 1:{0:['d']}}, multiedges=True)
             sage: SFT(G, format='vertex')
-            UserWarning: digraph must not have multiple edges to create a vertex shift. Will try to create an edge shift instead.
+            doctest:...: UserWarning: digraph must not have multiple edges to create a vertex shift. Will try to create an edge shift instead.
             A 1-step SFT over ['a', 'b', 'c', 'd'].
 
         ::
@@ -409,7 +409,7 @@ class SFT(SageObject):
         ::
 
             sage: SFT([[1, 0, 1]], alphabet=[2, 0], symb_sep='.')
-            UserWarning: forbidden words contain symbols not in the given alphabet. Will enlarge alphabet.
+            doctest:...: UserWarning: forbidden words contain symbols not in the given alphabet. Will enlarge alphabet.
             A 2-step SFT over [0, 1, 2].
 
         ::
@@ -2566,7 +2566,7 @@ Order: %d""" % (self._name, self._alph, self._format, self._matrix,
                 sage: X = sfts.Full(2); X
                 The full-shift on 2 symbols of order 0 over [0, 1].
                 sage: X.parry_measure()
-                UserWarning: the SFT has to be a vertex shift; will convert it
+                doctest:...: UserWarning: the SFT has to be a vertex shift; will convert it
                 (
                            [1/2 1/2]
                 [1/2 1/2], [1/2 1/2]
