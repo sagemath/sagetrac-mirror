@@ -290,6 +290,10 @@ class QuadraticForm(SageObject):
             theta_by_pari, \
             theta_by_cholesky
 
+    from sage.quadratic_forms.quadratic_form__jacobi_theta import \
+            jacobi_theta, \
+            bilinear_form
+
     ## Routines to compute the product of all local densities
     from sage.quadratic_forms.quadratic_form__siegel_product import \
             siegel_product
