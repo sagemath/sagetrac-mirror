@@ -879,6 +879,35 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
 
+    def quotient(self, I, names=None):
+        """
+        Create the quotient of this multivariate polynomial ring by the ideal `I`.
+
+        INPUT:
+
+        - ``I`` -- a twosided ideal of this ring, `R`.
+        - ``names`` -- (optional) names of the generators of the quotient (if
+          there are multiple generators, you can specify a single character
+          string and the generators are named in sequence starting with 0).
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = [x^5 + y - 1, y^3 + x^2 - 7] * R
+            sage: Q.<a,b> = R.quotient(I)
+            sage: Q
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^5 + y - 1, y^3 + x^2 - 7)
+
+            sage: type(Q)
+            <class 'sage.rings.polynomial.multi_polynomial_quotient_ring.MPolynomialQuotientRing_generic_with_category'>
+
+            sage: Q.gens()
+            (a, b)
+
+        """
+        import sage.rings.polynomial.multi_polynomial_quotient_ring
+        return sage.rings.polynomial.multi_polynomial_quotient_ring.MPolynomialQuotientRing(self, I, names=names)
+
 
 ####################
 # Leave *all* old versions!

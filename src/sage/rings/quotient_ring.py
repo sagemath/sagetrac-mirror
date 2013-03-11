@@ -1157,7 +1157,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: S = R.quotient_ring(x^2+y^2)
             sage: T = S._singular_init_()
             sage: parent(S)
-            <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category'>
+            <class 'sage.rings.polynomial.multi_polynomial_quotient_ring.MPolynomialQuotientRing_generic_with_category'>
             sage: parent(T)
             Singular
         """
