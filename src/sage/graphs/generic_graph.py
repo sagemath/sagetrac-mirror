@@ -12327,6 +12327,177 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
+    def __bellman_ford__(self, s, key=None, weight=None):
+        """
+        Returns dictionaries of distances from s and predecessors keyed by
+        targets.
+
+        This method implements a Bellman-Ford like single source shortest paths
+        algorithms. It iterates only on vertices for which shortest path from
+        source has been improved at previous iteration. The method can accept
+        negative weigths but it raises an error when a negative weight cycle is
+        detected.
+
+        This method is valid for Graph and DiGraph with multiple edges and
+        loops.
+
+        INPUTS:
+
+        - ``s`` -- source node.
+
+        - ``key`` -- (default: ``None``) by default, edge labels are assumed to
+          be numbers. When edge labels are dictionaries, then ``key`` is the key
+          to access edge weights.
+
+        - ``weight`` -- (default: ``None``) is an optional dictionary of edge
+          weights keyed by edges. This is useful for functions modifying edge
+          weights without modifying the graph. When such dictionary is given,
+          edge labels are ignored.
+
+        OUTPUTS:
+
+        - ``dist`` -- a dictionary keyed by targets recording the shortest path
+          distance from source to target. If the target is unreachable from
+          source, then the distance is set to Infinity.
+
+        - ``predecessor`` -- a dictionary keyed by targets recording the predecessor
+          of target in the shortest path from source to target. When target is
+          unreachable from source, the predecessor is useless.
+
+        EXAMPLES:
+
+        Giving a PetersenGraph::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.__bellman_ford__(0)
+            ({0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2},
+             {0: 0, 1: 0, 2: 1, 3: 4, 4: 0, 5: 0, 6: 1, 7: 5, 8: 5, 9: 4})
+            sage: for u,v,_ in G.edges():
+            ...       G.set_edge_label(u,v,{'key':2})
+            sage: G.__bellman_ford__(0,'key')
+            ({0: 0, 1: 2, 2: 4, 3: 4, 4: 2, 5: 2, 6: 4, 7: 4, 8: 4, 9: 4},
+             {0: 0, 1: 0, 2: 1, 3: 4, 4: 0, 5: 0, 6: 1, 7: 5, 8: 5, 9: 4})
+
+        Giving a digraph of Imase and Itoh with some negative edge weights::
+
+            sage: D = digraphs.ImaseItoh(8,2)
+            sage: for u,v,_ in D.edges():
+            ...       D.set_edge_label(u,v,2)
+            sage: D.__bellman_ford__(0)
+            ({0: 0, 1: 4, 2: 4, 3: 4, 4: 6, 5: 6, 6: 2, 7: 2}, {0: 0, 1: 7, 2: 6, 3: 6, 4: 1, 5: 1, 6: 0, 7: 0})
+            sage: D.set_edge_label(0,6,-1)
+            sage: D.set_edge_label(0,7,-1)
+            sage: D.__bellman_ford__(0)
+            ({0: 0, 1: 1, 2: 1, 3: 1, 4: 3, 5: 3, 6: -1, 7: -1}, {0: 0, 1: 7, 2: 6, 3: 6, 4: 1, 5: 1, 6: 0, 7: 0})
+
+        DiGraph with a negative weight cycle::
+
+            sage: D = digraphs.ImaseItoh(8,2)
+            sage: for u,v,_ in D.edges():
+            ...       D.set_edge_label(u,v,1)
+            sage: D.add_cycle(range(3))
+            sage: for u in range(3):
+            ...       D.set_edge_label(u,(u+1)%3,-1)
+            sage: D.__bellman_ford__(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Negative-weight cycle detected.
+
+        TESTS:
+
+        Giving wrong source node::
+
+            sage: G.__bellman_ford__(10,'key')
+            Traceback (most recent call last): 
+            ...
+            ValueError: The source node must be in the input (Di)Graph.
+
+        Giving wrong key::
+
+            sage: G.__bellman_ford__(0,'MS')
+            Traceback (most recent call last):
+            ...
+            KeyError: 'Wrong key for accessing edge weights.'
+
+        Unrecognized edge labels::
+
+            sage: G = graphs.PetersenGraph()
+            sage: for u,v,_ in G.edges():
+            ...       G.set_edge_label(u,v,'1')
+            sage: G.__bellman_ford__(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: Edge label of unknown type
+        """
+        from sage.rings.infinity import Infinity
+        from sage.rings.real_mpfr import RR
+
+        if not s in self:
+            raise ValueError("The source node must be in the input (Di)Graph.")
+
+        # We set generic iterators
+        directed = self.is_directed()
+        if directed:
+            neighbor_iterator = self.neighbor_out_iterator
+            ee = lambda x,y: (x,y)
+        else:
+            neighbor_iterator = self.neighbor_iterator
+            ee = lambda x,y: (x,y) if x<y else (y,x)
+
+        W = lambda x:weight[x]
+        if weight is None:
+            # We store edge weights in a dictionary. In case of multi-edges, we
+            # store only the smallest value. If no edge weights are given, we
+            # set them to 1.
+            weight = {}
+            for u,v,wt in self.edge_iterator():
+                if wt:
+                    if key and isinstance(wt,dict):
+                        try:
+                            wt = wt[key]
+                        except KeyError:
+                            raise KeyError("Wrong key for accessing edge weights.")
+                    if not wt in RR:
+                        raise TypeError("Edge label of unknown type")
+                    weight[u,v] = min(wt, weight[u,v] if (u,v) in weight else Infinity)
+                else:
+                    # At least one edge weight is missing, so we set all edge
+                    # weights to 1.
+                    W = lambda x:1
+                    break
+
+        # We initialize distances and predecessors dictionaries
+        dist = {}
+        predecessor = {}
+        for v in self.vertex_iterator():
+            dist[v] = Infinity
+            predecessor[v] = v
+        dist[s] = 0
+
+        # We now compute distances from s using Bellman-Ford like algorithm.
+        A = set([s])
+        B = set()
+        cpt = 0
+        N = self.order()
+        while A:
+            while A:
+                u = A.pop()
+                for v in neighbor_iterator(u):
+                    if directed or v!=predecessor[u]:
+                        if dist[u] + W(ee(u,v)) < dist[v]:
+                            dist[v] = dist[u] + W(ee(u,v))
+                            predecessor[v] = u
+                            B.add(v)
+                            
+            A.update(B)
+            B.clear()
+            cpt += 1
+            if A and cpt==N:
+                # We have a negative-weight cycle
+                raise ValueError("Negative-weight cycle detected.")
+
+        return dist, predecessor
+
     def shortest_path(self, u, v, by_weight=False, bidirectional=True):
         """
         Returns a list of vertices representing some shortest path from u
@@ -12335,9 +12506,9 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if False, uses a breadth first search. If True, takes
+          edge weightings into account, using Dijkstra's algorithm or
+          Bellman-Ford when negative edge weigths are detected.
 
         -  ``bidirectional`` - if True, the algorithm will
            expand vertices from u and v at the same time, making two spheres
@@ -12366,8 +12537,17 @@ class GenericGraph(GenericGraph_pyx):
         if u == v: # to avoid a NetworkX bug
             return [u]
         import networkx
+        from sage.rings.infinity import Infinity
         if by_weight:
-            if bidirectional:
+            if any(w<0 for _,_,w in self.edge_iterator()):
+                dist, pred = self.__bellman_ford__(u)
+                if dist[v]!=Infinity:
+                    L = [v]
+                    while L[0]!=u:
+                        L.insert(0, pred[L[0]])
+                else:
+                    L = False
+            elif bidirectional:
                 try:
                     L = self._backend.bidirectional_dijkstra(u,v)
                 except AttributeError:
@@ -12404,9 +12584,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if False, uses a breadth first search. If True, takes
+          edge weightings into account, using Dijkstra's algorithm or
+          Bellman-Ford when negative edge weigths are detected.
 
         -  ``bidirectional`` - if True, the algorithm will
            expand vertices from u and v at the same time, making two spheres
@@ -12436,6 +12616,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         if weight_sum is None:
             weight_sum = by_weight
+        if by_weight and any(w<0 for _,_,w in self.edge_iterator()):
+            dist,_ = self.__bellman_ford__(u)
+            return dist[v]
         path = self.shortest_path(u, v, by_weight, bidirectional)
         length = len(path) - 1
         if length == -1:
@@ -12456,9 +12639,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, uses Dijkstra's algorithm to find the shortest
-           paths by weight.
+        - ``by_weight`` - if False, uses a breadth first search. If True, uses
+          Dijkstra's algorithm to find find the shortest paths by weight or
+          Bellman-Ford when negative edge weigths are detected.
 
         -  ``cutoff`` - integer depth to stop search.
 
@@ -12486,8 +12669,24 @@ class GenericGraph(GenericGraph_pyx):
         """
 
         if by_weight:
-            import networkx
-            return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
+            if any(w<0 for _,_,w in self.edge_iterator()):
+                from sage.rings.infinity import Infinity
+                dist, pred = self.__bellman_ford__(u)
+                path = {u:[u]}
+                for v in self.vertex_iterator():
+                    if dist[v] is Infinity:
+                        path[v] = []
+                    else:
+                        P = []
+                        w = v
+                        while not w in path:
+                            P.insert(0, w)
+                            w = pred[w]
+                        path[v] = path[w] + P
+                return path
+            else:
+                import networkx
+                return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
         else:
             try:
                 return self._backend.shortest_path_all_vertices(u, cutoff)
@@ -12501,10 +12700,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if False, uses a breadth first search. If True, takes
+          edge weightings into account, using Dijkstra's algorithm or
+          Bellman-Ford when negative edge weigths are detected.
 
         EXAMPLES::
 
@@ -12516,6 +12714,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
         """
+        if by_weight and any(w<0 for _,_,w in self.edge_iterator()):
+            dist,_ = self.__bellman_ford__(u)
+            return dist
         paths = self.shortest_paths(u, by_weight)
         if by_weight:
             weights = {}
@@ -12548,7 +12749,7 @@ class GenericGraph(GenericGraph_pyx):
 
            Implies ``by_weight == True``.
 
-        - ``algorithm`` -- four options :
+        - ``algorithm`` -- five options :
 
            * ``"BFS"`` -- the computation is done through a BFS
              centered on each vertex successively. Only implemented
@@ -12559,6 +12760,9 @@ class GenericGraph(GenericGraph_pyx):
 
            * ``"Floyd-Warshall-Python"`` -- through the Python implementation of
              the Floyd-Warshall algorithm.
+
+           * ``"Bellman-Ford-Python"`` -- through the Python implementation of
+             the Bellman-Ford algorithm.
 
            * ``"auto"`` -- use the fastest algorithm depending on the input
              (``"BFS"`` if possible, and ``"Floyd-Warshall-Python"`` otherwise)
@@ -12575,11 +12779,12 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Three different implementations are actually available through this method :
+            Four different implementations are actually available through this method :
 
                 * BFS (Cython)
                 * Floyd-Warshall (Cython)
                 * Floyd-Warshall (Python)
+                * Bellman-Ford (Python)
 
             The BFS algorithm is the fastest of the three, then comes the Cython
             implementation of Floyd-Warshall, and last the Python
@@ -12588,6 +12793,7 @@ class GenericGraph(GenericGraph_pyx):
             1, or equivalently the length of a path is its number of
             edges). Besides, they do not deal with graphs larger than 65536
             vertices (which already represents 16GB of ram).
+            The Bellman-Ford algorithm is able to handle negative edge weights.
 
         .. NOTE::
 
@@ -12657,7 +12863,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1, _ = g.shortest_path_all_pairs(algorithm="BFS")
             sage: d2, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Cython")
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Python")
-            sage: d1 == d2 == d3
+            sage: d4, _ = g.shortest_path_all_pairs(algorithm="Bellman-Ford-Python")
+            sage: d1 == d2 == d3 == d4
             True
 
         Checking a random path is valid ::
@@ -12677,7 +12884,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Bob")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm keyword can only be set to "auto", "BFS", "Floyd-Warshall-Python" or "Floyd-Warshall-Cython"
+            ValueError: The algorithm keyword can only be set to "auto", "BFS", "Bellman-Ford-Python", "Floyd-Warshall-Python" or "Floyd-Warshall-Cython"
         """
         if default_weight != 1:
             by_weight = True
@@ -12696,10 +12903,18 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.distances_all_pairs import floyd_warshall
             return floyd_warshall(self, distances = True)
 
+        elif algorithm == "Bellman-Ford-Python":
+            dist = {}
+            pred = {}
+            for u in self.vertex_iterator():
+                dist[u], pred[u] = self.__bellman_ford__(u)
+            return dist, pred
+
         elif algorithm != "Floyd-Warshall-Python":
             raise ValueError("The algorithm keyword can only be set to "+
                              "\"auto\","+
                              " \"BFS\", "+
+                             "\"Bellman-Ford-Python\", "+
                              "\"Floyd-Warshall-Python\" or "+
                              "\"Floyd-Warshall-Cython\"")
 
