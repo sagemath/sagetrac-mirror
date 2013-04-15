@@ -32,6 +32,7 @@ from sage.rings.padics.padic_fixed_mod_element cimport pAdicFixedModElement
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.misc.misc import verbose, cputime
+from sage.rings.infinity import Infinity
 
 cdef extern from "zn_poly/zn_poly.h":
     pass
@@ -213,19 +214,22 @@ cdef class Dist(ModuleElement):
         if p is None:
             p = self.parent().prime()
         cdef bint usearg = True
-        try:
-            z = self.moment(0).is_zero(M)
-        except TypeError:
-            z = self.moment(0).is_zero()
-            use_arg = False
-        if not z: return False
-        for a in xrange(1, n):
-            if usearg:
-                z = self._unscaled_moment(a).is_zero(M-a)
-            else:
-                z = self._unscaled_moment(a).is_zero()
+        if n == 0:
+            return True
+        else:
+            try:
+                z = self.moment(0).is_zero(M)
+            except TypeError:
+                z = self.moment(0).is_zero()
+                use_arg = False
             if not z: return False
-        return True
+            for a in xrange(1, n):
+                if usearg:
+                    z = self._unscaled_moment(a).is_zero(M-a)
+                else:
+                    z = self._unscaled_moment(a).is_zero()
+                if not z: return False
+            return True
 
     def find_scalar(self, _other, p, M = None, check=True):
         r"""
@@ -268,8 +272,13 @@ cdef class Dist(ModuleElement):
         cdef Dist other = _other
         i = 0
         n = self.precision_relative()
-        if n != other.precision_relative():
-            raise ValueError("other should have the same number of moments")
+        other_pr = other.precision_relative()
+        if n == 0:
+            raise ValueError("self is zero")
+## RP: This code doesn't seem right.  For instance, if the eigenvalue has positive valuation
+##     then the relative precision will go down.
+##        if n != other.precision_relative():
+##            raise ValueError("other should have the same number of moments")
         verbose("n = %s"%n)
         verbose("moment 0")
         a = self._unscaled_moment(i)
@@ -305,18 +314,26 @@ cdef class Dist(ModuleElement):
                     raise ValueError("self is zero")
                 v = a.valuation(p)
             relprec = n - i - v
-            verbose("p=%s, n-i=%s\nself.moment=%s, other.moment=%s"%(p, n-i, a, other._unscaled_moment(i)),level=2)
+#            verbose("p=%s, n-i=%s\nself.moment=%s, other.moment=%s"%(p, n-i, a, other._unscaled_moment(i)),level=2)
+## RP: This code was crashing because other may have too few moments -- so I added this bound with other's relative precision
             if padic:
-                alpha = (other._unscaled_moment(i) / a).add_bigoh(n-i)
+                if i < other_pr:
+                    alpha = (other._unscaled_moment(i) / a).add_bigoh(n-i)
+                else:
+                    alpha = (0*a).add_bigoh(other_pr-i)
             else:
-                alpha = (other._unscaled_moment(i) / a) % p**(n-i)
+                if i < other_pr:
+                    alpha = (other._unscaled_moment(i) / a) % p**(n-i)
+                else:
+                    alpha = 0
             verbose("alpha = %s"%(alpha))
-            while i < n-1:
+## RP: This code was crashing because other may have too few moments -- so I added this bound with other's relative precision
+            while i < other_pr-1:
                 i += 1
                 verbose("comparing p moment %s"%i)
                 a = self._unscaled_moment(i)
                 if check:
-                    verbose("self.moment=%s, other.moment=%s"%(a, other._unscaled_moment(i)))
+#                    verbose("self.moment=%s, other.moment=%s"%(a, other._unscaled_moment(i)))
                     if (padic and other._unscaled_moment(i) != alpha * a) or \
                        (not padic and other._unscaled_moment(i) % p**(n-i) != alpha * a % p**(n-i)):
                         raise ValueError("not a scalar multiple")
@@ -332,6 +349,7 @@ cdef class Dist(ModuleElement):
             if relprec < M:
                 raise ValueError("result not determined to high enough precision")
         alpha = alpha * self.parent().prime()**(other.ordp - self.ordp)
+        verbose("alpha=%s"%(alpha))
         try:
             return self.parent().base_ring()(alpha)
         except ValueError:
@@ -638,6 +656,14 @@ cdef class Dist_vector(Dist):
             # TODO: This is not quite right if the input is an inexact zero.
             if ordp != 0 and parent.prime() == 0:
                 raise ValueError("can not specify a valuation shift for an exact ring")
+
+        ## RP: if the input has negative valuations everything was crashing so I added
+        ##     this code, but I don't feel good about it.  DOESN'T WORK!!!!
+#        if self.parent().prime() != 0:
+#            p = self.parent().prime()
+#            ordp = min([m.valuation(p) for m in moments])
+#            moments = [p**(-ordp) * moments[a] for a in range(len(moments))]
+
         self._moments = moments
         self.ordp = ordp
 
@@ -727,6 +753,7 @@ cdef class Dist_vector(Dist):
         Returns the `n`-th moment, unscaled by the overall power of p stored in self.ordp.
         """
         return self._moments[n]
+        
 
     cdef Dist_vector _addsub(self, Dist_vector right, bint negate):
         r"""
@@ -800,12 +827,18 @@ cdef class Dist_vector(Dist):
         if p == 0:
             ans._moments = self._moments * right
             ans.ordp = self.ordp
-        elif right.is_zero():
+        elif right.valuation(p) == Infinity:
             ans._moments = self.parent().approx_module(0)([])
-            if right.is_exact_zero():
-                ans.ordp = maxordp
-            else:
-                ans.ordp = self.ordp + right.valuation(p)
+            ans.ordp += self.precision_relative()
+## RP: I don't understand this is_exact_zero command
+## This changes makes the function work when scaling by 0 -- it might
+## cause other problems...
+#        elif right.is_zero():
+#            ans._moments = self.parent().approx_module(0)([])
+#            if right.is_exact_zero():
+#                ans.ordp = maxordp
+#            else:
+#                ans.ordp = self.ordp + right.valuation(p)
         else:
             #print right, right.parent()
             try:
@@ -957,6 +990,13 @@ cdef class Dist_vector(Dist):
                 ans._moments = V([R(a // scalar) for a in v])
             else:
                 ans._moments = V([R(a) for a in v])
+            v = ans._moments
+            N = len(ans._moments)
+            prec_loss = max([N-j-v[j].precision_absolute() for j in range(N)])
+            #            print "precision loss = ",prec_loss
+            if prec_loss > 0:
+                ans._moments = ans._moments[:(N-prec_loss)]
+            print ans
         return ans
 
     #def lift(self):

@@ -662,6 +662,8 @@ class PSModularSymbolSpace(Module):
         on the last divisor.
 
         """
+        if (M == None) and (not self.coefficient_module().is_symk()):
+            M = self.coefficient_module().precision_cap()
 
         k = self.coefficient_module()._k
         p = self.prime()
@@ -678,7 +680,8 @@ class PSModularSymbolSpace(Module):
         ## to assign to this generator (in the 2,3-torsion cases care is taken to satisfy the relevant relation)
         D = {}
         for g in manin.gens():
-            D[g] = self.coefficient_module().random_element()
+            D[g] = self.coefficient_module().random_element(M)
+#            print "pre:",D[g]
             if g in manin.reps_with_two_torsion() and g in manin.reps_with_three_torsion:
                 raise ValueError("Level 1 not implemented")
             if g in manin.reps_with_two_torsion():
@@ -688,6 +691,7 @@ class PSModularSymbolSpace(Module):
                 if g in manin.reps_with_three_torsion():
                     gamg = manin.three_torsion_matrix(g)
                     D[g] = 2*D[g] - D[g] * gamg - D[g] * gamg**2
+#            print "post:",D[g]
 
         ## now we compute nu_infty of Prop 5.1 of [PS1]
         t = self.coefficient_module().zero_element()
@@ -730,15 +734,17 @@ class PSModularSymbolSpace(Module):
                 chara = 1
             err = -t.moment(0)/(chara*k*a**(k-1)*c)
             v = [0 for j in range(M)]
-            v[1] = err
-            mu_1 = self.coefficient_module()(v)
+            v[1] = 1
+            mu_1 = err * self.coefficient_module()(v)
             D[g] += mu_1
+#            print "Modifying: ",D[g]
             t = t + mu_1 * gam - mu_1
 
         Id = manin.gens()[0]
         if not self.coefficient_module().is_symk():
             mu = t.solve_diff_eqn()
             D[Id] = -mu
+ #           print "Last:",D[Id]
         else:
             if self.coefficient_module()._k == 0:
                 D[Id] = self.coefficient_module().random_element()

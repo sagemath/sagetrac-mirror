@@ -44,6 +44,8 @@ from sage.misc.misc import verbose
 from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2, Matrix_integer_2x2
 from sigma0 import Sigma0
 from fund_domain import t00, t10, t01, t11, Id, basic_hecke_matrix, M2Z
+from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.integer_ring import ZZ
 
 def unimod_matrices_to_infty(r, s):
     r"""
@@ -459,7 +461,8 @@ class ManinMap(object):
             sage: (f*2)(M2Z([1,0,0,1]))
             (2 + O(11^2), 4 + O(11))
         """
-        if isinstance(right, Matrix_integer_2x2):
+#        if isinstance(right, Matrix_integer_2x2):
+        if isinstance(right, type(Sigma0(self._manin.level())(MatrixSpace(ZZ,2,2)([1,0,0,1])))):
             return self._right_action(right)
 
         D = {}

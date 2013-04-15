@@ -36,7 +36,58 @@ use_ps_dists = True
 
 def eval_dist_at_powseries(phi,f):
     """
-    Evaluates a given distribution phi at the powerseries f
+    Evaluate a distribution on a powerseries.
+
+    A distribution is an element in the dual of the Tate ring. The
+    elements of coefficient modules of overconvergent modular symbols
+    and overconvergent p-automorphic forms give examples of
+    distributions in Sage.
+
+    INPUT:
+
+    - ``phi`` - a distribution
+
+    - ``f`` - a power series over a ring coercible into a p-adic field
+
+    OUTPUT:
+
+    The value of phi evaluated at f, which will be an element in the
+    ring of definition of f
+
+    EXAMPLES:
+
+        First we construct an overconvergent automorphic form so that
+        we can get our hands on its coefficient module of
+        distributions::
+
+        sage: from sage.modular.btquotients.pautomorphicform import eval_dist_at_powseries
+        sage: X = BTQuotient(3,7)
+        sage: H = HarmonicCocycles(X,6,prec=10)
+        sage: B = H.basis()
+        sage: c = B[0]+3*B[1]
+        sage: HH = pAutomorphicForms(X,6,overconvergent = True)
+        sage: oc = HH.lift(c)
+
+        Next we evaluate this form on a matrix in GL_2(Qp) to extract
+        an element of the coefficient module of distributions::
+
+        sage: phi = oc.evaluate(Matrix(ZZ,2,2,[1,77,23,4]))
+
+        Finally we define a power series in the Tate ring and evaluate
+        phi on it::
+
+        sage: R.<X> = PowerSeriesRing(ZZ,1)
+        sage: f = (1 - 3*X)^(-1)
+        sage: eval_dist_at_powseries(phi,f)
+        2*3^2 + 3^3 + 3^6 + O(3^8)
+
+        Even though it only makes sense to evaluate a distribution on
+        a Tate series, this function will output a (possibly
+        nonsensical) value for any power series::
+
+        sage: g = (1-X)^(-1)
+        sage: eval_dist_at_powseries(phi,g)
+        2*3^2 + 3^3 + 3^6 + O(3^8)
     """
     if use_ps_dists:
         nmoments = len(phi._moments)
@@ -49,6 +100,10 @@ class _btquot_adjuster(Sigma0ActionAdjuster):
     """
     Callable object that turns matrices into 4-tuples.
 
+    Since the modular symbol and harmonic cocycle code use different
+    conventions for group actions, this function is used to make sure
+    that actions are correct for harmonic cocycle computations.
+
     EXAMPLES::
 
         sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
@@ -57,6 +112,24 @@ class _btquot_adjuster(Sigma0ActionAdjuster):
         (4, 2, 3, 1)
     """
     def __call__(self, g):
+        """
+        Turns matrices into 4-tuples.
+
+        INPUT:
+
+        - ``g`` - a 2x2 matrix
+
+        OUTPUT:
+
+        A 4-tuple encoding the entries of ``g``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.btquotients.pautomorphicform import _btquot_adjuster
+            sage: adj = _btquot_adjuster()
+            sage: adj(matrix(ZZ,2,2,[1..4]))
+            (4, 2, 3, 1)
+        """
         a,b,c,d = g.list()
         return tuple([d, b, c, a])
 
@@ -81,7 +154,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
     EXAMPLES:
 
-    Harmonic cocycles form a vector space, so they can be added and/or subtracted from each other::
+    Harmonic cocycles form a vector space, so they can be added and/or
+    subtracted from each other::
 
         sage: X = BTQuotient(5,23)
         sage: H = HarmonicCocycles(X,2,prec=10)
@@ -229,7 +303,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: print H.basis()[0]
+            sage: print H.basis()[0] # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
         return 'Harmonic cocycle with values in %s'%(self.parent()._U)
@@ -542,50 +616,51 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
     """
     @staticmethod
     def __classcall__(cls,X,k,prec = None,basis_matrix = None,base_field = None):
+        r"""
+        Represents a space of Gamma invariant harmonic
+        cocycles valued in a cofficient module.
+
+        INPUT:
+
+        - ``X`` - A BTQuotient object
+
+        - ``k`` - integer - The weight. It must be even.
+
+        - ``prec`` - integer (Default: None). If specified, the
+        precision for the coefficient module
+
+        - ``basis_matrix`` - a matrix (Default: None).
+
+        - ``base_field`` - a ring (Default: None)
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,23)
+            sage: H = HarmonicCocycles(X,2,prec = 5)
+            sage: H.dimension()
+            3
+            sage: X.genus()
+            3
+
+        Higher even weights are implemented::
+
+            sage: H = HarmonicCocycles(X,8, prec = 10)
+            sage: H.dimension()
+            26
+
+        AUTHORS:
+
+        - Cameron Franc (2012-02-20)
+        - Marc Masdeu
+        """
         return super(HarmonicCocycles,cls).__classcall__(cls,X,k,prec,basis_matrix,base_field)
 
-    r"""
-    Represents a space of Gamma invariant harmonic
-    cocycles valued in a cofficient module.
-
-    INPUT:
-
-    - ``X`` - A BTQuotient object
-
-    - ``k`` - integer - The weight. It must be even.
-
-    - ``prec`` - integer (Default: None). If specified, the precision
-      for the coefficient module
-
-    - ``basis_matrix`` - a matrix (Default: None).
-
-    - ``base_field`` - a ring (Default: None)
-
-    EXAMPLES::
-
-        sage: X = BTQuotient(3,23)
-        sage: H = HarmonicCocycles(X,2,prec = 5)
-        sage: H.dimension()
-        3
-        sage: X.genus()
-        3
-
-    Higher even weights are implemented::
-
-        sage: H = HarmonicCocycles(X,8, prec = 10)
-        sage: H.dimension()
-        26
-
-    AUTHORS:
-
-    - Cameron Franc (2012-02-20)
-    - Marc Masdeu
-    """
     def __init__(self,X,k,prec = None,basis_matrix = None,base_field = None):
         """
         Compute the space of harmonic cocycles.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: X = BTQuotient(3,37)
             sage: H = HarmonicCocycles(X,4,prec=10)
             sage: TestSuite(H).run()
@@ -795,7 +870,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: latex(H)
+            sage: latex(H) # indirect doctest
             \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
         """
         s = '\\text{Space of harmonic cocycles of weight }'+latex(self._k)+'\\text{ on }'+latex(self._X)
@@ -813,7 +888,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: H.an_element()
+            sage: H.an_element() # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
         return self.basis()[0]
@@ -888,7 +963,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
             sage: X = BTQuotient(3,17)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: H(H.an_element())
+            sage: H(H.an_element()) # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_3^2
             sage: H(0)
             Harmonic cocycle with values in Sym^0 Q_3^2
@@ -1009,7 +1084,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
             sage: X = BTQuotient(5,3)
             sage: M = HarmonicCocycles(X,4,prec = 20)
-            sage: B = M.basis()
+            sage: B = M.basis() # indirect doctest
             sage: len(B) == X.dimension_harmonic_cocycles(4)
             True
 
@@ -1467,6 +1542,25 @@ class pAutomorphicFormElement(ModuleElement):
         return 0
 
     def __nonzero__(self):
+        """
+        Tells whether the form is zero or not.
+
+        OUTPUT:
+
+        Boolean. True if self is zero, false otherwise.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(5,23)
+            sage: H = HarmonicCocycles(X,4,prec=10)
+            sage: A = pAutomorphicForms(X,4,prec=10)
+            sage: v1 = A(H.basis()[1])
+            sage: v1.__nonzero__()
+            True
+            sage: v2 = v1-v1
+            sage: v2.__nonzero__()
+            False
+        """
         return any([not o.is_zero() for o in self._value])
 
     def __getitem__(self,e1):
@@ -1547,6 +1641,9 @@ class pAutomorphicFormElement(ModuleElement):
         r"""
         This returns the representation of self as a string.
 
+        If self corresponds to a modular form of weight k, then the
+        cohomological weight is k-2.
+
         OUTPUT:
 
         A string.
@@ -1556,7 +1653,7 @@ class pAutomorphicFormElement(ModuleElement):
             sage: X = BTQuotient(17,3)
             sage: A = pAutomorphicForms(X,2,prec=10)
             sage: a = A.an_element()
-            sage: print a
+            sage: print a # indirect doctest
             p-adic automorphic form of cohomological weight 0
         """
         return 'p-adic automorphic form of cohomological weight %s'%self.parent()._U.weight()
@@ -2021,41 +2118,46 @@ class pAutomorphicForms(Module,UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls,domain,U,prec = None,t = None,R = None,overconvergent = False):
+        r"""
+        The module of (quaternionic) `p`-adic automorphic forms.
+
+        INPUT:
+
+        - `domain` - A BTQuotient.
+
+        - `U` - A coefficient module or an integer. If U is a
+          coefficient module then this creates the relevant space of
+          automorphic forms. If U is an integer then the coefficients
+          are the (`U-2`)nd power of the symmetric representation of
+          `\GL_2(\Qp)`.
+
+          - `prec` - A precision (Default = None). If not None should
+          be a positive integer
+
+          - `t` - (Default = None).
+
+          - `R` - (Default = None).
+
+          - `overconvergent` - Boolean (Default = False).
+
+        EXAMPLES:
+
+        The space of weight 2 p-automorphic forms is isomorphic with
+        the space of scalar valued invariant harmonic cocycles::
+
+            sage: X = BTQuotient(11,5)
+            sage: H0 = pAutomorphicForms(X,2,10)
+            sage: H1 = pAutomorphicForms(X,2,prec = 10)
+            sage: H0 == H1
+            True
+
+        AUTHORS:
+
+        - Cameron Franc (2012-02-20)
+        - Marc Masdeu (2012-02-20)
+        """
         return super(pAutomorphicForms,cls).__classcall__(cls,domain,U,prec,t,R,overconvergent)
 
-    r"""
-    The module of (quaternionic) `p`-adic automorphic forms.
-
-    INPUT:
-
-    - `domain` - A BTQuotient.
-
-    - `U` - A coefficient module or an integer. If U is a coefficient module then this creates the relevant space of automorphic forms. If U is an integer then the coefficients are the (`U-2`)nd power of the symmetric representation of  `\GL_2(\Qp)`.
-
-    - `prec` - A precision (Default = None). If not None should be a
-      positive integer
-
-    - `t` - (Default = None).
-
-    - `R` - (Default = None).
-
-    - `overconvergent` - Boolean (Default = False).
-
-    EXAMPLES:
-
-    The space of weight 2 p-automorphic forms is isomorphic with the space of scalar valued invariant harmonic cocycles::
-
-        sage: X = BTQuotient(11,5)
-        sage: H0 = pAutomorphicForms(X,2,10)
-        sage: H1 = pAutomorphicForms(X,2,prec = 10)
-        sage: H0 == H1
-        True
-
-    AUTHORS:
-
-    - Cameron Franc (2012-02-20)
-    - Marc Masdeu (2012-02-20)
-    """
     def __init__(self,domain,U,prec = None,t = None,R = None,overconvergent = False):
         """
         Create a space of p-automorphic forms
@@ -2229,7 +2331,7 @@ class pAutomorphicForms(Module,UniqueRepresentation):
 
             sage: X = BTQuotient(13,5)
             sage: H = HarmonicCocycles(X,2,prec=10)
-            sage: h=H.an_element()
+            sage: h=H.an_element() # indirect doctest
             sage: A = pAutomorphicForms(X,2,prec=10)
             sage: A(h)
             p-adic automorphic form of cohomological weight 0
@@ -2277,7 +2379,7 @@ class pAutomorphicForms(Module,UniqueRepresentation):
 
             sage: X = BTQuotient(13,5)
             sage: A = pAutomorphicForms(X,2,prec=10)
-            sage: A.an_element()
+            sage: A.an_element() # indirect doctest
             p-adic automorphic form of cohomological weight 0
         """
         return self(0)
