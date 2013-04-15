@@ -2413,13 +2413,11 @@ class pAutomorphicForms(Module,UniqueRepresentation):
 
 
         Tf = []
-        M = f._value[0].precision_relative() + 1
         for jj in range(len(self._list)):
             tmp = self._U(0)
             for d in HeckeData:
                 gg = d[0] # acter
                 u = d[1][jj] # edge_list[jj]
-                # self._U._prec_cap += 1 # Warning!!
                 r = (self._p**(-(u.power)) * (u.t(self._U.base_ring().precision_cap() + 2*u.power + 1)*gg))
                 if use_ps_dists:
                     tmp +=  self._Sigma0(r.adjoint(),check = False) * f._value[u.label]  # Warning: should activate check...
@@ -2429,7 +2427,6 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             tmp  *=  factor
             for ii in range(self._n+1):
                 if use_ps_dists:
-                    # tmp._moments[ii] = f._value[jj]._moments[ii]
                     tmp._moments[ii] = orig_moments[jj][ii]
                 else:
                     tmp.moments[ii,0] = f._value[jj].moments[ii,0]
