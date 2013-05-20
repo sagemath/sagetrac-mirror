@@ -24,10 +24,12 @@ REFERENCES:
 
 .. [BmBGL07] A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
    critical exponent of generalized Thue-Morse words. *Discrete Math.
-   Theor. Comput.  Sci.* 9 (1):293--304, 2007.
+   Theor. Comput. Sci.* 9 (1):293--304, 2007.
 
-.. [BmBGL09] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
-   and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
+.. [BmBGL11] A. Blondin Massé, S. Brlek, A. Garon, S. Labbé, Two infinite
+   families of polyominoes that tile the plane by translation in
+   two distinct ways, Theoret. Comput. Sci. 412 (2011) 4778-4786.
+   http://dx.doi.org/10.1016/j.tcs.2010.12.034
 
 .. [Loth02] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
    Encyclopedia of Mathematics and its Applications, Cambridge
@@ -1487,7 +1489,7 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        [BmBGL09]_
+        [BmBGL11]_
         """
         from sage.combinat.words.all import Words, WordMorphism
         W = Words([0,1,2,3])
@@ -1509,7 +1511,7 @@ class WordGenerator(object):
 
     def fibonacci_tile(self, n):
         r"""
-        Returns the `n`-th Fibonacci Tile [BmBGL09]_.
+        Returns the `n`-th Fibonacci Tile [BmBGL11]_.
 
         EXAMPLES::
 
@@ -1527,7 +1529,7 @@ class WordGenerator(object):
 
     def dual_fibonacci_tile(self, n):
         r"""
-        Returns the `n`-th dual Fibonacci Tile [BmBGL09]_.
+        Returns the `n`-th dual Fibonacci Tile [BmBGL11]_.
 
         EXAMPLES::
 
@@ -1543,6 +1545,32 @@ class WordGenerator(object):
         P = WordPaths([0,1,2,3])
         l = list(w.partial_sums(start=3,mod=4))
         return P(l)[:-1]
+
+    def christoffel_tile(self, p, q):
+        r"""
+        Returns the `(p,q)` Christoffel Tile [BmBGL11]_.
+
+        EXAMPLES:
+
+            sage: words.christoffel_tile(7,9)
+            Path: 0301030101030101030101030103010103010103...
+            sage: words.christoffel_tile(9,7)
+            Path: 0301010301010301010301010103010103010103...
+            sage: words.christoffel_tile(2,3)
+            Path: 03010301010301012123212323212323
+            sage: words.christoffel_tile(0,1)
+            Path: 03012123
+            sage: print words.christoffel_tile(4,5)
+            03010301010301010301010301012123212323212323212323212323
+        """
+        from sage.combinat.words.paths import WordPaths
+        WP = WordPaths([0,1,2,3])
+        rot180 = WordMorphism({0:2,2:0,3:1,1:3}, codomain=WP)
+        lambda_ = WordMorphism({0:[0,3,0,1],1:[0,1],2:[2,1,2,3],3:[2,3]}, codomain=WP)
+        w = self.ChristoffelWord(p, q, alphabet=[0,1])
+        w = WP(list(w))
+        return lambda_(w*rot180(w))
+
 
     def _s_adic_iterator(self, sequence, letters):
         r"""
