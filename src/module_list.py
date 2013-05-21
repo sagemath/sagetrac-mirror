@@ -425,7 +425,7 @@ ext_modules = [
                          'sage/graphs/planarity_c/graphTests.c',
                          'sage/graphs/planarity_c/graphUtils.c',
                          'sage/graphs/planarity_c/listcoll.c',
-                         'sage/graphs/planarity_c/planarity.c',
+                         'sage/graphs/planarity_c/planarity_c.c',
                          'sage/graphs/planarity_c/planarityCommandLine.c',
                          'sage/graphs/planarity_c/planarityRandomGraphs.c',
                          'sage/graphs/planarity_c/planaritySpecificGraph.c',
@@ -1865,7 +1865,7 @@ ext_modules = [
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
-                         'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
+                         'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob_cc.cpp',
                          'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp',
                          'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
               libraries = ['ntl', 'stdc++', 'gmp', 'zn_poly'],
