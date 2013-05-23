@@ -210,6 +210,11 @@ class ClusterQuiver(SageObject):
                         quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph )
                         quiv._mutation_type = mutation_type
                         self.__init__( quiv )
+                # Primitive Period 1 quivers are always products of affine A type quivers but a different element of the quiver equivalence class
+                elif data[0] == 'P1' and type( data[1]) is list:
+                    quiv = ClusterQuiver( QuiverMutationType_Irreducible( data[0], tuple(data[1]) )._digraph )
+                    quiv.mutation_type()
+                    self.__init__( quiv )
                 else:
                     self.__init__( mutation_type.standard_quiver() )
             elif len(data) == 3 and type( data[0] ) is str:

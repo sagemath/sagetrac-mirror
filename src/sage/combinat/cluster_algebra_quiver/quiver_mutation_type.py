@@ -322,6 +322,10 @@ The input consists either of a quiver mutation type, or of a ``letter`` (a strin
 
     * Grassmannian: This defines the cluster algebra (without coefficients) corresponding to the cluster algebra with coefficients which is the co-ordinate ring of a Grassmannian.  ``letter`` is 'GR'.  ``rank`` is a pair of integers (`k`, `n`) with 'k' < 'n' specifying the Grassmannian of `k`-planes in `n`-space.  This defines a quiver given by a (k-1) x (n-k-1) grid where each square is cyclically oriented.
 
+    * Primitive Period 1: As in Fordy-Marsh (http://arxiv.org/abs/0904.0200), these are the primitive quivers whose mutations simply cyclically permute them.  ``letter`` is 'P1' and ``rank`` is a pair of integers, (N, k) specifying the number of vertices and the source of arrow whose target is vertex 0.  We require 0 < k <= N/2. 
+
+    * Gale Robinson: As in Example 8.7 of Fordy Marsh  (http://arxiv.org/abs/0904.0200).  ``letter`` is 'GaRo' and ``rank`` is a triple of integers given by n, the number of vertices, r, and s, satisfying 0 < r <= s <= n/2. 
+
     * Exceptional mutation finite quivers: The two exceptional mutation finite quivers, found by Derksen-Owen, have ``letter`` as 'X' and ``rank`` 6 or 7, equal to the number of vertices.
 
     * AE, BE, CE, DE: Quivers are built of one end which looks like type (affine A), B, C, or D, and the other end which looks like type E (i.e., it consists of two antennae, one of length one, and one of length two).  ``letter`` is 'AE', 'BE', 'CE', or 'DE', and ``rank`` is the total number of vertices.  Note that 'AE' is of a slightly different form and requires ``rank`` to be a pair of integers (i,j) just as in the case of affine type A.  See Exercise 4.3 in Kac's book Infinite Dimensional Lie Algebras for more details.
@@ -558,6 +562,34 @@ Mutation finite types:
         ['E', 6, 1]
         sage: QuiverMutationType('T',(3,3,4))
         ['T', [3, 3, 4]]
+
+    Primitive Period 1 types::
+
+        sage: QuiverMutationType('P1', (4,2))
+        ['P1', [4, 2]]
+        sage: QuiverMutationType('P1', (4,1))
+        ['P1', [4, 1]]
+        sage: QuiverMutationType('P1', (5,2))
+        ['P1', [5, 2]]
+        sage: QuiverMutationType('P1', (5,1))
+        ['P1', [5, 1]]
+        sage: QuiverMutationType('P1', (6,3))
+        ['P1', [6, 3]]
+        sage: QuiverMutationType('P1', (6,2))
+        ['P1', [6, 2]]
+        sage: QuiverMutationType('P1', (6,1))
+        ['P1', [6, 1]]
+
+    Gale-Robinson types::
+    
+        sage: QuiverMutationType('GaRo', (4,1,2))
+        ['GaRo', [4, 1, 2]]
+        sage: QuiverMutationType('GaRo', (5,1,2))
+        ['GaRo', [5, 1, 2]]
+        sage: QuiverMutationType('GaRo', (6,1,2))
+        ['GaRo', [6, 1, 2]]
+        sage: QuiverMutationType('GaRo', (6,2,3))
+        ['GaRo', [6, 2, 3]]
 
 Reducible types::
 
@@ -1457,6 +1489,111 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                                 self._digraph.add_edge(i*b+j,i*b+j+1)
             else:
                 _mutation_type_error( data )
+
+        # type GaRo (Gale-Robinson)
+        elif letter == 'GaRo':
+            if twist == None and type(rank) is list and len(rank) == 3 and all( rank[i] in ZZ for i in [0,1,2] ) and rank[0] > 0 and rank[1] > 0 and rank[2] > rank[1] and rank[2] <= rank[0]/2:
+                N, r, s = rank
+                self._rank = N
+                self._digraph.allow_multiple_edges(True)
+                zero_again = False
+                if s < N/2: 
+                    # First create primitive period 1 quiver of type ['P1', N, s]
+                    for i in range(N):
+                        if zero_again:
+                            self._digraph.add_edge(i, (i+s) % N, 1 )
+                        else:
+                            if (i+s) %N == 0:
+                                zero_again = True
+                                self._digraph.add_edge(i, 0, 1)
+                            else:
+                                self._digraph.add_edge(i+s, i, 1)
+                    # Secondly, subtract from it (i.e. add the reverse of) a primitive period 1 quiver of type ['P1', N, r]                    
+                    zero_again = False
+                    for i in range(N):
+                        if zero_again:
+                            self._digraph.add_edge( (i+r) % N, i, 1 )
+                        else:
+                            if (i+r) %N == 0:
+                                zero_again = True
+                                self._digraph.add_edge(0, i, 1)
+                            else:
+                                self._digraph.add_edge(i, i+r, 1)
+                    # Thirdly, subtract from it a primitive period 1 quiver of type ['P1', N, s-r] on vertices (r+1, ..., N-r)
+                    zero_again = False
+                    for i in range(N-2*r):
+                        if zero_again:
+                            self._digraph.add_edge(((i+(s-r)) % (N-2*r) ) + r, i + r, 1 )
+                        else:
+                            if (i+(s-r)) % (N-2*r) == 0:
+                                zero_again = True
+                                self._digraph.add_edge(0+r, i+r,  1)
+                            else:
+                                self._digraph.add_edge(i + r, i+(s-r) + r,  1)
+                elif s == N/2:                
+                    # This case is similar to the above except we have to double-up the case for s = N/2
+                    #
+                    # First create primitive period 1 quiver of type ['P1', N, N/2]
+                    for i in range(N):
+                        if zero_again:
+                            self._digraph.add_edge(i, (i+s) % N, 1 )
+                        else:
+                            if (i+s) %N == 0:
+                                zero_again = True
+                                self._digraph.add_edge(i, 0, 1)
+                            else:
+                                self._digraph.add_edge(i+s, i, 1)
+                    # Secondly, subtract from it (i.e. add the reverse of) two copies of a primitive period 1 quiver of type ['P1', N, r]                    
+                    zero_again = False
+                    for i in range(N):
+                        if zero_again:
+                            self._digraph.add_edge( (i+r) % N, i, 1 )
+                        else:
+                            if (i+r) %N == 0:
+                                zero_again = True
+                                self._digraph.add_edge(0, i, 1)
+                            else:
+                                self._digraph.add_edge(i, i+r, 1)
+                    # Thirdly, subtract from it two copies of a primitive period 1 quiver of type ['P1', N, N/2-r] on vertices (r+1, ..., N-r)
+                    zero_again = False
+                    for i in range(N-2*r):
+                        if zero_again:
+                            self._digraph.add_edge(((i+(s-r)) % (N-2*r) ) + r, i + r, 1 )
+                        else:
+                            if (i+(s-r)) % (N-2*r) == 0:
+                                zero_again = True
+                                self._digraph.add_edge(0+r, i+r,  1)
+                            else:
+                                self._digraph.add_edge(i + r, i+(s-r) + r,  1)
+                #self._digraph = GR_graph(N,r,s)
+                
+                # Lastly, we get rid of the two-cycles that were created
+                while any ( (b,a) in self._digraph.edges(labels=False) for (a,b) in self._digraph.edges(labels=False) ):
+                    for i in range(N):
+                        for j in range(N):
+                            if ((i,j) in self._digraph.edges(labels=False)) and ((j,i) in self._digraph.edges(labels=False)):
+                                self._digraph.delete_edges( [(i,j, 1), (j,i, 1)] )
+            else:
+                _mutation_type_error( data )
+                                
+        # type P1 (primitive period 1)
+        elif letter == 'P1':
+            if twist == None and type(rank) is list and len(rank) ==2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1]) and rank[1] <= rank[0]/2:
+                N, k = rank
+                self._rank = N
+                zero_again = False
+                for i in range(N):
+                    if zero_again:
+                        self._digraph.add_edge(i, (i+k) % N )
+                    else:
+                        if (i+k) %N == 0:
+                            zero_again = True
+                            self._digraph.add_edge(i, 0)
+                        else:
+                            self._digraph.add_edge(i+k, i)
+            else:
+                _mutation_type_error( data )
+
 
         # type R2 (rank 2 finite mutation types)
         elif letter == 'R2':
