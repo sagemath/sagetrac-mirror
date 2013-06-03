@@ -3,7 +3,7 @@ libGAP element wrapper
 
 This document describes the individual wrappers for various GAP
 elements. For general information about libGAP, you should read the
-:mod:`~sage.libs.gap.libgap` module documentation.
+:mod:`~sage.libs.gap.libsagegap` module documentation.
 """
 
 ###############################################################################
@@ -61,7 +61,7 @@ cdef libGAP_Obj make_gap_list(sage_list):
     The list of the elements in ``a`` as a Gap ``Obj``.
     """
     # FIXME slow -- to make fast directly use ADD_LIST in Gap's C code.
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     cdef GapElement l = libgap.eval('[]')
     for x in sage_list:
         l.Add(x)
@@ -85,7 +85,7 @@ cdef libGAP_Obj make_gap_record(sage_dict):
         sage: libgap({'a': 1, 'b':123})   # indirect doctest
         rec( a := 1, b := 123 )
     """
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     data = [ (str(key), libgap(value)) for key, value in sage_dict.iteritems() ]
 
     libgap_enter()

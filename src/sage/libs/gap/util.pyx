@@ -364,7 +364,7 @@ cpdef memory_usage():
     """
     Return information about the memory useage.
 
-    See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
+    See :meth:`~sage.libs.gap.libsagegap.Gap.mem` for details.
     """
     cdef size_t SizeMptrsArea = libGAP_OldBags - libGAP_MptrBags
     cdef size_t SizeOldBagsArea = libGAP_YoungBags - libGAP_OldBags
@@ -386,7 +386,7 @@ cpdef error_enter_libgap_block_twice():
         ...
         RuntimeError: Entered a critical block twice
     """
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     try:
         sig_on()
         libgap_enter()
@@ -408,7 +408,7 @@ cpdef error_exit_libgap_block_without_enter():
         ...
         RuntimeError: Called libgap_exit without previous libgap_enter
     """
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     sig_on()
     libgap_exit()
     sig_off()

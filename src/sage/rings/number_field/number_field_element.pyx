@@ -570,7 +570,7 @@ cdef class NumberFieldElement(FieldElement):
             <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
         """
         n = self.parent()._n()
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         En = libgap(self.parent()).GeneratorsOfField()[0]
         return self.polynomial()(En)
 

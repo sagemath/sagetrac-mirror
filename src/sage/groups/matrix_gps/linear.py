@@ -226,7 +226,7 @@ def SL(n, R, var='a'):
     degree, ring = normalize_args_vectorspace(n, R, var='a')
     name = 'Special Linear Group of degree {0} over {1}'.format(degree, ring)
     ltx  = 'SL({0}, {1})'.format(degree, latex(ring))
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     try:
         cmd  = 'SL({0}, {1})'.format(degree, ring._gap_init_())
         return LinearMatrixGroup_gap(degree, ring, True, name, ltx, cmd)

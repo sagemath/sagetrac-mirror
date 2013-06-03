@@ -42,7 +42,7 @@ The value is reset even if exceptions occur::
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-from sage.libs.gap.libgap import libgap
+from sage.libs.gap.libsagegap import libgap
 
 
 class GlobalVariableContext():
@@ -52,7 +52,7 @@ class GlobalVariableContext():
         Context manager for GAP global variables.
 
         It is recommended that you use the
-        :meth:`sage.libs.gap.libgap.Gap.global_context` method and not
+        :meth:`sage.libs.gap.libsagegap.Gap.global_context` method and not
         construct objects of this class manually.
 
         INPUT:

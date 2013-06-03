@@ -14,7 +14,7 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.libs.libecm import ecmfactor
+    sage: from sage.libs.libsageecm import ecmfactor
     sage: result = ecmfactor(999, 0.00)
     sage: result in [(True, 27), (True, 37), (True, 999)]
     True
@@ -66,7 +66,7 @@ def ecmfactor(number, double B1, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.libs.libecm import ecmfactor
+        sage: from sage.libs.libsageecm import ecmfactor
 
     This number has a small factor which is easy to find for ECM::
 

@@ -91,7 +91,7 @@ def Sp(n, R, var='a'):
         raise ValueError('the degree must be even')
     name = 'Symplectic Group of degree {0} over {1}'.format(degree, ring)
     ltx  = r'\text{{Sp}}_{{{0}}}({1})'.format(degree, latex(ring))
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     try:
         cmd  = 'Sp({0}, {1})'.format(degree, ring._gap_init_())
         return SymplecticMatrixGroup_gap(degree, ring, True, name, ltx, cmd)

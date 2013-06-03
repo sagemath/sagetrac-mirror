@@ -675,8 +675,8 @@ ext_modules = [
 
 
 
-    Extension('sage.libs.libecm',
-              sources = ['sage/libs/libecm.pyx'],
+    Extension('sage.libs.libsageecm',
+              sources = ['sage/libs/libsageecm.pyx'],
               libraries = ['ecm', 'gmp'],
               extra_link_args = uname_specific("Linux", ["-Wl,-z,noexecstack"],
                                                         []),
@@ -804,8 +804,8 @@ ext_modules = [
     #           libraries = ['csage', 'gmp', 'gap', 'm'],
     #           include_dirs = [SAGE_INC]),
 
-    Extension('sage.libs.gap.libgap',
-              sources = ["sage/libs/gap/libgap.pyx"],
+    Extension('sage.libs.gap.libsagegap',
+              sources = ["sage/libs/gap/libsagegap.pyx"],
               libraries = ['csage', 'gmp', 'gap', 'm'],
               include_dirs = [SAGE_INC]),
 
