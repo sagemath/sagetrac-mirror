@@ -1,0 +1,147 @@
+diff -rup src.orig/Cython/Compiler/CmdLine.py src/Cython/Compiler/CmdLine.py
+--- src.orig/Cython/Compiler/CmdLine.py	2013-05-11 07:46:55.000000000 +0200
++++ src/Cython/Compiler/CmdLine.py	2013-06-04 19:09:59.000000000 +0200
+@@ -18,6 +18,11 @@ Options:
+   -I, --include-dir <directory>  Search for include files in named directory
+                                  (multiple include directories are allowed).
+   -o, --output-file <filename>   Specify name of generated C file
++  -M                             Write out dependency makefile
++  -F <filename>                  Specifies a file to write dependencies to,
++                                 implies -M (default: stdout)
++  -MD                            Use outfilename + ".d" as makefile name, implies -M
++  -P                             Also write phony targets (FIXME: don't without -P)
+   -t, --timestamps               Only compile newer source files
+   -f, --force                    Compile all source files (overrides implied -t)
+   -v, --verbose                  Be verbose, print file names on multiple compilation
+@@ -100,6 +101,14 @@ def parse_command_line(args):
+                 options.output_file = pop_arg()
+             elif option in ("-r", "--recursive"):
+                 options.recursive = 1
++            elif option == "-M":
++                options.dep_makefile = sys.stdout
++            elif option == "-MF" or option == "-F":
++                options.dep_makefile = pop_arg()
++            elif option == "-MD":
++                options.dep_makefile = options.output_file + ".d"
++            elif option == "-MP" or option == "-P":
++                pass # FIXME: not -P is not implemented.
+             elif option in ("-t", "--timestamps"):
+                 options.timestamps = 1
+             elif option in ("-f", "--force"):
+diff -rup src.orig/Cython/Compiler/Main.py src/Cython/Compiler/Main.py
+--- src.orig/Cython/Compiler/Main.py	2013-05-11 07:46:55.000000000 +0200
++++ src/Cython/Compiler/Main.py	2013-06-04 19:10:32.000000000 +0200
+@@ -24,6 +24,12 @@ module_name_pattern = re.compile(r"[A-Za
+ 
+ verbose = 0
+ 
++#hack, global
++dep_out = None
++dep_include = set()
++dep_phony = []
++import io
++
+ class CompilationData(object):
+     #  Bundles the information that is passed from transform to transform.
+     #  (For now, this is only)
+@@ -112,6 +118,8 @@ class Context(object):
+         # and the module will first be searched for relative to
+         # that module, provided its name is not a dotted name.
+         debug_find_module = 0
++        # hack
++        global dep_phony
+         if debug_find_module:
+             print("Context.find_module: module_name = %s, relative_to = %s, pos = %s, need_pxd = %s" % (
+                     module_name, relative_to, pos, need_pxd))
+@@ -160,6 +168,9 @@ class Context(object):
+                 try:
+                     if debug_find_module:
+                         print("Context.find_module: Parsing %s" % pxd_pathname)
++                    if self.options.dep_makefile:
++                        dep_out.write("\\" + os.linesep + " " + pxd_pathname)
++                        dep_phony.append(pxd_pathname)
+                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
+                     if not pxd_pathname.endswith(rel_path):
+                         rel_path = pxd_pathname # safety measure to prevent printing incorrect paths
+@@ -217,12 +228,16 @@ class Context(object):
+                                                include=True)
+         if not path:
+             error(pos, "'%s' not found" % filename)
++        elif self.options.dep_makefile:
++           dep_include.add(path)
+         return path
+ 
++    #@cached_method
+     def search_include_directories(self, qualified_name, suffix, pos,
+                                    include=False, sys_path=False):
+-        return Utils.search_include_directories(
++        path = Utils.search_include_directories(
+             tuple(self.include_directories), qualified_name, suffix, pos, include, sys_path)
++        return path
+ 
+     def find_root_package_dir(self, file_path):
+         return Utils.find_root_package_dir(file_path)
+@@ -452,6 +467,7 @@ class CompilationOptions(object):
+     errors_to_stderr  boolean   Echo errors to stderr when using .lis
+     include_path      [string]  Directories to search for include files
+     output_file       string    Name of generated .c file
++    dep_makefile      string    write dependency makefile
+     generate_pxi      boolean   Generate .pxi file for public declarations
+     capi_reexport_cincludes  
+                       boolean   Add cincluded headers to any auto-generated 
+@@ -546,8 +562,8 @@ def compile_single(source, options, full
+     Always compiles a single file; does not perform timestamp checking or
+     recursion.
+     """
+-    return run_pipeline(source, options, full_module_name)
+-
++    ret = run_pipeline(source, options, full_module_name)
++    return ret
+ 
+ def compile_multiple(sources, options):
+     """
+@@ -618,6 +634,7 @@ def setuptools_main():
+     return main(command_line = 1)
+ 
+ def main(command_line = 0):
++    global dep_out
+     args = sys.argv[1:]
+     any_failures = 0
+     if command_line:
+@@ -631,6 +648,10 @@ def main(command_line = 0):
+         sys.stderr.write("Cython version %s\n" % Version.version)
+     if options.working_path!="":
+         os.chdir(options.working_path)
++    if options.dep_makefile:
++        dep_out = io.open(options.dep_makefile, mode="w+b")
++        dep_out.write(os.path.basename(options.output_file + ":"))
++
+     try:
+         result = compile(sources, options)
+         if result.num_errors > 0:
+@@ -638,6 +659,17 @@ def main(command_line = 0):
+     except (EnvironmentError, PyrexError), e:
+         sys.stderr.write(str(e) + '\n')
+         any_failures = 1
++
++    if options.dep_makefile:
++       for i in dep_include:
++           dep_out.write("\\" + os.linesep + " " + i)
++       dep_out.write(os.linesep)
++       for i in dep_phony:
++          dep_out.write(os.linesep + i + ":" + os.linesep)
++       for i in dep_include:
++          dep_out.write(os.linesep + i + ":" + os.linesep)
++       dep_out.close()
++
+     if any_failures:
+         sys.exit(1)
+ 
+@@ -655,6 +687,7 @@ default_options = dict(
+     errors_to_stderr = 1,
+     cplus = 0,
+     output_file = None,
++    dep_makefile = None,
+     annotate = None,
+     generate_pxi = 0,
+     capi_reexport_cincludes = 0,
