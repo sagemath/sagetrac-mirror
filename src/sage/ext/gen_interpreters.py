@@ -4159,3 +4159,6 @@ modules = [
                          'sage/ext/interpreters/interp_el.c']),
 
 ]
+
+if __name__=="__main__":
+    rebuild("interpreters")
