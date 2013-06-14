@@ -2064,3 +2064,14 @@ if is_package_installed('lrcalc'):
                   libraries = ["lrcalc"],
                   depends = [SAGE_INC + "/lrcalc/symfcn.h"]), # should include all .h
         )
+
+if is_package_installed('polymake'):
+    ext_modules.append(
+        Extension('sage.geometry.polymake',
+                  ['sage/geometry/polymake/polymake.pyx'],
+                  language='c++',
+                  include_dirs=[SAGE_INC, "/sage/c_lib/include"],
+                  libraries=['polymake', 'gmp'],
+                  cmd_class = {'build_ext':build_ext}
+                  )
+        )
