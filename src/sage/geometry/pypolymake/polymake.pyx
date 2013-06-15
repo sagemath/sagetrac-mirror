@@ -131,7 +131,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: p = polymake.Polytope('POINTS',m)
             sage: p.num_facets()
@@ -149,7 +149,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: p = polymake.Polytope('POINTS',m)
             sage: p.num_points()
@@ -174,13 +174,13 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
             sage: p = polymake.Polytope('POINTS',m)
             sage: p.is_simple()
             True
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: p = polymake.Polytope('POINTS',m)
             sage: p.is_simple()
@@ -197,7 +197,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
             sage: p = polymake.Polytope('POINTS',m)
             sage: p.is_simplicial()
@@ -222,7 +222,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: cube = polymake.cube(3,0)
             sage: cube.vertices()
             [1 0 0 0]
@@ -240,7 +240,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import polymake
+            sage: import 
             sage: cube = polymake.cube(3,0)
             sage: cube.facets()
             [ 0  1  0  0]
@@ -276,7 +276,7 @@ def cube(dimension, scale=1):
 
     EXAMPLES::
 
-        sage: import polymake
+        sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: cube = polymake.cube(3)
     """
     return new_Polytope_from_function("cube", dimension, scale)
@@ -285,7 +285,7 @@ def cell24():
     """
     EXAMPLES::
 
-        sage: import polymake
+        sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: c24 = polymake.cell24()
     """
     return new_Polytope_from_function("create_24_cell")
@@ -303,7 +303,7 @@ def associahedron(dim):
     """
     EXAMPLES::
 
-        sage: import polymake
+        sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: a3 = polymake.associahedron(3)
     """
     return new_Polytope_from_function("associahedron", dim)
@@ -314,7 +314,7 @@ def rand_sphere(dim, npoints):
 
     EXAMPLES::
 
-        sage: import polymake
+        sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: s3 = polymake.rand_sphere(3,20)
     """
     return new_Polytope_from_function("rand_sphere", dim, npoints)
