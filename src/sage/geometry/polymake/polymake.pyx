@@ -128,8 +128,11 @@ convex polytopes. Polytopes—combinatorics and computation (Oberwolfach,
 ###############################################################################
 
 from libc.stdlib cimport malloc
+import operator
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+from sage.matrix.constructor import matrix
+from sage.modules.all import vector as sage_vector
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer as SageInteger
@@ -138,6 +141,8 @@ from sage.libs.gmp.mpz cimport mpz_set
 from sage.libs.gmp.mpq cimport mpq_set
 from sage.rings.all import QQ, ZZ
 from sage.matrix.matrix_space import MatrixSpace
+from sage.symbolic.expression import Expression
+from sage.symbolic.ring import SR
 
 from defs cimport Main, PerlObject, MatrixRational, Rational, Integer, \
         VectorInteger
@@ -147,9 +152,6 @@ from defs cimport CallPolymakeFunction, CallPolymakeFunction1, \
 from defs cimport pm_get, pm_get_MatrixRational, pm_get_PerlObject, \
         pm_get_VectorInteger, \
         pm_assign, get_element
-
-# FIXME: pass user-settings parameter
-cdef Main pm
 
 cdef Vector_integer_dense pm_VectorInteger_to_sage(VectorInteger pm_vec):
     cdef Py_ssize_t size = pm_vec.size()
@@ -191,48 +193,163 @@ cdef MatrixRational* sage_mat_to_pm(Matrix_rational_dense mat):
     return pm_mat
 
 cdef class Polytope(SageObject):
-    cdef PerlObject* pm_obj
-    def __init__(self, prop_name, data):
-        if prop_name not in ['VERTICES', 'POINTS', 'FACETS']:
-            raise ValueError("property must be VERTICES, POINTS or FACETS")
-        pm.set_application("polytope")
-        self.pm_obj = new PerlObject("Polytope<Rational>")
-        cdef MatrixRational* pm_mat = sage_mat_to_pm(data)
-        pm_assign(self.pm_obj.take(prop_name), pm_mat[0])
-        del pm_mat
+    cdef PerlObject* _polymake_obj
+    cdef object _homogeneous_coordinates
+    cdef object _affine_plane_equation
+    cdef object _name
+    def __init__(self, data=None, homogeneous_coordinates=None, affine_plane_equation=None, name=None):
+        """
+        return a new polytope object
+
+        """
+        cdef MatrixRational* pm_mat
+        self._homogeneous_coordinates = homogeneous_coordinates
+        self._affine_plane_equation = affine_plane_equation
+        self._name = "A Polytope" if name is None else name
+        if False: #TODO isinstance(data, PerlObject):
+            pass #TODO self._polymake_obj = data
+        elif data in ['VERTICES', 'POINTS', 'FACETS']: 
+            # compatibility with pypolymake: assume the
+            # second argument is a matrix containing the data
+            self._polymake_obj = new PerlObject("Polytope<Rational>")
+            pm_mat = sage_mat_to_pm(homogeneous_coordinates)
+            pm_assign(self._polymake_obj.take(data), pm_mat[0])
+            del pm_mat
+        elif isinstance(data, str):
+            # backward compatibity, assume that we got a
+            # (filename, description) pair
+            self.load(data)
+            if isinstance(homogeneous_coordinates, str):
+                self._name = homogeneous_coordinates
+                self._homogeneous_coordinates = None
+        else:
+            self._polymake_obj = new PerlObject("Polytope<Rational>")
+            if data:
+                if isinstance(data, list):
+                    if isinstance(data[0], (Expression, bool)):
+                        # Polytope([x < 2, x > 1], (1,x))
+                        self.set_defining_equations(data, homogeneous_coordinates, affine_plane_equation)
+                    else:
+                        # assume that it is numeric and that they represent inequalities
+                        self._set_matrix_property("INEQUALITIES", data)
+                    
+    #def __init__(self, prop_name, data):
+    #    if prop_name not in ['VERTICES', 'POINTS', 'FACETS']:
+    #        raise ValueError("property must be VERTICES, POINTS or FACETS")
+    #    self._polymake_obj = new PerlObject("Polytope<Rational>")
+    #    cdef MatrixRational* pm_mat = sage_mat_to_pm(data)
+    #    pm_assign(self._polymake_obj.take(prop_name), pm_mat[0])
+    #    del pm_mat
+
+    def set_defining_equations(self, equations, homogeneous_coordinates, affine_plane_equation):
+        self._homogeneous_coordinates = homogeneous_coordinates
+        self._affine_plane_equation = affine_plane_equation
+        symbol_coordinates = [c for c in homogeneous_coordinates if hasattr(c, 'is_symbol') and c.is_symbol()]
+        if len(symbol_coordinates) < len(homogeneous_coordinates) - 1:
+            raise ValueError("Too many non-symbol coordinates")
+        if len(symbol_coordinates) == len(homogeneous_coordinates) - 1:
+            if affine_plane_equation != None:
+                raise ValueError("Cannot specify both affine coordinates and an affine plane equation")
+            d = SR.symbol()
+            homogeneous_coordinates = [c if hasattr(c, 'is_symbol') and c.is_symbol() else d for c in homogeneous_coordinates]
+            affine_plane_equation = (d == 1)
+        # solve the affine plane equation to find a homogeneous representation of 1
+        if affine_plane_equation != None:
+            zero_expr = affine_plane_equation.lhs() - affine_plane_equation.rhs()
+            const_coeff = QQ(zero_expr.subs({var:0 for var in homogeneous_coordinates}))
+            homogeneous_one = (const_coeff - zero_expr) / const_coeff
+            if homogeneous_one.subs({var:0 for var in homogeneous_coordinates}) != 0:
+                raise ValueError("Cannot represent affine_plane equation homogeneously")
+            
+        inequalities_coefficients = []
+        equalities_coefficients = []
+        for expr in equations:
+            if expr is True:
+                continue
+            elif expr is False:
+                inequalities_coefficients.append([-1] + [0 for _ in homogeneous_coordinates][1:])
+                continue
+            elif expr.operator() in (operator.le, operator.lt):
+                zero_expr = expr.rhs() - expr.lhs()
+            elif expr.operator() in (operator.ge, operator.gt):
+                zero_expr = expr.lhs() - expr.rhs()
+            elif expr.operator() == operator.eq:
+                zero_expr = expr.lhs() - expr.rhs()
+            else:
+                raise ValueError("equations should have operator >, <, >=, <= or ==")
+
+            if affine_plane_equation != None:
+                const_coeff = QQ(zero_expr.subs({var:0 for var in homogeneous_coordinates}))
+                zero_expr = zero_expr - const_coeff + const_coeff * homogeneous_one
+
+            coeffs = [QQ(zero_expr.coefficient(var)) for var in homogeneous_coordinates]
+            if sum(coeff*var for coeff, var in zip(coeffs, homogeneous_coordinates)) != zero_expr:
+                raise ValueError("equation is not homogeneous or affine")
+
+            if expr.operator() == operator.eq:
+                equalities_coefficients.append(coeffs)
+            else:
+                inequalities_coefficients.append(coeffs)
+        self._set_matrix_property("INEQUALITIES", matrix(QQ, inequalities_coefficients))
+        self._set_matrix_property("EQUATIONS", matrix(QQ, equalities_coefficients))
+
+    def get_defining_equations(self):
+        ineq_coeffs = self.facets()
+        if self._homogeneous_coordinates is None:
+            self._homogeneous_coordinates = [SR.symbol() for _ in ineq_coeffs[0]]
+        ineqs = [sum(c*var for c,var in zip(coeff, self._homogeneous_coordinates)) > 0
+                    for coeff in ineq_coeffs]
+        eq_coeffs = self.equations()
+        eqs = [sum(c*var for c,var in zip(coeff, self._homogeneous_coordinates)) == 0
+                    for coeff in eq_coeffs]
+        return eqs + ineqs
 
     def __dealloc__(self):
-        del self.pm_obj
+        del self._polymake_obj
 
     def _repr_(self):
-        pass
+        return self._name
 
-    def _save(self, filename):
+    def load(self, filename):
+        self._polymake_obj = new PerlObject()
+        #TODO: why doesn't this compile?
+        #self._polymake_obj.load(<char*>filename)
+        raise NotImplementedError
+
+    def save(self, filename):
         """
         Saves this polytope to a file using polymake's representation.
         """
-        self.pm_obj.save(filename)
+        self._polymake_obj.save(filename)
 
     def _get_bool_property(self, prop):
         cdef Integer pm_res
-        pm_get(self.pm_obj.give(prop),pm_res)
+        pm_get(self._polymake_obj.give(prop),pm_res)
         return bool(pm_res.compare(0))
 
     def _get_integer_property(self, prop):
         cdef Integer pm_res
-        pm_get(self.pm_obj.give(prop), pm_res)
+        pm_get(self._polymake_obj.give(prop), pm_res)
         cdef SageInteger res = SageInteger.__new__(SageInteger)
         mpz_set(res.value, pm_res.get_rep())
         return res
 
     def _get_matrix_property(self, prop):
         cdef MatrixRational pm_mat
-        pm_get_MatrixRational(self.pm_obj.give(prop), pm_mat)
+        pm_get_MatrixRational(self._polymake_obj.give(prop), pm_mat)
         return pm_mat_to_sage(pm_mat)
+
+    def _get_vector_list_property(self, prop):
+        return [sage_vector(row) for row in self._get_matrix_property(prop)]
+
+    def _set_matrix_property(self, prop, value):
+        cdef MatrixRational* pm_mat = sage_mat_to_pm(value)
+        pm_assign(self._polymake_obj.take(prop), pm_mat[0])
+        del pm_mat
 
     def _get_vector_property(self, prop):
         cdef VectorInteger pm_vec
-        pm_get_VectorInteger(self.pm_obj.give(prop), pm_vec)
+        pm_get_VectorInteger(self._polymake_obj.give(prop), pm_vec)
         return pm_VectorInteger_to_sage(pm_vec)
 
     def __add__(left, right):
@@ -323,18 +440,51 @@ cdef class Polytope(SageObject):
         """
         return self._get_bool_property("SIMPLICIAL")
 
+    def affine_hull(self):
+        return self._get_matrix_property("AFFINE_HULL")
+
+    def is_bounded(self):
+        return self._get_bool_property("BOUNDED")
+
+    def is_centered(self):
+        return self._get_bool_property("CENTERED")
+
+    def is_feasible(self):
+        return self._get_bool_property("FEASIBLE")
+
+    def is_simple(self):
+        return self._get_bool_property("SIMPLE")
+
+    def gale_transform(self):
+        return self._get_matrix_property("GALE_TRANSFORM")
+ 
+    def n_points(self): 
+        return self._get_integer_property("N_POINTS")
+
+    def _points(self):
+        return self._get_vector_list_property("POINTS")
+
+    def vertices(self):
+        return self._get_vector_list_property("VERTICES")
+
+    def facets(self):
+        return self._get_vector_list_property("FACETS")
+
+    def n_facets(self):
+        return self._get_integer_property("N_FACETS")
+
     def graph(self):
         cdef MatrixRational pm_mat
         cdef PerlObject *graph = new PerlObject("Graph<Undirected>")
-        pm_get_PerlObject(self.pm_obj.give("GRAPH"), graph[0])
+        pm_get_PerlObject(self._polymake_obj.give("GRAPH"), graph[0])
         pm_get_MatrixRational(graph[0].give("ADJACENCY"), pm_mat)
         # FIXME: this is broken
         # FIXME: how do we read the adjacency matrix?
         return pm_mat_to_sage(pm_mat)
 
     def visual(self):
-        pm.set_preference("jreality")
-        self.pm_obj.VoidCallPolymakeMethod("VISUAL")
+        main.set_preference("jreality")
+        self._polymake_obj.VoidCallPolymakeMethod("VISUAL")
 
     def vertices(self):
         """
@@ -370,22 +520,23 @@ cdef class Polytope(SageObject):
         """
         return self._get_matrix_property("FACETS")
 
+# Sage's convention is to (also) have a lowercase function for constructing objects
+polytope = Polytope
 
 def new_Polytope_from_function(name, *args):
-    pm.set_application("polytope")
-    cdef PerlObject pm_obj
+    cdef PerlObject _polymake_obj
     if len(args) == 0:
-        pm_obj = CallPolymakeFunction(name)
+        _polymake_obj = CallPolymakeFunction(name)
     elif len(args) == 1:
-        pm_obj = CallPolymakeFunction1(name, args[0])
+        _polymake_obj = CallPolymakeFunction1(name, args[0])
     elif len(args) == 2:
-        pm_obj = CallPolymakeFunction2(name, args[0], args[1])
+        _polymake_obj = CallPolymakeFunction2(name, args[0], args[1])
     elif len(args) == 3:
-        pm_obj = CallPolymakeFunction3(name, args[0], args[1], args[2])
+        _polymake_obj = CallPolymakeFunction3(name, args[0], args[1], args[2])
     else:
         raise NotImplementedError("can only handle 1-3 arguments")
     cdef Polytope res = Polytope.__new__(Polytope)
-    res.pm_obj = new_PerlObject_from_PerlObject(pm_obj)
+    res._polymake_obj = new_PerlObject_from_PerlObject(_polymake_obj)
     return res
 
 def cube(dimension, scale=1):
@@ -436,3 +587,15 @@ def rand_sphere(dim, npoints):
         sage: s3 = polymake.rand_sphere(3,20)
     """
     return new_Polytope_from_function("rand_sphere", dim, npoints)
+
+def convex_hull(self, points=[]):
+    points.sort()
+    return Polytope("POINTS", matrix(QQ, points), name="Convex hull of points %s" % points)
+
+# "none" signifies that we don't want polymake to save user configuration data
+cdef Main* main
+main = new Main(<char*>"none")
+main.set_application("polytope")
+
+
+# TODO: delete main upon unloading this module

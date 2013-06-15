@@ -7,6 +7,7 @@ cdef extern from "wrap.h" namespace "polymake":
 
 cdef extern from "polymake/Main.h" namespace "polymake":
     cdef cppclass Main:
+        Main(char*)
         void set_application(char*)
         void set_preference(char*)
 
@@ -32,6 +33,7 @@ cdef extern from "polymake/client.h":
         PerlObject(char*) except +ValueError
         void VoidCallPolymakeMethod(char*) except +ValueError
         void save(char*)
+        PerlObject load(char*) except +
         PropertyValue take(char*)
         PropertyValue give(char*) # do not add except here, see pm_get for why
 
