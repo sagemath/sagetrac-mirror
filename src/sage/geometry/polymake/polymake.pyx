@@ -240,7 +240,7 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import 
+            sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: cube = polymake.cube(3,0)
             sage: cube.facets()
             [ 0  1  0  0]
