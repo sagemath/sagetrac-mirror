@@ -1,9 +1,127 @@
 # distutils: language = c++
 # distutils: libraries = polymake gmp xml2 perl
 ### distutils: include_dirs = /opt/food/include
+"""
+This module provides access to polymake, which 'has been developed
+since 1997 in the Discrete Geometry group at the Institute of
+Mathematics of Technische Universitat Berlin. Since 2004 the
+development is shared with Fachbereich Mathematik, Technische
+Universitat Darmstadt. The system offers access to a wide variety
+of algorithms and packages within a common framework. polymake is
+flexible and continuously expanding. The software supplies C++ and
+Perl interfaces which make it highly adaptable to individual
+needs.'
+
+AUTHORS:
+
+- Ewgenij Gawrilow, Michael Joswig: main authors of polymake
+
+- Burcin Erocal (2011-2012): total rewrite to 
+  take advantage of libary interface, called pypolymake
+  
+- Timo Kluck (2012-2013): integrate pypolymake fully into sage,
+  making sure to keep backwards compatibility with older version of
+  polymake interface
+
+- William Stein: first Sage interface
+
+EXAMPLES::
+
+Use :func:`polytope` to construct cones. The easiest way it to define it by a 
+set of affine equations::
+
+    sage: import sage.geometry.polymake as pm
+    sage: p1 = pm.polytope([x < 3, x > 0], homogeneous_coordinates=(1,x))
+    sage: p2 = pm.polytope([x < 2, x > -3], homogeneous_coordinates=(1,x))
+    sage: p3 = p1.intersection(p2)
+    sage: p3.get_defining_equations()
+    [x > 0, -x + 2 > 0]
+    sage: p3.volume()
+    2
+
+Another option is to use a set of homogeneous equations::
+
+    sage: x,y,z,w = var('x,y,z,w')
+    sage: p1 = pm.polytope([x > 0, y > 0, z > 0], homogeneous_coordinates=(x,y,z))
+    sage: p1.get_defining_equations()
+    [x > 0, y > 0, z > 0]
+    sage: p1.is_simple()
+    True
+    sage: p1.is_feasible()
+    True
+    sage: p1.volume()
+    1
+
+This polytope is empty because of the extra constraint::
+
+    sage: p1 = pm.polytope([x+y+z==1, x> 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (1,x,y,z))
+    sage: #p1.get_defining_equations()
+    [x + y + z - 1 == 0, x - 1/10 > 0, y - 1/10 > 0, z - 1/10 > 0]
+    sage: p1.is_feasible()
+    False
+    sage: p1.volume()
+    0
+
+Another call allows you to specify affine equations, which are then interpreted
+on the affine space you spacify::
+
+    sage: p1 = pm.polytope([x > 1/10, y > 1/10, z > 1/10], homogeneous_coordinates=(x,y,z), affine_plane_equation=(x+y+z==1))
+
+
+So these two calls are equivalent::
+
+    sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (1,x,y,z))
+    sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (w,x,y,z), affine_plane_equation=(w==1))
+
+You can obtain any polymake property, even if it hasn't been wrapped, by
+using the underlying Perl object::
+
+    sage: p1._polymake_obj.VERTICES_IN_FACETS
+    '{0 1 3}\n{0 1 2}\n{0 2 3}\n{1 2 3}\n'
+
+
+Doctests from the previous version of this interface::
+
+    sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional - polymake
+    sage: P.facets()                            # optional - polymake
+    [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
+    sage: P.vertices()                            # optional - polymake
+    [(1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0), (1, 0, 1, 1), (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
+    sage: P.is_simple()                              # optional - polymake
+    True
+    sage: P.n_facets()                            # optional - polymake
+    6
+    sage: polymake.cell24()            # optional - polymake
+    The 24-cell
+    sage: R.<x,y,z> = PolynomialRing(QQ,3)
+    sage: f = x^3 + y^3 + z^3 + x*y*z
+    sage: e = f.exponents()
+    sage: a = [[1] + list(v) for v in e]
+    sage: a
+    [[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
+    sage: n = polymake.convex_hull(a)       # optional - polymake
+    sage: n                                 # optional - polymake
+    Convex hull of points [[1, 0, 0, 3], [1, 0, 3, 0], [1, 1, 1, 1], [1, 3, 0, 0]]
+    sage: n.facets()                        # optional - polymake
+    [(0, 1, 0, 0), (3, -1, -1, 0), (0, 0, 1, 0)]
+    sage: n.is_simple()                     # optional - polymake
+    True
+    sage: n.graph()                         # optional - polymake
+    'GRAPH\n{1 2}\n{0 2}\n{0 1}\n\n'
+    
+CITE:
+
+Ewgenij Gawrilow and Michael Joswig. polymake: a framework for analyzing
+convex polytopes. Polytopes—combinatorics and computation (Oberwolfach,
+1997), 43–73, DMV Sem., 29, Birkhäuser, Basel, 2000. MR1785292 (2001f:52033).
+
+"""
 
 ###############################################################################
 #       Copyright (C) 2011-2012 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2012-2013 Timo Kluck <tkluck@infty.nl>
+#       Copyright (C) 2013 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
