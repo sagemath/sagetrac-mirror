@@ -10,6 +10,13 @@ string using Gp (and get the result back as a string).
 EXAMPLES: We illustrate objects that wrap GP objects (gp is the
 PARI interpreter)::
 
+    sage: from sage.env import SAGE_ETC
+    sage: f=os.path.join(SAGE_ETC, 'gprc.expect')
+    sage: os.path.exists(f)
+    True
+
+::
+
     sage: M = gp('[1,2;3,4]')
     sage: M
     [1, 2; 3, 4]
