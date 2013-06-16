@@ -1,6 +1,5 @@
 # distutils: language = c++
 # distutils: libraries = polymake gmp xml2 perl
-### distutils: include_dirs = /opt/food/include
 """
 This module provides access to polymake, which 'has been developed
 since 1997 in the Discrete Geometry group at the Institute of
@@ -17,7 +16,7 @@ AUTHORS:
 - Ewgenij Gawrilow, Michael Joswig: main authors of polymake
 
 - Burcin Erocal (2011-2012): total rewrite to 
-  take advantage of libary interface, called pypolymake
+  take advantage of library interface, called pypolymake
   
 - Timo Kluck (2012-2013): integrate pypolymake fully into sage,
   making sure to keep backwards compatibility with older version of
