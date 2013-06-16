@@ -73,12 +73,6 @@ So these two calls are equivalent::
     sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (1,x,y,z))
     sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (w,x,y,z), affine_plane_equation=(w==1))
 
-You can obtain any polymake property, even if it hasn't been wrapped, by
-using the underlying Perl object::
-
-    sage: p1._polymake_obj.VERTICES_IN_FACETS
-    '{0 1 3}\n{0 1 2}\n{0 2 3}\n{1 2 3}\n'
-
 
 Doctests from the previous version of this interface::
 
@@ -132,7 +126,7 @@ import operator
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector as sage_vector
+from sage.modules.all import vector as SageVector
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer as SageInteger
@@ -148,8 +142,9 @@ from defs cimport Main, PerlObject, MatrixRational, Rational, Integer, \
         VectorInteger
 from defs cimport CallPolymakeFunction, CallPolymakeFunction1, \
         CallPolymakeFunction2, CallPolymakeFunction3, \
+        CallPolymakeFunction_PerlObject2, \
         new_PerlObject_from_PerlObject
-from defs cimport pm_get, pm_get_MatrixRational, pm_get_PerlObject, \
+from defs cimport pm_get, pm_get_Rational, pm_get_MatrixRational, pm_get_PerlObject, \
         pm_get_VectorInteger, \
         pm_assign, get_element
 
@@ -203,12 +198,11 @@ cdef class Polytope(SageObject):
 
         """
         cdef MatrixRational* pm_mat
+        cdef PerlObject perlobj_data
         self._homogeneous_coordinates = homogeneous_coordinates
         self._affine_plane_equation = affine_plane_equation
         self._name = "A Polytope" if name is None else name
-        if False: #TODO isinstance(data, PerlObject):
-            pass #TODO self._polymake_obj = data
-        elif data in ['VERTICES', 'POINTS', 'FACETS']: 
+        if data in ['VERTICES', 'POINTS', 'FACETS']: 
             # compatibility with pypolymake: assume the
             # second argument is a matrix containing the data
             self._polymake_obj = new PerlObject("Polytope<Rational>")
@@ -233,14 +227,6 @@ cdef class Polytope(SageObject):
                         # assume that it is numeric and that they represent inequalities
                         self._set_matrix_property("INEQUALITIES", data)
                     
-    #def __init__(self, prop_name, data):
-    #    if prop_name not in ['VERTICES', 'POINTS', 'FACETS']:
-    #        raise ValueError("property must be VERTICES, POINTS or FACETS")
-    #    self._polymake_obj = new PerlObject("Polytope<Rational>")
-    #    cdef MatrixRational* pm_mat = sage_mat_to_pm(data)
-    #    pm_assign(self._polymake_obj.take(prop_name), pm_mat[0])
-    #    del pm_mat
-
     def set_defining_equations(self, equations, homogeneous_coordinates, affine_plane_equation):
         self._homogeneous_coordinates = homogeneous_coordinates
         self._affine_plane_equation = affine_plane_equation
@@ -308,13 +294,13 @@ cdef class Polytope(SageObject):
         del self._polymake_obj
 
     def _repr_(self):
-        return self._name
+        return self._name if self._name else 'A Polytope'
 
     def load(self, filename):
+        cdef char* fn = <char*>filename
         self._polymake_obj = new PerlObject()
-        #TODO: why doesn't this compile?
-        #self._polymake_obj.load(<char*>filename)
-        raise NotImplementedError
+        self._polymake_obj.load(fn)
+        self._name = "A Polytope"
 
     def save(self, filename):
         """
@@ -334,13 +320,20 @@ cdef class Polytope(SageObject):
         mpz_set(res.value, pm_res.get_rep())
         return res
 
+    def _get_rational_property(self, prop):
+        cdef Rational pm_res
+        pm_get_Rational(self._polymake_obj.give(prop), pm_res)
+        cdef SageRational res = SageRational.__new__(SageRational)
+        mpq_set(res.value, pm_res.get_rep())
+        return res
+
     def _get_matrix_property(self, prop):
         cdef MatrixRational pm_mat
         pm_get_MatrixRational(self._polymake_obj.give(prop), pm_mat)
         return pm_mat_to_sage(pm_mat)
 
     def _get_vector_list_property(self, prop):
-        return [sage_vector(row) for row in self._get_matrix_property(prop)]
+        return [SageVector(row) for row in self._get_matrix_property(prop)]
 
     def _set_matrix_property(self, prop, value):
         cdef MatrixRational* pm_mat = sage_mat_to_pm(value)
@@ -441,7 +434,7 @@ cdef class Polytope(SageObject):
         return self._get_bool_property("SIMPLICIAL")
 
     def affine_hull(self):
-        return self._get_matrix_property("AFFINE_HULL")
+        return self._get_vector_list_property("AFFINE_HULL")
 
     def is_bounded(self):
         return self._get_bool_property("BOUNDED")
@@ -482,6 +475,9 @@ cdef class Polytope(SageObject):
         # FIXME: how do we read the adjacency matrix?
         return pm_mat_to_sage(pm_mat)
 
+    def volume(self):
+        return self._get_rational_property("VOLUME")
+
     def visual(self):
         main.set_preference("jreality")
         self._polymake_obj.VoidCallPolymakeMethod("VISUAL")
@@ -493,16 +489,12 @@ cdef class Polytope(SageObject):
             sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: cube = polymake.cube(3,0)
             sage: cube.vertices()
-            [1 0 0 0]
-            [1 1 0 0]
-            [1 0 1 0]
-            [1 1 1 0]
-            [1 0 0 1]
-            [1 1 0 1]
-            [1 0 1 1]
-            [1 1 1 1]
+            [(1, 0, 0, 0), (1, 1, 0, 0), (1, 0, 1, 0), (1, 1, 1, 0), (1, 0, 0, 1), (1, 1, 0, 1), (1, 0, 1, 1), (1, 1, 1, 1)]
         """
         return self._get_matrix_property("VERTICES")
+
+    def equations(self):
+        return self._get_vector_list_property("EQUATIONS")
 
     def facets(self):
         """
@@ -511,33 +503,45 @@ cdef class Polytope(SageObject):
             sage: import sage.geometry.polymake as polymake  # optional - polymake
             sage: cube = polymake.cube(3,0)
             sage: cube.facets()
-            [ 0  1  0  0]
-            [ 1 -1  0  0]
-            [ 0  0  1  0]
-            [ 1  0 -1  0]
-            [ 0  0  0  1]
-            [ 1  0  0 -1]
+            [(0, 1, 0, 0), (1, -1, 0, 0), (0, 0, 1, 0), (1, 0, -1, 0), (0, 0, 0, 1), (1, 0, 0, -1)]
         """
         return self._get_matrix_property("FACETS")
+
+    def intersection(self, other):
+        cdef Polytope s = <Polytope?>self
+        cdef Polytope o = <Polytope?>other
+        cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("intersection", s._polymake_obj[0], o._polymake_obj[0])
+        return new_Polytope_from_PerlObject(polymake_obj)
+
+    def join(self, other):
+        cdef Polytope s = <Polytope?>self
+        cdef Polytope o = <Polytope?>other
+        cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("join_polytopes", s._polymake_obj[0], o._polymake_obj[0])
+        return new_Polytope_from_PerlObject(polymake_obj)
+
 
 # Sage's convention is to (also) have a lowercase function for constructing objects
 polytope = Polytope
 
-def new_Polytope_from_function(name, *args):
-    cdef PerlObject _polymake_obj
+cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, name=None):
+    cdef Polytope res = Polytope.__new__(Polytope)
+    res._polymake_obj = new_PerlObject_from_PerlObject(polymake_obj)
+    res._name = name
+    return res
+
+def new_Polytope_from_function(name, function_name, *args):
+    cdef PerlObject polymake_obj
     if len(args) == 0:
-        _polymake_obj = CallPolymakeFunction(name)
+        polymake_obj = CallPolymakeFunction(function_name)
     elif len(args) == 1:
-        _polymake_obj = CallPolymakeFunction1(name, args[0])
+        polymake_obj = CallPolymakeFunction1(function_name, args[0])
     elif len(args) == 2:
-        _polymake_obj = CallPolymakeFunction2(name, args[0], args[1])
+        polymake_obj = CallPolymakeFunction2(function_name, args[0], args[1])
     elif len(args) == 3:
-        _polymake_obj = CallPolymakeFunction3(name, args[0], args[1], args[2])
+        polymake_obj = CallPolymakeFunction3(function_name, args[0], args[1], args[2])
     else:
         raise NotImplementedError("can only handle 1-3 arguments")
-    cdef Polytope res = Polytope.__new__(Polytope)
-    res._polymake_obj = new_PerlObject_from_PerlObject(_polymake_obj)
-    return res
+    return new_Polytope_from_PerlObject(polymake_obj, name=name)
 
 def cube(dimension, scale=1):
     """
@@ -548,7 +552,7 @@ def cube(dimension, scale=1):
         sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: cube = polymake.cube(3)
     """
-    return new_Polytope_from_function("cube", dimension, scale)
+    return new_Polytope_from_function("Cube of dimension %s (scale %s)" % (dimension, scale), "cube", dimension, scale)
 
 def cell24():
     """
@@ -557,7 +561,7 @@ def cell24():
         sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: c24 = polymake.cell24()
     """
-    return new_Polytope_from_function("create_24_cell")
+    return new_Polytope_from_function("The 24-cell", "create_24_cell")
 
 def birkhoff(n, even=False):
     """
@@ -566,7 +570,7 @@ def birkhoff(n, even=False):
     EXAMPLES::
 
     """
-    return new_Polytope_from_function("birkhoff", n, even)
+    return new_Polytope_from_function("%s Birkhoff %s" % ("even" if even else "odd", n), "birkhoff", n, even)
 
 def associahedron(dim):
     """
@@ -575,7 +579,7 @@ def associahedron(dim):
         sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: a3 = polymake.associahedron(3)
     """
-    return new_Polytope_from_function("associahedron", dim)
+    return new_Polytope_from_function("%s-dimensional associahedron" % dim, "associahedron", dim)
 
 def rand_sphere(dim, npoints):
     """
@@ -586,9 +590,9 @@ def rand_sphere(dim, npoints):
         sage: import sage.geometry.polymake as polymake # optional - polymake
         sage: s3 = polymake.rand_sphere(3,20)
     """
-    return new_Polytope_from_function("rand_sphere", dim, npoints)
+    return new_Polytope_from_function("Random spherical polytope", "rand_sphere", dim, npoints)
 
-def convex_hull(self, points=[]):
+def convex_hull(points=[]):
     points.sort()
     return Polytope("POINTS", matrix(QQ, points), name="Convex hull of points %s" % points)
 

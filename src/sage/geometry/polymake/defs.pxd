@@ -23,6 +23,7 @@ cdef extern from "polymake/Rational.h" namespace 'polymake':
         int compare(int)
 
     cdef cppclass Rational:
+        Rational()
         Rational(mpq_t)
         mpq_t get_rep()
         Rational set(mpq_t)
@@ -45,6 +46,7 @@ cdef extern from "polymake/client.h":
     PerlObject CallPolymakeFunction3 "CallPolymakeFunction" \
             (char*, int, int, int) except +ValueError
     PerlObject* new_PerlObject_from_PerlObject "new perl::Object" (PerlObject)
+    PerlObject CallPolymakeFunction_PerlObject2 "CallPolymakeFunction" (char*, PerlObject, PerlObject)
 
 
 cdef extern from "polymake/SparseMatrix.h" namespace "polymake":
@@ -78,6 +80,7 @@ cdef extern from "polymake/Matrix.h" namespace 'polymake':
     # and store the result of give() first. This causes problems since
     # PropertyValue doesn't have a default constructor.
     void pm_get "WRAP_IN" (PropertyValue, Integer) except +ValueError
+    void pm_get_Rational "WRAP_IN" (PropertyValue, Rational) except +ValueError
     void pm_get_MatrixRational "WRAP_IN" (PropertyValue, MatrixRational) \
             except +ValueError
     void pm_get_VectorInteger "WRAP_IN" (PropertyValue, VectorInteger) \
