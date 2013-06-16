@@ -30,48 +30,24 @@ Use :func:`polytope` to construct cones. The easiest way it to define it by a
 set of affine equations::
 
     sage: import sage.geometry.polymake as pm
-    sage: p1 = pm.polytope([x < 3, x > 0], homogeneous_coordinates=(1,x))
-    sage: p2 = pm.polytope([x < 2, x > -3], homogeneous_coordinates=(1,x))
+    sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))
+    sage: p2 = pm.polytope([x < 2, x > -3], coordinates=(x,))
     sage: p3 = p1.intersection(p2)
     sage: p3.get_defining_equations()
     [x > 0, -x + 2 > 0]
     sage: p3.volume()
     2
 
-Another option is to use a set of homogeneous equations::
-
-    sage: x,y,z,w = var('x,y,z,w')
-    sage: p1 = pm.polytope([x > 0, y > 0, z > 0], homogeneous_coordinates=(x,y,z))
-    sage: p1.get_defining_equations()
-    [x > 0, y > 0, z > 0]
-    sage: p1.is_simple()
-    True
-    sage: p1.is_feasible()
-    True
-    sage: p1.volume()
-    1
-
 This polytope is empty because of the extra constraint::
 
-    sage: p1 = pm.polytope([x+y+z==1, x> 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (1,x,y,z))
-    sage: #p1.get_defining_equations()
+    sage: x,y,z = var('x,y,z')
+    sage: p1 = pm.polytope([x+y+z==1, x> 1/2, y > 1/2, z > 1/2], coordinates = (x,y,z))
+    sage: p1.get_defining_equations()
     [x + y + z - 1 == 0, x - 1/10 > 0, y - 1/10 > 0, z - 1/10 > 0]
     sage: p1.is_feasible()
     False
     sage: p1.volume()
     0
-
-Another call allows you to specify affine equations, which are then interpreted
-on the affine space you spacify::
-
-    sage: p1 = pm.polytope([x > 1/10, y > 1/10, z > 1/10], homogeneous_coordinates=(x,y,z), affine_plane_equation=(x+y+z==1))
-
-
-So these two calls are equivalent::
-
-    sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (1,x,y,z))
-    sage: p1 = pm.polytope([x > 1/2, y > 1/2, z > 1/2], homogeneous_coordinates = (w,x,y,z), affine_plane_equation=(w==1))
-
 
 Doctests from the previous version of this interface::
 
@@ -189,63 +165,44 @@ cdef MatrixRational* sage_mat_to_pm(Matrix_rational_dense mat):
 
 cdef class Polytope(SageObject):
     cdef PerlObject* _polymake_obj
-    cdef object _homogeneous_coordinates
-    cdef object _affine_plane_equation
+    cdef object _coordinates
     cdef object _name
-    def __init__(self, data=None, homogeneous_coordinates=None, affine_plane_equation=None, name=None):
+    def __init__(self, data=None, coordinates=None, name=None):
         """
         return a new polytope object
 
         """
         cdef MatrixRational* pm_mat
         cdef PerlObject perlobj_data
-        self._homogeneous_coordinates = homogeneous_coordinates
-        self._affine_plane_equation = affine_plane_equation
+        self._coordinates = coordinates
         self._name = "A Polytope" if name is None else name
         if data in ['VERTICES', 'POINTS', 'FACETS']: 
             # compatibility with pypolymake: assume the
             # second argument is a matrix containing the data
             self._polymake_obj = new PerlObject("Polytope<Rational>")
-            pm_mat = sage_mat_to_pm(homogeneous_coordinates)
+            pm_mat = sage_mat_to_pm(coordinates)
             pm_assign(self._polymake_obj.take(data), pm_mat[0])
             del pm_mat
         elif isinstance(data, str):
             # backward compatibity, assume that we got a
             # (filename, description) pair
             self.load(data)
-            if isinstance(homogeneous_coordinates, str):
-                self._name = homogeneous_coordinates
-                self._homogeneous_coordinates = None
+            if isinstance(coordinates, str):
+                self._name = coordinates
+                self._coordinates = None
         else:
             self._polymake_obj = new PerlObject("Polytope<Rational>")
             if data:
                 if isinstance(data, list):
                     if isinstance(data[0], (Expression, bool)):
                         # Polytope([x < 2, x > 1], (1,x))
-                        self.set_defining_equations(data, homogeneous_coordinates, affine_plane_equation)
+                        self.set_defining_equations(data, coordinates)
                     else:
                         # assume that it is numeric and that they represent inequalities
                         self._set_matrix_property("INEQUALITIES", data)
                     
-    def set_defining_equations(self, equations, homogeneous_coordinates, affine_plane_equation):
-        self._homogeneous_coordinates = homogeneous_coordinates
-        self._affine_plane_equation = affine_plane_equation
-        symbol_coordinates = [c for c in homogeneous_coordinates if hasattr(c, 'is_symbol') and c.is_symbol()]
-        if len(symbol_coordinates) < len(homogeneous_coordinates) - 1:
-            raise ValueError("Too many non-symbol coordinates")
-        if len(symbol_coordinates) == len(homogeneous_coordinates) - 1:
-            if affine_plane_equation != None:
-                raise ValueError("Cannot specify both affine coordinates and an affine plane equation")
-            d = SR.symbol()
-            homogeneous_coordinates = [c if hasattr(c, 'is_symbol') and c.is_symbol() else d for c in homogeneous_coordinates]
-            affine_plane_equation = (d == 1)
-        # solve the affine plane equation to find a homogeneous representation of 1
-        if affine_plane_equation != None:
-            zero_expr = affine_plane_equation.lhs() - affine_plane_equation.rhs()
-            const_coeff = QQ(zero_expr.subs({var:0 for var in homogeneous_coordinates}))
-            homogeneous_one = (const_coeff - zero_expr) / const_coeff
-            if homogeneous_one.subs({var:0 for var in homogeneous_coordinates}) != 0:
-                raise ValueError("Cannot represent affine_plane equation homogeneously")
+    def set_defining_equations(self, equations, coordinates):
+        self._coordinates = coordinates
             
         inequalities_coefficients = []
         equalities_coefficients = []
@@ -253,7 +210,7 @@ cdef class Polytope(SageObject):
             if expr is True:
                 continue
             elif expr is False:
-                inequalities_coefficients.append([-1] + [0 for _ in homogeneous_coordinates][1:])
+                inequalities_coefficients.append([-1] + [0 for _ in coordinates])
                 continue
             elif expr.operator() in (operator.le, operator.lt):
                 zero_expr = expr.rhs() - expr.lhs()
@@ -264,13 +221,11 @@ cdef class Polytope(SageObject):
             else:
                 raise ValueError("equations should have operator >, <, >=, <= or ==")
 
-            if affine_plane_equation != None:
-                const_coeff = QQ(zero_expr.subs({var:0 for var in homogeneous_coordinates}))
-                zero_expr = zero_expr - const_coeff + const_coeff * homogeneous_one
-
-            coeffs = [QQ(zero_expr.coefficient(var)) for var in homogeneous_coordinates]
+            constant_part = zero_expr.subs({c:0 for c in coordinates})
+            coeffs = [constant_part] + [QQ(zero_expr.coefficient(var)) for var in coordinates]
+            homogeneous_coordinates = [1] + list(coordinates)
             if sum(coeff*var for coeff, var in zip(coeffs, homogeneous_coordinates)) != zero_expr:
-                raise ValueError("equation is not homogeneous or affine")
+                raise ValueError("equation is not affine")
 
             if expr.operator() == operator.eq:
                 equalities_coefficients.append(coeffs)
@@ -281,12 +236,13 @@ cdef class Polytope(SageObject):
 
     def get_defining_equations(self):
         ineq_coeffs = self.facets()
-        if self._homogeneous_coordinates is None:
-            self._homogeneous_coordinates = [SR.symbol() for _ in ineq_coeffs[0]]
-        ineqs = [sum(c*var for c,var in zip(coeff, self._homogeneous_coordinates)) > 0
+        if self._coordinates is None:
+            self._coordinates = (SR.symbol() for _ in ineq_coeffs[0])
+        homogeneous_coordinates = [1] + list(self._coordinates)
+        ineqs = [sum(c*var for c,var in zip(coeff, homogeneous_coordinates)) > 0
                     for coeff in ineq_coeffs]
         eq_coeffs = self.equations()
-        eqs = [sum(c*var for c,var in zip(coeff, self._homogeneous_coordinates)) == 0
+        eqs = [sum(c*var for c,var in zip(coeff, homogeneous_coordinates)) == 0
                     for coeff in eq_coeffs]
         return eqs + ineqs
 
@@ -515,13 +471,13 @@ cdef class Polytope(SageObject):
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
         cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("intersection", s._polymake_obj[0], o._polymake_obj[0])
-        return new_Polytope_from_PerlObject(polymake_obj)
+        return new_Polytope_from_PerlObject(polymake_obj, coordinates=s._coordinates)
 
     def join(self, other):
         cdef Polytope s = <Polytope?>self
         cdef Polytope o = <Polytope?>other
         cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("join_polytopes", s._polymake_obj[0], o._polymake_obj[0])
-        return new_Polytope_from_PerlObject(polymake_obj)
+        return new_Polytope_from_PerlObject(polymake_obj, coordinates=s._coordinates)
 
     def __richcmp__(self, other, operation):
         if operation != 2:
@@ -561,9 +517,10 @@ ZONOTOPE_INPUT_VECTORS: common::Matrix<Scalar, NonSymmetric>
 # Sage's convention is to (also) have a lowercase function for constructing objects
 polytope = Polytope
 
-cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, name=None):
+cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None, name=None):
     cdef Polytope res = Polytope.__new__(Polytope)
     res._polymake_obj = new_PerlObject_from_PerlObject(polymake_obj)
+    res._coordinates = coordinates
     res._name = name
     return res
 
@@ -579,7 +536,7 @@ def new_Polytope_from_function(name, function_name, *args):
         polymake_obj = CallPolymakeFunction3(function_name, args[0], args[1], args[2])
     else:
         raise NotImplementedError("can only handle 1-3 arguments")
-    return new_Polytope_from_PerlObject(polymake_obj, name=name)
+    return new_Polytope_from_PerlObject(polymake_obj, coordinates=None, name=name)
 
 def cube(dimension, scale=1):
     """
