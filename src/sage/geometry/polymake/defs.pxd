@@ -47,7 +47,7 @@ cdef extern from "polymake/client.h":
             (char*, int, int, int) except +ValueError
     PerlObject* new_PerlObject_from_PerlObject "new perl::Object" (PerlObject)
     PerlObject CallPolymakeFunction_PerlObject2 "CallPolymakeFunction" (char*, PerlObject, PerlObject)
-
+    bint BoolCallPolymakeFunction_PerlObject2 "CallPolymakeFunction" (char*, PerlObject, PerlObject)
 
 cdef extern from "polymake/SparseMatrix.h" namespace "polymake":
     pass

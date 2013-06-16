@@ -143,6 +143,7 @@ from defs cimport Main, PerlObject, MatrixRational, Rational, Integer, \
 from defs cimport CallPolymakeFunction, CallPolymakeFunction1, \
         CallPolymakeFunction2, CallPolymakeFunction3, \
         CallPolymakeFunction_PerlObject2, \
+        BoolCallPolymakeFunction_PerlObject2, \
         new_PerlObject_from_PerlObject
 from defs cimport pm_get, pm_get_Rational, pm_get_MatrixRational, pm_get_PerlObject, \
         pm_get_VectorInteger, \
@@ -467,6 +468,7 @@ cdef class Polytope(SageObject):
         return self._get_integer_property("N_FACETS")
 
     def graph(self):
+        raise NotImplementedError
         cdef MatrixRational pm_mat
         cdef PerlObject *graph = new PerlObject("Graph<Undirected>")
         pm_get_PerlObject(self._polymake_obj.give("GRAPH"), graph[0])
@@ -494,7 +496,10 @@ cdef class Polytope(SageObject):
         return self._get_matrix_property("VERTICES")
 
     def equations(self):
-        return self._get_vector_list_property("EQUATIONS")
+        try:
+            return self._get_vector_list_property("EQUATIONS")
+        except ValueError:
+            return []
 
     def facets(self):
         """
@@ -519,6 +524,40 @@ cdef class Polytope(SageObject):
         cdef PerlObject polymake_obj = CallPolymakeFunction_PerlObject2("join_polytopes", s._polymake_obj[0], o._polymake_obj[0])
         return new_Polytope_from_PerlObject(polymake_obj)
 
+    def __richcmp__(self, other, operation):
+        if operation != 2:
+            raise NotImplementedError
+        # per the Cython spec, it is possible for some symmetric operations to be called
+        # on the second operand. This means that we cannot even be sure that `self` is 
+        # a Polytope, and we need to cast it. For consistency, we do this cast even in non-special methods.
+        cdef Polytope s = <Polytope?>self
+        cdef Polytope o = <Polytope?>other
+        return BoolCallPolymakeFunction_PerlObject2("equal_polyhedra", s._polymake_obj[0], o._polymake_obj[0])
+
+    def congruent(self, other):
+        cdef Polytope s = <Polytope?>self
+        cdef Polytope o = <Polytope?>other
+        # FIXME: we'd like to return the Rational that gives the congruence scale factor,
+        # but I haven't found a way to Cythonize a call to numerator(Rational) etc.
+        return BoolCallPolymakeFunction_PerlObject2("congruent", s._polymake_obj[0], o._polymake_obj[0])
+
+properties_to_wrap = """MINIMAL_VERTEX_ANGLE: common::Float
+ 
+ONE_VERTEX: common::Vector<Scalar>
+ 
+STEINER_POINTS: common::Matrix<Scalar, NonSymmetric>
+ 
+VALID_POINT: common::Vector<Scalar>
+ 
+VERTEX_BARYCENTER: common::Vector<Scalar>
+ 
+VERTEX_LABELS: common::Array<String>
+ 
+VERTEX_NORMALS: common::Matrix<Scalar, NonSymmetric>
+ 
+ZONOTOPE_INPUT_VECTORS: common::Matrix<Scalar, NonSymmetric>
+    def _
+    """
 
 # Sage's convention is to (also) have a lowercase function for constructing objects
 polytope = Polytope
@@ -595,6 +634,12 @@ def rand_sphere(dim, npoints):
 def convex_hull(points=[]):
     points.sort()
     return Polytope("POINTS", matrix(QQ, points), name="Convex hull of points %s" % points)
+
+def from_data(data):
+    raise NotImplementedError
+
+def rand01(d, n, seed=None):
+    raise NotImplementedError
 
 # "none" signifies that we don't want polymake to save user configuration data
 cdef Main* main
