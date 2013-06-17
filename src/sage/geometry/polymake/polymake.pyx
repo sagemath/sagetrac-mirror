@@ -221,7 +221,7 @@ cdef class Polytope(SageObject):
             else:
                 raise ValueError("equations should have operator >, <, >=, <= or ==")
 
-            constant_part = zero_expr.subs({c:0 for c in coordinates})
+            constant_part = QQ(zero_expr.subs({c:0 for c in coordinates}))
             coeffs = [constant_part] + [QQ(zero_expr.coefficient(var)) for var in coordinates]
             homogeneous_coordinates = [1] + list(coordinates)
             if sum(coeff*var for coeff, var in zip(coeffs, homogeneous_coordinates)) != zero_expr:
@@ -452,7 +452,7 @@ cdef class Polytope(SageObject):
 
     def equations(self):
         try:
-            return self._get_vector_list_property("EQUATIONS")
+            return self._get_vector_list_property("LINEAR_SPAN")
         except ValueError:
             return []
 
