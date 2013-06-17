@@ -27,7 +27,7 @@ AUTHORS:
 EXAMPLES::
 
 Use :func:`polytope` to construct cones. The easiest way it to define it by a 
-set of affine equations::
+set of affine inequalities::
 
     sage: import sage.geometry.polymake as pm
     sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))
@@ -38,14 +38,14 @@ set of affine equations::
     sage: p3.volume()
     2
 
-This polytope is empty because of the extra constraint::
+One can also define lower dimensional polytopes by specifying additional equations::
 
     sage: x,y,z = var('x,y,z')
-    sage: p1 = pm.polytope([x+y+z==1, x> 1/2, y > 1/2, z > 1/2], coordinates = (x,y,z))
+    sage: p1 = pm.polytope([x+y+z==1, x> 1/10, y > 1/10, z > 1/10], coordinates = (x,y,z))
     sage: p1.get_defining_equations()
     [x + y + z - 1 == 0, x - 1/10 > 0, y - 1/10 > 0, z - 1/10 > 0]
     sage: p1.is_feasible()
-    False
+    True
     sage: p1.volume()
     0
 
