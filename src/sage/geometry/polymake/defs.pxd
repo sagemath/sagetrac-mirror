@@ -10,6 +10,7 @@ cdef extern from "polymake/Main.h" namespace "polymake":
         Main(char*)
         void set_application(char*)
         void set_preference(char*)
+        void set_custom(char*, int) except +ValueError
 
 cdef extern from "polymake/Main.h":
     cdef cppclass PropertyValue:

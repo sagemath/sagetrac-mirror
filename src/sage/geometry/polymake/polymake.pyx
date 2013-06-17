@@ -601,6 +601,7 @@ def rand01(d, n, seed=None):
 cdef Main* main
 main = new Main(<char*>"none")
 main.set_application("polytope")
-
+main.set_custom("$Polymake::User::Verbose::external", 0)
+main.set_custom("$Polymake::User::Verbose::credits", 0)
 
 # TODO: delete main upon unloading this module

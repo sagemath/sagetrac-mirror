@@ -2075,6 +2075,7 @@ if is_package_installed('polymake'):
                   libraries=['polymake', 'gmp', 'xml2'],
                   library_dirs=[SAGE_LOCAL + "/lib"], 
                   depends=["sage/geometry/polymake/wrap.h",
-                           "sage/geometry/polymake/defs.pxd"]
+                           "sage/geometry/polymake/defs.pxd"],
+                  extra_compile_args=["-DPOLYMAKE_DEBUG=0"], 
                   )
         )
