@@ -27,7 +27,7 @@ EXAMPLES::
 Use :func:`polytope` to construct cones. The easiest way it to define it by a 
 set of affine inequalities::
 
-    sage: import sage.libs.polymake as pm
+    sage: import sage.libs.polymake.polymake as pm
     sage: p1 = pm.polytope([x < 3, x > 0], coordinates=(x,))
     sage: p2 = pm.polytope([x < 2, x > -3], coordinates=(x,))
     sage: p3 = p1.intersection(p2)
@@ -116,17 +116,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
-from defs cimport Main, PerlObject, MatrixRational, Rational, Integer, \
-        VectorInteger
-from defs cimport CallPolymakeFunction, CallPolymakeFunction1, \
-        CallPolymakeFunction2, CallPolymakeFunction3, \
-        CallPolymakeFunction_PerlObject2, \
-        BoolCallPolymakeFunction_PerlObject2, \
-        new_PerlObject_from_PerlObject
-from defs cimport pm_get, pm_get_String, pm_get_Rational, pm_get_MatrixRational, \
-        pm_get_PerlObject, \
-        pm_get_VectorInteger, \
-        pm_assign, get_element
+include "defs.pxd"
 
 cdef Vector_integer_dense pm_VectorInteger_to_sage(VectorInteger pm_vec):
     cdef Py_ssize_t size = pm_vec.size()
@@ -324,9 +314,9 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.num_facets()
             6
 
@@ -342,14 +332,14 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.num_points()
             8
 
             sage: m = matrix(QQ,10,4,[1,0,0,0, 1,1/16,1/4,1/16, 1,3/8,1/4,1/32, 1,1/4,3/8,1/32, 1,1/16,1/16,1/4, 1,1/32,3/8,1/4, 1,1/4,1/16,1/16, 1,1/32,1/4,3/8, 1,3/8,1/32,1/4, 1,1/4,1/32,3/8])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.num_points()
             10
         """
@@ -367,20 +357,20 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.is_simple()
             True
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.is_simple()
             True
 
             sage: m = matrix(QQ,10,4,[1,0,0,0, 1,1/16,1/4,1/16, 1,3/8,1/4,1/32, 1,1/4,3/8,1/32, 1,1/16,1/16,1/4, 1,1/32,3/8,1/4, 1,1/4,1/16,1/16, 1,1/32,1/4,3/8, 1,3/8,1/32,1/4, 1,1/4,1/32,3/8])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.is_simple()
             False
         """
@@ -390,9 +380,9 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
             sage: m = matrix(QQ,[[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]])
-            sage: p = polymake.Polytope('POINTS',m)
+            sage: p = pm.Polytope('POINTS',m)
             sage: p.is_simplicial()
             True
         """
@@ -452,8 +442,8 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
-            sage: cube = polymake.cube(3,0)
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+            sage: cube = pm.cube(3,0)
             sage: cube.vertices()
             [(1, 0, 0, 0), (1, 1, 0, 0), (1, 0, 1, 0), (1, 1, 1, 0), (1, 0, 0, 1), (1, 1, 0, 1), (1, 0, 1, 1), (1, 1, 1, 1)]
         """
@@ -469,8 +459,8 @@ cdef class Polytope(SageObject):
         """
         EXAMPLES::
 
-            sage: import sage.libs.polymake as polymake  # optional - polymake
-            sage: cube = polymake.cube(3,0)
+            sage: import sage.libs.polymake.polymake as pm  # optional - polymake
+            sage: cube = pm.cube(3,0)
             sage: cube.facets()
             [(0, 1, 0, 0), (1, -1, 0, 0), (0, 0, 1, 0), (1, 0, -1, 0), (0, 0, 0, 1), (1, 0, 0, -1)]
         """
@@ -506,10 +496,24 @@ cdef class Polytope(SageObject):
         return BoolCallPolymakeFunction_PerlObject2("congruent", s._polymake_obj[0], o._polymake_obj[0])
 
     def __reduce__(self):
-        import tempfile
-        with tempfile.NamedTemporaryFile() as file:
+        """
+        EXAMPLES::
+
+            sage: import sage.libs.polymake.polymake as pm
+            sage: cube = pm.cube(3)
+            sage: from cPickle import loads, dumps
+            sage: cube2 = loads(dumps(cube))
+            sage: cube2 == cube
+            True
+        """
+        import tempfile, os
+        # we need to add the extension '.poly', or polymake will do it for us
+        with tempfile.NamedTemporaryFile(suffix='.poly', delete=False) as file:
+            file.close()
+            ## argghh race condition! Why doesn't polymake allow us to save to a stream?
             self.save(file.name)
-            data = file.read()
+            data = open(file.name,'r').read()
+            os.unlink(file.name)
         return (new_Polytope_from_data, (data, self._coordinates, self._name))
 
 properties_to_wrap = """MINIMAL_VERTEX_ANGLE: common::Float
@@ -542,10 +546,12 @@ cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None, nam
 
 def new_Polytope_from_data(data, coordinates, name):
     cdef Polytope res = Polytope.__new__(Polytope)
-    import tempfile
-    with tempfile.NamedTemporaryFile() as file:
+    import tempfile, os
+    with tempfile.NamedTemporaryFile(delete=False) as file:
         file.write(data)
+        file.close()
         res.load(file.name)
+        os.unlink(file.name)
     res._coordinates = coordinates
     res._name = name
     return res
@@ -570,8 +576,8 @@ def cube(dimension, scale=1):
 
     EXAMPLES::
 
-        sage: import sage.libs.polymake as polymake # optional - polymake
-        sage: cube = polymake.cube(3)
+        sage: import sage.libs.polymake.polymake as pm # optional - polymake
+        sage: cube = pm.cube(3)
     """
     return new_Polytope_from_function("Cube of dimension %s (scale %s)" % (dimension, scale), "cube", dimension, scale)
 
@@ -579,8 +585,8 @@ def cell24():
     """
     EXAMPLES::
 
-        sage: import sage.libs.polymake as polymake # optional - polymake
-        sage: c24 = polymake.cell24()
+        sage: import sage.libs.polymake.polymake as pm # optional - polymake
+        sage: c24 = pm.cell24()
     """
     return new_Polytope_from_function("The 24-cell", "create_24_cell")
 
@@ -597,8 +603,8 @@ def associahedron(dim):
     """
     EXAMPLES::
 
-        sage: import sage.libs.polymake as polymake # optional - polymake
-        sage: a3 = polymake.associahedron(3)
+        sage: import sage.libs.polymake.polymake as pm # optional - polymake
+        sage: a3 = pm.associahedron(3)
     """
     return new_Polytope_from_function("%s-dimensional associahedron" % dim, "associahedron", dim)
 
@@ -608,8 +614,8 @@ def rand_sphere(dim, npoints):
 
     EXAMPLES::
 
-        sage: import sage.libs.polymake as polymake # optional - polymake
-        sage: s3 = polymake.rand_sphere(3,20)
+        sage: import sage.libs.polymake.polymake as pm # optional - polymake
+        sage: s3 = pm.rand_sphere(3,20)
     """
     return new_Polytope_from_function("Random spherical polytope", "rand_sphere", dim, npoints)
 

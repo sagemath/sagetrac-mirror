@@ -2067,7 +2067,7 @@ if is_package_installed('lrcalc'):
 
 if is_package_installed('polymake'):
     ext_modules.append(
-        Extension('sage.libs.polymake',
+        Extension('sage.libs.polymake.polymake',
                   sources = ['sage/libs/polymake/polymake.pyx'],
                   language='c++',
                   include_dirs=[SAGE_INC, "/sage/c_lib/include",
