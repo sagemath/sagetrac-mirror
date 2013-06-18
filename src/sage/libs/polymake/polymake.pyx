@@ -248,8 +248,7 @@ cdef class Polytope(SageObject):
 
     def load(self, filename):
         cdef char* fn = <char*>filename
-        self._polymake_obj = new PerlObject()
-        self._polymake_obj.load(fn)
+        self._polymake_obj = new_PerlObject_from_PerlObject(load(fn))
         self._name = "A Polytope"
 
     def save(self, filename):

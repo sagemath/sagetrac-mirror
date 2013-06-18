@@ -31,12 +31,12 @@ cdef extern from "polymake/Rational.h" namespace 'polymake':
         Rational set(mpq_t)
 
 cdef extern from "polymake/client.h":
+    cdef extern PerlObject load "perl::Object::load" (char*) except +
     cdef cppclass PerlObject "perl::Object":
         PerlObject()
         PerlObject(char*) except +ValueError
         void VoidCallPolymakeMethod(char*) except +ValueError
         void save(char*)
-        PerlObject load(char*) except +
         PropertyValue take(char*)
         PropertyValue give(char*) # do not add except here, see pm_get for why
 
