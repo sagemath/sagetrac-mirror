@@ -2067,15 +2067,15 @@ if is_package_installed('lrcalc'):
 
 if is_package_installed('polymake'):
     ext_modules.append(
-        Extension('sage.geometry.polymake',
-                  sources = ['sage/geometry/polymake/polymake.pyx'],
+        Extension('sage.libs.polymake',
+                  sources = ['sage/libs/polymake/polymake.pyx'],
                   language='c++',
                   include_dirs=[SAGE_INC, "/sage/c_lib/include",
-                                "sage/geometry/polymake"],
+                                "sage/libs/polymake"],
                   libraries=['polymake', 'gmp', 'xml2'],
                   library_dirs=[SAGE_LOCAL + "/lib"], 
-                  depends=["sage/geometry/polymake/wrap.h",
-                           "sage/geometry/polymake/defs.pxd"],
+                  depends=["sage/libs/polymake/wrap.h",
+                           "sage/libs/polymake/defs.pxd"],
                   extra_compile_args=["-DPOLYMAKE_DEBUG=0"], 
                   )
         )

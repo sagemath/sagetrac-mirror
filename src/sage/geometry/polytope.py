@@ -21,7 +21,7 @@ class PolymakeProxy(object):
     # the right tab completion and docstrings
     def __getattr__(self, attr):
         try:
-            import sage.geometry.polymake as pm
+            import sage.libs.polymake as pm
         except:
             raise RuntimeError(
             """Polymake requires the optional polymake package. It can be installed
