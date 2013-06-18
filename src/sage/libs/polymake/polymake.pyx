@@ -231,7 +231,7 @@ cdef class Polytope(SageObject):
     def get_defining_equations(self):
         ineq_coeffs = self.facets()
         if self._coordinates is None:
-            self._coordinates = (SR.symbol() for _ in ineq_coeffs[0])
+            self._coordinates = tuple(SR.symbol() for _ in ineq_coeffs[0])
         homogeneous_coordinates = [1] + list(self._coordinates)
         ineqs = [sum(c*var for c,var in zip(coeff, homogeneous_coordinates)) > 0
                     for coeff in ineq_coeffs]
