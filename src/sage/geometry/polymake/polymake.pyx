@@ -97,6 +97,7 @@ convex polytopes. Polytopes—combinatorics and computation (Oberwolfach,
 ###############################################################################
 
 from libc.stdlib cimport malloc
+from libcpp.string cimport string
 import operator
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
@@ -120,7 +121,8 @@ from defs cimport CallPolymakeFunction, CallPolymakeFunction1, \
         CallPolymakeFunction_PerlObject2, \
         BoolCallPolymakeFunction_PerlObject2, \
         new_PerlObject_from_PerlObject
-from defs cimport pm_get, pm_get_Rational, pm_get_MatrixRational, pm_get_PerlObject, \
+from defs cimport pm_get, pm_get_String, pm_get_Rational, pm_get_MatrixRational, \
+        pm_get_PerlObject, \
         pm_get_VectorInteger, \
         pm_assign, get_element
 
@@ -291,6 +293,11 @@ cdef class Polytope(SageObject):
     def _get_vector_list_property(self, prop):
         return [SageVector(row) for row in self._get_matrix_property(prop)]
 
+    def _get_string_property(self, prop):
+        cdef string pm_string
+        pm_get_String(self._polymake_obj.give(prop), pm_string)
+        return pm_string
+
     def _set_matrix_property(self, prop, value):
         cdef MatrixRational* pm_mat = sage_mat_to_pm(value)
         pm_assign(self._polymake_obj.take(prop), pm_mat[0])
@@ -423,14 +430,14 @@ cdef class Polytope(SageObject):
         return self._get_integer_property("N_FACETS")
 
     def graph(self):
-        raise NotImplementedError
-        cdef MatrixRational pm_mat
-        cdef PerlObject *graph = new PerlObject("Graph<Undirected>")
-        pm_get_PerlObject(self._polymake_obj.give("GRAPH"), graph[0])
-        pm_get_MatrixRational(graph[0].give("ADJACENCY"), pm_mat)
-        # FIXME: this is broken
-        # FIXME: how do we read the adjacency matrix?
-        return pm_mat_to_sage(pm_mat)
+        return self._get_string_property("GRAPH")
+        #cdef MatrixRational pm_mat
+        #cdef PerlObject *graph = new PerlObject("Graph<Undirected>")
+        #pm_get_PerlObject(self._polymake_obj.give("GRAPH"), graph[0])
+        #pm_get_MatrixRational(graph[0].give("ADJACENCY"), pm_mat)
+        ## FIXME: this is broken
+        ## FIXME: how do we read the adjacency matrix?
+        #return pm_mat_to_sage(pm_mat)
 
     def volume(self):
         return self._get_rational_property("VOLUME")

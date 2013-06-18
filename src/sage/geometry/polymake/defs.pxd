@@ -1,5 +1,6 @@
 # distutils: language = c++
 
+from libcpp.string cimport string
 from sage.libs.gmp.types cimport mpz_t, mpq_t
 
 cdef extern from "wrap.h" namespace "polymake":
@@ -81,6 +82,7 @@ cdef extern from "polymake/Matrix.h" namespace 'polymake':
     # and store the result of give() first. This causes problems since
     # PropertyValue doesn't have a default constructor.
     void pm_get "WRAP_IN" (PropertyValue, Integer) except +ValueError
+    void pm_get_String "WRAP_IN" (PropertyValue, string) except +ValueError
     void pm_get_Rational "WRAP_IN" (PropertyValue, Rational) except +ValueError
     void pm_get_MatrixRational "WRAP_IN" (PropertyValue, MatrixRational) \
             except +ValueError
