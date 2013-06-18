@@ -1,5 +1,3 @@
-# distutils: language = c++
-# distutils: libraries = polymake gmp xml2 perl
 """
 This module provides access to polymake, which 'has been developed
 since 1997 in the Discrete Geometry group at the Institute of
@@ -95,6 +93,10 @@ convex polytopes. Polytopes—combinatorics and computation (Oberwolfach,
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+
+# This does some magic to ensure that __module__ attributes are right, thus
+# ensuring that pickling is possible
+include "../../ext/stdsage.pxi"
 
 from libc.stdlib cimport malloc
 from libcpp.string cimport string
@@ -503,6 +505,13 @@ cdef class Polytope(SageObject):
         # but I haven't found a way to Cythonize a call to numerator(Rational) etc.
         return BoolCallPolymakeFunction_PerlObject2("congruent", s._polymake_obj[0], o._polymake_obj[0])
 
+    def __reduce__(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile() as file:
+            self.save(file.name)
+            data = file.read()
+        return (new_Polytope_from_data, (data, self._coordinates, self._name))
+
 properties_to_wrap = """MINIMAL_VERTEX_ANGLE: common::Float
  
 ONE_VERTEX: common::Vector<Scalar>
@@ -527,6 +536,16 @@ polytope = Polytope
 cdef new_Polytope_from_PerlObject(PerlObject polymake_obj, coordinates=None, name=None):
     cdef Polytope res = Polytope.__new__(Polytope)
     res._polymake_obj = new_PerlObject_from_PerlObject(polymake_obj)
+    res._coordinates = coordinates
+    res._name = name
+    return res
+
+def new_Polytope_from_data(data, coordinates, name):
+    cdef Polytope res = Polytope.__new__(Polytope)
+    import tempfile
+    with tempfile.NamedTemporaryFile() as file:
+        file.write(data)
+        res.load(file.name)
     res._coordinates = coordinates
     res._name = name
     return res
