@@ -25,17 +25,13 @@ fi
 #######################################################################
 # Apply all patches
 #######################################################################
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+CUR=`pwd`
 cd src
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+cp $CUR/patches/fpu*c .
 
 # Back to top level
-cd ..
+cd $CUR
 
 
 #######################################################################
@@ -62,9 +58,9 @@ try_add_CFLAG()
     # possible in registers.
     # We compile in the (already patched!) src/fpu.c which only does
     # something if the macro x86 is defined.
-    if $CC -O3 $CFLAGS $FLAG config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits 2>/dev/null; then
+    if $CC -O3 $CFLAGS $FLAG src/fpubits1.c src/fpubits2.c src/fpu.c -o src/fpubits 2>/dev/null; then
         # Compiled successfully, now run it
-        config/fpubits >/dev/null 2>/dev/null
+        src/fpubits >/dev/null 2>/dev/null
         status=$?
         if [ $status -le 1 ]; then
             # The program ran successfully.  For now, we don't need
@@ -98,17 +94,17 @@ done
 
 
 # Check the actual FPU precision with our new flags.
-$CC -O3 $CFLAGS config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits
+$CC -O3 $CFLAGS src/fpubits1.c src/fpubits2.c src/fpu.c -o src/fpubits
 if [ $? -ne 0 ]; then
     echo >&2 "Error: the command below failed:"
-    echo >&2 "$CC -O3 $CFLAGS config/fpubits1.c config/fpubits2.c src/fpu.c -o config/fpubits"
+    echo >&2 "$CC -O3 $CFLAGS src/fpubits1.c src/fpubits2.c src/fpu.c -o src/fpubits"
     exit 1
 fi
 export CFLAGS
 
 echo "CFLAGS for SYMPOW:$CFLAGS"
 
-config/fpubits
+src/fpubits
 status=$?
 if [ $status -eq 1 ]; then
 cat >&2 <<EOF
@@ -159,6 +155,7 @@ fi
 #######################################################################
 TARGET="$SAGE_LOCAL/lib/sympow"
 
+#FIXME:
 rm -rf "$TARGET"
 mkdir "$TARGET"
 
@@ -176,8 +173,10 @@ if [ ! -d "$TARGET/datafiles" ]; then
 fi
 
 # Create binary versions of datafiles
+# FIXME: this is messing with installed files UARGg
+
 cd "$TARGET/datafiles"
-for file in *.txt; do
+for file in $( shopt -s nullglob; echo *.txt ); do
     NUM=`grep -c AT $file`
     ../sympow -txt2bin "$NUM" <$file ${file/%txt/bin}
     if [ $? -ne 0 ]; then
