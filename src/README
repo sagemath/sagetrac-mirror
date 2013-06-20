@@ -1,0 +1,12 @@
+The build system in src is currenly *not* used by Sage ("the distribution"). it is intended to
+
+- create source tarballs
+- build distributable Sage ("the library") packages
+
+caveats:
+
+- unpatched cython does not support writing debug output in the right place.
+  debug output will be disabled in this case.
+
+- libgap headers are looked for in <libgap/*.h> not <gap/*.h>, because that's
+  where the gap headers are. the libgap-workaround is still contained.
