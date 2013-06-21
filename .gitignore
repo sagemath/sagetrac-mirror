@@ -4,3 +4,27 @@
 /local
 /logs
 /upstream
+
+# backup
+*~
+
+# build system
+/GNUmakefile.in
+/GNUmakefile
+/src/*-stamp
+
+Makefile
+Makefile.in
+config.guess
+config.sub
+config.h.in
+configure
+missing
+autom4te.cache
+install-sh
+ltmain.sh
+COPYING
+
+*/m4
+!/m4/sage_foreign.m4
+!/m4/sage_python.m4
