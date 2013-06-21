@@ -6,6 +6,20 @@
 ######################################################################
 
 ######################################################################
+# makefile compatibility kludge
+######################################################################
+
+import os, sys
+arg = ""
+try:
+  arg = sys.argv[1]
+except IndexError:
+  pass
+
+if arg=="check":
+  sys.exit(os.system("./spkg-check"))
+
+######################################################################
 ### Import stuff
 ######################################################################
 
@@ -13,16 +27,22 @@ import os, sys, shutil, time, glob
 from configuration import conf, cp, ln, which, try_run, edit_in_place
 from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 
-
 ######################################################################
 ### The following variables may need to be updated if you
 ### update ATLAS or LAPACK to a newer version
 ######################################################################
 
 PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
+print "PATCH_DIR", PATCH_DIR
 
 # the current lapack source tarball
-LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.4.2.tar')
+LAPACK_TARFILE = os.path.join(os.environ['SAGE_ROOT'], 'upstream', 'lapack-3.4.2.tar')
+
+# but it could also be here...
+try:
+    with open(LAPACK_TARFILE): pass
+except IOError:
+    LAPACK_TARFILE = os.path.join(os.environ['abs_top_srcdir'], 'upstream', 'lapack-3.4.2.tar')
 
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
@@ -183,9 +203,7 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
 ######################################################################
 
 # apply all patches
-for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p1 -d src/ATLAS --input '+os.path.join(PATCH_DIR, fname))
-    assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
+system_with_flush('( echo "include spkg.mk" | sage-dist-make - patch-stamp SRC=src/ATLAS ) || exit $?')
 
 # add extra architectural defaults
 # currently IA64Itan264 and x86SSE264SSE2
@@ -201,7 +219,6 @@ edit_in_place('src/ATLAS/CONFIG/src/SpewMakeInc.c') \
 edit_in_place('src/ATLAS/CONFIG/src/config.c') \
     .replace('if \(mach == MACHOther\)', 'if (mach != MACHOther) thrchk=0; else') \
     .close()
-
 
 
 ######################################################################
@@ -268,6 +285,8 @@ def configure(arch=None, isa_ext=None):
     print 'Running configure with arch = '+str(arch)+ \
         ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit)
     if os.path.isdir(BUILD_DIR):
+        # shutil.chmod has no "-R" (?!)
+        os.system("chmod -R +w " + BUILD_DIR)
         shutil.rmtree(BUILD_DIR)
     os.mkdir(BUILD_DIR)
     os.chdir(BUILD_DIR)
@@ -478,6 +497,8 @@ def configure_shared_library():
     static_library_dir = os.path.join(BUILD_DIR, 'lib')
     for static_lib in glob.glob(os.path.join(static_library_dir, 'lib*.a')):
         shutil.copy(static_lib, BUILD_LIB_DIR)
+    # shutil.chmod has no "-R" (?!)
+    os.system("chmod -R +w " + BUILD_LIB_DIR)
     cmd = './configure'
     cmd += ' --prefix=' + conf['SAGE_LOCAL']
     cmd += ' --libdir=' + os.path.join(conf['SAGE_LOCAL'],'lib')
