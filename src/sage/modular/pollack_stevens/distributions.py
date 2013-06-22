@@ -29,7 +29,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 import operator
 import sage.rings.ring as ring
 
-from sigma0 import _default_adjuster
+from sage.modular.pollack_stevens.sigma0 import _default_adjuster
 
 class Distributions_factory(UniqueFactory):
     """
@@ -126,6 +126,11 @@ class Symk_factory(UniqueFactory):
 
     EXAMPLE::
 
+        sage: D = Symk(4)
+        sage: loads(dumps(D)) is D
+        True
+        sage: loads(dumps(D)) == D
+        True
         sage: from sage.modular.pollack_stevens.distributions import Symk
         sage: Symk(5)
         Sym^5 Q^2
