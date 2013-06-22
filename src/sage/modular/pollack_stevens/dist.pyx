@@ -45,8 +45,10 @@ cdef long overflow = 1 << (4*sizeof(long)-1)
 cdef long underflow = -overflow
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
+r"""
 include "stdsage.pxi"
 include "cdefs.pxi"
+"""
 
 def get_dist_classes(p, prec_cap, base, symk):
     r"""

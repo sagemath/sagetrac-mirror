@@ -58,7 +58,7 @@ class OCVnElement(ModuleElement):
                 try:
                     self._val = Matrix(self._parent._R,self._depth,1,val)
                 except:
-                    self._val= self._parent._R(val) * MatrixSpace(self._parent._R,self._depth)(1)
+                    self._val= self._parent._R(val) * MatrixSpace(self._parent._R,self._depth,1)(1)
         else:
             self._val= MatrixSpace(self._parent._R,self._depth,1)(val)
         self.moments = self._val
