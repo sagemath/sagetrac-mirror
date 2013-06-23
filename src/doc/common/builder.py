@@ -990,7 +990,8 @@ class ReferenceSubBuilder(DocBuilder):
         for directory, subdirs, files in os.walk(base_path):
             for filename in files:
                 if not (filename.endswith('.py') or
-                        filename.endswith('.pyx')):
+                        filename.endswith('.pyx') or
+                        filename.endswith('.pyxx')):
                     continue
 
                 path = os.path.join(directory, filename)
