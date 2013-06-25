@@ -26,7 +26,6 @@
 #
 ##########################################################################
 
-
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
 # absolute path (a relative path remains relative), nor does it treat
@@ -268,6 +267,10 @@ if [ `uname` = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     export MACOSX_DEPLOYMENT_TARGET
 fi
+
+# temporary workaround, until $SAGE_ETC/env.d is working
+RHOMES="${SAGE_LOCAL}/lib/R"
+export RHOMES
 
 # Compile-time path for libraries.  This is the equivalent of
 # adding the gcc option -L $SAGE_LOCAL/lib.
