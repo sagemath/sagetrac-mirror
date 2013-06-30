@@ -24,10 +24,11 @@ fi
 cd src
 
 # Apply patches.
+# FIXME: conditional patch, aaargh
 patches=""
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching numpy/linalg/setup.py"
-    patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
+    patches="$patches $CUR/patches/cygwin-lapack_lite-setup.py.diff"
 fi
 for patch in $patches; do
     patch -p1 <"$patch"
@@ -63,10 +64,17 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 # Program around a bug in SciPY's distutils.
 unset CFLAGS
 
-python setup.py install ${NUMPY_FCONFIG}
+sage-setup.py install --record=$FILELIST ${NUMPY_FCONFIG}
 
 if [ $? -ne 0 ]; then
     echo "Error building numpy."
     exit 1
 fi
 
+
+NUMPY_INCLUDEDIR="$SAGE_PREFIX/lib/python/site-packages/numpy/core/include"
+
+echo "NUMPY_INCLUDEDIR=\"$NUMPY_INCLUDEDIR\" && export NUMPY_INCLUDEDIR" > numpyenv.sh
+
+sage-dist-install -d $DESTDIR$SAGE_LOCAL/etc/env.d
+sage-dist-install -t $DESTDIR$SAGE_LOCAL/etc/env.d numpyenv.sh
