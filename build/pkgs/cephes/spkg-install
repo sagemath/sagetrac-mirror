@@ -12,17 +12,11 @@ if [ "$UNAME" != "FreeBSD" ]; then
 fi
 
 CUR=`pwd`
-cd src
 
-# Apply patches:
 echo "Applying patches (if any)..."
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Patch '$patch' failed to apply."
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 echo "Building Cephes..."
 $MAKE
