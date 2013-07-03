@@ -1,6 +1,7 @@
 #!/bin/sh
 
+# FIXME, remove, once uninstall is used correctly
 rm -rf "$SAGE_SHARE"/graphs
 
-mkdir -p "$SAGE_SHARE"
-mv src "$SAGE_SHARE"/graphs
+sage-dist-install --record "$FILELIST" -d "$SAGE_SHARE/graphs"
+sage-dist-install --record "$FILELIST" -t "$SAGE_SHARE/graphs" src/*
