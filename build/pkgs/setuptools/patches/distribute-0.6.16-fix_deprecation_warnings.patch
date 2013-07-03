@@ -1,5 +1,5 @@
---- pkg_resources.py
-+++ pkg_resources.py
+--- src/pkg_resources.py
++++ src/pkg_resources.py
 @@ -210,9 +210,10 @@
      needs some hacks for Linux and Mac OS X.
      """
@@ -13,8 +13,8 @@
  
      plat = get_platform()
      if sys.platform == "darwin" and not plat.startswith('macosx-'):
---- setuptools/command/bdist_egg.py
-+++ setuptools/command/bdist_egg.py
+--- src/setuptools/command/bdist_egg.py
++++ src/setuptools/command/bdist_egg.py
 @@ -7,10 +7,14 @@
  from setuptools import Command
  from distutils.dir_util import remove_tree, mkpath
@@ -42,8 +42,8 @@
          old, self.distribution.data_files = self.distribution.data_files,[]
  
          for item in old:
---- setuptools/command/build_ext.py
-+++ setuptools/command/build_ext.py
+--- src/setuptools/command/build_ext.py
++++ src/setuptools/command/build_ext.py
 @@ -9,9 +9,14 @@
  from distutils.file_util import copy_file
  from setuptools.extension import Library
@@ -85,8 +85,8 @@
          else:
              customize_compiler(compiler)
  
---- setuptools/command/easy_install.py
-+++ setuptools/command/easy_install.py
+--- src/setuptools/command/easy_install.py
++++ src/setuptools/command/easy_install.py
 @@ -15,9 +15,22 @@
  from setuptools import Command, _dont_write_bytecode
  from setuptools.sandbox import run_setup
