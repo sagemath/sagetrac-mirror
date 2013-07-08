@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ "$SAGE_PREFIX" = "" ]; then
+   echo "SAGE_PREFIX undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
@@ -34,7 +34,11 @@ export CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
 
 cd src/
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-gmp="$SAGE_LOCAL/" --enable-shared
+# FIXME: trailing slash necessary?
+GMPDIR=$(dirname $( echo "#include <gmp.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'gmp\.h:$' ) )/../
+echo GMPDIR=$GMPDIR
+
+./configure --prefix="$SAGE_PREFIX" --libdir="$SAGE_PREFIX/lib" --with-gmp="$GMPDIR" --enable-shared
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring givaro"
@@ -46,7 +50,7 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error building givaro"
 fi
 
-$MAKE install
+$MAKE install INSTALL=sage-dist-install DESTDIR="$DESTDIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing givaro"
     exit 1
