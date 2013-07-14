@@ -6,7 +6,6 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-
 if [ "$SAGE64" = yes ]; then
     echo "Building a 64-bit version of eclib."
     if [ -z "$CFLAG64" ]; then
@@ -52,10 +51,16 @@ cd src/
 
 echo
 echo "Now configuring eclib..."
-./configure --prefix="$SAGE_LOCAL" \
-            --with-gmp="$SAGE_LOCAL" \
-            --with-ntl="$SAGE_LOCAL" \
-            --with-pari="$SAGE_LOCAL" \
+GMPDIR=$(dirname $( echo "#include <gmp.h>"        | $CC $CPPFLAGS -M -MP -E - | grep 'gmp\.h:$' ) )/..
+NTLDIR=$(dirname $( echo "#include <NTL/config.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'NTL/config\.h:$' ) )/../..
+PARIDIR=$(dirname $( echo "#include <pari/pari.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'pari/pari\.h:$' ) )/../..
+echo GMPDIR $GMPDIR
+echo NTLDIR $NTLDIR
+echo PARIDIR $PARIDIR
+./configure --prefix="$SAGE_PREFIX" \
+            --with-gmp="$GMPDIR" \
+            --with-ntl="$NTLDIR" \
+            --with-pari="$PARIDIR" \
             --disable-allprogs
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring eclib."
@@ -72,7 +77,7 @@ fi
 
 echo
 echo "Build succeeded.  Now installing eclib..."
-$MAKE install
+$MAKE install INSTALL=sage-dist-install DESTDIR="$DESTDIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing eclib."
     exit 1
