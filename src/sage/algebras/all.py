@@ -19,6 +19,8 @@ Algebras
 from sage.misc.lazy_import import lazy_import
 
 from quatalg.all import *
+from lie_algebras.all import *
+from quantum_groups.all import *
 
 # Algebra base classes
 from algebra import Algebra, is_Algebra

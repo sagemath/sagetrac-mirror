@@ -116,6 +116,7 @@ Categories
    sage/categories/integral_domains
    sage/categories/lattice_posets
    sage/categories/left_modules
+   sage/categories/lie_algebras
    sage/categories/magmas
    sage/categories/magmatic_algebras
    sage/categories/matrix_algebras
@@ -177,6 +178,7 @@ Examples of parents using categories
    sage/categories/examples/group_algebras
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
+   sage/categories/examples/lie_algebras
    sage/categories/examples/monoids
    sage/categories/examples/posets
    sage/categories/examples/semigroups_cython
