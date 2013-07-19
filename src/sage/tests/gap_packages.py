@@ -6,25 +6,13 @@ TESTS::
     sage: from sage.tests.gap_packages import all_installed_packages
     sage: for name in all_installed_packages():       # optional: gap_packages
     ....:     stat = libgap.eval('LoadPackage("{0}")'.format(name))
-    ....:     prefix = ' ' if str(stat) == 'true' else 'x'
-    ....:     print("{2} : {0: <10} got '{1}' when loading.".format(name,stat,prefix))
-      : Alnuth     got 'true' when loading.
-      : GAPDoc     got 'true' when loading.
+    ....:     message = "{2} : {0: <10} got '{1}' when loading."
+    ....:     if str(stat) == 'true':
+    ....:         prefix = ' '
+    ....:     else:
+    ....:         prefix = 'x'
+    ....:         print("{2} : {0: <10} got '{1}' when loading.".format(name,stat,prefix))
     x : HAPcryst   got 'fail' when loading.
-      : Hap        got 'true' when loading.
-      : autpgrp    got 'true' when loading.
-      : braid      got 'true' when loading.
-      : crime      got 'true' when loading.
-      : ctbllib    got 'true' when loading.
-      : design     got 'true' when loading.
-      : factint    got 'true' when loading.
-      : grape      got 'true' when loading.
-      : guava      got 'true' when loading.
-      : laguna     got 'true' when loading.
-      : polycyclic got 'true' when loading.
-      : polymaking got 'true' when loading.
-      : sonata     got 'true' when loading.
-      : toric      got 'true' when loading.
 """
 
 import os
