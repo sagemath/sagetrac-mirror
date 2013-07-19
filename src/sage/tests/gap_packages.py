@@ -11,7 +11,7 @@ TESTS::
     ....:         prefix = ' '
     ....:     else:
     ....:         prefix = 'x'
-    ....:         print("{2} : {0: <10} got '{1}' when loading.".format(name,stat,prefix))
+    ....:         print(message.format(name,stat,prefix))
     x : HAPcryst   got 'fail' when loading.
 """
 
