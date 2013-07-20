@@ -1,0 +1,10 @@
+syntax: glob
+*.o
+*~
+*.rej
+.*.sw?
+
+syntax: regexp
+
+^build/*
+polymake.cpp
