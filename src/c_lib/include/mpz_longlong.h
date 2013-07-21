@@ -1,5 +1,5 @@
 
-#include <gmp.h>
+#include "gmp_or_mpir.h"
 
 void mpz_set_longlong(mpz_ptr z, long long val);
 

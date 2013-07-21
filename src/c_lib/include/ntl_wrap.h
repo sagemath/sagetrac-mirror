@@ -20,7 +20,7 @@
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
 #include <NTL/LLL.h>
-#include <gmp.h>
+#include "gmp_or_mpir.h"
 using namespace NTL;
 #endif
 
