@@ -21,19 +21,13 @@ fi
 export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
 
-cd src
-
 # Apply patch: patch out tests that
 # * fail to compile on Solaris gcc 4.5.1
 # * break when setting MAKE="make -jN"
 # They cover code that is not exposed by the Cython wrapper
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 # Enable only what's needed for Sage
 PPL_CONFIGURE="--enable-coefficients=mpz --disable-fpmath $PPL_CONFIGURE"
