@@ -1,11 +1,5 @@
 #!/bin/sh
 
-
-#if [ "`uname`" = "Darwin" -a "`uname -p`" = "i386" ]; then
-#    echo "No need to build lapack on OSX Intel."
-#    exit 0
-#fi
-
 cp patches/make.inc src
 
 cd src/
@@ -17,5 +11,5 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cp lapack.a "$SAGE_LOCAL"/lib/liblapack.a
-
+sage-dist-install -d "$DESTDIR$SAGE_LOCAL/lib"
+sage-dist-install -t "$DESTDIR$SAGE_LOCAL/lib" lapack.a
