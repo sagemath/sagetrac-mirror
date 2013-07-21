@@ -39,17 +39,8 @@ ntl_patch()
 {
     echo
     echo "Applying patches to NTL."
-
-    cd "$CUR/src/ntl"
-
-    # Apply all patches
-    for patch in "$CUR"/patches/*.patch; do
-        patch -p1 < "$patch"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'."
-            exit 1
-        fi
-    done
+    cd $CUR
+    ( echo "include spkg.mk" | sage-dist-make - patch-stamp SRC=src/ntl) || exit $?
 }
 
 ntl_configure()
