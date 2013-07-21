@@ -6,6 +6,8 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+CUR=`pwd`
+
 if [ "x$SAGE64" = xyes ]; then
     echo "Building a 64-bit version of lcalc"
 
@@ -55,14 +57,11 @@ export DEFINES=""
 # Set installation directory
 export INSTALL_DIR="$SAGE_LOCAL/"
 
-cd src
-
 # Apply Sage-specific patches: (See SPKG.txt for details on the patches.)
 echo "Patching the upstream source code for Sage..."
-for patch in ../patches/*.patch; do
-    patch -p1 < "$patch"
-    success "patch $patch failed to apply"
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 # There's currently no 'configure' script for Lcalc; we (also) configure
 # it by patching the Makefile. This may change in a later release of Lcalc.
@@ -76,6 +75,7 @@ success "$MAKE"
 
 # Install everything
 echo "Now installing lcalc binary, library and header files..."
+# FIXME: use unstage
 rm -fr "$SAGE_LOCAL"/include/libLfunction
 $MAKE install
 success "$MAKE install"
