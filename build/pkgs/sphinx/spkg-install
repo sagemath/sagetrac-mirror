@@ -16,16 +16,11 @@ success() {
 
 CUR=`pwd`
 
-
-cd src
-
 # Apply patches
 echo "Patching Sphinx..."
-for p in ../patches/*.patch; do
-    patch -p1 <"$p"
-    success "Error applying patch \"$p\""
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 echo
+cd src
 
 # Build new version
 echo "Building Sphinx..."
@@ -40,12 +35,13 @@ echo
 
 # Install new version
 echo "Installing Sphinx..."
-python setup.py install
+sage-setup.py install
 success 'Error installing Sphinx'
 echo
 
 cd "$CUR"
-cp patches/sphinx-build "$SAGE_LOCAL/bin/"
+sage-dist-install -d "$DESTDIR$SAGE_PREFIX/bin" && \
+sage-dist-install -t "$DESTDIR$SAGE_PREFIX/bin" patches/sphinx-build
 success "Error copying sphinx-build to $SAGE_LOCAL/bin/"
 echo
 
@@ -55,6 +51,8 @@ success 'Error creating the grammar pickle'
 echo
 
 echo "Deleting old Sage documentation output..."
+# FIXME: this is not part of sphinx.
+# use unstage to unstage stuff, clean to clean stuff
 for docdir in "$SAGE_ROOT"/devel/sage-*/doc/output; do
     if [ -d "$docdir" ]; then
         echo "Removing \"$docdir\"..."
