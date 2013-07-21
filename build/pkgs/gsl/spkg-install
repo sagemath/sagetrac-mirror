@@ -31,16 +31,11 @@ fi
 
 export CFLAGS
 
-cd src
 
 echo "Applying patches to upstream sources..."
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 echo "Configuring GSL..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
