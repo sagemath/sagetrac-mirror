@@ -6,7 +6,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-WORKDIR=${PWD}/src
+CUR=$PWD
+SRC=${PWD}/src
 SCONS=scons
 
 prepare_polybori()
@@ -16,7 +17,7 @@ prepare_polybori()
     fi
 
     # place configuration file
-    cp ../custom.py .
+    cp $CUR/patches/custom.py .
     if [ $? -ne 0 ]; then
         echo >&2 "Error copying 'custom.py'"
         exit 1
@@ -24,13 +25,7 @@ prepare_polybori()
 
     # Apply patches.  See SPKG.txt for information about what each patch
     # does.
-    for patch in ../patches/*.patch; do
-        patch -p1 < "$patch"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'"
-            exit 1
-        fi
-    done
+    ( cd $CUR; echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 }
 
 build_polybori()
@@ -46,7 +41,8 @@ install_polybori()
 {
     ${SCONS} install install-headers "PREFIX=${SAGE_LOCAL}" \
         "INSTALLDIR=${SAGE_LOCAL}/share/polybori" \
-        "CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf"
+        "CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf" \
+        PYINSTALLPREFIX=$SAGE_LOCAL/lib/python2.7/site-packages
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1
@@ -63,7 +59,7 @@ clean_polybori()
     rm -rf "$SAGE_LOCAL"/include/cudd
 }
 
-cd ${WORKDIR}
+cd ${SRC}
 
 prepare_polybori
 echo "Starting build..."
