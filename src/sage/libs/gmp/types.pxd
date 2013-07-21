@@ -1,4 +1,4 @@
-cdef extern from "gmp.h":
+cdef extern from "gmp_or_mpir.h":
 
     ### Type Declarations ###
 

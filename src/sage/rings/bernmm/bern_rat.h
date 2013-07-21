@@ -12,7 +12,7 @@
 #ifndef BERNMM_BERN_RAT_H
 #define BERNMM_BERN_RAT_H
 
-#include <gmp.h>
+#include <gmp_or_mpir.h>
 
 
 namespace bernmm {
