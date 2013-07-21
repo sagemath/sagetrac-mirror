@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
+if [ "$SAGE_PREFIX" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
+
+CUR=`pwd`
 
 # This tells Bash to exit the script if any statement returns a non-true
 # value.
@@ -171,18 +173,10 @@ else
 fi
 export SAGESOFLAGS
 
-cd src || return $?
-
 # Apply all patches
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    echo "Applying $patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        return 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src || return $?
 
 #Do not exit script if there is an error, but instead print an
 # informative error message.
@@ -212,23 +206,25 @@ fi
 
 set -e
 
-if [ ! -e "$SAGE_LOCAL/include/cliquer" ]; then
-    mkdir "$SAGE_LOCAL/include/cliquer/"
-else
+#BUG: don't unstage here!
+if [ -d "$SAGE_LOCAL/include/cliquer" ]; then
     rm -rf "$SAGE_LOCAL/include/cliquer/"
-    mkdir "$SAGE_LOCAL/include/cliquer/"
 fi
 
-cp -f *.h "$SAGE_LOCAL/include/cliquer/"
+sage-dist-install -d "$DESTDIR$SAGE_PREFIX/lib"
+
+sage-dist-install -d "$DESTDIR$SAGE_PREFIX/include/cliquer"
+sage-dist-install -t "$SAGE_LOCAL/include/cliquer" *.h
+
 if [ "$UNAME" = "Darwin" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dylib"
     # On OS X 10.6 at least, the above does *NOT* work at all.
     # So I'm also doing the following, which can't hurt.
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
 elif [ "$UNAME" = "CYGWIN" ]; then
-    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dll"
-    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
+    sage-dist-install libcliquer.so "$DESTDIR$SAGE_LOCAL/lib/libcliquer.dll"
+    sage-dist-install libcliquer.so "$DESTDIR$SAGE_LOCAL/lib/libcliquer.so"
 else
-    cp -f libcliquer.so "$SAGE_LOCAL/lib/"
+    sage-dist-install libcliquer.so "$DESTDIR$SAGE_LOCAL/lib"
 fi
 
