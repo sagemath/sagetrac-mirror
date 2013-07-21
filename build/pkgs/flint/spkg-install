@@ -28,17 +28,10 @@ if [ "$UNAME" = "CYGWIN" ]; then
     FLINT_CONFIGURE="--disable-static $FLINT_CONFIGURE"
 fi
 
-cd src
-
 echo "Patching FLINT."
-for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 echo "Configuring FLINT."
 ./configure --prefix="$SAGE_LOCAL" --with-mpir="$SAGE_LOCAL" \
@@ -60,7 +53,7 @@ rm -f $SAGE_LOCAL/lib/libflint*
 rm -rf $SAGE_LOCAL/include/flint
 
 echo "Installing new FLINT files."
-$MAKE install
+$MAKE install INSTALL=sage-dist-install DESTDIR="$DESTDIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to install FLINT."
     exit 1
