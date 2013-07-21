@@ -1,25 +1,16 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ "$SAGE_PREFIX" = "" ]; then
+   echo "SAGE_PREFIX undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-cd src
-
 # Apply patches.  See SPKG.txt for information about what each patch
 # does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    else
-        echo "Successfully applied patch $patch"
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 python setup.py build
 if [ $? -ne 0 ]; then
@@ -28,13 +19,15 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Removing old version of IPython..."
-rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
+# FIXME: use unstage (later)
+rm -rf "$SAGE_PREFIX/lib/python/site-packages/IPython"
 if [ $? -ne 0 ]; then
     echo >&2 "Error deleting previous version"
     exit 1
 fi
 
-python setup.py install
+sage-setup.py install --record=$FILELIST
+
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing IPython"
     exit 1
