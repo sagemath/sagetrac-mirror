@@ -1,5 +1,5 @@
---- de.c.orig	2009-05-15 04:30:56.000000000 -0700
-+++ de.c	2007-12-06 23:44:36.000000000 -0800
+--- a/src/de.c	2009-05-15 04:30:56.000000000 -0700
++++ b/src/de.c	2007-12-06 23:44:36.000000000 -0800
 @@ -24,7 +24,7 @@
  OP cons_negeins;/* global INTEGER variable -1 */
  OP cons_null;   /* global INTEGER variable 0 */

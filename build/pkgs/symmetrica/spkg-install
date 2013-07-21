@@ -6,6 +6,8 @@ if [ -z "$SAGE_LOCAL" ] ; then
     exit 1
 fi
 
+CUR=`pwd`
+
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64
 fi
@@ -18,20 +20,13 @@ fi
 CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
 export CFLAGS
 
+( echo "include spkg.mk" | sage-dist-make - patch-stamp SRC=.) || exit $?
 
 cd src
 
-for patch in ../patches/*.patch; do
-    patch < "$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: Patch \"$patch\" failed to apply."
-        exit 1
-    fi
-done
-
 # Patching the upstream Makefile doesn't make sense,
 # as it has (syntactically) nothing in common with ours.
-cp -p -f ../patches/makefile makefile
+cp -p -f $CUR/patches/makefile makefile
 if [ $? -ne 0 ]; then
     echo >&2 "Error copying over patched Makefile."
     exit 1
