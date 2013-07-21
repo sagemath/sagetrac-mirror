@@ -6,16 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-cd src
-
 # Apply patches.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 # Normally for a 64-bit build the -m64 option is added to
 # gcc, but other compilers will not accept that, so
@@ -37,7 +31,7 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
-python setup.py install
+sage-setup.py install --record=$FILELIST
 if [ $? -ne 0 ]; then
     echo "Error building/installing cvxopt"
     exit 1
