@@ -7,8 +7,7 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 CUR=`pwd`
-
-cd src/
+SRC=$CUR/src
 
 ###############################################################################
 # Apply patches (if any):
@@ -19,21 +18,17 @@ cd src/
 # detecting filename changes. See Trac #13137.
 # This fix can (and will have to) be removed once integrated upstream.
 echo "Renaming *,asm files to *.asm..."
-mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm &&
-mv mpn/x86/p6/submul_1,asm mpn/x86/p6/submul_1.asm
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: moving *,asm files failed."
+mv $SRC/mpn/x86/p6/addmul_1,asm $SRC/mpn/x86/p6/addmul_1.asm &&
+mv $SRC/mpn/x86/p6/submul_1,asm $SRC/mpn/x86/p6/submul_1.asm
+if [ $? -ne 0 ] && ( [ ! -f src/mpn/x86/p6/addmul_1.asm ] || \
+                     [ ! -f src/mpn/x86/p6/submul_1.asm ] ); then
+    echo >&2 "Error: moving *,asm files failed"
     exit 1
 fi
 
-echo "Applying patches to upstream sources..."
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd $SRC
 
 ###############################################################################
 # Previous MPIR installations are only removed after a *successful* (re)build,
@@ -316,6 +311,7 @@ fi
 ###############################################################################
 
 echo "Now building MPIR..."
+#FIXME: MAKEFLAGS?
 $MAKE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building MPIR."
@@ -350,7 +346,9 @@ fi
 
 echo "Now installing MPIR..."
 # The potential race condition in `make install` was fixed in MPIR 2.1.4.
-$MAKE install
+#FIXME: MAKEFLAGS?
+export FILELIST="$FILELIST"
+$MAKE install INSTALL="sage-dist-install" DESTDIR="$DESTDIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPIR."
     if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
@@ -358,6 +356,8 @@ if [ $? -ne 0 ]; then
     fi
 fi
 
+echo
+echo "FIXME: will this be taken care of automatically??"
 echo
 echo "Remember to rebuild the Sage library ('./sage -b') such that it"
 echo "will use the new MPIR."
@@ -368,3 +368,4 @@ echo "    cd $SAGE_ROOT"
 echo "    env SAGE_UPGRADING=yes make"
 echo "but note that this will usually take quite a lot of time."
 echo
+exit 0
