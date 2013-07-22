@@ -113,8 +113,9 @@ class PosetElement(Element):
         # This should instead exploit unique representation, using
         # self is other, or best inherit __eq__ from there. But there
         # are issues around pickling and rich comparison functions.
-        return self.vertex == other.vertex and have_same_parent(self, other)
-
+        if hasattr(other, 'vertex'):
+            return self.vertex == other.vertex and have_same_parent(self, other)
+        return False
 
     def __ne__(self,other):
         r"""
