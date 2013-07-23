@@ -444,7 +444,7 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC
+        from sage.env import SAGE_SRC, SAGE_ROOT
         if self.options.all:
             self.log("Doctesting entire Sage library.")
             from glob import glob
@@ -453,28 +453,13 @@ class DocTestController(SageObject):
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
         elif self.options.new:
-            # Get all files changed in the working repo, as well as all
-            # files in the top Mercurial queue patch.
-            from sage.misc.hg import hg_sage
-            out, err = hg_sage('status --rev qtip^', interactive=False, debug=False)
-            if not err:
-                qtop = hg_sage('qtop', interactive=False, debug=False)[0].strip()
-                self.log("Doctesting files in mq patch " + repr(qtop))
-            else:  # Probably mq isn't used
-                out, err = hg_sage('status', interactive=False, debug=False)
-                if not err:
-                    self.log("Doctesting files changed since last hg commit")
-                else:
-                    raise RuntimeError("failed to run hg status:\n" + err)
-
-            for X in out.split('\n'):
-                tup = X.split()
-                if len(tup) != 2: continue
-                c, filename = tup
-                if c in ['M','A']:
-                    filename = opj(SAGE_SRC, filename)
-                    if not skipfile(filename):
-                        self.files.append(filename)
+            from sage.all import dev
+            from sage.dev.sagedev import MASTER_BRANCH
+            files = dev.git.read_output("diff","--name-only",MASTER_BRANCH,SAGE_SRC)
+            for fname in files.split("\n"):
+                fname = opj(SAGE_ROOT, fname)
+                if not skipfile(fname):
+                    self.files.append(fname)
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
