@@ -1,4 +1,12 @@
+
+#from arithgroup_nf.all import *
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.number_field.arithgroup_nf','arithgroup_nf')
+#,['is_ArithmeticSubgroup_SL','ArithmeticSubgroup_SL'])
+
 from number_field_base import is_NumberField
+
+
 
 from number_field import (NumberField, NumberFieldTower, CyclotomicField, QuadraticField,
                           is_CyclotomicField, is_QuadraticField,
@@ -18,3 +26,4 @@ from totallyreal_data import hermite_constant
 from totallyreal_rel import enumerate_totallyreal_fields_all, enumerate_totallyreal_fields_rel
 
 from unit_group import UnitGroup
+
