@@ -22,7 +22,7 @@ AUTHORS:
 ################################################################################
 
 
-from sage.rings.all import ZZ,Integer
+from sage.rings.all import ZZ,Integer,is_Ring
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.cusps_nf import NFCusp
@@ -38,26 +38,49 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
     """
 
-    def __init__(self,ring,special=True,name='',ltx=''):
+    def __init__(self,ring,group='SL',name='',ltx=''):
         r"""
         Standard init routine.
 
-        EXAMPLE:
+        INPUT:
 
+        - `ring` -- ring
+        - `special` -- bool (True for SL and False for GL)
+        - `name` -- string.
+        - `ltx` -- string
+        
+        EXAMPLES::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O)
+            Hilbert modular group `SL_{2}(O)`        
+            sage: HilbertModularGroup(O,groip='GL')
+            Hilbert modular group `GL_{2}(O)`
 
         """
         degree = 2
+        if group not in ['SL','GL','GL+']:
+            raise NotImplementedError,"Only groups SL, GL and GL+ implemented!"
         if name=='':
-            name = 'Arithmetic Subgroup of the Special Linear Group of degree {0} over {1}'.format(degree, ring)
+            name = 'Arithmetic Subgroup of the Group {0} of degree {1} over {2}'.format(group,degree, ring)
         if ltx=='':
             ltx  = 'GL({0}, {1})'.format(degree, latex(ring))
-  
+        assert is_Ring(ring)
+        if group=='SL':
+            special=True
+        else:
+            special=False
         super(LinearMatrixGroup_generic,self).__init__(Integer(degree),ring,special,name,ltx)
+        self._group = group
         self._base_ring = ring
+        self._cusps = None
+        self._fundamental_domain = None
         if ring == ZZ:
-            self._base_field = QQ 
+            self._number_field = QQ 
         elif hasattr(ring,"number_field"):
-            self._base_field = ring.number_field()
+            self._number_field = ring.number_field()
         else:
             raise NotImplementedError
 
@@ -70,8 +93,11 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().__reduce__()
-            Traceback (most recent call last):
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O).__reduce__()
+            Traceback (most recent call last)
             ...
             NotImplementedError: all subclasses must define a __reduce__ method
         """
@@ -83,30 +109,139 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         
         EXAMPLES::
 
-          
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: hash(HilbertModularGroup(O))
+            -6209004311378228744
+
         """
         return hash(str(self))
 
+
+    def group(self):
+        r"""
+        Return the group type of self. Either 'SL', 'GL' or 'GL+'
+
+
+        EXAMPLES:
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G = HilbertModularGroup(O).group()
+            'SL'
+            sage: G = HilbertModularGroup(O,group='GL').group()
+            'GL'
+        """
+        return self._group
+        
+    def is_special(self):
+        r"""
+        Check if self is special, i.e. of type 'SL' or not.
+sage: G.is_special()
+True
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_special()
+            True
+            sage: HilbertModularGroup(QuadraticField(41).ring_of_integers(),group='GL').is_special()
+            False
+        
+        """
+        return self._special
+    
+    def number_field(self):
+        r"""
+        Return the number field over which self is defined.
+
+        EXAMPLES::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: HilbertModularGroup(QuadraticField(41).ring_of_integers()).number_field()
+            Number Field in a with defining polynomial x^2 - 41
+
+        
+        """
+        return self._number_field
+    
     def coset_reps(self, G=None):
         r"""
         Return right coset representatives for self \\ G, where G is another
         arithmetic subgroup that contains self.  If G = None, default to G =
-        SL2Z.
+        SL_2(O) where O is the ring of integers of the number field
+        over which self is defined.
         
-        For generic arithmetic subgroups G this is carried out by Todd-Coxeter
-        enumeration; here G is treated as a black box, implementing nothing but
-        membership testing.
 
         EXAMPLES::
 
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.coset_reps()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError,"All subclasses should implement coset representatives"
+        
         """
-        raise NotImplementedError
+        raise NotImplementedError,"All subclasses should implement coset representatives"
 
+    def is_congruence(self):
+        r"""
+        Check if self is a congruence subgroup.
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_congruence()
+            True
+            
+        """
+        return False
+
+    def fundamental_domain(self):
+        r"""
+        Return a fundamental domain of self.
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.fundamental_domain()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError:
+            
+        """
+        if self._fundamental_domain<>None:
+            return self._fundamental_domain
+        raise NotImplementedError
+    
     def nu(self,order=2):
         r"""
-        Return the number of orbits of elliptic points of given order for this
-        arithmetic subgroup.        
+        Return the number of orbits of elliptic points of given order for this arithmetic subgroup.        
 
+        EXAMPLES::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.nu(6)
+            Traceback (most recent call last)
+            ...
+            NotImplementedError:            
         """
         raise NotImplementedError
             
@@ -114,18 +249,52 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         r"""
         Return the number of orbits of elliptic points of order 3 for this
         arithmetic subgroup.
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.nu2()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError:            
+        
         """
         return self.nu(2)    
     def nu3(self):
         r"""
         Return the number of orbits of elliptic points of order 3 for this
         arithmetic subgroup.
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.nu3()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError:            
         """
         return self.nu(3)    
 
     def orders_of_elliptic_elements(self):
         r"""
         Returns the possible orders of elliptic elements.
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.orders_of_elliptic_elements()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError:            
         """
         raise NotImplementedError
     
@@ -137,13 +306,37 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         
         EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().__cmp__(ZZ)
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).__cmp__(G)
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
 
+    def __contains__(self,elt):
+        r"""
+        Check if self contains elt
+
+
+        EXAMPLES::
+
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: 1 in G
+            Traceback (most recent call last):
+            ...
+            NotImplementedError            
+
+        """
+        if elt.parent()==self:
+            return True
+        raise NotImplementedError
+    
     def is_abelian(self):
         r"""
         Return True if this arithmetic subgroup is abelian.
@@ -153,6 +346,12 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_abelian()
+            False
 
         """
         return False
@@ -166,6 +365,12 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_finite()
+            False
         """
         return False
 
@@ -178,13 +383,15 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().is_subgroup(SL2Z)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.is_subgroup(Gamma1(18), Gamma0(6))
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_subgroup(G)
             True
         """
+        if self==right:
+            return True
         # ridiculously slow generic algorithm
         w = self.gens()
         for g in w:
@@ -192,15 +399,24 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
                 return False
         return True
 
-    def is_normal(self):
+    def is_normal(self,G=None):
         r"""
-        Return True precisely if this subgroup is a normal subgroup of SL_2(R).
+        Return True precisely if this subgroup is a normal subgroup of G
 
         EXAMPLES::
-            
 
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_normal()
+            True        
         """
-        G = ArithmeticSubgroup_NF(self.base_ring(),self.is_special())
+        if G==None:
+            G = ArithmeticSubgroup_NF(self.base_ring(),self.group())
+        if self==G:
+            return True
+
         for x in self.gens():
             for y in G.gens():
                 if y*G(x)*(~y) not in self:
@@ -215,7 +431,12 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         EXAMPLES::
 
 
-        """
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O).is_odd()
+            False
+
+            """
         return not self.is_even()
 
     def is_even(self):
@@ -224,29 +445,29 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: SL2Z.is_even()
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O).is_even()
             True
-            sage: Gamma0(20).is_even()
-            True
-            sage: Gamma1(5).is_even()
-            False
-            sage: GammaH(11, [3]).is_even()
-            False
+
+
         """
-        G = ArithmeticSubgroup_NF(self.base_ring(),self.is_special())
-        minus_one = G([-1,0,0,-1])
+        minus_one = self([-1,0,0,-1])
         return not minus_one in self
 
     def to_even_subgroup(self):
         r"""
         Return the smallest even subgroup of `SL(2, \ZZ)` containing self.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().to_even_subgroup()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O).to_even_subgroup()
+            Hilbert modular group `SL_{2}(O)`
+            
         """
         if self.is_even():
             return self
@@ -262,13 +483,10 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: SL2Z.order()
-            +Infinity
-            sage: Gamma0(5).order()
-            +Infinity
-            sage: Gamma1(2).order()
-            +Infinity
-            sage: GammaH(12, [5]).order()
+        
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: HilbertModularGroup(O).order()        
             +Infinity
         """
         from sage.rings.infinity import infinity
@@ -285,45 +503,37 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().reduce_cusp(1/4)
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: c = NFCusp(K,0)
+            sage: HilbertModularGroup(O).reduce_cusp(c)        
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
 
-    def cusps(self, algorithm='default'):
+    def cusps(self):
         r"""
         Return a sorted list of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
         These should be returned in a reduced form where this makes sense.
 
-        INPUTS:
-        
-        - ``algorithm`` -- which algorithm to use to compute the cusps of self.
-          ``'default'`` finds representatives for a known complete set of
-          cusps. ``'modsym'`` computes the boundary map on the space of weight
-          two modular symbols associated to self, which finds the cusps for
-          self in the process.
 
         EXAMPLES::
 
 
-        """
-        try:
-            return copy(self._cusp_list[algorithm])
-        except (AttributeError,KeyError):
-            self._cusp_list = {}
-        if self.ncusps()==1:
-            s = [NFCusp(1,0)]
-
-        if algorithm == 'default':
-            s = self._find_cusps()
-        else:
-            raise ValueError, "unknown algorithm: %s"%algorithm
-
-        self._cusp_list[algorithm] = s
-        return copy(s)
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).cusps()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            
+            """
+        if self._cusps==None:
+            self._cusps = self._find_cusps()        
+        return self._cusps
 
     def _find_cusps(self):
         r"""
@@ -332,7 +542,13 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         EXAMPLES::
 
 
-
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)._find_cusps()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        
         NOTE: This should be implemented in subclasses.
               (or if a generic algorithm 
 
@@ -354,7 +570,15 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         EXAMPLE::
 
 
-        """
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: a = NFCusp(K,0); b = NFCusp(K,1)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).are_equivalent(a,b)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            """
         if hasattr(self,'reduce_cusp'):
             if self.reduce_cusp(x)==self.reduce_cusp(y):
                 return True
@@ -371,27 +595,33 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: Gamma1(4).cusp_data(Cusps(1/2))
-            (
-            [ 1 -1]
-            [ 4 -3], 1, -1
-            )
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: c = NFCusps(K,0)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).cusp_data(c)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
         """
         raise NotImplementedError
 
             
-    def index(self):
+    def index(self,G=None):
         r"""
-        Return the index of self in the full modular group.
+        Return the index of self in G (default SL(2,O))
 
         EXAMPLES::
 
-            sage: Gamma0(17).index()
-            18
-            sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).index()
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).index(None)
             Traceback (most recent call last):
             ...
             NotImplementedError
+
         """
         return len(list(self.coset_reps()))
 
@@ -487,36 +717,54 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLE::
 
-            sage: Gamma0(5).is_congruence()
-            True
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().is_congruence()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
 
-        raise NotImplementedError
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).is_congruence()
+            False
+            sage: G=HilbertModularGroup(O)
+            sage: G.is_congruence()
+            True
+
+        """
+        
+        return False
 
 
     @cached_method
     def generators(self):
         r"""
-        Return a list of generators for this congruence subgroup. The result is cached.
+        Return a list of generators for this arithmetic subgroup. The result is cached.
 
         
         EXAMPLE::
 
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).generators()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         """
         raise NotImplementedError
 
     def gens(self, *args, **kwds):
         r"""
-        Return a tuple of generators for this congruence subgroup.
+        Return a tuple of generators for this arithmetic subgroup.
 
         The generators need not be minimal. For arguments, see :meth:`~generators`.
 
         EXAMPLES::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         """
         return tuple(self.generators(*args, **kwds))
@@ -528,6 +776,13 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).gen(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return self.generators()[i]
 
@@ -539,6 +794,12 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         EXAMPLES::
 
 
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).ngens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError        
         """
         return len(self.generators())
 
@@ -551,8 +812,14 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.ncusps(Gamma0(7))
-            2
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).ncusps()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
         """
 
         return ZZ(len(self.cusps()))
@@ -565,6 +832,13 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
 
         EXAMPLE::
 
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_modular_forms(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -574,6 +848,15 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         group.
 
         EXAMPLE::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_cusp_forms(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            
 
         """
         raise NotImplementedError
@@ -591,6 +874,12 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         EXAMPLES::
 
 
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_eis(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError        
         """
 
         raise NotImplementedError
@@ -606,6 +895,14 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         -  ``weight`` - an tuple of integers `\geq 2` (default: 2)
         
         EXAMPLES::
+
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).sturm_bound(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         """
         
