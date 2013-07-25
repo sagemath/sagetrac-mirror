@@ -20,6 +20,7 @@ AUTHORS:
 
 
 from sage.structure.sage_object import SageObject
+from sage.all import RR,ZZ,Matrix
 
 def _HilbertFundDomData(K, embs=None, group='sl'):
     """

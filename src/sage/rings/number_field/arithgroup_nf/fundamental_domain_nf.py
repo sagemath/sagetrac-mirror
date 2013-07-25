@@ -42,14 +42,17 @@ class HilbertFundamentalDomain(SageObject):
         if H.number_field().class_number()<>1:
             raise NotImplementedError
         if H.is_special():
-            group = 'sl'
+            groupn = 'sl'
         else:
-            group = 'gl'
+            groupn = 'gl'
         embs = kwds.get('embs',None)
-        self._hfd = _HilbertFundDomData(self._K, embs=embs, group=group)
+        self._hfd = _HilbertFundDomData(self._K, embs=embs, group=groupn)
         
-    
 
+    def group(self):
+        return self._group
+    def __repr__(self):
+        s = "Fundamental domain for {0}".format(self.group())
 
     def reduce(self,z,**kwds):
         max_round = kwds.get('max_rounds',0)

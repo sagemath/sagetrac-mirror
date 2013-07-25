@@ -96,7 +96,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
         return matrix(self.number_field(),2,2,[1,0,0,1])
 
     def gens(self):
-        if self.index()<>1 or G<>None:
+        if self.index()<>1:
             raise NotImplementedError
         if self.group()<>'SL':
             raise NotImplementedError

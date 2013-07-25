@@ -56,13 +56,14 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
             sage: K=QuadraticField(41); O=K.ring_of_integers()
             sage: HilbertModularGroup(O)
             Hilbert modular group `SL_{2}(O)`        
-            sage: HilbertModularGroup(O,groip='GL')
+            sage: HilbertModularGroup(O,group='GL')
             Hilbert modular group `GL_{2}(O)`
 
         """
         degree = 2
         if group not in ['SL','GL','GL+']:
             raise NotImplementedError,"Only groups SL, GL and GL+ implemented!"
+        self._group = group
         if name=='':
             name = 'Arithmetic Subgroup of the Group {0} of degree {1} over {2}'.format(group,degree, ring)
         if ltx=='':
@@ -73,7 +74,6 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         else:
             special=False
         super(LinearMatrixGroup_generic,self).__init__(Integer(degree),ring,special,name,ltx)
-        self._group = group
         self._base_ring = ring
         self._cusps = None
         self._fundamental_domain = None
@@ -96,7 +96,8 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: HilbertModularGroup(O).__reduce__()
+            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H.__reduce__()
             Traceback (most recent call last)
             ...
             NotImplementedError: all subclasses must define a __reduce__ method
@@ -296,7 +297,7 @@ True
             ...
             NotImplementedError:            
         """
-        raise NotImplementedError
+        raise NotImplementedError,"Should be implemented in subclasses!"
     
     def __cmp__(self, other):
         r"""
@@ -617,7 +618,8 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).index(None)
+            sage: H = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H.index()
             Traceback (most recent call last):
             ...
             NotImplementedError
