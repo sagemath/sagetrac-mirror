@@ -139,7 +139,7 @@ class _HilbertFundDomData_generic(SageObject):
         """
         M = Matrix([[1,0],[0,1]])
         rounds = 0
-        while true:
+        while True:
             rounds = rounds + 1
             M1, z = self.step(z, bound_on_c=bound_on_c)
             M = M1 * M

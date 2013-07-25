@@ -100,7 +100,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
             raise NotImplementedError
         if self.group()<>'SL':
             raise NotImplementedError
-        gens = [S]
+        gens = [matrix(self.number_field(),2,2,[0,1,-1,0])]
         for eps in self.base_ring().basis():            
             gens.append(matrix(self.number_field(),2,2,[1,eps,0,1]))
             gens.append(matrix(self.number_field(),2,2,[eps,0,0,eps**-1]))

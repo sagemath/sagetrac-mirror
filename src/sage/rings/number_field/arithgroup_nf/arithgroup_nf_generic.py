@@ -184,11 +184,15 @@ True
         
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: G=HilbertModularGroup(O)
-            sage: G.coset_reps()
+            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H.coset_reps()            
             Traceback (most recent call last)
             ...
             NotImplementedError,"All subclasses should implement coset representatives"
+            sage: G=HilbertModularGroup(O)
+            sage: G.coset_reps()
+            [1 0]
+            [0 1]
         
         """
         raise NotImplementedError,"All subclasses should implement coset representatives"
@@ -295,7 +299,7 @@ True
             sage: G.orders_of_elliptic_elements()
             Traceback (most recent call last)
             ...
-            NotImplementedError:            
+            NotImplementedError: Should be implemented in subclasses!           
         """
         raise NotImplementedError,"Should be implemented in subclasses!"
     
@@ -620,6 +624,7 @@ True
             sage: K=QuadraticField(41); O=K.ring_of_integers()
             sage: H = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
             sage: H.index()
+
             Traceback (most recent call last):
             ...
             NotImplementedError

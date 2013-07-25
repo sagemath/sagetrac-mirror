@@ -55,7 +55,7 @@ class HilbertFundamentalDomain(SageObject):
         s = "Fundamental domain for {0}".format(self.group())
 
     def reduce(self,z,**kwds):
-        max_round = kwds.get('max_rounds',0)
+        max_rounds = kwds.get('max_rounds',0)
         bound_on_c = kwds.get('bound_on_c',None)
         return self._hfd.reduce(z, max_rounds, bound_on_c)
 
