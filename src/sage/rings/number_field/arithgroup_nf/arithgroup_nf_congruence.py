@@ -52,7 +52,7 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
         
 
         """
-        super(ArithmeticSubgroup_NF_class,self).__init__(order,group,name,ltx=ltx)
+        super(HilbertModularGroup_CongruenceSubgroup_class,self).__init__(order,group,name,ltx)
         self._ncusps = None
 
     def level(self):
@@ -186,7 +186,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
 
         assert order.ideal(level)==level
         self._level = level
-        super(HilbertModularGroup_CongruenceSubgroup_class,self).__init__(order,group,name,ltx)
+        super(HilbertModularGroup_CongruenceSubgroup_Gamma_class,self).__init__(order,group,name,ltx)
 
 
     def __contains__(self,A):
@@ -233,7 +233,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma_class(HilbertModularGroup_Con
                 return True
             else:
                 return False
-        return super(HilbertModularGroup_CongruenceSubgroup_class,self).is_subgroup(other)
+        return super(HilbertModularGroup_CongruenceSubgroup_Gamma_class,self).is_subgroup(other)
         
     
 class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_CongruenceSubgroup_class):
@@ -265,7 +265,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
             self._level = order
         else:
             self._level = level
-        super(HilbertModularGroup_CongruenceSubgroup_class,self).__init__(order,group,name,ltx)
+        super(HilbertModularGroup_CongruenceSubgroup_Gamma0_class,self).__init__(order,group,name,ltx)
 
     
     def __contains__(self,A):
@@ -309,7 +309,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
                 return True
             else:
                 return False
-        return super(HilbertModularGroup_CongruenceSubgroup_class,self).is_subgroup(other)
+        return super(HilbertModularGroup_CongruenceSubgroup_Gamma0_class,self).is_subgroup(other)
 
     
     def fundamental_domain(self,**kwds):
@@ -343,7 +343,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         self._b_ideal = b
         self._c_ideal = c
         self_level = b*c
-        super(CongruenceSubgroup_Gamma0_class,self).__init__(order,c,group,name,ltx)
+        super(CongruenceSubgroup_Gamma00_class,self).__init__(order,c,group,name,ltx)
 
     def b_ideal(self):
         r"""
@@ -404,7 +404,7 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
         Init  a conjugate of a Hilbert modular group.
         
         """
-        super(ArithmeticSubgroup_NF_class,self).__init__(order,group,name,ltx)
+        super(HilbertModularGroup_Conjugate_class,self).__init__(order,group,name,ltx)
         self._a=a
 
     def plusa(self):

@@ -72,7 +72,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             special=True
         else:
             special=False
-        super(LinearMatrixGroup_generic,self).__init__(Integer(degree),ring,special,name,ltx)
+        super(ArithmeticSubgroup_NF_class,self).__init__(Integer(degree),ring,special,name,ltx)
         self._base_ring = ring
         self._cusps = None
         self._fundamental_domain = None
@@ -98,7 +98,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
             sage: H.__reduce__()
             Traceback (most recent call last)
-            ...
+                ...
             NotImplementedError: all subclasses must define a __reduce__ method
         """
         raise NotImplementedError, "all subclasses must define a __reduce__ method"
@@ -128,9 +128,9 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: G = HilbertModularGroup(O).group()
+            sage: HilbertModularGroup(O).group()
             'SL'
-            sage: G = HilbertModularGroup(O,group='GL').group()
+            sage: HilbertModularGroup(O,group='GL').group()
             'GL'
         """
         return self._group
@@ -138,8 +138,6 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     def is_special(self):
         r"""
         Check if self is special, i.e. of type 'SL' or not.
-sage: G.is_special()
-True
 
         EXAMPLES::
 
