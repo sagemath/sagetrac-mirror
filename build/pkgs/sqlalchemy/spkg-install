@@ -11,4 +11,4 @@ rm -rf "$SAGE_LOCAL/lib/python/site-packages/SQLAlchemy*"
 
 # Install SQLAlchemy
 cd src
-python setup.py install
+sage-setup.py install --record=$FILELIST
