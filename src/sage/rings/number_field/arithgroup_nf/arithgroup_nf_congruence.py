@@ -24,7 +24,7 @@ AUTHORS:
 from sage.rings.number_field.arithgroup_nf.arithgroup_nf_generic import ArithmeticSubgroup_NF_class
 from sage.misc.latex import latex
 from sage.rings.integer import Integer
-#from fundamental_domain_nf import HilbertFundamentalDomain
+from fundamental_domain_nf import HilbertFundamentalDomain
 from sage.all import matrix
 
 class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
@@ -321,10 +321,10 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma0_class(HilbertModularGroup_Co
         """
         if self._fundamental_domain <> None:
             return self._fundamental_domain
-        #if self.index()<>1:
-        raise NotImplementedError
-        #self._fundamental_domain =  HilbertFundamentalDomain(self,*kwds)
-        #return self._fundamental_domain
+        if self.index()<>1:
+            raise NotImplementedError
+        self._fundamental_domain =  HilbertFundamentalDomain(self,*kwds)
+        return self._fundamental_domain
 
     
 
