@@ -232,7 +232,7 @@ def covariant_z0(f, precision=53, degree=None):
     
     EXAMPLES::
     
-        sage: z0 = sage.schemes.hyperelliptic_curves.reduction.covariant_z0
+        sage: z0 = sage.schemes.hyperelliptic_curves.stoll_cremona.covariant_z0
         sage: f = x^6 + 3*x^3 +4*x^2+ 3
         sage: z0(f)
         -0.0478810014556224 + 1.20469810839717*I
@@ -246,7 +246,7 @@ def covariant_z0(f, precision=53, degree=None):
         
     Comparing the different answers using different precision ::
 
-        sage: z0 = sage.schemes.hyperelliptic_curves.reduction.covariant_z0
+        sage: z0 = sage.schemes.hyperelliptic_curves.stoll_cremona.covariant_z0
         sage: P.<x> = QQ[]
         sage: f = x^8 + 24*x^7 + 3*x^5 +4*x^2+ 3
         sage: z0(f)
@@ -257,7 +257,7 @@ def covariant_z0(f, precision=53, degree=None):
     If f is not in `\QQ` then ``covariant_z0`` returns a list where every entry
     is a z associated to one embeddings of f in `\RR`::
     
-        sage: z0 = sage.schemes.hyperelliptic_curves.reduction.covariant_z0
+        sage: z0 = sage.schemes.hyperelliptic_curves.stoll_cremona.covariant_z0
         sage: X = var('X')
         sage: k = NumberField(X^2-41,'a')
         sage: P.<x> = k[]
@@ -272,7 +272,7 @@ def covariant_z0(f, precision=53, degree=None):
     at infinity (i.e. degree > f.degree()), this is currently not fully
     supported::
         
-        sage: z0 = sage.schemes.hyperelliptic_curves.reduction.covariant_z0
+        sage: z0 = sage.schemes.hyperelliptic_curves.stoll_cremona.covariant_z0
         sage: P.<x> = RR[]
         sage: i = (x-3)^2 * (x^2 + 2)^2
         sage: z0(i)
