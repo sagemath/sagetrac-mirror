@@ -20,6 +20,6 @@ success 'Error deleting previous version(s) of Jinja2'
 # Install new version
 cd src
 
-python setup.py install
+sage-setup.py install --record=$FILELIST
 success 'Error installing Jinja2'
 
