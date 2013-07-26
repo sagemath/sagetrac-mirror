@@ -70,7 +70,7 @@ class HilbertFundamentalDomain(SageObject):
         bound_on_c = kwds.get('bound_on_c',None)
         return self._hfd.reduce(z, max_rounds, bound_on_c)
 
-    def step(self,s,**kwds):
+    def step(self,z,**kwds):
         r"""
         Apply one step in the reduction algorithm.
         """
