@@ -13,9 +13,10 @@ if [ "$SAGE_ROOT" = "" ]; then
     echo "Please set the SAGE_ROOT variable"
     exit 1
 fi
+# FIXME: use unstage
 echo "Deleting $SAGE_ROOT/local/lib/python/site-packages/mpmath*"
 rm -rf $SAGE_ROOT/local/lib/python/site-packages/mpmath*
 
 cd src/
 
-python setup.py install
+sage-setup.py install --record=$FILELIST
