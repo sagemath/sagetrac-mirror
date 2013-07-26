@@ -1,3 +1,3 @@
-from arithgroup_nf_generic import *
-from arithgroup_nf_congruence import *
+from arithgroup_nf_generic import ArithmeticSubgroup_NF_class
+from arithgroup_nf_congruence import HilbertModularGroup
 from fundamental_domain_nf import HilbertFundamentalDomain

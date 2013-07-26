@@ -21,13 +21,13 @@ AUTHORS:
 #
 ################################################################################
 
-from arithgroup_nf_generic import ArithmeticSubgroup_NF
+from sage.rings.number_field.arithgroup_nf.arithgroup_nf_generic import ArithmeticSubgroup_NF_class
 from sage.misc.latex import latex
 from sage.rings.integer import Integer
 from fundamental_domain_nf import HilbertFundamentalDomain
 from sage.all import matrix
 
-class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
+class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF_class):
     r"""
     Congruence subgroup `\Gamma_{0}(N) of `{\rm SL}_{2}(O)`.
     """
@@ -42,13 +42,17 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
         - `name` -- string.
         - `ltx` -- string
 
+        EXAMPLES::
 
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage:  H=sage.rings.number_field.arithgroup_nf.arithgroup_nf_congruence.HilbertModularGroup_CongruenceSubgroup_class(O,'SL')
+            
         
-
 
         """
-        
-        super(ArithmeticSubgroup_NF,self).__init__(order,group,name,ltx)
+        super(ArithmeticSubgroup_NF_class,self).__init__(order,group,name,ltx=ltx)
         self._ncusps = None
 
     def level(self):
@@ -57,8 +61,12 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
 
         EXAMPLES::
 
-        
-        """
+
+            sage: from sage.rings.number_field.arithgroup_nf.all import *
+            sage: K=QuadraticField(41); O=K.ring_of_integers()
+            sage: H=sage.rings.number_field.arithgroup_nf.arithgroup_nf_congruence.HilbertModularGroup_CongruenceSubgroup_class(O,'SL')
+            sage: H.level()
+            """
         if not hasattr(self,'_level'):
             return None
         return self._level
@@ -96,6 +104,9 @@ class HilbertModularGroup_CongruenceSubgroup_class(ArithmeticSubgroup_NF):
         return matrix(self.number_field(),2,2,[1,0,0,1])
 
     def gens(self):
+        r"""
+        Return generators of self.
+        """
         if self.index()<>1:
             raise NotImplementedError
         if self.group()<>'SL':
@@ -326,14 +337,25 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
 
     
     def __init__(self,order,b,c,group='SL',name='',ltx=''):
+        r"""
+        Init a congruence group Gamma_0^0
+        """
         self._b_ideal = b
         self._c_ideal = c
         self_level = b*c
-        super(CongruenceSubgroup_Gamma0_NF,self).__init__(order,c,group,name,ltx)
+        super(CongruenceSubgroup_Gamma0_class,self).__init__(order,c,group,name,ltx)
 
     def b_ideal(self):
+        r"""
+        Return the ideal bi such that self contains matrices congruenct to [[*,bi],[ci,*]]
+        
+        """
         return self._b_ideal
     def c_ideal(self):
+        r"""
+        Return the ideal ci such that self contains matrices congruenct to [[*,bi],[ci,*]]
+        
+        """
         return self._c_ideal        
     def __contains__(self,A):
         r"""
@@ -370,7 +392,7 @@ class HilbertModularGroup_CongruenceSubgroup_Gamma00_class(HilbertModularGroup_C
         return self.level()==other.level()
     
 
-class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF):
+class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF_class):
     r"""
     Base class for arithmetic subgroups of `SL(2,K)' of the form
     `{\rm SL}_{2}(O+a)` where `O` is a maximal order in the number field `K` and `a` is an ideal in `O`.
@@ -378,10 +400,17 @@ class HilbertModularGroup_Conjugate_class(ArithmeticSubgroup_NF):
     """
 
     def __init__(self,order,a,group='SL',name='',ltx=''):
-        super(ArithmeticSubgroup_NF,self).__init__(order,group,name,ltx)
+        r"""
+        Init  a conjugate of a Hilbert modular group.
+        
+        """
+        super(ArithmeticSubgroup_NF_class,self).__init__(order,group,name,ltx)
         self._a=a
 
     def plusa(self):
+        r"""
+        Return the ideal a such that self = SL_2(O+a).
+        """
         return self._a
     
 
@@ -439,10 +468,10 @@ def HilbertModularGroup(O,group='SL',a=None,**kwds):
         O =  QuadraticField(O).ring_of_integers()
     if a==None:
         name = 'Hilbert modular group `{group}_{{2}}(O)`'.format(group=group)
-        ltx = latex(name)
+        ltx = 'Hilbert modular group `{group}_{{2}}(O)`'.format(group=group)
         return HilbertModularGroup_CongruenceSubgroup_Gamma0_class(O,O.ideal(1),group,name,ltx)
     name = 'Hilbert modular group `{sn}_{{2}}(O+a)`'.format(sn=sn)
-    ltx = latex(name)
+    ltx = '{sn}_{{2}}(O+a)'.format(sn=sn)
     return HilbertModularGroup_Conjugate_class(O,a,group,name,ltx)
 
   

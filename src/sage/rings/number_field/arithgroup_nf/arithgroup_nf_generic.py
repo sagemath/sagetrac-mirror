@@ -21,7 +21,6 @@ AUTHORS:
 #
 ################################################################################
 
-
 from sage.rings.all import ZZ,Integer,is_Ring
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
@@ -30,7 +29,7 @@ from sage.misc.latex import latex
 from sage.groups.matrix_gps.linear import LinearMatrixGroup_generic
 
 
-class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
+class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
     r"""
     Base class for arithmetic subgroups of `{\rm SL}_2(K)`. Not
     intended to be used directly, but still includes quite a few
@@ -96,7 +95,7 @@ class ArithmeticSubgroup_NF(LinearMatrixGroup_generic):
         
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
             sage: H.__reduce__()
             Traceback (most recent call last)
             ...
@@ -184,7 +183,7 @@ True
         
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H=sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
             sage: H.coset_reps()            
             Traceback (most recent call last)
             ...
@@ -264,6 +263,7 @@ True
             sage: G.nu2()
             Traceback (most recent call last)
             ...
+            <BLANKLINE>
             NotImplementedError:            
         
         """
@@ -282,6 +282,7 @@ True
             sage: G.nu3()
             Traceback (most recent call last)
             ...
+            <BLANKLINE>
             NotImplementedError:            
         """
         return self.nu(3)    
@@ -298,8 +299,10 @@ True
             sage: G=HilbertModularGroup(O)
             sage: G.orders_of_elliptic_elements()
             Traceback (most recent call last)
-            ...
-            NotImplementedError: Should be implemented in subclasses!           
+              ...
+            <BLANKLINE>
+            NotImplementedError: Should be implemented in subclasses!
+            
         """
         raise NotImplementedError,"Should be implemented in subclasses!"
     
@@ -313,8 +316,8 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).__cmp__(G)
+            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).__cmp__(G)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -331,7 +334,7 @@ True
         
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: G = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
             sage: 1 in G
             Traceback (most recent call last):
             ...
@@ -418,10 +421,9 @@ True
             True        
         """
         if G==None:
-            G = ArithmeticSubgroup_NF(self.base_ring(),self.group())
-        if self==G:
+            G = ArithmeticSubgroup_NF_class(self.base_ring(),self.group())
+        if self.index(G)==1:
             return True
-
         for x in self.gens():
             for y in G.gens():
                 if y*G(x)*(~y) not in self:
@@ -530,7 +532,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).cusps()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).cusps()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -549,7 +551,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)._find_cusps()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)._find_cusps()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -578,7 +580,7 @@ True
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
             sage: a = NFCusp(K,0); b = NFCusp(K,1)
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).are_equivalent(a,b)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).are_equivalent(a,b)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -604,7 +606,7 @@ True
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
             sage: c = NFCusps(K,0)
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).cusp_data(c)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).cusp_data(c)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -622,12 +624,12 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: H = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O)
+            sage: H = sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O)
             sage: H.index()
-
             Traceback (most recent call last):
-            ...
-            NotImplementedError
+                ...
+            <BLANKLINE>
+            NotImplementedError: All subclasses should implement coset representatives
 
         """
         return len(list(self.coset_reps()))
@@ -727,7 +729,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).is_congruence()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).is_congruence()
             False
             sage: G=HilbertModularGroup(O)
             sage: G.is_congruence()
@@ -749,7 +751,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).generators()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).generators()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -768,7 +770,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).gens()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).gens()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -786,7 +788,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).gen(1)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).gen(1)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -803,7 +805,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).ngens()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).ngens()
             Traceback (most recent call last):
             ...
             NotImplementedError        
@@ -822,13 +824,12 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).ncusps()
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).ncusps()
             Traceback (most recent call last):
             ...
             NotImplementedError
 
         """
-
         return ZZ(len(self.cusps()))
 
 
@@ -842,7 +843,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_modular_forms(2)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).dimension_modular_forms(2)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -859,7 +860,7 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_cusp_forms(2)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).dimension_cusp_forms(2)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -883,12 +884,11 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).dimension_eis(2)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).dimension_eis(2)
             Traceback (most recent call last):
             ...
             NotImplementedError        
         """
-
         raise NotImplementedError
 
     
@@ -906,12 +906,12 @@ True
 
             sage: from sage.rings.number_field.arithgroup_nf.all import *
             sage: K=QuadraticField(41); O=K.ring_of_integers()
-            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF(O).sturm_bound(2)
+            sage: sage.rings.number_field.arithgroup_nf.all.ArithmeticSubgroup_NF_class(O).sturm_bound(2)
             Traceback (most recent call last):
             ...
+            <BLANKLINE>
             NotImplementedError
 
-        """
-        
+        """        
         raise NotImplementedError
 

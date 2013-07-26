@@ -22,13 +22,13 @@ from sage.structure.sage_object import SageObject
 
 class HilbertFundamentalDomain(SageObject):
     r"""
-    Fundamental domain for Hilbert modular group.
+    Fundamental domain for Hilbert modular groups.
     """
 
     def __init__(self,H,**kwds):
         r"""
-
-
+        Init the fundamental domain.
+        
         """
         self._group = H
         self._K = H.number_field()
@@ -50,19 +50,36 @@ class HilbertFundamentalDomain(SageObject):
         
 
     def group(self):
+        r"""
+        Return the group for which self is a fundamental domain.
+
+        """
         return self._group
     def __repr__(self):
+        r"""
+        string representation of self.
+        """
         s = "Fundamental domain for {0}".format(self.group())
 
     def reduce(self,z,**kwds):
+        r"""
+        Reduce self.
+        """
+        
         max_rounds = kwds.get('max_rounds',0)
         bound_on_c = kwds.get('bound_on_c',None)
         return self._hfd.reduce(z, max_rounds, bound_on_c)
 
     def step(self,s,**kwds):
+        r"""
+        Apply one step in the reduction algorithm.
+        """
         return self._hfd.step(z,**kwds)
         
         
     def  plot(self,**kwds):
+        r"""
+        Plot self.
+        """
         raise NotImplementedError
 

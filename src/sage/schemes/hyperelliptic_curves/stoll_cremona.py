@@ -31,7 +31,7 @@ from sage.rings.all import (ZZ, QQ, CC, ComplexField, RealField,
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.misc.misc import prod
 from sage.matrix.constructor import identity_matrix
-from sage.rings.number_field import HilbertModularGroup
+from sage.rings.number_field.arithgroup_nf import HilbertModularGroup
 
 def stoll_cremona_reduction(f, degree=None, algorithm='default',
                             precision=53, group='gl', transformation=False):
