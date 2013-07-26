@@ -21,7 +21,7 @@ AUTHORS:
 #
 ################################################################################
 
-from sage.rings.all import ZZ,Integer,is_Ring
+from sage.rings.all import ZZ,Integer,is_Ring,QQ
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.cusps_nf import NFCusp
