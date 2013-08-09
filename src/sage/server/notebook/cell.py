@@ -47,7 +47,9 @@ re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 
 import os, shutil
 
-from   sage.misc.misc import word_wrap, SAGE_DOC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC
+
+from   sage.misc.misc import word_wrap
 from   sage.misc.html import math_parse
 from   sage.misc.preparser import strip_string_literals
 from   sage.misc.package   import is_package_installed
@@ -1726,7 +1728,7 @@ class Cell(Cell_generic):
                 # also pickles its environment in doctreedir, but we
                 # force Sphinx never to load this pickle with
                 # freshenv=True.
-                confdir = os.path.join(SAGE_DOC, 'en/introspect')
+                confdir = os.path.join(SAGE_DOC_SRC, 'en/introspect')
                 doctreedir = os.path.normpath(base_name)
                 confoverrides = {'html_context' : {}, 'master_doc' : hash}
 
