@@ -31,10 +31,11 @@ from sage.misc.misc import sage_makedirs as mkdir
 from sage.env import SAGE_DOC, SAGE_SRC
 
 # Load the options
-from build_options import SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT, \
-                          PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, \
-                          WEBSITESPHINXOPTS, SAGE_DOC_SRC
-#execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
+sys.path.append(os.path.join(SAGE_DOC, 'common'))
+# from build_options import SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT, \
+#                           PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, \
+#                           WEBSITESPHINXOPTS, SAGE_DOC_SRC
+execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
 ##########################################
