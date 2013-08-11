@@ -58,7 +58,7 @@ TESTS:
 import os, sys
 import operator
 
-from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_ETC, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
@@ -299,6 +299,8 @@ sage.misc.lazy_import.save_cache_file()
 
 # Write a file indicating that Sage was started up successfully.
 # This is called by the sage-starts script.
+# hmm, who is going to create sage_started if SAGE_ETC is readonly?
+# maybe put it into SAGE_DOT/etc?
 def _write_started_file():
     """
     Write a ``sage-started.txt`` file if it does not exist.  The
@@ -311,11 +313,11 @@ def _write_started_file():
 
     Check that the file exists when Sage is running::
 
-        sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
+        sage: started_file = os.path.join(SAGE_ETC, 'sage-started.txt')
         sage: os.path.isfile(started_file)
         True
     """
-    started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
+    started_file = os.path.join(SAGE_ETC, 'sage-started.txt')
     # Do nothing if the file already exists
     if os.path.isfile(started_file):
         return
