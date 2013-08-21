@@ -60,6 +60,11 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
 
 singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
 
+# FIXME: spams Makefiles, add to config.h
+#  ceil(sqrt(2^31-1)) and
+#  2^31-1 for now, should be 3037000500LL = ceil(sqrt(2^63-1))
+module_bounds = [("INTEGER_MOD_INT32_LIMIT", "46341"),
+                 ("INTEGER_MOD_INT64_LIMIT", "2147483647")]
 
 #########################################################
 ### Givaro flags
@@ -1057,6 +1062,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
+				  define_macros = module_bounds,
               language="c++",
               libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
@@ -1583,16 +1589,20 @@ ext_modules = [
         ################################
 
     Extension('sage.rings.finite_rings.finite_field_base',
+              define_macros = module_bounds,
               sources = ['sage/rings/finite_rings/finite_field_base.pyx']),
 
     Extension('sage.rings.finite_rings.element_base',
+              define_macros = module_bounds,
               sources = ['sage/rings/finite_rings/element_base.pyx']),
 
     Extension('sage.rings.finite_rings.integer_mod',
+              define_macros = module_bounds,
               sources = ['sage/rings/finite_rings/integer_mod.pyx'],
               libraries = ['gmp']),
 
     Extension('sage.rings.finite_rings.element_givaro',
+              define_macros = module_bounds,
               sources = ["sage/rings/finite_rings/element_givaro.pyx"],
               # this order is needed to compile under windows.
               libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++', ],
@@ -1600,6 +1610,7 @@ ext_modules = [
               extra_compile_args = givaro_extra_compile_args),
 
     Extension('sage.rings.finite_rings.element_ntl_gf2e',
+              define_macros = module_bounds,
               sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx'],
               libraries = ['ntl', 'gmp'],
               language = 'c++'),
