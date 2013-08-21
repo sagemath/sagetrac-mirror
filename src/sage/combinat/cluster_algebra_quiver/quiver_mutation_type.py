@@ -283,7 +283,7 @@ Background on generalized Cartan types can be found at
 
 For the compendium on the cluster algebra and quiver package in Sage see
 
-        http://arxiv.org/abs/1102.4844
+        :arxiv:`1102.4844`
 
 A `B`-matrix is a skew-symmetrizable `( n \times n )`-matrix `M`.
 I.e., there exists an invertible diagonal matrix `D` such that `DM` is skew-symmetric.
@@ -322,9 +322,9 @@ The input consists either of a quiver mutation type, or of a ``letter`` (a strin
 
     * Grassmannian: This defines the cluster algebra (without coefficients) corresponding to the cluster algebra with coefficients which is the co-ordinate ring of a Grassmannian.  ``letter`` is 'GR'.  ``rank`` is a pair of integers (`k`, `n`) with 'k' < 'n' specifying the Grassmannian of `k`-planes in `n`-space.  This defines a quiver given by a (k-1) x (n-k-1) grid where each square is cyclically oriented.
 
-    * Primitive Period 1: As in Fordy-Marsh (http://arxiv.org/abs/0904.0200), these are the primitive quivers whose mutations simply cyclically permute them.  ``letter`` is 'P1' and ``rank`` is a pair of integers, (N, k) specifying the number of vertices and the source of arrow whose target is vertex 0.  We require 0 < k <= N/2. 
+    * Primitive Period 1: As in Fordy-Marsh (:arxiv:`0904.0200`), these are the primitive quivers whose mutations simply cyclically permute them.  ``letter`` is 'P1' and ``rank`` is a pair of integers, (N, k) specifying the number of vertices and the source of arrow whose target is vertex 0.  We require 0 < k <= N/2.
 
-    * Gale Robinson: As in Example 8.7 of Fordy Marsh  (http://arxiv.org/abs/0904.0200).  ``letter`` is 'GaRo' and ``rank`` is a triple of integers given by n, the number of vertices, r, and s, satisfying 0 < r <= s <= n/2. 
+    * Gale Robinson: As in Example 8.7 of Fordy-Marsh  (:arxiv:`0904.0200`).  ``letter`` is 'GaRo' and ``rank`` is a triple of integers given by n, the number of vertices, r, and s, satisfying 0 < r <= s <= n/2.
 
     * Exceptional mutation finite quivers: The two exceptional mutation finite quivers, found by Derksen-Owen, have ``letter`` as 'X' and ``rank`` 6 or 7, equal to the number of vertices.
 
@@ -336,7 +336,7 @@ REFERENCES:
 
 - A good reference for finite and affine Dynkin diagrams, including Kac's notation, is the Wikipedia article on `Dynkin diagrams <http://en.wikipedia.org/wiki/Dynkin_diagram>`_.
 
-- A good reference for the skew-symmetrizable elliptic diagrams is "Cluster algebras of finite mutation type via unfolding" by A. Felikson, M. Shapiro, and P. Tumarkin, `arXiv:1006.4276v4 <http://arxiv.org/abs/1006.4276>`_.
+- A good reference for the skew-symmetrizable elliptic diagrams is "Cluster algebras of finite mutation type via unfolding" by A. Felikson, M. Shapiro, and P. Tumarkin, :arxiv:`1006.4276`.
 
 EXAMPLES:
 
@@ -1672,7 +1672,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             if self._graph.is_bipartite():
                 self._digraph = _bipartite_graph_to_digraph( self._graph )
             else:
-                raise ValueError, 'The QuiverMutationType does not have a Coxeter diagram.'
+                raise ValueError('The QuiverMutationType does not have a Coxeter diagram.')
 
         # in the other cases, the graph is constructed from the digraph
         if not self._graph:
@@ -2231,7 +2231,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     data = {}
     possible_types = ['Classical','ClassicalExceptional','Exceptional']
     if types not in possible_types:
-        raise ValueError, 'The third input must be either ClassicalExceptional (default), Classical, or Exceptional.'
+        raise ValueError('The third input must be either ClassicalExceptional (default), Classical, or Exceptional.')
 
     if types in possible_types[:2]:
         data.update(_construct_classical_mutation_classes(n))
@@ -2320,7 +2320,7 @@ def _bipartite_graph_to_digraph( g ):
         Digraph on 2 vertices
     """
     if not g.is_bipartite():
-        raise ValueError, 'The input graph is not bipartite.'
+        raise ValueError('The input graph is not bipartite.')
 
     order = g.bipartite_sets()
     dg = DiGraph()
@@ -2378,7 +2378,7 @@ def _mutation_type_error( data ):
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 
-    raise ValueError, return_str
+    raise ValueError(return_str)
 
 def _edge_list_to_matrix( edges, n, m ):
     """
