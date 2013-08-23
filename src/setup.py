@@ -165,6 +165,8 @@ for m in ext_modules:
     m.extra_link_args += extra_link_args
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
+    print m.sources
+
 
 
 #############################################
@@ -499,6 +501,9 @@ if not sdist:
     from Cython.Build import cythonize
     import Cython.Compiler.Options
     import Cython.Compiler.Main
+
+    from Cython.Build import Dependencies
+    Cython.Build.Dependencies.cython_file_extensions = ('.pyx', '.pyxx', '.py')
 
     # Sage uses these directives (mostly for historical reasons).
     Cython.Compiler.Options.embed_pos_in_docstring = True
