@@ -67,10 +67,10 @@ def atlas():
     else:
         return 'atlas'
 
-from sage.env import CSAGE_INCLUDEDIR, LOCAL_INCLUDEDIR, PYTHON_INCLUDEDIR, NUMPY_INCLUDEDIR
+from sage.env import CSAGE_INCLUDEDIRS, LOCAL_INCLUDEDIR, PYTHON_INCLUDEDIR, NUMPY_INCLUDEDIR
 
-include_dirs = [CSAGE_INCLUDEDIR, \
-                LOCAL_INCLUDEDIR, \
+include_dirs = CSAGE_INCLUDEDIRS + \
+               [LOCAL_INCLUDEDIR, \
                 PYTHON_INCLUDEDIR, \
                 NUMPY_INCLUDEDIR, \
                 os.path.join(SAGE_SRC,'sage','ext'), \
@@ -212,7 +212,8 @@ def pyx_preparse(s):
         ...,
         'ntl',
         'csage'],
-        ['.../include/csage',
+        ['.../include',
+        '.../include',
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
@@ -240,7 +241,8 @@ def pyx_preparse(s):
 
         sage: inc
         ['bar',
-        '.../include/csage',
+        '.../include',
+        '.../include',
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
