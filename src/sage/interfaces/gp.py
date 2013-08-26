@@ -12,7 +12,7 @@ PARI interpreter, gprc.expect is a requirement).::
 
     sage: from sage.env import SAGE_ETC
     sage: f=os.path.join(SAGE_ETC, 'gprc.expect')
-    sage: os.path.exists(f)
+    sage: os.path.isfile(f)
     True
 
 ::
