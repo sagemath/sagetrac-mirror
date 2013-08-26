@@ -1,6 +1,6 @@
 from types cimport *
 
-cdef extern from "gmp.h":
+cdef extern from "gmp_or_mpir.h":
 
     ### Random Number Functions ###
 
