@@ -39,3 +39,6 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error installing IPython"
     exit 1
 fi
+
+# exchange interpreter line, to make relocation happy
+sed -i $SAGE_LOCAL/bin/ipython -e '1 s#^.*$#\#!/usr/bin/env python#'
