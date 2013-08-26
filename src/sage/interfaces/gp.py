@@ -8,7 +8,7 @@ create a new Gp object, and ``gp.eval(...)`` to evaluate a
 string using Gp (and get the result back as a string).
 
 EXAMPLES: We illustrate objects that wrap GP objects (gp is the
-PARI interpreter)::
+PARI interpreter, gprc.expect is a requirement).::
 
     sage: from sage.env import SAGE_ETC
     sage: f=os.path.join(SAGE_ETC, 'gprc.expect')
