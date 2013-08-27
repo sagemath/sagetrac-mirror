@@ -18,7 +18,7 @@
 
 # compile within the environment specified during configure
 maybe_colon = $(my_LD_LIBRARY_PATH:%=:)
-LIBTOOL = export LD_LIBRARY_PATH="@my_LD_LIBRARY_PATH@$(LD_LIBRARY_PATH:%=$(maybe_colon)%)"; @LIBTOOL@
+LIBTOOL = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(maybe_colon)%)"; @LIBTOOL@
 
 # -L@top_builddir@/../c_lib/src/.libs will be added automatically
 AM_LDFLAGS = -module -avoid-version

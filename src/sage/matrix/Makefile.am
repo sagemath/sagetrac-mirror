@@ -3,7 +3,7 @@
 # license: gplv3+
 #
 include $(top_srcdir)/common.mk
-AM_CPPFLAGS+=$(PYTHON_INCLUDES) @CSAGE_INCLUDES@
+AM_CPPFLAGS+= $(PYTHON_INCLUDES) @LIBCSAGE_INCLUDES@
 matrixdir = $(pythondir)/sage/matrix
 matrix_PYTHON = \
     all.py benchmark.py berlekamp_massey.py constructor.py docs.py __init__.py \
@@ -24,9 +24,9 @@ matrix_LTLIBRARIES = \
 
 action_la_CPPFLAGS = $(PYTHON_INCLUDES) -I$(C_LIB_INCLUDE) $(AM_CPPFLAGS)
 change_ring_la_LIBADD = -l@BLAS@ -l@BLAS2@ @GMP_OR_MPIR_LIBS@
-change_ring_la_CPPFLAGS = @NUMPY_INCLUDES@ $(PYTHON_INCLUDES) @CSAGE_INCLUDES@ $(AM_CPPFLAGS)
+change_ring_la_CPPFLAGS = @NUMPY_INCLUDES@ $(PYTHON_INCLUDES) $(AM_CPPFLAGS)
 
-matrix_la_CPPFLAGS = $(PYTHON_INCLUDES) @CSAGE_INCLUDES@
+matrix_la_CPPFLAGS = $(PYTHON_INCLUDES) $(AM_CPPFLAGS)
 matrix_la_LIBADD = -lcsage
 
 matrix0_la_LIBADD = -lcsage
