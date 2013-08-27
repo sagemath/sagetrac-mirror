@@ -473,7 +473,11 @@ sage: \
 		 csage
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time python setup.py install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
 
-scripts: $(SCRIPT_TARGETS)
+$(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
+	mkdir -p $(SAGE_LOCAL)/etc
+	cp $< $@
+
+scripts: $(SCRIPT_TARGETS) $(SAGE_LOCAL)/etc/sage-maxima.lisp
 
 extcode: $(EXTCODE_TARGETS)
 
