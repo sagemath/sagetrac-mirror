@@ -11,7 +11,7 @@ Utility functions for libGAP
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_LOCAL, GAP_DATA_DIR
 from sage.misc.misc import is_64_bit
 from libc.stdint cimport uintptr_t
 from element cimport *
@@ -158,7 +158,7 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
+    gapdir = GAP_DATA_DIR
     if os.path.exists(gapdir):
         return gapdir
     print 'The gap-4.5.5.spkg (or later) seems to be not installed!'

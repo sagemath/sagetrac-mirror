@@ -330,7 +330,7 @@ Methods
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
-from sage.misc.misc import SAGE_SHARE
+from sage.misc.misc import GRAPHS_DATA_DIR
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -645,7 +645,7 @@ class GraphClasses(UniqueRepresentation):
         # Save a systemwide updated copy whenever possible
 
         try:
-            z.extract(_XML_FILE, os.path.join(SAGE_SHARE,'graphs'))
+            z.extract(_XML_FILE, GRAPHS_DATA_DIR)
         except IOError:
             z.extract(_XML_FILE, SAGE_TMP)
 
@@ -661,8 +661,8 @@ class GraphClasses(UniqueRepresentation):
         EXAMPLE::
 
             sage: import os
-            sage: from sage.misc.misc import SAGE_SHARE
-            sage: map(type, graph_classes._parse_db(os.path.join(SAGE_SHARE,'graphs','isgci_sage.xml')))
+            sage: from sage.misc.misc import GRAPHS_DATA_DIR
+            sage: map(type, graph_classes._parse_db(os.path.join(GRAPHS_DATA_DIR,'isgci_sage.xml')))
             [<type 'dict'>, <type 'list'>]
         """
         import xml.dom.minidom
@@ -781,15 +781,15 @@ class GraphClasses(UniqueRepresentation):
 
             # Which copy is the most recent on the disk ?
             if (os.path.getmtime(os.path.join(SAGE_DB,_XML_FILE)) >
-                os.path.getmtime(os.path.join(SAGE_SHARE,'graphs',_XML_FILE))):
+                os.path.getmtime(os.path.join(GRAPHS_DATA_DIR,_XML_FILE))):
 
                 filename = os.path.join(SAGE_DB,_XML_FILE)
 
             else:
-                filename = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
+                filename = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         except IOError as e:
-            filename = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
+            filename = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         return self._parse_db(filename)
 

@@ -17,7 +17,7 @@ AUTHORS:
 
 from __future__ import print_function
 
-import os, sys, platform
+import os, sys
 
 from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
 from misc import SPYX_TMP
@@ -67,10 +67,12 @@ def atlas():
     else:
         return 'atlas'
 
-include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
-                os.path.join(SAGE_LOCAL,'include'), \
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
+from sage.env import CSAGE_INCLUDEDIR, LOCAL_INCLUDEDIR, PYTHON_INCLUDEDIR, NUMPY_INCLUDEDIR
+
+include_dirs = [CSAGE_INCLUDEDIR, \
+                LOCAL_INCLUDEDIR, \
+                PYTHON_INCLUDEDIR, \
+                NUMPY_INCLUDEDIR, \
                 os.path.join(SAGE_SRC,'sage','ext'), \
                 os.path.join(SAGE_SRC), \
                 os.path.join(SAGE_SRC,'sage','gsl')]
@@ -335,9 +337,10 @@ def cython(filename, verbose=False, compile_message=False,
     Before :trac:`12975`, it would have beeen needed to write ``#clang c++``,
     but upper case ``C++`` has resulted in an error::
 
+        sage: from sage.env import SINGULAR_INCLUDEDIR, FACTORY_INCLUDEDIR
         sage: code = [
         ... "#clang C++",
-        ... "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
+        ... "#cinclude %s %s"%(SINGULAR_INCLUDEDIR, FACTORY_INCLUDEDIR),
         ... "#clib m readline singular givaro ntl gmpxx gmp",
         ... "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ... "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
