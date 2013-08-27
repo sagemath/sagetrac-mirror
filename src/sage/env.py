@@ -128,6 +128,28 @@ _add_variable_or_fallback('SAGE_DATE',               version.date)
 _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
+# additional packages locations
+_add_variable_or_fallback('CONWAY_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
+_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
+_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
+_add_variable_or_fallback('GAP_DATA_DIR',     opj('$SAGE_LOCAL','gap','latest'))
+
+# used by cython.py
+_add_variable_or_fallback('SINGULAR_INCLUDEDIR', opj('$SAGE_LOCAL','include','singular'))
+_add_variable_or_fallback('FACTORY_INCLUDEDIR',  opj('$SAGE_LOCAL','include','factory'))
+
+# locate singular shared object
+# FIXME: do this during "configure"
+# FIXME2: don't use dlopen at all
+# FIXME3: just use find_library utility from ctypes instead?
+SINGULAR_SO = "didnotfindanything"
+for extension in ["so", "dylib", "dll"]:
+    SINGULAR_SO = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
+    if os.path.isfile(SINGULAR_SO):
+        break
+_add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
 # post process
 if ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
