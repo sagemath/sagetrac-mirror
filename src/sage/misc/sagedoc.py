@@ -39,7 +39,7 @@ from sage.misc.viewer import browser
 from sage.misc.misc import tmp_dir
 from sagenb.misc.sphinxify import sphinxify
 import sage.version
-from sage.env import SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC, SAGE_SRC, SAGE_DOC_SRC
 
 # two kinds of substitutions: math, which should only be done on the
 # command line -- in the notebook, these should instead by taken care
@@ -304,7 +304,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``http://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC/common/conf.py.
+    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -331,7 +331,7 @@ def process_extlinks(s, embedded=False):
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+    sys.path.append(os.path.join(SAGE_DOC_SRC, 'common'))
     from conf import pythonversion, extlinks
     sys.path = oldpath
     for key in extlinks:
@@ -709,7 +709,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         # We need to import stuff from SAGE_DOC/common
         # To do this, we temporarily change sys.path
         oldpath = sys.path
-        sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+        sys.path.append(os.path.join(SAGE_DOC_SRC, 'common'))
         import build_options as builder
         # List of languages
         lang = builder.LANGUAGES
