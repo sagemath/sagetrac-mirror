@@ -1339,3 +1339,74 @@ class Factorization(SageObject):
             raise ValueError("All exponents in the factorization must be positive.")
         return prod([p for p,e in self.__x])
 
+    def __eq__(self, other):
+        """
+        Comparison of factorisations
+
+        EXAMPLES::
+
+            sage: factor(6) == factor(18/3)
+            True
+
+        For polynomials over the same ring::
+
+            sage: P.<x> = QQ[]
+            sage: a = x+1; b = x+2; c = x+3
+            sage: F0 = Factorization([(a,1),(b,1),(c,1)]); F0
+            (x + 1) * (x + 2) * (x + 3)
+            sage: F1 = Factorization([(a*b,1),(c,1)]); F1
+            (x + 3) * (x^2 + 3*x + 2)
+            sage: F2 = Factorization([(a,1),(b*c,1)]); F2
+            (x + 1) * (x^2 + 5*x + 6)
+            sage: F0 == F1
+            False
+            sage: F0 == F2
+            False
+            sage: F1 == F2
+            False
+
+        Because units depends on the ring, one can get::
+
+            sage: x = polygen(QQ, 'x')
+            sage: y = polygen(ZZ, 'x')
+            sage: factor((x-4)*(x+6)) == factor((y-4)*(y+6))
+            True
+            sage: factor(691*(x-4)*(x+6)) == factor(691*(y-4)*(y+6))
+            False
+
+        For noncommutative factorisations::
+
+            sage: x, y = FreeAlgebra(QQ,['x','y']).gens()
+            sage: f0 = Factorization([(y,1), (x-y,1)])
+            sage: f1 = Factorization([(x-y,1), (y,1)])
+            sage: f0 == f1
+            False
+
+        When comparing with something which is not a factorisation,
+        one compares the values::
+
+            sage: F0 == a*b*c
+            True
+        """
+        if not isinstance(other, Factorization):
+            return self.value() == other
+
+        if len(self) != len(other):
+            return False
+
+        try:
+            # first get the two factorizations to have the same universe
+            in_uni1 = self.universe().an_element()
+            in_uni2 = other.universe().an_element()
+            U = Sequence([in_uni1, in_uni2]).universe()
+            self = self.base_change(U)
+            other = other.base_change(U)
+        except TypeError:
+            return False
+
+        if self.is_commutative():
+            self.sort()
+            other.sort()
+
+        return (self.unit() == other.unit() and
+                list(self) == list(other))
