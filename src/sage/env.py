@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, socket
+import os, socket, platform
 import version
 
 opj = os.path.join
@@ -105,6 +105,34 @@ _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_RO
 _add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')
 _add_variable_or_fallback('SAGE_VERSION',    version.version)
 _add_variable_or_fallback('SAGE_DATE',       version.date)
+
+# additional packages locations
+_add_variable_or_fallback('CONWAY_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
+_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
+_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
+_add_variable_or_fallback('GAP_DATA_DIR',     opj('$SAGE_LOCAL','gap','latest'))
+
+# used by cython.py
+_add_variable_or_fallback('NUMPY_INCLUDEDIR',    opj('$SAGE_LOCAL','lib','python','site-packages','numpy','core','include'))
+_add_variable_or_fallback('PYTHON_INCLUDEDIR',   opj('$SAGE_LOCAL','include','python'+platform.python_version().rsplit('.', 1)[0]))
+_add_variable_or_fallback('CSAGE_INCLUDEDIR',    opj('$SAGE_LOCAL','include','csage'))
+_add_variable_or_fallback('LOCAL_INCLUDEDIR',    opj('$SAGE_LOCAL','include'))
+_add_variable_or_fallback('SINGULAR_INCLUDEDIR', opj('$SAGE_LOCAL','include','singular'))
+_add_variable_or_fallback('FACTORY_INCLUDEDIR',  opj('$SAGE_LOCAL','include','factory'))
+
+# locate singular shared object
+# FIXME: do this during "configure"
+# FIXME2: don't use dlopen at all
+SINGULAR_SO = "didnotfindanything"
+for extension in ["so", "dylib", "dll"]:
+    SINGULAR_SO = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
+    if os.path.isfile(SINGULAR_SO):
+        break
+_add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
+# misc file locations
+_add_variable_or_fallback('SAGE_MAXIMA_INIT',  opj('$SAGE_ETC','sage-maxima.lisp'))
 
 # post process
 if ' ' in DOT_SAGE:
