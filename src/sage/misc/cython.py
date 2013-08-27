@@ -141,7 +141,8 @@ def environ_parse(s):
     EXAMPLES::
 
         sage: from sage.misc.cython import environ_parse
-        sage: environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
+        sage: from sage.env import SAGE_SRC
+        sage: environ_parse('$SAGE_SRC') == SAGE_SRC
         True
         sage: environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
         '$THIS_IS_NOT_DEFINED_ANYWHERE'

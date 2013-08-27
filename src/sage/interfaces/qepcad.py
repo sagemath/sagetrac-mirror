@@ -519,8 +519,8 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: from sage.misc.misc import SAGE_LOCAL
-    sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
+    sage: from sage.misc.misc import SAGE_ETC
+    sage: open('%s/default.qepcadrc'%SAGE_ETC).readlines()[-1]
     'SINGULAR .../local/bin\n'
 
 AUTHORS:

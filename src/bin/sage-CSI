@@ -46,7 +46,7 @@ def gdb_commands(pid, color):
     cmds += 'import sys; sys.stdout.flush()\n'
     cmds += 'end\n'
     cmds += 'bt full\n'
-    script = os.path.join(os.environ['SAGE_LOCAL'], 'bin', 'sage-CSI-helper.py')
+    script = os.path.abspath(__file__) + '-helper.py'
     with open(script, 'r') as f:
         cmds += 'python\n'
         cmds += 'color = {0}\n'.format(color)
@@ -65,7 +65,7 @@ def run_gdb(pid, color):
     """
     PIPE = subprocess.PIPE
     env = dict(os.environ)
-    libpython = os.path.join(env['SAGE_LOCAL'], 'lib',
+    libpython = os.path.join(sysconfig.get_config_var('LIBDIR'),
                              sysconfig.get_config_var('INSTSONAME'))
     if sys.platform == 'macosx':
         env['DYLD_INSERT_LIBRARIES'] = libpython
