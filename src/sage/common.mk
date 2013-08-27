@@ -16,6 +16,10 @@
 #
 #allpythonstuff = $(wildcard *.py *.pxd *.pxi)
 
+# compile within the environment specified during configure
+maybe_colon = $(my_LD_LIBRARY_PATH:%=:)
+LIBTOOL = export LD_LIBRARY_PATH="@my_LD_LIBRARY_PATH@$(LD_LIBRARY_PATH:%=$(maybe_colon)%)"; @LIBTOOL@
+
 # -L@top_builddir@/../c_lib/src/.libs will be added automatically
 AM_LDFLAGS = -module -avoid-version
 
@@ -91,7 +95,7 @@ am__v_PYO_0 = @echo "  PYO   " $@;
 
 # ouch, trailing colon.
 # empty string will be (mis)interpreted as '.'.
-PYTHONPATHENV = PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)$(PYTHONPATH)"
+PYTHONPATHENV = PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)"
 
 # -w needed to force correct paths in docstrings
 # wrong paths lead to mysterious sageinspect.py errors
@@ -114,6 +118,7 @@ CLEANFILES = $(MANUAL_DEP_PYX:%.pyx=%.c) \
              $(MANUAL_DEP_PYX:%.pyx=%.cc) \
              *.so *.pyc *.pyo
 
+# BUG: this makes config.status create \*.Pcython ...
 @AMDEP_TRUE@ifneq (,$(MANUAL_DEP))
 @AMDEP_TRUE@@am__include@ $(DEPDIR)/*.Pcython
 @AMDEP_TRUE@endif
@@ -181,10 +186,10 @@ endif
 %.pyc: SHELL=/usr/bin/env bash
 %.pyo: SHELL=/usr/bin/env bash
 %.pyc: %.py
-	@VPATH_TRUE@@$(MKDIR_P) $(dir $@)
+	@@VPATH_TRUE@$(MKDIR_P) $(dir $@)
 	$(AM_V_PYC)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
 %.pyo: %.py
-	@VPATH_TRUE@@$(MKDIR_P) $(dir $@)
+	@@VPATH_TRUE@$(MKDIR_P) $(dir $@)
 	$(AM_V_PYO)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -O -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
 
 # sometimes, __init__.py is required to make
