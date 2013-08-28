@@ -22,9 +22,7 @@ fi
 set -e
 
 # build c_lib
-cd "$SAGE_SRC"/c_lib
-scons -Q install
+$MAKE -C $SAGE_SRC/c_lib
 
 # build sage library
-cd "$SAGE_SRC"
-python setup.py install
+$MAKE -C $SAGE_SRC/sage

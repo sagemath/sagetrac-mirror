@@ -17,6 +17,14 @@ PIPE = $(SAGE_ROOT)/build/pipestatus
 # Tell make not to look for files with these names:
 .PHONY: all all-sage base toolchain toolchain-deps
 
+# its not possible to create these from here
+# fortunately this (file) is a temporary hack...
+$(SAGE_SRC)/%/configure:
+	@echo cannot create $@
+	@echo run the respective autogen.sh manually.
+	@echo this will be taken care of by the toplevel build system later
+	false
+
 # Make the 4 build phases: base, toolchain, toolchain-deps, all-sage
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
@@ -470,8 +478,10 @@ sage: \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
-		 csage
-	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time python setup.py install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
+		 csage | \
+       $(SAGE_SRC)/sage/configure
+	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure
+	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time $(MAKE) -C sage py; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
 
 $(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
 	mkdir -p $(SAGE_LOCAL)/etc
@@ -487,8 +497,10 @@ csage: $(INST)/$(SCONS) \
        $(INST)/$(PARI) \
        $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC) \
-       $(INST)/$(PYTHON)
-	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time scons -Q install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
+       $(INST)/$(PYTHON) | \
+       $(SAGE_SRC)/c_lib/configure
+	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure
+	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE); fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
 
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
