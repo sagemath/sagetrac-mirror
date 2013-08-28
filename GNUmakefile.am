@@ -6,26 +6,505 @@
 #
 # See below for targets to build the documentation in other formats,
 # to run various types of test suites, and to remove parts of the build etc.
+#
+SUFFIXES =
+ACLOCAL_AMFLAGS = -I m4
+SUBDIRS = sagedist
 
-PIPE = build/pipestatus
+# this apparently is *not* prefix
+SAGE_LOCAL = @abs_top_builddir@/local
+ENV_SH = sagedist/etc/env.sh
 
-all: start doc  # indirectly depends on build
+# seperate builddir from pkgsdir simplifies implicit rules
+PKGSDIR = pkgs
+BUILDDIR = build
 
-logs:
-	mkdir -p $@
+PIPE = $(abs_top_srcdir)/build/pipestatus
+V_ = 0 # $(AM_DEFAULT_VERBOSITY)
+V_0 = 0
+V_1 = 1
+
+# comment out things that shall not be executed if -n
+IFNOTNOACT:= $(if $(findstring n,$(firstword $(MAKEFLAGS))),\#)
+
+
+# Usage: newest_version $pkg
+# return version number of latest standard package $pkg
+# FIXME: allow overrides
+define newest_version
+$(shell \
+    PKG="$(1)";\
+    if [ -f "@abs_top_srcdir@/$(PKGSDIR)/$$PKG/package-version.txt" ]; then\
+        echo -n $$PKG-;\
+        cat "@abs_top_srcdir@/$(PKGSDIR)/$$PKG/package-version.txt";\
+    else\
+        echo >&2 "Cannot determine latest version of $$PKG.";\
+        echo -n "$$PKG-unknown";\
+    fi;)
+endef
+
+.sagedist:
+	$(MAKE) -C sagedist
+	touch $@
+
+# need absolute path, passed to other build scripts.
+SAGE_LOGS = @abs_top_builddir@/logs/pkgs
+
+all-local: $(FOREIGN_DEP)
+
+########## CORE_MODULES ###########################
+CORE_MODULES = src/c_lib src/sage src/doc src/bin src/ext # src/mac-app src/whatever
+CORE_ENV = dummy=1
+CORE_OPTS = --prefix="@prefix@"
+
+### CORE_MODULE build implementation ###
+# FIXME: treat all modules the same?
+
+$(CORE_MODULES:%=%-configure): %-configure: %-configure-stamp
+$(CORE_MODULES:%=%-configure-stamp): %-configure-stamp: $(abs_srcdir)/%/configure | .sagedist
+	$(MKDIR_P) $*
+	source $(ENV_SH); cd $*; \
+	    $(abs_top_srcdir)/$*/configure $(CORE_OPTS) $(CORE_ENV)
+	touch $@
+
+$(CORE_MODULES:%=%-reconfigure): %-reconfigure: $(abs_srcdir)/%/configure
+	$(MKDIR_P) $*
+	source $(ENV_SH); cd $*; \
+	    $(abs_top_srcdir)/$*/configure $(CORE_OPTS) $(CORE_ENV)
+	touch $(dirname $@/$*-configure-stamp)
+
+# FIXME: use more env.sh
+$(CORE_MODULES:%=%-build): %-build: %-build-stamp
+$(CORE_MODULES:%=%-build-stamp): %-build-stamp: %-configure-stamp
+	export $(CORE_ENV); \
+	source $(ENV_SH); \
+	[ ! -d $* ] || $(MAKE) -C$* V=$(V_$(V)) $(BUILDTARGET)
+	touch $@
+
+src/sage-build-stamp: BUILDTARGET = py
+src/c_lib-build-stamp: BUILDTARGET = all
+
+# hack, just bypass all stamps. don't use!
+$(CORE_MODULES:%=%-build-bypass): %-build-bypass:
+	export $(CORE_ENV); \
+	source $(ENV_SH); \
+	$(MAKE) -C$* V=$(V_$(V))
+
+$(CORE_MODULES:%=%-stage): %-stage: %-stage-stamp
+
+# need to do different things for staging. probably this should move to
+# sagelib/spkg-install, not so sure
+src/%-stage-stamp: STAGETARGET = all
+src/sage-stage-stamp: STAGETARGET = py
+src/c_lib-stage-stamp: STAGETARGET = install
+src/bin-stage-stamp: STAGETARGET = install
+src/ext-stage-stamp: STAGETARGET = install
+
+$(CORE_MODULES:%=%-stage-stamp): %-stage-stamp: %-configure-stamp
+	@echo $@ ...
+	source $(ENV_SH); \
+	[ ! -d $* ] || $(MAKE) -C$* $(STAGETARGET)
+	touch $@
+
+EXTRA_DIST = Makefile build/pipestatus
+
+# this is a workaround
+EXTRA_DIST+= Makefile.am
+
+define upstreamtarballs
+	$(shell shopt -s extglob && for i in $(filter-out bzip2-%,$(VERSION_ALL)); do echo upstream/$${i%.p[0-9]?([0-9])}.tar.bz2; done ) \
+		upstream/bzip2-1.0.6.tar.gz \
+      upstream/lapack-3.4.2.tar
+endef
+
+if DISTUPSTREAM
+# include upstream unless user requests to skip it
+# invoke with make dist DISTFLAGS=tiny
+UPSTREAM_DIST_TRUE=$(if $(filter $(DISTFLAGS),tiny),\#,)
+else
+# dont include upstream unless user requests it
+# invoke with make dist DISTFLAGS=upstream
+UPSTREAM_DIST_TRUE=$(if $(filter $(DISTFLAGS),upstream),,\#)
+endif
+
+if KEEPBUILT
+# keep built unless user requests to delete it
+# invoke with make dist BUILDFLAGS=clean
+MYKEEPBUILT_TRUE=$(if $(filter clean,$(BUILDFLAGS)),\#,)
+MYKEEPBUILT_FALSE=$(if $(filter clean,$(BUILDFLAGS)),,\#)
+else
+# delete source after build user requests it
+# invoke with make dist BUILDFLAGS=keep
+MYKEEPBUILT_TRUE=$(if $(filter keep,$(BUILDFLAGS)),,\#)
+MYKEEPBUILT_FALSE=$(if $(filter keep,$(BUILDFLAGS)),\#,)
+endif
+
+.SECONDEXPANSION:
+dist-hook: $$(call upstreamtarballs)
+	$(MKDIR_P) $(distdir)/upstream
+	$(UPSTREAM_DIST_TRUE)cp $+ $(distdir)/upstream
+	find $(PKGSDIR) -name '*~' -delete
+
+# add builtin submodule contents to dist (much better)
+@distdir_subs@
+
+# doesn't work...
+# distdir=dist/$(PACKAGE)-$(VERSION)$(if $filter(\#,$(UPSTREAM_DIST_TRUE)),,-tiny)
+
+
+# brute force
+EXTRA_DIST+= $(FOREIGN_ALL:%=$(PKGSDIR)/%)
+
+### core module rules ###
+# FIXME: build src/sage out of tree
+# in src/build/sage/cythonized?!
+
+### core module dependencies ###
+# FIXME: core modules could be handled by spkg-installs.
+
+#FIXME: install takes ages, shouldnt be necessary
+src/doc-configure-stamp: src/sage-configure-stamp
+
+src/sage-configure-stamp: # src/c_lib-build-stamp
+
+src/sage-configure-stamp: # no CORE_ENV+= CPPFLAGS="-I$(abs_builddir)/local/include -I$(abs_builddir)/src/c_lib/include $$CPPFLAGS"
+src/sage-configure-stamp: CORE_ENV+= PKG_CONFIG_LIBDIR="$(abs_top_builddir)/local/lib/pkgconfig"
+src/sage-configure-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
+
+src/c_lib-configure-stamp: # no CORE_ENV+= CPPFLAGS="-I$(abs_builddir)/local/include -I$(abs_builddir)/src/c_lib/include $$CPPFLAGS"
+src/c_lib-configure-stamp: CORE_ENV+= PKG_CONFIG_LIBDIR="$(abs_top_builddir)/local/lib/pkgconfig"
+src/c_lib-configure-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
+
+src/bin-configure-stamp: CORE_OPTS+= --sysconfdir=@prefix@/etc
+src/sage-configure-stamp: CORE_OPTS+= --with-dbdir="@prefix@/share"
+
+src/sage-build-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
+
+# doesn't make any sense to stage these, just build
+DOC = src/doc-stage
+SAGE = src/sage-stage-stamp
+
+src/sage-stage-stamp: src/sage-configure-stamp
+
+# doesn't make any sense to stage these, currently required
+BIN = src/bin-stage-stamp
+CSAGE = src/c_lib-stage-stamp
+EXTCODE = src/ext-stage-stamp
+
+## foreign module stuff
+
+# this is the stage-stamp location
+INST = local/var/lib/sage/installed
+
+LOCKFILE = $(abs_builddir)/.dllock
+
+packagename = $(firstword $(subst -, ,$1))
+unat = echo "$1"; $1
+
+# waiting for a lock avoids concurrent downloads in case of -j
+# RECHECK: in some situations make starts with too many downloads...
+define downloadit
+	$(AM_V_at)set -C; \
+	until 2> /dev/null > $(LOCKFILE); do :; done
+	trap 'rm -f $(LOCKFILE); exit $$?' INT TERM EXIT;\
+	mkdir -p @UPSTREAM@; cd @UPSTREAM@;\
+	$(call unat,@URL_GRABBER@ @DOWNLOAD_URL@/$(call packagename,$*)/$(notdir $@))
+endef
+
+upstream/bzip2-1.0.6.tar.gz:
+
+upstream/pkgconfig-0.18.tar.gz:
+	wget http://pkgconfig.freedesktop.org/releases/pkgconfig-0.18.tar.gz
+# FIXME: checksum
+	mv pkconfig-0.18.tar.gz upstream
+
+#####################################
+### generic build stamp rule
+# FIXME: don't export FILELIST
+# FIXME: don't export srcdir?
+$(INST)/%: FILELIST = $(abs_top_builddir)/$@
+
+SAGE_PREFIX = @prefix@
+
+# default prefix for packages
+$(INST)/%: SAGE_PREFIX = $(SAGE_LOCAL)
+$(INST)/%: SAGE_ETC = $(SAGE_LOCAL)/etc
+
+INST_VERSION_ALL = $(VERSION_ALL:%=$(INST)/%)
+version-info:
+	@for i in $(VERSION_ALL); do echo $$i; done
+
+# the usual foreign package will be installed to prefix=$SAGE_LOCAL
+# although this is not necessary in most cases.
+$(INST)/%: STAGETARGET=install
+# no need to install sagelib
+$(INST)/sagelib-builtin: STAGETARGET=stage
+
+# bypass dummy gcc for a few packages.
+# FIXME: provide/use maybe_sage_CC
+maybe_sage_CC:= $(CC) # for now (gcc dummy is not active yet)
+# toolchain: build package (if enabled) with toolchain-flags, stamp and forget.
+#
+# this is slow. but its used only once and not needed on non-toolchain systems
+.SECONDEXPANSION:
+$(INST)/toolchain-mpir $(INST)/toolchain-mpc \
+$(INST)/toolchain-mpfr \
+$(INST)/toolchain-ppl: \
+$(INST)/toolchain-%: $(BUILDDIR)/$$(FP_$$*)
+	[ ! -f $(INST)/$(FP_$*) ] # sanity check, must not try to build toolchain more than once
+	[ -n "$(SAGE_$*)" ] && \
+	    $(MAKE) $(INST)/$(FP_$*) CC=$(maybe_sage_CC) \
+	                       SAGE_BUILD_TOOLCHAIN=yes \
+	                       KEEPBUILT=yes \
+	                       BUILDFLAGS="keep toolchain" \
+	                       FILELIST="@abs_top_builddir@/$@" && \
+	    rm -f $(INST)/$(FP_$*)
+	touch $@
+
+#something like this might be faster (call make just once, incomplete)
+# $(INST)/toolchai%_mpir $(INST)/toolchai%_mpc) \
+# $(INST)/toolchai%_mpfr \
+# $(INST)/toolchai%_zlib $(INST)/toolchai%_ppl): \
+# 	[ -n "$(SAGE_$(call packagename,$*))" ] && \
+# 	    $(MAKE) $(INST)/$* CC=$(maybe_sage_CC) \
+# 	                       SAGE_BUILD_TOOLCHAIN=yes \
+# 	                       KEEPBUILT=yes \
+# 	                       BUILDFLAGS="keep toolchain" \
+# 	                       FILELIST="@abs_top_builddir@/$@" && \
+# 	    rm $(INST)/$* || :
+# 	touch $@
+
+# these dont trigger gcc reverse dependency rebuild
+SOME_EXCEPTIONS = mpfr mpir mpc zlib bzip2 patch gcc ppl
+
+# just depend on patch for all packages, except these.
+# this way, deps.in looks better
+DOES_NOT_NEED_PATCH = patch bzip2
+
+$(INST)/$(FP_gcc): CC=$(maybe_sage_CC)
+
+# writing $(MAKE) causes make to execute the block below even if n \in
+# $(MAKEFLAGS) (see manual). this needs to be taken into account (IFNOTNOACT).
+
+.SECONDEXPANSION:
+$(INST)/%: $$(if $(filter yes,$(SAGE_BUILD_TOOLCHAIN)),,$$($$(firstword $$(subst -, ,$$*))_DEPS)) |\
+           $(BUILDDIR)/% $(SAGE_LOGS) $(INST) .sagedist \
+           $$(if $(filter yes,$(SAGE_BUILD_TOOLCHAIN)),, \
+              $$($$(firstword $$(subst -, ,$$*))_OODEPS) \
+              $$(if $$(filter $$(call packagename,$$*),$(SOME_EXCEPTIONS)),,$(GCC_REVERSE_DEPS)) \
+              $$(if $$(filter $$(call packagename,$$*),$(DOES_NOT_NEED_PATCH)),,@DEP_patch@)) \
+           $(PKGSDIR)/$$(call packagename,$$*)/spkg-install
+	@echo "==== $(if $(findstring \#,$(IFNOTNOACT)),(not really) )staging $* $(if $(filter yes,$(SAGE_BUILD_TOOLCHAIN)),(toolchain) )===="
+	$(AM_V_at)path=$(BUILDDIR)/$*; \
+	export CC="$(CC)" CFLAGS="@CFLAGS@" \
+	       UNAME="@UNAME@" \
+	       SAGE_BUILD_TOOLCHAIN=$(SAGE_BUILD_TOOLCHAIN) \
+	       srcdir="$(abs_top_srcdir)/$$path" \
+	       abs_top_srcdir="$(abs_top_srcdir)"; \
+	source $(ENV_SH); \
+	$(IFNOTNOACT)env > $(SAGE_LOGS)/$*.env; \
+	echo "===================="; \
+	export FILELIST="$(FILELIST)"; \
+	export SAGE_ETC="$(SAGE_ETC)"; \
+	export MAKE="$(MAKE)"; \
+	export SAGE_PREFIX="$(SAGE_PREFIX)"; \
+	ret=0; \
+	ismakefile=$$(awk -F: 'NR > 1 {exit}; /sage-dist-make/{print "yes"}' $(lastword $|)); \
+	if test x$$ismakefile = xyes; then \
+	    [ -d $$path ] && $(MAKE) -f $(abspath $(lastword $|)) -C $$path -I@abs_top_builddir@/sagedist $(STAGETARGET) 2>&1 | tee -a $(SAGE_LOGS)/$*.log && \
+	    ret=$${PIPESTATUS[0]}; \
+	else :;\
+	    $(IFNOTNOACT)export -n MAKEFLAGS; \
+	    $(IFNOTNOACT)cd $$path; \
+	    $(IFNOTNOACT)$(PIPE) "./spkg-install 2>&1" 'tee -a $(SAGE_LOGS)/$*.log'; \
+	    $(IFNOTNOACT)ret=$$?; \
+	fi; \
+	if [ $$ret -ne 0 ]; then \
+		echo $* build failed, deleting; \
+		rm -f $@; \
+		exit 1; \
+	else :;\
+		$(IFNOTNOACT)echo $* staged successfully; \
+	fi
+	touch $@;
+	@[ -s "$(FILELIST)" ] || echo "BUG, empty filelist $(FILELIST)?! probably spkg-install is incomplete (ignored)" || :
+	@$(MYKEEPBUILT_FALSE)echo deleting $* source; rm -rf $(BUILDDIR)/$*
+	@$(MYKEEPBUILT_TRUE)echo not deleting $* source
+
+# exception for toolchain
+$(INST)/toolchain: $(toolchain_DEPS)
+	@echo "==== staging toolchain $(if $(filter yes,$(SAGE_BUILD_TOOLCHAIN)),(toolchain) )$(if $(findstring n,$(MAKEFLAGS)),(no act) )===="
+	echo @abs_top_builddir@/$(INST)/toolchain > $@
+
+toolchain-stage: $(INST)/toolchain
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-check): %-check: $$($$*_DEPS)
+	@echo "==== checking $* ===="
+	@path=$(BUILDDIR)/$(FP_$*); \
+	[ -d $$path/patches -o -h $$path/patches ] || $(LN_S) $(abs_top_srcdir)/$$path/patches $$path;\
+	export CC="@CC@" CFLAGS="@CFLAGS@" \
+	       UNAME="@UNAME@" \
+	       srcdir="$(abs_top_srcdir)/$$path" \
+	       abs_top_srcdir="$(abs_top_srcdir)"; \
+	source $(ENV_SH); \
+	cd $$path; \
+	$(PIPE) "./spkg-install check $(MAKEOVERRIDES)" 'tee -a $(SAGE_LOGS)/$*.log'; \
+	if [ $$? -ne 0 ]; then \
+		echo $@ failed, deleting; \
+		rm -f $(abs_top_builddir)/$@; \
+		exit 1; \
+	else \
+		echo $@ succeeded; \
+		touch $(abs_top_builddir)/$@; \
+	fi
+
+# HACK: sagelib is not ready yet
+#
+# this directory currently is not used.
+$(BUILDDIR)/sagelib-builtin:
+	$(MKDIR_P) $@
+	cd $@; $(LN_S) $(abs_top_srcdir)/$(PKGSDIR)/sagelib/* .
+
+sagelib-clean: sagelib-clean-extra
+sagelib-clean-extra:
+	-for i in $(CORE_MODULES); do \
+	  [ -f $$i/Makefile ] && $(MAKE) -C $$i clean; \
+	done
+.PHONY: sagelib-clean-extra
+
+# treat as the others eventually
+# FP_sagelib=sagelib-builtin
+#
+# another hack: use a dummy file
+upstream/sagelib-builtin.tar.bz2:
+	touch $@
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-stage): %-stage: $(INST)/$$(FP_$$*)
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-restage): %-restage:
+	$(MAKE) $*-unstage
+	$(MAKE) $*-stage
+
+# fixme: -n might not work
+# the diff command needs work
+# e.g. it must not be pedantic with directories in the right way
+# FIXME: don't use $SAGE_LOCAL here
+# hmm: old bash does not support <(...). (be warned)
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-distcheck): %-distcheck: $$($$*_DEPS)
+	DESTDIR=$$( mktemp --tmpdir -d DESTDIR-$*.XXXXXX ); \
+	FILELIST=$$( mktemp --tmpdir FILELIST-$*.XXXXXX ); \
+	T="$(INST)/$(FP_$*)"; \
+	rm "$$T"X -f; \
+	[ -f $$T ] && mv $$T "$$T"X; \
+	export FILELIST="$$FILELIST"; \
+	export SAGE_PREFIX="$(SAGE_LOCAL)"; \
+	$(MAKE) $$T FILELIST="$$FILELIST" DESTDIR="$$DESTDIR"; \
+	[ -f "$$T"X ] && mv "$$T"X $$T; \
+	sort $$FILELIST > $$FILELIST.sorted; \
+	sort -uc $$FILELIST.sorted; \
+	if (diff <(sort -u $$FILELIST.sorted) <(find $$DESTDIR -type f | sort ) | \
+	   tee $@.log; exit $${PIPESTATUS[0]}) && \
+	   [ -s "$$FILELIST" ]; then \
+	      echo $* passed distcheck; \
+	   if [ ! x"$(NODELETE)" = xyes ]; then \
+	     rm -rf $$FILELIST $$FILELIST.sorted $$DESTDIR; \
+		else \
+	     echo not deleting $$FILELIST and $$DESTDIR; \
+		fi \
+	else \
+	   echo BUG: $$FILELIST $$DESTDIR differ; \
+	fi
+
+$(FOREIGN_ALL:%=%-unpack): %-unpack: $(BUILDDIR)/$$(FP_$$*)
+	:
+
+$(FOREIGN_ALL:%=%-patch): %-patch:
+	@echo not yet
+
+$(FOREIGN_ALL:%=%-binary): SAGE_ETC=$(SAGE_PREFIX)/etc
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-binary): %-binary: $$($$*_DEPS)
+	DESTDIR=$$( mktemp --tmpdir -d DESTDIR-$*.XXXXXX ); \
+	T="$(INST)/$(FP_$*)"; \
+	rm "$$T"X -f; \
+	[ -f $$T ] && mv $$T "$$T"X; \
+	fakeroot \
+	$(MAKE) $$T FILELIST="@abs_top_builddir@/$*.list" \
+	            DESTDIR="$$DESTDIR" \
+	            SAGE_PREFIX="$(SAGE_PREFIX)" \
+	            SAGE_ETC="$(SAGE_ETC)"; \
+	[ -f "$$T"X ] && mv "$$T"X $$T; \
+	(cd $$DESTDIR; fakeroot tar -czf @abs_top_builddir@/$(FP_$*)-binary.tbz2 *); \
+	rm -r $$DESTDIR
+
+$(FOREIGN_ALL:%=%-info): %-info: build/pkgs/%/package-version.txt
+	@echo === $* ===
+	@not=; test -z "$(DEP_$*)" && not="not "; \
+	echo "version:  $$(cat $<)" "($${not}enabled)"
+	@unp=$$( shopt -s nullglob; echo $(BUILDDIR)/$*-* ); \
+	  if test -n "$$unp"; then\
+	    echo -n unpacked: ; \
+	    ( shopt -s nullglob; \
+	      for i in $(BUILDDIR)/$*-*; do echo -n " "$$( basename $$i ); done ); \
+	    echo; \
+	else echo not unpacked; fi
+	@inst=$$( shopt -s nullglob; echo $(INST)/$*-* ); \
+		[ -n "$$inst" ] && echo "staged:   $$( basename $$inst ) ($$( wc -l $$inst | cut -d" " -f1 ) files)" || echo not staged
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-list): %-list: build/pkgs/%/package-version.txt
+	@inst=$$( shopt -s nullglob; echo $(INST)/$*-* ); \
+		[ -n "$$inst" ] &&  sort $$inst || echo not staged
+
+# convenience rules
+# incomplete/under construction (necessary?)
+# $(FOREIGN_ALL:%=%-configure): %-configure: build/pkgs/%/src
+# 	path=$(BUILDDIR)/$*;\
+# 	export SAGE_LOCAL="$(abs_builddir)/local" CC="@CC@" CFLAGS="@CFLAGS@" \
+# 	       MAKE=$(MAKE) UNAME="@UNAME@" PATH=$(abs_builddir)/local/bin:$$PATH \
+# 	       LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH" \
+# 	       srcdir="$(abs_top_srcdir)/$$path"; \
+# 	$(MAKE) -f$(abs_top_srcdir)/build/pkgs/$*/spkg-install -Cbuild/pkgs/$* configure
+
+# unstage all installations of $*. shouldn't be more than one at a time.
+$(FOREIGN_ALL:%=%-unstage): %-unstage:
+	@if test -n "$$(shopt -s nullglob; echo $(INST)/$*-*)"; then \
+	  dirs=;\
+	  while read f; do \
+	    [ -n "$${f/\/*/}" ] && \
+		   echo "BUG in $* filelist: relative path: $$f" && continue; \
+	    [ -d $$f ] && dirs+="$$f" || rm $$f; \
+	  done < $(INST)/$*-*; \
+	  for i in $$dirs; do \
+	    rmdir $$i; \
+	  done; \
+	  rm $(INST)/$*-*; \
+	else \
+	  echo "no $* staged..."; \
+	fi
+
+UNINSTALL_FP = @FOREIGN_DISABLED@ @FOREIGN_AVAILABLE@
+stage-decruft: $(UNINSTALL_FP:%=%-unstage)
+
+$(SAGE_LOGS) logs $(INST):
+	$(MKDIR_P) $@
 
 build: logs
-	cd build && \
-	"../$(PIPE)" \
-		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
-		"tee -a ../logs/install.log"
-	./sage -b
+
+$(BUILDDIR):
+	mkdir -p $@
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL
 # libraries and headers installed. See README.txt for more
 # information.
+# FIXME: move to configure.ac
 ssl: all
 	./sage -i pyopenssl
 
@@ -33,8 +512,8 @@ build-serial: SAGE_PARALLEL_SPKG_BUILD = no
 build-serial: build
 
 # Start Sage if the file local/etc/sage-started.txt does not exist
-# (i.e. when we just installed Sage for the first time).
-start: build
+# (i.e. when we just built Sage for the first time).
+start: all
 	[ -f local/etc/sage-started.txt ] || local/bin/sage-starts
 
 # You can choose to have the built HTML version of the documentation link to
@@ -49,8 +528,19 @@ start: build
 # $ ./sage --docbuild -H
 doc: doc-html
 
-doc-html: build
-	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+src/doc-configure-stamp: $(doc-symlink)
+
+docsymlink = $(SAGE_LOCAL)/share/doc/sage
+# this is required, as docs wont get staged by default.
+# relocation changes abs_top_builddir :|
+# lets just recreate the link (instead of pointing to ../../../../.....)
+$(docsymlink):
+	rm -f $@
+	$(LN_S) $(abs_top_srcdir)/src/doc/output $@
+
+doc-html: src/doc-build
+
+#$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
@@ -63,41 +553,38 @@ doc-pdf: build
 
 doc-clean:
 	@echo "Deleting generated docs..."
-	rm -rf src/doc/en/reference/*/sage
-	rm -rf src/doc/en/reference/*/sagenb
-	rm -rf src/doc/en/reference/sage
-	rm -rf src/doc/en/reference/sagenb
-	rm -rf src/doc/output
+	$(MAKE) -C src/doc clean
 
-clean:
+clean-local: @VPATH_BUILD_FALSE@ $(FOREIGN_ALL:%=%-clean)
 	@echo "Deleting package build directories..."
 	rm -rf local/var/tmp/sage/build
 
-lib-clean:
-	@echo "Deleting Sage library build artifacts..."
-	rm -f src/c_lib/.sconsign.dblite
-	find src/c_lib -name '*.os' | xargs rm -f
-	find src/c_lib -name '*.so' | xargs rm -f
-	rm -rf src/build
-	find src -name '*.pyc' | xargs rm -f
-	find src -name '*.pyx' | sed 's/pyx$$/c/' | xargs rm -f
-	find src -name '*.pyx' | sed 's/pyx$$/cpp/' | xargs rm -f
-	rm -rf src/sage/libs/pari/gen.h
-	rm -rf src/sage/modular/arithgroup/farey_symbol.h
-	rm -rf src/sage/rings/real_mpfi.h
-	rm -rf src/sage/symbolic/pynac.h
+	for i in $(CORE_MODULES); do \
+	  [ ! -f $$i/Makefile ] || $(MAKE) -C $$i clean; \
+	done
+	rm -f $(LOCKFILE)
+	@VPATH_BUILD_TRUE@rm -rf build
+
+# clean does not really "clean". realclean should
+realclean: clean
+	rm -rf local
 
 bdist-clean: clean
 	@echo "Deleting miscellaneous artifacts generated by build system ..."
 	rm -rf logs
-	rm -rf dist
+	rm -rf distFIXME
 	rm -rf tmp
 	rm -f build/Makefile
 	rm -f .BUILDSTART
 
-distclean: clean doc-clean lib-clean bdist-clean
+distclean-local:
+	-for i in $(CORE_MODULES); do \
+	  [ -f $$i/config.status ] && $(MAKE) -C $$i distclean; \
+	done
 	@echo "Deleting all remaining output from build system ..."
-	rm -rf local
+	rm -rf $(top_builddir)/local
+
+	rm -f src/*-stamp
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
@@ -150,15 +637,20 @@ ptestoptional: ptestall # just an alias
 
 ptestoptionallong: ptestalllong # just an alias
 
+@noinstall@
+install-doesntwork:
+	@echo installation is NOT supported, probably not intended either
+	@echo use the "copy" target to copy the source tree
+	@exit 1
 
-install:
+copy:
 	echo "Experimental use only!"
 	if [ "$(DESTDIR)" = "" ]; then \
-		echo >&2 "Set the environment variable DESTDIR to the install path."; \
+		echo >&2 "Set the environment variable DESTDIR to the destination path."; \
 		exit 1; \
 	fi
-	# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
-	# a file instead of a directory then the mkdir statement later will fail
+# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
+# a file instead of a directory then the mkdir statement later will fail
 	if [ -d "$(DESTDIR)"/sage ]; then \
 		rm -rf "$(DESTDIR)"/sage; \
 	fi
@@ -166,12 +658,198 @@ install:
 	mkdir -p "$(DESTDIR)"/bin
 	cp -Rp * "$(DESTDIR)"/sage
 	rm -f "$(DESTDIR)"/bin/sage
-	ln -s ../sage/sage "$(DESTDIR)"/bin/sage
+	$(LN_S) -s ../sage/sage "$(DESTDIR)"/bin/sage
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
-
-.PHONY: all build build-serial start install \
+.PHONY: all build build-serial start \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean clean lib-clean bdist-clean distclean micro_release \
 	test check testoptional testall testlong testoptionallong testallong \
-	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong
+	PTESt ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
+   $(FOREIGN_ALL:%=%-clean) \
+   $(FOREIGN_ALL:%=%-restage) \
+   $(FOREIGN_ALL:%=%-stage) \
+   $(FOREIGN_ALL:%=%-binary) \
+   $(FOREIGN_ALL:%=%-distcheck) \
+   $(FOREIGN_ALL:%=%-unpack) \
+   $(FOREIGN_ALL:%=%-patch) \
+   $(FOREIGN_ALL:%=%-check) \
+   $(FOREIGN_ALL:%=%-info) \
+   unstage-clean \
+   $(UNINSTALL_FP:%=%-unstage) \
+   $(INSTALL_FP_NAMES:%=%-distcheck) \
+   $(CORE_MODULES:%=%-configure) \
+   $(CORE_MODULES:%=%-build) \
+   $(CORE_MODULES:%=%-stage) \
+   $(CORE_MODULES:%=%-clean)
+
+include deps.in
+
+#making all installs explicit
+$(INST_VERSION_ALL):
+
+.SECONDEXPANSION:
+upstream/%.tar.bz2: | $(PKGSDIR)/$$(firstword $$(subst -, ,$$*))/checksums.ini
+	@echo downloading $(notdir $@)
+	$(downloadit)
+	$(AM_V_at)dlsum=$$(sha1sum $@ | cut -f1 -d' ');\
+	refsum=$$(grep sha1 $| | cut -d= -f2);\
+	test $$dlsum = $$refsum || \
+	( echo expected sha1: $$refsum;\
+	  echo got      sha1: $$dlsum;\
+	  rm $@; exit 1 )
+	@touch $@ # wget will apply the remote mtime
+
+upstream/%.gz:
+	$(downloadit)
+
+define unpackwithversion
+	@TAR@ -C $(BUILDDIR)/$*/src --strip-components=1 -xf $(firstword $|)
+endef
+
+# FIXME: don't rechecksum if dirty.
+.SECONDEXPANSION:
+$(BUILDDIR)/%: | \
+                upstream/$$(shell a=$$* && shopt -s extglob && echo "$$$${a$$(p).p[0-9]?([0-9])}" ).tar.bz2 \
+                $(PKGSDIR)/$$(call packagename,$$*)/checksums.ini
+	@echo unpacking $* from $(firstword $|)
+	dlsum=$$(sha1sum $(firstword $|) | cut -f1 -d' ');\
+	refsum=$$(grep sha1 $(lastword $|) | cut -d= -f2);\
+	test $$dlsum = $$refsum || \
+	( echo expected sha1: $$refsum;\
+	  echo got      sha1: $$dlsum;\
+	  rm $@; exit 1 )
+	if [ -d $(BUILDDIR)/$* ]; then \
+	  	 touch $(BUILDDIR)/$*/dirty-stamp; \
+	else \
+	    $(MKDIR_P) $(BUILDDIR)/$*/src; \
+	    $(unpackwithversion); \
+	    cd $(abs_top_builddir)/$(BUILDDIR)/$*; \
+	        $(LN_S) $(abs_top_srcdir)/$(PKGSDIR)/$(call packagename,$*)/* .; \
+	fi
+
+# FIXME: don't rechecksum if dirty.
+.SECONDEXPANSION:
+$(BUILDDIR)/%: | \
+                upstream/$$(shell a=$$* && shopt -s extglob && echo "$$$${a$$(p).p[0-9]?([0-9])}" ).tar.gz \
+                $(PKGSDIR)/$$(call packagename,$$*)/checksums.ini
+	@dlsum=$$(sha1sum $(firstword $|) | cut -f1 -d' ');\
+	refsum=$$(grep sha1 $(lastword $|) | cut -d= -f2);\
+	test $$dlsum = $$refsum || \
+	( echo expected sha1: $$refsum;\
+	  echo got      sha1: $$dlsum;\
+	  rm $@; exit 1 )
+	if [ -d $(BUILDDIR)/$* ]; then \
+	  	 touch $(BUILDDIR)/$*/dirty-stamp; \
+	else \
+	    $(MKDIR_P) $(BUILDDIR)/$*/src; \
+	    $(unpackwithversion); \
+	    cd $(abs_top_builddir)/$(BUILDDIR)/$*; \
+	        $(LN_S) $(abs_top_srcdir)/$(PKGSDIR)/$(call packagename,$*)/* .; \
+	fi
+
+p=%
+define unpack
+	@echo unpacking $@
+# hmm, call clean?
+	rm -rf $(BUILDDIR)/$*/src $(BUILDDIR)/$*/*-stamp
+	mkdir -p $(BUILDDIR)/$*
+	cd $(BUILDDIR)/$*; @TAR@ -xf $(abs_top_builddir)/$|
+	@a="$(FP_$*)"; shopt -s extglob; \
+	  $(call unat,mv $(BUILDDIR)/$*/$${a%.p[0-9]?([0-9])} $@)
+endef
+
+# no need to download exception
+$(BUILDDIR)/%-builtin:
+	$(MKDIR_P) $(BUILDDIR)/$*-builtin/src
+	cd $(abs_top_builddir)/$(BUILDDIR)/$*-builtin; \
+	    $(LN_S) $(abs_top_srcdir)/$(PKGSDIR)/$*/* .
+
+@dotPRECIOUS@: local/var/lib/sage/installed/% \
+               upstream/%.bz2 @UPSTREAM@/%.gz
+
+
+unstage-local:
+	rm -rf src/*-stamp
+
+$(FOREIGN_ALL:%=%-clean): %-clean:
+	rm -rf $(BUILDDIR)/$*-*
+
+LIB_WHITELIST = libpthread libm\. libc\. linux-vdso ld-linux\
+                libstdc++\. $(shell cd ..; pwd) libgcc_s\.so\
+                libutil\. libquadmath\. libgfortran\. libdl\.\
+                libffi\.
+
+space :=
+space +=
+SAGE_LIBDIRS = lib/openmpi lib/R/lib lib32 lib64 lib
+libcheck: SHELL=/usr/bin/env bash
+libcheck:
+	source $(ENV_SH); \
+	for i in local/{$(SAGE_LIBDIRS:${space}=,)}/*.so* local/bin/*; do \
+		echo $$i; \
+		ldd $$i |grep -v 'statically linked' | grep -v 'not a dynamic executable' \
+		        $(LIB_WHITELIST:%=| grep -v '%'); \
+	done
+
+# FIXME, these packages are broken, force reunpack
+# this one moves files instad of installing them
+# $(INST)/$(FP_elliptic_curves): elliptic_curves-reunphack
+# # this one appears to build correctly but the result is broken
+# $(INST)/$(FP_maxima): maxima-reunphack
+# # this one causes maxima to appear to build correctly, but breaks maxima
+# $(INST)/$(FP_ecl): ecl-reunphack
+
+# this is a HACK, but that doesnt matter, its just a workaround
+%-reunphack:
+	$(MAKE) $*-clean
+	$(MAKE) $(BUILDDIR)/$(FP_$*)
+
+# c_lib depends from deps.in
+# this is not necessary with sagelib/spkg-install used
+src/c_lib-configure-stamp: @DEP_mpir@ @DEP_ntl@ @DEP_pari@ @DEP_polybori@ \
+                           @DEP_pynac@ @DEP_python@ @DEP_singular@
+
+# don't delete intermediate files (e.g. stamps).
+# either list every single file
+# PKG_VERSION_ALL = $(VERSION_ALL:%=$(PKGSDIR)/%)
+# .SECONDARY: src/sage-build-stamp \
+#             src/c_lib-configure-stamp \
+#             $(PKG_VERSION_ALL)
+#             [incomplete]
+# or make all targets secondary (good idea?)
+.SECONDARY:
+
+help:
+	@echo "make dist                     create dist tarball"
+	@echo "                              depending on configure options"
+	@echo "make dist DISTFLAGS=tiny      dont include upstream source"
+	@echo "make dist DISTFLAGS=upstream  include upstream source"
+	@echo
+	@echo "make <package>-stage          make <package> ready to use by sage,"
+	@echo "                              often \"install <package> to \$$SAGE_LOCAL\""
+	@echo "make <package>-unstage        revert <package>-stage (if implemented)"
+	@echo "make <package>-check          (compile <package> and) run <package> checks"
+	@echo "make <package>-distcheck"
+	@echo "make <package>-info           print info about <package>"
+	@echo "make <package>-list           list <package> contents"
+	@echo "make <package>-unpack         unpack package tarball in $(UPSTREAM)"
+	@echo "make <package>-patch          (unpack and) patch tarball"
+	@echo
+	@echo "make stage-decruft            unstage deselected packages"
+	@echo "make libcheck                 list system libraries that are linked against"
+	@echo
+	@echo "make ... V=0                  Quiet operation $(if $(findstring 0,$(AM_DEFAULT_VERBOSITY)),(default))"
+	@echo "make ... V=1                  Verbose operation $(if $(findstring 1,$(AM_DEFAULT_VERBOSITY)),(default))"
+
+.PHONY: help
+
+############################################
+## HACKS:
+
+$(UPSTREAM)/lapack-3.4.2.tar: upstream/lapack-3.4.2.tgz
+	@echo "BUG: should take lapack tarball from lapack package, this is a different one."
+	gunzip $<
+
+$(UPSTREAM)/lapack-3.4.2.tgz:
+	cd $(UPSTREAM); wget http://www.netlib.org/lapack/lapack-3.4.2.tgz

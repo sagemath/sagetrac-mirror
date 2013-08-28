@@ -1,0 +1,84 @@
+Installation Instructions
+*************************
+
+Copyright (C) 1994-1996, 1999-2002, 2004-2011 Free Software Foundation,
+Inc. 2013 Felix Salfelder
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without warranty of any kind.
+
+Basic Installation
+==================
+
+   Briefly, the shell commands `./configure; make; make install' should
+configure, build, and install this package.
+
+	But it doesnt. Sage ("the distrubution") does not support installation
+(yet?). See src/INSTALL for more information about installing just Sage ("the
+library").
+
+What You Can Do Instead
+=======================
+
+	Sage ("the distribution") contains of a set of packages and dependencies
+between these packages. To build sage means to install most packages with a
+local prefix (=$top_builddir/local). Installing locally will be referred to as
+"staging". You can do this by typing
+
+   $ ./configure; make.
+
+Afterwards,
+
+   $ ./sage
+
+will start the Sage cmdline interpreter. You are advised to not clutter the
+source tree with built files. to do so, type
+
+   $ mkdir mybuild; cd mybuild;
+   $ ../configurel; make.
+
+Configuaration
+==============
+
+	Sage ("the distribution") does not need to build software that is already
+present on your computer. For example it will detect, whether a suitable
+version of gcc is present and disable the gcc package for you. Look out for the
+summary that the ./configure command prints out eventually.
+
+   But you can build the shipped gcc anyway, type
+
+   $ ./configure --enable-gcc.
+
+and, if you like, you can disable any other package as well. Type
+
+   $ ./configure --disable-python,
+
+if you feel lucky. This works with any of the shipped packages, the output of
+the command
+
+   $ ./configure --help
+
+contains the list of all en/disable options.
+
+Package operations
+==================
+
+Sage ("the distribution") provides simple targets for package related operations.
+
+make <package>-info     # list information on the package status. Every package
+								# has a version number, but due to up/downgrades,
+								# different versions of one package might be unpackaged
+								# or staged.
+make <package>-check    # (compile <package> and) run the <package> preinst-checks.
+make <package>-list     # show list of staged files from <package>
+make <package>-stage    # install <package> into the local staging directory.
+make <package>-unstage  # the reverse of the above.
+make <package>-distcheck# consistency check
+make stage-decruft      # unstage all packages that are not enabled. e.g. after
+                        # ./configure with different options
+make <package>-binary   # create a ready-to-use binary tarball for <package>.
+make <package>-install  # (not yet, but close) install <package> (into prefix).
+make <package>-source   # (not yet, but close) create source package for package
+make <package>-ebuild   # (not yet, but close) create ebuild for package

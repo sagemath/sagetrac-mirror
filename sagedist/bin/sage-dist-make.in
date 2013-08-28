@@ -7,4 +7,4 @@
 #!/usr/bin/env make -f,
 # because only two args are allowed
 
-$MAKE --no-print-directory -I$SAGE_ROOT/sagedist -f $@ DIST_MK=spkg.mk
+@GMAKE@ --no-print-directory -I@abs_top_builddir@/sagedist -f $@ DIST_MK=spkg.mk

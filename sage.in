@@ -17,12 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
-# Set SAGE_ROOT to the location of the sage install, i.e. the directory
-# containing this shell script.  If unset, we will try to figure it out
-# automatically.
-#SAGE_ROOT=/path/to/sage-version
-
-
 
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
@@ -124,10 +118,13 @@ fi
 export SAGE_ROOT
 
 # Run the actual Sage script
-if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
-    "$SAGE_ROOT/src/bin/sage" "$@"
-elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a striped binary
+if [ -x "$SAGE_ROOT/local/bin/sage" ]; then
     "$SAGE_ROOT/local/bin/sage" "$@"
+elif [ -x "$SAGE_ROOT/src/bin/sage" ]; then
+	 # run a not-yet installed sage
+    # particularly, env.sh is not in place, use a substitute.
+    export SAGE_ETC="$SAGE_ROOT/sagedist/etc"
+    "$SAGE_ROOT/src/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1

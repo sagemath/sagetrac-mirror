@@ -1,0 +1,38 @@
+make -n |& grep dropped # ?!
+
+*.Pcython files...
+
+make might be faster when using := where appropriate
+
+<package>-distcheck should run -check
+
+FIXME: trap INT TERM EXIT during spkg-install (delete stage-stamp!)
+
+FIXME: order-only dependencies on toolchain links
+
+paths are suboptimal.
+/build/pkgs should be /pkgs
+/src should be pkgs/sagelib
+
+dependencies must be where packages are, not in "deps"
+
+CORE_MODULES should be built with with sagelib/spkg-install
+
+unstage before fresh stage (when automatically staging?)
+
+recheck: stage unstages before build has completed (good idea?)
+
+decruft dependencies (sagelibspkg vs parts of it)
+
+lapack, atlas. (argh). the lapack package does not install lapack. disabling atlas requires system lapack
+
+complete old Makefile interface.
+
+remove this file
+
+installation: can be implemented as follows:
+- make DESTDIR work (e.g. through sage-dist-install)
+- configure sage (the distribution) with a prefix, as usual
+- build sage (will install with DESTDIR=@top_builddir@/.local
+- @top_builddir@/local symlinks to .local/$prefix
+- "make install" just installs everything

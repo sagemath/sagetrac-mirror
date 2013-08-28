@@ -1,0 +1,8 @@
+this is a HACK, but...
+
+- sagedist cannot be part of sagelib,
+  because sagelib might be a package "like the others" some day
+- sagedist must provide environment in SAGE_ETC/env.d
+  because $SAGE_LOCAL/bin/sage is used for package purposes
+- sagedist must not be a package like the others,
+  because it cannot install itself
