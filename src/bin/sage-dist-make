@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# this file exists, so spkg-install files don't need to be templates starting
+# with
+#!@GMAKE@ -f.
+# it's not possible to specify:
+#!/usr/bin/env make -f,
+# because only two args are allowed
+
+$MAKE --no-print-directory -I$SAGE_ROOT/sagedist -f $@ DIST_MK=spkg.mk
