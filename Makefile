@@ -19,6 +19,7 @@ build: logs
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
 		"tee -a ../logs/install.log"
+	cd
 	./sage -b
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for

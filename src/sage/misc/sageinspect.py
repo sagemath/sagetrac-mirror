@@ -1124,7 +1124,7 @@ def sage_getfile(obj):
 
         sage: P.<x,y> = QQ[]
         sage: sage_getfile(P)
-        '...sage/rings/polynomial/multi_polynomial_libsingular.pyx'
+        '...sage/rings/polynomial/multi_polynomial_libsingular.pyxx'
 
     AUTHORS:
 

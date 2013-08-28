@@ -5951,7 +5951,7 @@ cdef class long_to_Z(Morphism):
 # See extensive note in the fast_tp_new() function below.
 
 include "sage/ext/python_rich_object.pxi"
-cdef extern from "gmp.h":
+cdef extern from "gmp_or_mpir.h":
     ctypedef long mp_limb_t
     ctypedef mp_limb_t* mp_ptr #"mp_ptr"
 

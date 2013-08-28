@@ -245,12 +245,14 @@ fi
 
 # Setting Sage-related location environment variables.
 export SAGE_LOCAL="$SAGE_ROOT/local"
+export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC="$SAGE_SRC/doc"
+export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
@@ -356,7 +358,7 @@ fi
 export IPYTHONDIR="$DOT_SAGE/ipython-0.12"
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+    PYTHONPATH="$SAGE_ROOT/local/lib/python:$SAGE_ROOT/src"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi

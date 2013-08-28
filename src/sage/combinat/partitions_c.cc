@@ -106,7 +106,7 @@ extern "C" long double sinhl (long double);
 #include <limits>
 
 #include <mpfr.h>
-#include <gmp.h>
+#include <gmp_or_mpir.h>
 
 using namespace std;
 

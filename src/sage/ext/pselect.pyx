@@ -290,7 +290,8 @@ cdef class PSelecter:
         writing, but not reading (since nothing has been written)::
 
             sage: f = open(os.devnull, "r")
-            sage: g = open(os.path.join(SAGE_LOCAL, 'bin', 'python'), "r")
+            sage: from sage.env import SAGE_SRC
+            sage: g = open(os.path.join(SAGE_SRC, 'sage', 'ext', 'pselect.pyx'), "r")
             sage: (pr, pw) = os.pipe()
             sage: r, w, x, t = PSelecter().pselect([f,g,pr,pw], [pw], [pr,pw])
             sage: len(r), len(w), len(x), t

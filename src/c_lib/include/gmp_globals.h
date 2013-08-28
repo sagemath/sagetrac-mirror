@@ -1,4 +1,8 @@
+#ifdef USE_GMP
 #include <gmp.h>
+#else
+#include <mpir.h>
+#endif
 
 #ifdef __cplusplus
 #define EXTERN extern "C"

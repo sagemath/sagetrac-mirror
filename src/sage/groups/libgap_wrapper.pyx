@@ -2,7 +2,7 @@
 LibGAP-based Groups
 
 This module provides helper class for wrapping GAP groups via
-:mod:`~sage.libs.gap.libgap`. See :mod:`~sage.groups.free_group` for an
+:mod:`~sage.libs.gap.libsagegap`. See :mod:`~sage.groups.free_group` for an
 example how they are used.
 
 The parent class keeps track of the libGAP element object, to use it

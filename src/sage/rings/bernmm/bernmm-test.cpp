@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <NTL/ZZ.h>
-#include <gmp.h>
+#include <gmp_or_mpir.h>
 #include "bern_modp_util.h"
 #include "bern_modp.h"
 #include "bern_rat.h"

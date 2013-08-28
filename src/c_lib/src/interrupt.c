@@ -396,7 +396,7 @@ void print_enhanced_backtrace()
         argv[2] = "--pid";
         argv[3] = pid_str;
         argv[4] = NULL;
-        execv(path, argv);
+        execvp("sage-CSI", argv);
         perror("Failed to execute sage-CSI");
         exit(2);
     }
