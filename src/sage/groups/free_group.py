@@ -64,7 +64,7 @@ AUTHORS:
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.libs.gap.libgap import libgap
+from sage.libs.gap.libsagegap import libgap
 from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing

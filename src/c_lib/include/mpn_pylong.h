@@ -2,7 +2,7 @@
 #define MPN_PYLONG_H
 
 #include <Python.h>
-#include <gmp.h>
+#include "gmp_or_mpir.h"
 
 /************************************************************/
 

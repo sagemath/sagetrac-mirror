@@ -1,0 +1,8 @@
+# high priority
+
+make it work on non-sage-the-distribution
+
+# low priority
+
+fix sage (the distribution) to configure sagelib globally, then merge
+AC_CONFIG_SUBDIRS

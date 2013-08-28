@@ -13,7 +13,7 @@
 #include <limits.h>
 #include <signal.h>
 #include <cstring>
-#include <gmp.h>
+#include <gmp_or_mpir.h>
 #include <NTL/ZZ.h>
 #include "bern_modp_util.h"
 #include "bern_modp.h"

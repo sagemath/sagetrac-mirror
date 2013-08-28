@@ -9,7 +9,7 @@
    the source distribution for details.
 */
 
-#include <gmp.h>
+#include <gmp_or_mpir.h>
 #include <NTL/ZZ.h>
 #include <cmath>
 #include <vector>

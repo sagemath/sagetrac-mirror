@@ -237,7 +237,7 @@ class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):
             sage: isinstance(G, NamedMatrixGroup_gap)
             True
         """
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         group = libgap.eval(gap_command_string)
         MatrixGroup_gap.__init__(self, degree, base_ring, group)
         self._special = special

@@ -225,7 +225,7 @@ def MatrixGroup(*gens, **kwds):
     MS = gens.universe()
     base_ring = MS.base_ring()
     degree = ZZ(MS.ncols())   # == MS.nrows()
-    from sage.libs.gap.libgap import libgap
+    from sage.libs.gap.libsagegap import libgap
     try:
         gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
         gap_group = libgap.Group(gap_gens)

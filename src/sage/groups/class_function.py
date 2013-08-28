@@ -804,7 +804,7 @@ class ClassFunction_libgap(SageObject):
         if isinstance(values, GapElement) and values.IsClassFunction():
             self._gap_classfunction = values
         else:
-            from sage.libs.gap.libgap import libgap
+            from sage.libs.gap.libsagegap import libgap
             self._gap_classfunction = libgap.ClassFunction(G.gap(), list(values))
         e = self._gap_classfunction.Conductor().sage()
         self._base_ring = CyclotomicField(e)
@@ -1386,7 +1386,7 @@ class ClassFunction_libgap(SageObject):
             sage: chi1.tensor_product(chi3).values()
             [1, -1, 1]
         """
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         product = libgap.Tensored([self], [other])
         return ClassFunction(self._group, product[1])
 
@@ -1417,7 +1417,7 @@ class ClassFunction_libgap(SageObject):
         try:
             gapH = H.gap()
         except AttributeError:
-            from sage.libs.gap.libgap import libgap
+            from sage.libs.gap.libsagegap import libgap
             gapH = libgap(H)
         rest = self._gap_classfunction.RestrictedClassFunction(gapH)
         return ClassFunction(H, rest)
@@ -1451,7 +1451,7 @@ class ClassFunction_libgap(SageObject):
         try:
             gapG = G.gap()
         except AttributeError:
-            from sage.libs.gap.libgap import libgap
+            from sage.libs.gap.libsagegap import libgap
             gapG = libgap(G)
         ind = self._gap_classfunction.InducedClassFunction(gapG)
         return ClassFunction(G, ind)

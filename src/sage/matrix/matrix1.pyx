@@ -160,7 +160,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
             [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
         """
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         return libgap._construct_matrix(self)
 
     def _giac_init_(self):

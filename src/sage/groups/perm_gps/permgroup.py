@@ -2304,7 +2304,7 @@ class PermutationGroup_generic(group.Group):
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
 
         image_fp = libgap.Image( libgap.IsomorphismFpGroupByGenerators(self, self.gens()))
         image_gens = image_fp.FreeGeneratorsOfFpGroup()

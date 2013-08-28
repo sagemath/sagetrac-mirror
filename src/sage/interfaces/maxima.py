@@ -461,7 +461,7 @@ import pexpect
 
 from random import randrange
 
-from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.env import DOT_SAGE, SAGE_MAXIMA_INIT
 
 ##import sage.rings.all
 
@@ -512,7 +512,6 @@ class Maxima(MaximaAbstract, Expect):
         # setting inchar and outchar..
         eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
-        STARTUP = os.path.join(SAGE_LOCAL,'bin','sage-maxima.lisp')
 
         # We set maxima's configuration directory to $DOT_SAGE/maxima
         # This avoids that sage's maxima inadvertently loads
@@ -523,8 +522,8 @@ class Maxima(MaximaAbstract, Expect):
         # (we use the "--userdir" option in maxima for this)
         SAGE_MAXIMA_DIR = os.path.join(DOT_SAGE,"maxima")
 
-        if not os.path.exists(STARTUP):
-            raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
+        if not os.path.isfile(SAGE_MAXIMA_INIT):
+            raise RuntimeError, 'You must get the file ' + SAGE_MAXIMA_INIT
 
         #self.__init_code = init_code
         if init_code is None:
@@ -544,7 +543,7 @@ class Maxima(MaximaAbstract, Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,SAGE_MAXIMA_INIT),
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

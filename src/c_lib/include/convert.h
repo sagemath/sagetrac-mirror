@@ -8,7 +8,7 @@
 
 */
 
-#include <gmp.h>
+#include "gmp_or_mpir.h"
 #include <pari/pari.h>
 #include <stdio.h>
 

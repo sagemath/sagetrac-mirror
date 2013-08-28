@@ -155,7 +155,7 @@ class GroupElementMixinLibGAP(object):
         - David Loeffler (2010): fixed some bugs
         - Volker Braun (2013): LibGAP
         """
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         G = self.parent()
         if gens:
             gen = lambda i:gens[i]

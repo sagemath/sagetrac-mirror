@@ -402,7 +402,7 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
             return
         if convert:
             M = parent.matrix_space()(M)
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         M_gap = libgap(M)
         if check:
             if not is_Matrix(M):

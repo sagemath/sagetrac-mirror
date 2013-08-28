@@ -41,7 +41,7 @@ def to_libgap(x):
     try:
         return x.gap()
     except AttributeError:
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         return libgap(x)
 
 
@@ -111,7 +111,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: phi = G.hom([a])
         """
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         G = homset.domain()
         H = homset.codomain()
         gens = [x.gap() for x in G.gens()]

@@ -46,7 +46,7 @@ converted from one parent to the other::
     a*b*c^-1
 
 Finitely presented groups are implemented via GAP. You can use the
-:meth:`~sage.groups.libgap_wrapper.ParentLibGAP.gap` method to access
+:meth:`~sage.groups.libsagegap_wrapper.ParentLibGAP.gap` method to access
 the underlying LibGAP object::
 
     sage: G = FreeGroup(2)
@@ -133,7 +133,7 @@ AUTHOR:
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.libs.gap.libgap import libgap
+from sage.libs.gap.libsagegap import libgap
 from sage.libs.gap.element import GapElement
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing

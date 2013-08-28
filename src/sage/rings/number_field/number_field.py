@@ -7820,7 +7820,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: libgap(K)   # indirect doctest
             CF(8)
         """
-        from sage.libs.gap.libgap import libgap
+        from sage.libs.gap.libsagegap import libgap
         return libgap.CyclotomicField(self.__n)
 
     def _repr_(self):

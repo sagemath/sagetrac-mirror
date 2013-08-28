@@ -1,0 +1,29 @@
+--- src/Cython/Build/Dependencies.py	2013-08-23 20:56:39.000000000 +0200
++++ src/Cython/Build/Dependencies.py	2013-08-23 21:02:25.000000000 +0200
+@@ -42,6 +42,8 @@ from Cython.Compiler.Main import Context
+ 
+ join_path = cached_function(os.path.join)
+ 
++cython_file_extensions = ('.pyx', '.py')
++
+ if sys.version_info[0] < 3:
+     # stupid Py2 distutils enforces str type in list of sources
+     _fs_encoding = sys.getfilesystemencoding()
+@@ -571,7 +573,7 @@ def create_extension_list(patterns, excl
+             exn_type = Extension
+         elif isinstance(pattern, Extension):
+             filepattern = pattern.sources[0]
+-            if os.path.splitext(filepattern)[1] not in ('.py', '.pyx'):
++            if os.path.splitext(filepattern)[1] not in cython_file_extensions:
+                 # ignore non-cython modules
+                 module_list.append(pattern)
+                 continue
+@@ -684,7 +686,7 @@ def cythonize(module_list, exclude=[], n
+         new_sources = []
+         for source in m.sources:
+             base, ext = os.path.splitext(source)
+-            if ext in ('.pyx', '.py'):
++            if ext in cython_file_extensions:
+                 if m.language == 'c++':
+                     c_file = base + '.cpp'
+                     options = cpp_options

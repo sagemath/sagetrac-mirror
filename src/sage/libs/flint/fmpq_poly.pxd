@@ -6,7 +6,7 @@
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
 
-cdef extern from "gmp.h":
+cdef extern from "gmp_or_mpir.h":
     ctypedef void * mpz_t
     ctypedef void * mpq_t
 

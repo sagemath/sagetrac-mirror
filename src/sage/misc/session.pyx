@@ -23,6 +23,7 @@ session permanently, since ``SAGE_TMP`` will be removed when leaving Sage!
 This saves a dictionary with ``w`` as one of the keys::
 
     sage: z = load(os.path.join(SAGE_TMP, 'session'))
+    sage: if "__file__" in z: del z["__file__"]
     sage: z.keys()
     ['w']
     sage: z['w']

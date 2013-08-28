@@ -32,6 +32,7 @@ from sage.env import SAGE_DOC, SAGE_SRC
 #     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
 #     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
 # from build_options.py.
+sys.path.append(os.path.join(SAGE_DOC, 'common'))
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
@@ -77,7 +78,7 @@ def builder_helper(type):
         logger.debug(build_command)
 
         # Execute custom-sphinx-build.py
-        sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
+        sys.argv = [os.path.join(SAGE_DOC_SRC, 'common', 'custom-sphinx-build.py')]
         sys.argv.extend(build_command.split())
         try:
             execfile(sys.argv[0])
@@ -125,11 +126,16 @@ class DocBuilder(object):
 
         self.name = os.path.join(*doc)
         self.lang = lang
-        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
+
+        # hmm actually, we take stuff from SAGE_DOC_SRC, but some parts are not
+        # there yet. put/link everything together in SAGE_DOC for now...
+        self.dir = os.path.join(SAGE_DOC_SRC, self.lang, self.name) # overridden for reference
+        self.srcdir = os.path.join(SAGE_DOC_SRC, self.lang, self.name)
+        self.outdir = os.path.join(SAGE_DOC, self.lang, self.name)
 
         #Make sure the .static and .templates directories are there
-        mkdir(os.path.join(self.dir, "static"))
-        mkdir(os.path.join(self.dir, "templates"))
+        mkdir(os.path.join(self.outdir, "static"))
+        mkdir(os.path.join(self.outdir, "templates"))
 
     def _output_dir(self, type):
         """
@@ -139,7 +145,7 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
+            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC_SRC']+'/common/'); import builder
             sage: b = builder.DocBuilder('tutorial')
             sage: b._output_dir('html')
             '.../doc/output/html/en/tutorial'
@@ -301,9 +307,9 @@ class AllBuilder(object):
         """
         documents = []
         for lang in LANGUAGES:
-            for document in os.listdir(os.path.join(SAGE_DOC, lang)):
+            for document in os.listdir(os.path.join(SAGE_DOC_SRC, lang)):
                 if (document not in OMIT
-                    and os.path.isdir(os.path.join(SAGE_DOC, lang, document))):
+                    and os.path.isdir(os.path.join(SAGE_DOC_SRC, lang, document))):
                     documents.append(os.path.join(lang, document))
 
         # Ensure that the reference guide is compiled first so that links from
@@ -437,6 +443,8 @@ class ReferenceBuilder(AllBuilder):
 
         self.name = doc[0]
         self.lang = lang
+        # override (VPATH workaround)
+        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
 
     def _output_dir(self, type, lang='en'):
         """
@@ -461,7 +469,7 @@ class ReferenceBuilder(AllBuilder):
         top-level document and its components.
         """
         for lang in LANGUAGES:
-            refdir = os.path.join(SAGE_DOC, lang, self.name)
+            refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
@@ -596,7 +604,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.ReferenceBuilder('reference')
-            sage: refdir = os.path.join(os.environ['SAGE_DOC'], 'en', b.name)
+            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
             ['reference/algebras', 'reference/arithgroup', ..., 'reference/tensor']
         """
@@ -610,6 +618,20 @@ for a webpage listing all of the documents.''' % (output_dir,
 
         return [ doc[1] for doc in sorted(documents) ]
 
+def symlink_recursive(src,dst):
+    if os.path.isdir(dst):
+        pass
+    elif os.path.isfile(dst):
+        raise OSError("cannot mkdir %s, theres a file in the way" %dst)
+    else:
+        os.mkdir(dst)
+    for file in os.walk(src).next()[2]:
+        try:
+           os.symlink(os.path.join(src,file),os.path.join(dst,file))
+        except OSError:
+           pass
+    for dir in os.walk(src).next()[1]:
+        symlink_recursive(os.path.join(src,dir),os.path.join(dst,dir))
 
 class ReferenceSubBuilder(DocBuilder):
     """
@@ -629,6 +651,8 @@ class ReferenceSubBuilder(DocBuilder):
     def __init__(self, *args, **kwds):
         DocBuilder.__init__(self, *args, **kwds)
         self._wrap_builder_helpers()
+        # override (VPATH workaround)
+        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
 
     def _wrap_builder_helpers(self):
         from functools import partial, update_wrapper
@@ -675,7 +699,11 @@ class ReferenceSubBuilder(DocBuilder):
         _sage = os.path.join(self.dir, '_sage')
         if os.path.exists(_sage):
             logger.info("Copying over custom .rst files from %s ...", _sage)
-            shutil.copytree(_sage, os.path.join(self.dir, 'sage'))
+            shutil.copytree(_sage, os.path.join(self.outdir, 'sage'))
+        # VPATH workaround. sphinx is not able to locate files in self.srcdir
+        if self.srcdir != self.dir:
+            logger.info("Copying over some source files from %s ...", self.srcdir)
+            symlink_recursive(self.srcdir, self.dir)
 
         getattr(DocBuilder, build_type)(self, *args, **kwds)
 
@@ -917,7 +945,7 @@ class ReferenceSubBuilder(DocBuilder):
             sage: builder.ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../doc/en/reference/sage/combinat/partition.rst'
         """
-        return self.dir + os.path.sep + module_name.replace('.',os.path.sep) + '.rst'
+        return self.outdir + os.path.sep + module_name.replace('.',os.path.sep) + '.rst'
 
     def write_auto_rest_file(self, module_name):
         """
@@ -990,7 +1018,8 @@ class ReferenceSubBuilder(DocBuilder):
         for directory, subdirs, files in os.walk(base_path):
             for filename in files:
                 if not (filename.endswith('.py') or
-                        filename.endswith('.pyx')):
+                        filename.endswith('.pyx') or
+                        filename.endswith('.pyxx')):
                     continue
 
                 path = os.path.join(directory, filename)

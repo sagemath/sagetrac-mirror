@@ -12,12 +12,14 @@
 # serve to show the default.
 
 import sys, os
-from sage.env import SAGE_DOC
-sys.path.append(SAGE_DOC)
+from sage.env import SAGE_DOC_SRC
+sys.path.append(SAGE_DOC_SRC)
 from common.conf import *
 
 # settings for the intersphinx extension:
 
+# actually SAGE_DOC_SRC, but sphinx doesnt support it.
+# see builder.py for a workaround
 ref_src = os.path.join(SAGE_DOC, 'en', 'reference')
 ref_out = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference')
 intersphinx_mapping[ref_out] = None

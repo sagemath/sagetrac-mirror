@@ -13,9 +13,8 @@ C Integer Types Used in Finite Rings
 
 cimport libc.stdint
 
-cdef extern from "sage/rings/finite_rings/stdint.h":
+cdef extern from "stdint.h":
     ctypedef libc.stdint.int_fast32_t int_fast32_t
     ctypedef libc.stdint.int_fast64_t int_fast64_t
     int_fast32_t INTEGER_MOD_INT32_LIMIT
     int_fast64_t INTEGER_MOD_INT64_LIMIT
-

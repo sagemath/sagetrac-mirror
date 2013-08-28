@@ -104,7 +104,7 @@ from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename
-from sage.misc.misc import SAGE_SHARE
+from sage.misc.misc import POLYTOPE_DATA_DIR
 from sage.modules.all import vector
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
@@ -122,7 +122,7 @@ import subprocess
 import StringIO
 
 
-data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
+data_location = POLYTOPE_DATA_DIR
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):

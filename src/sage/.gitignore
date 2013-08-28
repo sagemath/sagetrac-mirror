@@ -4,3 +4,16 @@
 /modular/arithgroup/farey_symbol.h
 /rings/real_mpfi.h
 /symbolic/pynac.h
+
+Makefile.in
+Makefile
+.deps
+py-compile
+depcomp
+
+# temporary
+Makefile.am.auto
+
+*/m4
+!/m4/sage_foreign.m4
+!/m4/sage_python.m4

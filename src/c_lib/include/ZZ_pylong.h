@@ -26,7 +26,7 @@
 #include <Python.h>
 #include <NTL/ZZ.h>
 using namespace NTL;
-#include "gmp.h"
+#include "gmp_or_mpir.h"
 
 /* ZZ -> pylong conversion */
 PyObject * ZZ_get_pylong(ZZ &z);
