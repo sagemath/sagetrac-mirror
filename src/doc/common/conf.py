@@ -1,5 +1,5 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC
+from sage.env import SAGE_DOC, SAGE_DOC_SRC
 
 def get_doc_abspath(path):
     """
@@ -27,7 +27,7 @@ extensions = ['inventory_builder', 'multidocs',
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = [os.path.join(SAGE_DOC, 'common/templates'), 'templates']
+templates_path = [os.path.join(SAGE_DOC_SRC, 'common/templates'), 'templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -103,8 +103,9 @@ todo_include_todos = True
 # intersphinx_mapping = {'http://docs.python.org/': None}
 #intersphinx_mapping = {'python': ('http://docs.python.org/',
 #                                  'python-inv.txt')}
+from sage.env import SAGE_DOC_SRC
 intersphinx_mapping = {
-    'http://docs.python.org/': get_doc_abspath('common/python.inv')}
+    'http://docs.python.org/': get_doc_abspath(SAGE_DOC_SRC + '/common/python.inv')}
 
 def set_intersphinx_mappings(app):
     """
@@ -161,7 +162,7 @@ html_theme = 'sage'
 html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC, 'common/themes')]
+html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common/themes')]
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
