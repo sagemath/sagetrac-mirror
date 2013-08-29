@@ -477,7 +477,8 @@ scripts: $(SCRIPT_TARGETS)
 
 extcode: $(EXTCODE_TARGETS)
 
-csage: $(INST)/$(SCONS) \
+csage: $(INST)/$(AUTOTOOLS) \
+       $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \

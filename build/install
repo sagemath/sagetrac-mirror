@@ -362,6 +362,7 @@ PREREQ=`newest_version_base prereq`
 
 # Standard packages
 ATLAS=`newest_version atlas`
+AUTOTOOLS=`newest_version autotools`
 BOEHM_GC=`newest_version boehm_gc`
 BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
