@@ -20,6 +20,7 @@ fi
 git init
 
 
+CUR=`pwd`
 SRC=`pwd`/src
 BUILD=`pwd`/build
 
@@ -27,15 +28,8 @@ BUILD=`pwd`/build
 # Apply patch(es)
 ########################################################################
 
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 cd src
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 ########################################################################
 # Remove old installed versions
@@ -53,18 +47,18 @@ rm -f m4 makeinfo help2man autoconf autoheader autom4te autoreconf \
 
 # Determine the default versions of the various autotools, which is the
 # last version in the list from version-list.
-source "$SRC/../version-list"
+source "$CUR/version-list"
 for x in $autoconf_versions; do autoconf_latest=$x ; done
 for x in $automake_versions; do automake_latest=$x ; done
 for x in $libtool_versions; do libtool_latest=$x ; done
 
 # We install scripts for autoconf,... based on the generic "autofoo" script
 cd "$SAGE_LOCAL/bin"
-sed <"$SRC/../autofoo" >autoconf \
+sed <"$CUR/autofoo" >autoconf \
     "s/@AUTOFOO@/autoconf/; s/@AUTOFILES@/configure/; s/@AUTOVAR@/AUTOCONF_VERSION/; s/@DEFAULT_VERSION@/${autoconf_latest}/"
-sed <"$SRC/../autofoo" >automake \
+sed <"$CUR/autofoo" >automake \
     "s/@AUTOFOO@/automake/; s/@AUTOFILES@/Makefile.in/; s/@AUTOVAR@/AUTOMAKE_VERSION/; s/@DEFAULT_VERSION@/${automake_latest}/"
-sed <"$SRC/../autofoo" >libtool \
+sed <"$CUR/autofoo" >libtool \
     "s/@AUTOFOO@/libtool/; s/@AUTOFILES@/ltmain.sh/; s/@AUTOVAR@/LIBTOOL_VERSION/; s/@DEFAULT_VERSION@/${libtool_latest}/"
 
 # Correct permissions
@@ -101,7 +95,7 @@ cd "$BUILD"
     # problems with very long command lines used in some make rules).
     echo "SHELL = `which bash`"
     echo
-    cat "$SRC/../Makefile.build"
+    cat "$CUR/Makefile.build"
 ) >Makefile
 
 $MAKE
