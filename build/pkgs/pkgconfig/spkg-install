@@ -1,4 +1,8 @@
 #!/usr/bin/env sage-dist-make
+# this file is part of Sage
+# (c) 2013 Felix Salfelder
+# license: gplv3+
+#
 
 DIST_MK = spkg.mk
 include $(DIST_MK)
