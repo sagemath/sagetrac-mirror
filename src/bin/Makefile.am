@@ -31,7 +31,6 @@ dist_bin_SCRIPTS = \
     sage-run \
     sage-run-cython \
     sage-runtests \
-    sage-spkg \
     sage-starts \
     sage-startuptime.py \
     sage-test-import

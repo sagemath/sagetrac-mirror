@@ -51,7 +51,4 @@ AC_SUBST([SAGE64])
 
 AC_CONFIG_FILES([sage], [chmod +x sage])
 
-# needs sysconfdir...
-AC_CONFIG_FILES([sage-spkg], [chmod +x sage-spkg])
-
 AC_OUTPUT([Makefile env.sh])
