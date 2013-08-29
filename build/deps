@@ -491,7 +491,8 @@ scripts: $(SCRIPT_TARGETS) $(SAGE_LOCAL)/etc/sage-maxima.lisp
 
 extcode: $(EXTCODE_TARGETS)
 
-csage: $(INST)/$(SCONS) \
+csage: $(INST)/$(AUTOTOOLS) \
+       $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
