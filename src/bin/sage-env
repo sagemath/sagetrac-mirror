@@ -632,3 +632,7 @@ if [ -r "$SAGE_RC_FILE" ]; then
         exit 1
     fi
 fi
+
+# this is passed to foreign packages as prefix. currently they all use
+# SAGE_LOCAL, but this is $SAGE_ROOT/local, not prefix
+export SAGE_PREFIX="$SAGE_LOCAL"
