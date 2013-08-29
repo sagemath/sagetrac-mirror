@@ -1,0 +1,8 @@
+#!/usr/bin/env sage-dist-make
+
+DIST_MK = spkg.mk
+include $(DIST_MK)
+
+install:
+	cd $(SRC); ./configure --prefix=$(SAGE_LOCAL)
+	cd $(SRC); $(MAKE) install INSTALL="$(SAGE_INSTALL)" DESTDIR="$(DESTDIR)"
