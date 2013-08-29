@@ -372,6 +372,7 @@ src/sage-configure-stamp: @DEP_cython@ src/c_lib-configure-stamp \
                           @DEP_graphs@ \
                           @DEP_cython@ \
                           @DEP_polytopes_db@ \
+                          @DEP_lrcalc@ \
                           $(scripts_DEPS) @DEP_libgap@ \
                           src/c_lib-build-stamp
 

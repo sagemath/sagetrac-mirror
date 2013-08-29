@@ -45,6 +45,8 @@ PATH="@abs_top_srcdir@/sagedist/bin:$PATH"
 
 PATH="$SAGE_LOCAL/bin:$PATH"
 
+@VPATH_BUILD_TRUE@PATH="@abs_srcdir@/src/bin:$PATH"
+
 # sage_fortran
 PATH="$SAGE_ROOT/build/bin:$PATH"
 export PATH

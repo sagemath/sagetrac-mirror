@@ -11,16 +11,18 @@ SAGE_LOCAL = @SAGE_LOCAL@
 SAGE_ETC = $(SAGE_LOCAL)/etc
 
 ifneq ($(FILELIST),)
-FILELIST_ARG = --record '$(FILELIST)'
+FILELIST_ARG = --record "$(FILELIST)"
 endif
 
 ifneq ($(DESTDIR),)
-DESTDIR_ARG = -D '$(DESTDIR)'
+DESTDIR_ARG = -D "$(DESTDIR)"
 DESTDIR_SET = DESTDIR="$(DESTDIR)"
 endif
 
 # distutils call
-SETUP_PY_INSTALL = $(DESTDIR_SET) sage-setup.py install $(FILELIST_ARG)
+# SETUP_PY_INSTALL = $(DESTDIR_SET) sage-setup.py install $(FILELIST_ARG)
+
+SETUP_PY_INSTALL = python setup.py install $(FILELIST_ARG) --prefix="$(DESTDIR)$(SAGE_PREFIX)"
 
 # install wrapped
 SAGE_INSTALL = sage-dist-install

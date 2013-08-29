@@ -55,7 +55,7 @@ all-local: $(FOREIGN_DEP)
 ########## CORE_MODULES ###########################
 CORE_MODULES = src/c_lib src/sage src/doc src/bin src/ext # src/mac-app src/whatever
 CORE_ENV = dummy=1
-CORE_OPTS = --prefix="@prefix@"
+CORE_OPTS = @FOREIGN_OPTS@ --prefix="@prefix@"
 
 ### CORE_MODULE build implementation ###
 # FIXME: treat all modules the same?
@@ -165,20 +165,12 @@ EXTRA_DIST+= $(FOREIGN_ALL:%=$(PKGSDIR)/%)
 #FIXME: install takes ages, shouldnt be necessary
 src/doc-configure-stamp: src/sage-configure-stamp
 
-src/sage-configure-stamp: # src/c_lib-build-stamp
-
-src/sage-configure-stamp: # no CORE_ENV+= CPPFLAGS="-I$(abs_builddir)/local/include -I$(abs_builddir)/src/c_lib/include $$CPPFLAGS"
 src/sage-configure-stamp: CORE_ENV+= PKG_CONFIG_LIBDIR="$(abs_top_builddir)/local/lib/pkgconfig"
-src/sage-configure-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
 
-src/c_lib-configure-stamp: # no CORE_ENV+= CPPFLAGS="-I$(abs_builddir)/local/include -I$(abs_builddir)/src/c_lib/include $$CPPFLAGS"
 src/c_lib-configure-stamp: CORE_ENV+= PKG_CONFIG_LIBDIR="$(abs_top_builddir)/local/lib/pkgconfig"
-src/c_lib-configure-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
 
 src/bin-configure-stamp: CORE_OPTS+= --sysconfdir=@prefix@/etc
-src/sage-configure-stamp: CORE_OPTS+= --with-dbdir="@prefix@/share"
-
-src/sage-build-stamp: CORE_ENV+= LD_LIBRARY_PATH="$(abs_builddir)/local/lib:$$LD_LIBRARY_PATH"
+src/sage-configure-stamp: CORE_OPTS+= --with-dbdir="@prefix@/share" --with-sage_local="$(SAGE_LOCAL)"
 
 # doesn't make any sense to stage these, just build
 DOC = src/doc-stage
@@ -442,7 +434,18 @@ $(FOREIGN_ALL:%=%-binary): %-binary: $$($$*_DEPS)
 	(cd $$DESTDIR; fakeroot tar -czf @abs_top_builddir@/$(FP_$*)-binary.tbz2 *); \
 	rm -r $$DESTDIR
 
-$(FOREIGN_ALL:%=%-info): %-info: build/pkgs/%/package-version.txt
+# this is a proof-of-concept!
+%-rules: SAGE_PREFIX='$$$$prefix'
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-rules): %-rules: \
+	$(PKGSDIR)/$$(call packagename,$$*)/spkg-install \
+	$$($$*_DEPS)
+	$(MAKE) -I@abs_top_builddir@/sagedist -f $< -n install SAGE_PREFIX=$(SAGE_PREFIX) SRC=. > $@
+
+.SECONDEXPANSION:
+$(FOREIGN_ALL:%=%-deps): %-deps: $$($$*_DEPS)
+
+$(FOREIGN_ALL:%=%-info): %-info: $(PKGSDIR)/%/package-version.txt
 	@echo === $* ===
 	@not=; test -z "$(DEP_$*)" && not="not "; \
 	echo "version:  $$(cat $<)" "($${not}enabled)"
@@ -457,7 +460,7 @@ $(FOREIGN_ALL:%=%-info): %-info: build/pkgs/%/package-version.txt
 		[ -n "$$inst" ] && echo "staged:   $$( basename $$inst ) ($$( wc -l $$inst | cut -d" " -f1 ) files)" || echo not staged
 
 .SECONDEXPANSION:
-$(FOREIGN_ALL:%=%-list): %-list: build/pkgs/%/package-version.txt
+$(FOREIGN_ALL:%=%-list): %-list: $(PKGSDIR)/%/package-version.txt
 	@inst=$$( shopt -s nullglob; echo $(INST)/$*-* ); \
 		[ -n "$$inst" ] &&  sort $$inst || echo not staged
 
@@ -473,17 +476,18 @@ $(FOREIGN_ALL:%=%-list): %-list: build/pkgs/%/package-version.txt
 
 # unstage all installations of $*. shouldn't be more than one at a time.
 $(FOREIGN_ALL:%=%-unstage): %-unstage:
-	@if test -n "$$(shopt -s nullglob; echo $(INST)/$*-*)"; then \
+	$(AM_V_at)if test -n "$$(shopt -s nullglob; echo $(INST)/$*-*)"; then \
 	  dirs=;\
+	  echo $(INST)/$*-*; \
 	  while read f; do \
 	    [ -n "$${f/\/*/}" ] && \
 		   echo "BUG in $* filelist: relative path: $$f" && continue; \
 	    [ -d $$f ] && dirs+="$$f" || rm $$f; \
-	  done < $(INST)/$*-*; \
+	  done < $$(echo $(INST)/$*-*); \
 	  for i in $$dirs; do \
 	    rmdir $$i; \
 	  done; \
-	  rm $(INST)/$*-*; \
+	  rm -f $(INST)/$*-*; \
 	else \
 	  echo "no $* staged..."; \
 	fi
@@ -666,15 +670,18 @@ copy:
 	doc-clean clean lib-clean bdist-clean distclean micro_release \
 	test check testoptional testall testlong testoptionallong testallong \
 	PTESt ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-   $(FOREIGN_ALL:%=%-clean) \
-   $(FOREIGN_ALL:%=%-restage) \
-   $(FOREIGN_ALL:%=%-stage) \
    $(FOREIGN_ALL:%=%-binary) \
-   $(FOREIGN_ALL:%=%-distcheck) \
-   $(FOREIGN_ALL:%=%-unpack) \
-   $(FOREIGN_ALL:%=%-patch) \
    $(FOREIGN_ALL:%=%-check) \
+   $(FOREIGN_ALL:%=%-clean) \
+   $(FOREIGN_ALL:%=%-deps) \
+   $(FOREIGN_ALL:%=%-distcheck) \
    $(FOREIGN_ALL:%=%-info) \
+   $(FOREIGN_ALL:%=%-list) \
+   $(FOREIGN_ALL:%=%-patch) \
+   $(FOREIGN_ALL:%=%-restage) \
+   $(FOREIGN_ALL:%=%-rules) \
+   $(FOREIGN_ALL:%=%-stage) \
+   $(FOREIGN_ALL:%=%-unpack) \
    unstage-clean \
    $(UNINSTALL_FP:%=%-unstage) \
    $(INSTALL_FP_NAMES:%=%-distcheck) \
@@ -712,13 +719,13 @@ endef
 $(BUILDDIR)/%: | \
                 upstream/$$(shell a=$$* && shopt -s extglob && echo "$$$${a$$(p).p[0-9]?([0-9])}" ).tar.bz2 \
                 $(PKGSDIR)/$$(call packagename,$$*)/checksums.ini
-	@echo unpacking $* from $(firstword $|)
 	dlsum=$$(sha1sum $(firstword $|) | cut -f1 -d' ');\
 	refsum=$$(grep sha1 $(lastword $|) | cut -d= -f2);\
 	test $$dlsum = $$refsum || \
 	( echo expected sha1: $$refsum;\
 	  echo got      sha1: $$dlsum;\
-	  rm $@; exit 1 )
+	  rm -rf $@; exit 1 )
+	@echo unpacking $* from $(firstword $|)
 	if [ -d $(BUILDDIR)/$* ]; then \
 	  	 touch $(BUILDDIR)/$*/dirty-stamp; \
 	else \
@@ -828,13 +835,17 @@ help:
 	@echo
 	@echo "make <package>-stage          make <package> ready to use by sage,"
 	@echo "                              often \"install <package> to \$$SAGE_LOCAL\""
+	@echo "make <package>-deps           stage all dependencies for <package>"
 	@echo "make <package>-unstage        revert <package>-stage (if implemented)"
 	@echo "make <package>-check          (compile <package> and) run <package> checks"
-	@echo "make <package>-distcheck"
 	@echo "make <package>-info           print info about <package>"
 	@echo "make <package>-list           list <package> contents"
 	@echo "make <package>-unpack         unpack package tarball in $(UPSTREAM)"
 	@echo "make <package>-patch          (unpack and) patch tarball"
+	@echo
+	@echo "make <package>-distcheck      sanity check package (DESTDIR and FILELIST)"
+	@echo "make <package>-rules          dump rules that build <package>"
+	@echo "make <package>-binary         create binary tarball"
 	@echo
 	@echo "make stage-decruft            unstage deselected packages"
 	@echo "make libcheck                 list system libraries that are linked against"
@@ -847,9 +858,9 @@ help:
 ############################################
 ## HACKS:
 
-$(UPSTREAM)/lapack-3.4.2.tar: upstream/lapack-3.4.2.tgz
+upstream/lapack-3.4.2.tar: upstream/lapack-3.4.2.tgz
 	@echo "BUG: should take lapack tarball from lapack package, this is a different one."
 	gunzip $<
 
-$(UPSTREAM)/lapack-3.4.2.tgz:
+upstream/lapack-3.4.2.tgz:
 	cd $(UPSTREAM); wget http://www.netlib.org/lapack/lapack-3.4.2.tgz

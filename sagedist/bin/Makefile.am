@@ -4,7 +4,7 @@
 #
 bin_SCRIPTS = sage_fortran sage-setup.py
 
-EXTRA_DIST = sage-setup.py sage-dummy.sh
+EXTRA_DIST = sage-setup.py sage-dummy.sh sage-sh
 
 all-local: sage-dist-make sage-dist-install
 

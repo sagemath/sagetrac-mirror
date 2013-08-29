@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([sage], [5.12.beta3-autotools2], [sage-support@googlegroups.com])
+AC_INIT([sage], [5.12.beta3-autotools4], [sage-support@googlegroups.com])
 # ustar: allow long filenames
 AM_INIT_AUTOMAKE([tar-ustar -Wall -Werror -Wno-portability])
 
@@ -258,6 +258,22 @@ AC_ARG_ENABLE([distupstream], AS_HELP_STRING([--enable-distupstream], [include u
  esac],[distupstream=yes])
 AM_CONDITIONAL([DISTUPSTREAM],[test $distupstream = yes])
 
+## foreign package options (use with care)
+AC_ARG_WITH([gmp], [AS_HELP_STRING([--with-gmp], [Build with gmp library])],
+            [ AS_IF([test "x$with_gmp" != "xno"], [ gmp_or_mpir=gmp ]) ])
+
+AC_ARG_WITH([mpir], [AS_HELP_STRING([--with-mpir], [Build with mpir library])],
+            [ AS_IF([ test x$gmp_or_mpir = xgmp ],
+                    [ AC_MSG_ERROR([Cannot select both, gmp and mpir])]);
+              AS_IF([ test "x$with_mpir" != "xno" ], [ gmp_or_mpir=mpir ])
+            ])
+
+FOREIGN_OPTS=
+AS_IF([test -n "$gmp_or_mpir" ],[WITH_GMP_OR_MPIR="--with-$gmp_or_mpir"])
+
+FOREIGN_OPTS+=" $WITH_GMP_OR_MPIR"
+AC_SUBST([FOREIGN_OPTS])
+
 ## sage foreign package in/exclusion
 # base packages
 # checks for packages
@@ -276,8 +292,14 @@ case "$UNAME" in
         ;;
 esac
 
+AC_ARG_ENABLE([all], AS_HELP_STRING([--disable-all], [disable all foreign packages]),
+ [case "${enableval}" in
+  yes) FOREIGN_DEFAULT=true ;;
+  no)  FOREIGN_DEFAULT=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-all]) ;;
+ esac],[FOREIGN_DEFAULT=auto])
+
 AC_ARG_VAR([FOREIGN_DEFAULT])
-FOREIGN_DEFAULT=${FOREIGN_DEFAULT:-auto}
 
 dnl these packages are available on the host system
 FOREIGN_AVAILABLE=
@@ -293,6 +315,7 @@ dnl generated version assignments
 FP_VERSIONS=
 
 SAGE_FOREIGN_PACKAGE([atlas])
+SAGE_FOREIGN_PACKAGE([autotools])
 SAGE_FOREIGN_PACKAGE([cliquer])
 SAGE_FOREIGN_PACKAGE([blas])
 SAGE_FOREIGN_PACKAGE([boehm_gc])
@@ -438,12 +461,12 @@ AC_SUBST([FOREIGN_AVAILABLE])
 AC_SUBST([FOREIGN_DISABLED])
 AC_SUBST([FOREIGN_ENABLED])
 
-if test $FOREIGN_DEFAULT = yes; then
+if test $FOREIGN_DEFAULT = true; then
    packageinfo="installing all packages"
    if test -n "$FOREIGN_DISABLED"; then
       packageinfo+=" except$FOREIGN_DISABLED"
    fi
-elif test $FOREIGN_DEFAULT = no; then
+elif test $FOREIGN_DEFAULT = false; then
    packageinfo="installing no foreign packages"
    if test -n "$FOREIGN_ENABLED"; then
       packageinfo+=" except$FOREIGN_ENABLED"

@@ -36,3 +36,9 @@ installation: can be implemented as follows:
 - build sage (will install with DESTDIR=@top_builddir@/.local
 - @top_builddir@/local symlinks to .local/$prefix
 - "make install" just installs everything
+
+conditional silent rules does not work:
+m4_ifdef([AM_SILENT_RULES],AM_SILENT_RULES([yes]))
+does not set default to "silent",
+AM_SILENT_RULES([yes])
+does (?!)
