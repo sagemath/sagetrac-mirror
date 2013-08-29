@@ -158,7 +158,7 @@ def get_help(method):
                 ret[arg] = ' '.join(tmp)
                 tmp = []
             continue
-        elif line.startswith('-'):
+        elif line.startswith('-') and '--' in line:
             arg = line.split('``')[1]
             tmp.append(line.split('--')[1].strip())
         elif tmp:
@@ -177,17 +177,16 @@ def exposed_methods(obj):
         if name.startswith('_'):
             continue
         method = getattr(obj, name)
-        if callable(method):
+        if hasattr(method, 'func_name'):
             yield name.replace('_','-'), method
-
 
 def getargspec(func):
     """
     Returns the argspec of func, omitting self if func is a bound method.
     """
-    argspec = inspect.getargspec(func)
-    if isinstance(func, types.MethodType) and func.im_self is not None:
-        del argspec.args[0] # self
+    from sage.misc.sageinspect import sage_getargspec
+    argspec = sage_getargspec(func)
+    del argspec.args[0] # self
     return argspec
 
 def parser_from_method(parser, func, help_dict):
@@ -199,15 +198,32 @@ def parser_from_method(parser, func, help_dict):
     for ix, arg in enumerate(argspec.args):
         extra = {}
         if ix < default_start:
-            name = arg
+            name = [arg]
+            extra['type'] = str_to_value
         else:
-            name = '--' + arg
-            extra['default'] = str(argspec.defaults[ix - default_start])
+            name = ['--'+n for n in arg.replace('_','-').split('-or-')]
+            extra['dest'] = arg
+
+            default_value = argspec.defaults[ix - default_start]
+            if default_value is False:
+                extra['action'] = 'store_true'
+            else:
+                extra['default'] = default_value
+
+                if isinstance(default_value, int) :
+                    extra['type'] = int
+                elif isinstance(default_value, bool):
+                    extra['type'] = bool
+                else:
+                    extra['type'] = str_to_value
+
         if arg in help_dict:
             extra['help'] = help_dict[arg]
-        parser.add_argument(name, **extra)
+
+        parser.add_argument(*name, **extra)
     if argspec.varargs is not None:
-        extra = {'nargs':'*'}
+        extra = {'nargs': '*',
+                 'type': str_to_value}
         if argspec.varargs in help_dict:
             extra['help'] = help_dict[argspec.varargs]
         parser.add_argument(argspec.varargs, **extra)
@@ -219,17 +235,18 @@ def parser_from_method(parser, func, help_dict):
 
 def str_to_value(s):
     """
-    Returns s as a boolean or int if possible, otherwise returns s itself.
+    Returns s as none, a boolean, or an int, if possible.  Otherwise,
+    returns s itself.
     """
     if not isinstance(s, str):
         return s
 
-    try:
-        return eval(s)
-    except Exception:
-        pass
-    if s.lower() in ('true', 'false'):
-        return s.lower() == 'true'
+    slower = s.lower()
+    if slower in ('true', 'false'):
+        return slower == 'true'
+    if slower == 'none':
+        return None
+
     try:
         return int(s)
     except ValueError:
@@ -238,7 +255,7 @@ def str_to_value(s):
 def parser_from_object(obj, *args, **kwds):
     kwds['formatter_class'] = SageHelpFormatter
     if 'description' not in kwds:
-        kwds['description'] = get_help(obj)['return']
+        kwds['description'] = get_help(obj._sagedev)['return']
 
     parser = argparse.ArgumentParser(*args, **kwds)
     subparsers = parser.add_subparsers(title='subcommands')
@@ -284,23 +301,20 @@ def parser_from_object(obj, *args, **kwds):
 
         args = []
         for arg in argspec.args:
-            args.append(str_to_value(parsed[arg]))
+            args.append(parsed[arg])
             del parsed[arg]
         if argspec.varargs:
             args.extend(str_to_value(parsed[argspec.varargs]))
             del parsed[argspec.varargs]
 
         if argspec.keywords:
-            kwds = parsed[argspec.keywords]
+            kwds = map(lambda k: k.split('=')[0],
+                       filter(lambda k: k.startswith('--'),
+                              parsed[argspec.keywords]))
             kwdparser = argparse.ArgumentParser(formatter_class=SageHelpFormatter)
             for kwdarg in kwds:
-                if kwdarg.startswith('--'):
-                    if '=' in kwdarg:
-                        kwdparser.add_argument(kwdarg.split('=')[0])
-                    else:
-                        kwdparser.add_argument(kwdarg)
-            for key, value in vars(kwdparser.parse_args(kwds)).items():
-                parsed[key] = value
+                kwdparser.add_argument(kwdarg, type=str_to_value)
+            parsed.update(vars(kwdparser.parse_args(kwds)))
             del parsed[argspec.keywords]
 
         kwds = {key: str_to_value(value) for key, value in parsed.items()}
@@ -311,6 +325,6 @@ def parser_from_object(obj, *args, **kwds):
     return parser
 
 if __name__ == '__main__':
-    from sage.dev.sagedev import dev
+    from sage.dev.all import dev
     parser = parser_from_object(dev)
     parser.run()
