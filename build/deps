@@ -13,6 +13,7 @@
 # Therefore, do not put an explicit path for sage-spkg here.
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/build/pipestatus
+CORE_OPTS = --prefix=$(SAGE_LOCAL) --with-dbdir="$(SAGE_LOCAL)/share"
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage base toolchain toolchain-deps
@@ -479,7 +480,7 @@ sage: \
 		 $(INST)/$(ZNPOLY) \
 		 csage | \
        $(SAGE_SRC)/sage/configure
-	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure
+	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure $(CORE_OPTS)
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time $(MAKE) -C sage py; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
 
 $(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
@@ -499,7 +500,7 @@ csage: $(INST)/$(AUTOTOOLS) \
        $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON) | \
        $(SAGE_SRC)/c_lib/configure
-	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure
+	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure $(CORE_OPTS)
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE); fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
 
 $(INST)/$(AUTOTOOLS):
