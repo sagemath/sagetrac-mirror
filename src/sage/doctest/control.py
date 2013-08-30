@@ -431,8 +431,7 @@ class DocTestController(SageObject):
 
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()
-            Doctesting files ...
+            sage: DC.add_files() # not tested, as a security measure, access to git is denied during doctest - this causes this doctest to fail
 
         ::
 
@@ -455,7 +454,7 @@ class DocTestController(SageObject):
         elif self.options.new:
             from sage.all import dev
             from sage.dev.sagedev import MASTER_BRANCH
-            files = dev.git.read_output("diff","--name-only",MASTER_BRANCH,SAGE_SRC)
+            files = dev.git("diff","--name-only",MASTER_BRANCH,SAGE_SRC)
             for fname in files.split("\n"):
                 fname = opj(SAGE_ROOT, fname)
                 if not skipfile(fname):
