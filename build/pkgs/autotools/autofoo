@@ -8,6 +8,21 @@
 
 v="$@AUTOVAR@"
 
+# or just call @AUTOFOO@-<version>
+
+# hint: autotools packages are coinstallable without strange extra prefixes.
+# watch out for --program-suffix=-$(PACKAGE_VERSION) in the autoconf manual, or
+# type ./configure --help
+
+extrafoo=`basename $0`
+test "${extrafoo/*-*/yes/}" = yes/ && \
+test "${extrafoo%%-*}" = "@AUTOFOO@" && \
+v=${extrafoo##@AUTOFOO@-}
+
+if test -n "$@AUTOVAR@" -a ! x$v = x@AUTOVAR@; then
+	echo calling @AUTOFOO@-$v. Keep your environment clean. >&2
+fi
+
 if [ -z "$v" ]; then
     for v_file in @AUTOFILES@; do
         v=`exec 2>/dev/null; sed -n <$v_file \
