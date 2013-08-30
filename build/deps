@@ -448,11 +448,13 @@ sage: \
 		 $(INST)/$(ECL) \
 		 $(INST)/$(ECLIB) \
 		 $(INST)/$(ECM) \
+		 $(INST)/$(ELLIPTIC_CURVES) \
 		 $(INST)/$(FLINT) \
 		 $(INST)/$(FPLLL) \
 		 $(INST)/$(GD) \
 		 $(INST)/$(GIVARO) \
 		 $(INST)/$(GLPK) \
+		 $(INST)/$(GRAPHS) \
 		 $(INST)/$(GSL) \
 		 $(INST)/$(IML) \
 		 $(INST)/$(JINJA2) \
@@ -470,6 +472,7 @@ sage: \
 		 $(INST)/$(NUMPY) \
 		 $(INST)/$(PARI) \
 		 $(INST)/$(POLYBORI) \
+		 $(INST)/$(POLYTOPES_DB) \
 		 $(INST)/$(PPL) \
 		 $(INST)/$(PYNAC) \
 		 $(INST)/$(PYTHON) \
