@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo >&2 "SAGE_LOCAL undefined ... exiting"
+if [ "$SAGE_PREFIX" = "" ]; then
+   echo >&2 "SAGE_PREFIX undefined ... exiting"
    echo >&2 "Maybe run 'sage -sh'?"
    exit 1
 fi
@@ -10,8 +10,8 @@ unset RM
 
 ROOT_DIR="`pwd`"
 
-INCLUDES="-I$SAGE_LOCAL/include"
-LIBDIRS="-L$SAGE_LOCAL/lib"
+INCLUDES="-I$SAGE_PREFIX/include"
+LIBDIRS="-L$SAGE_PREFIX/lib"
 
 CFLAGS="`testcflags.sh -fPIC -Wall -pedantic -g` $CFLAGS $INCLUDES"
 LDFLAGS="$LIBDIRS"
@@ -46,14 +46,15 @@ export LDFLAGS
 
 # otherwise we might run into problems with old headers
 
-if [ -d "$SAGE_LOCAL/include/m4rie" ]; then
-    rm -rf "$SAGE_LOCAL/include/m4rie"
+# FIXME, use unstage
+if [ -d "$SAGE_PREFIX/include/m4rie" ]; then
+    rm -rf "$SAGE_PREFIX/include/m4rie"
 fi
 
 # build M4RIE
 
 cd $ROOT_DIR/src/
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG
+./configure --prefix="$SAGE_PREFIX" --libdir="$SAGE_PREFIX/lib" $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring libm4rie"
@@ -74,3 +75,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# upstream lacks pkgconfig. do it like m4ri anyhow
+cat > m4rie.pc <<EOF
+prefix=$SAGE_PREFIX
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+
+Name: M4RIE
+Description: Extended dense linear algebra over GF(2).
+Version: 20130416
+Libs: -L${libdir} -lm4rie -lm
+Cflags: -I\${includedir}/m4rie -std=c99
+EOF
+
+sage-dist-install -d $DESTDIR$SAGE_PREFIX/lib/pkgconfig
+sage-dist-install -t $DESTDIR$SAGE_PREFIX/lib/pkgconfig m4rie.pc
