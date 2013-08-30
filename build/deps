@@ -503,6 +503,9 @@ csage: $(INST)/$(AUTOTOOLS) \
 	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE); fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
 
+$(INST)/$(AUTOTOOLS):
+	+$(PIPE) "$(SAGE_SPKG) $(AUTOTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(AUTOTOOLS).log"
+
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
 	touch $(INST)/ccache
