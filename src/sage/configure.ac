@@ -193,6 +193,9 @@ AC_CHECK_HEADER([si_gmp.h],,[AC_MSG_ERROR(cannot find singular header)])
 AC_SUBST([SINGULAR_INCLUDES])
 CPPFLAGS=$OLDCPPFLAGS
 
+FACTORY_INCLUDES="-I$SINGULAR_BIN/../include/factory"
+AC_SUBST([FACTORY_INCLUDES])
+
 ### header/library check
 # this is superficial.
 # the focus is on not breaking sagelib on sage (the distribution)
@@ -455,12 +458,20 @@ AC_SUBST(BLAS2, ${blas2})
 my_CPPFLAGS+=' -I$(top_srcdir)/..'
 AC_SUBST([my_CPPFLAGS])
 
-# more paths
-c_lib_include='$(top_srcdir)/../c_lib/include'
-CSAGE_INCLUDES=-I$c_lib_include
-LIBCSAGE_INCLUDES=-I$c_lib_include
-AC_SUBST(CSAGE_INCLUDES)
-AC_SUBST(LIBCSAGE_INCLUDES)
+# more paths (compile time)
+LIBCSAGE_INCLUDES='-I$(top_builddir)/../c_lib/includes'
+AS_IF([ test ! x$srcdir = "x."],
+      [LIBCSAGE_INCLUDES+=' -I$(top_srcdir)/../c_lib/includes'])
+AC_SUBST([LIBCSAGE_INCLUDES])
+
+# run time paths
+SAGE_LIBCSAGE_INCLUDES='-I${prefix}/include/csage'
+AC_SUBST([SAGE_LIBCSAGE_INCLUDES])
+SAGE_SRC="${prefix}/share/sage/src"
+AC_SUBST([SAGE_SRC])
+
+# not necessary with $( ) support in env.py
+# AS_AC_EXPAND(LIBCSAGE_INCLUDES, "-I$pkgincludedir")
 
 # fixme: use AC_...
 numpy_include_dir=$sage_local/lib/python/site-packages/numpy/core/include

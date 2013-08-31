@@ -26,8 +26,6 @@ libs_LTLIBRARIES = \
     ecl.la libsageecm.la ppl.la \
     ratpoints.la readline.la $(FES_MODULE)
 
-
-fes_la_CPPFLAGS = @CSAGE_INCLUDES@ $(AM_CPPFLAGS)
 fes_la_LIBADD = -lcsage -lfes
 
 ecl_la_LIBADD = -lecl @GMP_OR_MPIR_LIBS@ -lcsage

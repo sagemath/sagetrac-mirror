@@ -32,9 +32,13 @@ AM_LDFLAGS+= -L@top_builddir@/../c_lib/src/.libs
 # AM_CPPFLAGS += $(CPPFLAGS)
 
 # just append globally, needed quite often.
-AM_CPPFLAGS += @CSAGE_INCLUDES@
+AM_CPPFLAGS += @LIBCSAGE_INCLUDES@
+
+# this is the directory that contains config.h
+AM_CPPFLAGS += -I$(top_builddir)
 
 # this is the directory that contains "sage"
+# (might change later)
 AM_CPPFLAGS += -I$(top_builddir)/.. -I$(top_srcdir)/..
 
 # setup.py defines these
