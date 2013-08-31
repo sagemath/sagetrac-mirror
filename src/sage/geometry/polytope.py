@@ -43,13 +43,8 @@ from sage.structure.sage_object import SageObject
 
 import os
 from subprocess import *
-from sage.env import SAGE_LOCAL
 
-path = os.path.join(SAGE_LOCAL,'polymake','bin')
-polymake_command = path + 'polymake'
-
-if os.path.exists(path):
-    os.environ['PATH'] = '%s:'%path + os.environ['PATH']
+polymake_command = 'polymake'
 
 tmp_file = os.path.join(SAGE_TMP, 'tmp.poly')
 
