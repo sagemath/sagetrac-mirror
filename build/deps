@@ -20,10 +20,14 @@ CORE_OPTS = --prefix=$(SAGE_LOCAL) --with-dbdir="$(SAGE_LOCAL)/share"
 
 # its not possible to create these from here
 # fortunately this (file) is a temporary hack...
-$(SAGE_SRC)/%/configure: $(SAGE_SRC)/%/autogen.sh
+$(SAGE_SRC)/%/configure: $(SAGE_SRC)/%/autogen.sh $(INST)/$(AUTOTOOLS)
 	@echo run the respective autogen.sh.
 	@echo this will be taken care of by the toplevel build system later
 	. $(SAGE_ROOT)/sagedist/bin/sage-env && cd $(dir $@) && ./autogen.sh
+
+$(SAGE_SRC)/%/configure-stamp: $(SAGE_SRC)/%/configure
+	cd $(SAGE_SRC)/$*; . ../bin/sage-env && ./configure $(CORE_OPTS)
+	touch $@
 
 # Make the 4 build phases: base, toolchain, toolchain-deps, all-sage
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
@@ -145,7 +149,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = scripts sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON) $(INST)/$(GAP)
+SAGERUNTIME = scripts sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON) $(INST)/$(GAP) doc
 
 ###############################################################################
 # Building the base system
@@ -440,7 +444,7 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
-sage: \
+$(SAGE_SRC)/sage/configure-stamp: $(SAGE_SRC)/sage/configure \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
@@ -481,30 +485,37 @@ sage: \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
-		 csage | \
-       $(SAGE_SRC)/sage/configure
+		 csage
 	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure $(CORE_OPTS)
+	touch $@
+
+sage: $(SAGE_SRC)/sage/configure-stamp
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time $(MAKE) -C sage py; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
 
 $(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
 	mkdir -p $(SAGE_LOCAL)/etc
 	cp $< $@
 
-scripts: $(SCRIPT_TARGETS) $(SAGE_LOCAL)/etc/sage-maxima.lisp
+scripts: $(filter-out %autom4te.cache,$(SCRIPT_TARGETS)) $(SAGE_LOCAL)/etc/sage-maxima.lisp \
+         $(SAGE_SRC)/bin/configure-stamp
 
 extcode: $(EXTCODE_TARGETS)
 
-csage: $(INST)/$(AUTOTOOLS) \
+$(SAGE_SRC)/c_lib/configure-stamp: $(SAGE_SRC)/c_lib/configure \
        $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
        $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC) \
-       $(INST)/$(PYTHON) | \
-       $(SAGE_SRC)/c_lib/configure
+       $(INST)/$(PYTHON) 
 	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure $(CORE_OPTS)
-	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE); fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
+	touch $@
+
+csage: $(SAGE_SRC)/c_lib/configure-stamp
+	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE) install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
+
+doc: $(SAGE_SRC)/doc/configure-stamp
 
 $(INST)/$(AUTOTOOLS):
 	+$(PIPE) "$(SAGE_SPKG) $(AUTOTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(AUTOTOOLS).log"
