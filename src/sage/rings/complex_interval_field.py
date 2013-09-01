@@ -429,6 +429,14 @@ class ComplexIntervalField_class(field.Field):
             ...
             TypeError: unsupported operand parent(s) for '+': 'Complex Interval
             Field with 53 bits of precision' and 'Complex Field with 25 bits of precision'
+
+        TESTS:
+
+        Check that none of the pure floating-point rings coerces into this
+        field (see :trac:`15114`)::
+
+            sage: [CIF.has_coerce_map_from(K) for K in [RR, CC, RDF, CDF]] # indirect doctest
+            [False, False, False, False]
         """
         if is_ComplexIntervalField(K) and K._prec >= self._prec:
             return True
@@ -438,9 +446,6 @@ class ComplexIntervalField_class(field.Field):
         if K is qqbar.QQbar or K is real_lazy.CLF:
             return True
         return self._coerce_map_via([self._real_field()], K)
-
-#        elif complex_field.is_ComplexField(K) and K.prec() >= self._prec:
-#             return True
 
     def _repr_(self):
         """
