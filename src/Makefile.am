@@ -4,17 +4,19 @@
 #
 
 if BUILD_DOC
-DOC=doc
+DOC = doc
 endif
 
 SUBDIRS = c_lib sage $(DOC) bin ext # mac-app whatever
 
 # FIXME: environment mustnt be complicated
+# FIXME: SAGE_ETC points to bin?! maybe add etc in sagelib...
 check-local: # py sage
 	export SAGE_ROOT=/tmp; \
 	export SAGE_SRC=@abs_top_srcdir@; \
 	export SAGE_EXTCODE="@abs_top_builddir@/ext"; \
-	export PYTHONPATH="@abs_top_builddir@:$$PYTHONPATH"; \
+	export LIBCSAGE_INCLUDES="-I@abs_top_builddir@/c_lib/includes -I@abs_top_srcdir@/c_lib/includes"; \
+	export PYTHONPATH="@abs_top_builddir@$(PYTHONPATH:%=:%)"; \
 	export PATH="@abs_top_builddir@/bin:@abs_top_srcdir@/bin:$$PATH"; \
 	export SAGE_MAXIMA_INIT=/etc/sage/sage-maxima.lisp; \
 	export SAGE_ETC=@abs_top_builddir@/bin; \
