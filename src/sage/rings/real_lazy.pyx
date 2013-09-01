@@ -778,7 +778,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self.eval(R)
 
-    _mpfi_ = _mpfr_ = _complex_mpfr_field_ = _complex_mpfi_field_ = _generic_
+    _mpfr_ = _complex_mpfr_field_ = _generic_
 
     def __complex__(self):
         """

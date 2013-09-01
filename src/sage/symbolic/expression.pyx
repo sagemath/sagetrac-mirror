@@ -1064,20 +1064,6 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             raise TypeError, "unable to simplify to a real interval approximation"
 
-    def _complex_mpfi_(self, R):
-        """
-        Returns this expression as a complex interval.
-
-        EXAMPLES::
-
-            sage: CIF(pi)
-            3.141592653589794?
-        """
-        try:
-            return self._eval_self(R)
-        except TypeError:
-            raise TypeError, "unable to simplify to a complex interval approximation"
-
     def _real_double_(self, R):
         """
         EXAMPLES::
@@ -1090,7 +1076,7 @@ cdef class Expression(CommutativeRingElement):
     def _complex_mpfr_field_(self, R):
         """
         Return a numerical approximation to this expression in the given
-        ComplexField R.
+        ComplexField (or ComplexIntervalField) R.
 
         The precision of the approximation is determined by the precision of
         the input R.
@@ -1118,6 +1104,9 @@ cdef class Expression(CommutativeRingElement):
             0.95105651629515357211643933338 + 0.30901699437494742410229341718*I
             sage: CC(x*sin(0))
             0.000000000000000
+
+            sage: CIF(pi)
+            3.141592653589794?
         """
         return self._eval_self(R)
 
