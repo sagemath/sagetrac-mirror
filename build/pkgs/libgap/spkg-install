@@ -24,6 +24,9 @@ fi
 source "$SAGE_LOCAL/gap/latest/sysinfo.gap"
 echo "GAP was configured with $GAParch_system"
 
+echo "Patching libGAP..."
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
 echo "Configuring libGAP..."
 cd src
 ./configure --disable-static CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
