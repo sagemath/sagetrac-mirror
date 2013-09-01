@@ -17,7 +17,7 @@ AUTHORS:
  *                  http://www.gnu.org/licenses/
  ****************************************************************************/
 
-#include <mpir.h>
+#include "gmp_or_mpir.h"
 #include "memory.h"
 
 /* mpir memory functions */
