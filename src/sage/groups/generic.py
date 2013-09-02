@@ -501,7 +501,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     - a - a group element
     - base - a group element
     - ord - the order of base or None, in this case we try to compute it
-    - operation - a string  (default: '*')  wether we are in an
+    - operation - a string  (default: '*')  whether we are in an
        additive group or a multiplicative one
     - hash_function - having an efficient hash function is critical
        for this algorithm (see examples)
