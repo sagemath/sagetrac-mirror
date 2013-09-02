@@ -140,7 +140,7 @@ AM_CONDITIONAL([CYGDB], [test $cygdb = yes])
 # find clib. might be obsolete
 # AC_ARG_WITH(blas, --with-clib   choose c_lib, [clib=$with_clib], [])
 
-AC_CHECK_HEADERS([math.h assert.h sys/sysmacros.h fcntl.h sys/stat.h mach/mach.h sys/mman.h])
+AC_CHECK_HEADERS([math.h assert.h sys/sysmacros.h fcntl.h mach/mach.h sys/mman.h])
 AC_CHECK_HEADERS([sgtty.h stdlib.h string.h sys/ioctl.h sys/param.h sys/time.h sys/resource.h])
 AC_CHECK_HEADERS([termio.h termios.h unistd.h signal.h stdio.h libc.h sys/times.h sys/wait.h])
 AC_CHECK_HEADERS([vfork.h dirent.h errno.h setjmp.h])
@@ -156,7 +156,7 @@ AC_CHECK_FUNCS([vm_allocate])
 AC_CHECK_FUNCS([fork popen waitpid wait4])
 AC_CHECK_FUNCS([dup2 floor memmove mkdir pow rint])
 AC_CHECK_FUNCS([ttyname strerror select])
-AC_CHECK_FUNCS([access stat fstat lstat unlink mkdir mkdtemp mkstemp rmdir link rename])
+AC_CHECK_FUNCS([access lstat unlink mkdir mkdtemp mkstemp rmdir link rename])
 AC_CHECK_FUNCS([symlink readlink chmod fchmod chown fchown lchown dup dup2 mknod mkfifo])
 AC_CHECK_FUNCS([socket listen accept connect bind getsockname recv recvfrom recvmsg send])
 AC_CHECK_FUNCS([sendto sendmsg getsockopt setsockopt getprotobyname gethostbyname])
@@ -459,9 +459,9 @@ my_CPPFLAGS+=' -I$(top_srcdir)/..'
 AC_SUBST([my_CPPFLAGS])
 
 # more paths (compile time)
-LIBCSAGE_INCLUDES='-I$(top_builddir)/../c_lib/includes'
+LIBCSAGE_INCLUDES='-I$(top_builddir)/../c_lib/include'
 AS_IF([ test ! x$srcdir = "x."],
-      [LIBCSAGE_INCLUDES+=' -I$(top_srcdir)/../c_lib/includes'])
+      [LIBCSAGE_INCLUDES+=' -I$(top_srcdir)/../c_lib/include'])
 AC_SUBST([LIBCSAGE_INCLUDES])
 
 # run time paths

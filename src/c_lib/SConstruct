@@ -135,7 +135,7 @@ srcFiles = cFiles + cppFiles
 incFiles = Split( "ccobject.h  convert.h  ginac_wrap.h  gmp_globals.h" ) + \
            Split( "interrupt.h  memory.h  mpn_pylong.h  mpz_longlong.h" ) + \
            Split( "mpz_pylong.h  ntl_wrap.h  pb_wrap.h  stdsage.h  ZZ_pylong.h" ) + \
-           Split( "gmp_or_mpir.h" )
+           Split( "gmp_or_mpir.h gmpxx_or_mpirxx.h" )
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
                          LIBS=['ntl', 'pari', 'gmp', 'python$PYV'],

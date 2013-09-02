@@ -17,6 +17,8 @@ import sphinx.cmdline
 import sphinx.util.console
 import sphinx.ext.intersphinx
 
+from sage.interfaces.gap import set_gap_memory_pool_size
+
 #We remove the current directory from sys.path right away
 #so that we import sage from the proper spot
 try:
@@ -28,11 +30,11 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs as mkdir
 from sage.env import SAGE_DOC, SAGE_SRC
 
-# Load the options, including
-#     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
-#     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
-# from build_options.py.
+# Load the options
 sys.path.append(os.path.join(SAGE_DOC, 'common'))
+# from build_options import SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT, \
+#                           PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, \
+#                           WEBSITESPHINXOPTS, SAGE_DOC_SRC
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 

@@ -31,6 +31,8 @@ cd src
 # Remove old installed versions
 ########################################################################
 
+cd "$SAGE_LOCAL"/bin
+rm -rf autoconf-* automake-* libtool-*
 cd "$SAGE_LOCAL"
 rm -rf autoconf-* automake-* libtool-*
 cd bin
@@ -78,6 +80,7 @@ ln -s autoconf-2.60 autoconf-2.59c
 ln -s libtool-2.2.4 libtool-2.2.3a
 ln -s libtool-2.2.8 libtool-2.2.7a
 
+
 ########################################################################
 # Copy the Makefile and build everything
 ########################################################################
@@ -94,3 +97,10 @@ cd "$BUILD"
 # Force the use of bash as shell (/bin/sh on OpenSolaris has problems
 # with very long command lines used in some make rules).
 $MAKE SHELL=`which bash`
+
+# Make symlinks for some exact version matches
+cd "$SAGE_LOCAL/bin"
+for x in $autoconf_versions; do ln -sf autoconf autoconf-$x; done
+for x in $automake_versions; do ln -sf automake automake-$x; done
+for x in $libtool_versions; do ln -sf libtool libtool-$x; done
+
