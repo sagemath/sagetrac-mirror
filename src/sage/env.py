@@ -109,7 +109,7 @@ _add_variable_or_fallback('SAGE_DATE',       version.date)
 # additional packages locations
 _add_variable_or_fallback('CONWAY_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
 _add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
-_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',    '$SAGE_SHARE')
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
 _add_variable_or_fallback('GAP_DATA_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 
