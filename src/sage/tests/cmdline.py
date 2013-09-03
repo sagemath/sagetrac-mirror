@@ -480,6 +480,12 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
+    Check that ``sage-location`` did its job::
+
+        sage: from sage.env import SAGE_ETC
+        sage: os.path.isfile(os.path.join(SAGE_ETC, 'sage-current-location.txt')
+        True
+
     Check that ``sage-location`` did its job in making Python scripts
     relative.  We test it on the ``ipython`` script::
 

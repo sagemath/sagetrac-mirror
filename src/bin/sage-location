@@ -4,8 +4,9 @@ import os, sys, re
 
 SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_LOCAL    = os.environ['SAGE_LOCAL']
+SAGE_ETC      = os.environ['SAGE_ETC']
 
-location_file = os.path.join(SAGE_LOCAL, 'lib', 'sage-current-location.txt')
+location_file = os.path.join(SAGE_ETC, 'sage-current-location.txt')
 force_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-force-relocate.txt')
 flags_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-flags.txt')
 
