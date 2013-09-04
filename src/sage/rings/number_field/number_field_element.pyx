@@ -59,7 +59,7 @@ QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
-from sage.rings.real_mpfi import RealInterval
+import sage.rings.real_mpfi
 
 from sage.rings.complex_field import ComplexField
 CC = ComplexField(53)
@@ -3764,7 +3764,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         if self != self.conjugate() or self.is_zero():
             return False
         else:
-            approx = RealInterval(self.n(min_prec).real())
+            approx = sage.rings.real_mpfi.RealInterval(self.n(min_prec).real())
             if approx.lower() > 0:
                 return True
             else:

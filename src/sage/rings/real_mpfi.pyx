@@ -218,6 +218,11 @@ import operator
 from integer import Integer
 from integer cimport Integer
 
+from sage.structure.parent import Parent
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from real_double import RealDoubleElement
 from real_double cimport RealDoubleElement
 
@@ -444,6 +449,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         sage: TestSuite(RIF).run()
     """
 
+    Element = RealIntervalFieldElement
+
     def __init__(self, int prec=53, int sci_not=0):
         """
         Initialize ``self``.
@@ -455,6 +462,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             sage: RealIntervalField(200)
             Real Interval Field with 200 bits of precision
         """
+        sage.rings.ring.Field.__init__(self, self)
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
             raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
@@ -465,6 +473,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         self.__upper_field = RealField(prec, sci_not, "RNDU")
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
+        self._populate_coercion_lists_()
 
     def _lower_field(self):
         """
@@ -638,12 +647,14 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             1.5625000?
             sage: a.str(2)
             '1.1001000000000000000?'
+            sage: R(1,2).str(style='brackets')
+            '[1.0000000 .. 2.0000000]'
 
         Type: RealIntervalField? for more information.
         """
         if not y is None:
             x = (x,y)
-        return RealIntervalFieldElement(self, x, base)
+        return Parent.__call__(self, x, base)
 
     def construction(self):
         r"""
@@ -668,9 +679,9 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
                                   {'sci_not': self.scientific_notation(), 'type': 'Interval'}),
                sage.rings.rational_field.QQ)
 
-    cdef _coerce_c_impl(self, x):
+    cpdef _coerce_map_from_(self, P):
         """
-        Canonical coercion of ``x`` to this mpfi real field.
+        Specify coercions into this mpfi real field.
 
         The rings that canonically coerce to this mpfi real field are:
 
@@ -683,34 +694,43 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
           this one
 
         - anything that canonically coerces to the mpfr real field
-          with same precision as ``self``.
+          with same precision as ``self`` (coercions into self are
+          then performed using coercions into mpfr real fields with
+          different rounding modes).
 
         Values which can be exactly represented as a floating-point number
         are coerced to a precise interval, with upper and lower bounds
         equal; otherwise, the upper and lower bounds will typically be
         adjacent floating-point numbers that surround the given value.
+
+        TESTS::
+
+            sage: RIF64 = RealIntervalField(prec=64)
+            sage: RIF.has_coerce_map_from(RIF64), RIF64.has_coerce_map_from(RIF)
+            (True, False)
+            sage: NF = NumberField(x^2-2, 'sqrt2', embedding=1.4)
+            sage: [RIF.has_coerce_map_from(R) for R in [ZZ, QQ, NF]]
+            [True, True, True]
         """
-        if isinstance(x, real_mpfr.RealNumber):
-            P = x.parent()
-            if (<RealField_class> P).__prec >= self.__prec:
-                return self(x)
-            else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, RealIntervalFieldElement):
-            P = x.parent()
-            if (<RealIntervalField_class> P).__prec >= self.__prec:
-                return self(x)
-            else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational)):
-            return self(x)
-        cdef RealNumber lower, upper
-        try:
-            lower = self.__lower_field._coerce_(x)
-            upper = self.__upper_field._coerce_(x)
-            return self(lower, upper)
-        except TypeError, msg:
-            raise TypeError, "no canonical coercion of element into self"
+        if isinstance(P, RealIntervalField_class) and (<RealIntervalField_class> P).__prec >= self.__prec:
+            return True
+        #### TODO: should disappear
+        if isinstance(P, RealField_class) and (<RealField_class> P).__prec >= self.__prec:
+            return True
+        ####
+        if self.__middle_field.has_coerce_map_from(P):  # TODO: exact parents only
+            return True
+
+    def _element_constructor_(self, x, base=10):
+        """
+        Convert ``x`` into this mpfi real field.
+
+        TESTS::
+
+            sage: RIF(1,2).str(style='brackets') # indirect doctest
+            '[1.0000000000000000 .. 2.0000000000000000]'
+        """
+        return self.element_class(self, x, base)
 
     def __cmp__(self, other):
         """

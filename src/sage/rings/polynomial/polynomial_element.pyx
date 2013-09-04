@@ -50,6 +50,7 @@ import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
+import sage.rings.real_mpfi
 #import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
@@ -66,7 +67,6 @@ CC = ComplexField()
 
 from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
-from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.element import RingElement, generic_power, parent
 from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
@@ -5125,7 +5125,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # and complex root isolation.
             if (is_IntegerRing(K) or is_RationalField(K)
                 or is_AlgebraicRealField(K)) and \
-                (is_AlgebraicRealField(L) or is_RealIntervalField(L)):
+                (is_AlgebraicRealField(L) or sage.rings.real_mpfi.is_RealIntervalField(L)):
 
                 from sage.rings.polynomial.real_roots import real_roots
 
