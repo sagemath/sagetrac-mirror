@@ -40,6 +40,7 @@ import weakref
 import real_mpfi
 import complex_interval
 import complex_field
+import sage.categories.pushout
 from sage.misc.sage_eval import sage_eval
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings import complex_number
@@ -141,6 +142,10 @@ class ComplexIntervalField_class(field.Field):
         1 + 10*I
         sage: NumberField(x^41+7, 'alpha', embedding=1.).gen()/CIF(1,3)
         -0.1048605538710805? + 0.314581661613242?*I
+        sage: RealIntervalField(12)(1/3) * i
+        0.3333?*I
+        sage: CyclotomicField(3).gen() + RIF(1/2)
+        0.?e-15 + 0.866025403784439?*I
 
     This illustrates precision::
 
@@ -223,6 +228,21 @@ class ComplexIntervalField_class(field.Field):
             False
         """
         return False
+
+    def construction(self):
+        """
+        Returns the functorial construction of ``self``, namely the algebraic
+        closure of the real interval field with the same precision.
+
+        EXAMPLES::
+
+            sage: c, S = CIF.construction(); S
+            Real Interval Field with 53 bits of precision
+            sage: CIF == c(S)
+            True
+        """
+        return (sage.categories.pushout.AlgebraicClosureFunctor(),
+                self._real_field())
 
     def prec(self):
         """

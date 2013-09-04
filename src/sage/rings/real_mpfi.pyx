@@ -839,6 +839,18 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         return sage.rings.complex_interval_field.ComplexIntervalField(self.prec())
 
+    def algebraic_closure(self):
+        """
+        Return the algebraic closure of ``self``, i.e., the complex interval
+        field with the same precision.
+
+        EXAMPLES::
+
+            sage: RealIntervalField(5).algebraic_closure()
+            Complex Interval Field with 5 bits of precision
+        """
+        return self.complex_field()
+
     def ngens(self):
         """
         Return the number of generators of ``self``, which is 1.
