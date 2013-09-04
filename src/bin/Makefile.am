@@ -39,7 +39,16 @@ dist_bin_SCRIPTS = \
 sageconfdir=$(sysconfdir)
 sageconf_DATA = \
     env.sh \
-    sage-banner
+    sage-banner \
+    sage-started.txt \
+    sage-current-location.txt
+
+sage-started.txt:
+	touch $@
+
+# probably doesnt matter much for installed instances of sagelib
+sage-current-location.txt:
+	echo $(prefix) > $@
 
 #FIXME: this does not exactly belong here
 EXTRA_DIST = sage-banner
