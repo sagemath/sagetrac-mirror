@@ -63,15 +63,6 @@ pycheck: pyall
 pys: | $(INIT_PY_HERE)
 check-local: | $(INIT_PY_HERE)
 
-all: | __init__.pyc
-
-if VPATH_BUILD
-pys:
-	for i in $(filter_out env.py, $(sage_PYTHON)); \
-		do cp -p @srcdir@/$$i .; done
-PHONYPYS = pys
-endif
-
 # move this up one level when merging core modules
 sageconfdir=$(sysconfdir)
 sageconf_DATA = default.qepcadrc

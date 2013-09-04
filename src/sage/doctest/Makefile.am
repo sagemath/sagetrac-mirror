@@ -11,3 +11,19 @@ doctest_PYTHON = \
 
 doctest_testsdir = $(doctestdir)/tests
 doctest_tests_PYTHON = tests/nodoctest.py
+
+EXTRA_DIST = \
+    tests/1second.rst \
+    tests/99seconds.rst \
+    tests/abort.rst \
+    tests/atexit.rst \
+    tests/fail_and_die.rst \
+    tests/initial.rst \
+    tests/interrupt_diehard.rst \
+    tests/interrupt.rst \
+    tests/keyboardinterrupt.rst \
+    tests/longtime.rst \
+    tests/show_skipped.rst \
+    tests/sig_on.rst \
+    tests/simple_failure.rst \
+    tests/sleep_and_raise.rst
