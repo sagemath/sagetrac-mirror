@@ -81,21 +81,32 @@ CYTHONFLAGS += -I$(abs_top_srcdir)/.. -I$(abs_top_builddir)/..
 
 CYTHON ?= cython
 
+# simplify paths
+here_rel = $(subst $(abs_top_srcdir),,$(abs_srcdir))
+instdir = $(pythondir)/sage$(here_rel)
+
+# does not work with subdir sources
+install-data-hook: $(filter %.pyx,$(SOURCES))
+	@echo installing more stuff
+	@for i in $<; do \
+		$(INSTALL) -t $(instdir) $$i; \
+	done
+
 # need to be adapted in during core modules build system merge
 sagelib_abs_top_srcdir = $(abs_top_srcdir)/..
 sagelib_abs_top_builddir = $(abs_top_builddir)/..
 
 AM_V_CYT = $(am__v_CYT_$(V))
 am__v_CYT_ = $(am__v_CYT_$(AM_DEFAULT_VERBOSITY))
-am__v_CYT_0 = @echo "  CYTH  " $@;
+am__v_CYT_0 = @echo "  CYTH    " $@;
 
 AM_V_PYC = $(am__v_PYC_$(V))
 am__v_PYC_ = $(am__v_PYC_$(AM_DEFAULT_VERBOSITY))
-am__v_PYC_0 = @echo "  PYC   " $@;
+am__v_PYC_0 = @echo "  PYC     " $@;
 
 AM_V_PYO = $(am__v_PYO_$(V))
 am__v_PYO_ = $(am__v_PYO_$(AM_DEFAULT_VERBOSITY))
-am__v_PYO_0 = @echo "  PYO   " $@;
+am__v_PYO_0 = @echo "  PYO     " $@;
 
 # ouch, trailing colon.
 # empty string will be (mis)interpreted as '.'.
@@ -154,6 +165,7 @@ $(LTLIBRARIES:%.la=%.so): %.so: | %.la
 
 # manually implementing AM_EXTRA_RECURSIVE_TARGETS([py pycheck])
 # will be implemented in automake1.12
+# (pycheck is not a good name...)
 py: py-local py-recursive
 py-recursive:
 	for i in $(SUBDIRS); do $(MAKE) -C $$i py || exit 1; done
@@ -163,6 +175,9 @@ pycheck-recursive:
 
 @am__leading_dot@PHONY: py-recursive py-local py \
                         pycheck-recursive pycheck-local pycheck
+
+# create python module for checking
+check-local: py-local
 
 PYLIST = none
 
