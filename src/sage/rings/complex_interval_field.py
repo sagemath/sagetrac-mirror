@@ -132,6 +132,16 @@ class ComplexIntervalField_class(field.Field):
         ...
         TypeError: unable to coerce to a ComplexIntervalFieldElement
 
+    We can coerce elements of algebraic number fields embedded into
+    the complex numbers::
+
+        sage: QQi.<i> = NumberField(x^2+1, embedding=CC(0,1))
+        sage: L.<a> = NumberField(x^2-4, embedding=2*i)
+        sage: CIF(1) + i + a + QQi.order(i).gen(1) + L.order(3*a).gen(1)
+        1 + 10*I
+        sage: NumberField(x^41+7, 'alpha', embedding=1.).gen()/CIF(1,3)
+        -0.1048605538710805? + 0.314581661613242?*I
+
     This illustrates precision::
 
         sage: CIF = ComplexIntervalField(10); CIF(1/3, 2/3)

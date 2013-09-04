@@ -366,6 +366,13 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         sage: RIF('[1..3]').str(style='brackets')
         '[1.0000000000000000 .. 3.0000000000000000]'
 
+    We can coerce elements of algebraic number fields embedded into
+    the real numbers::
+
+        sage: K.<sqrt3> = NumberField(x^2-3, embedding=1.7)
+        sage: CIF(1/9) * sqrt3 * K.order(3*sqrt3).gen(1)
+        1.000000000000000?
+
     Next we coerce some 2-tuples, which define intervals::
 
         sage: RIF((-1.5, -1.3))
@@ -717,6 +724,12 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
 
             sage: [RIF.has_coerce_map_from(K) for K in [RR, CC, RDF, CDF]]
             [False, False, False, False]
+
+        Test coercions from non-quadratic algebraic number fields embedded in RR::
+
+            sage: K.<a> = NumberField(x^5-7, embedding=1.)
+            sage: RIF(1,1.0005) + a + K.order(a+1).gen(1)
+            3.952?
         """
         if isinstance(P, RealIntervalField_class) and (<RealIntervalField_class> P).__prec >= self.__prec:
             return True
