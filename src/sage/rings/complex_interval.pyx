@@ -77,7 +77,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     EXAMPLES::
 
         sage: I = CIF.gen()
-        sage: b = 1.5 + 2.5*I
+        sage: b = 3/2 + 5/2*I
         sage: TestSuite(b).run()
     """
     cdef ComplexIntervalFieldElement _new(self):
@@ -1147,7 +1147,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.570796326794897?
             sage: (-i).argument()
             -1.570796326794897?
-            sage: (RR('-0.001') - i).argument()
+            sage: (RIF('-0.001') - i).argument()
             -1.571796326461564?
             sage: CIF(2).argument()
             0
@@ -1337,7 +1337,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         If a base is passed from another function, we can accommodate this::
 
             sage: CIF(-1,1).log(2)
-            0.500000000000000? + 3.399270106370396?*I
+            0.500000000000000? + 3.39927010637040?*I
         """
         if self == 0:
             from real_mpfi import RIF
@@ -1347,8 +1347,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if base is None or base is 'e':
             return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
         else:
-            from real_mpfr import RealNumber, RealField
-            return ComplexIntervalFieldElement(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
+            logbase = real_mpfi.RealIntervalFieldElement(self._parent._real_field(), base).log()
+            return ComplexIntervalFieldElement(self._parent, rho.log()/logbase, theta/logbase)
 
     def sqrt(self, bint all=False, **kwds):
         """

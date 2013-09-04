@@ -6183,9 +6183,9 @@ class ANRoot(ANDescr):
 
                 newton_lower = not newton_lower
                 if newton_lower:
-                    new_range = linfo['endpoint'] - linfo['value'] / slope
+                    new_range = field(linfo['endpoint']) - linfo['value'] / slope
                 else:
-                    new_range = uinfo['endpoint'] - uinfo['value'] / slope
+                    new_range = field(uinfo['endpoint']) - uinfo['value'] / slope
 
                 if new_range.lower() in interval:
                     interval = field(new_range.lower(), interval.upper())

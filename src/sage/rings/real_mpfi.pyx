@@ -115,9 +115,9 @@ satisfying, but we have chosen the latter.
     sage: a = R(1.25)
     sage: a.str(style='brackets')
     '[1.2 .. 1.3]'
-    sage: a == 1.25
-    True
-    sage: a == 2
+    sage: a.absolute_diameter()
+    0.00
+    sage: 1.3 in a
     False
 
 COMPARISONS:
@@ -693,7 +693,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         - any other mpfi real field with precision that is as large as
           this one
 
-        - anything that canonically coerces to the mpfr real field
+        - any exact parent that canonically coerces to the mpfr real field
           with same precision as ``self`` (coercions into self are
           then performed using coercions into mpfr real fields with
           different rounding modes).
@@ -711,15 +711,20 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             sage: NF = NumberField(x^2-2, 'sqrt2', embedding=1.4)
             sage: [RIF.has_coerce_map_from(R) for R in [ZZ, QQ, NF]]
             [True, True, True]
+
+        Check that none of the pure floating-point rings coerces into this
+        field (see :trac:`15114`)::
+
+            sage: [RIF.has_coerce_map_from(K) for K in [RR, CC, RDF, CDF]]
+            [False, False, False, False]
         """
         if isinstance(P, RealIntervalField_class) and (<RealIntervalField_class> P).__prec >= self.__prec:
             return True
-        #### TODO: should disappear
-        if isinstance(P, RealField_class) and (<RealField_class> P).__prec >= self.__prec:
-            return True
-        ####
-        if self.__middle_field.has_coerce_map_from(P):  # TODO: exact parents only
-            return True
+        try:
+            if self.__middle_field.has_coerce_map_from(P) and P.is_exact():
+                return True
+        except AttributeError:
+            pass
 
     def _element_constructor_(self, x, base=10):
         """
@@ -2468,7 +2473,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: I = RIF(e, pi)
             sage: a, b = I.bisection()
-            sage: a.intersection(b) == I.center()
+            sage: a.intersection(b) == RIF(I.center())
             True
             sage: a.union(b).endpoints() == I.endpoints()
             True
@@ -3917,8 +3922,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: r = RIF(16.0); r.log10()
             1.204119982655925?
-            sage: r.log() / log(10.0)
-            1.204119982655925?
 
         ::
 
@@ -4542,7 +4545,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             -3.54490770181104?
             sage: gamma(-1/2).n(100) in RIF(-1/2).gamma()
             True
-            sage: 0 in (RealField(2000)(-19/3).gamma() - RealIntervalField(1000)(-19/3).gamma())
+            sage: 0 in (RealIntervalField(1000)(RealField(2000)(-19/3).gamma()) -
+            ....:       RealIntervalField(1000)(-19/3).gamma())
             True
             sage: gamma(RIF(100))
             9.33262154439442?e155
@@ -4571,7 +4575,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [-infinity .. +infinity]
         """
         cdef RealIntervalFieldElement x = self._new()
-        if self > 1.462:
+        if self > self._parent(1.462):
             # increasing
             mpfr_gamma(&x.value.left, &self.value.left, GMP_RNDD)
             mpfr_gamma(&x.value.right, &self.value.right, GMP_RNDU)
@@ -4583,7 +4587,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         elif self.contains_zero():
             # [-infinity, infinity]
             return ~self
-        elif self < 1.461:
+        elif self < self._parent(1.461):
             # 0 < self as well, so decreasing
             mpfr_gamma(&x.value.left, &self.value.right, GMP_RNDD)
             mpfr_gamma(&x.value.right, &self.value.left, GMP_RNDU)

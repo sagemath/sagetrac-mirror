@@ -919,7 +919,7 @@ class Sha(SageObject):
                 else:
                     hZ = F.regulator(use_database=True)/2
                 #print  alpha * LE1 * LF1 / hZ
-                I = RIF(alpha) * RIF(LE1-err_E,LE1+err_E) * RIF(LF1-err_F,LF1+err_F) / hZ
+                I = RIF(alpha) * RIF(LE1-err_E,LE1+err_E) * RIF(LF1-err_F,LF1+err_F) / RIF(hZ)
                 #print I
 
             else:          # E has odd rank
@@ -934,7 +934,7 @@ class Sha(SageObject):
                 err_E = max(err_E, MIN_ERR)
                 #I = alpha * LE1 * LF1 / hZ
 
-                I = RIF(alpha) * RIF(LE1-err_E,LE1+err_E) * RIF(LF1-err_F,LF1+err_F) / hZ
+                I = RIF(alpha) * RIF(LE1-err_E,LE1+err_E) * RIF(LF1-err_F,LF1+err_F) / RIF(hZ)
 
             verbose('interval = %s'%I)
             t, n = I.is_int()
