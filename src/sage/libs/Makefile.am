@@ -19,7 +19,10 @@ SUBDIRS = \
 
 include $(top_srcdir)/common.mk
 libsdir = $(pythondir)/sage/libs
-libs_PYTHON = __init__.py all.py polybori/__init__.py
+libs_PYTHON = __init__.py all.py
+
+libs_polyboridir = $(libsdir)/polybori
+libs_polybori_PYTHON = polybori/__init__.py
 
 AM_DEFAULT_SOURCE_EXT = .pyx
 libs_LTLIBRARIES = \
