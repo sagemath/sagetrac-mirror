@@ -519,7 +519,7 @@ class R(Expect):
         EXAMPLES::
 
             sage: print r._source("print.anova")
-            function (x, digits = max(getOption("digits") - 2, 3), signif.stars = getOption("show.signif.stars"),
+            function (x, digits = max(getOption("digits") - 2..., 3...), signif.stars = getOption("show.signif.stars"),
             ...
         """
         if s[-2:] == "()":
@@ -539,7 +539,7 @@ class R(Expect):
         EXAMPLES::
 
             sage: print r.source("print.anova")
-            function (x, digits = max(getOption("digits") - 2, 3), signif.stars = getOption("show.signif.stars"),
+            function (x, digits = max(getOption("digits") - 2..., 3...), signif.stars = getOption("show.signif.stars"),
             ...
         """
         return self._source(s)
@@ -553,7 +553,7 @@ class R(Expect):
         EXAMPLES::
 
             sage: r.version()
-            ((2, 15, 2), 'R version 2.15.2 (2012-10-26)')
+            ((...), 'R version ... (201...)')
         """
         major_re = re.compile('^major\s*(\d.*?)$', re.M)
         minor_re = re.compile('^minor\s*(\d.*?)$', re.M)
@@ -2047,7 +2047,7 @@ def r_version():
     EXAMPLES::
 
         sage: r.version()
-        ((2, 15, 2), 'R version 2.15.2 (2012-10-26)')
+        ((...), 'R version ... (201...)')
     """
     return r.version()
 
