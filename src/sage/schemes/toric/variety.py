@@ -144,14 +144,19 @@ access the "building pieces"::
 
     sage: patch = P1xP1.affine_patch(2)
     sage: patch
-    2-d affine toric variety
+    2-d affine toric variety with embedding
     sage: patch.fan().rays()
     N(1, 0),
     N(0, 1)
     in 2-d lattice N
     sage: patch.embedding_morphism()
     Scheme morphism:
-      From: 2-d affine toric variety
+      From: 2-d affine toric variety with embedding
+      To:   2-d toric variety covered by 4 affine patches
+      Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 2-d lattice N.
+    sage: patch.embedding_morphism().as_polynomial_map()
+    Scheme morphism:
+      From: 2-d affine toric variety with embedding
       To:   2-d toric variety covered by 4 affine patches
       Defn: Defined on coordinates by sending [x : s] to
             [x : s : 1 : 1]
@@ -978,17 +983,17 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = ToricVariety(fan, "x s y t")
             sage: patch0 = P1xP1.affine_patch(0)
             sage: patch0
-            2-d affine toric variety
-            sage: patch0.embedding_morphism()
+            2-d affine toric variety with embedding
+            sage: patch0.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [x : t] to
                     [x : 1 : 1 : t]
             sage: patch1 = P1xP1.affine_patch(1)
-            sage: patch1.embedding_morphism()
+            sage: patch1.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [y : t] to
                     [1 : 1 : y : t]
@@ -3124,17 +3129,17 @@ class ToricEmbedding_Mixin:
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: P1xP1.embedding_morphism()
-            Traceback (most recent call last):
-            ...
-            ValueError: no default embedding was
-            defined for this toric variety!
             sage: patch = P1xP1.affine_patch(0)
             sage: patch
-            2-d affine toric variety
+            2-d affine toric variety with embedding
             sage: patch.embedding_morphism()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 2-d lattice N.
+            sage: patch.embedding_morphism().as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety with embedding
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [x : t] to
                     [x : 1 : 1 : t]
