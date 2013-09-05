@@ -526,17 +526,20 @@ class SageDocTestRunner(doctest.DocTestRunner):
                     failures += 1
                 elif not quiet:
                     self.report_success(out, test, example, got)
-            elif outcome is FAILURE:
-                if not quiet:
-                    self.report_failure(out, test, example, got, test.globs)
-                failures += 1
-            elif outcome is BOOM:
-                if not quiet:
-                    self.report_unexpected_exception(out, test, example,
-                                                     exc_info)
-                failures += 1
             else:
-                assert False, ("unknown outcome", outcome)
+                if outcome is FAILURE:
+                    if not quiet:
+                        self.report_failure(out, test, example, got, test.globs)
+                    failures += 1
+                elif outcome is BOOM:
+                    if not quiet:
+                        self.report_unexpected_exception(out, test, example,
+                                                         exc_info)
+                    failures += 1
+                else:
+                    assert False, ("unknown outcome", outcome)
+                if hasattr(example, 'abort_if_fail'):
+                    break
 
         # Restore the option flags (in case they were modified)
         self.optionflags = original_optionflags

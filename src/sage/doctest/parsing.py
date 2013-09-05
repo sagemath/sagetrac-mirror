@@ -27,7 +27,7 @@ import collections
 from sage.misc.preparser import preparse, strip_string_literals
 
 float_regex = re.compile('([+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(long time|not implemented|not tested|known bug|abort-if-fail)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -57,6 +57,7 @@ def parse_optional_tags(string):
     - 'not tested'
     - 'known bug'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
+    - 'abort-if-fail'
 
     EXAMPLES::
 
@@ -87,8 +88,8 @@ def parse_optional_tags(string):
 
     UTF-8 works::
 
-         sage: parse_optional_tags("'ěščřžýáíéďĎ'")
-         set([])
+        sage: parse_optional_tags("'ěščřžýáíéďĎ'")
+        set([])
     """
     safe, literals, state = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]
@@ -540,6 +541,9 @@ class SageDocTestParser(doctest.DocTestParser):
             if isinstance(item, doctest.Example):
                 optional_tags = parse_optional_tags(item.source)
                 if optional_tags:
+                    if 'abort-if-fail' in optional_tags:
+                        item.abort_if_fail = True
+                        optional_tags.remove('abort-if-fail')
                     for tag in optional_tags:
                         self.optionals[tag] += 1
                     if ('not implemented' in optional_tags) or ('not tested' in optional_tags):

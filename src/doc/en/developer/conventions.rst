@@ -794,6 +794,21 @@ mind:
        sage: E.regulator()              # long time (1 second)
        0.0511114082399688
 
+- Sometimes, the failure of an example should prevent the execution of
+  further examples in that doctest.  For example, if you change to a
+  temporary directory and then create a bunch of files, you may not
+  want to create the files if the chdir command fails.  You can
+  achieve this effect by adding a ``abort-if-fail`` command in the
+  comment at the end of the line.  Further examples in the doctest
+  will not be executed if the command fails::
+
+      sage: import os
+      sage: curdir = os.getcwd()
+      sage: os.chdir(tmp_dir()) # abort-if-fail
+      sage: with open('garbage','w') as f: f.write("Trash")
+      sage: os.unlink('garbage')
+      sage: os.chdir(curdir)
+
 -  If a line contains ``tol`` or ``tolerance``, numerical results are only
    verified to the given tolerance. This may be prefixed by ``abs[olute]``
    or ``rel[ative]`` to specify whether to measure absolute or relative

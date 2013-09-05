@@ -366,4 +366,30 @@ Test ``atexit`` support in the doctesting framework::
     ....:     os.unlink(F)
     ....: except OSError:
     ....:     pass
+
+Test that the abort-if-fail flag works::
+
+    sage: subprocess.call(["sage", "-t", "abort_if_fail.rst"], **kwds)
+    Running doctests with ID ...
+    Doctesting 1 file.
+    sage -t abort_if_fail.rst
+    **********************************************************************
+    File "abort_if_fail.rst", line 3, in sage.doctest.tests.abort_if_fail
+    Failed example:
+        1 + 1 # abort-if-fail
+    Expected:
+        3
+    Got:
+        2
+    **********************************************************************
+    1 item had failures:
+       1 of   1 in sage.doctest.tests.abort_if_fail
+        [2 tests, 1 failure, ... s]
+    ----------------------------------------------------------------------
+    sage -t abort_if_fail.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    Total time for all tests: ... seconds
+        cpu time: ... seconds
+        cumulative wall time: ... seconds
+    1
 """
