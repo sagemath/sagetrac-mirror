@@ -163,6 +163,7 @@ from sage.rings.all import (PolynomialRing, QQ,
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
+                                            ToricEmbedding_Mixin,
                                             normalize_names)
 from sage.structure.all import get_coercion_model
 from sage.categories.fields import Fields
@@ -220,7 +221,8 @@ def CPRFanoToricVariety(Delta=None,
                         coordinate_name_indices=None,
                         make_simplicial=False,
                         base_field=None,
-                        check=True):
+                        check=True,
+                        embedding_morphism=None):
     r"""
     Construct a CPR-Fano toric variety.
 
@@ -636,9 +638,14 @@ def CPRFanoToricVariety(Delta=None,
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure
-    return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
-        point_to_ray, coordinate_names, coordinate_name_indices, base_field)
-
+    if embedding_morphism is None:
+        return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
+            point_to_ray, coordinate_names, coordinate_name_indices,
+            base_field)
+    else:
+        return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
+            coordinate_points, point_to_ray, coordinate_names,
+            coordinate_name_indices, base_field, embedding_morphism)
 
 class CPRFanoToricVariety_field(ToricVariety_field):
     r"""
@@ -1330,6 +1337,39 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         return resolution
 
 
+
+#*****************************************************************
+class CPRFanoToricVarietyWithEmbedding_field(ToricEmbedding_Mixin,
+                                             CPRFanoToricVariety_field):
+    r"""
+    """
+    def __init__(self, Delta_polar, fan, coordinate_points, point_to_ray,
+                 coordinate_names, coordinate_name_indices, base_field,
+                 embedding_morphism):
+        CPRFanoToricVariety_field.__init__(self, Delta_polar, fan, 
+                                           coordinate_points, point_to_ray,
+                                           coordinate_names,
+                                           coordinate_name_indices, base_field)
+        ToricEmbedding_Mixin.__init__(self, embedding_morphism)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            WRITE some.
+        """
+        return ("%d-d CPR-Fano toric variety with embedding covered by %d affine patches"
+                % (self.dimension_relative(), self.fan().ngenerating_cones()))
+                   
+
+
+#*****************************************************************
 class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
     r"""
     Construct an anticanonical hypersurface of a CPR-Fano toric variety.
