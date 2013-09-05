@@ -8,7 +8,7 @@
 # for now avoid using bash as not everyone has that installed
 CONFIG_SHELL=/bin/sh
 export CONFIG_SHELL
-# ACLOCAL_FLAGS=-Im4
+ACLOCAL_FLAGS=-Im4
 
 # libtoolize -c -f -i
 

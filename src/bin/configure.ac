@@ -19,6 +19,8 @@ if test ! -e $SINGULAR_SHARE/algebra.lib; then
 fi
 AC_SUBST([SINGULAR_SHARE])
 
+AS_AC_EXPAND([SAGE_ETC], $sysconfdir)
+
 # Checks for libraries.
 
 # Checks for header files.

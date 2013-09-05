@@ -1,6 +1,9 @@
 # this file is part of Sage
 # (c) 2013 Felix Salfelder
 # license: gplv3+
+#
+
+ACLOCAL_AMFLAGS = -I m4
 
 dist_bin_SCRIPTS = \
     sage \
