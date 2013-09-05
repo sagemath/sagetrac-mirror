@@ -222,7 +222,7 @@ def CPRFanoToricVariety(Delta=None,
                         make_simplicial=False,
                         base_field=None,
                         check=True,
-                        embedding_morphism=None):
+                        embedding=None):
     r"""
     Construct a CPR-Fano toric variety.
 
@@ -638,14 +638,14 @@ def CPRFanoToricVariety(Delta=None,
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure
-    if embedding_morphism is None:
+    if embedding is None:
         return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
             point_to_ray, coordinate_names, coordinate_name_indices,
             base_field)
     else:
         return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
             coordinate_points, point_to_ray, coordinate_names,
-            coordinate_name_indices, base_field, embedding_morphism)
+            coordinate_name_indices, base_field, embedding)
 
 class CPRFanoToricVariety_field(ToricVariety_field):
     r"""
@@ -1350,7 +1350,7 @@ class CPRFanoToricVarietyWithEmbedding_field(ToricEmbedding_Mixin,
                                            coordinate_points, point_to_ray,
                                            coordinate_names,
                                            coordinate_name_indices, base_field)
-        ToricEmbedding_Mixin.__init__(self, embedding_morphism)
+        ToricEmbedding_Mixin.__init__(self, embedding)
 
     def _repr_(self):
         r"""

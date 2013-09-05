@@ -325,6 +325,7 @@ import sys
 from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
+from sage.geometry.fan_morphism import FanMorphism
 from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -378,13 +379,16 @@ def is_ToricVariety(x):
     """
     return isinstance(x, ToricVariety_field)
 
+def has_ToricEmbedding(x):
+    return isinstance(x, ToricEmbedding_Mixin)
+
 
 def ToricVariety(fan,
                  coordinate_names=None,
                  names=None,
                  coordinate_indices=None,
                  base_field=QQ,
-                 embedding_morphism=None):
+                 embedding=None):
     r"""
     Construct a toric variety.
 
@@ -470,12 +474,12 @@ def ToricVariety(fan,
     if base_field not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
                         % base_field)
-    if embedding_morphism is None:
+    if embedding is None:
         return ToricVariety_field(fan, coordinate_names, coordinate_indices,
                                  base_field)
     else:
         return ToricVarietyWithEmbedding_field(fan, coordinate_names, coordinate_indices,
-                                 base_field, embedding_morphism)
+                                 base_field, embedding)
 
 
 def AffineToricVariety(cone, *args, **kwds):
@@ -1002,17 +1006,14 @@ class ToricVariety_field(AmbientSpace):
         names = self.variable_names()
         # Number of "honest fan coordinates"
         n = self.fan().nrays()
-        # Number of "torus factor coordinates"
-        t = self._torus_factor_dim
         names = ([names[ray] for ray in cone.ambient_ray_indices()]
                  + list(names[n:]))
-        patch = AffineToricVariety(cone, names, base_field=self.base_ring())
-        embedding_coordinates = [1] * n
-        for k, ray in enumerate(cone.ambient_ray_indices()):
-            embedding_coordinates[ray] = patch.gen(k)
-        if t > 0: # Passing "-0" gives unintended result
-            embedding_coordinates.extend(patch.gens()[-t:])
-        patch._embedding_morphism = patch.hom(embedding_coordinates, self)
+        patch_fan = Fan([tuple(range(cone.nrays()))], cone.rays(),
+                        check=False, normalize=False)
+        fm = FanMorphism(matrix.identity(self.dimension()), patch_fan,
+                         self.fan())
+        patch = ToricVariety(patch_fan, names, base_field=self.base_ring(),
+                             embedding = {'fan_morphism':fm, 'codomain':self})
         self._affine_patches[i] = patch
         return patch
 
@@ -3100,8 +3101,9 @@ def certify_names(names):
 class ToricEmbedding_Mixin:
     r"""
     """
-    def __init__(self, embedding_morphism):
-        self._embedding_morphism = embedding_morphism
+    def __init__(self, embedding):
+        if embedding.has_key('fan_morphism'):
+            self._embedding_morphism = self.hom(embedding['fan_morphism'], embedding['codomain'])
 
     def embedding_morphism(self):
         r"""
@@ -3151,9 +3153,9 @@ class ToricEmbedding_Mixin:
 class ToricVarietyWithEmbedding_field(ToricEmbedding_Mixin, ToricVariety_field):
     r"""
     """
-    def __init__(self, fan, coordinate_names, coordinate_indices, base_field, embedding_morphism):
+    def __init__(self, fan, coordinate_names, coordinate_indices, base_field, embedding):
         ToricVariety_field.__init__(self, fan, coordinate_names, coordinate_indices, base_field)
-        ToricEmbedding_Mixin.__init__(self, embedding_morphism)
+        ToricEmbedding_Mixin.__init__(self, embedding)
 
     def _repr_(self):
         r"""

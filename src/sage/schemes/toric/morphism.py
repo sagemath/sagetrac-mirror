@@ -175,6 +175,9 @@ from sage.schemes.generic.morphism import (
     is_SchemeMorphism,
     SchemeMorphism, SchemeMorphism_point, SchemeMorphism_polynomial
 )
+from sage.schemes.toric.variety import (
+    has_ToricEmbedding, ToricVariety_field
+)
 
 
 
@@ -250,8 +253,27 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
 
 
 ############################################################################
+class IsToricEmbedding_Mixin:
+    """
+    Write something
+    """
+    def is_toric_embedding(self):
+        """
+        Check whether is morphism is a toric embedding. Write more.
+        """
+        if not has_ToricEmbedding(self.domain()):
+            return False
+        else:
+            # Might have to be improved: What if this is another form
+            # of the embedding morphism, e.g. via _as_polynomial_map()?
+            return self.domain().embedding_morphism() is self
+    
+
+
+############################################################################
 # A morphism of toric varieties determined by homogeneous polynomials.
-class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism):
+class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism,
+                                              IsToricEmbedding_Mixin):
     """
     A morphism determined by homogeneous polynomials.
 
@@ -321,6 +343,23 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
                 if not self.domain().ambient_space().is_homogeneous(p):
                     raise ValueError("%s is not homogeneous!" % p)
 
+    def __cmp__(self, right):
+        """
+        Write something.
+        """
+        if isinstance(right, SchemeMorphism_polynomial_toric_variety):
+            c = cmp(
+                [self.codomain(), self.defining_polynomials(), self.is_toric_embedding()],
+                [right.codomain(), right.defining_polynomials(), right.is_toric_embedding()])
+            if c:
+                return c
+            if self.is_toric_embedding():
+                return ToricVariety_field.__cmp__(self.domain(), right.domain())
+            else:
+                return cmp(self.domain(),right.domain())
+        else:
+            return cmp(type(self), type(right))
+
     def as_fan_morphism(self):
         """
         Express the morphism as a map defined by a fan morphism.
@@ -345,9 +384,11 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
                                   "morphisms is not implemented yet!")
 
 
+
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
-class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
+class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism,
+                                       IsToricEmbedding_Mixin):
     """
     Construct a morphism determined by a fan morphism
 
@@ -462,9 +503,15 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             -1
         """
         if isinstance(right, SchemeMorphism_fan_toric_variety):
-            return cmp(
-                [self.domain(), self.codomain(), self.fan_morphism()],
-                [right.domain(), right.codomain(), right.fan_morphism()])
+            c = cmp(
+                [self.codomain(), self.fan_morphism(), self.is_toric_embedding()],
+                [right.codomain(), right.fan_morphism(), right.is_toric_embedding()])
+            if c:
+                return c
+            if self.is_toric_embedding():
+                return ToricVariety_field.__cmp__(self.domain(), right.domain())
+            else:
+                return cmp(self.domain(),right.domain())
         else:
             return cmp(type(self), type(right))
 
