@@ -163,6 +163,7 @@ from sage.rings.all import (PolynomialRing, QQ,
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
+                                            EmbeddedToricVariety_Mixin,
                                             normalize_names)
 from sage.structure.all import get_coercion_model
 from sage.categories.fields import Fields
@@ -220,7 +221,8 @@ def CPRFanoToricVariety(Delta=None,
                         coordinate_name_indices=None,
                         make_simplicial=False,
                         base_field=None,
-                        check=True):
+                        check=True,
+                        **kwds):
     r"""
     Construct a CPR-Fano toric variety.
 
@@ -292,9 +294,16 @@ def CPRFanoToricVariety(Delta=None,
       ``Delta``). If you know for sure that the input is valid, you may
       significantly decrease construction time using ``check=False`` option.
 
+    - For additional options to embed the variety into another
+      via an embedding morphism see :class:`EmbeddedToricVariety
+      <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>`.
+
     OUTPUT:
 
-    - :class:`CPR-Fano toric variety <CPRFanoToricVariety_field>`.
+    - :class:`CPR-Fano toric variety <CPRFanoToricVariety_field>` or
+      :class:`CPR-Fano toric variety with embedding 
+      <CPRFanoToricVarietyWithEmbedding_field>`.
+
 
     EXAMPLES:
 
@@ -636,9 +645,15 @@ def CPRFanoToricVariety(Delta=None,
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure
-    return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
-        point_to_ray, coordinate_names, coordinate_name_indices, base_field)
-
+    if kwds.has_key('embedding_codomain'):
+        return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
+            coordinate_points, point_to_ray, coordinate_names,
+            coordinate_name_indices, base_field, **kwds)
+    else:
+        return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
+            point_to_ray, coordinate_names, coordinate_name_indices,
+            base_field)
+        
 
 class CPRFanoToricVariety_field(ToricVariety_field):
     r"""
@@ -1330,6 +1345,51 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         return resolution
 
 
+
+#*****************************************************************
+class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
+                                             CPRFanoToricVariety_field):
+    r"""
+    CPRFanoToricVariety with embedding morphism. See
+    :class:`CPRFanoToricVariety_field` and :class:`EmbeddedToricVariety
+    <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>` for
+    documentation.
+    """
+    def __init__(self, Delta_polar, fan, coordinate_points, point_to_ray,
+                 coordinate_names, coordinate_name_indices, base_field,
+                 embedding_codomain, **kwds):
+        r"""
+        Constructor for ToricVarietyWithEmbedding, see
+        :class:`CPRFanoToricVariety_field` for accepted parameters.
+        """
+        CPRFanoToricVariety_field.__init__(self, Delta_polar, fan, 
+                                           coordinate_points, point_to_ray,
+                                           coordinate_names,
+                                           coordinate_name_indices, base_field)
+        EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: diamond = lattice_polytope.octahedron(2)
+            sage: FTV = CPRFanoToricVariety(Delta=diamond)
+            sage: fm = FanMorphism(matrix.identity(2), FTV.fan(), FTV.fan())
+            sage: CPRFanoToricVariety(Delta=diamond, embedding_codomain=FTV, embedding_fan_morphism=fm)
+            2-d CPR-Fano toric variety with embedding covered by 4 affine patches
+        """
+        return ("%d-d CPR-Fano toric variety with embedding covered by %d affine patches"
+                % (self.dimension_relative(), self.fan().ngenerating_cones()))
+                   
+
+
+#*****************************************************************
 class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
     r"""
     Construct an anticanonical hypersurface of a CPR-Fano toric variety.

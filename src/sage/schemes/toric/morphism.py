@@ -255,6 +255,7 @@ REFERENCES:
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
+from sage.structure.sage_object import SageObject
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ, gcd
 from sage.misc.all import cached_method
@@ -269,6 +270,11 @@ from sage.schemes.generic.morphism import (
     SchemeMorphism, SchemeMorphism_point, SchemeMorphism_polynomial
 )
 from sage.misc.cachefunc import cached_method
+
+from sage.schemes.toric.variety import (
+    has_ToricEmbedding, ToricVariety_field
+)
+
 
 
 ############################################################################
@@ -343,8 +349,77 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
 
 
 ############################################################################
+class ToricEmbedding_Mixin(SageObject):
+    """
+    Mixin class intended to provide a default comparison method
+    for toric morphisms that can serve as embedding morphisms of
+    :class:`toric varieties<sage.schemes.toric.variety.ToricVariety_field>`.
+    """
+    def is_toric_embedding(self):
+        """
+        Check whether `self` is an embedding morphism of `self.domain()`
+        into `self.codomain().
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is toric embedding morphism.
+
+        TESTS::
+
+            sage: P2 = toric_varieties.P(2)
+            sage: fm = FanMorphism(matrix.identity(2), P2.fan(), P2.fan())
+            sage: P2_2 = ToricVariety(P2.fan(), embedding_codomain=P2, embedding_fan_morphism=fm)
+            sage: morphism1 = P2.hom(fm, P2)
+            sage: morphism2 = P2_2.hom(fm, P2)
+            sage: morphism1.is_toric_embedding()
+            False
+            sage: morphism2.is_toric_embedding()
+            False
+            sage: P2_2.embedding_morphism().is_toric_embedding()
+            True
+        """
+        if not has_ToricEmbedding(self.domain()):
+            return False
+        else:
+            # Might have to be improved: What if this is another form
+            # of the embedding morphism, e.g. via _as_polynomial_map()?
+            return self.domain().embedding_morphism() is self
+
+    def __cmp__(self, right):
+        r"""
+        Compare ``self`` and ``right``. This method is intended to be
+        extended by inheriting classes to also compare the defining
+        data of the two morphisms in question.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``right`` is of the same type as ``self``, their domains
+          and codomains are the same, and either both or neither
+          are embedding morphisms. 1 or -1 otherwise.
+        """
+        c = cmp(type(self), type(right))
+        if c:
+            return c
+        c = cmp(
+            [self.codomain(), self.is_toric_embedding()],
+            [right.codomain(), right.is_toric_embedding()])
+        if c:
+            return c
+        if self.is_toric_embedding():
+            return ToricVariety_field.__cmp__(self.domain(), right.domain())
+        else:
+            return cmp(self.domain(),right.domain())
+    
+
+
+############################################################################
 # A morphism of toric varieties determined by homogeneous polynomials.
-class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism):
+class SchemeMorphism_polynomial_toric_variety(ToricEmbedding_Mixin,
+                                              SchemeMorphism_polynomial, Morphism):
     """
     A morphism determined by homogeneous polynomials.
 
@@ -413,6 +488,41 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
             for p in self.defining_polynomials():
                 if not self.domain().ambient_space().is_homogeneous(p):
                     raise ValueError("%s is not homogeneous!" % p)
+
+    def __cmp__(self, right):
+        """
+        Compare `self` and `right.`
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        0 if the criteria of :class:`ToricEmbedding<ToricEmbedding_Mixin>`
+        are met and the defining polynomials of `self` and `right`
+        are equal. 1 or -1 otherwise.
+
+        TESTS::
+            sage: P2 = toric_varieties.P(2)
+            sage: fm = FanMorphism(matrix.identity(2), P2.fan(), P2.fan())
+            sage: P2_2 = ToricVariety(P2.fan(), embedding_codomain=P2, embedding_fan_morphism=fm)
+            sage: morphism1 = P2.hom(fm, P2).as_polynomial_map()
+            sage: morphism2 = P2_2.hom(fm, P2).as_polynomial_map() 
+            sage: morphism3 = P2_2.hom(fm, P2).as_polynomial_map() 
+            sage: morphism1 == morphism1
+            True
+            sage: morphism1 == morphism2
+            False
+            sage: morphism2 == morphism3
+            True
+            sage: morphism2 is morphism3
+            False            
+        """
+        c = super(SchemeMorphism_polynomial_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp(self.defining_polynomials(), right.defining_polynomials())
 
     def as_fan_morphism(self):
         """
@@ -672,7 +782,8 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
-class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
+class SchemeMorphism_fan_toric_variety(ToricEmbedding_Mixin, SchemeMorphism,
+                                       Morphism):
     """
     Construct a morphism determined by a fan morphism
 
@@ -779,7 +890,9 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         OUTPUT:
 
         - 0 if ``right`` is also a toric morphism between the same domain and
-          codomain, given by an equal fan morphism. 1 or -1 otherwise.
+          codomain according to the criteria of
+          :class:`ToricEmbedding<ToricEmbedding_Mixin>`, given by an equal fan
+          morphism. 1 or -1 otherwise.
 
         TESTS::
 
@@ -795,13 +908,26 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             1
             sage: cmp(phi, 1) * cmp(1, phi)
             -1
+            sage: fm = FanMorphism(matrix.identity(3), P3.fan(), P3.fan())
+            sage: P3_2 = ToricVariety(P3.fan(), embedding_codomain=P3, embedding_fan_morphism=fm)
+            sage: morphism1 = P3.hom(fm, P3)
+            sage: morphism2 = P3_2.hom(fm, P3)
+            sage: morphism3 = P3_2.hom(fm, P3)
+            sage: morphism1 == morphism1
+            True
+            sage: morphism1 == morphism2
+            False
+            sage: morphism2 == P3_2.embedding_morphism()
+            False
+            sage: morphism2 == morphism3
+            True
+            sage: morphism2 is morphism3
+            False            
         """
-        if isinstance(right, SchemeMorphism_fan_toric_variety):
-            return cmp(
-                [self.domain(), self.codomain(), self.fan_morphism()],
-                [right.domain(), right.codomain(), right.fan_morphism()])
-        else:
-            return cmp(type(self), type(right))
+        c = super(SchemeMorphism_fan_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp(self.fan_morphism(), right.fan_morphism())
 
     def _composition_(self, right, homset):
         """

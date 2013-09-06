@@ -144,14 +144,19 @@ access the "building pieces"::
 
     sage: patch = P1xP1.affine_patch(2)
     sage: patch
-    2-d affine toric variety
+    2-d affine toric variety with embedding
     sage: patch.fan().rays()
     N(1, 0),
     N(0, 1)
     in 2-d lattice N
     sage: patch.embedding_morphism()
     Scheme morphism:
-      From: 2-d affine toric variety
+      From: 2-d affine toric variety with embedding
+      To:   2-d toric variety covered by 4 affine patches
+      Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 2-d lattice N.
+    sage: patch.embedding_morphism().as_polynomial_map()
+    Scheme morphism:
+      From: 2-d affine toric variety with embedding
       To:   2-d toric variety covered by 4 affine patches
       Defn: Defined on coordinates by sending [x : s] to
             [x : s : 1 : 1]
@@ -325,8 +330,10 @@ import sys
 from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
+from sage.geometry.fan_morphism import FanMorphism
 from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
+from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
 from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
@@ -378,12 +385,18 @@ def is_ToricVariety(x):
     """
     return isinstance(x, ToricVariety_field)
 
+def has_ToricEmbedding(x):
+    r"""
+    """
+    return isinstance(x, EmbeddedToricVariety_Mixin)
+
 
 def ToricVariety(fan,
                  coordinate_names=None,
                  names=None,
                  coordinate_indices=None,
-                 base_field=QQ):
+                 base_field=QQ,
+                 **kwds):
     r"""
     Construct a toric variety.
 
@@ -406,9 +419,14 @@ def ToricVariety(fan,
 
     - ``base_field`` -- base field of the toric variety (default: `\QQ`).
 
+    - For additional options to embed the variety into another
+      via an embedding morphism see :class:`EmbeddedToricVariety
+      <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>`.
+
     OUTPUT:
 
-    - :class:`toric variety <ToricVariety_field>`.
+    - :class:`toric variety <ToricVariety_field>` or
+      :class:`toric variety with embedding <ToricVarietyWithEmbedding_field>`.
 
     EXAMPLES:
 
@@ -469,8 +487,12 @@ def ToricVariety(fan,
     if base_field not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
                         % base_field)
-    return ToricVariety_field(fan, coordinate_names, coordinate_indices,
-                             base_field)
+    if kwds.has_key('embedding_codomain'):
+        return ToricVarietyWithEmbedding_field(fan, coordinate_names, coordinate_indices,
+                                 base_field, **kwds)
+    else:
+        return ToricVariety_field(fan, coordinate_names, coordinate_indices,
+                                 base_field)
 
 
 def AffineToricVariety(cone, *args, **kwds):
@@ -969,17 +991,17 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = ToricVariety(fan, "x s y t")
             sage: patch0 = P1xP1.affine_patch(0)
             sage: patch0
-            2-d affine toric variety
-            sage: patch0.embedding_morphism()
+            2-d affine toric variety with embedding
+            sage: patch0.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [x : t] to
                     [x : 1 : 1 : t]
             sage: patch1 = P1xP1.affine_patch(1)
-            sage: patch1.embedding_morphism()
+            sage: patch1.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [y : t] to
                     [1 : 1 : y : t]
@@ -997,17 +1019,14 @@ class ToricVariety_field(AmbientSpace):
         names = self.variable_names()
         # Number of "honest fan coordinates"
         n = self.fan().nrays()
-        # Number of "torus factor coordinates"
-        t = self._torus_factor_dim
         names = ([names[ray] for ray in cone.ambient_ray_indices()]
                  + list(names[n:]))
-        patch = AffineToricVariety(cone, names, base_field=self.base_ring())
-        embedding_coordinates = [1] * n
-        for k, ray in enumerate(cone.ambient_ray_indices()):
-            embedding_coordinates[ray] = patch.gen(k)
-        if t > 0: # Passing "-0" gives unintended result
-            embedding_coordinates.extend(patch.gens()[-t:])
-        patch._embedding_morphism = patch.hom(embedding_coordinates, self)
+        patch_fan = Fan([tuple(range(cone.nrays()))], cone.rays(),
+                        check=False, normalize=False)
+        fm = FanMorphism(matrix.identity(self.dimension()), patch_fan,
+                         self.fan())
+        patch = ToricVariety(patch_fan, names, base_field=self.base_ring(),
+                             embedding_codomain=self, embedding_fan_morphism=fm)
         self._affine_patches[i] = patch
         return patch
 
@@ -1084,45 +1103,6 @@ class ToricVariety_field(AmbientSpace):
             names = self.variable_names()
             self._coordinate_ring = PolynomialRing(self.base_ring(), len(names), names)
         return self._coordinate_ring
-
-    def embedding_morphism(self):
-        r"""
-        Return the default embedding morphism of ``self``.
-
-        Such a morphism is always defined for an affine patch of a toric
-        variety (which is also a toric varieties itself).
-
-        OUTPUT:
-
-        - :class:`scheme morphism
-          <sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety>`
-          if the default embedding morphism was defined for ``self``,
-          otherwise a ``ValueError`` exception is raised.
-
-        EXAMPLES::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: P1xP1.embedding_morphism()
-            Traceback (most recent call last):
-            ...
-            ValueError: no default embedding was
-            defined for this toric variety!
-            sage: patch = P1xP1.affine_patch(0)
-            sage: patch
-            2-d affine toric variety
-            sage: patch.embedding_morphism()
-            Scheme morphism:
-              From: 2-d affine toric variety
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [x : t] to
-                    [x : 1 : 1 : t]
-        """
-        try:
-            return self._embedding_morphism
-        except AttributeError:
-            raise ValueError("no default embedding was defined for this "
-                             "toric variety!")
 
     def fan(self, dim=None, codim=None):
         r"""
@@ -3157,6 +3137,156 @@ def certify_names(names):
             raise ValueError("name must start with a letter! Got %s" % name)
     if len(set(names)) != len(names):
         raise ValueError("names must be distinct! Got: %s" % names)
+
+
+#*****************************************************************
+class EmbeddedToricVariety_Mixin(SageObject):
+    r"""
+    Mixin class used to provide descendants of :class:`toric varieties
+    <ToricVariety_field>` with the functionality to have embedding
+    morphisms.
+
+    INPUT:
+
+    - ``embedding_codomain`` -- :class:`Toric variety
+      <sage.schemes.toric.variety.ToricVariety_field>` into which the variety
+      is to be embedded.
+
+    - ``embedding_fan_morphism`` -- :class:`Fan morphism
+      <sage.geometry.fan_morphism.FanMorphism>` providing the embedding.
+    """
+    def __init__(self, embedding_codomain, **kwds):
+        r"""
+        Constructor for :class:`EmbeddingToricVariety<EmbeddedToricVariety_Mixin>`.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: ToricVariety(fan, embedding_codomain=P1xP1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Embeddings not specified by fan morphisms are not implemented.
+        """
+        assert is_ToricVariety(self)
+        if kwds.has_key('embedding_fan_morphism'):
+            self._embedding_morphism = self.hom(kwds['embedding_fan_morphism'], embedding_codomain)
+        else:
+            raise NotImplementedError('Embeddings not specified by fan morphisms are not implemented.')
+
+    def embedding_morphism(self):
+        r"""
+        Return the embedding morphism of ``self``.
+
+        Such a morphism is always defined for an affine patch of a toric
+        variety (which is also a toric varieties itself).
+
+        OUTPUT:
+
+        - :class:`scheme morphism
+          <sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety>`
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: patch = P1xP1.affine_patch(0)
+            sage: patch
+            2-d affine toric variety with embedding
+            sage: patch.embedding_morphism()
+            Scheme morphism:
+              From: 2-d affine toric variety with embedding
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to Rational polyhedral fan in 2-d lattice N.
+            sage: patch.embedding_morphism().as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety with embedding
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [x : t] to
+                    [x : 1 : 1 : t]
+        """
+        return self._embedding_morphism
+
+    def __cmp__(self, right):
+        r"""
+        Compare ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``right`` is of the same type as ``self``, their fans are the
+          same, names of variables are the same and stored in the same order,
+          base fields and embedding morphisms are the same. 1 or -1 otherwise.
+
+        TESTS::
+
+            sage: P1 = toric_varieties.P(1)
+            sage: patch1 = P1.affine_patch(0)
+            sage: patch2 = P1.affine_patch(1)
+            sage: affine_variety = AffineToricVariety(P1.fan().generating_cone(1))
+            sage: patch1 == patch1
+            True
+            sage: patch1 == patch2
+            False
+            sage: patch2 == affine_variety
+            False
+            sage: fm = FanMorphism(matrix.identity(1), patch2.fan(), P1.fan())
+            sage: cone = P1.fan().generating_cone(1)
+            sage: affine_variety_embedded = AffineToricVariety(cone, embedding_codomain=P1, embedding_fan_morphism=fm)
+            sage: affine_variety_embedded == patch2
+            True
+            sage: affine_variety_embedded is patch2
+            False
+        """
+        c = ToricVariety_field.__cmp__(self, right) # Is there a way to change this?
+        if c:
+            return c
+        return cmp(self.embedding_morphism(), right.embedding_morphism())
+        
+
+
+#*****************************************************************
+class ToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin, ToricVariety_field):
+    r"""
+    ToricVariety with embedding morphism. See
+    :class:`ToricVariety_field` and :class:`EmbeddedToricVariety_Mixin` for
+    documentation.
+    """
+    def __init__(self, fan, coordinate_names, coordinate_indices,
+                 base_field, embedding_codomain, **kwds):
+        r"""
+        Constructor for ToricVarietyWithEmbedding, see
+        :class:`ToricVariety_field` for accepted parameters.
+        """
+        ToricVariety_field.__init__(self, fan, coordinate_names,
+                                    coordinate_indices, base_field)
+        EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: P1 = toric_varieties.P(1)
+            sage: P1.affine_patch(0)
+            1-d affine toric variety with embedding
+        """
+        result = "%d-d" % self.dimension_relative()
+        if self.fan().ngenerating_cones() == 1:
+            result += " affine toric variety with embedding"
+        else:
+            result += (" toric variety with embedding covered by %d affine patches"
+                       % self.fan().ngenerating_cones())
+        return result
+                                                      
 
 
 #*****************************************************************
