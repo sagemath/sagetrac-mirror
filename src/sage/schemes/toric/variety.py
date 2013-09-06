@@ -329,7 +329,9 @@ import sys
 
 from sage.functions.all import factorial
 from sage.geometry.cone import Cone, is_Cone
-from sage.geometry.fan import Fan
+from sage.geometry.fan import (
+    Fan, discard_faces
+)
 from sage.geometry.fan_morphism import FanMorphism
 from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
@@ -2718,16 +2720,16 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: H = P1xP1.fan(1)[0]
             sage: V = P1xP1.orbit_closure(H);  V
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
             sage: V.embedding_morphism()
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined by embedding the torus closure associated to the 1-d
                     cone of Rational polyhedral fan in 2-d lattice N.
             sage: V.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [z0 : z1] to
                     [0 : 1 : z1 : z0]
@@ -2736,24 +2738,19 @@ class ToricVariety_field(AmbientSpace):
 
             sage: A2 = toric_varieties.A2()
             sage: A2.orbit_closure(A2.fan(2)[0])
-            0-d affine toric variety
+            0-d affine toric variety with embedding
         """
         cone = self.fan().embed(cone)
         cones = []
         for star_cone in cone.star_generators():
             cones.append( self._orbit_closure_projection(cone, star_cone) )
-        from sage.geometry.fan import discard_faces
         fan = Fan(discard_faces(cones), check=False)
-        orbit_closure = ToricVariety(fan)
-
         star_rays = set()
         for star_cone in cone.star_generators():
             star_rays.update(star_cone.rays())
         ray_map = dict( (ray, self._orbit_closure_projection(cone, ray)) for ray in star_rays)
-        from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
-        orbit_closure._embedding_morphism = \
-            SchemeMorphism_orbit_closure_toric_variety(orbit_closure.Hom(self), cone, ray_map)
-
+        orbit_closure = ToricVariety(fan, embedding_codomain=self,
+                                     embedding_defining_cone=cone, embedding_ray_map=ray_map)
         return orbit_closure
 
     def count_points(self):
@@ -3171,6 +3168,12 @@ class EmbeddedToricVariety_Mixin(SageObject):
         assert is_ToricVariety(self)
         if kwds.has_key('embedding_fan_morphism'):
             self._embedding_morphism = self.hom(kwds['embedding_fan_morphism'], embedding_codomain)
+        elif kwds.has_key('embedding_ray_map') and kwds.has_key('embedding_defining_cone'):
+            from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
+            self._embedding_morphism = \
+            SchemeMorphism_orbit_closure_toric_variety(self.Hom(embedding_codomain),
+                                                       kwds['embedding_defining_cone'],
+                                                       kwds['embedding_ray_map'])
         else:
             raise NotImplementedError('Embeddings not specified by fan morphisms are not implemented.')
 
