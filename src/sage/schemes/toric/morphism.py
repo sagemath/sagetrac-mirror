@@ -169,10 +169,10 @@ coordinate charts of $O_{\mathbb{P}^1}(2)$ ::
     False
 
     sage: fiber = single_chart.fiber_generic();  fiber
-    0-d affine toric variety
+    0-d affine toric variety with embedding
     sage: fiber.embedding_morphism().as_polynomial_map()
     Scheme morphism:
-      From: 0-d affine toric variety
+      From: 0-d affine toric variety with embedding
       To:   2-d affine toric variety
       Defn: Defined on coordinates by sending [] to
             [1 : 1]
@@ -219,10 +219,10 @@ blow-up in this single coordinate chart. Lets investigate further::
     sage: exceptional_cones = single_chart.fan_morphism().primitive_preimage_cones(A2_Z2.fan(2)[0])
     sage: exceptional_set = single_chart.fiber_component(exceptional_cones[0])
     sage: exceptional_set
-    1-d affine toric variety
+    1-d affine toric variety with embedding
     sage: exceptional_set.embedding_morphism().as_polynomial_map()
     Scheme morphism:
-      From: 1-d affine toric variety
+      From: 1-d affine toric variety with embedding
       To:   2-d affine toric variety
       Defn: Defined on coordinates by sending [z0] to
             [z0 : 0]
@@ -579,7 +579,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         sage: V = P1xP1.orbit_closure(H)
         sage: V.embedding_morphism()
         Scheme morphism:
-          From: 1-d toric variety covered by 2 affine patches
+          From: 1-d toric variety with embedding covered by 2 affine patches
           To:   2-d CPR-Fano toric variety covered by 4 affine patches
           Defn: Defined by embedding the torus closure associated to the 1-d 
                 cone of Rational polyhedral fan in 2-d lattice N.
@@ -601,7 +601,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = P2.orbit_closure(P2.fan(1)[0])
             sage: P1.embedding_morphism()
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 3 affine patches
               Defn: Defined by embedding the torus closure associated to the 1-d cone 
                     of Rational polyhedral fan in 2-d lattice N.
@@ -677,7 +677,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
 
             sage: P2 = toric_varieties.P2()
             sage: V = P2.orbit_closure(P2.fan(1)[0]);  V
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
             sage: V.embedding_morphism()._repr_defn()
             'Defined by embedding the torus closure associated to the 1-d cone of 
              Rational polyhedral fan in 2-d lattice N.'
@@ -709,10 +709,10 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
 
             sage: P2 = toric_varieties.P2()
             sage: V = P2.orbit_closure(P2.fan(1)[0]);  V
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
             sage: V.embedding_morphism().as_polynomial_map()
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 3 affine patches
               Defn: Defined on coordinates by sending [z0 : z1] to
                     [0 : z1 : z0]
@@ -1415,16 +1415,16 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             sage: P1 = toric_varieties.P1()
             sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber_generic()
             sage: fiber
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
             sage: f = fiber.embedding_morphism();  f
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined by sending Rational polyhedral fan in 1-d lattice N to
                     Rational polyhedral fan in 2-d lattice N.
             sage: f.as_polynomial_map()
             Scheme morphism:
-              From: 1-d toric variety covered by 2 affine patches
+              From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [z0 : z1] to
                     [1 : 1 : z0 : z1]
@@ -1434,7 +1434,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             sage: fan = fan.subdivide(new_rays=[(1,0,0)])
             sage: f = ToricVariety(fan).hom(matrix([[1],[0],[0]]), A1)
             sage: f.fiber_generic()
-            2-d affine toric variety
+            2-d affine toric variety with embedding
             sage: _.fan().cones()
             ((0-d cone of Rational polyhedral fan in 2-d lattice N,),)
 
@@ -1462,9 +1462,9 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         from sage.geometry.fan_morphism import FanMorphism
         fan_embedding = FanMorphism(K.echelonized_basis_matrix(), fiber_fan,
                                     self.domain().fan())
-        homset = fiber.Hom(self.domain())
-        embedding = SchemeMorphism_fan_toric_variety(homset, fan_embedding)
-        fiber._embedding_morphism = embedding
+        fiber = ToricVariety(fiber_fan, embedding_codomain=self.domain(),
+                             embedding_fan_morphism=fan_embedding)
+        return fiber
         return embedding.domain()
 
     def fiber_component(self, domain_cone):
@@ -1503,13 +1503,13 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             sage: primitive_cones = fibration.fan_morphism().primitive_preimage_cones(P2.fan(1)[0])
             sage: primitive_cone = primitive_cones[0]
             sage: fibration.fiber_component(primitive_cone)
-            2-d toric variety covered by 4 affine patches
+            2-d toric variety with embedding covered by 4 affine patches
 
             sage: for primitive_cone in primitive_cones:
             ...       print fibration.fiber_component(primitive_cone)
-            2-d toric variety covered by 4 affine patches
-            2-d toric variety covered by 3 affine patches
-            2-d toric variety covered by 3 affine patches
+            2-d toric variety with embedding covered by 4 affine patches
+            2-d toric variety with embedding covered by 3 affine patches
+            2-d toric variety with embedding covered by 3 affine patches
         """
         domain_cone = self.domain().fan().embed(domain_cone)
         if domain_cone.is_trivial():
@@ -1563,11 +1563,11 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         This corresponds to the three different fibers::
 
             sage: blowup.fiber_generic()
-            0-d affine toric variety
+            0-d affine toric variety with embedding
             sage: blowup.fiber_component(Cone([(1,0)]))
-            0-d affine toric variety
+            0-d affine toric variety with embedding
             sage: blowup.fiber_component(Cone([(1,1)]))
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
         """
         dim = []
         fm = self.fan_morphism()
@@ -1615,10 +1615,10 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             Graph on 4 vertices
 
             sage: fibration.fiber_graph(P2.fan(1)[2]).get_vertices()
-            {0: 2-d toric variety covered by 4 affine patches,
-             1: 2-d toric variety covered by 3 affine patches,
-             2: 2-d toric variety covered by 3 affine patches,
-             3: 2-d toric variety covered by 4 affine patches}
+            {0: 2-d toric variety with embedding covered by 4 affine patches,
+             1: 2-d toric variety with embedding covered by 3 affine patches,
+             2: 2-d toric variety with embedding covered by 3 affine patches,
+             3: 2-d toric variety with embedding covered by 4 affine patches}
 
             sage: fibration
             Scheme morphism:
@@ -1681,16 +1681,16 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         sage: primitive_cone = primitive_cones[0]
         sage: fiber_component = fibration.fiber_component(primitive_cone)
         sage: fiber_component
-        2-d toric variety covered by 4 affine patches
+        2-d toric variety with embedding covered by 4 affine patches
         sage: fiber_component.embedding_morphism()
         Scheme morphism:
-          From: 2-d toric variety covered by 4 affine patches
+          From: 2-d toric variety with embedding covered by 4 affine patches
           To:   4-d toric variety covered by 23 affine patches
           Defn: Defined by embedding the fiber irreducible component defined by the
                 primitive preimage cone 1-d cone of Rational polyhedral fan in 4-d lattice N.
         sage: fiber_component.embedding_morphism().as_polynomial_map()
         Scheme morphism:
-          From: 2-d toric variety covered by 4 affine patches
+          From: 2-d toric variety with embedding covered by 4 affine patches
           To:   4-d toric variety covered by 23 affine patches
           Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
                 [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
@@ -1714,7 +1714,7 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
             sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
             sage: primitive_cone = Cone([(-1, 2, -1, 0)])
             sage: fibration.fiber_component(primitive_cone)
-            2-d toric variety covered by 3 affine patches
+            2-d toric variety with embedding covered by 3 affine patches
         """
         if check and toric_variety.fan()!=fan_morphism.domain_fan():
             raise ValueError('The total space toric variety must be the fan morphism codomain.')
@@ -1722,7 +1722,7 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         self._defining_cone = fan_morphism.domain_fan().embed(defining_cone)
         self._base_cone = fan_morphism.image_cone(defining_cone)
         fiber = self._make_fiber()
-        fiber._embedding_morphism = self
+        #fiber._embedding_morphism = self
         parent = fiber.Hom(toric_variety)
         SchemeMorphism.__init__(self, parent)
 
@@ -1772,7 +1772,7 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
             sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
             sage: f.as_polynomial_map()
             Scheme morphism:
-              From: 2-d toric variety covered by 4 affine patches
+              From: 2-d toric variety with embedding covered by 4 affine patches
               To:   4-d toric variety covered by 23 affine patches
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
                     [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
@@ -1821,11 +1821,11 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
             sage: O2_P1 = A2_Z2.resolve(new_rays=[(1,1)])
             sage: blowup = O2_P1.hom(identity_matrix(2), A2_Z2)
             sage: blowup.fiber_generic()
-            0-d affine toric variety
+            0-d affine toric variety with embedding
             sage: blowup.fiber_component(Cone([(1,0)]))
-            0-d affine toric variety
+            0-d affine toric variety with embedding
             sage: blowup.fiber_component(Cone([(1,1)]))
-            1-d toric variety covered by 2 affine patches
+            1-d toric variety with embedding covered by 2 affine patches
         """
         fm = self._fan_morphism
         defining_cone = self._defining_cone
@@ -1862,7 +1862,7 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         self._ray_index_map = ray_index_map
 
         from sage.schemes.toric.variety import ToricVariety
-        return ToricVariety(fiber_fan)
+        return ToricVariety(fiber_fan, embedding=self)
 
     def defining_cone(self):
         r"""

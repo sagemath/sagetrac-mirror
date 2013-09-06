@@ -645,7 +645,7 @@ def CPRFanoToricVariety(Delta=None,
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure
-    if kwds.has_key('embedding_codomain'):
+    if len(kwds)>0:
         return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
             coordinate_points, point_to_ray, coordinate_names,
             coordinate_name_indices, base_field, **kwds)
@@ -1357,7 +1357,7 @@ class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
     """
     def __init__(self, Delta_polar, fan, coordinate_points, point_to_ray,
                  coordinate_names, coordinate_name_indices, base_field,
-                 embedding_codomain, **kwds):
+                 **kwds):
         r"""
         Constructor for ToricVarietyWithEmbedding, see
         :class:`CPRFanoToricVariety_field` for accepted parameters.
@@ -1366,7 +1366,7 @@ class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
                                            coordinate_points, point_to_ray,
                                            coordinate_names,
                                            coordinate_name_indices, base_field)
-        EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)
+        EmbeddedToricVariety_Mixin.__init__(self, **kwds)
 
     def _repr_(self):
         r"""

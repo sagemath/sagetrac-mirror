@@ -489,7 +489,7 @@ def ToricVariety(fan,
     if base_field not in _Fields:
         raise TypeError("need a field to construct a toric variety!\n Got %s"
                         % base_field)
-    if kwds.has_key('embedding_codomain'):
+    if len(kwds) > 0:
         return ToricVarietyWithEmbedding_field(fan, coordinate_names, coordinate_indices,
                                  base_field, **kwds)
     else:
@@ -3152,7 +3152,8 @@ class EmbeddedToricVariety_Mixin(SageObject):
     - ``embedding_fan_morphism`` -- :class:`Fan morphism
       <sage.geometry.fan_morphism.FanMorphism>` providing the embedding.
     """
-    def __init__(self, embedding_codomain, **kwds):
+    def __init__(self, embedding=None, embedding_codomain=None, embedding_fan_morphism=None,
+                 embedding_ray_map=None, embedding_defining_cone=None, **kwds):
         r"""
         Constructor for :class:`EmbeddingToricVariety<EmbeddedToricVariety_Mixin>`.
 
@@ -3166,14 +3167,18 @@ class EmbeddedToricVariety_Mixin(SageObject):
             NotImplementedError: Embeddings not specified by fan morphisms are not implemented.
         """
         assert is_ToricVariety(self)
-        if kwds.has_key('embedding_fan_morphism'):
-            self._embedding_morphism = self.hom(kwds['embedding_fan_morphism'], embedding_codomain)
-        elif kwds.has_key('embedding_ray_map') and kwds.has_key('embedding_defining_cone'):
+        if len(kwds)>0:
+            raise NotImplementedError('Invalid parameter.')
+        if embedding <> None:
+            self._embedding_morphism = embedding
+        elif embedding_fan_morphism <> None:
+            self._embedding_morphism = self.hom(embedding_fan_morphism, embedding_codomain)
+        elif embedding_ray_map <> None and embedding_defining_cone <> None:
             from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
             self._embedding_morphism = \
             SchemeMorphism_orbit_closure_toric_variety(self.Hom(embedding_codomain),
-                                                       kwds['embedding_defining_cone'],
-                                                       kwds['embedding_ray_map'])
+                                                       embedding_defining_cone,
+                                                       embedding_ray_map)
         else:
             raise NotImplementedError('Embeddings not specified by fan morphisms are not implemented.')
 
@@ -3259,14 +3264,14 @@ class ToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin, ToricVariety_f
     documentation.
     """
     def __init__(self, fan, coordinate_names, coordinate_indices,
-                 base_field, embedding_codomain, **kwds):
+                 base_field, **kwds):
         r"""
         Constructor for ToricVarietyWithEmbedding, see
         :class:`ToricVariety_field` for accepted parameters.
         """
         ToricVariety_field.__init__(self, fan, coordinate_names,
                                     coordinate_indices, base_field)
-        EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)
+        EmbeddedToricVariety_Mixin.__init__(self, **kwds)
 
     def _repr_(self):
         r"""
