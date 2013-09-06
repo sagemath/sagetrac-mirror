@@ -13,7 +13,9 @@
 # Therefore, do not put an explicit path for sage-spkg here.
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/build/pipestatus
-CORE_OPTS = --prefix=$(SAGE_LOCAL) --with-dbdir="$(SAGE_LOCAL)/share"
+CORE_OPTS = --prefix=$(SAGE_LOCAL) \
+            --with-sage_local="$(SAGE_LOCAL)" \
+            --with-dbdir="$(SAGE_LOCAL)/share"
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage base toolchain toolchain-deps
@@ -25,7 +27,7 @@ $(SAGE_SRC)/%/configure: $(SAGE_SRC)/%/autogen.sh $(INST)/$(AUTOTOOLS)
 	@echo this will be taken care of by the toplevel build system later
 	. $(SAGE_ROOT)/sagedist/bin/sage-env && cd $(dir $@) && ./autogen.sh
 
-$(SAGE_SRC)/%/configure-stamp: $(SAGE_SRC)/%/configure
+$(SAGE_SRC)/%/Makefile: $(SAGE_SRC)/%/configure
 	cd $(SAGE_SRC)/$*; . ../bin/sage-env && ./configure $(CORE_OPTS)
 	touch $@
 
@@ -444,7 +446,7 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
-$(SAGE_SRC)/sage/configure-stamp: $(SAGE_SRC)/sage/configure \
+$(SAGE_SRC)/sage/Makefile: $(SAGE_SRC)/sage/configure \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
@@ -489,7 +491,7 @@ $(SAGE_SRC)/sage/configure-stamp: $(SAGE_SRC)/sage/configure \
 	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure $(CORE_OPTS)
 	touch $@
 
-sage: $(SAGE_SRC)/sage/configure-stamp
+sage: $(SAGE_SRC)/sage/Makefile
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time $(MAKE) -C sage py; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
 
 $(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
@@ -497,11 +499,11 @@ $(SAGE_LOCAL)/etc/sage-maxima.lisp: $(SAGE_SRC)/bin/sage-maxima.lisp
 	cp $< $@
 
 scripts: $(filter-out %autom4te.cache,$(SCRIPT_TARGETS)) $(SAGE_LOCAL)/etc/sage-maxima.lisp \
-         $(SAGE_SRC)/bin/configure-stamp
+         $(SAGE_SRC)/bin/Makefile
 
 extcode: $(EXTCODE_TARGETS)
 
-$(SAGE_SRC)/c_lib/configure-stamp: $(SAGE_SRC)/c_lib/configure \
+$(SAGE_SRC)/c_lib/Makefile: $(SAGE_SRC)/c_lib/configure \
        $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
@@ -512,10 +514,10 @@ $(SAGE_SRC)/c_lib/configure-stamp: $(SAGE_SRC)/c_lib/configure \
 	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure $(CORE_OPTS)
 	touch $@
 
-csage: $(SAGE_SRC)/c_lib/configure-stamp
+csage: $(SAGE_SRC)/c_lib/Makefile
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE) install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
 
-doc: $(SAGE_SRC)/doc/configure-stamp
+doc: $(SAGE_SRC)/doc/Makefile
 
 $(INST)/$(AUTOTOOLS):
 	+$(PIPE) "$(SAGE_SPKG) $(AUTOTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(AUTOTOOLS).log"
