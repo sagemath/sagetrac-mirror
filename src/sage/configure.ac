@@ -87,9 +87,6 @@ AC_ARG_WITH([mpir], [AS_HELP_STRING([--with-mpir], [Build with mpir library])],
               AS_IF([ test "x$with_mpir" != "xno" ], [ gmp_or_mpir=mpir; GMP_or_MPIR=MPIR ])
             ])
 
-SAGE_CFLAGS="-w -O2 -DUSE_"$GMP_or_MPIR
-AC_SUBST([SAGE_CFLAGS])
-
 ## python stuff
 python_version_required=2.7
 AM_PATH_PYTHON([$python_version_required])
@@ -210,12 +207,15 @@ AC_SUBST([FACTORY_INCLUDES])
 
 # gmp and mpir
 AS_IF([ test x$gmp_or_mpir != xgmp ], [
-       AC_CHECK_LIB([mpir], [__gmp_version],[gmp_or_mpir=mpir] ) ])
+       AC_CHECK_LIB([mpir], [__gmp_version],[gmp_or_mpir=mpir; GMP_or_MPIR=MPIR] ) ])
 
 AS_IF([ test x$gmp_or_mpir != xmpir ], [
-       AC_CHECK_LIB([gmp], [__gmp_version],[gmp_or_mpir=gmp],[AC_MSG_ERROR([there is no gmp lib])])])
+       AC_CHECK_LIB([gmp], [__gmp_version],[gmp_or_mpir=gmp; GMP_or_MPIR=GMP],[AC_MSG_ERROR([there is no gmp lib])])])
 
 AS_IF([test -z "$gmp_or_mpir" ], [AC_MSG_ERROR([there is no mpir or gmp lib])])
+
+SAGE_CFLAGS="-w -O2 -DUSE_"$GMP_or_MPIR
+AC_SUBST([SAGE_CFLAGS])
 
 # lets assume nobody wants to mix up {gmp,mpir} with {mpir,gmp}xx
 GMP_OR_MPIR_LIBS=-l$gmp_or_mpir
