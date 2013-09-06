@@ -610,6 +610,15 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         self._defining_cone = defining_cone
         self._ray_map = ray_map
 
+    def __cmp__(self, right):
+        r"""
+        """
+        c = super(SchemeMorphism_orbit_closure_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp([self.defining_cone(), self._ray_map],
+                   [right.defining_cone(), right._ray_map])
+
     def defining_cone(self):
         r"""
         Return the cone corresponding to the torus orbit.
@@ -1725,6 +1734,15 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         #fiber._embedding_morphism = self
         parent = fiber.Hom(toric_variety)
         SchemeMorphism.__init__(self, parent)
+
+    def __cmp__(self, right):
+        r"""
+        """
+        c = super(SchemeMorphism_fan_fiber_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp([self.defining_cone(), self._fan_morphism],
+                   [right.defining_cone(), right._fan_morphism])
 
     def _repr_defn(self):
         """
