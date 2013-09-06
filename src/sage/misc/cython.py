@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os, sys
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME, SAGE_CFLAGS
 from misc import SPYX_TMP
 
 def cblas():
@@ -221,7 +221,7 @@ def pyx_preparse(s):
         '...',
         '.../sage/gsl'],
         'c',
-        [], ['-w', '-O2'])
+        [], ['-w', '-O2'...])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'
@@ -252,7 +252,7 @@ def pyx_preparse(s):
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
-        ['-w', '-O2', '-O3', '-ggdb']
+        ['-w', '-O2',..., '-O3', '-ggdb']
 
     TESTS::
 
@@ -278,7 +278,7 @@ def pyx_preparse(s):
     if lang != "c++": # has issues with init_csage()
         s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
     args, s = parse_keywords('cargs', s)
-    args = ['-w','-O2'] + args
+    args = SAGE_CFLAGS.split() + args
 
     return s, libs, inc, lang, additional_source_files, args
 
@@ -455,14 +455,14 @@ def cython(filename, verbose=False, compile_message=False,
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_LIBDIRS
 
-extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
+extra_link_args = ['-L' + x for x in SAGE_LIBDIRS]
 extra_compile_args = %s
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
-                     library_dirs=[SAGE_LOCAL + '/lib/'],
+                     library_dirs=SAGE_LIBDIRS,
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
                      language = '%s' )]
