@@ -212,8 +212,7 @@ def pyx_preparse(s):
         ...,
         'ntl',
         'csage'],
-        ['.../include',
-        '.../include',
+        [...
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
@@ -239,9 +238,10 @@ def pyx_preparse(s):
         sage: libs[1:] == sage.misc.cython.standard_libs
         True
 
+        sage: inc[0]
+        'bar'
         sage: inc
-        ['bar',
-        '.../include',
+        [...,
         '.../include',
         '.../include',
         '.../include/python2.7',
