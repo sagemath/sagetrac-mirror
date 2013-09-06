@@ -1114,6 +1114,11 @@ ext_modules = [
 
     Extension('sage.matrix.strassen',
               sources = ['sage/matrix/strassen.pyx']),
+            
+
+    Extension('sage.matrix.matrix_test_sage',
+              sources = ['sage/matrix/matrix_test_sage.pyx']),
+
 
     #Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
     #          sources = ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx']),

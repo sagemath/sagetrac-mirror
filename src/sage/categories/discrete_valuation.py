@@ -91,8 +91,27 @@ class DiscreteValuationRings(Category_singleton):
                 sage: x = Zp(5)(50)
                 sage: x.valuation()
                 2
+            """    
+        def add_bigoh(self,new_valutaion):
             """
-
+            Sets the valuation to new_valuation.
+            
+            EXAMPLES::
+                
+                sage: x = Zp(5)(50)
+                sage: x.add_bigoh(10)
+            """
+        def precision_absolute(self):
+            """
+            
+            Returns the absolute precision.
+            
+            EXAMPLES:: 
+            
+                sage: x = Zp(5)(50)
+                sage:x.precision_absolute()
+                20
+            """
         def is_unit(self):
             """
             Return True if self is invertible.

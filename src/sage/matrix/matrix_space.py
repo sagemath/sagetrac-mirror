@@ -48,6 +48,8 @@ import matrix_rational_sparse
 
 import matrix_mpolynomial_dense
 
+import matrix_test_sage
+
 #import padics.matrix_padic_capped_relative_dense
 
 ## import matrix_cyclo_dense
@@ -927,10 +929,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: type(matrix(GF(16007), 2, range(4)))
             <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         """
+        
+        from sage.categories.discrete_valuation import DiscreteValuationRings
+        
         R = self.base_ring()
         if self.is_dense():
             if sage.rings.integer_ring.is_IntegerRing(R):
                 return matrix_integer_dense.Matrix_integer_dense
+            elif R in DiscreteValuationRings():
+                return sage.matrix.matrix_test_sage.Matrix_test_sage
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense
             elif sage.rings.number_field.number_field.is_CyclotomicField(R):
