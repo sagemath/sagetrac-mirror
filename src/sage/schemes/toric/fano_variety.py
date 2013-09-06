@@ -163,7 +163,7 @@ from sage.rings.all import (PolynomialRing, QQ,
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
-                                            ToricEmbedding_Mixin,
+                                            EmbeddedToricVariety_Mixin,
                                             normalize_names)
 from sage.structure.all import get_coercion_model
 from sage.categories.fields import Fields
@@ -222,7 +222,7 @@ def CPRFanoToricVariety(Delta=None,
                         make_simplicial=False,
                         base_field=None,
                         check=True,
-                        embedding=None):
+                        **kwds):
     r"""
     Construct a CPR-Fano toric variety.
 
@@ -638,14 +638,15 @@ def CPRFanoToricVariety(Delta=None,
         raise TypeError("need a field to construct a Fano toric variety!"
                         "\n Got %s" % base_field)
     fan._is_complete = True     # At this point it must be for sure
-    if embedding is None:
+    if kwds.has_key('embedding_codomain'):
+        return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
+            coordinate_points, point_to_ray, coordinate_names,
+            coordinate_name_indices, base_field, **kwds)
+    else:
         return CPRFanoToricVariety_field(Delta_polar, fan, coordinate_points,
             point_to_ray, coordinate_names, coordinate_name_indices,
             base_field)
-    else:
-        return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,
-            coordinate_points, point_to_ray, coordinate_names,
-            coordinate_name_indices, base_field, embedding)
+        
 
 class CPRFanoToricVariety_field(ToricVariety_field):
     r"""
@@ -1339,18 +1340,18 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
 
 #*****************************************************************
-class CPRFanoToricVarietyWithEmbedding_field(ToricEmbedding_Mixin,
+class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
                                              CPRFanoToricVariety_field):
     r"""
     """
     def __init__(self, Delta_polar, fan, coordinate_points, point_to_ray,
                  coordinate_names, coordinate_name_indices, base_field,
-                 embedding_morphism):
+                 **kwds):
         CPRFanoToricVariety_field.__init__(self, Delta_polar, fan, 
                                            coordinate_points, point_to_ray,
                                            coordinate_names,
                                            coordinate_name_indices, base_field)
-        ToricEmbedding_Mixin.__init__(self, embedding)
+        EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)
 
     def _repr_(self):
         r"""

@@ -167,6 +167,7 @@ REFERENCES:
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
+from sage.structure.sage_object import SageObject
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ
 
@@ -253,7 +254,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
 
 
 ############################################################################
-class IsToricEmbedding_Mixin:
+class ToricEmbedding_Mixin(SageObject):
     """
     Write something
     """
@@ -267,13 +268,30 @@ class IsToricEmbedding_Mixin:
             # Might have to be improved: What if this is another form
             # of the embedding morphism, e.g. via _as_polynomial_map()?
             return self.domain().embedding_morphism() is self
+
+    def __cmp__(self, right):
+        """
+        Write something
+        """
+        c = cmp(type(self), type(right))
+        if c:
+            return c
+        c = cmp(
+            [self.codomain(), self.is_toric_embedding()],
+            [right.codomain(), right.is_toric_embedding()])
+        if c:
+            return c
+        if self.is_toric_embedding():
+            return ToricVariety_field.__cmp__(self.domain(), right.domain())
+        else:
+            return cmp(self.domain(),right.domain())
     
 
 
 ############################################################################
 # A morphism of toric varieties determined by homogeneous polynomials.
-class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism,
-                                              IsToricEmbedding_Mixin):
+class SchemeMorphism_polynomial_toric_variety(ToricEmbedding_Mixin,
+                                              SchemeMorphism_polynomial, Morphism):
     """
     A morphism determined by homogeneous polynomials.
 
@@ -347,18 +365,10 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
         """
         Write something.
         """
-        if isinstance(right, SchemeMorphism_polynomial_toric_variety):
-            c = cmp(
-                [self.codomain(), self.defining_polynomials(), self.is_toric_embedding()],
-                [right.codomain(), right.defining_polynomials(), right.is_toric_embedding()])
-            if c:
-                return c
-            if self.is_toric_embedding():
-                return ToricVariety_field.__cmp__(self.domain(), right.domain())
-            else:
-                return cmp(self.domain(),right.domain())
-        else:
-            return cmp(type(self), type(right))
+        c = super(SchemeMorphism_polynomial_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp(self.defining_polynomials(), right.defining_polynomials())
 
     def as_fan_morphism(self):
         """
@@ -387,8 +397,8 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
-class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism,
-                                       IsToricEmbedding_Mixin):
+class SchemeMorphism_fan_toric_variety(ToricEmbedding_Mixin, SchemeMorphism,
+                                       Morphism):
     """
     Construct a morphism determined by a fan morphism
 
@@ -502,18 +512,10 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism,
             sage: cmp(phi, 1) * cmp(1, phi)
             -1
         """
-        if isinstance(right, SchemeMorphism_fan_toric_variety):
-            c = cmp(
-                [self.codomain(), self.fan_morphism(), self.is_toric_embedding()],
-                [right.codomain(), right.fan_morphism(), right.is_toric_embedding()])
-            if c:
-                return c
-            if self.is_toric_embedding():
-                return ToricVariety_field.__cmp__(self.domain(), right.domain())
-            else:
-                return cmp(self.domain(),right.domain())
-        else:
-            return cmp(type(self), type(right))
+        c = super(SchemeMorphism_fan_toric_variety, self).__cmp__(right)
+        if c:
+            return c
+        return cmp(self.fan_morphism(), right.fan_morphism())
 
     def _composition_(self, right, homset):
         """
