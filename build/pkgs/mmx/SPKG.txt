@@ -1,0 +1,36 @@
+= mmx =
+
+== Description ==
+Mathemagix is a C/C++ computer algebra system containing routines for fast
+arithmetic in over power series and p-adics (multiplication).
+
+Website: http://www.mathemagix.org
+
+== License ==
+ * GNU GPLv2+.
+
+== SPKG Maintainers ==
+ * Xavier Caruso
+
+== Upstream Contact ==
+ * Joris van der Hoeven
+ * Grégoire Lecerf
+ * Bernard Mourrain
+
+== Dependencies ==
+ * libtools
+ * 
+
+== Special Update/Build Instructions ==
+
+=== Patches ===
+ * no-undefined.patch: pass -no-undefined flag to libtool.
+
+== Changelog ==
+
+== FIXME ==
+=== gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
+  * Trac #15014: Let gf2x build a shared library on Cygwin.
+
+=== gf2x-1.1 (Jean-Pierre Flori, 4 June 2013) ===
+  * Trac #2114: gf2x-1.1.

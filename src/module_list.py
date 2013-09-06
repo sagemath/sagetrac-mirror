@@ -626,6 +626,16 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.libs.mmx.integer',
+            sources=['sage/libs/mmx/integer.pyx'],
+            libraries = ['numerix', 'basix', 'mpfr', 'gmp', 'm', 'stdc++'],
+            language='c++'),
+
+    Extension('sage.libs.mmx.series',
+            sources=['sage/libs/mmx/series.pyx'],
+            libraries = ['algebramix', 'numerix', 'basix', 'mpfr', 'gmp', 'm', 'stdc++'],
+            language='c++'),
+
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
               libraries = ["ecl", "gmp"],
