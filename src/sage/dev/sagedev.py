@@ -648,6 +648,7 @@ class SageDev(object):
             sage: dev.switch_branch('branch2')
             sage: dev.unstash()
             stash/1
+            sage: UI.append("n")
             sage: dev.unstash('stash/1')
 
         Or we can just discard the changes::
@@ -782,6 +783,7 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: bob.download()
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/1`.
             sage: bob.git.echo.log('--pretty=%s')
             alice: empty commit
             initial commit
@@ -808,6 +810,7 @@ class SageDev(object):
         manually::
 
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
             sage: alice.git.echo.log('--pretty=%s')
             Merge branch 'u/bob/ticket/1' of ... into ticket/1
             alice: added alices_file
@@ -830,14 +833,19 @@ class SageDev(object):
         Now, the download fails; one would have to use :meth:`merge`::
 
             sage: alice._chdir()
+            sage: alice._UI.append("abort")
             sage: alice.download()
-            GitError: git exited with a non-zero exit code (1).
-            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
+            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Auto-merging alices_file
+            CONFLICT (add/add): Merge conflict in alices_file
+            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] abort
 
         Undo the latest commit by alice, so we can download again::
 
             sage: alice.git.super_silent.reset('HEAD~~', hard=True)
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
             sage: alice.git.echo.log('--pretty=%s')
             bob: added alices_file
             bob: added bobs_file
@@ -861,9 +869,13 @@ class SageDev(object):
             Is this what you want? [Yes/no] y
 
             sage: alice._chdir()
+            sage: alice._UI.append("abort")
             sage: alice.download()
-            GitError: git exited with a non-zero exit code (1).
-            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
+            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Auto-merging alices_file
+            CONFLICT (add/add): Merge conflict in alices_file
+            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] abort
 
         """
         if ticket_or_remote_branch is None:
@@ -1073,7 +1085,6 @@ class SageDev(object):
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/foo'
             sage: dev.set_remote('ticket/1', 'foo')
-            The remote branch `foo` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/doctest/foo`?
             sage: dev._remote_branch_for_ticket(1)
             'foo'
             sage: dev.set_remote('#1', 'u/doctest/foo')
@@ -1173,6 +1184,7 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
 
         Alice and Bob make non-conflicting changes simultaneously::
 
@@ -1208,6 +1220,7 @@ class SageDev(object):
         After merging the changes, this works again::
 
             sage: bob.download()
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/1`.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
@@ -1631,7 +1644,7 @@ class SageDev(object):
             stashes.sort()
             stashes = "\n".join(stashes)
             stashes = stashes or "(no stashes)"
-            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory, or `{1}` to see the changes recorded in the stash, where `name` is one of the following:\n{2}".format(self._format_command("unstash",branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
+            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory, or `{1}` to see the changes recorded in the stash, where `name` is one of the following.".format(self._format_command("unstash",branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
             self._UI.show(stashes)
             return
         elif show_diff:
@@ -2111,6 +2124,7 @@ class SageDev(object):
 
         if ticket:
             self._set_local_branch_for_ticket(ticket, None)
+            self._set_dependencies_for_ticket(ticket, None)
             self._UI.info("If you want to work on #{0} starting from a fresh copy of the master branch, use `{1}`.".format(ticket, self._format_command("switch_ticket",ticket,base=MASTER_BRANCH)))
 
     def gather(self, branch, *tickets_or_branches):
@@ -2213,8 +2227,7 @@ class SageDev(object):
           branch on the trac ticket gets merged (or the local branch for the
           ticket, if ``download`` is ``False``), for the name of a local or
           remote branch, that branch gets merged. If ``'dependencies'``, the
-          dependencies are merged in one by one, starting with one listed first
-          in the dependencies field on trac.
+          dependencies are merged in one by one.
 
         - ``download`` -- a boolean or ``None`` (default: ``None``); if
           ``ticket_or_branch`` identifies a ticket, whether to download the
@@ -2303,6 +2316,11 @@ class SageDev(object):
             Merging the local branch `ticket/1` into the local branch `ticket/2`.
             Added dependency on #1 to #2.
 
+        Check that merging dependencies works::
+
+            sage: alice.merge("dependencies")
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/2`.
+
         Merging local branches::
 
             sage: alice.merge("ticket/1")
@@ -2373,7 +2391,18 @@ class SageDev(object):
         branch = None
         remote_branch = None
 
-        if self._is_ticket_name(ticket_or_branch):
+        if ticket_or_branch == 'dependencies':
+            if current_ticket == None:
+                raise SageDevValueError("dependencies can only be merged if currently on a ticket.")
+            if download == False:
+                raise SageDevValueError("`download` must not be `False` when merging dependencies.")
+            if create_dependency != None:
+                raise SageDevValueError("`create_dependency` must not be set when merging dependencies.")
+            for dependency in self._dependencies_for_ticket(current_ticket):
+                self._UI.info("Merging dependency #{0}.".format(dependency))
+                self.merge(ticket_or_branch=dependency, download=True)
+            return
+        elif self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
             if ticket == current_ticket:
                 raise SageDevValueError("cannot merge a ticket into itself")
