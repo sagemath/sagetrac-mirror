@@ -419,9 +419,14 @@ def ToricVariety(fan,
 
     - ``base_field`` -- base field of the toric variety (default: `\QQ`).
 
+    - For additional options to embed the variety into another
+      via an embedding morphism see :class:`EmbeddedToricVariety
+      <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>`.
+
     OUTPUT:
 
-    - :class:`toric variety <ToricVariety_field>`.
+    - :class:`toric variety <ToricVariety_field>` or
+      :class:`toric variety with embedding <ToricVarietyWithEmbedding_field>`.
 
     EXAMPLES:
 
@@ -3217,9 +3222,16 @@ class EmbeddedToricVariety_Mixin(SageObject):
 #*****************************************************************
 class ToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin, ToricVariety_field):
     r"""
+    ToricVariety with embedding morphism. See
+    :class:`ToricVariety_field` and :class:`EmbeddedToricVariety_Mixin` for
+    documentation.
     """
     def __init__(self, fan, coordinate_names, coordinate_indices,
                  base_field, embedding_codomain, **kwds):
+        r"""
+        Constructor for ToricVarietyWithEmbedding, see
+        :class:`ToricVariety_field` for accepted parameters.
+        """
         ToricVariety_field.__init__(self, fan, coordinate_names,
                                     coordinate_indices, base_field)
         EmbeddedToricVariety_Mixin.__init__(self, embedding_codomain, **kwds)

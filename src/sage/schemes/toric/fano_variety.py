@@ -294,9 +294,16 @@ def CPRFanoToricVariety(Delta=None,
       ``Delta``). If you know for sure that the input is valid, you may
       significantly decrease construction time using ``check=False`` option.
 
+    - For additional options to embed the variety into another
+      via an embedding morphism see :class:`EmbeddedToricVariety
+      <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>`.
+
     OUTPUT:
 
-    - :class:`CPR-Fano toric variety <CPRFanoToricVariety_field>`.
+    - :class:`CPR-Fano toric variety <CPRFanoToricVariety_field>` or
+      :class:`CPR-Fano toric variety with embedding 
+      <CPRFanoToricVarietyWithEmbedding_field>`.
+
 
     EXAMPLES:
 
@@ -1343,10 +1350,18 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
                                              CPRFanoToricVariety_field):
     r"""
+    CPRFanoToricVariety with embedding morphism. See
+    :class:`CPRFanoToricVariety_field` and :class:`EmbeddedToricVariety
+    <sage.schemes.toric.variety.EmbeddedToricVariety_Mixin>` for
+    documentation.
     """
     def __init__(self, Delta_polar, fan, coordinate_points, point_to_ray,
                  coordinate_names, coordinate_name_indices, base_field,
-                 **kwds):
+                 embedding_codomain, **kwds):
+        r"""
+        Constructor for ToricVarietyWithEmbedding, see
+        :class:`CPRFanoToricVariety_field` for accepted parameters.
+        """
         CPRFanoToricVariety_field.__init__(self, Delta_polar, fan, 
                                            coordinate_points, point_to_ray,
                                            coordinate_names,
@@ -1363,7 +1378,11 @@ class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
 
         TESTS::
 
-            WRITE some.
+            sage: diamond = lattice_polytope.octahedron(2)
+            sage: FTV = CPRFanoToricVariety(Delta=diamond)
+            sage: fm = FanMorphism(matrix.identity(2), FTV.fan(), FTV.fan())
+            sage: CPRFanoToricVariety(Delta=diamond, embedding_codomain=FTV, embedding_fan_morphism=fm)
+            2-d CPR-Fano toric variety with embedding covered by 4 affine patches
         """
         return ("%d-d CPR-Fano toric variety with embedding covered by %d affine patches"
                 % (self.dimension_relative(), self.fan().ngenerating_cones()))
