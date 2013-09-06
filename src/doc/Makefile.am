@@ -54,9 +54,14 @@ install-data-local:
 	cp -r output/* $(docdir)
 
 clean-local:
+	@echo "Deleting generated docs..."
 	for i in $(LANGDIRS); do \
 	    ( cd $$i/reference; [ ! -L footer.txt ] || rm -f footer.txt ) \
 	done
+	rm -rf en/reference/*/sage
+	rm -rf en/reference/*/sagenb
+	rm -rf en/reference/sage
+	rm -rf en/reference/sagenb
 	rm -rf output
 
 dist-hook:
