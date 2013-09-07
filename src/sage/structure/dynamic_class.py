@@ -352,9 +352,9 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
 
         sage: import inspect
         sage: inspect.getfile(Foo2)
-        '.../sage/structure/dynamic_class.pyc'
+        '.../sage/structure/dynamic_class.py...'
         sage: inspect.getfile(Foo3)
-        '.../sage/structure/dynamic_class.pyc'
+        '.../sage/structure/dynamic_class.py...'
         sage: sage.misc.sageinspect.sage_getsourcelines(Foo2)
         (['class TestClass:...'], ...)
         sage: sage.misc.sageinspect.sage_getsourcelines(Foo3)
