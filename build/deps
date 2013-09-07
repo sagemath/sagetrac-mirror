@@ -24,7 +24,10 @@ $(SAGE_SRC)/%/configure: $(SAGE_SRC)/%/autogen.sh $(INST)/$(AUTOTOOLS)
 
 $(SAGE_SRC)/%/Makefile: $(SAGE_SRC)/%/configure
 	cd $(SAGE_SRC)/$*; . ../bin/sage-env && ./configure $(CORE_OPTS)
-	touch $@
+
+# keep makefiles, even if compile fails
+.PRECIOUS: $(SAGE_SRC)/bin/Makefile \
+           $(SAGE_SRC)/sage/Makefile
 
 # Make the 4 build phases: base, toolchain, toolchain-deps, all-sage
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
@@ -482,9 +485,7 @@ $(SAGE_SRC)/sage/Makefile: $(SAGE_SRC)/sage/configure \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
-		 csage
-	cd $(SAGE_SRC)/sage; . ../bin/sage-env && ./configure $(CORE_OPTS)
-	touch $@
+		 csage-stamp
 
 sage: $(SAGE_SRC)/sage/Makefile
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time $(MAKE) -C sage py; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log"
@@ -506,11 +507,11 @@ $(SAGE_SRC)/c_lib/Makefile: $(SAGE_SRC)/c_lib/configure \
        $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON) 
-	cd $(SAGE_SRC)/c_lib; . ../bin/sage-env && ./configure $(CORE_OPTS)
-	touch $@
 
-csage: $(SAGE_SRC)/c_lib/Makefile
+csage: csage-stamp
+csage-stamp: $(SAGE_SRC)/c_lib/Makefile
 	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time $(MAKE) install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log"
+	touch $@
 
 doc: $(SAGE_SRC)/doc/Makefile
 
