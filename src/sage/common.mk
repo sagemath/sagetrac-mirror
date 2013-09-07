@@ -194,22 +194,22 @@ pycheck-local:
 @am__leading_dot@PRECIOUS: %.cc %.c
 
 if VPATH_BUILD
-FILE_OVERRIDE=-
-endif
-
-# yes, this is ugly, may be replaced with make 3.82
-#
-# FIXME: cleanup, remove __file__ quirk if not VPATH
-#
-# FIXME: parsing twice (pyc and py). can be done in one go
+# need some path trickery, because inspection does not work otherwise
 %.pyc: SHELL=/usr/bin/env bash
 %.pyo: SHELL=/usr/bin/env bash
 %.pyc: %.py
-	@@VPATH_TRUE@$(MKDIR_P) $(dir $@)
-	$(AM_V_PYC)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+	@$(MKDIR_P) $(dir $@)
+	$(AM_V_PYC)echo -e "\n__file__='$<'" | cat "$<" - | $(PYTHON) -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
 %.pyo: %.py
-	@@VPATH_TRUE@$(MKDIR_P) $(dir $@)
-	$(AM_V_PYO)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -O -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+	@$(MKDIR_P) $(dir $@)
+	$(AM_V_PYO)echo -e "\n__file__='$<'" | cat "$<" - | $(PYTHON) -O -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+else
+# use plain python bytecompiler.
+%.pyc: %.py
+	$(AM_V_PYC)$(PYTHON) -c 'import py_compile; py_compile.compile("$<","$@","$<")'
+%.pyo: %.py
+	$(AM_V_PYO)$(PYTHON) -O -c 'import py_compile; py_compile.compile("$<","$@","$<")'
+endif
 
 # sometimes, __init__.py is required to make
 # cython -I work.
