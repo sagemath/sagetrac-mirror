@@ -280,3 +280,10 @@ CLEANFILES+=$(INIT_PY_HERE)
 
 all: $(INIT_PY_HERE)
 all-local: $(DOCPY)
+
+# in case (parts of) build system needs to be regenerated
+# take autotools from sage (the distribution) if necessary.
+# (this is only required on toplevel)
+ACLOCAL = export PATH="$(PATH)"; @ACLOCAL@
+AUTOCONF = export PATH="$(PATH)"; @AUTOCONF@
+AUTOHEADER = export PATH="$(PATH)"; @AUTOHEADER@

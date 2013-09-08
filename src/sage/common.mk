@@ -23,6 +23,10 @@ CYTHON = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(mayb
                 PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)"; \
          @CYTHON@
 
+# regenerating makefiles requires automake. this might be not installed outside
+# sage ("the distribution")...
+AUTOMAKE = export PATH="$(PATH)"; @AUTOMAKE@
+
 # -L@top_builddir@/../c_lib/src/.libs will be added automatically
 AM_LDFLAGS = -module -avoid-version
 
