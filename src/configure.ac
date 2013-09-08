@@ -19,6 +19,12 @@ distdir_subs='distdir: DIST_SUBDIRS+=$(CORE_MODULES)'
 AC_SUBST([distdir_subs])
 AM_SUBST_NOTMAKE([distdir_subs])
 
+# freeze environment
+AC_ARG_VAR(CPPFLAGS, cppflags)
+AC_ARG_VAR(LDFLAGS, ldflags)
+AC_ARG_VAR(LD_LIBRARY_PATH, ld_library_path)
+AC_ARG_VAR(PATH, path)
+
 AC_ARG_ENABLE([doc], AS_HELP_STRING([--enable-doc], [Build docs]),
  [case "${enableval}" in
   yes) doc=true ;;
