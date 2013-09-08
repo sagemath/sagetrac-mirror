@@ -19,6 +19,9 @@
 # compile within the environment specified during configure
 maybe_colon = $(my_LD_LIBRARY_PATH:%=:)
 LIBTOOL = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(maybe_colon)%)"; @LIBTOOL@
+CYTHON = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(maybe_colon)%)" \
+                PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)"; \
+         @CYTHON@
 
 # -L@top_builddir@/../c_lib/src/.libs will be added automatically
 AM_LDFLAGS = -module -avoid-version
@@ -79,8 +82,6 @@ CYTHONFLAGS += -I$(abs_top_srcdir)/.. -I$(abs_top_builddir)/..
 # should look like this (but doesn't, because we are still in src/sage
 # CYTHONFLAGS += -I$(abs_top_srcdir) -I$(abs_top_builddir)
 
-CYTHON ?= cython
-
 # simplify paths
 here_rel = $(subst $(abs_top_srcdir),,$(abs_srcdir))
 instdir = $(pythondir)/sage$(here_rel)
@@ -108,9 +109,6 @@ AM_V_PYO = $(am__v_PYO_$(V))
 am__v_PYO_ = $(am__v_PYO_$(AM_DEFAULT_VERBOSITY))
 am__v_PYO_0 = @echo "  PYO     " $@;
 
-# ouch, trailing colon.
-# empty string will be (mis)interpreted as '.'.
-PYTHONPATHENV = PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)"
 
 # -w needed to force correct paths in docstrings
 # wrong paths lead to mysterious sageinspect.py errors
