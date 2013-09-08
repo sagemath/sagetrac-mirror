@@ -26,3 +26,12 @@ py:
 	$(MAKE) -C sage py
 
 EXTRA_DIST = autogen.sh install-sh
+
+# in case (parts of) build system needs to be regenerated
+# take autotools from sage (the distribution) if necessary.
+# (this is only required on toplevel)
+ACLOCAL = export PATH="$(PATH)"; @ACLOCAL@
+AUTOCONF = export PATH="$(PATH)"; @AUTOCONF@
+AUTOHEADER = export PATH="$(PATH)"; @AUTOHEADER@
+# (this is required in all Makefiles)
+AUTOMAKE = export PATH="$(PATH)"; @AUTOMAKE@
