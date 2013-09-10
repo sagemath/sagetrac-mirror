@@ -2096,11 +2096,46 @@ def is_Field(x):
     deprecation(13370, "use 'R in Fields()', not 'is_Field(R)'")
     return _is_Field(x)
 
+cpdef bint _is_IntegralDomain(x) except -2:
+    """
+    Return whether ``x`` is an integral domain.
+
+    EXAMPLES::
+
+        sage: from sage.rings.ring import _is_IntegralDomain
+        sage: _is_IntegralDomain(QQ)
+        True
+        sage: _is_IntegralDomain(IntegerModRing(2))
+        True
+        sage: _is_IntegralDomain(IntegerModRing(4))
+        False
+        sage: _is_IntegralDomain(5)
+        False
+
+    .. NOTE::
+
+        ``_is_IntegralDomain(R)`` is for internal use. It is better (and
+        faster) to use ``R in IntegralDomains()`` instead.
+
+    """
+    # The result is not immediately returned, since we want to refine x's
+    # category, so that calling x in IntegralDomains() will be faster next
+    # time.
+    try:
+        result = isinstance(x, IntegralDomain) or x.is_integral_domain()
+    except AttributeError:
+        result = False
+    if result:
+        x._refine_category_(_IntegralDomains)
+    return result
+
 # This imports is_Field, so must be executed after is_Field is defined.
 from sage.categories.algebras import Algebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.fields import Fields
+from sage.categories.integral_domains import IntegralDomains
 _Fields = Fields()
+_IntegralDomains = IntegralDomains()
 
 cdef class Field(PrincipalIdealDomain):
     """
