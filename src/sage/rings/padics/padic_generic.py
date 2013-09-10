@@ -530,6 +530,47 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             p = 4
         return self(p)._exp(self.precision_cap())
 
+    def valuation(self, p=None):
+        r"""
+        Return the ``p``-adic valuation of this ring.
+
+        INPUT:
+
+        - ``p`` -- a prime or ``None`` (default: ``None``), this exists for
+          consistency with methods such as
+          :meth:`sage.rings.integer_ring.valuation` and, if specified, must be
+          the :meth:`prime` of this ring.
+
+        EXAMPLES::
+
+            sage: K = Zp(2)
+            sage: K.valuation()
+            2-adic valuation
+            sage: K.valuation(2)
+            2-adic valuation
+
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 2)
+            sage: L.valuation()
+            2-adic valuation
+            sage: L.valuation(2)
+            2-adic valuation
+
+        It is an error to use anything else than the prime for ``p``::
+
+            sage: K.valuation(3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: p-adic valuation not implemented for this ring
+            sage: L.valuation(a)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: p-adic valuation not implemented for this ring
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
 def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""
     Context manager for safely temporarily changing the print_mode

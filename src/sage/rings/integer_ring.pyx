@@ -1224,6 +1224,23 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sib.name('ZZ')
 
+    def valuation(self, p):
+        r"""
+        Return the ``p``-adic valuation of the integer ring.
+
+        INPUT::
+
+        - ``p`` -- a prime
+
+        EXAMPLES::
+
+            sage: ZZ.valuation(2)
+            2-adic valuation
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
 ZZ = IntegerRing_class()
 Z = ZZ
 

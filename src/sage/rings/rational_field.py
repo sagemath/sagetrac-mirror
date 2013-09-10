@@ -987,6 +987,22 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         return sib.name('QQ')
 
+    def valuation(self, p):
+        r"""
+        Return the ``p``-adic valuation on the field of rationals.
+
+        INPUT:
+
+        - ``p`` -- a prime
+
+        EXAMPLES::
+
+            sage: QQ.valuation(2)
+            2-adic valuation
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 QQ = RationalField()
 Q = QQ

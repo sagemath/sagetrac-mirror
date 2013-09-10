@@ -6,3 +6,5 @@ from padic_generic import local_print_mode
 from pow_computer import PowComputer
 from pow_computer_ext import PowComputer_ext_maker
 from discrete_value_group import DiscreteValueGroup
+from padic_valuation import pAdicValuation
+from discrete_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
