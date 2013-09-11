@@ -6,7 +6,7 @@ AM_SILENT_RULES
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_HEADER([config.h])
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign -Wno-portability])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign -Wno-portability subdir-objects])
 
 # Use the silent-rules feature when possible.
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -53,9 +53,11 @@ AC_ARG_ENABLE([doc], AS_HELP_STRING([--enable-doc], [Build docs]),
 esac],[doc=no])
 AM_CONDITIONAL([BUILD_DOC], [test x$doc = xtrue])
 
-sage_local=$prefix
-test "x$prefix" = xNONE && sage_local=$ac_default_prefix
-AC_SUBST(SAGE_LOCAL, $sage_local)
+SAGE_LOCAL=NONE
+AC_ARG_WITH(sage_local,
+            AS_HELP_STRING([--with-sage_local=DIR].[set SAGE_LOCAL=DIR]),
+            [SAGE_LOCAL=$withval])
+AC_SUBST(SAGE_LOCAL)
 
 ## VPATH
 AM_CONDITIONAL([VPATH_BUILD], [test ! x$srcdir = "x."])
@@ -77,12 +79,12 @@ AC_SUBST(AM_LDFLAGS, "-module -avoid-version")
 
 ### arg parsing
 AC_ARG_WITH([gmp], [AS_HELP_STRING([--with-gmp], [Build with gmp library])],
-            [ AS_IF([test "x$with_gmp" != "xno"], [ gmp_or_mpir=gmp ]) ])
+            [ AS_IF([test "x$with_gmp" != "xno"], [ gmp_or_mpir=gmp; GMP_or_MPIR=GMP ]) ])
 
 AC_ARG_WITH([mpir], [AS_HELP_STRING([--with-mpir], [Build with mpir library])],
             [ AS_IF([ test x$gmp_or_mpir = xgmp ],
                     [ AC_MSG_ERROR([Cannot select both, gmp and mpir])]);
-              AS_IF([ test "x$with_mpir" != "xno" ], [ gmp_or_mpir=mpir ])
+              AS_IF([ test "x$with_mpir" != "xno" ], [ gmp_or_mpir=mpir; GMP_or_MPIR=MPIR ])
             ])
 
 ## python stuff
@@ -205,12 +207,15 @@ AC_SUBST([FACTORY_INCLUDES])
 
 # gmp and mpir
 AS_IF([ test x$gmp_or_mpir != xgmp ], [
-       AC_CHECK_LIB([mpir], [__gmp_version],[gmp_or_mpir=mpir] ) ])
+       AC_CHECK_LIB([mpir], [__gmp_version],[gmp_or_mpir=mpir; GMP_or_MPIR=MPIR] ) ])
 
 AS_IF([ test x$gmp_or_mpir != xmpir ], [
-       AC_CHECK_LIB([gmp], [__gmp_version],[gmp_or_mpir=gmp],[AC_MSG_ERROR([there is no gmp lib])])])
+       AC_CHECK_LIB([gmp], [__gmp_version],[gmp_or_mpir=gmp; GMP_or_MPIR=GMP],[AC_MSG_ERROR([there is no gmp lib])])])
 
 AS_IF([test -z "$gmp_or_mpir" ], [AC_MSG_ERROR([there is no mpir or gmp lib])])
+
+SAGE_CFLAGS="-w -O2 -DUSE_"$GMP_or_MPIR
+AC_SUBST([SAGE_CFLAGS])
 
 # lets assume nobody wants to mix up {gmp,mpir} with {mpir,gmp}xx
 GMP_OR_MPIR_LIBS=-l$gmp_or_mpir
@@ -241,19 +246,21 @@ AS_IF([ test x$gmp_or_mpir = xgmp ],[
 AS_IF([ test x$gmp_or_mpir = xmpir ],[
     AC_DEFINE(USE_MPIR, [1], [use mpir (not gmp)]) ])
 
-AS_IF([test -f $sage_local/include/ecl/ecl.h],
-      [LIBECL_INCLUDES=-I$sage_local/include/ecl],
-      [LIBECL_INCLUDES=-I/usr/include/ecl])
-CPPFLAGS+=" $LIBECL_INCLUDES"
-AC_CHECK_HEADER([ecl.h],,[AC_MSG_ERROR(cannot find ecl header)])
+# later: --with-ecl?
+# AS_IF([test ! x$SAGE_LOCAL = xNONE],
+#       [LIBECL_INCLUDES=-I$SAGE_LOCAL/include/ecl],
+#       [LIBECL_INCLUDES=-I/usr/include/ecl])
+# CPPFLAGS+=" $LIBECL_INCLUDES"
+AC_CHECK_HEADER([ecl/ecl.h],,[AC_MSG_ERROR(cannot find ecl header)])
 AC_SUBST(LIBECL_INCLUDES)
 CPPFLAGS=$OLDCPPFLAGS
 
-AS_IF([test -f $sage_local/include/flint/flint.h],
-      [LIBFLINT_INCLUDES=-I$sage_local/include/flint],
-      [LIBFLINT_INCLUDES=-I/usr/include/flint])
-CPPFLAGS+=" $LIBFLINT_INCLUDES"
-AC_CHECK_HEADER([flint.h],,[AC_MSG_ERROR(cannot find flint header)])
+# # later: --with-flint?
+# AS_IF([test ! x$SAGE_LOCAL = xNONE],
+#       [LIBFLINT_INCLUDES=-I$SAGE_LOCAL/include/flint],
+#       [LIBFLINT_INCLUDES=-I/usr/include/flint])
+# CPPFLAGS+=" $LIBFLINT_INCLUDES"
+AC_CHECK_HEADER([flint/flint.h],,[AC_MSG_ERROR(cannot find flint header)])
 AC_SUBST(LIBFLINT_INCLUDES)
 
 CPPFLAGS="$OLDCPPFLAGS $PYTHON_INCLUDES"
@@ -263,10 +270,15 @@ AC_CHECK_HEADER([pynac/order.h],,[AC_MSG_NOTICE(cannot find pynac header)])
 CPPFLAGS=$OLDCPPFLAGS
 
 AC_LANG_PUSH([C++])
-AS_IF([test -f $sage_local/include/libLfunction/L.h],
-      [LIBLFUNCTION_INCLUDES=-I$sage_local/include/libLfunction],
-      [LIBLFUNCTION_INCLUDES=-I/usr/include/Lfunction])
-CPPFLAGS+=" $LIBLFUNCTION_INCLUDES"
+# note: if you have lfunction headers in a different location, you must take
+# care of CPPFLAGS manually
+AS_IF([test ! x$SAGE_LOCAL = xNONE -a -f $SAGE_LOCAL/include/libLfunction/L.h],
+      [LIBLFUNCTION_INCLUDES=-I$SAGE_LOCAL/include/libLfunction],
+      [test -f /usr/include/Lfunction/L.h],
+      [LIBLFUNCTION_INCLUDES=-I/usr/include/Lfunction],
+      [test -f /usr/local/include/Lfunction/L.h],
+      [LIBLFUNCTION_INCLUDES=-I/usr/local/include/Lfunction])
+CPPFLAGS="$OLDCPPFLAGS $LIBLFUNCTION_INCLUDES"
 AC_CHECK_HEADER([L.h],,[AC_MSG_ERROR(cannot find Lfunction header)])
 CPPFLAGS=$OLDCPPFLAGS
 AC_LANG_POP
@@ -298,41 +310,40 @@ AC_CHECK_HEADER([fes.h], [HAVE_LIBFES=yes], [HAVE_LIBFES=no])
 AC_SUBST([HAVE_LIBFES])
 AM_CONDITIONAL([USE_LIBFES], [ test $HAVE_LIBFES = yes ])
 
-# lrcalc
 old_CPPFLAGS=$CPPFLAGS
 HAVE_LIBLRCALC=no
-AC_ARG_WITH(lrcalc,
-    [  --with-lrcalc=lrcalc prefix],
-    [   AC_MSG_RESULT([$with_lrcalc])
-        case $with_lrcalc in
-          no)
-            ;;
+# sage (the distribution) looks in $SAGE_LOCAL first.
+# use --with-lrcalc to specify something different
+AC_ARG_WITH(lrcalc, AS_HELP_STRING([--with-lrcalc=prefix].[use lrcalc from prefix]),
+    [  case $with_lrcalc in
           yes)
-            dnl try to find it somewhere here... (better idea?!)
-            LIBLRCALC_INCLUDES="-I$sage_local/include/lrcalc"
-            HAVE_LIBLRCALC=yes
-            CPPFLAGS+=" $LIBLRCALC_INCLUDES"
-            AC_CHECK_HEADER([symfcn.h],,AC_MSG_ERROR([cannot find lrcalc]))
             ;;
           *)
-            dnl use specified lrcalc
             LIBLRCALC_INCLUDES="-I$with_lrcalc/include/lrcalc"
-            CPPFLAGS+=" $LIBLRCALC_INCLUDES"
-            AC_CHECK_HEADER([symfcn.h],
-                            [HAVE_LIBLRCALC=yes],
-                            [LIBLRCALC_INCLUDES=
-                            ])
             ;;
         esac
-        ],[ dnl figure out automatically (the sage-the-distribution case)
-            LIBLRCALC_INCLUDES="-I$sage_local/include/lrcalc"
-            CPPFLAGS+=" $LIBLRCALC_INCLUDES"
-            AC_CHECK_HEADER([symfcn.h],
-                            [HAVE_LIBLRCALC=yes],
-                            [LIBLRCALC_INCLUDES=
-                            ])
-    ]
+        ],[ ]
 )
+# use --with-lrcalc-include to override
+AC_ARG_WITH(lrcalc-include, AS_HELP_STRING([--with-lrcalc-include=includedir].[use lrcalc from includedir]),
+    [  case $with_lrcalc in
+          yes)
+            ;;
+          *)
+            LIBLRCALC_INCLUDES="-I$with_lrcalc/include"
+            ;;
+        esac
+        ],[ ]
+)
+
+AS_IF([test -n "$LIBLRCALC_INCLUDES"],[],
+      [test ! x$SAGE_LOCAL = xNONE -a -f $SAGE_LOCAL/include/lrcalc/symfcn.h],
+      [LIBLRCALC_INCLUDES="-I$SAGE_LOCAL/include/lrcalc"],
+      [LIBLRCALC_INCLUDES="-I/usr/include/lrcalc"])
+CPPFLAGS="$CPPFLAGS $LIBLRCALC_INCLUDES"
+AC_CHECK_HEADER([symfcn.h],
+                [HAVE_LIBLRCALC=yes],
+                [AC_MSG_ERROR([could not find lrcalc])])
 CPPFLAGS=$old_CPPFLAGS
 AC_SUBST([LIBLRCALC_INCLUDES])
 AC_SUBST([HAVE_LIBLRCALC])
@@ -474,12 +485,14 @@ AC_SUBST([SAGE_SRC])
 # AS_AC_EXPAND(LIBCSAGE_INCLUDES, "-I$pkgincludedir")
 
 # fixme: use AC_...
-numpy_include_dir=$sage_local/lib/python/site-packages/numpy/core/include
-NUMPY_INCLUDES=-I$numpy_include_dir
-AC_SUBST(numpy_include_dir)
+NUMPY_INCLUDEDIR=$SAGE_LOCAL/lib/python/site-packages/numpy/core/include
+NUMPY_INCLUDES=-I$NUMPY_INCLUDEDIR
+AC_SUBST(NUMPY_INCLUDEDIR)
 AC_SUBST(NUMPY_INCLUDES)
 
-SAGE_INC=$sage_local/include
+AS_IF([test ! x$SAGE_LOCAL = xNONE],
+      [SAGE_INC=$SAGE_LOCAL/include],
+      [SAGE_INC=NONE])
 AC_SUBST(SAGE_INC)
 
 SAGE_DIR=$srcdir
@@ -510,11 +523,12 @@ AC_DEFINE(HAVE_STRERROR, 1, [Everybody has that])
 AC_DEFINE(HAVE_SYS_ERRLIST, 1, [Or GAP will define its own])
 
 #### data packages ####
-# default: sort of pkgdatadir
+# default: sort of pkgdatadir, maybe just sage_share
 AC_ARG_WITH(dbdir,
             AS_HELP_STRING([--with-dbdir=DIR].[use databases from DIR]),
             [dbdir=$withval],
-            [dbdir=$sage_local/share])
+            [dbdir=$SAGE_LOCAL/share])
+SAGE_SHARE="$dbdir"
 
 AS_IF([test -d $dbdir/conway_polynomials],
       [CONWAY_DATA_DIR=$dbdir/conway_polynomials],
@@ -522,12 +536,12 @@ AS_IF([test -d $dbdir/conway_polynomials],
       [CONWAY_DATA_DIR=/usr/share/sage/conway_polynomials],
       [test -d /usr/share/sagemath/conway_polynomials], #debian
       [CONWAY_DATA_DIR=/usr/share/sagemath/conway_polynomials],
-      [CONWAY_DATA_DIR=$sage_local/share/conway_polynomials]) dnl hack!
+      [CONWAY_DATA_DIR=$SAGE_LOCAL/share/conway_polynomials]) dnl hack!
 AC_SUBST([CONWAY_DATA_DIR])
 AM_SUBST_NOTMAKE([CONWAY_DATA_DIR])
 
 AS_IF([test -d $dbdir/graphs],
-      [GRAPHS_DATA_DIR=$sage_local/share/graphs],
+      [GRAPHS_DATA_DIR=$SAGE_LOCAL/share/graphs],
       [test -d /usr/share/sage/graphs],
       [GRAPHS_DATA_DIR=/usr/share/sage/graphs],
       [test -d /usr/share/sagemath/graphs],
@@ -537,7 +551,7 @@ AC_SUBST([GRAPHS_DATA_DIR])
 AM_SUBST_NOTMAKE([GRAPHS_DATA_DIR])
 
 AS_IF([test -d $dbdir/reflexive_polytopes],
-      [POLYTOPE_DATA_DIR=$sage_local/share/reflexive_polytopes],
+      [POLYTOPE_DATA_DIR=$SAGE_LOCAL/share/reflexive_polytopes],
       [test -d /usr/share/sage/reflexive_polytopes],
       [POLYTOPE_DATA_DIR=/usr/share/sage/reflexive_polytopes],
       [test -d /usr/share/sagemath/reflexive_polytopes],
@@ -547,11 +561,11 @@ AC_SUBST([POLYTOPE_DATA_DIR])
 AM_SUBST_NOTMAKE([POLYTOPE_DATA_DIR])
 
 AS_IF([test -d $dbdir/ellcurves],
-      [ELLCURVE_DATA_DIR=$dbdir/ellcurves],
+      [ELLCURVE_DATA_DIR=$dbdir],
       [test -d /usr/share/sage/ellcurves],
-      [ELLCURVE_DATA_DIR=/usr/share/sage/ellcurves],
+      [ELLCURVE_DATA_DIR=/usr/share/sage],
       [test -d /usr/share/sagemath/ellcurves],
-      [ELLCURVE_DATA_DIR=/usr/share/sagemath/ellcurves],
+      [ELLCURVE_DATA_DIR=/usr/share/sagemath],
       [AC_MSG_ERROR([cannot find elliptic curves])])
 AC_SUBST([ELLCURVE_DATA_DIR])
 AM_SUBST_NOTMAKE([ELLCURVE_DATA_DIR])
@@ -559,9 +573,9 @@ AM_SUBST_NOTMAKE([ELLCURVE_DATA_DIR])
 # FIXME: gentoo?
 # FIXME: require GAP_INCLUDEDIR unless HAVE_LIBGAP
 GAP_INCLUDEDIR=/usr/include/gap
-AS_IF([test -d $sage_local/gap],
-      [GAP_DATA_DIR=$sage_local/gap/latest;
-       GAP_INCLUDEDIR=$sage_local/gap/latest/src],
+AS_IF([test -d $SAGE_LOCAL/gap],
+      [GAP_DATA_DIR=$SAGE_LOCAL/gap/latest;
+       GAP_INCLUDEDIR=$SAGE_LOCAL/gap/latest/src],
       [test -d /usr/share/gap],
       [GAP_DATA_DIR=/usr/share/gap],
       [AC_MSG_ERROR([cannot find gap])])
@@ -570,8 +584,8 @@ AC_SUBST([GAP_DATA_DIR])
 AC_SUBST([GAP_INCLUDEDIR])
 
 AC_MSG_CHECKING([for gap libdir])
-AS_IF([test -x $sage_local/gap/latest/bin/*/gap],
-      [GAP_LIB_DIR=`dirname $sage_local/gap/latest/bin/*/gap`],
+AS_IF([test -x $SAGE_LOCAL/gap/latest/bin/*/gap],
+      [GAP_LIB_DIR=`dirname $SAGE_LOCAL/gap/latest/bin/*/gap`],
       [test -d /usr/lib/gap/bin],
       [GAP_LIB_DIR=/usr/lib/gap/bin],
       [AC_MSG_ERROR([cannot find gap])])

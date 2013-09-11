@@ -4,8 +4,7 @@
 #
 SUBDIRS = matrices words crystals
 include $(top_srcdir)/common.mk
-combinatdir = $(pythondir)/sage/combinat
-combinat_PYTHON = \
+inst_PYTHON = \
     tutorial.py misc.py multichoose_nk.py family.py permutation_nk.py \
     partition_tuple.py sidon_sets.py yamanouchi.py lyndon_word.py __init__.py \
     rsk.py \
@@ -28,7 +27,7 @@ combinat_PYTHON = \
     diagram_algebras.py similarity_class_type.py
 
 AM_DEFAULT_SOURCE_EXT = .pyx
-combinat_LTLIBRARIES = \
+inst_LTLIBRARIES = \
     combinat_cython.la debruijn_sequence.la degree_sequences.la dict_addition.la \
     enumeration_mod_permgroup.la expnums.la partitions.la permutation_cython.la \
     q_bernoulli.la
@@ -39,9 +38,8 @@ debruijn_sequence_la_LIBADD = -lcsage
 expnums_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 partitions_la_SOURCES = partitions.pyxx partitions_c.cc
 partitions_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lmpfr -lcsage
-partitions.cc: @srcdir@/partitions.pyxx
 
-combinat_cluster_algebra_quiverdir = $(combinatdir)/cluster_algebra_quiver
+combinat_cluster_algebra_quiverdir = $(instdir)/cluster_algebra_quiver
 combinat_cluster_algebra_quiver_PYTHON = \
     cluster_algebra_quiver/all.py \
     cluster_algebra_quiver/cluster_seed.py \
@@ -51,18 +49,7 @@ combinat_cluster_algebra_quiver_PYTHON = \
     cluster_algebra_quiver/quiver_mutation_type.py \
     cluster_algebra_quiver/quiver.py
 
-# combinat_ietdir = $(combinatdir)/iet
-# combinat_iet_PYTHON = \
-#     iet/all.py \
-#     iet/constructors.py \
-#     iet/iet.py \
-#     iet/__init__.py \
-#     iet/labelled.py \
-#     iet/reduced.py \
-#     iet/strata.py \
-#     iet/template.py
-
-combinat_posetsdir = $(pythondir)/sage/combinat/posets
+combinat_posetsdir = $(instdir)/posets
 combinat_posets_PYTHON = \
     posets/all.py \
     posets/elements.py \
@@ -73,7 +60,7 @@ combinat_posets_PYTHON = \
     posets/poset_examples.py \
     posets/posets.py
 
-combinat_rigged_configurationsdir = $(pythondir)/sage/combinat/rigged_configurations
+combinat_rigged_configurationsdir = $(instdir)/rigged_configurations
 combinat_rigged_configurations_PYTHON = \
     rigged_configurations/all.py \
     rigged_configurations/bij_abstract_class.py \
@@ -88,8 +75,8 @@ combinat_rigged_configurations_PYTHON = \
     rigged_configurations/rigged_partition.py \
     rigged_configurations/tensor_product_kr_tableaux_element.py \
     rigged_configurations/tensor_product_kr_tableaux.py
-    
-combinat_root_systemdir = $(pythondir)/sage/combinat/root_system
+
+combinat_root_systemdir = $(instdir)/root_system
 combinat_root_system_PYTHON = \
     root_system/all.py \
     root_system/ambient_space.py \
@@ -131,7 +118,7 @@ combinat_root_system_PYTHON = \
     root_system/weyl_characters.py \
     root_system/weyl_group.py
 
-combinat_sfdir = $(pythondir)/sage/combinat/sf
+combinat_sfdir = $(instdir)/sf
 combinat_sf_PYTHON = \
     sf/all.py \
     sf/classical.py \
@@ -156,7 +143,7 @@ combinat_sf_PYTHON = \
     sf/sfa.py \
     sf/sf.py
 
-combinat_designsdir = $(combinatdir)/designs
+combinat_designsdir = $(instdir)/designs
 combinat_designs_PYTHON = \
     designs/all.py \
     designs/block_design.py \
@@ -167,7 +154,7 @@ combinat_designs_PYTHON = \
     designs/__init__.py \
     designs/steiner_quadruple_systems.py
 
-combinat_ncsf_qsymdir = $(combinatdir)/ncsf_qsym
+combinat_ncsf_qsymdir = $(instdir)/ncsf_qsym
 combinat_ncsf_qsym_PYTHON = \
     ncsf_qsym/all.py \
     ncsf_qsym/combinatorics.py \
@@ -177,7 +164,7 @@ combinat_ncsf_qsym_PYTHON = \
     ncsf_qsym/qsym.py \
     ncsf_qsym/tutorial.py
 
-combinat_speciesdir = $(combinatdir)/species
+combinat_speciesdir = $(instdir)/species
 combinat_species_PYTHON = \
     species/all.py \
     species/characteristic_species.py \

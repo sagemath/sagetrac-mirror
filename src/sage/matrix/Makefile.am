@@ -36,14 +36,14 @@ matrix2_la_LIBADD = -lcsage
 matrix_dense_la_LIBADD = -lcsage
 
 matrix_complex_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-matrix_complex_double_dense_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+matrix_complex_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 matrix_cyclo_dense_la_LIBADD = -lntl @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_cyclo_dense_la_SOURCES = matrix_cyclo_dense.pyxx
 matrix_cyclo_dense.cc: @srcdir@/matrix_cyclo_dense.pyxx
 
 matrix_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@
-matrix_double_dense_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+matrix_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 matrix_generic_dense_la_LIBADD = -lcsage
 matrix_integer_2x2_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_integer_dense_la_LIBADD = -liml -lpari @GMP_OR_MPIR_LIBS@ -lm -l@BLAS@ -l@BLAS2@ -lcsage
@@ -79,7 +79,7 @@ matrix_mpolynomial_dense.cc: @srcdir@/matrix_mpolynomial_dense.pyxx
 matrix_rational_dense_la_LIBADD = -lpari @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_rational_sparse_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_real_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-matrix_real_double_dense_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+matrix_real_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 matrix_sparse_la_LIBADD = -lcsage -lcsage
 

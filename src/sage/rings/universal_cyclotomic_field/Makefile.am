@@ -9,4 +9,4 @@ rings_universal_cyclotomic_field_PYTHON = __init__.py all.py universal_cyclotomi
 AM_DEFAULT_SOURCE_EXT = .pyx
 rings_universal_cyclotomic_field_LTLIBRARIES = universal_cyclotomic_field_c.la
 universal_cyclotomic_field_c_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
-universal_cyclotomic_field_c_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+universal_cyclotomic_field_c_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)

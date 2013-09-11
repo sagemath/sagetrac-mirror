@@ -99,7 +99,7 @@ polynomial_zz_pex.cc: @srcdir@/polynomial_zz_pex.pyxx
 polynomial_zz_pex_la_CPPFLAGS = -I@SAGE_DIR@/libs/ntl $(AM_CPPFLAGS)
 
 real_roots_la_LIBADD = -lmpfr @GMP_OR_MPIR_LIBS@
-real_roots_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+real_roots_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 # FIXME. something extremely wrong with singular
 multi_polynomial_ideal_libsingular_la_CPPFLAGS += -DNDEBUG

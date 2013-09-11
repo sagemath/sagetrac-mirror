@@ -25,9 +25,9 @@ modules_LTLIBRARIES = \
     vector_real_double_dense.la
 
 vector_complex_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-vector_complex_double_dense_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+vector_complex_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 vector_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-vector_double_dense_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+vector_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 vector_integer_dense_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 vector_mod2_dense_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lm4ri -lpng12 -lgd -lcsage
 vector_mod2_dense_la_CFLAGS = @M4RI_CFLAGS@ $(AM_CFLAGS)
@@ -38,6 +38,6 @@ vector_modn_dense_la_LIBADD = -lcsage
 vector_rational_dense_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 
 vector_real_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-vector_real_double_dense_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+vector_real_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 free_module_element_la_LIBADD = -lcsage

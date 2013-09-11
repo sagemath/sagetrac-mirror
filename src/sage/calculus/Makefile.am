@@ -11,7 +11,7 @@ calculus_PYTHON = \
 AM_DEFAULT_SOURCE_EXT = .pyx
 calculus_LTLIBRARIES = interpolators.la riemann.la var.la
 
-interpolators_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+interpolators_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
-riemann_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+riemann_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 riemann_la_LIBADD = -lcsage
