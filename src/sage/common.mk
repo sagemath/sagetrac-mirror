@@ -173,7 +173,9 @@ py-recursive:
 	for i in $(SUBDIRS); do $(MAKE) -C $$i py || exit 1; done
 pycheck: pycheck-local pycheck-recursive
 pycheck-recursive:
-	for i in $(SUBDIRS); do $(MAKE) -C $$i pycheck PYLIST=../$(PYLIST); done
+	for i in $(SUBDIRS); do \
+	    $(MAKE) -C $$i pycheck PYLIST=../$(PYLIST) || exit 1; \
+	done
 
 @am__leading_dot@PHONY: py-recursive py-local py \
                         pycheck-recursive pycheck-local pycheck
@@ -185,7 +187,7 @@ PYLIST = none
 
 # compare registered .py's against existing
 pycheck-local:
-	echo $(PYS) $(noinst_HEADERS) $(filter %.pyx,$(DIST_SOURCES)) $(filter %.pyxx,$(DIST_SOURCES)) | tr ' ' '\n' | \
+	echo $(noinst_HEADERS) $(filter %.py %.pyx %.pyxx,$(DISTFILES)) | tr ' ' '\n' | \
 	    sed 's#^#@abs_builddir@/#' | \
 	    sed 's#^@abs_top_builddir@#.#' >> $(PYLIST)
 

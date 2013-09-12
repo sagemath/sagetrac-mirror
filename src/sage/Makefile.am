@@ -17,8 +17,7 @@ SUBDIRS = \
     schemes sets stats structure symbolic tensor tests server doctest sat \
     dynamics matroids
 
-sagedir = $(pythondir)/sage
-sage_PYTHON = \
+inst_PYTHON = \
     all_cmdline.py \
     all_notebook.py \
     __init__.py \

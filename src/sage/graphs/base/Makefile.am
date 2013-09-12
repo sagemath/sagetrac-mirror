@@ -12,7 +12,7 @@ inst_LTLIBRARIES = \
     c_graph.la \
     dense_graph.la \
     sparse_graph.la \
-    static_sparse_graph.la \
-    static_sparse_backend.la
+    static_sparse_backend.la \
+    static_sparse_graph.la
 
 noinst_HEADERS = static_sparse_backend.pxd
