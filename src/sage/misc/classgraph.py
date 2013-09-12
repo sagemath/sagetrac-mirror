@@ -34,11 +34,11 @@ def class_graph(top, depth=5, name_filter=None, classes=None, as_graph = True):
 
         sage: from sage.rings.polynomial.padics import polynomial_padic_capped_relative_dense, polynomial_padic_flat
         sage: G = class_graph(sage.rings.polynomial.padics); G
-        Digraph on 4 vertices
+        Digraph on 8 vertices
         sage: G.vertices()
-        ['Polynomial_generic_dense', 'Polynomial_generic_domain', 'Polynomial_padic_capped_relative_dense', 'Polynomial_padic_flat']
+        ['Polynomial_generic_dense', 'Polynomial_generic_dense_field', 'Polynomial_generic_domain', 'Polynomial_padic', 'Polynomial_padic_capped_relative_dense', 'Polynomial_padic_flat', 'Polynomial_padic_generic_field', 'Polynomial_padic_generic_ring']
         sage: G.edges(labels=False)
-        [('Polynomial_padic_capped_relative_dense', 'Polynomial_generic_domain'), ('Polynomial_padic_flat', 'Polynomial_generic_dense')]
+        [('Polynomial_padic', 'Polynomial_generic_domain'), ('Polynomial_padic_capped_relative_dense', 'Polynomial_padic'), ('Polynomial_padic_flat', 'Polynomial_padic_generic_ring'), ('Polynomial_padic_generic_field', 'Polynomial_generic_dense_field'), ('Polynomial_padic_generic_field', 'Polynomial_padic'), ('Polynomial_padic_generic_ring', 'Polynomial_generic_dense'), ('Polynomial_padic_generic_ring', 'Polynomial_generic_domain'), ('Polynomial_padic_generic_ring', 'Polynomial_padic')]
 
     We construct the inheritance graph of a given class::
 

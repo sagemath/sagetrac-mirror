@@ -13,31 +13,18 @@ rings but rather quotients of them (see module
 constructor :func:`MPolynomialRing` (now subsumed by the generic
 :meth:`PolynomialRing`.
 """
-
 #################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#
 ######################################################################
-
 
 from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
-import sage.rings.padics.padic_base_leaves as padic_base_leaves
+import sage.rings.padics.padic_generic
 
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.constructor import is_FiniteField
@@ -517,6 +504,41 @@ def _save_in_cache(key, R):
 
 
 def _single_variate(base_ring, name, sparse, implementation):
+    r"""
+    Return a univariate polynomial ring over ``base_ring`` in ``name``.
+
+    INPUT:
+
+    - ``base_ring`` -- a ring
+
+    - ``name`` -- a string
+
+    - ``sparse`` -- a boolean, whether the implementation should be optimized
+      for sparse polynomials
+
+    - ``implementation`` -- a string or ``None``, for some values of ``base_ring``,
+      multiple implementations are available for the polynomial elements. This
+      parameter can be used to select a specific one.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_ring_constructor import _single_variate
+
+        sage: _single_variate(ZZ, name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: _single_variate(ZZ, name='x', sparse=True, implementation=None)
+        Sparse Univariate Polynomial Ring in x over Integer Ring
+
+        sage: _single_variate(ZpFM(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring of fixed modulus 3^20
+        sage: _single_variate(ZpCA(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring with capped absolute precision 20
+        sage: _single_variate(ZpCR(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Ring with capped relative precision 20
+        sage: _single_variate(QpCR(3), name='x', sparse=False, implementation=None)
+        Univariate Polynomial Ring in x over 3-adic Field with capped relative precision 20
+
+    """
     import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
     key = (base_ring, name, sparse, implementation if not sparse else None)
@@ -537,17 +559,29 @@ def _single_variate(base_ring, name, sparse, implementation):
         elif is_FiniteField(base_ring) and not sparse:
             R = m.PolynomialRing_dense_finite_field(base_ring, name, implementation=implementation)
 
-        elif isinstance(base_ring, padic_base_leaves.pAdicFieldCappedRelative):
-            R = m.PolynomialRing_dense_padic_field_capped_relative(base_ring, name)
+        elif isinstance(base_ring, sage.rings.padics.padic_generic.pAdicGeneric):
+            if sparse:
+                pass # ignored
+            if implementation is not None:
+                pass # ignored
 
-        elif isinstance(base_ring, padic_base_leaves.pAdicRingCappedRelative):
-            R = m.PolynomialRing_dense_padic_ring_capped_relative(base_ring, name)
+            if base_ring.is_field():
+                R = m.PolynomialRing_dense_padic_field_generic
+                from sage.rings.polynomial.padics.polynomial_padic_generic import Polynomial_padic_generic_field
+                element_class = Polynomial_padic_generic_field
+            else:
+                from sage.rings.polynomial.padics.polynomial_padic_generic import Polynomial_padic_generic_ring
+                R = m.PolynomialRing_dense_padic_ring_generic
+                element_class = Polynomial_padic_generic_ring
 
-        elif isinstance(base_ring, padic_base_leaves.pAdicRingCappedAbsolute):
-            R = m.PolynomialRing_dense_padic_ring_capped_absolute(base_ring, name)
+            if base_ring.ground_ring_of_tower() is base_ring and (base_ring.is_fixed_mod() or base_ring.is_capped_absolute()):
+                from sage.rings.polynomial.padics.polynomial_padic_flat import Polynomial_padic_flat
+                element_class = Polynomial_padic_flat
+            elif base_ring.ground_ring_of_tower() is base_ring and base_ring.is_capped_relative():
+                from sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense import Polynomial_padic_capped_relative_dense
+                element_class = Polynomial_padic_capped_relative_dense
 
-        elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
-            R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
+            R = R(base_ring, name, element_class=element_class)
 
         elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)
