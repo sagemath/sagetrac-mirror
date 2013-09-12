@@ -3,11 +3,13 @@
 # license: gplv3+
 #
 
+SUBDIRS = common
+
 install-data-local: docbuild
 
 all: docbuild
 
-EXTRA_DIST = common en/reference/footer.txt \
+EXTRA_DIST = en/reference/footer.txt \
              en/reference/index.rst \
              en/reference/conf_sub.py \
              en/reference/conf.py \
@@ -52,9 +54,14 @@ install-data-local:
 	cp -r output/* $(docdir)
 
 clean-local:
+	@echo "Deleting generated docs..."
 	for i in $(LANGDIRS); do \
 	    ( cd $$i/reference; [ ! -L footer.txt ] || rm -f footer.txt ) \
 	done
+	rm -rf en/reference/*/sage
+	rm -rf en/reference/*/sagenb
+	rm -rf en/reference/sage
+	rm -rf en/reference/sagenb
 	rm -rf output
 
 dist-hook:

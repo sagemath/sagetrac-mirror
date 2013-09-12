@@ -9,6 +9,7 @@ csage_HEADERS = \
     ginac_wrap.h \
     gmp_globals.h \
     gmp_or_mpir.h \
+    gmpxx_or_mpirxx.h \
     interrupt.h \
     memory.h \
     mpn_pylong.h \

@@ -12,4 +12,4 @@ finance_LTLIBRARIES = \
     option.la
 
 time_series_la_LIBADD = -lcsage
-time_series_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+time_series_la_CPPFLAGS = $(AM_CPPFLAGS) @NUMPY_INCLUDES@

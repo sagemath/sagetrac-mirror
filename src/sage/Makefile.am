@@ -26,6 +26,17 @@ sage_PYTHON = \
     env.py \
     all.py
 
+# runtime environment for bare sagelib installs
+# (will be sourced by env.d)
+00bare.sh:
+	echo "export PYTHONPATH=\"$(pythondir)\$${PYTHONPATH/*/:}\$$PYTHONPATH\"" > $@
+	echo "export SAGE_SRC=\"$(pythondir)\"" >> $@
+	echo "export PATH=\"${prefix}/bin:\$$PATH\"" >> $@
+
+sageenvdir=$(sysconfdir)/env.d
+sageenv_DATA = 00bare.sh
+
+
 
 # this implements the currently
 # unavaible AM_EXTRA_RECURSIVE_TARGETS, see common.mk
@@ -47,20 +58,22 @@ pycheck: pyall
 	diff -d pyreg pyall | tee pydiff; exit $${PIPESTATUS[0]}
 	rm pyreg pyall pydiff
 
+# in VPATH mode, we need __init__.py files, so cython -I works right
+# (otherwise, $(INIT_PY_HERE) is empty)
+pys: | $(INIT_PY_HERE)
+check-local: | $(INIT_PY_HERE)
 
-all: | __init__.pyc
-
-if VPATH_BUILD
-pys:
-	for i in $(filter_out env.py, $(sage_PYTHON)); \
-		do cp -p @srcdir@/$$i .; done
-PHONYPYS = pys
-endif
+# move this up one level when merging core modules
+sageconfdir=$(sysconfdir)
+sageconf_DATA = default.qepcadrc
+default.qepcadrc:
+	echo SINGULAR $(dir $(SINGULAR)) > $@
 
 # manually implementing AM_EXTRA_RECURSIVE_TARGETS([py])
 # this will be in automake1.12 (?)
 .PHONY: py $(PHONYPYS)
 
+# bug or feature: know which files belong to sagelib
 noinst_HEADERS = \
     modular/arithgroup/farey.pxd modular/modsym/apply.pxd \
     modular/modsym/p1list.pxd structure/mutability.pxd \
@@ -265,6 +278,12 @@ endif
 
 CLEANFILES+=$(INIT_PY_HERE)
 
-py: $(INIT_PY_HERE)
 all: $(INIT_PY_HERE)
 all-local: $(DOCPY)
+
+# in case (parts of) build system needs to be regenerated
+# take autotools from sage (the distribution) if necessary.
+# (this is only required on toplevel)
+ACLOCAL = export PATH="$(PATH)"; @ACLOCAL@
+AUTOCONF = export PATH="$(PATH)"; @AUTOCONF@
+AUTOHEADER = export PATH="$(PATH)"; @AUTOHEADER@

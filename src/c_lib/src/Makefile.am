@@ -4,7 +4,7 @@
 #
 c_libdir = $(libdir)
 c_lib_LTLIBRARIES = libcsage.la
-libcsage_la_LIBADD = -lntl -lpari -lgmp -lpython@PYTHON_VERSION@
+libcsage_la_LIBADD = -lntl -lpari @GMP_OR_MPIR_LIBS@ -lpython@PYTHON_VERSION@
 libcsage_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/include @PYTHON_INCLUDES@
 libcsage_la_SOURCES = \
     convert.c \

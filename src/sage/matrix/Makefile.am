@@ -3,7 +3,7 @@
 # license: gplv3+
 #
 include $(top_srcdir)/common.mk
-AM_CPPFLAGS+=$(PYTHON_INCLUDES) @CSAGE_INCLUDES@
+AM_CPPFLAGS+= $(PYTHON_INCLUDES) @LIBCSAGE_INCLUDES@
 matrixdir = $(pythondir)/sage/matrix
 matrix_PYTHON = \
     all.py benchmark.py berlekamp_massey.py constructor.py docs.py __init__.py \
@@ -24,9 +24,9 @@ matrix_LTLIBRARIES = \
 
 action_la_CPPFLAGS = $(PYTHON_INCLUDES) -I$(C_LIB_INCLUDE) $(AM_CPPFLAGS)
 change_ring_la_LIBADD = -l@BLAS@ -l@BLAS2@ @GMP_OR_MPIR_LIBS@
-change_ring_la_CPPFLAGS = @NUMPY_INCLUDES@ $(PYTHON_INCLUDES) @CSAGE_INCLUDES@ $(AM_CPPFLAGS)
+change_ring_la_CPPFLAGS = @NUMPY_INCLUDES@ $(PYTHON_INCLUDES) $(AM_CPPFLAGS)
 
-matrix_la_CPPFLAGS = $(PYTHON_INCLUDES) @CSAGE_INCLUDES@
+matrix_la_CPPFLAGS = $(PYTHON_INCLUDES) $(AM_CPPFLAGS)
 matrix_la_LIBADD = -lcsage
 
 matrix0_la_LIBADD = -lcsage
@@ -36,14 +36,14 @@ matrix2_la_LIBADD = -lcsage
 matrix_dense_la_LIBADD = -lcsage
 
 matrix_complex_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-matrix_complex_double_dense_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+matrix_complex_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 matrix_cyclo_dense_la_LIBADD = -lntl @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_cyclo_dense_la_SOURCES = matrix_cyclo_dense.pyxx
 matrix_cyclo_dense.cc: @srcdir@/matrix_cyclo_dense.pyxx
 
 matrix_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@
-matrix_double_dense_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+matrix_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 matrix_generic_dense_la_LIBADD = -lcsage
 matrix_integer_2x2_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_integer_dense_la_LIBADD = -liml -lpari @GMP_OR_MPIR_LIBS@ -lm -l@BLAS@ -l@BLAS2@ -lcsage
@@ -79,7 +79,7 @@ matrix_mpolynomial_dense.cc: @srcdir@/matrix_mpolynomial_dense.pyxx
 matrix_rational_dense_la_LIBADD = -lpari @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_rational_sparse_la_LIBADD = @GMP_OR_MPIR_LIBS@ -lcsage
 matrix_real_double_dense_la_LIBADD = -l@BLAS@ -l@BLAS2@ -lcsage
-matrix_real_double_dense_la_CPPFLAGS = -I@numpy_include_dir@ $(AM_CPPFLAGS)
+matrix_real_double_dense_la_CPPFLAGS = @NUMPY_INCLUDES@ $(AM_CPPFLAGS)
 
 matrix_sparse_la_LIBADD = -lcsage -lcsage
 

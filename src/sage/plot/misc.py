@@ -58,17 +58,17 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         sage: g(x,y)=x+y
         sage: h(y)=-y
         sage: sage.plot.misc.setup_for_eval_on_grid(f, [(0, 2),(1,3),(-4,1)], plot_points=5)
-        (<sage.ext...>, [(0.0, 2.0, 0.5), (1.0, 3.0, 0.5), (-4.0, 1.0, 1.25)])
+        (<... object at ...>, [(0.0, 2.0, 0.5), (1.0, 3.0, 0.5), (-4.0, 1.0, 1.25)])
         sage: sage.plot.misc.setup_for_eval_on_grid([g,h], [(0, 2),(-1,1)], plot_points=5)
-        ((<sage.ext...>, <sage.ext...>), [(0.0, 2.0, 0.5), (-1.0, 1.0, 0.5)])
+        ((<... object at ...>, <... object at ...>), [(0.0, 2.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid([sin,cos], [(-1,1)], plot_points=9)
-        ((<sage.ext...>, <sage.ext...>), [(-1.0, 1.0, 0.25)])
+        ((<... object at ...>, <... object at ...>), [(-1.0, 1.0, 0.25)])
         sage: sage.plot.misc.setup_for_eval_on_grid([lambda x: x^2,cos], [(-1,1)], plot_points=9)
-        ((<function <lambda> ...>, <sage.ext...>), [(-1.0, 1.0, 0.25)])
+        ((<function <lambda> ...>, <... object at ...>), [(-1.0, 1.0, 0.25)])
         sage: sage.plot.misc.setup_for_eval_on_grid([x+y], [(x,-1,1),(y,-2,2)])
-        ((<sage.ext...>,), [(-1.0, 1.0, 2.0), (-2.0, 2.0, 4.0)])
+        ((<... object at ...>,), [(-1.0, 1.0, 2.0), (-2.0, 2.0, 4.0)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,-1,1),(y,-1,1)], plot_points=[4,9])
-        (<sage.ext...>, [(-1.0, 1.0, 0.6666666666666666), (-1.0, 1.0, 0.25)])
+        (<... object at ...>, [(-1.0, 1.0, 0.6666666666666666), (-1.0, 1.0, 0.25)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,-1,1),(y,-1,1)], plot_points=[4,9,10])
         Traceback (most recent call last):
         ...
@@ -83,9 +83,9 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         will be removed from a future release of Sage; you can used
         named ranges instead, like (x,0,2)
         See http://trac.sagemath.org/7008 for details.
-        (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
+        (<... object at ...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], plot_points=5)
-        (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
+        (<... object at ...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,-1),(x,-1,1)], plot_points=5)
         Traceback (most recent call last):
         ...
@@ -95,9 +95,9 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         ...
         ValueError: plot start point and end point must be different
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,-1),(y,-1,1)], return_vars=True)
-        (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [x, y])
+        (<... object at ...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [x, y])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], return_vars=True)
-        (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
+        (<... object at ...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
     """
     if max(map(len, ranges)) != min(map(len, ranges)):
         raise ValueError, "Some variable ranges specify variables while others do not"

@@ -16,6 +16,17 @@
 #
 #allpythonstuff = $(wildcard *.py *.pxd *.pxi)
 
+# compile within the environment specified during configure
+maybe_colon = $(my_LD_LIBRARY_PATH:%=:)
+LIBTOOL = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(maybe_colon)%)"; @LIBTOOL@
+CYTHON = export LD_LIBRARY_PATH="$(my_LD_LIBRARY_PATH)$(LD_LIBRARY_PATH:%=$(maybe_colon)%)" \
+                PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)"; \
+         @CYTHON@
+
+# regenerating makefiles requires automake. this might be not installed outside
+# sage ("the distribution")...
+AUTOMAKE = export PATH="$(PATH)"; @AUTOMAKE@
+
 # -L@top_builddir@/../c_lib/src/.libs will be added automatically
 AM_LDFLAGS = -module -avoid-version
 
@@ -28,9 +39,13 @@ AM_LDFLAGS+= -L@top_builddir@/../c_lib/src/.libs
 # AM_CPPFLAGS += $(CPPFLAGS)
 
 # just append globally, needed quite often.
-AM_CPPFLAGS += @CSAGE_INCLUDES@
+AM_CPPFLAGS += @LIBCSAGE_INCLUDES@
+
+# this is the directory that contains config.h
+AM_CPPFLAGS += -I$(top_builddir)
 
 # this is the directory that contains "sage"
+# (might change later)
 AM_CPPFLAGS += -I$(top_builddir)/.. -I$(top_srcdir)/..
 
 # setup.py defines these
@@ -71,7 +86,16 @@ CYTHONFLAGS += -I$(abs_top_srcdir)/.. -I$(abs_top_builddir)/..
 # should look like this (but doesn't, because we are still in src/sage
 # CYTHONFLAGS += -I$(abs_top_srcdir) -I$(abs_top_builddir)
 
-CYTHON ?= cython
+# simplify paths
+here_rel = $(subst $(abs_top_srcdir),,$(abs_srcdir))
+instdir = $(pythondir)/sage$(here_rel)
+
+# does not work with subdir sources
+install-data-hook: $(filter %.pyx,$(SOURCES))
+	@echo installing more stuff
+	@for i in $<; do \
+		$(INSTALL) -t $(instdir) $$i; \
+	done
 
 # need to be adapted in during core modules build system merge
 sagelib_abs_top_srcdir = $(abs_top_srcdir)/..
@@ -79,19 +103,16 @@ sagelib_abs_top_builddir = $(abs_top_builddir)/..
 
 AM_V_CYT = $(am__v_CYT_$(V))
 am__v_CYT_ = $(am__v_CYT_$(AM_DEFAULT_VERBOSITY))
-am__v_CYT_0 = @echo "  CYTH  " $@;
+am__v_CYT_0 = @echo "  CYTH    " $@;
 
 AM_V_PYC = $(am__v_PYC_$(V))
 am__v_PYC_ = $(am__v_PYC_$(AM_DEFAULT_VERBOSITY))
-am__v_PYC_0 = @echo "  PYC   " $@;
+am__v_PYC_0 = @echo "  PYC     " $@;
 
 AM_V_PYO = $(am__v_PYO_$(V))
 am__v_PYO_ = $(am__v_PYO_$(AM_DEFAULT_VERBOSITY))
-am__v_PYO_0 = @echo "  PYO   " $@;
+am__v_PYO_0 = @echo "  PYO     " $@;
 
-# ouch, trailing colon.
-# empty string will be (mis)interpreted as '.'.
-PYTHONPATHENV = PYTHONPATH="@abs_top_builddir@/..$(PYTHONPATH:%=:%)$(PYTHONPATH)"
 
 # -w needed to force correct paths in docstrings
 # wrong paths lead to mysterious sageinspect.py errors
@@ -114,6 +135,7 @@ CLEANFILES = $(MANUAL_DEP_PYX:%.pyx=%.c) \
              $(MANUAL_DEP_PYX:%.pyx=%.cc) \
              *.so *.pyc *.pyo
 
+# BUG: this makes config.status create \*.Pcython ...
 @AMDEP_TRUE@ifneq (,$(MANUAL_DEP))
 @AMDEP_TRUE@@am__include@ $(DEPDIR)/*.Pcython
 @AMDEP_TRUE@endif
@@ -145,6 +167,7 @@ $(LTLIBRARIES:%.la=%.so): %.so: | %.la
 
 # manually implementing AM_EXTRA_RECURSIVE_TARGETS([py pycheck])
 # will be implemented in automake1.12
+# (pycheck is not a good name...)
 py: py-local py-recursive
 py-recursive:
 	for i in $(SUBDIRS); do $(MAKE) -C $$i py || exit 1; done
@@ -154,6 +177,9 @@ pycheck-recursive:
 
 @am__leading_dot@PHONY: py-recursive py-local py \
                         pycheck-recursive pycheck-local pycheck
+
+# create python module for checking
+check-local: py-local
 
 PYLIST = none
 
@@ -170,22 +196,22 @@ pycheck-local:
 @am__leading_dot@PRECIOUS: %.cc %.c
 
 if VPATH_BUILD
-FILE_OVERRIDE=-
-endif
-
-# yes, this is ugly, may be replaced with make 3.82
-#
-# FIXME: cleanup, remove __file__ quirk if not VPATH
-#
-# FIXME: parsing twice (pyc and py). can be done in one go
+# need some path trickery, because inspection does not work otherwise
 %.pyc: SHELL=/usr/bin/env bash
 %.pyo: SHELL=/usr/bin/env bash
 %.pyc: %.py
-	@VPATH_TRUE@@$(MKDIR_P) $(dir $@)
-	$(AM_V_PYC)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+	@$(MKDIR_P) $(dir $@)
+	$(AM_V_PYC)echo -e "\n__file__='$<'" | cat "$<" - | $(PYTHON) -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
 %.pyo: %.py
-	@VPATH_TRUE@@$(MKDIR_P) $(dir $@)
-	$(AM_V_PYO)echo -e "\n__file__='$<'" | cat "$<" $(FILE_OVERRIDE) | $(PYTHON) -O -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+	@$(MKDIR_P) $(dir $@)
+	$(AM_V_PYO)echo -e "\n__file__='$<'" | cat "$<" - | $(PYTHON) -O -c 'import py_compile; py_compile.compile("/dev/stdin","$@","$<")'
+else
+# use plain python bytecompiler.
+%.pyc: %.py
+	$(AM_V_PYC)$(PYTHON) -c 'import py_compile; py_compile.compile("$<","$@","$<")'
+%.pyo: %.py
+	$(AM_V_PYO)$(PYTHON) -O -c 'import py_compile; py_compile.compile("$<","$@","$<")'
+endif
 
 # sometimes, __init__.py is required to make
 # cython -I work.

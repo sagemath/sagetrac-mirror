@@ -14,5 +14,5 @@ plot_PYTHON = \
 
 AM_DEFAULT_SOURCE_EXT = .pyx
 plot_LTLIBRARIES = complex_plot.la
-complex_plot_la_CPPFLAGS = $(AM_CPPFLAGS) -I@numpy_include_dir@
+complex_plot_la_CPPFLAGS = $(AM_CPPFLAGS) @NUMPY_INCLUDES@
 complex_plot_la_LIBADD = -lcsage

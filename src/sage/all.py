@@ -20,6 +20,7 @@ TESTS:
         sage: import os
         sage: allowed = [os.path.join("lib","python","threading.py")]
         sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+        sage: allowed.append(os.path.join("lib","python2.7","multiprocessing"))
         sage: allowed.append(os.path.join("sage","doctest"))
         sage: allowed.append(os.path.join("bin","sage-runtests"))
         sage: allowed.append(os.path.join("site-packages","IPython"))

@@ -521,7 +521,7 @@ Check the qepcad configuration file::
 
     sage: from sage.misc.misc import SAGE_ETC
     sage: open('%s/default.qepcadrc'%SAGE_ETC).readlines()[-1]
-    'SINGULAR .../local/bin\n'
+    'SINGULAR .../bin\n'
 
 AUTHORS:
 

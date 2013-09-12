@@ -6,6 +6,8 @@
 
 # this file has nothing to do with sage (the distribution) (yet)
 
+MODULES="sage c_lib bin doc ext"
+
 # for now avoid using bash as not everyone has that installed
 CONFIG_SHELL=/bin/sh
 export CONFIG_SHELL
@@ -24,3 +26,10 @@ autoconf || exit 1
 if test x$1 = "xhere"; then
 	exit 1;
 fi
+
+for i in $MODULES; do
+	( cd $i;
+	  echo autogen in $( pwd )
+	  ./autogen.sh || ( echo trouble in $i/autogen.sh; exit 1 )
+	) || exit 1
+done

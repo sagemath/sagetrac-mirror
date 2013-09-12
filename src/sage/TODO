@@ -1,5 +1,5 @@
-latch singular environment for automatic reconfigures?
+latch singular (and other) environment for automatic reconfigures?
 
-messages like
-/home/felix/extern/sage-git-transition/B-nontl/util.pxd in init sage.groups.libgap_wrapper (libgap_wrapper.c:6577)
-lack the correct path... (in VPATH builds)
+VPATH build issue: messages like
+../util.pxd in init sage.groups.libgap_wrapper (libgap_wrapper.c:6577)
+lack the correct path...

@@ -19,15 +19,16 @@ SUBDIRS = \
 
 include $(top_srcdir)/common.mk
 libsdir = $(pythondir)/sage/libs
-libs_PYTHON = __init__.py all.py polybori/__init__.py
+libs_PYTHON = __init__.py all.py
+
+libs_polyboridir = $(libsdir)/polybori
+libs_polybori_PYTHON = polybori/__init__.py
 
 AM_DEFAULT_SOURCE_EXT = .pyx
 libs_LTLIBRARIES = \
     ecl.la libsageecm.la ppl.la \
     ratpoints.la readline.la $(FES_MODULE)
 
-
-fes_la_CPPFLAGS = @CSAGE_INCLUDES@ $(AM_CPPFLAGS)
 fes_la_LIBADD = -lcsage -lfes
 
 ecl_la_LIBADD = -lecl @GMP_OR_MPIR_LIBS@ -lcsage

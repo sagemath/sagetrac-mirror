@@ -4,8 +4,7 @@
 #
 SUBDIRS = base graph_decompositions modular_decomposition
 include $(top_srcdir)/common.mk
-graphsdir = $(pythondir)/sage/graphs
-graphs_PYTHON = \
+inst_PYTHON = \
     pq_trees.py graph_database.py dot2tex_utils.py generic_graph.py __init__.py \
     graph_coloring.py graph_list.py graph_bundle.py hypergraph_generators.py \
     linearextensions.py schnyder.py graph.py digraph_generators.py \
@@ -14,7 +13,7 @@ graphs_PYTHON = \
     hypergraph.py
 
 AM_DEFAULT_SOURCE_EXT = .pyx
-graphs_LTLIBRARIES = \
+inst_LTLIBRARIES = \
     chrompoly.la cliquer.la comparability.la convexity_properties.la \
     distances_all_pairs.la generic_graph_pyx.la genus.la graph_generators_pyx.la \
     hyperbolicity.la matchpoly.la planarity.la spanning_tree.la trees.la \
@@ -43,7 +42,7 @@ planarity_la_SOURCES = \
     planarity_c/planaritySpecificGraph.c planarity_c/planarityUtils.c \
     planarity_c/stack.c
 
-graphs_generatorsdir = $(graphsdir)/generators
+graphs_generatorsdir = $(instdir)/generators
 graphs_generators_PYTHON = \
     generators/basic.py \
     generators/chessboard.py \

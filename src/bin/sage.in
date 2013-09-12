@@ -245,6 +245,14 @@ if [ "$1" = '--nodotsage' ]; then
     exit $status
 fi
 
+SAGE_ETC=${SAGE_ETC:-@SAGE_ETC@}
+
+# not yet. durin transition this must work without toplevel env...
+# if [ ! -f "$SAGE_ETC/env.sh" ]; then
+#     echo "cannot locate environment"
+#     exit 1
+# fi
+
 # Make sure this doesn't produce output (in case we use this in scripts).
 . "$0-env" >&2
 if [ $? -ne 0 ]; then
@@ -338,6 +346,8 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+    # Workaround for OSX, see http://trac.sagemath.org/15072
+    export LC_ALL=C
     exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi
@@ -832,6 +842,7 @@ if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
+    maybe_sage_location
     shift
     exec sage-sdist "$@"
 fi
@@ -846,10 +857,6 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    if [ $# -ne 2 ]; then
-        echo >&2 "** MISSING VERSION NUMBER! **"
-        exit 2
-    fi
     maybe_sage_location
     shift
     exec sage-bdist "$@"

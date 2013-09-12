@@ -364,6 +364,9 @@ ext_modules = [
     Extension('sage.graphs.base.static_sparse_graph',
               sources = ['sage/graphs/base/static_sparse_graph.pyx']),
 
+    Extension('sage.graphs.base.static_sparse_backend',
+              sources = ['sage/graphs/base/static_sparse_backend.pyx']),
+
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
                          'sage/graphs/modular_decomposition/src/dm.c'],
@@ -1032,7 +1035,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyxx'],
-				  define_macros = module_bounds,
+              define_macros = module_bounds,
               language="c++",
               libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', '@BLAS@', '@BLAS2@'],
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),

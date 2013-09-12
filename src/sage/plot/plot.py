@@ -2250,7 +2250,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 11)
         doctest:...: DeprecationWarning: sage.plot.plot.setup_for_eval_on_grid is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable
         See http://trac.sagemath.org/7008 for details.
-        ([<sage.ext... object at ...>],
+        ([<... object at ...>],
          0.5,
          0.3141592653589793,
          (0.0, 5.0),
@@ -2261,7 +2261,7 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     ::
 
         sage: sage.plot.plot.setup_for_eval_on_grid([x^2+y^2], (x,0,1), (y,-1,1), 1)
-        ([<sage.ext... object at ...>],
+        ([<... object at ...>],
         1.0,
         2.0,
         (0.0, 1.0),
