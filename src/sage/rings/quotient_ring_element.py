@@ -109,7 +109,7 @@ class QuotientRingElement(ring_element.RingElement):
 
         TESTS::
 
-            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2);
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2)
             sage: a._reduce_()
             sage: a._QuotientRingElement__rep
             x
@@ -124,7 +124,7 @@ class QuotientRingElement(ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); 
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2)
             sage: a.lift()
             x
             sage: (3/5*(a + a^2 + b^2)).lift()
