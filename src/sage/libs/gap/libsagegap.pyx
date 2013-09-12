@@ -591,7 +591,7 @@ class Gap(Parent):
             sage: type(libgap)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: type(libgap._get_object())
-            <class 'sage.libs.gap.libgap.Gap'>
+            <class 'sage.libs.gap.libsagegap.Gap'>
         """
         initialize()
         libgap_set_gasman_callback(gasman_callback)

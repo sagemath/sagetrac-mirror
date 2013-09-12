@@ -14,7 +14,7 @@ TESTS::
 import os
 import os.path
 
-from sage.libs.gap.libgap import libgap
+from sage.libs.gap.libsagegap import libgap
 
 
 def test_packages(packages, only_failures=False):
