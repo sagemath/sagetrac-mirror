@@ -157,11 +157,23 @@ class QuotientRingElement(ring_element.RingElement):
 
     def is_unit(self):
         """
-        Return True if self is a unit in the quotient ring.
+        Return whether this element is a unit.
 
-        TODO: This is not fully implemented. So far, self is
-        determined to be unit only if its representation in the cover
-        ring `R` is also a unit.
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + 1)
+            sage: S.one().is_unit()
+            True
+
+        This is not fully implemented. So far, this only works for elements
+        whose representative in the cover is a unit::
+
+            sage: (a^2 + 1).is_unit()
+            True
+            sage: b.is_unit() # not implemented
+            False
+            sage: a.is_unit() # not implemented
+            True
 
         """
         if self.__rep.is_unit():
