@@ -38,7 +38,6 @@ endif
 
 configure: patch-stamp
 	cd src;\
-	export CFLAGS=$(CFLAGS); \
 	./configure --prefix="$(SAGE_PREFIX)" --libdir="$(SAGE_PREFIX)/lib" \
 	            --with-default="$(SAGE_PREFIX)" \
 	            --enable-sage --enable-optimization --disable-static \
