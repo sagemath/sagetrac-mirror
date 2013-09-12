@@ -42,7 +42,7 @@ docbuild: common/builder.py common/build_options.py
 	export SAGE_SRC="@abs_top_srcdir@/.."; \
 	export DOT_SAGE="$$( mktemp -d )"; \
 	export PATH="@abs_top_srcdir@/../bin:$(PATH)"; \
-	export SAGE_MAXIMA_INIT="@abs_top_srcdir@/../bin/sage-maxima.lisp"; \
+	export SAGE_MAXIMA_INIT="@abs_top_builddir@/../bin/sage-maxima.lisp"; \
 	export LD_LIBRARY_PATH="@abs_top_builddir@/../c_lib/src/.libs$(LD_LIBRARY_PATH:%=:)$(LD_LIBRARY_PATH)"; \
 	export PYTHONPATH=common:$$PYTHONPATH$(PYTHONPATH:%=:)@abs_top_builddir@/..:@abs_top_srcdir@; \
 	$(PYTHON) $< --no-pdf-links all html; ret=$$?; \
