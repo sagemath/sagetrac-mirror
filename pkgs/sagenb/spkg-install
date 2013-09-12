@@ -46,3 +46,11 @@ PKG=$(ls -1 src | GREP_OPTIONS= grep sagenb-)
 
 # Install sagenb into site-packages
 easy_install -H None "src/$PKG" || die "Error installing sagenb !"
+
+# this is a workaround, dont know how to apply patches to tarballs.
+sed -e 's#import SAGE_DOC#import SAGE_DOC_SRC, SAGE_DOC#' \
+    -e '/confdir/s#SAGE_DOC#SAGE_DOC_SRC#' \
+    -i $SAGE_LOCAL/lib/python2.7/site-packages/sagenb-*/sagenb/misc/sphinxify.py
+
+# make sure nobody uses wrong bytecode
+rm -f $SAGE_LOCAL/lib/python2.7/site-packages/sagenb-*/sagenb/misc/sphinxify.pyc
