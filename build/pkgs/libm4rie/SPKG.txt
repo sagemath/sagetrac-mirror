@@ -28,6 +28,9 @@ GF(2^k) for 2 <= k <= 10.
 
 == Releases/Changelog ==
 
+=== libm4rie-20130416.p1 (Felix Salfelder, 30 August 2013) ===
+ * #15126: provide pkgconfig
+
 === libm4rie-20130416 (Martin Albrecht, 22 March 2013) ===
  * #14336: new upstream release
 
