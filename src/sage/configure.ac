@@ -697,6 +697,7 @@ AC_CONFIG_FILES([
     tensor/Makefile
     tests/Makefile
     env.py
+    config.py
 ])
 
 dnl create dummy files for cython file dependencies

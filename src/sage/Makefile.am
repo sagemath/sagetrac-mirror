@@ -22,6 +22,7 @@ sage_PYTHON = \
     all_cmdline.py \
     all_notebook.py \
     __init__.py \
+    config.py \
     version.py \
     env.py \
     all.py
