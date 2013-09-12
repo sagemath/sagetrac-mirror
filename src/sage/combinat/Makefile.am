@@ -24,7 +24,9 @@ inst_PYTHON = \
     cartesian_product.py subset.py free_module.py ordered_tree.py skew_partition.py \
     composition_signed.py split_nk.py composition.py \
     non_decreasing_parking_function.py affine_permutation.py vector_partition.py \
-    diagram_algebras.py similarity_class_type.py
+    diagram_algebras.py similarity_class_type.py descent_algebra.py \
+    ribbon_shaped_tableau.py
+
 
 AM_DEFAULT_SOURCE_EXT = .pyx
 inst_LTLIBRARIES = \
@@ -141,6 +143,7 @@ combinat_sf_PYTHON = \
     sf/powersum.py \
     sf/schur.py \
     sf/sfa.py \
+    sf/witt.py \
     sf/sf.py
 
 combinat_designsdir = $(instdir)/designs
