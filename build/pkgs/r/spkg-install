@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-if [ -z "$SAGE_LOCAL" ]; then
+
+if [ -z "$SAGE_PREFIX" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting"
     echo >&2 "Maybe run 'sage --sh'?"
     exit 1
 fi
+
+CUR=`pwd`
 
 # r uses grep output during its build
 unset GREP_OPTIONS
@@ -88,31 +91,24 @@ elif [ "$UNAME" = "SunOS" ]; then
     R_CONFIGURE="--without-ICU $R_CONFIGURE"
 fi
 
-cd src
-
 # Apply patches.  See SPKG.txt for information about what each patch
 # does.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 # Don't override R_HOME_DIR in local/bin/R while building R.
 # See patches/R.sh.patch
 export SAGE_BUILDING_R=yes
 
 
+
 if [ "$UNAME" = "Darwin" ]; then
     echo "Configuring R without ATLAS for OS X"
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
-        --with-readline="$SAGE_LOCAL"
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE
 else
     echo "Configuring R with ATLAS"
     ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
-        --with-readline="$SAGE_LOCAL" \
         --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" \
         --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
 fi
@@ -120,8 +116,7 @@ fi
 if [ $? -ne 0 ]; then
     echo "Configuring R with fallback options"
     R_CONFIGURE=`echo "$R_CONFIGURE" | sed 's/--with-x=yes/--with-x=no/' `
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE \
-        --with-readline="$SAGE_LOCAL"
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $R_CONFIGURE
 fi
 
 if [ $? -ne 0 ]; then
@@ -136,6 +131,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Remove old install
+# FIXME!
 rm -rf "$SAGE_LOCAL"/lib/r
 rm -rf "$SAGE_LOCAL"/lib/R
 rm -rf "$SAGE_LOCAL"/lib/libRblas.* "$SAGE_LOCAL"/lib/libRlapack.* "$SAGE_LOCAL"/lib/libR.*
@@ -153,3 +149,10 @@ if [ "$UNAME" = "Darwin" ]; then
     rm -f "$SAGE_LOCAL"/bin/java
     rm -f "$SAGE_LOCAL"/bin/javac
 fi
+
+RHOMES="${SAGE_PREFIX}/lib/R"
+
+echo "RHOMES=\"$RHOMES\" && export RHOMES" > R_env.sh
+
+sage-dist-install -d $DESTDIR$SAGE_LOCAL/etc/env.d
+sage-dist-install -t $DESTDIR$SAGE_LOCAL/etc/env.d R_env.sh

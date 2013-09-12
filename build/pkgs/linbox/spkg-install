@@ -1,72 +1,55 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sage-dist-make
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
+all: install
 
-cd src/
-
-###############################################################################
-# Apply patches (if any):
-###############################################################################
-
-ls ../patches/*.patch &>/dev/null && \
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'."
-        exit 1
-    fi
-done
+COMMONMK?=spkg.mk
+include $(COMMONMK)
 
 ###############################################################################
 # Set up environment variables:
 ###############################################################################
-LD_CBLAS=`cat $SAGE_LOCAL/share/cblas_config`
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib $LD_CBLAS"
+# FIXME, don't read random files!
+LD_CBLAS=$(shell cat $(SAGE_PREFIX)/share/cblas_config 2>/dev/null)
 
-export CFLAGS="$CFLAGS -g -fPIC"
-export CXXFLAGS="$CXXFLAGS -g -fPIC"
+# FIXME: why hardcode LDFLAGS?
+# and: why isn't -L$(SAGE_PREFIX)/lib part of dist env?
+LDFLAGS+=-L$(SAGE_PREFIX)/lib $(LD_CBLAS)
+
+CFLAGS+=-g -fPIC
+CXXFLAGS+=-g -fPIC
 
 # Some systems have problems when parts of LinBox are compiled with
 # the commentator enabled and other parts with the commentator
 # disabled.  Therefore, disable it always.
-export CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
+CPPFLAGS+=-DDISABLE_COMMENTATOR
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of LinBox."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CFLAG64"
-    CPPFLAGS="$CPPFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
+ifeq ($(SAGE64),yes)
+    CFLAG64?=-m64
+	 CFLAGS+=$(CFLAG64)
+	 CXXFLAGS+=$(CFLAG64)
+	 CPPFLAGS+=$(CFLAG64)
+	 LDFLAGS+=$(CFLAG64)
+endif
 
 
 ###############################################################################
 # Configure, build and install LinBox:
 ###############################################################################
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-            --with-default="$SAGE_LOCAL" \
-            --enable-sage --enable-optimization --disable-static
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring LinBox."
-    exit 1
-fi
+configure: patch-stamp
+	cd src;\
+	./configure --prefix="$(SAGE_PREFIX)" --libdir="$(SAGE_PREFIX)/lib" \
+	            --with-default="$(SAGE_PREFIX)" \
+	            --enable-sage --enable-optimization --disable-static \
+	            LDFLAGS="$(LDFLAGS)" \
+	            CPPFLAGS="$(CPPFLAGS)" \
+	            CXXFLAGS="$(CXXFLAGS)" \
+	            CFLAGS="$(CFLAGS)"
 
-$MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building LinBox."
-    exit 1
-fi
+build: configure
+	$(MAKE) -Csrc
 
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing LinBox."
-    exit 1
-fi
+install: build
+	$(MAKE) -Csrc install INSTALL="$(SAGE_INSTALL)"
+
+

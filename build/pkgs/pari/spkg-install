@@ -3,27 +3,32 @@
 ## PARI
 ###########################################
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo "SAGE_LOCAL undefined ... exiting"
+# makefile compatibility kludge
+if [ "$1" = "check" ]; then
+	exec ./spkg-check
+fi
+
+if [ -z "$SAGE_PREFIX" ]; then
+    echo "SAGE_PREFIX undefined ... exiting"
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
 
 TOP=`pwd`
 
+SAGE_ETC=${SAGE_ETC-$SAGE_LOCAL/etc}
+
+# urghs. upstream should take care of this
+GMPDIR=$(dirname $( echo "#include <gmp.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'gmp\.h:$' ) )
+READLINEDIR=$(dirname $( echo "#include <readline/readline.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'readline/readline\.h:$' ) )/../..
+
 #######################################################################
 # Apply all patches.  See patches/README.txt for details about the
 # patches.
 #######################################################################
-cd src
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 
+cd src
 
 # Prepare all variables for building PARI/GP, except for CFLAGS
 set_environment()
@@ -99,6 +104,10 @@ set_environment()
         echo "============================================================"
     fi
 
+    echo "GMPDIR=\"$GMPDIR\""
+    echo "READLINEDIR=\"$READLINEDIR\""
+    echo "============================================================"
+
     # Allow the user to enable PARI self-tuning.
     # This is time-consuming, but some may want to do it.
     # Comment by leif: Also, PARI's Configure calls "make" (instead of $MAKE)
@@ -146,7 +155,6 @@ set_environment()
     # prefix kernel with_gmp with_readline
 }
 
-
 # Build PARI/GP
 build()
 {
@@ -156,8 +164,8 @@ build()
     # anyway, it doesn't hurt either. -- jdemeyer
     #
     # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
-    bash ./Configure --prefix="$SAGE_LOCAL" \
-        --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+    bash ./Configure --prefix="$SAGE_PREFIX" \
+        --with-readline="$READLINEDIR" --with-gmp=yes --with-gmp-include="$GMPDIR" \
         --kernel=gmp $PARI_CONFIGURE
 
     if [ $? -ne 0 ]; then
@@ -182,8 +190,11 @@ install()
 {
     echo "Installing PARI/GP..."
 
+    # BUG: upstream uses mkdir -p
+    sage-dist-install -d $DESTDIR$SAGE_PREFIX
+
     # install non-parallel (-j1) because of race conditions
-    $MAKE -j1 install install-lib-sta
+    $MAKE -j1 install install-lib-sta INSTALL=sage-dist-install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing PARI"
         exit 1
@@ -196,13 +207,13 @@ install()
         # on Mac OS X:
         echo "Applying Mac OS X hack -- deleting and reinstalling libpari.a ..."
         rm -f Odarwin-ppc/*lib*
-        $MAKE install-lib-sta
+        $MAKE install-lib-sta INSTALL=sage-dist-install
         if [ $? -ne 0 ]; then
             echo >&2 "Error reinstalling PARI's static libraries (OS X trick)"
             exit 1
         fi
 
-        cd "`config/objdir`" && cp -f libpari* "$SAGE_LOCAL/lib"
+        cd "`config/objdir`" && cp -f libpari* "$SAGE_PREFIX/lib"
         if [ $? -ne 0 ]; then
             echo >&2 "Error copying PARI's libraries (OS X trick)"
             exit 1
@@ -210,8 +221,9 @@ install()
         cd "$CUR"
     fi
 
-    # Copy gprc.expect to $SAGE_LOCAL/etc
-    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
+    # Copy gprc.expect to $SAGE_ETC
+    sage-dist-install -d "$DESTDIR$SAGE_ETC"
+    sage-dist-install "$TOP/patches/gprc.expect" "$DESTDIR$SAGE_ETC"
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing gprc.expect"
         exit 1
@@ -244,7 +256,17 @@ elif [ "$UNAME" = "CYGWIN" ]; then
 else
     pari_shlib="libpari.so"
 fi
-if [ ! -f "$SAGE_LOCAL/lib/$pari_shlib" ]; then
+
+# FIXME: this is a postinst check
+if [ ! -f "$SAGE_PREFIX/lib/$pari_shlib" ]; then
     echo "Error: PARI's shared library '$pari_shlib' has not been installed!"
     exit 1
 fi
+
+echo "GP_DATA_DIR=\"$SAGE_PREFIX/share/pari\" && export GP_DATA_DIR" > parienv.sh
+echo "GPHELP=\"$SAGE_PREFIX/bin/gphelp\" && export GPHELP" >> parienv.sh
+echo "GPDOCDIR=\"$SAGE_PREFIX/share/pari/doc\" && export GPDOCDIR" >> parienv.sh
+
+echo installing env DESTDIR=$DESTDIR
+sage-dist-install -d $DESTDIR$SAGE_ETC/env.d
+sage-dist-install -t $DESTDIR$SAGE_ETC/env.d parienv.sh

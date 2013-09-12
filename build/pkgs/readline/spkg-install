@@ -6,6 +6,8 @@ if [[ -z $SAGE_LOCAL ]]; then
     exit 1
 fi
 
+CUR=`pwd`
+
 if [[ -z $CFLAG64 ]]; then
     CFLAG64=-m64
 fi
@@ -37,16 +39,10 @@ export CFLAGS
 export CPPFLAGS
 export LDFLAGS
 
-cd src/
-
 echo "Applying patches to upstream source..."
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error applying '$patch'."
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src/
 
 echo "Configuring readline..."
 ./configure \

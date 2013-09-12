@@ -1,9 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env sage-dist-make
 
-cd src
+DIST_MK = spkg.mk
+include $(DIST_MK)
 
-patch -p0 < ../patches/setuptools-noexecs.patch
-patch -p0 < ../patches/distribute-0.6.16-fix_deprecation_warnings.patch
-
-python setup.py install
-
+install:
+	export PYTHONPATH="$(SAGE_LOCAL)/lib/python2.7/site-packages";\
+	cd src; $(SETUP_PY_INSTALL)

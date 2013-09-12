@@ -65,20 +65,9 @@ unset SHARED_FLAG # Currently leave the Makefile default ('-shared'); for safety
 ###############################################################################
 # Apply patches (if any):
 ###############################################################################
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 
 cd src/
-
-ls ../patches/*.patch &>/dev/null &&
-echo "Applying patches to upstream sources..." &&
-for patch in ../patches/*.patch; do
-    basename "$patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done &&
-echo
 
 ###############################################################################
 # Configure, tune, build and test zn_poly:

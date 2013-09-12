@@ -17,7 +17,7 @@ export CFLAGS
 
 cd src
 
-python setup.py install
+sage-setup.py install --record="$FILELIST"
 if [ $? -ne 0 ]; then
     echo "Error installing PyCrypto... exiting"
     exit 1

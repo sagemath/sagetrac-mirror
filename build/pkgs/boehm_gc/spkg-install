@@ -7,20 +7,13 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 # Apply patches.
-for patch in patches/*.patch; do
-    patch -p0 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"
    CFLAGS="-O2 -g -fPIC -m64 "; export CFLAGS
    LDFLAGS="-m64"; export LDFLAGS
 fi
-
 
 cd src
 

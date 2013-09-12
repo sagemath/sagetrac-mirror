@@ -46,8 +46,13 @@ if os.environ.get('SAGE64', "no") == "yes":
 CPPPATH=[os.environ['SAGE_LOCAL']+"/include"]
 LIBPATH=[os.environ['SAGE_LOCAL']+"/lib"]
 
-PYPREFIX=os.environ['PYTHONHOME']
-PBP=os.environ['PYTHONHOME']+'/bin/python'
+PYPREFIX=""
+PBP=""
+try:
+	PYPREFIX=os.environ['PYTHONHOME']
+	PBP=os.environ['PYTHONHOME']+'/bin/python'
+except:
+	PYPREFIX=os.environ["SAGE_LOCAL"]
 
 M4RIURL=""
 

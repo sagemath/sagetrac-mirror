@@ -13,17 +13,9 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 export CFLAGS
 
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
 cd src/
-
-# Apply patches
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 
 build()
 {
@@ -53,7 +45,7 @@ else
     echo "We cannot link against libncurses on your system,"
     echo "making a symbolic link libncurses.a -> libtermcap.a"
     echo "(to work around bugs in the PARI and Python build scripts)"
-    cd "$SAGE_LOCAL/lib" && ln -s libtermcap.a libncurses.a
+    cd "$SAGE_LOCAL/lib" && ln -fs libtermcap.a libncurses.a
     if [ $? -ne 0 ]; then
         echo >&2 "Error making symbolic link libncurses.a -> libtermcap.a"
         exit 1

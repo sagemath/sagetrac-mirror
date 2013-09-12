@@ -6,18 +6,11 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-cd src
-
 # Apply patches.  See SPKG.txt for information about what each patch
 # does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ] ; then

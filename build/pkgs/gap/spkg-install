@@ -38,24 +38,22 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-cd src
+export CFLAGS="$CFLAGS -fPIC -DPIC"
 
 # Apply fixes to upstream source
-echo "Applying patches..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src
+
+# urghs. upstream should take care of this
+GMPDIR=$(dirname $( echo "#include <gmp.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'gmp\.h:$' ) )/..
 
 # Configure
 echo "Configuring GAP..."
+echo "GMPDIR $GMPDIR"
 ./configure \
     --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" \
+    --with-gmp=$GMPDIR \
     CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error configuring GAP."
@@ -74,7 +72,7 @@ if [[ ! -f bin/gap.sh ]]; then
     exit 1
 fi
 
-echo "Installing (copying) files..."
+echo "Not installing (but copying) files... FIXME"
 # gap has no notion of installing itself (similar to sage), copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout
 mkdir -p "$INSTALL_DIR" &&
@@ -90,7 +88,7 @@ ln -s "$GAP_DIR" "$SAGE_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"
-cp bin/gap.sh "$SAGE_LOCAL/bin/gap"
+sage-dist-install bin/gap.sh "$SAGE_LOCAL/bin/gap"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying customized GAP startup script."
     exit 1
@@ -109,3 +107,10 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
         exit 1
     fi
 fi
+
+source "$SAGE_LOCAL/gap/latest/sysinfo.gap"
+echo Recording GAParch_system=$GAParch_system to env
+echo "GAParch_system=\"$GAParch_system\" && export GAParch_system" > gaparch.sh
+
+sage-dist-install -d $DESTDIR$SAGE_LOCAL/etc/env.d
+sage-dist-install -t $DESTDIR$SAGE_LOCAL/etc/env.d gaparch.sh

@@ -1,3 +1,6 @@
+AR?=ar
+RANLIB?=ranlib
+
 SOURCES:=bar.c bi.c boe.c bruch.c classical.c de.c di.c ff.c galois.c	\
 	 ga.c gra.c hash.c hiccup.c io.c ko.c list.c lo.c ma.c mee.c	\
 	 mem.c mes.c mhe.c mhh.c mhm.c mhp.c mhs.c mmm.c mms.c		\

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+# makefile compatibility kludge
+if [ "$1" = "check" ]; then
+	exec ./spkg-check
+fi
+
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     exit 1
 fi
-
-cd src/
 
 ###############################################################################
 # Apply patches (if any):
@@ -13,14 +16,9 @@ cd src/
 
 # Apply patches.  See SPKG.txt for information about what each patch
 # does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
+
+cd src/
 
 ###############################################################################
 # Set up environment variables, depending on SAGE_* settings:

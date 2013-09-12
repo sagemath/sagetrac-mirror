@@ -6,19 +6,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-cd src
-
 # Apply patches.  See SPKG.txt for information about what each patch
 # does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+( echo "include spkg.mk" | sage-dist-make - patch-stamp ) || exit $?
 
+cd src
 
 # Unset CC and CFLAGS.  This will make mpc use the same configuration
 # as MPIR, which is probably a good thing.
@@ -28,13 +20,13 @@ unset CFLAGS
 
 EXTRA=""
 
-if [ $UNAME = "CYGWIN" ]; then
+if [ x$UNAME = xCYGWIN ]; then
     EXTRA="--disable-static --enable-shared"
 fi
 
-# Configuring
+# Configuring, FIXME: unhardwire
 ./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
-    --with-mpfr="$SAGE_LOCAL" $EXTRA
+            --with-mpfr="$SAGE_LOCAL" $EXTRA
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring MPC."
     exit 1
@@ -56,7 +48,7 @@ rm -f "$SAGE_LOCAL"/include/mpc.h
 # rm -f "$SAGE_LOCAL"/lib/libmpc.*
 
 # Installing
-$MAKE install
+$MAKE install INSTALL=sage-dist-install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing MPC."
     exit 1

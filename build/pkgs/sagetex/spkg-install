@@ -1,17 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sage-dist-make
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
+DIST_MK = spkg.mk
+include $(DIST_MK)
 
-cd src/
-
-python setup.py install
-
-if [ $? -ne 0 ]; then
-   echo "Error installing SageTeX."
-   exit 1
-fi
-
+install:
+	cd src; $(SETUP_PY_INSTALL)

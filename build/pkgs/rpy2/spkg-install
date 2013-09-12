@@ -1,28 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sage-dist-make
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage --sh'?"
-    exit 1
-fi
+DIST_MK = spkg.mk
+include $(DIST_MK)
 
-cd src
-
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
-export RHOMES="$SAGE_LOCAL"/lib/R
-
-python setup.py install
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building RPY -- Python interface to R."
-    exit 1
-fi
+install:
+	cd $(SRC); $(SETUP_PY_INSTALL)

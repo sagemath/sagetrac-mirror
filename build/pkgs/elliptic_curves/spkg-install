@@ -58,7 +58,7 @@ def install_ellcurves():
         except OSError:
             os.remove(target)
 
-    shutil.move(os.path.join('src', 'ellcurves'), target)
+    shutil.copytree(os.path.join('src', 'ellcurves'), target)
     rank = {}
     for line in open(os.path.join(common_curves, 'allcurves.00000-09999')):
         r = line.split()[4]
