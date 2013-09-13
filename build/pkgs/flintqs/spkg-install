@@ -27,6 +27,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+sage-dist-install -d "$DESTDIR$SAGE_PREFIX/bin"
 sage-dist-install -t "$DESTDIR$SAGE_PREFIX/bin" QuadraticSieve
 if [ $? -ne 0 ]; then
     echo "Error copying QuadraticSieve file"
