@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo "Error: SAGE_LOCAL undefined - exiting..."
+if [ -z "$SAGE_PREFIX" ]; then
+    echo "Error: SAGE_PREFIX undefined - exiting..."
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
@@ -36,7 +36,8 @@ finished()
     fi
     # The '*' is a place-holder for the arch just built (e.g. 'win32' for
     # Cygwin, other directories won't exist):
-    cp -p -f src/compile/*/"${binary_name}" "$SAGE_LOCAL/bin"
+    sage-dist-install -d "$DESTDIR$SAGE_PREFIX/bin"
+    sage-dist-install -t "$DESTDIR$SAGE_PREFIX/bin" "src/compile/*/${binary_name}"
     if [ $? -ne 0 ]; then
         echo "Error installing Tachyon Ray Tracer binary (\"${binary_name}\")."
         exit 1
