@@ -16,8 +16,6 @@ fi
 
 TOP=`pwd`
 
-SAGE_ETC=${SAGE_ETC-$SAGE_LOCAL/etc}
-
 # urghs. upstream should take care of this
 GMPDIR=$(dirname $( echo "#include <gmp.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'gmp\.h:$' ) )
 READLINEDIR=$(dirname $( echo "#include <readline/readline.h>" | $CC $CPPFLAGS -M -MP -E - | grep 'readline/readline\.h:$' ) )/../..
@@ -191,7 +189,7 @@ install()
     echo "Installing PARI/GP..."
 
     # BUG: upstream uses mkdir -p
-    sage-dist-install -d $DESTDIR$SAGE_PREFIX
+    sage-dist-install -d "$DESTDIR$SAGE_PREFIX"
 
     # install non-parallel (-j1) because of race conditions
     $MAKE -j1 install install-lib-sta INSTALL=sage-dist-install
@@ -213,7 +211,8 @@ install()
             exit 1
         fi
 
-        cd "`config/objdir`" && cp -f libpari* "$SAGE_PREFIX/lib"
+        sage-dist-install -d "$DESTDIR$SAGE_PREFIX/lib"
+        sage-dist-install -t "$DESTDIR$SAGE_PREFIX/lib" "`config/objdir`/"libpari*
         if [ $? -ne 0 ]; then
             echo >&2 "Error copying PARI's libraries (OS X trick)"
             exit 1
