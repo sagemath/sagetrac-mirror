@@ -7,6 +7,13 @@
 
 #include "boost/unordered_map.hpp"
 
+
+#define RINGDEFINED
+#include "chomp/Ring.h"
+namespace chomp {
+  typedef Long Ring;
+}
+
 #include "chomp/Complex.h"
 #include "chomp/Chain.h"
 
@@ -15,9 +22,7 @@ using chomp::Index;
 class SageMatrixComplex : public chomp::Complex 
 {
  public:
-  typedef int64_t Integer;
-
-  CHOMP_COMPLEX(Integer);
+  CHOMP_COMPLEX(int64_t);
   
   virtual void boundary(chomp::Chain* output, const chomp::Index input, int dim) const;
   virtual void coboundary(chomp::Chain * output, const chomp::Index input, int dim) const;
@@ -26,7 +31,7 @@ class SageMatrixComplex : public chomp::Complex
   std::vector< boost::unordered_map<chomp::Index, chomp::Chain> > boundary_data;
 
  public:
-  SageMatrixComplex(const std::vector<std::vector<Integer> >& data);
+  SageMatrixComplex(const std::vector<std::vector<Cell> >& data);
   
   //! Return a human-readable string representation for the boundary in dimension dim
   std::string to_string(const int dim) const;

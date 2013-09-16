@@ -11,8 +11,8 @@ EXAMPLES::
     bd(index, dim) = boundary chain
     bd(0, 0) = 0
     bd(1, 0) = 0
-    bd(0, 1) = 1[0] + 2[1]
-    bd(1, 1) = 1[0] + 2[1]
+    bd(0, 1) = 1[0] + -1[1]
+    bd(1, 1) = 1[0] + -1[1]
 """
 
 ###############################################################################
@@ -27,6 +27,7 @@ EXAMPLES::
 include 'sage/ext/interrupt.pxi'
 
 from libcpp.vector cimport vector
+from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libc.stdint cimport int64_t
 
@@ -35,8 +36,11 @@ from sage.rings.integer cimport Integer
 
 
 
+
                         
 cdef extern from "sage_matrix_complex.h":
+
+    ctypedef void Ring
  
     cdef cppclass SageMatrixComplex:
         SageMatrixComplex(vector[vector[int64_t]] data)
@@ -44,6 +48,15 @@ cdef extern from "sage_matrix_complex.h":
         int dimension()
         int size()
         int size(int dim)
+
+
+
+#cdef make_Generators_t
+
+
+
+#cdef class Generators(SageObject):
+#    cdef vector[vector[pair[Chain, Ring]]]
 
 
 
@@ -151,7 +164,7 @@ cdef class MatrixComplex(SageObject):
 
             sage: from sage.libs.chomp.examples import matrix_complex_circle
             sage: matrix_complex_circle()._repr_()
-            'bd(index, dim) = boundary chain\nbd(0, 0) = 0\nbd(1, 0) = 0\nbd(0, 1) = 1[0] + 2[1]\nbd(1, 1) = 1[0] + 2[1]'
+            'bd(index, dim) = boundary chain\nbd(0, 0) = 0\nbd(1, 0) = 0\nbd(0, 1) = 1[0] + -1[1]\nbd(1, 1) = 1[0] + -1[1]'
         """
         result = 'bd(index, dim) = boundary chain\n'
         for dim in range(self.dim()+1):
