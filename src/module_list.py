@@ -626,6 +626,14 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.libs.chomp.matrix_complex',
+              sources = ["sage/libs/chomp/matrix_complex.pyx",
+                         "sage/libs/chomp/sage_matrix_complex.cpp"],
+              include_dirs = [SAGE_INC + '/chomp'],   # only necessary for the temporary boost hack
+              libraries = ["stdc++"],
+              language = "c++",
+              depends = [SAGE_INC + '/chomp/Complex.h']),
+
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
               libraries = ["ecl", "gmp"],
