@@ -35,6 +35,9 @@ class SageMatrixComplex : public chomp::Complex
   
   //! Return a human-readable string representation for the boundary in dimension dim
   std::string to_string(const int dim) const;
+
+  //! Verify the chain complex propert d*d=0
+  bool is_chain_complex() const;
 };
 
 
