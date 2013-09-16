@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+NAME="CHomP"
+
+if [[ -z $SAGE_LOCAL ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src/
+
+echo "Configuring $NAME..."
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --disable-static
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring $NAME."
+    exit 1
+fi
+
+echo "Now building $NAME..."
+$MAKE
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building $NAME."
+    exit 1
+fi
+
+echo "Now installing $NAME..."
+$MAKE install
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error installing $NAME."
+    exit 1
+fi
+
+echo "Making symlinks for the old $NAME binaries..."
+cd $SAGE_LOCAL/bin
+ln -sf chomp-cubical homcubes
+ln -sf chomp-simplicial homssimpl
