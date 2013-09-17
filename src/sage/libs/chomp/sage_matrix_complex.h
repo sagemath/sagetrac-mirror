@@ -28,7 +28,8 @@ class SageMatrixComplex : public chomp::Complex
   virtual void coboundary(chomp::Chain * output, const chomp::Index input, int dim) const;
   
  private:
-  std::vector< boost::unordered_map<chomp::Index, chomp::Chain> > boundary_data;
+  std::vector< boost::unordered_map<chomp::Index, chomp::Chain> > 
+    boundary_data, coboundary_data;
 
  public:
   SageMatrixComplex(const std::vector<std::vector<Cell> >& data);

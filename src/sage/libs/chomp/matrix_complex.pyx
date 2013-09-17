@@ -89,8 +89,34 @@ cdef class Generators(SageObject):
         """
         The Cython destructor.
         """
-        assert self.thisptr!=NULL, 'Do not construct Generators manually, only via make_Generators!'
+        assert self.thisptr != NULL, 'Do not construct Generators manually, only via make_Generators!'
         del self.thisptr
+
+    def n_gens(self, dim):
+        """
+        Return the number of generators.
+        
+        INPUT:
+
+        - ``dim`` -- integer. The dimension.
+
+        OUTPUT:
+        
+        EXAMPLES::
+
+            sage: from sage.libs.chomp.examples import matrix_complex_circle
+            sage: circle = matrix_complex_circle()
+            sage: gens = circle.Smith_generators()
+            sage: gens.n_gens(0)
+            1
+            sage: gens.n_gens(1)
+            1
+            sage: gens.n_gens(2)
+            0
+        """
+        if dim < 0 or dim >= self.thisptr[0].size():
+            return 0
+        return self.thisptr[0][dim].size()
 
     def betti(self, dim):
         """
@@ -110,26 +136,45 @@ cdef class Generators(SageObject):
             sage: segment = matrix_complex_segment()
             sage: gens = segment.Morse_generators()
             sage: [gens.betti(d) for d in range(0,3)]
+            [1, 0, 0]
 
             sage: from sage.libs.chomp.examples import matrix_complex_circle
             sage: circle = matrix_complex_circle()
             sage: gens = circle.Smith_generators()
             sage: [gens.betti(d) for d in range(0,3)]
+            [1, 1, 0]
 
             sage: gens = circle.Morse_generators()
             sage: [gens.betti(d) for d in range(0,3)]
+            [1, 1, 0]
         """
-        print 'betti', self.thisptr[0].size()
         if dim < 0 or dim >= self.thisptr[0].size():
             return 0
         cdef int betti = 0
         cdef int i
         for i in range(self.thisptr[0][dim].size()):
-            print dim, i, self.thisptr[0][dim][i].first.dimension()
             if self.thisptr[0][dim][i].second.equals(Ring(0)):
                 betti += 1
         return betti
 
+    def coefficient(self, dim, index):
+        """
+        EXAMPLES::
+
+            sage: from sage.libs.chomp.examples import matrix_complex_circle
+            sage: circle = matrix_complex_circle()
+            sage: gens = circle.Morse_generators()
+            sage: gens.coefficient(1, 0)
+            (1, True)
+            sage: gens.coefficient(1, 1)
+            0
+        """
+        if dim < 0 or dim >= self.thisptr[0].size():
+            return 0
+        if index < 0 or index >= self.thisptr[0][dim].size():
+            return 0
+        return (self.thisptr[0][dim][index].first.dimension(), 
+                self.thisptr[0][dim][index].second.equals(Ring(0)))
 
     
 cdef make_Generators(Generators_t gens_c):
