@@ -389,6 +389,28 @@ def is_ToricVariety(x):
 
 def has_ToricEmbedding(x):
     r"""
+    Check  if ``x`` has an embedding into a toric variety.
+
+    INPUT:
+
+    - ``x`` -- anything
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a :class:`toric variety with embedding
+      <EmbeddedToricVariety_Mixin>` and ``False`` otherwise.
+
+    EXAMPLES:: 
+
+        sage: from sage.schemes.toric.variety import has_ToricEmbedding
+        sage: has_ToricEmbedding(1)
+        False
+        sage: P2 = toric_varieties.P(2)
+        sage: has_ToricEmbedding(P2)
+        False
+        sage: patch = P2.affine_patch(0)
+        sage: has_ToricEmbedding(patch)
+        True
     """
     return isinstance(x, EmbeddedToricVariety_Mixin)
 
