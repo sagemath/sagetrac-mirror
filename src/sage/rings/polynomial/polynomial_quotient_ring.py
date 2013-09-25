@@ -291,7 +291,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     """
     Element = PolynomialQuotientRingElement
 
-    def __init__(self, ring, polynomial, name=None):
+    def __init__(self, ring, polynomial, name=None, category=None):
         """
         TEST::
 
@@ -313,7 +313,15 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         self.__ring = ring
         self.__polynomial = polynomial
-        sage.rings.commutative_ring.CommutativeRing.__init__(self, ring, names=name, category=CommutativeAlgebras(ring.base_ring()).Quotients())
+        if category is None:
+            category = CommutativeAlgebras(ring.base_ring()).Quotients()
+        else:
+            category = category.join([category,
+                                      CommutativeAlgebras(ring.base_ring()).Quotients()])
+        sage.rings.commutative_ring.CommutativeRing.__init__(self, ring,
+                                                             names=name,
+                                                             category=category
+                                                            )
 
     def __reduce__(self):
         """
@@ -630,7 +638,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field(),
+                   domain=self.cover_ring().category(), codomain = self.category(), category = self.category()), self.base()
 
     @cached_method
     def base_ring(self):
@@ -1414,8 +1423,9 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
         sage: loads(xbar.dumps()) == xbar
         True
     """
-    def __init__(self, ring, polynomial, name=None):
-        PolynomialQuotientRing_generic.__init__(self, ring, polynomial, name)
+    def __init__(self, ring, polynomial, name=None, category=None):
+        PolynomialQuotientRing_generic.__init__(self, ring, polynomial, name,
+                                                category)
 
     def __reduce__(self):
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
@@ -1567,8 +1577,8 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         sage: loads(xbar.dumps()) == xbar
         True
     """
-    def __init__(self, ring, polynomial, name=None):
-        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name)
+    def __init__(self, ring, polynomial, name=None, category=None):
+        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name, category)
 
     def __reduce__(self):
         return PolynomialQuotientRing_field, (self.polynomial_ring(),

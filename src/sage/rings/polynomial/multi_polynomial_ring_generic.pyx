@@ -138,7 +138,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         - ``prec`` -- default precision of resulting power series ring
 
-        - ``extras`` -- ignored; present for backward compatibility
+        - ``extras`` -- further arguments (such as "sparse") passed to the
+          constructor.
 
         EXAMPLES::
 
@@ -161,6 +162,15 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Multivariate Polynomial Ring in f0, f1, f3 over
             Multivariate Polynomial Ring in z0, z1, z2 over Integer Ring
 
+        TESTS:
+
+        The following was fixed in :trac:`15223`::
+
+            sage: R.<s,t> = PowerSeriesRing(QQ,sparse=True)
+            sage: F,O = R.construction()
+            sage: F(O)  # indirect doctest: O.completion(...) is called
+            Sparse Multivariate Power Series Ring in s, t over Rational Field
+
         """
         if p in self or isinstance(p,str) and set(p).issubset(set([str(g) for g in self.gens()])):
             p = tuple([p])
@@ -169,13 +179,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         else:
             raise TypeError("input %s is not of type list or tuple, and is not a variable of %s" % (p,self))
 
+        if extras is None:
+            extras = {}
+        else:
+            extras.pop('type',None)
         try:
             from sage.rings.power_series_ring import PowerSeriesRing
             if len(p) > 1:
-                return PowerSeriesRing(self.remove_var(*p), names=p, default_prec=prec)
+                return PowerSeriesRing(self.remove_var(*p), names=p,
+                                       default_prec=prec,
+                                       **extras)
             elif len(p) == 1:
                 p = p[0]
-                return PowerSeriesRing(self.remove_var(p), name=str(p), default_prec=prec)
+                return PowerSeriesRing(self.remove_var(p), name=str(p),
+                                       default_prec=prec,
+                                       *extras)
             else:
                 return self
 
@@ -186,6 +204,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         except ValueError:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
+    def quotient(self, I, names=None, **kwds):
+        D = dict(kwds)
+        impl = D.pop('implementation',None)
+        if impl!="pbori":
+            return super(MPolynomialRing_generic,self).quotient(I,names,**D)
+        import sage
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
+        cat = D.pop('category',None)
+        P = BooleanPolynomialRing_constructor(names=names, **D)
+        if P.defining_ideal()!=I:
+            if cat is not None:
+                D['category'] = cat
+            return super(MPolynomialRing_generic,self).quotient(I,names,**D)
+        return P
+ 
     def remove_var(self, *var, order=None):
         """
         Remove a variable or sequence of variables from self.

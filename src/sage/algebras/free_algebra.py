@@ -749,7 +749,7 @@ class FreeAlgebra_generic(Algebra):
         F = self.__monoid
         return self.element_class(self,{F.gen(i):R(1)})
 
-    def quotient(self, mons, mats, names):
+    def quotient(self, mons, mats, names, **args):
         """
         Returns a quotient algebra.
 

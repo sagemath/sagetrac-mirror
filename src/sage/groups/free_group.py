@@ -681,7 +681,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         inv = self.gap().AbelianInvariants()
         return tuple(inv.sage())
 
-    def quotient(self, relations):
+    def quotient(self, relations, **kwds):
         """
         Return the quotient of self by the normal subgroup generated
         by the given elements.
@@ -694,6 +694,8 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
         - ``relations`` -- A list/tuple/iterable with the elements of
           the free group.
+        - further named arguments, that are passed to the constructor
+          of a finitely presented group.
 
         OUTPUT:
 
@@ -725,6 +727,6 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
         """
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
+        return FinitelyPresentedGroup(self, tuple(map(self, relations) ), **kwds)
 
     __div__ = quotient

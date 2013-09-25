@@ -2319,10 +2319,12 @@ class PermutationGroup_generic(group.Group):
             ret_fp = ret_fp.simplified()
         return ret_fp
 
-    def quotient(self, N):
+    def quotient(self, N, **kwds):
         """
         Returns the quotient of this permutation group by the normal
         subgroup `N`, as a permutation group.
+
+        Further named arguments are passed to the permutation group constructor.
 
         Wraps the GAP operator "/".
 
@@ -2340,9 +2342,9 @@ class PermutationGroup_generic(group.Group):
         # This is currently done using the right regular representation
         # FIXME: GAP certainly knows of a better way!
         phi = Q.RegularActionHomomorphism()
-        return PermutationGroup(gap_group=phi.Image())
+        return PermutationGroup(gap_group=phi.Image(), **kwds)
 
-    def quotient_group(self, N):
+    def quotient_group(self, N, **kwds):
         """
         This function has been deprecated and will be removed in a
         future version of Sage; use ``quotient`` instead.
@@ -2365,7 +2367,7 @@ class PermutationGroup_generic(group.Group):
         """
         from sage.misc.superseded import deprecation
         deprecation(7371, 'quotient_group() is deprecated; use quotient() instead.')
-        return self.quotient(N)
+        return self.quotient(N, **kwds)
 
     def commutator(self, other=None):
         r"""

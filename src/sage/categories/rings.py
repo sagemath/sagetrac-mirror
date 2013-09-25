@@ -471,7 +471,7 @@ class Rings(Category_singleton):
         ##
         # Quotient rings
         # Again, this is defined in sage.rings.ring.pyx
-        def quotient(self, I, names=None):
+        def quotient(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -480,6 +480,8 @@ class Rings(Category_singleton):
             - ``I``: A twosided ideal of this ring.
             - ``names``: a list of strings to be used as names
               for the variables in the quotient ring.
+            - further named arguments that may be passed to the
+              quotient ring constructor.
 
             EXAMPLES:
 
@@ -514,8 +516,9 @@ class Rings(Category_singleton):
 
             """
             from sage.rings.quotient_ring import QuotientRing
-            return QuotientRing(self, I, names=names)
-        def quo(self, I, names=None):
+            return QuotientRing(self, I, names=names, **kwds)
+
+        def quo(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -556,9 +559,9 @@ class Rings(Category_singleton):
                 )
 
             """
-            return self.quotient(I,names=names)
+            return self.quotient(I,names=names,**kwds)
 
-        def quotient_ring(self, I, names=None):
+        def quotient_ring(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -596,7 +599,7 @@ class Rings(Category_singleton):
                 )
 
             """
-            return self.quotient(I,names=names)
+            return self.quotient(I,names=names, **kwds)
 
         def __div__(self, I):
             """

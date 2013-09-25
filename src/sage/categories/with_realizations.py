@@ -212,5 +212,3 @@ class WithRealizationsCategory(RegressiveCovariantConstructionCategory):
         """
         s = repr(self.base_category())
         return s+" with realizations"
-
-

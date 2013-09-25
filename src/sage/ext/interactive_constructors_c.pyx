@@ -185,10 +185,12 @@ def NumberField(*args, **kwds):
     R = sage.rings.all.NumberField(*args, **kwds)
     return _inject(R, t)
 
-def quotient(R, I, names, inject=True):
+def quotient(R, I, names, inject=True, **kwds):
     """
     Construct the quotient R/I and name the generators, which are
     then injected into the module scope (if inject=True).
+
+    Further named arguments are passed to the quotient construction.
 
     EXAMPLES:
         sage: inject_on(verbose=False)
@@ -205,7 +207,7 @@ def quotient(R, I, names, inject=True):
         sage: a^2 + b^2
         0
     """
-    Q = R.quotient(I, names)
+    Q = R.quotient(I, names, **kwds)
     return _inject(Q, inject)
 
 quo = quotient

@@ -719,7 +719,7 @@ cdef class Ring(ParentWithGens):
             return I
         return self._zero_ideal
 
-    def quotient(self, I, names=None):
+    def quotient(self, I, names=None, **kwds):
         """
         Create the quotient of this ring by a twosided ideal ``I``.
 
@@ -730,6 +730,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient (if
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0).
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         EXAMPLES::
 
@@ -749,12 +752,12 @@ cdef class Ring(ParentWithGens):
             False
         """
         import sage.rings.quotient_ring
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
-    def quo(self, I, names=None):
+    def quo(self, I, names=None, **kwds):
         """
-        Create the quotient of `R` by the ideal `I`.  This is a synonym for
-        :meth:`.quotient`
+        Create the quotient of `R` by the ideal `I`.  This is a synonym for :meth:`.quotient`
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
         EXAMPLES::
 
@@ -767,7 +770,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names=names)
+        return self.quotient(I, names=names, **kwds)
 
     def __div__(self, I):
         """
@@ -784,7 +787,7 @@ cdef class Ring(ParentWithGens):
         raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
         #return self.quotient(I, names=None)
 
-    def quotient_ring(self, I, names=None):
+    def quotient_ring(self, I, names=None, **kwds):
         """
         Return the quotient of self by the ideal `I` of ``self``.
         (Synonym for ``self.quotient(I)``.)
@@ -796,6 +799,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient. (If
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0.)
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         OUTPUT:
 
@@ -818,7 +824,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names)
+        return self.quotient(I, names, **kwds)
 
     def zero_element(self):
         """

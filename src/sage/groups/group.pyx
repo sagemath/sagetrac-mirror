@@ -245,7 +245,7 @@ cdef class Group(Parent):
         """
         raise NotImplementedError
 
-    def quotient(self, H):
+    def quotient(self, H, **kwds):
         """
         Return the quotient of this group by the normal subgroup
         `H`.

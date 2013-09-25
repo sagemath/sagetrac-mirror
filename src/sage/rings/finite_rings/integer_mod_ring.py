@@ -94,6 +94,7 @@ class IntegerModFactory(UniqueFactory):
 
     -  ``order`` - integer (default: 0), positive or
        negative
+    - ``category`` (optional) - the category that the quotient ring belongs to.
 
 
     EXAMPLES::
@@ -127,7 +128,10 @@ class IntegerModFactory(UniqueFactory):
             (7, Category of fields)
         """
         if category is None:
-            return order
+            from sage.categories.commutative_rings import CommutativeRings
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            from sage.categories.category import Category
+            category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
         return (order, category)
 
     def create_object(self, version, order):
