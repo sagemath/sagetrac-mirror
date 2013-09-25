@@ -186,12 +186,17 @@ AUTHORS:
 - Kwankyu Lee (2010-01): added methods gen_mat_systematic, information_set, and
   magma interface for linear codes.
 
-- Niles Johnson (2010-08): :trac:`#3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 - Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
 
 - Thomas Feulner (2013-10): added methods to compute a canonical representative
   and the automorphism group
+
+- Veronica Suaste (2013-09): :trac:`14973`: add new methods
+  ``coset_leaders``, ``error_correcting_capacity``, ``newton_radius``,
+  ``weight_distribution_coset``, and new algorithms to ``covering_radius``
+  and ``decode``.
 
 TESTS::
 
@@ -811,6 +816,7 @@ class LinearCode(module.Module_old):
         self.__length = len(gen_mat.row(0))
         self.__dim = gen_mat.rank()
         self.__distance = d
+        self.__groebner_basis_test_set = None
 
     def _repr_(self):
         r"""
@@ -1388,10 +1394,102 @@ class LinearCode(module.Module_old):
         Cperp = self.dual_code()
         return Cperp.gen_mat()
 
-    def covering_radius(self):
+    def coset_leaders(self, algorithm="all"):
         r"""
-        Wraps Guava's ``CoveringRadius`` command.
+        Return the set of coset leaders of ``self``
+        which are the set of vectors with minimum weight for
+        each coset.
 
+        If ``algorithm = "one"`` returns only one coset leader for each coset.
+        If ``algorithm = "all"`` returns all coset leaders of each coset.
+
+        INPUT:
+
+        - ``algorithm`` -- String (default:``"all"``), method to be used one of ``"all"`` of ``"one"``.
+
+        OUTPUT:
+
+        - List which contains a list of coset leaders for each coset
+
+        EXAMPLES::
+
+            sage: C = HammingCode(2,GF(5))
+            sage: C.coset_leaders()
+            [[(0, 0, 0, 0, 0, 0)],
+             [(1, 0, 0, 0, 0, 0)],
+             [(2, 0, 0, 0, 0, 0)],
+             [(3, 0, 0, 0, 0, 0)],
+             [(4, 0, 0, 0, 0, 0)],
+             [(0, 1, 0, 0, 0, 0)],
+             [(0, 2, 0, 0, 0, 0)],
+             [(0, 3, 0, 0, 0, 0)],
+             [(0, 4, 0, 0, 0, 0)],
+             [(0, 0, 1, 0, 0, 0)],
+             [(0, 0, 2, 0, 0, 0)],
+             [(0, 0, 3, 0, 0, 0)],
+             [(0, 0, 4, 0, 0, 0)],
+             [(0, 0, 0, 1, 0, 0)],
+             [(0, 0, 0, 2, 0, 0)],
+             [(0, 0, 0, 3, 0, 0)],
+             [(0, 0, 0, 4, 0, 0)],
+             [(0, 0, 0, 0, 1, 0)],
+             [(0, 0, 0, 0, 2, 0)],
+             [(0, 0, 0, 0, 3, 0)],
+             [(0, 0, 0, 0, 4, 0)],
+             [(0, 0, 0, 0, 0, 1)],
+             [(0, 0, 0, 0, 0, 2)],
+             [(0, 0, 0, 0, 0, 3)],
+             [(0, 0, 0, 0, 0, 4)]]
+
+            sage: G = matrix(GF(5),[[1,0,2],[3,2,4]])
+            sage: C = LinearCode(G)
+            sage: C.coset_leaders()
+            [[(0, 0, 0)],
+             [(1, 0, 0), (0, 3, 0), (0, 0, 3)],
+             [(2, 0, 0), (0, 1, 0), (0, 0, 1)],
+             [(3, 0, 0), (0, 4, 0), (0, 0, 4)],
+             [(4, 0, 0), (0, 2, 0), (0, 0, 2)]]
+
+            sage: G = matrix(GF(5),[[1,0,2],[3,2,4]])
+            sage: C = LinearCode(G)
+            sage: C.coset_leaders("one")
+             [[(0, 0, 0)], [(1, 0, 0)], [(2, 0, 0)], [(3, 0, 0)], [(4, 0, 0)]]
+        """
+        if algorithm not in ("all","one"):
+            raise ValueError("The algorithm argument must be one of 'all' or 'one'; got '{0}'".format(algorithm))
+
+        H = self.check_mat().transpose()
+        List = [vector(self.base_ring(),self.length())]
+        Fqstar = self.base_ring().list()[1:]
+        CL = []
+        N = []
+        S = []
+        if algorithm == "all":
+            while List:
+                w = List.pop(0)
+                s = w*H
+                if s in S:
+                    j = S.index(s)
+                    if w.hamming_weight() == N[j].hamming_weight():
+                        CL[j].append(w)
+                        self._insert_next_fq(w,List,Fqstar)
+                else:
+                    N.append(w)
+                    S.append(s)
+                    CL.append([w])
+                    self._insert_next_fq(w,List,Fqstar)
+        else:
+            while List:
+                w = List.pop(0)
+                s = w*H
+                if s not in S:
+                    CL.append([w])
+                    S.append(s)
+                    self._insert_next_fq(w,List,Fqstar)
+        return CL
+
+    def covering_radius(self, algorithm ="auto"):
+        r"""
         The covering radius of a linear code `C` is the smallest number `r`
         with the property that each element `v` of the ambient vector space
         of `C` has at most a distance `r` to the code `C`. So for each
@@ -1403,37 +1501,98 @@ class LinearCode(module.Module_old):
         to `t`, the number of errors the code can correct, where `d = 2t+1`,
         with `d` the minimum distance of `C`.
 
+        If ``algorithm = "guava"`` use optional gap_packages (Guava package)
+        Wraps Guava's ``CoveringRadius`` command.
+        If ``algorithm = "auto"`` checks if gap_packages is installed uses ``"guava"``
+        otherwise uses ``"coset_leader"`` algorithm (only for binary codes)
+
+        INPUT:
+
+        - ``algorithm`` -- Method to be used, one of ``"coset_leader"``,``"auto"`` or ``"guava"``
+
+        OUTPUT:
+
+        - Integer representing covering radius
+
         EXAMPLES::
 
+            sage: G=matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,0,1,1],[0,0,1,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: C.covering_radius("auto")
+            2
+            sage: C.covering_radius("coset_leader")
+            2
+            sage: C.covering_radius("guava")  # optional - gap_package(Guava package)
+            2
+
             sage: C = codes.HammingCode(5,GF(2))
-            sage: C.covering_radius()  # optional - gap_packages (Guava package)
+            sage: C.covering_radius("auto")
             1
+            sage: C.covering_radius("coset_leader")
+            1
+            sage: C.covering_radius("guava")  # optional - gap_packages (Guava package)
+            1
+
+            sage: C = BCHCode(4,2,GF(7))
+            sage: C.covering_radius("coset_leader")
+            1
+
+        TESTS::
+
+            sage: C = BinaryGolayCode()
+            sage: C.covering_radius("singular")
+            Traceback (most recent call last):
+            ...
+            ValueError: The algorithm argument must be one of 'coset_leader','auto' or 'guava'; got 'singular'
         """
-        F = self.base_ring()
-        G = self.gen_mat()
-        gapG = gap(G)
-        C = gapG.GeneratorMatCode(gap(F))
-        r = C.CoveringRadius()
-        try:
-            return ZZ(r)
-        except TypeError:
-            raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+
+        if algorithm not in ("guava","coset_leader","auto"):
+            raise ValueError("The algorithm argument must be one of 'coset_leader','auto' or 'guava'; got '{0}'".format(algorithm))
+
+        from sage.misc.package import is_package_installed
+        if algorithm == "auto":
+            if is_package_installed("gap_packages"):
+                algorithm = "guava"
+            else:
+                algorithm = "coset_leader"
+
+        if algorithm == "guava":
+            F = self.base_ring()
+            G = self.gen_mat()
+            gapG = gap(G)
+            C = gapG.GeneratorMatCode(gap(F))
+            r = C.CoveringRadius()
+            try:
+                return ZZ(r)
+            except TypeError:
+                raise RuntimeError("the covering radius of this code cannot be computed by Guava")
+        elif algorithm == "coset_leader":
+            CL = self.coset_leaders("one")
+            return CL[-1][0].hamming_weight()
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def decode(self, right, algorithm="syndrome"):
         r"""
         Decodes the received vector ``right`` to an element `c` in this code.
 
-        Optional algorithms are "guava", "nearest neighbor" or "syndrome". The
-        ``algorithm="guava"`` wraps GUAVA's ``Decodeword``.  Hamming codes have
+        Optional algorithms are "guava", "nearest neighbor", "syndrome",
+        "groebner_representation" and "groebner_basis".
+        The ``algorithm="guava"`` wraps GUAVA's ``Decodeword``.  Hamming codes have
         a special decoding algorithm; otherwise, ``"syndrome"`` decoding is
         used.
+
+        Algorithms ``"groebner_representation"`` and ``"groebner_basis"`` were implemented
+        following the work in [Marquez2013]_.
+        After decoding a first word with ``"groebner_basis"`` algorithm any other
+        word will be decoded instantly with saved information.
+        Algorithm ``"groebner_representation"`` is only implemented for binary codes (2013).
 
         INPUT:
 
         - ``right`` - Vector of length the length of this code
         - ``algorithm`` - Algorithm to use, one of ``"syndrome"``, ``"nearest
-          neighbor"``, and ``"guava"`` (default: ``"syndrome"``)
+          neighbor"``,``"guava"``,``"groebner_representation"`` and ``"groebner_basis"``
+          (default: ``"syndrome"``)
 
         OUTPUT:
 
@@ -1473,12 +1632,76 @@ class LinearCode(module.Module_old):
             sage: C.decode(v, algorithm="guava")  # optional - gap_packages (Guava package)
             (a + 1, 0, 0, a, 1)
 
-        Does not work for very long codes since the syndrome table grows too
-        large.
+            sage: G = matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,0,1,1],[0,0,1,1,0,1]])
+            sage: C = LinearCode(G)
+            sage: v = vector(GF(2),(1,1,1,1,1,0))
+            sage: C.decode(v,"groebner_representation")
+            (0, 1, 1, 1, 1, 0)
+
+            sage: C = ReedSolomonCode(5,4,GF(5))
+            sage: v = vector(GF(5),(4,0,3,3,4))
+            sage: C.decode(v,"groebner_basis")
+            (0, 0, 1, 2, 2)
+
+        TESTS::
+
+            sage: C = ReedSolomonCode(4,3,GF(5)); C;
+            Linear code of length 4, dimension 3 over Finite Field of size 5
+            sage: v = vector(GF(5),(3,4,2,2))
+            sage: C.decode(v,"groebner_representation")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The 'decode_groebner_representation' algorithm is only implemented for binary codes
+
+        The following contains comparisons between the different algorithms to show which algorithm
+        is faster under various conditions. In general, the ``"syndrome"`` algorithm is faster for
+        codes with small dimensions, and ``"groebner_basis"`` and ``groebner_representation`` algorithms
+        works for codes with large dimensions such as `n-k` is small enough, here `n` denotes the
+        length of the code and `k` denotes the dismension of the code.::
+
+            sage: C = HammingCode(5,GF(2)); C;
+            Linear code of length 31, dimension 26 over Finite Field of size 2
+            sage: v = vector(GF(2),(1,1,1,0,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1))
+            sage: C.decode(v,"syndrome")  # not tested, MemoryError (sage.math, 2013)
+            sage: C.decode(v,"groebner_representation")
+            (1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1)
+            sage: C.decode(v,"groebner_basis")
+            (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1)
+
+            sage: Fq = GF(4,'a')
+            sage: a = Fq.primitive_element()
+            sage: C = HammingCode(3,Fq); C;
+            Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
+            sage: v = vector(Fq,(a+1,1,a+1,a+1,a+1,a+1,1,a,a,1,a+1,1,a,0,1,a,a,1,a+1,1,1))
+            sage: C.decode(v,"syndrome")  # not tested MemoryError  (sage.math, 2013)
+            sage: C.decode(v,"groebner_basis")  # not tested  long time (70s 2013)
+            (a + 1, 1, a + 1, a + 1, a + 1, a + 1, 1, a, a, a + 1, a + 1, 0, 0, 0, 1, a, a, 1, a + 1, 0, 1)
+
+            sage: C = BinaryGolayCode(); C;
+            Linear code of length 23, dimension 12 over Finite Field of size 2
+            sage: v=vector(GF(2),(1,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,1))
+            sage: C.decode(v,"syndrome")
+            (1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1)
+            sage: C.decode(v,"groebner_representation")  # not tested  long time (2min)
+            (1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1)
+            sage: C.decode(v,"groebner_basis")  # not tested long time
+            (0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1)
+
+        Algorithms does not work for very long codes since the syndrome table grows too
+        large or groebner basis takes long time for computing.
+
         """
         from decoder import decode
-        if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
-            return decode(self,right)
+        if algorithm not in ("syndrome", "nearest neighbor", "guava",
+                             "groebner_representation", "groebner_basis"):
+            raise NotImplementedError("Only 'syndrome', 'nearest neighbor', "
+                                      "'guava', 'groebner_representation', "
+                                      "'groebner_basis' are implemented.")
+
+        if algorithm in ("syndrome", "nearest neighbor",
+                         "groebner_representation","groebner_basis"):
+            return decode(self, right, algorithm)
+
         elif algorithm == 'guava':
             gap.load_package('guava')
             code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
@@ -1631,6 +1854,42 @@ class LinearCode(module.Module_old):
             if scheck*c:
                 return False
         return True
+
+    def error_correcting_capacity(self):
+        r"""
+        The error correcting capacity ``t`` of a code is the number of errors
+        this code can correct under bounded distance decoding. This is `t = \lfloor (d-1)/2 \rfloor`.
+        In the event the minimum distance is unknown or not computed this method computes the error
+        correcting capacity using the Groebner basis of the ideal associated to the code.
+
+        OUTPUT:
+
+        - Integer representing the error correcting capacity.
+
+        EXAMPLES::
+
+            sage: C = ReedSolomonCode(7,3,GF(7))
+            sage: C.error_correcting_capacity()
+            2
+
+            sage: C = HammingCode(2,GF(5))
+            sage: C.minimum_distance()
+            3
+            sage: C.error_correcting_capacity()
+            1
+
+            sage: G = matrix(GF(2),[[1,0,0,0,0,1,1,0,0,1,0,1,1,0,1],[0,1,1,1,0,1,1,1,1,1,0,0,0,1,1]])
+            sage: C = LinearCode(G)
+            sage: C.error_correcting_capacity()
+            3
+        """
+        if self.__distance is None:
+            from sage.coding.decoder import groebner_basis_fglm
+            gb = groebner_basis_fglm(self).next()
+            return gb[0].hamming_weight()-1
+        else:
+            from sage.functions.other import floor
+            return floor((self.__distance - 1)/2)
 
     def extended_code(self):
         r"""
@@ -1870,6 +2129,29 @@ class LinearCode(module.Module_old):
         gammaC = n+1-k-d
         return gammaC
 
+    def _get_groebner_test_set(self):
+        r"""
+        Returns the test-set of the code ``self``.
+        Used for decoding algorithm ``"groebner"``.
+        See :mod:`~sage.coding.decoder`
+
+        EXAMPLE::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: ts =[(0, 0, 0, 0, 0, 0, 0),(1, 1, 1, 0, 0, 0, 0),(1, 0, 0, 1, 1, 0, 0),(0, 1, 0, 1, 0, 1, 0),(0, 0, 1, 1, 0, 0, 1),(0, 1, 0, 0, 1, 0, 1),(0, 0, 1, 0, 1, 1, 0),(1, 0, 0, 0, 0, 1, 1)]
+            sage: C._set_groebner_test_set(ts)
+            sage: C._get_groebner_test_set()
+            [(0, 0, 0, 0, 0, 0, 0),
+             (1, 1, 1, 0, 0, 0, 0),
+             (1, 0, 0, 1, 1, 0, 0),
+             (0, 1, 0, 1, 0, 1, 0),
+             (0, 0, 1, 1, 0, 0, 1),
+             (0, 1, 0, 0, 1, 0, 1),
+             (0, 0, 1, 0, 1, 1, 0),
+             (1, 0, 0, 0, 0, 1, 1)]
+        """
+        return self.__groebner_basis_test_set
+
     def information_set(self):
         """
         Return an information set of the code.
@@ -1893,6 +2175,45 @@ class LinearCode(module.Module_old):
             (0, 2)
         """
         return self.__gen_mat.transpose().pivot_rows()
+
+    def _insert_next_fq(self, v, List, Fqstar):
+        r"""
+        Inserts vectors ``v + \alpha_j*e_i`` in List, with ``i`` not in support of ``v``,
+        ``e_i`` standard basis vector, and ``\alpha_j \neq 0`` elements of the finite field
+        over which the code `self` is defined, `Fqstar`.
+        Function for internal use only.
+
+        EXAMPLE::
+
+            sage: C = HammingCode(2,GF(3))
+            sage: v =vector(GF(3),C.length())
+            sage: Fqstar= C.base_ring().list()[1:]
+            sage: List=[]
+            sage: C._insert_next_fq(v,List,Fqstar)
+            sage: List
+            [(1, 0, 0, 0),
+             (2, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 2, 0, 0),
+             (0, 0, 1, 0),
+             (0, 0, 2, 0),
+             (0, 0, 0, 1),
+             (0, 0, 0, 2)]
+        """
+        s = [i for i in range(self.length()) if i not in v.support()]
+        if List:
+            for i in s:
+                new = v.__copy__()
+                for q in Fqstar:
+                    new[i]=q
+                    if new not in List:
+                        List.append(new.__copy__())
+        else:
+            for i in s:
+                new = v.__copy__()
+                for q in Fqstar:
+                   new[i]=q
+                   List.append(new.__copy__())
 
     def is_permutation_automorphism(self,g):
         r"""
@@ -2256,6 +2577,38 @@ class LinearCode(module.Module_old):
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         print gap("MTX.CompositionFactors( M )")
+
+    def newton_radius(self):
+        r"""
+        The newton radius of a linear code is the largest weight of any vector that can
+        be uniquely corrected, or equivalently, it is the largest value among the cosets
+        with only one coset leader since an error is uniquely correctable if and only if
+        it is the unique coset leader in its coset.
+
+        OUTPUT:
+
+        - Positive integer indicating the newton radius
+
+        EXAMPLE::
+
+            sage: H = matrix(GF(2),[[1,0,0,0,1,0,0,0,0,0],[1,0,1,1,0,1,0,0,0,0],[1,1,0,1,0,0,1,0,0,0],[1,1,1,0,0,0,0,1,0,0],[1,1,1,1,0,0,0,0,1,0],[1,1,1,1,0,0,0,0,0,1]])
+            sage: C = LinearCodeFromCheckMatrix(H)
+            sage: C.newton_radius()
+            3
+
+            sage: C = HammingCode(4,GF(2))
+            sage: C.newton_radius()
+            1
+
+            sage: G = matrix(GF(5),[[1,0,2,2,2],[0,1,4,4,1]])
+            sage: C = LinearCode(G)
+            sage: C.newton_radius()
+            2
+        """
+        CL = self.coset_leaders()
+        for v in CL[::-1]:
+            if len(v)==1:
+                return v[0].hamming_weight()
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def permutation_automorphism_group(self, algorithm="partition"):
@@ -2739,6 +3092,30 @@ class LinearCode(module.Module_old):
             P0 = P/(1+2*T)
         return P0/P0(1)
 
+    def _set_groebner_test_set(self,test_set):
+        r"""
+        Sets the test-set of the code to ``test_set``
+        Used for decoding algorithm ``groebner``.
+        See :mod:`~sage.coding.decoder`
+
+        EXAMPLE::
+
+            sage: C = HammingCode(3,GF(2))
+            sage: ts =[(0, 0, 0, 0, 0, 0, 0),(1, 1, 1, 0, 0, 0, 0),(1, 0, 0, 1, 1, 0, 0),(0, 1, 0, 1, 0, 1, 0),(0, 0, 1, 1, 0, 0, 1),(0, 1, 0, 0, 1, 0, 1),(0, 0, 1, 0, 1, 1, 0),(1, 0, 0, 0, 0, 1, 1)]
+            sage: C._set_groebner_test_set(ts)
+            sage: C._get_groebner_test_set()
+            [(0, 0, 0, 0, 0, 0, 0),
+             (1, 1, 1, 0, 0, 0, 0),
+             (1, 0, 0, 1, 1, 0, 0),
+             (0, 1, 0, 1, 0, 1, 0),
+             (0, 0, 1, 1, 0, 0, 1),
+             (0, 1, 0, 0, 1, 0, 1),
+             (0, 0, 1, 0, 1, 1, 0),
+             (1, 0, 0, 0, 0, 1, 1)]
+        """
+        self.__groebner_basis_test_set = test_set
+
+
     def shortened(self, L):
         r"""
         Returns the code shortened at the positions ``L``, where
@@ -2951,6 +3328,47 @@ class LinearCode(module.Module_old):
         V = VectorSpace(F,n+1)
         return V(self.spectrum()).support()
 
+    def weight_distribution_coset(self):
+        r"""
+        The Weight Distribution of the Coset Leaders of a linear code `C` is the list
+        in which the entry ``i`` has the number of cosets with weight ``i``.
+
+        OUTPUT:
+
+        - Tuple of length the code's length in which every entry is a integer
+
+        EXAMPLE::
+
+            sage: G=matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,0,1,1],[0,0,1,1,0,1]])
+            sage: C= LinearCode(G)
+            sage: C.weight_distribution_coset()
+            (1, 6, 1, 0, 0, 0)
+
+            sage: C = HammingCode(4,GF(2))
+            sage: C.weight_distribution_coset()
+            (1, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+            sage: H = matrix(GF(2),[[1,0,0,0,1,0,0,0,0,0],\
+                                    [1,0,1,1,0,1,0,0,0,0],\
+                                    [1,1,0,1,0,0,1,0,0,0],\
+                                    [1,1,1,0,0,0,0,1,0,0],\
+                                    [1,1,1,1,0,0,0,0,1,0],\
+                                    [1,1,1,1,0,0,0,0,0,1]])
+            sage: C = LinearCodeFromCheckMatrix(H)
+            sage: C.weight_distribution_coset()
+            (1, 10, 30, 23, 0, 0, 0, 0, 0, 0)
+
+            sage: G = matrix(GF(5),[[1,0,2,2,2],[0,1,4,4,1]])
+            sage: C = LinearCode(G)
+            sage: C.weight_distribution_coset()
+            (1, 20, 96, 8, 0)
+        """
+        CL = self.coset_leaders("one")
+        w_d = [0]*self.length()
+        for c in CL:
+            w_d[c[0].hamming_weight()]+=1
+        return tuple(w_d)
+
     def weight_enumerator(self, names="xy", name2=None):
         """
         Returns the weight enumerator of the code.
@@ -3129,4 +3547,3 @@ def LinearCodeFromVectorSpace(V, d=None):
     MS = MatrixSpace(F,k,n)
     G = MS([B[i].list() for i in range(k)])
     return LinearCode(G, d=d)
-
