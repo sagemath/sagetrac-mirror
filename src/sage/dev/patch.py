@@ -199,13 +199,13 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
     """
     try:
         self.reset_to_clean_state()
-        self.reset_to_clean_working_directory()
+        self.clean()
     except OperationCancelledError:
         self._UI.error("Cannot import patch. Your working directory is not in a clean state.")
         raise
 
     untracked = self.git.untracked_files()
-    # do not exclude .patch files here: they would be deleted by reset_to_clean_working_directory() later
+    # do not exclude .patch files here: they would be deleted by clean() later
     if untracked:
         self._UI.error("There are untracked files in your working directory:\n{0}\nThe patch cannot be imported unless these files are removed.".format("\n".join(untracked)))
         raise OperationCancelledError("untracked files make import impossible")
@@ -417,7 +417,7 @@ def download_patch(self, ticket=None, patchname=None, url=None):
             from sagedev import SageDevValueError
             raise SageDevValueError("Ticket #%s has no attachments."%ticket)
         if len(attachments) == 1:
-            ret = (self.download_patch(ticket = ticket, patchname = attachments[0]),)
+            ret = self.download_patch(ticket = ticket, patchname = attachments[0])
             self._UI.show("Attachment `{0}` for ticket #{1} has been downloaded to `{2}`.".format(attachments[0], ticket, ret[0]))
             return ret
         else:
