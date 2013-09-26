@@ -566,12 +566,14 @@ def _single_variate(base_ring, name, sparse, implementation):
                 pass # ignored
 
             if base_ring.is_field():
-                R = m.PolynomialRing_dense_padic_field_generic
+                from sage.rings.polynomial.padics.polynomial_ring_padic import PolynomialRing_dense_padic_field_generic
+                R = PolynomialRing_dense_padic_field_generic
                 from sage.rings.polynomial.padics.polynomial_padic_generic import Polynomial_padic_generic_field
                 element_class = Polynomial_padic_generic_field
             else:
+                from sage.rings.polynomial.padics.polynomial_ring_padic import PolynomialRing_dense_padic_ring_generic
+                R = PolynomialRing_dense_padic_ring_generic
                 from sage.rings.polynomial.padics.polynomial_padic_generic import Polynomial_padic_generic_ring
-                R = m.PolynomialRing_dense_padic_ring_generic
                 element_class = Polynomial_padic_generic_ring
 
             if base_ring.ground_ring_of_tower() is base_ring and (base_ring.is_fixed_mod() or base_ring.is_capped_absolute()):
