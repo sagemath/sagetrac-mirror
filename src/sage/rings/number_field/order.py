@@ -36,6 +36,10 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     17^45
 """
 
+from sage.structure.coerce import parent
+from sage.structure.coerce_maps import CallableConvertMap
+from sage.structure.unique_representation import UniqueRepresentation
+
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
@@ -115,7 +119,7 @@ def EquationOrder(f, names):
     K = NumberField(f, names=names)
     return K.order(K.gens())
 
-class Order(IntegralDomain):
+class Order(IntegralDomain, UniqueRepresentation):
     r"""
     An order in a number field.
 
@@ -167,7 +171,8 @@ class Order(IntegralDomain):
         self._K = K
         self._is_maximal = is_maximal
         IntegralDomain.__init__(self, ZZ, names = K.variable_names(), normalize = False)
-        self._populate_coercion_lists_(embedding=self.number_field())
+        mor = CallableConvertMap(self, K, lambda x: K._element_class(K, x), parent_as_first_arg=False)
+        self._populate_coercion_lists_(embedding=mor)
 
     def fractional_ideal(self, *args, **kwds):
         """
@@ -235,7 +240,9 @@ class Order(IntegralDomain):
             sage: Ok.has_coerce_map_from(ZZ)
             True
         """
-        return R is ZZ or R is int or R is long
+        if R is ZZ or R is int or R is long:
+             # Bypass the relatively slow _element_constructor_
+             return CallableConvertMap(R, self, self._element_type)
 
     def __mul__(self, right):
         """
@@ -882,8 +889,6 @@ class Order(IntegralDomain):
             return cmp(type(self), type(other))
         if self._K != other._K:
             return cmp(self._K, other._K)
-        if self is other:
-            return 0
         return cmp(self._module_rep, other._module_rep)
 
     def random_element(self, *args, **kwds):
@@ -1061,13 +1066,16 @@ class AbsoluteOrder(Order):
             sage: k(m(6*z))
             6*z
         """
-        if is_Element(x) and x.parent() is self:
+        P = parent(x)
+        if P is self:
             return x
-        if not is_Element(x) or x.parent() is not self._K:
+        if P is not self._K:
             x = self._K(x)
-        V, _, embedding = self._K.vector_space()
-        if not embedding(x) in self._module_rep:
-            raise TypeError, "Not an element of the order."
+        # If P coerces into self, we can skip the expensive membership test
+        if self.coerce_map_from(P) is None:
+            V, _, embedding = self._K.vector_space()
+            if not embedding(x) in self._module_rep:
+                raise TypeError, "Not an element of the order."
         return self._element_type(self, x)
 
     def __reduce__(self):
@@ -1377,6 +1385,9 @@ class RelativeOrder(Order):
     Invariants of this order may be computed with respect to the
     contained order.
     """
+
+    _element_type = OrderElement_relative
+
     def __init__(self, K, absolute_order, is_maximal=None, check=True):
         """
         Create the relative order.

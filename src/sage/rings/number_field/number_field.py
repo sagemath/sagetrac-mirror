@@ -2487,6 +2487,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: QuadraticField(2, 'a', embedding=2) == QuadraticField(2, 'a', embedding=-2)
             False
         """
+        if other is self:
+            return 0
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
         c = cmp(self.variable_name(), other.variable_name())
