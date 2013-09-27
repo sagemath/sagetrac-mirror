@@ -508,7 +508,7 @@ cdef class Element(sage_object.SageObject):
         if not is_extension_type(self.__class__):
             # For usual Python classes, that should be done with
             # standard inheritance
-            tester.assert_(isinstance(self, self.parent().category().element_class))
+            tester.assertIsInstance(self, self.parent().category().element_class)
         else:
             # For extension types we just check that inheritance
             # occurs on a dummy attribute of Sets().ElementMethods

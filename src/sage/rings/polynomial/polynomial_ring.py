@@ -143,7 +143,7 @@ These may change over time::
     sage: type(Integers(5*2^100)['x'].0)
     <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
     sage: type(CC['x'].0)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
     sage: type(CC['t']['x'].0)
     <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
 """
@@ -266,13 +266,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             category = polynomial_default_category(base_ring,False)
         self.__is_sparse = sparse
         if element_class:
-            self._polynomial_class = element_class
+            self.Element = element_class
         else:
             if sparse:
-                self._polynomial_class = polynomial_element_generic.Polynomial_generic_sparse
+                self.Element = polynomial_element_generic.Polynomial_generic_sparse
             else:
                 from sage.rings.polynomial import polynomial_element
-                self._polynomial_class = polynomial_element.Polynomial_generic_dense
+                self.Element = polynomial_element.Polynomial_generic_dense
         self.__cyclopoly_cache = {}
         self._has_singular = False
         # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
@@ -281,12 +281,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # But the attribute _no_generic_basering_coercion prevents that from happening,
         # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
+        self.__generator = self.element_class(self, [0,1], is_gen=True)
         self._populate_coercion_lists_(
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-
 
     def __reduce__(self):
         import sage.rings.polynomial.polynomial_ring_constructor
@@ -351,7 +350,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         TESTS:
 
-        This shows that the issue at trac #4106 is fixed::
+        This shows that the issue at :trac:`4106` is fixed::
 
             sage: x = var('x')
             sage: R = IntegerModRing(4)
@@ -360,15 +359,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x
 
         Throw a TypeError if any of the coefficients cannot be coerced
-        into the base ring (trac #6777)::
+        into the base ring (:trac:`6777`)::
 
             sage: RealField(300)['x']( [ 1, ComplexField(300).gen(), 0 ])
             Traceback (most recent call last):
             ...
             TypeError: Unable to convert x (='1.00...00*I') to real number.
 
+        Check that :trac:`15232` has been resolved::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: TestSuite(R).run()
+
         """
-        C = self._polynomial_class
+        C = self.element_class
         if isinstance(x, list):
             return C(self, x, check=check, is_gen=False,construct=construct)
         if isinstance(x, Element):
@@ -1413,12 +1418,12 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
             sage: R = PRing(QQ, 'x', sparse=True); R
             Sparse Univariate Polynomial Ring in x over Rational Field
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
+            sage: isinstance(R.gen(), sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field)
+            True
             sage: R = PRing(CC, 'x'); R
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            sage: isinstance(R.gen(), sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field)
+            True
 
             #Demonstrate that Trac #8762 is fixed
             sage: R.<x> = PolynomialRing(GF(next_prime(10^20)), sparse=True)
@@ -1801,7 +1806,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_finite_field
             sage: R = PolynomialRing_dense_finite_field(GF(5), implementation='generic')
             sage: type(R(0))
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_dense_finite_field_with_category.element_class'>
 
             sage: S = PolynomialRing_dense_finite_field(GF(25, 'a'), implementation='NTL')
             sage: type(S(0))
