@@ -361,7 +361,7 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
                              'on elements of Zp')
         else:
             if flag == 'pari':
-                return self._pari_().gamma()
+                return self._pari_().gamma().sage()
 
             elif flag == 'sage':
                 p = self.parent().prime()
