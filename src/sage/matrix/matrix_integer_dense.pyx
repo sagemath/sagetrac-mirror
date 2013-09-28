@@ -50,7 +50,7 @@ TESTS::
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
-from sage.misc.misc import verbose, get_verbose, cputime
+from sage.misc.misc import verbose, get_verbose, cputime, forall
 
 from sage.rings.arith import previous_prime
 from sage.structure.element import is_Element
@@ -3512,6 +3512,87 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if check_invertible and self.rank() != self._nrows:
                 raise ZeroDivisionError("input matrix must be nonsingular")
             return self._solve_iml(P.identity_matrix(), right=True)
+
+    def solve_right_mod(self, D, B):
+        r"""
+        If self is an integral matrix `A`, then this function
+        returns all solutions `X` of the system of congruences `A X \equiv B \mod D`,
+        where `B` is an integral vector and `D` is either a nonnegative integral vector
+        or a nonnegative integer.
+
+        INPUT:
+
+
+        -  ``B`` - a vector over `\ZZ`
+
+        -  ``D`` - a vector over `\ZZ` with nonnegative entries or a nonnegative integer
+
+
+        OUTPUT:  
+
+        -  ``X`` - a vector over `\ZZ` such that `A B \equiv B \bmod D`
+
+        -  ``N`` - a list of vectors over `\ZZ` such that `A C \equiv B \bmod D` holds
+           iff `C = n_0 N[0] + ... + n_m N[m]` for some `n_0,..., n_m \in \ZZ`
+
+        EXAMPLES::
+
+            sage: M = matrix([[1, 2], [3, 4], [5, 6]])
+            sage: D = vector([7, 8, 9])
+            sage: B = vector([10, 11, 12])
+            sage: L = M.solve_right_mod(D, B); L
+            ((-3, 3), [(-12, -24), (13, -16)])
+        
+        ::
+            
+            sage: forall([((M*L[0])[i] - B[i]).mod(D[i]) for i in range(M.nrows())], lambda x : x == 0)[0]
+            True
+            sage: forall([((M*(L[0] +L[1][1]))[i] - B[i]).mod(D[i]) for i in range(M.nrows())], lambda x : x == 0)[0]
+            True
+
+
+            sage: D = 3
+            sage: L = M.solve_right_mod(D, B); L
+            ((0, -1), [(-3, 0), (0, 3)])
+            sage: ((M*(L[0] +L[1][0])) - B).transpose().mod(D).is_zero()
+            true
+
+
+            sage: A = Matrix(ZZ,5,5,[3,0,1,0,1,1,3,0,0,1,0,1,3,0,1,0,0,0,4,1,1,1,1,1,1])
+            sage: B = vector((0,0,0,0,0), ZZ)
+            sage: X = A.solve_right_mod(42,B)
+            sage: X[0]
+            (0, 0, 0, 0, 0)
+            sage: A*X[1][1].transpose().mod(42) == 0
+            True
+
+
+
+        """
+        if self.nrows() != B.degree():
+            raise ValueError, "number of rows of self must equal degree of B"
+        if isinstance(D, Integer):
+            if D < 0:
+                raise ValueError, "D must be a nonnegative vector over `\ZZ` or a nonnegative integer"
+        else:
+            if self.nrows() != D.degree():
+                raise ValueError, "number of rows of self must equal degree of D"
+            if not forall(D, lambda x : x >= 0)[0]:
+                raise ValueError, "D must be a nonnegative vector over `\ZZ` or a nonnegative integer"
+
+        from sage.libs.pari.gen import pari
+        A = pari(self)
+        b = pari([c for c in B]).Col()
+        if isinstance(D, Integer):
+            # all congruences are modulo D
+            d = pari([D for c in range(B.degree())]).Col()
+        else:
+            d = pari([c for c in D]).Col()
+        ret = A.matsolvemod(d, b, 1)
+        if ret.type() == 't_INT':
+            raise ValueError("matrix congruence has no solutions")
+        kernel_basis = ret[1].Mat().sage().columns()
+        return (ZZ ** self.ncols())(ret[0].Vec().sage()), kernel_basis
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""

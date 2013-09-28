@@ -598,3 +598,46 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
            :meth:`elementary_divisors`
         """
         return self.dense_matrix().smith_form()
+
+
+    def solve_right_mod(self, D, B):
+        r"""
+        If self is an integral matrix `A`, then this function
+        returns all solutions `X` of the system of congruences `A X \equiv B \mod D`,
+        where `B` is an integral vector and `D` is either a nonnegative integral vector
+        or a nonnegative integer.
+
+        INPUT:
+
+
+        -  ``B`` - a vector over `\ZZ`
+
+        -  ``D`` - a vector over `\ZZ` with nonnegative entries or a nonnegative integer
+
+
+        OUTPUT:  
+
+        -  ``X`` - a vector over `\ZZ` such that `A B \equiv B \bmod D`
+
+        -  ``N`` - a list of vectors over `\ZZ` such that `A C \equiv B \bmod D` holds
+           iff `C = n_0 N[0] + ... + n_m N[m]` for some `n_0,..., n_m \in \ZZ`
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ,5,5,[3,0,1,0,1,1,3,0,0,1,0,1,3,0,1,0,0,0,4,1,1,1,1,1,1], sparse=true)
+            sage: D = 7
+            sage: B = vector((0,0,0,0,0), ZZ)
+            sage: M.solve_right_mod(D, B)[0]
+            (0, 0, 0, 0, 0)
+
+            sage: M = Matrix(ZZ,3,2,range(6), sparse=True)
+            sage: D = vector([2,3,4])
+            sage: B = vector([-1,2,-3])
+            sage: M.solve_right_mod(D, B)
+            ((1, 1), [(-3, 0), (0, 4)])
+
+
+
+        """
+
+        return self.dense_matrix().solve_right_mod(D, B)
