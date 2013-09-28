@@ -3541,21 +3541,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: D = vector([7, 8, 9])
             sage: B = vector([10, 11, 12])
             sage: L = M.solve_right_mod(D, B); L
-            ((-3, 3), [(-12, -24), (13, -16)])
+            ((-3, 3), [(-12, 13), (-24, -16)])
         
         ::
             
             sage: forall([((M*L[0])[i] - B[i]).mod(D[i]) for i in range(M.nrows())], lambda x : x == 0)[0]
             True
-            sage: forall([((M*(L[0] +L[1][1]))[i] - B[i]).mod(D[i]) for i in range(M.nrows())], lambda x : x == 0)[0]
+            sage: forall([((M*(L[0] + L[1][1]))[i] - B[i]).mod(D[i]) for i in range(M.nrows())], lambda x : x == 0)[0]
             True
 
 
             sage: D = 3
             sage: L = M.solve_right_mod(D, B); L
             ((0, -1), [(-3, 0), (0, 3)])
-            sage: ((M*(L[0] +L[1][0])) - B).transpose().mod(D).is_zero()
-            true
+            sage: ((M*(L[0] +L[1][0])) - B).column().mod(D).is_zero()
+            True
 
 
             sage: A = Matrix(ZZ,5,5,[3,0,1,0,1,1,3,0,0,1,0,1,3,0,1,0,0,0,4,1,1,1,1,1,1])
@@ -3563,7 +3563,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: X = A.solve_right_mod(42,B)
             sage: X[0]
             (0, 0, 0, 0, 0)
-            sage: A*X[1][1].transpose().mod(42) == 0
+            sage: A*X[1][1].column().mod(42) == 0
             True
 
 
