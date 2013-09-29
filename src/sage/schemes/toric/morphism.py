@@ -1547,7 +1547,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             Scheme morphism:
               From: 1-d toric variety with embedding covered by 2 affine patches
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
-              Defn: Defined by sending Rational polyhedral fan in 1-d lattice N to
+              Defn: Defined by sending Rational polyhedral fan in Sublattice <N(0, 1)> to
                     Rational polyhedral fan in 2-d lattice N.
             sage: f.as_polynomial_map()
             Scheme morphism:
