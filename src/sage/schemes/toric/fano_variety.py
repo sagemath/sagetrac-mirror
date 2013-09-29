@@ -1381,7 +1381,7 @@ class CPRFanoToricVarietyWithEmbedding_field(EmbeddedToricVariety_Mixin,
             sage: diamond = lattice_polytope.octahedron(2)
             sage: FTV = CPRFanoToricVariety(Delta=diamond)
             sage: fm = FanMorphism(matrix.identity(2), FTV.fan(), FTV.fan())
-            sage: CPRFanoToricVariety(Delta=diamond, embedding_codomain=FTV, embedding_fan_morphism=fm)
+            sage: CPRFanoToricVariety(Delta=diamond, embedding_codomain=FTV, embedding_morphism=fm)
             2-d CPR-Fano toric variety with embedding covered by 4 affine patches
         """
         return ("%d-d CPR-Fano toric variety with embedding covered by %d affine patches"

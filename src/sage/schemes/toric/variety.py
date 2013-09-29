@@ -1050,7 +1050,7 @@ class ToricVariety_field(AmbientSpace):
         fm = FanMorphism(matrix.identity(self.dimension()), patch_fan,
                          self.fan())
         patch = ToricVariety(patch_fan, names, base_field=self.base_ring(),
-                             embedding_codomain=self, embedding_fan_morphism=fm)
+                             embedding_codomain=self, embedding_morphism=fm)
         self._affine_patches[i] = patch
         return patch
 
@@ -3168,42 +3168,58 @@ class EmbeddedToricVariety_Mixin(SageObject):
 
     INPUT:
 
-    - ``embedding_codomain`` -- :class:`Toric variety
+    - ``embedding=None`` -- a :class:`Scheme morphism
+      <sage.schemes.generic.morphism.SchemeMorphism>` that is not yet fully
+      initialized and will have ``self`` as domain. Should only be passed
+      as parameter in special cases.
+
+    - ``embedding_codomain`` (default: ``None``) -- the :class:`Toric variety
       <sage.schemes.toric.variety.ToricVariety_field>` into which the variety
       is to be embedded.
 
-    - ``embedding_fan_morphism`` -- :class:`Fan morphism
-      <sage.geometry.fan_morphism.FanMorphism>` providing the embedding.
+    - ``embedding_morphism`` (default: ``None``) -- anything that determines
+      a scheme morphism providing the embedding.
+
+    - ``embedding_ray_map`` (default: ``None``) -- a dictionary 
+      ``{ambient ray generator: orbit ray generator}``. Note that the image
+      of the ambient ray generator is not necessarily primitive.
+
+    - ``embedding_defining_cone`` (default: ``None``) -- the :class:`Cone
+      <sage.geometry.fan.Cone_of_fan>` specifying the orbit closure.
     """
-    def __init__(self, embedding=None, embedding_codomain=None, embedding_fan_morphism=None,
+    def __init__(self, embedding=None, embedding_codomain=None, embedding_morphism=None,
                  embedding_ray_map=None, embedding_defining_cone=None, **kwds):
         r"""
         Constructor for :class:`EmbeddingToricVariety<EmbeddedToricVariety_Mixin>`.
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: ToricVariety(fan, embedding_codomain=P1xP1)
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: ToricVariety(P1.fan(), embedding_morphism=matrix([[1,0]]))
             Traceback (most recent call last):
             ...
-            NotImplementedError: Embeddings not specified by fan morphisms are not implemented.
+            ValueError: The codomain must be specified when defining an embedding.
+            sage: ToricVariety(P1.fan(), embedding_morphism=matrix([[1,0]]), embedding_codomain=P1xP1)
+            1-d toric variety with embedding covered by 2 affine patches
         """
         assert is_ToricVariety(self)
         if len(kwds)>0:
             raise NotImplementedError('Invalid parameter.')
         if embedding <> None:
             self._embedding_morphism = embedding
-        elif embedding_fan_morphism <> None:
-            self._embedding_morphism = self.hom(embedding_fan_morphism, embedding_codomain)
-        elif embedding_ray_map <> None and embedding_defining_cone <> None:
-            from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
-            self._embedding_morphism = \
-            SchemeMorphism_orbit_closure_toric_variety(self.Hom(embedding_codomain),
-                                                       embedding_defining_cone,
-                                                       embedding_ray_map)
         else:
-            raise NotImplementedError('Embeddings not specified by fan morphisms are not implemented.')
+            if embedding_codomain is None:
+                raise ValueError('The codomain must be specified when defining an embedding.')
+
+            if embedding_morphism <> None:
+                self._embedding_morphism = self.hom(embedding_morphism, embedding_codomain)
+            elif embedding_ray_map <> None and embedding_defining_cone <> None:
+                from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
+                self._embedding_morphism = \
+                SchemeMorphism_orbit_closure_toric_variety(self.Hom(embedding_codomain),
+                                                           embedding_defining_cone,
+                                                           embedding_ray_map)
 
     def embedding_morphism(self):
         r"""
@@ -3266,7 +3282,7 @@ class EmbeddedToricVariety_Mixin(SageObject):
             False
             sage: fm = FanMorphism(matrix.identity(1), patch2.fan(), P1.fan())
             sage: cone = P1.fan().generating_cone(1)
-            sage: affine_variety_embedded = AffineToricVariety(cone, embedding_codomain=P1, embedding_fan_morphism=fm)
+            sage: affine_variety_embedded = AffineToricVariety(cone, embedding_codomain=P1, embedding_morphism=fm)
             sage: affine_variety_embedded == patch2
             True
             sage: affine_variety_embedded is patch2
