@@ -40,6 +40,7 @@ Functions
 from design_catalog import DesarguesianProjectivePlaneDesign,AffineGeometryDesign, transversal_design
 from block_design import BlockDesign
 from sage.rings.arith import binomial
+from sage.rings.arith import is_prime_power
 
 def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     r"""
@@ -82,6 +83,12 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
         Traceback (most recent call last):
         ...
         ValueError: No such design exists !
+
+    TESTS:
+
+    A BIBD from a Finite Projective Plane::
+
+        sage: _ = designs.BalancedIncompleteBlockDesign(21,5)
     """
     if ((binomial(v,2)%binomial(k,2) != 0) or
         (v-1)%(k-1) != 0):
@@ -94,7 +101,9 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
         return steiner_triple_system(v).blocks()
     if k == 4:
         return v_4_1_BIBD(v)
-
+    if v == (k-1)**2+k and is_prime_power(k-1):
+        from block_design import DesarguesianProjectivePlaneDesign
+        return DesarguesianProjectivePlaneDesign(k-1).blocks()
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -201,7 +210,7 @@ def v_4_1_BIBD(v, check=True):
 
     A `(v,4,1)`-BIBD is an edge-decomposition of the complete graph `K_v` into
     copies of `K_4`. For more information, see
-    :meth:`BalancedIncompleteBlockDesign`. It exists if and only if `4\equiv 1,4
+    :meth:`BalancedIncompleteBlockDesign`. It exists if and only if `v\equiv 1,4
     \pmod {12}`.
 
     See page 167 of [Stinson2004]_ for the construction details.
