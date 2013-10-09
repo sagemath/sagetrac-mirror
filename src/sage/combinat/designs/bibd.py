@@ -68,6 +68,12 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
         * :meth:`steiner_triple_system`
         * :meth:`v_4_1_bibd`
 
+    TODO:
+
+        * Implement `(v,5,1)`-BIBD with `http://www.argilo.net/files/bibd.pdf`_.
+        * Implement other constructions from the Handbook of Combinatorial
+          Designs.
+
     EXAMPLES::
 
         sage: designs.BalancedIncompleteBlockDesign(7,3)
