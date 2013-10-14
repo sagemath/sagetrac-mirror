@@ -111,6 +111,38 @@ class Polynomial_padic(Polynomial_generic_domain):
                 s += (x + var)
         return s or "0"
 
+    def quo_rem(self, right):
+        """
+        Returns the quotient and remainder of division by right
+
+        EXAMPLES:
+            sage: Kx.<x> = PolynomialRing(Zp(7))
+            sage: (x^3+7*x+1).quo_rem(x-7)
+            ((1 + O(7^20))*x^2 + (7 + O(7^21))*x + (7 + 7^2 + O(7^21)), (O(7^20))*x^3 + (O(7^21))*x^2 + (O(7^21))*x + (1 + 7^2 + 7^3 + O(7^20)))
+        """
+        return self._quo_rem_naive(right)
+
+    def _quo_rem_naive(self, right):
+        """
+        Naive quotient with remainder operating on padic polynomials as their coefficient lists
+        """
+        if right == 0:
+            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+        P = self.parent()
+        F = list(self); G = list(right);
+        fdeg = self.degree()
+        gdeg = right.degree()
+        Q = [0 for i in range(fdeg-gdeg+1)]
+        j=1
+        while fdeg >= gdeg:
+            a = F[-j]
+            if a!=0:
+                for i in range(fdeg-gdeg,fdeg+1):
+                    F[i] -= a * G[i-(fdeg-gdeg)]
+                Q[fdeg-gdeg] += a
+            j+=1; fdeg-=1;
+        return (P(Q), P(F))
+
     def factor(self):
         """
         Return the factorization of this polynomial.
