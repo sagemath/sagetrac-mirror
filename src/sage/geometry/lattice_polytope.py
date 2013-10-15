@@ -2160,10 +2160,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the normal form of vertices of the polytope.
 
-        Two full-dimensional lattice polytopes are in the same GL(Z)-orbit if
-        and only if their normal forms are the same. Normal form is not defined
-        and thus cannot be used for polytopes whose dimension is smaller than
-        the dimension of the ambient space.
+        Two full-dimensional lattice polytopes are in the same 
+        `GL(\mathbb{Z})`-orbit if and only if their normal forms are
+        the same. Naively, the normal form is only defined for polytopes
+        whose dimension equals that of the ambient space. However, one
+        can extend the notion of a normal form to polytopes of positive
+        codimension using for example the ideas outlined in Section 3.2
+        of [GK]_ .
+
+        Let `P` be a polytope of dimension `d` in the lattice
+        `\Lambda` with  `d < \dim \Lambda`. Then one can restrict `P`
+        to the sublattice `span(P) \cap \Lambda` and compute its normal
+        form there. Afterwards, it can be re-embedded into `\Lambda`
+        via `(a_1, \dots, a_d) \mapsto (0, \dots, 0, a_1, \dots, a_d)`.
+
+        REFERENCES:
+        ..  [GK] 
+            Roland Grinis and Alexander M. Kasprzyk. 
+            Normal forms of convex lattice polytopes, with Roland Grinis. 
+            http://magma.maths.usyd.edu.au/~kasprzyk/research/pdf/normal_form.pdf 
 
         EXAMPLES: We compute the normal form of the "diamond"::
 
@@ -2185,8 +2200,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        It is not possible to compute normal forms for polytopes which do not
-        span the space::
+        It is possible to compute normal forms for polytopes which do not
+        span the whole space::
 
             sage: m = matrix(ZZ, [[1, 0, -1,  0],
             ...                   [0, 1,  0, -1],
@@ -2194,16 +2209,43 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ...
             sage: p = LatticePolytope(m)
             sage: p.normal_form()
-            Traceback (most recent call last):
-            ...
-            ValueError: Normal form is not defined for a 2-dimensional polytope in a 3-dimensional space!
+            [ 0  0  0  0]
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+            sage: m = matrix(ZZ, [[-1, 1,  0],
+            ...                   [ 1, 1,  0],
+            ...                   [ 1, 1,  0],
+            ...                   [ 0, 1, -1]])
+            sage: p = LatticePolytope(m)
+            sage: p.normal_form()
+            [0 0 0]
+            [1 0 1]
+            [0 1 1]
+            [0 0 2]
         """
         if not hasattr(self, "_normal_form"):
-            if self.dim() < self.ambient_dim():
-                raise ValueError(
-                ("Normal form is not defined for a %d-dimensional polytope " +
-                "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
-            self._normal_form = read_palp_matrix(self.poly_x("N"))
+            codim = self.ambient_dim() - self.dim()
+            if codim > 0:
+                vertices = self.vertices().transpose()
+                embedding = vertices.image().basis_matrix()
+                codim_embedding = embedding.ncols() - embedding.nrows()
+                if codim_embedding <> codim:
+                    if self.origin() is None:
+                        add_origin = True
+                    else:
+                        raise ValueError('Could not find suitable embedding.')
+                else:
+                        add_origin = False
+                preimages = [embedding.solve_left(i) for i in vertices.rows()]
+                if add_origin:
+                    preimages += [vector(embedding.nrows()*[0])]
+                projection = LatticePolytope(preimages)
+                normal_projection = projection.normal_form()
+                cols = [i for i in normal_projection.columns() if not add_origin or not i.is_zero()]
+                m = matrix([[0]*codim_embedding + list(col) for col in cols])
+                self._normal_form = m.transpose()
+            else:
+                self._normal_form = read_palp_matrix(self.poly_x("N"))
             self._normal_form.set_immutable()
         return self._normal_form
 
