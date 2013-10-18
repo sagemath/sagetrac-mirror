@@ -631,171 +631,23 @@ class PartialClassAlgebra(CombinatorialFreeModule):
 
 
 ###########################################################
-## Bases category for the centers of the symmetric group
-
-
-class SymmetricGroupAlgebraCenterBases(Category_realization_of_parent):
-    r"""
-    The category of bases of the centers of the symmetric group algebras.
-
-    INPUT:
-
-    - ``base`` -- the centers of the symmetric group algebras
-    """
-    def __init__(self, base):
-        r"""
-        Initialize the bases of the centers of the symmetric group algebras.
-
-        TESTS::
-
-            sage: from sage.combinat.farahat_higman import SymmetricGroupAlgebraCenterBases
-            sage: Z = SymmetricGroupAlgebraCenter(QQ, 5)
-            sage: bases = SymmetricGroupAlgebraCenterBases(Z)
-            sage: Z.C() in bases
-            True
-            sage: TestSuite(bases).run()
-        """
-        Category_realization_of_parent.__init__(self, base)
-
-    def _repr_(self):
-        r"""
-        Returns the representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.farahat_higman import SymmetricGroupAlgebraCenterBases
-            sage: Z = SymmetricGroupAlgebraCenter(QQ, 5)
-            sage: SymmetricGroupAlgebraCenterBases(Z)
-            Category of bases of Center of the symmetric group algebra of order 5 over Rational Field
-        """
-        return "Category of bases of {}".format(self.base())
-
-    def super_categories(self):
-        r"""
-        The super categories of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.farahat_higman import SymmetricGroupAlgebraCenterBases
-            sage: Z = SymmetricGroupAlgebraCenter(QQ, 5)
-            sage: bases = SymmetricGroupAlgebraCenterBases(Z)
-            sage: bases.super_categories()
-            [Category of graded algebras with basis over Rational Field,
-             Category of realizations of Center of the symmetric group algebra of order 5 over Rational Field]
-        """
-        return [self.base()._category, Realizations(self.base())]
-
-    class ParentMethods:
-        def _repr_(self):
-            """
-            Return a string representation of this basis of the centers of the
-            symmetric group algebras.
-
-            EXAMPLES::
-
-                sage: Z = SymmetricGroupAlgebraCenter(QQ, 5)
-                sage: Z.C()
-                Center of the symmetric group algebra of order 5 over Rational Field in the conjugacy class basis
-                sage: Z.F()
-                Center of the symmetric group algebra of order 5 over Rational Field in the orthogonal idempotent basis
-            """
-            return "%s in the %s basis"%(self.realization_of(), self._basis_name)
-
-        def __getitem__(self, i):
-            """
-            Return the basis element indexed by ``i``.
-
-            INPUT:
-
-            - ``i`` -- a partition
-
-            EXAMPLES::
-
-                sage: C = SymmetricGroupAlgebraCenter(QQ).C()
-                sage: C[3,1,1]
-                C[3, 1, 1]
-                sage: C[[]]
-                C[]
-            """
-            if i in ZZ:
-                i = [i]
-            P = Partitions(self.realization_of()._n)
-            return self.monomial(P(i))
-
-        def is_field(self, proof = True):
-            """
-            Return whether the centers of the symmetric group algebras is
-            a field.
-
-            EXAMPLES::
-
-                sage: F = SymmetricGroupAlgebraCenter(QQ, 5).F()
-                sage: F.is_field()
-                False
-            """
-            return False
-
-        def is_commutative(self):
-            """
-            Return whether the centers of the symmetric group algebras is
-            commutative.
-
-            EXAMPLES::
-
-                sage: F = SymmetricGroupAlgebraCenter(QQ, 5).F()
-                sage: F.is_commutative()
-                True
-            """
-            return True
-
-
-###########################################################
 ## Helper functions
-
-dimension_cache = {}
-def dimension(partition):
-    """
-    Return the dimension of the irreducible representation indexed by ``partition``.
-    
-    The dimensions of all irreducible representations for the appropriate size
-    symmetric group are computed at once, then cached.
-    
-    EXAMPLES::
-    
-        sage: from sage.combinat.farahat_higman import dimension
-        sage: ps = Partitions(5)
-        sage: ps.list()
-        [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
-        sage: [dimension(p) for p in ps]
-        [1, 4, 5, 6, 5, 4, 1]
-    """
-    partition = Partition(partition)
-    try:
-        return dimension_cache[partition]
-    except KeyError:
-        sym = SymmetricFunctions(QQ)
-        s = sym.schur()
-        p = sym.powersum()
-        dimensions = s(p(Partition([1] * partition.size())))
-        dimension_cache.update(dimensions)
-        return dimension_cache[partition]
-
 
 def deflate_partition(partition):
     """
     Reduce each part of ``partition`` by one.
-    
+
     INPUT:
-    
+
     - ``partition`` -- a partition
-    
+
     OUTPUT:
-    
+
     A new partition obtained by reducing each part of ``partition`` by one.
     Any resulting zero parts are discarded.
-    
+
     EXAMPLES::
-        
+
         sage: from sage.combinat.farahat_higman import deflate_partition
         sage: deflate_partition(Partition([5, 3, 3, 2, 1, 1, 1]))
         [4, 2, 2, 1]

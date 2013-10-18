@@ -166,20 +166,23 @@ For example::
 
 REFERENCES:
 
- - A.-A. A. Jucys, Symmetric polynomials and the center of the
-   symmetric group ring, Reports on Mathematical Physics, volume 5,
+.. [Name2013] Blah. *I prefer titles in italics when there's no
+   math formatting needed*. Other stuff.
+
+.. [Jucys1974] A.-A. A. Jucys. *Symmetric polynomials and the center of the
+   symmetric group ring*. Reports on Mathematical Physics, volume 5,
    number 1, 1974, pp. 107--112.
 
- - G. E. Murphy, A new construction of Young's seminormal
-   representation of the symmetric groups, Journal of Algebra,
+.. [Murphy1981] G. E. Murphy. *A new construction of Young's seminormal
+   representation of the symmetric groups*. Journal of Algebra,
    volume 69, number 2, 1981, pp. 287--297.
 
- - P. Diaconis and C. Greene, Applications of Murphy's elements,
-   Stanford Technical Report 335, 1989.
+.. [DiaconisGreene1989] P. Diaconis and C. Greene. *Applications of Murphy's
+   elements*. Stanford Technical Report 335, 1989.
 
- - S. Corteel and A. Goupil and G. Schaeffer, Content evaluation and
-   class symmetric functions, Advances in Mathematics, volume 188,
-   number 2, 2004, pp. 315--336.
+.. [CorteelGoupilSchaeffer2004] S. Corteel and A. Goupil and G. Schaeffer.
+   *Content evaluation and class symmetric functions*. Advances in Mathematics,
+   volume 188, number 2, 2004, pp. 315--336.
 
 """
 
@@ -251,7 +254,7 @@ class SymmetricGroupAlgebraCenter(UniqueRepresentation, Parent):
     There are two important bases of the center, namely the conjugacy
     class basis and the orthogonal idempotent basis.
 
-    .. RUBRIC: Conjugacy class basis
+    .. RUBRIC:: Conjugacy class basis
 
     The center of the group algebra of the symmetric group `S_n` has
     a basis indexed by all partitions of `n`, where the basis element
@@ -261,7 +264,7 @@ class SymmetricGroupAlgebraCenter(UniqueRepresentation, Parent):
     This basis is called the conjugacy class basis, and can be
     accessed via ``self.conjugacy_class_basis()`` or ``self.C()``.
 
-    .. RUBRIC: Orthogonal idempotent basis
+    .. RUBRIC:: Orthogonal idempotent basis
 
     The center of the group algebra of the symmetric group `S_n` has
     another basis indexed by all partitions of `n`, where the basis
@@ -557,7 +560,7 @@ class SymmetricGroupAlgebraCenter(UniqueRepresentation, Parent):
             Since the conversion may fail, it cannot be used as a
             coercion, only as a conversion.
 
-            .. SEE ALSO::
+            .. SEEALSO::
 
                 :meth:`~SymmetricGroupAlgebraCenter.orthogonal_idempotent_basis._coercion_to_C`
 
@@ -590,7 +593,7 @@ class SymmetricGroupAlgebraCenter(UniqueRepresentation, Parent):
             When this is the case, the conversion is guaranteed to
             work, so it can be used as a coercion.
 
-            .. SEE ALSO::
+            .. SEEALSO::
 
                 :meth:`~SymmetricGroupAlgebraCenter.orthogonal_idempotent_basis._conversion_to_C`
 
