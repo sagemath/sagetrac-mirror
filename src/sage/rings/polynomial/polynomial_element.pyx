@@ -15,6 +15,8 @@ AUTHORS:
 
 -  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
 
+-  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -6915,7 +6917,7 @@ cdef class ConstantPolynomialSection(Map):
     """
     This class is used for conversion from a polynomial ring to its base ring.
 
-    Since trac ticket #9944, it calls the constant_coefficient method,
+    Since :trac:`9944`, it calls the constant_coefficient method,
     which can be optimized for a particular polynomial type.
 
     EXAMPLES::
@@ -6924,7 +6926,11 @@ cdef class ConstantPolynomialSection(Map):
         sage: P1.<y_2,y_1,y_0> = GF(3)[]
         sage: P0(-y_1)    # indirect doctest
         2*y_1
-        sage: phi = GF(3).convert_map_from(P0); phi
+
+    By :trac:`14711`, coercion or conversion maps should be copied
+    when being used outside of the coercion system::
+
+        sage: phi = copy(GF(3).convert_map_from(P0)); phi
         Generic map:
           From: Univariate Polynomial Ring in y_1 over Finite Field of size 3
           To:   Finite Field of size 3
@@ -6981,32 +6987,34 @@ cdef class PolynomialBaseringInjection(Morphism):
     We demonstrate that most polynomial ring classes use
     polynomial base injection maps for coercion. They are
     supposed to be the fastest maps for that purpose. See
-    trac ticket #9944::
+    trac ticket #9944. Note that, by :trac:`14711`, coercion
+    maps should be copied when using them outside of the
+    coercion system::
 
         sage: R.<x> = Qp(3)[]
-        sage: R.coerce_map_from(R.base_ring())
+        sage: copy(R.coerce_map_from(R.base_ring()))
         Polynomial base injection morphism:
           From: 3-adic Field with capped relative precision 20
           To:   Univariate Polynomial Ring in x over 3-adic Field with capped relative precision 20
         sage: R.<x,y> = Qp(3)[]
-        sage: R.coerce_map_from(R.base_ring())
+        sage: copy(R.coerce_map_from(R.base_ring()))
         Polynomial base injection morphism:
           From: 3-adic Field with capped relative precision 20
           To:   Multivariate Polynomial Ring in x, y over 3-adic Field with capped relative precision 20
         sage: R.<x,y> = QQ[]
-        sage: R.coerce_map_from(R.base_ring())
+        sage: copy(R.coerce_map_from(R.base_ring()))
         Polynomial base injection morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in x, y over Rational Field
         sage: R.<x> = QQ[]
-        sage: R.coerce_map_from(R.base_ring())
+        sage: copy(R.coerce_map_from(R.base_ring()))
         Polynomial base injection morphism:
           From: Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
 
     By trac ticket #9944, there are now only very few exceptions::
 
-        sage: PolynomialRing(QQ,names=[]).coerce_map_from(QQ)
+        sage: copy(PolynomialRing(QQ,names=[]).coerce_map_from(QQ))
         Generic morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in no variables over Rational Field
@@ -7045,6 +7053,40 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._an_element = codomain.gen()
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        EXAMPLES::
+
+            sage: phi = copy(QQ['x'].coerce_map_from(QQ))   # indirect doctest
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+
+        """
+        _slots['_an_element'] = self._an_element
+        _slots['_new_constant_poly_'] = self._new_constant_poly_
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        EXAMPLES::
+
+            sage: phi = copy(QQ['x'].coerce_map_from(QQ))  # indirect doctest
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+
+        """
+        Morphism._update_slots(self, _slots)
+        self._an_element = _slots['_an_element']
+        self._new_constant_poly_ = _slots['_new_constant_poly_']
 
     cpdef Element _call_(self, x):
         """
@@ -7089,4 +7131,4 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: type(m.section())
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
-        return ConstantPolynomialSection(self._codomain, self._domain)
+        return ConstantPolynomialSection(self._codomain, self.domain())
