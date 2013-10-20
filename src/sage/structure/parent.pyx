@@ -119,6 +119,14 @@ dummy_attribute_error = AttributeError(dummy_error_message)
 
 cdef object elt_parent = None
 
+# It is possible that there is no coercion between parents P, Q at time
+# t0, but then a new parent R is created at time t1, such that a coercion
+# from P to Q via R exists. The following is a version number of the
+# coercion cache, so that the absence of a coercion is not cached if the
+# version number changes.
+
+cache_version = 0
+
 cdef inline parent_c(x):
     if PY_TYPE_CHECK(x, element.Element):
         return (<element.Element>x)._parent
@@ -192,7 +200,6 @@ cdef object BuiltinMethodType = type(repr)
 from cpython.object cimport *
 from cpython.bool cimport *
 include 'sage/ext/stdsage.pxi'
-
 
 def is_Parent(x):
     """
@@ -1960,6 +1967,7 @@ cdef class Parent(category_object.CategoryObject):
         assert not self._coercions_used, "coercions must all be registered up before use"
         assert self._embedding is None, "only one embedding allowed"
         cdef Parent codom
+        global cache_version
 
         if isinstance(embedding, map.Map):
             if embedding.domain() is not self:
@@ -1974,6 +1982,7 @@ cdef class Parent(category_object.CategoryObject):
         if self._embedding is not None:
             self._embedding._make_weak_references()
             codom._coerce_from_backtracking.set(self, self._embedding)
+            cache_version += 1
 
     def coerce_embedding(self):
         """
@@ -2222,7 +2231,27 @@ cdef class Parent(category_object.CategoryObject):
             sage: F.coerce_map_from(F) is F.coerce_map_from(F)
             True
 
+        The absence of a coercion from a parent `B` to a parent `C` is cached. However,
+        if a new parent `A` is created and an embedding of `A` into an existing parent
+        is registered as a coercion, it is possible that `B` can now be coerced
+        into `C` via `A`. By :trac:`15303`, the absence of a coercion is only
+        cached as long as no embedding has been registered::
+
+            sage: class pA(Parent): pass
+            sage: class pB(Parent): pass
+            sage: class pC(Parent): pass
+            sage: A=pA(); B=pB(); C=pC()
+            sage: BtoA=Hom(B,A)(lambda x: A(x))
+            sage: AtoC=Hom(A,C)(lambda x: C(x))
+            sage: A.register_coercion(BtoA)
+            sage: C.coerce_map_from(B) is None
+            True
+            sage: A.register_embedding(AtoC)
+            sage: C.coerce_map_from(B) is None
+            False
+
         """
+        global cache_version
         if not good_as_coerce_domain(S):
             return None
         self._coercions_used = True
@@ -2232,9 +2261,13 @@ cdef class Parent(category_object.CategoryObject):
             return self.coerce_map_from(S._type)
         if self._coerce_from_cache is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
-
         try:
-            return self._coerce_from_cache.get(S)
+            Mor = self._coerce_from_cache.get(S)
+            if PY_TYPE_CHECK_EXACT(Mor, int):
+                if Mor==cache_version:
+                    return None
+            else:
+                return Mor
         except KeyError:
             pass
 
@@ -2275,8 +2308,10 @@ cdef class Parent(category_object.CategoryObject):
             # then we are not allowed to cache the absence of a coercion
             # from S to self. See #12969
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
-                self._coerce_from_cache.set(S,mor)
-                if mor is not None:
+                if mor is None:
+                    self._coerce_from_cache.set(S,cache_version)
+                else:
+                    self._coerce_from_cache.set(S,mor)
                     mor._make_weak_references()
             return mor
         except CoercionException, ex:

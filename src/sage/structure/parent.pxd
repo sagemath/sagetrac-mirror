@@ -8,6 +8,7 @@
 
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
+cdef int cache_version 
 
 cdef class Parent(category_object.CategoryObject):
 

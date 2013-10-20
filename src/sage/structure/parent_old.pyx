@@ -29,6 +29,7 @@ This came up in some subtle bug once.
 cimport sage_object
 import operator
 from parent import Set_PythonType, Set_PythonType_class
+from parent cimport cache_version
 from coerce import py_scalar_parent
 from sage.structure.coerce_dict import MonoDict, TripleDict
 
@@ -149,12 +150,17 @@ cdef class Parent(parent.Parent):
             return CallMorphism(Hom(S, self))
         elif isinstance(S, Set_PythonType_class):
             return self.coerce_map_from_c(S._type)
+        global cache_version
         if self._coerce_from_cache is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef object ret
         try:
             ret = self._coerce_from_cache.get(S)
-            return ret
+            if PY_TYPE_CHECK_EXACT(ret, int):
+                if ret==cache_version:
+                    return None
+            else:
+                return ret
         except KeyError:
             pass
 
@@ -199,7 +205,7 @@ cdef class Parent(parent.Parent):
         for R,mor in self._coerce_from_backtracking.iteritems():
             if not PY_TYPE_CHECK(mor, Map):
                 mor = sage.categories.morphism.CallMorphism(Hom(R, self))
-                self._coerce_from_backtracking[R] = mor # cache in case we need it again
+                self._coerce_from_cache[R] = mor # cache in case we need it again
                 mor._make_weak_references()
             if R is S:
                 return mor
