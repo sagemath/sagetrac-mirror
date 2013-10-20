@@ -12360,20 +12360,22 @@ class GenericGraph(GenericGraph_pyx):
           distance from source to target. If the target is unreachable from
           source, then the distance is set to Infinity.
 
-        - ``predecessor`` -- a dictionary keyed by targets recording the predecessor
-          of target in the shortest path from source to target. When target is
-          unreachable from source, the predecessor is useless.
+
+        - ``predecessor`` -- a dictionary keyed by targets recording
+          the predecessor of target in the shortest path from source
+          to target. When target is unreachable from source, the
+          predecessor is useless.
 
         EXAMPLES:
 
-        Giving a PetersenGraph::
+        Giving a Petersen Graph::
 
             sage: G = graphs.PetersenGraph()
             sage: G.__bellman_ford__(0)
             ({0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2},
              {0: 0, 1: 0, 2: 1, 3: 4, 4: 0, 5: 0, 6: 1, 7: 5, 8: 5, 9: 4})
             sage: for u,v,_ in G.edges():
-            ...       G.set_edge_label(u,v,{'key':2})
+            ....:     G.set_edge_label(u,v,{'key':2})
             sage: G.__bellman_ford__(0,'key')
             ({0: 0, 1: 2, 2: 4, 3: 4, 4: 2, 5: 2, 6: 4, 7: 4, 8: 4, 9: 4},
              {0: 0, 1: 0, 2: 1, 3: 4, 4: 0, 5: 0, 6: 1, 7: 5, 8: 5, 9: 4})
@@ -12382,7 +12384,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = digraphs.ImaseItoh(8,2)
             sage: for u,v,_ in D.edges():
-            ...       D.set_edge_label(u,v,2)
+            ....:     D.set_edge_label(u,v,2)
             sage: D.__bellman_ford__(0)
             ({0: 0, 1: 4, 2: 4, 3: 4, 4: 6, 5: 6, 6: 2, 7: 2}, {0: 0, 1: 7, 2: 6, 3: 6, 4: 1, 5: 1, 6: 0, 7: 0})
             sage: D.set_edge_label(0,6,-1)
@@ -12394,10 +12396,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = digraphs.ImaseItoh(8,2)
             sage: for u,v,_ in D.edges():
-            ...       D.set_edge_label(u,v,1)
+            ....:     D.set_edge_label(u,v,1)
             sage: D.add_cycle(range(3))
             sage: for u in range(3):
-            ...       D.set_edge_label(u,(u+1)%3,-1)
+            ....:     D.set_edge_label(u,(u+1)%3,-1)
             sage: D.__bellman_ford__(0)
             Traceback (most recent call last):
             ...
@@ -12408,7 +12410,7 @@ class GenericGraph(GenericGraph_pyx):
         Giving wrong source node::
 
             sage: G.__bellman_ford__(10,'key')
-            Traceback (most recent call last): 
+            Traceback (most recent call last):
             ...
             ValueError: The source node must be in the input (Di)Graph.
 
@@ -12423,11 +12425,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: for u,v,_ in G.edges():
-            ...       G.set_edge_label(u,v,'1')
+            ....:     G.set_edge_label(u,v,'1')
             sage: G.__bellman_ford__(0)
             Traceback (most recent call last):
             ...
             TypeError: Edge label of unknown type
+
         """
         from sage.rings.infinity import Infinity
         from sage.rings.real_mpfr import RR
@@ -12439,31 +12442,32 @@ class GenericGraph(GenericGraph_pyx):
         directed = self.is_directed()
         if directed:
             neighbor_iterator = self.neighbor_out_iterator
-            ee = lambda x,y: (x,y)
+            ee = lambda x, y: (x, y)
         else:
             neighbor_iterator = self.neighbor_iterator
-            ee = lambda x,y: (x,y) if x<y else (y,x)
+            ee = lambda x, y: (x, y) if x < y else (y, x)
 
-        W = lambda x:weight[x]
+        W = lambda x: weight[x]
         if weight is None:
             # We store edge weights in a dictionary. In case of multi-edges, we
             # store only the smallest value. If no edge weights are given, we
             # set them to 1.
             weight = {}
-            for u,v,wt in self.edge_iterator():
+            for u, v, wt in self.edge_iterator():
                 if wt:
-                    if key and isinstance(wt,dict):
+                    if key and isinstance(wt, dict):
                         try:
                             wt = wt[key]
                         except KeyError:
                             raise KeyError("Wrong key for accessing edge weights.")
                     if not wt in RR:
                         raise TypeError("Edge label of unknown type")
-                    weight[u,v] = min(wt, weight[u,v] if (u,v) in weight else Infinity)
+                    weight[u, v] = min(wt, weight[u, v]
+                                       if (u, v) in weight else Infinity)
                 else:
                     # At least one edge weight is missing, so we set all edge
                     # weights to 1.
-                    W = lambda x:1
+                    W = lambda x: 1
                     break
 
         # We initialize distances and predecessors dictionaries
@@ -12483,16 +12487,16 @@ class GenericGraph(GenericGraph_pyx):
             while A:
                 u = A.pop()
                 for v in neighbor_iterator(u):
-                    if directed or v!=predecessor[u]:
-                        if dist[u] + W(ee(u,v)) < dist[v]:
-                            dist[v] = dist[u] + W(ee(u,v))
+                    if directed or v != predecessor[u]:
+                        if dist[u] + W(ee(u, v)) < dist[v]:
+                            dist[v] = dist[u] + W(ee(u, v))
                             predecessor[v] = u
                             B.add(v)
-                            
+
             A.update(B)
             B.clear()
             cpt += 1
-            if A and cpt==N:
+            if A and cpt == N:
                 # We have a negative-weight cycle
                 raise ValueError("Negative-weight cycle detected.")
 
