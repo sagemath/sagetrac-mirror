@@ -671,16 +671,16 @@ cdef class Parent(category_object.CategoryObject):
                    LazyFormat("broken non-equality: %s != None is False")%self)
 
     cdef int init_coerce(self, bint warn=True) except -1:
-        if self._coerce_from_hash is None:
+        if self._coerce_from_cache is None:
             if warn:
                 print "init_coerce() for ", type(self)
                 raise ZeroDivisionError("hello")
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []
-            self._coerce_from_list = []
+            self._coerce_from_backtracking = MonoDict(11)
             self._registered_domains = []
-            self._coerce_from_hash = MonoDict(23)
+            self._coerce_from_cache = MonoDict(23)
             self._action_list = []
             self._action_hash = TripleDict(23)
             self._convert_from_list = []
@@ -811,8 +811,8 @@ cdef class Parent(category_object.CategoryObject):
             sage: sorted(QQ._introspect_coerce().items())
             [('_action_hash', <sage.structure.coerce_dict.TripleDict object at ...>),
              ('_action_list', []),
-             ('_coerce_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
-             ('_coerce_from_list', []),
+             ('_coerce_from_backtracking', <sage.structure.coerce_dict.MonoDict object at ...>),
+             ('_coerce_from_cache', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_convert_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_convert_from_list', [...]),
              ('_element_init_pass_parent', False),
@@ -822,8 +822,8 @@ cdef class Parent(category_object.CategoryObject):
              ('_initial_convert_list', [])]
         """
         return {
-            '_coerce_from_list': self._coerce_from_list,
-            '_coerce_from_hash': self._coerce_from_hash,
+            '_coerce_from_backtracking': self._coerce_from_backtracking,
+            '_coerce_from_cache': self._coerce_from_cache,
             '_action_list': self._action_list,
             '_action_hash': self._action_hash,
             '_convert_from_list': self._convert_from_list,
@@ -1713,7 +1713,7 @@ cdef class Parent(category_object.CategoryObject):
         """
 
         """
-        return domain in self._coerce_from_hash
+        return domain in self._coerce_from_cache
 
     cpdef bint is_conversion_cached(self, domain):
         """
@@ -1761,10 +1761,11 @@ cdef class Parent(category_object.CategoryObject):
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
         D = mor.domain()
 
-        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(D, self)
-        self._coerce_from_list.append(mor)
+        assert not (self._coercions_used and D in self._coerce_from_cache), "coercion from %s to %s already registered or discovered"%(D, self)
+        mor._make_weak_references()
+        self._coerce_from_backtracking.set(D,mor)
         self._registered_domains.append(D)
-        self._coerce_from_hash.set(D,mor)
+        self._coerce_from_cache.set(D,mor)
 
     cpdef register_action(self, action):
         r"""
@@ -1958,16 +1959,21 @@ cdef class Parent(category_object.CategoryObject):
         """
         assert not self._coercions_used, "coercions must all be registered up before use"
         assert self._embedding is None, "only one embedding allowed"
+        cdef Parent codom
 
         if isinstance(embedding, map.Map):
             if embedding.domain() is not self:
                 raise ValueError("embedding's domain must be self")
             self._embedding = embedding
+            codom = embedding.codomain()
         elif isinstance(embedding, Parent):
             self._embedding = embedding._generic_convert_map(self)
+            codom = embedding
         elif embedding is not None:
             raise TypeError("embedding must be a parent or map")
-        self._embedding._make_weak_references()
+        if self._embedding is not None:
+            self._embedding._make_weak_references()
+            codom._coerce_from_backtracking.set(self, self._embedding)
 
     def coerce_embedding(self):
         """
@@ -2224,18 +2230,18 @@ cdef class Parent(category_object.CategoryObject):
 
         if isinstance(S, Set_PythonType_class):
             return self.coerce_map_from(S._type)
-        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+        if self._coerce_from_cache is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
 
         try:
-            return self._coerce_from_hash.get(S)
+            return self._coerce_from_cache.get(S)
         except KeyError:
             pass
 
         if S is self:
             from sage.categories.homset import Hom
             mor = Hom(self, self).identity()
-            self._coerce_from_hash.set(S, mor)
+            self._coerce_from_cache.set(S, mor)
             return mor
 
         if S == self:
@@ -2243,7 +2249,7 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             mor = self._generic_convert_map(S)
-            self._coerce_from_hash.set(S, mor)
+            self._coerce_from_cache.set(S, mor)
             mor._make_weak_references()
             return mor
 
@@ -2261,7 +2267,7 @@ cdef class Parent(category_object.CategoryObject):
             #        # mor = None
             # if mor is not None:
             #     # NOTE: this line is what makes the coercion detection stateful
-            #     # self._coerce_from_list.append(mor)
+            #     # self._coerce_from_backtracking.set(S, mor)
             #     pass
             # It may be that the only coercion from S to self is
             # via another parent X. But if the pair (S,X) is temporarily
@@ -2269,7 +2275,7 @@ cdef class Parent(category_object.CategoryObject):
             # then we are not allowed to cache the absence of a coercion
             # from S to self. See #12969
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
-                self._coerce_from_hash.set(S,mor)
+                self._coerce_from_cache.set(S,mor)
                 if mor is not None:
                     mor._make_weak_references()
             return mor
@@ -2380,10 +2386,10 @@ cdef class Parent(category_object.CategoryObject):
                                # setting this to 1 will make it return the first path found.
         cdef int mor_found = 0
         cdef Parent R, D
-        # Recurse.  Note that if S is the domain of one of the maps in self._coerce_from_list,
+        # Recurse.  Note that if S is the domain of one of the maps in
+        # self._coerce_from_backtracking,
         # we will have stuck the map into _coerce_map_hash and thus returned it already.
-        for mor in self._coerce_from_list:
-            D = mor.domain()
+        for D, mor in self._coerce_from_backtracking.iteritems():
             if D is self:
                 continue
             if D is S:

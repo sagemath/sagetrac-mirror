@@ -81,8 +81,15 @@ cdef class Parent(parent.Parent):
 #        if len(coerce_from) > 0:
 #            print type(self), coerce_from
         self.init_coerce(False)
-        self._coerce_from_list = list(coerce_from)
-        self._coerce_from_hash = MonoDict(23)
+        self._coerce_from_backtracking = MonoDict(11)
+        from sage.categories.map import Map
+        for mor in coerce_from:
+            if PY_TYPE_CHECK(mor, Map):
+                self._coerce_from_backtracking.set(mor.domain(), mor)
+                mor._make_weak_references()
+            else:
+                self._coerce_from_backtracking.set(mor, mor)
+        self._coerce_from_cache = MonoDict(23)
         self._action_list = list(actions)
         self._action_hash = TripleDict(23)
 
@@ -142,11 +149,11 @@ cdef class Parent(parent.Parent):
             return CallMorphism(Hom(S, self))
         elif isinstance(S, Set_PythonType_class):
             return self.coerce_map_from_c(S._type)
-        if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
+        if self._coerce_from_cache is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef object ret
         try:
-            ret = self._coerce_from_hash.get(S)
+            ret = self._coerce_from_cache.get(S)
             return ret
         except KeyError:
             pass
@@ -168,14 +175,14 @@ cdef class Parent(parent.Parent):
             #Convert Python types to native Sage types
             sage_type = py_scalar_parent(S)
             if sage_type is None:
-                self._coerce_from_hash[S] = None
+                self._coerce_from_cache[S] = None
                 return None
             mor = self.coerce_map_from_c(sage_type)
             if mor is not None:
                 mor = mor * sage_type.coerce_map_from(S)
 
         if mor is not None:
-            self._coerce_from_hash.set(S, mor) # TODO: if this is None, could it be non-None in the future?
+            self._coerce_from_cache.set(S, mor) # TODO: if this is None, could it be non-None in the future?
 
         return mor
 
@@ -189,14 +196,11 @@ cdef class Parent(parent.Parent):
         from sage.categories.map import Map
         from sage.categories.homset import Hom
         cdef parent.Parent R
-        for mor in self._coerce_from_list:
-            if PY_TYPE_CHECK(mor, Map):
-                R = mor.domain()
-            else:
-                R = mor
+        for R,mor in self._coerce_from_backtracking.iteritems():
+            if not PY_TYPE_CHECK(mor, Map):
                 mor = sage.categories.morphism.CallMorphism(Hom(R, self))
-                i = self._coerce_from_list.index(R)
-                self._coerce_from_list[i] = mor # cache in case we need it again
+                self._coerce_from_backtracking[R] = mor # cache in case we need it again
+                mor._make_weak_references()
             if R is S:
                 return mor
             else:
