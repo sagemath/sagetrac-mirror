@@ -2227,23 +2227,21 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             codim = self.ambient_dim() - self.dim()
             if codim > 0:
                 vertices = self.vertices().transpose()
-                embedding = vertices.image().basis_matrix()
-                codim_embedding = embedding.ncols() - embedding.nrows()
-                if codim_embedding <> codim:
-                    if self.origin() is None:
-                        add_origin = True
-                    else:
-                        raise ValueError('Could not find suitable embedding.')
+                if vertices.is_zero():
+                    self._normal_form = self.vertices()
                 else:
-                        add_origin = False
-                preimages = [embedding.solve_left(i) for i in vertices.rows()]
-                if add_origin:
-                    preimages += [vector(embedding.nrows()*[0])]
-                projection = LatticePolytope(preimages)
-                normal_projection = projection.normal_form()
-                cols = [i for i in normal_projection.columns() if not add_origin or not i.is_zero()]
-                m = matrix([[0]*codim_embedding + list(col) for col in cols])
-                self._normal_form = m.transpose()
+                    embedding = vertices.image().basis_matrix()
+                    codim_embedding = embedding.ncols() - embedding.nrows()
+                    add_origin = codim_embedding <> codim
+                    preimages = [embedding.solve_left(i) for i in vertices.rows()]
+                    if add_origin:
+                        preimages += [vector(embedding.nrows()*[0])]
+                    projection = LatticePolytope(preimages)
+                    normal_projection = projection.normal_form()
+                    cols = [i for i in normal_projection.columns() \
+                            if not add_origin or not i.is_zero()]
+                    m = matrix([[0]*codim_embedding + list(col) for col in cols])
+                    self._normal_form = m.transpose()
             else:
                 self._normal_form = read_palp_matrix(self.poly_x("N"))
             self._normal_form.set_immutable()
