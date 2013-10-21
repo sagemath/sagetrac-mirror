@@ -29,6 +29,8 @@ include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
 
+from sage.structure.parent cimport cache_version
+
 import operator
 
 import homset
@@ -179,6 +181,13 @@ garbage collection. Please use a copy."""
         Register this morphism as a coercion to Sage's coercion model
         (see :mod:`sage.structure.coerce`).
 
+        NOTE:
+
+        This method adds an arrow to the coerce digraph *after* initialisation
+        of the codomain. As discussed on :trac:`15303`, this must result in an
+        increase of the version number of the coerce cache, such that the cached
+        *absence* of a coercion is removed from the cache.
+
         EXAMPLES:
 
         By default, adding polynomials over different variables triggers an error::
@@ -216,6 +225,8 @@ garbage collection. Please use a copy."""
 
         """
         self._codomain.register_coercion(self)
+        global cache_version
+        cache_version += 1
 
     def register_as_conversion(self):
         """
