@@ -2156,7 +2156,63 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
 
-    def normal_form(self):
+    def affine_normal_form(self, **kwds):
+        r"""
+        Return the affine normal form of vertices of the polytope.
+
+        Two full-dimensional lattice polytopes are in the same
+        `Aff(\mathbb{Z})`-orbit if and only if their affine normal
+        forms are the same. The affine normal form is a straightforward
+        extension of the normal form; for more information see
+        :meth:`LatticePolytopeClass.affine_normal_form` and
+        Section 3.3 of [GK]_ .
+
+        Let `P` be a a polytope with vertices `v_i` and take
+        `P_j` to be the lattice polytope whose vertices are
+        obtained by translating those of `P` by `- v_j`. Then the
+        affine normal form of `P` is defined as the minimum of the
+        of the normal forms of `P_j` `\forall j`.
+
+        INPUT:
+        
+        Passes all optional keywords to 
+        :meth:`LatticePolytopeClass.affine_normal_form`.
+
+        OUTPUT:
+
+        The affine normal form of ``self``, a matrix.
+        
+        EXAMPLES::
+
+            sage: vertices = [( 1, 0,  0), (0, 1,  0), (0,  0, 1),\
+                              (-1, 0,  1), (0, 1, -1), (0, -1, 0),\
+                              ( 0, 0, -1)]
+            sage: lp = LatticePolytope(vertices)
+            sage: lp.affine_normal_form()
+            [ 0  1  1  2  0  0  2]
+            [ 0  0  2  2  0 -1  3]
+            [ 0  0  0  0  1  0 -1]
+            sage: m = matrix(ZZ, [[-1, 1,  0],
+            ...                   [ 1, 1,  0],
+            ...                   [ 1, 1,  0],
+            ...                   [ 0, 1, -1]])
+            sage: p = LatticePolytope(m)
+            sage: p.affine_normal_form()
+            [0 0 0]
+            [0 0 0]
+            [0 1 1]
+            [0 0 2]
+            sage: p.affine_normal_form(ignore_embedding = True)
+            [0 1 1]
+            [0 0 2]
+        """
+        def translated_polytopes():
+            for v in self.vertices().columns():
+                yield self.affine_transform(b = -v)
+        return min(p.normal_form(**kwds) for p in translated_polytopes())
+        
+
+    def normal_form(self, ignore_embedding=False):
         r"""
         Return the normal form of vertices of the polytope.
 
@@ -2173,6 +2229,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         to the sublattice `span(P) \cap \Lambda` and compute its normal
         form there. Afterwards, it can be re-embedded into `\Lambda`
         via `(a_1, \dots, a_d) \mapsto (0, \dots, 0, a_1, \dots, a_d)`.
+
+        INPUT:
+        
+        - ``ignore_embedding`` -- (default: False) whether to ignore
+                                  the space `self` is embedded in.
+
+        OUTPUT:
+
+        The normal form of ``self``, a matrix.
 
         REFERENCES:
         ..  [GK] 
@@ -2222,6 +2287,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [1 0 1]
             [0 1 1]
             [0 0 2]
+            sage: p.normal_form(ignore_embedding = True)
+            [1 0 1]
+            [0 1 1]
+            [0 0 2]
         """
         if not hasattr(self, "_normal_form"):
             codim = self.ambient_dim() - self.dim()
@@ -2245,7 +2314,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             else:
                 self._normal_form = read_palp_matrix(self.poly_x("N"))
             self._normal_form.set_immutable()
-        return self._normal_form
+        if ignore_embedding:
+            return matrix([i for i in self._normal_form.rows() if not i.is_zero()])
+        else:
+            return self._normal_form
 
     def npoints(self):
         r"""
