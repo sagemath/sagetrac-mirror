@@ -115,6 +115,9 @@ from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
+from sage.categories.map import Map
+from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
+
 # TODO: define this once?
 
 cdef object elt_parent = None
@@ -2376,7 +2379,21 @@ cdef class Parent(category_object.CategoryObject):
             Conversion map:
             From: Rational Field
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+
+        The following turned out to be a problem while working on :trac:`15303`.
+        This test demonstrates that :meth:`_coerce_map_from_` has priority over
+        the morphisms found by backtracking.
+        ::
+
+            sage: UCF.<E> = UniversalCyclotomicField()
+            sage: psi = QQbar.coerce_map_from(ZZ)
+            sage: type(psi)
+            <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
+
         """
+        cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
+                               # setting this to 1 will make it return the first path found.
+        cdef int mor_found = 0
         best_mor = None
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
@@ -2392,9 +2409,9 @@ cdef class Parent(category_object.CategoryObject):
             user_provided_mor = None
 
         elif user_provided_mor is not None:
-
-            from sage.categories.map import Map
-            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
+            # Trac ticket #15303: If there is a user-provided morphism, then
+            # mor_found should be 1 and not 0.
+            mor_found = 1
 
             if user_provided_mor is True:
                 mor = self._generic_convert_map(S)
@@ -2405,21 +2422,23 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
+            if mor_found >= num_paths:
+                # data provided by _populate_coercion_lists_ are put into
+                # self._coerce_from_cache, and hence the fact that
+                # discover_coerce_map_from() is called shows that there are
+                # no relevant data on _populate_coercion_lists_. Hence, we
+                # should return the simple user-provided map, rather than replacing
+                # it by a composite map found by backtracking.
+                return mor
             if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
                   PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
                   PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
-                # If there is something better in the list, try to return that instead
-                # This is so, for example, _coerce_map_from_ can return True but still
-                # take advantage of the _populate_coercion_lists_ data.
                 best_mor = mor
             else:
                 return mor
 
         from sage.categories.homset import Hom
 
-        cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
-                               # setting this to 1 will make it return the first path found.
-        cdef int mor_found = 0
         cdef Parent R, D
         # Recurse.  Note that if S is the domain of one of the maps in
         # self._coerce_from_backtracking,
