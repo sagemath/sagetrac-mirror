@@ -103,7 +103,7 @@ AUTHORS:
 from sage.graphs.graph import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
-from sage.misc.all import tmp_filename
+from sage.misc.all import tmp_filename, cached_method
 from sage.misc.misc import SAGE_SHARE
 from sage.modules.all import vector
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -2156,6 +2156,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
 
+    @cached_method
     def affine_normal_form(self, **kwds):
         r"""
         Return the affine normal form of vertices of the polytope.
