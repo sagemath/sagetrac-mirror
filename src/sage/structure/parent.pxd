@@ -63,17 +63,17 @@ cdef class Parent(category_object.CategoryObject):
     cdef discover_convert_map_from(self, S)
     cdef discover_action(self, S, op, bint self_on_left, self_el=*, S_el=*)
 
-    # Morphisms (from anything to self) keyed by Parents for which the
-    # __call__ method of self results in natural coercion, and which
-    # are used in a backtracking algorithm (namely: registered coercions
-    # and registered coerce embeddings).
-    # Initialized at ring creation.
-    cdef MonoDict _coerce_from_backtracking
-    # List of the domains of the registered coercions, to make
-    # sure that the corresponding maps in _coerce_from_backtracking remain valid.
-    # This is important, since they are fundamental for discovering
-    # new coercions by backtracking.
-    cdef list _registered_domains
+    # The following list stores the pairs "domain, mor", for all domains
+    # whose coercion into self is registered during initialisation of self.
+    # It is important that these coercions are kept alive, hence, it is
+    # important that we keep a strong reference to the domain and not only
+    # to the map. The registered coercions are the first maps that are
+    # tested when discovering coercions by backtracking.
+    cdef list _registered_coercions
+    # Additional maps used in a backtracking algorithm (currently:
+    # registered embeddings) are stored here, in a way that does not
+    # prevent the maps from garbage collection.
+    cdef MonoDict _coerce_embeddings_from
     # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef MonoDict _coerce_from_cache
 

@@ -688,8 +688,8 @@ cdef class Parent(category_object.CategoryObject):
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []
-            self._coerce_from_backtracking = MonoDict(11)
-            self._registered_domains = []
+            self._coerce_embeddings_from = MonoDict(11)
+            self._registered_coercions = []
             self._coerce_from_cache = MonoDict(23)
             self._action_list = []
             self._action_hash = TripleDict(23)
@@ -821,7 +821,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: sorted(QQ._introspect_coerce().items())
             [('_action_hash', <sage.structure.coerce_dict.TripleDict object at ...>),
              ('_action_list', []),
-             ('_coerce_from_backtracking', <sage.structure.coerce_dict.MonoDict object at ...>),
+             ('_coerce_embeddings_from', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_coerce_from_cache', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_convert_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_convert_from_list', [...]),
@@ -829,10 +829,13 @@ cdef class Parent(category_object.CategoryObject):
              ('_embedding', None),
              ('_initial_action_list', []),
              ('_initial_coerce_list', []),
-             ('_initial_convert_list', [])]
+             ('_initial_convert_list', []),
+             ('_registered_coercions', [])]
+
         """
         return {
-            '_coerce_from_backtracking': self._coerce_from_backtracking,
+            '_coerce_embeddings_from': self._coerce_embeddings_from,
+            '_registered_coercions': self._registered_coercions,
             '_coerce_from_cache': self._coerce_from_cache,
             '_action_list': self._action_list,
             '_action_hash': self._action_hash,
@@ -1773,8 +1776,7 @@ cdef class Parent(category_object.CategoryObject):
 
         assert not (self._coercions_used and D in self._coerce_from_cache), "coercion from %s to %s already registered or discovered"%(D, self)
         mor._make_weak_references()
-        self._coerce_from_backtracking.set(D,mor)
-        self._registered_domains.append(D)
+        self._registered_coercions.append((D, mor))
         self._coerce_from_cache.set(D,mor)
 
     cpdef register_action(self, action):
@@ -1984,7 +1986,7 @@ cdef class Parent(category_object.CategoryObject):
             raise TypeError("embedding must be a parent or map")
         if self._embedding is not None:
             self._embedding._make_weak_references()
-            codom._coerce_from_backtracking.set(self, self._embedding)
+            codom._coerce_embeddings_from.set(self, self._embedding)
             cache_version += 1
 
     def coerce_embedding(self):
@@ -2302,8 +2304,9 @@ cdef class Parent(category_object.CategoryObject):
             #        # print "embed problem: the following morphisms connect unconnected portions of the coercion graph\n%s\n%s"%(self._embedding, mor)
             #        # mor = None
             # if mor is not None:
-            #     # NOTE: this line is what makes the coercion detection stateful
-            #     # self._coerce_from_backtracking.set(S, mor)
+            #     # NOTE: the following line would use previously discovered
+            #     # coercions for future backtracking.
+            #     # self._registered_coercions.append((S, mor))
             #     pass
             # It may be that the only coercion from S to self is
             # via another parent X. But if the pair (S,X) is temporarily
@@ -2441,9 +2444,31 @@ cdef class Parent(category_object.CategoryObject):
 
         cdef Parent R, D
         # Recurse.  Note that if S is the domain of one of the maps in
-        # self._coerce_from_backtracking,
-        # we will have stuck the map into _coerce_map_hash and thus returned it already.
-        for D, mor in self._coerce_from_backtracking.iteritems():
+        # self._registered_coercions and self._coerce_embeddings_from,
+        # we will have stuck the map into _coerce_from_cache and thus
+        # returned it already.
+        for D, mor in self._registered_coercions:
+            if D is self:
+                continue
+            if D is S:
+                if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
+                    best_mor = mor
+                mor_found += 1
+                if mor_found  >= num_paths:
+                    return best_mor
+            else:
+                connecting = None
+                if EltPair(D, S, "coerce") not in _coerce_test_dict:
+                    connecting = D.coerce_map_from(S)
+                if connecting is not None:
+                    mor = mor * connecting
+                    if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
+                        best_mor = mor
+                    mor_found += 1
+                    if mor_found  >= num_paths:
+                        return best_mor
+
+        for D, mor in self._coerce_embeddings_from.iteritems():
             if D is self:
                 continue
             if D is S:

@@ -82,14 +82,15 @@ cdef class Parent(parent.Parent):
 #        if len(coerce_from) > 0:
 #            print type(self), coerce_from
         self.init_coerce(False)
-        self._coerce_from_backtracking = MonoDict(11)
+        self._coerce_embeddings_from = MonoDict(11)
+        self._registered_coercions = []
         from sage.categories.map import Map
         for mor in coerce_from:
             if PY_TYPE_CHECK(mor, Map):
-                self._coerce_from_backtracking.set(mor.domain(), mor)
+                self._registered_coercions.append((mor.domain(), mor))
                 mor._make_weak_references()
             else:
-                self._coerce_from_backtracking.set(mor, mor)
+                self._registered_coercions.append((mor, mor))
         self._coerce_from_cache = MonoDict(23)
         self._action_list = list(actions)
         self._action_hash = TripleDict(23)
@@ -202,7 +203,19 @@ cdef class Parent(parent.Parent):
         from sage.categories.map import Map
         from sage.categories.homset import Hom
         cdef parent.Parent R
-        for R,mor in self._coerce_from_backtracking.iteritems():
+        for R,mor in self._registered_coercions:
+            if not PY_TYPE_CHECK(mor, Map):
+                mor = sage.categories.morphism.CallMorphism(Hom(R, self))
+                self._coerce_from_cache[R] = mor # cache in case we need it again
+                mor._make_weak_references()
+            if R is S:
+                return mor
+            else:
+                connecting = R.coerce_map_from(S)
+                if connecting is not None:
+                    return mor * connecting
+
+        for R,mor in self._coerce_embeddings_from.iteritems():
             if not PY_TYPE_CHECK(mor, Map):
                 mor = sage.categories.morphism.CallMorphism(Hom(R, self))
                 self._coerce_from_cache[R] = mor # cache in case we need it again
