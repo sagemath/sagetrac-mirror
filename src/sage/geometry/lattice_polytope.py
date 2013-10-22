@@ -2211,7 +2211,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 yield self.affine_transform(b = -v)
         return min(p.normal_form(**kwds) for p in translated_polytopes())
         
-
     def normal_form(self, ignore_embedding=False):
         r"""
         Return the normal form of vertices of the polytope.
@@ -2255,9 +2254,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        The diamond is the 3rd polytope in the internal database...
-
-        ::
+        The diamond is the 3rd polytope in the internal database::
 
             sage: o.index()
             3
@@ -2315,7 +2312,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._normal_form = read_palp_matrix(self.poly_x("N"))
             self._normal_form.set_immutable()
         if ignore_embedding:
-            return matrix([i for i in self._normal_form.rows() if not i.is_zero()])
+            m = matrix([i for i in self._normal_form.rows() if not i.is_zero()])
+            if not m:
+                m = matrix([[0]])
+            m.set_immutable()
+            return m
         else:
             return self._normal_form
 
