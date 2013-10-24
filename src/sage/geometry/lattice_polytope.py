@@ -2207,10 +2207,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 1 1]
             [0 0 2]
         """
-        def translated_polytopes():
-            for v in self.vertices().columns():
-                yield self.affine_transform(b = -v)
-        return min(p.normal_form(**kwds) for p in translated_polytopes())
+        if self.ambient_dim() <> self.dim():
+            def translated_polytopes():
+                for v in self.vertices().columns():
+                    yield self.affine_transform(b = -v)
+            return min(p.normal_form(**kwds) for p in translated_polytopes())
+        else:
+            # In this case, it is faster to call PALP
+            tmp = read_palp_matrix(self.poly_x("A"))
+            # Bring the zero to the front
+            cols = tmp.columns()
+            result = matrix([cols[-1]] + cols[:-1]).transpose()
+            result.set_immutable()
+            return result
         
     def normal_form(self, ignore_embedding=False):
         r"""
