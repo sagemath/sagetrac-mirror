@@ -477,7 +477,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 4813::
     From: 3-bounded Symmetric Functions over Fraction Field of Univariate
     Polynomial Ring in t over Rational Field in the 3-Schur basis
     To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring
-    in t over Rational Field in the Schur basis
+    in t over Rational Field in the Schur basis...
 
     sage: s = Sym.schur()
     sage: s(ks3[3,2])

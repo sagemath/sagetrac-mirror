@@ -226,10 +226,19 @@ class WeylCharacterRing(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: A2 = WeylCharacterRing("A2")
+
+        Note that the lift of ``A2`` is used in the coercion system and thus only has a
+        weak reference to its domain. But the domain is ``A2`` and thus strongly
+        referenced---the lift will remain valid, in spite of the warning::
+
             sage: A2.lift
             Generic morphism:
               From: The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
               To:   The Weight ring attached to The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
 
         ::
 
@@ -250,7 +259,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         return self.module_morphism(self.lift_on_basis,
                                     codomain = self.ambient(),
-                                    category = AlgebrasWithBasis(self.base_ring()))
+                                    category =
+                                    AlgebrasWithBasis(self.base_ring()))
 
     def _retract(self, chi):
         """

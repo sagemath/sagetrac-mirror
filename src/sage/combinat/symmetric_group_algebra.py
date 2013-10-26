@@ -52,11 +52,12 @@ def SymmetricGroupAlgebra(R, n):
 
     The canonical embedding from the symmetric group algebra of order
     `n` to the symmetric group algebra of order `p > n` is available as
-    a coercion::
+    a coercion. Note that by :trac:`15303` the coerce map should be copied
+    when being used outside of the coercion system::
 
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
         sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
-        sage: QS4.coerce_map_from(QS3)
+        sage: copy(QS4.coerce_map_from(QS3))
         Generic morphism:
           From: Symmetric group algebra of order 3 over Rational Field
           To:   Symmetric group algebra of order 4 over Rational Field

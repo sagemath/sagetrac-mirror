@@ -150,7 +150,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             ...
             ValueError: s[2, 1, 1] is not in the image of Generic morphism:
               From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
-              To:   Symmetric Functions over Rational Field in the Schur basis
+              To:   Symmetric Functions over Rational Field in the Schur basis...
         """
         s = self.ambient().schur()
         ks = self.kschur()
@@ -708,6 +708,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ValueError: t*s[2, 1, 1, 1] + s[3, 1, 1] is not in the image of Generic morphism:
                 From: 3-bounded Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
                 To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Schur basis
+                ...
             """
             return self.parent()(self.lift().omega())
 

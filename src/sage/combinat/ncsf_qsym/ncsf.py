@@ -240,18 +240,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     TODO: explain the other changes of bases!
 
-    Here is how to fetch the conversion morphisms::
+    Here is how to fetch the coerce morphisms. Note that by :trac:`15303`, we
+    should use a copy of the maps being used in the coercion system::
 
-        sage: f = complete.coerce_map_from(elementary); f
+        sage: f = copy(complete.coerce_map_from(elementary)); f
         Generic morphism:
           From: NCSF in the Elementary basis
           To:   NCSF in the Complete basis
-        sage: g = elementary.coerce_map_from(complete); g
+        sage: g = copy(elementary.coerce_map_from(complete)); g
         Generic morphism:
           From: NCSF in the Complete basis
           To:   NCSF in the Elementary basis
         sage: f.category()
-        Category of hom sets in Category of modules with basis over Rational Field
+        Join of Category of hom sets in Category of modules with basis over
+        Rational Field and Category of hom sets in Category of rings
         sage: f(elementary[1,2,2])
         S[1, 1, 1, 1, 1] - S[1, 1, 1, 2] - S[1, 2, 1, 1] + S[1, 2, 2]
         sage: g(complete[1,2,2])
