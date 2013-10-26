@@ -80,7 +80,11 @@ def WithRealizations(self):
         In[{}] + 2*In[{1}] + 3*In[{2}] + In[{1, 2}]
         sage: F(i)
         7*F[{}] + 3*F[{1}] + 4*F[{2}] + F[{1, 2}]
-        sage: F.coerce_map_from(Out)
+
+    By :trac:`15303`, one should copy maps that were taken from the coercion
+    system::
+
+        sage: copy(F.coerce_map_from(Out))
         Generic morphism:
           From: The subset algebra of {1, 2, 3} over Rational Field in the Out basis
           To:   The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis

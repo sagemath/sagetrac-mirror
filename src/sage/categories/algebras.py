@@ -107,7 +107,12 @@ class Algebras(Category_over_base_ring):
                 sage: A = AlgebrasWithBasis(QQ).example(); A
                 An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
                 sage: coercion_model = sage.structure.element.get_coercion_model()
-                sage: coercion_model.discover_coercion(QQ, A)
+                sage: phi, x = coercion_model.discover_coercion(QQ, A)
+
+            By :trac:`15303`, one should copy coerce maps when using them
+            outside of the coercion system::
+
+                sage: copy(phi), x
                 (Generic morphism:
                   From: Rational Field
                   To:   An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field, None)

@@ -1086,7 +1086,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             4
             sage: kk.<a> = P.residue_field(); kk
             Residue field in a of Fractional ideal (7)
-            sage: phi = kk.coerce_map_from(K.maximal_order()); phi
+            sage: phi = copy(kk.coerce_map_from(K.maximal_order())); phi
             Ring morphism:
               From: Maximal Order in Cyclotomic Field of order 5 and degree 4
               To:   Residue field in a of Fractional ideal (7)

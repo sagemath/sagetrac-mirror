@@ -1071,7 +1071,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             False
         """
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
-            return True
+            return self._generic_convert_map(from_par)
         if from_par == AA or from_par == QQbar:
             return True
         _late_import()

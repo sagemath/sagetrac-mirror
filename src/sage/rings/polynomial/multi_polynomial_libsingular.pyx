@@ -340,10 +340,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         TEST:
 
         Make sure that a faster coercion map from the base ring is used;
-        see trac ticket #9944::
+        see :trac:`9944`. By :trac:`15303`, the coerce map should be copied
+        before using it outside of the coercion system::
 
             sage: R.<x,y> = PolynomialRing(ZZ)
-            sage: R.coerce_map_from(R.base_ring())
+            sage: copy(R.coerce_map_from(R.base_ring()))
             Polynomial base injection morphism:
               From: Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Integer Ring

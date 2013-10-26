@@ -1288,7 +1288,10 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
 
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
-        sage: f = K.coerce_map_from(GF(5)); f
+
+    By :trac:`15303`, one should copy maps taken from the coercion system::
+
+        sage: f = copy(K.coerce_map_from(GF(5))); f
         Ring Coercion morphism:
           From: Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
@@ -1592,7 +1595,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
 
         sage: R.<t> = GF(17)[]
         sage: K = R.fraction_field()
-        sage: f = K.coerce_map_from(ZZ); f
+        sage: f = copy(K.coerce_map_from(ZZ)); f
         Ring Coercion morphism:
           From: Integer Ring
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 17

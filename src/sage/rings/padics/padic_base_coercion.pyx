@@ -60,9 +60,12 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
     """
     The canonical inclusion from ZZ to either ZpCR or QpCR.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: f = Zp(5).coerce_map_from(ZZ); f
+    By :trac:`15303`, one should copy maps that are taken from the coercion
+    system::
+
+        sage: f = Zp(5).coerce_map_from(ZZ); copy(f)
         Ring Coercion morphism:
           From: Integer Ring
           To:   5-adic Ring with capped relative precision 20
@@ -589,9 +592,12 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
     """
     The canonical inclusion from ZZ to ZpCA.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: f = ZpCA(5).coerce_map_from(ZZ); f
+    By :trac:`15303`, one should copy morphisms that were taken from the
+    coercion system::
+
+        sage: f = ZpCA(5).coerce_map_from(ZZ); copy(f)
         Ring Coercion morphism:
           From: Integer Ring
           To:   5-adic Ring with capped absolute precision 20
@@ -886,9 +892,12 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
     """
     The canonical inclusion from ZZ to ZpFM.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: f = ZpFM(5).coerce_map_from(ZZ); f
+    By :trac:`15303`, one should copy morphisms that are taken from
+    the coercion system::
+
+        sage: f = ZpFM(5).coerce_map_from(ZZ); copy(f)
         Ring Coercion morphism:
           From: Integer Ring
           To:   5-adic Ring of fixed modulus 5^20
