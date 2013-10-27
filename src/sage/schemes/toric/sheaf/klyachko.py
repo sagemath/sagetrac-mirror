@@ -658,7 +658,111 @@ class KlyachkoBundle_class(SageObject):
         from sage.homology.chain_complex import ChainComplex
         return ChainComplex(CV, base_ring=self.base_ring())
 
-    def cohomology(self, degree=None, weight=None, dim=False):
+    def weight_arrangement(self):
+        r""" 
+        Return the hyperplane arrangement defined by the multi-filtration.
+
+        Let $E^\alpha(i)$ be the multi-filtration defining the
+        Klyachko bundle, where $\alpha \in N$ is the primitive lattice
+        point generating a ray of the fan and $i\in \ZZ$ is the
+        filtration degree.
+ 
+        The hyperplane arrangement defined by this data contains a
+        hyperplane $\alpha \cdot m+ j +\frac{1}{2}$ for each ray
+        $\alpha$ and each filtration $j$ degree where a "jump"
+        occours, that is, each $j$ such that $E^\alpha(j) \not=
+        E^\alpha(j+1)$. Note that these hyperplanes contain no
+        integral points.
+
+        For each region $R\subset M_\QQ$ of this arrangement, the
+        integral points are weights for which the sheaf cohomology
+        groups are isomorphic. This is becaus the filtered vector
+        space $E^\alpha(m)$ is constant for all $m\in R$.
+
+        OUTPUT:
+
+        A hyperplane arrangement in the vector space $M_\QQ$
+        containing the dual lattice.
+        
+        EXAMPLES::
+
+            sage: X = toric_varieties.dP6()
+            sage: TX = X.sheaves.tangent_bundle()
+            sage: H = TX.weight_arrangement();  H
+            Arrangement of 18 hyperplanes of dimension 2 and rank 2
+            sage: H.n_regions()
+            127
+            sage: H.n_bounded_regions()
+            91
+        """
+        from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+        E = self.get_filtration()
+        names = tuple('t' + str(i) for i in range(E.dimension()))
+        H = HyperplaneArrangements(self.base_ring(), names=names)
+        hyperplanes = []
+        for alpha in E.index_set():
+            E_alpha = E.get_filtration(alpha)
+            for j in E_alpha.support() + tuple([E_alpha.max_degree()]):
+                hyperplanes.append([list(alpha), j + QQ(1)/QQ(2)])
+        return H(hyperplanes)
+        
+    def _cohomology_list(self, degree=None, weight=None):
+        """
+        Helper method for :meth:`cohomology`.
+
+        INPUT:
+
+        See :meth:`cohomology`.
+
+        OUTPUT:
+
+        The cohomology group(s) as a list, indexed by cohomological
+        degree. The entries list of pairs (coefficient, dual lattice
+        point) suitable as input for formal sums.
+
+        EXAMPLES::
+
+            sage: V = toric_varieties.P2().sheaves.tangent_bundle()
+            sage: V._cohomology_list(weight=(0,0))
+            [[(2, (0, 0))], [(0, (0, 0))], []]
+            sage: V._cohomology_list()
+            [[(1, M(-1, 0)),
+              (1, M(-1, 1)),
+              (1, M(0, -1)),
+              (1, M(1, -1)),
+              (1, M(0, 1)),
+              (1, M(1, 0)),
+              (2, M(0, 0))],
+             [],
+             []]
+        """
+        space_dim = self.variety().fan().dim()
+        result = [[] for i in range(space_dim + 1)]
+        if weight is None:
+            H = self.weight_arrangement()
+            M = self.variety().fan().dual_lattice()
+            for region in H.bounded_regions():
+                region = map(M, region.integral_points())
+                for m in region:
+                    m.set_immutable()
+                cohomology = self._cohomology_list(degree=degree, weight=m)
+                for i, HH in enumerate(cohomology):
+                    if HH != []:
+                        dim = HH[0][0]
+                        if dim > 0:
+                            result[i].extend((dim, m) for m in region)
+        else:
+            # TODO: truncate computation to degree, if specified
+            C = self.cohomology_complex(weight)
+            C_homology = C.homology()
+            for d in range(0, space_dim+1):
+                try: 
+                    result[d] = [(C_homology[d].degree(), weight)]
+                except KeyError:
+                    pass
+        return result
+
+    def cohomology(self, degree=None, weight=None, output='lattice', dim=False):
         r"""
         Return the bundle cohomology groups.
 
@@ -672,8 +776,21 @@ class KlyachkoBundle_class(SageObject):
           defining a torus character. The weight of the cohomology
           group.
 
+        - ``output`` -- string. Specifies how to return the cohomology
+          groups. Valid options are
+
+          * ``output='lattice'`` -- return formal linear combinations
+            of dual lattice points to represent the torus character.
+
+          * ``output='vectorspace'`` -- return vector spaces, ignoring
+            the action of the maximal torus.
+
+          * ``output='dim'`` -- return only the dimension as integer.
+
         - ``dim`` -- Boolean (default: ``False``). Whether to return
-          vector spaces or only their dimension.
+          vector spaces or only their dimension. Shortcut for
+          ``output='dim'``. If ``True``, takes precedence over the
+          ``output`` optional argument.
 
         OUTPUT:
 
@@ -685,16 +802,27 @@ class KlyachkoBundle_class(SageObject):
 
         * If no ``degree`` is specified, a dictionary whose keys are
           integers and whose values are the cohomology groups is
-          returned. If, in addition, ``dim=True``, then an integral
-          vector of the dimensions is returned.
+          returned. If, in addition, ``output='dim'``, then an
+          integral vector of the dimensions is returned.
 
         EXAMPLES::
 
             sage: V = toric_varieties.P2().sheaves.tangent_bundle()
             sage: V.cohomology(degree=0, weight=(0,0))
-            Vector space of dimension 2 over Rational Field
+            2*M(0, 0)
             sage: V.cohomology(weight=(0,0), dim=True)
             (2, 0, 0)
+            sage: V.cohomology(output='dim')
+            (8, 0, 0)
+            sage: V.cohomology(output='lattice')
+            {0: M(-1, 0) + M(-1, 1) + M(0, -1) + 2*M(0, 0) + M(0, 1) + M(1, -1) + M(1, 0), 
+             1: 0, 
+             2: 0}
+            sage: V.cohomology(output='vectorspace')
+            {0: Vector space of dimension 8 over Rational Field, 
+             1: Vector space of dimension 0 over Rational Field, 
+             2: Vector space of dimension 0 over Rational Field}
+
             sage: for i,j in CartesianProduct(range(-2,3), range(-2,3)):
             ....:       HH = V.cohomology(weight=(i,j), dim=True)
             ....:       if HH.is_zero(): continue
@@ -707,26 +835,35 @@ class KlyachkoBundle_class(SageObject):
             H^*i(P^2, TP^2)_M(1,-1) = (1, 0, 0)
             H^*i(P^2, TP^2)_M(1,0)  = (1, 0, 0)
         """
-        from sage.modules.all import FreeModule
-        if weight is None:
-            raise NotImplementedError('sum over weights is not implemented')
-        else:
+        if dim:
+            output = 'dim'
+        if weight is not None:
             weight = self.variety().fan().dual_lattice()(weight)
             weight.set_immutable()
-        if degree is not None:
-            return self.cohomology(weight=weight, dim=dim)[degree]
-        C = self.cohomology_complex(weight)
-        space_dim = self._variety.dimension()
-        C_homology = C.homology()
-        HH = dict()
-        for d in range(0, space_dim+1):
-            try: 
-                HH[d] = C_homology[d]
-            except KeyError:
-                HH[d] = FreeModule(self.base_ring(), 0)
-        if dim:
-            HH = vector(ZZ, [HH[i].rank() for i in range(0, space_dim+1) ])
-        return HH
+        HH = self._cohomology_list(degree, weight)
+        if output == 'dim':
+            result = []
+            for i, HH_i in enumerate(HH):
+                result.append(ZZ(sum(coeff for coeff, m in HH_i)))
+            result = vector(ZZ, result)
+        elif output == 'vectorspace':
+            from sage.modules.all import FreeModule
+            result = dict()
+            for i, HH_i in enumerate(HH):
+                result[i] = FreeModule(self.base_ring(), 
+                                       sum(coeff for coeff, m in HH_i))
+        elif output == 'lattice':
+            from sage.structure.formal_sum import FormalSums
+            SUM = FormalSums(ZZ)
+            result = dict()
+            for i, HH_i in enumerate(HH):
+                result[i] = SUM(HH_i)
+        else:
+            raise ValueError('unknown output option')
+        if degree is None:
+            return result
+        else:
+            return result[degree]
 
     def __cmp__(self, other):
         """
