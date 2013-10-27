@@ -6153,10 +6153,10 @@ class NumberField_absolute(NumberField_generic):
 
         """
         if R in [int, long, ZZ, QQ, self.base()]:
-            return self._generic_convert_map(R)
+            return True
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
-            return self._generic_convert_map(R)
+            return True
         if is_NumberField(R) and R != QQ:
             if R.coerce_embedding() is not None:
                 if self.coerce_embedding() is not None:

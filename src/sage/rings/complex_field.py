@@ -405,10 +405,10 @@ class ComplexField_class(field.Field):
         if RR.has_coerce_map_from(S):
             return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
         if is_ComplexField(S) and S._prec >= self._prec:
-            return self._generic_convert_map(S)
+            return True
         late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
-            return self._generic_convert_map(S)
+            return True
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):

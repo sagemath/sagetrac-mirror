@@ -1024,10 +1024,10 @@ class NumberField_relative(NumberField_generic):
             sage: c = a + b # no output
         """
         if R in [int, long, ZZ, QQ, self.base_field()]:
-            return self._generic_convert_map(R)
+            return True
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
-            return self._generic_convert_map(R)
+            return True
         mor = self.base_field().coerce_map_from(R)
         if mor is not None:
             return self.coerce_map_from(self.base_field()) * mor

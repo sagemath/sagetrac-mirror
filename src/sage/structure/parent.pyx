@@ -2032,6 +2032,12 @@ cdef class Parent(category_object.CategoryObject):
         ``DefaultConvertMap`` or ``DefaultConvertMap_unique``
         depending on whether or not init_no_parent is set.
 
+        NOTE:
+
+        :meth:`_coerce_map_from_` should *not* return the generic convert map,
+        but should return ``True``. Otherwise, the generic conversion will be
+        used even if there is a better map from the coercion lists.
+
         EXAMPLES:
         """
         import coerce_maps
@@ -2138,6 +2144,9 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
+        # Remark: It may be that we are in the middle of backtracking,
+        # and in this case coercion from S to self may be marked as
+        # forbidden.
         return self.coerce_map_from(S) is not None
 
     cpdef _coerce_map_from_(self, S):
@@ -2291,9 +2300,19 @@ cdef class Parent(category_object.CategoryObject):
             mor._make_weak_references()
             return mor
 
+        if _is_registered_pair(self, S, "coerce"):
+            # we already are in the middle of backtracking in order
+            # to find a coercion from S to self. Hence, we must not
+            # go this path now.
+            return None
+
         try:
             _register_pair(self, S, "coerce")
             mor = self.discover_coerce_map_from(S)
+            # Historical note: Ticket #15303 makes it so that registered
+            # embeddings count for connectedness of the coerce graph in the same
+            # way as registered coercions. Hence, the following remarks do not
+            # appy any more.
             #if mor is not None:
             #    # Need to check that this morphism doesn't connect previously unconnected parts of the coercion diagram
             #    if self._embedding is not None and not self._embedding.codomain().has_coerce_map_from(S):
@@ -2308,6 +2327,7 @@ cdef class Parent(category_object.CategoryObject):
             #     # coercions for future backtracking.
             #     # self._registered_coercions.append((S, mor))
             #     pass
+
             # It may be that the only coercion from S to self is
             # via another parent X. But if the pair (S,X) is temporarily
             # disregarded (using _register_pair, to avoid infinite recursion)
@@ -2412,13 +2432,14 @@ cdef class Parent(category_object.CategoryObject):
             user_provided_mor = None
 
         elif user_provided_mor is not None:
-            # Trac ticket #15303: If there is a user-provided morphism, then
-            # mor_found should be 1 and not 0.
-            mor_found = 1
-
             if user_provided_mor is True:
                 mor = self._generic_convert_map(S)
             elif PY_TYPE_CHECK(user_provided_mor, Map):
+                # Trac ticket #15303: If there is a morphism, *explicitly*
+                # provided by the user, then it should have priority over the
+                # stuff found by backtracking or over the _generic_convert_map
+                # constructed above. Hence, mor_found should be 1 and not 0.
+                mor_found = 1
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):
                 mor = CallableConvertMap(user_provided_mor)
@@ -2488,7 +2509,6 @@ cdef class Parent(category_object.CategoryObject):
                     mor_found += 1
                     if mor_found  >= num_paths:
                         return best_mor
-
         return best_mor
 
 
@@ -3104,8 +3124,9 @@ cdef class Set_PythonType_class(Set_generic):
 cdef dict _coerce_test_dict = {}
 
 cdef class EltPair:
-    cdef x, y, tag
-    def __init__(self, x, y, tag):
+    cdef x, y
+    cdef str tag
+    def __init__(self, x, y, str tag):
         self.x = x
         self.y = y
         self.tag = tag
@@ -3134,7 +3155,7 @@ cdef class EltPair:
     def __repr__(self):
         return "%r: %r (%r), %r (%r)" % (self.tag, self.x, type(self.x), self.y, type(self.y))
 
-cdef bint _may_cache_none(x, y, tag) except -1:
+cdef bint _may_cache_none(x, y, str tag) except -1:
     # Are we allowed to cache the absence of a coercion
     # from y to x? We are only allowed, if y is *not*
     # part of any coerce path that is temporarily disregarded,
@@ -3146,11 +3167,18 @@ cdef bint _may_cache_none(x, y, tag) except -1:
             return 0
     return 1
 
-cdef bint _register_pair(x, y, tag) except -1:
+cdef bint _is_registered_pair(x, y, str tag) except -1:
+    # Means: We are studying the coercion path from y to
+    # x already. Hence, it would result in an infinite recursion
+    # to study it again.
+    cdef EltPair P = EltPair(x, y, tag)
+    return P in _coerce_test_dict
+
+cdef bint _register_pair(x, y, str tag) except -1:
     # Means: We will temporarily disregard coercions from
     # y to x when looking for a coercion path by depth first
     # search. This is to avoid infinite recursion.
-    both = EltPair(x,y,tag)
+    cdef EltPair both = EltPair(x, y, tag)
 
     if both in _coerce_test_dict:
         xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
@@ -3159,9 +3187,9 @@ cdef bint _register_pair(x, y, tag) except -1:
     _coerce_test_dict[both] = True
     return 0
 
-cdef bint _unregister_pair(x, y, tag) except -1:
+cdef bint _unregister_pair(x, y, str tag) except -1:
     try:
-        _coerce_test_dict.pop(EltPair(x,y,tag), None)
+        _coerce_test_dict.pop(EltPair(x, y, tag), None)
     except (ValueError, CoercionException):
         pass
 
