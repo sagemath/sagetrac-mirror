@@ -2302,7 +2302,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if not hasattr(self, "_normal_form"):
             codim = self.ambient_dim() - self.dim()
             if codim > 0:
-                vertices = self.vertices().transpose()
+                vertices = matrix(ZZ, self.vertices().transpose())
                 if vertices.is_zero():
                     self._normal_form = self.vertices()
                 else:
