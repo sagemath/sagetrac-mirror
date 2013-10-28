@@ -2220,9 +2220,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                               ( 0, 0, -1)]
             sage: lp = LatticePolytope(vertices)
             sage: lp.affine_normal_form()
-            [ 0  1  1  2  0  0  2]
-            [ 0  0  2  2  0 -1  3]
-            [ 0  0  0  0  1  0 -1]
+            [ 0  1  1  2  0  2  0]
+            [ 0  0  2  2  0  3 -1]
+            [ 0  0  0  0  1 -1  0]
             sage: m = matrix(ZZ, [[-1, 1,  0],
             ...                   [ 1, 1,  0],
             ...                   [ 1, 1,  0],
@@ -2231,11 +2231,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.affine_normal_form()
             [0 0 0]
             [0 0 0]
-            [0 1 1]
-            [0 0 2]
+            [0 1 0]
+            [0 0 1]
             sage: p.affine_normal_form(ignore_embedding = True)
-            [0 1 1]
-            [0 0 2]
+            [0 1 0]
+            [0 0 1]
         """
         if self.ambient_dim() <> self.dim():
             def translated_polytopes():
@@ -2251,9 +2251,55 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             result.set_immutable()
             return result
 
+    def dimensionally_reduced_polytope(self, add_origin=False,
+                                       embedding=False):
+        r"""
+        Return a polytope isomorphic to ``self``,
+        but projection to a space where it is full-dimensional.
+
+        TODO: Problem with adding origin.
+
+        INPUT:
+
+        - ``add_origin`` -- (default: ``False``) If ``True`` and the polytope
+            does not contain the origin, it is added in order to produce
+            a full-dimensional polytope.
+            If ``False`` and the origin is not contained, an exception
+            is raised.
+
+        - ``embedding`` -- (default: ``False``) If ``True``, then the
+            linear transformation embedding the returned polytope
+            into the ambient space of ``self`` is returned.
+
+        OUTPUT:
+
+        A LatticePolytope or a tuple of a LatticePolytope and a matrix.
+
+        EXAMPLES::
+        """
+        if self.vertices().is_zero():
+            raise ValueError('The polytope consisting of the origin can ' +
+            'not be completed to have positive dimension.')
+        vertices = matrix(ZZ, self.vertices().transpose())
+        projection = vertices.image().basis_matrix()
+        codim_embedding = projection.ncols() - projection.nrows()
+        contains_origin = self.origin() <> None
+        preimages = [projection.solve_left(i) for i in vertices.rows()]
+        if not contains_origin:
+            if not add_origin:
+                raise ValueError('Since the polytope does not contain ' +
+                    'the origin, it cannot be reduced to a ' + 
+                    'full-dimensional polytope.')
+            preimages += [vector(projection.nrows()*[0])]
+        lp = LatticePolytope(preimages)
+        if embedding:
+            return (lp, projection.transpose())
+        else:
+            return lp
+
     @cached_method
-    def normal_form(self, algorithm="palp", permutation=False,
-                          ignore_embedding=False):
+    def normal_form(self, algorithm="palp", transformation=False,
+                          permutation=False, ignore_embedding=False):
         r"""
         Return the normal form of ``self``.
 
@@ -2286,6 +2332,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             first and then computes its automorphisms, while the PALP
             algorithm does both things concurrently.
 
+        - ``transformation`` -- (default: ``False``) If ``True`` then also
+            return the linear transformation mapping the vertices of this
+            polytope to their normal forms.
+
         - ``permutation`` -- (default: ``False``) If ``True`` then instead of
             a matrix a tuple containing the normal form matrix and the
             permutation applied to vertices to obtain it is returned.
@@ -2293,12 +2343,13 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             that nevertheless lead to the same normal form.
 
         - ``ignore_embedding`` -- (default: ``False``) whether to ignore
-            the space `self` is embedded in.
+            the space ``self`` is embedded in.
 
 
         OUTPUT:
 
-        A matrix or a tuple of a matrix and a permutation.
+        A matrix or a tuple containing in addition another matrix and/or
+        a permutation.
 
         REFERENCES:
         ..  [GK] 
@@ -2345,64 +2396,133 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p = LatticePolytope(m)
             sage: p.normal_form()
             [0 0 0]
-            [1 0 1]
-            [0 1 1]
-            [0 0 2]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
             sage: p.normal_form(ignore_embedding = True)
-            [1 0 1]
-            [0 1 1]
-            [0 0 2]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         codim = self.ambient_dim() - self.dim()
-        if codim > 0:
-            vertices = matrix(ZZ, self.vertices().transpose())
-            if vertices.is_zero():
-                m = self.vertices()
-                if permutation:
-                    p = PermutationGroupElement(tuple())
-            else:
-                embedding = vertices.image().basis_matrix()
-                codim_embedding = embedding.ncols() - embedding.nrows()
-                add_origin = codim_embedding <> codim
-                preimages = [embedding.solve_left(i) for i in vertices.rows()]
-                if add_origin:
-                    preimages += [vector(embedding.nrows()*[0])]
-                projection = LatticePolytope(preimages)
-                n = projection.normal_form(algorithm=algorithm,
-                                           permutation=permutation)
-                if permutation:
-                    n, p = n
-                cols = [i for i in n.columns()
-                        if not add_origin or not i.is_zero()]
-                m = matrix([[0]*codim_embedding + list(col) for col in cols])
-                m = m.transpose()
-
+        contains_origin = self.origin() <> None
+        compute_p = transformation or permutation
+        if self.vertices().is_zero():
+            d = self.ambient_dim()
+            p = PermutationGroupElement(tuple())
             if ignore_embedding:
-                m = matrix([i for i in m.rows() if not i.is_zero()])
-            if not m:
-                m = matrix([[0]])
-            m.set_immutable()            
-            if permutation:
-                return (m, p)
+                n = matrix([[0]])
+                t = matrix([[0]*d])
             else:
-                return m
+                n = matrix([[0]]*d)
+                t = matrix([[0]*d]*d)
+        elif codim > 0:
+            reduction, embedding = self.dimensionally_reduced_polytope(
+                                    add_origin=True, embedding=True)
+            tmp = reduction.normal_form(algorithm=algorithm,
+                    transformation=transformation, permutation=compute_p)
+            if transformation:
+                n, t, p = tmp
+                # Build the projection matrix
+                P = (embedding.transpose()*embedding).inverse()
+                P = P*embedding.transpose()
+                # Apply to the transformation matrix
+                t = t*P
+            elif permutation:
+                n, p = tmp
+            else:
+                n = tmp
+            cols = [i for i in n.columns()
+                    if contains_origin or not i.is_zero()]
+            if not ignore_embedding:                
+                codim_e = self.ambient_dim() - reduction.ambient_dim()
+                n = matrix([[0]*codim_e + list(col) for col in cols]
+                           ).transpose()
+                if transformation:
+                    t = matrix([[0]*codim_e + list(col) for
+                               col in t.columns()]).transpose()
+                    t.set_immutable()
+            else:
+                n = matrix(cols).transpose()
+            n.set_immutable()
+        if codim > 0:
+            if compute_p:
+                result = [n]
+                if transformation:
+                    result.append(t)
+                if permutation:
+                    result.append(p)
+                return tuple(result)
+            else:
+                return n
+        else:
+            return self._normal_form_full_dimensional(algorithm=algorithm,
+                transformation=transformation, permutation=permutation)
 
+    def _normal_form_full_dimensional(self, algorithm="palp",
+                                      transformation=False, permutation=False):
+        r"""
+        Compute the normal form of the polytope assuming that ``self``
+        has the same dimension as the ambient space.
+
+        This is a helper function for :meth:`normal_form` and should not
+        be called directly.
+
+        INPUT:
+
+        Same as :meth:`normal_form` apart from ``ignore_embedding``, which
+        does not exist here.
+
+        OUTPUT:
+
+        Same as :meth:`normal_form`.
+
+        TODO:: More doctests / explanations.
+
+        EXAMPLES::
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o.normal_form()
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+        """
+        if self.dim() < self.ambient_dim():
+            raise ValueError(
+            ("Normal form is not defined for a %d-dimensional polytope " +
+            "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
+        compute_p = transformation or permutation
         if algorithm == "palp":
             # Backward compatibility with ReflexivePolytopes
-            if not permutation and hasattr(self, "_normal_form"):
-                result = self._normal_form
+            if not compute_p and hasattr(self, "_normal_form"):
+                tmp = self._normal_form
             else:
-                result = read_palp_matrix(self.poly_x("N"),
-                                          permutation=permutation)
-                result[0].set_immutable()
+                tmp = read_palp_matrix(self.poly_x("N"),
+                                       permutation=compute_p)
+                tmp[0].set_immutable()
         elif algorithm == "palp_native":
-            result = self._palp_native_normal_form(permutation=permutation)
+            tmp = self._palp_native_normal_form(permutation=compute_p)
         elif algorithm == "palp_modified":
-            result = self._palp_modified_normal_form(permutation=permutation)
+            tmp = self._palp_modified_normal_form(permutation=compute_p)
         else:
             raise ValueError('Algorithm must be palp, ' + 
                              'palp_native, or palp_modified.')
-        return result
+        if not compute_p:
+            return tmp
+        else:
+            result = [tmp[0]]
+        if transformation:
+            n, p = tmp
+            v_permuted = self.vertices().with_permuted_columns(p)
+            nf2, phi = v_permuted.hermite_form(transformation=True)
+            if nf2 <> n:
+                raise ValueError('The permutation does ' + 
+                                 'not give the correct hermite form.')
+            result.append(phi)
+        if permutation:
+            result.append(tmp[1])
+        return tuple(result)
 
     def _palp_modified_normal_form(self, permutation=False):
         r"""
