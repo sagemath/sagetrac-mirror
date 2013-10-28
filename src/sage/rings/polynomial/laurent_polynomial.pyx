@@ -9,6 +9,7 @@ from sage.structure.element import is_Element
 from sage.misc.latex import latex
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
+from sage.modules.free_module_element import vector
 
 
 cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
@@ -51,6 +52,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         else: # since x should coerce into parent, _mon should be (0,...,0)
             self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
+        self._normal_form = None
         CommutativeAlgebraElement.__init__(self, parent)
 
     def __reduce__(self):

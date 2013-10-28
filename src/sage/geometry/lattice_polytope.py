@@ -101,11 +101,12 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.graphs.graph import Graph
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
-from sage.misc.all import tmp_filename, cached_method
+from sage.misc.all import cached_method, tmp_filename
 from sage.misc.misc import SAGE_SHARE
-from sage.modules.all import vector
+from sage.modules.all import vector, span
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
@@ -115,6 +116,7 @@ from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
 from sage.structure.sage_object import SageObject
 
+from copy import copy
 import collections
 import copy_reg
 import os
@@ -1932,6 +1934,34 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._read_equations(self.poly_x("e"))
         return self._is_reflexive
 
+    def linearly_independent_vertices(self):
+        r"""
+        Find a set of ``dim(P)`` linearly independent
+        vertices of this polytope and return their indices in the
+        list of vertices of this polytope.
+
+        EXAMPLE::
+
+            sage: L = LatticePolytope([[0,0],[-1,1],[-1,-1]])
+            sage: L.linearly_independent_vertices()
+            (1, 2)
+        """
+        n = self.dim()
+        Pv = self.vertices().columns()
+        facets = [facet.vertices() for facet in self.facets()]
+        out=[]
+        for i, facet in enumerate(facets):
+            for vertex in facet:
+                if (not vertex in out) and (not Pv[vertex].is_zero()):
+                    out.append(vertex)
+                    if matrix(ZZ, [Pv[i] for i in out]).left_kernel().basis():
+                        out.pop()
+                    else:
+                        break
+            if len(out) == n:
+                break
+        return tuple(out)
+
     def nef_partitions(self, keep_symmetric=False, keep_products=True,
         keep_projections=True, hodge_numbers=False):
         r"""
@@ -2220,10 +2250,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             result = matrix([cols[-1]] + cols[:-1]).transpose()
             result.set_immutable()
             return result
-        
-    def normal_form(self, ignore_embedding=False):
+
+    @cached_method
+    def normal_form(self, algorithm="palp", permutation=False,
+                          ignore_embedding=False):
         r"""
-        Return the normal form of vertices of the polytope.
+        Return the normal form of ``self``.
 
         Two full-dimensional lattice polytopes are in the same 
         `GL(\mathbb{Z})`-orbit if and only if their normal forms are
@@ -2240,13 +2272,33 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         via `(a_1, \dots, a_d) \mapsto (0, \dots, 0, a_1, \dots, a_d)`.
 
         INPUT:
-        
-        - ``ignore_embedding`` -- (default: False) whether to ignore
-                                  the space `self` is embedded in.
+
+        - ``algorithm`` -- (default: "palp") The algorithm which is used
+            to compute the normal form. Options are:
+
+            * "palp" -- Run external PALP code, usually the fastest option.
+
+            * "palp_native" -- The original PALP algorithm implemented in
+            sage. Currently considerably slower than PALP.
+
+            * "palp_modified" -- A modified version of the PALP algorithm
+            which determines the maximal vertex-facet pairing matrix
+            first and then computes its automorphisms, while the PALP
+            algorithm does both things concurrently.
+
+        - ``permutation`` -- (default: ``False``) If ``True`` then instead of
+            a matrix a tuple containing the normal form matrix and the
+            permutation applied to vertices to obtain it is returned.
+            Note that the different algorithms may return different results,
+            that nevertheless lead to the same normal form.
+
+        - ``ignore_embedding`` -- (default: ``False``) whether to ignore
+            the space `self` is embedded in.
+
 
         OUTPUT:
 
-        The normal form of ``self``, a matrix.
+        A matrix or a tuple of a matrix and a permutation.
 
         REFERENCES:
         ..  [GK] 
@@ -2254,7 +2306,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             Normal forms of convex lattice polytopes, with Roland Grinis. 
             http://magma.maths.usyd.edu.au/~kasprzyk/research/pdf/normal_form.pdf 
 
-        EXAMPLES: We compute the normal form of the "diamond"::
+        EXAMPLES: 
+
+        We compute the normal form of the "diamond"::
 
             sage: o = lattice_polytope.octahedron(2)
             sage: o.vertices()
@@ -2264,7 +2318,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        The diamond is the 3rd polytope in the internal database::
+        The diamond is the 3rd polytope in the internal database... ::
 
             sage: o.index()
             3
@@ -2299,36 +2353,360 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 1 1]
             [0 0 2]
         """
-        if not hasattr(self, "_normal_form"):
-            codim = self.ambient_dim() - self.dim()
-            if codim > 0:
-                vertices = matrix(ZZ, self.vertices().transpose())
-                if vertices.is_zero():
-                    self._normal_form = self.vertices()
-                else:
-                    embedding = vertices.image().basis_matrix()
-                    codim_embedding = embedding.ncols() - embedding.nrows()
-                    add_origin = codim_embedding <> codim
-                    preimages = [embedding.solve_left(i) for i in vertices.rows()]
-                    if add_origin:
-                        preimages += [vector(embedding.nrows()*[0])]
-                    projection = LatticePolytope(preimages)
-                    normal_projection = projection.normal_form()
-                    cols = [i for i in normal_projection.columns() \
-                            if not add_origin or not i.is_zero()]
-                    m = matrix([[0]*codim_embedding + list(col) for col in cols])
-                    self._normal_form = m.transpose()
+        codim = self.ambient_dim() - self.dim()
+        if codim > 0:
+            vertices = matrix(ZZ, self.vertices().transpose())
+            if vertices.is_zero():
+                m = self.vertices()
+                if permutation:
+                    p = PermutationGroupElement(tuple())
             else:
-                self._normal_form = read_palp_matrix(self.poly_x("N"))
-            self._normal_form.set_immutable()
-        if ignore_embedding:
-            m = matrix([i for i in self._normal_form.rows() if not i.is_zero()])
+                embedding = vertices.image().basis_matrix()
+                codim_embedding = embedding.ncols() - embedding.nrows()
+                add_origin = codim_embedding <> codim
+                preimages = [embedding.solve_left(i) for i in vertices.rows()]
+                if add_origin:
+                    preimages += [vector(embedding.nrows()*[0])]
+                projection = LatticePolytope(preimages)
+                n = projection.normal_form(algorithm=algorithm,
+                                           permutation=permutation)
+                if permutation:
+                    n, p = n
+                cols = [i for i in n.columns()
+                        if not add_origin or not i.is_zero()]
+                m = matrix([[0]*codim_embedding + list(col) for col in cols])
+                m = m.transpose()
+
+            if ignore_embedding:
+                m = matrix([i for i in m.rows() if not i.is_zero()])
             if not m:
                 m = matrix([[0]])
-            m.set_immutable()
-            return m
+            m.set_immutable()            
+            if permutation:
+                return (m, p)
+            else:
+                return m
+
+        if algorithm == "palp":
+            # Backward compatibility with ReflexivePolytopes
+            if not permutation and hasattr(self, "_normal_form"):
+                result = self._normal_form
+            else:
+                result = read_palp_matrix(self.poly_x("N"),
+                                          permutation=permutation)
+                result[0].set_immutable()
+        elif algorithm == "palp_native":
+            result = self._palp_native_normal_form(permutation=permutation)
+        elif algorithm == "palp_modified":
+            result = self._palp_modified_normal_form(permutation=permutation)
         else:
-            return self._normal_form
+            raise ValueError('Algorithm must be palp, ' + 
+                             'palp_native, or palp_modified.')
+        return result
+
+    def _palp_modified_normal_form(self, permutation=False):
+        r"""
+        Return the normal form of ``self`` using the modified PALP algorithm.
+
+        This is a helper function for :meth:`normal_form` and should not
+        be called directly.
+
+        INPUT:
+
+        -   ``permutation`` -- a Boolean, whether to return the permutation of
+            the order of the vertices that was applied to obtain this matrix.
+
+        OUTPUT:
+
+        A matrix or a tuple of a matrix and a permutation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o._palp_modified_normal_form()
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+            sage: o._palp_modified_normal_form(permutation=True)
+            (
+            [ 1  0  0 -1]         
+            [ 0  1 -1  0], (1,2,3)
+            )
+        """
+        PM = self.vertex_facet_pairing_matrix()
+        n_v = PM.ncols()
+        n_f = PM.nrows()
+        PM_max = PM.permutation_normal_form()
+        perm = PM.is_permutation_of(PM_max, check=True)[1]
+        permutations = PM.automorphisms_of_rows_and_columns()
+        permutations = {k:[(perm[0])*p[0], (perm[1])*p[1]]
+                        for k, p in enumerate(permutations)}
+        out = _palp_canonical_order(self.vertices(), PM_max, permutations)
+        if permutation:
+            return out
+        else:
+            return out[0]
+
+    def _palp_native_normal_form(self, permutation=False):
+        r"""
+        Return the normal form of ``self`` using the modified PALP algorithm.
+
+        This is a helper function for :meth:`normal_form` and should not
+        be called directly.
+
+        INPUT:
+
+        -   ``permutation`` -- a Boolean, whether to return the permutation
+            of the order of the vertices that was applied to obtain this
+            matrix.
+
+        OUTPUT:
+
+        A matrix or a tuple of a matrix and a permutation.
+
+        This algorithm implements the PALP algorithm as explained in the
+        reference below and expounded on by Alexander Kasprzyk and Roland
+        Grinis (unpublished). TODO: add reference
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: o.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+            sage: o._palp_native_normal_form()
+            [ 1  0  0 -1]
+            [ 0  1 -1  0]
+            sage: o._palp_native_normal_form(permutation=True)
+            (
+            [ 1  0  0 -1]         
+            [ 0  1 -1  0], (1,4,2,3)
+            )
+
+        REFERENCES:
+
+        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of Reflexive Polyhedra
+           in Three Dimensions, arXiv:hep-th/9805190
+        """
+        PM_max, permutations = self._palp_PM_max(check=True)
+        out = _palp_canonical_order(self.vertices(), PM_max, permutations)
+        if permutation:
+            return out
+        else:
+            return out[0]
+
+    def _palp_PM_max(self, check=False):
+        r"""
+        Compute the permutation normal form of the vertex facet pairing
+        matrix.
+
+        TODO: More documentation and doctests here.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(2)
+            sage: PM = o.vertex_facet_pairing_matrix()
+            sage: PM_max = PM.permutation_normal_form()
+            sage: PM_max == o._palp_PM_max()
+            True
+        """
+        def PGE(t):
+            if len(t) == 2 and t[0] == t[1]:
+                t = tuple()
+            return PermutationGroupElement(t)
+
+        PM = self.vertex_facet_pairing_matrix()
+        n_v = PM.ncols()
+        n_f = PM.nrows()
+
+        # and find all the ways of making the first row of PM_max
+        def index_of_max(iterable):
+            # returns the index of max of any iterable
+            m, x = 0, iterable[0]
+            for k, l in enumerate(iterable):
+                if l > x:
+                    m, x = k, l
+            return m
+
+        n_s = 1
+        permutations = {0 : [PGE(range(1, n_f + 1)),
+                             PGE(range(1, n_v + 1))]}
+        for j in range(n_v):
+            m = index_of_max([(PM.with_permuted_columns(permutations[0][1]))[0][i] for i in range(j, n_v)])
+            if m > 0:
+                permutations[0][1] = PGE((j + 1,m + j + 1))*permutations[0][1]
+        first_row = list(PM[0])
+        
+        # Arrange other rows one by one and compare with first row
+        for k in range(1, n_f):
+            # Error for k == 1 already!
+            permutations[n_s] = [PGE(range(1, n_f+1)),PGE(range(1, n_v+1))]
+            m = index_of_max(PM.with_permuted_columns(permutations[n_s][1])[k])
+            if m > 0:
+                permutations[n_s][1] = PGE((1,m+1))*permutations[n_s][1]
+            d = ((PM.with_permuted_columns(permutations[n_s][1]))[k][0]
+                - permutations[0][1](first_row)[0])
+            if d < 0:
+                # The largest elt of this row is smaller than largest elt in 1st row, so nothing to do
+                continue
+            # otherwise:
+            for i in range(1, n_v):
+                m = index_of_max([PM.with_permuted_columns(permutations[n_s][1])[k][j] for j in range(i, n_v)])
+                if m > 0:
+                    permutations[n_s][1]=PGE((i + 1, m + i + 1))*permutations[n_s][1]
+                if d == 0:
+                    d = (PM.with_permuted_columns(permutations[n_s][1])[k][i]
+                        -permutations[0][1](first_row)[i])
+                    if d < 0:
+                        break
+            if d < 0:
+                # This row is smaller than 1st row, so nothing to do
+                del permutations[n_s]
+                continue
+            permutations[n_s][0] = PGE((1, k + 1))*permutations[n_s][0]
+            if d == 0:
+                # This row is the same, so we have a symmetry!
+                n_s += 1
+            else:
+                # This row is larger, so it becomes the first row and the symmetries reset.
+                first_row = list(PM[k])
+                permutations = {0: permutations[n_s]}
+                n_s = 1
+        permutations = {k:permutations[k] for k in permutations if k < n_s}
+        
+        b = PM.with_permuted_rows_and_columns(*permutations[0])[0]
+        # Work out the restrictions the current permutations
+        # place on other permutations as a automorphisms
+        # of the first row
+        # The array is such that:
+        # S = [i, 1, ..., 1 (ith), j, i+1, ..., i+1 (jth), k ... ]
+        # describes the "symmetry blocks"
+        S = range(1, n_v + 1)
+        for i in range(1, n_v):
+            if b[i-1] == b[i]:
+                S[i] = S[i-1]
+                S[S[i]-1] += 1
+            else:
+                S[i] = i + 1
+        
+        # We determine the other rows of PM_max in turn by use of perms and aut on previous rows.
+        for l in range(1, n_f - 1):
+            n_s = len(permutations)
+            n_s_bar = n_s
+            cf = 0
+            l_r = [0]*n_v
+            # Search for possible local permutations based off previous global permutations.
+            for k in range(n_s_bar - 1, -1, -1):
+                n_p = 0 # number of local permutations associated with current global
+                ccf = cf
+                permutations_bar = {0:copy(permutations[k])}
+                # We look for the line with the maximal entry in the first
+                # subsymmetry block, i.e. we are allowed to swap elements between
+                # 0 and S(0)
+                for s in range(l, n_f):
+                    for j in range(1, S[0]):
+                        v = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s]
+                        if v[0] < v[j]:
+                            permutations_bar[n_p][1] = PGE((1,j + 1))*permutations_bar[n_p][1]
+                    if ccf == 0:
+                        l_r[0] = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s][0]
+                        permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                        n_p += 1
+                        ccf = 1
+                        permutations_bar[n_p] = copy(permutations[k])
+                    else:
+                        d1 = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s][0]
+                        d = d1 - l_r[0]
+                        if d < 0:
+                            # We move to the next line
+                            continue
+                        elif d==0:
+                            # Maximal values agree, so possible symmetry
+                            permutations_bar[n_p][0]=PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            n_p += 1
+                            permutations_bar[n_p] = copy(permutations[k])
+                        else:
+                            # We found a greater maximal value for first entry.
+                            # It becomes our new reference:
+                            l_r[0] = d1
+                            permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
+                            # Forget previous work done
+                            cf = 0
+                            permutations_bar = {0:copy(permutations_bar[n_p])}
+                            n_p = 1
+                            permutations_bar[n_p] = copy(permutations[k])
+                            n_s = k + 1
+                # Check if the permutations found just now work with other elements
+                
+                for c in range(1, n_v):
+                    h = S[c]
+                    ccf = cf
+                    # Now let us find out where the end of the next symmetry block is:
+                    if  h < c+1:
+                        h = S[h-1]
+                    s = n_p
+                    # And check through this block for each possible permutation
+                    while s > 0:
+                        s -= 1
+                        # Find the largest value in this symmetry block
+                        for j in range(c + 1, h):
+                            v = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l]
+                            if (v[c] < v[j]):
+                                permutations_bar[s][1] = PGE((c + 1, j + 1))*permutations_bar[s][1]
+                        if ccf == 0:
+                            # Set the reference and then carry on to next permutation
+                            l_r[c] = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l][c]
+                            ccf = 1
+                        else:
+                            d1 = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l][c]
+                            d = d1 - l_r[c]
+                            if d < 0:
+                                n_p -= 1
+                                if s < n_p:
+                                    permutations_bar[s] = copy(permutations_bar[n_p])
+                            elif d > 0:
+                                # The current case leads to a smaller matrix,
+                                # hence this case becomes our new reference
+                                l_r[c] = d1
+                                cf = 0
+                                n_p = s + 1
+                                n_s = k + 1
+                # Update permutations
+                if (n_s - 1) > k:
+                    permutations[k] = copy(permutations[n_s - 1])
+                n_s -= 1
+                for s in range(n_p):
+                   permutations[n_s] = copy(permutations_bar[s])
+                   n_s += 1
+                cf = n_s   
+            permutations = {k:permutations[k] for k in permutations if k < n_s}
+            # If the automorphisms are not already completely restricted,
+            # update them
+            if not S == range(1, n_v + 1):
+                # Take the old automorphisms and update by
+                # the restrictions the last worked out
+                # row imposes.
+                c = 0
+                M = (PM.with_permuted_rows_and_columns(*permutations[0]))[l]
+                while c < n_v:
+                    s = S[c] + 1
+                    S[c] = c + 1
+                    c += 1
+                    while c < (s - 1):
+                        if M[c] == M[c - 1]:
+                            S[c] = S[c - 1]
+                            S[S[c] - 1] += 1
+                        else:
+                            S[c] = c + 1
+                        c += 1
+        # Now we have the perms, we construct PM_max using one of them
+        PM_max = PM.with_permuted_rows_and_columns(*permutations[0])
+        if check:
+            return (PM_max, permutations)
+        else:
+            return PM_max
 
     def npoints(self):
         r"""
@@ -2947,6 +3325,41 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             raise ValueError, "the polytope does not have %d vertices!" % (i+1)
         else:
             return self._vertices.column(i, from_list=True)
+
+    def vertex_facet_pairing_matrix(self):
+        r"""
+        Return the vertex facet pairing matrix `PM`.
+
+        Return a matrix whose the `i, j^\text{th}` entry is the height
+        of the `j^\text{th}` vertex over the `i^\text{th}` facet.
+        The ordering of the vertices and facets is as in
+        :meth:`vertices` and :meth:`facets`.
+
+        EXAMPLES::
+    
+            sage: L = lattice_polytope.octahedron(3)
+            sage: L.vertex_facet_pairing_matrix()
+            [0 0 2 2 2 0]
+            [2 0 2 0 2 0]
+            [0 2 2 2 0 0]
+            [2 2 2 0 0 0]
+            [0 0 0 2 2 2]
+            [2 0 0 0 2 2]
+            [0 2 0 2 0 2]
+            [2 2 0 0 0 2]
+        """
+        V = self.vertices().columns()
+        PM = []
+        for i in range(len(self.facets())):
+            n = self.facet_normal(i)
+            c = self.facet_constant(i)
+            row = []
+            for v in V:
+                row.append(n.dot_product(v) + c)
+            PM.append(row)
+        PM = matrix(ZZ, PM)
+        PM.set_immutable()
+        return PM
 
     def vertices(self):
         r"""
@@ -3884,6 +4297,24 @@ class _PolytopeFace(SageObject):
         """
         return self._facets
 
+    def index_of_face_in_lattice(self):
+        r"""
+        Return the index of the sublattice spanned by the vertices
+        of this face in the ambient lattice.
+
+        EXAMPLES::
+            sage: L = LatticePolytope([[1,0],[1,-1],[-1,0],[-1,-1]])
+            sage: F = L.faces()
+            sage: face = F[1][0] # take the first 1-dimensional face
+            sage: face.index_of_face_in_lattice()
+            1        
+        """
+        n = self._polytope.dim()
+        vertices = self._polytope.vertices().columns()
+        vertices = [vertices[i] for i in self._vertices]
+        S = span(vertices)
+        return S.index_in(ZZ**n)
+
     def interior_points(self):
         r"""
         Return a sequence of indices of interior lattice points of this
@@ -4189,6 +4620,89 @@ def _palp(command, polytopes, reduce_dimension=False):
     except OSError:
         pass
     return output_file_name
+
+def _palp_canonical_order(V, PM_max, permutations):
+    r"""
+    Given a matrix ``V`` of vertices, ``PM_max`` the maximal
+    vertex-facet pairing matrix and the permutations
+    realising this matrix add the last part of the
+    PALP algorithm and return an array of possible
+    normal forms, with the minimum being the actual form.
+
+    TESTS::
+        sage: L = lattice_polytope.octahedron(2)
+        sage: V = L.vertices()
+        sage: PM_max = matrix(ZZ,[[2,2,0,0],[2,0,2,0],[0,2,0,2],[0,0,2,2]])
+        sage: permutations = {0: [PermutationGroupElement("(1,3)(2,4)"), PermutationGroupElement((1,4,2,3))],
+        ...     1: [PermutationGroupElement("(1,4)(2,3)"), PermutationGroupElement((1,4,2))],
+        ...     2: [PermutationGroupElement((1,4)), PermutationGroupElement((2,4,3))],
+        ...     3: [PermutationGroupElement((1,3,4,2)), PermutationGroupElement((1,3,2,4))],
+        ...     4: [PermutationGroupElement("(1,2)(3,4)"), PermutationGroupElement((1,2))],
+        ...     5: [PermutationGroupElement(()), PermutationGroupElement((1,2,3))],
+        ...     6: [PermutationGroupElement((2,3)), PermutationGroupElement((1,3,4))],
+        ...     7: [PermutationGroupElement((1,2,4,3)), PermutationGroupElement((3,4))]}
+        sage: from sage.geometry.lattice_polytope import _palp_canonical_order
+        sage: _palp_canonical_order(V, PM_max, permutations)
+        (
+        [ 1  0  0 -1]           
+        [ 0  1 -1  0], (1,4,2,3)
+        )
+    """
+    n_v = PM_max.ncols()
+    n_f = PM_max.nrows()
+    p_c = PermutationGroupElement(range(1, n_v))
+    M_max = [max([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
+    S_max = [sum([PM_max[i][j] for i in range(n_f)]) for j in range(n_v)]
+    for i in range(n_v):
+        k = i
+        for j in range(i + 1, n_v):
+            if M_max[j] < M_max[k] or (M_max[j] == M_max[k] and S_max[j] < S_max[k]):
+                k = j
+        if not k == i:
+            M_max[i], M_max[k] = M_max[k], M_max[i]
+            S_max[i], S_max[k] = S_max[k], S_max[i]
+            p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
+    # Create array of possible NF's.
+    permutations = [p_c*k[1] for k in permutations.values()]
+    Vs = [(V.with_permuted_columns(k).hermite_form(), k) for k in permutations]
+    return min(Vs, key=lambda x:x[0])
+
+def _palp_convert_permutation(permutation):
+    r"""
+    Convert a permutation from PALPs notation to a PermutationGroupElement.
+
+    PALP specifies a permutation group element by its domain. Furthermore,
+    it only supports permutations of up to 62 objects and labels these by
+    `0 \dots 9', 'a \dots z', and 'A \dots Z'.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.lattice_polytope import _palp_convert_permutation
+        sage: _palp_convert_permutation('1023')
+        (1,2)
+        sage: _palp_convert_permutation('0123456789bac')
+        (11,12)
+    """
+    def from_palp_index(i):
+        if i.isdigit():
+            i = int(i)
+            i += 1
+        else:
+            o = ord(i)
+            if o in range(97, 123):
+                i = o - 86
+            elif o in range(65, 91):
+                i = o - 28
+            else:
+                raise ValueError('Cannot convert PALP index '
+                                 + i + ' to number.')
+        return i            
+    n = len(permutation)
+    domain = [from_palp_index(i) for i in permutation]    
+    from sage.groups.perm_gps.permgroup_element import make_permgroup_element
+    from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+    S = SymmetricGroup(n)
+    return make_permgroup_element(S, domain)
 
 def _read_nef_x_partitions(data):
     r"""
@@ -4752,7 +5266,6 @@ def octahedron(dim):
         _octahedrons[dim] = _create_octahedron(dim)
         return _octahedrons[dim]
 
-
 def positive_integer_relations(points):
     r"""
     Return relations between given points.
@@ -4919,8 +5432,7 @@ def read_all_polytopes(file_name, desc=None):
     f.close()
     return polytopes
 
-
-def read_palp_matrix(data):
+def read_palp_matrix(data, permutation=False):
     r"""
     Read and return an integer matrix from a string or an opened file.
 
@@ -4931,6 +5443,19 @@ def read_palp_matrix(data):
     If m>n, returns the transposed matrix. If the string is empty or EOF
     is reached, returns the empty matrix, constructed by
     ``matrix()``.
+
+    INPUT:
+
+    - ``data`` -- Either a string containing the filename or the file itself
+                  containing the output by PALP.
+
+    - ``permutation`` -- (default: ``False``) If ``True``, try to retrieve
+      the permutation output by PALP. This parameter makes sense only
+      when PALP computed the normal form of a lattice polytope.
+
+    OUTPUT:
+
+    A matrix or a tuple of a matrix and a permutation.
 
     EXAMPLES::
 
@@ -4943,26 +5468,33 @@ def read_palp_matrix(data):
     """
     if isinstance(data,str):
         f = StringIO.StringIO(data)
-        mat = read_palp_matrix(f)
+        mat = read_palp_matrix(f, permutation=permutation)
         f.close()
         return mat
     # If data is not a string, try to treat it as a file.
-    line = data.readline()
-    if line == "":
+    first_line = data.readline()
+    if first_line == "":
         return matrix()
-    line = line.split()
-    m = int(line[0])
-    n = int(line[1])
+    first_line = first_line.split()
+    m = int(first_line[0])
+    n = int(first_line[1])
     seq = []
     for i in range(m):
         seq.extend(int(el) for el in data.readline().split())
     mat = matrix(ZZ,m,n,seq)
-    if m <= n:
-        return mat
+    if m > n:
+        mat = mat.transpose()
+    # In some cases there may be additional information to extract
+    if permutation:
+        last_piece = first_line[-1]
+        last_piece = last_piece.split('=')
+        if last_piece[0] <> 'perm':
+            raise ValueError('PALP did not return a permutation.')
+        p = _palp_convert_permutation(last_piece[1])
+        return (mat, p)
     else:
-        return mat.transpose()
-
-
+        return mat
+        
 def sage_matrix_to_maxima(m):
     r"""
     Convert a Sage matrix to the string representation of Maxima.
