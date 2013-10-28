@@ -89,8 +89,6 @@ In addition, Sage's implementation has a better performance.
 
 import weakref
 from weakref import KeyedRef
-import sage
-from sage.all import add
 
 from cpython.dict cimport *
 from cpython.weakref cimport *
