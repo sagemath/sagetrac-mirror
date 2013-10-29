@@ -2186,8 +2186,72 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 self._nfacets = self._sublattice_polytope.nfacets()
         return self._nfacets
 
+    def find_isomorphism(self, other):
+        r"""
+        Check whether the polytope is isomorphic to ``other`` and
+        return the isomorphism.
+
+        Two lattice polytopes are isomorphic if and only if their
+        affine normal forms agree.
+
+        INPUT:
+
+        - ``other`` -- the lattice polytope to which we are trying to find 
+            an isomorphism.
+
+        OUTPUT:
+
+        The affine transformation mapping the polytope to ``other`` is
+        such an isomorphism exists and ``None`` otherwise.
+
+        EXAMPLES::
+        
+            sage: P2 = ReflexivePolytope(2, 0)
+            sage: P1xP1 = ReflexivePolytope(2, 3)
+            sage: P2.find_isomorphism(P1xP1)
+            sage: P2_2 = LatticePolytope([(1, 1, 0), (1, 0, 1), (1, -1, -1)])
+            sage: P2.find_isomorphism(P2_2)
+            The map A*x+b with A=
+            [0 0]
+            [1 0]
+            [0 1]
+            b = 
+            (1, 0, 0)
+            sage: P1xP1_2 = LatticePolytope([(2, 3), (2, 2), (0, 2), (0, 1)])
+            sage: P1xP1_2.find_isomorphism(P1xP1)
+            The map A*x+b with A=
+            [ 0  1]
+            [-1  1]
+            b = 
+            (-2, -1)
+
+        Some trivial cases::
+
+            sage: zero1 = LatticePolytope([(0,)])
+            sage: zero2 = LatticePolytope([(0, 0, 0)])
+            sage: iso = zero1.find_isomorphism(zero2)
+            sage: iso(zero1).vertices() == zero2.vertices()
+            True
+        """
+        anf1, map1 = self.affine_normal_form(transformation=True,
+                                             ignore_embedding=True)
+        try:
+            anf2, map2 = other.affine_normal_form(inverse_transformation=True,
+                                                  ignore_embedding=True)
+        except AttributeError:
+            raise ValueError('Other must be a LatticePolytope.')
+        # Remove the embedding by hand
+        #anf1 = matrix([i for i in anf1.rows() if not i.is_zero()])
+        #anf2 = matrix([i for i in anf2.rows() if not i.is_zero()])
+        if anf1 <> anf2:
+            return None
+        return map2*map1
+
     @cached_method
-    def affine_normal_form(self, **kwds):
+    def affine_normal_form(self, transformation=False,
+                           inverse_transformation=False,
+                           permutation=False,
+                           **kwds):
         r"""
         Return the affine normal form of vertices of the polytope.
 
@@ -2213,16 +2277,29 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         The affine normal form of ``self``, a matrix.
         
-        EXAMPLES::
+        EXAMPLES:
+
+        Note that our affine normal form does not always
+        agree with PALP's output, which appears to add an
+        additional permutation::
 
             sage: vertices = [( 1, 0,  0), (0, 1,  0), (0,  0, 1),\
                               (-1, 0,  1), (0, 1, -1), (0, -1, 0),\
                               ( 0, 0, -1)]
             sage: lp = LatticePolytope(vertices)
-            sage: lp.affine_normal_form()
-            [ 0  1  1  2  0  2  0]
-            [ 0  0  2  2  0  3 -1]
-            [ 0  0  0  0  1 -1  0]
+            sage: lp.affine_normal_form(algorithm='palp_modified')
+            [ 0  1  1  2  0  0  2]
+            [ 0  0  2  2  0 -1  3]
+            [ 0  0  0  0  1  0 -1]
+            sage: from sage.geometry.lattice_polytope import read_palp_matrix
+            sage: read_palp_matrix(lp.poly_x('A'))
+            [ 1  1  2  0  2  0  0]
+            [ 0  2  2  0  3 -1  0]
+            [ 0  0  0  1 -1  0  0]
+
+        On the other hand, we can compute affine normal forms of
+        polytopes with non-zero codimension::
+
             sage: m = matrix(ZZ, [[-1, 1,  0],
             ...                   [ 1, 1,  0],
             ...                   [ 1, 1,  0],
@@ -2231,25 +2308,55 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.affine_normal_form()
             [0 0 0]
             [0 0 0]
-            [0 1 0]
-            [0 0 1]
+            [0 1 1]
+            [0 0 2]
             sage: p.affine_normal_form(ignore_embedding = True)
-            [0 1 0]
-            [0 0 1]
+            [0 1 1]
+            [0 0 2]
+
+        If one ignores the embedding, the affine normal forms of two polytopes
+        are equal if and if the polytopes are isomorphic::
+
+            sage: p1 = ReflexivePolytope(2,0)
+            sage: p2 = LatticePolytope([(1, 1, 0), (1, 0, 1), (1, -1, -1)])
+            sage: a1 = p1.affine_normal_form()
+            sage: a2 = p2.affine_normal_form(ignore_embedding=True)
+            sage: a1 == a2
+            True            
         """
-        if self.ambient_dim() <> self.dim():
-            def translated_polytopes():
-                for v in self.vertices().columns():
-                    yield self.affine_transform(b = -v)
-            return min(p.normal_form(**kwds) for p in translated_polytopes())
+        from sage.geometry.polyhedron.lattice_euclidean_group_element import (
+            LatticeEuclideanGroupElement)
+
+        def translated_polytopes(return_b=False):
+            for v in self.vertices().columns():
+                lp = self.affine_transform(b = -v)
+                if return_b:
+                    yield (lp, -v)
+                else:
+                    yield lp
+
+        kwds['inverse_transformation'] = inverse_transformation
+        kwds['transformation'] = transformation
+        kwds['permutation'] = permutation
+        if permutation or transformation or inverse_transformation:
+            tmp = min(((p[0].normal_form(**kwds), p[1]) 
+                      for p in translated_polytopes(return_b=True)),
+                      key=lambda x: x[0][0])
+            b = tmp[1]
+            result = list(tmp[0])
+            offset = 0
+            if transformation:
+                offset += 1
+                t = result[1]
+                result[1] = LatticeEuclideanGroupElement(t, t*b,
+                            base_ring=QQ)
+            if inverse_transformation:
+                tinv = result[1 + offset]
+                result[1 + offset] = LatticeEuclideanGroupElement(tinv,
+                                     -b, base_ring=QQ)
+            return tuple(result)
         else:
-            # In this case, it is faster to call PALP
-            tmp = read_palp_matrix(self.poly_x("A"))
-            # Bring the zero to the front
-            cols = tmp.columns()
-            result = matrix([cols[-1]] + cols[:-1]).transpose()
-            result.set_immutable()
-            return result
+            return min(p.normal_form(**kwds) for p in translated_polytopes())
 
     def dimensionally_reduced_polytope(self, add_origin=False,
                                        embedding=False):
@@ -2276,19 +2383,44 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         A LatticePolytope or a tuple of a LatticePolytope and a matrix.
 
         EXAMPLES::
+
+            sage: lp = LatticePolytope([(0, 1, 0), (0, 0, 1), (0, -1, -1)])
+            sage: lp2 = lp.dimensionally_reduced_polytope()
+            sage: lp2.index()
+            0
+            sage: lp.dimensionally_reduced_polytope(embedding=True)
+            (
+                                                            [0 0]
+                                                            [1 0]
+            A lattice polytope: 2-dimensional, 3 vertices., [0 1]
+            )
+
+        Some polytopes cannot be embedded into an ambient space of the same
+        dimension using only a linear map::
+ 
+            sage: lp = LatticePolytope([(1, 0), (0, 1)])
+            sage: lp.dimensionally_reduced_polytope()
+            Traceback (most recent call last):
+            ...
+            ValueError: The polytope cannot be reduced to a full-dimensional polytope.
+
+        However, it can always be achieved by adding the origin::
+            sage: p = lp.dimensionally_reduced_polytope(add_origin=True)
+            sage: p.vertices()
+            [1 0 0]
+            [0 1 0]
         """
         if self.vertices().is_zero():
             raise ValueError('The polytope consisting of the origin can ' +
             'not be completed to have positive dimension.')
-        vertices = matrix(ZZ, self.vertices().transpose())
+        vertices = matrix(QQ, self.vertices().transpose())
         projection = vertices.image().basis_matrix()
         codim_embedding = projection.ncols() - projection.nrows()
         contains_origin = self.origin() <> None
         preimages = [projection.solve_left(i) for i in vertices.rows()]
         if not contains_origin:
             if not add_origin:
-                raise ValueError('Since the polytope does not contain ' +
-                    'the origin, it cannot be reduced to a ' + 
+                raise ValueError('The polytope cannot be reduced to a ' +
                     'full-dimensional polytope.')
             preimages += [vector(projection.nrows()*[0])]
         lp = LatticePolytope(preimages)
@@ -2299,6 +2431,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     @cached_method
     def normal_form(self, algorithm="palp", transformation=False,
+                          inverse_transformation=False,
                           permutation=False, ignore_embedding=False):
         r"""
         Return the normal form of ``self``.
@@ -2351,6 +2484,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         A matrix or a tuple containing in addition another matrix and/or
         a permutation.
 
+        TODO: Documentation for inverse
+
         REFERENCES:
         ..  [GK] 
             Roland Grinis and Alexander M. Kasprzyk. 
@@ -2396,17 +2531,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p = LatticePolytope(m)
             sage: p.normal_form()
             [0 0 0]
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
+            [1 0 1]
+            [0 1 1]
+            [0 0 2]
             sage: p.normal_form(ignore_embedding = True)
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
+            [1 0 1]
+            [0 1 1]
+            [0 0 2]
         """
         codim = self.ambient_dim() - self.dim()
         contains_origin = self.origin() <> None
-        compute_p = transformation or permutation
+        compute_t = transformation or inverse_transformation
+        compute_p = compute_t or permutation
         if self.vertices().is_zero():
             d = self.ambient_dim()
             p = PermutationGroupElement(tuple())
@@ -2416,22 +2552,30 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             else:
                 n = matrix([[0]]*d)
                 t = matrix([[0]*d]*d)
+            tinv = t.transpose()
         elif codim > 0:
             reduction, embedding = self.dimensionally_reduced_polytope(
                                     add_origin=True, embedding=True)
             tmp = reduction.normal_form(algorithm=algorithm,
-                    transformation=transformation, permutation=compute_p)
+                    transformation=transformation,
+                    inverse_transformation=inverse_transformation,
+                    permutation=compute_p)
+            if compute_p:
+                tmp = list(tmp)
+                p = tmp.pop()
+                n = tmp[0]
+            else:
+                n = tmp
+            if inverse_transformation:
+                tinv = tmp.pop()
+                tinv = embedding*tinv
             if transformation:
-                n, t, p = tmp
+                t = tmp.pop()
                 # Build the projection matrix
                 P = (embedding.transpose()*embedding).inverse()
                 P = P*embedding.transpose()
                 # Apply to the transformation matrix
                 t = t*P
-            elif permutation:
-                n, p = tmp
-            else:
-                n = tmp
             cols = [i for i in n.columns()
                     if contains_origin or not i.is_zero()]
             if not ignore_embedding:                
@@ -2442,6 +2586,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                     t = matrix([[0]*codim_e + list(col) for
                                col in t.columns()]).transpose()
                     t.set_immutable()
+                if inverse_transformation:
+                    tinv = matrix([[0]*codim_e + list(row) for
+                               row in tinv.rows()])
+                    tinv.set_immutable()
             else:
                 n = matrix(cols).transpose()
             n.set_immutable()
@@ -2450,6 +2598,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 result = [n]
                 if transformation:
                     result.append(t)
+                if inverse_transformation:
+                    result.append(tinv)
                 if permutation:
                     result.append(p)
                 return tuple(result)
@@ -2457,10 +2607,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 return n
         else:
             return self._normal_form_full_dimensional(algorithm=algorithm,
-                transformation=transformation, permutation=permutation)
+                transformation=transformation,
+                inverse_transformation=inverse_transformation,
+                permutation=permutation)
 
     def _normal_form_full_dimensional(self, algorithm="palp",
-                                      transformation=False, permutation=False):
+                                      transformation=False,
+                                      inverse_transformation=False,
+                                      permutation=False):
         r"""
         Compute the normal form of the polytope assuming that ``self``
         has the same dimension as the ambient space.
@@ -2492,7 +2646,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             raise ValueError(
             ("Normal form is not defined for a %d-dimensional polytope " +
             "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
-        compute_p = transformation or permutation
+        compute_t = transformation or inverse_transformation
+        compute_p = compute_t or permutation
         if algorithm == "palp":
             # Backward compatibility with ReflexivePolytopes
             if not compute_p and hasattr(self, "_normal_form"):
@@ -2512,14 +2667,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return tmp
         else:
             result = [tmp[0]]
-        if transformation:
+        if compute_t:
             n, p = tmp
             v_permuted = self.vertices().with_permuted_columns(p)
             nf2, phi = v_permuted.hermite_form(transformation=True)
             if nf2 <> n:
                 raise ValueError('The permutation does ' + 
                                  'not give the correct hermite form.')
-            result.append(phi)
+            if transformation:
+                result.append(phi)
+            if inverse_transformation:
+                result.append(phi.inverse())
         if permutation:
             result.append(tmp[1])
         return tuple(result)

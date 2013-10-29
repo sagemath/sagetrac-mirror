@@ -46,7 +46,7 @@ class LatticePolytopeNoEmbeddingError(LatticePolytopeError):
 ########################################################################
 class LatticeEuclideanGroupElement(SageObject):
 
-    def __init__(self, A, b):
+    def __init__(self, A, b, base_ring=ZZ):
         """
         An element of the lattice Euclidean group.
 
@@ -81,8 +81,9 @@ class LatticeEuclideanGroupElement(SageObject):
             sage: _.vertices()
             ((1, 2, 3), (2, 4, 2), (3, 5, 5))
         """
-        self._A = matrix(ZZ, A)
-        self._b = vector(ZZ, b)
+        self._base_ring = base_ring
+        self._A = matrix(base_ring, A)
+        self._b = vector(base_ring, b)
         assert self._A.nrows() == self._b.degree()
 
     def __call__(self, x):
@@ -107,13 +108,21 @@ class LatticeEuclideanGroupElement(SageObject):
         """
         from sage.geometry.polyhedron.ppl_lattice_polytope import (
             LatticePolytope_PPL, LatticePolytope_PPL_class)
+        from sage.geometry.lattice_polytope import LatticePolytopeClass
+        from sage.matrix.all import is_Matrix, matrix
         if isinstance(x, LatticePolytope_PPL_class):
             if x.is_empty():
                 from sage.libs.ppl import C_Polyhedron
                 return LatticePolytope_PPL(C_Polyhedron(self._b.degree(),
                                                         'empty'))
             return LatticePolytope_PPL(*[self(v) for v in x.vertices()])
-            pass
+        if isinstance(x, LatticePolytopeClass):
+            from sage.geometry.lattice_polytope import LatticePolytope
+            vs = [self(i) for i in x.vertices().columns()]
+            return LatticePolytope(vs)
+        if is_Matrix(x):
+            return matrix([self(i) for i in x.columns()]).transpose()            
+
         v = self._A*x+self._b
         v.set_immutable()
 
@@ -184,3 +193,13 @@ class LatticeEuclideanGroupElement(SageObject):
             3
         """
         return self._A.nrows()
+
+    def __mul__(self, other):
+        r"""
+        Compose ``self`` with ``other``.
+        """
+        if self._base_ring <> other._base_ring:
+            raise ValueError('Both maps must have the same base ring.')
+        A = self._A*other._A
+        b = self._A*other._b + self._b
+        return LatticeEuclideanGroupElement(A, b, self._base_ring)
