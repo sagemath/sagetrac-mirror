@@ -132,6 +132,7 @@ Note that Sage's weak value dictionary is actually an instance of
 
 import weakref
 from weakref import KeyedRef
+from copy import deepcopy
 
 from cpython.dict cimport *
 from cpython.weakref cimport *
@@ -251,6 +252,60 @@ cdef class WeakValueDictionary(dict):
         self._iteration_context = _IterationContext(self)
         for k,v in data:
             self[k] = v
+
+    def __copy__(self):
+        """
+        Return a copy of this weak dictionary.
+
+        EXAMPLES::
+
+            sage: import sage.misc.weak_dict
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D[1] = QQ
+            sage: D[2] = ZZ
+            sage: D[None] = CC
+            sage: E = copy(D)    # indirect doctest
+            sage: set(E.items()) == set(D.items())
+            True
+
+        """
+        return WeakValueDictionary(self.iteritems())
+
+    def __deepcopy__(self, memo):
+        """
+        Return a copy of this dictionary using copies of the keys.
+
+        NOTE:
+
+        The values of the dictionary are not copied, since we can not copy the
+        external strong references to the values, which are decisive for
+        garbage collection.
+
+        EXAMPLES::
+
+            sage: class C(object): pass
+            sage: V = [C(),C()]
+            sage: D = sage.misc.weak_dict.WeakValueDictionary()
+            sage: D[C()] = V[0]
+            sage: D[C()] = V[1]
+            sage: E = deepcopy(D)     # indirect doctest
+
+        The keys are copied (in this silly example, the copies of the keys are
+        actually not equal to the original keys)::
+
+            sage: set(E.keys()) == set(D.keys())
+            False
+
+        However, the values are not copied::
+
+            sage: set(E.values()) == set(D.values()) == set(V)
+            True
+
+        """
+        out = WeakValueDictionary()
+        for k,v in self.iteritems():
+            out[deepcopy(k, memo)] = v
+        return out
 
     def __repr__(self):
         """
@@ -524,25 +579,6 @@ cdef class WeakValueDictionary(dict):
             del self[k]
             return k, v
         raise KeyError('popitem(): weak value dictionary is empty')
-#        if self._guard_level:
-#            raise RuntimeError("popitem(): not allowed while iterating over the dictionary")
-#        cdef Py_ssize_t hashk
-#        cdef list bucket
-#        cdef PyObject *basekey, *bucketref
-#        cdef Py_ssize_t pos = 0
-#        if not PyDict_Next(self, &pos, &basekey, &bucketref):
-#            raise KeyError('popitem(): weak value dictionary is empty')
-#        bucket = <list>bucketref
-#        if not bucket:
-#            raise KeyError('popitem(): weak value dictionary is empty')
-#        k = bucket.pop(0)
-#        v = bucket.pop(0)
-#        if not bucket:
-#            PyDict_DelItem(self,<object>basekey)
-#        cdef PyObject* out = PyWeakref_GetObject(v)
-#        if out!=Py_None:
-#            return k, <object>out
-#        return self.popitem()
 
     def get(self, k, d=None):
         """
