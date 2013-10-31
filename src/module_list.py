@@ -1240,6 +1240,9 @@ ext_modules = [
     Extension('sage.misc.stopgap',
               sources = ['sage/misc/stopgap.pyx']),
 
+    Extension('sage.misc.weak_dict',
+              sources = ['sage/misc/weak_dict.pyx']),
+
     ################################
     ##
     ## sage.modular
