@@ -172,8 +172,7 @@ cdef PyObject* dummy = init_dummy()
 
 #this routine looks for the first entry in dict D with given hash of the
 #key and given (identical!) value and deletes that entry.
-cpdef del_dictitem_by_exact_value(dict D, object value, long hash):
-    cdef PyDictObject *mp = <PyDictObject *><void *>D
+cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
     cdef size_t i
     cdef size_t perturb
     cdef size_t mask = <size_t> mp.ma_mask
@@ -182,16 +181,17 @@ cpdef del_dictitem_by_exact_value(dict D, object value, long hash):
     i = hash & mask
     ep = &(ep0[i])
 
-    #perhaps we should exit silently if no entry is found?
     if ep.me_key == NULL:
-        raise KeyError("key not found")
+        # key not found
+        return
 
     perturb = hash
-    while (<void *>(ep.me_value) != <void *>value):
+    while (<PyObject *>(ep.me_value) != value):
         i = (i << 2) + i + perturb +1
         ep = &ep0[i & mask]
         if ep.me_key == NULL:
-            raise KeyError("key not found")
+            # key not found
+            return
         perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
 
     old_key = ep.me_key
@@ -294,7 +294,7 @@ cdef class WeakValueDictionary(dict):
             if cself._guard_level:
                 cself._pending_removals.append(r)
             else:
-                del_dictitem_by_exact_value(cself, r, r.key)
+                del_dictitem_by_exact_value(<PyDictObject *>cself, <PyObject *>r, r.key)
         self.callback = callback
         self._guard_level = 0
         self._pending_removals = []
@@ -507,11 +507,12 @@ cdef class WeakValueDictionary(dict):
         cdef PyObject* wr = PyDict_GetItem(self, k)
         if wr == NULL:
             raise KeyError(k)
-        #we turn out into a new reference right away because
-        #out must survive a deletion below, which can cause any kind of havoc.
-        out = <object>PyWeakref_GetObject(wr)
-        if out is None:
+        cdef PyObject* outref = PyWeakref_GetObject(wr)
+        if outref == Py_None:
             raise KeyError(k)
+        #we turn the output into a new reference before deleting the item,
+        #because the deletion can cause any kind of havoc.
+        out = <object>outref
         del self[k]
         return out
 
@@ -670,7 +671,6 @@ cdef class WeakValueDictionary(dict):
             return False
         else:
             return True
-        return False
 
     #def __len__(self):
     #since GC is not deterministic, neither is the length of a WeakValueDictionary,
