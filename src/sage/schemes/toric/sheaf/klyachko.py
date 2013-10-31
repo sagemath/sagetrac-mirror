@@ -658,6 +658,7 @@ class KlyachkoBundle_class(SageObject):
         from sage.homology.chain_complex import ChainComplex
         return ChainComplex(CV, base_ring=self.base_ring())
 
+    @cached_method
     def weight_arrangement(self):
         r""" 
         Return the hyperplane arrangement defined by the multi-filtration.
@@ -694,18 +695,25 @@ class KlyachkoBundle_class(SageObject):
             127
             sage: H.n_bounded_regions()
             91
+
+        TESTS::
+
+            sage: TX = X.change_ring(GF(3)).sheaves.tangent_bundle()
+            sage: TX.weight_arrangement().base_ring()
+            Rational Field
         """
         from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+        from sage.schemes.toric.sheaf.weight_arrangement import make_WeightArrangement
         E = self.get_filtration()
-        names = tuple('t' + str(i) for i in range(E.dimension()))
-        H = HyperplaneArrangements(self.base_ring(), names=names)
+        names = tuple('t' + str(i) for i in range(self.variety().fan().dim()))
+        H = HyperplaneArrangements(QQ, names=names)
         hyperplanes = []
         for alpha in E.index_set():
             E_alpha = E.get_filtration(alpha)
             for j in E_alpha.support() + tuple([E_alpha.max_degree()]):
                 hyperplanes.append([list(alpha), j + QQ(1)/QQ(2)])
-        return H(hyperplanes)
-        
+        return make_WeightArrangement(H(hyperplanes, signed=False))
+
     def _cohomology_list(self, degree=None, weight=None):
         """
         Helper method for :meth:`cohomology`.
@@ -726,14 +734,14 @@ class KlyachkoBundle_class(SageObject):
             sage: V._cohomology_list(weight=(0,0))
             [[(2, (0, 0))], [(0, (0, 0))], []]
             sage: V._cohomology_list()
-            [[(1, M(-1, 0)),
-              (1, M(-1, 1)),
-              (1, M(0, -1)),
-              (1, M(1, -1)),
-              (1, M(0, 1)),
-              (1, M(1, 0)),
-              (2, M(0, 0))],
-             [],
+            [[(1, M(-1, 0)), 
+              (1, M(-1, 1)), 
+              (1, M(0, -1)), 
+              (1, M(1, -1)), 
+              (2, M(0, 0)), 
+              (1, M(0, 1)), 
+              (1, M(1, 0))], 
+             [], 
              []]
         """
         space_dim = self.variety().fan().dim()
@@ -741,8 +749,8 @@ class KlyachkoBundle_class(SageObject):
         if weight is None:
             H = self.weight_arrangement()
             M = self.variety().fan().dual_lattice()
-            for region in H.bounded_regions():
-                region = map(M, region.integral_points())
+            for region_points in H.bounded_regions_points():
+                region = map(M, region_points)
                 for m in region:
                     m.set_immutable()
                 cohomology = self._cohomology_list(degree=degree, weight=m)
