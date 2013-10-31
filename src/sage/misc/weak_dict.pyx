@@ -4,6 +4,7 @@ Fast and safe weak value dictionary
 AUTHORS:
 
 - Simon King (2013-10)
+- Nils Bruin (2013-10)
 
 Python's :mod:`weakref` module provides
 :class:`~weakref.WeakValueDictionary`. This behaves similar to a dictionary,
@@ -87,31 +88,16 @@ changes, and the iteration breaks for :class:`weakref.WeakValueDictionary`::
     RuntimeError: dictionary changed size during iteration
 
 With :class:`~sage.misc.weak_dict.WeakValueDictionary`, the behaviour is
-safer. During iteration, we can delete one item from the list ``C`` and make
-sure that the cyclic garbage collector removes it, we can directly remove a
-not yet visited item from the dictionary, we can pop a prescribed not yet
-visited item from the dictionary, and we can let the dictionary pop an
-arbitrary item. All the time, the length of the dictionary is correctly
-reported, and it does not happen that we visit the key of an item that is
-subject to deletion::
-
-    sage: C = [Cycle() for n in range(5)]
-    sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(C))
-    sage: remaining_keys = set(range(5))
-    sage: for k in D:
-    ....:     print "len",len(D)
-    ....:     remaining_keys.remove(k)
-    ....:     if len(D)==5:
-    ....:         C[k] = None
-    ....:         C[remaining_keys.pop()] = None
-    ....:         _ = gc.collect()
-    ....:     elif len(D)==3:
-    ....:         del D[remaining_keys.pop()]
-    ....:     elif len(D)==2:
-    ....:         l,v = D.popitem()
-    len 5
-    len 3
-    len 2
+safer. Note that iteration over a WeakValueDictionary is non-deterministic,
+since the lifetime of values (and hence the presence of keys) in the dictionary
+may depend on when garbage collection occurs. The method implemented here
+will at least postpone dictionary mutations due to garbage collection callbacks.
+This means that as long as there is at least one iterator active on a dictionary,
+none of its keys will be deallocated (which could have side-effects).
+Which entries are returned is of course still dependent on when garbage
+collection occurs. Note that when a key gets returned as "present" in the
+dictionary, there is no guarantee one can actually retrieve its value: it may
+have been garbage collected in the mean time.
 
 Note that Sage's weak value dictionary is actually an instance of
 :class:`dict`, in contrast to :mod:`weakref`'s weak value dictionary::
@@ -124,6 +110,7 @@ Note that Sage's weak value dictionary is actually an instance of
 """
 ########################################################################
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
+#                          Nils Bruin <nbruin@sfu.ca>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -138,23 +125,99 @@ from cpython.dict cimport *
 from cpython.weakref cimport *
 from cpython.list cimport *
 
+from cpython cimport Py_XINCREF, Py_XDECREF
+
+cdef extern from "Python.h":
+    ctypedef struct PyDictEntry:
+        Py_ssize_t me_hash
+        PyObject* me_key
+        PyObject* me_value
+    ctypedef struct PyDictObject:
+        Py_ssize_t ma_fill
+        Py_ssize_t ma_used
+        Py_ssize_t ma_mask
+        PyDictEntry* ma_table
+    #we need this redefinition because we want to be able to call
+    #PyWeakref_GetObject with borrowed references. This is the recommended
+    #strategy according to Cython/Includes/cpython/__init__.pxd
+    PyObject* PyWeakref_GetObject(PyObject * wr)
+    
+    #this one's just missing.
+    long PyObject_Hash(object obj)
+
+#this routine extracts the "dummy" sentinel value that is used in dicts to mark
+#"freed" slots. We need that to delete things ourselves.
+cdef PyObject* init_dummy() except NULL:
+    cdef dict D = dict()
+    cdef PyDictObject* mp = <PyDictObject *><void *>D
+    cdef size_t mask
+    cdef PyDictEntry* ep0 = mp.ma_table
+    cdef PyDictEntry* ep
+    cdef size_t i
+    global dummy
+
+    D[0]=0; del D[0] #ensure that there is a "deleted" entry in the dict
+    mask = mp.ma_mask
+    #since our entry had hash 0, we should really succeed on the first iteration
+    for i in range(mask+1):
+        ep = &(ep0[i])
+        if ep.me_key != NULL:
+            return ep.me_key
+    raise RuntimeError("Problem initializing dummy")
+
+#note that dummy here is a borrowed reference. That's not a problem because
+#we're never giving it up and dictobject.c is also holding a permanent reference
+#to this object
+cdef PyObject* dummy = init_dummy()
+
+#this routine looks for the first entry in dict D with given hash of the
+#key and given (identical!) value and deletes that entry.
+cpdef del_dictitem_by_exact_value(dict D, object value, long hash):
+    cdef PyDictObject *mp = <PyDictObject *><void *>D
+    cdef size_t i
+    cdef size_t perturb
+    cdef size_t mask = <size_t> mp.ma_mask
+    cdef PyDictEntry* ep0 = mp.ma_table
+    cdef PyDictEntry* ep
+    i = hash & mask
+    ep = &(ep0[i])
+
+    #perhaps we should exit silently if no entry is found?
+    if ep.me_key == NULL:
+        raise KeyError("key not found")
+
+    perturb = hash
+    while (<void *>(ep.me_value) != <void *>value):
+        i = (i << 2) + i + perturb +1
+        ep = &ep0[i & mask]
+        if ep.me_key == NULL:
+            raise KeyError("key not found")
+        perturb = perturb >> 5 #this is the value of PERTURB_SHIFT
+
+    old_key = ep.me_key
+    if dummy == NULL:
+        raise RuntimeError("dummy needs to be initialized")
+    Py_XINCREF(dummy)
+    ep.me_key = dummy
+    old_value = ep.me_value
+    ep.me_value = NULL
+    mp.ma_used -= 1
+    #in our case, the value is always a dead weakref, so decreffing that is
+    #fairly safe
+    Py_XDECREF(old_value) 
+    #this could have any effect.
+    Py_XDECREF(old_key)
+
 cdef PyObject* Py_None = <PyObject*>None
 
 cdef class WeakValueDictionary(dict):
     """
     IMPLEMENTATION:
 
-    The :class:`WeakValueDictionary` inherits from :class:`dict`. As a
-    :class:`dict`, it stores lists that are indexed by the hash of the given
-    key. These lists (also known as "hash buckets") are organised as ``[key_1,
-    ref_value_1, key_2, ref_value_2, ... ]``.
-
-    ``ref_value_n`` is a keyed weak reference to the `n`-th value. The key of
-    this weak reference is the hash of ``key_n``. The callback of the weak
-    reference thus has enough information to find the correct hash bucket. It
-    will then search the hash bucket for the weak reference that is subject to
-    the callback, and will delete the corresponding key-reference pair from
-    the hash bucket.
+    The :class:`WeakValueDictionary` inherits from :class:`dict`. In its
+    implementation, it stores weakrefs to the actual values under the keys.
+    All access routines are wrapped to transparently place and remove these
+    weakrefs.
 
     NOTE:
 
@@ -194,7 +257,7 @@ cdef class WeakValueDictionary(dict):
     """
     cdef callback
     cdef int _guard_level
-    cdef dict _pending_removals
+    cdef list _pending_removals
     cdef _iteration_context
 
     def __init__(self, data=()):
@@ -224,28 +287,17 @@ cdef class WeakValueDictionary(dict):
         # sub-classes of keyed references or weak value dictionaries providing
         # a __del__ method.
         def callback(r):
+            #The situation is the following:
+            #in the underlying dictionary, we have stored a KeyedRef r
+            #under a key k. The attribute r.key is the hash of k.
             cdef WeakValueDictionary cself = self
             if cself._guard_level:
-                cself._pending_removals[<Py_ssize_t><void*>r] = r
-                return
-            cdef int hashk = r.key
-            cdef Py_ssize_t idr = <Py_ssize_t><void *>r
-            cdef void * buckref = PyDict_GetItem(cself, hashk)
-            if buckref==NULL:
-                return
-            cdef list bucket = <list>buckref
-            cdef Py_ssize_t i,l
-            with cself._iteration_context:
-                l = len(bucket)
-                for i from 0 <= i < l by 2:
-                    if <Py_ssize_t>PyList_GetItem(bucket,i+1) == idr:
-                        del bucket[i:i+2]
-                        if not bucket:
-                            PyDict_DelItem(cself,hashk)
-                        return
+                cself._pending_removals.append(r)
+            else:
+                del_dictitem_by_exact_value(cself, r, r.key)
         self.callback = callback
         self._guard_level = 0
-        self._pending_removals = {}
+        self._pending_removals = []
         self._iteration_context = _IterationContext(self)
         for k,v in data:
             self[k] = v
@@ -360,28 +412,12 @@ cdef class WeakValueDictionary(dict):
             5
 
         """
-        cdef int hashk = hash(k)
-        cdef void * buckref = PyDict_GetItem(self, hashk)
-        cdef list bucket
-        cdef Py_ssize_t i,l
-        cdef PyObject* out
-        if buckref==NULL:
-            bucket = [k, KeyedRef(default, self.callback, hashk)]
-            PyDict_SetItem(self,hashk,bucket)
-            return default
-        bucket = <list>buckref
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket, i) == k:
-                    out = PyWeakref_GetObject(<object>PyList_GetItem(bucket, i+1))
-                    if out!=Py_None:
-                        return <object>out
-                    bucket[i+1] = KeyedRef(default, self.callback, hashk)
-                    return default
-        if self._guard_level:
-            raise RuntimeError("setdefaul(): Can not add items while iterating over the dictionary")
-        bucket.extend([k, KeyedRef(default, self.callback, hashk)])
+        cdef PyObject* wr = PyDict_GetItem(self, k)
+        if wr != NULL:
+            out = PyWeakref_GetObject(wr)
+            if out != Py_None:
+                return <object>out
+        PyDict_SetItem(self,k,KeyedRef(default,self.callback,PyObject_Hash(k)))
         return default
 
     def __setitem__(self, k, v):
@@ -442,68 +478,11 @@ cdef class WeakValueDictionary(dict):
             [(2, Integer Ring)]
 
         """
-        cdef int hashk = hash(k)
-        cdef void * buckref = PyDict_GetItem(self, hashk)
-        cdef list bucket
-        if buckref==NULL:
-            bucket = []
-            PyDict_SetItem(self,hashk,bucket)
-        else:
-            bucket = <list>buckref
-        cdef object k0
-        cdef Py_ssize_t i,l
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket, i) == k:
-                    bucket[i+1] = KeyedRef(v, self.callback, hashk)
-                    return
-        if self._guard_level:
-            raise RuntimeError("Can not add items while iterating over the dictionary")
-        bucket.extend((k, KeyedRef(v, self.callback, hashk)))
+        PyDict_SetItem(self,k,KeyedRef(v,self.callback,PyObject_Hash(k)))
 
-    def __delitem__(self, k):
-        """
-        TESTS::
-
-            sage: import sage.misc.weak_dict
-            sage: L = [GF(p) for p in prime_range(10^3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
-            sage: 4 in D
-            True
-            sage: D[4]
-            Finite Field of size 11
-            sage: del D[4]
-            sage: 4 in D
-            False
-            sage: D[4]
-            Traceback (most recent call last):
-            ...
-            KeyError: 4
-
-        """
-        cdef int hashk = hash(k)
-        cdef void * buckref = PyDict_GetItem(self, hashk)
-        if buckref==NULL:
-            raise KeyError(k)
-        cdef list bucket = <list>buckref
-        cdef Py_ssize_t i,l
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket,i) == k:
-                    if self._guard_level:
-                        v = <object>PyList_GetItem(bucket,i+1)
-                        if <Py_ssize_t><void*>v in self._pending_removals:
-                            raise KeyError(k)
-                        self._pending_removals[<Py_ssize_t><void*>v] = v
-                        return
-                    del bucket[i:i+2]
-                    if not bucket:
-                        PyDict_DelItem(self,hashk)
-                    return
-        raise KeyError(k)
-
+    #def __delitem__(self, k):
+    #we don't really have to override this method.
+    
     def pop(self, k):
         """
         Return the value for a given key, and delete it from the dictionary.
@@ -525,31 +504,16 @@ cdef class WeakValueDictionary(dict):
             KeyError: 20
 
         """
-        cdef int hashk = hash(k)
-        cdef void * buckref = PyDict_GetItem(self, hashk)
-        if buckref==NULL:
+        cdef PyObject* wr = PyDict_GetItem(self, k)
+        if wr == NULL:
             raise KeyError(k)
-        cdef list bucket = <list>buckref
-        cdef Py_ssize_t i,l
-        cdef PyObject * out
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket, i) == k:
-                    v = <object>PyList_GetItem(bucket, i+1)
-                    if not self._guard_level:
-                        del bucket[i:i+2]
-                    elif <Py_ssize_t><void*>v in self._pending_removals:
-                        break
-                    else:
-                        self._pending_removals[<Py_ssize_t><void*>v] = v
-                    out = PyWeakref_GetObject(v)
-                    if not bucket:
-                        PyDict_DelItem(self,hashk)
-                    if out != Py_None:
-                        return <object>out
-                    break
-        raise KeyError(k)
+        #we turn out into a new reference right away because
+        #out must survive a deletion below, which can cause any kind of havoc.
+        out = <object>PyWeakref_GetObject(wr)
+        if out is None:
+            raise KeyError(k)
+        del self[k]
+        return out
 
     def popitem(self):
         """
@@ -604,24 +568,14 @@ cdef class WeakValueDictionary(dict):
             True
 
         """
-        cdef void * buckref = PyDict_GetItem(self, hash(k))
-        if buckref==NULL:
+        cdef PyObject * wr = PyDict_GetItem(self, k)
+        if wr == NULL:
             return d
-        cdef list bucket = <list>buckref
-        cdef PyObject* out
-        cdef Py_ssize_t i,l
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket,i)==k:
-                    v = <object>PyList_GetItem(bucket,i+1)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        return d
-                    out = PyWeakref_GetObject(v)
-                    if out!=Py_None:
-                        return <object>out
-                    break
-        return d
+        out = PyWeakref_GetObject(wr)
+        if out == Py_None:
+            return d
+        else:
+            return <object>out
 
     def __getitem__(self, k):
         """
@@ -645,24 +599,13 @@ cdef class WeakValueDictionary(dict):
             Integer Ring
 
         """
-        cdef void * buckref = PyDict_GetItem(self, hash(k))
-        if buckref==NULL:
+        cdef PyObject* wr = PyDict_GetItem(self, k)
+        if wr == NULL:
             raise KeyError(k)
-        cdef list bucket = <list>buckref
-        cdef PyObject* out
-        cdef Py_ssize_t i,l
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket,i)==k:
-                    v = <object>PyList_GetItem(bucket,i+1)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        raise KeyError(k)
-                    out = PyWeakref_GetObject(v)
-                    if out!=Py_None:
-                        return <object>out
-                    break
-        raise KeyError(k)
+        out = PyWeakref_GetObject(wr)
+        if out == Py_None:
+            raise KeyError(k)
+        return <object>out
 
     def has_key(self, k):
         """
@@ -720,60 +663,18 @@ cdef class WeakValueDictionary(dict):
             False
 
         """
-        cdef list bucket
-        cdef void * buckref = PyDict_GetItem(self, hash(k))
-        if buckref==NULL:
+        cdef PyObject* wr = PyDict_GetItem(self, k)
+        if wr==NULL:
             return False
-        bucket = <list>buckref
-        cdef Py_ssize_t i,l
-        with self._iteration_context:
-            l = len(bucket)
-            for i from 0 <= i < l by 2:
-                if <object>PyList_GetItem(bucket,i) == k:
-                    v = <object>PyList_GetItem(bucket,i+1)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        return False
-                    if PyWeakref_GetObject(v)==Py_None:
-                        return False
-                    else:
-                        return True
+        if PyWeakref_GetObject(wr)==Py_None:
+            return False
+        else:
+            return True
         return False
 
-    def __len__(self):
-        """
-        TESTS::
-
-            sage: import sage.misc.weak_dict
-            sage: class Vals(object): pass
-            sage: L = [Vals() for _ in range(10)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(L))
-            sage: len(D)
-            10
-            sage: del D[2]
-            sage: len(D)
-            9
-            sage: del L[4]
-            sage: len(D)
-            8
-            sage: D[1] = ZZ
-            sage: len(D)
-            8
-            sage: D[4] = ZZ
-            sage: len(D)
-            9
-            sage: len(D) == len(D.items()) == len(D.keys()) == len(D.values())
-            True
-
-        """
-        cdef PyObject *basekey, *bucketref
-        cdef Py_ssize_t pos = 0
-        cdef Py_ssize_t length = 0
-        cdef list bucket
-        with self._iteration_context:
-            while PyDict_Next(self, &pos, &basekey, &bucketref):
-                bucket = <list>bucketref
-                length += PyList_Size(bucket)
-        return length//2-len(self._pending_removals)
+    #def __len__(self):
+    #since GC is not deterministic, neither is the length of a WeakValueDictionary,
+    #so we might as well just return the normal dictionary length.
 
     def iterkeys(self):
         """
@@ -800,20 +701,15 @@ cdef class WeakValueDictionary(dict):
             [0, 1, 2, 3, 5, 6, 7, 8, 9]
 
         """
-        cdef list bucket
-        cdef PyObject *basekey, *bucketref
+        cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        cdef Py_ssize_t i,l
         with self._iteration_context:
-            while PyDict_Next(self, &pos, &basekey, &bucketref):
-                bucket = <list>bucketref
-                l = len(bucket)
-                for i from 0 <= i < l by 2:
-                    v = <object>PyList_GetItem(bucket,i+1)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        continue
-                    if PyWeakref_GetObject(v)!=Py_None:
-                        yield <object>PyList_GetItem(bucket,i)
+            while PyDict_Next(self, &pos, &key, &wr):
+                #this check doesn't really say anything: by the time
+                #the key makes it to the customer, it may have already turned
+                #invalid. It's a cheap check, though.
+                if PyWeakref_GetObject(wr)!=Py_None:
+                    yield <object>key
 
     def __iter__(self):
         """
@@ -907,22 +803,13 @@ cdef class WeakValueDictionary(dict):
             <9>
 
         """
-        cdef PyObject * obj
-        cdef list bucket
-        cdef PyObject *basekey, *bucketref
+        cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        cdef Py_ssize_t i,l
         with self._iteration_context:
-            while PyDict_Next(self, &pos, &basekey, &bucketref):
-                bucket = <list>bucketref
-                l = len(bucket)
-                for i from 0 < i <= l by 2:
-                    v = <object>PyList_GetItem(bucket,i)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        continue
-                    obj = PyWeakref_GetObject(v)
-                    if obj != Py_None:
-                        yield <object>obj
+            while PyDict_Next(self, &pos, &key, &wr):
+                out = PyWeakref_GetObject(wr)
+                if out != Py_None:
+                    yield <object>out
 
     def values(self):
         """
@@ -1013,22 +900,13 @@ cdef class WeakValueDictionary(dict):
             [9] <9>
 
         """
-        cdef PyObject * obj
-        cdef list bucket
-        cdef PyObject *basekey, *bucketref
+        cdef PyObject *key, *wr
         cdef Py_ssize_t pos = 0
-        cdef Py_ssize_t i,l
         with self._iteration_context:
-            while PyDict_Next(self, &pos, &basekey, &bucketref):
-                bucket = <list>bucketref
-                l = len(bucket)
-                for i from 0 <= i < l by 2:
-                    v = <object>PyList_GetItem(bucket,i+1)
-                    if <Py_ssize_t><void*>v in self._pending_removals:
-                        continue
-                    obj = PyWeakref_GetObject(v)
-                    if obj != Py_None:
-                        yield <object>PyList_GetItem(bucket,i), <object>obj
+            while PyDict_Next(self, &pos, &key, &wr):
+                out = PyWeakref_GetObject(wr)
+                if out != Py_None:
+                    yield <object>key, <object>out
 
     def items(self):
         """
@@ -1083,120 +961,13 @@ cdef class WeakValueDictionary(dict):
         """
         return list(self.iteritems())
 
-    def _buckets_(self):
-        """
-        Returns the internal data structure (DEBUGGING ONLY).
-
-        NOTE:
-
-        We have a list for each occuring hash value of the dictionary
-        keys. Each list alternatingly comprises the key and a weak reference
-        to the corresponding value.
-
-        EXAMPLES::
-
-            sage: import sage.misc.weak_dict
-            sage: class Vals(object):
-            ....:     def __init__(self, n):
-            ....:         self.n = n
-            ....:     def __repr__(self):
-            ....:         return "<%s>"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
-            sage: class Keys(object):
-            ....:     def __init__(self, n):
-            ....:         self.n = n
-            ....:     def __hash__(self):
-            ....:         if self.n%2:
-            ....:             return 5
-            ....:         return 3
-            ....:     def __repr__(self):
-            ....:         return "[%s]"%self.n
-            ....:     def __cmp__(self, other):
-            ....:         c = cmp(type(self),type(other))
-            ....:         if c:
-            ....:             return c
-            ....:         return cmp(self.n,other.n)
-            sage: L = [(Keys(n), Vals(n)) for n in range(10)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(L)
-            sage: sorted(D._buckets_())
-            [(3,
-              [[0],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [2],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [4],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [6],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [8],
-               <weakref at 0x...; to 'Vals' at 0x...>]),
-             (5,
-              [[1],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [3],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [5],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [7],
-               <weakref at 0x...; to 'Vals' at 0x...>,
-               [9],
-               <weakref at 0x...; to 'Vals' at 0x...>])]
-            sage: sorted(D.items())
-            [([0], <0>),
-             ([1], <1>),
-             ([2], <2>),
-             ([3], <3>),
-             ([4], <4>),
-             ([5], <5>),
-             ([6], <6>),
-             ([7], <7>),
-             ([8], <8>),
-             ([9], <9>)]
-
-        """
-        cdef PyObject * obj
-        cdef list bucket
-        cdef PyObject *basekey, *bucketref
-        cdef Py_ssize_t pos = 0
-        cdef Py_ssize_t i,l
-        cdef list buckets = []
-        while PyDict_Next(self, &pos, &basekey, &bucketref):
-            bucket = <list>bucketref
-            buckets.append((<object>basekey, bucket))
-        return buckets
-
 cdef class _IterationContext:
     """
-    An iterator that protects :class:`WeakValueDictionary` from negative
-    effects of deletions that occur during iteration.
-
-    EXAMPLES::
-
-        sage: import sage.misc.weak_dict, gc
-        sage: class Cycle:
-        ....:     def __init__(self):
-        ....:         self.selfref = self
-        sage: C = [Cycle() for n in range(5)]
-        sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(C))
-        sage: remaining_keys = set(range(5))
-        sage: for k in D:
-        ....:     print "len",len(D)
-        ....:     remaining_keys.remove(k)
-        ....:     if len(D)==5:
-        ....:         C[k] = None
-        ....:         C[remaining_keys.pop()] = None
-        ....:         _ = gc.collect()
-        ....:     elif len(D)==3:
-        ....:         del D[remaining_keys.pop()]
-        ....:     elif len(D)==2:
-        ....:         l,v = D.popitem()      # indirect doctest
-        len 5
-        len 3
-        len 2
+    An iterator that protects :class:`WeakValueDictionary` from some negative
+    effects of deletions due to garbage collection during iteration.
+    It's still not safe to explicitly mutate a dictionary during iteration,
+    though. Doing so is a bug in a program (since iteration order is
+    non-deterministic the results are not well-defined)
 
     This is implemented by putting all items that are deleted during iteration
     are not actually deleted, but only *marked* for deletion. Note, however,
@@ -1281,6 +1052,7 @@ cdef class _IterationContext:
         """
         self.Dict._guard_level += 1
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
         Make sure that all items of a weak value dictionary that are marked
@@ -1307,7 +1079,9 @@ cdef class _IterationContext:
         """
         # Propagate errors by returning "False"
         self.Dict._guard_level -= 1
-        if not self.Dict._guard_level:
-            while self.Dict._pending_removals:
-                self.Dict.callback(self.Dict._pending_removals.popitem()[1])
+        #when the guard_level drops to zero, we try to remove all the
+        #pending removals. Note that this could trigger another iterator
+        #to become active, in which case we should back off.
+        while (not self.Dict._guard_level) and self.Dict._pending_removals:
+            self.Dict.callback(self.Dict._pending_removals.pop())
         return False
