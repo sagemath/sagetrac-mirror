@@ -4,7 +4,7 @@ Fast and safe weak value dictionary
 AUTHORS:
 
 - Simon King (2013-10)
-- Nils Bruin (2013-10)src/sage/misc/weak_dict.pyx1
+- Nils Bruin (2013-10)
 
 Python's :mod:`weakref` module provides
 :class:`~weakref.WeakValueDictionary`. This behaves similar to a dictionary,
@@ -66,7 +66,7 @@ no error messages, and the items get correctly removed::
     sage: len(D)
     0
 
-Another proplem arises when iterating over the items of a dictionary: If
+Another problem arises when iterating over the items of a dictionary: If
 garbage collection occurs during iteration, then the content of the dictionary
 changes, and the iteration breaks for :class:`weakref.WeakValueDictionary`::
 
@@ -349,7 +349,7 @@ cdef class WeakValueDictionary(dict):
 
     TESTS::
 
-    The following reflects the behaviour of the callback ov weak dict values,
+    The following reflects the behaviour of the callback on weak dict values,
     as discussed on :trac:`13394`.  ::
 
         sage: from sage.misc.weak_dict import WeakValueDictionary
@@ -593,8 +593,8 @@ cdef class WeakValueDictionary(dict):
         TESTS:
 
         One may wonder whether it causes problems when garbage collection for
-        a previously exististing item happens *after* overriding the
-        item. The example shows that it is not a problem::
+        a previously existing item happens *after* overriding the item. The
+        example shows that it is not a problem::
 
             sage: class Cycle:
             ....:     def __init__(self):
@@ -1110,31 +1110,33 @@ cdef class _IterationContext:
     though. Doing so is a bug in a program (since iteration order is
     non-deterministic the results are not well-defined)
 
-    This is implemented by putting all items that are deleted during iteration
-    are not actually deleted, but only *marked* for deletion. Note, however,
-    that they behave like items that actually *are* deleted. E.g., it is not
-    possible to delete the same item twice::
+    This is implemented by only marking entries for deletion if their values
+    become deallocated while an iterator is active. Once the iterator finishes,
+    the keys are deallocated. Note that because the weakrefs will be dead, the
+    keys in question do not appear to be in the dictionary anymore::
 
-        sage: class Val: pass
-        sage: V = [Val() for n in range(3)]
-        sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-        sage: for k,v in D.iteritems():
-        ....:     print k in D.keys()
-        ....:     del D[k]
-        ....:     print k in D.keys()
-        ....:     try:
-        ....:         del D[k]
-        ....:     except KeyError:
-        ....:         print "due error"
-        True
-        False
-        due error
-        True
-        False
-        due error
-        True
-        False
-        due error
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: K = [frozenset([i]) for i in range(11)]
+        sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+        sage: k = K[10]
+        sage: del K
+        sage: i = D.iterkeys(); d = i.next(); del d
+        sage: len(D.keys())
+        10
+        sage: del k
+
+    At this point, the entry for `k` appears to have disappeared out of `D`,
+    but a reference to `k` is still kept, so the other entries in `D` survive::
+
+        sage: len(D.keys())
+        9
+
+    If we delete the iterator `i` the reference to `k` is dropped, and as a result
+    all entries will disappear from `D`::
+
+        sage: del i
+        sage: len(D.keys())
+        0
 
     """
     cdef WeakValueDictionary Dict
@@ -1150,20 +1152,20 @@ cdef class _IterationContext:
 
         EXAMPLES::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():  # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         self.Dict = Dict
@@ -1175,20 +1177,20 @@ cdef class _IterationContext:
 
         TESTS::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():        # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         self.Dict._guard_level += 1
@@ -1202,20 +1204,20 @@ cdef class _IterationContext:
 
         TESTS::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():      # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         # Propagate errors by returning "False"
