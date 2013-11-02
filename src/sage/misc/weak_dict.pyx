@@ -347,7 +347,7 @@ cdef class WeakValueDictionary(dict):
         sage: len(D)
         0
 
-    TESTS::
+    TESTS:
 
     The following reflects the behaviour of the callback on weak dict values,
     as discussed on :trac:`13394`.  ::
