@@ -144,7 +144,7 @@ cdef extern from "Python.h":
     #PyWeakref_GetObject with borrowed references. This is the recommended
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
-    
+
     #this one's just missing.
     long PyObject_Hash(object obj)
 
@@ -245,7 +245,7 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
     mp.ma_used -= 1
     #in our case, the value is always a dead weakref, so decreffing that is
     #fairly safe
-    Py_XDECREF(old_value) 
+    Py_XDECREF(old_value)
     #this could have any effect.
     Py_XDECREF(old_key)
 
@@ -623,7 +623,7 @@ cdef class WeakValueDictionary(dict):
 
     #def __delitem__(self, k):
     #we don't really have to override this method.
-    
+
     def pop(self, k):
         """
         Return the value for a given key, and delete it from the dictionary.
