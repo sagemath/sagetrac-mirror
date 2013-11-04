@@ -3151,12 +3151,12 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = toric_varieties.P(3).fan()
             sage: cone = fan(2)[0]
             sage: bdry = fan.oriented_boundary(cone);  bdry
-            1-d cone of Rational polyhedral fan in 3-d lattice N
-            - 1-d cone of Rational polyhedral fan in 3-d lattice N
+            -1-d cone of Rational polyhedral fan in 3-d lattice N
+            + 1-d cone of Rational polyhedral fan in 3-d lattice N
             sage: bdry[0]
-            (1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
-            sage: bdry[1]
             (-1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
+            sage: bdry[1]
+            (1, 1-d cone of Rational polyhedral fan in 3-d lattice N)
             sage: fan.oriented_boundary(bdry[0][1])
             -0-d cone of Rational polyhedral fan in 3-d lattice N
             sage: fan.oriented_boundary(bdry[1][1])
@@ -3168,12 +3168,12 @@ class RationalPolyhedralFan(IntegralRayCollection,
         <sage.geometry.cone.IntegralRayCollection.ray_basis>` ::
 
             sage: fan.oriented_boundary(fan)
-            -3-d cone of Rational polyhedral fan in 3-d lattice N
-            + 3-d cone of Rational polyhedral fan in 3-d lattice N
+            3-d cone of Rational polyhedral fan in 3-d lattice N
             - 3-d cone of Rational polyhedral fan in 3-d lattice N
             + 3-d cone of Rational polyhedral fan in 3-d lattice N
+            - 3-d cone of Rational polyhedral fan in 3-d lattice N
             sage: [cone.rays().basis().matrix().det()
-            ...    for cone in fan.generating_cones()]
+            ....:  for cone in fan.generating_cones()]
             [-1, 1, -1, 1]
 
         A non-full dimensional fan::
