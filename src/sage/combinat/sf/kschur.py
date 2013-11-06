@@ -20,6 +20,9 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 import sage.combinat.partition
 import sfa
+from sage.combinat.root_system.weyl_group import WeylGroup
+from sage.matrix.constructor import matrix
+from sage.combinat.sf.sfa import SFAHomogeneous 
 
 
 def kSchurFunctions(R, k, t=None):
@@ -385,6 +388,42 @@ class kSchurFunctions_t(kSchurFunctions_generic):
 
     class Element(kSchurFunctions_generic.Element):
         pass
+
+def k_schur_from_affine_stanley(la,k):  
+    """  
+    This function calculates the k-Schur functions as the dual basis of the  
+    affine Stanley symmetric functions.  
+
+    EXAMPLES:  
+
+        sage: k=3  
+	sage: ks = kSchurFunctions(QQ, k, 1)  
+	sage: s = SFASchur(ks.base_ring()) 
+	sage: all( s(ks(la)) == s(sage.combinat.sf.kschur.k_schur_from_affine_stanley(la,k)) for n in range(5) for la in Partitions(n,max_part=k))  
+	True  
+	sage: s(sage.combinat.sf.kschur.k_schur_from_affine_stanley(Partition([2,2,1]),3))  
+	s[2, 2, 1] + s[3, 2]  
+    """  
+    w = la.from_kbounded_to_grassmannian(k)  
+    d = w.length()  
+    B = dual_basis_matrix(d,k+1)  
+    [rank_row, unrank_row] = sage.combinat.ranker.from_list(B[0])  
+    [rank_col, unrank_col] = sage.combinat.ranker.from_list(B[1])  
+    h=SFAHomogeneous(QQ)  
+    return sum((B[2])[i,rank_row(w)]*h(unrank_col(i)) for i in range(len(B[0])))  
+
+def dual_basis_matrix(d,n):  
+    W=WeylGroup(['A',n-1,1])  
+    col = [p for p in sage.combinat.partition.Partitions(d, max_part=n-1)]  
+    row = [w for w in W.grassmannian_elements_of_given_length(d)]  
+    dim = len(row)  
+    [rank_row, unrank_row] = sage.combinat.ranker.from_list(row)  
+    [rank_col, unrank_col] = sage.combinat.ranker.from_list(col)  
+    B = matrix([[unrank_row(j).stanley_symmetric_function().coefficient(unrank_col(i))  
+		 for i in range(dim)]  
+		for j in range(dim)])  
+    return [row,col,B**(-1)]  
+
 
 #############
 #   Cache   #
