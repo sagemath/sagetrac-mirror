@@ -994,7 +994,7 @@ class ClusterQuiver(SageObject):
         dg.delete_vertices( range(self._n,self._n+self._m) )
         innie = dg.in_degree()
         outie = dg.out_degree()
-        is_bip = sum( [ innie[i]*outie[i] for i in range(len(innie)) ] ) == 0
+        is_bip = not any(innie[i] and outie[i]  for i in range(len(innie)))
         if not is_bip:
             return False
         else:
