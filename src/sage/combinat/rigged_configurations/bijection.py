@@ -49,6 +49,9 @@ from sage.combinat.rigged_configurations.bij_type_A2_dual import RCToKRTBijectio
 from sage.combinat.rigged_configurations.bij_type_A2_odd import KRTToRCBijectionTypeA2Odd
 from sage.combinat.rigged_configurations.bij_type_A2_odd import RCToKRTBijectionTypeA2Odd
 
+from sage.combinat.rigged_configurations.bij_guess import KRTToRCBijectionGuess
+from sage.combinat.rigged_configurations.bij_guess import RCToKRTBijectionGuess
+
 def KRTToRCBijection(tp_krt):
     r"""
     Return the correct KR tableaux to rigged configuration bijection helper class.
@@ -84,7 +87,7 @@ def KRTToRCBijection(tp_krt):
             return KRTToRCBijectionTypeDTwisted(tp_krt)
         #if ct.dual().type() == 'F': # E_6^{(2)}
         #if ct.dual().type() == 'G': # D_4^{(3)}
-    raise NotImplementedError
+    return KRTToRCBijectionGuess(tp_krt)
 
 def RCToKRTBijection(rigged_configuration_elt):
     r"""
@@ -121,5 +124,5 @@ def RCToKRTBijection(rigged_configuration_elt):
             return RCToKRTBijectionTypeDTwisted(rigged_configuration_elt)
         #if ct.dual().type() == 'F': # E_6^{(2)}
         #if ct.dual().type() == 'G': # D_4^{(3)}
-    raise NotImplementedError
+    return RCToKRTBijectionGuess(rigged_configuration_elt)
 
