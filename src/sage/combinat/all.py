@@ -160,4 +160,4 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 
 #Schubert, Grothendieck, etc
-rom multivariate_polynomials.all import *
+from multivariate_polynomials.all import *
