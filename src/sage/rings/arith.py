@@ -2481,15 +2481,38 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
 def factor_or_zero( n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds ):
     r"""
-    If ``n`` is a non-zero, then factor ``n`` otherwise return 0.
+    If ``n`` is non-zero, then factor ``n`` otherwise return 0.
 
     This function is mainly for placing ``n`` in a factorized normal
     form when ``n`` may be an expression that might be 0.  For more
-    details of how ``n`` is factored, consult the help ``n.factor??``.
+    details of how ``n`` is factored, consult either ``n.factor??``
+    or :func:`factor`.
 
-    .. SEEALSO::
+    INPUT:
 
-        - :func:`factor`
+    -  ``n`` - an nonzero integer
+
+    -  ``proof`` - bool or None (default: None)
+
+    -  ``int_`` - bool (default: False) whether to return
+       answers as Python ints
+
+    -  ``algorithm`` - string
+
+       - ``'pari'`` - (default) use the PARI c library
+
+       - ``'kash'`` - use KASH computer algebra system (requires the
+         optional kash package be installed)
+
+       - ``'magma'`` - use Magma (requires magma be installed)
+
+    -  ``verbose`` - integer (default: 0); PARI's debug
+       variable is set to this; e.g., set to 4 or 8 to see lots of output
+       during factorization.
+
+    OUTPUT:
+
+    -  factorization of ``n`` or 0
 
     EXAMPLES::
 
