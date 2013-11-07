@@ -3436,7 +3436,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
-            raise ArithmeticError, "Prime factorization of 0 not defined."
+            raise ArithmeticError, "Prime factorization of 0 not defined.  See factor_or_zero to return 0."
 
         if mpz_sgn(self.value) > 0:
             n    = self

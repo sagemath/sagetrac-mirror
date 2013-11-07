@@ -1589,7 +1589,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: P(0).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: Prime factorization of 0 not defined.  See factor_or_zero to return 0.
 
         Check if we can factor a constant polynomial, see :trac:`8207`::
 
@@ -1609,7 +1609,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         # raise error if trying to factor zero
         if self == 0:
-            raise ArithmeticError, "Prime factorization of 0 not defined."
+            raise ArithmeticError, "Prime factorization of 0 not defined.  See factor_or_zero to return 0."
 
         # if number of variables is zero ...
         if R.ngens() == 0:
