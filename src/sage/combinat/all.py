@@ -105,6 +105,8 @@ from parking_functions import ParkingFunctions, ParkingFunction
 
 from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
+from mary_tree import (MAryTree, MAryTrees, 
+                        LabelledMAryTree, LabelledMAryTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
 

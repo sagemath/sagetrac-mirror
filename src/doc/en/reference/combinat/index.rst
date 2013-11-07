@@ -54,6 +54,7 @@ Combinatorics
    sage/combinat/abstract_tree
    sage/combinat/ordered_tree
    sage/combinat/binary_tree
+   sage/combinat/mary_tree
    sage/combinat/similarity_class_type
    sage/combinat/skew_partition
    sage/combinat/subset
