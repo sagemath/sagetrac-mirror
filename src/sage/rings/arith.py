@@ -2479,6 +2479,36 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
             except AttributeError:
                 raise TypeError, "unable to factor n"
 
+def factor_or_zero( n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds ):
+    r"""
+    If ``n`` is a non-zero, then factor ``n`` otherwise return 0.
+
+    This function is mainly for placing ``n`` in a factorized normal
+    form when ``n`` may be an expression that might be 0.  For more
+    details of how ``n`` is factored, consult the help ``n.factor??``.
+
+    .. SEEALSO::
+
+        - :func:`factor`
+
+    EXAMPLES::
+
+        sage: factor(0)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Prime factorization of 0 not defined.
+        sage: factor_or_zero(0)
+        0
+        sage: factor_or_zero(1/(1-x)-x/(1-x))
+        1
+        sage: factor_or_zero(1/(1-x)-x/(1-x)-1)
+        0
+    """
+    if n==0:
+        return 0
+    else:
+        return factor(n, proof, int_, algorithm, verbose, **kwds)
+
 def radical(n, *args, **kwds):
     """
     Return the product of the prime divisors of n.
