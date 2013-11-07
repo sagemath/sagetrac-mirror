@@ -63,6 +63,7 @@ from copy import copy
 from sage.parallel.multiprocessing_sage import parallel_iter
 from sage.ext.fast_callable        import fast_callable
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
