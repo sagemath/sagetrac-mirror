@@ -90,6 +90,8 @@ from composition_tableau import CompositionTableau, CompositionTableaux
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
+from hall_littlewood_yt import LSTableaux
+
 #Words
 from words.all import *
 
