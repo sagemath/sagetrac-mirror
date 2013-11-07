@@ -23,6 +23,7 @@ from sage.combinat.partition import Partition
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
+from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
 from sage.combinat.subset import Subsets
 from sage.functions.other import factorial
 from sage.sets.set import Set
@@ -56,6 +57,15 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                                              codomain=w, category=category)
         Sym_h_to_w.register_as_coercion()
         self.to_symmetric_function = Sym_h_to_w.section()
+
+        # Embedding of QSym in the Monomial bases into DNCSym in the w basis
+        QSym = QuasiSymmetricFunctions(self.base_ring())
+        QSym_M_to_w = QSym.M().module_morphism(w.sum_of_compositions,
+                                               triangular='lower',
+                                               inverse_on_support=w._set_par_to_comp,
+                                               codomain=w, category=category)
+        QSym_M_to_w.register_as_coercion()
+        self.to_quasisymmetric_function = QSym_M_to_w.section()
 
     def _repr_(self):
         r"""
@@ -151,6 +161,21 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                   To:   Symmetric Functions over Rational Field in the homogeneous basis
             """
             return self.realization_of().to_symmetric_function
+
+        @lazy_attribute
+        def to_quasisymmetric_function(self):
+            r"""
+            The preimage of the inclusion of `QSym` in the `\mathbf{w}` basis.
+
+            EXAMPLES::
+
+                sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                sage: w.to_quasisymmetric_function
+                Generic morphism:
+                  From: Dual symmetric functions in non-commuting variables over the Rational Field in the w basis
+                  To:   Symmetric Functions over Rational Field in the homogeneous basis
+            """
+            return self.realization_of().to_quasisymmetric_function
 
         def dual_basis(self):
             r"""
@@ -371,6 +396,35 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             P = SetPartitions()
             return self.sum_of_terms([(P(m), c) for m in SetPartitions(sum(la), la)], distinct=True)
 
+        def sum_of_compositions(self, alpha):
+            r"""
+            Return the sum over all sets partitions whose canonical ordered
+            shape is ``alpha`` with a fixed coefficient `C` defined below.
+
+            Fix a composition `\alpha`, we define  a lift `QSym` to `NCSym` by
+
+            .. MATH::
+
+                M_{\alpha} \mapsto \sum_A \mathbf{w}_A
+
+            where the sum is over all set partitions whose canonical ordered
+            shape is `\alpha`. The canonical ordered shape of a set partition
+            is the composition of the sizes of the parts ordered
+            lexicographically.
+
+            EXAMPLES::
+
+                sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                sage: w.sum_of_compositions(Composition([1,2,1]))
+                w{{1}, {2, 3}, {4}} + w{{1}, {2, 4}, {3}}
+            """
+            alpha = Composition(alpha) # Make sure it is a composition
+            la = alpha.to_partition()
+            P = SetPartitions()
+            c = prod(map(factorial, la.to_exp()))
+            return self.sum_of_terms([(P(m), c) for m in SetPartitions(sum(la), la)
+                                      if map(len, m) == alpha], distinct=True)
+
         def _set_par_to_par(self, A):
             r"""
             Return the the shape of ``A`` if ``A`` is the canonical standard
@@ -421,6 +475,28 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 prev_len = len(p)
                 cur += len(p)
             return A.shape()
+
+        def _set_par_to_comp(self, A):
+            """
+            Return the the canonical ordered shape of `A` if `A` is the
+            canonical standard set partition `A_1 | A_2 | \cdots | A_k`
+            where `|` is the
+            :meth:~sage.combinat.set_partition.SetPartition.pipe()`
+            operation and `A_1 < A_2 < \cdots < A_k` are the parts of A
+            (ordered lexicographically)
+
+            EXAMPLES::
+
+                sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                sage: w._set_par_to_par(SetPartition([[1], [2], [3, 4, 5]]))
+                [1, 1, 3]
+            """
+            cur = 1
+            for p in A:
+                if list(p) != range(cur, cur+len(p)):
+                    return None
+                cur += len(p)
+            return Composition(map(len, A))
 
         class Element(CombinatorialFreeModule.Element):
             r"""
@@ -587,3 +663,90 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 d = {A.shape(): c for A,c in self}
                 return h.sum_of_terms([( AA, cc / prod(map(factorial, AA.to_exp())) )
                                         for AA,cc in d.items()], distinct=True)
+
+            def is_quasisymmetric(self):
+                r"""
+                Determine if a dual `NCSym` function, expressed in the
+                `\mathbf{w}` basis, is quasisymmetric.
+
+                A function `f` in the `\mathbf{w}` basis is a quasisymmetric
+                function if it is we have
+
+                .. MATH::
+
+                    f = \sum_{\alpha} c_{\alpha}
+                    \sum_{\alpha(A) = \alpha} \mathbf{w}_A
+
+                where the sum is over all set partitions `A` whose canonical
+                ordered shape `\alpha(A)` is equal to `\alpha`.
+
+                EXAMPLES::
+
+                    sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                    sage: elt = w.sum_of_compositions([2,1,1])
+                    sage: elt.is_quasisymmetric()
+                    True
+                    sage: elt -= 3*w.sum_of_compositions([1,1])
+                    sage: elt.is_quasisymmetric()
+                    True
+                    sage: elt = w[[1,3],[2]]
+                    sage: elt.is_quasisymmetric()
+                    False
+                    sage: elt = w[[1],[2,3]] + 2*w[[1,2],[3]] + 2*w[[1,3],[2]]
+                    sage: elt.is_quasisymmetric()
+                    True
+                """
+                d = {}
+                for A, coeff in self:
+                    alpha = Composition(map(len, A))
+                    if alpha not in d:
+                        d[alpha] = [coeff, 1]
+                    else:
+                        if d[alpha][0] != coeff:
+                            return False
+                        d[alpha][1] += 1
+                # Make sure we've seen each set partition of the canonical ordered shape
+                for alpha in d:
+                    if d[alpha][1] != sum(1 for x in SetPartitions(sum(alpha), alpha.to_partition())
+                                            if map(len, x) == alpha):
+                        return False
+                return True
+
+            def to_quasisymmetric_function(self):
+                r"""
+                Take a function in the `\mathbf{w}` basis, and return its
+                quasisymmetric realization, when possible, expressed in the
+                Monomial basis of quasisymmetric functions.
+
+                OUTPUT:
+
+                - If ``self`` is a quasisymmetric function, then the expansion
+                  in the Monomial basis of the quasisymmetric functions is
+                  returned. Otherwise an error is raised.
+
+                EXAMPLES::
+
+                    sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                    sage: elt = w[[1],[2,3]] + w[[1,2],[3]] + w[[1,3],[2]]
+                    sage: elt.to_quassymmetric_function()
+                    h[2, 1]
+                    sage: elt = w.sum_of_partitions([2,1,1]) / 2
+                    sage: elt.to_quasisymmetric_function()
+                    1/2*h[2, 1, 1]
+
+                TESTS::
+
+                    sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
+                    sage: w(0).to_quasisymmetric_function()
+                    0
+                    sage: w([]).to_quasisymmetric_function()
+                    h[]
+                    sage: (2*w([])).to_quasisymmetric_function()
+                    2*h[]
+                """
+                if not self.is_quasisymmetric():
+                    raise ValueError("not a quasisymmetric function")
+                h = QuasiSymmetricFunctions(self.parent().base_ring()).Monomial()
+                d = {Composition(map(len, A)): c for A,c in self}
+                return h.sum_of_terms([(A, c) for A,c in d.items()], distinct=True)
+
