@@ -2528,7 +2528,7 @@ def factor_or_zero( n, proof=None, int_=False, algorithm='pari', verbose=0, **kw
         0
     """
     if n==0:
-        return 0
+        return sage.structure.factorization.Factorization([(0,1)])
     else:
         return factor(n, proof, int_, algorithm, verbose, **kwds)
 
