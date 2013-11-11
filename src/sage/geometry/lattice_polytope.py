@@ -4967,7 +4967,7 @@ _octahedrons = dict()       # Dictionary for storing created octahedrons
 
 _palp_dimension = None
 
-def _palp(command, polytopes, reduce_dimension=False):
+def _palp(command, polytopes=None, reduce_dimension=False, vertices=None):
     r"""
     Run ``command`` on vertices of given
     ``polytopes``.
@@ -5013,14 +5013,20 @@ def _palp(command, polytopes, reduce_dimension=False):
         command = command[:dot] + "-%dd" % _palp_dimension + command[dot:]
     input_file_name = tmp_filename()
     input_file = open(input_file_name, "w")
-    for p in polytopes:
-        if p.dim() == 0:
-            raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
-                + "polytope!\nPolytope: %s") % (command, p))
-        if p.dim() < p.ambient_dim() and not reduce_dimension:
-            raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
-            "in a %d-dimensional space!") % (p.dim(), p.ambient_dim()))
-        write_palp_matrix(p._pullback(p._vertices), input_file)
+    if polytopes:
+        for p in polytopes:
+            if p.dim() == 0:
+                raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
+                    + "polytope!\nPolytope: %s") % (command, p))
+            if p.dim() < p.ambient_dim() and not reduce_dimension:
+                raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
+                "in a %d-dimensional space!") % (p.dim(), p.ambient_dim()))
+            write_palp_matrix(p._pullback(p._vertices), input_file)
+    elif vertices:
+        for v in vertices:
+            write_palp_matrix(v, input_file)
+    else:
+        raise ValueError('Either polytopes or vertices must be passed.')
     input_file.close()
     output_file_name = tmp_filename()
     c = "%s <%s >%s" % (command, input_file_name, output_file_name)
