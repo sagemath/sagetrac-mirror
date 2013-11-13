@@ -1,3 +1,5 @@
+# distutils: libraries = gmp
+
 r"""
 Compute Bell and Uppuluri-Carpenter numbers
 

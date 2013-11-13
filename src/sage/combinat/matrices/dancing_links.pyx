@@ -1,3 +1,6 @@
+# distutils: language = c++
+# distutils: libraries = stdc++
+
 """
 Dancing Links internal pyx code
 """

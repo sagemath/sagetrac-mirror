@@ -189,27 +189,6 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.combinat.expnums',
-              sources = ['sage/combinat/expnums.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.combinat.matrices.dancing_links',
-              sources = ['sage/combinat/matrices/dancing_links.pyx'],
-              libraries = ["stdc++"],
-              language='c++'),
-
-    Extension('sage.structure.list_clone',
-              sources=['sage/structure/list_clone.pyx']),
-
-    Extension('sage.structure.list_clone_demo',
-              sources=['sage/structure/list_clone_demo.pyx']),
-
-    Extension('sage.structure.list_clone_timings_cy',
-              sources=['sage/structure/list_clone_timings_cy.pyx']),
-
-    Extension('sage.sets.finite_set_map_cy',
-              sources=['sage/sets/finite_set_map_cy.pyx']),
-
     Extension('sage.combinat.partitions',
               sources = ['sage/combinat/partitions.pyx',
                          'sage/combinat/partitions_c.cc'],
@@ -223,30 +202,7 @@ ext_modules = [
             libraries = ['stdc++'],
             language='c++'),
 
-    Extension('sage.combinat.permutation_cython',
-              sources=['sage/combinat/permutation_cython.pyx']),
-
-    Extension('sage.combinat.dict_addition',
-              sources=['sage/combinat/dict_addition.pyx']),
-
-    Extension('sage.combinat.debruijn_sequence',
-              sources=['sage/combinat/debruijn_sequence.pyx']),
-
-    Extension('sage.combinat.degree_sequences',
-              sources = ['sage/combinat/degree_sequences.pyx']),
-
-    Extension('sage.combinat.combinat_cython',
-              sources=['sage/combinat/combinat_cython.pyx'],
-              libraries=['gmp']),
-
-    Extension('sage.combinat.enumeration_mod_permgroup',
-              sources=['sage/combinat/enumeration_mod_permgroup.pyx']),
-
-    Extension('sage.combinat.q_bernoulli',
-              sources = ['sage/combinat/q_bernoulli.pyx']),
-
-    Extension('sage.combinat.crystals.letters',
-              sources=['sage/combinat/crystals/letters.pyx']),
+    Extension('*', sources=['sage/combinat/**/*.pyx']),
 
     ################################
     ##
