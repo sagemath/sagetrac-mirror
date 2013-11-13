@@ -1188,16 +1188,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.quadratic_forms.count_local_2',
-              sources = ['sage/quadratic_forms/count_local_2.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.quadratic_forms.quadratic_form__evaluate',
-              sources = ['sage/quadratic_forms/quadratic_form__evaluate.pyx']),
-
-
-    Extension('sage.quadratic_forms.ternary',
-              sources = ['sage/quadratic_forms/ternary.pyx']),
+    Extension('*', sources = ['sage/quadratic_forms/*.pyx']),
 
     ################################
     ##
@@ -1376,8 +1367,7 @@ ext_modules = [
         ##
         ################################
 
-    Extension('sage.rings.function_field.function_field_element',
-              sources = ['sage/rings/function_field/function_field_element.pyx']),
+    Extension('*', sources = ['sage/rings/function_field/*.pyx']),
 
         ################################
         ##
@@ -1608,8 +1598,7 @@ ext_modules = [
         ##
         ################################
 
-    Extension('sage.rings.semirings.tropical_semiring',
-              sources = ['sage/rings/semirings/tropical_semiring.pyx']),
+    Extension('*', sources = ['sage/rings/semirings/*.pyx']),
 
     ################################
     ##
@@ -1660,21 +1649,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.stats.hmm.util',
-              sources = ['sage/stats/hmm/util.pyx']),
-
-    Extension('sage.stats.hmm.distributions',
-              sources = ['sage/stats/hmm/distributions.pyx']),
-
-    Extension('sage.stats.hmm.hmm',
-              sources = ['sage/stats/hmm/hmm.pyx']),
-
-    Extension('sage.stats.hmm.chmm',
-              sources = ['sage/stats/hmm/chmm.pyx'],
-              extra_compile_args=["-std=c99"]),
-
-    Extension('sage.stats.intlist',
-              sources = ['sage/stats/intlist.pyx']),
+    Extension('*', sources = ['sage/stats/**/*.pyx']),
 
     ################################
     ##
@@ -1755,8 +1730,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.sat.solvers.satsolver',
-              sources = ['sage/sat/solvers/satsolver.pyx']),
+    Extension('*', sources = ['sage/sat/solvers/*.pyx']),
+
     ]
 
 # Optional extensions :

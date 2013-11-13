@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -std=c99
+
 """
 Continuous Emission Hidden Markov Models
 
