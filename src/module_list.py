@@ -355,50 +355,10 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.graphs.chrompoly',
-              sources = ['sage/graphs/chrompoly.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.graphs.cliquer',
-              sources = ['sage/graphs/cliquer.pyx'],
-              libraries = ['cliquer']),
-
-
-    Extension('sage.graphs.graph_decompositions.vertex_separation',
-              sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
-
-    Extension('sage.graphs.graph_decompositions.graph_products',
-              sources = ['sage/graphs/graph_decompositions/graph_products.pyx']),
-
-    Extension('sage.graphs.convexity_properties',
-              sources = ['sage/graphs/convexity_properties.pyx']),
-
-    Extension('sage.graphs.comparability',
-              sources = ['sage/graphs/comparability.pyx']),
-
-    Extension('sage.graphs.generic_graph_pyx',
-              sources = ['sage/graphs/generic_graph_pyx.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.graphs.graph_generators_pyx',
-              sources = ['sage/graphs/graph_generators_pyx.pyx']),
-
-    Extension('sage.graphs.distances_all_pairs',
-              sources = ['sage/graphs/distances_all_pairs.pyx']),
-
-    Extension('sage.graphs.base.static_sparse_graph',
-              sources = ['sage/graphs/base/static_sparse_graph.pyx']),
-
-    Extension('sage.graphs.base.static_sparse_backend',
-              sources = ['sage/graphs/base/static_sparse_backend.pyx']),
-
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
                          'sage/graphs/modular_decomposition/src/dm.c'],
               depends = ['sage/graphs/modular_decomposition/src/dm_english.h']),
-
-    Extension('sage.graphs.weakly_chordal',
-              sources = ['sage/graphs/weakly_chordal.pyx']),
 
     Extension('sage.graphs.matchpoly',
               sources = ['sage/graphs/matchpoly.pyx'],
@@ -459,17 +419,7 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
                          'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
-    Extension('sage.graphs.spanning_tree',
-              sources = ['sage/graphs/spanning_tree.pyx']),
-
-    Extension('sage.graphs.trees',
-              sources = ['sage/graphs/trees.pyx']),
-
-    Extension('sage.graphs.genus',
-              sources = ['sage/graphs/genus.pyx']),
-
-    Extension('sage.graphs.hyperbolicity',
-              sources = ['sage/graphs/hyperbolicity.pyx']),
+    Extension('*', sources = ['sage/graphs/*.pyx']),
 
         ################################
         ##
@@ -477,14 +427,7 @@ ext_modules = [
         ##
         ################################
 
-    Extension('sage.graphs.base.c_graph',
-              sources = ['sage/graphs/base/c_graph.pyx']),
-
-    Extension('sage.graphs.base.sparse_graph',
-              sources = ['sage/graphs/base/sparse_graph.pyx']),
-
-    Extension('sage.graphs.base.dense_graph',
-              sources = ['sage/graphs/base/dense_graph.pyx']),
+    Extension('*', sources = ['sage/graphs/base/*.pyx']),
 
     ################################
     ##
@@ -492,20 +435,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.groups.group',
-              sources = ['sage/groups/group.pyx']),
-
-    Extension('sage.groups.old',
-              sources = ['sage/groups/old.pyx']),
-
-    Extension('sage.groups.libgap_wrapper',
-              sources = ['sage/groups/libgap_wrapper.pyx']),
-
-    Extension('sage.groups.perm_gps.permgroup_element',
-              sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
-
-    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
-              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+    Extension('*', sources = ['sage/groups/*.pyx']),
 
         ###################################
         ##

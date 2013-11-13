@@ -1,3 +1,5 @@
+# distutils: libraries = gmp
+
 """
 GenericGraph Cython functions
 

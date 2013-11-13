@@ -1,3 +1,5 @@
+# distutils: libraries = gmp
+
 """
 Chromatic Polynomial Routine
 
