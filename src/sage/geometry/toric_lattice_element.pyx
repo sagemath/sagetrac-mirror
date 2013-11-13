@@ -1,3 +1,5 @@
+# distutils: libraries = gmp
+
 r"""
 Toric lattice elements
 

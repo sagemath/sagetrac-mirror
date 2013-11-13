@@ -254,8 +254,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.crypto.boolean_function',
-              sources = ['sage/crypto/boolean_function.pyx']),
+    Extension('*', sources = ['sage/crypto/*.pyx']),
 
     ################################
     ##
@@ -311,8 +310,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx']),
+    Extension('*', sources = ['sage/functions/*.pyx']),
 
      ################################
      ##
@@ -320,24 +318,13 @@ ext_modules = [
      ##
      ################################
 
-     Extension('sage.games.sudoku_backtrack',
-               sources = ['sage/games/sudoku_backtrack.pyx']),
+     Extension('*', sources = ['sage/games/*.pyx']),
 
      ################################
      ##
      ## sage.geometry
      ##
      ################################
-
-     Extension('sage.geometry.point_collection',
-               sources = ['sage/geometry/point_collection.pyx']),
-
-     Extension('sage.geometry.toric_lattice_element',
-               sources = ['sage/geometry/toric_lattice_element.pyx'],
-               libraries=['gmp']),
-
-     Extension('sage.geometry.integral_points',
-               sources = ['sage/geometry/integral_points.pyx']),
 
      Extension('sage.geometry.triangulation.base',
                sources = ['sage/geometry/triangulation/base.pyx',
@@ -348,6 +335,8 @@ ext_modules = [
                           'sage/geometry/triangulation/data.h',
                           'sage/geometry/triangulation/triangulations.h'],
                language="c++"),
+
+     Extension('*', sources = ['sage/geometry/*.pyx']),
 
     ################################
     ##
