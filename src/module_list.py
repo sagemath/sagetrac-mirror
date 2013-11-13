@@ -619,9 +619,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.interacts.library_cython',
-              sources = ['sage/interacts/library_cython.pyx'],
-              libraries = []),
+    Extension('*', sources = ['sage/interacts/*.pyx']),
 
     ################################
     ##
@@ -1109,32 +1107,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.matroids.matroid',
-            ['sage/matroids/matroid.pyx']),
-
-    Extension('sage.matroids.extension',
-            ['sage/matroids/extension.pyx']),
-
-    Extension('sage.matroids.set_system',
-            ['sage/matroids/set_system.pyx']),
-
-    Extension('sage.matroids.lean_matrix',
-            ['sage/matroids/lean_matrix.pyx']),
-
-    Extension('sage.matroids.basis_exchange_matroid',
-            ['sage/matroids/basis_exchange_matroid.pyx']),
-
-    Extension('sage.matroids.basis_matroid',
-            ['sage/matroids/basis_matroid.pyx']),
-
-    Extension('sage.matroids.linear_matroid',
-            ['sage/matroids/linear_matroid.pyx']),
-
-    Extension('sage.matroids.circuit_closures_matroid',
-            ['sage/matroids/circuit_closures_matroid.pyx']),
-
-    Extension('sage.matroids.unpickling',
-            ['sage/matroids/unpickling.pyx']),
+    Extension('*', ['sage/matroids/*.pyx']),
 
     ################################
     ##
@@ -1142,8 +1115,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.media.channels',
-              sources = ['sage/media/channels.pyx']),
+    Extension('*', sources = ['sage/media/*.pyx']),
 
     ################################
     ##
@@ -1151,97 +1123,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.misc.allocator',
-              sources = ['sage/misc/allocator.pyx']),
-
-    Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx']),
-
-    Extension('sage.misc.cachefunc',
-              sources = ['sage/misc/cachefunc.pyx']),
-
-    Extension('sage.misc.citation',
-              sources = ['sage/misc/citation.pyx']),
-
-    Extension('sage.misc.constant_function',
-              sources = ['sage/misc/constant_function.pyx']),
-
-    Extension('sage.misc.cython_c',
-              sources = ['sage/misc/cython_c.pyx']),
-
-    Extension('sage.misc.c3',
-              sources = ['sage/misc/c3.pyx']),
-
-    Extension('sage.misc.c3_controlled',
-              sources = ['sage/misc/c3_controlled.pyx']),
-
-    Extension('sage.misc.derivative',
-              sources = ['sage/misc/derivative.pyx']),
-
-    Extension('sage.misc.fpickle',
-              sources = ['sage/misc/fpickle.pyx']),
-
-    Extension('sage.misc.function_mangling',
-              sources = ['sage/misc/function_mangling.pyx']),
-
-    Extension('sage.misc.lazy_attribute',
-              sources = ['sage/misc/lazy_attribute.pyx']),
-
-    Extension('sage.misc.inputhook',
-              sources = ['sage/misc/inputhook.pyx']),
-
-    Extension('sage.misc.lazy_import',
-              sources = ['sage/misc/lazy_import.pyx']),
-
-    Extension('sage.misc.lazy_list',
-              sources = ['sage/misc/lazy_list.pyx']),
-
-    Extension('sage.misc.misc_c',
-              sources = ['sage/misc/misc_c.pyx']),
-
-    Extension('sage.misc.nested_class',
-              sources = ['sage/misc/nested_class.pyx']),
-
-    Extension('sage.misc.parser',
-              sources = ['sage/misc/parser.pyx']),
-
-    Extension('sage.misc.pickle_old',
-              sources = ['sage/misc/pickle_old.pyx']),
-
-    Extension('sage.misc.randstate',
-              sources = ['sage/misc/randstate.pyx'],
-              libraries = ['gmp']),
-
-    Extension('sage.misc.readline_extra_commands',
-              sources = ['sage/misc/readline_extra_commands.pyx'],
-              libraries = ['readline']),
-
-    Extension('sage.misc.refcount',
-              sources = ['sage/misc/refcount.pyx']),
-
-    Extension('sage.misc.reset',
-              sources = ['sage/misc/reset.pyx']),
-
-    Extension('sage.misc.sage_timeit_class',
-              sources = ['sage/misc/sage_timeit_class.pyx']),
-
-    Extension('sage.misc.classcall_metaclass',
-              sources = ['sage/misc/classcall_metaclass.pyx']),
-
-    Extension('sage.misc.fast_methods',
-              sources = ['sage/misc/fast_methods.pyx']),
-
-    Extension('sage.misc.binary_tree',
-              sources = ['sage/misc/binary_tree.pyx']),
-
-    Extension('sage.misc.search',
-              sources = ['sage/misc/search.pyx']),
-
-    Extension('sage.misc.session',
-              sources = ['sage/misc/session.pyx']),
-
-    Extension('sage.misc.stopgap',
-              sources = ['sage/misc/stopgap.pyx']),
+    Extension('*', sources = ['sage/misc/*.pyx']),
 
     ################################
     ##

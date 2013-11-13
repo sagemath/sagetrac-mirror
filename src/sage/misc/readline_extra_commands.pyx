@@ -1,3 +1,5 @@
+# distutils: libraries = readline
+
 r"""
 Extra readline commands
 
