@@ -1916,24 +1916,6 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.structure.category_object',
-              sources = ['sage/structure/category_object.pyx']),
-
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']),
-
-    Extension('sage.structure.coerce_actions',
-              sources = ['sage/structure/coerce_actions.pyx']),
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']),
-
-    Extension('sage.structure.coerce_maps',
-              sources = ['sage/structure/coerce_maps.pyx']),
-
-    Extension('sage.structure.debug_options',
-              sources=['sage/structure/debug_options.pyx']),
-
     # Compile this with -Os because it works around a bug with
     # GCC-4.7.3 + Cython 0.19 on Itanium, see Trac #14452. Moreover, it
     # actually results in faster code than -O3.
@@ -1941,38 +1923,8 @@ ext_modules = [
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
 
-    Extension('sage.structure.element_wrapper',
-              sources = ['sage/structure/element_wrapper.pyx']),
-
-    Extension('sage.structure.factory',
-              sources = ['sage/structure/factory.pyx']),
-
-    Extension('sage.structure.generators',
-              sources = ['sage/structure/generators.pyx']),
-
-    Extension('sage.structure.mutability',
-              sources = ['sage/structure/mutability.pyx']),
-
-    Extension('sage.structure.misc',
-              sources = ['sage/structure/misc.pyx']),
-
-    Extension('sage.structure.parent',
-              sources = ['sage/structure/parent.pyx']),
-
-    Extension('sage.structure.parent_base',
-              sources = ['sage/structure/parent_base.pyx']),
-
-    Extension('sage.structure.parent_gens',
-              sources = ['sage/structure/parent_gens.pyx']),
-
-    Extension('sage.structure.parent_old',
-              sources = ['sage/structure/parent_old.pyx']),
-
-    Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']),
-
-    Extension('sage.structure.wrapper_parent',
-              sources = ['sage/structure/wrapper_parent.pyx']),
+    Extension('*',
+              sources = ['sage/structure/*.pyx']),
 
     ################################
     ##
