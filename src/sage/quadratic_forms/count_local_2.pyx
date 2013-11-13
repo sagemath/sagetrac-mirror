@@ -1,3 +1,5 @@
+# distutils: libraries = gmp
+
 r"""
 Optimised Cython code for counting congruence solutions
 """
