@@ -81,6 +81,8 @@ from sage.libs.ppl import (
     point, ray, line, Generator, Generator_System,
     Constraint_System,
     Poly_Con_Relation )
+from sage.geometry.polyhedron.lattice_euclidean_group_element import (
+    LatticePolytopeNoEmbeddingError, LatticePolytopesNotIsomorphicError )
 
 
 
@@ -1099,13 +1101,53 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             lattice_gens.append(perm_list)
         return PermutationGroup(lattice_gens, domain=point_labels)
 
-    def affine_normal_form(self):
+    def affine_normal_form(self, output='matrix'):
         r"""
         Return the affine normal form of ``self``.
 
+        Note that this method calls
+        :meth:`~sage.geometry.lattice_polytope.LatticePolytopeClass.affine_normal_form`
+        with parameter ``ignore_embedding=True`` in order to perform the
+        computation, which is very slow.
+
+        INPUT:
+
+        - ``output`` -- string, (default: ``'matrix'``) 
+            One of ``'matrix'``, ``'hash'``, or ``'tuple'``,
+            determining how to represent the affine normal form
+            of ``self``.
+            If ``output='matrix'``, return a matrix whose columns correspond
+            to the vertices of ``self`` in affine normal form.
+            If ``output='tuple'``, a tuple of the same points is returned
+            instead.
+            If ``output='hash'``, the md5 hash of the string representing
+            the affine normal form matrix is returned.
+
         OUTPUT:
  
-        A matrix with the vertices in normal form.
+        A matrix, a string, or a tuple. See ``output`` for more details.
+
+        EXAMPLES::
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 2), (-1, 3), (0, 0))
+            sage: p.affine_normal_form()
+            [0 1 2]
+            [0 0 5]
+            sage: p.affine_normal_form(output='tuple')
+            ((0, 0), (1, 0), (2, 5))
+            sage: q = LatticePolytope_PPL((1, 0, 0), (0, 0, 1), (-1, 0, -1))
+            sage: q.affine_normal_form()
+            [0 1 2]
+            [0 0 3]
+            sage: r = LatticePolytope_PPL((1, 0, 0), (0, 1, 0),\
+            ....: (0, 0, 1), (-1, -1, -1))
+            sage: r.affine_normal_form()
+            [0 1 0 3]
+            [0 0 1 3]
+            [0 0 0 4]
+            sage: r.affine_normal_form(output='hash')
+            '19768c02d2ebecaa737074dff0b91a5e'
         """
         # This is a terrible way of doing things
         # but for now it's the simplest thing to do
@@ -1113,15 +1155,55 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             from sage.geometry.lattice_polytope import LatticePolytope
             lp = LatticePolytope(self.vertices())
             self._anf = lp.affine_normal_form(ignore_embedding = True)
-        return self._anf
+        if output == 'matrix':
+            return self._anf
+        elif output == 'hash':
+            import hashlib
+            h = hashlib.md5(self._anf.str()).hexdigest()
+            return h
+        elif output == 'tuple':
+            return tuple(self._anf.columns())
+        else:
+            raise ValueError(output + ' is not a valid parameter for output.')
     
-    def normal_form(self):
+    def normal_form(self, output='matrix'):
         r"""
         Return the normal form of ``self``.
 
+        Note that this method calls
+        :meth:`~sage.geometry.lattice_polytope.LatticePolytopeClass.normal_form`
+        with parameter ``ignore_embedding=True`` in order to perform the
+        computation, which is very slow.
+
+        INPUT:
+
+        - ``output`` -- string, (default: ``'matrix'``) 
+            One of ``'matrix'``, ``'hash'``, or ``'tuple'``,
+            determining how to represent the affine normal form
+            of ``self``.
+            If ``output='matrix'``, return a matrix whose columns correspond
+            to the vertices of ``self`` in affine normal form.
+            If ``output='tuple'``, a tuple of the same points is returned
+            instead.
+            If ``output='hash'``, the md5 hash of the string representing
+            the affine normal form matrix is returned.
+
         OUTPUT:
  
-        A matrix with the vertices in normal form.
+        A matrix, a string, or a tuple. See ``output`` for more details.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 2), (-1, 3), (0, 0))
+            sage: p.normal_form()
+            [0 1 4]
+            [0 0 5]
+            sage: q = LatticePolytope_PPL((1, 0, 0), (0, 0, 1), (-1, 0, -1))
+            sage: q.normal_form()
+            [ 1  0 -1]
+            [ 0  1 -1]
         """
         # This is a terrible way of doing things
         # but for now it's the simplest thing to do
@@ -1129,9 +1211,52 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             from sage.geometry.lattice_polytope import LatticePolytope
             lp = LatticePolytope(self.vertices())
             self._nf = lp.normal_form(ignore_embedding = True)
-        return self._nf
+        if output == 'matrix':
+            return self._nf
+        elif output == 'hash':
+            import hashlib
+            h = hashlib.md5(self._nf.str()).hexdigest()
+            return h
+        elif output == 'tuple':
+            return tuple(self._nf.columns())
+        else:
+            raise ValueError(output + ' is not a valid parameter for output.')
 
-    def is_isomorphic(self, other, check_affine=True):
+    def is_embeddable_in(self, other, affine=True):
+        r"""
+        Check whether ``self`` can be embedded in ``other``.
+
+        INPUT:
+
+        - ``other`` -- A LatticePolytope_PPL.
+
+        - ``affine`` -- (default: ``True``) If ``True``, check whether
+            there exists an affine transformation embedding ``self``
+            in ``other``. If ``False``, allow only linear transformations.
+
+        OUTPUT:
+
+        A Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: ReflexivePolytope_PPL
+            sage: p, q, r = [ReflexivePolytope_PPL(2, i) for i in [0, 1, 15]]
+            sage: p.is_embeddable_in(q)
+            False
+            sage: q.is_embeddable_in(p)
+            False
+            sage: p.is_embeddable_in(r)
+            True
+        """
+        try:
+            self.embed_in(other, output='sub_polytope')
+            return True
+        except LatticePolytopeNoEmbeddingError:
+            return False
+
+    def is_isomorphic(self, other, affine=True):
         r"""
         Test if ``self`` and ``polytope`` are isomorphic.
 
@@ -1152,7 +1277,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         if other.n_integral_points() != self.n_integral_points():
             return False
         # This is a terribly lazy way of doing things:
-        if check_affine:
+        if affine:
             return other.affine_normal_form() == self.affine_normal_form()
         else:
             return other.normal_form() == self.normal_form()
@@ -1184,54 +1309,99 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sub = list(pointset.difference([v]))
             yield LatticePolytope_PPL(*sub)
 
-    def sub_polytopes(self, verbose=False, return_hashes=False,
-                      max_batch=5000, return_vertices_only=False):
+    def sub_polytopes(self, affine=True, return_hashes=False, max_batch=5000,
+                      verbose=False, vertices_only=False):
         r"""
         Compute all subpolytopes of ``self``.
 
-        Hashing is not good yet....
+        INPUT:
 
-        And do it fast!
+        - ``affine`` -- (default: ``True``) If ``True``, identify sub polytopes
+            that are related by affine transformation. If ``False``,
+            then only those related by linear transformations are
+            identified.
+
+        - ``return_hashes`` -- (default: ``True``) If ``True``, then
+            the return value is a tuple of tuples of dicts structured as
+            follows::
+            ``result[dim][integral_points - 1][md5_hash] = sub_polytope``
+            If ``False``, just return a tuple of all subpolytopes.
+
+        - ``max_batch`` -- (default: ``5000``) Integer, set the
+            batch size submitted to PALP. Note that ``max_batch`` is
+            not the number of polytopes submitted to PALP, but
+            the number of polytopes whose subpolytopes are sent to PALP
+            in one pass.
+            Note that setting ``max_batch`` to large values may result
+            in a single very large file being processed by PALP.
+
+        - ``vertices_only`` -- (default: ``False``) If ``False``,
+            return a matrix of vertices, if ``True`` return the corresponding
+            ``LatticePolytope_PPL`` instead.
+
+        - ``verbose`` -- (default: ``False``) If ``True``, print
+            debugging information.
+
+        OUTPUT:
+
+        A tuple. See parameter ``return_hashes`` for more information.
+
+        TODO: Clean up code and improve affine handling...
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL, LatticePolytope_PPL_class
+       
+        Apart from the ordering, this method gives the same output
+        as the method of LatticePolygon_PPL_class. However, it is
+        significantly faster for large polytopes::
+
+            sage: p = LatticePolytope_PPL((1,0),(0,1),(-1,-4),(2,5),(3,9))
+            sage: s1 = p.sub_polytopes() # long time -- 5.1s on i7-2600
+            sage: s2 = LatticePolytope_PPL_class.sub_polytopes(p) # long time -- 1s on i7-2600
+            sage: len(s1) == len(s2) # long time
+            True
+            
+        
         """
         from sage.matrix.matrix import is_Matrix
         def process_poly(poly, force_process = False):
-            if is_Matrix(poly) and not return_vertices_only:
+            if is_Matrix(poly) and not vertices_only:
                 return LatticePolytope_PPL(*poly.columns())
-            elif return_vertices_only or force_process:
+            elif vertices_only or force_process:
                 m = matrix(poly.vertices()).transpose()
                 m.set_immutable()
                 return m
             else:
                 return poly
 
-        if not hasattr(self, "_sub_polytopes"):
-            import hashlib
-            from sage.misc.misc import cputime, walltime
+        if (affine and not hasattr(self, "_sub_polytopes_affine")) or \
+           (not affine and not hasattr(self, "_sub_polytopes_normal")) :
             from sage.functions.other import ceil
 
             d = self.affine_dimension()
             if d <> self.space_dimension():
-                raise ValueError('At the moment we can only compute the'\
-                               + 'subpolytopes of full dimensional polytopes.')
+                raise NotImplementedError('At the moment we can only compute'\
+                    + ' the subpolytopes of full dimensional polytopes.')
 
             n_pts = self.n_integral_points()
             # Sort hashes by dimension and by number of integral points
-            hashes = [[dict() for i in range(n_pts)] for j in range(d + 1)]
-
+            hashes = tuple([[dict() for i in range(n_pts)] 
+                            for j in range(d + 1)])
             # Add self
-            s = hashlib.md5(self.normal_form().str()).hexdigest()            
-            hashes[d][n_pts - 1][s] = process_poly(self)
+            if affine:
+                h = self.affine_normal_form(output='hash')
+            else:
+                h = self.normal_form(output='hash')
+            hashes[d][n_pts - 1][h] = process_poly(self)
             todo = [self]
-            if verbose:
-                t1, t2 = cputime(), walltime()
-            n_found = 1
-
-            while n_pts:
+            while n_pts > 1:
                 n_pts -= 1
                 n_set = len(todo)
                 if verbose:
-                    print 'The set with', n_pts, 'integral points has', n_set, 'polytopes.'
-
+                    print 'The set with', n_pts, 'integral points has', \
+                           n_set, 'polytopes.'
                 # Ha! We can simply compute the subpolytopes of all polytopes in todo
                 # But let's slice this up into smaller batches
                 n_batches = ceil(n_set / float(max_batch))
@@ -1239,50 +1409,76 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                     print 'The set is split up into', n_batches, 'batches.'
                 batches = [todo[max_batch*k:max_batch*(k + 1)] for k in range(n_batches)]
                 todo = []
+                affine_hashes = [dict() for j in range(d + 1)]
                 for k, batch in enumerate(batches):
                     if verbose:
                         print "  Batch", k + 1, ":"
-                    
                     sub_polys = [p for q in batch for p in q.sub_polytope_generator() \
                                  if not p.is_empty()]
                     if verbose:
-                        t1, t2 = cputime(t1), walltime(t2)
-                        print '    Assembled list of length', len(sub_polys), ':', round(t1, 4), round(t2, 4)
-
+                        print '    Assembled list of length', len(sub_polys), '.'
                     _compute_normal_forms(sub_polys)
                     if verbose:
-                        t1, t2 = cputime(t1), walltime(t2)
-                        print '    Computed normal forms:', round(t1, 4), round(t2, 4)
-
+                        print '    Computed normal forms.'
+                    p_list = tuple([list() for j in range(d + 1)])
                     for p in sub_polys:
-                        h = hashlib.md5(p.normal_form().str()).hexdigest()
-                        relevant_hashes = hashes[p.affine_dimension()][n_pts - 1]
+                        h = p.normal_form(output='hash')
+                        pd = p.affine_dimension()
+                        relevant_hashes = hashes[pd][n_pts - 1]
                         if relevant_hashes.has_key(h):
                             continue
-                        relevant_hashes[h] = process_poly(p)
-                        n_found += 1
-                        todo.append(p)
+                        if affine:
+                            p_list[pd].append(p)
+                            relevant_hashes[h] = None
+                        else:
+                            relevant_hashes[h] = process_poly(p)
+                            todo.append(p)
+                    if affine:
+                        _compute_affine_normal_forms([i for bucket in p_list for i in bucket])
+                        # Now check them again
+                        for bd, bucket in enumerate(p_list):
+                            for p in bucket:
+                                h = p.affine_normal_form(output='hash')
+                                if affine_hashes[bd].has_key(h):
+                                    continue
+                                affine_hashes[bd][h] = process_poly(p)
+                                todo.append(p)
                     if verbose:
-                        t1, t2 = cputime(t1), walltime(t2)
-                        print '    Compared and hashed them:', round(t1, 4), round(t2, 4)
+                        print '    Compared and hashed them.'
+                # Overwrite the normal hashes
+                if affine:
+                    before = sum([len(hashes[bd][n_pts - 1]) for bd in range(d + 1)])
+                    for bd in range(d + 1):
+                        hashes[bd][n_pts - 1] = affine_hashes[bd]
+                    after = sum([len(hashes[bd][n_pts - 1]) for bd in range(d + 1)])
+                    if verbose: 
+                        print 'Reduced', before, 'polytopes to', after, \
+                              'polytopes using affine transformations.'
                 if verbose:
                     print
 
-            self._sub_polytopes = hashes
+            if affine:
+                self._sub_polytopes_affine = hashes
+            else:
+                self._sub_polytopes_normal = hashes
 
-        poly_iterator = (k for i in self._sub_polytopes for j in i for k in j.values())
+        if affine:
+            sub_polys = self._sub_polytopes_affine
+        else:
+            sub_polys = self._sub_polytopes_normal
+        poly_iterator = (k for i in sub_polys for j in i for k in j.values())
         first_poly = poly_iterator.next()
         from sage.matrix.matrix import is_Matrix
-        if is_Matrix(first_poly) <> return_vertices_only:
-            for i in self._sub_polytopes:
+        if is_Matrix(first_poly) <> vertices_only:
+            for i in sub_polys:
                 for j in i:
                     for k in j:
                         j[k] = process_poly(j[k])
         # Choose output form
         if not return_hashes:
-            return [k for i in self._sub_polytopes for j in i for k in j.values()]
+            return tuple([k for i in sub_polys for j in i for k in j.values()])
         else:
-            return self._sub_polytopes
+            return sub_polys
 
     def find_isomorphism(self, other):
         r"""
@@ -1327,15 +1523,11 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((0, 1), (3, 0), (0, 3), (1, 0))
         """
         from ppl_lattice_polygon import sub_reflexive_polygons
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopesNotIsomorphicError, LatticePolytopeNoEmbeddingError
         for p, ambient in sub_reflexive_polygons():
             try:
                 return (ambient, p, p.find_isomorphism(self))
             except LatticePolytopesNotIsomorphicError:
                 pass
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopeNoEmbeddingError
         raise LatticePolytopeNoEmbeddingError('not a sub-polytope of a reflexive polygon')
 
     @cached_method
@@ -1353,35 +1545,107 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         EXAMPLES::
 
         """
-        from ppl_lattice_polygon import sub_reflexive_polygons
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopesNotIsomorphicError, LatticePolytopeNoEmbeddingError
-        d = self.affine_dimension()
-        np = self.n_integral_points()
-        import hashlib
-        hash = hashlib.md5(self.affine_normal_form().str()).hexdigest()
         maximal_ids = maximal_polytopes_3d_indices()
         for id in maximal_ids:
-            r = reflexive_sub_polytopes_3d(id)
+            r = ReflexivePolytope_PPL(3, id, load_sub_polytopes=True)
             try:
-                reflexive_sub_m = r[d][np - 1][hash]
-            except KeyError:
-                continue
-            reflexive_sub_poly = LatticePolytope_PPL(*reflexive_sub_m.columns())
-            iso = self.find_isomorphism(reflexive_sub_poly)
-            return (maximal_polytope(id), reflexive_sub_poly, iso)
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopeNoEmbeddingError
-        raise LatticePolytopeNoEmbeddingError('Not a sub-polytope of polar P^3.')
+                sub_poly = self.embed_in(r, output='sub_polytope')
+            except LatticePolytopeNoEmbeddingError:
+                raise LatticePolytopeNoEmbeddingError(
+                    'Not a sub-polytope of polar P^3.')
+            return (r, sub_poly, sub_poly.find_isomorphism(self))
+
+    def embed_in(self, other, output='hom', inverse=False,
+                   vertices_only=False):
+        r"""
+        Find an embedding as a sub-polytope of ``other``.
+
+        INPUT:
+
+        - ``other`` -- the LatticePolytope_PPL into ``self``
+            is to be embedded.
+
+        - ``output`` -- string. One of ``'hom'`` (default),
+            ``inverse_hom``, ``points``, or ``sub_polytope``.
+            How the embedding is returned. See the output
+            section for details.
+
+        - ``inverse`` -- (default: ``False``). If ``True``,
+            return the map from ``self`` to ``other`` instead
+            of the other way round.
+
+        OUTPUT:
+
+        An embedding into ``other``. Depending on the
+        ``output`` option slightly different data is returned.
+
+        - If ``output='hom'``, a map from ``other`` onto
+          ``self`` is returned.
+
+        - If ``output='inverse_hom'``, a map from ``self`` onto
+          ``other`` is returned.
+
+        - If ``output='points'``, a dictionary containing the integral
+          points of ``self`` as keys and the corresponding integral
+          point of ``other`` as value.
+
+        - If ``output='sub_polytope'``, the subpolytope of ``other``
+          isomorphic to ``self`` is returned.
+
+        If there is no such embedding, a
+        :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticePolytopeNoEmbeddingError`
+        is raised.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 0), (0, 1), (-1, -1))
+            sage: q = LatticePolytope_PPL((1, 2), (-1, 1), (-2, -1), (1, -1))
+            sage: hom = p.embed_in(q)
+            sage: sub_poly = p.embed_in(q, output='sub_polytope')
+            sage: hom(sub_poly) == p
+            True
+        """
+        d = self.affine_dimension()
+        np = self.n_integral_points()
+        if d > other.affine_dimension() or np > other.n_integral_points():
+            raise LatticePolytopeNoEmbeddingError(
+                'The polytope cannot be bigger than its embedding.')
+        hash = self.affine_normal_form(output='hash')
+        # Get the vertices only in order to speed up things for cases
+        # with pre-computed subpolytopes.
+        sub_polys = other.sub_polytopes(return_hashes=True, vertices_only=True)
+        try:
+            vertices = sub_polys[d][np - 1][hash]
+            sub_poly = LatticePolytope_PPL(*vertices.columns())
+        except KeyError:
+            raise LatticePolytopeNoEmbeddingError('Cannot embed the polytope.')
+        if output == 'sub_polytope':
+            return sub_poly
+        elif output == 'inverse_hom':
+            iso = self.find_isomorphism(sub_poly)
+            return iso
+        else:
+            iso = sub_poly.find_isomorphism(self)
+            if output == 'hom':
+                return iso
+            elif output == 'points':
+                points = dict()
+                for p in sub_poly.integral_points():
+                    points[ tuple(iso(p)) ] = p
+                return points
+            else:
+                raise ValueError(output + ' is not a valid output parameter.')
 
     def embed_in_reflexive_polytope(self, output='hom'):
-        """
+        r"""
         Find an embedding as a sub-polytope of a maximal reflexive
         polytope.
 
         INPUT:
 
-        - ``hom`` -- string. One of ``'hom'`` (default),
+        - ``output`` -- string. One of ``'hom'`` (default),
           ``'polytope'``, or ``points``. How the embedding is
           returned. See the output section for details.
 
@@ -1397,7 +1661,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
           ``self`` (up to a lattice linear transformation) is
           returned. That is, the domain of the ``output='hom'`` map is
           returned. If the affine span of ``self`` is less or equal
-          2-dimnsional, the output is one of the following three
+          2-dimensional, the output is one of the following three
           possibilities::
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
@@ -1436,13 +1700,13 @@ class LatticePolytope_PPL_class(C_Polyhedron):
              (2, 0, 0, 3): (3, 0)}
 
             sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope()
-            Traceback (most recent call last):
-            ...
-            LatticePolytopeNoEmbeddingError: not a sub-polytope of a reflexive polygon
+            The map A*x+b with A=
+            [0 1 0]
+            [0 0 1]
+            b = 
+            (0, 0)
         """
         # First try embedding in a reflexive polygon
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopeNoEmbeddingError
         try:
             ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polygon()
         except LatticePolytopeNoEmbeddingError:
@@ -1728,6 +1992,25 @@ def maximal_polytope(index):
     else:
         raise NotImplementedError(
             'At the moment we can only deal with polar P^3.')
+
+def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
+    # For the time being read them from there
+    from sage.geometry.lattice_polytope import ReflexivePolytope
+    from sage.misc.all import load
+    if dim == 2:
+        vs = ReflexivePolytope(dim, index).vertices().columns()
+        return LatticePolytope_PPL(*vs)
+    elif dim == 3:
+        vs = ReflexivePolytope(dim, index).vertices().columns()
+        ppl = LatticePolytope_PPL(*vs)
+        if load_sub_polytopes:
+            # Load the subpolytopes
+            path = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes_v2/'
+            ppl._sub_polytopes_affine = load(path + 'a_' + str(index))
+        return ppl
+    else:
+        raise NotImplementedError('Only reflexive polytopes of dimensions ' + \
+                                  '2 and 3 are supported.')
 
 @cached_function
 def polar_P3_polytope():

@@ -361,7 +361,7 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
         except LatticePolytopesNotIsomorphicError:
             return False
 
-    def sub_polytopes(self):
+    def sub_polytopes(self, **kwds):
         """
         Returns a list of all lattice sub-polygons up to isomorphsm.
 
@@ -384,6 +384,9 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
              A 1-dimensional lattice polytope in ZZ^2 with 2 vertices,
              A 0-dimensional lattice polytope in ZZ^2 with 1 vertex)
         """
+        if kwds:
+            return super(LatticePolygon_PPL_class, self).sub_polytopes(
+                         self, **kwds)
         subpolytopes = [self]
         todo = list(subpolytopes)
         while todo:
