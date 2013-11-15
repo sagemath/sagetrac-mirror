@@ -2296,6 +2296,288 @@ class Tableau(CombinatorialObject, Element):
             p = p._slide_up(c)
         return Tableau([[i+1 for i in row] for row in p])
 
+    def winching(self, n):
+        r"""
+        Return the image of ``self`` under the winching map on the set of
+        all reverse plane partitions with ceiling `n`.
+
+        Reverse plane partitions with ceiling `n` are tableaux whose
+        entries are integers `i` with `1 \leq i \leq n`, and whose rows
+        and columns are weakly increasing.
+
+        The winching map on the set of all reverse plane partitions with
+        ceiling `n` is defined as follows: Let `T` be a reverse plane
+        partition with ceiling `n`. Set `T' = T`, with `T'` being mutable.
+        For every row `r` of `T'` (from top to bottom), do the following:
+        For every position `p` in `r` (from left to right), do the
+        following: Let `e` be the entry of `T'` in position `p`. If
+        replacing `e` by `e + 1` in position `p` of `T'` still leaves us
+        with a reverse plane partition with ceiling `n`, then replace `e`
+        by `e + 1` in position `p` and move on to the next `p` (or the
+        next `r` if we are at the end of the row). Otherwise, let `k` be
+        the smallest integer such that replacing `e` by `k` in position
+        `p` of `T'` still leaves us with a reverse plane partition with
+        ceiling `n`; then, replace `e` by `k` in position `p` and move on
+        to the next `p` (or the next `r` if we are at the end of the
+        row). The `T'` obtained at the end of this procedure is the image
+        of `T` under the winching map.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,2,3],[2,3,3]])
+            sage: t = t.winching(3); t
+            [[1, 1, 2], [1, 3, 3], [3, 3, 3]]
+            sage: t = t.winching(3); t
+            [[1, 2, 3], [2, 2, 3], [2, 2, 3]]
+            sage: t = t.winching(3); t
+            [[2, 2, 2], [2, 2, 2], [2, 3, 3]]
+            sage: t = t.winching(3); t
+            [[1, 1, 1], [1, 1, 3], [3, 3, 3]]
+            sage: t = t.winching(3); t
+            [[1, 1, 2], [1, 2, 2], [1, 2, 2]]
+            sage: t = t.winching(3); t
+            [[1, 2, 2], [1, 2, 2], [2, 2, 3]]
+            sage: t = t.winching(3); t
+            [[1, 1, 1], [2, 2, 3], [2, 3, 3]]
+        """
+        # We need to use [:] here to avoid accidentally mutating self:
+        rows = [row[:] for row in self]
+        row_num = len(rows)
+        for i in range(row_num):
+            row = rows[i]
+            row_len = len(row)
+            if i == 0:
+                prev_row = [1] * row_len
+            else:
+                prev_row = rows[i - 1]
+            if i == row_num - 1:
+                next_row = [n] * row_len
+            else:
+                next_row = rows[i + 1] + [n] * (row_len - len(rows[i + 1]))
+            for j in range(row_len):
+                if j == row_len - 1:
+                    maximum = next_row[j]
+                else:
+                    maximum = min([next_row[j], row[j + 1]])
+                if row[j] < maximum:
+                    row[j] += 1
+                else:
+                    if j == 0:
+                        minimum = prev_row[j]
+                    else:
+                        minimum = max([prev_row[j], row[j - 1]])
+                    row[j] = minimum
+            rows[i] = row
+        return Tableau(rows)
+
+    def semistandard_winching(self, n):
+        r"""
+        Return the image of ``self`` under the semistandard winching map
+        on the set of all semistandard tableaux with ceiling `n`.
+
+        Semistandard tableaux with ceiling `n` are semistandard tableaux
+        whose entries are integers `i` with `1 \leq i \leq n`.
+
+        The semistandard winching map on the set of all semistandard
+        tableaux with ceiling `n` is defined as follows: Let `T` be a
+        semistandard tableau with ceiling `n`. Set `T' = T`, with `T'`
+        being mutable.  For every row `r` of `T'` (from top to bottom),
+        do the following: For every position `p` in `r` (from left to
+        right), do the following: Let `e` be the entry of `T'` in
+        position `p`. If replacing `e` by `e + 1` in position `p` of `T'`
+        still leaves us with a semistandard tableau with ceiling `n`,
+        then replace `e` by `e + 1` in position `p` and move on to the
+        next `p` (or the next `r` if we are at the end of the row).
+        Otherwise, let `k` be the smallest integer such that replacing
+        `e` by `k` in position `p` of `T'` still leaves us with a
+        semistandard tableau with ceiling `n`; then, replace `e` by `k`
+        in position `p` and move on to the next `p` (or the next `r` if
+        we are at the end of the row). The `T'` obtained at the end of
+        this procedure is the image of `T` under the winching map.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,2,3],[3,4,5]])
+            sage: t = t.semistandard_winching(5); t
+            [[1, 1, 2], [2, 3, 4], [4, 5, 5]]
+            sage: t = t.semistandard_winching(5); t
+            [[1, 2, 3], [3, 4, 4], [5, 5, 5]]
+            sage: t = t.semistandard_winching(5); t
+            [[2, 3, 3], [4, 4, 4], [5, 5, 5]]
+            sage: t = t.semistandard_winching(5); t
+            [[3, 3, 3], [4, 4, 4], [5, 5, 5]]
+            sage: t = t.semistandard_winching(5); t
+            [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
+            sage: t = t.semistandard_winching(5); t
+            [[1, 1, 1], [2, 2, 2], [3, 3, 4]]
+            sage: t = t.semistandard_winching(5); t
+            [[1, 1, 1], [2, 2, 3], [3, 4, 5]]
+        """
+        # We need to use [:] here to avoid accidentally mutating self:
+        rows = [row[:] for row in self]
+        row_num = len(rows)
+        for i in range(row_num):
+            row = rows[i]
+            row_len = len(row)
+            if i == 0:
+                prev_row = [0] * row_len
+            else:
+                prev_row = rows[i - 1]
+            if i == row_num - 1:
+                next_row = [n + 1] * row_len
+            else:
+                next_row = rows[i + 1] + [n + 1] * (row_len - len(rows[i + 1]))
+            for j in range(row_len):
+                if j == row_len - 1:
+                    maximum = next_row[j] - 1
+                else:
+                    maximum = min([next_row[j] - 1, row[j + 1]])
+                if row[j] < maximum:
+                    row[j] += 1
+                else:
+                    if j == 0:
+                        minimum = prev_row[j] + 1
+                    else:
+                        minimum = max([prev_row[j] + 1, row[j - 1]])
+                    row[j] = minimum
+            rows[i] = row
+        return Tableau(rows)
+
+    def flipping(self, n):
+        r"""
+        Return the image of ``self`` under the flipping map on the set of
+        all reverse plane partitions with ceiling `n`.
+
+        Reverse plane partitions with ceiling `n` are tableaux whose
+        entries are integers `i` with `1 \leq i \leq n`, and whose rows
+        and columns are weakly increasing.
+
+        The flipping map on the set of all reverse plane partitions with
+        ceiling `n` is defined as follows: Let `T` be a reverse plane
+        partition with ceiling `n`. Set `T' = T`, with `T'` being mutable.
+        For every row `r` of `T'` (from top to bottom), do the following:
+        For every position `p` in `r` (from left to right), do the
+        following: Let `e` be the entry of `T'` in position `p`. Consider
+        the set of all integers `k` such that replacing the entry `e` by
+        `k` in position `p` of the tableau `T'` would preserve its
+        property of being a reverse plane partition. This set is an
+        interval. In position `p` of `T'`, replace `e` by the reflection
+        of `e` in the midpoint of this interval; then move on to the next
+        `p` (or the next `r` if we are at the end of the row). The `T'`
+        obtained at the end of this procedure is the image of `T` under
+        the flipping map.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,2,3],[2,3,3]])
+            sage: t = t.flipping(3); t
+            [[1, 1, 3], [1, 2, 3], [2, 2, 3]]
+            sage: t = t.flipping(3); t
+            [[1, 2, 2], [2, 2, 2], [2, 3, 3]]
+            sage: t = t.flipping(3); t
+            [[2, 2, 2], [2, 2, 3], [3, 3, 3]]
+            sage: t = t.flipping(3); t
+            [[1, 1, 2], [1, 2, 2], [1, 2, 2]]
+            sage: t = t.flipping(3); t
+            [[1, 2, 2], [1, 2, 2], [2, 2, 3]]
+            sage: t = t.flipping(3); t
+            [[1, 1, 1], [2, 2, 3], [2, 3, 3]]
+        """
+        # We need to use [:] here to avoid accidentally mutating self:
+        rows = [row[:] for row in self]
+        row_num = len(rows)
+        for i in range(row_num):
+            row = rows[i]
+            row_len = len(row)
+            if i == 0:
+                prev_row = [1] * row_len
+            else:
+                prev_row = rows[i - 1]
+            if i == row_num - 1:
+                next_row = [n] * row_len
+            else:
+                next_row = rows[i + 1] + [n] * (row_len - len(rows[i + 1]))
+            for j in range(row_len):
+                if j == row_len - 1:
+                    maximum = next_row[j]
+                else:
+                    maximum = min([next_row[j], row[j + 1]])
+                if j == 0:
+                    minimum = prev_row[j]
+                else:
+                    minimum = max([prev_row[j], row[j - 1]])
+                row[j] = minimum + maximum - row[j]
+            rows[i] = row
+        return Tableau(rows)
+
+    def semistandard_flipping(self, n):
+        r"""
+        Return the image of ``self`` under the semistandard flipping map
+        on the set of all semistandard tableaux with ceiling `n`.
+
+        The semistandard flipping map on the set of all semistandard
+        tableaux with ceiling `n` is defined as follows: Let `T` be a
+        semistandard tableau with ceiling `n`. Set `T' = T`, with `T'`
+        being mutable. For every row `r` of `T'` (from top to bottom), do
+        the following: For every position `p` in `r` (from left to right),
+        do the following: Let `e` be the entry of `T'` in position `p`.
+        Consider the set of all integers `k` such that replacing the entry
+        `e` by `k` in position `p` of the tableau `T'` would preserve its
+        property of being semistandard. This set is an interval. In
+        position `p` of `T'`, replace `e` by the reflection of `e` in the
+        midpoint of this interval; then move on to the next `p` (or the
+        next `r` if we are at the end of the row). The `T'` obtained at
+        the end of this procedure is the image of `T` under the
+        semistandard flipping map.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,2,3],[3,4,5]])
+            sage: t = t.semistandard_flipping(5); t
+            [[1, 1, 2], [2, 3, 4], [4, 5, 5]]
+            sage: t = t.semistandard_flipping(5); t
+            [[1, 2, 3], [3, 4, 4], [5, 5, 5]]
+            sage: t = t.semistandard_flipping(5); t
+            [[2, 3, 3], [4, 4, 4], [5, 5, 5]]
+        """
+        # We need to use [:] here to avoid accidentally mutating self:
+        rows = [row[:] for row in self]
+        row_num = len(rows)
+        for i in range(row_num):
+            row = rows[i]
+            row_len = len(row)
+            if i == 0:
+                prev_row = [0] * row_len
+            else:
+                prev_row = rows[i - 1]
+            if i == row_num - 1:
+                next_row = [n + 1] * row_len
+            else:
+                next_row = rows[i + 1] + [n + 1] * (row_len - len(rows[i + 1]))
+            for j in range(row_len):
+                if j == row_len - 1:
+                    maximum = next_row[j] - 1
+                else:
+                    maximum = min([next_row[j] - 1, row[j + 1]])
+                if j == 0:
+                    minimum = prev_row[j] + 1
+                else:
+                    minimum = max([prev_row[j] + 1, row[j - 1]])
+                row[j] = minimum + maximum - row[j]
+            rows[i] = row
+        return Tableau(rows)
+
+    def proppmotion(self, n):
+        r"""
+        Return the image of ``self`` under (one-time) proppmotion on the
+        set of all tableaux of given shape with ceiling ``n``.
+
+        Proppmotion is a map on the set of all tableaux (not necessarily
+        semistandard) with given shape `\lambda` and with ceiling `n`
+        defined as follows: Let `T` be a tableau of shape `\lambda` and
+        with ceiling `n`.
+        """
+
     def row_stabilizer(self):
         """
         Return the PermutationGroup corresponding to the row stabilizer of
