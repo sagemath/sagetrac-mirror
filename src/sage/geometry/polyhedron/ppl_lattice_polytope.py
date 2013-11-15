@@ -1620,15 +1620,20 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ....: (-1, -1, -1))
             sage: iso = p._find_isomorphism_to_subreflexive_polytope() # long time
         """
-        maximal_ids = maximal_polytopes_3d_indices()
-        for id in maximal_ids:
-            r = ReflexivePolytope_PPL(3, id, load_sub_polytopes=True)
-            try:
-                sub_poly = self.embed_in(r, output='sub_polytope')
-            except LatticePolytopeNoEmbeddingError:
-                raise LatticePolytopeNoEmbeddingError(
-                    'Not a sub-polytope of polar P^3.')
+        d = self.affine_dimension()
+        npts = self.n_integral_points()
+        # Check that the values are allowed.
+        sub_polys = _reflexive_sub_polytopes(d, npts)
+        h = self.affine_normal_form(output='hash')
+        try:
+            m, id = sub_polys[h]
+            vertices = m.columns()
+            sub_poly = LatticePolytope_PPL(*vertices)
+            r = ReflexivePolytope_PPL(3, id)
             return (r, sub_poly, sub_poly.find_isomorphism(self))
+        except KeyError:
+            raise LatticePolytopeNoEmbeddingError('Not a sub-polytope ' +
+                'of a 3-d reflexive polytope.')
 
     def embed_in(self, other, output='hom', inverse=False,
                    vertices_only=False):
@@ -2020,6 +2025,9 @@ def _compute_affine_normal_forms(polytopes):
 #
 ########################################################################
 
+# Change the hard-coding at some point!
+_subpolytope_path = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes/'
+
 def maximal_polytopes_3d_indices():
     r"""
     Return the internal indices of the maximal three-dimensional reflexive
@@ -2118,13 +2126,47 @@ def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
         ppl = LatticePolytope_PPL(*vs)
         if load_sub_polytopes:
             # Load the subpolytopes
-            # Change the hard-coding at some point!
-            path = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes/'
-            ppl._sub_polytopes_affine = load(path + 'a_' + str(index))
+            ppl._sub_polytopes_affine = load(
+                _subpolytope_path + 'a_' + str(index))
         return ppl
     else:
         raise NotImplementedError('Only reflexive polytopes of dimensions ' + \
                                   '2 and 3 are supported.')
+
+def _reflexive_sub_polytopes(dim, npts):
+    r"""
+    Return the sub-polytopes of three-dimensional reflexive polytopes
+    that are ``dim``-dimensional and have ``npts`` interior points.
+
+    INPUT:
+
+    - ``dim`` - integer, the dimension of the sub polytopes.
+
+    - ``npts`` - integer, the number of integral points.
+
+    OUTPUT:
+    
+    A dictionary of the structure
+    ``{hash:(sub_polytope, index_reflexive_polytope)}``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+        ....: _reflexive_sub_polytopes
+        sage: d = _reflexive_sub_polytopes(3, 1)
+        sage: len(d)
+        1
+    """
+    from sage.misc.all import load
+    if not dim in range(4) or not npts in range(1, 40):
+        raise ValueError('The polytopes must have dimension <=3 and '
+            + 'integral points <= 39.')
+    fname = _subpolytope_path + 's_{0}_{1}'.format(dim, npts)
+    try:
+        data = load(fname)
+    except IOError:
+        data = {}
+    return data
 
 @cached_function
 def polar_P3_polytope():
