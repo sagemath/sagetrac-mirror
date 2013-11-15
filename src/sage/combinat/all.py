@@ -153,6 +153,10 @@ from cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingChec
 
 from sidon_sets import sidon_sets
 
+# Supercharacters
+# TODO: don't import LabelledSetPartition* into the global namespace
+from scha import (SupercharacterHopfAlgebra, LabelledSetPartition, LabelledSetPartitions)
+
 # Puzzles
 from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
