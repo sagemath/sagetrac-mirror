@@ -1228,7 +1228,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         INPUT:
 
-        - ``other`` -- A LatticePolytope_PPL.
+        - ``other`` -- :class:`LatticePolytope_PPL_class`, the polytope
+            ``self`` is to be embedded into.
 
         - ``affine`` -- (default: ``True``) If ``True``, check whether
             there exists an affine transformation embedding ``self``
@@ -1262,11 +1263,29 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         INPUT:
 
-        - ``polytope`` -- a lattice polytope.
+        - ``other`` -- :class:`LatticePolytope_PPL_class`, the polytope
+            ``self`` is compared to.
 
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 0, 0), (0, 0, 1), (-1, 0, -1))
+            sage: q = LatticePolytope_PPL((1, 0), (0, 1), (-1, -1))
+            sage: r = LatticePolytope_PPL((1, 0), (0, 1), (-2, -2))
+            sage: p.is_isomorphic(q)
+            True
+            sage: p.is_isomorphic(r)
+            False
+            sage: s = q.embed_in(r, output='sub_polytope')
+            sage: s
+            A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
+            sage: p.is_isomorphic(s)
+            True            
         """
         if other.vertices() == self.vertices():
             return True
@@ -1321,7 +1340,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             then only those related by linear transformations are
             identified.
 
-        - ``return_hashes`` -- (default: ``True``) If ``True``, then
+        - ``return_hashes`` -- (default: ``False``) If ``True``, then
             the return value is a tuple of tuples of dicts structured as
             follows::
             ``result[dim][integral_points - 1][md5_hash] = sub_polytope``
@@ -1346,12 +1365,27 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         A tuple. See parameter ``return_hashes`` for more information.
 
-        TODO: Clean up code and improve affine handling...
-
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
             ....: LatticePolytope_PPL, LatticePolytope_PPL_class
+            sage: p = LatticePolytope_PPL((1, 0, 0), (0, 1, 0),\
+            ....: (0, 0, 1), (-1, -1, -1))
+            sage: p.sub_polytopes()
+            (A 0-dimensional lattice polytope in ZZ^3 with 1 vertex,
+             A 1-dimensional lattice polytope in ZZ^3 with 2 vertices,
+             A 2-dimensional lattice polytope in ZZ^3 with 3 vertices,
+             A 3-dimensional lattice polytope in ZZ^3 with 4 vertices,
+             A 3-dimensional lattice polytope in ZZ^3 with 4 vertices)
+            sage: p.sub_polytopes(affine=False)
+            (A 0-dimensional lattice polytope in ZZ^3 with 1 vertex,
+             A 0-dimensional lattice polytope in ZZ^3 with 1 vertex,
+             A 1-dimensional lattice polytope in ZZ^3 with 2 vertices,
+             A 1-dimensional lattice polytope in ZZ^3 with 2 vertices,
+             A 2-dimensional lattice polytope in ZZ^3 with 3 vertices,
+             A 2-dimensional lattice polytope in ZZ^3 with 3 vertices,
+             A 3-dimensional lattice polytope in ZZ^3 with 4 vertices,
+             A 3-dimensional lattice polytope in ZZ^3 with 4 vertices)
        
         Apart from the ordering, this method gives the same output
         as the method of LatticePolygon_PPL_class. However, it is
@@ -1361,9 +1395,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: s1 = p.sub_polytopes() # long time -- 5.1s on i7-2600
             sage: s2 = LatticePolytope_PPL_class.sub_polytopes(p) # long time -- 1s on i7-2600
             sage: len(s1) == len(s2) # long time
-            True
-            
-        
+            True  
         """
         from sage.matrix.matrix import is_Matrix
         def process_poly(poly, force_process = False):
@@ -1381,10 +1413,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             from sage.functions.other import ceil
 
             d = self.affine_dimension()
-            if d <> self.space_dimension():
-                raise NotImplementedError('At the moment we can only compute'\
-                    + ' the subpolytopes of full dimensional polytopes.')
-
             n_pts = self.n_integral_points()
             # Sort hashes by dimension and by number of integral points
             hashes = tuple([[dict() for i in range(n_pts)] 
@@ -1436,6 +1464,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                     if affine:
                         _compute_affine_normal_forms([i for bucket in p_list for i in bucket])
                         # Now check them again
+                        # This may seem inefficient, but it actually
+                        # leads to fewer calculations
                         for bd, bucket in enumerate(p_list):
                             for p in bucket:
                                 h = p.affine_normal_form(output='hash')
@@ -1456,19 +1486,18 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                               'polytopes using affine transformations.'
                 if verbose:
                     print
-
+            hashes = tuple([tuple(i) for i in hashes])
             if affine:
                 self._sub_polytopes_affine = hashes
             else:
                 self._sub_polytopes_normal = hashes
-
         if affine:
             sub_polys = self._sub_polytopes_affine
         else:
             sub_polys = self._sub_polytopes_normal
+        # Convert between matrix and LatticePolytope_PPL
         poly_iterator = (k for i in sub_polys for j in i for k in j.values())
         first_poly = poly_iterator.next()
-        from sage.matrix.matrix import is_Matrix
         if is_Matrix(first_poly) <> vertices_only:
             for i in sub_polys:
                 for j in i:
@@ -1483,12 +1512,53 @@ class LatticePolytope_PPL_class(C_Polyhedron):
     def find_isomorphism(self, other):
         r"""
         Find isomorphism from ``self`` to ``other``.
+
+        Note that this currently does not anything but call
+        :meth:`~sage.geometry.lattice_polytope.LatticePolytopeClass.find_isomorphism`
+        in order to perform the computations.
+
+        INPUT:
+
+        - ``other`` -- :class:`LatticePolytope_PPL_class`, the polytope
+            ``self`` is to be mapped to.
+
+        OUTPUT:
+
+        The :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticeEuclideanGroupElement`
+        corresponding to the isomorphism from ``self`` to ``other``.
+        If no isomorphism exists, a :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticePolytopesNotIsomorphicError`
+        is raised.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 0, 0), (0, 0, 1), (-1, 0, -1))
+            sage: q = LatticePolytope_PPL((1, 0), (0, 1), (-1, -1))
+            sage: r = LatticePolytope_PPL((1, 0), (0, 1), (-2, -2))
+            sage: iso = p.find_isomorphism(q)
+            sage: iso
+            The map A*x+b with A=
+            [1 0 0]
+            [0 0 1]
+            b = 
+            (0, 0)
+            sage: iso(p) == q
+            True
+            sage: p.find_isomorphism(r)
+            Traceback (most recent call last):
+            ...
+            LatticePolytopesNotIsomorphicError: The polytopes are not isomorphic.
         """
         # Very lazy way of doing things
         from sage.geometry.lattice_polytope import LatticePolytope
         lp1 = LatticePolytope(self.vertices())
         lp2 = LatticePolytope(other.vertices())
-        return lp1.find_isomorphism(lp2)
+        iso = lp1.find_isomorphism(lp2)
+        if not iso:
+            raise LatticePolytopesNotIsomorphicError(
+                'The polytopes are not isomorphic.')
+        return iso
 
     @cached_method
     def _find_isomorphism_to_subreflexive_polygon(self):
@@ -1544,6 +1614,11 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         EXAMPLES::
 
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            ....: LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((1, 0, 0), (0, 1, 0), (0, 0, 1),\
+            ....: (-1, -1, -1))
+            sage: iso = p._find_isomorphism_to_subreflexive_polytope() # long time
         """
         maximal_ids = maximal_polytopes_3d_indices()
         for id in maximal_ids:
@@ -1562,8 +1637,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         INPUT:
 
-        - ``other`` -- the LatticePolytope_PPL into ``self``
-            is to be embedded.
+        - ``other`` -- :class:`LatticePolytope_PPL_class`,
+            the polytope in which ``self`` is to be embedded.
 
         - ``output`` -- string. One of ``'hom'`` (default),
             ``inverse_hom``, ``points``, or ``sub_polytope``.
@@ -1699,7 +1774,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
              (2, 3, 0, 0): (0, 3), (1, 0, 1, 2): (2, 0),
              (2, 0, 0, 3): (3, 0)}
 
-            sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope()
+            sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope() # long time
             The map A*x+b with A=
             [0 1 0]
             [0 0 1]
@@ -1736,7 +1811,7 @@ def _compute_normal_forms(polytopes):
 
     INPUT:
 
-        - ``polytopes`` -- a list of lattice polytopes.
+        - ``polytopes`` -- an iterable of :class:`LatticePolytope_PPL_class`.
 
     OUTPUT:
 
@@ -1834,8 +1909,7 @@ def _compute_affine_normal_forms(polytopes):
 
     INPUT:
 
-        - ``polytopes`` -- a list of lattice polytopes.
-
+        - ``polytopes`` -- an iterable of :class:`LatticePolytope_PPL_class`.
     OUTPUT:
 
     Nothing, the function only fills the private attributes of the
@@ -1963,17 +2037,26 @@ def maximal_polytopes_3d_indices():
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
         ....: maximal_polytopes_3d_indices
         sage: maximal_polytopes_3d_indices()
-        (4311,)
+        (4311,
+         4318,
+         4317,
+         4316,
+         4314,
+         4312,
+         4309,
+         4308,
+         4302,
+         4298,
+         4286,
+         4283,
+         4281,
+         4250,
+         4237,
+         3313)
     """
-    return (4311,)
-
-_r_sub_polytopes_3d = dict()
-def reflexive_sub_polytopes_3d(index):
-    if not _r_sub_polytopes_3d.has_key(index):
-        from sage.structure.sage_object import load
-        _r_sub_polytopes_3d[index] = \
-        load('/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes_affine/a_' + str(index))
-    return _r_sub_polytopes_3d[index]
+    return (4311, 4318, 4317, 4316, 4314, 4312,\
+            4309, 4308, 4302, 4298, 4286, 4283,\
+            4281, 4250, 4237, 3313)
 
 def maximal_polytope(index):
     r"""
@@ -1994,6 +2077,36 @@ def maximal_polytope(index):
             'At the moment we can only deal with polar P^3.')
 
 def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
+    r"""
+    Return the reflexive polytope of dimension ``dim`` and index
+    ``index``.
+
+    INPUT:
+
+    - ``dim`` -- integer, the dimension of the polytope. Allowed values
+        are ``2`` and ``3``.
+
+    - ``index`` -- integer, the index of the polytope in the PALP database.
+
+    - ``load_sub_polytopes`` -- (default: ``False``) Whether to load the list
+        of sub-polytopes from the hard drive. Only supported for
+        3-dimensional polytopes.
+
+    OUTPUT:
+
+    A :class:`LatticePolytope_PPL_class`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
+        ....: ReflexivePolytope_PPL
+        sage: p = ReflexivePolytope_PPL(3, 0, load_sub_polytopes=True) # long time
+        sage: len(p._sub_polytopes_affine) # long time
+        4
+        sage: q = ReflexivePolytope_PPL(3, 1) # long time
+        sage: hasattr(q, '_sub_polytopes_affine') # long time
+        False
+    """
     # For the time being read them from there
     from sage.geometry.lattice_polytope import ReflexivePolytope
     from sage.misc.all import load
@@ -2005,7 +2118,8 @@ def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
         ppl = LatticePolytope_PPL(*vs)
         if load_sub_polytopes:
             # Load the subpolytopes
-            path = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes_v2/'
+            # Change the hard-coding at some point!
+            path = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/sub_polytopes/'
             ppl._sub_polytopes_affine = load(path + 'a_' + str(index))
         return ppl
     else:
