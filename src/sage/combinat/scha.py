@@ -65,7 +65,7 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.finite_rings.constructor import GF
-from sage.combinat.set_partition import SetPartitions
+from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.sets.set import Set, Set_object_enumerated
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.misc.misc_c import prod
@@ -187,14 +187,14 @@ class LabelledSetPartition(CombinatorialObject):
 
             sage: phi = LabelledSetPartition(5, [(1,3,1), (3,5,3), (2,4,4)])
             sage: phi.to_set_partition()
-            {{2, 4}, {1, 3, 5}}
+            {{1, 3, 5}, {2, 4}}
         """
         from sage.graphs.graph import Graph
         G = Graph(dict((i,[]) for i in range(1,self._n+1)))
         for arc in self.arcs():
             G.add_edge(*arc)
         partition = G.connected_components()
-        return Set(map(Set,partition))
+        return SetPartition(partition)
 
     def __cmp__(self, other):
         r"""
@@ -491,29 +491,28 @@ def LatticeOfSetPartitions(n):
         sage: for T in L:
         ...      for S in L:
         ...         print (T,S), L.is_lequal(T,S)
-        ({{2}, {1}}, {{2}, {1}}) True
-        ({{2}, {1}}, {{1, 2}}) True
-        ({{1, 2}}, {{2}, {1}}) False
+        ({{1}, {2}}, {{1}, {2}}) True
+        ({{1}, {2}}, {{1, 2}}) True
+        ({{1, 2}}, {{1}, {2}}) False
         ({{1, 2}}, {{1, 2}}) True
     """
     elements = SetPartitions(n)
 
     def upper_covers_iter(x):
-        l = list(x.element) if hasattr(x,'element') else x
+        l = list(x)
         for (s,t) in Subsets(l,2):
             m = l[:]
             m.remove(s)
             m.remove(t)
             m.append(s.union(t))
-            yield Set(m)
+            yield elements(m)
 
     relns = [ (S,T) for S in elements for T in upper_covers_iter(S) ]
-    L = LatticePoset((elements,relns), cover_relations=False)
+    L = LatticePoset((elements,relns), cover_relations=False, facade=True)
     # pre-compute the mobius function for speedup
     L.mobius_function_matrix()
 
     def partial_order(T,S):
-        T, S = T.element, S.element
         return all(any(set(t).issubset(set(s)) for s in S) for t in T)
 
     L.is_lequal = partial_order
@@ -949,11 +948,11 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                     sage: X.antipode_on_basis(LabelledSetPartition(0,[]))
                     X0[]
                     sage: X.antipode_on_basis(LabelledSetPartition(1,[]))
-                    (-1)*X1[]
+                    -X1[]
                     sage: X.antipode_on_basis(LabelledSetPartition(2,[]))
                     X2[]
                     sage: X.antipode_on_basis(LabelledSetPartition(2,[(1,2,1)]))
-                    2*X2[] + (-1)*X2[(1, 2, 1)]
+                    2*X2[] - X2[(1, 2, 1)]
                 """
                 if phi.size() == 0:
                     return self.basis()[phi]
@@ -1180,7 +1179,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 if self.q() != 2:
                     raise NotImplementedError
 
-                from sage.combinat.sf import sfa
+                from sage.combinat.sf.sf import SymmetricFunctions
                 from sage.combinat.partition import Partition
                 pi = phi.to_set_partition()
                 la = Partition(sorted(map(len,pi),reverse=True))
@@ -1189,15 +1188,15 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                 if self is shca.superclass_basis():
                     coeff = prod(factorial(i) for i in la.to_exp())
-                    return coeff * sfa.SFAMonomial(R)[la]
+                    return coeff * SymmetricFunctions(R).monomial()[la]
                 elif self is shca.powersum_basis():
-                    return sfa.SFAPower(R)[la]
+                    return SymmetricFunctions(R).powersum()[la]
                 elif self is shca.elementary_basis():
                     coeff = prod(factorial(i) for i in la)
-                    return coeff * sfa.SFAElementary(R)[la]
+                    return coeff * SymmetricFunctions(R).elementary()[la]
                 elif self is shca.homogeneous_basis():
                     coeff = prod(factorial(i) for i in la)
-                    return coeff * sfa.SFAHomogeneous(R)[la]
+                    return coeff * SymmetricFunctions(R).homogeneous()[la]
                 else:
                     return shca.superclass_basis()(self[phi]).rho()
 
@@ -1226,24 +1225,24 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
                 """
                 if self.q() != 2:
                     raise NotImplementedError
-                from sage.combinat.sf import sfa
+                from sage.combinat.sf.sf import SymmetricFunctions
                 shca = self.realization_of()
                 R = self.base_ring()
 
                 codomain = None
                 if self is shca.superclass_basis():
-                    codomain = sfa.SFAMonomial(R)
+                    codomain = SymmetricFunctions(R).monomial()
                 elif self is shca.powersum_basis():
-                    codomain = sfa.SFAPower(R)
+                    codomain = SymmetricFunctions(R).powersum()
                 elif self is shca.elementary_basis():
-                    codomain = sfa.SFAElementary(R)
+                    codomain = SymmetricFunctions(R).elementary()
                 elif self is shca.homogeneous_basis():
-                    codomain = sfa.SFAHomogeneous(R)
+                    codomain = SymmetricFunctions(R).homogeneous()
 
                 if codomain is not None:
                     return self.module_morphism(self.rho_on_basis, codomain=codomain)
                 else:
-                    codomain = sfa.SFAMonomial(R)
+                    codomain = SymmetricFunctions(R).monomial()
                     K = shca.superclass_basis()
                     morph1 = K.module_morphism(K.rho_on_basis, codomain=codomain)
                     morph2 = self.module_morphism(K.coerce_map_from(self).on_basis(), codomain=K)
@@ -1465,7 +1464,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
 
                 sage: K = SupercharacterHopfAlgebra(4).K()
                 sage: K.an_element()
-                5*K2[] + (-3)*K3[(1, 3, a)]
+                5*K2[] - 3*K3[(1, 3, a)]
 
             """
             R = self.base_ring()
@@ -2252,7 +2251,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             """
             K = self.realization_of().superclass_basis()
             L = LatticeOfSetPartitions(phi.size())
-            return K.sum_of_monomials([label_set_partition(x.element) for x in L.order_filter([L(phi.to_set_partition())])])
+            return K.sum_of_monomials([label_set_partition(x) for x in L.order_filter([L(phi.to_set_partition())])])
 
         @cached_method
         def product_on_basis(self, phi, psi):
@@ -2443,7 +2442,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             L = LatticeOfSetPartitions(phi.size())
             phi = L(phi.to_set_partition())
             mu = L.mobius_function
-            return 1/abs(mu(L.bottom(),phi)) * H.sum(mu(sigma,phi)*H[label_set_partition(sigma.element)]
+            return 1/abs(mu(L.bottom(),phi)) * H.sum(mu(sigma,phi)*H[label_set_partition(sigma)]
                     for sigma in L.order_ideal([phi]))
 
     H = homogeneous_basis = Homogeneous
@@ -2574,7 +2573,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             mu = L.mobius_function
             pi = L(phi.to_set_partition())
             hat0 = L.bottom()
-            return P.sum(mu(hat0,sigma)*P[label_set_partition(sigma.element)]
+            return P.sum(mu(hat0,sigma)*P[label_set_partition(sigma)]
                         for sigma in L.order_ideal([pi]))
 
         @cached_method
@@ -2604,7 +2603,7 @@ class SupercharacterHopfAlgebra(UniqueRepresentation, Parent):
             L = LatticeOfSetPartitions(phi.size())
             pi = L(phi.to_set_partition())
             mu = L.mobius_function
-            return 1/mu(L.bottom(),pi) * E.sum(mu(sigma,pi)*E[label_set_partition(sigma.element)]
+            return 1/mu(L.bottom(),pi) * E.sum(mu(sigma,pi)*E[label_set_partition(sigma)]
                     for sigma in L.order_ideal([pi]))
 
         @lazy_attribute
@@ -2743,7 +2742,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
             sage: from sage.combinat.scha import SupercharacterTable
             sage: theta = SupercharacterTable(9).theta
             sage: map(theta, GF(9,'a'))
-            [1, -zeta3 - 1, 1, -zeta3 - 1, zeta3, zeta3, 1, zeta3, -zeta3 - 1]
+            [1, zeta3, 1, zeta3, zeta3, -zeta3 - 1, 1, -zeta3 - 1, -zeta3 - 1]
         """
         if self._q == 2:
             return self._zeta.__pow__
@@ -2767,7 +2766,7 @@ class SupercharacterTable(UniqueRepresentation, SageObject):
             sage: from sage.combinat.scha import SupercharacterTable
             sage: theta = SupercharacterTable(9).theta
             sage: map(theta, GF(9,'a'))
-            [1, -zeta3 - 1, 1, -zeta3 - 1, zeta3, zeta3, 1, zeta3, -zeta3 - 1]
+            [1, zeta3, 1, zeta3, zeta3, -zeta3 - 1, 1, -zeta3 - 1, -zeta3 - 1]
         """
         return self._zeta**(x.trace())
 
@@ -2943,4 +2942,4 @@ def label_set_partition(partition):
 def standardize_set_partition(S):
     underlying_set = sorted(sum(map(list,S),[]))
     std = dict((j,i+1) for (i,j) in enumerate(underlying_set))
-    return Set([Set([std[i] for i in a]) for a in S])
+    return SetPartition([[std[i] for i in a] for a in S])
