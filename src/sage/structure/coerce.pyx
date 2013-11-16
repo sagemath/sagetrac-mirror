@@ -79,6 +79,7 @@ from cpython.object cimport *
 include "coerce.pxi"
 
 import operator
+from weakref import ref
 
 from sage_object cimport SageObject
 from sage.categories.map cimport Map
@@ -206,9 +207,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
-        # None or of type Map.
+        # None or a weak reference to a Map.
         self._coercion_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
-        # This MUST be a mapping to actions.
+        # This MUST be a mapping to weak references to actions.
         self._action_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
         # This is a mapping from Parents to Parents, storing the result of division in the given parent.
         self._division_parents = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
@@ -256,8 +257,30 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: act(1/5, x+10)
             1/5*x + 2
         """
-        return dict([((S, R), mors) for (S, R, op), mors in self._coercion_maps.iteritems()]), \
-               dict(self._action_maps.iteritems())
+        cdef dict CoerceDict = {}
+        cdef dict ActionDict = {}
+        cdef list L
+        for (P,Q,x), mors in self._coercion_maps.iteritems():
+            L = []
+            for mor in mors:
+                if mor is None:
+                    L.append(mor)
+                else:
+                    mor = mor()   # weak reference
+                    if mor is None:
+                        L = []
+                        break
+                    L.append(mor)
+            if L:
+                CoerceDict[P,Q] = tuple(L)
+        for key, action in self._action_maps.iteritems():
+            if action is None:
+                ActionDict[key] = action
+                continue
+            action = action()   # weak reference
+            if action is not None: # we exclude defunct actions
+                ActionDict[key] = action
+        return CoerceDict, ActionDict
 
     def get_stats(self):
         """
@@ -864,6 +887,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         Raises a type error if no such Z can be found.
 
+        NOTE:
+
+        The coerce maps are cached on the domain. For efficiency, they
+        are also added in the coercion model. But the coercion model will
+        only keep a weak reference to the coerce maps, by :trac:`15424`,
+        in order to not create a memory leak.
+
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
@@ -903,6 +933,23 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
+
+        TESTS:
+
+        The following tests agains the memory leak that was fixed by
+        :trac:`15424`::
+
+            sage: import gc
+            sage: K = IntegerModRing(111115)
+            sage: C = type(K)
+            sage: _ = gc.collect()
+            sage: number_modrings = len([1 for P in gc.get_objects() if isinstance(P,C)])
+            sage: x = K.one()*2
+            sage: del K,x
+            sage: _ = gc.collect()
+            sage: len([1 for P in gc.get_objects() if isinstance(P,C)]) == number_modrings - 1
+            True
+
         """
         xp = parent_c(x)
         yp = parent_c(y)
@@ -1063,7 +1110,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
         """
         try:
-            return self._coercion_maps.get(R, S, None)
+            # Coercion maps are cached in their codomain, S, keyed by their
+            # domain, R. Hence, it can only be garbage collected if either
+            # R or S are not strongly referenced. But then, we wouldn't be
+            # in this line!
+            # Therefore, we just call the weak reference to the respective
+            # coercion maps, and do not test if the weak reference became
+            # defunct.
+            out = self._coercion_maps.get(R, S, None)
+            if out is None:
+                return
+            return tuple([None if mor is None else mor() for mor in out])
         except KeyError:
             homs = self.discover_coercion(R, S)
             if 0:
@@ -1086,8 +1143,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     swap = None, (<Parent>S).coerce_map_from(R)
                 else:
                     swap = S_map, R_map
-            self._coercion_maps.set(R, S, None, homs)
-            self._coercion_maps.set(S, R, None, swap)
+            try:
+                self._coercion_maps.set(R, S, None, None if homs is None else tuple([None if mor is None else ref(mor) for mor in homs]))
+                self._coercion_maps.set(S, R, None, None if swap is None else tuple([None if mor is None else ref(mor) for mor in swap]))
+            except BaseException,msg:
+                print "BaseException",R,S
+                print "namely",msg
+                raise
         return homs
 
     cpdef verify_coercion_maps(self, R, S, homs, bint fix=False):
@@ -1266,12 +1328,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         """
         try:
-            return self._action_maps.get(R, S, op)
+            action = self._action_maps.get(R, S, op)
+            if action is None:
+                return
+            action = action() # now, it is a weak reference to an action
+            if action is not None: # otherwise, the action got garbage collected
+                return action
         except KeyError:
             pass
         action = self.discover_action(R, S, op, r, s)
         action = self.verify_action(action, R, S, op)
-        self._action_maps.set(R, S, op, action)
+        self._action_maps.set(R, S, op, None if action is None else ref(action))
         return action
 
     cpdef verify_action(self, action, R, S, op, bint fix=True):
