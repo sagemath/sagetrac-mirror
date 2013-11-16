@@ -160,3 +160,6 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+
+# Binary Recurrence Sequences
+from binary_recurrence_sequences import BinaryRecurrenceSequence
