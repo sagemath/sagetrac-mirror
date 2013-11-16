@@ -49,10 +49,9 @@ TODO:
 
 from sage.categories.all import Rings, Realizations
 from sage.categories.all import tensor
-from sage.categories.category_types import Category_realization
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.graded_enumerated_sets import GradedEnumeratedSets
+from sage.categories.sets_with_grading import SetsWithGrading
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.combinat import CombinatorialObject, CombinatorialClass, InfiniteAbstractCombinatorialClass
 from sage.combinat.subset import Subsets
@@ -374,7 +373,7 @@ class LabelledSetPartitions_all(InfiniteAbstractCombinatorialClass):
         """
         self._q = q
         self._field = GF(q, 'a')
-        Parent.__init__(self, category = (GradedEnumeratedSets(), InfiniteEnumeratedSets()))
+        Parent.__init__(self, category = (SetsWithGrading(), InfiniteEnumeratedSets()))
 
     def subset(self, size=None):
         """
