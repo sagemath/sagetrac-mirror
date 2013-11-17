@@ -7534,7 +7534,7 @@ cdef class gen(RingElement):
         variable v otherwise
         """
         pari_catch_sig_on()
-        return P.new_gen(pollead(self.g, self.get_var(v)))
+        return P.new_gen(pollead(self.g, P.get_var(v)))
 
     def polrecip(self):
         pari_catch_sig_on()
@@ -7560,7 +7560,7 @@ cdef class gen(RingElement):
     def polresultant(self, y, var=-1, flag=0):
         pari_catch_sig_on()
         t0 = P.toGEN(y)
-        return P.new_gen(polresultant0(self.g, t0, self.get_var(var), flag))
+        return P.new_gen(polresultant0(self.g, t0, P.get_var(var), flag))
 
     def polroots(self, flag=0, precision=0):
         """

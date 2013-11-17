@@ -98,7 +98,7 @@ cdef void _pari_err_recover(long err):
     Perform a computation that requires doubling the default stack
     several times::
 
-        sage: from sage.libs.pari.gen import init_pari_stack
+        sage: from sage.libs.pari.pari_instance import init_pari_stack
         sage: init_pari_stack(2^12)
         sage: x = pari('2^(2^26)')
         sage: x == 2^(2^26)
