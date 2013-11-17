@@ -1,4 +1,3 @@
-import sage.libs.pari.gen as gen
 from sage.misc.sage_eval import sage_eval
 
 from sage.rings.all import *
@@ -88,7 +87,8 @@ def pari(x):
         sage: type(pari("dummy = 0; kill(dummy)"))
         <type 'NoneType'>
     """
-    return gen.pari(x)
+    from sage.libs.pari.pari_instance import pari
+    return pari(x)
 
 def python(z, locals=None):
     """
@@ -215,9 +215,11 @@ def python(z, locals=None):
         sage: pari(K(11^-5)).sage()
         11^-5 + O(11^0)
     """
+    from sage.libs.pari.pari_instance import prec_words_to_bits
+
     t = z.type()
     if t == "t_REAL":
-        return RealField(gen.prec_words_to_bits(z.precision()))(z)
+        return RealField(prec_words_to_bits(z.precision()))(z)
     elif t == "t_FRAC":
          Q = RationalField()
          return Q(z)
@@ -233,11 +235,11 @@ def python(z, locals=None):
             xprec = z.real().precision() # will be 0 if exact
             yprec = z.imag().precision() # will be 0 if exact
             if xprec == 0:
-                prec = gen.prec_words_to_bits(yprec)
+                prec = prec_words_to_bits(yprec)
             elif yprec == 0:
-                prec = gen.prec_words_to_bits(xprec)
+                prec = prec_words_to_bits(xprec)
             else:
-                prec = max(gen.prec_words_to_bits(xprec),gen.prec_words_to_bits(yprec))
+                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
             R = RealField(prec)
             C = ComplexField(prec)
             return C(R(z.real()), R(z.imag()))
