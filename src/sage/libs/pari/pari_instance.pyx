@@ -18,7 +18,8 @@ AUTHORS:
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
   (#11611, #11854, #11952)
 
-- Peter Bruin (2013-11-17): split off this file from gen.pyx (#15185)
+- Peter Bruin (2013-11-17): split off this file from gen.pyx; general
+  clean-up (#15185)
 
 
 EXAMPLES::
@@ -152,6 +153,20 @@ Sage (ticket #9636)::
     test
 
 """
+
+#*****************************************************************************
+#       Copyright (C) 2006,2010 William Stein <wstein@gmail.com>
+#       Copyright (C) ???? Justin Walker
+#       Copyright (C) ???? Gonzalo Tornaria
+#       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2010,2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'

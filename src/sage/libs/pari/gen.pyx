@@ -20,8 +20,8 @@ AUTHORS:
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
   (#11611, #11854, #11952)
 
-- Peter Bruin (2013-11-17): move PariInstance to a separate file
-  (#15185)
+- Peter Bruin (2013-11-17): general clean-up; move PariInstance to a
+  separate file (#15185)
 
 """
 
@@ -31,6 +31,7 @@ AUTHORS:
 #       Copyright (C) ???? Gonzalo Tornaria
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2010,2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -41,15 +42,13 @@ AUTHORS:
 include 'sage/ext/stdsage.pxi'
 include 'pari_err.pxi'
 
-import operator
-import sage.structure.element
-from sage.structure.element cimport ModuleElement, RingElement, Element
-from sage.libs.pari.pari_instance cimport PariInstance, \
-        prec_words_to_dec, prec_bits_to_words
-
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
     int     gcmp_sage(GEN x, GEN y)
+
+from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.libs.pari.pari_instance cimport PariInstance, \
+        prec_words_to_dec, prec_bits_to_words
 
 import pari_instance
 cdef PariInstance P = pari_instance.pari
@@ -218,7 +217,9 @@ cdef class gen(RingElement):
             othergen = other
             pari_catch_sig_on()
             return P.new_gen(gmod(selfgen.g, othergen.g))
-        return sage.structure.element.bin_op(self, other, operator.mod)
+        import operator
+        from sage.structure.element import bin_op
+        return bin_op(self, other, operator.mod)
 
     def __pow__(gen self, n, m):
         pari_catch_sig_on()
