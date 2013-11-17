@@ -162,7 +162,8 @@ import sys
 import types
 from sage.structure.parent cimport Parent
 from sage.structure.coerce_maps cimport DefaultConvertMap_unique
-from sage.libs.pari.handle_error import _pari_init_error_handling
+from sage.libs.pari.handle_error cimport pari_error_string, \
+        _pari_init_error_handling
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1

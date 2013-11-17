@@ -44,9 +44,6 @@ include 'pari_err.pxi'
 import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
-from sage.libs.pari.handle_error cimport pari_error_string, \
-        _pari_init_error_handling, _pari_check_warning, \
-        _pari_handle_exception, _pari_err_recover
 from sage.libs.pari.pari_instance cimport PariInstance, \
         prec_words_to_dec, prec_bits_to_words
 
@@ -57,30 +54,27 @@ cdef extern from "misc.h":
 import pari_instance
 cdef PariInstance P = pari_instance.pari
 
+cdef object Integer
+
+cdef void late_import():
+    global Integer
+
+    if Integer is not None:
+        return
+
+    import sage.rings.integer
+    Integer = sage.rings.integer.Integer
+
 cdef class gen(RingElement):
     """
     Python extension class that models the PARI GEN type.
     """
-    def __init__(self):
+    def __init__(self, x):
         pari_catch_sig_on()
         self.g = P.deepcopy_to_python_heap(P.toGEN(x), &self.b)
         self._parent = P
         self._refers_to = {}
         pari_catch_sig_off()
-
-    def parent(self):
-        return pari_instance
-
-    cdef void init(self, GEN g, pari_sp b):
-        """
-        g - PARI GEN b - pointer to memory chunk where PARI gen lives (if
-        nonzero then this memory is freed when the object goes out of
-        scope)
-        """
-        self.g = g
-        self.b = b
-        self._parent = P
-        self._refers_to = {}
 
     def __dealloc__(self):
         if self.b:
@@ -1164,6 +1158,7 @@ cdef class gen(RingElement):
             sage: int(pari("Mod(2, 7)"))
             2
         """
+        late_import()
         return int(Integer(self))
 
     def python_list_small(gen self):
@@ -1283,6 +1278,7 @@ cdef class gen(RingElement):
             sage: long(pari("Mod(2, 7)"))
             2L
         """
+        late_import()
         return long(Integer(self))
 
     def __float__(gen self):
@@ -1608,6 +1604,7 @@ cdef class gen(RingElement):
         else:
             k = int(k)
             pari_catch_sig_on()
+            t0 = P.toGEN(k)
             n = ispower(self.g, t0, &x)
             if n == 0:
                 pari_catch_sig_off()
@@ -6403,7 +6400,7 @@ cdef class gen(RingElement):
     def bnfsunit(self, S, long precision=0):
         pari_catch_sig_on()
         cdef GEN t0 = P.toGEN(S)
-        return P.new_gen(bnfsunit(bnf.g, t0, prec_bits_to_words(precision)))
+        return P.new_gen(bnfsunit(self.g, t0, prec_bits_to_words(precision)))
 
     def bnfunit(self):
         pari_catch_sig_on()
@@ -8162,10 +8159,13 @@ cdef class gen(RingElement):
             PariError: sorry, factor for general polynomials is not yet implemented
         """
         cdef int r
+        cdef GEN t
+        cdef gen ten_to_15
         if limit == -1 and typ(self.g) == t_INT and proof:
+            ten_to_15 = P(10^15)
             pari_catch_sig_on()
-            r = factorint_withproof_sage(&t0, self.g, ten_to_15)
-            z = P.new_gen(t0)
+            r = factorint_withproof_sage(&t, self.g, ten_to_15.g)
+            z = P.new_gen(t)
             if not r:
                 return z
             else:
