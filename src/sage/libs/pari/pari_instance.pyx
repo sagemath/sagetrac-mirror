@@ -153,57 +153,36 @@ Sage (ticket #9636)::
 
 """
 
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/python.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'pari_err.pxi'
+
+import sys
+import types
+from sage.structure.parent cimport Parent
+from sage.structure.coerce_maps cimport DefaultConvertMap_unique
+from sage.libs.pari.handle_error import _pari_init_error_handling
+
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
-# Make sure we don't use mpz_t_offset before initializing it by
-# putting in a value that's likely to provoke a segmentation fault,
-# rather than silently corrupting memory.
-cdef long mpz_t_offset = 1000000000
-
-# so Galois groups are represented in a sane way
-# See the polgalois section of the PARI users manual.
-new_galois_format = 1
-
-cdef pari_sp mytop
-
-# real precision in decimal digits: see documentation for
-# get_real_precision() and set_real_precision().  This variable is used
-# in gp to set the precision of input quantities (e.g. sqrt(2)), and for
-# determining the number of digits to be printed.  It is *not* used as
-# a "default precision" for internal computations, which always use
-# the actual precision of arguments together (where relevant) with a
-# "prec" parameter.  In ALL cases (for real computations) the prec
-# parameter is a WORD precision and NOT decimal precision.  Pari reals
-# with word precision w have bit precision (of the mantissa) equal to
-# 32*(w-2) or 64*(w-2).
-#
-# Hence the only relevance of this parameter in Sage is (1) for the
-# output format of components of objects of type
-# 'sage.libs.pari.gen.gen'; (2) for setting the precision of pari
-# variables created from strings (e.g. via sage: pari('1.2')).
-#
-# WARNING: Many pari library functions take a last parameter "prec"
-# which should be a words precision.  In many cases this is redundant
-# and is simply ignored.  In our wrapping of these functions we use
-# the variable prec here for convenience only.
-cdef unsigned long prec
 
 #################################################################
 # conversions between various real precision models
 #################################################################
 
-def prec_bits_to_dec(int prec_in_bits):
+cpdef int prec_bits_to_dec(int prec_in_bits):
     r"""
     Convert from precision expressed in bits to precision expressed in
     decimal.
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_bits_to_dec(53)
+        sage: from sage.libs.pari.pari_instance import prec_bits_to_dec
+        sage: prec_bits_to_dec(53)
         15
-        sage: [(32*n,gen.prec_bits_to_dec(32*n)) for n in range(1,9)]
+        sage: [(32*n, prec_bits_to_dec(32*n)) for n in range(1,9)]
         [(32, 9),
         (64, 19),
         (96, 28),
@@ -216,17 +195,17 @@ def prec_bits_to_dec(int prec_in_bits):
     log_2 = 0.301029995663981
     return int(prec_in_bits*log_2)
 
-def prec_dec_to_bits(int prec_in_dec):
+cpdef int prec_dec_to_bits(int prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
     in bits.
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_dec_to_bits(15)
+        sage: from sage.libs.pari.pari_instance import prec_dec_to_bits
+        sage: prec_dec_to_bits(15)
         49
-        sage: [(n,gen.prec_dec_to_bits(n)) for n in range(10,100,10)]
+        sage: [(n, prec_dec_to_bits(n)) for n in range(10,100,10)]
         [(10, 33),
         (20, 66),
         (30, 99),
@@ -240,7 +219,7 @@ def prec_dec_to_bits(int prec_in_dec):
     log_10 = 3.32192809488736
     return int(prec_in_dec*log_10)
 
-def prec_bits_to_words(int prec_in_bits=0):
+cpdef int prec_bits_to_words(int prec_in_bits):
     r"""
     Convert from precision expressed in bits to pari real precision
     expressed in words. Note: this rounds up to the nearest word,
@@ -249,19 +228,20 @@ def prec_bits_to_words(int prec_in_bits=0):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_bits_to_words(70)
+        sage: from sage.libs.pari.pari_instance import prec_bits_to_words
+        sage: prec_bits_to_words(70)
         5   # 32-bit
         4   # 64-bit
 
     ::
 
-        sage: [(32*n,gen.prec_bits_to_words(32*n)) for n in range(1,9)]
+        sage: [(32*n, prec_bits_to_words(32*n)) for n in range(1,9)]
         [(32, 3), (64, 4), (96, 5), (128, 6), (160, 7), (192, 8), (224, 9), (256, 10)] # 32-bit
         [(32, 3), (64, 3), (96, 4), (128, 4), (160, 5), (192, 5), (224, 6), (256, 6)] # 64-bit
     """
-    if not prec_in_bits:
-        return prec
+    if prec_in_bits == 0:
+        return pari_instance.default_prec
+
     cdef int wordsize
     wordsize = BITS_IN_LONG
 
@@ -270,9 +250,7 @@ def prec_bits_to_words(int prec_in_bits=0):
     padded_bits = (prec_in_bits + wordsize - 1) & ~(wordsize - 1)
     return int(padded_bits/wordsize + 2)
 
-pbw = prec_bits_to_words
-
-def prec_words_to_bits(int prec_in_words):
+cpdef int prec_words_to_bits(int prec_in_words):
     r"""
     Convert from pari real precision expressed in words to precision
     expressed in bits. Note: this adjusts for the two codewords of a
@@ -280,18 +258,18 @@ def prec_words_to_bits(int prec_in_words):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_words_to_bits(10)
+        sage: from sage.libs.pari.pari_instance import prec_words_to_bits
+        sage: prec_words_to_bits(10)
         256   # 32-bit
         512   # 64-bit
-        sage: [(n,gen.prec_words_to_bits(n)) for n in range(3,10)]
+        sage: [(n, prec_words_to_bits(n)) for n in range(3,10)]
         [(3, 32), (4, 64), (5, 96), (6, 128), (7, 160), (8, 192), (9, 224)]  # 32-bit
         [(3, 64), (4, 128), (5, 192), (6, 256), (7, 320), (8, 384), (9, 448)] # 64-bit
     """
     # see user's guide to the pari library, page 10
     return int((prec_in_words - 2) * BITS_IN_LONG)
 
-def prec_dec_to_words(int prec_in_dec):
+cpdef int prec_dec_to_words(int prec_in_dec):
     r"""
     Convert from precision expressed in decimal to precision expressed
     in words. Note: this rounds up to the nearest word, adjusts for the
@@ -299,17 +277,17 @@ def prec_dec_to_words(int prec_in_dec):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_dec_to_words(38)
+        sage: from sage.libs.pari.pari_instance import prec_dec_to_words
+        sage: prec_dec_to_words(38)
         6   # 32-bit
         4   # 64-bit
-        sage: [(n,gen.prec_dec_to_words(n)) for n in range(10,90,10)]
+        sage: [(n, prec_dec_to_words(n)) for n in range(10,90,10)]
         [(10, 4), (20, 5), (30, 6), (40, 7), (50, 8), (60, 9), (70, 10), (80, 11)] # 32-bit
         [(10, 3), (20, 4), (30, 4), (40, 5), (50, 5), (60, 6), (70, 6), (80, 7)] # 64-bit
     """
     return prec_bits_to_words(prec_dec_to_bits(prec_in_dec))
 
-def prec_words_to_dec(int prec_in_words):
+cpdef int prec_words_to_dec(int prec_in_words):
     r"""
     Convert from precision expressed in words to precision expressed in
     decimal. Note: this adjusts for the two codewords of a pari real,
@@ -317,11 +295,11 @@ def prec_words_to_dec(int prec_in_words):
 
     EXAMPLES::
 
-        sage: import sage.libs.pari.gen as gen
-        sage: gen.prec_words_to_dec(5)
+        sage: from sage.libs.pari.pari_instance import prec_words_to_dec
+        sage: prec_words_to_dec(5)
         28   # 32-bit
         57   # 64-bit
-        sage: [(n,gen.prec_words_to_dec(n)) for n in range(3,10)]
+        sage: [(n, prec_words_to_dec(n)) for n in range(3,10)]
         [(3, 9), (4, 19), (5, 28), (6, 38), (7, 48), (8, 57), (9, 67)] # 32-bit
         [(3, 19), (4, 38), (5, 57), (6, 77), (7, 96), (8, 115), (9, 134)] # 64-bit
     """
@@ -329,21 +307,12 @@ def prec_words_to_dec(int prec_in_words):
 
 
 # The unique running Pari instance.
-cdef PariInstance pari_instance, P
+cdef PariInstance pari_instance
 pari_instance = PariInstance(16000000, 500000)
-P = pari_instance   # shorthand notation
-
-# PariInstance.__init__ must not create gen objects because their parent is not constructed yet
-pari_catch_sig_on()
-pari_instance.PARI_ZERO = pari_instance.new_gen_noclear(gen_0)
-pari_instance.PARI_ONE  = pari_instance.new_gen_noclear(gen_1)
-pari_instance.PARI_TWO  = pari_instance.new_gen_noclear(gen_2)
-pari_catch_sig_off()
 
 # Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
 
-cdef unsigned long num_primes
 
 # Callbacks from PARI to print stuff using sys.stdout.write() instead
 # of C library functions like puts().
@@ -384,20 +353,18 @@ cdef void sage_pariErr_flush():
     pass
 
 
-cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+cdef class PariInstance(Parent):
     def __init__(self, long size=16000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
 
         INPUT:
 
-
         -  ``size`` - long, the number of bytes for the initial
            PARI stack (see note below)
 
         -  ``maxprime`` - unsigned long, upper limit on a
            precomputed prime number table (default: 500000)
-
 
         .. note::
 
@@ -426,8 +393,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global num_primes, avma, top, bot, prec
-
         # The size here doesn't really matter, because we will allocate
         # our own stack anyway. We ask PARI not to set up signal and
         # error handlers.
@@ -435,19 +400,44 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         _pari_init_error_handling()
 
-        num_primes = maxprime
+        self.num_primes = maxprime
+
+        # so Galois groups are represented in a sane way
+        # See the polgalois section of the PARI users manual.
+        global new_galois_format
+        new_galois_format = 1
 
         # Free the PARI stack and allocate our own (using Cython)
-        pari_free(<void*>bot); bot = 0
-        init_stack(size)
+        global bot
+        pari_free(<void*>bot)
+        bot = 0
+        self.init_stack(size)
 
         GP_DATA.fmt.prettyp = 0
 
-        # how do I get the following to work? seems to be a circular import
-        #from sage.rings.real_mpfr import RealField
-        #prec_bits = RealField().prec()
-        prec = prec_bits_to_words(53)
+        # real precision in decimal digits: see documentation for
+        # get_real_precision() and set_real_precision().  This variable is used
+        # in gp to set the precision of input quantities (e.g. sqrt(2)), and for
+        # determining the number of digits to be printed.  It is *not* used as
+        # a "default precision" for internal computations, which always use
+        # the actual precision of arguments together (where relevant) with a
+        # "prec" parameter.  In ALL cases (for real computations) the prec
+        # parameter is a WORD precision and NOT decimal precision.  Pari reals
+        # with word precision w have bit precision (of the mantissa) equal to
+        # 32*(w-2) or 64*(w-2).
+        #
+        # Hence the only relevance of this parameter in Sage is (1) for the
+        # output format of components of objects of type
+        # 'sage.libs.pari.gen.gen'; (2) for setting the precision of pari
+        # variables created from strings (e.g. via sage: pari('1.2')).
+
         GP_DATA.fmt.sigd = prec_bits_to_dec(53)
+
+        # Many PARI library functions take a parameter "prec", which
+        # should be a words precision.  In wrapping these functions,
+        # we use the constant default_prec for convenience only.
+
+        self.default_prec = prec_bits_to_words(53)
 
         # Set printing functions
         global pariOut, pariErr
@@ -461,6 +451,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariErr.putch = sage_pariErr_putchar
         pariErr.puts = sage_pariErr_puts
         pariErr.flush = sage_pariErr_flush
+
+        Parent.__init__(self)
 
     def __dealloc__(self):
         """
@@ -490,8 +482,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __hash__(self):
         return 907629390   # hash('pari')
 
-    cdef has_coerce_map_from_c_impl(self, x):
-        return True
+    def _cmp_(self, other):
+        return cmp(type(self), type(other))
 
     def __richcmp__(left, right, int op):
         """
@@ -504,7 +496,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari == 5
             False
         """
-        return (<Parent>left)._richcmp(right, op)
+        return left._richcmp_helper(right, op)
+
+    Element = gen
+
+    def _an_element_(self):
+        return self(0)
+
+    cpdef coerce_map_from(self, other):
+        return DefaultConvertMap_unique(other, self)
 
     def default(self, variable, value=None):
         if not value is None:
@@ -522,16 +522,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         Set the debug PARI C library variable.
         """
         return int(self.default('debug'))
-
-    cdef GEN toGEN(self, x, int i) except NULL:
-        cdef gen _x
-        if PY_TYPE_CHECK(x, gen):
-            _x = x
-            return _x.g
-
-        t0heap[i] = self(x)
-        _x = t0heap[i]
-        return _x.g
 
     def set_real_precision(self, long n):
         """
@@ -575,59 +565,35 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def get_series_precision(self):
         return precdl
 
+    cdef void clear_stack(self):
+        """
+        Call ``pari_catch_sig_off()``, and clear the entire PARI stack if we are
+        leaving the outermost ``pari_catch_sig_on()...pari_catch_sig_off()`` block.
 
-    ###########################################
-    # Create a gen from a GEN object.
-    # This *steals* a reference to the GEN, as it
-    # frees the memory the GEN occupied.
-    ###########################################
+        TODO: integrate into pari_catch_sig_off()?
+        """
+        global top, avma
+        if _signals.sig_on_count <= 1:
+            avma = top
+        pari_catch_sig_off()
+
+    cdef gen _new_gen(self, GEN x):
+        """
+        Create a new gen wrapping `x`.
+        """
+        cdef gen y = PY_NEW(gen)
+        y.g = self.deepcopy_to_python_heap(x, &y.b)
+        y._parent = self
+        y._refers_to = {}
+        return y
 
     cdef gen new_gen(self, GEN x):
         """
-        Create a new gen, then free the \*entire\* stack and call
-        pari_catch_sig_off().
+        Create a new gen wrapping `x`, then call ``clear_stack()``.
         """
-        cdef gen g
-        g = _new_gen(x)
-        global mytop, avma
-        avma = mytop
-        pari_catch_sig_off()
+        cdef gen g = self._new_gen(x)
+        self.clear_stack()
         return g
-
-    cdef object new_gen_to_string(self, GEN x):
-        """
-        Converts a gen to a Python string, free the \*entire\* stack and call
-        pari_catch_sig_off(). This is meant to be used in place of new_gen().
-        """
-        cdef char* c
-        cdef int n
-        c = GENtostr(x)
-        s = str(c)
-        pari_free(c)
-        global mytop, avma
-        avma = mytop
-        pari_catch_sig_off()
-        return s
-
-    cdef void clear_stack(self):
-        """
-        Clear the entire PARI stack and call pari_catch_sig_off().
-        """
-        global mytop, avma
-        avma = mytop
-        pari_catch_sig_off()
-
-    cdef void set_mytop_to_avma(self):
-        global mytop, avma
-        mytop = avma
-
-    cdef gen new_gen_noclear(self, GEN x):
-        """
-        Create a new gen, but don't free any memory on the stack and don't
-        call pari_catch_sig_off().
-        """
-        z = _new_gen(x)
-        return z
 
     cdef gen new_gen_from_mpz_t(self, mpz_t value):
         """
@@ -750,25 +716,20 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         set_gel(z, 4, self._new_GEN_from_mpz_t(unit))
         return self.new_gen(z)
 
-    def double_to_gen(self, x):
-        cdef double dx
-        dx = float(x)
-        return self.double_to_gen_c(dx)
-
-    cdef gen double_to_gen_c(self, double x):
+    cdef gen new_gen_from_double(self, double x):
         """
         Create a new gen with the value of the double x, using Pari's
         dbltor.
 
         EXAMPLES::
 
-            sage: pari.double_to_gen(1)
+            sage: pari(float(1))
             1.00000000000000
-            sage: pari.double_to_gen(1e30)
+            sage: pari(float(1e30))
             1.00000000000000 E30
-            sage: pari.double_to_gen(0)
+            sage: pari(float(0))
             0.E-15
-            sage: pari.double_to_gen(-sqrt(RDF(2)))
+            sage: pari(float(-sqrt(RDF(2))))
             -1.41421356237310
         """
         # Pari has an odd concept where it attempts to track the accuracy
@@ -791,7 +752,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         else:
             return self.new_gen(dbltor(x))
 
-    cdef GEN double_to_GEN(self, double x):
+    cdef inline GEN _new_GEN_from_double(self, double x):
         if x == 0:
             return real_0_bit(-53)
         else:
@@ -801,36 +762,39 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create a new complex number, initialized from re and im.
         """
-        t0GEN(re)
-        t1GEN(im)
-        cdef GEN cp
         pari_catch_sig_on()
-        cp = cgetg(3, t_COMPLEX)
+        cdef GEN cp = cgetg(3, t_COMPLEX)
+        cdef GEN t0 = self.toGEN(re)
+        cdef GEN t1 = self.toGEN(im)
         set_gel(cp, 1, t0)
         set_gel(cp, 2, t1)
         return self.new_gen(cp)
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
-        return deepcopy_to_python_heap(x, address)
+        cdef size_t s = <size_t> gsizebyte(x)
+        cdef pari_sp tmp_bot, tmp_top
+        tmp_bot = <pari_sp> sage_malloc(s)
+        tmp_top = tmp_bot + s
+        address[0] = tmp_bot
+        return gcopy_avma(x, &tmp_top)
 
-    cdef gen new_ref(self, GEN g, gen parent):
+    cdef gen new_ref(self, GEN g, gen x):
         """
-        Create a new gen pointing to the given GEN, which is allocated as a
-        part of parent.g.
+        Create a new gen pointing to the GEN `g`, which is allocated as a
+        part of `x.g`.
 
         .. note::
 
-           As a rule, there should never be more than one sage gen
-           pointing to a given Pari GEN. So that means there is only
-           one case where this function should be used: when a
-           complicated Pari GEN is allocated with a single gen
-           pointing to it, and one needs a gen pointing to one of its
-           components.
+           As a rule, there should never be more than one Sage ``gen``
+           pointing to a given PARI ``GEN``.  There is only one case
+           where this function should be used: when a complicated PARI
+           ``GEN`` is allocated with a single ``gen`` pointing to it,
+           and one needs a ``gen`` pointing to one of its components.
 
-           For example, doing x = pari("[1,2]") allocates a gen pointing to
-           the list [1,2], but x[0] has no gen wrapping it, so new_ref
-           should be used there. Then parent would be x in this
-           case. See __getitem__ for an example of usage.
+           For example, doing ``x = pari("[1,2]")`` allocates a
+           ``gen`` pointing to the list `[1,2]`, but `x[0]` has no
+           ``gen`` wrapping it, so ``new_ref()`` should be used there.
+           See ``gen.__getitem__()`` for an example of usage.
 
         EXAMPLES::
 
@@ -838,15 +802,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             2
         """
         cdef gen p = PY_NEW(gen)
-
-        p.b = 0
-        p._parent = self
-        p._refers_to = {-1:parent}
         p.g = g
-
+        p._parent = self
+        p._refers_to = {-1: x}
         return p
 
-    def __call__(self, s):
+    def _element_constructor_(self, s):
         """
         Create the PARI object obtained by evaluating s using PARI.
 
@@ -870,58 +831,68 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         See :func:`pari` for more examples.
         """
-        cdef int length, i
-        cdef gen v
-
-        late_import()
-
+        cdef GEN g
         if isinstance(s, gen):
             return s
-        elif isinstance(s, Integer):
-            return self.new_gen_from_mpz_t(<void *>s + mpz_t_offset)
         elif PyObject_HasAttrString(s, "_pari_"):
             return s._pari_()
+        else:
+            pari_catch_sig_on()
+            g = self.toGEN(s)
+            if g == gnil:
+                self.clear_stack()
+                return None
+            else:
+                return self.new_gen(g)
+
+    cdef GEN toGEN(self, s) except NULL:
+        """
+        Convert `s` to a GEN.
+
+        One should call ``pari_catch_sig_on()`` before and
+        ``pari_catch_sig_off()`` after.
+
+        """
+        cdef int length, i
+        cdef mpz_t mpz_int
+        cdef GEN g
+        cdef gen h
+
+        if isinstance(s, gen):
+            return (<gen>s).g
+        elif PyObject_HasAttrString(s, "_pari_"):
+            h = s._pari_()
+            return gcopy(h.g)
 
         # Check basic Python types
         if PyInt_Check(s):
-            pari_catch_sig_on()
-            return self.new_gen(stoi(PyInt_AS_LONG(s)))
+            return stoi(PyInt_AS_LONG(s))
         if PyBool_Check(s):
-            return self.PARI_ONE if s else self.PARI_ZERO
-        cdef mpz_t mpz_int
-        cdef GEN g
+            return gen_1 if s else gen_0
         if PyLong_Check(s):
-            pari_catch_sig_on()
             mpz_init(mpz_int)
             mpz_set_pylong(mpz_int, s)
             g = self._new_GEN_from_mpz_t(mpz_int)
             mpz_clear(mpz_int)
-            return self.new_gen(g)
+            return g
         if PyFloat_Check(s):
-            pari_catch_sig_on()
-            return self.new_gen(dbltor(PyFloat_AS_DOUBLE(s)))
+            return self._new_GEN_from_double(PyFloat_AS_DOUBLE(s))
         if PyComplex_Check(s):
-            pari_catch_sig_on()
             g = cgetg(3, t_COMPLEX)
-            set_gel(g, 1, dbltor(PyComplex_RealAsDouble(s)))
-            set_gel(g, 2, dbltor(PyComplex_ImagAsDouble(s)))
-            return self.new_gen(g)
+            set_gel(g, 1, self._new_GEN_from_double(PyComplex_RealAsDouble(s)))
+            set_gel(g, 2, self._new_GEN_from_double(PyComplex_ImagAsDouble(s)))
+            return g
 
         if isinstance(s, (types.ListType, types.XRangeType,
-                            types.TupleType, types.GeneratorType)):
+                          types.TupleType, types.GeneratorType)):
             length = len(s)
-            v = self._empty_vector(length)
+            g = cgetg(length + 1, t_VEC)
             for i from 0 <= i < length:
-                v[i] = self(s[i])
-            return v
+                set_gel(g, i + 1, self.toGEN(s[i]))
+            return g
 
         t = str(s)
-        pari_catch_sig_str('evaluating PARI string')
-        g = gp_read_str(t)
-        if g == gnil:
-            pari_catch_sig_off()
-            return None
-        return self.new_gen(g)
+        return gp_read_str(t)
 
     cdef GEN _new_GEN_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
         r"""
@@ -960,7 +931,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
-    cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+    cdef gen new_gen_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
         """
         EXAMPLES::
 
@@ -986,7 +957,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
-    cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+    cdef gen new_gen_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
         """
         EXAMPLES::
 
@@ -996,18 +967,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         cdef GEN g = self._new_GEN_from_mpq_t_matrix(B, nr, nc)
         return self.new_gen(g)
-
-    cdef _coerce_c_impl(self, x):
-        """
-        Implicit canonical coercion into a PARI object.
-        """
-        try:
-            return self(x)
-        except (TypeError, AttributeError):
-            raise TypeError("no canonical coercion of %s into PARI"%x)
-
-    cdef _an_element_c_impl(self):  # override this in Cython
-        return self.PARI_ZERO
 
     def new_with_bits_prec(self, s, long precision):
         r"""
@@ -1024,8 +983,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.set_real_precision(old_prec)
         return x
 
-
-
     cdef long get_var(self, v):
         """
         Converts a Python string into a PARI variable reference number. Or
@@ -1040,6 +997,43 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     # Initialization
     ############################################################
 
+    cdef int init_stack(self, size_t size) except -1:
+        cdef size_t s
+        cdef pari_sp cur_stack_size
+
+        global top, bot, avma
+
+        err = False    # whether or not a memory allocation error occurred.
+
+        # delete this if get core dumps and change the 2* to a 1* below.
+        if bot:
+            sage_free(<void*>bot)
+
+        prev_stack_size = top - bot
+        if size == 0:
+            size = 2 * prev_stack_size
+
+        # Decide on size
+        s = fix_size(size)
+
+        # Allocate memory for new stack using Python's memory allocator.
+        # As explained in the python/C API reference, using this instead
+        # of malloc is much better (and more platform independent, etc.)
+        bot = <pari_sp> sage_malloc(s)
+
+        while not bot:
+            err = True
+            s = fix_size(prev_stack_size)
+            bot = <pari_sp> sage_malloc(s)
+            if not bot:
+                prev_stack_size /= 2
+
+        top = bot + s
+        avma = top
+
+        if err:
+            raise MemoryError("Unable to allocate %s bytes memory for PARI." % size)
+
     def allocatemem(self, s=0, silent=False):
         r"""
         Double the *PARI* stack.
@@ -1049,8 +1043,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         s = int(s)
         cdef size_t a = s
         if int(a) != s:
-            raise ValueError, "s must be nonnegative and not too big."
-        init_stack(s)
+            raise ValueError("s must be nonnegative and not too big.")
+        self.init_stack(s)
 
     def pari_version(self):
         return str(PARIVERSION)
@@ -1077,16 +1071,15 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef unsigned long M
         cdef char *tmpptr
         M = _M
-        global diffptr, num_primes
-        if M <= num_primes:
+        global diffptr
+        if M <= self.num_primes:
             return
         pari_catch_sig_on()
         tmpptr = initprimes(M)
         pari_catch_sig_off()
         pari_free(<void*> diffptr)
-        num_primes = M
+        self.num_primes = M
         diffptr = tmpptr
-
 
     ##############################################
     ## Support for GP Scripts
@@ -1124,7 +1117,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         return self.new_gen(gp_read_file(filename))
 
-
     ##############################################
 
     def _primelimit(self):
@@ -1134,14 +1126,13 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         EXAMPLES:
             sage: pari._primelimit()
-            500519
+            500000
             sage: pari.init_primes(600000)
             sage: pari._primelimit()
             600000
         """
-        global num_primes
         from sage.rings.all import ZZ
-        return ZZ(num_primes)
+        return ZZ(self.num_primes)
 
     def prime_list(self, long n):
         """
@@ -1151,15 +1142,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         INPUT:
 
-
         -  ``n`` - C long
-
 
         OUTPUT:
 
-
         -  ``gen`` - PARI list of first n primes
-
 
         EXAMPLES::
 
@@ -1197,34 +1184,23 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-##         cdef long k
-##         k = (n+10)/math.log(n)
-##         p = 2
-##         while p <= n:
-##             p = self.nth_prime(k)
-##             k = 2
-##         v = self.prime_list(k)
-##         return v[:pari(n).primepi()]
-
     def __nth_prime(self, long n):
         """
         nth_prime(n): returns the n-th prime, where n is a C-int
         """
-        global num_primes
-
         if n <= 0:
-            raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
+            raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
         cdef GEN g
         pari_catch_sig_on()
         g = prime(n)
         return self.new_gen(g)
 
-
     def nth_prime(self, long n):
+        from sage.libs.pari.pari_error import PariError
         try:
             return self.__nth_prime(n)
         except PariError:
-            self.init_primes(max(2*num_primes,20*n))
+            self.init_primes(max(2*self.num_primes, 20*n))
             return self.nth_prime(n)
 
     def euler(self, precision=0):
@@ -1239,7 +1215,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             0.577215664901532860606512090082...
         """
         pari_catch_sig_on()
-        return self.new_gen(mpeuler(pbw(precision)))
+        return self.new_gen(mpeuler(prec_bits_to_words(precision)))
 
     def pi(self, precision=0):
         """
@@ -1254,7 +1230,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             3.1415926535897932384626433832...
         """
         pari_catch_sig_on()
-        return self.new_gen(mppi(pbw(precision)))
+        return self.new_gen(mppi(prec_bits_to_words(precision)))
 
     def pollegendre(self, long n, v=-1):
         """
@@ -1336,8 +1312,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: cyclotomic_polynomial(8)(2)
             17
         """
-        t0GEN(v)
         pari_catch_sig_on()
+        cdef GEN t0 = self.toGEN(v)
         return self.new_gen(polcyclo_eval(n, t0))
 
     def polsubcyclo(self, long n, long d, v=-1):
@@ -1406,10 +1382,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             ...
             PariError: incorrect type in setrand
         """
-        t0GEN(seed)
         pari_catch_sig_on()
+        cdef GEN t0 = self.toGEN(seed)
         setrand(t0)
-        pari_catch_sig_off()
+        self.clear_stack()
 
     def getrand(self):
         """
@@ -1447,19 +1423,14 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             ...
             IndexError: length of entries (=3) must equal n (=2)
         """
-        cdef gen v = self._empty_vector(n)
+        pari_catch_sig_on()
+        cdef gen v = self.new_gen(zerovec(n))
         if entries is not None:
             if len(entries) != n:
-                raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
-                      (len(entries), n)
+                raise IndexError("length of entries (=%s) must equal n (=%s)" %
+                                 (len(entries), n))
             for i, x in enumerate(entries):
                 v[i] = x
-        return v
-
-    cdef gen _empty_vector(self, long n):
-        cdef gen v
-        pari_catch_sig_on()
-        v = self.new_gen(zerovec(n))
         return v
 
     def matrix(self, long m, long n, entries=None):
@@ -1472,12 +1443,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen x
 
         pari_catch_sig_on()
-         # The gtomat is very important!!  Without sage/PARI will segfault.
-         # I do not know why. -- William Stein
-        A = self.new_gen(gtomat(zeromat(m,n)))
+        A = self.new_gen(zeromatcopy(m, n))
         if entries is not None:
             if len(entries) != m*n:
-                raise IndexError, "len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n)
+                raise IndexError("length of entries (=%s) must equal %s*%s=%s" %
+                                 (len(entries), m, n, m*n))
             k = 0
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
@@ -1487,15 +1457,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                     k = k + 1
         return A
 
-
-##############################################
-# Used in integer factorization -- must be done
-# after the pari_instance creation above:
-
-cdef gen _tmp = P.new_gen_noclear(gp_read_str('1000000000000000'))
-cdef GEN ten_to_15 = _tmp.g
-
-##############################################
 
 def init_pari_stack(size=8000000):
     """
@@ -1515,9 +1476,7 @@ def init_pari_stack(size=8000000):
 
     INPUT:
 
-
     -  ``size`` - an integer (default: 8000000)
-
 
     EXAMPLES::
 
@@ -1534,54 +1493,13 @@ def init_pari_stack(size=8000000):
 
     ::
 
-        sage: sage.libs.pari.gen.init_pari_stack()
+        sage: sage.libs.pari.pari_instance.init_pari_stack()
         sage: get_memory_usage()                       # random output
         '114M+'
 
     Ahh, that's better.
     """
-    init_stack(size)
-
-cdef int init_stack(size_t size) except -1:
-    cdef size_t s
-    cdef pari_sp cur_stack_size
-
-    global top, bot, avma, mytop
-
-
-    err = False    # whether or not a memory allocation error occurred.
-
-
-    # delete this if get core dumps and change the 2* to a 1* below.
-    if bot:
-        sage_free(<void*>bot)
-
-    prev_stack_size = top - bot
-    if size == 0:
-        size = 2 * prev_stack_size
-
-    # Decide on size
-    s = fix_size(size)
-
-    # Allocate memory for new stack using Python's memory allocator.
-    # As explained in the python/C API reference, using this instead
-    # of malloc is much better (and more platform independent, etc.)
-    bot = <pari_sp> sage_malloc(s)
-
-    while not bot:
-        err = True
-        s = fix_size(prev_stack_size)
-        bot = <pari_sp> sage_malloc(s)
-        if not bot:
-            prev_stack_size /= 2
-
-    top = bot + s
-    mytop = top
-    avma = top
-
-    if err:
-        raise MemoryError, "Unable to allocate %s bytes memory for PARI."%size
-
+    pari_instance.init_stack(size)
 
 cdef size_t fix_size(size_t a):
     cdef size_t b
@@ -1589,21 +1507,3 @@ cdef size_t fix_size(size_t a):
     if b < 1024:
         b = 1024
     return b
-
-cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
-    cdef size_t s = <size_t> gsizebyte(x)
-    cdef pari_sp tmp_bot, tmp_top
-
-    tmp_bot = <pari_sp> sage_malloc(s)
-    tmp_top = tmp_bot + s
-    address[0] = tmp_bot
-    return gcopy_avma(x, &tmp_top)
-
-cdef gen _new_gen (GEN x):
-    cdef GEN h
-    cdef pari_sp address
-    cdef gen y
-    h = deepcopy_to_python_heap(x, &address)
-    y = PY_NEW(gen)
-    y.init(h, address)
-    return y
