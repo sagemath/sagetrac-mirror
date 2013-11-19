@@ -133,6 +133,95 @@ class LatticePolytopeCollection_class(SageObject):
             res.append(tuple(tmp))
         return tuple(res)
 
+    def embed_in_strong(self, other):
+        r"""
+        Embed ``self`` in the LatticePolytopeCollection ``other`` using
+        only one linear map.
+
+        INPUT:
+
+        - ``other`` -- a
+            :class:`LatticePolytopeCollection<LatticePolytopeCollection_class>`.
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+        # The existence of a weak embedding is a necessary condition, so begin looking
+        # at embedding tables.
+        # Begin by looking for all sub-polytopes of other with the right
+        # numbers of vertices and integral points
+        from sage.combinat.all import Arrangements
+        from sage.geometry.polyhedron.ppl_lattice_polytope import \
+            _compute_affine_normal_forms
+        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
+            LatticePolytopesNotIsomorphicError
+        n_self = self.n_polytopes()
+        # Order other's polytopes by their number of integral points
+        polys_enumerated = list(enumerate(other.polytopes()))
+        polys_sorted = sorted(polys_enumerated,
+                              key=lambda x: x[1].n_integral_points())
+        print 'Sorted polys:', polys_sorted
+        sorted_indices = tuple([i[0] for i in polys_sorted])
+        maps = Arrangements(range(other.n_polytopes()), n_self)
+        if not maps:
+            raise ValueError('The embedding should not have fewer polytopes.')
+        embedding_table = self._embedding_table(other)
+        not_working = True
+        for map in maps:
+            if not all(embedding_table[i][map[i]] for i in range(n_self)):
+                continue
+            # We have found a weak embedding.
+            print 'Checking weak embedding', map
+            # Find the codomain with the least integral points and the index
+            # of the polytope to be embedded into it
+            index_codomain = [i for i in sorted_indices if i in map][0]
+            index_domain = map.index(index_codomain)
+            # Find all relevant sub-polytopes in the relevant codomain
+            domain = self.polytopes()[index_domain]
+            codomain = other.polytopes()[index_codomain]
+            n_pts = domain.n_integral_points()
+            n_vertices = domain.n_vertices()
+            dim = domain.affine_dimension()
+            sub_polys = list(codomain.sub_polytope_generator_all(
+                            n_pts, n_vertices, dim))
+            if not sub_polys:
+                print 'No relevant sub-polytopes!'
+                continue
+            _compute_affine_normal_forms(sub_polys)
+            # We must improve the isomorphisms, this is much too slow
+            print 'There are', len(sub_polys), 'sub-polytopes to check.'
+            for sub in sub_polys:
+                try:
+                    invhom = domain.find_isomorphism(sub)
+                except LatticePolytopesNotIsomorphicError:
+                    print 'Not isomorphic.'
+                    not_working = True
+                    continue
+                # Make sure that the other polytopes map correctly, too
+                not_working = False
+                for i in range(n_self):
+                    if i == index_domain:
+                        continue
+                    do = self.polytopes()[i]
+                    co = other.polytopes()[map[i]]
+                    if not co.contains(invhom(do)):
+                        print 'Isomorphism does not work for', do
+                        not_working = True
+                        break
+                if not_working:
+                    continue
+            if not_working:
+                continue
+
+            '''codomains = [other.polytopes()[map[i]] for i in range(n_self)]
+            # Pick the polytope with the least integral points
+
+
+            embeddings = tuple([p.embed_in(q, **kwds) for p, q in
+                          zip(self.polytopes(), codomains)])'''
+            yield (tuple(map), invhom)
+
     def embed_in(self, other, **kwds):
         r"""
         Embed ``self`` in the LatticePolytopeCollection ``other``.
@@ -146,7 +235,7 @@ class LatticePolytopeCollection_class(SageObject):
 
         INPUT:
 
-        - ``other`` -- `other`` -- a
+        - ``other`` -- a
             :class:`LatticePolytopeCollection<LatticePolytopeCollection_class>`.
 
         - for further optional parameters see 
@@ -194,7 +283,7 @@ class LatticePolytopeCollection_class(SageObject):
         n_self = self.n_polytopes()
         maps = Arrangements(range(other.n_polytopes()), n_self)
         if not maps:
-            raise ValueError('The embedding should not have less polytopes.')
+            raise ValueError('The embedding should not have fewer polytopes.')
 
         embedding_table = self._embedding_table(other)
         # Check whether we can find an embedding
@@ -344,3 +433,9 @@ class LatticePolytopeCollection_class(SageObject):
             2-dimensional lattice polytope in ZZ^2 with 4 vertices)
         """
         return self._polytopes
+
+
+#######################################################################################
+# Infrastructure for embeddings into nef-partitions of three-dimensional reflexive
+# polyhedra.
+#######################################################################################

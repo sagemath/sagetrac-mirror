@@ -236,6 +236,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             desc += repr(self.n_vertices())
             if self.n_vertices()==1: desc += ' vertex'
             else:                    desc += ' vertices'
+        desc += ' and ' + repr(self.n_integral_points()) + ' integral points.'
         return desc
 
 
@@ -705,14 +706,15 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         from sage.modules.free_module import FreeModule
         return FreeModule(ZZ, self.space_dimension())
 
-    def contains(self, point_coordinates):
+    def contains(self, other):
         r"""
-        Test whether point is contained in the polytope.
+        Test whether a point or a polytope is contained in ``self``.
 
         INPUT:
 
-        - ``point_coordinates`` -- a list/tuple/iterable of rational
-          numbers. The coordinates of the point.
+        - ``other`` -- Either a :class:`LatticePolytope_PPL_class`
+          or a list/tuple/iterable of rational numbers
+          representing the coordinates of a point.
 
         OUTPUT:
 
@@ -726,8 +728,13 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             True
             sage: line.contains([1,0,0])
             False
+            sage: square = LatticePolytope_PPL((0, 0), (1, 1), (1, 0), (0, 1))
+            sage: all(square.contains(p) for p in square.sub_polytopes())
+            True
         """
-        p = C_Polyhedron(point(Linear_Expression(list(point_coordinates), 1)))
+        if isinstance(other, LatticePolytope_PPL_class):
+            return all(self.contains(p) for p in other.integral_points())
+        p = C_Polyhedron(point(Linear_Expression(list(other), 1)))
         is_included = Poly_Con_Relation.is_included()
         for c in self.constraints():
             if not p.relation_with(c).implies(is_included):
@@ -1328,6 +1335,28 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sub = list(pointset.difference([v]))
             yield LatticePolytope_PPL(*sub)
 
+    def sub_polytope_generator_all(self, n_pts, n_vertices=None, dim=None):
+        r"""
+        Generate all lattice sub-polytopes with ``n_vertices`` vertices
+        and ``n_pts`` integral points.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+        """
+        from sage.combinat.all import Combinations
+        pointset = self.integral_points()
+        combinations = Combinations(pointset, n_pts)
+        for pts in combinations:
+            sub = LatticePolytope_PPL(*pts)
+            if n_vertices and sub.n_vertices() <> n_vertices:
+                continue
+            if dim and sub.affine_dimension() <> dim:
+                continue
+            yield sub        
+
     def sub_polytopes(self, affine=True, return_hashes=False, max_batch=5000,
                       verbose=False, vertices_only=False):
         r"""
@@ -1551,6 +1580,12 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             LatticePolytopesNotIsomorphicError: The polytopes are not isomorphic.
         """
         # Very lazy way of doing things
+        try:
+            if self._anf <> other._anf:
+                raise LatticePolytopesNotIsomorphicError(
+                    'The polytopes are not isomorphic.')
+        except AttributeError:
+            pass
         from sage.geometry.lattice_polytope import LatticePolytope
         lp1 = LatticePolytope(self.vertices())
         lp2 = LatticePolytope(other.vertices())
@@ -2136,7 +2171,7 @@ def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
 def _reflexive_sub_polytopes(dim, npts):
     r"""
     Return the sub-polytopes of three-dimensional reflexive polytopes
-    that are ``dim``-dimensional and have ``npts`` interior points.
+    that are ``dim``-dimensional and have ``npts`` integral points.
 
     INPUT:
 
@@ -2153,9 +2188,9 @@ def _reflexive_sub_polytopes(dim, npts):
 
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import \
         ....: _reflexive_sub_polytopes
-        sage: d = _reflexive_sub_polytopes(3, 1)
+        sage: d = _reflexive_sub_polytopes(3, 4)
         sage: len(d)
-        1
+        30
     """
     from sage.misc.all import load
     if not dim in range(4) or not npts in range(1, 40):
