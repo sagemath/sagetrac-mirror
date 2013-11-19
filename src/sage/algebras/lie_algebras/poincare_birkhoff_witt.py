@@ -42,7 +42,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             basis_indices = g.basis().keys()
         elif len(basis_indices) != len(g.basis()):
             raise ValueError("the number of basis indices does not"
-                             "match the number of basis elements")
+                             " match the number of basis elements")
         return super(PoincareBirkhoffWittBasis, cls).__classcall__(cls,
                             g, tuple(basis_indices), basis_cmp, prefix, **kwds)
 
@@ -57,7 +57,10 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         R = g.base_ring()
         self._g = g
 
-        basis = IndexedFreeAbelianMonoid(basis_indices, prefix, monomial_cmp=basis_cmp, **kwds)
+        monoid_cmp = lambda x,y: basis_cmp(x[0],y[0])
+        self._basis_cmp = basis_cmp
+        basis = IndexedFreeAbelianMonoid(basis_indices, prefix,
+                                         monomial_cmp=monoid_cmp, **kwds)
         self._basis_map = {x: basis.gen(basis_indices[i]) for i,x in enumerate(g.basis().keys())}
         self._basis_map_inv = {basis_indices[i]: x for i,x in enumerate(g.basis())}
 
@@ -107,10 +110,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             return self.monomial(lhs)
 
         I = self._indices
-        basis_cmp = I.print_options()['monomial_cmp']
         trail = lhs.trailing_support()
         lead = rhs.leading_support()
-        if basis_cmp(trail, lead) <= 0:
+        if self._basis_cmp(trail, lead) <= 0:
             return self.monomial(lhs * rhs)
 
         # Create the commutator

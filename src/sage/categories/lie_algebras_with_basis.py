@@ -262,7 +262,8 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if basis_cmp is None:
                 basis_cmp = self._basis_cmp
-            from sage.algebras.lie_algebras.poincare_birkhoff_witt import PoincareBirkhoffWittBasis
+            from sage.algebras.lie_algebras.poincare_birkhoff_witt \
+                import PoincareBirkhoffWittBasis
             return PoincareBirkhoffWittBasis(self, basis_indices, basis_cmp, **kwds)
 
         poincare_birkhoff_witt_basis = pbw_basis
