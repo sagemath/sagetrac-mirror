@@ -236,7 +236,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             desc += repr(self.n_vertices())
             if self.n_vertices()==1: desc += ' vertex'
             else:                    desc += ' vertices'
-        desc += ' and ' + repr(self.n_integral_points()) + ' integral points.'
         return desc
 
 
@@ -1636,7 +1635,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         raise LatticePolytopeNoEmbeddingError('not a sub-polytope of a reflexive polygon')
 
     @cached_method
-    def _find_isomorphism_to_subreflexive_polytope(self):
+    def _find_isomorphism_to_subreflexive_polytope(self, inverse=False):
         """
         Find an isomorphism to a sub-polytope of a maximal reflexive
         polytope.
@@ -1665,7 +1664,10 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             vertices = m.columns()
             sub_poly = LatticePolytope_PPL(*vertices)
             r = ReflexivePolytope_PPL(3, id)
-            return (r, sub_poly, sub_poly.find_isomorphism(self))
+            if inverse:
+                return (r, sub_poly, self.find_isomorphism(sub_poly))
+            else:
+                return (r, sub_poly, sub_poly.find_isomorphism(self))
         except KeyError:
             raise LatticePolytopeNoEmbeddingError('Not a sub-polytope ' +
                 'of a 3-d reflexive polytope.')
@@ -1825,8 +1827,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         try:
             ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polygon()
         except LatticePolytopeNoEmbeddingError:
-            ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polytope()
-        if output == 'hom':
+            inverse = (output == 'inverse_hom')
+            ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polytope(inverse)
+        if output == 'hom' or output == 'inverse_hom':
             return hom
         elif output == 'polytope':
             return ambient
@@ -2119,6 +2122,7 @@ def maximal_polytope(index):
         raise NotImplementedError(
             'At the moment we can only deal with polar P^3.')
 
+@cached_function
 def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
     r"""
     Return the reflexive polytope of dimension ``dim`` and index
