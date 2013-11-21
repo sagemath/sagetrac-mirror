@@ -133,10 +133,14 @@ class LatticePolytopeCollection_class(SageObject):
             res.append(tuple(tmp))
         return tuple(res)
 
-    def embed_in_strong(self, other):
+    def embed_in_strong(self, other, check_first=None):
         r"""
         Embed ``self`` in the LatticePolytopeCollection ``other`` using
         only one linear map.
+
+        Note that this is currently little more than a playground for
+        understanding what can happen when trying to embed one nef partition
+        into another.
 
         INPUT:
 
@@ -175,7 +179,11 @@ class LatticePolytopeCollection_class(SageObject):
             print 'Checking weak embedding', map
             # Find the codomain with the least integral points and the index
             # of the polytope to be embedded into it
-            index_codomain = [i for i in sorted_indices if i in map][0]
+            if check_first is None:
+                index_codomain = [i for i in sorted_indices if i in map][0]
+            else:
+                index_codomain = check_first
+            print 'Beginning with polytope with index', index_codomain, '.'
             index_domain = map.index(index_codomain)
             # Find all relevant sub-polytopes in the relevant codomain
             domain = self.polytopes()[index_domain]
@@ -188,17 +196,22 @@ class LatticePolytopeCollection_class(SageObject):
             if not sub_polys:
                 print 'No relevant sub-polytopes!'
                 continue
-            _compute_affine_normal_forms(sub_polys)
-            # We must improve the isomorphisms, this is much too slow
             print 'There are', len(sub_polys), 'sub-polytopes to check.'
+            _compute_affine_normal_forms(sub_polys)
+            print 'Computed affine normal forms.'
+            # We must improve the isomorphisms, this is much too slow
+            not_isomorphic = 0
             for sub in sub_polys:
                 try:
                     invhom = domain.find_isomorphism(sub)
                 except LatticePolytopesNotIsomorphicError:
-                    print 'Not isomorphic.'
+                    not_isomorphic += 1
                     not_working = True
                     continue
+                # Here we would need to try and find all possible continuations
+                # But how?
                 # Make sure that the other polytopes map correctly, too
+                print 'The isomorphism is', invhom
                 not_working = False
                 for i in range(n_self):
                     if i == index_domain:
@@ -211,6 +224,7 @@ class LatticePolytopeCollection_class(SageObject):
                         break
                 if not_working:
                     continue
+            print not_isomorphic, 'sub-polytopes were not isomorphic to ours.'
             if not_working:
                 continue
 
@@ -220,6 +234,7 @@ class LatticePolytopeCollection_class(SageObject):
 
             embeddings = tuple([p.embed_in(q, **kwds) for p, q in
                           zip(self.polytopes(), codomains)])'''
+            print 'Found a working one:'
             yield (tuple(map), invhom)
 
     def embed_in(self, other, **kwds):

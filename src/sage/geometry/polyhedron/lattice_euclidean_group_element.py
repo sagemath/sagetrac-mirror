@@ -203,3 +203,27 @@ class LatticeEuclideanGroupElement(SageObject):
         A = self._A*other._A
         b = self._A*other._b + self._b
         return LatticeEuclideanGroupElement(A, b, self._base_ring)
+
+    def A(self):
+        r"""
+        Return the matrix representing the linear part of ``self``.
+
+        OUTPUT:
+
+        A matrix.
+
+        EXAMPLES::
+        """
+        return self._A
+
+    def b(self):
+        r"""
+        Return the vector representing the affine shift of ``self``.
+
+        OUTPUT:
+
+        A vector.
+
+        EXAMPLES::
+        """
+        return self._b

@@ -814,7 +814,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         if self.contains_origin():
             vertices = [ V.coordinates(v) for v in self.vertices() ]
         else:
-            v0 = vertices[0]
+            v0 = self.vertices()[0]
             vertices = [ V.coordinates(v-v0) for v in self.vertices() ]
         return LatticePolytope_PPL(*vertices)
 
