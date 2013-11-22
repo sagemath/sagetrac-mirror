@@ -254,7 +254,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             #if ct.dual().letter == 'F': # E_6^{(2)}
             #if ct.dual().letter == 'G': # D_4^{(3)}
 
-        raise NotImplementedError
+        #raise NotImplementedError
+        return KRTableauxWrapper(ct, r, s)
         #return super(KirillovReshetikhinTableaux, cls).__classcall__(cls, ct, r, s)
 
     def __init__(self, cartan_type, r, s):
@@ -1448,4 +1449,199 @@ class KRTableauxDTwistedSpin(KRTableauxRectangle):
         True
     """
     Element = KRTableauxSpinElement
+
+class KRTableauxWrapper(KirillovReshetikhinTableaux):
+    """
+    Kirillov-Reshetikhin tableaux that are wrappers around a
+    Kirillov-Reshetikhin crystal.
+    """
+    def _build_module_generators(self):
+        """
+        Build the module generators.
+
+        EXAMPLES::
+
+            sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1, 1)
+            sage: KRT._build_module_generators()
+            ([(1,)],)
+        """
+        C = self.kirillov_reshetikhin_crystal()
+        return tuple(self.element_class(self, mg) for mg in C.module_generators)
+
+    def from_kirillov_reshetikhin_crystal(self, krc):
+        """
+        Construct an element of ``self`` from the Kirillov-Reshetikhin
+        crystal element ``krc``.
+
+        EXAMPLES::
+
+            sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1, 1)
+            sage: KRC = KirillovReshetikhinCrystal(['E',6,1], 1, 1)
+            sage: krc = KRC.module_generators[0].f(1); krc
+            [(-1, 3)]
+            sage: KRT.from_kirillov_reshetikhin_crystal(krc)
+            [(-1, 3)]
+        """
+        return self.element_class(self, krc)
+
+    class Element(ElementWrapper):
+        """
+        A KR tableaux element wrapper around a KR crystal element.
+        """
+        def _repr_diagram(self):
+            """
+            Return a string representation of ``self`` as a diagram.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: elt = KRT.module_generators[0].f(1); elt
+                [(-1, 3)]
+                sage: elt._repr_diagram()
+                '[(-1, 3)]'
+            """
+            try:
+                return self.to_tableau()._repr_diagram()
+            except (AttributeError, ValueError):
+                return repr(self)
+
+        def to_kirillov_reshetikhin_crystal(self):
+            r"""
+            Construct a :func:`KirillovReshetikhinCrystal` element
+            from ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: elt = KRT.module_generators[0].f(1); elt
+                [(-1, 3)]
+                sage: elt.to_kirillov_reshetikhin_crystal()
+                [(-1, 3)]
+            """
+            return self.value
+
+        @cached_method
+        def to_tableau(self):
+            """
+            Return a :class:`Tableau` object of ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: elt = KRT.module_generators[0].f(1); elt
+                [(-1, 3)]
+                sage: elt.to_tableau()
+                Traceback (most recent call last):
+                ...
+                ValueError: cannot convert [(-1, 3)] to a tableau
+            """
+            try:
+                return self.value.to_tableau()
+            except (AttributeError, ValueError):
+                raise ValueError("cannot convert {} to a tableau".format(self))
+
+        def pp(self):
+            """
+            Pretty print ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: elt = KRT.module_generators[0].f(1); elt
+                [(-1, 3)]
+                sage: elt.pp()
+                [(-1, 3)]
+            """
+            try:
+                self.value.pp()
+            except (AttributeError, ValueError):
+                print self
+
+        @cached_method
+        def classical_weight(self):
+            r"""
+            Return the classical weight of ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: elt = KRT.module_generators[0].f(1); elt
+                [(-1, 3)]
+                sage: elt.classical_weight()
+                (-1/2, 1/2, 1/2, 1/2, 1/2, -1/6, -1/6, 1/6)
+            """
+            return self.value.lift().weight()
+
+        def weight(self):
+            """
+            Return the weight of ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: KRT.module_generators[0].weight()
+                -Lambda[0] + Lambda[1]
+            """
+            return self.value.weight()
+
+        def e(self, i):
+            """
+            Perform the action of `e_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: KRT.module_generators[0].e(2)
+                sage: KRT.module_generators[0].e(0)
+                [(-2, 1)]
+            """
+            next = self.value.e(i)
+            if next is None:
+                return None
+            return self.__class__(self.parent(), next)
+
+        def f(self, i):
+            """
+            Perform the action of `f_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: KRT.module_generators[0].f(0)
+                sage: KRT.module_generators[0].f(1)
+                [(-1, 3)]
+            """
+            next = self.value.f(i)
+            if next is None:
+                return None
+            return self.__class__(self.parent(), next)
+
+        def epsilon(self, i):
+            r"""
+            Compute `\epsilon_i` of ``self``.
+
+            .. TODO::
+
+                Implement a direct action of `\epsilon_0` without moving to
+                KR crystals.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: KRT.module_generators[0].epsilon(0)
+                1
+            """
+            return self.value.epsilon(i)
+
+        def phi(self, i):
+            r"""
+            Compute `\phi_i` of ``self``.
+
+            EXAMPLES::
+
+                sage: KRT = KirillovReshetikhinTableaux(['E',6,1], 1,1)
+                sage: KRT.module_generators[0].phi(0)
+                0
+            """
+            return self.value.phi(i)
 
