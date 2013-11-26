@@ -35,10 +35,61 @@ from sage.env import SAGE_DOC, SAGE_SRC
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
+########################################################
+#      Signal handler to interrupt parallel build      #
+########################################################
+
+def docbuild_error_handler(signum, frame):
+    """
+    This is in response from a signal sent by a child process that
+    encountered a docubuild error. We stop all child processes and
+    quit.
+    """
+    from multiprocessing import active_children
+    global BUILDER_PID
+    children = [p for p in active_children() if p.pid != BUILDER_PID]
+    for child in children:
+        child.terminate()
+    while len(children) > 0:
+        child = children[0]
+        child.join(1)
+        for child in children:
+            if not child.is_alive():
+                children.remove(child)
+            else:
+                print('Timeout waiting for child {0} pid={1}'.format(child, child.pid))
+                child.terminate()
+    sys.exit(1)
+
+def setup_docbuild_error_handler():
+    import signal
+    signal.signal(signal.SIGUSR1, docbuild_error_handler)
+    global BUILDER_PID
+    BUILDER_PID = os.getpid()
+
+
+##########################################
+#      Parallel Building Ref Manual      #
+##########################################
+def build_other_doc(args):
+    """
+    Build the non-reference manuals
+    """
+    document = args[0]
+    name = args[1]
+    kwds = args[2]
+    args = args[3:]
+    logger.warning("\nBuilding %s.\n" % document)
+    getattr(get_builder(document), name)(*args, **kwds)
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
 def build_ref_doc(args):
+    """
+    Build the reference manual sections
+    """
     doc = args[0]
     lang = args[1]
     format = args[2]
@@ -47,6 +98,7 @@ def build_ref_doc(args):
     if format == 'inventory':  # you must not use the inventory to build the inventory
         kwds['use_multidoc_inventory'] = False
     getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
+
 
 ##########################################
 #             Builders                   #
@@ -202,9 +254,9 @@ class DocBuilder(object):
         self.latex()
         tex_dir = self._output_dir('latex')
         pdf_dir = self._output_dir('pdf')
-        if subprocess.call("cd '%s' && $MAKE all-pdf && mv -f *.pdf '%s'"%(tex_dir, pdf_dir), shell=True):
+        if subprocess.call("cd '%s' && $MAKE all-pdf && mv -f *.pdf '%s'"
+                           %(tex_dir, pdf_dir), shell=True):
             raise RuntimeError("failed to run $MAKE all-pdf in %s"%tex_dir)
-
         logger.warning("Build finished.  The built documents can be found in %s", pdf_dir)
 
     def clean(self, *args):
@@ -224,16 +276,6 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
-##########################################
-#      Parallel Building Ref Manual      #
-##########################################
-def build_other_doc(args):
-    document = args[0]
-    name = args[1]
-    kwds = args[2]
-    args = args[3:]
-    logger.warning("\nBuilding %s.\n" % document)
-    getattr(get_builder(document), name)(*args, **kwds)
 
 class AllBuilder(object):
     """
@@ -248,6 +290,12 @@ class AllBuilder(object):
         """
         from functools import partial
         return partial(self._wrapper, attr)
+
+    def clean(self, *args, **kwds):
+        for document in self.get_all_documents():
+            print('Cleaning {0}...'.format(document))
+            get_builder(document).clean(*args, **kwds)
+            get_builder(document).clean('inventory')
 
     def _wrapper(self, name, *args, **kwds):
         """
@@ -278,7 +326,7 @@ class AllBuilder(object):
         L = [(doc, name, kwds) + args for doc in others]
         # map_async handles KeyboardInterrupt correctly. Plain map and
         # apply_async does not, so don't use it.
-        pool.map_async(build_other_doc, L, 1).get(99999)
+        pool.map_async(build_other_doc, L, 1).get(24*3600)
         pool.close()
         pool.join()
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
@@ -396,8 +444,7 @@ class WebsiteBuilder(DocBuilder):
                     with open(redirect_filename, 'w') as f:
                         f.write(html_template % redirect_url)
 
-
-    def clean(self):
+    def clean(self, *args):
         """
         When we clean the output for the website index, we need to
         remove all of the HTML that were placed in the parent
@@ -413,8 +460,7 @@ class WebsiteBuilder(DocBuilder):
                 shutil.rmtree(parent_filename, ignore_errors=True)
             else:
                 os.unlink(parent_filename)
-
-        DocBuilder.clean(self)
+        DocBuilder.clean(self, *args)
 
 
 class ReferenceBuilder(AllBuilder):
@@ -455,6 +501,18 @@ class ReferenceBuilder(AllBuilder):
         mkdir(d)
         return d
 
+    def clean(self, *args, **kwds):
+        """
+        Erase the output directories
+        """
+        for lang in LANGUAGES:
+            refdir = os.path.join(SAGE_DOC, lang, self.name)
+            if not os.path.exists(refdir):
+                continue
+            L = [(doc, lang, 'clean', kwds) + args
+                 for doc in self.get_all_documents(refdir)]
+            map(build_ref_doc, L)
+
     def _wrapper(self, format, *args, **kwds):
         """
         Builds reference manuals.  For each language, it builds the
@@ -467,9 +525,10 @@ class ReferenceBuilder(AllBuilder):
             output_dir = self._output_dir(format, lang)
             from multiprocessing import Pool
             pool = Pool(NUM_THREADS, maxtasksperchild=1)
-            L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
+            L = [(doc, lang, format, kwds) + args 
+                 for doc in self.get_all_documents(refdir)]
             # (See comment in AllBuilder._wrapper about using map instead of apply.)
-            pool.map_async(build_ref_doc, L, 1).get(99999)
+            pool.map_async(build_ref_doc, L, 1).get(24*3600)
             pool.close()
             pool.join()
             # The html refman must be build at the end to ensure correct
@@ -1264,6 +1323,9 @@ def setup_parser():
     standard.add_option("-H", "--help-all",
                         action="callback", callback=help_message_long,
                         help="show an extended help message and exit")
+    standard.add_option("-f", "--force",
+                        default=False, action="store_true",
+                        help="Force build (delete previous output)")
     standard.add_option("-D", "--documents", dest="documents",
                         action="callback", callback=help_wrapper,
                         help="list all available DOCUMENTs")
@@ -1400,6 +1462,8 @@ class IntersphinxCache:
             return i
 
 if __name__ == '__main__':
+    setup_docbuild_error_handler()
+
     # Parse the command-line.
     parser = setup_parser()
     options, args = parser.parse_args()
@@ -1449,4 +1513,8 @@ if __name__ == '__main__':
     C = IntersphinxCache()
 
     # Get the builder and build.
-    getattr(get_builder(name), type)()
+    builder = get_builder(name)
+    if options.force:
+        builder.clean(type)
+    getattr(builder, type)()
+

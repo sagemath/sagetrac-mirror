@@ -7,7 +7,30 @@ Enhancements are:
   buliding doesn't work.
 
 * redirect stdout to our own logger, and remove some unwanted chatter.
+
+* Search output for errors and abort if one is found.
 """
+
+# We accept warnings from pdflatex, so there are less error conditions
+# for the pdf builder
+docbuild_errors_pdf = (
+    re.compile('Segmentation fault'),
+    re.compile('SEVERE'),
+    re.compile('ERROR'),
+    re.compile('^make.*Error'),
+    re.compile('Exception occurred'),
+    re.compile('Sphinx error'),
+)
+stderr_is_error = True   # abort if anything is printed to stderr
+
+docbuild_errors = docbuild_errors_pdf + (
+    re.compile('WARNING'),
+)
+
+for i in range(len(sys.argv)-1):
+    if sys.argv[i] == '-b' and sys.argv[i+1] == 'pdf':
+        docbuild_errors = docbuild_errors_pdf
+
 
 # override the fancy multi-line formatting
 def term_width_line(text):
@@ -65,18 +88,38 @@ class SageSphinxLogger(object):
         color = color.get(stream.fileno(), 'lightgray')
         self._prefix = sphinx.util.console.colorize(color, prefix)
 
-
     def _filter_out(self, line):
         line = re.sub(self.ansi_color, '', line)
         global useless_chatter
         for regex in useless_chatter:
-            if regex.match(line) is not None:
+            if regex.search(line) is not None:
                 return True
         return False
+
+    def _error(self, line):
+        self._do_print(sphinx.util.console.colorize('red', line))
+        self._do_print('Docbuild error, aborting!')
+        import signal
+        global BUILDER_PID
+        os.kill(BUILDER_PID, signal.SIGUSR1)
+        from time import sleep
+        sleep(60)   # we should be killed here by the parent's signal handler
+        print('Error, subproces was not killed')
+
+    def _find_error(self, line):
+        global docbuild_errors, stderr_is_error
+        for regex in docbuild_errors:
+            if stderr_is_error and self._stream.fileno() == 2:
+                self._error(line)
+            if regex.search(line) is not None:
+                self._error(line)
 
     def _log_line(self, line):
         if self._filter_out(line):
             return
+        self._do_print(line)
+
+    def _do_print(self, line):
         global replacements
         for (old, new) in replacements:
             line = old.sub(new, line)
@@ -115,6 +158,7 @@ class SageSphinxLogger(object):
             if last and not self._line_buffer.endswith('\n'):
                 self._line_buffer = line
                 return
+            self._find_error(line)
             self._log_line(line)
         self._line_buffer = ''
 
