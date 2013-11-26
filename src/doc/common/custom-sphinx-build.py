@@ -24,7 +24,7 @@ docbuild_errors_pdf = (
 stderr_is_error = True   # abort if anything is printed to stderr
 
 docbuild_errors = docbuild_errors_pdf + (
-    re.compile('WARNING'),
+    re.compile('WARNING: (?!(citation not found|search index))'),
 )
 
 for i in range(len(sys.argv)-1):
@@ -62,6 +62,7 @@ replacements = ()
 if 'inventory' in sys.argv:
     # When building the inventory, ignore warnings about missing
     # citations and the search index.
+    stderr_is_error = False
     useless_chatter += (
         re.compile('^None:[0-9]*: WARNING: citation not found: '),
         re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
