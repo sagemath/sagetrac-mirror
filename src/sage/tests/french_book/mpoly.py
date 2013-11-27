@@ -21,10 +21,10 @@ Sage example in ./mpoly.tex, line 44::
 Sage example in ./mpoly.tex, line 52::
 
   sage: def test_poly(ring, deg=3):
-  ...       monomials = Subsets(
-  ...           flatten([(x,)*deg for x in (1,) + ring.gens()]),
-  ...           deg, submultiset=True)
-  ...       return add(mul(m) for m in monomials)
+  ....:     monomials = Subsets(
+  ....:         flatten([(x,)*deg for x in (1,) + ring.gens()]),
+  ....:         deg, submultiset=True)
+  ....:     return add(mul(m) for m in monomials)
 
 Sage example in ./mpoly.tex, line 59::
 
@@ -70,14 +70,14 @@ Sage example in ./mpoly.tex, line 202::
 Sage example in ./mpoly.tex, line 209::
 
   sage: print "total={d}    (en x)={dx}    partiels={ds}"\
-  ...     .format(d=p.degree(), dx=p.degree(x), ds=p.degrees())
+  ....:   .format(d=p.degree(), dx=p.degree(x), ds=p.degrees())
   total=4    (en x)=3    partiels=(3, 2, 1)
 
 Sage example in ./mpoly.tex, line 255::
 
   sage: R.<x,y> = QQ[]; p = x^2 + y^2; q = x + y
   sage: print("({quo})*({q}) + ({rem}) == {p}".format( \
-  ...           quo=p//q, q=q, rem=p%q, p=p//q*q+p%q))
+  ....:         quo=p//q, q=q, rem=p%q, p=p//q*q+p%q))
   (-x + y)*(x + y) + (2*x^2) == x^2 + y^2
   sage: p.mod(q)  # n'est PAS équivalent à p%q
   2*y^2
@@ -92,8 +92,8 @@ Sage example in ./mpoly.tex, line 325::
 
   sage: R.<x,y,z> = QQ[]
   sage: J = R.ideal(x^2 * y * z - 18,
-  ...               x * y^3 * z - 24,
-  ...               x * y * z^4 - 6);
+  ....:             x * y^3 * z - 24,
+  ....:             x * y * z^4 - 6);
 
 Sage example in ./mpoly.tex, line 333::
 
@@ -150,11 +150,11 @@ Sage example in ./mpoly.tex, line 401::
 Sage example in ./mpoly.tex, line 413::
 
   sage: def polar_form(z):
-  ...       rho = z.abs(); rho.simplify()
-  ...       theta = 2 * pi * z.rational_argument()
-  ...       return (SR(rho) * exp(I*theta))
+  ....:     rho = z.abs(); rho.simplify()
+  ....:     theta = 2 * pi * z.rational_argument()
+  ....:     return (SR(rho) * exp(I*theta))
   sage: [tuple(polar_form(pt[i]) for i in [xx,yy,zz])
-  ...    for pt in V[-3:]]
+  ....:  for pt in V[-3:]]
   [(3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
   (3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)), (3, 2, 1)]
 
@@ -524,4 +524,3 @@ Sage example in ./mpoly.tex, line 1822::
   45
 
 """
-from sage.all_cmdline import *   # import sage library

@@ -59,8 +59,8 @@ Sage example in ./polynomes.tex, line 162::
 Sage example in ./polynomes.tex, line 217::
 
   sage: def rook_polynomial(n, var='x'):
-  ...       return ZZ[var]([binomial(n, k)^2 * factorial(k)
-  ...                                      for k in (0..n) ])
+  ....:     return ZZ[var]([binomial(n, k)^2 * factorial(k)
+  ....:                                    for k in (0..n) ])
   ...
 
 Sage example in ./polynomes.tex, line 259::
@@ -93,7 +93,7 @@ Sage example in ./polynomes.tex, line 332::
   sage: ZZ.is_subring(A)
   True
   sage: [n for n in range(20)
-  ...       if Integers(n)['x'].is_integral_domain()]
+  ....:     if Integers(n)['x'].is_integral_domain()]
   [0, 2, 3, 5, 7, 11, 13, 17, 19]
 
 Sage example in ./polynomes.tex, line 395::
@@ -142,7 +142,7 @@ Sage example in ./polynomes.tex, line 527::
 Sage example in ./polynomes.tex, line 533::
 
   sage: for A in [QQ, ComplexField(16), GF(5), QQ[sqrt(2)]]:
-  ...       print A, ":"; print A['x'](p).factor()
+  ....:     print A, ":"; print A['x'](p).factor()
   Rational Field :
   (54) * (x + 1/3)^2 * (x^2 - 2)
   Complex Field with 16 bits of precision :
@@ -276,10 +276,10 @@ Sage example in ./polynomes.tex, line 1020::
 Sage example in ./polynomes.tex, line 1026::
 
   sage: def lift_sym(a):
-  ...       m = a.parent().defining_ideal().gen()
-  ...       n = a.lift()
-  ...       if n <= m // 2: return n
-  ...       else: return n - m
+  ....:     m = a.parent().defining_ideal().gen()
+  ....:     n = a.lift()
+  ....:     if n <= m // 2: return n
+  ....:     else: return n - m
 
 Sage example in ./polynomes.tex, line 1034::
 
@@ -289,9 +289,9 @@ Sage example in ./polynomes.tex, line 1034::
 Sage example in ./polynomes.tex, line 1042::
 
   sage: def mypade(pol, n, k):
-  ...       x = ZpZx.gen();
-  ...       n,d = ZpZx(pol).rational_reconstruct(x^n, k-1, n-k)
-  ...       return Qx(map(lift_sym, n))/Qx(map(lift_sym, d))
+  ....:     x = ZpZx.gen();
+  ....:     n,d = ZpZx(pol).rational_reconstruct(x^n, k-1, n-k)
+  ....:     return Qx(map(lift_sym, n))/Qx(map(lift_sym, d))
 
 Sage example in ./polynomes.tex, line 1109::
 
@@ -338,8 +338,8 @@ Sage example in ./polynomes.tex, line 1186::
   sage: S.<x> = PowerSeriesRing(QQ, default_prec=5)
   sage: f = S(1)
   sage: for i in range(5):
-  ...       f = (x*f).exp()
-  ...       print f
+  ....:     f = (x*f).exp()
+  ....:     print f
   1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + O(x^5)
   1 + x + 3/2*x^2 + 5/3*x^3 + 41/24*x^4 + O(x^5)
   1 + x + 3/2*x^2 + 8/3*x^3 + 101/24*x^4 + O(x^5)
@@ -363,9 +363,9 @@ Sage example in ./polynomes.tex, line 1247::
 
   sage: f = L(1)  # la série paresseuse constante 1
   sage: for i in range(5):
-  ...       f = (x*f).exponential()
-  ...       f.compute_coefficients(5)  # force le calcul des
-  ...       print f                    #   premiers coefficients
+  ....:     f = (x*f).exponential()
+  ....:     f.compute_coefficients(5)  # force le calcul des
+  ....:     print f                    #   premiers coefficients
   1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + O(x^6)
   1 + x + 3/2*x^2 + 5/3*x^3 + 41/24*x^4 + 49/30*x^5 + O(x^6)
   1 + x + 3/2*x^2 + 8/3*x^3 + 101/24*x^4 + 63/10*x^5 + O(x^6)
@@ -392,4 +392,3 @@ Sage example in ./polynomes.tex, line 1309::
   (x^562949953421312 + 1, 562949953421312*x^562949953421311)
 
 """
-from sage.all_cmdline import *   # import sage library
