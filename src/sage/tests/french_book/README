@@ -1,7 +1,7 @@
-This directory contains all the example code from the french book
-about Sage by Alexandre Casamayou, Guillaume Connan, Thierry Dumont,
-Laurent Fousse, FranÁois Maltey, Matthias Meulien, Marc Mezzarobba,
-ClÈment Pernet, Nicolas ThiÈry and Paul Zimmermann. Each file corresponds
-to a chapter of the book.
+This directory contains some of the example code from the French book "Calcul
+math√©matique avec Sage" by Alexandre Casamayou, Nathann Cohen, Guillaume
+Connan, Thierry Dumont, Laurent Fousse, Fran√ßois Maltey, Matthias Meulien, Marc
+Mezzarobba, Cl√©ment Pernet, Nicolas Thi√©ry and Paul Zimmermann (ISBN:
+978-1481191043). Each file corresponds to a chapter of the book.
 
 The book is freely available from http://sagebook.gforge.inria.fr/
