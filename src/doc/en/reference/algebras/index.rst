@@ -22,6 +22,7 @@ Algebras
    sage/algebras/lie_algebras/kac_moody
    sage/algebras/lie_algebras/lie_algebra
    sage/algebras/lie_algebras/lie_algebra_element
+   sage/algebras/hall_algebra
 
    sage/algebras/shuffle_algebra
 
