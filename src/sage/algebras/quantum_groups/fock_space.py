@@ -31,17 +31,21 @@ from sage.categories.realizations import Realizations, Category_realization_of_p
 from sage.rings.all import ZZ, QQ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from sage.combinat.partition import Partition, Partitions
+from sage.combinat.partition import Partition, Partitions, _Partitions
+from sage.combinat.partition_tuple import PartitionTuples
+from sage.combinat.root_system.root_system import RootSystem
 from sage.algebras.quantum_groups.quantum_group import QuantumGroup
 from sage.algebras.quantum_groups.q_numbers import q_factorial
 
 class FockSpace(CombinatorialFreeModule):
-    """
-    The Fock space of `U_q(\widehat{\mathfrak{sl}}_n)`.
+    r"""
+    The Fock space of `U_q(\widehat{\mathfrak{sl}}_n)` of level `1` of
+    weight `\Lambda_r`.
     """
     @staticmethod
-    def __classcall_private__(cls, n, q=None, base_ring=None):
+    def __classcall_private__(cls, n, r=[0], q=None, base_ring=None):
         """
         Standardize input to ensure a unique representation.
         """
@@ -52,16 +56,30 @@ class FockSpace(CombinatorialFreeModule):
             base_ring = q.parent()
         base_ring = FractionField(base_ring)
         q = base_ring(q)
-        return super(FockSpace, cls).__classcall__(cls, n, q, base_ring)
+        M = IntegerModRing(n)
+        if r in ZZ:
+            r = [r]
+        r = map(M, r)
+        return super(FockSpace, cls).__classcall__(cls, n, tuple(r), q, base_ring)
 
-    def __init__(self, n, q, base_ring):
+    def __init__(self, n, r, q, base_ring):
         """
         Initialize ``self``.
         """
         self._n = n
         self._q = q
+        self._r = r
+        # If the cell x is above the cell y
+        if len(r) == 1: # For partitions
+            self._above = lambda x,y: x[1] > y[1]
+        else: # For partition tuples
+            self._above = lambda x,y: x[0] > y[0] or (x[0] == y[0] and x[1] > y[1])
         self._q_group = QuantumGroup(['A', n-1, 1], q, R=base_ring)
-        CombinatorialFreeModule.__init__(self, self._q_group.base_ring(), Partitions(),
+        self._addable = lambda la,i: filter(lambda x: la.content(*x, multicharge=self._r) == i,
+                                            la.outside_corners())
+        self._removable = lambda la,i: filter(lambda x: la.content(*x, multicharge=self._r) == i,
+                                              la.corners())
+        CombinatorialFreeModule.__init__(self, base_ring, PartitionTuples(len(r)),
                                          prefix='', bracket=['|', '>'],
                                          latex_bracket=['\\lvert', '\\rangle'],
                                          monomial_cmp=lambda x,y: -cmp(x,y),
@@ -78,64 +96,73 @@ class FockSpace(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: N = F.natural_basis()
-            sage: N[[]]
+            sage: F[[]]
             |[]>
-            sage: N[1]
+            sage: F[1]
             |[1]>
-            sage: N[2,2,1]
+            sage: F[2,2,1]
             |[2, 2, 1]>
         """
         if i in ZZ:
             i = [i]
-        return self.monomial(Partition(i))
+        return self.monomial(self._indices(i))
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
         """
-        return "Fock space of rank {} over {}".format(self._n, self._q_group.base_ring())
+        return "Fock space of rank {} of type {} over {}".format(self._n, self._r, self.base_ring())
 
     def basic_representation(self):
         """
-        Return the basic representation `B(\Lambda_0)` in ``self``.
+        Return the basic representation `B(\Lambda_r)` in ``self``.
         """
-        return BasicRepresentation(self._n, self._q, self.base_ring())
+        if len(self._r) != 1:
+            raise NotImplementedError("only implemented for level 1")
+        return BasicRepresentation(self)
+
+    def module_generator(self):
+        """
+        Return the module generator of ``self``.
+        """
+        if len(self._r) == 1:
+            return self.monomial(_Partitions([]))
+        return self.monomial( self._indices([[]]*len(self._r)) )
 
     class Element(CombinatorialFreeModuleElement):
         def e(self, i):
             """
             Apply the action of `e_i` on ``self``.
             """
-            n = self.parent()._n
+            P = self.parent()
             N_left = lambda la, x, i: \
-                len( filter(lambda y: y[1] < x[1], la.addable_cells_residue(i, n)) ) \
-                - len( filter(lambda y: y[1] < x[1], la.removable_cells_residue(i, n)) )
-            q = self.parent()._q
-            return self.parent().sum_of_terms( [( la.remove_cell(*x), c * q**(-N_left(la, x, i)) )
-                                for la,c in self for x in la.removable_cells_residue(i, n)] )
+                sum(1 for y in P._addable(la, i) if P._above(x, y)) \
+                - sum(1 for y in P._removable(la, i) if P._above(x, y))
+            q = P._q
+            return P.sum_of_terms( [( la.remove_cell(*x), c * q**(-N_left(la, x, i)) )
+                                    for la,c in self for x in P._removable(la, i)] )
 
         def f(self, i):
             """
             Apply the action of `f_i` on ``self``.
             """
-            n = self.parent()._n
+            P = self.parent()
             N_right = lambda la, x, i: \
-                len( filter(lambda y: y[1] > x[1], la.addable_cells_residue(i, n)) ) \
-                - len( filter(lambda y: y[1] > x[1], la.removable_cells_residue(i, n)) )
-            q = self.parent()._q
-            return self.parent().sum_of_terms( [(la.add_cell(*x), c * q**N_right(la, x, i))
-                                for la,c in self for x in la.addable_cells_residue(i, n)] )
+                sum(1 for y in P._addable(la, i) if P._above(y, x)) \
+                - sum(1 for y in P._removable(la, i) if P._above(y, x))
+            q = P._q
+            return P.sum_of_terms( [(la.add_cell(*x), c * q**N_right(la, x, i))
+                                for la,c in self for x in P._addable(la, i)] )
 
         def h(self, i):
             """
             Apply the action of `h_i` on ``self``.
             """
-            N_i = lambda la, i: \
-                len(la.addable_cells_residue(i, self.parent()._n)) \
-                - len(la.removable_cells_residue(i, self.parent()._n))
-            q = self.parent()._q
-            return self.parent().sum_of_terms([(la, c * q**N_i(la, i) * self.parent().monomial(la)) for la,c in self])
+            P = self.parent()
+            N_i = lambda la, i: len(P._addable(la, i)) - len(P._removable(la, i))
+            q = P._q
+            return P.sum_of_terms([(la, c * q**N_i(la, i) * P.monomial(la))
+                                   for la,c in self])
 
         def d(self):
             """
@@ -143,7 +170,7 @@ class FockSpace(CombinatorialFreeModule):
             """
             q = self.parent()._q
             return self.parent().sum_of_terms(
-                [(la, c * q**len( filter(lambda x: la.content(*x) % self.parent()._n == 0, la.cells()) ))
+                [(la, c * q**sum(1 for x in la.cells() if la.content(*x, multicharge=self._r) == 0))
                  for la,c in self])
 
         def _l_action_(self, g):
@@ -173,34 +200,32 @@ class BasicRepresentation(Parent, UniqueRepresentation):
     Basic representation `B(\Lambda_0)` of `U_q(\widehat{\mathfrak{sl}}_n)`.
     """
     @staticmethod
-    def __classcall_private__(cls, n, q=None, base_ring=None):
+    def __classcall_private__(cls, n, r=0, q=None, base_ring=None):
         """
         Standardize input to ensure a unique representation.
         """
-        if q is None:
-            base_ring = PolynomialRing(QQ, 'q')
-            q = base_ring.gen(0)
-        if base_ring is None:
-            base_ring = q.parent()
-        base_ring = FractionField(base_ring)
-        q = base_ring(q)
-        return super(BasicRepresentation, cls).__classcall__(cls, n, q, base_ring)
+        if isinstance(n, FockSpace):
+            return super(BasicRepresentation, cls).__classcall__(cls, n)
+        return super(BasicRepresentation, cls).__classcall__(cls, FockSpace(n, [r], q, base_ring))
 
-    def __init__(self, n, q, base_ring):
+    def __init__(self, fock_space):
         """
         Initialize ``self``.
         """
-        self._n = n
-        self._q = q
-        self._fock = FockSpace(n, q, base_ring)
-        Parent.__init__(self, base=self._fock._q_group.base_ring(),
+        self._n = fock_space._n
+        self._q = fock_space._q
+        self._fock = fock_space
+        Parent.__init__(self, base=self._fock.base_ring(),
                         category=CategoryOInt(self._fock._q_group).WithRealizations())
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
         """
-        return "Basic representation of {}".format(self._fock._q_group.cartan_type())
+        ct = self._fock._q_group.cartan_type()
+        P = ct.root_system().weight_lattice()
+        wt = P.sum_of_monomials(self._fock._r)
+        return "Basic representation of {} of weight {}".format(ct, wt)
 
     def a_realization(self):
         """
@@ -218,10 +243,9 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             Initialize ``self``.
             """
             self._basis_name = "approximation"
-            self._fock = basic._fock
             self._n = basic._n
             self._q = basic._q
-            CombinatorialFreeModule.__init__(self, self._q.parent(), Partitions(),
+            CombinatorialFreeModule.__init__(self, self._q.parent(), _Partitions,
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=BasicRepresentationBases(basic))
@@ -234,15 +258,17 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             """
             Return the `A` basis indexed by ``la`` in the natural basis.
             """
-            cur = self._fock[[]]
+            fock = self.realization_of()._fock
+            cur = fock.module_generator()
             corners = la.corners()
             cells = set(la.cells())
             q = self._q
             k = self._n - 1 # This is sl_{k+1}
+            r = fock._r[0]
             b = ZZ.zero()
             while any(c[0]*k + c[1] >= b for c in corners): # While there is some cell left to count
                 power = 0
-                i = -b % (k+1)
+                i = -b + r # This will be converted to a mod n number
                 for x in range(0, b // k + 1):
                     if (x, b-x*k) in cells:
                         power += 1
@@ -262,10 +288,9 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             Initialize ``self``.
             """
             self._basis_name = "lower global crystal"
-            self._fock = basic._fock
             self._n = basic._n
             self._q = basic._q
-            CombinatorialFreeModule.__init__(self, self._q.parent(), Partitions(),
+            CombinatorialFreeModule.__init__(self, self._q.parent(), _Partitions,
                                              prefix='G', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
                                              category=BasicRepresentationBases(basic))
@@ -280,7 +305,7 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             """
             # Special case for the empty partition
             if len(la) == 0:
-                return self._fock.one()
+                return self.realization_of()._fock.one()
             cur = self.realization_of().A()._A_to_fock_basis(la)
             mu = la.next()
             while mu:
@@ -300,7 +325,7 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             """
             Return a string representation of ``self``.
             """
-            return "Lower global crystal basis of {}".format(self._fock)
+            return "Lower global crystal basis of {}".format(self.realization_of()._fock)
 
     lower_global_crystal_basis = G
 
