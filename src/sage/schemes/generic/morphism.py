@@ -82,7 +82,9 @@ AUTHORS:
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom
-from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
+from sage.rings.all           import Integer
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme

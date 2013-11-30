@@ -66,7 +66,7 @@ no error messages, and the items get correctly removed::
     sage: len(D)
     0
 
-Another proplem arises when iterating over the items of a dictionary: If
+Another problem arises when iterating over the items of a dictionary: If
 garbage collection occurs during iteration, then the content of the dictionary
 changes, and the iteration breaks for :class:`weakref.WeakValueDictionary`::
 
@@ -107,6 +107,7 @@ Note that Sage's weak value dictionary is actually an instance of
     sage: issubclass(sage.misc.weak_dict.WeakValueDictionary, dict)
     True
 
+See :trac:`13394` for a discussion of some of the design considerations.
 """
 ########################################################################
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
@@ -137,11 +138,13 @@ cdef extern from "Python.h":
         Py_ssize_t ma_used
         Py_ssize_t ma_mask
         PyDictEntry* ma_table
+
+    PyObject* Py_None
     #we need this redefinition because we want to be able to call
     #PyWeakref_GetObject with borrowed references. This is the recommended
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
-    
+
     #this one's just missing.
     long PyObject_Hash(object obj)
 
@@ -173,6 +176,44 @@ cdef PyObject* dummy = init_dummy()
 #this routine looks for the first entry in dict D with given hash of the
 #key and given (identical!) value and deletes that entry.
 cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
+    """
+    This is used in callbacks for the weak values of :class:`WeakValueDictionary`.
+
+    INPUT:
+
+    - ``PyDictObject *mp`` -- pointer to a dict
+    - ``PyObject *value``  -- pointer to a value of the dictionary
+    - ``long hash``        -- hash of the key by which the value is stored in the dict
+
+    The hash bucket determined by the given hash is searched for the item
+    containing the given value. If this item can't be found, the function is
+    silently returning. Otherwise, the item is removed from the dict.
+
+    TESTS:
+
+    The following is an indirect doctest, as discussed on :trac:`13394`.
+    ::
+
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: V = [set(range(n)) for n in range(5)]
+        sage: D = WeakValueDictionary(enumerate(V))
+
+    The line ``V[k] = None`` triggers execution of the callback functions of
+    the dict values. However, the actual deletion is postponed till after the
+    iteration over the dictionary has finished. Hence, when the callbacks are
+    executed, the values which the callback belongs to has already been
+    overridded by a new value. Therefore, the callback does not delete the
+    item::
+
+        sage: for k in D.iterkeys():    # indirect doctest
+        ....:     V[k] = None
+        ....:     D[k] = ZZ
+        sage: len(D)
+        5
+        sage: D[1]
+        Integer Ring
+
+    """
     cdef size_t i
     cdef size_t perturb
     cdef size_t mask = <size_t> mp.ma_mask
@@ -186,7 +227,7 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
         return
 
     perturb = hash
-    while (<PyObject *>(ep.me_value) != value):
+    while (<PyObject *>(ep.me_value) != value or ep.me_hash != hash):
         i = (i << 2) + i + perturb +1
         ep = &ep0[i & mask]
         if ep.me_key == NULL:
@@ -204,11 +245,63 @@ cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, long hash):
     mp.ma_used -= 1
     #in our case, the value is always a dead weakref, so decreffing that is
     #fairly safe
-    Py_XDECREF(old_value) 
+    Py_XDECREF(old_value)
     #this could have any effect.
     Py_XDECREF(old_key)
 
-cdef PyObject* Py_None = <PyObject*>None
+def test_del_dictitem_by_exact_value(D, value, h):
+    """
+    This function helps testing some cdef function used to delete dictionary items.
+
+    INPUT:
+
+    - ``D`` -- a Python ``<dict>``.
+    - ``value`` -- an object that is value ``D``.
+    - ``h`` -- the hash of the key under which to find ``value`` in ``D``.
+
+    The underlying cdef function deletes an item from ``D`` that is in the
+    hash bucket determined by ``h`` and whose value is identic with
+    ``value``. Of course, this only makes sense if the pairs ``(h, value)``
+    corresponding to items in ``D`` are pair-wise distinct.
+
+    If a matching item can not be found, the function does nothing and
+    silently returns.
+
+    TESTS:
+
+    See :trac:`13394` for a discussion.
+    ::
+
+        sage: from sage.misc.weak_dict import test_del_dictitem_by_exact_value
+        sage: B=1000
+        sage: L=list(range(B))
+        sage: D1=dict()
+        sage: D2=dict()
+        sage: for i in range(100000):        # long time
+        ....:     ki=L[floor(random()*B)]
+        ....:     vi=L[floor(random()*B)]
+        ....:     D1[ki]=vi
+        ....:     D2[ki]=vi
+        ....:     ko=L[floor(random()*B)]
+        ....:     if ko in D1:
+        ....:         vo=D1[ko]
+        ....:         del D1[ko]
+        ....:         test_del_dictitem_by_exact_value(D2,vo,hash(ko))
+        ....:     assert D1 == D2
+
+    No action is taken if the item prescribed by key hash and value does not
+    exist in the dictionary::
+
+        sage: D = {1: ZZ}
+        sage: test_del_dictitem_by_exact_value(D, ZZ, 2)
+        sage: D
+        {1: Integer Ring}
+        sage: test_del_dictitem_by_exact_value(D, QQ, 1)
+        sage: D
+        {1: Integer Ring}
+
+    """
+    return del_dictitem_by_exact_value(<PyDictObject *>D, <PyObject *>value, h)
 
 cdef class WeakValueDictionary(dict):
     """
@@ -253,6 +346,54 @@ cdef class WeakValueDictionary(dict):
         sage: del v
         sage: len(D)
         0
+
+    TESTS:
+
+    The following reflects the behaviour of the callback on weak dict values,
+    as discussed on :trac:`13394`.  ::
+
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: V = [set(range(n)) for n in range(5)]
+        sage: D = WeakValueDictionary(enumerate(V))
+
+    The line ``V[k] = None`` triggers execution of the callback functions of
+    the dictionary values. However, the actual deletion is postponed till
+    after the iteration over the dictionary has finished. Hence, when the
+    callbacks are executed, the values which the callback belongs to has
+    already been overridded by a new value. Therefore, the callback does not
+    delete the item::
+
+        sage: for k in D.iterkeys():    # indirect doctest
+        ....:     V[k] = None
+        ....:     D[k] = ZZ
+        sage: len(D)
+        5
+        sage: D[1]
+        Integer Ring
+
+    The following is a stress test for weak value dictionaries::
+
+        sage: class C(object):
+        ....:     def __init__(self, n):
+        ....:         self.n = n
+        ....:     def __cmp__(self, other):
+        ....:         return cmp(type(self),type(other)) or cmp(self.n, other.n)
+        sage: B = 100
+        sage: L = [None]*B
+        sage: D1 = WeakValueDictionary()
+        sage: D2 = WeakValueDictionary()
+        sage: for i in range(10000):
+        ....:     ki = floor(random()*B)
+        ....:     vi = C(floor(random()*B))
+        ....:     D1[ki] = vi
+        ....:     D2[ki] = vi
+        ....:     L[ki]  = vi
+        ....:     del vi
+        ....:     ko = floor(random()*B)
+        ....:     if ko in D1:
+        ....:         del D1[ko]
+        ....:         L[ko] = None
+        ....:     assert D1 == D2
 
     """
     cdef callback
@@ -452,8 +593,8 @@ cdef class WeakValueDictionary(dict):
         TESTS:
 
         One may wonder whether it causes problems when garbage collection for
-        a previously exististing item happens *after* overriding the
-        item. The example shows that it is not a problem::
+        a previously existing item happens *after* overriding the item. The
+        example shows that it is not a problem::
 
             sage: class Cycle:
             ....:     def __init__(self):
@@ -482,7 +623,7 @@ cdef class WeakValueDictionary(dict):
 
     #def __delitem__(self, k):
     #we don't really have to override this method.
-    
+
     def pop(self, k):
         """
         Return the value for a given key, and delete it from the dictionary.
@@ -969,31 +1110,33 @@ cdef class _IterationContext:
     though. Doing so is a bug in a program (since iteration order is
     non-deterministic the results are not well-defined)
 
-    This is implemented by putting all items that are deleted during iteration
-    are not actually deleted, but only *marked* for deletion. Note, however,
-    that they behave like items that actually *are* deleted. E.g., it is not
-    possible to delete the same item twice::
+    This is implemented by only marking entries for deletion if their values
+    become deallocated while an iterator is active. Once the iterator finishes,
+    the keys are deallocated. Note that because the weakrefs will be dead, the
+    keys in question do not appear to be in the dictionary anymore::
 
-        sage: class Val: pass
-        sage: V = [Val() for n in range(3)]
-        sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-        sage: for k,v in D.iteritems():
-        ....:     print k in D.keys()
-        ....:     del D[k]
-        ....:     print k in D.keys()
-        ....:     try:
-        ....:         del D[k]
-        ....:     except KeyError:
-        ....:         print "due error"
-        True
-        False
-        due error
-        True
-        False
-        due error
-        True
-        False
-        due error
+        sage: from sage.misc.weak_dict import WeakValueDictionary
+        sage: K = [frozenset([i]) for i in range(11)]
+        sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+        sage: k = K[10]
+        sage: del K
+        sage: i = D.iterkeys(); d = i.next(); del d
+        sage: len(D.keys())
+        10
+        sage: del k
+
+    At this point, the entry for `k` appears to have disappeared out of `D`,
+    but a reference to `k` is still kept, so the other entries in `D` survive::
+
+        sage: len(D.keys())
+        9
+
+    If we delete the iterator `i` the reference to `k` is dropped, and as a result
+    all entries will disappear from `D`::
+
+        sage: del i
+        sage: len(D.keys())
+        0
 
     """
     cdef WeakValueDictionary Dict
@@ -1009,20 +1152,20 @@ cdef class _IterationContext:
 
         EXAMPLES::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():  # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         self.Dict = Dict
@@ -1034,20 +1177,20 @@ cdef class _IterationContext:
 
         TESTS::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():        # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         self.Dict._guard_level += 1
@@ -1061,20 +1204,20 @@ cdef class _IterationContext:
 
         TESTS::
 
-            sage: import sage.misc.weak_dict
-            sage: class Val: pass
-            sage: V = [Val() for n in range(3)]
-            sage: D = sage.misc.weak_dict.WeakValueDictionary(enumerate(V))
-            sage: for k,v in D.iteritems():      # indirect doctest
-            ....:     k in D.keys()
-            ....:     del D[k]
-            ....:     k in D.keys()
-            True
-            False
-            True
-            False
-            True
-            False
+            sage: from sage.misc.weak_dict import WeakValueDictionary
+            sage: K = [frozenset([i]) for i in range(11)]
+            sage: D = WeakValueDictionary((K[i],K[i+1]) for i in range(10))
+            sage: k = K[10]
+            sage: del K
+            sage: i = D.iterkeys(); d = i.next(); del d
+            sage: len(D.keys())
+            10
+            sage: del k
+            sage: len(D.keys())
+            9
+            sage: del i
+            sage: len(D.keys())
+            0
 
         """
         # Propagate errors by returning "False"
