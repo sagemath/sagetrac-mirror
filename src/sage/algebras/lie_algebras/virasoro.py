@@ -58,6 +58,12 @@ class RegVecFieldsGen(LieGenerator):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.regular_vector_fields(QQ)
+            sage: L.d(2)
+            d[2]
         """
         return "d[" + repr(self._name) + "]"
 
@@ -113,6 +119,17 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
         Return the bracket of the basis elements indexed by ``x`` and ``y``.
 
         EXAMPLES::
+
+            sage: L = lie_algebras.regular_vector_fields(QQ)
+            sage: d2 = L.d(2)
+            sage: dm2 = L.d(-2)
+            sage: d2.bracket(dm2) # indirect doctest
+            -4*d[0]
+            sage: d4 = L.d(4)
+            sage: d2.bracket(d4)
+            2*d[6]
+            sage: L.bracket(d4, d4)
+            0
         """
         i = x._name
         j = y._name
@@ -151,6 +168,12 @@ class CentralElement(LieGenerator):
     def __init__(self):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: d = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d.c()
+            c
         """
         return LieGenerator.__init__(self, 'c')
 
@@ -206,8 +229,6 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
     def bracket_on_basis(self, x, y):
         """
         Return the bracket of the basis elements indexed by ``x`` and ``y``.
-
-        EXAMPLES::
 
         EXAMPLES::
 
