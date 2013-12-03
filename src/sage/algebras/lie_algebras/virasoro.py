@@ -21,33 +21,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import copy
 from sage.misc.cachefunc import cached_method
-from sage.misc.indexed_generators import IndexedGenerators
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element_wrapper import ElementWrapper
-
-from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
-from sage.categories.rings import Rings
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
-
-from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, \
-    LieBracket, LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra
-from sage.rings.ring import Ring
-from sage.rings.integer import Integer
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.infinity import infinity
-from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
-from sage.modules.free_module import FreeModule, span
-from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.sets.family import Family
 
 # This is why we should use the repr_term in the parent
 class RegVecFieldsGen(LieGenerator):
