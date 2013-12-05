@@ -20,6 +20,7 @@ AUTHORS:
 #******************************************************************************
 
 from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
+from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""
@@ -204,7 +205,7 @@ def regular_vector_fields(R):
         sage: lie_algebras.regular_vector_fields(QQ)
         The Lie algebra of regular vector fields over Rational Field
     """
-    from sage.algebras.lie_algebras.lie_algebra import LieAlgebraRegularVectorFields
+    from sage.algebras.lie_algebras.virasoro import LieAlgebraRegularVectorFields
     return LieAlgebraRegularVectorFields(R)
 
 def upper_triangluar_matrices(R, n):
