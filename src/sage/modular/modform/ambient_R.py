@@ -13,6 +13,7 @@ Modular Forms over a Non-minimal Base Ring
 import ambient
 from cuspidal_submodule import CuspidalSubmodule_R
 from sage.rings.all import ZZ
+from sage.all import lazy_attribute
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
     def __init__(self, M, base_ring):
@@ -28,11 +29,15 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             True
         """
         self.__M = M
-        if M.character() is not None:
-            self.__R_character = M.character().change_ring(base_ring)
-        else:
-            self.__R_character = None
+        self.__base_ring = base_ring
         ambient.ModularFormsAmbient.__init__(self, M.group(), M.weight(), base_ring, M.character())
+
+    @lazy_attribute
+    def __R_character(self):
+        if self.__M.character() is not None:
+            return self.__M.character().change_ring(self.__base_ring)
+        else:
+            return None
 
     def modular_symbols(self,sign=0):
         r"""
