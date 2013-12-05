@@ -44,6 +44,8 @@ lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 lazy_import('sage.algebras.schur_algebra', ['SchurAlgebra',
                                             'SchurTensorModule'])
 
+lazy_import('sage.algebras.fusion_algebra', 'FusionAlgebra')
+
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra')
