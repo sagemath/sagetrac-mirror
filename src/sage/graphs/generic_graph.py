@@ -12329,7 +12329,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def __bellman_ford__(self, s, key=None, weight=None):
         """
-        Returns dictionaries of distances from s and predecessors keyed by
+        Returns dictionaries of distances from `s` and predecessors keyed by
         targets.
 
         This method implements a Bellman-Ford like single source shortest paths
@@ -12341,7 +12341,10 @@ class GenericGraph(GenericGraph_pyx):
         This method is valid for Graph and DiGraph with multiple edges and
         loops.
 
-        INPUTS:
+        For more information on the Bellman-Ford algorith, see the
+        :wikipedia:`Bellman-Ford_algorithm`.
+
+        INPUT:
 
         - ``s`` -- source node.
 
@@ -12358,13 +12361,12 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``dist`` -- a dictionary keyed by targets recording the shortest path
           distance from source to target. If the target is unreachable from
-          source, then the distance is set to Infinity.
-
+          source, then the distance is set to ``Infinity``.
 
         - ``predecessor`` -- a dictionary keyed by targets recording
           the predecessor of target in the shortest path from source
           to target. When target is unreachable from source, the
-          predecessor is useless.
+          predecessor is set to the target itself.
 
         EXAMPLES:
 
@@ -12430,7 +12432,6 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: Edge label of unknown type
-
         """
         from sage.rings.infinity import Infinity
         from sage.rings.real_mpfr import RR
@@ -12461,9 +12462,8 @@ class GenericGraph(GenericGraph_pyx):
                         except KeyError:
                             raise KeyError("Wrong key for accessing edge weights.")
                     if not wt in RR:
-                        raise TypeError("Edge label of unknown type")
-                    weight[u, v] = min(wt, weight[u, v]
-                                       if (u, v) in weight else Infinity)
+                        raise TypeError("Edge label of unknown type ("+str(wt)+")")
+                    weight[u, v] = min(wt, weight.get((u,v), wt))
                 else:
                     # At least one edge weight is missing, so we set all edge
                     # weights to 1.
@@ -12479,13 +12479,14 @@ class GenericGraph(GenericGraph_pyx):
         dist[s] = 0
 
         # We now compute distances from s using Bellman-Ford like algorithm.
+        #
+        # A is the set of vertices whose distance was updated during the
+        # previous loop.
         A = set([s])
-        B = set()
-        cpt = 0
-        N = self.order()
+        max_number_of_loops = self.order()
         while A:
-            while A:
-                u = A.pop()
+            B = set()
+            for u in A:
                 for v in neighbor_iterator(u):
                     if directed or v != predecessor[u]:
                         if dist[u] + W(ee(u, v)) < dist[v]:
@@ -12493,10 +12494,9 @@ class GenericGraph(GenericGraph_pyx):
                             predecessor[v] = u
                             B.add(v)
 
-            A.update(B)
-            B.clear()
-            cpt += 1
-            if A and cpt == N:
+            A = B
+            max_number_of_loops -= 1
+            if A and max_number_of_loops == 0:
                 # We have a negative-weight cycle
                 raise ValueError("Negative-weight cycle detected.")
 
@@ -12509,16 +12509,14 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``by_weight`` - if ``False``, uses a breadth first search. If
+          ``True``, takes edge weightings into account, using Dijkstra's
+          algorithm or Bellman-Ford's when negative edge weigths are detected.
 
-        - ``by_weight`` - if False, uses a breadth first search. If True, takes
-          edge weightings into account, using Dijkstra's algorithm or
-          Bellman-Ford when negative edge weigths are detected.
-
-        -  ``bidirectional`` - if True, the algorithm will
-           expand vertices from u and v at the same time, making two spheres
-           of half the usual radius. This generally doubles the speed
-           (consider the total volume in each case).
-
+        - ``bidirectional`` - if ``True``, the algorithm will expand vertices
+          from `u` and `v` at the same time, making two spheres of half the
+          usual radius. This generally doubles the speed (consider the total
+          volume in each case).
 
         EXAMPLES::
 
@@ -12541,11 +12539,10 @@ class GenericGraph(GenericGraph_pyx):
         if u == v: # to avoid a NetworkX bug
             return [u]
         import networkx
-        from sage.rings.infinity import Infinity
         if by_weight:
             if any(w<0 for _,_,w in self.edge_iterator()):
-                dist, pred = self.__bellman_ford__(u)
-                if dist[v]!=Infinity:
+                _, pred = self.__bellman_ford__(u)
+                if pred[v]!=v:
                     L = [v]
                     while L[0]!=u:
                         L.insert(0, pred[L[0]])
@@ -12582,20 +12579,21 @@ class GenericGraph(GenericGraph_pyx):
                                          bidirectional=True,
                                          weight_sum=None):
         """
-        Returns the minimal length of paths from u to v.
+        Returns the minimal length of paths from `u` to `v`.
 
-        If there is no path from u to v, returns Infinity.
+        If there is no path from `u` to `v`, returns ``Infinity``.
 
         INPUT:
 
-        - ``by_weight`` - if False, uses a breadth first search. If True, takes
-          edge weightings into account, using Dijkstra's algorithm or
-          Bellman-Ford when negative edge weigths are detected.
+        - ``by_weight`` - if ``False``, uses a breadth first search. If
+          ``True``, takes edge weightings into account, using Dijkstra's
+          algorithm or Bellman-Ford when negative edge weigths are detected.
 
-        -  ``bidirectional`` - if True, the algorithm will
-           expand vertices from u and v at the same time, making two spheres
-           of half the usual radius. This generally doubles the speed
-           (consider the total volume in each case).
+        - ``bidirectional`` - if True, the algorithm will expand vertices from u
+           and v at the same time, making two spheres of half the usual
+           radius. This generally doubles the speed (consider the total volume
+           in each case). This parameter is ignored when the Bellman-Ford
+           algorithm is used.
 
         -  ``weight_sum`` - if False, returns the number of
            edges in the path. If True, returns the sum of the weights of these
@@ -12643,9 +12641,9 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` - if False, uses a breadth first search. If True, uses
-          Dijkstra's algorithm to find find the shortest paths by weight or
-          Bellman-Ford when negative edge weigths are detected.
+        - ``by_weight`` - if ``False``, uses a breadth first search. If
+          ``True``, uses Dijkstra's algorithm to find find the shortest paths by
+          weight or Bellman-Ford's when negative edge weigths are detected.
 
         -  ``cutoff`` - integer depth to stop search.
 
@@ -12674,19 +12672,15 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight:
             if any(w<0 for _,_,w in self.edge_iterator()):
-                from sage.rings.infinity import Infinity
                 dist, pred = self.__bellman_ford__(u)
                 path = {u:[u]}
-                for v in self.vertex_iterator():
-                    if dist[v] is Infinity:
-                        path[v] = []
-                    else:
-                        P = []
-                        w = v
-                        while not w in path:
-                            P.insert(0, w)
-                            w = pred[w]
-                        path[v] = path[w] + P
+                def build_paths(v):
+                    if v in path or pred[v] is v:
+                        return
+                    build_paths(pred[v])
+                    path[u] = path[pred[v]] + [u]
+                for v in self:
+                    build_paths(v)
                 return path
             else:
                 import networkx
@@ -12704,9 +12698,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``by_weight`` - if False, uses a breadth first search. If True, takes
-          edge weightings into account, using Dijkstra's algorithm or
-          Bellman-Ford when negative edge weigths are detected.
+        - ``by_weight`` - if ``False``, uses a breadth-first search. If
+          ``True``, takes edge weightings into account, using Dijkstra's
+          Bellman-Ford's algorithm depending on whether negative edge weigths
+          are detected.
 
         EXAMPLES::
 
@@ -12743,7 +12738,6 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         - ``by_weight`` - Whether to use the labels defined over the edges as
            weights. If ``False`` (default), the distance between `u` and `v` is
            the minimum number of edges of a path from `u` to `v`.
@@ -12751,12 +12745,13 @@ class GenericGraph(GenericGraph_pyx):
         - ``default_weight`` - (defaults to 1) The default weight to assign
            edges that don't have a weight (i.e., a label).
 
-           Implies ``by_weight == True``.
+           Setting ``default_weight`` to a value different from `1` forces
+           ``by_weight == True``.
 
         - ``algorithm`` -- five options :
 
            * ``"BFS"`` -- the computation is done through a BFS
-             centered on each vertex successively. Only implemented
+             centered on each vertex successively. Only available
              when ``default_weight = 1`` and ``by_weight = False``.
 
            * ``"Floyd-Warshall-Cython"`` -- through the Cython implementation of
@@ -12768,10 +12763,9 @@ class GenericGraph(GenericGraph_pyx):
            * ``"Bellman-Ford-Python"`` -- through the Python implementation of
              the Bellman-Ford algorithm.
 
-           * ``"auto"`` -- use the fastest algorithm depending on the input
-             (``"BFS"`` if possible, and ``"Floyd-Warshall-Python"`` otherwise)
-
-             This is the default value.
+           * ``"auto"`` (default) -- use the fastest algorithm depending on the
+             input (``"BFS"`` if possible, and ``"Floyd-Warshall-Python"``
+             otherwise).
 
         OUTPUT:
 
@@ -12783,7 +12777,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Four different implementations are actually available through this method :
+            Four implementations are available through this method :
 
                 * BFS (Cython)
                 * Floyd-Warshall (Cython)
@@ -12797,7 +12791,9 @@ class GenericGraph(GenericGraph_pyx):
             1, or equivalently the length of a path is its number of
             edges). Besides, they do not deal with graphs larger than 65536
             vertices (which already represents 16GB of ram).
-            The Bellman-Ford algorithm is able to handle negative edge weights.
+
+            The Bellman-Ford algorithm is the only one among the four
+            implementation able to handle negative edge weights.
 
         .. NOTE::
 
