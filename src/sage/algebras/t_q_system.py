@@ -633,6 +633,167 @@ class QSystem(IntegrableSystem):
         from sage.matrix.constructor import matrix
         return matrix(self, mat).determinant('pari')
 
+class QSystem_square_free(IntegrableSystem):
+    """
+    The `Q`-system represented using square free monomials.
+    """
+
+    @staticmethod
+    def __classcall__(cls, base_ring, cartan_type, level=None):
+        """
+        Normalize arguments to ensure a unique representation.
+        """
+        cartan_type = CartanType(cartan_type)
+        return super(QSystem_square_free, cls).__classcall__(cls, base_ring, cartan_type, level)
+
+    def __init__(self, base_ring, cartan_type, level):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.t_q_system import QSystem_square_free
+            sage: Qsf = QSystem_square_free(QQ['A',2])
+            sage: TestSuite(Qsf).run()
+        """
+        category = HopfAlgebras(base_ring).WithBasis().Commutative()
+        # TODO: This in fact gives us a larger indexing set for the basis than
+        #   we want, but for a temp working version, it will do (since it
+        #   takes all free monoid elements, whereas we want the square free)
+        #   In other words, we want subsets of the Cartesian product.
+        indices = CartesianProduct(cartan_type.index_set(), PositiveIntegers())
+        IntegrableSystem.__init__(self, base_ring, cartan_type, level, indices, 'Q', category)
+
+    def _repr_term(self, t):
+        """
+        Return a string representation of the basis element indexed by ``a``
+        with all `m = 1`.
+
+        EXAMPLES::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: Q._repr_term(((1,1), (4,1)))
+            'Q^(1)[1]*Q(4)[1]'
+        """
+        if len(t) == 0:
+            return '1'
+        def repr_gen(x):
+            ret = 'Q^({})[{}]'.format(*(x[0]))
+            if x[1] > 1:
+                ret += '^{}'.format(x[1])
+            return ret
+        return '*'.join(repr_gen(x) for x in t._sorted_items())
+
+    def _latex_term(self, t):
+        r"""
+        Return a `\LaTeX` representation of the basis element indexed
+        by ``m``.
+
+        EXAMPLES::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: Q._latex_term(((3,1,2), (4,1,1)))
+            'Q^{(3)}_{1} Q^{(4)}_{1}'
+        """
+        if len(t) == 0:
+            return '1'
+        def repr_gen(x):
+            ret = 'Q^{{({})}}_{{{}}}'.format(*(x[0]))
+            if x[1] > 1:
+                ret = '\\bigl(' + ret + '\\bigr)^{{{}}}'.format(x[1])
+            return ret
+        return ' '.join(repr_gen(x) for x in t._sorted_items())
+
+    def gen(self, a, m):
+        """
+        Return the generator `Q^{(a)}_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: Q.gen(2, 1)
+            Q^(2)[1]
+            sage: Q.gen(12, 2)
+            Q^(12)[2]
+            sage: Q.gen(0, 1)
+            1
+            sage: Q.gen(1, 0)
+            1
+        """
+        if m == 0 or m == self._level or a == 0 or a == len(self.index_set()) + 1:
+            return self.one()
+        if a not in self.index_set():
+            return self.zero()
+        return self.monomial(self._indices.gen((a,m)))
+
+    def algebra_generators(self):
+        """
+        Return the algebra generators of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QSystem(QQ, ['A',4])
+            sage: Q.algebra_generators()
+            Finite family {1: Q^(1)[1], 2: Q^(2)[1], 3: Q^(3)[1], 4: Q^(4)[1]}
+        """
+        return Family({a: self.gen(a, 1) for a in self.index_set()})
+
+    @cached_method
+    def _reduce_square_free(self, a, m):
+        r"""
+        Return the square reduced by the formula
+
+        .. MATH::
+
+            \left( Q^{(a)}_m \right)^2 = Q^{(a)}_{m-1} Q^{(a)}_{m+1}
+            + \prod_{a \sim b} Q(b)
+
+        where if `d_a > 1` then `Q(b) = Q_{\beta}^{(b)}` where
+        `\beta = d_a \left\lfloor \frac{m-1}{d_b} \right\rfloor`, otherwise
+
+        .. MATH::
+
+            Q(b) = \prod_{k=1}^{d_b} Q^{(b)}_{\beta_k}
+
+        where `\beta_k = 1 + \left\lfloor \frac{m-1-k}{d_b} \right\rfloor`.
+        """
+        d = self._diagonal
+        da = d[a]
+        I = self._indices
+
+        cur = self._from_dict({I.gen((a,m-1)) * I.gen((a,m+1)):1})
+        if da > 1:
+            cur += self.monomial( I.prod(I.gen((b, da * (m-1) // d[b]))
+                    for b in self._cartan_type.dynkin_diagram().neighbors(a)) )
+        else:
+            cur += self.monomial( I.prod(I.gen((b, 1 + (m-1-k) // d[b]))
+                    for b in self._cartan_type.dynkin_diagram().neighbors(a)
+                    for k in range(1, d[b]+1)) )
+        return cur
+
+    class Element(IntegrableSystemElement):
+        def _mul_(self, x):
+            """
+            Return the product of ``self`` and ``x``.
+            """
+            P = self.parent()
+            cur = P.sum_of_terms((tl*tr, cl*cr) for tl,cl in self for tr,cr in x)
+            is_square_free = False
+            while not is_square_free:
+                is_square_free = True
+                for m,c in list(cur):
+                    ret = []
+                    for a,exp in m._sorted_items():
+                        if exp > 1:
+                            assert exp == 2, "larger than square"
+                            ret.append(P._reduce_square_free(*a))
+                            is_square_free = False
+                        else:
+                            ret.append(P.gen(*a))
+                    if not is_square_free:
+                        cur -= P._from_dict({m:c}) + prod(ret, P.one()*c)
+            return cur
+
 class QSystem_reducible(IntegrableSystem):
     """
     The `Q`-system that is used to perform the reduction steps.
