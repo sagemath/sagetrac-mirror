@@ -151,21 +151,21 @@ class FockSpace(CombinatorialFreeModule):
         """
         return "Fock space of rank {} of type {} over {}".format(self._n, self._r, self.base_ring())
 
-    def basic_representation(self):
+    def highest_weight_representation(self):
         """
-        Return the basic representation `B(\Lambda_r)` in ``self``.
+        Return the highest weight representation `B(\Lambda)` in ``self``.
 
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: F.basic_representation()
-            Basic representation of ['A', 1, 1] of weight Lambda[0]
+            sage: F.highest_weight_representation()
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0]
 
             sage: F = FockSpace(4, [2,0,1])
-            sage: F.basic_representation()
-            Basic representation of ['A', 3, 1] of weight Lambda[0] + Lambda[1] + Lambda[2]
+            sage: F.highest_weight_representation()
+            Highest weight representation of ['A', 3, 1] of weight Lambda[0] + Lambda[1] + Lambda[2]
         """
-        return BasicRepresentation(self)
+        return HighestWeightRepresentation(self)
 
     def highest_weight_vector(self):
         """
@@ -353,29 +353,50 @@ class FockSpace(CombinatorialFreeModule):
                 s += cg * c
             return s
 
-class BasicRepresentation(Parent, UniqueRepresentation):
+class HighestWeightRepresentation(Parent, UniqueRepresentation):
     """
-    Basic representation `B(\Lambda_r)` of `U_q(\widehat{\mathfrak{sl}}_n)`.
+    The highest weight representation `B(\Lambda)` of
+    `U_q(\widetilde{\mathfrak{sl}}_n)`.
+
+    We realize this a subspace of the corresponding
+    :class:`Fock space <FockSpace>`. We have two bases:
+
+    - The approximation basis which comes from LLT(-type) algorithms.
+    - The lower global crystal basis.
+
+    REFERENCES:
+
+    .. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
+       *Hecke algebras at roots of unity and crystal bases of quantum affine
+       algebras*. Commun. Math. Phys. **181** (1996). pp 205-263.
+
+    .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
+       higher-level canonical bases*. (2010). :arxiv:`0908.1749v3`.
+
+    .. [GW1998] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
+       affine algebras and affine Kazhdan-Lusztig polyonmials*. (1998).
+       :arxiv:`math/9807014v1`.
     """
     @staticmethod
-    def __classcall_private__(cls, n, r=0, q=None, base_ring=None):
+    def __classcall_private__(cls, n, r=[0], q=None, base_ring=None):
         """
         Standardize input to ensure a unique representation.
 
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: B1 = F.basic_representation()
-            sage: from sage.algebras.quantum_groups.fock_space import BasicRepresentation
-            sage: B2 = BasicRepresentation(2)
+            sage: B1 = F.highest_weight_representation()
+            sage: from sage.algebras.quantum_groups.fock_space import HighestWeightRepresentation
+            sage: B2 = HighestWeightRepresentation(2)
             sage: R.<q> = QQ[]
-            sage: B3 = BasicRepresentation(2, 0, q, R)
+            sage: B3 = HighestWeightRepresentation(2, [0], q, R)
             sage: B1 is B2 and B2 is B3
             True
         """
         if isinstance(n, FockSpace):
-            return super(BasicRepresentation, cls).__classcall__(cls, n)
-        return super(BasicRepresentation, cls).__classcall__(cls, FockSpace(n, [r], q, base_ring))
+            return super(HighestWeightRepresentation, cls).__classcall__(cls, n)
+        F = FockSpace(n, tuple(r), q, base_ring)
+        return super(HighestWeightRepresentation, cls).__classcall__(cls, F)
 
     def __init__(self, fock_space):
         """
@@ -384,7 +405,8 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: B = F.basic_representation()
+            sage: B = F.highest_weight_representation()
+            sage: x = B.a_realization() # This should be removed, but is needed so the test suite correctly obtains an element
             sage: TestSuite(B).run()
         """
         self._n = fock_space._n
@@ -401,13 +423,13 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: F.basic_representation()
-            Basic representation of ['A', 1, 1] of weight Lambda[0]
+            sage: F.highest_weight_representation()
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0]
         """
         ct = self._fock._q_group.cartan_type()
         P = ct.root_system().weight_lattice()
         wt = P.sum_of_monomials(self._fock._r)
-        return "Basic representation of {} of weight {}".format(ct, wt)
+        return "Highest weight representation of {} of weight {}".format(ct, wt)
 
     def a_realization(self):
         """
@@ -416,9 +438,9 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: F = FockSpace(2)
-            sage: B = F.basic_representation()
+            sage: B = F.highest_weight_representation()
             sage: B.a_realization()
-            Basic representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
+            Highest weight representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
         """
         return self.G()
 
@@ -426,6 +448,23 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         """
         The `A` basis of the Fock space which is the approximation of the
         lower global crystal basis.
+
+        EXAMPLES:
+
+        We construct Example 6.5 and 6.7 in [LLT1996]_::
+
+            sage: F = FockSpace(2)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: A = B.A()
+            sage: F(A[5])
+            |[5]> + |[3, 2]> + 2*q*|[3, 1, 1]> + q^2*|[2, 2, 1]> + q^2*|[1, 1, 1, 1, 1]>
+            sage: F(A[4,1])
+            |[4, 1]> + q*|[2, 1, 1, 1]>
+            sage: F(A[3,2])
+            |[3, 2]> + q*|[3, 1, 1]> + q^2*|[2, 2, 1]>
+            sage: F(G[5])
+            |[5]> + q*|[3, 1, 1]> + q^2*|[1, 1, 1, 1, 1]>
         """
         def __init__(self, basic):
             """
@@ -434,17 +473,18 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: F = FockSpace(2)
-                sage: B = F.basic_representation()
+                sage: B = F.highest_weight_representation()
                 sage: A = B.A()
                 sage: TestSuite(A).run()
             """
             self._basis_name = "approximation"
             self._n = basic._n
             self._q = basic._q
-            CombinatorialFreeModule.__init__(self, self._q.parent(), _Partitions,
+            level = len(basic._fock._r)
+            CombinatorialFreeModule.__init__(self, self._q.parent(), PartitionTuples(level),
                                              prefix='A', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
-                                             category=BasicRepresentationBases(basic))
+                                             category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._A_to_fock_basis,
                                  triangular='upper', unitriangular=True,
                                  codomain=basic._fock).register_as_coercion()
@@ -453,22 +493,54 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         def _A_to_fock_basis(self, la):
             """
             Return the `A` basis indexed by ``la`` in the natural basis.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3)
+                sage: B = F.highest_weight_representation()
+                sage: A = B.A()
+                sage: A._A_to_fock_basis(Partition([3]))
+                |[3]> + q*|[2, 1]>
+                sage: A._A_to_fock_basis(Partition([2,1]))
+                |[2, 1]> + q*|[1, 1, 1]>
             """
             fock = self.realization_of()._fock
-            cur = fock.highest_weight_vector()
+
+            if la.size() == 0:
+                return fock.highest_weight_vector()
+
+            G = self.realization_of().G()
+            if len(fock._r) > 1:
+                # Find the first non-empty partition
+                k = 0
+                for p in la:
+                    if p.size() != 0:
+                        break
+                    k += 1
+                # This only is equal for the empty partition, but we've already taken care of that case
+                assert k != len(la), "k = {} and len(la) == {}".format(k, len(la))
+                # Replace the k-th partition by the empty partition and get the G version
+                print k, la, "--->", self._indices(la[:k] + [[]] + la[k+1:])
+                cur = G._G_to_fock_basis(self._indices(la[:k] + [[]] + la[k+1:]))
+                la = la[k]
+            else:
+                cur = fock.highest_weight_vector()
+
+            # Get the ladders and apply it to the current element
             corners = la.corners()
             cells = set(la.cells())
             q = self._q
             k = self._n - 1 # This is sl_{k+1}
             r = fock._r[0]
             b = ZZ.zero()
-            while any(c[0]*k + c[1] >= b for c in corners): # While there is some cell left to count
+            while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
                 power = 0
                 i = -b + r # This will be converted to a mod n number
                 for x in range(0, b // k + 1):
-                    if (x, b-x*k) in cells:
+                    if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)
+                # print b, i, power
                 cur /= q_factorial(power, q)
                 b += 1
             return cur
@@ -478,6 +550,132 @@ class BasicRepresentation(Parent, UniqueRepresentation):
     class G(CombinatorialFreeModule, BindableClass):
         """
         The lower global crystal basis living inside of Fock space.
+
+        EXAMPLES:
+
+        We construct some of the tables/entries given in Section 10
+        of [LLT1996]_. For `\widehat{\mathfrak{sl}}_2`::
+
+            sage: F = FockSpace(2)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[2])
+            |[2]> + q*|[1, 1]>
+            sage: F(G[3])
+            |[3]> + q*|[1, 1, 1]>
+            sage: F(G[2,1])
+            |[2, 1]>
+            sage: F(G[4])
+            |[4]> + q*|[3, 1]> + q*|[2, 1, 1]> + q^2*|[1, 1, 1, 1]>
+            sage: F(G[3,1])
+            |[3, 1]> + q*|[2, 2]> + q^2*|[2, 1, 1]>
+            sage: F(G[5])
+            |[5]> + q*|[3, 1, 1]> + q^2*|[1, 1, 1, 1, 1]>
+            sage: F(G[4,2])
+            |[4, 2]> + q*|[4, 1, 1]> + q*|[3, 3]> + q^2*|[3, 1, 1, 1]>
+             + q^2*|[2, 2, 2]> + q^3*|[2, 2, 1, 1]>
+            sage: F(G[4,2,1])
+            |[4, 2, 1]> + q*|[3, 3, 1]> + q^2*|[3, 2, 2]> + q^3*|[3, 2, 1, 1]>
+            sage: F(G[6,2])
+            |[6, 2]> + q*|[6, 1, 1]> + q*|[5, 3]> + q^2*|[5, 1, 1, 1]>
+             + q*|[4, 3, 1]> + q^2*|[4, 2, 2]> + (q^3+q)*|[4, 2, 1, 1]>
+             + q^2*|[4, 1, 1, 1, 1]> + q^2*|[3, 3, 1, 1]> + q^3*|[3, 2, 2, 1]>
+             + q^3*|[3, 1, 1, 1, 1, 1]> + q^3*|[2, 2, 2, 1, 1]> + q^4*|[2, 2, 1, 1, 1, 1]>
+            sage: F(G[5,3,1])
+            |[5, 3, 1]> + q*|[5, 2, 2]> + q^2*|[5, 2, 1, 1]> + q*|[4, 4, 1]>
+             + q^2*|[4, 2, 1, 1, 1]> + q^2*|[3, 3, 3]> + q^3*|[3, 3, 1, 1, 1]>
+             + q^3*|[3, 2, 2, 2]> + q^4*|[3, 2, 2, 1, 1]>
+            sage: F(G[4,3,2,1])
+            |[4, 3, 2, 1]>
+            sage: F(G[7,2,1])
+            |[7, 2, 1]> + q*|[5, 2, 1, 1, 1]> + q^2*|[3, 2, 1, 1, 1, 1, 1]>
+            sage: F(G[10,1])
+            |[10, 1]> + q*|[8, 1, 1, 1]> + q^2*|[6, 1, 1, 1, 1, 1]>
+             + q^3*|[4, 1, 1, 1, 1, 1, 1, 1]> + q^4*|[2, 1, 1, 1, 1, 1, 1, 1, 1, 1]>
+            sage: F(G[6,3,2])
+            |[6, 3, 2]> + q*|[6, 3, 1, 1]> + q^2*|[6, 2, 2, 1]>
+             + q^3*|[5, 3, 2, 1]> + q*|[4, 3, 2, 1, 1]> + q^2*|[4, 3, 1, 1, 1, 1]>
+             + q^3*|[4, 2, 2, 1, 1, 1]> + q^4*|[3, 3, 2, 1, 1, 1]>
+            sage: F(G[5,3,2,1])
+            |[5, 3, 2, 1]> + q*|[4, 4, 2, 1]> + q^2*|[4, 3, 3, 1]>
+             + q^3*|[4, 3, 2, 2]> + q^4*|[4, 3, 2, 1, 1]>
+
+        For `\widehat{\mathfrak{sl}}_3`::
+
+            sage: F = FockSpace(3)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[2])
+            |[2]>
+            sage: F(G[1,1])
+            |[1, 1]>
+            sage: F(G[3])
+            |[3]> + q*|[2, 1]>
+            sage: F(G[2,1])
+            |[2, 1]> + q*|[1, 1, 1]>
+            sage: F(G[4])
+            |[4]> + q*|[2, 2]>
+            sage: F(G[3,1])
+            |[3, 1]>
+            sage: F(G[2,2])
+            |[2, 2]> + q*|[1, 1, 1, 1]>
+            sage: F(G[2,1,1])
+            |[2, 1, 1]>
+            sage: F(G[5])
+            |[5]> + q*|[2, 2, 1]>
+            sage: F(G[2,2,1])
+            |[2, 2, 1]> + q*|[2, 1, 1, 1]>
+            sage: F(G[4,1,1])
+            |[4, 1, 1]> + q*|[3, 2, 1]> + q^2*|[3, 1, 1, 1]>
+            sage: F(G[5,2])
+            |[5, 2]> + q*|[4, 3]> + q^2*|[4, 2, 1]>
+            sage: F(G[8])
+            |[8]> + q*|[5, 2, 1]> + q*|[3, 3, 1, 1]> + q^2*|[2, 2, 2, 2]>
+            sage: F(G[7,2])
+            |[7, 2]> + q*|[4, 2, 2, 1]>
+            sage: F(G[6,2,2])
+            |[6, 2, 2]> + q*|[6, 1, 1, 1, 1]> + q*|[4, 4, 2]> + (q^2+1)*|[3, 3, 2, 1, 1]>
+             + q*|[3, 2, 2, 2, 1]> + q^2*|[3, 2, 2, 1, 1, 1]>
+
+        For `\widehat{\mathfrak{sl}}_4`::
+
+            sage: F = FockSpace(4)
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[4])
+            |[4]> + q*|[3, 1]>
+            sage: F(G[3,1])
+            |[3, 1]> + q*|[2, 1, 1]>
+            sage: F(G[2,2])
+            |[2, 2]>
+            sage: F(G[2,1,1])
+            |[2, 1, 1]> + q*|[1, 1, 1, 1]>
+            sage: F(G[3,2])
+            |[3, 2]> + q*|[2, 2, 1]>
+            sage: F(G[2,2,2])
+            |[2, 2, 2]> + q*|[1, 1, 1, 1, 1, 1]>
+            sage: F(G[6,1])
+            |[6, 1]> + q*|[4, 3]>
+            sage: F(G[3,2,2,1])
+            |[3, 2, 2, 1]> + q*|[3, 1, 1, 1, 1, 1]> + q*|[2, 2, 2, 2]> + q^2*|[2, 1, 1, 1, 1, 1, 1]>
+            sage: F(G[7,2])
+            |[7, 2]> + q*|[6, 2, 1]> + q*|[5, 4]> + q^2*|[5, 3, 1]>
+            sage: F(G[5,2,2,1])
+            |[5, 2, 2, 1]> + q*|[5, 1, 1, 1, 1, 1]> + q*|[4, 2, 2, 1, 1]> + q^2*|[4, 2, 1, 1, 1, 1]>
+
+        We construct the example in Section 5.1 of [Fayers2010]_::
+
+            sage: F = FockSpace(2, [0, 0])
+            sage: B = F.highest_weight_representation()
+            sage: G = B.G()
+            sage: F(G[[2,1],[1]])
+            |([2,1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])> + q^2*|([1, 1], [2])>
+             + q^3*|([1, 1], [1, 1])> + q^4*|([1], [2, 1])>
+            sage: F(G[[4],[]])
+            |([4], [])> + q*|([3, 1], [])> + q*|([2, 1, 1], [])> + q^2*|([1, 1, 1, 1], [])>
+             + q^2*|([2, 1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])>
+             + q^2*|([1, 1], [2])> + q^3*|([1, 1], [1, 1])> + q^2**|([1], [2, 1])>
+             + q^2*|([], [4])> + q^3*|([], [3, 1])> + q^3*|([], [2, 1, 1])> + q^4*|([], [1, 1, 1, 1])>
         """
         def __init__(self, basic):
             """
@@ -486,17 +684,18 @@ class BasicRepresentation(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: F = FockSpace(2)
-                sage: B = F.basic_representation()
+                sage: B = F.highest_weight_representation()
                 sage: G = B.G()
                 sage: TestSuite(G).run()
             """
             self._basis_name = "lower global crystal"
             self._n = basic._n
             self._q = basic._q
-            CombinatorialFreeModule.__init__(self, self._q.parent(), _Partitions,
+            level = len(basic._fock._r)
+            CombinatorialFreeModule.__init__(self, self._q.parent(), PartitionTuples(level),
                                              prefix='G', bracket=False,
                                              monomial_cmp=lambda x,y: -cmp(x,y),
-                                             category=BasicRepresentationBases(basic))
+                                             category=HighestWeightRepresentationBases(basic))
             self.module_morphism(self._G_to_fock_basis,
                                  triangular='upper', unitriangular=True,
                                  codomain=basic._fock).register_as_coercion()
@@ -505,23 +704,47 @@ class BasicRepresentation(Parent, UniqueRepresentation):
         def _G_to_fock_basis(self, la):
             """
             Return the `G` basis indexed by ``la`` in the natural basis.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3)
+                sage: B = F.highest_weight_representation()
+                sage: G = B.G()
+                sage: G._G_to_fock_basis(Partition([3]))
+                |[3]> + q*|[2, 1]>
+                sage: G._G_to_fock_basis(Partition([2,1]))
+                |[2, 1]> + q*|[1, 1, 1]>
             """
             # Special case for the empty partition
-            if len(la) == 0:
-                return self.realization_of()._fock.one()
+            if la.size() == 0:
+                return self.realization_of()._fock.highest_weight_vector()
+
             cur = self.realization_of().A()._A_to_fock_basis(la)
-            mu = la.next()
-            while mu:
-                if cur[mu] != 0:
-                    d = cur[mu].denominator()
-                    k = d.degree()
-                    n = cur[mu].numerator()
-                    if k != 0 or n.degree() == 0:
-                        gamma = sum(n[i] * (self._q**(i-k) + self._q**(k-i))
-                                    for i in range(min(n.degree(), k)))
-                        gamma += n[k]
-                        cur -= gamma * self._G_to_fock_basis(mu)
-                mu = mu.next()
+            dom_cmp = lambda x,y: -1 if y.dominates(x) else 1
+            s = cur.support()
+            s.sort(cmp=dom_cmp) # Sort via dominance order
+            print s
+            s.pop() # Remove the largest
+
+            while len(s) != 0:
+                mu = s.pop()
+                d = cur[mu].denominator()
+                k = d.degree()
+                n = cur[mu].numerator()
+                if k != 0 or n.degree() == 0:
+                    gamma = sum(n[i] * (self._q**(i-k) + self._q**(k-i))
+                                for i in range(min(n.degree(), k)))
+                    gamma += n[k]
+                    cur -= gamma * self._G_to_fock_basis(mu)
+
+                    # Add any new support elements
+                    for x in cur.support():
+                        if x == mu or not mu.dominates(x): # Add only things (strictly) dominated by mu
+                            continue
+                        for i in reversed(range(len(s))):
+                            if not s[i].dominates(x):
+                                s.insert(i+1, x)
+                                break
             return cur
 
         #def _repr_(self):
@@ -533,24 +756,24 @@ class BasicRepresentation(Parent, UniqueRepresentation):
 
     lower_global_crystal_basis = G
 
-class BasicRepresentationBases(Category_realization_of_parent):
+class HighestWeightRepresentationBases(Category_realization_of_parent):
     r"""
-    The category of bases of a basic representation.
+    The category of bases of a highest weight representation in a Fock space.
     """
     def __init__(self, base):
         r"""
-        Initialize the bases of a basic representation.
+        Initialize the bases of a highest weight representation.
 
         INPUT:
 
-        - ``base`` -- a basic representation
+        - ``base`` -- a highest weight representation
 
         TESTS::
 
-            sage: from sage.algebras.quantum_groups.fock_space import BasicRepresentationBases
+            sage: from sage.algebras.quantum_groups.fock_space import HighestWeightRepresentationBases
             sage: F = FockSpace(2)
-            sage: B = F.basic_representation()
-            sage: bases = BasicRepresentationBases(B)
+            sage: B = F.highest_weight_representation()
+            sage: bases = HighestWeightRepresentationBases(B)
             sage: TestSuite(bases).run()
         """
         Category_realization_of_parent.__init__(self, base)
@@ -561,11 +784,11 @@ class BasicRepresentationBases(Category_realization_of_parent):
 
         EXAMPLES::
 
-            sage: from sage.algebras.quantum_groups.fock_space import BasicRepresentationBases
+            sage: from sage.algebras.quantum_groups.fock_space import HighestWeightRepresentationBases
             sage: F = FockSpace(2)
-            sage: B = F.basic_representation()
-            sage: BasicRepresentationBases(B)
-            Category of bases of Basic representation of ['A', 1, 1] of weight Lambda[0]
+            sage: B = F.highest_weight_representation()
+            sage: HighestWeightRepresentationBases(B)
+            Category of bases of Highest weight representation of ['A', 1, 1] of weight Lambda[0]
         """
         return "Category of bases of %s" % self.base()
 
@@ -575,14 +798,14 @@ class BasicRepresentationBases(Category_realization_of_parent):
 
         EXAMPLES::
 
-            sage: from sage.algebras.quantum_groups.fock_space import BasicRepresentationBases
+            sage: from sage.algebras.quantum_groups.fock_space import HighestWeightRepresentationBases
             sage: F = FockSpace(2)
-            sage: B = F.basic_representation()
-            sage: bases = BasicRepresentationBases(B)
+            sage: B = F.highest_weight_representation()
+            sage: bases = HighestWeightRepresentationBases(B)
             sage: bases.super_categories()
-            [[Category of category o int over Quantum group of Cartan type ['A', 1, 1]
-               over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
-             Category of realizations of Basic representation of ['A', 1, 1] of weight Lambda[0]]
+            [Category of category o int over Quantum group of Cartan type ['A', 1, 1]
+              over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+             Category of realizations of Highest weight representation of ['A', 1, 1] of weight Lambda[0]]
         """
         return [CategoryOInt(self.base()._fock._q_group), Realizations(self.base())]
 
@@ -594,11 +817,11 @@ class BasicRepresentationBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: F = FockSpace(2)
-                sage: B = F.basic_representation()
+                sage: B = F.highest_weight_representation()
                 sage: B.A()
-                Basic representation of ['A', 1, 1] of weight Lambda[0] in the approximation basis
+                Highest weight representation of ['A', 1, 1] of weight Lambda[0] in the approximation basis
                 sage: B.G()
-                Basic representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
+                Highest weight representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
             """
             return "%s in the %s basis"%(self.realization_of(), self._basis_name)
 
@@ -610,7 +833,7 @@ class BasicRepresentationBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: F = FockSpace(2)
-                sage: B = F.basic_representation()
+                sage: B = F.highest_weight_representation()
                 sage: A = B.A()
                 sage: A.highest_weight_vector()
                 A[]
@@ -634,7 +857,7 @@ class BasicRepresentationBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: F = FockSpace(3)
-                sage: B = F.basic_representation()
+                sage: B = F.highest_weight_representation()
                 sage: A = B.A()
                 sage: A[[]]
                 A[]
@@ -649,13 +872,25 @@ class BasicRepresentationBases(Category_realization_of_parent):
                 G[4]
                 sage: G[2,2,1]
                 G[2, 2, 1]
+
+            For higher levels::
+
+                sage: F = FockSpace(2, [0, 0])
+                sage: B = F.highest_weight_representation()
+                sage: G = B.G()
+                sage: G[[2,1],[1]]
+                G([2, 1], [1])
             """
             if i in ZZ:
                 i = [i]
-            i = Partition(i)
-            if len(i) == 0:
+
+            i = self._indices(i)
+            if i.size() == 0:
                 return self.highest_weight_vector()
-            if max(i.to_exp()) >= self._n:
-                raise ValueError("{} is not a {}-regular partition".format(i, self._n))
+
+            level = len(self.realization_of()._fock._r)
+            if level == 1: # TODO: generalize this check for arbitrary levels
+                if max(i.to_exp()) >= self._n:
+                    raise ValueError("{} is not a {}-regular partition".format(i, self._n))
             return self.monomial(i)
 
