@@ -359,7 +359,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: any(x in my_elements for x in P)
         False
 
-    and can be anoying when one wants to manipulate the elements of
+    and can be annoying when one wants to manipulate the elements of
     the poset::
 
         sage: a + b
@@ -687,9 +687,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: p1, p2 = Posets(2).list()
         sage: p2 == p1, p1 != p2
         (False, True)
-        sage: [[p1.__eq__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
+        sage: [[p1 == p2 for p1 in Posets(2)] for p2 in Posets(2)]
         [[True, False], [False, True]]
-        sage: [[p2.__eq__(p1) for p1 in Posets(2)] for p2 in Posets(2)]
+        sage: [[p2 == p1 for p1 in Posets(2)] for p2 in Posets(2)]
         [[True, False], [False, True]]
         sage: [[p2 == p1 for p1 in Posets(3)] for p2 in Posets(3)]
         [[True, False, False, False, False], [False, True, False, False, False], [False, False, True, False, False], [False, False, False, True, False], [False, False, False, False, True]]
@@ -804,6 +804,56 @@ class FinitePoset(UniqueRepresentation, Parent):
         self._elements = elements
         self._element_to_vertex_dict = dict( (elements[i], i) for i in range(len(elements)) )
         self._is_facade = facade
+        self._key = key
+
+    def __eq__(self, other):
+        r"""
+        Tests whether the two posets are equal
+
+        EXAMPLE::
+
+            sage: p1 = Poset(digraphs.ButterflyGraph(3))
+            sage: p2 = Poset(digraphs.ButterflyGraph(3))
+            sage: p1 == p2
+            True
+            sage: p2 = Poset(digraphs.ButterflyGraph(3).relabel())
+            sage: p1 == p2
+            False
+
+        Check that :trac:`14019` is fixed::
+
+            sage: d = DiGraph({2:[1],3:[1]})
+            sage: p1 = Poset(d, linear_extension = [1,2,3])
+            sage: p2 = p1.relabel({1:1,2:3,3:2})
+            sage: p1.hasse_diagram() == p2.hasse_diagram()
+            True
+            sage: p1 == p2
+            True
+
+        The ``key`` argument is well-handled::
+
+            sage: p3 = Poset(d, key = "Hey")
+            sage: p4 = Poset(d, key = "Hey")
+            sage: p5 = Poset(d, key = "Heyyyyyyy")
+            sage: p3 == p1
+            False
+            sage: p3 == p4
+            True
+            sage: p3 == p5
+            False
+        """
+        if self is other:
+            return True
+        try:
+            return self._hasse_diagram == other._hasse_diagram
+        except AttributeError:
+            return False
+
+        try:
+            return ((DiGraph.__eq__(self.hasse_diagram(), other.hasse_diagram())) and
+                    (self._key == other._key))
+        except AttributeError:
+            return False
 
     @lazy_attribute
     def _list(self):
@@ -1081,7 +1131,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Q = Poset({5:[2,3], 1:[3,4], 2:[0], 3:[0], 4:[0]}, facade = False)
             sage: Q.hasse_diagram()
-            Digraph on 6 vertices
+            Hasse diagram of a poset containing 6 elements
 
             sage: P = Poset({'a':['b'],'b':['d'],'c':['d'],'d':['f'],'e':['f'],'f':[]}, facade = False)
             sage: H = P.hasse_diagram()
