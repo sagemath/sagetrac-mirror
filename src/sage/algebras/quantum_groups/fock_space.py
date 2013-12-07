@@ -94,9 +94,9 @@ class FockSpace(CombinatorialFreeModule):
         self._r = r
         # If the cell x is above the cell y
         if len(r) == 1: # For partitions
-            self._above = lambda x,y: x[1] > y[1]
+            self._above = lambda x,y: x[0] < y[0]
         else: # For partition tuples
-            self._above = lambda x,y: x[0] > y[0] or (x[0] == y[0] and x[1] > y[1])
+            self._above = lambda x,y: x[0] < y[0] or (x[0] == y[0] and x[1] < y[1])
         self._q_group = QuantumGroup(['A', n-1, 1], q, R=base_ring)
         self._addable = lambda la,i: filter(lambda x: la.content(*x, multicharge=self._r) == i,
                                             la.outside_corners())
@@ -211,17 +211,17 @@ class FockSpace(CombinatorialFreeModule):
                 sage: F[[2,1],[1],[2]]
                 |([2, 1], [1], [2])>
                 sage: F[[2,1],[1],[2]].e(2)
-                1/q*|([2, 1], [1], [1])>
+                |([2, 1], [1], [1])>
                 sage: F[[2,1],[1],[2]].e(1)
-                |([2], [1], [2])>
+                1/q*|([2], [1], [2])>
                 sage: F[[2,1],[1],[2]].e(0)
-                1/q^2*|([2, 1], [], [2])>
+                1/q*|([2, 1], [], [2])>
                 sage: F[[2,1],[1],[2]].e(3)
-                |([1, 1], [1], [2])>
+                1/q^2*|([1, 1], [1], [2])>
                 sage: F[[2,1],[1],[2]].e(3).e(2).e(1)
-                |([1, 1], [1], [])> + |([1], [1], [1])>
+                1/q^2*|([1, 1], [1], [])> + 1/q^2*|([1], [1], [1])>
                 sage: F[[2,1],[1],[2]].e(3).e(2).e(1).e(0).e(1).e(2)
-                2/q*|([], [], [])>
+                2/q^3*|([], [], [])>
             """
             P = self.parent()
             N_left = lambda la, x, i: \
@@ -259,11 +259,11 @@ class FockSpace(CombinatorialFreeModule):
                 sage: mg.f(1)
                 |([], [], [1])>
                 sage: mg.f(1).f(0)
-                q*|([], [1], [1])> + |([], [], [1, 1])>
+                |([], [1], [1])> + q*|([], [], [1, 1])>
                 sage: mg.f(0).f(1)
-                q*|([], [2], [])> + |([], [1], [1])>
+                |([], [2], [])> + q*|([], [1], [1])>
                 sage: mg.f(0).f(1).f(3)
-                q*|([], [2, 1], [])> + |([], [1, 1], [1])>
+                |([], [2, 1], [])> + q*|([], [1, 1], [1])>
                 sage: mg.f(3)
                 0
             """
@@ -465,6 +465,20 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             |[3, 2]> + q*|[3, 1, 1]> + q^2*|[2, 2, 1]>
             sage: F(G[5])
             |[5]> + q*|[3, 1, 1]> + q^2*|[1, 1, 1, 1, 1]>
+
+        We construct the examples in Section 5.1 of [Feyers2010]_::
+
+            sage: F = FockSpace(2, [0, 0])
+            sage: B = F.highest_weight_representation()
+            sage: A = B.A()
+            sage: F(A[[2,1],[1]])
+            |([2, 1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])> + q^2*|([1, 1], [2])>
+             + q^3*|([1, 1], [1, 1])> + q^4*|([1], [2, 1])>
+            sage: F(A[[4],[]])
+            |([4], [])> + q*|([3, 1], [])> + q*|([2, 1, 1], [])> + (q^2+1)*|([2, 1], [1])>
+             + 2*q*|([2], [2])> + 2*q^2*|([2], [1, 1])> + q^2*|([1, 1, 1, 1], [])>
+             + 2*q^2*|([1, 1], [2])> + 2*q^3*|([1, 1], [1, 1])> + (q^4+q^2)*|([1], [2, 1])>
+             + q^2*|([], [4])> + q^3*|([], [3, 1])> + q^3*|([], [2, 1, 1])> + q^4*|([], [1, 1, 1, 1])>
         """
         def __init__(self, basic):
             """
@@ -511,18 +525,28 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
 
             G = self.realization_of().G()
             if len(fock._r) > 1:
-                # Find the first non-empty partition
-                k = 0
+                # Find the first to be non-empty partition
+                # Note this is one more than the first non-empty partition
+                k = 1
                 for p in la:
                     if p.size() != 0:
                         break
                     k += 1
-                # This only is equal for the empty partition, but we've already taken care of that case
-                assert k != len(la), "k = {} and len(la) == {}".format(k, len(la))
-                # Replace the k-th partition by the empty partition and get the G version
-                print k, la, "--->", self._indices(la[:k] + [[]] + la[k+1:])
-                cur = G._G_to_fock_basis(self._indices(la[:k] + [[]] + la[k+1:]))
-                la = la[k]
+
+                # Reduce down to the lower level Fock space and do the computation
+                #   and then lift back up to us by prepending empty partitions
+                if k == len(fock._r): # This means we get the empty partition
+                    cur = self.highest_weight_vector()
+                else:
+                    F = FockSpace(fock._n, fock._r[k:], fock._q, fock.base_ring())
+                    Gp = F.highest_weight_representation().G()
+                    if k + 1 == len(fock._r):
+                        cur = Gp._G_to_fock_basis(Gp._indices(la[k]))
+                        cur = fock.sum_of_terms((fock._indices([[]]*k + [p]), c) for p,c in cur)
+                    else:
+                        cur = Gp._G_to_fock_basis(Gp._indices(la[k:]))
+                        cur = fock.sum_of_terms((fock._indices([[]]*k + list(pt)), c) for pt,c in cur)
+                la = la[k-1]
             else:
                 cur = fock.highest_weight_vector()
 
@@ -540,7 +564,6 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                     if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)
-                # print b, i, power
                 cur /= q_factorial(power, q)
                 b += 1
             return cur
@@ -663,18 +686,18 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             sage: F(G[5,2,2,1])
             |[5, 2, 2, 1]> + q*|[5, 1, 1, 1, 1, 1]> + q*|[4, 2, 2, 1, 1]> + q^2*|[4, 2, 1, 1, 1, 1]>
 
-        We construct the example in Section 5.1 of [Fayers2010]_::
+        We construct the examples in Section 5.1 of [Fayers2010]_::
 
             sage: F = FockSpace(2, [0, 0])
             sage: B = F.highest_weight_representation()
             sage: G = B.G()
             sage: F(G[[2,1],[1]])
-            |([2,1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])> + q^2*|([1, 1], [2])>
+            |([2, 1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])> + q^2*|([1, 1], [2])>
              + q^3*|([1, 1], [1, 1])> + q^4*|([1], [2, 1])>
             sage: F(G[[4],[]])
-            |([4], [])> + q*|([3, 1], [])> + q*|([2, 1, 1], [])> + q^2*|([1, 1, 1, 1], [])>
-             + q^2*|([2, 1], [1])> + q*|([2], [2])> + q^2*|([2], [1, 1])>
-             + q^2*|([1, 1], [2])> + q^3*|([1, 1], [1, 1])> + q^2**|([1], [2, 1])>
+            |([4], [])> + q*|([3, 1], [])> + q*|([2, 1, 1], [])> + q^2*|([2, 1], [1])>
+             + q*|([2], [2])> + q^2*|([2], [1, 1])> + q^2*|([1, 1, 1, 1], [])>
+             + q^2*|([1, 1], [2])> + q^3*|([1, 1], [1, 1])> + q^2*|([1], [2, 1])>
              + q^2*|([], [4])> + q^3*|([], [3, 1])> + q^3*|([], [2, 1, 1])> + q^4*|([], [1, 1, 1, 1])>
         """
         def __init__(self, basic):
@@ -719,11 +742,32 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             if la.size() == 0:
                 return self.realization_of()._fock.highest_weight_vector()
 
+            # Special case for empty leading partitions
+            if len(self.realization_of()._fock._r) > 1 and la[0].size() == 0:
+                fock = self.realization_of()._fock
+                # Find the first non-empty partition
+                k = 0
+                for p in la:
+                    if p.size() != 0:
+                        break
+                    k += 1
+
+                # Reduce down to the lower level Fock space and do the computation
+                #   and then lift back up by prepending empty partitions
+                # Note that this will never be for the empty partition, which
+                #   is already taken care of
+                F = FockSpace(fock._n, fock._r[k:], fock._q, fock.base_ring())
+                Gp = F.highest_weight_representation().G()
+                if k + 1 == len(fock._r):
+                    cur = Gp._G_to_fock_basis(Gp._indices(la[k]))
+                    return fock.sum_of_terms((fock._indices([[]]*k + [p]), c) for p,c in cur)
+                cur = Gp._G_to_fock_basis(Gp._indices(la[k:]))
+                return fock.sum_of_terms((fock._indices([[]]*k + list(pt)), c) for pt,c in cur)
+
             cur = self.realization_of().A()._A_to_fock_basis(la)
             dom_cmp = lambda x,y: -1 if y.dominates(x) else 1
             s = cur.support()
             s.sort(cmp=dom_cmp) # Sort via dominance order
-            print s
             s.pop() # Remove the largest
 
             while len(s) != 0:
@@ -731,7 +775,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 d = cur[mu].denominator()
                 k = d.degree()
                 n = cur[mu].numerator()
-                if k != 0 or n.degree() == 0:
+                if k != 0 or n.constant_coefficient() != 0:
                     gamma = sum(n[i] * (self._q**(i-k) + self._q**(k-i))
                                 for i in range(min(n.degree(), k)))
                     gamma += n[k]
