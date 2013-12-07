@@ -25,6 +25,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.category_o import CategoryOInt # Should be quantum version
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 
@@ -185,6 +186,9 @@ class FockSpace(CombinatorialFreeModule):
         return self.monomial( self._indices([[]]*len(self._r)) )
 
     class Element(CombinatorialFreeModuleElement):
+        """
+        An element in the Fock space.
+        """
         def e(self, i):
             """
             Apply the action of `e_i` on ``self``.
@@ -356,7 +360,7 @@ class FockSpace(CombinatorialFreeModule):
 class HighestWeightRepresentation(Parent, UniqueRepresentation):
     """
     The highest weight representation `B(\Lambda)` of
-    `U_q(\widetilde{\mathfrak{sl}}_n)`.
+    `U_q(\widehat{\mathfrak{sl}}_n)`.
 
     We realize this a subspace of the corresponding
     :class:`Fock space <FockSpace>`. We have two bases:
@@ -466,7 +470,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             sage: F(G[5])
             |[5]> + q*|[3, 1, 1]> + q^2*|[1, 1, 1, 1, 1]>
 
-        We construct the examples in Section 5.1 of [Feyers2010]_::
+        We construct the examples in Section 5.1 of [Fayers2010]_::
 
             sage: F = FockSpace(2, [0, 0])
             sage: B = F.highest_weight_representation()
@@ -846,11 +850,10 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
             sage: B = F.highest_weight_representation()
             sage: bases = HighestWeightRepresentationBases(B)
             sage: bases.super_categories()
-            [Category of category o int over Quantum group of Cartan type ['A', 1, 1]
-              over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+            [Category of modules with basis over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
              Category of realizations of Highest weight representation of ['A', 1, 1] of weight Lambda[0]]
         """
-        return [CategoryOInt(self.base()._fock._q_group), Realizations(self.base())]
+        return [ModulesWithBasis(self.base().base_ring()), Realizations(self.base())]
 
     class ParentMethods:
         def _repr_(self):
@@ -923,6 +926,22 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
                 sage: G = B.G()
                 sage: G[[2,1],[1]]
                 G([2, 1], [1])
+
+            TESTS::
+
+                sage: F = FockSpace(3)
+                sage: A = F.highest_weight_representation().A()
+                sage: A[2,2,2,1]
+                Traceback (most recent call last):
+                ...
+                ValueError: [2, 2, 2, 1] is not a 3-regular partition
+
+                sage: F = FockSpace(3, [0, 0])
+                sage: A = F.highest_weight_representation().A()
+                sage: A[[], [2,2,2,1]]
+                Traceback (most recent call last):
+                ...
+                ValueError: ([], [2, 2, 2, 1]) is not a 3-regular partition tuple
             """
             if i in ZZ:
                 i = [i]
@@ -932,8 +951,10 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
                 return self.highest_weight_vector()
 
             level = len(self.realization_of()._fock._r)
-            if level == 1: # TODO: generalize this check for arbitrary levels
+            if level == 1:
                 if max(i.to_exp()) >= self._n:
                     raise ValueError("{} is not a {}-regular partition".format(i, self._n))
+            elif max(map(lambda x: max(x.to_exp() + [0]), i)) >= self._n:
+                raise ValueError("{} is not a {}-regular partition tuple".format(i, self._n))
             return self.monomial(i)
 

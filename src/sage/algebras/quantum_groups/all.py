@@ -16,7 +16,7 @@ Quantum Groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 from quantum_group import QuantumGroup
-from fock_space import FockSpace
-
+lazy_import('sage.algebras.quantum_groups.fock_space', 'FockSpace')

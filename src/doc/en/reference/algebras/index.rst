@@ -24,6 +24,8 @@ Algebras
    sage/algebras/lie_algebras/lie_algebra_element
    sage/algebras/hall_algebra
 
+   quantum_groups
+
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra
