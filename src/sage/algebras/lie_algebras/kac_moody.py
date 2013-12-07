@@ -512,11 +512,10 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
                 if s - r in p_roots:
                     c = e_coeff(r, -s)
                     a,b = s-r, r
-                    index = p_roots.index(a) + 1
-                    if index > p_roots.index(b): # Note a != b
-                        a,b = b,a
-                        c = -c
-                    c *= sp_sign[(a, b)]
+                    if p_roots.index(a) + 1 > p_roots.index(b): # Note a != b
+                        c = -c * sp_sign[(b, a)]
+                    else:
+                        c *= sp_sign[(a, b)]
                     coeffs[(-r, s)] = {a: -c}
                     coeffs[(r, -s)] = {a: c}
 
