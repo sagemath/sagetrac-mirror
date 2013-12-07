@@ -657,8 +657,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
             sage: F(G[7,2])
             |[7, 2]> + q*|[4, 2, 2, 1]>
             sage: F(G[6,2,2])
-            |[6, 2, 2]> + q*|[6, 1, 1, 1, 1]> + q*|[4, 4, 2]> + (q^2+1)*|[3, 3, 2, 1, 1]>
-             + q*|[3, 2, 2, 2, 1]> + q^2*|[3, 2, 2, 1, 1, 1]>
+            |[6, 2, 2]> + q*|[6, 1, 1, 1, 1]> + q*|[4, 4, 2]> + q^2*|[3, 3, 2, 1, 1]>
 
         For `\widehat{\mathfrak{sl}}_4`::
 
