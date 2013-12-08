@@ -30,7 +30,11 @@ from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra
 class RegVecFieldsGen(LieGenerator):
     r"""
     Generator class for the Lie algebra of regular vector fields
-    of `\CC^{\times}`.
+    of `\CC^{\times}`. This is known as the Witt algebra.
+
+    REFERENCES:
+
+    - :wikipedia:`Witt_algebra`
     """
     def _repr_(self):
         """
@@ -178,6 +182,10 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
 
         sage: d = lie_algebras.VirasoroAlgebra(QQ)
         sage: TestSuite(d).run()
+
+    REFERENCES:
+
+    - :wikipedia:`Virasoro_algebra`
     """
     def _repr_(self):
         """
