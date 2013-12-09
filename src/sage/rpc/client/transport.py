@@ -10,6 +10,19 @@ Since a single method in socket communication code is generally not
 that useful, there are no really meaningful doctests in this
 file. That everything is working together is tested in
 :mod:`sage.rpc.client.transport_test`.
+
+There are, in fact, two classes. They differ in how they establish a
+connection:
+
+* :class:`Transport` will make a connection to an already-listening
+  port. You need to call :meth:`~Transport.connect` to establish the
+  connection.
+
+* :class:`TransportListen` will bind to a port and listen. You need to
+  call :meth:`~TransportListen.accept` to establish the connection. By
+  passing port 0, one can bind to a random unused port.
+
+Both will block until the connection is established.
 """
 
 import socket
@@ -19,7 +32,7 @@ import errno
 import json
 
 DNS_REGEX_PATTERN = '[a-zA-Z0-9][a-zA-Z0-9\-\.]*'
-URI_RE = re.compile(r'(?P<scheme>[A-Za-z]+)://(?P<hostname>'
+URI_RE = re.compile(r'(?P<scheme>[A-Za-z]+)://(?P<interface>'
                     + DNS_REGEX_PATTERN + 
                     r'):(?P<port>[0-9]+)')
 SEPARATOR = '\0'
@@ -61,12 +74,12 @@ class TransportBase(object):
         """
         m = URI_RE.search(uri)
         self._scheme = m.group('scheme').lower()
-        self._hostname = m.group('hostname').lower()
+        self._interface = m.group('interface').lower()
         self._port = int(m.group('port'))
 
-    def hostname(self):
+    def interface(self):
         """
-        Return the hostname.
+        Return the interface name.
 
         OUTPUT:
 
@@ -76,13 +89,13 @@ class TransportBase(object):
 
             sage: from sage.rpc.client.transport import TransportListen
             sage: transport = TransportListen('tcp://localhost:0')
-            sage: transport.hostname()
+            sage: transport.interface()
             'localhost'
             sage: transport.port()   # random output
             48647
             sage: transport.close()
         """
-        return self._hostname
+        return self._interface
 
     def is_connected(self):
         """
@@ -119,7 +132,7 @@ class TransportBase(object):
 
             sage: from sage.rpc.client.transport import TransportListen
             sage: transport = TransportListen('tcp://localhost:0')
-            sage: transport.hostname()
+            sage: transport.interface()
             'localhost'
             sage: transport.port()   # random output
             48647
@@ -148,12 +161,27 @@ class TransportBase(object):
         """
         return self._socket().fileno()
 
-    def _nonblocking_read(self):
+    def nonblocking_read(self):
+        """
+        Perform a non-blocking read
+
+        There is no guarantee that anything is read, or that a whole
+        message is read.
+
+        This should only be called from an idle loop. If you want to
+        write a message to the transport, use :meth:`write`.
+
+        OUTPUT:
+
+        Integer. The number of bytes read.
+        """
         try:
             data = self._socket().recv(self.BUFFER_SIZE)
         except socket.error as e:
-            if e.errno == errno.EAGAIN:
+            if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
+                # there happened to be nothing to read, fine
                 return
+            raise TransportError(str(e))
         if data == '':
             raise TransportError('Remote end closed connection')
         if self._read_pos == -1:
@@ -161,22 +189,51 @@ class TransportBase(object):
             if pos != -1:
                 self._read_pos = len(self._read_buf) + pos
         self._read_buf += data
+        return len(data)
 
-    def _nonblocking_write(self):
+    def nonblocking_write(self):
+        """
+        Perform a non-blocking write
+
+        There is no guarantee that anything is written, or that a
+        whole message is written.
+
+        This should only be called from an idle loop.
+        If you want to read a message from the
+        transport, use :meth:`read`.
+
+        OUTPUT:
+
+        Integer. The number of bytes written.
+        """
         buf = self._write_buf
-        sent = self._socket().send(buf[:2])
-        self._write_buf = buf[sent:]
+        try:
+            sent = self._socket().send(buf)
+        except socket.error as e:
+            if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
+                return 0
+            raise TransportError(str(e))
+        buf = buf[sent:]
+        self._write_buf = buf
+        return sent
         
-    def can_read(self):
+    def can_read(self, try_read=True):
         """
         Return whether reading would block
-        
+       
+        INPUT:
+
+        - ``try_read`` -- boolean (default: ``True``). Whether to
+          attempt to do a non-blocking read. Can be turned off for
+          debugging purposes.
+
         OUTPUT:
 
         Boolean. If ``True``, then :meth:`read` will return a complete
         message.
         """
-        self._nonblocking_read()
+        if try_read:
+            self.nonblocking_read()
         return self._read_pos != -1
 
     def read(self):
@@ -197,7 +254,7 @@ class TransportBase(object):
         while self._read_pos == -1:
             fd = self.fileno()
             rlist, wlist, xlist = select.select([fd], [], [fd])
-            self._nonblocking_read()
+            self.nonblocking_read()
         pos = self._read_pos
         buf = self._read_buf
         assert buf[pos] == SEPARATOR
@@ -211,6 +268,11 @@ class TransportBase(object):
         Write to the transport
 
         This buffers the output, but does not necessarily send it all!
+        To ensure that the message has been sent, you must either call
+        
+        * :meth:`flush`, or
+
+        * :meth:`is_written` until that returns ``True``
 
         INPUT:
         
@@ -218,20 +280,23 @@ class TransportBase(object):
 
         OUTPUT:
         
-        Boolean. Whether everything was written. If ``False``, you
-        must either call :meth:`flush`, or :meth:`is_written` until
-        that returns ``True``, to ensure that the message has been
-        sent.
+        Boolean. Whether everything was written. If ``False``,
         """
         self._write_buf = self._write_buf + json.dumps(data) + '\0'
-        self._nonblocking_write()
+        self.nonblocking_write()
 
-    def is_written(self):
+    def is_written(self, try_write=True):
         """
         Return whether all messages have been written.
+
+        INPUT:
+
+        - ``try_write`` -- boolean (default: ``True``). Whether to
+          attempt to do a non-blocking write. Can be turned off for
+          debugging purposes.
         """
-        if len(self._write_buf) > 0:
-            self._nonblocking_write()
+        if try_write and len(self._write_buf) > 0:
+            self.nonblocking_write()
         return len(self._write_buf) == 0
 
     def flush(self):
@@ -280,12 +345,13 @@ class Transport(TransportBase):
         
             sage: from sage.rpc.client.transport import Transport
             sage: t = Transport('tcp://www.sagemath.org:80');  t
+            <sage.rpc.client.transport.Transport object at 0x...>
             sage: t.is_connected()
             False
         """
         if self._scheme == 'tcp':
             s = socket.socket()
-            connect_arg = (self._hostname, self._port)
+            connect_arg = (self._interface, self._port)
         else:
             raise NotImplementedError()
         try:
@@ -312,7 +378,7 @@ class TransportListen(TransportBase):
         self._init_uri(uri)
         self._init_buffers()
         listen = socket.socket()
-        listen.bind((self._hostname, self._port))
+        listen.bind((self._interface, self._port))
         if self._port == 0:
             self._port = listen.getsockname()[1]
         listen.listen(1)
