@@ -105,6 +105,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 from sage.server.all     import *
+lazy_import('sage.rpc.factory', 'sage_remote')
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
