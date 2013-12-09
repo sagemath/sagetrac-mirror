@@ -4201,6 +4201,40 @@ class Partition(CombinatorialObject, Element):
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
 
+    def pairing(self, mu):
+        r"""
+        Return the pairing of ``self`` and ``mu``.
+
+        The pairing of partitions `\lambda` and `\mu` is given by:
+
+        .. MATH::
+
+            \langle \lambda, \mu \rangle = \sum_{i,j} \min(i, j) m_i(\lambda)
+            m_j(\mu)
+
+        where `m_i(\lambda)` denotes the multiplicity of `i` in `\lambda`.
+
+        EXAMPLES::
+
+            sage: la = Partition([3,1,1])
+            sage: mu = Partition([2,1])
+            sage: la.pairing(mu)
+            7
+            sage: mu.pairing(la)
+            7
+            sage: la.pairing(la)
+            11
+            sage: mu.pairing(mu)
+            5
+        """
+        exp = self.to_exp_dict()
+        exp_mu = mu.to_exp_dict()
+        pairing = 0
+        for i,mla in exp.items():
+            for j,mmu in exp_mu.items():
+                pairing += min(i, j) * mla * mmu
+        return pairing
+
 from sage.misc.superseded import deprecated_function_alias
 Partition_class = deprecated_function_alias(13605, Partition)
 
