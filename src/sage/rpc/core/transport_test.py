@@ -7,7 +7,7 @@ import sys
 import subprocess
 import time
 
-from sage.rpc.client.transport import Transport, TransportListen
+from sage.rpc.core.transport import Transport, TransportListen
 
 
 def echo_server(port):
@@ -32,7 +32,7 @@ def echo_server(port):
 
 def spawn_server(port):
     cmd = ['python', '-c', 
-           'from sage.rpc.client.transport_test import echo_server; '
+           'from sage.rpc.core.transport_test import echo_server; '
            'echo_server({0})'.format(port)]
     return subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
 
@@ -43,7 +43,7 @@ def echo_test_single():
 
     EXAMPLES::
 
-        sage: from sage.rpc.client.transport_test import echo_test_single
+        sage: from sage.rpc.core.transport_test import echo_test_single
         sage: echo_test_single()
         port = ...
         remote = ('...', ...)
@@ -105,7 +105,7 @@ def echo_test():
 
     EXAMPLES::
 
-        sage: from sage.rpc.client.transport_test import echo_test
+        sage: from sage.rpc.core.transport_test import echo_test
         sage: echo_test()
         ping: sending "packet #0"
         pong: recevied "reply packet #0"

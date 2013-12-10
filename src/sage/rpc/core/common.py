@@ -3,7 +3,7 @@ RPC handling that is common to both Server and Client
 """
 
 
-from sage.rpc.client.transport import TransportError
+from sage.rpc.core.transport import TransportError
 
 
 TYPE_INIT_CONNECTION = 'init_connection'
@@ -42,7 +42,7 @@ class ProxyCaller(object):
         """
         EXAMPLES::
 
-            sage: from sage.rpc.client.common import ProxyCaller
+            sage: from sage.rpc.core.common import ProxyCaller
             sage: def dummy(x): print 'calling "{0}"'.format(x)
             sage: proxy = ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
             sage: proxy.a()
@@ -66,7 +66,7 @@ class ProxyCaller(object):
 
         EXAMPLES::
 
-            sage: from sage.rpc.client.common import ProxyCaller
+            sage: from sage.rpc.core.common import ProxyCaller
             sage: def dummy(x): print 'calling "{0}"'.format(x)
             sage: ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
             Available RPC calls:
@@ -133,7 +133,7 @@ class RemoteProcedureCaller(object):
         
         EXAMPLES::
 
-            sage: from sage.rpc.client.common import RemoteProcedureCaller
+            sage: from sage.rpc.core.common import RemoteProcedureCaller
             sage: rpc = RemoteProcedureCaller(None, 'test', {})
             sage: rpc._validate_name('a-b')
             Traceback (most recent call last):

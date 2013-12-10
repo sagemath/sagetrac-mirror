@@ -9,7 +9,7 @@ sending complete messages ``read``/``write``, not streaming
 Since a single method in socket communication code is generally not
 that useful, there are no really meaningful doctests in this
 file. That everything is working together is tested in
-:mod:`sage.rpc.client.transport_test`.
+:mod:`sage.rpc.core.transport_test`.
 
 There are, in fact, two classes. They differ in how they establish a
 connection:
@@ -68,7 +68,7 @@ class TransportBase(object):
 
         TESTS::
 
-            sage: from sage.rpc.client.transport import URI_RE
+            sage: from sage.rpc.core.transport import URI_RE
             sage: URI_RE.search('tcp://localhost:123').groups()
             ('tcp', 'localhost', '123')
         """
@@ -87,7 +87,7 @@ class TransportBase(object):
 
         EXAMPLES::
 
-            sage: from sage.rpc.client.transport import TransportListen
+            sage: from sage.rpc.core.transport import TransportListen
             sage: transport = TransportListen('tcp://localhost:0')
             sage: transport.interface()
             'localhost'
@@ -107,7 +107,7 @@ class TransportBase(object):
         
         EXAMPLES::
         
-            sage: from sage.rpc.client.transport import Transport
+            sage: from sage.rpc.core.transport import Transport
             sage: transport = Transport('tcp://localhost:80')
             sage: transport.is_connected()
             False
@@ -130,7 +130,7 @@ class TransportBase(object):
 
         EXAMPLES::
 
-            sage: from sage.rpc.client.transport import TransportListen
+            sage: from sage.rpc.core.transport import TransportListen
             sage: transport = TransportListen('tcp://localhost:0')
             sage: transport.interface()
             'localhost'
@@ -152,7 +152,7 @@ class TransportBase(object):
 
         EXAMPLES::
 
-            sage: from sage.rpc.client.transport import Transport
+            sage: from sage.rpc.core.transport import Transport
             sage: transport = Transport('tcp://localhost:0')
             sage: transport.fileno()            
             Traceback (most recent call last):
@@ -338,9 +338,9 @@ class Transport(TransportBase):
 
         EXAMPLES::
         
-            sage: from sage.rpc.client.transport import Transport
+            sage: from sage.rpc.core.transport import Transport
             sage: t = Transport('tcp://www.sagemath.org:80');  t
-            <sage.rpc.client.transport.Transport object at 0x...>
+            <sage.rpc.core.transport.Transport object at 0x...>
             sage: t.connect()    # optional - internet
         """
         self._init_uri(uri)
@@ -352,9 +352,9 @@ class Transport(TransportBase):
 
         EXAMPLES::
         
-            sage: from sage.rpc.client.transport import Transport
+            sage: from sage.rpc.core.transport import Transport
             sage: t = Transport('tcp://www.sagemath.org:80');  t
-            <sage.rpc.client.transport.Transport object at 0x...>
+            <sage.rpc.core.transport.Transport object at 0x...>
             sage: t.is_connected()
             False
         """

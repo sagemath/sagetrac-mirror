@@ -70,7 +70,7 @@ class SageRemoteFactory(object):
         hooking in the idle loop (when Sage is sitting at the input
         prompt).
         """
-        from sage.rpc.client.transport import TransportError
+        from sage.rpc.core.transport import TransportError
         rlist = []
         wlist = []
         xlist = []
@@ -111,7 +111,7 @@ class SageRemoteFactory(object):
             value = logging.DEBUG
         elif value is False:
             value = logging.WARNING  # default level
-        from sage.rpc.client.base import logger
+        from sage.rpc.core.base import logger
         logger.setLevel(value)
 
     def random_cookie(self, length=30):
@@ -174,11 +174,11 @@ class SageRemoteFactory(object):
         example in response to the client requesting a server
         shutdown.
         """
-        from sage.rpc.client.transport import Transport
+        from sage.rpc.core.transport import Transport
         uri = 'tcp://{0}:{1}'.format(interface, port)
         transport = Transport(uri)
         transport.connect()
-        from sage.rpc.base import ServerBase
+        from sage.rpc.core.server_base import ServerBase
         server = ServerBase(transport, cookie)
         while True:
             server.loop()
@@ -216,15 +216,15 @@ class SageRemoteFactory(object):
 
         OUTPUT:
 
-        A new :class:`~sage.rpc.client.base.Client` instance.
+        A new :class:`~sage.rpc.core.client_base.ClientBase` instance.
         """
         cookie = self.random_cookie()
-        from sage.rpc.client.transport import TransportListen
+        from sage.rpc.core.transport import TransportListen
         uri = 'tcp://localhost:0'.format(interface)
         transport = TransportListen(uri)
         proc = self.spawn_server(cookie, transport.port(), interface)
         transport.accept()
-        from sage.rpc.client.base import ClientBase
+        from sage.rpc.core.client_base import ClientBase
         client = ClientBase(transport, cookie)
         self._add_idle(client)
         return client
@@ -241,7 +241,7 @@ class SageRemoteFactory(object):
         except AttributeError:
             pass
         # set up the transport 1: listen on port
-        from sage.rpc.client.transport import Transport, TransportListen
+        from sage.rpc.core.transport import Transport, TransportListen
         client_uri = 'tcp://localhost:0'
         listen = TransportListen(client_uri)
         # set up transport part 2: connect to listening port
@@ -250,8 +250,8 @@ class SageRemoteFactory(object):
         transport.connect()
         listen.accept()
         # Create client/server pair
-        from sage.rpc.client.base import ClientBase
-        from sage.rpc.base import ServerBase
+        from sage.rpc.core.client_base import ClientBase
+        from sage.rpc.core.server_base import ServerBase
         cookie = self.random_cookie()
         client = ClientBase(listen, cookie)
         server = ServerBase(transport, cookie)

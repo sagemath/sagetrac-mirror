@@ -6,7 +6,7 @@ Base Class for Sage Clients
 
 import logging
 
-from sage.rpc.client.common import (
+from sage.rpc.core.common import (
     RemoteProcedureCaller,
     RemoteProcedureException,
     TYPE_INIT_CONNECTION,
@@ -15,7 +15,10 @@ from sage.rpc.client.common import (
 
 
 def make_logger(name):
-    from sage.doctest import DOCTEST_MODE
+    try:
+        from sage.doctest import DOCTEST_MODE
+    except ImportError:
+        DOCTEST_MODE = False
     logger = logging.getLogger(name)
     if len(logger.handlers) == 0:
         if DOCTEST_MODE:
