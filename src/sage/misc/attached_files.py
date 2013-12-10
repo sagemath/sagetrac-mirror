@@ -582,3 +582,4 @@ def reload_attached_files_if_modified():
             print '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
             code = load_wrap(filename, attach=True)
             get_ipython().run_cell(code)
+    return True  # remain idle callback forever
