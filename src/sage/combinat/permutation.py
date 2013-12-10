@@ -239,8 +239,6 @@ from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
 from combinat import CombinatorialObject, catalan_number
-import copy
-from necklace import Necklaces
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
@@ -5395,6 +5393,8 @@ def from_reduced_word(rw):
     return Permutation(p)
 
 from sage.misc.superseded import deprecated_function_alias
+# Don't forget to remove the robinson_schensted_inverse entry in the index at
+# the top of the file when this line will be removed
 robinson_schensted_inverse = deprecated_function_alias(8392, RSK_inverse)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
