@@ -73,7 +73,7 @@ class ServerBase(RemoteProcedureCaller):
             'type': TYPE_INIT_CONNECTION,
             'cookie': self._cookie,
             'api_version': self._api_version,
-            'avaliable_rpc': self._rpc.keys()})
+            'rpc_table': self._rpc.keys()})
 
     def handle_init_reply(self, reply):
         self.log.debug('initialization reply %s', reply)

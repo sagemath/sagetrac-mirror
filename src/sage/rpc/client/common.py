@@ -36,6 +36,74 @@ class RemoteProcedureUtils(object):
         sys.exit(0)
 
 
+class ProxyCaller(object):
+    
+    def __init__(self, rpc_caller, rpc_table, prefix=''):
+        """
+        EXAMPLES::
+
+            sage: from sage.rpc.client.common import ProxyCaller
+            sage: def dummy(x): print 'calling "{0}"'.format(x)
+            sage: proxy = ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
+            sage: proxy.a()
+            calling "a"
+            sage: proxy.b()
+            calling "b"
+            sage: proxy.c.aa()
+            calling "c.aa"
+            sage: proxy.c.bb()
+            calling "c.bb"
+            sage: proxy.d.c.b.a()
+            calling "d.c.b.a"
+        """
+        self._rpc_caller = rpc_caller
+        self._rpc_table = rpc_table
+        self._make(rpc_table, prefix)
+        
+    def __repr__(self):
+        """
+        Return a string representation
+
+        EXAMPLES::
+
+            sage: from sage.rpc.client.common import ProxyCaller
+            sage: def dummy(x): print 'calling "{0}"'.format(x)
+            sage: ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
+            Available RPC calls:
+            * a
+            * b
+            * c.aa
+            * c.bb
+            * d.c.b.a
+        """
+        s = 'Available RPC calls:\n'
+        s += '\n'.join(['* ' + name for name in sorted(self._rpc_table)])
+        return s
+
+    def _make(self, rpc_table, base_prefix):
+        table_by_prefix = dict()
+        for rpc in rpc_table:
+            rpc = rpc.split('.', 1)
+            if len(rpc) == 1:
+                self._make_caller(rpc[0], base_prefix)
+            else:
+                prefix, name = rpc
+                table = table_by_prefix.get(prefix, [])
+                table.append(name)
+                table_by_prefix[prefix] = table
+        for extra_prefix, table in table_by_prefix.iteritems():
+            attr = ProxyCaller(self._rpc_caller, table, base_prefix + '.' + extra_prefix)
+            setattr(self, extra_prefix, attr)
+
+    def _make_caller(self, rpc_name, prefix):
+        def rpc_call(*args, **kwds):
+            name = (prefix + '.' + rpc_name).lstrip('.')
+            self._rpc_caller(name, *args, **kwds)
+        setattr(self, rpc_name, rpc_call)
+            
+
+    
+        
 class RemoteProcedureCaller(object):
 
     def __init__(self, transport, cookie, rpc):
@@ -50,6 +118,66 @@ class RemoteProcedureCaller(object):
         self._transport = transport
         self._cookie = cookie
         self._initialized = False   # RPC calls are only allowed after this is True
+
+    def _validate_name(self, rpc_name):
+        """
+        Validate a name as remote procedure name
+        
+        INPUT:
+
+        - ``rpc_name`` -- string.
+
+        OUTPUT:
+
+        Nothing. A ``ValueError`` is raised if the name is invalid.
+        
+        EXAMPLES::
+
+            sage: from sage.rpc.client.common import RemoteProcedureCaller
+            sage: rpc = RemoteProcedureCaller(None, 'test', {})
+            sage: rpc._validate_name('a-b')
+            Traceback (most recent call last):
+            ...
+            ValueError: contains invalid characters: a-b
+            sage: rpc._validate_name('.a')
+            Traceback (most recent call last):
+            ...
+            ValueError: must not start with dot: .a
+            sage: rpc._validate_name('a.')
+            Traceback (most recent call last):
+            ...
+            ValueError: must not end with dot: a.
+            sage: rpc._validate_name('b..a')
+            Traceback (most recent call last):
+            ...
+            ValueError: separation must be by a single dot: b..a
+            sage: rpc._validate_name('abc.3de.org')
+            Traceback (most recent call last):
+            ...
+            ValueError: identifiers must start with a letter: 3de
+        """
+        import string
+        allowed_characters = string.ascii_letters + string.digits + '.'
+        if not all (ch in allowed_characters for ch in rpc_name):
+            raise ValueError('contains invalid characters: '+rpc_name)
+        if rpc_name.startswith('.'):
+            raise ValueError('must not start with dot: '+rpc_name)
+        if rpc_name.endswith('.'):
+            raise ValueError('must not end with dot: '+rpc_name)
+        for identifier in rpc_name.split('.'):
+            if len(identifier) == 0:
+                raise ValueError('separation must be by a single dot: '+rpc_name)
+            if identifier[0] not in string.ascii_letters:
+                raise ValueError('identifiers must start with a letter: '+identifier)
+
+    def _make_rpc_proxy(self, rpc_table):
+        """
+        Construct the ``rpc`` attribute.
+        """
+        for rpc in rpc_table:
+            self._validate_name(rpc)
+        rpc = ProxyCaller(self, self._rpc.keys())
+        setattr(self, 'rpc', rpc)
 
     def close(self):
         """

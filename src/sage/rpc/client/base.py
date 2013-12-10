@@ -71,8 +71,13 @@ class ClientBase(RemoteProcedureCaller):
             raise ClientException('authentication cookie mismatch')
         if  request.get('api_version') != self._api_version:
             raise ClientException('wrong api version')
+        try:
+            rpc_table = request['rpc_table']
+        except KeyError:
+            raise ClientException('no table of rpc calls')
+        self._make_rpc_proxy(rpc_table)
         self._transport.write({
             'type': TYPE_INIT_REPLY,
-            'avaliable_rpc': self._rpc.keys(),
+            'rpc_table': self._rpc.keys(),
             'ok': True})
 
