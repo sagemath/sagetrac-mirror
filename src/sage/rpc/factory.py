@@ -11,6 +11,18 @@ The simplest example is the ping test::
     sage: sage_remote.test_idle()   # simulate idle loop
     pong #0
 
+The actual rpc call is under the ``rpc`` attribute::
+
+    sage: client.rpc
+    Available RPC calls:
+    * log.critical
+    * log.debug
+    ...
+    * util.quit
+    sage: client.rpc.util.ping('arg')
+    sage: sage_remote.test_idle()
+    pong #arg
+
 Another feature is that server logs are sent and displayed at the
 client::
 
