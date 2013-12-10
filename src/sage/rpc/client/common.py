@@ -6,25 +6,9 @@ RPC handling that is common to both Server and Client
 from sage.rpc.client.transport import TransportError
 
 
-def make_logger(name):
-    import logging
-    logger = logging.getLogger(name)
-    if len(logger.handlers) == 0:
-        formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)s: %(message)s',
-                                      datefmt='%Y-%m-%d %I:%M:%S %p')
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
-    return logger
-    
-log_client = make_logger('client')
-log_server = make_logger('server')
-
-
 TYPE_INIT_CONNECTION = 'init_connection'
 TYPE_INIT_REPLY = 'init_reply'
+TYPE_REMOTE_LOG = 'rpc_logger'
 TYPE_RPC_METHOD_CALL = 'rpc_method_call'
 
 
@@ -46,7 +30,8 @@ class RemoteProcedureUtils(object):
         print('pong #{0}'.format(count))
     
     def quit(self):
-        self._rpc_caller.log.debug('received quit command', count)
+        self._rpc_caller.log.debug('received quit command')
+        self._rpc_caller.close()
         import sys
         sys.exit(0)
 
@@ -59,26 +44,22 @@ class RemoteProcedureCaller(object):
         self._rpc['util.ping'] = utils.ping
         self._rpc['util.pong'] = utils.pong
         self._rpc['util.quit'] = utils.quit
+        self._rpc['util.ping'] = utils.ping
         self._rpc_count = 0
         self._ping_count = 0
         self._transport = transport
         self._cookie = cookie
         self._initialized = False   # RPC calls are only allowed after this is True
 
-    def _init_rpc_logger(self, logger):
-        self._rpc_logger = logger
-        self._rpc['log.debug']    = logger.debug
-        self._rpc['log.info']     = logger.info
-        self._rpc['log.warn']     = logger.warn
-        self._rpc['log.error']    = logger.error
-        self._rpc['log.critical'] = logger.critical
-
     def close(self):
         """
         Close down
         """
-        self._transport.close()
-        self._rpc_callee._rpc_caller = None
+        try:
+            self._transport.close()
+        except TransportError:
+            pass
+        self._rpc = None   # simplify garbage collection
         
     def call(self, cmd, *args, **kwds):
         call = {'type': TYPE_RPC_METHOD_CALL,
@@ -124,11 +105,16 @@ class RemoteProcedureCaller(object):
         transport = self._transport
         is_written = transport.is_written(False)
         fd = transport.fileno()
-        return ([fd], [] if is_written else [fd], [fd])
+        return ([fd], [] if is_written else [fd], [])
 
     def select_handle(self, rlist, wlist, xlist):
         """
         Handle the result of a select call
+
+        INPUT:
+
+        - ``rlist``, ``wlist``, ``xlist`` -- lists of file
+          descriptors. The output of a ``select()`` call.
 
         OUTPUT:
 
@@ -147,7 +133,7 @@ class RemoteProcedureCaller(object):
             # can this happen?
             raise RemoteProcedureException('socket in exception state')
         # print 'select', r,w, rlist, wlist, xlist
-        if r == w == 0:
+        if (r == w == 0) and (fd in rlist+wlist+xlist):
             self.log.debug('Nothing read or written: %s, %s, %s', rlist, wlist, xlist)
         return not(r == w == 0)
 
@@ -159,13 +145,14 @@ class RemoteProcedureCaller(object):
         requests.
         """
         msg = self._transport.read()
-        self.log.debug('handling message %s', msg)
         return self.handle_msg(msg)
 
     def handle_msg(self, msg):
         msg_type = msg['type']
         if msg_type == TYPE_RPC_METHOD_CALL:   # most common
             return self.handle_rpc(msg)
+        elif msg_type == TYPE_REMOTE_LOG:
+            return self.handle_logging(msg)
         elif msg_type == TYPE_INIT_CONNECTION:
             return self.handle_init_connection(msg)
         elif msg_type == TYPE_INIT_REPLY:
@@ -180,12 +167,26 @@ class RemoteProcedureCaller(object):
         raise RemoteProcedureException('initialization reply not defined')
         self._initialized = True # Derived clasess must set this to True during initialization
 
+    def handle_logging(self, log):
+        """
+        Handle a message that was read in :meth:`handle`.
+
+        Logging is implemented separately from rpc calls so the
+        logging mechanism doesn't show up in rpc debug logs.
+        """
+        level = log['level']
+        msg  = log['msg']
+        args = log.get('args', ())
+        kwds = log.get('kwds', {})
+        self.remote_log.log(level, msg, *args, **kwds)
+
     def handle_rpc(self, msg):
         """
         Handle a message that was read in :meth:`handle`.
 
         You can override this method to implement custom handlers.
         """
+        self.log.debug('rpc call %s', msg)
         if not self._initialized:
             raise RemoteProcedureException('RPC call before initialization')
         cmd = msg.get('cmd', None)

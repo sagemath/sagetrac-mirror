@@ -159,7 +159,10 @@ class TransportBase(object):
             ...
             TransportNotConnected: transport is not connected
         """
-        return self._socket().fileno()
+        try:
+            return self._socket().fileno()
+        except socket.error as err:
+            raise TransportError(str(err))
 
     def nonblocking_read(self):
         """
@@ -307,8 +310,14 @@ class TransportBase(object):
         if self.is_connected():
             self.flush()
             s = self._socket()
-            s.shutdown(socket.SHUT_RDWR)
-            s.close()
+            try:
+                s.shutdown(socket.SHUT_RDWR)
+                s.close()
+            except socket.error as e:
+                if e.errno == errno.EBADF:
+                    pass   # the remote side called close()
+                else:
+                    raise TransportError(str(e))
 
 
 
@@ -388,11 +397,17 @@ class TransportListen(TransportBase):
         s, self._remote = self._listen.accept()
         s.setblocking(0)
         self._sock = s
-                
+        self._close_listen()
+
+    def _close_listen(self):
+        if hasattr(self, '_listen'):
+            self._listen.shutdown(socket.SHUT_RDWR)
+            self._listen.close()
+            del self._listen
+        
     def remote_address(self):
         return self._remote
 
     def close(self):
-        self._listen.shutdown(socket.SHUT_RDWR)
-        self._listen.close()
+        self._close_listen()
         super(TransportListen, self).close()
