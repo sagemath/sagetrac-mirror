@@ -567,7 +567,7 @@ def reload_attached_files_if_modified():
         sage: shell.run_cell('from sage.misc.attached_files import reload_attached_files_if_modified')
         sage: shell.run_cell('reload_attached_files_if_modified()')
         ### reloading attached file tmp_....py modified at ... ###
-
+        True
         sage: shell.run_cell('a')
         3
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
