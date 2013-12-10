@@ -1,16 +1,106 @@
 """
-Factory Object to Create Front/Backend Instances
+Factory Object to Create Sage Client/Server Instances
 
 This defines a convenience object `sage_remote` in the global
 namespace for ease of doctesting.
+
+The simplest example is the ping test::
+
+    sage: client, server = sage_remote.test_instance()
+    sage: client.ping()
+    sage: sage_remote.test_idle()   # simulate idle loop
+    pong #0
+
+Another feature is that server logs are sent and displayed at the
+client::
+
+    sage: server.log.error('foobar')
+    sage: sage_remote.test_idle()
+    [RPC] ERROR: {server} foobar
 """
 
 import os
 
+sage_remote = None
+
+
 class SageRemoteFactory(object):
-    """
-    Factory object to create frontend/backend instances.
-    """
+
+    def __init__(self):
+        """
+        Factory object to create frontend/backend instances.
+
+        EXAMPLES::
+
+            sage: sage_remote
+            <sage.rpc.factory.SageRemoteFactory object at 0x...>
+        """
+        assert sage_remote is None   # singleton class 
+        import weakref
+        self._idle = weakref.WeakSet()
+        from sage.doctest import DOCTEST_MODE
+        if not DOCTEST_MODE:
+            self.set_debug(True)
+
+    def _add_idle(self, obj):
+        self._idle.add(obj)
+        from sage.misc.inputhook import sage_inputhook
+        sage_inputhook.add(self._inputhook)
+    
+    def _inputhook(self):
+        """
+        Main loop idle handler.
+        
+        Bidirectional RPC is 100% asynchronous, so ideally the
+        different endpoints should run in separate processes or
+        threads. However, on the Sage command line we have only a
+        single thread. Hence we fake the asynchronous operation by
+        hooking in the idle loop (when Sage is sitting at the input
+        prompt).
+        """
+        from sage.rpc.client.transport import TransportError
+        rlist = []
+        wlist = []
+        xlist = []
+        for obj in list(self._idle):
+            try:
+                rl, wl, xl = obj.select_args()
+            except TransportError:
+                self._idle.discard(obj)
+                continue
+            rlist += rl
+            wlist += wl
+            xlist += xl
+        import select
+        select.select(rlist, wlist, xlist, 0)
+        if rlist == [] and wlist == [] and xlist == []:
+            return True   # timeout
+        from sage.libs.readline import interleaved_output
+        with interleaved_output():
+            for obj in list(self._idle):
+                try:
+                    obj.select_handle(rlist, wlist, xlist)
+                except TransportError:
+                    self._idle.discard(obj)
+                    obj.close()
+        return len(self._idle) > 0   # remove idle handler when empty
+
+    def set_debug(self, value=True):
+        """
+        Set the logging level.
+        
+        INPUT:
+
+        - ``value`` -- integer logging level or boolean. If ``True``,
+          debug logging will be enabled.
+        """
+        import logging
+        if value is True:
+            value = logging.DEBUG
+        elif value is False:
+            value = logging.WARNING  # default level
+        from sage.rpc.client.base import logger
+        logger.setLevel(value)
 
     def random_cookie(self, length=30):
         """
@@ -40,7 +130,7 @@ class SageRemoteFactory(object):
 
         EXAMPLES::
 
-            sage: server.random_port()
+            sage: sage_remote.random_port()
             8214
         """
         from sage.misc.prandom import randint
@@ -72,7 +162,6 @@ class SageRemoteFactory(object):
         example in response to the client requesting a server
         shutdown.
         """
-        print('server started')
         from sage.rpc.client.transport import Transport
         uri = 'tcp://{0}:{1}'.format(interface, port)
         transport = Transport(uri)
@@ -80,7 +169,6 @@ class SageRemoteFactory(object):
         from sage.rpc.base import ServerBase
         server = ServerBase(transport, cookie)
         while True:
-            print 'server main loop'
             server.loop()
 
     def spawn_server(self, cookie, port, interface):
@@ -125,7 +213,9 @@ class SageRemoteFactory(object):
         proc = self.spawn_server(cookie, transport.port(), interface)
         transport.accept()
         from sage.rpc.client.base import ClientBase
-        return ClientBase(transport, cookie)
+        client = ClientBase(transport, cookie)
+        self._add_idle(client)
+        return client
 
     def test_instance(self):
         """
@@ -157,17 +247,18 @@ class SageRemoteFactory(object):
             server.loop(0)
             client.loop(0)
         self._test_instance = (client, server)
+        self._add_idle(client)
+        self._add_idle(server)
         return self._test_instance
 
-    def _test_idle_loop(self):
-        client, server = self._test_instance
-        client.loop(0)
-        server.loop(0)
-        return True
-            
-
-
-
-
+    def test_idle(self):
+        """
+        """
+        client, server = self.test_instance()
+        for i in range(10):
+            client.loop(0)
+            server.loop(0)
+            import time
+            time.sleep(0.01)
 
 sage_remote = SageRemoteFactory()
