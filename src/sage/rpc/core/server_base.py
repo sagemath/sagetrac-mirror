@@ -4,8 +4,8 @@ Base class for Sage Server
 
 import logging
 
-from sage.rpc.client.transport import Transport
-from sage.rpc.client.common import (
+from sage.rpc.core.transport import Transport
+from sage.rpc.core.common import (
     RemoteProcedureCaller,
     RemoteProcedureException,
     TYPE_INIT_CONNECTION,
