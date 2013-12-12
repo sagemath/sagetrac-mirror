@@ -9,26 +9,25 @@ The simplest example is the ping test::
     sage: client, server = sage_remote.test_instance()
     sage: client.ping()
     sage: sage_remote.test_idle()   # simulate idle loop
-    pong #0
+    pong #0 (...ms)
 
 The actual rpc call is under the ``rpc`` attribute::
 
     sage: client.rpc
     Available RPC calls:
-    * log.critical
-    * log.debug
-    ...
+    * util.ping
+    * util.pong
     * util.quit
-    sage: client.rpc.util.ping('arg')
+    sage: client.rpc.util.ping('arg', int(0))
     sage: sage_remote.test_idle()
-    pong #arg
+    pong #arg (...ms)
 
 Another feature is that server logs are sent and displayed at the
 client::
 
     sage: server.log.error('foobar')
     sage: sage_remote.test_idle()
-    [RPC] ERROR: {server} foobar
+    [RPC] {server} ERROR: foobar
 """
 
 import os
@@ -84,7 +83,7 @@ class SageRemoteFactory(object):
             wlist += wl
             xlist += xl
         import select
-        select.select(rlist, wlist, xlist, 0)
+        rlist, wlist, xlist = select.select(rlist, wlist, xlist, 0)
         if rlist == [] and wlist == [] and xlist == []:
             return True   # timeout
         from sage.libs.readline import interleaved_output
@@ -111,7 +110,7 @@ class SageRemoteFactory(object):
             value = logging.DEBUG
         elif value is False:
             value = logging.WARNING  # default level
-        from sage.rpc.core.base import logger
+        from sage.rpc.core.logging_origin import logger
         logger.setLevel(value)
 
     def random_cookie(self, length=30):
@@ -202,9 +201,9 @@ class SageRemoteFactory(object):
         from subprocess import Popen
         return Popen(cmd, env=env, stdout=sys.stdout, stderr=sys.stderr)
 
-    def new_client(self, interface='localhost'):
+    def new_client_base(self, interface='localhost'):
         """
-        Construct a new client instance.
+        Construct a new client instance
 
         INPUT:
 
@@ -227,6 +226,67 @@ class SageRemoteFactory(object):
         from sage.rpc.core.client_base import ClientBase
         client = ClientBase(transport, cookie)
         self._add_idle(client)
+        return client
+
+    def spawn_monitor(self, cookie, port, interface):
+        """
+        Create a server in a new process.
+
+        See :meth:`start_server` for a description of the input.
+
+        OUTPUT:
+
+        The subprocess running the server.
+        """
+        env = dict(os.environ)
+        env['COOKIE'] = cookie
+        cmd = ['sage', '-python', '-c',
+               'from sage.rpc.core.monitor import start_monitor; '
+               'start_monitor({0}, "{1}")'.format(port, interface)]
+        import sys
+        from subprocess import Popen
+        return Popen(cmd, env=env, stdout=sys.stdout, stderr=sys.stderr)
+
+    def new_client(self, interface='localhost'):
+        """
+        Construct a new client instance.
+
+        INPUT:
+
+        - ``cookie`` -- string. Secret that authenticates the
+          connection.
+
+        - ``server_uri`` -- string. URI of the backend server. The
+          server to connect to must already be running, or else FIXME
+
+        OUTPUT:
+
+        A new :class:`~sage.rpc.core.monitor.MonitorClient` instance.
+
+        EXAMPLES::
+
+            sage: client = sage_remote.new_client()
+            sage: def idle():
+            ....:     for i in range(10):
+            ....:         client.loop(0); sleep(0.01)
+            sage: client.ping()
+            sage: idle()
+            pong #0 (10ms)
+        """
+        cookie = self.random_cookie()
+        from sage.rpc.core.transport import TransportListen
+        uri = 'tcp://localhost:0'.format(interface)
+        transport = TransportListen(uri)
+        proc = self.spawn_monitor(cookie, transport.port(), interface)
+        transport.accept()
+        from sage.rpc.core.monitor import MonitorClient
+        client = MonitorClient(transport, cookie)
+        self._add_idle(client)        
+        import time
+        for i in range(200):
+            self._inputhook()
+            time.sleep(0.01)
+
         return client
 
     def test_instance(self):
@@ -267,10 +327,9 @@ class SageRemoteFactory(object):
         """
         """
         client, server = self.test_instance()
+        import time
         for i in range(10):
-            client.loop(0)
-            server.loop(0)
-            import time
+            self._inputhook()
             time.sleep(0.01)
 
 sage_remote = SageRemoteFactory()
