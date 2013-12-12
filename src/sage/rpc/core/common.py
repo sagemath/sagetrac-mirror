@@ -16,25 +16,6 @@ class RemoteProcedureException(TransportError):
     pass
 
 
-class RemoteProcedureUtils(object):
-    
-    def __init__(self, rpc_caller):
-        self._rpc_caller = rpc_caller
-
-    def ping(self, count):
-        self._rpc_caller.log.debug('ping #%s', count)
-        self._rpc_caller('util.pong', count)
-
-    def pong(self, count):
-        self._rpc_caller.log.debug('pong #%s', count)
-        print('pong #{0}'.format(count))
-    
-    def quit(self):
-        self._rpc_caller.log.debug('received quit command')
-        self._rpc_caller.close()
-        import sys
-        sys.exit(0)
-
 
 class ProxyCaller(object):
     
@@ -106,18 +87,102 @@ class ProxyCaller(object):
         
 class RemoteProcedureCaller(object):
 
-    def __init__(self, transport, cookie, rpc):
-        self._rpc = dict(rpc)
-        utils = RemoteProcedureUtils(self)
-        self._rpc['util.ping'] = utils.ping
-        self._rpc['util.pong'] = utils.pong
-        self._rpc['util.quit'] = utils.quit
-        self._rpc['util.ping'] = utils.ping
+    class UtilsImplementation(object):
+    
+        def __init__(self, rpc_caller):
+            self._rpc_caller = rpc_caller
+
+        def ping(self, count, start_time):
+            self._rpc_caller.log.debug('ping #%s', count)
+            self._rpc_caller('util.pong', count, start_time)
+
+        def pong(self, count, start_time):
+            import time
+            elapsed_ms = int(1000*(time.time() - start_time))            
+            self._rpc_caller.log.debug('pong #%s (%sms)', count, elapsed_ms)
+            print('pong #{0} ({1}ms)'.format(count, elapsed_ms))
+    
+        def quit(self):
+            self._rpc_caller.log.debug('received quit command')
+            self._rpc_caller.close()
+            import sys
+            sys.exit(0)
+
+
+    def __init__(self, transport, cookie):
         self._rpc_count = 0
         self._ping_count = 0
         self._transport = transport
         self._cookie = cookie
-        self._initialized = False   # RPC calls are only allowed after this is True
+        self._initialized_local_rpc = False
+        self._initialized_remote_rpc = False
+        self._rpc = None
+        self._init_rpc_table()
+
+    def construct_rpc_table(self):
+        """
+        """
+        if self._rpc is not None:
+            raise RuntimeError('table must be constructed only once')
+        rpc = dict()
+        utils = RemoteProcedureCaller.UtilsImplementation(self)
+        rpc['util.ping'] = utils.ping
+        rpc['util.pong'] = utils.pong
+        rpc['util.quit'] = utils.quit
+        return rpc
+
+    def _init_rpc_table(self):
+        """
+        Initialize the list of methods that the remote can call on us.
+        """
+        self._rpc = self.construct_rpc_table()
+        if self._initialized_local_rpc:
+            error = 'multiple initialization of local rpc table'
+            self.log.critical(error)
+            raise RemoteProcedureException(error)
+        self._initialized_local_rpc = True
+
+    def _init_remote_rpc(self, rpc_table):
+        """
+        Construct the ``rpc`` attribute.
+
+        INPUT:
+
+        - ``rpc_table`` -- list of strings.
+        """
+        for rpc in rpc_table:
+            self._validate_name(rpc)
+        rpc = ProxyCaller(self, rpc_table)
+        setattr(self, 'rpc', rpc)
+        if self._initialized_remote_rpc:
+            error = 'multiple initialization of remote rpc table'
+            self.log.critical(error)
+            raise RemoteProcedureException(error)
+        self._initialized_remote_rpc = True
+
+    def local_rpc_table(self):
+        """
+        Return the list of rpc calls that the remote can make on us.
+        """
+        return self._rpc
+
+    def api_version(self):
+        raise NotImplementedError('derived classes must implement the api_version()')
+
+    def check_api_version(self, api_version):
+        """
+        Verify that the remote api version is sufficient.
+
+        INPUT:
+
+        - ``api_version`` -- the output of :meth:`api_version` on the
+          remote end.
+
+        OUTPUT:
+
+        Boolean. If ``False``, the connection will be refused.
+        """
+        return self.api_version() == api_version
 
     def _validate_name(self, rpc_name):
         """
@@ -134,7 +199,7 @@ class RemoteProcedureCaller(object):
         EXAMPLES::
 
             sage: from sage.rpc.core.common import RemoteProcedureCaller
-            sage: rpc = RemoteProcedureCaller(None, 'test', {})
+            sage: rpc = RemoteProcedureCaller(None, 'test')
             sage: rpc._validate_name('a-b')
             Traceback (most recent call last):
             ...
@@ -157,7 +222,7 @@ class RemoteProcedureCaller(object):
             ValueError: identifiers must start with a letter: 3de
         """
         import string
-        allowed_characters = string.ascii_letters + string.digits + '.'
+        allowed_characters = string.ascii_letters + string.digits + '._'
         if not all (ch in allowed_characters for ch in rpc_name):
             raise ValueError('contains invalid characters: '+rpc_name)
         if rpc_name.startswith('.'):
@@ -169,15 +234,6 @@ class RemoteProcedureCaller(object):
                 raise ValueError('separation must be by a single dot: '+rpc_name)
             if identifier[0] not in string.ascii_letters:
                 raise ValueError('identifiers must start with a letter: '+identifier)
-
-    def _make_rpc_proxy(self, rpc_table):
-        """
-        Construct the ``rpc`` attribute.
-        """
-        for rpc in rpc_table:
-            self._validate_name(rpc)
-        rpc = ProxyCaller(self, self._rpc.keys())
-        setattr(self, 'rpc', rpc)
 
     def close(self):
         """
@@ -201,7 +257,8 @@ class RemoteProcedureCaller(object):
     __call__ = call
 
     def ping(self):
-        self('util.ping', self._ping_count)
+        import time
+        self('util.ping', self._ping_count, time.time())
         self._ping_count += 1
 
     def can_handle(self):
@@ -233,7 +290,7 @@ class RemoteProcedureCaller(object):
         transport = self._transport
         is_written = transport.is_written(False)
         fd = transport.fileno()
-        return ([fd], [] if is_written else [fd], [])
+        return ([fd], [] if is_written else [fd], [fd])
 
     def select_handle(self, rlist, wlist, xlist):
         """
@@ -273,6 +330,7 @@ class RemoteProcedureCaller(object):
         requests.
         """
         msg = self._transport.read()
+        # print '***', msg
         return self.handle_msg(msg)
 
     def handle_msg(self, msg):
@@ -288,12 +346,20 @@ class RemoteProcedureCaller(object):
         raise RemoteProcedureException('rpc type {0} does not exist'.format(msg_type))
 
     def handle_init_connection(self, msg):
+        """
+        Implementations must call :meth:`_init_remote_rpc`.
+        """
         raise RemoteProcedureException('initialization not defined')
-        self._initialized = True # Derived clasess must set this to True during initialization
+        # Derived clasess must obtain the initialize the list of rpc calls
+        self._init_remote_rpc(msg['rpc_table'])   # like this, for example
 
     def handle_init_reply(self, msg):
+        """
+        Implementations must call :meth:`_init_remote_rpc`.
+        """
         raise RemoteProcedureException('initialization reply not defined')
-        self._initialized = True # Derived clasess must set this to True during initialization
+        # Derived clasess must obtain the initialize the list of rpc calls
+        self._init_remote_rpc(msg['rpc_table'])   # like this, for example
 
     def handle_logging(self, log):
         """
@@ -315,8 +381,10 @@ class RemoteProcedureCaller(object):
         You can override this method to implement custom handlers.
         """
         self.log.debug('rpc call %s', msg)
-        if not self._initialized:
-            raise RemoteProcedureException('RPC call before initialization')
+        if not self._initialized_local_rpc:
+            raise RemoteProcedureException('derived class must call RemoteProcedureCaller.__init__()')
+        if not self._initialized_remote_rpc:
+            raise RemoteProcedureException('RPC call before negotiaton with remote end')
         cmd = msg.get('cmd', None)
         args = msg.get('args', ())
         kwds = msg.get('kwds', {})
