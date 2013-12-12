@@ -100,6 +100,7 @@ class ServerBase(RemoteProcedureCaller):
             self.log.critical(error)
             raise ServerException(error)
         self._init_remote_rpc(rpc_table)
+        self.rpc.util.remote_is_ready()   # the first RPC call
 
 
 
