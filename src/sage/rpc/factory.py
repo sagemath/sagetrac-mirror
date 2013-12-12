@@ -18,6 +18,7 @@ The actual rpc call is under the ``rpc`` attribute::
     * util.ping
     * util.pong
     * util.quit
+    * util.remote_is_ready
     sage: client.rpc.util.ping('arg', int(0))
     sage: sage_remote.test_idle()
     pong #arg (...ms)
@@ -216,6 +217,16 @@ class SageRemoteFactory(object):
         OUTPUT:
 
         A new :class:`~sage.rpc.core.client_base.ClientBase` instance.
+        
+        EXAMPLES::
+
+            sage: client = sage_remote.new_client_base()
+            sage: client.ping()
+            sage: client.loop()
+            True
+            sage: client.loop()
+            pong #0 (...ms)
+            True
         """
         cookie = self.random_cookie()
         from sage.rpc.core.transport import TransportListen
@@ -225,6 +236,7 @@ class SageRemoteFactory(object):
         transport.accept()
         from sage.rpc.core.client_base import ClientBase
         client = ClientBase(transport, cookie)
+        client.wait_for_initialization()
         self._add_idle(client)
         return client
 
@@ -281,6 +293,7 @@ class SageRemoteFactory(object):
         transport.accept()
         from sage.rpc.core.monitor import MonitorClient
         client = MonitorClient(transport, cookie)
+        client.wait_for_initialization()
         self._add_idle(client)        
         import time
         for i in range(200):

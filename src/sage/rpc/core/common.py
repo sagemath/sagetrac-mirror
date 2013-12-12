@@ -108,6 +108,12 @@ class RemoteProcedureCaller(object):
             import sys
             sys.exit(0)
 
+        def remote_is_ready(self):
+            """
+            Called once when the remote has started up successfully
+            """
+            self._rpc_caller.log.debug('Remote signaled that it started successfully')
+
 
     def __init__(self, transport, cookie):
         self._rpc_count = 0
@@ -129,6 +135,7 @@ class RemoteProcedureCaller(object):
         rpc['util.ping'] = utils.ping
         rpc['util.pong'] = utils.pong
         rpc['util.quit'] = utils.quit
+        rpc['util.remote_is_ready'] = utils.remote_is_ready
         return rpc
 
     def _init_rpc_table(self):
@@ -159,6 +166,29 @@ class RemoteProcedureCaller(object):
             self.log.critical(error)
             raise RemoteProcedureException(error)
         self._initialized_remote_rpc = True
+
+    def wait_for_initialization(self):
+        """
+        Block until the negotiation between client and server is finished.
+
+        As a side-effect of being completely asynchronous, you cannot
+        make immediately RPC calls. This is because the server has
+        first to prove that it knows the magic cookie, API versions
+        need to be matched, and RPC tables need to be exchanged. Until
+        then, any RPC calls will raise an exception.
+
+        To ensure that you have waited long enough for the
+        initialization to finish, either wait for the
+        ``'util.remote_is_ready'`` RPC call coming from the remote end
+        or call this method.
+
+        OUTPUT:
+
+        ``self`` again, so you can chain calls.
+        """
+        while not all([self._initialized_remote_rpc, self._initialized_local_rpc]):
+            self.loop()
+        return self
 
     def local_rpc_table(self):
         """
@@ -243,9 +273,12 @@ class RemoteProcedureCaller(object):
             self._transport.close()
         except TransportError:
             pass
-        self._rpc = None   # simplify garbage collection
+        del self._rpc   # simplify garbage collection
         
     def call(self, cmd, *args, **kwds):
+        """
+        The actual Remote Procedure Call
+        """
         call = {'type': TYPE_RPC_METHOD_CALL,
                 'cmd': cmd,
                 'args': args,
@@ -254,7 +287,8 @@ class RemoteProcedureCaller(object):
         self._transport.write(call)
         self._rpc_count += 1
 
-    __call__ = call
+    def __call__(self, cmd, *args, **kwds):
+        self.call(cmd, *args, **kwds)
 
     def ping(self):
         import time
