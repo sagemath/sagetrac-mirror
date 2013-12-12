@@ -879,6 +879,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             t^7 - 4/7*t^6 - 3/2*t^5 + 8*t^4 - 75/28*t^3 - 66/7*t^2 + 87/8*t + 3/2
             sage: f.lcm(g) * f.gcd(g) // (f * g)
             -3/2
+
+        Check that :trac:`8857` is fixed::
+
+            sage: R.<x> = QQ[x]
+            sage: R(1/2).lcm(R(1))
+            1
+            sage: R(2^31).lcm(R(1))
+            1
         """
         cdef Polynomial_rational_flint res = self._new()
 
