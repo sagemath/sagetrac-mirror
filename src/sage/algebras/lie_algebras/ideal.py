@@ -26,10 +26,12 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.categories.monoids import Monoids
+from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 from sage.monoids.free_monoid_element import MonoidElement
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
 from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
+from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 
 class LieIdealMonoid(Parent, UniqueRepresentation):
     r"""
@@ -101,7 +103,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
         else:
             return cmp(self.lie_algebra(), other.lie_algebra())
 
-class LieAlgebraIdeal(MonoidElement):
+class LieAlgebraIdeal(MonoidElement, LieSubalgebra):
     r"""
     The ideal of a Lie algebra `\mathfrak{g}`.
     """
@@ -125,7 +127,6 @@ class LieAlgebraIdeal(MonoidElement):
             sage: x,y,z = Lyn.gens()
             sage: Lyn.ideal([Lyn([x, y]), z - x])
         """
-        self.__lie = lie_algebra
         if not isinstance(gens, (list, tuple)):
             gens = [gens]
         if coerce:
@@ -136,14 +137,14 @@ class LieAlgebraIdeal(MonoidElement):
         else:
             # Make sure the leading term has a coefficient of 1 (?)
             gens = tuple(map(lambda x: x/x.leading_coefficient(), gens))
-        self.__gens = gens
+        LieSubalgebra.__init__(self, lie_algebra, gens)
         MonoidElement.__init__(self, LieIdealMonoid(lie_algebra))
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
         """
-        return "Ideal %s of %s"%(self.__gens, self.__lie)
+        return "Ideal {} of {}".format(self._gens, self._ambient)
 
     def _repr_short(self):
         """
@@ -157,7 +158,7 @@ class LieAlgebraIdeal(MonoidElement):
         """
         L = []
         has_return = False
-        for x in self.gens():
+        for x in self._gens:
             s = repr(x)
             if '\n' in s:
                 has_return = True
@@ -167,21 +168,15 @@ class LieAlgebraIdeal(MonoidElement):
             return '\n(\n  %s\n)\n'%(',\n\n  '.join(L))
         return '(%s)'%(', '.join(L))
 
-    def gens(self):
-        """
-        Return the generators of ``self``.
-        """
-        return self.__gens
-
     @cached_method
     def groebner_basis(self):
         """
         Return a Groebner-Shirshov basis for ``self``.
         """
         # Currently we just test that we are a Groebner basis
-        zero = self.__lie.zero()
-        for x in self.__gens:
-            for y in self.__gens:
+        zero = self._ambient.zero()
+        for x in self._gens:
+            for y in self._gens:
                 b = self.reduce(x.bracket(y))
                 if b != zero: # It is not a Groebner basis
                     print x
@@ -195,11 +190,11 @@ class LieAlgebraIdeal(MonoidElement):
         """
         ret = x
         reducing = True
-        zero = self.__lie.zero()
+        zero = self._ambient.zero()
 
         while reducing:
             reducing = False
-            for g in self.gens():
+            for g in self._gens:
                 if ret == zero:
                     return ret
                 cur = self._appliance(g, ret)
@@ -233,7 +228,7 @@ class LieAlgebraIdeal(MonoidElement):
         #print "\nCurrent:", x
         #print "Reducing {} by {}".format(xm, g)
 
-        L = self.__lie
+        L = self._ambient
         cur = gc**-1 * g
         one = L.base_ring().one()
         std = lambda x: L.element_class(L, {L._standard_bracket(x): one})
@@ -273,8 +268,29 @@ class LieAlgebraIdeal(MonoidElement):
 
 LieIdealMonoid.Element = LieAlgebraIdeal
 
+class FiniteDimensionalLieAlgebraIdeal(LieAlgebraIdeal):
+    """
+    The ideal of a finite dimensional Lie algebra `\mathfrak{g}`.
+    """
+    def groebner_basis(self):
+        """
+        Return a Groebner-Shirshov basis for ``self``.
+        """
+        return self.basis()
+
+    def reduce(self, x):
+        """
+        Return ``x`` modulo ``self``.
+        """
+        M = self._dense_free_module()
+        b = self.basis()
+        comp = b.basis_matrix().right_kernel() # The complement basis TODO - this implementation is wrong
+        # TODO: convert comp to vectors in self._ambient
+        v = M.linear_dependence(comp + b + [x.to_vector()])
+        return self._ambient.sum([c * comp[i] for i,c in enumerate(v))
+
+#####################################################################
 ## Some helper functions
-########################
 
 def term_cmp(x, y):
     """

@@ -214,6 +214,9 @@ class LieAlgebra(Parent, UniqueRepresentation):
 
     REFERENCES:
 
+    .. [deGraaf] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
+       North-Holland Mathemtaical Library. (2000). Elsevier Science B.V.
+
     - :wikipedia:`Lie_algebra`
     """
     @staticmethod

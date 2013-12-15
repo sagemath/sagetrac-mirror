@@ -124,3 +124,89 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         terms += self.monomial(lead * trail)
         return self.monomial(lhs.cancel(trail)) * terms * self.monomial(rhs.cancel(lead))
 
+class IdealPBW: # TODO: inherit from the correct classes
+    """
+    An ideal of a universal enveloping algebra in the PBW basis.
+    """
+    def __init__(self, UEA, gens):
+        """
+        Initialize ``self``.
+        """
+        self._UEA = UEA
+        self._gens = map(lambda x: x / x.leading_coefficient(), gens) # Make everything monic
+        # TODO: passing up __init__
+
+    def gens(self):
+        """
+        Return the generators of ``self``.
+        """
+        return self._gens
+
+    @cached_method
+    def groebner_basis(self):
+        """
+        Compute a Groebner basis of ``self``.
+        """
+        G = self.gens()
+        GU = self._UEA.gens()
+        D = [(x,y) for x in G for y in G] + [(x,ZZ(i)) for x in G for i in range(len(GU))]
+        while len(D) != 0:
+            p = D.pop()
+            if p[1].parent() is ZZ:
+                h = p[0] * GU[p[1]] - GU[p[1]] * p[0]
+            else:
+                S = [p[0].support(), p[1].support()]
+                h = self._UEA.monomial(prod([x for x in S[1] if x not in S[0]])) * p[0]
+                h -= self._UEA.monomial(prod([x for x in S[0] if x not in S[1]])) * p[1]
+
+            h = self._reduce(h, G)
+            if h != 0:
+                h /= h.leading_coefficient()
+                for g in G:
+                    D.append((g, h))
+                for i in range(len(GU)):
+                    D.append((h, i)
+                G.append(h)
+        return G
+
+    def reduce(self, x, G=None):
+        """
+        Return ``x`` modulo ``self``.
+        """
+        ret = self._UEA.zero()
+        R = self._UEA.base_ring()
+        if G is None:
+            G = self.groebner_basis()
+        while x != 0:
+            la,u = x.leading_item()
+            found = False
+            for g in G:
+                mu, lm = g.leading_item()
+                f = u.factorize_by(lm)
+                if f is not None:
+                    x -= la / mu * self._UEA.monomial(f[0]) * g * self._UEA.monomial(f[1])
+                    found = True
+                    break
+            if not found:
+                t = x.leading_term()
+                x -= t
+                ret += t
+        return ret
+
+class QuotientPBW: # TODO: inherit from the correct classes
+    """
+    A quotient algebra of a universal enveloping algebra in the PBW basis.
+
+    INPUT:
+
+    - ``UEA`` -- the universal enveloping algebra in the PBW basis
+    - ``I`` -- the ideal
+    """
+    def __init__(self, UEA, I):
+        """
+        Initialize ``self``.
+        """
+        self._UEA = UEA
+        self._I = I
+        # TODO: passing up __init__
+
