@@ -1755,7 +1755,15 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             else:
                 raise ValueError(output + ' is not a valid output parameter.')
 
-    def embed_in_reflexive_polytope(self, output='hom'):
+    def embed_in_reflexive_polygon(self, output='hom'):
+        r"""
+        Find an embedding as a sub-polytope of a maximal reflexive polygon.
+
+        TODO: Write more.
+        """
+        return self.embed_in_reflexive_polytope(output, only_polygons=True)
+
+    def embed_in_reflexive_polytope(self, output='hom', only_polygons=False):
         r"""
         Find an embedding as a sub-polytope of a maximal reflexive
         polytope.
@@ -1765,6 +1773,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         - ``output`` -- string. One of ``'hom'`` (default),
           ``'polytope'``, or ``points``. How the embedding is
           returned. See the output section for details.
+
+        TODO: only_polygons parameter
 
         OUTPUT:
 
@@ -1827,6 +1837,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         try:
             ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polygon()
         except LatticePolytopeNoEmbeddingError:
+            if only_polygons:
+                raise
             inverse = (output == 'inverse_hom')
             ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polytope(inverse)
         if output == 'hom' or output == 'inverse_hom':
@@ -1840,6 +1852,18 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return points
         else:
             raise ValueError('output='+str(output)+' is not valid.')
+
+    def index(self):
+        r"""
+        Return the PALP index of a reflexive polytope.
+
+        OUTPUT:
+
+        An integer.
+        """
+        if not hasattr(self, '_index'):
+            raise ValueError('Only reflexive polytopes have a PALP index.')
+        return self._index
 
 
 ##############################################################################
@@ -2159,7 +2183,7 @@ def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
     from sage.misc.all import load
     if dim == 2:
         vs = ReflexivePolytope(dim, index).vertices().columns()
-        return LatticePolytope_PPL(*vs)
+        ppl = LatticePolytope_PPL(*vs)
     elif dim == 3:
         vs = ReflexivePolytope(dim, index).vertices().columns()
         ppl = LatticePolytope_PPL(*vs)
@@ -2167,10 +2191,11 @@ def ReflexivePolytope_PPL(dim, index, load_sub_polytopes=False):
             # Load the subpolytopes
             ppl._sub_polytopes_affine = load(
                 _subpolytope_path + 'a_' + str(index))
-        return ppl
     else:
         raise NotImplementedError('Only reflexive polytopes of dimensions ' + \
                                   '2 and 3 are supported.')
+    ppl._index = index
+    return ppl
 
 def _reflexive_sub_polytopes(dim, npts):
     r"""

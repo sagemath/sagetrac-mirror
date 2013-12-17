@@ -18,8 +18,10 @@ AUTHORS:
 ########################################################################
 
 from sage.structure.all import SageObject
+from sage.misc.all import cached_function
+from sage.combinat.all import Arrangements
 from sage.geometry.polyhedron.ppl_lattice_polytope import (
-    LatticePolytope_PPL_class )
+    LatticePolytope_PPL_class, LatticePolytope_PPL )
 
 def LatticePolytopeCollection(*args):
     r"""
@@ -108,6 +110,62 @@ class LatticePolytopeCollection_class(SageObject):
             end = ''
         out = 'A collection of {0} lattice polytope{1}.'.format(n, end)
         return out
+
+    def _contain_table(self, other):
+        r"""
+        Compute the Boolean matrix corresponding to whether the polytopes of
+        ``other`` are contained in those of ``self``.
+
+        INPUT:
+
+        - ``other`` -- a 
+            :class:`LatticePolytopeCollection<LatticePolytopeCollection_class>`.
+
+        OUTPUT:
+
+        A tuple of tuples of Booleans.
+
+        EXAMPLES::
+        """
+        res = []
+        for p in self.polytopes():
+            tmp = []
+            for q in other.polytopes():
+                tmp.append(p.contains(q))
+            res.append(tuple(tmp))
+        return tuple(res)
+
+    def contains(self, other):
+        r"""
+        Check whether ``self`` contains ``other``.
+
+        We say that one 
+        :class:`LatticePolytopeCollection<LatticePolytopeCollection_class>`
+        contains another if all the polytopes of ``other`` are contained
+        in distinct polytopes of ``self``.
+
+        INPUT:
+
+        - ``other`` -- a 
+            :class:`LatticePolytopeCollection<LatticePolytopeCollection_class>`.
+
+        OUTPUT:
+
+        A Boolean.
+
+        EXAMPLES::
+        """
+        n_other = other.n_polytopes()
+        n_self = self.n_polytopes()
+        maps = Arrangements(range(n_self), n_other)
+        if not maps:
+            raise ValueError('The container should not have fewer polytopes.')
+        contain_table = self._contain_table(other)
+        # Check whether we can find an arrangement such that other is contained in self
+        for map in maps:
+            if all(contain_table[map[i]][i] for i in range(n_other)):
+                return True
+        return False
 
     def _embedding_table(self, other):
         r"""
@@ -294,7 +352,6 @@ class LatticePolytopeCollection_class(SageObject):
             ((0, 1), (A 2-dimensional lattice polytope in ZZ^2 with 3 vertices, A
             2-dimensional lattice polytope in ZZ^2 with 4 vertices))
         """
-        from sage.combinat.all import Arrangements
         n_self = self.n_polytopes()
         maps = Arrangements(range(other.n_polytopes()), n_self)
         if not maps:
@@ -449,8 +506,88 @@ class LatticePolytopeCollection_class(SageObject):
         """
         return self._polytopes
 
+    def affine_normal_forms(self, output='hash'):
+        r"""
+        Return the affine normal forms of the polytopes of ``self``.
+
+        INPUT:
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+        """
+        if output == 'hash':
+            import hashlib
+            hashes = sorted([p.affine_normal_form(output='hash') for p in self._polytopes])
+            tmp = ''.join(hashes)
+            return hashlib.md5(tmp).hexdigest()
+        else:
+            raise ValueError('Unknown value for output.')
+
+
+    def index(self):
+        r"""
+        Compute the index of a nef partition of a three-dimensional reflexive
+        polytope.
+
+        Explain.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+        """
+        if hasattr(self, '_index'):
+            return self._index
+        raise NotImplementedError('Index for nef partitions is not working at the moment.')
+        if not hasattr(LatticePolytopeCollection_class, 'nef_3d_indices'):
+            # Load the table
+            from sage.misc.all import load
+            # Eventually change hard-coding
+            p = '/home/pcl337b/jkeitel/Documents/Papers/BGK3/'
+            f = p + 'nef_indices'
+            LatticePolytopeCollection_class.nef_3d_indices = load(f)
+        indices = LatticePolytopeCollection_class.nef_3d_indices
+        try:
+            h = self.affine_normal_forms(output='hash')
+            self._index = indices[h]
+            return self._index
+        except KeyError:
+            raise ValueError('The lattice polytope collection does not ' + \
+                  'correspond to a nef partition of a 3d reflexive polytope.')
+
 
 #######################################################################################
 # Infrastructure for embeddings into nef-partitions of three-dimensional reflexive
 # polyhedra.
 #######################################################################################
+@cached_function
+def NefPartition_PPL(dim, polytope_id, nef_id):
+    r"""
+    Return the LatticePolytopeCollection corresponding to the
+    specified nef partition.
+
+    INPUT:
+
+    OUTPUT:
+
+    EXAMPLES::
+    """
+    from sage.geometry.lattice_polytope import ReflexivePolytope
+    def ppl(x):
+        vertices = x.vertices().columns()
+        return LatticePolytope_PPL(*vertices)
+
+    lp = ReflexivePolytope(dim, polytope_id)
+    nefs = lp.nef_partitions()
+    try:
+        nef = nefs[nef_id]
+        tmp = [ppl(i) for i in nef.Deltas()]
+        lc = LatticePolytopeCollection(tmp)
+        lc._index = (polytope_id, nef_id)
+        return lc
+    except IndexError:
+        raise ValueError('The nef partition with this index does not exist.')

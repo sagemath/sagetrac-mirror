@@ -108,7 +108,10 @@ class LatticeEuclideanGroupElement(SageObject):
         """
         from sage.geometry.polyhedron.ppl_lattice_polytope import (
             LatticePolytope_PPL, LatticePolytope_PPL_class)
-        from sage.geometry.lattice_polytope import LatticePolytopeClass
+        from sage.geometry.polyhedron.ppl_lattice_polytope_collection import (
+            LatticePolytopeCollection_class, LatticePolytopeCollection)
+        from sage.geometry.lattice_polytope import (
+            LatticePolytopeClass, LatticePolytope)
         from sage.matrix.all import is_Matrix, matrix
         if isinstance(x, LatticePolytope_PPL_class):
             if x.is_empty():
@@ -117,9 +120,11 @@ class LatticeEuclideanGroupElement(SageObject):
                                                         'empty'))
             return LatticePolytope_PPL(*[self(v) for v in x.vertices()])
         if isinstance(x, LatticePolytopeClass):
-            from sage.geometry.lattice_polytope import LatticePolytope
             vs = [self(i) for i in x.vertices().columns()]
             return LatticePolytope(vs)
+        if isinstance(x, LatticePolytopeCollection_class):
+            polys = [self(i) for i in x.polytopes()]
+            return LatticePolytopeCollection(polys)
         if is_Matrix(x):
             return matrix([self(i) for i in x.columns()]).transpose()            
 
