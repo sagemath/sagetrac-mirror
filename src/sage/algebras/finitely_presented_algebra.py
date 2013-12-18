@@ -38,7 +38,13 @@ class TwoSidedAlgebraIdeal(Ideal_nc):
         Initialize ``self``.
         """
         PBW = free_algebra.pbw_basis()
-        self._gb = [1, map(lambda x: x / x.leading_coefficient(), map(PBW, gens))]
+
+        gb = map(lambda x: x / x.leading_coefficient(), map(PBW, gens))
+        self._gb = [1, gb]
+        n = free_algebra.ngens()
+        self._gb_todo = [(g, h) for g in gb for h in gb]
+        self._gb_todo += [(g, ZZ(i)) for g in gb for i in range(n)]
+
         Ideal_nc.__init__(self, free_algebra, gens, "twosided")
 
     def free_algebra(self):
@@ -49,6 +55,10 @@ class TwoSidedAlgebraIdeal(Ideal_nc):
 
     @staticmethod
     def _lead_cmp(x, y):
+        """
+        Compare ``x`` and ``y`` by degree then reverse lex so :meth:`leading_item()`
+        returns the largest degree and smallest lex.
+        """
         c = cmp(len(x), len(y))
         if c != 0:
             return c
@@ -64,27 +74,29 @@ class TwoSidedAlgebraIdeal(Ideal_nc):
         if self._gb[0] is None:
             return tuple(map(F, self._gb[1]))
         if d <= self._gb[0]:
-            return tuple(map(F, filter(lambda x: len(x.leading_support(l_cmp)) <= d, self._gb[1])))
+            return tuple(map(F, filter(lambda x: len(x.leading_support(l_cmp)) <= d,
+                                       self._gb[1])))
 
         # Run Groebner basis algorithm on the PBW gens
         gens = self._gb[1] # The gens are in the PBW basis
         n = F.ngens()
-        D = [(g, h) for g in gens for h in gens]
-        D += [(g, ZZ(i)) for g in gens for i in range(n)]
 
         PBW = F.pbw_basis()
         FM = PBW.basis().keys()
         PBW_from_exp = lambda x: PBW.monomial(FM( [a for a in enumerate(x) if a[1] > 0] ))
 
-        while len(D) > 0:
-            p = D.pop()
+        cur = 0
+        while cur < len(self._gb_todo):
+            p = self._gb_todo[cur]
             if len(p[0].leading_support(l_cmp)) >= d:
+                cur += 1
                 continue
 
             if p[1] in ZZ:
                 h = p[0]*PBW.gen(p[1]) - PBW.gen(p[1])*p[0]
             else:
                 if len(p[0].leading_support(l_cmp)) + len(p[1].leading_support(l_cmp)) > d:
+                    cur += 1
                     continue
 
                 f = map(lambda x: x.leading_support(l_cmp).to_word().evaluation(), p)
@@ -97,15 +109,19 @@ class TwoSidedAlgebraIdeal(Ideal_nc):
                 f = map(lambda x: [lcm[i] - v for i,v in enumerate(x)], f)
                 h = PBW_from_exp(f[0]) * p[0] - p[1] * PBW_from_exp(f[1])
 
+            self._gb_todo.pop(cur) # We have taken care of the pairing
             h = self._reduce_pbw(h, gens)
+
             if h != PBW.zero():
                 h /= h.leading_coefficient(l_cmp)
                 for g in gens:
-                    D.append((g, h))
+                    self._gb_todo.append((g, h))
                 for i in range(n):
-                    D.append((g, ZZ(i)))
+                    self._gb_todo.append((g, ZZ(i)))
                 gens.append(h)
 
+        if len(self._gb_todo) == 0:
+            d = infinity
         self._gb = [d, gens]
         # Convert back
         if d is None:
