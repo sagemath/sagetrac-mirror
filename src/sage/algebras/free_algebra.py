@@ -865,7 +865,7 @@ class FreeAlgebra_generic(Algebra):
             import free_algebra_quotient
             return free_algebra_quotient.FreeAlgebraQuotient(self, I, mats, names)
         from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra
-        return FinitelyPresentedAlgebra(I, names)
+        return FinitelyPresentedAlgebra(self, I, names)
 
     quo = quotient
 
