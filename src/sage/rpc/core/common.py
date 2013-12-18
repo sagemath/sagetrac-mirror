@@ -24,7 +24,7 @@ class ProxyCaller(object):
         EXAMPLES::
 
             sage: from sage.rpc.core.common import ProxyCaller
-            sage: def dummy(x): print 'calling "{0}"'.format(x)
+            sage: def dummy(x): print('calling "{0}"'.format(x))
             sage: proxy = ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
             sage: proxy.a()
             calling "a"
@@ -48,7 +48,7 @@ class ProxyCaller(object):
         EXAMPLES::
 
             sage: from sage.rpc.core.common import ProxyCaller
-            sage: def dummy(x): print 'calling "{0}"'.format(x)
+            sage: def dummy(x): print('calling "{0}"'.format(x))
             sage: ProxyCaller(dummy, ['a', 'b', 'c.aa', 'c.bb', 'd.c.b.a'])
             Available RPC calls:
             * a
@@ -351,7 +351,7 @@ class RemoteProcedureCaller(object):
         if fd in xlist:
             # can this happen?
             raise RemoteProcedureException('socket in exception state')
-        # print 'select', r,w, rlist, wlist, xlist
+        # print('select', r,w, rlist, wlist, xlist)
         if (r == w == 0) and (fd in rlist+wlist+xlist):
             self.log.debug('Nothing read or written: %s, %s, %s', rlist, wlist, xlist)
         return not(r == w == 0)
@@ -364,7 +364,7 @@ class RemoteProcedureCaller(object):
         requests.
         """
         msg = self._transport.read()
-        # print '***', msg
+        # print('***', msg)
         return self.handle_msg(msg)
 
     def handle_msg(self, msg):

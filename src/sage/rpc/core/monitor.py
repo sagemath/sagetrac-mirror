@@ -12,7 +12,7 @@ running::
 import os
 import sys
 
-from sage.rpc.core.transport import Transport, TransportListen
+from sage.rpc.core.transport import Transport, TransportListen, TransportError
 from sage.rpc.core.client_base import ClientBase
 from sage.rpc.core.server_base import ServerBase
 
@@ -26,6 +26,10 @@ class MonitorClient(ClientBase):
     def construct_rpc_table(self):
         rpc = super(MonitorClient, self).construct_rpc_table()
         rpc['sage_eval.result'] = self._impl_sage_eval_result
+        rpc['sage_eval.stdin'] = self._impl_sage_eval_stdin
+        rpc['sage_eval.stdout'] = self._impl_sage_eval_stdout
+        rpc['sage_eval.stderr'] = self._impl_sage_eval_stderr
+        rpc['sage_eval.crash'] = self._impl_sage_eval_crash
         return rpc        
 
     def __init__(self, transport, cookie):
@@ -36,17 +40,75 @@ class MonitorClient(ClientBase):
         via the monitor, and in return receive callbacks.
         """
         super(MonitorClient, self).__init__(transport, cookie)
+        self._label_counter = 0
         self.log.info('MonitorClient started')
 
-    def sage_eval(self, code_string):
-        self.rpc.sage_eval.start(code_string)
+    def random_label(self):
+        """
+        Return a new random label.
 
-    def _impl_sage_eval_result(self, cpu_time, wall_time):
+        OUTPUT:
+
+        A JSON-serializable value.
+        """
+        self._label_counter += 1
+        return self._label_counter
+
+    def sage_eval(self, code_string, label=None):
+        """
+        Initiate the evaluation of code
+        
+        INPUT:
+
+        - ``code_string`` -- string. The code to evaluate.
+
+        - ``label`` -- anything JSON-serializable. A label to attach
+          to the compute request. Can be ``None``, in which case one
+          is randomly chosen for you. See also :meth:`random_label`.
+
+        OUTPUT:
+    
+        The label of the compute request. Equals ``label`` if one was
+        specified.
+        """
+        if label is None:
+            label = self.random_label()
+        self.rpc.sage_eval.start(code_string, label)
+        return label
+
+    def _impl_sage_eval_result(self, cpu_time, wall_time, label):
         """
         RPC callback when evaluation is finished
         """
         print('Evaluation finished in cpu={0}ms, wall={1}ms'
               .format(int(1000*cpu_time), int(1000*wall_time)))
+
+    def _impl_sage_eval_stdin(self, label):
+        """
+        RPC callback when evaluation requests stdin
+        """
+        self.log.debug('stdin')
+        print('Input requested')
+
+    def _impl_sage_eval_stdout(self, stdout, label):
+        """
+        RPC callback when evaluation produces stdout
+        """
+        self.log.debug('stdout %s', stdout.strip())
+        print('STDOUT ' + stdout)
+
+    def _impl_sage_eval_stderr(self, stderr, label):
+        """
+        RPC callback when evaluation produces stderr
+        """
+        self.log.debug('stderr %s', stderr.strip())
+        print('STDERR ' + stderr)
+
+    def _impl_sage_eval_crash(self):
+        """
+        RPC callback when the compute server crashed
+        """
+        print('Compute server crashed.')
 
 
 class MonitorServer(ServerBase):
@@ -59,7 +121,7 @@ class MonitorServer(ServerBase):
         rpc['sage_eval.start'] = self.monitor._impl_sage_eval_start
         rpc['util.ping'] = self.monitor._impl_ping
         rpc['util.quit'] = self.monitor._impl_quit
-        return rpc        
+        return rpc
 
     def __init__(self, monitor, transport, cookie):
         """
@@ -106,31 +168,72 @@ class Monitor(object):
         self.client = ComputeClient(self, client_transport, cookie)
         self.process = process
         self.log = self.server.log
+        self.current_label = None
         
-    def _impl_sage_eval_start(self, code_string):
-        self.client.rpc.compute.sage_eval(code_string)
+    def _impl_sage_eval_start(self, code_string, label):
+        self.current_label = label
+        self.client.rpc.compute.sage_eval(code_string, label)
 
-    def _impl_sage_eval_finished(self, cpu_time, wall_time):
-        self.server.rpc.sage_eval.result(cpu_time, wall_time)
+    def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
+        self.server.rpc.sage_eval.result(cpu_time, wall_time, label)
+        self.current_label = None
 
     def loop(self):
-        from sage.rpc.core.transport import TransportError
         try:
-            srl, swl, sxl = self.server.select_args()
             crl, cwl, cxl = self.client.select_args()
         except TransportError:
-            self.quit()
-            sys.exit(0)
-        rlist = srl + crl
-        wlist = swl + cwl
-        xlist = sxl + cxl
+            self.handle_client_disconnect()
+        try:
+            srl, swl, sxl = self.server.select_args()
+        except TransportError:
+            self.handle_server_disconnect()
+        prl, pwl, pxl = self.process.select_args()
+        rlist = srl + crl + prl
+        wlist = swl + cwl + pwl
+        xlist = sxl + cxl + pxl
         import select
         rlist, wlist, xlist = select.select(rlist, wlist, xlist)
         if rlist == [] and wlist == [] and xlist == []:
             return True   # timeout
-        self.client.select_handle(rlist, wlist, xlist)
-        self.server.select_handle(rlist, wlist, xlist)
+        try:
+            self.client.select_handle(rlist, wlist, xlist)
+        except TransportError:
+            self.handle_client_disconnect()
+        try:
+            self.server.select_handle(rlist, wlist, xlist)
+        except TransportError:
+            self.handle_server_disconnect()
+        self.process.select_handle(self, rlist, wlist, xlist)
 
+    def handle_server_disconnect(self):
+        """
+        React to the server disconnecting from the user.
+        
+        Compare with :meth:`handle_client_disconnect`.
+        """
+        print('Monitor: disconnected, killing subprocess and exiting.')
+        try:
+            self.client.rpc.util.quit()
+            self.client._transport.flush()
+            self.process.wait()
+            self.client.close()
+        except TransportError:
+            pass
+        sys.exit(0)                    
+
+    def handle_client_disconnect(self):
+        """
+        React to the client disconnecting from the compute server
+
+        Compare with :meth:`handle_server_disconnect`.
+        """
+        print('Monitor: Compute server died.')
+        self.server.rpc.sage_eval.crash()
+        self.server._transport.flush()
+        # todo: restart?
+        self.process.wait()
+        sys.exit(0)                    
+        
     def _impl_ping(self, count, time):
         self.log.debug('ping #%s', count)
         self.client.rpc.util.ping(count, time)
@@ -155,7 +258,24 @@ class Monitor(object):
         self.server._transport.flush()
         sys.exit(0)
         
+    def need_stdin(self):
+        """
+        Called by the monitored process if it requests user input (overriding 
+        """
+        print('need stdin')
+        self.server.rpc.sage_eval.stdin(self.current_label)
 
+    def got_stdout(self, stdout):
+        """
+        Called by the monitored process if it produces stderr
+        """
+        self.server.rpc.sage_eval.stdout(stdout, self.current_label)
+
+    def got_stderr(self, stderr):
+        """
+        Called by the monitored process if it produces stderr
+        """
+        self.server.rpc.sage_eval.stdin(stderr, self.current_label)
 
 
 class MonitoredProcess(object):
@@ -181,7 +301,26 @@ class MonitoredProcess(object):
         self._cmd = [cmd.format(port=t.port(), interface=t.interface())
                      for cmd in argv]
         from subprocess import Popen, PIPE
-        self._proc = Popen(self._cmd, stdout=sys.stdout, stderr=sys.stdout)
+        self._proc = Popen(self._cmd, stdin=None, stdout=PIPE, stderr=PIPE)
+        import fcntl
+        for fd in [self._proc.stdout.fileno(), self._proc.stderr.fileno()]:
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+    def select_args(self):
+        proc = self._proc
+        fd_out = proc.stdout.fileno()
+        fd_err = proc.stderr.fileno()
+        return ([fd_out, fd_err], [], [fd_out, fd_err])
+
+    def select_handle(self, monitor, rlist, wlist, xlist):
+        stdout, stderr = self._proc.stdout, self._proc.stderr
+        fd_out = stdout.fileno()
+        fd_err = stderr.fileno()
+        if fd_out in rlist:
+            monitor.got_stdout(stdout.read())
+        if fd_err in rlist:
+            monitor.got_stderr(stderr.read())
 
     def transport(self):
         return self._transport
@@ -197,7 +336,7 @@ class MonitoredProcess(object):
 
 
 def start_monitor(port, interface):
-    print 'starting monitor process'
+    print('starting monitor process')
 
     # set up the transport 1: connecting to the client
     uri = 'tcp://{0}:{1}'.format(interface, port)
@@ -214,5 +353,5 @@ def start_monitor(port, interface):
     cookie = os.environ['COOKIE']
     monitor = Monitor(process, transport, process.transport(), cookie)
     while True:
-        # print 'monitor loop'
+        # print('monitor loop')
         monitor.loop()

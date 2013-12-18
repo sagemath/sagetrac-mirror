@@ -48,7 +48,7 @@ class SageComputeServer(ServerBase):
         from sage.misc.interpreter import get_test_shell
         self._shell = get_test_shell()
         
-    def rpc_sage_eval_init(self, code_string):
+    def rpc_sage_eval_init(self, code_string, label):
         t0_cpu = time.clock()
         t0_wall = time.time()
         self._shell.run_cell(code_string)
@@ -59,4 +59,4 @@ class SageComputeServer(ServerBase):
         # This kills the process... why?
         #os.fsync(sys.stdout.fileno())
         #os.fsync(sys.stderr.fileno())
-        self.rpc.sage_eval.finished(t1_cpu - t0_cpu, t1_wall - t0_wall)
+        self.rpc.sage_eval.finished(t1_cpu - t0_cpu, t1_wall - t0_wall, label)

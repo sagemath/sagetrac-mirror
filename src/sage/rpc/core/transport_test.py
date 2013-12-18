@@ -78,13 +78,13 @@ def echo_test_single():
     transport.BUFFER_SIZE = 10
     port = transport.port()
     assert port != 0
-    print 'port = {0}'.format(port)
+    print('port = {0}'.format(port))
     proc = spawn_server(port)
     transport.accept()
-    print 'remote = {0}'.format(transport.remote_address())
+    print('remote = {0}'.format(transport.remote_address()))
     for i in range(5):
         msg = 'packet #{0}'.format(i)
-        print 'ping: sending "{0}"'.format(msg)
+        print('ping: sending "{0}"'.format(msg))
         transport.write({'ping': msg})
         while not transport.is_written():
             print('background task')
@@ -93,7 +93,7 @@ def echo_test_single():
             print('background task')
             time.sleep(0.01)  # for debugging purposes only - idle
         reply = transport.read()['pong']
-        print 'pong: recevied "{0}"'.format(reply)
+        print('pong: recevied "{0}"'.format(reply))
     transport.write({'quit': True})
     transport.close()
     proc.wait()
