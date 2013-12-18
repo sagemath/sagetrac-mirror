@@ -824,18 +824,30 @@ class FreeAlgebra_generic(Algebra):
         F = self._basis_keys
         return self.element_class(self,{F.gen(i):R(1)})
 
-    def quotient(self, mons, mats, names):
+    def ideal(self, *args, **kwds):
+        """
+        Return a side ``side`` ideal of ``self`` given by ``gens``.
+        """
+        if kwds.get('side', 'twosided') == 'twosided':
+            from sage.algebras.finitely_presented_algebra import TwoSidedAlgebraIdeal
+            return TwoSidedAlgebraIdeal(self, args)
+        return super(FreeAlgebra_generic, self).ideal(self, *args, **kwds)
+
+    def quotient(self, I, mats=None, names=None, category=None):
         """
         Returns a quotient algebra.
 
-        The quotient algebra is defined via the action of a free algebra
-        A on a (finitely generated) free module. The input for the quotient
-        algebra is a list of monomials (in the underlying monoid for A)
-        which form a free basis for the module of A, and a list of
-        matrices, which give the action of the free generators of A on this
-        monomial basis.
+        The quotient algebra can be defined in two ways:
 
-        EXAMPLE:
+        - Via an ideal `I`.
+
+        - Via the action of a free algebra `A` on a (finitely generated) free
+          module. The input for the quotient algebra is a list of monomials
+          (in the underlying monoid for `A`) which form a free basis for the
+          module of `A`, and a list of matrices, which give the action of the
+          free generators of `A` on this monomial basis.
+
+        EXAMPLES:
 
         Here is the quaternion algebra defined in terms of three generators::
 
@@ -849,8 +861,11 @@ class FreeAlgebra_generic(Algebra):
             sage: H.<i,j,k> = A.quotient(mons, mats); H
             Free algebra quotient on 3 generators ('i', 'j', 'k') and dimension 4 over Rational Field
         """
-        import free_algebra_quotient
-        return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
+        if mats is not None:
+            import free_algebra_quotient
+            return free_algebra_quotient.FreeAlgebraQuotient(self, I, mats, names)
+        from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra
+        return FinitelyPresentedAlgebra(I, names)
 
     quo = quotient
 
