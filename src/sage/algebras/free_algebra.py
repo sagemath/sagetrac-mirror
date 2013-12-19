@@ -863,7 +863,9 @@ class FreeAlgebra_generic(Algebra):
         if mats is not None:
             import free_algebra_quotient
             return free_algebra_quotient.FreeAlgebraQuotient(self, I, mats, names)
-        from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra
+        from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra, TwoSidedAlgebraIdeal
+        if not isinstance(I, TwoSidedAlgebraIdeal):
+            raise TypeError("must be a two sided algebra ideal")
         return FinitelyPresentedAlgebra(self, I, names)
 
     quo = quotient

@@ -262,6 +262,23 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
         """
         return self.algebra_generators()[i]
 
+    def ideal(self, *args, **kwds):
+        """
+        Return a side ``side`` ideal of ``self`` given by ``gens``.
+        """
+        if kwds.get('side', 'twosided') == 'twosided':
+            return TwoSidedPBWIdeal(self, args)
+        return super(PBWBasisOfFreeAlgebra, self).ideal(self, *args, **kwds)
+
+    def quotient(self, I, names=None, category=None):
+        """
+        Return the quotient of ``self`` by ``I``.
+        """
+        from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra
+        if not isinstance(I, TwoSidedPBWIdeal):
+            raise TypeError("must be a two sided algebra ideal")
+        return FinitelyPresentedAlgebra(self, I, names)
+
     def free_algebra(self):
         """
         Return the associated free algebra of ``self``.
@@ -362,30 +379,30 @@ class TwoSidedPBWIdeal(Ideal_nc):
         """
         gb = map(lambda x: x / x.leading_coefficient(), gens)
         self._gb = [1, gb]
-        n = pbw_algebra.ngens()
+        n = len(pbw_algebra.algebra_generators())
         self._gb_todo = [(g, h) for g in gb for h in gb]
         self._gb_todo += [(g, ZZ(i)) for g in gb for i in range(n)]
 
         Ideal_nc.__init__(self, pbw_algebra, gens, "twosided")
 
-    def pbw_algebra(self):
+    def pbw_basis(self):
         """
-        Return the ambient PBW algebra of ``self``.
+        Return the ambient PBW basis of ``self``.
         """
         return self.ring()
 
     @staticmethod
     def _lead_cmp(x, y):
         """
-        Compare ``x`` and ``y`` by degree then reverse lex so :meth:`leading_item()`
-        returns the largest degree and smallest lex.
+        Compare ``x`` and ``y`` by degree then reverse lex so
+        :meth:`leading_item()` returns the largest degree and smallest lex.
         """
         c = cmp(len(x), len(y))
         if c != 0:
             return c
         return cmp(y, x)
 
-    @cached_method
+    #@cached_method
     def groebner_basis(self, d=infinity):
         """
         Return a Groebner basis of ``self``.
@@ -396,11 +413,11 @@ class TwoSidedPBWIdeal(Ideal_nc):
             return tuple(map(PBW, self._gb[1]))
         if d <= self._gb[0]:
             return tuple(map(PBW, filter(lambda x: len(x.leading_support(l_cmp)) <= d,
-                                       self._gb[1])))
+                                         self._gb[1])))
 
         # Run Groebner basis algorithm on the PBW gens
         gens = self._gb[1] # The gens are in the PBW basis
-        n = PBW.ngens()
+        n = len(PBW.algebra_generators())
         FM = PBW.basis().keys()
         PBW_from_exp = lambda x: PBW.monomial(FM( [a for a in enumerate(x) if a[1] > 0] ))
 
@@ -429,7 +446,7 @@ class TwoSidedPBWIdeal(Ideal_nc):
                 h = PBW_from_exp(f[0]) * p[0] - p[1] * PBW_from_exp(f[1])
 
             self._gb_todo.pop(cur) # We have taken care of the pairing
-            h = self._reduce_pbw(h, gens)
+            h = self._normal_form(h, gens)
 
             if h != PBW.zero():
                 h /= h.leading_coefficient(l_cmp)
@@ -448,12 +465,12 @@ class TwoSidedPBWIdeal(Ideal_nc):
         # Remove all elements with larger degree
         return tuple(filter(lambda x: len(x.leading_support(l_cmp)) <= d, gens))
 
-    def _reduce_pbw(self, x, G):
+    def _normal_form(self, x, G):
         """
-        Return ``x`` modulo ``G`` where ``x`` is in the PBW basis.
+        Return ``x`` modulo ``G`` (i.e. the normal form) where ``x`` is in
+        the PBW basis.
         """
-        F = self.ring()
-        PBW = F.pbw_basis()
+        PBW = self.ring()
         ret = PBW.zero()
         FM = PBW.basis().keys()
         l_cmp = TwoSidedPBWIdeal._lead_cmp
@@ -472,14 +489,16 @@ class TwoSidedPBWIdeal(Ideal_nc):
                     x -= la / mu * PBW(FM(w[:f])) * g * PBW(FM(w[f+len(LM):]))
                     break
             if not found:
-                ret += la * F(u)
-                x -= la * F(u)
+                ret += la * PBW(u)
+                x -= la * PBW(u)
         return ret
 
     def reduce(self, x):
         """
         Return ``x`` modulo ``self``.
         """
+        if x == self.ring().zero():
+            return x
         G = self.groebner_basis( len(x.leading_support()) )
-        return self._reduce_pbw(x, G)
+        return self._normal_form(x, G)
 
