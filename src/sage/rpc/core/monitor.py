@@ -104,7 +104,7 @@ class MonitorClient(ClientBase):
         self.log.debug('stderr %s', stderr.strip())
         print('STDERR ' + stderr)
 
-    def _impl_sage_eval_crash(self):
+    def _impl_sage_eval_crash(self, label):
         """
         RPC callback when the compute server crashed
         """
@@ -228,7 +228,7 @@ class Monitor(object):
         Compare with :meth:`handle_server_disconnect`.
         """
         print('Monitor: Compute server died.')
-        self.server.rpc.sage_eval.crash()
+        self.server.rpc.sage_eval.crash(self.current_label)
         self.server._transport.flush()
         # todo: restart?
         self.process.wait()

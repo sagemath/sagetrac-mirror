@@ -35,7 +35,7 @@ DNS_REGEX_PATTERN = '[a-zA-Z0-9][a-zA-Z0-9\-\.]*'
 URI_RE = re.compile(r'(?P<scheme>[A-Za-z]+)://(?P<interface>'
                     + DNS_REGEX_PATTERN + 
                     r'):(?P<port>[0-9]+)')
-SEPARATOR = '\0'
+SEPARATOR = b'\0'
 
 
 class TransportError(Exception):
@@ -58,9 +58,9 @@ class TransportBase(object):
 
         
         """
-        self._read_buf = ''
+        self._read_buf = b''
         self._read_pos = -1
-        self._write_buf = ''
+        self._write_buf = b''
     
     def _init_uri(self, uri):
         """
@@ -260,10 +260,11 @@ class TransportBase(object):
             self.nonblocking_read()
         pos = self._read_pos
         buf = self._read_buf
-        assert buf[pos] == SEPARATOR
+        assert buf[pos] == SEPARATOR[0]
         data = buf[:pos]
         self._read_buf = buf[pos+1:]
         self._read_pos = self._read_buf.find(SEPARATOR)
+        data = data.decode('utf-8')
         return json.loads(data)
 
     def write(self, data):
@@ -285,7 +286,7 @@ class TransportBase(object):
         
         Boolean. Whether everything was written. If ``False``,
         """
-        self._write_buf = self._write_buf + json.dumps(data) + '\0'
+        self._write_buf = self._write_buf + json.dumps(data).encode('utf-8') + b'\0'
         self.nonblocking_write()
 
     def is_written(self, try_write=True):
