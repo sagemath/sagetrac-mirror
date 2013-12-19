@@ -72,7 +72,7 @@ class ProxyCaller(object):
                 table = table_by_prefix.get(prefix, [])
                 table.append(name)
                 table_by_prefix[prefix] = table
-        for extra_prefix, table in table_by_prefix.iteritems():
+        for extra_prefix, table in table_by_prefix.items():
             attr = ProxyCaller(self._rpc_caller, table, base_prefix + '.' + extra_prefix)
             setattr(self, extra_prefix, attr)
 

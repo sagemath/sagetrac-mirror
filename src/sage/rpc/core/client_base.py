@@ -65,7 +65,7 @@ class ClientBase(RemoteProcedureCaller):
         self._init_remote_rpc(rpc_table)
         self._transport.write({
             'type': TYPE_INIT_REPLY,
-            'rpc_table': self._rpc.keys(),
+            'rpc_table': list(self._rpc.keys()),
             'ok': True})
         self.rpc.util.remote_is_ready()   # the first RPC call
 

@@ -27,7 +27,7 @@ class RemoteProcedureLogger(object):
         args = map(str, args)
         extra = dict(self._extra)
         extra.update(kwds.get('extra', {}))
-        kwds = dict((k,str(v)) for k,v in kwds.iteritems() if k != 'extra')
+        kwds = dict((k,str(v)) for k,v in kwds.items() if k != 'extra')
         kwds['extra'] = extra
         self._rpc_caller._transport.write({
             'type': TYPE_REMOTE_LOG,
@@ -83,7 +83,7 @@ class ServerBase(RemoteProcedureCaller):
             'type': TYPE_INIT_CONNECTION,
             'cookie': self._cookie,
             'api_version': self.api_version(),
-            'rpc_table': self._rpc.keys()})
+            'rpc_table': list(self._rpc.keys())})
 
     def handle_init_reply(self, reply):
         self.log.debug('initialization reply %s', reply)
