@@ -106,7 +106,7 @@ from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
-
+from sage.misc.superseded import deprecated_function_alias
 #from sage.structure.parent cimport Parent
 
 cdef Integer one_Z = Integer(1)
@@ -722,28 +722,28 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return self
 
-    def centerlift(self):
+    def lift_centered(self):
         r"""
         Lift ``self`` to an integer `i` such that `n/2 < i <= n/2`
         (where `n` denotes the modulus).
 
         EXAMPLES::
 
-            sage: Mod(0,5).centerlift()
+            sage: Mod(0,5).lift_centered()
             0
-            sage: Mod(1,5).centerlift()
+            sage: Mod(1,5).lift_centered()
             1
-            sage: Mod(2,5).centerlift()
+            sage: Mod(2,5).lift_centered()
             2
-            sage: Mod(3,5).centerlift()
+            sage: Mod(3,5).lift_centered()
             -2
-            sage: Mod(4,5).centerlift()
+            sage: Mod(4,5).lift_centered()
             -1
-            sage: Mod(50,100).centerlift()
+            sage: Mod(50,100).lift_centered()
             50
-            sage: Mod(51,100).centerlift()
+            sage: Mod(51,100).lift_centered()
             -49
-            sage: Mod(-1,3^100).centerlift()
+            sage: Mod(-1,3^100).lift_centered()
             -1
         """
         n = self.modulus()
@@ -752,6 +752,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return x
         else:
             return x - n
+
+    centerlift = deprecated_function_alias(8558,lift_centered)
 
     cpdef bint is_one(self):
         raise NotImplementedError

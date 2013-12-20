@@ -23,6 +23,7 @@ whereas others have multiple bases.
    sage/rings/polynomial/polynomial_integer_dense_ntl
    sage/rings/polynomial/polynomial_zmod_flint
    sage/rings/polynomial/polynomial_modn_dense_ntl
+   sage/rings/polynomial/polynomial_number_field
    sage/rings/polynomial/polynomial_real_mpfr_dense
    sage/rings/polynomial/polynomial_singular_interface
 

@@ -90,7 +90,7 @@ cdef class ntl_ZZ_pEX:
                 ZZ_pEX_SetCoeff(self.x, i, cc.x)
         else:
             raise NotImplementedError
-            s = str(v).replace(',',' ').replace('L','')
+            #s = str(v).replace(',',' ').replace('L','')
             #sig_on()
             #ZZ_pEX_from_str(&self.x, s)
             #sig_off()
@@ -599,6 +599,54 @@ cdef class ntl_ZZ_pEX:
         cdef ntl_ZZ_pEX ans = PY_NEW(ntl_ZZ_pEX)
         sig_on()
         ZZ_pEX_conv_modulus(ans.x, self.x, c.x)
+        sig_off()
+        ans.c = cE
+        return ans
+
+    def convert_to_pE(self, ntl_ZZ_pEContext_class cE):
+        """
+
+        Convert to a new ``ntl_ZZ_pEContext``.
+
+        INPUT:
+
+            - ``cE`` -- a ``ntl_ZZ_pEContext`` object.
+
+        OUTPUT:
+
+            - A new ``ntl_ZZ_pEX`` which is the same as ``self``, but considered
+              modulo a different ``pEContext`` (but the SAME polynomial).
+
+        In order for this to make mathematical sense, the modulus `p = cE.get_pc()`
+        should divide the modulus of ``self`` (in which case ``self`` is reduced
+        modulo `p`) or the modulus of ``self`` should divide the modulus of `cE`
+        (in which case ``self`` is lifted to something modulo `cE.p` congruent
+        to ``self`` modulo ``self.c.p``). Moreover, the polynomial definig the
+        extension `cE` should reduce mod `p` to the polynomial defining the
+        class of ``self`` or viceversa.
+
+        EXAMPLES:
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([3120, 0, 1], 5^5))
+        sage: d = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 3*5^6))
+        sage: a = ntl.ZZ_pE([2245, 64], c)
+        sage: b = ntl.ZZ_pE([2650, 1112], c)
+        sage: f = ntl.ZZ_pEX([a, b])
+        sage: g = f.convert_to_pE( d )
+        sage: g
+        [[2245 64] [2650 1112]]
+        sage: g.get_modulus_context()
+        NTL modulus [46870 0 1] (mod 46875)
+        sage: g^2
+        [[44880 6110] [805 35205] [33345 34225]]
+        sage: (f^2).convert_to_pE( d )
+        [[1130 2985] [805 830] [2095 2975]]
+        sage: ((f^2).convert_to_pE( d ) - g^2).convert_to_pE(c)
+        []
+        """
+        cE.restore_c()
+        cdef ntl_ZZ_pEX ans = PY_NEW(ntl_ZZ_pEX)
+        sig_on()
+        ZZ_pEX_conv_modulus(ans.x, self.x, cE.pc.x)
         sig_off()
         ans.c = cE
         return ans
@@ -1158,11 +1206,11 @@ cdef class ntl_ZZ_pEX:
         function.)
 
         EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)
         sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f[10]=ntl.ZZ_pE([1,8],c)  # no new memory is allocated
+        sage: f[10] = ntl.ZZ_pE([1,8],c)  # no new memory is allocated
         sage: f
         [[3 2] [1 2] [1 2] [] [] [] [] [] [] [] [1 8]]
         """
@@ -1171,6 +1219,119 @@ cdef class ntl_ZZ_pEX:
         self.x.SetMaxLength(n)
         sig_off()
 
+    def lift_to_poly_ZZ(self, R):
+        """
+        Compute a lift of poly to the polynomial ring `R`
+
+        INPUT:
+
+            - `R`: an univariate polynomial ring over an absolute number field
+              `QQ[a]`.
+
+        If `self` is an element in `ZZ[x]/(m, c(x))`. In order to make sense
+        of this algorithm, the minimum polynomial of `a` should be congruent
+        to `c(x)` modulo `m`.
+
+        OUTPUT:
+
+        - An element of `R` with coefficients in `ZZ[a]` that is congruent to
+          `self` modulo `(m, c(x))`.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            sage: from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            sage: from sage.libs.ntl.ntl_ZZ_pEX import ntl_ZZ_pEX
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1], 3))
+            sage: f = ntl_ZZ_pEX([[0,1,2], [2,1,1], [2,1,0],[0,0,0],[1,2,1]],c)
+            sage: f
+            [[1 1] [1 1] [2 1] [] [0 2]]
+            sage: N = NumberField(x^2+7,'a')
+
+        """
+        cdef ntl_ZZ_pX element
+        lifted = []
+        N = R.base_ring()
+        alpha = N.gen()
+        r = self.degree()
+        s = N.degree()
+        z = N(0)
+        a = N.gen(0)
+        for 0 <= i <= r:
+            element = self[i].get_as_ZZ_pX_doctest()
+            lifted_element = z
+            for 0 <= j <= s-1:
+                lifted_element += element[j].lift_centered()._integer_()*a**j
+            lifted += [lifted_element]
+        p = R._polynomial_class(R, lifted, check=False)
+        return p
+
+    def lift_to_poly_QQ(self, R):
+        """
+        Compute a lift of poly to a polynomial ring `R` using rational
+        recontruction.
+
+        AUTHOR: Luis Felipe Tabera (2010-06)
+
+        INPUT:
+
+        - `R`: an univariate polynomial ring over an absolute number field
+          `QQ[a]`.
+
+        If `self` is an element in `ZZ[x]/(m, c(x))`. In order to make sense
+        of this algorithm, the minimum polynomial of `a` should be congruent to
+        `c(x)` modulo `m`.
+
+        OUTPUT:
+
+        -A polynomial in `QQ[a]` such that is congruent to ``self`` modulo
+        `(m, c(x))`.
+
+        .. NOTE:
+
+            This algorithm uses rational reconstruction, so it may fail with a
+            ``ValueError`` exception.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            sage: from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            sage: from sage.libs.ntl.ntl_ZZ_pEX import ntl_ZZ_pEX
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1], 292393))
+            sage: f = ntl_ZZ_pEX([[204977,1,2], [2,1,1], [2,1,0],[0,0,0],[1,2,1]],c)
+            sage: f
+            [[204975 1] [1 1] [2 1] [] [0 2]]
+            sage: N = NumberField(x^2+1,'a')
+            sage: f.lift_to_poly_QQ(N[x])
+            2*a*x^4 + (a + 2)*x^2 + (a + 1)*x + a - 149/97
+
+        Rational reconstruction may fail::
+
+            sage: c = ntl_ZZ_pEContext(ntl_ZZ_pX([1, 0, 1], 13))
+            sage: f = ntl_ZZ_pEX([[3,0,0]],c)
+            sage: N = NumberField(x^2+1,'a')
+            sage: f.lift_to_poly_QQ(N[x])
+            Traceback (most recent call last):
+            ...
+            ValueError: Rational reconstruction of 3 (mod 13) does not exist.
+        """
+        cdef ntl_ZZ_pX element
+        m = self.c.pc.p._integer_()
+        lifted =[]
+        N = R.base_ring()
+        alpha = N.gen()
+        r = self.degree()
+        s = N.degree()
+        z = N(0)
+        a = N.gen(0)
+        for 0 <= i <= r:
+            element = self[i].get_as_ZZ_pX_doctest()
+            lifted_element = z
+            for 0 <= j <= s-1:
+                lifted_element += element[j]._integer_().rational_reconstruction(m)*a**j
+            lifted += [lifted_element]
+        p = R._polynomial_class(R, lifted, check=False)
+        return p
 
 def make_ZZ_pEX(v, modulus):
     """
