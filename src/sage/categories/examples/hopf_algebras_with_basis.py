@@ -1,5 +1,5 @@
 r"""
-Examples of Hopf algebras with basis
+Examples of Hopf Algebras With Basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -16,11 +16,11 @@ from sage.categories.all import tensor
 
 class MyGroupAlgebra(CombinatorialFreeModule):
     r"""
-    An of a Hopf algebra with basis: the group algebra of a group
+    An of a Hopf algebra with basis: the group algebra of a group.
 
-    This class illustrates a minimal implementation of a Hopf algebra with basis.
+    This class illustrates a minimal implementation of a Hopf algebra
+    with basis.
     """
-
     def __init__(self, R, G):
         """
         EXAMPLES::
@@ -41,7 +41,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
             sage: HopfAlgebrasWithBasis(QQ).example() # indirect doctest
             An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
         """
-        return "An example of Hopf algebra with basis: the group algebra of the %s over %s"%(self._group, self.base_ring())
+        return "An example of Hopf algebra with basis: the group algebra of " \
+               "the {} over {}".format(self._group, self.base_ring())
 
     @cached_method
     def one_basis(self):
@@ -61,7 +62,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, g1, g2):
         r"""
-        Product, on basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+        Product, on basis elements, as per
+        :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
 
         The product of two basis elements is induced by the product of
         the corresponding elements of the group.
@@ -80,7 +82,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+        The generators of this algebra, as per
+        :meth:`Algebras.ParentMethods.algebra_generators`.
 
         They correspond to the generators of the group.
 
@@ -95,7 +98,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
 
     def coproduct_on_basis(self, g):
         r"""
-        Coproduct, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.coproduct_on_basis`.
+        Coproduct, on basis elements, as per
+        :meth:`HopfAlgebrasWithBasis.ParentMethods.coproduct_on_basis`.
 
         The basis elements are group like: `\Delta(g) = g \otimes g`.
 
@@ -111,7 +115,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
 
     def counit_on_basis(self, g):
         r"""
-        Counit, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.counit_on_basis`.
+        Counit, on basis elements, as per
+        :meth:`HopfAlgebrasWithBasis.ParentMethods.counit_on_basis`.
 
         The counit on the basis elements is 1.
 
@@ -126,7 +131,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
 
     def antipode_on_basis(self, g):
         r"""
-        Antipode, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.antipode_on_basis`.
+        Antipode, on basis elements, as per
+        :meth:`HopfAlgebrasWithBasis.ParentMethods.antipode_on_basis`.
 
         It is given, on basis elements, by `\nu(g) = g^{-1}`
 

@@ -19,7 +19,7 @@ from category_types import Category_over_base_ring
 
 class AlgebrasWithBasis(Category_over_base_ring):
     """
-    The category of algebras with a distinguished basis
+    The category of algebras with a distinguished basis.
 
     EXAMPLES::
 
@@ -109,10 +109,10 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
     def example(self, alphabet = ('a','b','c')):
         """
-        Returns an example of algebra with basis as per
+        Return an example of algebra with basis as per
         :meth:`Category.example <sage.categories.category.Category.example>`.
 
-        ::
+        EXAMPLES::
 
             sage: AlgebrasWithBasis(QQ).example()
             An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
