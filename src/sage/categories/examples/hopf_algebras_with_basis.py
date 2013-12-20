@@ -1,5 +1,5 @@
 r"""
-Examples of algebras with basis
+Examples of Hopf algebras with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
