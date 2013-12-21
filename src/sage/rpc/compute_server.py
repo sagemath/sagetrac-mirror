@@ -47,6 +47,21 @@ class SageComputeServer(ServerBase):
     def _init_shell(self):
         from sage.misc.interpreter import get_test_shell
         self._shell = get_test_shell()
+
+    def init_receive_extra(self, extra):
+        """
+        Receive additional data during initialization.
+
+        Override this method for an easy way to get additional
+        initialization data. It is not permitted to make RPC calls at
+        this point in the negotiation.
+
+        INPUT:
+
+        - ``extra`` -- the output of :meth:`client_base.send_extra` on
+          the other end of the connection.
+        """
+        self.end_marker = extra['end_marker']
         
     def rpc_sage_eval_init(self, code_string, label):
         t0_cpu = time.clock()

@@ -83,7 +83,38 @@ class ServerBase(RemoteProcedureCaller):
             'type': TYPE_INIT_CONNECTION,
             'cookie': self._cookie,
             'api_version': self.api_version(),
-            'rpc_table': list(self._rpc.keys())})
+            'rpc_table': list(self._rpc.keys()),
+            'extra': self.init_send_extra(),
+        })
+
+    def init_receive_extra(self, extra):
+        """
+        Receive additional data during initialization.
+
+        Override this method for an easy way to get additional
+        initialization data. It is not permitted to make RPC calls at
+        this point in the negotiation.
+
+        INPUT:
+
+        - ``extra`` -- the output of :meth:`client_base.send_extra` on
+          the other end of the connection.
+        """
+        pass
+
+    def init_send_extra(self):
+        """
+        Send additional data during initialization.
+
+        Override this method for an easy way to pass additional
+        initialization data. It is not permitted to make RPC calls at
+        this point in the negotiation.
+
+        OUTPUT:
+
+        Anything that is a JSON serializeable dictionary value.
+        """
+        return None
 
     def handle_init_reply(self, reply):
         self.log.debug('initialization reply %s', reply)
@@ -93,6 +124,7 @@ class ServerBase(RemoteProcedureCaller):
             error = 'client refused connection'
             self.log.critical(error)
             raise ServerException(error)
+        self.init_receive_extra(reply.get('extra', None))
         try:
             rpc_table = reply['rpc_table']
         except KeyError:
