@@ -402,10 +402,9 @@ class TwoSidedPBWIdeal(Ideal_nc):
             return c
         return cmp(y, x)
 
-    #@cached_method
-    def groebner_basis(self, d=infinity):
+    def partial_groebner_basis(self, d):
         """
-        Return a Groebner basis of ``self``.
+        Return a partial Groebner basis of ``self`` up to degree ``d``.
         """
         l_cmp = TwoSidedPBWIdeal._lead_cmp
         PBW = self.ring()
@@ -465,6 +464,16 @@ class TwoSidedPBWIdeal(Ideal_nc):
         # Remove all elements with larger degree
         return tuple(filter(lambda x: len(x.leading_support(l_cmp)) <= d, gens))
 
+    def groebner_basis(self):
+        """
+        Return a Groebner basis of ``self``.
+
+        .. WARNING::
+
+            This will run forever if the Groebner basis is infinite.
+        """
+        return self.partial_groebner_basis(infinity)
+
     def _normal_form(self, x, G):
         """
         Return ``x`` modulo ``G`` (i.e. the normal form) where ``x`` is in
@@ -499,6 +508,6 @@ class TwoSidedPBWIdeal(Ideal_nc):
         """
         if x == self.ring().zero():
             return x
-        G = self.groebner_basis( len(x.leading_support()) )
+        G = self.partial_groebner_basis( len(x.leading_support()) )
         return self._normal_form(x, G)
 

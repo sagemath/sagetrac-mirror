@@ -1,7 +1,7 @@
 """
 Finitely Presented Algebras
 
-Finitely presented algebras realized as quotients of the free algebra.
+Finitely presented algebras are realized as quotients of the free algebra.
 """
 
 #*****************************************************************************
@@ -48,12 +48,22 @@ class TwoSidedAlgebraIdeal(Ideal_nc):
         """
         return self.ring()
 
-    def groebner_basis(self, d=infinity):
+    def partial_groebner_basis(self, d):
         """
-        Return a Groebner basis of ``self``.
+        Return a partial Groebner basis of ``self`` up to degree ``d``.
         """
         F = self.ring()
-        return tuple(map(F, self._pbw_ideal.groebner_basis(d)))
+        return tuple(map(F, self._pbw_ideal.partial_groebner_basis(d)))
+
+    def groebner_basis(self):
+        r"""
+        Return a Groebner basis of ``self``.
+
+        .. WARNING::
+
+            This will run forever if the Groebner basis is infinite.
+        """
+        return self.partial_groebner_basis(infinity)
 
     def reduce(self, x):
         """
