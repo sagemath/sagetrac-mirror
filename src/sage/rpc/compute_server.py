@@ -89,7 +89,7 @@ class SageComputeServer(ServerBase):
         sys.stdout.flush()        
 
     def rpc_print_end_marker(self):
-        print(self.end_marker)
-        print(self.end_marker, file=sys.stderr)
+        sys.stdout.write(self.end_marker)
+        sys.stderr.write(self.end_marker)
         sys.stdout.flush()        
         sys.stderr.flush()
