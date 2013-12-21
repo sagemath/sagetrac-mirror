@@ -22,7 +22,7 @@ elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
-    BLAS2='atlas'
+    BLAS2='cblas'
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
     BLAS2='gslcblas'
@@ -504,6 +504,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
+    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
+              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+
         ###################################
         ##
         ## sage.groups.perm_gps.partn_ref
@@ -699,6 +702,10 @@ ext_modules = [
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"],
+              libraries = ['pari', 'gmp']),
+
+    Extension('sage.libs.pari.handle_error',
+              sources = ["sage/libs/pari/handle_error.pyx"],
               libraries = ['pari', 'gmp']),
 
     Extension('sage.libs.ppl',
@@ -994,17 +1001,8 @@ ext_modules = [
               language = "c++",
               libraries=['ntl', 'gmp']),
 
-    #Extension('sage.matrix.matrix_cyclo_sparse',
-    #          sources = ['sage/matrix/matrix_cyclo_sparse.pyx']),
-
     Extension('sage.matrix.matrix_dense',
               sources = ['sage/matrix/matrix_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_dense',
-    #          sources = ['sage/matrix/matrix_domain_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_sparse',
-    #          sources = ['sage/matrix/matrix_domain_sparse.pyx']),
 
     Extension('sage.matrix.matrix_double_dense',
               sources = ['sage/matrix/matrix_double_dense.pyx'],
@@ -1076,12 +1074,6 @@ ext_modules = [
               depends = singular_depends,
               extra_compile_args = givaro_extra_compile_args),
 
-    #Extension('sage.matrix.matrix_pid_dense',
-    #          sources = ['sage/matrix/matrix_pid_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_pid_sparse',
-    #          sources = ['sage/matrix/matrix_pid_sparse.pyx']),
-
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               libraries = ['pari', 'gmp']),
@@ -1114,9 +1106,6 @@ ext_modules = [
 
     Extension('sage.matrix.strassen',
               sources = ['sage/matrix/strassen.pyx']),
-
-    #Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
-    #          sources = ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx']),
 
     ################################
     ##
@@ -1257,6 +1246,9 @@ ext_modules = [
 
     Extension('sage.misc.stopgap',
               sources = ['sage/misc/stopgap.pyx']),
+
+    Extension('sage.misc.weak_dict',
+              sources = ['sage/misc/weak_dict.pyx']),
 
     ################################
     ##
@@ -1562,11 +1554,6 @@ ext_modules = [
               libraries = ['mpfr', 'pari', 'gmp'],
               depends = numpy_depends),
 
-    #Extension('sage.rings.real_rqdf',
-    #          sources = ["sage/rings/real_rqdf.pyx"],
-    #          libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
-    #          language='c++'),
-
     Extension('sage.rings.residue_field',
               sources = ['sage/rings/residue_field.pyx']),
 
@@ -1610,6 +1597,19 @@ ext_modules = [
     Extension('sage.rings.finite_rings.element_pari_ffelt',
               sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
               libraries = ['pari', 'gmp']),
+
+    Extension('sage.rings.finite_rings.hom_finite_field',
+              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_prime_finite_field',
+              sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),
+
+    Extension('sage.rings.finite_rings.hom_finite_field_givaro',
+              sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
+              # this order is needed to compile under windows.
+              libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++', ],
+              language='c++',
+              extra_compile_args = givaro_extra_compile_args),
 
         ################################
         ##
