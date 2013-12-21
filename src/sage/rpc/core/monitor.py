@@ -16,7 +16,7 @@ from sage.rpc.core.transport import Transport, TransportListen, TransportError
 from sage.rpc.core.client_base import ClientBase
 from sage.rpc.core.compute_client import ComputeClient
 from sage.rpc.core.server_base import ServerBase
-
+from sage.rpc.core.stream_with_marker import StreamWithMarker, StreamStoppedException
 
 
 class MonitorClient(ClientBase):
@@ -178,7 +178,27 @@ class Monitor(object):
         self.client.rpc.compute.sage_eval(code_string, label)
 
     def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
-        self.server.rpc.sage_eval.result(cpu_time, wall_time, label)
+        """
+        Callback when the compute server finished.
+
+        The evaluation might have been successful or ended in an
+        error, but at least the compute server did not crash.
+        
+        We still need to flush the stdout/stderr of the compute
+        server. This will then call :meth:`on_end_marker_received`,
+        which concludes the computation.
+        """
+        assert label == self.current_label
+        self.process.stop_at(self.client.end_marker)
+        self.client.rpc.compute.print_end_marker()
+        self._eval_cpu_time = cpu_time
+        self._eval_wall_time = cpu_time
+        
+    def on_end_marker_received(self):
+        self.process.stop_at(None)
+        self.server.rpc.sage_eval.result(
+            self._eval_cpu_time, self._eval_wall_time, self.current_label)        
+        self._eval_cpu_time = self._eval_wall_time = None
         self.current_label = None
 
     def loop(self):
@@ -263,7 +283,7 @@ class Monitor(object):
         
     def need_stdin(self):
         """
-        Called by the monitored process if it requests user input (overriding 
+        Called by the monitored process if it requests user input
         """
         print('need stdin')
         # self.server.rpc.sage_eval.stdin(self.current_label)
@@ -272,13 +292,15 @@ class Monitor(object):
         """
         Called by the monitored process if it produces stderr
         """
-        self.server.rpc.sage_eval.stdout(stdout, self.current_label)
+        if stdout != '':
+            self.server.rpc.sage_eval.stdout(stdout, self.current_label)
 
     def got_stderr(self, stderr):
         """
         Called by the monitored process if it produces stderr
         """
-        self.server.rpc.sage_eval.stderr(stderr, self.current_label)
+        if stderr != '':
+            self.server.rpc.sage_eval.stderr(stderr, self.current_label)
 
 
 
@@ -296,10 +318,15 @@ class MonitoredProcess(object):
         self._init_listen()
         self._init_process(argv)
         self.transport().accept()
-        self._end_marker = None
-        self._end_stdout = False
-        self._end_stderr = False
+        self._stdout = StreamWithMarker()
+        self._stderr = StreamWithMarker()
+
+    def stop_at(self, end_marker=None):
+        self._stdout.stop_at(end_marker)
+        self._stderr.stop_at(end_marker)
         
+    def is_stopped(self):
+        return self._stdout.is_stopped() and self._stderr.is_stopped()
 
     def _init_listen(self):
         client_uri = 'tcp://localhost:0'
@@ -323,13 +350,23 @@ class MonitoredProcess(object):
         return ([fd_out, fd_err], [], [fd_out, fd_err])
 
     def select_handle(self, monitor, rlist, wlist, xlist):
-        stdout, stderr = self._proc.stdout, self._proc.stderr
-        fd_out = stdout.fileno()
-        fd_err = stderr.fileno()
+        proc_stdout, proc_stderr = self._proc.stdout, self._proc.stderr
+        fd_out = proc_stdout.fileno()
+        fd_err = proc_stderr.fileno()
         if fd_out in rlist:
-            monitor.got_stdout(stdout.read())
+            buf = self._stdout
+            buf.write(proc_stdout.read())
+            if not buf.is_stopped():
+                monitor.got_stdout(buf.read())
+            if self.is_stopped():
+                monitor.on_end_marker_received()
         if fd_err in rlist:
-            monitor.got_stderr(stderr.read())
+            buf = self._stderr
+            buf.write(proc_stderr.read())
+            if not buf.is_stopped():
+                monitor.got_stderr(buf.read())
+            if self.is_stopped():
+                monitor.on_end_marker_received()
 
     def transport(self):
         return self._transport

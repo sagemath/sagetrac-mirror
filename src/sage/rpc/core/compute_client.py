@@ -41,7 +41,7 @@ class ComputeClient(ClientBase):
         import string, random
         self._end_marker_len = 78
         self._end_marker = ''.join(random.choice(string.ascii_letters + string.digits)
-                                   for x in range(self._end_marker_len))
+                                   for x in range(self._end_marker_len)) + '\n'
 
     def init_send_extra(self):
         """
