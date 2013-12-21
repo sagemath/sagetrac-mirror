@@ -135,6 +135,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
+from sage.algebras.pbw_algebra import PBWBasisOfFreeAlgebra
 
 import sage.structure.parent_gens
 
@@ -142,9 +143,7 @@ from sage.structure.factory import UniqueFactory
 from sage.all import PolynomialRing
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
-from sage.combinat.lyndon_word import LyndonWords
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -419,7 +418,7 @@ class FreeAlgebra_generic(Algebra):
             raise TypeError("Argument R must be a ring.")
         self.__ngens = n
         #sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
-        self._indices = FreeMonoid(n, names=names)
+        self._basis_keys = FreeMonoid(n, names=names)
         Algebra.__init__(self, R, names, category=AlgebrasWithBasis(R))
 
     def one_basis(self):
@@ -434,7 +433,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F.one_basis().parent()
             Free monoid on 2 generators (x, y)
         """
-        return self._indices.one()
+        return self._basis_keys.one()
 
     # Needed for the category AlgebrasWithBasis (but not for Algebras)
     def term(self, index, coeff=None):
@@ -603,7 +602,7 @@ class FreeAlgebra_generic(Algebra):
             P = x.parent()
             if self.has_coerce_map_from(P): # letterplace versus generic
                 ngens = P.ngens()
-                M = self._indices
+                M = self._basis_keys
                 def exp_to_monomial(T):
                     out = []
                     for i in xrange(len(T)):
@@ -617,7 +616,7 @@ class FreeAlgebra_generic(Algebra):
             return sage_eval(x,locals=self.gens_dict())
         R = self.base_ring()
         # coercion from free monoid
-        if isinstance(x, FreeMonoidElement) and x.parent() is self._indices:
+        if isinstance(x, FreeMonoidElement) and x.parent() is self._basis_keys:
             return self.element_class(self,{x:R(1)})
         # coercion from the PBW basis
         if isinstance(x, PBWBasisOfFreeAlgebra.Element) \
@@ -627,7 +626,7 @@ class FreeAlgebra_generic(Algebra):
         x = R(x)
         if x == 0:
             return self.element_class(self,{})
-        return self.element_class(self,{self._indices.one():x})
+        return self.element_class(self,{self._basis_keys.one():x})
 
     def _coerce_impl(self, x):
         """
@@ -732,7 +731,7 @@ class FreeAlgebra_generic(Algebra):
             R = x.parent()
 
             # monoid
-            if R is self._indices:
+            if R is self._basis_keys:
                 return self(x)
 
             # polynomial rings in the same variable over any base that coerces in:
@@ -792,7 +791,7 @@ class FreeAlgebra_generic(Algebra):
             b + (z+1)*c
 
         """
-        if self._indices.has_coerce_map_from(R):
+        if self._basis_keys.has_coerce_map_from(R):
             return True
 
         # free algebras in the same variable over any base that coerces in:
@@ -821,21 +820,33 @@ class FreeAlgebra_generic(Algebra):
         if i < 0 or not i < n:
             raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         R = self.base_ring()
-        F = self._indices
+        F = self._basis_keys
         return self.element_class(self,{F.gen(i):R(1)})
 
-    def quotient(self, mons, mats, names):
+    def ideal(self, *args, **kwds):
+        """
+        Return a side ``side`` ideal of ``self`` given by ``gens``.
+        """
+        if kwds.get('side', 'twosided') == 'twosided':
+            from sage.algebras.finitely_presented_algebra import TwoSidedAlgebraIdeal
+            return TwoSidedAlgebraIdeal(self, args)
+        return super(FreeAlgebra_generic, self).ideal(self, *args, **kwds)
+
+    def quotient(self, I, mats=None, names=None, category=None):
         """
         Returns a quotient algebra.
 
-        The quotient algebra is defined via the action of a free algebra
-        A on a (finitely generated) free module. The input for the quotient
-        algebra is a list of monomials (in the underlying monoid for A)
-        which form a free basis for the module of A, and a list of
-        matrices, which give the action of the free generators of A on this
-        monomial basis.
+        The quotient algebra can be defined in two ways:
 
-        EXAMPLE:
+        - Via an ideal `I`.
+
+        - Via the action of a free algebra `A` on a (finitely generated) free
+          module. The input for the quotient algebra is a list of monomials
+          (in the underlying monoid for `A`) which form a free basis for the
+          module of `A`, and a list of matrices, which give the action of the
+          free generators of `A` on this monomial basis.
+
+        EXAMPLES:
 
         Here is the quaternion algebra defined in terms of three generators::
 
@@ -849,8 +860,13 @@ class FreeAlgebra_generic(Algebra):
             sage: H.<i,j,k> = A.quotient(mons, mats); H
             Free algebra quotient on 3 generators ('i', 'j', 'k') and dimension 4 over Rational Field
         """
-        import free_algebra_quotient
-        return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
+        if mats is not None:
+            import free_algebra_quotient
+            return free_algebra_quotient.FreeAlgebraQuotient(self, I, mats, names)
+        from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra, TwoSidedAlgebraIdeal
+        if not isinstance(I, TwoSidedAlgebraIdeal):
+            raise TypeError("must be a two sided algebra ideal")
+        return FinitelyPresentedAlgebra(self, I, names)
 
     quo = quotient
 
@@ -876,7 +892,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F.monoid()
             Free monoid on 3 generators (x, y, z)
         """
-        return self._indices
+        return self._basis_keys
 
     def g_algebra(self, relations, names=None, order='degrevlex', check = True):
         """
@@ -1035,7 +1051,7 @@ class FreeAlgebra_generic(Algebra):
         """
         if not w:
             return self.one()
-        M = self._indices
+        M = self._basis_keys
 
         if len(w) == 1:
             return self(M(w))
@@ -1056,327 +1072,4 @@ class FreeAlgebra_generic(Algebra):
 
 from sage.misc.cache import Cache
 cache = Cache(FreeAlgebra_generic)
-
-class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
-    """
-    The Poincare-Birkhoff-Witt basis of the free algebra.
-
-    EXAMPLES::
-
-        sage: F.<x,y> = FreeAlgebra(QQ, 2)
-        sage: PBW = F.pbw_basis()
-        sage: px, py = PBW.gens()
-        sage: px * py
-        PBW[x*y] + PBW[y]*PBW[x]
-        sage: py * px
-        PBW[y]*PBW[x]
-        sage: px * py^3 * px - 2*px * py
-        -2*PBW[x*y] - 2*PBW[y]*PBW[x] + PBW[x*y^3]*PBW[x] + PBW[y]*PBW[x*y^2]*PBW[x]
-         + PBW[y]^2*PBW[x*y]*PBW[x] + PBW[y]^3*PBW[x]^2
-
-    We can convert between the two bases::
-
-        sage: p = PBW(x*y - y*x + 2); p
-        2*PBW[1] + PBW[x*y]
-        sage: F(p)
-        2 + x*y - y*x
-        sage: f = F.pbw_element(x*y*x + x^3*y + x + 3)
-        sage: F(PBW(f)) == f
-        True
-        sage: p = px*py + py^4*px^2
-        sage: F(p)
-        x*y + y^4*x^2
-        sage: PBW(F(p)) == p
-        True
-
-    Note that multiplication in the PBW basis agrees with multiplication
-    as monomials::
-
-        sage: F(px * py^3 * px - 2*px * py) == x*y^3*x - 2*x*y
-        True
-
-    TESTS:
-
-    Check that going between the two bases is the identity::
-
-        sage: F = FreeAlgebra(QQ, 2, 'x,y')
-        sage: PBW = F.pbw_basis()
-        sage: M = F.monoid()
-        sage: L = [j.to_monoid_element() for i in range(6) for j in Words('xy', i)]
-        sage: all(PBW(F(PBW(m))) == PBW(m) for m in L)
-        True
-        sage: all(F(PBW(F(m))) == F(m) for m in L)
-        True
-    """
-    @staticmethod
-    def __classcall_private__(cls, R, n=None, names=None):
-        """
-        Normalize input to ensure a unique representation.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.free_algebra import PBWBasisOfFreeAlgebra
-            sage: PBW1 = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: PBW2.<x,y> = PBWBasisOfFreeAlgebra(QQ)
-            sage: PBW3 = PBWBasisOfFreeAlgebra(QQ, 2, ['x','y'])
-            sage: PBW1 is PBW2 and PBW2 is PBW3
-            True
-        """
-        if n is None and names is None:
-            if not isinstance(R, FreeAlgebra_generic):
-                raise ValueError("{} is not a free algebra".format(R))
-            alg = R
-        else:
-            if n is None:
-                n = len(names)
-            alg = FreeAlgebra(R, n, names)
-        return super(PBWBasisOfFreeAlgebra, cls).__classcall__(cls, alg)
-
-    def __init__(self, alg):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: TestSuite(PBW).run()
-        """
-        R = alg.base_ring()
-        self._alg = alg
-        category = AlgebrasWithBasis(R)
-        CombinatorialFreeModule.__init__(self, R, alg.monoid(), prefix='PBW',
-                                         category=category)
-        self._assign_names(alg.variable_names())
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            The Poincare-Birkhoff-Witt basis of Free Algebra on 2 generators (x, y) over Rational Field
-        """
-        return "The Poincare-Birkhoff-Witt basis of %s"%(self._alg)
-
-    def _repr_term(self, w):
-        """
-        Return a representation of term indexed by ``w``.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: x,y = PBW.gens()
-            sage: x*y # indirect doctest
-            PBW[x*y] + PBW[y]*PBW[x]
-            sage: y*x
-            PBW[y]*PBW[x]
-            sage: x^3
-            PBW[x]^3
-            sage: PBW.one()
-            PBW[1]
-            sage: 3*PBW.one()
-            3*PBW[1]
-        """
-        if len(w) == 0:
-            return super(PBWBasisOfFreeAlgebra, self)._repr_term(w)
-        ret = ''
-        p = 1
-        cur = None
-        for x in w.to_word().lyndon_factorization():
-            if x == cur:
-                p += 1
-            else:
-                if len(ret) != 0:
-                    if p != 1:
-                        ret += "^{}".format(p)
-                    ret += "*"
-                ret += super(PBWBasisOfFreeAlgebra, self)._repr_term(x.to_monoid_element())
-                cur = x
-                p = 1
-        if p != 1:
-            ret += "^{}".format(p)
-        return ret
-
-    def _element_constructor_(self, x):
-        """
-        Convert ``x`` into ``self``.
-
-        EXAMPLES::
-
-            sage: F.<x,y> = FreeAlgebra(QQ, 2)
-            sage: R = F.pbw_basis()
-            sage: R(3)
-            3*PBW[1]
-            sage: R(x*y)
-            PBW[x*y] + PBW[y]*PBW[x]
-        """
-        if isinstance(x, FreeAlgebraElement):
-            return self._alg.pbw_element(self._alg(x))
-        return CombinatorialFreeModule._element_constructor_(self, x)
-
-    def _coerce_map_from_(self, R):
-        """
-        Return ``True`` if there is a coercion from ``R`` into ``self`` and
-        ``False`` otherwise.  The things that coerce into ``self`` are:
-
-        - Anything that coerces into the associated free algebra of ``self``
-
-        TESTS::
-
-            sage: F = FreeAlgebra(ZZ, 3, 'x,y,z').pbw_basis()
-            sage: G = FreeAlgebra(QQ, 3, 'x,y,z').pbw_basis()
-            sage: H = FreeAlgebra(ZZ, 1, 'y').pbw_basis()
-            sage: F._coerce_map_from_(G)
-            False
-            sage: G._coerce_map_from_(F)
-            True
-            sage: F._coerce_map_from_(H)
-            False
-            sage: F._coerce_map_from_(QQ)
-            False
-            sage: G._coerce_map_from_(QQ)
-            True
-            sage: F._coerce_map_from_(G._alg.monoid())
-            True
-            sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
-            False
-            sage: F.has_coerce_map_from(FreeAlgebra(ZZ, 3, 'x,y,z'))
-            True
-        """
-        return self._alg.has_coerce_map_from(R)
-
-    def one_basis(self):
-        """
-        Return the index of the basis element for `1`.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: PBW.one_basis()
-            1
-            sage: PBW.one_basis().parent()
-            Free monoid on 2 generators (x, y)
-        """
-        return self._indices.one()
-
-    def algebra_generators(self):
-        """
-        Return the generators of ``self`` as an algebra.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: gens = PBW.algebra_generators(); gens
-            (PBW[x], PBW[y])
-            sage: all(g.parent() is PBW for g in gens)
-            True
-        """
-        return tuple(self.monomial(x) for x in self._indices.gens())
-
-    gens = algebra_generators
-
-    def gen(self, i):
-        """
-        Return the ``i``-th generator of ``self``.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: PBW.gen(0)
-            PBW[x]
-            sage: PBW.gen(1)
-            PBW[y]
-        """
-        return self.algebra_generators()[i]
-
-    def free_algebra(self):
-        """
-        Return the associated free algebra of ``self``.
-
-        EXAMPLES::
-
-            sage: PBW = FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
-            sage: PBW.free_algebra()
-            Free Algebra on 2 generators (x, y) over Rational Field
-        """
-        return self._alg
-
-    def product(self, u, v):
-        """
-        Return the product of two elements ``u`` and ``v``.
-
-        EXAMPLES::
-
-            sage: F = FreeAlgebra(QQ, 2, 'x,y')
-            sage: PBW = F.pbw_basis()
-            sage: x, y = PBW.gens()
-            sage: PBW.product(x, y)
-            PBW[x*y] + PBW[y]*PBW[x]
-            sage: PBW.product(y, x)
-            PBW[y]*PBW[x]
-            sage: PBW.product(y^2*x, x*y*x)
-            PBW[y]^2*PBW[x^2*y]*PBW[x] + PBW[y]^2*PBW[x*y]*PBW[x]^2 + PBW[y]^3*PBW[x]^3
-
-        TESTS:
-
-        Check that multiplication agrees with the multiplication in the
-        free algebra::
-
-            sage: F = FreeAlgebra(QQ, 2, 'x,y')
-            sage: PBW = F.pbw_basis()
-            sage: x, y = PBW.gens()
-            sage: F(x*y)
-            x*y
-            sage: F(x*y*x)
-            x*y*x
-            sage: PBW(F(x)*F(y)*F(x)) == x*y*x
-            True
-        """
-        return self(self.expansion(u) * self.expansion(v))
-
-    def expansion(self, t):
-        """
-        Return the expansion of the element ``t`` of the Poincare-Birkhoff-Witt
-        basis in the monomials of the free algebra.
-
-        EXAMPLES::
-
-            sage: F = FreeAlgebra(QQ, 2, 'x,y')
-            sage: PBW = F.pbw_basis()
-            sage: x,y = F.monoid().gens()
-            sage: PBW.expansion(PBW(x*y))
-            x*y - y*x
-            sage: PBW.expansion(PBW.one())
-            1
-            sage: PBW.expansion(PBW(x*y*x) + 2*PBW(x) + 3)
-            3 + 2*x + x*y*x - y*x^2
-
-        TESTS:
-
-        Check that we have the correct parent::
-
-            sage: PBW.expansion(PBW(x*y)).parent() is F
-            True
-            sage: PBW.expansion(PBW.one()).parent() is F
-            True
-        """
-        return sum([i[1] * self._alg.lie_polynomial(i[0]) for i in list(t)],
-                   self._alg.zero())
-
-    class Element(CombinatorialFreeModuleElement):
-        def expand(self):
-            """
-            Expand ``self`` in the monomials of the free algebra.
-
-            EXAMPLES::
-
-                sage: F = FreeAlgebra(QQ, 2, 'x,y')
-                sage: PBW = F.pbw_basis()
-                sage: x,y = F.monoid().gens()
-                sage: f = PBW(x^2*y) + PBW(x) + PBW(y^4*x)
-                sage: f.expand()
-                x + x^2*y - x*y*x + y^4*x
-            """
-            return self.parent().expansion(self)
 
