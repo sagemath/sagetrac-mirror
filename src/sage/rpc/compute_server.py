@@ -11,11 +11,14 @@ EXAMPLES::
     
 """
 
+from __future__ import print_function
+
 import os
 import sys
 import time
 from sage.rpc.core.server_base import ServerBase
 from sage.rpc.core.transport import TransportError
+
 
 
 def start_server(port, interface):
@@ -37,6 +40,8 @@ class SageComputeServer(ServerBase):
 
     def construct_rpc_table(self):
         rpc = super(ServerBase, self).construct_rpc_table()
+        rpc['compute.print'] = self.rpc_print
+        rpc['compute.print_end_marker'] = self.rpc_print_end_marker
         rpc['compute.sage_eval'] = self.rpc_sage_eval_init
         return rpc
 
@@ -45,6 +50,9 @@ class SageComputeServer(ServerBase):
         self._init_shell()
 
     def _init_shell(self):
+        """
+        Setup the Sage/IPython shell
+        """
         from sage.misc.interpreter import get_test_shell
         self._shell = get_test_shell()
 
@@ -75,3 +83,13 @@ class SageComputeServer(ServerBase):
         #os.fsync(sys.stdout.fileno())
         #os.fsync(sys.stderr.fileno())
         self.rpc.sage_eval.finished(t1_cpu - t0_cpu, t1_wall - t0_wall, label)
+
+    def rpc_print(self, value):
+        print(value)
+        sys.stdout.flush()        
+
+    def rpc_print_end_marker(self):
+        print(self.end_marker)
+        print(self.end_marker, file=sys.stderr)
+        sys.stdout.flush()        
+        sys.stderr.flush()

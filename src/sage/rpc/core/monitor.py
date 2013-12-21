@@ -14,6 +14,7 @@ import sys
 
 from sage.rpc.core.transport import Transport, TransportListen, TransportError
 from sage.rpc.core.client_base import ClientBase
+from sage.rpc.core.compute_client import ComputeClient
 from sage.rpc.core.server_base import ServerBase
 
 
@@ -134,56 +135,8 @@ class MonitorServer(ServerBase):
         self.log.info('MonitorServer started')
 
 
-class ComputeClient(ClientBase):
-    
-    def api_version(self):
-        return 'compute v1'
-
-    def construct_rpc_table(self):
-        rpc = super(ComputeClient, self).construct_rpc_table()
-        rpc['sage_eval.finished'] = self._impl_sage_eval_finished
-        return rpc
-
-    def __init__(self, transport, cookie):
-        """
-        The client half of the compute server.
-        """
-        self._init_end_marker()
-        super(ComputeClient, self).__init__(transport, cookie)
-
-    def _init_end_marker(self):
-        """
-        To mark the end of stdout/stderr streams on the compute server
-
-        Note that the socket and stdout streams are independent and
-        can arrive in random order.
-        """
-        import string, random
-        self._end_marker_len = 78
-        self._end_marker = ''.join(random.choice(string.ascii_letters + string.digits)
-                                   for x in range(self._end_marker_len))
-
-    def init_send_extra(self):
-        """
-        Send additional data during initialization.
-
-        OUTPUT:
-
-        Anything that is a JSON serializeable dictionary value.
-        """
-        return {'end_marker': self._end_marker}
-
-    @property
-    def end_marker(self):
-        return self._end_marker
-
-    def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
-        self.log.debug('sage eval finished')
-
-
-
 class MonitoredComputeClient(ComputeClient):
-    
+
     def construct_rpc_table(self):
         rpc = super(MonitoredComputeClient, self).construct_rpc_table()
         rpc['sage_eval.finished'] = self.monitor._impl_sage_eval_finished
@@ -192,17 +145,20 @@ class MonitoredComputeClient(ComputeClient):
 
     def __init__(self, monitor, transport, cookie):
         """
-        The client half of the monitor.
+        The client to the Sage compute server.
 
-        This part connects to the compute server.
+        This is part of the Monitor process and connects to the
+        compute server.
+
+        It is almost identical to
+        :class:`~sage.rpc.core.compute_client.ComputeClient`, except
+        that we forward some rpc calls to the :class:`Monitor`.
         """
         self.monitor = monitor
         super(MonitoredComputeClient, self).__init__(transport, cookie)
         from sage.rpc.core.server_base import RemoteProcedureLogger
         self.log = RemoteProcedureLogger(monitor.server, origin='compute')
         self.log.info('MonitoredComputeClient started')
-
-
 
  
 class Monitor(object):
@@ -325,6 +281,8 @@ class Monitor(object):
         self.server.rpc.sage_eval.stderr(stderr, self.current_label)
 
 
+
+
 class MonitoredProcess(object):
 
     def __init__(self, argv):
@@ -338,6 +296,10 @@ class MonitoredProcess(object):
         self._init_listen()
         self._init_process(argv)
         self.transport().accept()
+        self._end_marker = None
+        self._end_stdout = False
+        self._end_stderr = False
+        
 
     def _init_listen(self):
         client_uri = 'tcp://localhost:0'
