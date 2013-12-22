@@ -382,7 +382,7 @@ class NumberFieldIdeal(Ideal_generic):
         K = self.number_field()
         V, from_V, to_V = K.absolute_vector_space()
         try:
-            return self.free_module().coordinate_vector(to_V(K(x)))
+            return self.free_module().vector_space().coordinate_vector(to_V(K(x)))
         except ArithmeticError,e:
             raise TypeError(e)
 
