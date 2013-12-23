@@ -4,7 +4,8 @@ Braid groups
 Braid groups are implemented as a particular case of finitely presented groups,
 but with a lot of specific methods for braids.
 
-A braid group can be created by giving the number of strands, and the name of the generators::
+A braid group can be created by giving the number of strands, and the
+name(s) of the generators::
 
     sage: BraidGroup(3)
     Braid group on 3 strands
@@ -23,6 +24,10 @@ with the indices of the letters to the group::
     s0*s1*s0
     sage: B([1,2,1])
     s0*s1*s0
+    sage: B([1,-2,1])   # -2 means the inverse of the second generator
+    s0*s1^-1*s0
+    sage: B([1,-2,2,3,3,1])    # nonreduced forms are allowed
+    s0*s2^2*s0
 
 The mapping class action of the braid group over the free group is
 also implemented, see :class:`MappingClassGroupAction` for an
@@ -91,7 +96,7 @@ class Braid(FinitelyPresentedGroupElement):
 
     def __cmp__(self, other):
         """
-        Compare ``self`` and ``other``
+        Compare ``self`` and ``other``.
 
         TESTS::
 
@@ -107,13 +112,13 @@ class Braid(FinitelyPresentedGroupElement):
         """
         if self.Tietze()==other.Tietze():
             return 0
-        nfself = map(lambda i: i.Tietze(), self.left_normal_form())
-        nfother = map(lambda i: i.Tietze(), other.left_normal_form())
+        nfself = map(lambda i: i.Tietze(), self.left_normal_form(mult="l2r"))
+        nfother = map(lambda i: i.Tietze(), other.left_normal_form(mult="l2r"))
         return cmp(nfself, nfother)
 
     def _latex_(self):
         """
-        Return a LaTeX representation
+        Return a LaTeX representation of ``self``.
 
         OUTPUT:
 
@@ -303,13 +308,30 @@ class Braid(FinitelyPresentedGroupElement):
                 p = -p
         return p
 
-    def permutation(self):
+    def permutation(self, mult=None):
         """
         Return the permutation induced by the braid in its strands.
 
+        INPUT:
+
+        - ``mult`` (default: ``Permutations.global_options("mult")``)
+          either ``l2r`` or ``r2l``, determining the order of the
+          factors in the symmetric group.
+
         OUTPUT:
 
-        A permutation.
+        The permutation obtained by projecting the braid ``self`` onto
+        the corresponding symmetric group. The projection is the
+        canonical surjective homomorphism from the braid group to the
+        symmetric group. It depends on the ``mult`` keyword variable
+        in that this variable decides how the multiplication on the
+        symmetric group is defined. Namely, if ``mult == 'l2r'``, then
+        two permutations `p` and `q` are multiplied by the rule
+        `(pq)(i) = p(q(i))` for all `i \in \{ 1, 2, \ldots, n \}`; but
+        if ``mult == 'r2l'``, then two permutations `p` and `q` are
+        multiplied by the rule `(pq)(i) = q(p(i))` for all
+        `i \in \{ 1, 2, \ldots, n \}`. In either case, the projection
+        is defined in such a way that it is a group homomorphism.
 
         EXAMPLES::
 
@@ -319,12 +341,49 @@ class Braid(FinitelyPresentedGroupElement):
             [4, 1, 3, 2]
             sage: b.permutation().cycle_string()
             '(1,4,2)'
+
+            sage: s0.permutation()
+            [2, 1, 3, 4]
+
+        TESTS::
+
+            sage: B.one().permutation()
+            [1, 2, 3, 4]
+            sage: (s0*s1).permutation(mult="l2r")
+            [3, 1, 2, 4]
+            sage: s0.permutation().right_action_product(s1.permutation())
+            [3, 1, 2, 4]
+            sage: (s0*s1).permutation(mult="r2l")
+            [2, 3, 1, 4]
         """
-        per = Permutation((()))
-        for i in self.Tietze():
+        if mult is None:
+            from sage.combinat.permutation import Permutations
+            mult = Permutations.global_options("mult")
+
+        n = self.strands()
+        np1 = n + 1
+
+        # We now take the Tietze list of ``self`` (this is the
+        # representation of ``self`` as a product of braid group
+        # generators, encoded as a list and with `-i` standing for
+        # the inverse of generator `i`). If ``mult`` is ``l2r``,
+        # we reverse it.
+        if mult == "r2l":
+            tietze = self.Tietze()
+        else:
+            tietze = reversed(self.Tietze())
+
+        # Now we multiply the transpositions `s_{|i|}` over all `i`
+        # in the Tietze list of ``self``. Instead of working with
+        # permutations, we work with lists for speed reasons.
+        # (If permutations ever get really fast and Python learns
+        # parallelization, switching back to permutations might be
+        # useful for the sake of divide-and-conquer.)
+        per = range(1, np1)
+        for i in tietze:
             j = abs(i)
-            per = per*Permutation(((j, j+1)))
-        return per
+            per[j-1], per[j] = per[j], per[j-1]
+        return Permutation(per)
 
     def plot(self, color='rainbow', orientation='bottom-top', gap=0.05, aspect_ratio=1, axes=False, **kwds):
         """
@@ -591,9 +650,15 @@ class Braid(FinitelyPresentedGroupElement):
         return map(T, coord)
 
     @cached_method
-    def left_normal_form(self):
+    def left_normal_form(self, mult=None):
         """
         Return the left normal form of the braid.
+
+        INPUT:
+
+        - ``mult`` (default: ``Permutations.global_options("mult")``)
+          either ``l2r`` or ``r2l``, determining the order of the
+          factors in the symmetric group.
 
         OUTPUT:
 
@@ -611,18 +676,24 @@ class Braid(FinitelyPresentedGroupElement):
             sage: c.left_normal_form()
             (1, s0)
         """
-        lnfp = self._left_normal_form_perm_()
+        lnfp = self._left_normal_form_perm_(mult=mult)
         a = lnfp[0]
         l = lnfp[1:]
         n = self.strands()
         delta = Permutation([n-i for i in range(n)])
         P = self.parent()
-        return tuple( [P._permutation_braid(delta).__pow__(a)] +
-                      map(lambda i:P._permutation_braid(i), l) )
+        return tuple( [P._permutation_braid(delta, mult=mult).__pow__(a)] +
+                      map(lambda i: P._permutation_braid(i, mult=mult), l) )
 
-    def _left_normal_form_perm_(self):
+    def _left_normal_form_perm_(self, mult=None):
         """
         Return the left normal form of the braid, in permutation form.
+
+        INPUT:
+
+        - ``mult`` (default: ``Permutations.global_options("mult")``)
+          either ``l2r`` or ``r2l``, determining the order of the
+          factors in the symmetric group.
 
         OUTPUT:
 
@@ -644,45 +715,63 @@ class Braid(FinitelyPresentedGroupElement):
             (-2, [3, 5, 4, 2, 6, 1], [1, 6, 3, 5, 2, 4], [5, 6, 2, 4, 1, 3],
              [3, 2, 4, 1, 5, 6], [1, 5, 2, 3, 4, 6])
         """
+        # .. TODO::
+        #
+        #     I don't really know what this method is supposed to do
+        #     (IMHO the documentation is insufficient), so I am not sure
+        #     if my fix does what it should. All I've done is replacing
+        #     the braid by its inverse if the ``mult`` variable is set
+        #     to "r2l" (the old version of the code would just hang in
+        #     this case). I can't find a definition of the "left normal
+        #     form" in literature. -- darij, 23 Dec 2013
+
+        if mult is None:
+            from sage.combinat.permutation import Permutations
+            mult = Permutations.global_options("mult")
+
         n = self.parent().strands()
         delta = 0
         Delta = Permutation([n-i for i in range(n)])
         l = self.Tietze()
-        if l==():
+        if l == ():
             return (0,)
+        if mult == "r2l":
+            l = tuple(reversed(l))
+
         form = []
         for i in l:
-            if i>0:
-                form.append(Permutation((i, i+1)))
+            if i > 0:
+                form.append(Permutation(range(1, i) + [i+1, i], range(i+2, n+1)))
             else:
                 delta = delta+1
-                form = map(lambda a: Delta*a*Delta, form)
-                form.append(Delta*Permutation((-i, -i+1)))
+                form = map(lambda a: Delta.right_action_product(a.right_action_product(Delta)), form)
+                form.append(Delta.right_action_product(Permutation(range(1, -i) + [-i+1, -i], range(-i+2, n+1))))
         i = j = 0
-        while j<len(form):
-            while i<len(form)-j-1:
+        while j < len(form):
+            while i < len(form)-j-1:
                 e = form[i].inverse().descents()
                 s = form[i+1].descents()
                 S = set(s).difference(set(e))
-                while S!=set([]):
+                while S != set([]):
                     a = list(S)[0]
-                    form[i] = form[i]*Permutation((a+1, a+2))
-                    form[i+1] = Permutation((a+1, a+2))*form[i+1]
+                    transposition = Permutation(range(1, a+1) + [a+2, a+1], range(a+3, n+1))
+                    form[i] = form[i].right_action_product(transposition)
+                    form[i+1] = transposition.right_action_product(form[i+1])
                     e = form[i].inverse().descents()
                     s = form[i+1].descents()
                     S = set(s).difference(set(e))
-                if form[i+1].length()==0:
+                if form[i+1].length() == 0:
                     form.pop(i+1)
                     i = 0
                 else:
                     i += 1
             j += 1
             i = 0
-        form = filter(lambda a: a.length()>0, form)
-        while form!=[] and form[0]==Delta:
+        form = filter(lambda a: a.length() > 0, form)
+        while form != [] and form[0] == Delta:
             form.pop(0)
             delta = delta-1
-        return tuple([-delta]+form)
+        return tuple([-delta] + form)
 
 
 class BraidGroup_class(FinitelyPresentedGroup):
@@ -774,7 +863,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation of the braid group ``self``.
 
         OUTPUT:
 
@@ -851,7 +940,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
         """
         return Braid(self, x)
 
-    def _permutation_braid_Tietze(self, p):
+    def _permutation_braid_Tietze(self, p, mult=None):
         """
         Helper for :meth:`_permutation_braid`.
 
@@ -859,49 +948,103 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         - ``p`` -- a permutation.
 
+        - ``mult`` (default: ``Permutations.global_options("mult")``)
+          either ``l2r`` or ``r2l``, determining the order of the
+          factors in the symmetric group.
+
         OUTPUT:
 
-        The lexicographically smallest word that represents the braid,
-        in Tietze list form.
+        The lexicographically smallest word that represents a braid
+        (with all generators appearing with exponent `1`, although
+        repetitions are allowed if they are separated by other
+        generators) which projects to `p` in the symmetric group, written
+        in Tietze list form. This uses the projection from the braid
+        group to the corresponding symmetric group defined in
+        :meth:`~sage.groups.braid.Braid.permutation()`; this projection
+        depends on the ``mult`` variable.
+
+        The result of this method can also be characterized as the
+        lexicographically smallest reduced word of `p^{-1}` (when
+        ``mult`` is set to ``l2r``) or of `p` (when ``mult`` is set to
+        ``r2l``).
 
         EXAMPLES::
 
-            sage: B=BraidGroup(5)
-            sage: P=Permutation([5, 3, 1, 2, 4])
+            sage: B = BraidGroup(5)
+            sage: P = Permutation([5, 3, 1, 2, 4])
             sage: B._permutation_braid_Tietze(P)
             (1, 2, 1, 3, 2, 4)
+
+            sage: B._permutation_braid_Tietze(Permutation([2,5,4,1,3]))
+            (2, 3, 2, 1, 4, 3)
+
+            sage: B._permutation_braid_Tietze(Permutation([1,2,3,4,5]))
+            ()
+
+            sage: B._permutation_braid_Tietze(Permutation([2,5,4,1,3]), mult="r2l")
+            (1, 3, 2, 4, 3, 2)
+
+        Testing the claim about the lexicographically smallest reduced
+        word::
+
+            sage: B4 = BraidGroup(4)
+            sage: all( B._permutation_braid_Tietze(P, mult="r2l")
+            ....:      == tuple(P.reduced_word_lexmin())
+            ....:      for P in Permutations(4) )
+            True
         """
-        if p.length() == 0:
-            return ()
-        pl = p
+        if mult is None:
+            from sage.combinat.permutation import Permutations
+            mult = Permutations.global_options("mult")
+        if mult == "r2l":
+            p = p.inverse()
+
+        pl = list(p)
+        n = len(pl)
         l = []
-        while pl.length()>0:
+        # The construction of the braid is basically bubble sort, except
+        # we go back to the start of the word after each transposition.
+        while True:
             i = 1
-            while i<max(pl):
-                if pl(i)>pl(i+1):
+            while i < n:
+                if pl[i-1] > pl[i]:
                     l.append(i)
-                    pl = Permutation([(i, i+1)])*pl
+                    pl[i-1], pl[i] = pl[i], pl[i-1]
                     i = 1
                 else:
                     i = i+1
+            else:
+                break
         return tuple(l)
 
     @cached_method
-    def _permutation_braid(self, p):
+    def _permutation_braid(self, p, mult=None):
         """
-        Return the braid that corresponds to the given permutation.
+        Return the braid that corresponds to the permutation `p`.
 
         It is the only braid with the following properties:
 
-        - The braid induces the given permutation.
+        - The braid induces the given permutation via the projection
+          from the braid group to the permutation group
+          (:meth:`~sage.groups.braid.Braid.permutation()`).
 
-        - The braid is positive (that is, it can be writen without using the inverses of the generators).
+        - The braid is positive (that is, it can be written without
+          using the inverses of the generators).
 
         - Every two strands cross each other at most once.
+
+        Note that the projection from the braid group to the
+        permutation group, and hence also the result of this method,
+        depends on the order of multiplication in the symmetric group.
+        This can be specified using the keyword variable ``mult``.
 
         INPUT:
 
         - ``p`` -- a permutation.
+
+        - ``mult`` (default: ``Permutations.global_options("mult")``)
+          either ``l2r`` or ``r2l``, determining the order of the
+          factors in the symmetric group.
 
         OUTPUT:
 
@@ -913,8 +1056,12 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: P = Permutation([5, 3, 1, 2, 4])
             sage: B._permutation_braid(P)
             s0*s1*s0*s2*s1*s3
+            sage: B._permutation_braid(P, mult="l2r")
+            s0*s1*s0*s2*s1*s3
+            sage: B._permutation_braid(P, mult="r2l")
+            s1*s0*s3*s2*s1*s0
         """
-        return self(self._permutation_braid_Tietze(p))
+        return self(self._permutation_braid_Tietze(p, mult=mult))
 
     @cached_method
     def _LKB_matrix_(self, braid, variab):
@@ -1016,7 +1163,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def mapping_class_action(self, F):
         """
-        Return the action of self in the free group F as mapping class group.
+        Return the action of ``self`` in the free group ``F`` as mapping
+        class group.
 
         This action corresponds to the action of the braid over the
         punctured disk, whose fundamental group is the free group on
@@ -1030,7 +1178,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         A :class:`MappingClassGroupAction`.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: B = BraidGroup(3)
             sage: B.inject_variables()
@@ -1073,7 +1221,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
 def BraidGroup(n=None, names='s'):
     """
-    Construct a Braid Group
+    Construct a Braid Group.
 
     INPUT:
 
@@ -1133,18 +1281,18 @@ def BraidGroup(n=None, names='s'):
 
 class MappingClassGroupAction(Action):
     r"""
-    The action of the braid group the free group as the mapping class
+    The action of the braid group on the free group as the mapping class
     group of the punctured disk.
 
     That is, this action is the action of the braid over the punctured
     disk, whose fundamental group is the free group on as many
     generators as strands.
 
-    This action is defined as follows:
+    This action is a right action and is defined as follows:
 
     .. MATH::
 
-        x_j \cdot \sigma_i=\begin{cases}
+        x_j \cdot \sigma_i = \begin{cases}
         x_{j}\cdot x_{j+1}\cdot {x_j}^{-1} & \text{if $i=j$} \\
         x_{j-1} & \text{if $i=j-1$} \\
         x_{j} & \text{otherwise}
@@ -1153,8 +1301,8 @@ class MappingClassGroupAction(Action):
     where $\sigma_i$ are the generators of the braid group on $n$
     strands, and $x_j$ the generators of the free group of rank $n$.
 
-    You should left multiplication of the free group element by the
-    braid to compute the action. Alternatively, use the
+    You should multiply the free group element (on the left) by the
+    braid (on the right) to compute this action. Alternatively, use the
     :meth:`~sage.groups.braid.BraidGroup_class.mapping_class_action`
     method of the braid group to constuct this action.
 
