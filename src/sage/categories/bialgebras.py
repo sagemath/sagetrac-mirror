@@ -97,6 +97,8 @@ class Bialgebras(Category_over_base_ring):
                                 monomial_coefficients().iteritems()
                         ))
                 return NotImplementedError
+
+            def product_by_coercion(self, left, right):
                 r"""
                 This method try to find a realization to coerce and compute the
                 product and coerce back.
@@ -113,8 +115,6 @@ class Bialgebras(Category_over_base_ring):
                     sage: nM([1,1])*nM([2])
                     3*nM[1, 1, 2] + nM[1, 3] + nM[2, 2]
                 """
-
-            def product_by_coercion(self, left, right):
                 for R in self.realization_of().realizations():
                     self_to_R = R.coerce_map_from(self)
                     R_to_self = self.coerce_map_from(R)
