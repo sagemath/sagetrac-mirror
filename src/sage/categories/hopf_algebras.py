@@ -170,5 +170,10 @@ class HopfAlgebras(Category_over_base_ring):
                     sage: R.antipode_by_coercion(R[1,3,1])
                     -R[2, 1, 2]
                 """
-                R = self.realization_of().a_realization()
-                return self(R(x).antipode())
+                for R in self.realization_of().realizations():
+                    self_to_R = R.coerce_map_from(self)
+                    R_to_self = self.coerce_map_from(R)
+                    if self_to_R is not None and R_to_self is not None and \
+                       R.antipode != R.antipode_by_coercion:
+                        return self(R(left).antipode())
+                return NotImplementedError
