@@ -11,6 +11,7 @@ from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
 import arith
+from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
@@ -42,9 +43,15 @@ cdef class PowerSeries_poly(PowerSeries):
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif PY_TYPE_CHECK(f, PowerSeries_poly):
-                prec = (<PowerSeries_poly>f)._prec
-                f = R((<PowerSeries_poly>f).__f)
+            elif PY_TYPE_CHECK(f, PowerSeries):  # not only PowerSeries_poly
+                prec = (<PowerSeries>f)._prec
+                f = R(f.polynomial())
+            elif PY_TYPE_CHECK(f, pari_gen) and f.type() == 't_SER':
+                if f._valp() < 0:
+                    raise ValueError('series has negative valuation')
+                if prec is infinity:
+                    prec = f.length() + f._valp()
+                f = R(f.truncate())
             else:
                 if f:
                     f = R(f, check=check)
