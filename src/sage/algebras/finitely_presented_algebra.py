@@ -23,6 +23,7 @@ from sage.misc.cachefunc import cached_method
 from sage.algebras.algebra import Algebra
 from sage.categories.algebras import Algebras
 from sage.structure.parent import Parent
+from sage.algebras.algebra_element import AlgebraElement
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
@@ -128,6 +129,9 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
         """
         return tuple(map(lambda x: self.element_class(self, x), self._free_alg.gens()))
 
+    def gen(self, i):
+        return self.gens()[i]
+
     def relations(self):
         """
         Return the relations of ``self`` in the ambient free algebra.
@@ -140,12 +144,52 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
         """
         return self._ideal
 
-    class Element(ElementWrapper):
+    def quotient(self, I, names=None):
+        """
+        Return a quotient of ``self`` by the ideal ``I``.
+        """
+        if I.side() == 'twosided':
+            Ip = self._free_alg.ideal(self._ideal.gens() + I.gens())
+            return self._free_alg.quotient(Ip, names)
+        return super(FinitelyPresentedAlgebra, self).quotient(I, names)
+
+    @cached_method
+    def basis(self):
+        """
+        Return a monomial basis of ``self`` if finite dimensional; otherwise
+        this runs forever.
+        """
+        mon = reduce(lambda x,y: x.union(set(y.monomials())), self.gens(), set([]))
+        todo = set([(x,y) for x in mon for y in mon])
+        while len(todo) != 0:
+            x,y = todo.pop()
+            n = x * y
+            m = set(n.monomials())
+            add = m.difference(mon)
+            mon = mon.union(add)
+            todo.union(set([(x,y) for x in add for y in mon]))
+            todo.union(set([(y,x) for x in add for y in mon]))
+        mon.discard(self.zero())
+        return tuple(sorted(mon, key=lambda x: x.value))
+
+    class Element(AlgebraElement):
         """
         An element in a finitely presented algebra.
         """
         def __init__(self, parent, value, reduce=True):
-            ElementWrapper.__init__(self, parent, parent._ideal.reduce(value))
+            if reduce:
+                value = parent._ideal.reduce(value)
+            self.value = value
+            AlgebraElement.__init__(self, parent)
+
+        def _repr_(self):
+            return repr(self.value)
+        def _latex_(self):
+            return latex(self.value)
+
+        def __eq__(self,other):
+            return isinstance(other, FinitelyPresentedAlgebra.Element) \
+                and self.parent() == other.parent() and self.value == other.value
 
         def _add_(self, rhs):
             return self.__class__(self.parent(), self.value + rhs.value)
@@ -161,4 +205,12 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
 
         def _lmul_(self, rhs):
             return self.__class__(self.parent(), self.value * rhs)
+
+        def monomials(self):
+            """
+            Return the monomials of ``self``.
+            """
+            P = self.parent()
+            F = P._free_alg
+            return map(lambda x: P(F(x[1])), list(self.value))
 

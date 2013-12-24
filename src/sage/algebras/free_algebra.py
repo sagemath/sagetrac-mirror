@@ -827,6 +827,17 @@ class FreeAlgebra_generic(Algebra):
         """
         Return a side ``side`` ideal of ``self`` given by ``gens``.
         """
+        # Preprocess the arguments
+        if len(args) == 1:
+            args = args[0]
+        from sage.rings.noncommutative_ideals import Ideal_nc
+        if isinstance(args, Ideal_nc):
+            if args.ring() is self:
+                return args
+            args = map(self, args.gens())
+        if not isinstance(args, (list, tuple)):
+            args = [args]
+
         if kwds.get('side', 'twosided') == 'twosided':
             from sage.algebras.finitely_presented_algebra import TwoSidedAlgebraIdeal
             return TwoSidedAlgebraIdeal(self, args)
