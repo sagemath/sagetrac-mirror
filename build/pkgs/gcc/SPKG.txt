@@ -28,6 +28,16 @@ http://gcc.gnu.org/
 * Lots of stuff can be removed, run ./spkg-src to do this automatically
   (after downloading the sources).
 
+=== Patches ===
+ * cyggcc_s.patch: fix a bug in cyggcc_s.dll on Cygwin.
+
+== Changelog ==
+
+=== gcc-4.7.3.p2 (Jean-Pierre Flori, 25 December 2013) ===
+ * Trac #15366: fix a bug in cyggcc_s.dll on Cygwin.
+ * Taken from http://cygwin.com/ml/cygwin/2013-07/msg00528.html and
+   integrated upstream at http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57982.
+
 == Changelog ==
 
 === gcc-4.7.3.p1 (R. Andrew Ohana, 26 November 2013) ===

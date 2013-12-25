@@ -10,11 +10,27 @@ fi
 # Exit on error
 set -e
 
+
+# Apply patches
+cd src/
+
+echo "Applying patches to upstream sources..."
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done
+
+cd ..
+
+
 # Build in a separate directory, not in src/ (a.k.a. a VPATH build).
 # This is the recommended way to build GCC.
 mkdir gcc-build
 cd gcc-build
-
 
 # The ld (linker) on old Darwin systems doesn't understand
 # -compatibility_version, it needs -dylib_compatibility_version.
@@ -82,7 +98,6 @@ if [ -n "$LD" -a "$LD" != "ld" ]; then
     CONFIGURE_LD="--with-ld=$LD"
 fi
 
-
 ../src/configure \
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \
@@ -91,10 +106,22 @@ fi
     --disable-multilib \
     --disable-nls \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring GCC."
+    exit 1
+fi
 
 $MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building GCC."
+    exit 1
+fi
 
 $MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing GCC."
+    exit 1
+fi
 
 
 # Force re-installation of mpir, mpfr and mpc with the GCC we just built.
