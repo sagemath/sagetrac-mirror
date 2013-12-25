@@ -828,7 +828,7 @@ class LazyFamily(AbstractFamily):
             category = FiniteEnumeratedSets()
         elif set in InfiniteEnumeratedSets():
             category = InfiniteEnumeratedSets()
-        elif isinstance(set, (list, tuple, CombinatorialClass)):
+        elif isinstance(set, (list, tuple)):
             category = FiniteEnumeratedSets()
         else:
             category = EnumeratedSets()
