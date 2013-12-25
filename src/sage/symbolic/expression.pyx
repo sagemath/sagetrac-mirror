@@ -4081,9 +4081,72 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.has(p._gobj)
 
-    def substitute(self, in_dict=None, **kwds):
+    def substitute(self, *args, **kwds):
         """
+        Given one or several dictionaries of key:value pairs, substitute all
+        occurrences of key for value in self.  The substitutions can also be
+        given as a number of symbolic equalities key == value; see the
+        examples.
+
+        .. warning::
+
+           This is a formal pattern substitution, which may or may not
+           have any mathematical meaning. The exact rules used at
+           present in Sage are determined by Maxima's subst
+           command. Sometimes patterns are not replaced even though
+           one would think they should be - see examples below.
+
+        .. SEEALSO::
+
+            :meth:`~sage.structure.Element.subs`
+
         EXAMPLES::
+
+            sage: f = x^2 + 1
+            sage: f.subs(x^2 == x)
+            x + 1
+
+        ::
+
+            sage: var('x,y,z'); f = x^3 + y^2 + z
+            (x, y, z)
+            sage: f.subs(x^3 == y^2, z == 1)
+            2*y^2 + 1
+
+        Or the same thing giving the substitutions as a dictionary::
+
+            sage: f.subs({x^3:y^2, z:1})
+            2*y^2 + 1
+
+            sage: f = x^2 + x^4
+            sage: f.subs(x^2 == x)
+            x^4 + x
+            sage: f = cos(x^2) + sin(x^2)
+            sage: f.subs(x^2 == x)
+            cos(x) + sin(x)
+
+        ::
+
+            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+            sage: f.subs(y^2 == t)
+            (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
+
+        The following seems really weird, but it *is* what Maple does::
+
+            sage: f.subs(x^2 + y^2 == t)
+            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
+            'cos(x)+sin(y)+x^2+y^2+t'
+            sage: maxima.quit()
+            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
+            'sin(y)+y^2+cos(x)+x^2+t'
+
+        Actually Mathematica does something that makes more sense::
+
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
+            2 t + Cos[x] + Sin[y]
+
+        ::
 
             sage: var('x,y,z,a,b,c,d,f,g')
             (x, y, z, a, b, c, d, f, g)
@@ -4137,7 +4200,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(5)
             Traceback (most recent call last):
             ...
-            TypeError: subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
             # substitutions with infinity
             sage: (x/y).subs(y=oo)
@@ -4191,18 +4254,25 @@ cdef class Expression(CommutativeRingElement):
             sage: u.subs(x=-1)
             Infinity
         """
-        cdef dict sdict = {}
-        if in_dict is not None:
-            if isinstance(in_dict, Expression):
-                return self._subs_expr(in_dict)
-            if not isinstance(in_dict, dict):
-                raise TypeError("subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression")
-            sdict.update(in_dict)
+        # Is this really useful?
+        if len(args) == 1 and not kwds and isinstance(args[0], Expression):
+            return self._subs_expr(args[0])
 
-        if kwds:
-            for k, v in kwds.iteritems():
-                k = self._parent.var(k)
-                sdict[k] = v
+        cdef dict sdict = {}
+        for subs in args:
+            if isinstance(subs, dict):
+                sdict.update(subs)
+            else:
+                if isinstance(subs, Expression):
+                    subs = [subs]
+                try:
+                    sdict.update((eq.lhs(), eq.rhs()) for eq in subs)
+                except AttributeError:
+                    raise TypeError("subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression")
+
+        for k, v in kwds.iteritems():
+            k = self._parent.var(k)
+            sdict[k] = v
 
         cdef GExMap smap
         for k, v in sdict.iteritems():
@@ -4211,7 +4281,7 @@ cdef class Expression(CommutativeRingElement):
 
         return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
 
-    subs = substitute
+    subs_expr = substitute_expression = subs = substitute
 
     cpdef Expression _subs_expr(self, expr):
         """
@@ -4257,79 +4327,6 @@ cdef class Expression(CommutativeRingElement):
             """
         cdef Expression p = self.coerce_in(expr)
         return new_Expression_from_GEx(self._parent, self._gobj.subs(p._gobj))
-
-    def substitute_expression(self, *equations):
-        """
-        Given a dictionary of key:value pairs, substitute all occurrences
-        of key for value in self.  The substitutions can also be given
-        as a number of symbolic equalities key == value; see the
-        examples.
-
-        .. warning::
-
-           This is a formal pattern substitution, which may or may not
-           have any mathematical meaning. The exact rules used at
-           present in Sage are determined by Maxima's subst
-           command. Sometimes patterns are not replaced even though
-           one would think they should be - see examples below.
-
-        EXAMPLES::
-
-            sage: f = x^2 + 1
-            sage: f.subs_expr(x^2 == x)
-            x + 1
-
-        ::
-
-            sage: var('x,y,z'); f = x^3 + y^2 + z
-            (x, y, z)
-            sage: f.subs_expr(x^3 == y^2, z == 1)
-            2*y^2 + 1
-
-        Or the same thing giving the substitutions as a dictionary::
-
-            sage: f.subs_expr({x^3:y^2, z:1})
-            2*y^2 + 1
-
-            sage: f = x^2 + x^4
-            sage: f.subs_expr(x^2 == x)
-            x^4 + x
-            sage: f = cos(x^2) + sin(x^2)
-            sage: f.subs_expr(x^2 == x)
-            cos(x) + sin(x)
-
-        ::
-
-            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
-            sage: f.subs_expr(y^2 == t)
-            (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
-
-        The following seems really weird, but it *is* what Maple does::
-
-            sage: f.subs_expr(x^2 + y^2 == t)
-            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
-            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
-            'cos(x)+sin(y)+x^2+y^2+t'
-            sage: maxima.quit()
-            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
-            'sin(y)+y^2+cos(x)+x^2+t'
-
-        Actually Mathematica does something that makes more sense::
-
-            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
-            2 t + Cos[x] + Sin[y]
-        """
-        if isinstance(equations[0], dict):
-            eq_dict = equations[0]
-            equations = [ x == eq_dict[x] for x in eq_dict.keys() ]
-
-        if not all([is_SymbolicEquation(eq) for eq in equations]):
-            raise TypeError("each expression must be an equation")
-
-        d = dict([(eq.lhs(), eq.rhs()) for eq in equations])
-        return self.subs(d)
-
-    subs_expr = substitute_expression
 
     def substitute_function(self, original, new):
         """
