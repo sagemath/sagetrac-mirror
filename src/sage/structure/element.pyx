@@ -687,19 +687,9 @@ cdef class Element(sage_object.SageObject):
         """
         return self.n(prec)._mpmath_(prec=prec)
 
-    def substitute(self,in_dict=None,**kwds):
+    def substitute(self, *args, **kwds):
         """
         This is an alias for self.subs().
-
-        INPUT:
-
-        - ``in_dict`` - (optional) dictionary of inputs
-
-        - ``**kwds``  - named parameters
-
-        OUTPUT:
-
-        - new object if substitution is possible, otherwise self.
 
         EXAMPLES::
 
@@ -715,8 +705,12 @@ cdef class Element(sage_object.SageObject):
             1/(25*y^2 + y + 30)
             sage: Integer(5).substitute(x=4)
             5
+            sage: var('x,y')
+            (x, y)
+            sage: (cos(x^2)+x).substitute(x^2 == y) # Specific to symbolic expressions!
+            x + cos(y)
          """
-        return self.subs(in_dict,**kwds)
+        return self.subs(*args, **kwds)
 
     cpdef _act_on_(self, x, bint self_on_left):
         """
