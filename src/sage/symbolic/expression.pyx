@@ -4081,57 +4081,114 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression p = self.coerce_in(pattern)
         return self._gobj.has(p._gobj)
 
-    def substitute(self, *args, **kwds):
+    def subs(self, *args, **kwds):
         """
-        Given one or several dictionaries of key:value pairs, substitute all
-        occurrences of key for value in self.  The substitutions can also be
-        given as a number of symbolic equalities key == value; see the
-        examples.
+        Substitute all occurrences of variables or subexpressions in self.
+
+        The substitutions can be given as:
+
+        * dictionaries of ``key:value`` pairs;
+
+        * symbolic equalities (``key == value``), lists of symbolic equalities or
+          other iterable objects yielding such equalities;
+
+        * keyword arguments (``symbol=value``).
+
+        See the examples for details.
 
         .. warning::
 
-           This is a formal pattern substitution, which may or may not
-           have any mathematical meaning. The exact rules used at
-           present in Sage are determined by Maxima's subst
-           command. Sometimes patterns are not replaced even though
-           one would think they should be - see examples below.
+           This is a formal pattern substitution, which may or may not have any
+           mathematical meaning. Sometimes patterns are not replaced even
+           though one would think they should be - see examples below.
 
         .. SEEALSO::
 
-            :meth:`~sage.structure.Element.subs`
+            :meth:`sage.structure.element.Element.subs`,
+            :meth:`~sage.symbolic.expression.Expression.match`
 
         EXAMPLES::
+
+            sage: var('x,y,z,a,b,c,d')
+            (x, y, z, a, b, c, d)
+            sage: expr = a^2 + b^2 + (x+y)^3
+
+        Substitute with keyword arguments (works only with symbols)::
+
+            sage: expr.subs(a=c)
+            (x + y)^3 + b^2 + c^2
+
+            sage: expr.subs(a=b, b=c)
+            (x + y)^3 + b^2 + c^2
+
+        Substitute with a dictionary argument::
+
+            sage: expr.subs({a:b, b:c})
+            (x + y)^3 + b^2 + c^2
+
+        Or with equations::
+
+            sage: expr.subs(a == b, b == c)
+            (x + y)^3 + b^2 + c^2
+
+            sage: expr.subs([a == b, b == c])
+            (x + y)^3 + b^2 + c^2
+
+            sage: function('p')
+            p
+            sage: pol = sum(p(i)*x^i for i in range(8))
+            sage: pol.subs(p(i)==i for i in primes(8))
+            7*x^7 + x^6*p(6) + 5*x^5 + x^4*p(4) + 3*x^3 + 2*x^2 + x*p(1) + p(0)
+
+        Combining dictionaries, equations and keyword arguments is allowed. In
+        this case the rightmost arguments take precedence::
+
+            sage: expr.subs({a:b}, b == c, [x == a], y=x)
+            (a + x)^3 + b^2 + c^2
+
+            sage: expr.subs({a:b}, a == c)
+            (x + y)^3 + b^2 + c^2
+
+        One can replace whole subexpressions::
+
+            sage: expr.subs({a^2: c})
+            (x + y)^3 + b^2 + c
+
+            sage: f = x^3 + y^2 + z
+            sage: f.subs(x^3 == y^2, z == 1)
+            2*y^2 + 1
+
+            sage: f.subs({x^3:y^2, z:1})
+            2*y^2 + 1
+
+            sage: (x^2 + x^4).subs(x^2 == x)
+            x^4 + x
+
+            sage: (cos(x^2) + sin(x^2)).subs(x^2 == x)
+            cos(x) + sin(x)
+
+        Substitution rules can also contain wildcards (see :meth:`~sage.symbolic.ring.SymbolicRing.wild`)::
+
+            sage: w0 = SR.wild(0); w1 = SR.wild(1)
+            sage: expr.subs({w0^2: w0^3})
+            a^3 + b^3 + (x + y)^3
+
+            sage: expr.subs(w0^2 == w0^3)
+            a^3 + b^3 + (x + y)^3
+
+            sage: expr.subs(w0==w0^2)
+            (x^2 + y^2)^18 + a^16 + b^16
 
             sage: f = x^2 + 1
             sage: f.subs(x^2 == x)
             x + 1
 
-        ::
-
-            sage: var('x,y,z'); f = x^3 + y^2 + z
-            (x, y, z)
-            sage: f.subs(x^3 == y^2, z == 1)
-            2*y^2 + 1
-
-        Or the same thing giving the substitutions as a dictionary::
-
-            sage: f.subs({x^3:y^2, z:1})
-            2*y^2 + 1
-
-            sage: f = x^2 + x^4
-            sage: f.subs(x^2 == x)
-            x^4 + x
-            sage: f = cos(x^2) + sin(x^2)
-            sage: f.subs(x^2 == x)
-            cos(x) + sin(x)
-
-        ::
+        More examples with complex subexpressions. The following can seem
+        weird, but note it is also what Maple does::
 
             sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
             sage: f.subs(y^2 == t)
             (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
-
-        The following seems really weird, but it *is* what Maple does::
 
             sage: f.subs(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
@@ -4146,61 +4203,31 @@ cdef class Expression(CommutativeRingElement):
             sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
             2 t + Cos[x] + Sin[y]
 
-        ::
-
-            sage: var('x,y,z,a,b,c,d,f,g')
-            (x, y, z, a, b, c, d, f, g)
-            sage: w0 = SR.wild(0); w1 = SR.wild(1)
-            sage: t = a^2 + b^2 + (x+y)^3
-
-            # substitute with keyword arguments (works only with symbols)
-            sage: t.subs(a=c)
-            (x + y)^3 + b^2 + c^2
-
-            # substitute with a dictionary argument
-            sage: t.subs({a^2: c})
-            (x + y)^3 + b^2 + c
-
-            sage: t.subs({w0^2: w0^3})
-            a^3 + b^3 + (x + y)^3
-
-            # substitute with a relational expression
-            sage: t.subs(w0^2 == w0^3)
-            a^3 + b^3 + (x + y)^3
-
-            sage: t.subs(w0==w0^2)
-            (x^2 + y^2)^18 + a^16 + b^16
-
-            # more than one keyword argument is accepted
-            sage: t.subs(a=b, b=c)
-            (x + y)^3 + b^2 + c^2
-
-            # using keyword arguments with a dictionary is allowed
-            sage: t.subs({a:b}, b=c)
-            (x + y)^3 + b^2 + c^2
-
-            # in this case keyword arguments override the dictionary
-            sage: t.subs({a:b}, a=c)
-            (x + y)^3 + b^2 + c^2
-
-            sage: t.subs({a:b, b:c})
-            (x + y)^3 + b^2 + c^2
-
         TESTS::
 
-            sage: # no arguments return the same expression
-            sage: t.subs()
+            # no arguments return the same expression
+            sage: expr.subs()
             (x + y)^3 + a^2 + b^2
 
             # similarly for an empty dictionary argument
-            sage: t.subs({})
+            sage: expr.subs({})
             (x + y)^3 + a^2 + b^2
 
             # non keyword or dictionary argument returns error
-            sage: t.subs(5)
+            sage: expr.subs(5)
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
+
+            # multiple definitions of the same variable are handled as stated above:
+            sage: expr.subs({a:b}, a=c)
+            (x + y)^3 + b^2 + c^2
+            sage: expr.subs(a == b, a=c)
+            (x + y)^3 + b^2 + c^2
+            sage: expr.subs(a == b, {a:c})
+            (x + y)^3 + b^2 + c^2
+            sage: expr.subs(a == b, {a:c}, {a:d}, a == a, a == c)
+            (x + y)^3 + b^2 + c^2
 
             # substitutions with infinity
             sage: (x/y).subs(y=oo)
@@ -4260,7 +4287,9 @@ cdef class Expression(CommutativeRingElement):
 
         cdef dict sdict = {}
         for subs in args:
-            if isinstance(subs, dict):
+            if subs is None: # There is existing code that calls subs(None) rather than subs()
+                pass
+            elif isinstance(subs, dict):
                 sdict.update(subs)
             else:
                 if isinstance(subs, Expression):
@@ -4281,7 +4310,7 @@ cdef class Expression(CommutativeRingElement):
 
         return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
 
-    subs_expr = substitute_expression = subs = substitute
+    subs_expr = substitute_expression = substitute = subs
 
     cpdef Expression _subs_expr(self, expr):
         """
