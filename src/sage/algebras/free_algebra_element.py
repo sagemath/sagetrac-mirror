@@ -312,6 +312,34 @@ class FreeAlgebraElement(AlgebraElement):
         z.__monomial_coefficients = z_elt
         return z
 
+    def monomials(self):
+        """
+        Return the monomials of ``self``.
+        """
+        one = self.parent().base_ring().one()
+        m = lambda k: self.__class__(self.parent(), {k:one})
+        return map(m, self.__monomial_coefficients.keys())
+
+    def terms(self):
+        """
+        Return the terms of ``self``.
+        """
+        t = lambda x: self.__class__(self.parent(), {x[0]:x[1]})
+        return map(t, self.__monomial_coefficients.items())
+
+    def items(self):
+        """
+        Return a list of pairs ``(monomial, coefficient)`` over all monomials
+        of ``self``.
+        """
+        return list(self.__monomial_coefficients.items())
+
+    def support(self):
+        """
+        Return the support of ``self``.
+        """
+        return list(self.__monomial_coefficients.keys())
+
     def to_pbw_basis(self):
         """
         Return ``self`` in the Poincare-Birkhoff-Witt (PBW) basis.

@@ -137,6 +137,7 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 from sage.algebras.pbw_algebra import PBWBasisOfFreeAlgebra
 
+from sage.misc.cachefunc import cached_method
 import sage.structure.parent_gens
 
 from sage.structure.factory import UniqueFactory
@@ -1010,17 +1011,18 @@ class FreeAlgebra_generic(Algebra):
         l = {}
         while elt: # != 0
             lst = list(elt)
-            support = [i[1].to_word() for i in lst]
-            min_elt = support[0]
-            for word in support[1:len(support)-1]:
-                if min_elt.lex_less(word):
-                    min_elt = word
-            coeff = lst[support.index(min_elt)][0]
-            min_elt = min_elt.to_monoid_element()
+            coeff, min_elt = lst[0]
+            min_word = min_elt.to_word()
+            for item in lst[1:-1]:
+                word = item[1].to_word()
+                if min_word.lex_less(word):
+                    coeff, min_elt = item
+                    min_word = word
             l[min_elt] = l.get(min_elt, 0) + coeff
             elt = elt - coeff * self.lie_polynomial(min_elt)
         return PBW.sum_of_terms([(k, v) for k,v in l.items() if v != 0], distinct=True)
 
+    @cached_method
     def lie_polynomial(self, w):
         """
         Return the Lie polynomial associated to the Lyndon word ``w``. If

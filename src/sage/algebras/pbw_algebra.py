@@ -262,6 +262,12 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
         """
         return self.algebra_generators()[i]
 
+    def ngens(self):
+        """
+        Return the number of generators of ``self``.
+        """
+        return len(self.gens())
+
     def ideal(self, *args, **kwds):
         """
         Return a side ``side`` ideal of ``self`` given by ``gens``.

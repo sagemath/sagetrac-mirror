@@ -158,6 +158,24 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
         """
         Return a monomial basis of ``self`` if finite dimensional; otherwise
         this runs forever.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: PBW = F.pbw_basis()
+            sage: xp,yp,zp = PBW.gens()
+            sage: Ip = PBW.ideal(xp^2,yp^2,zp^4, xp*yp + yp*zp, zp*yp, yp*zp, xp*zp - zp*xp)
+            sage: Qp = PBW.quotient(Ip)
+            sage: Qp.basis() # long time
+            (PBW[x],
+             PBW[y],
+             PBW[z],
+             PBW[y]*PBW[x],
+             PBW[z]*PBW[x],
+             PBW[z]^2,
+             PBW[z]^2*PBW[x],
+             PBW[z]^3,
+             PBW[z]^3*PBW[x])
         """
         mon = reduce(lambda x,y: x.union(set(y.monomials())), self.gens(), set([]))
         todo = set([(x,y) for x in mon for y in mon])
@@ -167,8 +185,10 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
             m = set(n.monomials())
             add = m.difference(mon)
             mon = mon.union(add)
-            todo.union(set([(x,y) for x in add for y in mon]))
-            todo.union(set([(y,x) for x in add for y in mon]))
+            for x in mon:
+                for y in add:
+                    todo.add((x,y))
+                    todo.add((y,x))
         mon.discard(self.zero())
         return tuple(sorted(mon, key=lambda x: x.value))
 
@@ -211,6 +231,5 @@ class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
             Return the monomials of ``self``.
             """
             P = self.parent()
-            F = P._free_alg
-            return map(lambda x: P(F(x[1])), list(self.value))
+            return map(P, self.value.monomials())
 
