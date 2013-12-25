@@ -4310,7 +4310,10 @@ cdef class Expression(CommutativeRingElement):
 
         return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
 
-    subs_expr = substitute_expression = substitute = subs
+    substitute = subs
+
+    subs_expr = deprecated_function_alias(42424, subs) # FIXME: ticket nr
+    substitute_expression = deprecated_function_alias(424242, subs) # FIXME: ticket nr
 
     cpdef Expression _subs_expr(self, expr):
         """
