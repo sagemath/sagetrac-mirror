@@ -5,7 +5,7 @@ __sage_describe_branch()
 {
     local git_dir=$(git rev-parse --git-dir 2>/dev/null) 
     if [ ! $git_dir ]; then
-	return
+        return
     fi
 
     local color=
@@ -13,54 +13,60 @@ __sage_describe_branch()
     if [ -d "$git_dir/.dotest" ];  then
         if [ -f "$git_dir/.dotest/rebasing" ];  then
             op="rebase"
-	    color=red
+            color=red
         elif [ -f "$git_dir/.dotest/applying" ]; then
             op="am"
-	    color=red
+            color=red
         else
             op="am/rebase"
-	    color=red
+            color=red
         fi
     elif [ -f "$git_dir/.dotest-merge/interactive" ] ;  then
         op="rebase-i"
-	color=red
+        color=red
     elif [ -d "$git_dir/.dotest-merge" ] ;  then
         op="rebase-m"
-	color=red
+        color=red
     elif [ -f "$git_dir/MERGE_HEAD" ];  then
         op="merge"
-	color=red
+        color=red
     elif [ -f "$git_dir/index.lock" ];  then
         op="locked"
-	color=red
+        color=red
     elif [ -f "$git_dir/BISECT_LOG" ]; then
-	op="bisect"
-	color=red
+        op="bisect"
+        color=red
     else
-	git diff --no-ext-diff --quiet --exit-code
-	if [ $? -ne 0 ]; then
-	    op="modified"
-	    color=red
-	fi
+        git diff --no-ext-diff --quiet --exit-code
+        if [ $? -ne 0 ]; then
+            op="modified"
+            color=red
+        else
+            git diff --cached --no-ext-diff --quiet --exit-code
+            if [ $? -ne 0 ]; then
+                op="staged"
+                color=red
+            fi
+        fi
     fi
 
-    branch="$(git symbolic-ref --short HEAD)"
+    branch="$(git symbolic-ref --quiet --short HEAD)"
     if [ $? -ne 0 ]; then
-	branch="<detached-$(git log --format='%h' -1)>"
-	if [ ! $color ]; then 
-	    color=red
-	fi
+        branch="<detached-$(git log --format='%h' -1)>"
+        if [ ! $color ]; then 
+            color=red
+        fi
     else
-	if [ ! $color ]; then 
-	    color=green
-	fi
+        if [ ! $color ]; then 
+            color=green
+        fi
     fi
     
     local status
     if [ $op ]; then
-	status="$branch|$op"
+        status="$branch|$op"
     else
-	status="$branch"
+        status="$branch"
     fi
     
     local ansi_red='\e[0;31m'
@@ -68,11 +74,11 @@ __sage_describe_branch()
     local ansi_blue='\e[1;34m'
     local ansi_clear='\e[0m'
     if [ $color == 'red' ]; then
-	echo "$ansi_red{$status}$ansi_clear"
+        echo "$ansi_red{$status}$ansi_clear"
     elif [ $color == 'green' ]; then
-	echo "$ansi_green($status)$ansi_clear"
+        echo "$ansi_green($status)$ansi_clear"
     else
-	echo "$status"
+        echo "$status"
     fi
 }
 
@@ -86,7 +92,7 @@ __sage_ps1()
     local time24h="\t"
     local pathshort="\w"
     echo "$ansi_bblue""Sage:$ansi_clear"\
-	"$ansi_bblack$HOSTNAME$ansi_clear $time24h" \
-	"\$(echo -e \$(__sage_describe_branch)) $ansi_blue$pathshort$ansi_clear\n\$ "
+         "$ansi_bblack$HOSTNAME$ansi_clear $time24h" \
+         "\$(echo -e \$(__sage_describe_branch)) $ansi_blue$pathshort$ansi_clear\n\$ "
 }
 
