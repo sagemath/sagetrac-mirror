@@ -1,6 +1,7 @@
 *.o
 *.lo
 *.la
+*.so
 *.dylib
 
 /*.m4
