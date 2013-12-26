@@ -17,19 +17,19 @@ REFERENCES:
    weights in the highest weight module of an affine Lie algebra*,
    Israel Jour. of Math.
 """
+from sage.misc.cachefunc import cached_function
+from sage.misc.flatten import flatten
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element_wrapper       import ElementWrapper
-from sage.structure.parent                import Parent
-from sage.categories.crystals             import Crystals
+from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.parent import Parent
+
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
-from sage.categories.finite_crystals      import FiniteCrystals
-from sage.categories.regular_crystals      import RegularCrystals
+from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.integer                   import Integer
-from sage.functions.other                 import floor
-from sage.misc.latex                      import latex
-from sage.misc.cachefunc                   import cached_function
+from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.cartesian_product import CartesianProduct
+from sage.rings.all import QQ
 
 ######################################################################################
 #
@@ -72,10 +72,9 @@ def T_lattice(cartan_type):
             raise NotImplementedError
         d = tuple([1]*m)
     else: # Twisted case
-        if cartan_type.type() == 'BC': # Don't need to consider the dual
-            d = tuple([1]*m)
-        else:
+        if cartan_type.type() != 'BC': # Don't need to consider the dual
             raise NotImplementedError
+        d = tuple([1]*m)
     return d
 
 def tilde(lst, level, d, a):
@@ -417,10 +416,10 @@ class ReducedAffineCrystal(Parent, UniqueRepresentation):
         #print shift
         return shift
 
-    def blockreduced(self, max_depth=5):
-        
+    def block_reduced(self, max_depth=5):
         r"""
-        produces tikzcode for a diagramof the block-reduced graph of ``self``.
+        Produces tikz code for a diagram of the block-reduced graph
+        of ``self``.
 
         INPUT:
 
@@ -428,193 +427,216 @@ class ReducedAffineCrystal(Parent, UniqueRepresentation):
 
         OUTPUT:
 
-        A printed list of tikz code for the edges and then the vertices,in reversed order
+        A printed list of tikz code for the edges and then the vertices, in
+        reversed order.
+
         EXAMPLES::
 
-            ssage: La = RootSystem(['BC',2,2]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['BC',2,2]).weight_lattice().fundamental_weights()
             sage: B = ReducedAffineCrystal(['BC',2,2], La[0])
-            sage: B.blockreduced(max_depth=3)
+            sage: B.block_reduced(max_depth=3)
             \draw[greyx](-\lf+\ri,-2\dd)--++(+0,-\dd);
             \draw[purplex](-\lf+\ri,-2\dd)--++(-\lf,-\dd);
             \draw[lbluex](-\lf,-\dd)--++(+\ri,-\dd);
             \draw(-\lf+\ri,-2\dd)node[purplex,fill=white,inner sep=0pt]{\nod1100);
             \draw(-\lf,-\dd)node[purplex,fill=white,inner sep=0pt]{\nod1001);
             \draw(0,0)node[purplex,fill=white,inner sep=0pt]{\nod0000};
-
         """
+        G = self.digraph(self.subcrystal(max_depth=max_depth))
+        index_set = self._cartan_type.index_set()
+        if len(index_set) > 3:
+            from sage.misc.latex import latex
+            return latex(G)
         m = self._cartan_type.rank()
         half = int(m/2)
         sign = half*['-']+(m-half)*['+']
         #print sign
-        displace = ['\lf','\\ri','0']
-        vertex=self(tuple([0]*m))
-        self.vertex_list = [vertex]
-        style_list = ['purplex', 'lbluex','greyx','lgreenx','redx','bluex','greenx']
-        current_node = '\draw(0,0)node['+style_list[0]+',fill=white,inner sep=0pt]{\\nod0000};\n'
-        node_list =[current_node]
+        displace = ['\\lf','\\ri','0']
+        vertex = self.module_generators[0]
+        vertex_list = [vertex]
+        style_list = ['purplex', 'lbluex', 'greyx', 'lgreenx', 'redx', 'bluex', 'greenx']
+        current_node = '\\draw(0,0)node[' + style_list[0] + ',fill=white,inner sep=0pt]{\\nod0000};\n'
+        node_list = [current_node]
         edge_list = []
         for u in range(m):
             if u == 0:   #should be: if vertex.f(u) != None:
-                charstr_edge='\draw(['+style_list[u]+'](0,0)--++('+sign[u]+displace[u]+','+'-\dd);'
+                charstr_edge = '\\draw([{}](0,0)--++({},-\\dd);'.format(style_list[u], sign[u]+displace[u])
                 #print charstr_edge
                 #print vertex.f(u)
                 edge_list.append(charstr_edge)        
         #print vertex.value
         #print current_node
-        for j in range(1,max_depth):
-            self.new_vertex_list=[]
-            for x in self.vertex_list:
-                for i in range(m):
-                    if x.f(i) != None:
-                        self.tempvertex=x.f(i)
-                        if not (self.tempvertex  in self.new_vertex_list):
-                            val = self.tempvertex.value
-                            nodpos1 = ''
-                            for k in range(m-1):
-                                if val[k] > 1:
-                                    nodpos1 += sign[k]+str(val[k])+displace[k]
-                                elif val[k] == 1:
-                                    nodpos1 += sign[k]+displace[k]
-                            if nodpos1 == '':
-                                nodpos1 = '0'
-                            down = sum(val[y] for y in range(m))
-                            if down > 1:
-                                nodpos2 = '-'+str(down)+'\dd'
-                            elif down == 1:
-                                nodpos2 = '-'+'\dd'
-                            else:
-                                nodpos2 = '0'                            
-                            charstr ='\draw('+nodpos1+','+nodpos2+')node['+style_list[val[-1]]+',fill=white,inner sep=0pt]{\\nod'+str(val[0])+str(val[1])+str(val[2])+str(self.tempvertex.defect())+');'
-                            #print charstr
-                            #print self.tempvertex.value
-                            self.new_vertex_list.append(self.tempvertex)
-                            node_list.append(charstr)
-                            #print edge_list
-                            for u in range(m):
-                                if self.tempvertex.f(u) != None:
-                                     charstr_edge='\draw['+style_list[u]+']('+nodpos1+','+nodpos2+')--++('+sign[u]+displace[u]+','+'-\dd);'
-                                     edge_list.append(charstr_edge)
-            self.vertex_list = self.new_vertex_list
-        edge_list.reverse()
-        for v in range(len(edge_list)):
-            print edge_list[v]
-        node_list.reverse()
-        for v in range(len(node_list)):
-            print node_list[v]
+        for j in range(1, max_depth):
+            new_vertices = set([])
+            for x in vertex_list:
+                for i in index_set:
+                    if x.f(i) is None:
+                        continue
+                    tempvertex = x.f(i)
+                    if tempvertex in new_vertices:
+                        continue
+                    val = tempvertex.value
+                    nodpos1 = ''
+                    for k in range(m-1):
+                        if val[k] > 1:
+                            nodpos1 += sign[k] + str(val[k]) + displace[k]
+                        elif val[k] == 1:
+                            nodpos1 += sign[k] + displace[k]
+                    if nodpos1 == '':
+                        nodpos1 = '0'
+                    down = sum(val[y] for y in range(m))
+                    if down > 1:
+                        nodpos2 = '-{}\\dd'.format(down)
+                    elif down == 1:
+                        nodpos2 = '-\\dd'
+                    else:
+                        nodpos2 = '0'
+                    charstr = '\\draw({},{})'.format(nodpos1, nodpos2)
+                    charstr += 'node[{},fill=white,inner sep=0pt]{{\\nod{}{}{}{}}};'.format(
+                            style_list[val[-1]], val[0], val[1], val[2], tempvertex.defect())
+                    #print charstr
+                    #print tempvertex.value
+                    new_vertices.add(tempvertex)
+                    node_list.append(charstr)
+                    #print edge_list
+                    for u in index_set:
+                        if tempvertex.f(u) != None:
+                             charstr_edge = '\\draw[{}]({},{})--++({},-\dd);'.format(
+                                    style_list[u], nodpos1, nodpos2, sign[u]+displace[u])
+                             edge_list.append(charstr_edge)
+            vertex_list = new_vertices
+        from sage.misc.latex import LatexExpr
+        ret = LatexExpr("\\begin{tikzpicture}\n" + '\n'.join(n for n in node_list))
+        ret += LatexExpr('\n'.join(e for e in edge_list) + "\n\\end{tikzpicture}")
+        return ret
+        #edge_list.reverse()
+        for e in reversed(edge_list):
+            print e
+        #node_list.reverse()
+        for n in reversed(node_list):
+            print n
         return repr(self)
- 
- 
-class ATElement(ElementWrapper):
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-        """
-        return repr(self.value) + " + %s delta shifts"%self.parent().delta_shift(self.value)
 
-    def _latex_(self):
-        """
-        Return the weight of ``self``.
-        """
-        from sage.misc.latex import latex
-        wt = self.weight()
-        ret = ""
-        for i,c in wt: # Should never iterate over a coeff of 0
-            if c > 0:
+    class Element(ElementWrapper):
+        def _repr_(self):
+            """
+            Return a string representation of ``self``.
+            """
+            return "{} + {} delta shifts".format(self.value, self.parent().delta_shift(self.value))
+
+        def _latex_(self):
+            """
+            Return the weight of ``self``.
+            """
+            from sage.misc.latex import latex
+            wt = self.weight()
+            ret = ""
+            for i,c in wt: # Should never iterate over a coeff of 0
+                if c > 0:
+                    ret += "+"
+                else:
+                    ret += "-"
+                if abs(c) != 1:
+                    ret += latex(abs(c))
+                ret += "\\Lambda_{%s}"%i
+            if ret[0] == "+":
+                ret = ret[1:] # Remove the leading +
+
+            r = self.parent().delta_shift(self.value)
+            if r == 0:
+                return ret
+
+            if r > 0:
                 ret += "+"
             else:
                 ret += "-"
-            if abs(c) != 1:
-                ret += latex(abs(c))
-            ret += "\\Lambda_{%s}"%i
-        if ret[0] == "+":
-            ret = ret[1:] # Remove the leading +
+                r = -r
+            if r == 1:
+                return ret + "[\\delta]"
+            return ret + "{} [\\delta]".format(r)
 
-        r = self.parent().delta_shift(self.value)
-        if r == 0:
-            return ret
-
-        if r > 0:
-            ret += "-"
-        else:
-            ret += "+"
-        return ret + "%s [\\delta]"%r
-
-    def e(self, i, power=1):
-        r"""
-        Return the trivial `i`-th raising operator.
-        """
-        if self.value[i] == 0:
-            return None
-
-        content = list(self.value)
-        for k in range(power):
-            content[i] -= 1
-            if self.parent().delta_shift(content) > 0:
+        def e(self, i, power=1):
+            r"""
+            Return the trivial `i`-th raising operator.
+            """
+            if self.value[i] == 0:
                 return None
 
-        return self.parent()(tuple(content))
+            content = list(self.value)
+            for k in range(power):
+                content[i] -= 1
+                if self.parent().delta_shift(content) > 0:
+                    return None
 
-    def f(self, i, power=1):
-        r"""
-        Return the trivial `i`-th lowering operator.
-        """
-        content = list(self.value)
-        for k in range(power):
-            content[i] += 1
-            if self.parent().delta_shift(content) > 0:
+            return self.parent()(tuple(content))
+
+        def f(self, i, power=1):
+            r"""
+            Return the trivial `i`-th lowering operator.
+            """
+            content = list(self.value)
+            for k in range(power):
+                content[i] += 1
+                if self.parent().delta_shift(content) > 0:
+                    return None
+            return self.parent()(tuple(content))
+
+        def epsilon(self, i):
+            r"""
+            Return the value of `\varepsilon_i` of ``self``.
+            """
+            if self.value[i] == 0:
                 return None
-        return self.parent()(tuple(content))
 
-    def epsilon(self, i):
-        r"""
-        Return the value of `\varepsilon_i` of ``self``.
-        """
-        if self.value[i] == 0:
-            return None
-
-        content = list(self.value)
-        content[i] -= 1
-        ep = 0
-        while wt[i] != 0 and self.parent().delta_shift(content) > 0:
-            ep += 1
+            content = list(self.value)
             content[i] -= 1
-        return ep
+            ep = 0
+            while content[i] != 0 and self.parent().delta_shift(content) > 0:
+                ep += 1
+                content[i] -= 1
+            return ep
 
-    def phi(self, i):
-        r"""
-        Return the value of `\varphi_i` of ``self``.
-        """
-        content = list(self.value)
-        content[i] -= 1
-        phi = 0
-        while wt[i] != 0 and self.parent().delta_shift(content) > 0:
-            phi += 1
+        def phi(self, i):
+            r"""
+            Return the value of `\varphi_i` of ``self``.
+            """
+            content = list(self.value)
             content[i] -= 1
-        return phi
+            phi = 0
+            while content[i] != 0 and self.parent().delta_shift(content) > 0:
+                phi += 1
+                content[i] -= 1
+            return phi
 
-    def weight(self):
-        """
-        Return the weight of ``self``.
-        """
-        alpha = self.parent()._cartan_type.root_system().weight_space().simple_roots()
-        wt = self.parent()._hw - sum([c*alpha[i] for i,c in enumerate(self.value)])
-        return wt
+        def weight(self):
+            """
+            Return the weight of ``self``.
+            """
+            alpha = self.parent()._cartan_type.root_system().weight_space().simple_roots()
+            wt = self.parent()._hw - sum([c*alpha[i] for i,c in enumerate(self.value)])
+            return wt
 
+        def defect(self):
+            r"""
+            Return the defect of ``self``.
 
+            The defect of an element `b \in Red(\lambda)` is
 
-    def defect(self):
-        """
-        If it ever works, it should return (lam|alpha)-(1/2)*(alpha|alpha) where lam-alpha is  the weight of ``self``.
-        """
-        m = self.parent()._cartan_type.rank()
-        alpha = self.parent()._cartan_type.root_system().weight_space().simple_roots()
-        a = self.parent()._cartan_type.a()
-        acheck = self.parent()._cartan_type.acheck()
-        cm = self.parent()._cartan_type.cartan_matrix()
-        lam = self.parent()._hw
-        alf = sum([c*alpha[i] for i,c in enumerate(self.value)])
-        d = -(1/2)*(sum(sum(alf[i]* a[i]**(-1)*acheck[i]*cm[i][j] for i in range(m))*alf[j] for j in range(m)))+sum(alf[i]* a[i]**(-1)*acheck[i]*lam[i] for i in range(m))  
-        return d
+            .. MATH::
 
-ReducedAffineCrystal.Element = ATElement
+                (\lambda \mid \alpha) - \frac{1}{2} (\alpha \mid \alpha)
+
+            where `\lambda - \alpha = \mathrm{wt}(b)`.
+            """
+            m = self.parent()._cartan_type.rank()
+            alpha = self.parent()._cartan_type.root_system().weight_space().simple_roots()
+            a = self.parent()._cartan_type.a()
+            acheck = self.parent()._cartan_type.acheck()
+            cm = self.parent()._cartan_type.cartan_matrix()
+            lam = self.parent()._hw
+            alf = sum([c*alpha[i] for i,c in enumerate(self.value)])
+            d = sum(alf[i] * acheck[i] / a[i] * lam[i] for i in range(m))
+            d -= sum(alf[j] * sum(alf[i] * acheck[i] / a[i] * cm[i][j] for i in range(m))
+                     for j in range(m)) / QQ(2)
+            return d
 
