@@ -1,0 +1,33 @@
+# -*- shell-script -*-
+#
+# The Sage ksh Startup File
+#
+# See README.txt for some background considerations.
+
+# Sanity check
+if [ -z "$_SAGE_ENV_SCRIPT" ] ; then
+    echo "Error, can only be used from within the main sage script."
+fi
+
+# Set _SAGE_ENV_SCRIPT readonly so ~/.kshrc cannot modify it.
+typeset -r _SAGE_ENV_SCRIPT
+
+# Source user definitions
+if [ -f ~/.kshrc ]; then
+    . ~/.kshrc
+fi
+
+# Now overwrite settings with Sage environment variables
+source "$_SAGE_ENV_SCRIPT"
+
+# Prompt setup. If available, use reverse video to highlight
+if tput rev >/dev/null; then
+    color_prompt=yes
+fi
+
+if [ "$color_prompt" = yes ] ; then
+    PS1="$(tput rev)(sage-sh)$(tput sgr0) $USER@`hostname -s`:\${PWD##*/}$ "
+else
+    PS1="(sage-sh) $USER@`hostname -s`:\${PWD##*/}$ "
+fi
+export PS1

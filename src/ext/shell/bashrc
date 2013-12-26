@@ -1,0 +1,35 @@
+# -*- shell-script -*-
+#
+# The Sage bash Startup File
+#
+# See README.txt for some background considerations.
+
+# Sanity check
+if [ -z "$_SAGE_ENV_SCRIPT" ] ; then
+    echo >&2 "Error, can only be used from within the main sage script."
+fi
+
+# Set _SAGE_ENV_SCRIPT readonly so ~/.bashrc cannot modify it.
+readonly _SAGE_ENV_SCRIPT
+
+# Source user definitions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+
+# Now overwrite settings with Sage environment variables
+source "$_SAGE_ENV_SCRIPT"
+
+# Prompt setup
+if tput colors &>/dev/null; then
+    # fully functional shell
+    source "$SAGE_EXTCODE/shell/sage_prompt.sh"
+    PS1=$(__sage_ps1)
+elif tput rev &>/dev/null; then
+    # no color but at least reverse
+    PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
+else
+    # dump terminal
+    PS1="(sage-sh) \u@\h:\w\$ "    
+fi
+export PS1
