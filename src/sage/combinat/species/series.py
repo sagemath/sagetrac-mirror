@@ -28,7 +28,8 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from stream import Stream, Stream_class
+#from stream import Stream, Stream_class
+from new_stream import OldStreamBehavior as Stream, Stream as Stream_class
 from series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer, prod
 from functools import partial
@@ -347,7 +348,7 @@ class LazyPowerSeriesRing(Algebra):
         n = 0
         while True:
             r = s[n].coefficient(n)
-            for i in range(len(s)-1):
+            for i in range(min(n, len(s)-1)):
                 r += s[i].coefficient(n)
             yield r
             n += 1
