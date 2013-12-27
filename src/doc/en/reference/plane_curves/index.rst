@@ -100,6 +100,7 @@ Modularity and `L`-series over `\QQ`.
 
    sage/schemes/elliptic_curves/modular_parametrization
    sage/schemes/elliptic_curves/ell_modular_symbols
+   sage/schemes/elliptic_curves/mod_sym
    sage/schemes/elliptic_curves/lseries_ell
    sage/schemes/elliptic_curves/heegner
    sage/schemes/elliptic_curves/padic_lseries

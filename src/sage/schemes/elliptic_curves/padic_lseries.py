@@ -159,15 +159,13 @@ class pAdicLseries(SageObject):
         sage: lp == loads(dumps(lp))
         True
     """
-    def __init__(self, E, p, use_eclib=True, normalize='L_ratio'):
+    def __init__(self, E, p, method="sage", normalize='L_ratio'):
         r"""
         INPUT:
 
         -  ``E`` - an elliptic curve
         -  ``p`` - a prime of good reduction
-        -  ``use_eclib`` - bool (default:True); whether or not to use
-           John Cremona's ``eclib`` for the computation of modular
-           symbols
+        -  ``metho`` - either ``eclib``, ``sage`` (default) or ``num``
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
            this is describes the way the modular symbols
            are normalized. See ``modular_symbol`` of
@@ -183,7 +181,7 @@ class pAdicLseries(SageObject):
         self._E = E
         self._p = ZZ(p)
         self._normalize = normalize
-        self._use_eclib = use_eclib
+        self._method = method
         if not self._p.is_prime():
             raise ValueError("p (=%s) must be a prime"%p)
         if E.conductor() % (self._p)**2 == 0:
@@ -194,7 +192,7 @@ class pAdicLseries(SageObject):
         except RuntimeError :
             print "Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !"
 
-        self._modular_symbol = E.modular_symbol(sign=+1, use_eclib = use_eclib, normalize=normalize)
+        self._modular_symbol = E.modular_symbol(sign=+1, method=method, normalize=normalize)
 
     def __add_negative_space(self):
         r"""
@@ -211,12 +209,12 @@ class pAdicLseries(SageObject):
         -1
 
         """
-        if self._use_eclib:
+        if self._method == "eclib":
             verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
             # once there is a eclib implementation of -1, this should be changed.
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, method="sage", normalize=self._normalize)
         else:
-            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+            self._negative_modular_symbol = self._E.modular_symbol(sign=-1, method="sage", normalize=self._normalize)
 
     def __cmp__(self,other):
         r"""

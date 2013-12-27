@@ -67,7 +67,7 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
+def padic_lseries(self, p, normalize='L_ratio', method="sage"):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -79,9 +79,7 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
     -  ``p`` - prime
 
-    -  ``use_eclib`` - bool (default:True); whether or not to use
-       John Cremona's eclib for the computation of modular
-       symbols
+    -  ``method`` - either ``eclib``, ``sage`` (default) or ``num``
 
     -  ``normalize`` -  'L_ratio' (default), 'period' or 'none';
        this is describes the way the modular symbols
@@ -141,7 +139,7 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
     We can use Sage modular symbols instead to compute the `L`-series::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(3,use_eclib=False)
+        sage: L = e.padic_lseries(3, method="eclib")
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
 
@@ -156,10 +154,10 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
     if self.ap(p) % p != 0:
         Lp = plseries.pAdicLseriesOrdinary(self, p,
-                              normalize = normalize, use_eclib=use_eclib)
+                              normalize = normalize, method=method)
     else:
         Lp = plseries.pAdicLseriesSupersingular(self, p,
-                              normalize = normalize, use_eclib=use_eclib)
+                              normalize = normalize, method=method)
     self._padic_lseries[key] = Lp
     return Lp
 

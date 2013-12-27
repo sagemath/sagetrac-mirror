@@ -1101,7 +1101,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, use_eclib = False, normalize = "L_ratio"):
+    def modular_symbol(self, sign=1, method="sage", normalize = "L_ratio"):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1117,16 +1117,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         modular symbol depends on `E` and not only the isogeny class of `E`.
 
         INPUT:
+   
+        -  ``sign`` - -1, or 1
 
-        -  ``sign`` - 1 (default) or -1
+        -  ``base_ring`` - a ring
 
-        -  ``use_eclib`` - (default: False); if True the computation is
+        -  ``normalize`` - (default: True); if True, the
+           modular symbol is correctly normalized (up to possibly a factor of
+           -1 or 2). If False, the modular symbol is almost certainly not
+           correctly normalized, i.e., all values will be a fixed scalar
+           multiple of what they should be. But the initial computation of the
+           modular symbol is much faster, though evaluation of it after
+           computing it won't be any faster.
+
+        -  ``method`` - either ``sage`` (default), ``num`` or ``eclib``
            done with John Cremona's implementation of modular
            symbols in ``eclib``
-
-        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio',
-           'period', or 'none';
-           For 'L_ratio', the modular symbol tries to normalized correctly
+ 
+        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio', 'period', or 'none';
+           For 'L_ratio', the modular symbol is correctly normalized
            as explained above by comparing it to ``L_ratio`` for the
            curve and some small twists.
            The normalization 'period' is only available if
@@ -1160,7 +1169,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: M=E.modular_symbol()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: M(1/7)
-            -1/2
+            -1
 
         ::
 
@@ -1177,51 +1186,55 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E=EllipticCurve('11a2')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E.modular_symbol(method="eclib", normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(method="eclib", normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(method="eclib", normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(method="num", normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(normalize='period')(0)
             1
 
         ::
 
             sage: E=EllipticCurve('11a3')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E.modular_symbol(method="eclib", normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(method="eclib", normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(method="eclib", normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(normalize='period')(0)
             1/25
 
         """
-        typ = (sign, normalize, use_eclib)
+        typ = (sign, normalize, method)
         try:
             return self.__modular_symbol[typ]
         except AttributeError:
             self.__modular_symbol = {}
         except KeyError:
             pass
-        if use_eclib :
+        if method == "eclib" :
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
-        else :
+        elif method == "sage" :
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
+        elif method == "num":
+            from sage.schemes.elliptic_curves.mod_sym import ModularSymbolNumerical
+            Mi = ModularSymbolNumerical(self)
+            M = lambda r: Mi(r, sign=sign)
         self.__modular_symbol[typ] = M
         return M
 

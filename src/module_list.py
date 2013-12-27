@@ -1657,8 +1657,11 @@ ext_modules = [
               extra_compile_args=["-std=c99"],
               libraries = ['flint', 'ratpoints']),
 
+
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
               sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx']),
+    Extension('sage.schemes.elliptic_curves.mod_sym',
+              sources = ['sage/schemes/elliptic_curves/mod_sym.pyx']),
 
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
