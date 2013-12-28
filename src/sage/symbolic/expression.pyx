@@ -1231,9 +1231,16 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: QQbar(x*sin(0))
             0
+
+        Check that #12745 is fixed::
+
+            sage: x = exp(2*I*pi/7) + exp(-2*I*pi/7)
+            sage: AA(x)
+            1.246979603717467?
         """
         from sage.symbolic.expression_conversions import algebraic
-        return algebraic(self, field)
+        from sage.rings.qqbar import QQbar
+        return field(algebraic(self, QQbar))
 
     def __hash__(self):
         """

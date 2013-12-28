@@ -816,8 +816,15 @@ class AlgebraicConverter(Converter):
 
 def algebraic(ex, field):
     """
-    Returns the symbolic expression *ex* as a element of the algebraic
-    field *field*.
+    Return the symbolic expression ``ex`` as a element of the algebraic
+    field ``field``.
+
+    .. WARNING::
+
+        This function will attempt to perform the conversion by converting
+        subexpressions of ``ex`` to elements of ``field``. To convert real
+        expressions with complex subexpressions to real algebraic numbers,
+        use ``AA(algebraic(ex, QQbar))``.
 
     EXAMPLES::
 
