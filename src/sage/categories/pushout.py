@@ -2543,10 +2543,40 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         sage: O.ambient() == K
         True
 
+    Special cases are made for cyclotomic fields and residue fields::
+
+        sage: C = CyclotomicField(8)
+        sage: F,R = C.construction()
+        sage: F
+        AlgebraicExtensionFunctor
+        sage: R
+        Rational Field
+        sage: F(R)
+        Cyclotomic Field of order 8 and degree 4
+        sage: F(ZZ)
+        Maximal Order in Cyclotomic Field of order 8 and degree 4
+
+    ::
+
+        sage: K.<z> = CyclotomicField(7)
+        sage: P = K.factor(17)[0][0]
+        sage: k = K.residue_field(P)
+        sage: F, R = k.construction()
+        sage: F
+        AlgebraicExtensionFunctor
+        sage: R
+        Cyclotomic Field of order 7 and degree 6
+        sage: F(R) is k
+        True
+        sage: F(ZZ)
+        Residue field of Integers modulo 17
+        sage: F(CyclotomicField(49))
+        Residue field in zeta49bar of Fractional ideal (17)
+
     """
     rank = 3
 
-    def __init__(self, polys, names, embeddings, cyclotomic=None, **kwds):
+    def __init__(self, polys, names, embeddings, cyclotomic=None, residue=None, **kwds):
         """
         INPUT:
 
@@ -2561,6 +2591,11 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``cyclotomic``: optional integer. If it is provided,
           application of the functor to the rational field yields
           a cyclotomic field, rather than just a number field.
+        - ``residue``: optional prime ideal of an order in a number
+          field, determining a residue field. If it is provided,
+          application of the functor to a number field yields the
+          residue field with respect to the given prime ideal
+          (coerced into the number field).
         - ``**kwds``: further keywords; when the functor is applied to
           a ring `R`, these are passed to the ``extension()`` method
           of `R`.
@@ -2618,6 +2653,21 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F(ZZ)
             Maximal Order in Cyclotomic Field of order 8 and degree 4
 
+        Residue fields can be constructed for different rings, too::
+
+            sage: K.<z> = CyclotomicField(7)
+            sage: P = K.factor(17)[0][0]
+            sage: k = K.residue_field(P)
+            sage: F, R = k.construction()
+            sage: R
+            Cyclotomic Field of order 7 and degree 6
+            sage: F(R) is k
+            True
+            sage: F(ZZ)
+            Residue field of Integers modulo 17
+            sage: F(CyclotomicField(49))
+            Residue field in zeta49bar of Fractional ideal (17)
+
         """
         Functor.__init__(self, Rings(), Rings())
         if not (isinstance(polys,(list,tuple)) and isinstance(names,(list,tuple)) and isinstance(embeddings,(list,tuple))):
@@ -2628,6 +2678,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.names = list(names)
         self.embeddings = list(embeddings)
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
+        self.residue = residue
         self.kwds = kwds
 
     def _apply_functor(self, R):
@@ -2651,6 +2702,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 return CyclotomicField(self.cyclotomic)
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
+        elif self.residue is not None:
+            return R.residue_field(R*self.residue)
         if len(self.polys) == 1:
             return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
         return R.extension(self.polys, self.names, embedding=self.embeddings)
