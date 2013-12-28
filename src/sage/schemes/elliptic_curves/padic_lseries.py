@@ -564,7 +564,7 @@ class pAdicLseries(SageObject):
             sage: L = EllipticCurve('389a').padic_lseries(5)
             sage: L.order_of_vanishing()
             2
-            sage: L = EllipticCurve('5077a').padic_lseries(5, use_eclib=True)
+            sage: L = EllipticCurve('5077a').padic_lseries(5, method="eclib")
             sage: L.order_of_vanishing()
             3
         """
