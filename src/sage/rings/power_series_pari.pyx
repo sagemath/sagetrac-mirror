@@ -83,7 +83,7 @@ cdef class PowerSeries_pari(PowerSeries):
             else:
                 if prec is infinity:
                     prec = f.prec()
-                g = f.change_ring(R)._pari_()
+                g = f.polynomial().change_ring(R)._pari_()
         elif PY_TYPE_CHECK(f, Polynomial):
             f_parent = (<Polynomial>f)._parent
             if f_parent is P:
