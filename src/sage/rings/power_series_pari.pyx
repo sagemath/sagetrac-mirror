@@ -498,7 +498,7 @@ cdef class PowerSeries_pari(PowerSeries):
         cdef pari_gen h = ~self.g
         if h.valuation(self._parent.variable_name()) < 0:
             return self._parent.laurent_series_ring()(h)
-        return PowerSeries_pari(self._parent, h, check=True)
+        return PowerSeries_pari(self._parent, h, check=False)
 
     def __neg__(self):
         """

@@ -373,7 +373,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     if name is None:
         raise TypeError, "You must specify the name of the indeterminate of the Power series ring."
 
-    key = (base_ring, name, default_prec, sparse)
+    key = (base_ring, name, default_prec, sparse, implementation)
     if PowerSeriesRing_generic.__classcall__.is_in_cache(key):
         return PowerSeriesRing_generic(*key)
 
