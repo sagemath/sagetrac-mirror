@@ -20,6 +20,56 @@ from sage.rpc.core.server_base import ServerBase
 from sage.rpc.core.transport import TransportError
 
 
+def cstdio_line_buffer_mode():
+    import ctypes
+    libc = ctypes.CDLL('libc.so.6')
+    libc.setlinebuf(libc.stdout)
+    libc.setlinebuf(libc.stderr)
+
+
+class OutputStreamWrapper(object):
+
+    @staticmethod
+    def install():
+        if not isinstance(sys.stdout, OutputStreamWrapper):
+            sys.stdout = OutputStreamWrapper(sys.stdout)
+        if not isinstance(sys.stderr, OutputStreamWrapper):
+            sys.stderr = OutputStreamWrapper(sys.stderr)
+
+    def __init__(self, stream):
+        self.__stream = stream
+
+    def write(self, data):
+        n = self.__stream.write(data)
+        self.__stream.flush()
+        return n
+
+    def writelines(self, data):
+        self.__stream.writelines(data)
+        self.__stream.flush()
+
+    def isatty(self):
+        return True
+
+    def __getattr__(self, name):
+        return getattr(self.__stream, name)
+
+
+
+def linebuffer_output():
+    """
+    Switch stdout/stderr to line buffer mode
+
+    EXAMPLES::
+
+        sage: from sage.rpc.compute_server import linebuffer_output
+        sage: linebuffer_output()
+        sage: 1+1
+        2
+    """
+    cstdio_line_buffer_mode()
+    OutputStreamWrapper.install()
+
 
 def start_server(port, interface):
     cookie = os.environ['COOKIE']
@@ -74,6 +124,7 @@ class SageComputeServer(ServerBase):
     def rpc_sage_eval_init(self, code_string, label):
         t0_cpu = time.clock()
         t0_wall = time.time()
+        linebuffer_output()
         self._shell.run_cell(code_string)
         t1_cpu = time.clock()
         t1_wall = time.time()
