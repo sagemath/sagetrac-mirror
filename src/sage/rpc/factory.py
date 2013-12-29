@@ -283,7 +283,7 @@ class SageRemoteFactory(object):
             ....:         client.loop(0); sleep(0.01)
             sage: client.ping()
             sage: idle()
-            pong #0 (10ms)
+            pong #0 (...ms)
         """
         cookie = self.random_cookie()
         from sage.rpc.core.transport import TransportListen
