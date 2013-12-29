@@ -57,3 +57,61 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
             from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
             R = self.base_category().base_ring()
             return [GradedHopfAlgebras(R)]
+
+    class Connected(CategoryWithAxiom_over_base_ring):
+
+            class ParentMethods:
+
+                def antipode_on_basis(self, indice):
+                    """
+                    MATH::
+
+                        S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R
+
+                    in general or `x` if `\mid x \mid = 0`.
+
+                    TESTS::
+
+                        sage: F = FQSym(QQ).F()
+                        sage: F.antipode_on_basis(Permutation([1]))
+                        -F[1]
+
+                    """
+                    if self.monomial(indice) == self.one():
+                        return self.one()
+                    else:
+                        S = self.antipode_on_basis
+                        x__S_Id = tensor([self, self]).module_morphism(
+                            lambda (a, b): S(a) * self.monomial(b),
+                            codomain=self)
+                        return -x__S_Id(
+                            self.monomial(indice).coproduct()
+                            - tensor([self(indice), self.one()])
+                        )
+
+                def antipode(self, elem):
+                    r"""
+                    TESTS::
+
+                        sage: F = FQSym(QQ).F()
+                        sage: F.antipode(F[3,1,2])
+                        -F[1, 3, 2] + F[2, 1, 3] + F[2, 3, 1] - 2*F[3, 1, 2]
+                    """
+                    import itertools
+                    return self.linear_combination(itertools.imap(
+                        lambda (mon, coeff): \
+                            (self.antipode_on_basis(mon), coeff),
+                        elem.monomial_coefficients().iteritems()
+                    ))
+
+            class ElementMethods:
+
+                def antipode(self):
+                    r"""
+                    TESTS::
+
+                        sage: F = FQSym(QQ).F()
+                        sage: F[1].antipode()
+                        -F[1]
+                    """
+                    return self.parent().antipode(self)
