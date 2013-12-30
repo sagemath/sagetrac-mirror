@@ -61,6 +61,14 @@ mkdir -p "$SAGE_LOCAL/lib"
 mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
 
+#######################################################################
+# Setup cloning variables if SAGE_CLONE_TARGET is set
+#######################################################################
+
+if [ -n "$SAGE_CLONE_TARGET" -a -z "$SAGE_SPKG_COPY_UPSTREAM" ]; then
+    export SAGE_SPKG_COPY_UPSTREAM="$SAGE_CLONE_TARGET/upstream"
+fi
+
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
