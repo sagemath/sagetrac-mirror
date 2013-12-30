@@ -59,7 +59,7 @@ cdef class PowerSeries_pari(PowerSeries):
             g = <pari_gen>f
             t = typ(g.g)
             if t == t_SER and varn(g.g) == pari.get_var(v):
-                prec = g.length() + g._valp()
+                prec = lg(g.g) - 2 + valp(g.g)
             elif t == t_RFRAC:
                 prec = parent.default_prec()
                 g = g.Ser(v, prec - g.valuation(v))
@@ -98,10 +98,10 @@ cdef class PowerSeries_pari(PowerSeries):
             if t == t_POL:
                 g = P(g)._pari_()
             elif t == t_SER and varn(g.g) == pari.get_var(v):
-                if g._valp() < 0:
+                if valp(g.g) < 0:
                     raise ValueError('series has negative valuation')
                 if prec is infinity:
-                    prec = g.length() + g._valp()
+                    prec = lg(g.g) - 2 + valp(g.g)
                 g = P(g.Pol(v))._pari_()
             elif t == t_RFRAC:
                 if prec is infinity:
@@ -198,7 +198,7 @@ cdef class PowerSeries_pari(PowerSeries):
             6*t^3 + 3
 
         """
-        return self._parent._poly_ring()(self.g)
+        return self._parent._poly_ring()(self.list())
 
     def valuation(self):
         """
@@ -646,8 +646,88 @@ cdef class PowerSeries_pari(PowerSeries):
             [2 + O(5^20), 1 + O(5^20)]
 
         """
+        cdef pari_gen g = self.g
+        cdef long vn = pari.get_var(self._parent.variable_name())
         R = self.base_ring()
-        return [R(a) for a in self.g.Pol(self._parent.variable_name()).list()]
+        if typ(g.g) == t_SER and varn(g.g) == vn:
+            g = g.truncate()
+        if typ(g.g) == t_POL and varn(g.g) == vn:
+            # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
+            return [R(pari.new_ref(gel(g.g, i), g)) for i in xrange(2, lg(g.g))]
+        else:
+            return [R(g)]
+
+    def padded_list(self, n=None):
+        """
+        Return a list of coefficients of ``self`` up to (but not
+        including) `q^n`.
+
+        The list is padded with zeroes on the right so that it has
+        length `n`.
+
+        INPUT:
+
+        - ``n`` - (optional) a non-negative integer.  If `n` is not
+           given, it will be taken to be the precision of self, unless
+           this is +Infinity, in which case we just return
+           ``self.list()``.
+
+        EXAMPLES::
+
+            sage: R.<q> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = 1 - 17*q + 13*q^2 + 10*q^4 + O(q^7)
+            sage: f.list()
+            [1, -17, 13, 0, 10]
+            sage: f.padded_list(7)
+            [1, -17, 13, 0, 10, 0, 0]
+            sage: f.padded_list(10)
+            [1, -17, 13, 0, 10, 0, 0, 0, 0, 0]
+            sage: f.padded_list(3)
+            [1, -17, 13]
+            sage: f.padded_list()
+            [1, -17, 13, 0, 10, 0, 0]
+            sage: g = 1 - 17*q + 13*q^2 + 10*q^4
+            sage: g.list()
+            [1, -17, 13, 0, 10]
+            sage: g.padded_list()
+            [1, -17, 13, 0, 10]
+            sage: g.padded_list(10)
+            [1, -17, 13, 0, 10, 0, 0, 0, 0, 0]
+
+        """
+        if n is None:
+            if self._prec is infinity:
+                return self.list()
+            else:
+                n = self._prec
+        if not n:
+            return []
+
+        cdef pari_gen g = self.g
+        cdef long l, m
+
+        R = self.base_ring()
+        if typ(g.g) == t_POL and varn(g.g) == pari.get_var(self._parent.variable_name()):
+            l = lg(g.g) - 2  # t_POL has 2 codewords
+            if n <= l:
+                return [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n)]
+            else:
+                return ([R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                        + [R.zero_element()] * (n - l))
+        elif typ(g.g) == t_SER and varn(g.g) == pari.get_var(self._parent.variable_name()):
+            l = lg(g.g) - 2  # t_SER has 2 codewords
+            m = valp(g.g)
+            if n <= m:
+                return [R.zero_element()] * n
+            elif n <= l + m:
+                return ([R.zero_element()] * m
+                        + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(n - m)])
+            else:
+                return ([R.zero_element()] * m
+                        + [R(pari.new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                        + [R.zero_element()] * (n - l - m))
+        else:
+            return [R(g)] + [R.zero_element()] * (n - 1)
 
     def dict(self):
         """
