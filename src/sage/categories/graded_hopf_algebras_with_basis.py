@@ -8,6 +8,7 @@ Graded Hopf algebras with basis
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.with_realizations import WithRealizationsCategory
