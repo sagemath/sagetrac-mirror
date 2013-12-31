@@ -3412,6 +3412,297 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
+    def splitting_field(self, names, map=False, degree_bound=None, simplify=False, simplify_all=False):
+        """
+        Compute the splitting field of a given polynomial.
+
+        INPUT:
+
+        - ``self`` -- a polynomial over a number field (or `\ZZ` or `\QQ`)
+
+        - ``names`` -- a variable name for the number field
+
+        - ``map`` -- (default: ``False``) also return an embedding of
+          ``self`` into the resulting field.
+
+        - ``degree_bound`` -- an upper bound for the absolute degree of
+          the splitting field.  If ``degree_bound`` equals the actual
+          degree, this can considerably speed up the computation.
+
+        - ``simplify`` -- (default: ``False``) during the algorithm, try
+          to find a simpler defining polynomial for the intermediate
+          number fields using PARI's ``polred()``.  This might speed up
+          the computation but can also seriously slow it down.  Try and
+          see what works best in the given situation.
+
+        - ``simplify_all`` -- (default: ``False``) If ``True``, simplify
+          intermediate fields and also the resulting number field.
+
+        OUTPUT:
+
+        If ``map`` is ``False``, the splitting field as an absolute number
+        field.  If ``map`` is ``True``, a tuple ``(K, phi)`` where ``phi``
+        is an embedding of ``self`` in ``K``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = (x^3 + 2).splitting_field(); K
+            Number Field in a with defining polynomial x^6 + 108
+            sage: K.<a> = (x^3 - 3*x + 1).splitting_field(); K
+            Number Field in a with defining polynomial x^3 - 3*x + 1
+
+        The ``simplify`` and ``simplify_all`` options usually yield
+        fields defined by polynomials with smaller coefficients::
+
+            sage: K.<a> = (x^4 - x + 1).splitting_field(); K
+            Number Field in a with defining polynomial x^24 + 90*x^21 + 70*x^20 + 5695*x^18 + 18690*x^17 + 34895*x^16 + 225900*x^15 + 1544060*x^14 + 3867780*x^13 - 3410173*x^12 + 62876100*x^11 + 228621050*x^10 + 469791390*x^9 + 4114857005*x^8 + 9907474500*x^7 + 27588260845*x^6 + 77511483420*x^5 + 152694585589*x^4 + 712014907500*x^3 + 2004232914495*x^2 + 2261637800730*x + 1272624662401
+            sage: K.<a> = (x^4 - x + 1).splitting_field(simplify=True); K
+            Number Field in a with defining polynomial x^24 + 8*x^23 + 36*x^22 + 118*x^21 + 309*x^20 + 686*x^19 + 1334*x^18 + 2317*x^17 + 3631*x^16 + 5142*x^15 + 6658*x^14 + 7856*x^13 + 8653*x^12 + 8417*x^11 + 7582*x^10 + 6258*x^9 + 4834*x^8 + 3115*x^7 + 1773*x^6 + 1022*x^5 + 749*x^4 + 208*x^3 + 23*x^2 + 5*x + 1
+            sage: K.<a> = (x^4 - x + 1).splitting_field(simplify_all=True); K
+            Number Field in a with defining polynomial x^24 - 3*x^23 + 2*x^22 - x^20 + 4*x^19 + 32*x^18 - 35*x^17 - 92*x^16 + 49*x^15 + 163*x^14 - 15*x^13 - 194*x^12 - 15*x^11 + 163*x^10 + 49*x^9 - 92*x^8 - 35*x^7 + 32*x^6 + 4*x^5 - x^4 + 2*x^2 - 3*x + 1
+
+        Reducible polynomials also work::
+
+            sage: pol = (x^4 - 1)*(x^2 + 1/2)*(x^2 + 1/3)
+            sage: pol.splitting_field('a', simplify_all=True)
+            Number Field in a with defining polynomial x^8 - x^4 + 1
+
+        Relative situation::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: S.<t> = PolynomialRing(K)
+            sage: L.<b> = (t^2 - a).splitting_field()
+            sage: L
+            Number Field in b with defining polynomial t^6 + 2
+
+        With ``map=True``, we also get the embedding of the base field
+        into the splitting field::
+
+            sage: L.<b>, phi = (t^2 - a).splitting_field(map=True)
+            sage: phi
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2
+              To:   Number Field in b with defining polynomial t^6 + 2
+              Defn: a |--> b^2
+            sage: (x^4 - x + 1).splitting_field('a', simplify_all=True, map=True)[1]
+            Ring morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^24 - 3*x^23 + 2*x^22 - x^20 + 4*x^19 + 32*x^18 - 35*x^17 - 92*x^16 + 49*x^15 + 163*x^14 - 15*x^13 - 194*x^12 - 15*x^11 + 163*x^10 + 49*x^9 - 92*x^8 - 35*x^7 + 32*x^6 + 4*x^5 - x^4 + 2*x^2 - 3*x + 1
+              Defn: 1 |--> 1
+
+        Some bigger examples::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: pol15 = chebyshev_T(31, x) - 1    # 2^30*(x-1)*minpoly(cos(2*pi/31))^2
+            sage: pol15.splitting_field('a')
+            Number Field in a with defining polynomial x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 1
+            sage: pol48 = x^6 - 4*x^4 + 12*x^2 - 12
+            sage: pol48.splitting_field('a')
+            Number Field in a with defining polynomial x^48 ...
+            sage: pol60 = x^5 - x^4 + 2*x^2 - 2*x + 2
+            sage: pol60.splitting_field('a', simplify=True)
+            Number Field in a with defining polynomial x^60 ...
+
+        If you somehow know the degree of the field in advance, you
+        should add a ``degree_bound`` argument.  This can speed up the
+        computation, in particular for polynomials of degree >= 12 or
+        for relative extensions::
+
+            sage: pol15.splitting_field('a', degree_bound=15)
+            Number Field in a with defining polynomial x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 1
+
+        You can also use this if for some reason you want a (small)
+        subfield of the splitting field.  No guarantee is made about
+        which subfield this returns::
+
+            sage: pol48.splitting_field('a', degree_bound=20)
+            Number Field in a with defining polynomial x^24 ...
+
+        Compute the Galois closure as the splitting field of the defining polynomial::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: pol48 = x^6 - 4*x^4 + 12*x^2 - 12
+            sage: K.<a> = NumberField(pol48)
+            sage: L.<b> = pol48.change_ring(K).splitting_field()
+            sage: L
+            Number Field in b with defining polynomial x^48 ...
+
+        TESTS::
+
+            sage: x.splitting_field('x', map=True, simplify_all=True)
+            (Number Field in x with defining polynomial x, Ring morphism:
+              From: Rational Field
+              To:   Number Field in x with defining polynomial x
+              Defn: 1 |--> 1)
+            sage: K.<a,b> = x.splitting_field()
+            Traceback (most recent call last):
+            ...
+            IndexError: the number of names must equal the number of generators
+            sage: polygen(RR).splitting_field('x')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: splitting_field() is only implemented over number fields
+        """
+        from sage.rings.number_field.all import is_NumberField, \
+             is_RelativeNumberField, NumberField
+        from sage.rings.polynomial.all import PolynomialRing
+        from sage.rings.rational_field import RationalField, is_RationalField
+        from sage.misc.all import verbose, cputime
+        C = "splitting_field"  # For verbose()
+
+        f = self.monic()            # Given polynomial, made monic
+        F = f.parent().base_ring()  # Base field
+        if not F.is_field():
+            F = F.fraction_field()
+            f = self.change_ring(F)
+
+        cdef long d, j
+        t = cputime()
+        if is_NumberField(F):
+            # Before doing anything else, figure out the variable names
+            names = sage.structure.parent_gens.normalize_names(1, names)
+
+            # Kpol = PARI polynomial in y defining the extension found so far
+            if is_RationalField(F):
+                Kpol = pari("'y")
+            else:
+                Kpol = F.pari_polynomial("y")
+            # Fgen = the generator of F as element of Q[y]/Kpol
+            # (only needed if map=True)
+            if map:
+                Fgen = F.gen()._pari_()
+            verbose("Starting field: %s"%Kpol, caller_name=C)
+
+            # List of factors of the given polynomial remaining to be handled
+            # as PARI polynomial in x over the field defined by Kpol
+            L = []
+            for pe in f.factor():
+                p = pe[0]  # Don't care about the exponent
+                if p.degree() <= 1:  # Skip linear polynomials
+                    continue
+                L.append(p._pari_with_name())
+
+            # Compute an upper bound on the degree of the splitting field over Q
+            bound = Kpol.poldegree()
+            for p in L:
+                g = pari.factorial(p.poldegree())
+                # If we are over Q, try to compute the Galois group
+                if Kpol.poldegree() == 1:
+                    try:
+                        g = p.polgalois()[0]
+                    except PariError:
+                        pass
+                bound *= g
+            # If a degree bound is given, take the minimum
+            if degree_bound is not None:
+                degree_bound = pari(degree_bound)
+                if degree_bound < bound:
+                    bound = degree_bound
+            verbose("Bound for degree of splitting field: %s"%bound, caller_name=C)
+
+            # Main loop, add roots one by one
+            while L:
+                verbose("Polynomial degrees to handle: %s"%[f.poldegree() for f in L], t, caller_name=C)
+                # We're going to add a root of f = L[0]
+                f = L.pop(0)
+                # N = K[x]/f(x)
+                verbose("Handling polynomial %s"%(f.lift()), level=2, caller_name=C)
+                t = cputime()
+                Npol, KtoN, k = Kpol.rnfequation(f, flag=1)
+
+                # Make Npol monic integral, store in Mpol
+                # (after this, we don't need Npol anymore, only Mpol)
+                Mdiv = pari(1)
+                Mpol = Npol
+                while True:
+                    denom = Integer(Mpol.pollead())
+                    if denom == Integer(1):
+                        break
+                    denom = pari(denom.factor().radical_value())
+                    Mpol = (Mpol*(denom**Mpol.poldegree())).subst("x", pari([0,1/denom]).Polrev("x"))
+                    Mpol /= Mpol.content()
+                    Mdiv *= denom
+
+                # We are certainly finished if this was the last polynomial
+                # and it was of degree 2.  We are also finished if we hit
+                # the degree bound.
+                finished = (Mpol.poldegree() >= bound) or (f.poldegree() == 2 and not L)
+
+                if simplify_all or (simplify and not finished):
+                    # Find a simpler defining polynomial Lpol for Mpol
+                    verbose("New field before simplifying: %s"%Mpol, t, caller_name=C)
+                    t = cputime()
+                    d = Mpol.poldegree()
+                    M = Mpol.polred(flag=3)
+                    n = len(M[0])-1
+                    Lpol = M[1][n].change_variable_name("y")
+                    LtoM = M[0][n].Mod(Mpol)
+                    # We have LtoM, but need MtoL: we make a matrix
+                    # where the columns are successive powers of LtoM
+                    LtoMmat = []  # List of columns
+                    q = pari(1)
+                    for j in range(d):
+                        col = q.lift().Colrev(-d)
+                        LtoMmat.append(col)
+                        q *= LtoM
+                    LtoMmat = pari(LtoMmat).Mat()
+                    # Solve a linear system to get MtoL from LtoM
+                    MtoL = LtoMmat.matsolve(pari([0,1]).Col(d)).Polrev("y").Mod(Lpol)
+                else:
+                    # Lpol = Mpol
+                    Lpol = Mpol.change_variable_name("y")
+                    MtoL = pari("'y")
+
+                NtoL = MtoL/Mdiv
+                KtoL = KtoN.lift().subst("x", NtoL).Mod(Lpol)
+                Kpol = Lpol   # New Kpol (for next iteration)
+                verbose("New field: %s"%Kpol, t, caller_name=C)
+                if map:
+                    t = cputime()
+                    Fgen = Fgen.lift().subst("y", KtoL)
+                    verbose("Computed generator of F in K", t, level=2, caller_name=C)
+                if finished:
+                    break
+
+                t = cputime()
+                # Convert f and elements of L from K to L, store in M.
+                # If the degree of f is 2, then adding one root of f also
+                # adds the other, so then we don't need to consider f.
+                M = []
+                if f.poldegree() > 2:
+                    # f(-minus_root_of_f) = 0
+                    minus_root_of_f = k*KtoL - NtoL
+                    q = [c.subst("y", KtoL).Mod(Lpol) for c in f.Vecrev().lift()]
+                    q = pari(q).Polrev()/pari([minus_root_of_f, 1]).Polrev()
+                    M.append(q)
+                for p in L:
+                    q = [c.subst("y", KtoL) for c in p.Vecrev().lift()]
+                    M.append(pari(q).Polrev())
+                verbose("Polynomial degrees before factoring: %s"%[f.poldegree() for f in M], t, level=2, caller_name=C)
+
+                # Factor elements of M and store in L
+                t = cputime()
+                L = []
+                for p in M:
+                    fac = Lpol.nffactor(p)
+                    for q in fac[0]:
+                        if q.poldegree() >= 2:
+                            L.append(q)
+                # Sort according to degree to handle low degrees first
+                L.sort(key=lambda p: p.poldegree())
+
+            # Convert Kpol to Sage and construct the absolute number field
+            Kpol = PolynomialRing(RationalField(), name=self.variable_name())(Kpol/Kpol.pollead())
+            K = NumberField(Kpol, names)
+            if map:
+                return K, F.hom(Fgen, K)
+            else:
+                return K
+
+        raise NotImplementedError, "splitting_field() is only implemented over number fields"
+
     @coerce_binop
     def lcm(self, other):
         """
@@ -6103,7 +6394,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: radical(12 * x^5)
             6*x
 
-        If self has a factor of multiplicity divisible by the characteristic (see Trac 8736)::
+        If self has a factor of multiplicity divisible by the characteristic (see :trac:`8736`)::
 
             sage: P.<x> = GF(2)[]
             sage: (x^3 + x^2).radical()
@@ -6990,7 +7281,7 @@ cdef class ConstantPolynomialSection(Map):
     """
     This class is used for conversion from a polynomial ring to its base ring.
 
-    Since trac ticket #9944, it calls the constant_coefficient method,
+    Since :trac:`9944`, it calls the constant_coefficient method,
     which can be optimized for a particular polynomial type.
 
     EXAMPLES::

@@ -4354,7 +4354,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: G = k.galois_group(names='c'); G
             Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - x + 1
             sage: G.gen(0)
-            (1,2)(3,5)(4,6)
+            (1,2,3)(4,5,6)
 
         With type ``'pari'``::
 
@@ -4385,19 +4385,19 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: L.<b1> = K.galois_closure(); L
-            Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in b1 with defining polynomial x^6 + 108
             sage: G = End(L); G
-            Automorphism group of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            Automorphism group of Number Field in b1 with defining polynomial x^6 + 108
             sage: G.list()
             [
-            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
+            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 108
               Defn: b1 |--> b1,
             ...
-            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
-              Defn: b1 |--> -2/63*b1^4 - 31/63*b1
+            Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 108
+              Defn: b1 |--> -1/12*b1^4 - 1/2*b1
             ]
-            sage: G[1](b1)
-            1/36*b1^4 + 1/18*b1
+            sage: G[2](b1)
+            1/12*b1^4 + 1/2*b1
         """
         from galois_group import GaloisGroup_v1, GaloisGroup_v2
 
@@ -6708,7 +6708,6 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.vector_space()
 
-
     def _galois_closure_and_embedding(self, names=None):
         r"""
         Return number field `K` that is the Galois closure of self and an
@@ -6730,7 +6729,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
             sage: K.galois_group(type='pari').order()
             48
-            sage: L, phi = K._galois_closure_and_embedding('c')  # long time (25s on sage.math, 2011)
+            sage: L, phi = K._galois_closure_and_embedding('c')  # long time (1s on sage.math, 2011)
             sage: phi.domain() is K, phi.codomain() is L  # long time
             (True, True)
             sage: L  # long time
@@ -6748,25 +6747,15 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        G = self.galois_group(type='pari')
-        K = self
-        self_into_K = maps.IdentityMap(self)
+        # Compute degree of galois closure if possible
+        try:
+            deg = self.galois_group(type='pari').order()
+        except NotImplementedError:
+            deg = None
 
-        while K.degree() < G.order():
-            # take the one of largest degree
-            newK, K_into_newK, _, _ = K.composite_fields(self, names=names, both_maps=True, preserve_embedding=False)[-1]
-            if newK.degree() <= K.degree():
-                raise ValueError, "Compositum field degree did not increase"
-            self_into_K = K_into_newK * self_into_K
-            K = newK
-
-        L = K.change_names(names)
-        L_to_orig, orig_to_L = L.structure()
-        self_into_L = orig_to_L * self_into_K
-        self_into_L = self.hom([ self_into_L(self.gen()) ]) # "flatten" the composition by hand
-
+        L, self_to_L = self.defining_polynomial().change_ring(self).splitting_field(names, map=True, degree_bound=deg)
         self.__galois_closure = L
-        self.__galois_closure_embedding = self_into_L
+        self.__galois_closure_embedding = self_to_L
         return (self.__galois_closure, self.__galois_closure_embedding)
 
     def galois_closure(self, names=None, map=False):
@@ -6808,10 +6797,18 @@ class NumberField_absolute(NumberField_generic):
               To:   Number Field in b with defining polynomial x^8 + 28*x^4 + 2500
               Defn: a |--> 1/240*b^5 - 41/120*b
 
+        A cyclotomic field is already Galois::
+
+            sage: K.<a> = NumberField(cyclotomic_polynomial(23))
+            sage: L.<z> = K.galois_closure()
+            sage: L
+            Number Field in z with defining polynomial x^22 + x^21 + x^20 + x^19 + x^18 + x^17 + x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
         TESTS:
 
         Let's make sure we're renaming correctly::
 
+            sage: K.<a> = NumberField(x^4 - 2)
             sage: L, phi = K.galois_closure('cc', map=True)
             sage: L
             Number Field in cc with defining polynomial x^8 + 28*x^4 + 2500
@@ -6884,21 +6881,19 @@ class NumberField_absolute(NumberField_generic):
 
         INPUT:
 
-
         -  ``K`` - a number field
-
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: L.<a1> = K.galois_closure(); L
-            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in a1 with defining polynomial x^6 + 108
             sage: K.embeddings(L)[0]
             Ring morphism:
               From: Number Field in a with defining polynomial x^3 - 2
-              To:   Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
-              Defn: a |--> 1/84*a1^4 + 13/42*a1
-            sage: K.embeddings(L)  is K.embeddings(L)
+              To:   Number Field in a1 with defining polynomial x^6 + 108
+              Defn: a |--> 1/18*a1^4
+            sage: K.embeddings(L) is K.embeddings(L)
             True
 
         We embed a quadratic field into a cyclotomic field::
