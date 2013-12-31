@@ -9,7 +9,7 @@ Graded Hopf algebras with basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-
+from sage.categories.tensor import tensor
 from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.cachefunc import cached_method
