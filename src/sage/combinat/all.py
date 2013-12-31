@@ -113,6 +113,7 @@ from cartesian_product import CartesianProduct
 
 from set_partition import SetPartition, SetPartitions
 from set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
+from packed_words import PackedWord, PackedWords
 from subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from necklace import Necklaces
