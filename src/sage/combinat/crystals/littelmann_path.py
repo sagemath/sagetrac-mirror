@@ -784,14 +784,15 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             if p == level:
                 MPhi += [b]
         weights = []
-        rank = len(self.index_set())
-        WLR = self.weight_lattice_realization()
+        I = self.index_set()
+        rank = len(I)
+        La = self.weight_lattice_realization().basis()
         from sage.combinat.integer_vector import IntegerVectors
         for n in range(1, level+1):
             for c in IntegerVectors(n, rank):
-                w = WLR.sum_of_terms([(i, coeff) for i,coeff in enumerate(c)], distinct=True)
+                w = sum(c[i]*La[i] for i in I) # This is always non-zero
                 if w.level() == level:
-                    weights += [w]
+                    weights.append(w)
         return sorted([b.Phi() for b in MPhi]) == sorted(weights)
 
     class Element(CrystalOfLSPaths.Element):
