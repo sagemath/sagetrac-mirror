@@ -65,8 +65,8 @@ class QuasiShuffleProduct(Parent):
 
     def cardinality(self):
         """
-        That method compute the number of terms when "reducer" produce 
-        a monomial.
+        That method compute the number of terms when "reducer" produces 
+        only one terms.
         
         A008288: Square array of Delannoy numbers 
                  D(i,j) (i >= 0, j >= 0) read by antidiagonals.
@@ -114,9 +114,20 @@ class QuasiShuffleProduct(Parent):
         raise NotImplemented
 
     def __iter__(self):
+        """
+        TESTS::
 
+            sage: from sage.combinat.quasi_shuffle import QuasiShuffleProduct
+            sage: list(QuasiShuffleProduct([[1,2]], [[3]]))
+            [[[1, 2], [3]], [[3], [1, 2]], [[1, 2, 3]]]
+        """
         def recursive_generator(l1, l2):
             # {a}S::{b}S' = {a} (S::{b}S') + {b} ({a}S::S') + {a,b} (S::S')
+            if len(l1) == 0:
+                return iter([l2])
+            if len(l2) == 0:
+                return iter([l1])
+
             # # {a} (S::{b}S')
             it1 = itertools.imap(
                 lambda l: [l1[0]] + l,
