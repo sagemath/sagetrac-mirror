@@ -727,8 +727,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
            `\mathcal{B}` of classical weight `\lambda`.
         #. For all `b \in \mathcal{B}`, we have `\mathrm{lev}(\varepsilon(b))
            \geq \ell`.
-        #. For all `\Lambda \in P_{\ell}^+`, there exist unique
-           elements `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`,
+        #. For all `\Lambda` dominant weights of level `\ell`, there exist
+           unique elements `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`,
            such that `\varepsilon(b_{\Lambda}) = \Lambda =
            \varphi(b^{\Lambda})`.
 
@@ -979,7 +979,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
                 sage: G = LS.digraph(index_set=[1,2])
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
                 [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 
                 sage: ct = CartanType(['BC',2,2]).dual()
@@ -988,7 +988,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
                 [True, True, True, True, True, True, True, True, True, True, True]
 
                 sage: R = RootSystem(['BC',2,2])
@@ -996,7 +996,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
                 [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
                 True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
             """
