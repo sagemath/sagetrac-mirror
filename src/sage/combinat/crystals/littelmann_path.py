@@ -786,7 +786,6 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         weights = []
         rank = len(self.index_set())
         WLR = self.weight_lattice_realization()
-        La = WLR.basis()
         from sage.combinat.integer_vector import IntegerVectors
         for n in range(1, level+1):
             for c in IntegerVectors(n, rank):
@@ -979,7 +978,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
                 sage: G = LS.digraph(index_set=[1,2])
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
                 [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
 
                 sage: ct = CartanType(['BC',2,2]).dual()
@@ -988,7 +987,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
                 [True, True, True, True, True, True, True, True, True, True, True]
 
                 sage: R = RootSystem(['BC',2,2])
@@ -996,7 +995,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
-                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
                 [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
                 True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
             """
