@@ -2,6 +2,12 @@
 """
 Packed Words
 
+References:
+-----------
+
+.. [NoTh06] Polynomial realizations of some trialgebras,
+    J.-C. Novelli and J.-Y. Thibon.
+
 AUTHOR:
 
 - Jean-Baptiste Priez
@@ -13,6 +19,9 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import itertools
+from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.shuffle import ShuffleProduct
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -25,10 +34,10 @@ from sage.structure.list_clone import ClonableIntArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.set import Set
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.tools import transitive_ideal
-from sage.misc.misc import uniq
+from sage.combinat.set_partition_ordered import OrderedSetPartitions, OrderedSetPartition
+from sage.misc.misc import uniq, forall
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.combinat.composition import Composition
 
 
 def to_pack(li):
@@ -36,9 +45,12 @@ def to_pack(li):
     The analogue map of the *standardization* (..see
     :func:`sage.combinat.permutation.to_standard`) for *packed words*.
 
+    .. see _[NoTh06] §2. The Hopf algebra WQSym
+
+
     TESTS::
 
-        sage: from sage.combinat.packed_words import to_pack
+        sage: from sage.combinat.packed_word import to_pack
         sage: to_pack([])
         []
         sage: to_pack([3,1])
@@ -54,64 +66,6 @@ def to_pack(li):
     """
     l = uniq(li)
     return PackedWord([l.index(i) + 1 for i in li])
-
-
-def ordered_partition_sets_to_packed_word(li):
-    """
-    This map build the associated *ordered partition sets* of a *packed word*.
-
-    TESTS::
-
-        sage: from sage.combinat.packed_words import \
-        ....:     ordered_partition_sets_to_packed_word
-        sage: ordered_partition_sets_to_packed_word(
-        ....:     OrderedSetPartitions(5)[34]
-        ....: )
-        [2, 3, 5, 1, 4]
-        sage: ordered_partition_sets_to_packed_word([Set([2,3]), Set([1,4])])
-        [2, 1, 1, 2]
-    """
-    dic = {}
-    i = 1
-    for set in li:
-        for p in set:
-            dic[p] = i
-        i += 1
-    return PackedWord(list(dic.values()))
-
-
-def quasi_inv(x):
-    """ Compte le nombre de quasi inversions
-    """
-    assert (x in PackedWords())
-    invX = []
-    for i in range(len(x)):
-        ai = x[i]
-        for j in range(i + 1, len(x)):
-            aj = x[j]
-            if ai == aj:
-                invX.append((1. / 2, (i, j)))
-            elif ai > aj:
-                invX.append((1, (i, j)))
-    return invX
-
-
-def quasi_cmp(x, y):
-    assert (x in PackedWords() and y in PackedWords())
-    if x.size() == y.size():
-        for i in range(len(x)):
-            for j in range(i + 1, len(x)):
-                invXij = 0 if x[i] == x[j] else 1 if x[i] > x[j] else -1
-                invYij = 0 if y[i] == y[j] else 1 if y[i] > y[j] else -1
-                if invXij == invYij:
-                    continue
-                else:
-                    return cmp(invXij, invYij)
-        return 0
-    elif x.size() > y.size():
-        return 1
-    else:
-        return -1
 
 
 class PackedWord(ClonableIntArray):
@@ -133,14 +87,14 @@ class PackedWord(ClonableIntArray):
 
         TESTS::
 
-            sage: from sage.combinat.packed_words import PackedWords_all
+            sage: from sage.combinat.packed_word import PackedWords_all
             sage: issubclass(PackedWords_all().element_class, PackedWord)
             True
             sage: w0 = PackedWord([4,2,3,1,2])
             sage: w0.parent()
             Packed words
             sage: type(w0)
-            <class 'sage.combinat.packed_words.PackedWords_all_with_category.element_class'>
+            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
             sage: w1 = PackedWords()([4,2,3,1,2])
             sage: w1.parent() is w0.parent()
             True
@@ -168,6 +122,7 @@ class PackedWord(ClonableIntArray):
 
     def __init__(self, parent, li=None, check=True):
         """
+
         TESTS::
 
             sage: PackedWord([]).parent()
@@ -175,8 +130,6 @@ class PackedWord(ClonableIntArray):
         """
         if li is None:
             li = []
-#        if li in OrderedSetPartitions(len(li)):
-#            li = to_pack(li)
         ClonableIntArray.__init__(self, parent, li, check=check)
 
     def check(self):
@@ -197,27 +150,25 @@ class PackedWord(ClonableIntArray):
         assert(len(s) == 0 or (max(s) == len(s) and min(s) == 1)
             ), "This is not a packed word %s" % str(self)
 
-    def to_ordered_partition_sets(self):
+    def to_ordered_set_partition(self):
         """
         This method build an *ordered partition sets* associated to *self*.
 
         TESTS::
 
-            sage: from sage.combinat.packed_words import \
-            ....:     ordered_partition_sets_to_packed_word
-            sage: opspw = ordered_partition_sets_to_packed_word
             sage: pw = PackedWords(6).random_element()
-            sage: opspw(pw.to_ordered_partition_sets()) == pw
+            sage: pw.to_ordered_set_partition().to_packed_word() == pw
             True
-            sage: PackedWord([1,2,3,1,1,3]).to_ordered_partition_sets()
+            sage: PackedWord([1,2,3,1,1,3]).to_ordered_set_partition()
             [{1, 4, 5}, {2}, {3, 6}]
         """
         import collections
         d = collections.defaultdict(list)
         for i in range(len(self)):
             d[self[i]].append(i + 1)
-        return [Set(d[k]) for k in sorted(d.keys())]
+        return OrderedSetPartition([Set(d[k]) for k in sorted(d.keys())])
 
+    @combinatorial_map(name='to composition')
     def to_composition(self):
         """
         Compute a *composition* associated to the parikh vector of *self*.
@@ -226,12 +177,82 @@ class PackedWord(ClonableIntArray):
 
             sage: PackedWord([1,2,3,1,1,3]).to_composition()
             [3, 1, 2]
+            sage: PackedWord([1,2,3,1,1,3]).to_ordered_set_partition().to_composition()
+            [3, 1, 2]
+            sage: for pw in PackedWords(4):
+            ....:     assert(pw.to_composition() == pw.to_ordered_set_partition().to_composition())
         """
-        from sage.combinat.composition import Composition
+
         if len(self) == 0:
             return Composition([])
-        from sage.combinat.words.word import Word
-        return Composition(Word(self).parikh_vector(range(1, max(self) + 1)))
+        li = list(self)
+        return Composition([li.count(i) for i in set(self)])
+
+    def shifted_shuffle(self, other):
+        """
+        The analogue map of the *shifted_shuffle* (..see
+        :meth:`sage.combinat.permutation.Permutation_class.shifted_shuffle`)
+        for *packed words*:
+
+        MATH::
+
+            p_1\dots p_k \Cup q_1\dots q_l[m] := p_1 \dot (p_2 \dots p_k \Cup (q_1 \dots q_l)[m])
+                + (q_1 + m) \dot (p_1 \dots p_k \Cup (q_2 \dots q_l)[m])\,.
+
+        with `m := \max(p_1 \dots p_k)`.
+
+        .. see _[NoTh06] §2. The Hopf algebra WQSym
+
+        TESTS::
+
+            sage: PW = PackedWord
+            sage: list(PW([1,1]).shifted_shuffle(PW([1,2])))
+            [[1, 1, 2, 3],
+             [1, 2, 1, 3],
+             [1, 2, 3, 1],
+             [2, 1, 1, 3],
+             [2, 1, 3, 1],
+             [2, 3, 1, 1]]
+        """
+        assert(other in self.parent())
+        shift = max(self)
+        return iter(ShuffleProduct(self, [i + shift for i in other]))
+
+    def shifted_concatenation(self, other, side='right'):
+        """
+        The analogue map of the *shifted_concatenation* (..see
+        :meth:`sage.combinat.permutation.Permutation_class.shifted_concatenation`)
+        for *packed words*:
+
+        MATH::
+
+            p_1\dots p_k \bullet q_1\dots q_l[m] :=
+                p_1 \dots p_k \dot (q_1 + m) \dots (q_l + m)\,.
+
+        with `m := \max(p_1 \dots p_k)`.
+
+        TESTS::
+
+            sage: PackedWord([1,1,2]).shifted_concatenation([1,3,2,2])
+            [1, 1, 2, 3, 5, 4, 4]
+            sage: PackedWord([1,1,2]).shifted_concatenation([1,3,2,2], side='right')
+            [1, 1, 2, 3, 5, 4, 4]
+            sage: PackedWord([1,1,2]).shifted_concatenation([1,3,2,2], side='left')
+            [3, 5, 4, 4, 1, 1, 2]
+            sage: PackedWord([1,1,2]).shifted_concatenation([1,3,2,2], side='toto')
+            Traceback (most recent call last):
+            ...
+            ValueError: toto must be "left" or "right"
+        """
+        assert(other in self.parent())
+        PW = self.parent()._element_constructor
+        shift = max(self)
+        if side == "right" :
+            return PW(list(self) + [a + shift for a in other])
+        elif side == "left" :
+            return PW([a + shift for a in other] + list(self))
+        else :
+            raise ValueError, "%s must be \"left\" or \"right\"" %(side)
 
     def is_empty(self):
         """
@@ -278,97 +299,157 @@ class PackedWord(ClonableIntArray):
         """
         return len(self)
 
-    def quasi_permutohedron_succ(self):
+    def pseudo_permutohedron_succ(self):
         r"""
-        .. TODO:: should be in OrderedPartitionSets?
-        implement
+        Iterate the successor of the packed word ``self``.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
         TESTS::
 
-            sage: PackedWord([4,4,2,5,3,3,1,3]).quasi_permutohedron_succ()
-            [[3, 3, 2, 4, 2, 2, 1, 2], [4, 4, 2, 4, 3, 3, 1, 3], [5, 5, 2, 6, 4, 3, 1, 3], [5, 5, 2, 6, 4, 4, 1, 3], [5, 4, 2, 6, 3, 3, 1, 3]]
-        """
-        osp = self.to_ordered_partition_sets()
-        succ = []
-        #### we use the bijection with ordered sets partitions ####
-        #####
-        # first operation M_i
-        # # "the operator m_i acts on the j-th and the j+1th
-        # # parentheses of a 'quasi-permutation' as follows:
-        # # if each element of the j-th parenthese is smaller
-        # # than all the elements of the (j+1) th, then one
-        # # can merge these two parentheses into one single
-        # # parenthese which contains the union of the elements
-        # # of these two parentheses."
-        # ## [(1), (2,3,4), (5,7), (6)]
-        # ##  -- > 1 < 2 == true for i = 0 :
-        # ##      [(1,2,3,4), (5,7), (6)]
-        # ##  -- > 4 < 5 == true for i = 1 :
-        # ##      [(1), (2,3,4,5,7), (6)]
-        # ##  -- > 7 < 6 == false for i = 2.
-        for i_part in range(1, len(osp)):
-            if max (osp[i_part - 1]) < min (osp[i_part]):
-                succ.append(osp[:i_part - 1] + [osp[i_part - 1].union(osp[i_part])] + osp[i_part + 1:])
-        #####
-        # second operation S_i,j
-        # # "the operator S_i,j acts on the j-th parenthese of a
-        # # 'quasi-permutation' as follows : it splits this parentheses
-        # # into two parentheses, the second one containing the j
-        # # smallest elements of the initial parenthese and the first
-        # # one containing the others
-        # ## [(1), (2,3,4), (5,7), (6)]
-        # ## -- > for i = 0 : too short
-        # ## -- > for i = 1 : len (2,3,4) = 3 OK :
-        # ##      [(1), (3,4), (2), ...]
-        # ##      [(1), (4), (2,3), ...]
-        # ## -- > for i = 2 : len (5,7) = 2 OK :
-        # ##      [..., (7), (5), (6)]
-        # ## -- > for i = 3 : too short
-        for i_part in range(len(osp)):
-            part = sorted(osp[i_part])
-            for j in range(1, len(part)):
-                succ.append(
-                    osp[:i_part] +
-                    [uniq(part[j:]), uniq(part[:j])] +
-                    osp[i_part + 1:])
-        return [ordered_partition_sets_to_packed_word(li) for li in succ]
+            sage: PW = PackedWord
+            sage: list(PW([1,2,3]).pseudo_permutohedron_succ())
+            [[1, 1, 2], [1, 2, 2]]
+            sage: list(_[1].pseudo_permutohedron_succ())
+            [[1, 1, 1], [1, 3, 2]]
 
-    def quasi_permutohedron_pred(self):
+        """
+        return itertools.imap(
+            lambda osp: osp.to_packed_word(),
+            self.to_ordered_set_partition().pseudo_permutohedron_succ()
+        )
+
+    def pseudo_permutohedron_pred(self):
         r"""
-        .. TODO:: should be in OrderedPartitionSets?
-        """
-        osp = self.to_ordered_partition_sets()
-        pred = []
-        #### we use the bijection with ordered sets partitions ####
-        #####
-        # first operation 'M_i^{-1}'
-        for i_part in range(len(osp)):
-            part = sorted(osp[i_part])
-            for j in range(1, len(part)):
-                pred.append (
-                    osp[:i_part] +
-                    [uniq(part[:j])] + [uniq(part[j:])] +
-                    osp[i_part + 1:])
-        #####
-        # second operation "S_i,j^{-1}"
-        for i_part in range(1, len(osp)):
-            if min(osp[i_part - 1]) > max(osp[i_part]):
-                pred.append(
-                    osp[:i_part - 1] +
-                    [osp[i_part - 1] + osp[i_part]] +
-                    osp[i_part + 1:])
-        return [ordered_partition_sets_to_packed_word(li) for li in pred]
+        Iterate the predecessor of the packed word ``self``.
 
-    def quasi_permutohedron_smaller(self):
-        """
-        .. TODO:: examples
-        """
-        return transitive_ideal(lambda x: x.quasi_permutohedron_pred(), self)
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
 
-    def quasi_permutohedron_greater(self):
+        TESTS::
+
+            sage: PW = PackedWord
+            sage: list(PW([3,2,1]).pseudo_permutohedron_pred())
+            [[2, 1, 1], [2, 2, 1]]
+            sage: list(_[1].pseudo_permutohedron_pred())
+            [[2, 3, 1], [1, 1, 1]]
         """
-        .. TODO:: examples
+        return itertools.imap(
+            lambda osp: osp.to_packed_word(),
+            self.to_ordered_set_partition().pseudo_permutohedron_pred()
+        )
+
+    def pseudo_permutohedron_smaller(self):
         """
-        return transitive_ideal(lambda x: x.quasi_permutohedron_succ(), self)
+        Iterate through a list of packed words smaller than or equal to ``p``
+        in the pseudo-permutohedron order.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: set(PackedWord([3,2,1]).pseudo_permutohedron_smaller()) == \
+                    set(PackedWords(3))
+            True
+        """
+        return itertools.imap(
+            lambda osp: osp.to_packed_word(),
+            self.to_ordered_set_partition().pseudo_permutohedron_smaller()
+        )
+
+    def pseudo_permutohedron_greater(self):
+        """
+        Iterate through a list of packed words greater than or equal to ``p``
+        in the pseudo-permutohedron order.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: set(PackedWord([1,2,3]).pseudo_permutohedron_greater()) == \
+                    set(PackedWords(3))
+            True
+        """
+        return itertools.imap(
+            lambda osp: osp.to_packed_word(),
+            self.to_ordered_set_partition().pseudo_permutohedron_greater()
+        )
+
+    def half_inversions(self):
+        """
+        Return a list of the half inversions of ``self``.
+
+        ..see: :meth:`sage.combinat.set_partition_ordered.OrderedSetPartition.half_inversions`.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: PW = PackedWord
+            sage: PW([1,1,2]).half_inversions()
+            [(1, 2)]
+            sage: PW([1,2,1]).half_inversions()
+            [(1, 3)]
+        """
+        return self.to_ordered_set_partition().half_inversions()
+
+    def inversions(self):
+        """
+        Return a list of the inversions of ``self``.
+
+        An inversion of a packed word `p` is a pair `(i, j)` such that
+        `i < j` and `p(i) > p(j)`.
+
+        (The definition is same to inversions for permutations)
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: PW = PackedWord
+            sage: PW([1,1,2]).inversions()
+            []
+            sage: PW([2,1,2]).inversions()
+            [(1, 2)]
+            sage: PW([2, 3, 2, 1, 1, 3, 3, 4]).inversions()
+            [(1, 4), (1, 5), (2, 3), (2, 4), (2, 5), (3, 4), (3, 5)]
+        """
+        n = len(self)
+        return [(i + 1, j + 1) for i in range(n - 1)
+                               for j in range(i + 1, n)
+                    if self[i] > self[j]]
+
+    def is_smaller_than(self, other):
+        """
+        ``self`` is smaller than ``other`` if the value of the
+        inversion (i, j) in the table of inversions of ``self``
+        is smaller than or equal to its value in the table of inversions
+        of ``other``, for all (i, j).
+
+        The table of inversion of ``p`` is given by the set of
+        inversion ``p.inversions()`` with weight `1` and
+        the set of half inversion with weight `1/2`.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: PW = PackedWord
+            sage: pw = PW([1,2,3])
+            sage: forall(PackedWords(3), pw.is_smaller_than)
+            (True, None)
+            sage: PW([4,4,2,5,3,3,1,3]).is_smaller_than(PW([3,3,2,4,2,2,1,2]))
+            True
+        """
+        assert(other in self.parent())
+        invO = Set(other.inversions())
+        for inv in self.inversions():
+            if inv not in invO:
+                return False
+        halfO = Set(other.half_inversions())
+        for half in self.half_inversions():
+            if half not in invO and half not in halfO:
+                return False
+        return True
 
 
 #==============================================================================
@@ -402,7 +483,7 @@ class PackedWords(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.combinat.packed_words import PackedWords_size, \
+            sage: from sage.combinat.packed_word import PackedWords_size, \
             ....:     PackedWords_all
             sage: isinstance(PackedWords(2), PackedWords)
             True
@@ -432,7 +513,7 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         """
         TESTS::
 
-            sage: from sage.combinat.packed_words import PackedWords_all
+            sage: from sage.combinat.packed_word import PackedWords_all
             sage: P = PackedWords_all()
             sage: P.cardinality()
             +Infinity
@@ -512,17 +593,17 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         assert(size >= 0), "size (%d) must be a positive integer" % size
         return PackedWords(size)
 
-    def permutation_to_packed_words(self, sigma):
+    def permutation_to_packed_word(self, sigma):
         """
         TESTS::
 
             sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_words(Permutation([3,1,2,4]))
+            sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
             [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_words(Permutation([1,2,3]))
+            sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
-        return PackedWords_size(len(sigma)).permutation_to_packed_words(sigma)
+        return PackedWords_size(len(sigma)).permutation_to_packed_word(sigma)
 
     Element = PackedWord
 
@@ -534,7 +615,7 @@ class PackedWords_size(PackedWords):
     """
     TESTS::
 
-        sage: from sage.combinat.packed_words import PackedWords_size
+        sage: from sage.combinat.packed_word import PackedWords_size
         sage: for i in range(6): TestSuite(PackedWords_size(i)).run()
 
     """
@@ -583,7 +664,7 @@ class PackedWords_size(PackedWords):
 
         TESTS::
 
-            sage: from sage.combinat.packed_words import PackedWords_size
+            sage: from sage.combinat.packed_word import PackedWords_size
             sage: PackedWords_size(0).cardinality()
             1
             sage: PackedWords_size(1).cardinality()
@@ -599,7 +680,7 @@ class PackedWords_size(PackedWords):
         """
         TESTS::
 
-            sage: from sage.combinat.packed_words import PackedWords_size
+            sage: from sage.combinat.packed_word import PackedWords_size
             sage: list(PackedWords_size(0))
             [[]]
             sage: list(PackedWords_size(1))
@@ -614,9 +695,8 @@ class PackedWords_size(PackedWords):
         if self._size == 0:
             yield self._element_constructor_()
         else:
-            osp = OrderedSetPartitions(self._size)
-            for part in osp:
-                yield ordered_partition_sets_to_packed_word(part)
+            for osp in OrderedSetPartitions(self._size):
+                yield osp.to_packed_word()
 
     @lazy_attribute
     def _parent_for(self):
@@ -638,7 +718,7 @@ class PackedWords_size(PackedWords):
 
             sage: P = PackedWords(4)
             sage: P.element_class
-            <class 'sage.combinat.packed_words.PackedWords_all_with_category.element_class'>
+            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
             sage: P.first().__class__ == PackedWords().first().__class__
             True
         """
@@ -662,16 +742,16 @@ class PackedWords_size(PackedWords):
             raise ValueError, "Wrong size of word"
         return res
 
-    def permutation_to_packed_words(self, sigma):
+    def permutation_to_packed_word(self, sigma):
         """
         Compute all packed words which give *sigma* by standardization.
 
         TESTS::
 
             sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_words(Permutation([3,1,2,4]))
+            sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
             [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_words(Permutation([1,2,3]))
+            sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
         if self._size <= 1:

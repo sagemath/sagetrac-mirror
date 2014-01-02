@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Ordered Set Partitions
 
@@ -9,6 +10,13 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`OrderedSetPartition`.
+
+References:
+-----------
+
+.. [NoTh06] Polynomial realizations of some trialgebras,
+    J.-C. Novelli and J.-Y. Thibon.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -24,21 +32,24 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.combinat.tools import transitive_ideal
 
 from sage.rings.arith import factorial
 import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.misc import prod
+from sage.misc.misc import prod, uniq
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
+from sage.combinat.quasi_shuffle import QuasiShuffleProduct
 from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
+import itertools
 
 class OrderedSetPartition(ClonableArray):
     """
@@ -171,6 +182,307 @@ class OrderedSetPartition(ClonableArray):
             [2, 1, 2]
         """
         return Composition(map(len, self))
+
+    @combinatorial_map(name='to packed word')
+    def to_packed_word(self):
+        """
+        Return the packed word `w_1\dots w_n` such that
+        for any `i`, one has `i \in \pi_{w_i}` with
+        `(\pi_j)` is ``self``.
+
+        TESTS::
+
+            sage: OrderedSetPartition([[1,3],[2]]).to_packed_word()
+            [1, 2, 1]
+        """
+        from sage.combinat.packed_word import PackedWord
+        dic = {}
+        i = 1
+        for set in self:
+            for p in set:
+                dic[p] = i
+            i += 1
+        return PackedWord(dic.values())
+
+    def __mul__(self, right):
+        """
+        TESTS::
+
+            sage: import itertools
+            sage: OSP = OrderedSetPartition
+            sage: OSP([[1,2,3],[4]]) * OSP([[2,3],[1,4]])
+            [{2, 3}, {1}, {4}]
+            sage: a = OSP([[1],[2,3],[4]])
+            sage: b = OSP([[1,2,3],[4]])
+            sage: c = OSP([[2,3],[1,4]])
+            sage: a * (b * c) == (a * b) * c
+            True
+            sage: for (a,b,c) in itertools.product(*itertools.tee(OrderedSetPartitions(3), 3)):
+            ....:     assert (a * (b * c) == (a * b) * c)
+            sage: OSP([[1,2,3,4]]) * a == a
+            True
+            sage: a * OSP([[1,2,3,4]]) == a
+            True
+
+        """
+        return OrderedSetPartition(filter(
+                lambda set: set.cardinality() > 0,
+                itertools.imap(
+                    lambda (setL, setR): Set(setL).intersection(Set(setR)),
+                    itertools.product(self, right)
+        )))
+
+    def shifted_quasi_shuffle(self, other):
+        """
+        The generalization of the *shifted_shuffle* (..see
+        :meth:`sage.combinat.permutation.Permutation_class.shifted_shuffle`)
+        for *ordered set partition*:
+
+        MATH::
+
+            p_1\dots p_k \Cup q_1\dots q_l[m] :=
+                p_1 \dot (p_2 \dots p_k \Cup (q_1 \dots q_l)[m])
+                + (q_1[m]) \dot (p_1 \dots p_k \Cup (q_2 \dots q_l)[m])
+                + (p_1 \cup q_1[m]) \dot (p_2 \dots p_k \Cup (q_2 \dots q_l)[m])\,.
+
+        with `m := \max(p_1 \dots p_k)` and `q_i[m]` the set `q_i` with its elements
+        are shifted by `m`.
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: list(OSP([[1]]).shifted_quasi_shuffle(OSP([[1,2]])))
+            [[{1}, {2, 3}], [{2, 3}, {1}], [{1, 2, 3}]]
+            sage: list(OSP([[1], [2]]).shifted_quasi_shuffle(OSP([[3],[1,2]])))
+            [[{1}, {2}, {5}, {3, 4}],
+             [{1}, {5}, {2}, {3, 4}],
+             [{1}, {5}, {3, 4}, {2}],
+             [{1}, {5}, {2, 3, 4}],
+             [{1}, {2, 5}, {3, 4}],
+             [{5}, {1}, {2}, {3, 4}],
+             [{5}, {1}, {3, 4}, {2}],
+             [{5}, {1}, {2, 3, 4}],
+             [{5}, {3, 4}, {1}, {2}],
+             [{5}, {1, 3, 4}, {2}],
+             [{1, 5}, {2}, {3, 4}],
+             [{1, 5}, {3, 4}, {2}],
+             [{1, 5}, {2, 3, 4}]]
+        """
+        k = len(self)
+        return iter(QuasiShuffleProduct(
+            self, [[i + k for i in set] for set in other],
+            elem_constructor=OrderedSetPartition,
+            reducer=lambda l, r: [list(l) + r]))
+
+    def pseudo_permutohedron_succ(self):
+        r"""
+        Iterate the successor of the ordered set partition ``self``.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: list(OSP([[1,2,3]]).pseudo_permutohedron_succ())
+            [[{2, 3}, {1}],
+             [{3}, {1, 2}]]
+            sage: list(OSP([[1],[2],[3]]).pseudo_permutohedron_succ())
+            [[{1, 2}, {3}],
+             [{1}, {2, 3}]]
+            sage: list(OSP([[1],[2,3]]).pseudo_permutohedron_succ())
+            [[{1, 2, 3}],
+             [{1}, {3}, {2}]]
+            sage: list(OSP([[3],[2],[1]]).pseudo_permutohedron_succ())
+            []
+            sage: list(OSP([[1],[2,3,4],[5,7],[6]]).pseudo_permutohedron_succ())
+            [[{1, 2, 3, 4}, {5, 7}, {6}],
+             [{1}, {2, 3, 4, 5, 7}, {6}],
+             [{1}, {3, 4}, {2}, {5, 7}, {6}],
+             [{1}, {4}, {2, 3}, {5, 7}, {6}],
+             [{1}, {2, 3, 4}, {7}, {5}, {6}]]
+
+        """
+        #####
+        # first operation M_i
+        # # "the operator m_i acts on the j-th and the j+1th
+        # # parentheses of a 'quasi-permutation' as follows:
+        # # if each element of the j-th parenthese is smaller
+        # # than all the elements of the (j+1) th, then one
+        # # can merge these two parentheses into one single
+        # # parenthese which contains the union of the elements
+        # # of these two parentheses."
+        # ## [(1), (2,3,4), (5,7), (6)]
+        # ##  -- > 1 < 2 == true for i = 0 :
+        # ##      [(1,2,3,4), (5,7), (6)]
+        # ##  -- > 4 < 5 == true for i = 1 :
+        # ##      [(1), (2,3,4,5,7), (6)]
+        # ##  -- > 7 < 6 == false for i = 2.
+        for i_part in range(1, len(self)):
+            if max (self[i_part - 1]) < min (self[i_part]):
+                yield self.parent()._element_constructor(
+                    self[:i_part - 1] + [self[i_part - 1].union(self[i_part])] + self[i_part + 1:])
+
+        #####
+        # second operation S_i,j
+        # # "the operator S_i,j acts on the j-th parenthese of a
+        # # 'quasi-permutation' as follows : it splits this parentheses
+        # # into two parentheses, the second one containing the j
+        # # smallest elements of the initial parenthese and the first
+        # # one containing the others
+        # ## [(1), (2,3,4), (5,7), (6)]
+        # ## -- > for i = 0 : too short
+        # ## -- > for i = 1 : len (2,3,4) = 3 OK :
+        # ##      [(1), (3,4), (2), ...]
+        # ##      [(1), (4), (2,3), ...]
+        # ## -- > for i = 2 : len (5,7) = 2 OK :
+        # ##      [..., (7), (5), (6)]
+        # ## -- > for i = 3 : too short
+        for i_part in range(len(self)):
+            part = sorted(self[i_part])
+            for j in range(1, len(part)):
+                yield self.parent()._element_constructor(
+                    self[:i_part] + [uniq(part[j:]), uniq(part[:j])] + self[i_part + 1:])
+
+    def pseudo_permutohedron_pred(self):
+        """
+        Iterate the predecessor of the ordered set partition ``self``.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: list(OSP([[1,2,3]]).pseudo_permutohedron_pred())
+            [[{1}, {2, 3}], [{1, 2}, {3}]]
+            sage: list(_[0].pseudo_permutohedron_pred())
+            [[{1}, {2}, {3}]]
+            sage: list(_[0].pseudo_permutohedron_pred())
+            []
+            sage: list(OSP([[3],[2],[1]]).pseudo_permutohedron_pred())
+            [[{2, 3}, {1}], [{3}, {1, 2}]]
+
+        """
+        #####
+        # first operation 'M_i^{-1}'
+        for i_part in range(len(self)):
+            part = sorted(self[i_part])
+            for j in range(1, len(part)):
+                yield self.parent()._element_constructor(
+                    self[:i_part] +
+                    [uniq(part[:j])] + [uniq(part[j:])] +
+                    self[i_part + 1:])
+        #####
+        # second operation "S_i,j^{-1}"
+        for i_part in range(1, len(self)):
+            if min(self[i_part - 1]) > max(self[i_part]):
+                yield self.parent()._element_constructor(
+                    self[:i_part - 1] +
+                    [self[i_part - 1] + self[i_part]] +
+                    self[i_part + 1:])
+
+    def pseudo_permutohedron_greater(self):
+        """
+        Iterate through a list of ordered set partition greater than or equal to ``p``
+        in the pseudo-permutohedron order.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: OSP([[3],[2],[1]]).pseudo_permutohedron_greater()
+            [[{3}, {2}, {1}]]
+            sage: OSP([[1],[2],[3]]).pseudo_permutohedron_greater()
+            [[{3}, {1}, {2}],
+             [{2}, {3}, {1}],
+             [{3}, {2}, {1}],
+             [{1, 3}, {2}],
+             [{2}, {1, 3}],
+             [{3}, {1, 2}],
+             [{2, 3}, {1}],
+             [{1}, {3}, {2}],
+             [{2}, {1}, {3}],
+             [{1, 2, 3}],
+             [{1}, {2, 3}],
+             [{1, 2}, {3}],
+             [{1}, {2}, {3}]]
+        """
+        return transitive_ideal(lambda x: x.pseudo_permutohedron_succ(), self)
+
+    def pseudo_permutohedron_smaller(self):
+        """
+        Iterate through a list of ordered set partition smaller than or equal to ``p``
+        in the pseudo-permutohedron order.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: OSP([[3],[2],[1]]).pseudo_permutohedron_smaller()
+            [[{1}, {3}, {2}],
+             [{1}, {2}, {3}],
+             [{2}, {1}, {3}],
+             [{1, 3}, {2}],
+             [{1, 2}, {3}],
+             [{1}, {2, 3}],
+             [{2}, {1, 3}],
+             [{3}, {1}, {2}],
+             [{1, 2, 3}],
+             [{2}, {3}, {1}],
+             [{3}, {1, 2}],
+             [{2, 3}, {1}],
+             [{3}, {2}, {1}]]
+            sage: OSP([[1],[2],[3]]).pseudo_permutohedron_smaller()
+            [[{1}, {2}, {3}]]
+
+        """
+        return transitive_ideal(lambda x: x.pseudo_permutohedron_pred(), self)
+
+    def half_inversions(self):
+        """
+        Return a list of the half inversions of ``self``.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: OSP([[1,2,3]]).half_inversions()
+            [(1, 2), (1, 2), (2, 3)]
+            sage: OSP([[1,3], [2]]).half_inversions()
+            [(1, 3)]
+            sage: OSP([[4,5],[1,3],[2,6,7],[8]]).half_inversions()
+            [(1, 3), (2, 6), (2, 6), (4, 5), (6, 7)]
+        """
+        half_inv = []
+        for set in self:
+            l = sorted(set.list())
+            n = len(l)
+            half_inv.extend((l[i], l[i+1])
+                    for i in range(n - 1)
+                    for j in range(i + 1, n)
+            )
+        return sorted(half_inv)
+
+    def inversions(self):
+        """
+        Return a list of the inversions of ``self``.
+
+        ..see: :meth:`sage.combinat.packed_word.PackedWord.inversions`.
+
+        ..see _[NoTh06] §2.6 The pseudo-permutohedron
+
+        TESTS::
+
+            sage: OSP = OrderedSetPartition
+            sage: OSP([[1,2,3]]).inversions()
+            []
+            sage: OSP([[3], [1,2]]).inversions()
+            [(1, 3), (2, 3)]
+
+        """
+        return self.to_packed_word().inversions()
 
 class OrderedSetPartitions(Parent, UniqueRepresentation):
     """
