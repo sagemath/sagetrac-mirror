@@ -528,7 +528,6 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             True
             sage: TestSuite(P).run()
         """
-        Parent.__init__(self, category=InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), PackedWords_size),
             facade=True, keepkey=False)
