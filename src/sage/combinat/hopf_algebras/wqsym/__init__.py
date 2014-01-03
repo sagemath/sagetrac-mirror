@@ -20,13 +20,12 @@ References:
 from sage.categories.bidendriform_bialgebras import BidendriformBialgebras
 from sage.categories.category import Category
 from sage.categories.hopf_algebras import HopfAlgebras
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.combinat.hopf_algebras import GenericGradedConnexeHopfAlgebras, words_like_getitem, \
     GenericBasisOfGCHopfAlgebra
 from sage.combinat.hopf_algebras.categories.diese_product import DieseProductAlgebras
 from sage.combinat.ncsf_qsym.generic_basis_code import GradedModulesWithInternalProduct
 from sage.categories.realizations import Category_realization_of_parent
-from sage.categories.graded_hopf_algebras_with_basis import \
-    GradedHopfAlgebrasWithBasis
 from sage.combinat.packed_word import PackedWords
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -57,7 +56,7 @@ class WordQuasiSymmetricFunctions(GenericGradedConnexeHopfAlgebras):
         def super_categories(self):
             R = self.base().base_ring()
             return [self.base().Realizations(),
-                GradedHopfAlgebrasWithBasis(R).Graded().Connected().Realizations(),
+                HopfAlgebrasWithBasis(R).Graded().Connected().Realizations(),
                 BidendriformBialgebras(R).WithBasis().Realizations(),
                 DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations()]
