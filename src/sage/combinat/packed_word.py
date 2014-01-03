@@ -20,8 +20,10 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct
+from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -29,14 +31,12 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.disjoint_union_enumerated_sets import \
     DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.structure.list_clone import ClonableIntArray
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.set import Set
 from sage.combinat.set_partition_ordered import OrderedSetPartitions, OrderedSetPartition
-from sage.misc.misc import uniq, forall
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.misc.misc import uniq
 from sage.combinat.composition import Composition
 
 
@@ -105,19 +105,6 @@ class PackedWord(ClonableIntArray):
 
     @lazy_class_attribute
     def _auto_parent(cls):
-        """
-        The automatic parent of the element of this class
-
-        When calling the constructor of an element of this class, one needs a
-        parent. This class attribute specifies which parent is used.
-
-        EXAMPLES::
-
-            sage: PackedWord._auto_parent
-            Packed words
-            sage: PackedWord().parent()
-            Packed words
-         """
         return PackedWords_all()
 
     def __init__(self, parent, li=None, check=True):
@@ -268,9 +255,6 @@ class PackedWord(ClonableIntArray):
             False
         """
         return not self
-
-#    def __repr__( self ):
-#        return str( list( self ) ).replace( '[', '(' ).replace( ']', ')' ).replace( ',', '' )
 
     def _latex_(self):
         """
@@ -503,6 +487,65 @@ class PackedWords(UniqueRepresentation, Parent):
                 "n must be a non negative integer"
             return PackedWords_size(Integer(n))
 
+    def __init__(self, is_infinite=False):
+        """
+        Initialize ``self``
+
+        TESTS::
+
+            sage: TestSuite(PackedWords()).run()
+
+        """
+        if is_infinite:
+            Parent.__init__(self, category=InfiniteEnumeratedSets())
+        else:
+            Parent.__init__(self, category=FiniteEnumeratedSets())
+
+    Element = PackedWord
+
+    def __call__(self, x=None, *args, **keywords):
+        """
+        Ensure that ``None`` instead of ``0`` is passed by default.
+
+        TESTS::
+
+            sage: P = PackedWords()
+            sage: P()
+            []
+        """
+        return super(PackedWords, self).__call__(x, *args, **keywords)
+
+    def __contains__(self, item):
+        """
+        TESTS::
+
+            sage: [1,1,1] in PackedWords()
+            True
+            sage: [2,1,1] in PackedWords()
+            True
+            sage: [2,'2',1] in PackedWords()
+            False
+        """
+        if isinstance(item, self.element_class):
+            return True
+        try:
+            self._element_constructor(item)
+            return True
+        except TypeError:
+            return False
+
+    def permutation_to_packed_word(self, sigma):
+        """
+        TESTS::
+
+            sage: PW = PackedWords()
+            sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
+            [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
+            sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
+            [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
+        """
+        return PackedWords_size(len(sigma)).permutation_to_packed_word(sigma)
+
 
 #==============================================================================
 # Enumerated set of all packed words
@@ -528,6 +571,7 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
             True
             sage: TestSuite(P).run()
         """
+        PackedWords.__init__(self, True)
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), PackedWords_size),
             facade=True, keepkey=False)
@@ -541,70 +585,42 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         """
         return "Packed words"
 
-    def __contains__(self, w):
+    def combinatorial_class_of_size(self, size):
+        return PackedWords(size)
+
+    def __contains__(self, item):
         """
         TESTS::
 
-            sage: P = PackedWords()
-            sage: 1 in P
+            sage: [1,1,1] in PackedWords()
+            True
+            sage: [2,1,1] in PackedWords()
+            True
+            sage: [2,'2',1] in PackedWords()
             False
-            sage: PackedWord([]) in P
-            True
-            sage: [1,1,4,2,3] in P
-            True
-
         """
-        if isinstance(w, self.element_class):
+        if isinstance(item, self.element_class):
             return True
         try:
-            self(w)
+            self._element_constructor(item)
             return True
-        except:
+        except TypeError:
             return False
-
-    def __call__(self, x=None, *args, **keywords):
-        """
-        Ensure that ``None`` instead of ``0`` is passed by default.
-
-        TESTS::
-
-            sage: P = PackedWords()
-            sage: P()
-            []
-        """
-        return super(PackedWords, self).__call__(x, *args, **keywords)
 
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
 
-            sage: P = PackedWords()
-            sage: P._element_constructor_()
+            sage: P = PackedWords(0)
+            sage: P([])
             []
-            sage: P()
-            []
-            sage: P([1,1,1])
-            [1, 1, 1]
+
+            # sage: P([1])
+            # Traceback (most recent call last)
+            # ...
+            # ValueError: Wrong size of word
         """
         return self.element_class(self, *args, **keywords)
-
-    def combinatorial_class_of_size(self, size):
-        assert(size >= 0), "size (%d) must be a positive integer" % size
-        return PackedWords(size)
-
-    def permutation_to_packed_word(self, sigma):
-        """
-        TESTS::
-
-            sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
-            [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
-            [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
-        """
-        return PackedWords_size(len(sigma)).permutation_to_packed_word(sigma)
-
-    Element = PackedWord
 
 
 #==============================================================================
@@ -615,13 +631,49 @@ class PackedWords_size(PackedWords):
     TESTS::
 
         sage: from sage.combinat.packed_word import PackedWords_size
-        sage: for i in range(6): TestSuite(PackedWords_size(i)).run()
+        sage: TestSuite(PackedWords_size(5)).run()
 
     """
 
     def __init__(self, size):
-        super(PackedWords_size, self).__init__(category=FiniteEnumeratedSets())
+        super(PackedWords_size, self).__init__(False)
+        assert(size >= 0), "Argument size (%d) must be a positive integer" % size
         self._size = size
+
+    @lazy_attribute
+    def _parent_for(self):
+        return PackedWords_all()
+
+    @lazy_attribute
+    def element_class(self):
+        """
+        TESTS::
+
+            sage: P4 = PackedWords(4)
+            sage: type(P4.an_element())
+            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
+            sage: type(P4([1,2,3,4]))
+            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
+        """
+        return self._parent_for.element_class
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: P = PackedWords(0)
+            sage: P([])
+            []
+
+            # sage: P([1])
+            # Traceback (most recent call last)
+            # ...
+            # ValueError: Wrong size of word
+        """
+        res = self.element_class(self._parent_for, *args, **keywords)
+        if res.size() != self._size:
+            raise ValueError, "Wrong size of word"
+        return res
 
     def _repr_(self):
         """
@@ -645,8 +697,14 @@ class PackedWords_size(PackedWords):
             False
             sage: PackedWord([1,2,1,3]) in P
             True
+            sage: [1,2,1,3] in P
+            True
+
         """
-        return isinstance(x, self.element_class) and x.size() == self._size
+        if isinstance(x, self.element_class):
+            return self._size == x.size()
+        else:
+            return super(PackedWords_size, self).__contains__(x) and len(x) == self._size
 
     def _an_element_(self):
         """
@@ -692,54 +750,10 @@ class PackedWords_size(PackedWords):
              [1, 1, 1]]
         """
         if self._size == 0:
-            yield self._element_constructor_()
+            yield self._element_constructor()
         else:
             for osp in OrderedSetPartitions(self._size):
                 yield osp.to_packed_word()
-
-    @lazy_attribute
-    def _parent_for(self):
-        """
-        The parent of the element generated by ``self`
-
-        TESTS::
-
-            sage: P = PackedWords(4)
-            sage: P._parent_for
-            Packed words
-        """
-        return PackedWords_all()
-
-    @lazy_attribute
-    def element_class(self):
-        """
-        TESTS::
-
-            sage: P = PackedWords(4)
-            sage: P.element_class
-            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
-            sage: P.first().__class__ == PackedWords().first().__class__
-            True
-        """
-        return self._parent_for.element_class
-
-    def _element_constructor_(self, *args, **keywords):
-        """
-        EXAMPLES::
-
-            sage: P = PackedWords(0)
-            sage: P([])
-            []
-
-            # sage: P([1])
-            # Traceback (most recent call last)
-            # ...
-            # ValueError: Wrong size of word
-        """
-        res = self.element_class(self._parent_for, *args, **keywords)
-        if res.size() != self._size:
-            raise ValueError, "Wrong size of word"
-        return res
 
     def permutation_to_packed_word(self, sigma):
         """
@@ -755,9 +769,9 @@ class PackedWords_size(PackedWords):
         """
         if self._size <= 1:
             if self._size == 0:
-                return [self._element_constructor_([])]
+                return [self._element_constructor([])]
             if self._size == 1:
-                return [self._element_constructor_([1])]
+                return [self._element_constructor([1])]
         li = [({sigma.index(1):1}, sigma.index(1))]
         for i in range(2, self._size):
             index_i = sigma.index(i)
@@ -774,7 +788,7 @@ class PackedWords_size(PackedWords):
         for (pw, l_index) in li:
             if l_index < index_i:
                 pw[index_i] = pw[l_index]
-                res.append(self._element_constructor_(pw.values()))
+                res.append(self._element_constructor(pw.values()))
             pw[index_i] = pw[l_index] + 1
-            res.append(self._element_constructor_(pw.values()))
+            res.append(self._element_constructor(pw.values()))
         return res
