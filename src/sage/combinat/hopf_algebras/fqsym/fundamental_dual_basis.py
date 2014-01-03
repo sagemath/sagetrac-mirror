@@ -12,7 +12,6 @@ G-basis of FQSym
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
-from sage.combinat.hopf_algebras import register_as_realization
 from sage.misc.misc_c import prod
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.permutation import to_standard, Permutations
@@ -304,5 +303,3 @@ class FundamentalDual(FreeQuasiSymmetricFunctions.Bases.Base):
         sigma_action = lambda w: prod([FA.gens()[w[sigma[i]-1]] for i in range(l)])
 
         return sum(itertools.imap(sigma_action, gen_increasing_words(l, descents)))
-
-register_as_realization(FreeQuasiSymmetricFunctions, FundamentalDual, "G")

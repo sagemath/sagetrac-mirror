@@ -12,7 +12,6 @@ H-basis of FQSym
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.hopf_algebras.fqsym import FreeQuasiSymmetricFunctions
-from sage.combinat.hopf_algebras import register_as_realization
 
 
 class Homogene(FreeQuasiSymmetricFunctions.Bases.Base):
@@ -92,5 +91,3 @@ class Homogene(FreeQuasiSymmetricFunctions.Bases.Base):
             tri="upper")
         H_to_F.register_as_coercion()
         (~H_to_F).register_as_coercion()
-
-register_as_realization(FreeQuasiSymmetricFunctions, Homogene, "H")

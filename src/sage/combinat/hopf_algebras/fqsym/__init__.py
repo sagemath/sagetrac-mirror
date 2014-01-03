@@ -131,9 +131,9 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnexeHopfAlgebras):
     `\Delta_{\succ}`.) (C3 dependants)::
 
             sage: F[1,2]>>F[2,1]
-            F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
-            sage: F.left_coproduct_on_basis([3,1,4,2])
-            F[1] # F[1, 3, 2] + F[2, 1] # F[2, 1]
+            F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[4, 1, 2, 3]
+            sage: F[3,1,4,2].left_coproduct()
+            F[2, 1, 3] # F[1]
 
         - expand the polynomial realization::
 

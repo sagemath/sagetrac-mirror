@@ -11,7 +11,6 @@ E-basis of FQSym
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.hopf_algebras import register_as_realization
 from sage.combinat.hopf_algebras.fqsym import FreeQuasiSymmetricFunctions
 
 
@@ -99,4 +98,3 @@ class Elementary(FreeQuasiSymmetricFunctions.Bases.Base):
         E_to_F.register_as_coercion()
         (~E_to_F).register_as_coercion()
 
-register_as_realization(FreeQuasiSymmetricFunctions, Elementary, "E")

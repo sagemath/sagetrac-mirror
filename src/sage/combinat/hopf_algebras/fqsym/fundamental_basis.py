@@ -11,14 +11,13 @@ F-basis of FQSym
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.hopf_algebras import register_as_realization
 from sage.combinat.hopf_algebras.fqsym import FreeQuasiSymmetricFunctions
 from sage.combinat.permutation import to_standard
 from sage.combinat.shuffle import ShuffleProduct
 
 
 class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
-    '''
+    """
     This is the fundamental basis of ``FQSym``:
 
     EXAMPLES::
@@ -89,7 +88,7 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
         sage: F = FQSym(QQ).F(); F
         The combinatorial Hopf algebra of Free Quasi-Symmetric Functions over the Rational Field on the Fundamental basis
         sage: TestSuite(F).run()
-    '''
+    """
 
     _prefix = "F"
 
@@ -100,7 +99,7 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
         self.morph_F_FQSym_to_F_QSym()
 
     def morph_F_FQSym_to_F_QSym(self):
-        '''
+        """
         TESTS::
 
             sage: FQ = QuasiSymmetricFunctions(QQ).F()
@@ -111,7 +110,7 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             True
             sage: FQ(F[2,1,3] + F[3,1,2])
             2*F[1, 2]
-        '''
+        """
         ###############################################
         # ## F-basis of FQSym to F-basis of QSym the fundamental basis
         # ## (Gessel)
@@ -124,7 +123,7 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
         ###############################################
 
     def product_on_basis(self, sigma, mu):
-        '''
+        """
         TESTS::
 
             sage: F = FQSym(QQ).F()
@@ -139,11 +138,11 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             F[1, 3, 2, 4] + F[3, 1, 2, 4] + F[3, 2, 1, 4] + F[3, 2, 4, 1]
             sage: F[1, 2] * F[2, 1]
             F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[1, 4, 3, 2] + F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
-        '''
+        """
         return self.sum_of_monomials(sigma.shifted_shuffle(mu))
 
     def coproduct_on_basis(self, sigma):
-        '''
+        """
         TESTS::
 
             sage: F = FQSym(ZZ).F()
@@ -155,14 +154,20 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             F[] # F[1, 2] + F[1] # F[1] + F[1, 2] # F[]
             sage: ( F[1, 2] - F[2, 1] ).coproduct()
             F[] # F[1, 2] - F[] # F[2, 1] + F[1, 2] # F[] - F[2, 1] # F[]
-        '''
+        """
         return self.tensor_square().sum_of_monomials(
             (to_standard(sigma[:i]), to_standard(sigma[i:]))
                 for i in range(len(sigma) + 1)
         )
 
     def left_product_on_basis(self, sigma, mu):
-        '''
+        """
+        Left dendriform product defines as the shifted
+        shuffle of ``sigma`` and ``mu`` such that
+        for all `\tau \in \sigma \Cup \mu` one has
+        `\tau_{m+n}` (for `m` and `n` respectively the size of
+        `\sigma` and `\mu`) comes from `\sigma`.
+
         TESTS::
 
             sage: F = FQSym(QQ).F()
@@ -172,25 +177,27 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             F[2, 1]
             sage: F.left_product_on_basis([],[1])
             0
-            sage: F.left_product_on_basis([1,2],[1])
-            F[1, 2, 3] + F[1, 3, 2]
-            sage: F[1,2]<<F[1]
-            F[1, 2, 3] + F[1, 3, 2]
-            sage: F.left_product_on_basis([3,1,2],[2,1])
-            F[3, 1, 2, 5, 4] + F[3, 1, 5, 2, 4] + F[3, 1, 5, 4, 2] + F[3, 5, 1, 2, 4] + F[3, 5, 1, 4, 2] + F[3, 5, 4, 1, 2]
-            sage: F[3,1,2]<<F[2,1]
-            F[3, 1, 2, 5, 4] + F[3, 1, 5, 2, 4] + F[3, 1, 5, 4, 2] + F[3, 5, 1, 2, 4] + F[3, 5, 1, 4, 2] + F[3, 5, 4, 1, 2]
-        '''
+            sage: F.left_product_on_basis([1],[1])
+            F[2, 1]
+            sage: F[1,2] << F[1,2,3]
+            F[1, 3, 4, 5, 2] + F[3, 1, 4, 5, 2] + F[3, 4, 1, 5, 2] + F[3, 4, 5, 1, 2]
+        """
         if len(sigma) < 1:
             return self(self.base_ring().zero())
 
         return self.sum_of_monomials(map(
-            lambda gamma: self.basis().keys()([sigma[0]] + list(gamma)),
-            ShuffleProduct(sigma[1:], [l + len(sigma) for l in mu], list)
+            lambda gamma: self.basis().keys()(list(gamma) + [sigma[-1]]),
+            ShuffleProduct(sigma[:-1], [l + len(sigma) for l in mu], list)
         ))
 
     def right_product_on_basis(self, sigma, mu):
-        '''
+        """
+        Right dendriform product defines as the shifted
+        shuffle of ``sigma`` and ``mu`` such that
+        for all `\tau \in \sigma \Cup \mu` one has
+        `\tau_{m+n}` (for `m` and `n` respectively the size of
+        `\sigma` and `\mu`) comes from `\mu`.
+        
         TESTS::
 
             sage: F = FQSym(QQ).F()
@@ -201,98 +208,94 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             sage: F.right_product_on_basis([1],[])
             0
             sage: F.right_product_on_basis([1],[1])
-            F[2, 1]
-            sage: F[1]>>F[1]
-            F[2, 1]
-            sage: F.right_product_on_basis([1,2],[1])
-            F[3, 1, 2]
-            sage: F[1,2]>>F[1]
-            F[3, 1, 2]
-            sage: F.right_product_on_basis([1,2],[2,1])
-            F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
-            sage: F[1,2]>>F[2,1]
-            F[4, 1, 2, 3] + F[4, 1, 3, 2] + F[4, 3, 1, 2]
-        '''
+            F[1, 2]
+            sage: F[1,2] >> F[1,2,3]
+            F[1, 2, 3, 4, 5] + F[1, 3, 2, 4, 5] + F[1, 3, 4, 2, 5] + F[3, 1, 2, 4, 5] + F[3, 1, 4, 2, 5] + F[3, 4, 1, 2, 5]
+        """
         if len(mu) < 1:
             return self(self.base_ring().zero())
         return self.sum_of_monomials(map(
             lambda gamma: self.basis().keys()(
-                [mu[0] + len(sigma)] + list(gamma)),
-            ShuffleProduct(sigma, [l + len(sigma) for l in mu[1:]], list)
+                list(gamma) + [mu[-1] + len(sigma)]),
+            ShuffleProduct(sigma, [l + len(sigma) for l in mu[:-1]], list)
         ))
 
     def left_coproduct_on_basis(self, sigma):
-        '''
+        """
+        Left dendriform copproduct defines as the deconcatenation-standardization
+        of ``sigma``such that the maximum of `\sigma` is "left" on the left
+        of the tensor.
+
         TESTS::
 
             sage: F = FQSym(QQ).F()
-            sage: F.left_coproduct_on_basis([])
+            sage: F.left_coproduct_on_basis(Permutation([]))
             0
-            sage: F.left_coproduct_on_basis([1])
+            sage: F.left_coproduct_on_basis(Permutation([1]))
             0
-            sage: F.left_coproduct_on_basis([1,2])
+            sage: F.left_coproduct_on_basis(Permutation([1,2,5,4,3]))
+            F[1, 2, 3] # F[2, 1] + F[1, 2, 4, 3] # F[1]
+            sage: F[1,2,5,4,3].left_coproduct()
+            F[1, 2, 3] # F[2, 1] + F[1, 2, 4, 3] # F[1]
+            sage: F.left_coproduct_on_basis(Permutation([1,2]))
+            0
+            sage: F.left_coproduct_on_basis(Permutation([2,1]))
             F[1] # F[1]
-            sage: F.left_coproduct_on_basis([2,1])
+            sage: F.left_coproduct_on_basis(Permutation([2,3,1]))
+            F[1, 2] # F[1]
+            sage: F[2,4,3,1].left_coproduct()
+            F[1, 2] # F[2, 1] + F[1, 3, 2] # F[1]
+            sage: F[2,4,5,3,1].left_coproduct()
+            F[1, 2, 3] # F[2, 1] + F[1, 3, 4, 2] # F[1]
+            sage: F[5,2,4,3,1].left_coproduct()
+            F[1] # F[2, 4, 3, 1] + F[2, 1] # F[3, 2, 1] + F[3, 1, 2] # F[2, 1] + F[4, 1, 3, 2] # F[1]
+            sage: F[2,4,3,1,5].left_coproduct()
             0
-            sage: F.left_coproduct_on_basis([2,3,1])
-            F[1] # F[2, 1]
-            sage: F.left_coproduct_on_basis([2,4,3,1])
-            F[1] # F[3, 2, 1]
-            sage: F.left_coproduct_on_basis([2,4,5,3,1])
-            F[1] # F[3, 4, 2, 1] + F[1, 2] # F[3, 2, 1]
-            sage: F.left_coproduct_on_basis([5,2,4,3,1])
-            0
-        '''
-        if len(sigma) < 2:
+
+        """
+        if sigma.size() < 2:
             return self(self.base_ring().zero())
-        l, r = [], []
-        current = l
-        for i in sigma:
-            if i == max(sigma):
-                current = r
-            current.append(i)
+
         return self.tensor_square().sum_of_monomials(
-            [(to_standard(l[:i + 1]), to_standard(l[i + 1:] + r))
-            for i in range(len(l))]
+            [(to_standard(sigma[:i+1]), to_standard(sigma[i+1:]))
+            for i in range(sigma.index(sigma.size()), sigma.size() - 1)]
         )
 
     def right_coproduct_on_basis(self, sigma):
-        '''
+        """
+        Right dendriform copproduct defines as the deconcatenation-standardization
+        of ``sigma``such that the maximum of `\sigma` is "left" on the right
+        of the tensor.
         TESTS::
 
             sage: F = FQSym(QQ).F()
-            sage: F.right_coproduct_on_basis([1,2])
-            0
-            sage: F.right_coproduct_on_basis([2,1])
+            sage: F[1,2].right_coproduct()
             F[1] # F[1]
-            sage: F.right_coproduct_on_basis([1])
+            sage: F[2,1].right_coproduct()
             0
-            sage: F.right_coproduct_on_basis([])
+            sage: F[1].right_coproduct()
             0
-            sage: F.right_coproduct_on_basis([1,3,2])
-            F[1, 2] # F[1]
-            sage: F.right_coproduct_on_basis([3,1,2])
-            F[1] # F[1, 2] + F[2, 1] # F[1]
-            sage: F.right_coproduct_on_basis([3,1,2,4])
+            sage: F[[]].right_coproduct()
             0
-            sage: F.right_coproduct_on_basis([3,1,4,2])
-            F[2, 1, 3] # F[1]
-        '''
-        if len(sigma) < 2:
+            sage: F[1,2,5,4,3].right_coproduct()
+            F[1] # F[1, 4, 3, 2] + F[1, 2] # F[3, 2, 1]
+            sage: F[6,1,2,5,4,3].right_coproduct()
+            0
+            sage: a = F[6,1,2,5,4,3]
+            sage: a.right_coproduct() + a.left_coproduct() == a.coproduct() -\
+                    (tensor((F.one(), a)) + tensor((a, F.one())))
+            True
+        """
+        if sigma.size() < 2:
             return self(self.base_ring().zero())
-        l, r = [], []
-        current = l
-        for i in sigma:
-            current.append(i)
-            if i == max(sigma):
-                current = r
+
         return self.tensor_square().sum_of_monomials(
-            [(to_standard(l + r[:i]), to_standard(r[i:]))
-            for i in range(len(r))]
+            [(to_standard(sigma[:i+1]), to_standard(sigma[i+1:]))
+            for i in range(min(sigma.index(sigma.size()), sigma.size()))]
         )
 
     def internal_product_on_basis(self, sigma, mu):
-        '''
+        """
         TESTS::
 
             sage: F = FQSym(QQ).F()
@@ -300,7 +303,7 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             F[3, 1, 2]
             sage: F[3,1,2].internal_product(F[3,1,2])
             F[2, 3, 1]
-        '''
+        """
         return self(sigma * mu)
 
     def scalar_product_on_basis(self, sigma, mu):
@@ -319,5 +322,3 @@ class Fundamental(FreeQuasiSymmetricFunctions.Bases.Base):
             return self.base_ring().one()
         else:
             return self.base_ring().zero()
-
-register_as_realization(FreeQuasiSymmetricFunctions, Fundamental, "F")

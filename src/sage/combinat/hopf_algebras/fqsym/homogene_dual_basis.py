@@ -12,7 +12,7 @@ m-basis of FQSym
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.hopf_algebras.fqsym import FreeQuasiSymmetricFunctions
-from sage.combinat.hopf_algebras import register_as_realization
+
 
 
 class HomogeneDual(FreeQuasiSymmetricFunctions.Bases.Base):
@@ -77,5 +77,3 @@ class HomogeneDual(FreeQuasiSymmetricFunctions.Bases.Base):
             tri="lower")
         F_to_m.register_as_coercion()
         (~F_to_m).register_as_coercion()
-
-register_as_realization(FreeQuasiSymmetricFunctions, HomogeneDual, "m")

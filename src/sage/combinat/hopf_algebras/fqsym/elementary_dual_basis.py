@@ -12,7 +12,6 @@ n-basis of FQSym
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.hopf_algebras.fqsym import FreeQuasiSymmetricFunctions
-from sage.combinat.hopf_algebras import register_as_realization
 
 
 class ElementaryDual(FreeQuasiSymmetricFunctions.Bases.Base):
@@ -77,5 +76,3 @@ class ElementaryDual(FreeQuasiSymmetricFunctions.Bases.Base):
             tri="upper")
         F_to_n.register_as_coercion()
         (~F_to_n).register_as_coercion()
-
-register_as_realization(FreeQuasiSymmetricFunctions, ElementaryDual, "n")
