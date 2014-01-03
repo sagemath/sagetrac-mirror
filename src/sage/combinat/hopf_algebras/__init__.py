@@ -32,15 +32,13 @@ class GenericGradedConnexeHopfAlgebras(UniqueRepresentation, Parent):
     def __init__(self, R):
         """
         """
-        # TODO:: tester
-        __import__(self.__module__ + ".bases")
-
         assert(R in Rings()), '%s must be a ring' % R
         Parent.__init__(self, base=R, category=self.the_category(R))
 
-    _external_realizations = []
-
     def __init_extra__(self):
+        # TODO:: tester
+        __import__(self.__module__ + ".bases")
+
         for realization_name in self._external_realizations:
             getattr(self, realization_name)
 
@@ -51,6 +49,8 @@ class GenericGradedConnexeHopfAlgebras(UniqueRepresentation, Parent):
             return [GradedHopfAlgebrasWithBasis(R).Realizations()]
 
 def register_as_realization(GCHopfAlgebra_class, realization_class, short_name=None):
+    if not hasattr(GCHopfAlgebra_class, "_external_realizations"):
+        setattr(GCHopfAlgebra_class, "_external_realizations", [])
     setattr(GCHopfAlgebra_class, realization_class.__name__, realization_class)
     GCHopfAlgebra_class._external_realizations.append(realization_class.__name__)
     if short_name:
