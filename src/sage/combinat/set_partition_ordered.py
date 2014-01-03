@@ -281,6 +281,10 @@ class OrderedSetPartition(ClonableArray):
              [{8, 1, 5, 6}, {2, 3, 4}, {9, 7}],
              [{8, 1, 5, 6}, {9, 7}, {2, 3, 4}],
              [{8, 1, 5, 6}, {9, 2, 3, 4, 7}]]
+            sage: list(OSP([]).shifted_quasi_shuffle([{1,3}, {2,4}]))
+            [[{1, 3}, {2, 4}]]
+            sage: list(OSP([{1, 5}, {2, 3, 4}]).shifted_quasi_shuffle([]))
+            [[{1, 5}, {2, 3, 4}]]
         """
         k = len(self.parent()._set)
         return iter(QuasiShuffleProduct(
