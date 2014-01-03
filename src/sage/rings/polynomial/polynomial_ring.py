@@ -1868,34 +1868,6 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         else:
             raise ValueError("no such algorithm for finding an irreducible polynomial: %s" % algorithm)
 
-class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
-    r"""
-    A polynomial ring over a `p`-adic ring which is not a field.
-
-    TESTS::
-
-        sage: R.<x> = Zp(3)[]
-        sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_generic
-        sage: isinstance(R, PolynomialRing_dense_padic_ring_generic)
-        True
-
-    """
-    pass
-
-class PolynomialRing_dense_padic_field_generic(PolynomialRing_field):
-    r"""
-    A polynomial ring over a `p`-adic field.
-
-    TESTS::
-
-        sage: R.<x> = Qp(3)[]
-        sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_generic
-        sage: isinstance(R, PolynomialRing_dense_padic_field_generic)
-        True
-
-    """
-    pass
-
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name=None, element_class=None,
             implementation=None):
