@@ -200,8 +200,14 @@ class PackedWord(ClonableIntArray):
              [2, 1, 1, 3],
              [2, 1, 3, 1],
              [2, 3, 1, 1]]
+            sage: list(PW([1,1]).shifted_shuffle(PW([])))
+            [[1, 1]]
+            sage: list(PW([]).shifted_shuffle(PW([1,2])))
+            [[1, 2]]
         """
         assert(other in self.parent())
+        if self.is_empty():
+            return iter([other])
         shift = max(self)
         return iter(ShuffleProduct(self, [i + shift for i in other]))
 
