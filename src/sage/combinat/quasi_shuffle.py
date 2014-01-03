@@ -120,6 +120,10 @@ class QuasiShuffleProduct(Parent):
             sage: from sage.combinat.quasi_shuffle import QuasiShuffleProduct
             sage: list(QuasiShuffleProduct([[1,2]], [[3]]))
             [[[1, 2], [3]], [[3], [1, 2]], [[1, 2, 3]]]
+            sage: list(QuasiShuffleProduct([[]], [[]], elem_constructor=lambda osp: osp + [3]))
+            [[[], [], 3], [[], [], 3], [[], 3]]
+            sage: list(QuasiShuffleProduct([], [], elem_constructor=lambda osp: osp + [3]))
+            [[3]]
         """
         def recursive_generator(l1, l2):
             # {a}S::{b}S' = {a} (S::{b}S') + {b} ({a}S::S') + {a,b} (S::S')
@@ -148,9 +152,9 @@ class QuasiShuffleProduct(Parent):
             return itertools.chain(it1, it2, it3)
 
         if len(self._l1) == 0:
-            yield self._l2
+            yield self._element_constructor(self._l2)
         elif len(self._l2) == 0:
-            yield self._l1
+            yield self._element_constructor(self._l1)
         else:
             for l in recursive_generator(self._l1, self._l2):
                 yield self._element_constructor(l)
