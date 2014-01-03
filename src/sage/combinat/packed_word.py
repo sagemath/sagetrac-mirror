@@ -236,9 +236,15 @@ class PackedWord(ClonableIntArray):
             Traceback (most recent call last):
             ...
             ValueError: toto must be "left" or "right"
+            sage: PackedWord([]).shifted_concatenation([1])
+            [1]
         """
         assert(other in self.parent())
         PW = self.parent()._element_constructor
+
+        if self.is_empty():
+            return other
+
         shift = max(self)
         if side == "right" :
             return PW(list(self) + [a + shift for a in other])
