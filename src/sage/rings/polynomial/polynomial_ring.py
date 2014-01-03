@@ -1,4 +1,3 @@
-
 """
 Univariate Polynomial Rings
 
@@ -17,6 +16,8 @@ AUTHOR:
 - Simon King (2011-05): Dense and sparse polynomial rings must not be equal.
 
 - Simon King (2011-10): Choice of categories for polynomial rings.
+
+- Julian Rueth (2013-09-12): simplified classes for `p`-adic base rings
 
 EXAMPLES:
 
@@ -146,13 +147,11 @@ These may change over time::
     sage: type(CC['t']['x'].0)
     <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
 """
-
-
 #################################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -1870,122 +1869,32 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             raise ValueError("no such algorithm for finding an irreducible polynomial: %s" % algorithm)
 
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
+    r"""
+    A polynomial ring over a `p`-adic ring which is not a field.
+
+    TESTS::
+
+        sage: R.<x> = Zp(3)[]
+        sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_generic
+        sage: isinstance(R, PolynomialRing_dense_padic_ring_generic)
+        True
+
+    """
     pass
 
 class PolynomialRing_dense_padic_field_generic(PolynomialRing_field):
+    r"""
+    A polynomial ring over a `p`-adic field.
+
+    TESTS::
+
+        sage: R.<x> = Qp(3)[]
+        sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_generic
+        sage: isinstance(R, PolynomialRing_dense_padic_field_generic)
+        True
+
+    """
     pass
-
-class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_capped_relative as PRing
-            sage: R = PRing(Zp(13), name='t'); R
-            Univariate Polynomial Ring in t over 13-adic Ring with capped relative precision 20
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense'>
-        """
-        if element_class is None:
-            from sage.rings.polynomial.padics.\
-                    polynomial_padic_capped_relative_dense import \
-                    Polynomial_padic_capped_relative_dense
-            element_class = Polynomial_padic_capped_relative_dense
-        PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
-
-class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_capped_absolute as PRing
-            sage: R = PRing(Zp(13, type='capped-abs'), name='t'); R
-            Univariate Polynomial Ring in t over 13-adic Ring with capped absolute precision 20
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat'>
-        """
-        if element_class is None:
-            from sage.rings.polynomial.padics.polynomial_padic_flat import \
-                    Polynomial_padic_flat
-            element_class = Polynomial_padic_flat
-        PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
-
-class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_fixed_mod as PRing
-            sage: R = PRing(Zp(13, type='fixed-mod'), name='t'); R
-            Univariate Polynomial Ring in t over 13-adic Ring of fixed modulus 13^20
-
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat'>
-        """
-        if element_class is None:
-            from sage.rings.polynomial.padics.polynomial_padic_flat import \
-                    Polynomial_padic_flat
-            element_class = Polynomial_padic_flat
-        PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
-
-class PolynomialRing_dense_padic_ring_lazy(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_ring_lazy as PRing
-            sage: R = PRing(Zp(13, type='lazy'), name='t')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: lazy p-adics need more work.  Sorry.
-
-            #sage: type(R.gen())
-
-        """
-        if element_class is None:
-            element_class = polynomial_element_generic.Polynomial_generic_dense
-        PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
-
-class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padic_field_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_capped_relative as PRing
-            sage: R = PRing(Qp(13), name='t'); R
-            Univariate Polynomial Ring in t over 13-adic Field with capped relative precision 20
-            sage: type(R.gen())
-            <class 'sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense'>
-        """
-        if element_class is None:
-            from sage.rings.polynomial.padics.\
-                    polynomial_padic_capped_relative_dense import \
-                    Polynomial_padic_capped_relative_dense
-            element_class = Polynomial_padic_capped_relative_dense
-        PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
-
-class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
-        """
-        TESTS::
-
-            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_padic_field_lazy as PRing
-            sage: R = PRing(Qp(13, type='lazy'), name='t')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: lazy p-adics need more work.  Sorry.
-
-            #sage: type(R.gen())
-        """
-        if element_class is None:
-            element_class = polynomial_element_generic.Polynomial_generic_dense
-        PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name=None, element_class=None,

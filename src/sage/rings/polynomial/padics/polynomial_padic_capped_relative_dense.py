@@ -1,6 +1,25 @@
+r"""
+`p`-adic polynomials with capped relative precision
+
+This module provides classes for `p`-adic polynomials over a ring with capped
+relative precision.
+
+AUTHORS:
+
+- David Roe (2007): initial version
+
+- Julian Rueth (2013- 09-12): added some docstrings and cleanup of the inheritance
+
 """
-p-adic Capped Relative Dense Polynomials
-"""
+#*****************************************************************************
+#       Copyright (C) 2007-2008 David Roe <roed.math@gmail.com>
+#                     2012-2013 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 #*****************************************************************************
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -23,17 +42,53 @@ import copy
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
 from sage.rings.infinity import infinity
+from polynomial_padic_generic import Polynomial_padic
 
 min = misc.min
 ZZ = sage.rings.integer_ring.ZZ
 PrecisionError = precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
-Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
-class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomial_padic):
+class Polynomial_padic_capped_relative_dense(Polynomial_padic):
+    r"""
+    A polynomial over a `p`-adic base ring with capped relative precision.
+    Every coefficient of this polynomial can have its own relative precision,
+    however, the class keeps track of the precision data of the coefficients.
+
+    INPUT:
+
+    - ``parent`` -- a polynomial ring over a `p`-adic ring
+
+    - ``x`` -- data to construct a polynomial (default: ``None``)
+
+    - ``check`` -- a boolean (default: ``True``), whether to make sure that all
+      coefficients are in the `p`-adic base ring
+
+    - ``is_gen`` -- a boolean (default: ``False``), whether this is the
+      generator of the polynomial ring
+
+    - ``construct`` -- a boolean (default: ``False``), used internally, if
+      ``True``, then ``x`` contains the attributes of a polynomial
+
+    - ``absprec`` -- an integer or ``infinity`` (default: ``infinity``), every
+      coefficient is capped to this absolute precision
+
+    - ``absprec`` -- an integer or ``infinity`` (default: ``infinity``), every
+      coefficient is capped to this relative precision
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense import Polynomial_padic_capped_relative_dense
+        sage: R.<x> = Qp(3)[] # indirect doctest
+        sage: isinstance(x, Polynomial_padic_capped_relative_dense)
+        True
+
+    """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
+        Initialization.
+
         TESTS::
 
             sage: K = Qp(13,7)
@@ -44,7 +99,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: R(t + 2)
             (1 + O(13^7))*t + (2 + O(13^7))
         """
-        Polynomial.__init__(self, parent, is_gen=is_gen)
+        Polynomial_padic.__init__(self, parent, is_gen=is_gen)
         parentbr = parent.base_ring()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if construct:
