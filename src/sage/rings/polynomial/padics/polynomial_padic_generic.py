@@ -15,10 +15,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
-from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_field, Polynomial_generic_domain
+from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_field
 from polynomial_padic import Polynomial_padic
 
-class Polynomial_padic_generic_ring(Polynomial_padic, Polynomial_generic_domain, Polynomial_generic_dense):
+class Polynomial_padic_generic_ring(Polynomial_padic, Polynomial_generic_dense):
     r"""
     A polynomial over a `p`-adic ring which is not a field.
 
@@ -65,7 +65,6 @@ class Polynomial_padic_generic_ring(Polynomial_padic, Polynomial_generic_domain,
 
         """
         Polynomial_padic.__init__(self, parent, is_gen=is_gen)
-        Polynomial_generic_domain.__init__(self, parent, is_gen=is_gen)
         Polynomial_generic_dense.__init__(self, parent, x)
 
 class Polynomial_padic_generic_field(Polynomial_padic, Polynomial_generic_dense_field):

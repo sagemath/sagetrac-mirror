@@ -41,7 +41,7 @@ class Polynomial_padic(Polynomial_generic_domain):
 
     .. NOTE::
 
-        In contrast to :class:`polynomial_padic.Polynomial_padic_generic`
+        In contrast to :class:`polynomial_padic_generic.Polynomial_padic_generic`
         (which inherits from this class), this class is meant as a base class
         for implementations which provide their own handling of the polynomial
         data.
