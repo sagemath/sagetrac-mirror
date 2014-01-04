@@ -179,20 +179,20 @@ http://www.python.org/community/
  * #11243 crypt module fails to build on Ubuntu 11.04 See:
    http://groups.google.com/group/sage-devel/browse_thread/thread/593b9a4124f5075d
  * Simplified the method for checking that Python modules are imported
-   OK, which removes the need to repeating code by using a loop.
- * Adds a check that the crypt module imports OK. This is done on every platform -
-   not just Ubuntu.
+   OK, which removes the need to repeating code by using a loop. 
+ * Adds a check that the crypt module imports OK. This is done on every platform - 
+   not just Ubuntu. 
 
 === python-2.6.4.p9 (Robert Bradsure and David Kirkby, June 21st, 2010) ===
  * #9042 - Cython fails to build on OpenSolaris x64
-   This adds the -m64 flag to OPT to build distutils extensions.
+   This adds the -m64 flag to OPT to build distutils extensions.  
    (Robert Bradsure, 25th May 2010)
  * Check that distutils builtin modules work before trying hashlib.
    (Robert Bradsure, 25th May 2010)
- * Ensure the _socket module builds on OpenSolaris x64 (this solves
-   #9041 and #9022)
-   David Kirkby (30th May 2010)
- * #9295 Add an spkg-check file for Python
+ * Ensure the _socket module builds on OpenSolaris x64 (this solves 
+   #9041 and #9022) 
+   David Kirkby (30th May 2010) 
+ * #9295 Add an spkg-check file for Python 
 
 === python-2.6.4.p8 (Mike Hansen, 25th May, 2010) ===
  * Added '--enabled-shared' which is needed on certain platforms
@@ -204,11 +204,11 @@ http://www.python.org/community/
  being build on Solaris. See http://bugs.python.org/issue1759169
  http://trac.sagemath.org/sage_trac/ticket/7867
  This is a critical bug fix, as it completely stops a build on
- Solaris 10 (SPARC).
- * #8440 Set HAVE_FD_TRANSFER=0 in setup.py to allow
-   _multiprocessing to build on Solaris.
+ Solaris 10 (SPARC). 
+ * #8440 Set HAVE_FD_TRANSFER=0 in setup.py to allow 
+   _multiprocessing to build on Solaris. 
  * #8356 Remove the option --without-libpng to Python's configure
-   script, as that is no longer a valid option.
+   script, as that is no longer a valid option. 
 
 === python-2.6.4.p6 (Jaap Spies, Feb 23, 2010) ===
  * #7761 Fix build in Open Solaris x64 with SAGE64=yes
@@ -218,7 +218,7 @@ http://www.python.org/community/
 
 === python-2.6.4.p4 (Craig Citro, Jan 17, 2010) ===
 * Move MACOSX_DEPLOYMENT_TARGET fix to sage-env, so that it's
-  used for all python-related spkgs. (This was leading to a
+  used for all python-related spkgs. (This was leading to a 
   build issue with numpy and scipy on 10.4.)
 
 === python-2.6.4.p3 (John Palmieri, David Kirkby Jan 14, 2010) ===
