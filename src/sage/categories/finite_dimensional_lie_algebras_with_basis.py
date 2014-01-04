@@ -99,7 +99,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return the matrix of the Killing form of ``self``.
             """
             B = self.basis()
-            m = matrix([[self.killing_form(x, y) for x in B] for y in B)
+            m = matrix([[self.killing_form(x, y) for x in B] for y in B])
             m.set_immutable()
             return m
 

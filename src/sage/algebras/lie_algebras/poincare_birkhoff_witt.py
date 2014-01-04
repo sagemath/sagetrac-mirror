@@ -165,7 +165,7 @@ class IdealPBW: # TODO: inherit from the correct classes
                 for g in G:
                     D.append((g, h))
                 for i in range(len(GU)):
-                    D.append((h, i)
+                    D.append((h, i))
                 G.append(h)
         return G
 

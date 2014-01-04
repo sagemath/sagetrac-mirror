@@ -23,8 +23,9 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
+from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 from sage.rings.all import ZZ
 from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
 

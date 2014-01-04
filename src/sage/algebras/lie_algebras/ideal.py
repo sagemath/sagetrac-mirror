@@ -23,11 +23,11 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
+from sage.structure.element import MonoidElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.categories.monoids import Monoids
 from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
-from sage.monoids.free_monoid_element import MonoidElement
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
 from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
@@ -103,7 +103,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
         else:
             return cmp(self.lie_algebra(), other.lie_algebra())
 
-class LieAlgebraIdeal(MonoidElement, LieSubalgebra):
+class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflict
     r"""
     The ideal of a Lie algebra `\mathfrak{g}`.
     """
@@ -138,7 +138,7 @@ class LieAlgebraIdeal(MonoidElement, LieSubalgebra):
             # Make sure the leading term has a coefficient of 1 (?)
             gens = tuple(map(lambda x: x/x.leading_coefficient(), gens))
         LieSubalgebra.__init__(self, lie_algebra, gens)
-        MonoidElement.__init__(self, LieIdealMonoid(lie_algebra))
+        #MonoidElement.__init__(self, LieIdealMonoid(lie_algebra))
 
     def _repr_(self):
         """
@@ -287,7 +287,7 @@ class FiniteDimensionalLieAlgebraIdeal(LieAlgebraIdeal):
         comp = b.basis_matrix().right_kernel() # The complement basis TODO - this implementation is wrong
         # TODO: convert comp to vectors in self._ambient
         v = M.linear_dependence(comp + b + [x.to_vector()])
-        return self._ambient.sum([c * comp[i] for i,c in enumerate(v))
+        return self._ambient.sum([c * comp[i] for i,c in enumerate(v)])
 
 #####################################################################
 ## Some helper functions
