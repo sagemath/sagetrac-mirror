@@ -233,7 +233,34 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     Next we compute with the integers modulo `16`.
 
+<<<<<<< HEAD
+            sage: FF = IntegerModRing(29)
+            sage: FF
+            Ring of integers modulo 29
+            sage: FF.category()
+            Join of Category of commutative rings
+                and Category of finite monoids
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
+            sage: FF.is_field()
+            True
+            sage: FF.characteristic()
+            29
+            sage: FF.order()
+            29
+            sage: gens = FF.unit_gens()
+            sage: a = gens[0]
+            sage: a
+            2
+            sage: a.is_square()
+            False
+            sage: def pow(i): return a**i
+            sage: [pow(i) for i in range(16)]
+            [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
+            sage: TestSuite(FF).run()
+=======
     ::
+>>>>>>> develop
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
@@ -289,53 +316,15 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         TESTS::
 
             sage: FF = IntegerModRing(29)
-            sage: FF
-            Ring of integers modulo 29
-            sage: FF.category()
-            Join of Category of commutative rings
-                and Category of finite monoids
-                and Category of subquotients of monoids
-                and Category of quotients of semigroups
-            sage: FF.is_field()
-            True
-            sage: FF.characteristic()
-            29
-            sage: FF.order()
-            29
-            sage: gens = FF.unit_gens()
-            sage: a = gens[0]
-            sage: a
-            2
-            sage: a.is_square()
-            False
-            sage: def pow(i): return a**i
-            sage: [pow(i) for i in range(16)]
-            [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
             sage: TestSuite(FF).run()
-
-        We have seen above that an integer mod ring is, by default, not
-        initialised as an object in the category of fields. However, one
-        can force it to be. Moreover, testing containment in the category
-        of fields my re-initialise the category of the integer mod ring::
-
             sage: F19 = IntegerModRing(19, category = Fields())
-            sage: F19.category().is_subcategory(Fields())
-            True
+            sage: TestSuite(F19).run()
             sage: F23 = IntegerModRing(23)
-            sage: F23.category().is_subcategory(Fields())
-            False
             sage: F23 in Fields()
             True
-            sage: F23.category().is_subcategory(Fields())
-            True
-            sage: TestSuite(F19).run()
             sage: TestSuite(F23).run()
-
-        Next we compute with the integers modulo `16`.
-
-        ::
-
             sage: Z16 = IntegerModRing(16)
+<<<<<<< HEAD
             sage: Z16.category()
             Join of Category of commutative rings
                 and Category of finite monoids
@@ -365,24 +354,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             2
             sage: b.multiplicative_order()
             4
+=======
+>>>>>>> develop
             sage: TestSuite(Z16).run()
-
-        Saving and loading::
-
             sage: R = Integers(100000)
             sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
-
-        Testing ideals and quotients::
-
-            sage: Z10 = Integers(10)
-            sage: I = Z10.principal_ideal(0)
-            sage: Z10.quotient(I) == Z10
-            True
-            sage: I = Z10.principal_ideal(2)
-            sage: Z10.quotient(I) == Z10
-            False
-            sage: I.is_prime()
-            True
         """
         order = ZZ(order)
         if order <= 0:
