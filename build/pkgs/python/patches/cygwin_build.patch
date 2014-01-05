@@ -1,0 +1,96 @@
+--- python-2.7.5/Lib/distutils/ccompiler.py	2013-05-11 20:32:42.000000000 -0700
++++ python-2.7.5.p2/src/Lib/distutils/ccompiler.py	2013-11-06 13:56:43.000000000 -0800
+@@ -842,8 +842,8 @@
+     def library_filename(self, libname, lib_type='static',     # or 'shared'
+                          strip_dir=0, output_dir=''):
+         assert output_dir is not None
+-        if lib_type not in ("static", "shared", "dylib"):
+-            raise ValueError, "'lib_type' must be \"static\", \"shared\" or \"dylib\""
++        if lib_type not in ("static", "shared", "dylib", "import"):
++            raise ValueError, "'lib_type' must be \"static\", \"shared\", \"dylib\" or \"import\""
+         fmt = getattr(self, lib_type + "_lib_format")
+         ext = getattr(self, lib_type + "_lib_extension")
+ 
+--- python-2.7.5/Lib/distutils/unixccompiler.py	2013-05-11 20:32:42.000000000 -0700
++++ python-2.7.5.p2/src/Lib/distutils/unixccompiler.py	2013-11-06 13:59:55.000000000 -0800
+@@ -79,9 +79,11 @@
+     static_lib_extension = ".a"
+     shared_lib_extension = ".so"
+     dylib_lib_extension = ".dylib"
+-    static_lib_format = shared_lib_format = dylib_lib_format = "lib%s%s"
++    import_lib_extension = ".dll.a"
++    import_lib_format = static_lib_format = shared_lib_format = dylib_lib_format = "lib%s%s"
+     if sys.platform == "cygwin":
+         exe_extension = ".exe"
++        shared_lib_extension = ".dll"
+ 
+     def preprocess(self, source,
+                    output_file=None, macros=None, include_dirs=None,
+@@ -246,6 +248,7 @@
+         shared_f = self.library_filename(lib, lib_type='shared')
+         dylib_f = self.library_filename(lib, lib_type='dylib')
+         static_f = self.library_filename(lib, lib_type='static')
++        import_f = self.library_filename(lib, lib_type='import')
+ 
+         if sys.platform == 'darwin':
+             # On OSX users can specify an alternate SDK using
+@@ -261,6 +264,7 @@
+ 
+ 
+         for dir in dirs:
++            implib = os.path.join(dir, import_f)
+             shared = os.path.join(dir, shared_f)
+             dylib = os.path.join(dir, dylib_f)
+             static = os.path.join(dir, static_f)
+@@ -277,7 +281,9 @@
+             # data to go on: GCC seems to prefer the shared library, so I'm
+             # assuming that *all* Unix C compilers do.  And of course I'm
+             # ignoring even GCC's "-static" option.  So sue me.
+-            if os.path.exists(dylib):
++            if os.path.exists(implib):
++                return implib
++            elif os.path.exists(dylib):
+                 return dylib
+             elif os.path.exists(shared):
+                 return shared
+--- python-2.7.5/setup.py	2013-05-11 20:32:54.000000000 -0700
++++ python-2.7.5.p2/src/setup.py	2014-01-01 10:15:57.000000000 -0800
+@@ -702,21 +702,6 @@
+         do_readline = self.compiler.find_library_file(lib_dirs, 'readline')
+         readline_termcap_library = ""
+         curses_library = ""
+-        # Determine if readline is already linked against curses or tinfo.
+-        if do_readline and find_executable('ldd'):
+-            fp = os.popen("ldd %s" % do_readline)
+-            ldd_output = fp.readlines()
+-            ret = fp.close()
+-            if ret is None or ret >> 8 == 0:
+-                for ln in ldd_output:
+-                    if 'curses' in ln:
+-                        readline_termcap_library = re.sub(
+-                            r'.*lib(n?cursesw?)\.so.*', r'\1', ln
+-                        ).rstrip()
+-                        break
+-                    if 'tinfo' in ln: # termcap interface split out from ncurses
+-                        readline_termcap_library = 'tinfo'
+-                        break
+         # Issue 7384: If readline is already linked against curses,
+         # use the same library for the readline and curses modules.
+         if 'curses' in readline_termcap_library:
+@@ -755,6 +740,7 @@
+                 pass # Issue 7384: Already linked against curses or tinfo.
+             elif curses_library:
+                 readline_libs.append(curses_library)
++                readline_libs.append('tinfo')
+             elif self.compiler.find_library_file(lib_dirs +
+                                                      ['/usr/lib/termcap'],
+                                                      'termcap'):
+@@ -1343,7 +1329,7 @@
+                 # Bug 1464056: If _curses.so links with ncursesw,
+                 # _curses_panel.so must link with panelw.
+                 panel_library = 'panelw'
+-            curses_libs = [curses_library]
++            curses_libs = [curses_library, 'tinfo']
+             exts.append( Extension('_curses', ['_cursesmodule.c'],
+                                    libraries = curses_libs) )
+         elif curses_library == 'curses' and host_platform != 'darwin':
