@@ -50,7 +50,8 @@ __sage_describe_branch()
         fi
     fi
 
-    branch="$(git symbolic-ref --quiet --short HEAD)"
+    branch="$(git symbolic-ref --quiet HEAD)"
+    branch="${branch##refs/heads/}"
     if [ $? -ne 0 ]; then
         branch="<detached-$(git log --format='%h' -1)>"
         if [ ! $color ]; then 
