@@ -68,7 +68,7 @@ TESTS::
     sage: Domains().Commutative()
     Category of integral domains
 
-Wederburn theorem; not yet implemented::
+Wedderburn's theorem::
 
     sage: DivisionRings().Finite()
     Category of finite fields
@@ -91,7 +91,7 @@ Wederburn theorem; not yet implemented::
       systematically a singleton category? Same thing for category
       with base ring?
 
-    - Once full subcategories are implemented (see #10668),
+    - Once full subcategories are implemented (see :trac:`10668`),
       make category with axioms be such. Should all full subcategories
       be implemented in term of axioms?
 """
@@ -128,7 +128,6 @@ all_axioms = ("Flying", "Blue",
 # The order of the axioms implies that
 # Magmas().Commutative().Unital() is printed as
 # ``Category of commutative unital magmas''
-
 
 @cached_function
 def axioms_rank(axiom):
@@ -180,7 +179,6 @@ def uncamelcase(s,separator=" "):
     """
     return re.sub("[a-z][A-Z]", lambda match: match.group()[0]+separator+match.group()[1], s).lower()
 
-@cached_function
 def base_category_class_and_axiom(cls):
     """
     Try to guess the axioms from the class name and, if the
@@ -247,7 +245,6 @@ def base_category_class_and_axiom(cls):
             pass
     raise TypeError("Could not retrieve base category class for %s"%cls)
 
-
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
     """
@@ -278,9 +275,9 @@ def axiom_of_nested_class(cls, nested_cls):
         sage: axiom_of_nested_class(Magmas, Semigroups)
         'Associative'
     """
-    if hasattr(nested_cls, "_base_category_class_and_axiom"):
-        axiom = nested_cls._base_category_class_and_axiom[1]
-    else:
+    try:
+        axiom =nested_cls.__dict__["_base_category_class_and_axiom"][1]
+    except KeyError:
         assert not isinstance(cls, DynamicMetaclass)
         nested_cls_name = nested_cls.__name__.split(".")[-1]
         if nested_cls_name in all_axioms:
@@ -505,7 +502,7 @@ class CategoryWithAxiom(Category):
             base_category_class = base_category_class.__base__
         if "_base_category_class_and_axiom" not in cls.__dict__:
             cls._base_category_class_and_axiom = (base_category_class, axiom_of_nested_class(base_category_class, cls))
-            cls._base_category_class_and_axiom_was_guessed = True
+            cls._base_category_class_and_axiom_was_guessed = False
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
                 "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)
