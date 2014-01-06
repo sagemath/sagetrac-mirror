@@ -90,7 +90,7 @@ class Frame:
         self.Rz = PolynomialRing(self.R,names='z')
         self.phi = None
         self.iteration = iteration_count + 1
-        if self.is_first(): # that is self.prev == None
+        if self.is_first(): # that is self.prev is None
             self.E = 1
             self.F = 1
             self.depth = 0
@@ -123,7 +123,7 @@ class Frame:
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi); f
             Unseeded Frame regarding (1 + O(2^20))*x^32 + (16 + O(2^20))
-            sage: f.phi == None
+            sage: f.phi is None
             True
             sage: f.seed(Phi.parent().gen()); f
             Frame with phi (1 + O(2^20))*x
@@ -201,7 +201,7 @@ class Frame:
         if not self.E % denominator(val) == 0:
             raise ValueError, "Denominator of given valuation does not divide E"
         psielt = FrameElt(self)
-        if self.prev == None:
+        if self.prev is None:
             psielt.terms = [FrameEltTerm(psielt,self.O(1),val)]
         else:
             vphi = self.prev.segment.slope
@@ -320,7 +320,7 @@ class Frame:
             Frame with phi (1 + O(2^20))*x
 
         """
-        if self.prev == None:
+        if self.prev is None:
             return None
         else:
             return self.prev.segment.frame      
@@ -343,7 +343,7 @@ class Frame:
             False
 
         """
-        return self.prev == None
+        return self.prev is None
 
     def phi_divides_Phi(self):
         """

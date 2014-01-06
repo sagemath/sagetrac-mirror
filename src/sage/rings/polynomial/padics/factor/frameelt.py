@@ -71,10 +71,10 @@ class FrameElt:
         """
         # deg(a) < deg(frame.phi)*frame.Eplus*frame.Fplus
         self.frame = frame
-        if this_exp != None:
+        if this_exp is not None:
             # initializes a FrameElt of phi_t ^ this_exp * a
             self.terms = [FrameEltTerm(self,a,this_exp)]
-        elif a == None:
+        elif a is None:
             self.terms = []
         elif frame.is_first():
             self.terms = [FrameEltTerm(self,a,0)]
@@ -100,7 +100,7 @@ class FrameElt:
 
         """
         if len(self.terms) == 1:
-            if self.frame.prev == None:
+            if self.frame.prev is None:
                 return True
             else:
                 return self.terms[0]._coefficient.is_single_term()
@@ -268,7 +268,7 @@ class FrameElt:
         if len(self.terms) == 0:
             return r
         sum = FrameElt(self.frame)
-        if self.frame.prev == None:
+        if self.frame.prev is None:
             v = min(self.terms[0]._exponent,r.terms[0]._exponent)
             pi = self.frame.O.uniformizer()
             usum = self.terms[0]._unit * pi ** (self.terms[0]._exponent - v)
@@ -310,7 +310,7 @@ class FrameElt:
         if self.frame.depth != r.frame.depth:
             raise ValueError, "Cannot multiply FrameElts with different frame depths"
         product = FrameElt(self.frame)
-        if self.frame.prev == None:
+        if self.frame.prev is None:
             v = self.terms[0]._exponent + r.terms[0]._exponent
             uprod = self.terms[0]._unit
             uprod = uprod * r.terms[0]._unit
@@ -453,7 +453,7 @@ class FrameEltTerm:
 
         """
         self.frameelt = frelt
-        self._scalar_flag = (self.frameelt.frame.prev == None)
+        self._scalar_flag = (self.frameelt.frame.prev is None)
         self._exponent = e
         self._cached_valuation = None
         self._zero_flag = False
@@ -483,8 +483,8 @@ class FrameEltTerm:
         EXAMPLES::
     
         """
-        if self._cached_valuation == None:
-            if self.frameelt.frame.prev == None:
+        if self._cached_valuation is None:
+            if self.frameelt.frame.prev is None:
                 self._cached_valuation = self._exponent
             else:
                 self._cached_valuation = self.frameelt.frame.prev.segment.slope * self._exponent + self._coefficient.valuation()
@@ -498,7 +498,7 @@ class FrameEltTerm:
         EXAMPLES::
 
         """
-        if self.frameelt.frame.prev == None:
+        if self.frameelt.frame.prev is None:
             return
         Eplus = self.frameelt.frame.prev.segment.Eplus
         Fplus = self.frameelt.frame.prev.Fplus
@@ -518,7 +518,7 @@ class FrameEltTerm:
         EXAMPLES::
 
         """
-        if self.frameelt.frame.prev == None:
+        if self.frameelt.frame.prev is None:
             return True
         if self._exponent < self.frameelt.frame.prev.segment.Eplus:
             return self._coefficient.is_reduced()

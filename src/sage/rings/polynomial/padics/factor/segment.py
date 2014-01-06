@@ -155,7 +155,7 @@ class Segment:
             return self._associate_polynomial
 
         if self.slope == infinity:
-            if self.frame.prev == None:
+            if self.frame.prev is None:
                 Az = self.frame.Rz.gen() ** self.length
             else:
                 Az = self.frame.prev.FFz.gen() ** self.length
@@ -167,7 +167,7 @@ class Segment:
         chi = [a[vertx[i]] * self.psi**chiex[i] for i in range(len(vertx))]
         psitilde = self.frame.find_psi(chi[0].valuation())
         Ahat = [(c/psitilde).reduce() for c in chi]
-        if self.frame.prev == None:
+        if self.frame.prev is None:
             Az = sum([(Ahat[i].residue())*self.frame.Rz.gen()**chiex[i]
                        for i in range(len(Ahat))])
         else:
