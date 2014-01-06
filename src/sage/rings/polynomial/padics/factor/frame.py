@@ -284,7 +284,7 @@ class Frame:
                 verts = [(xoffset,a[0]),(xoffset+i,a[i])]
                 slope = (a[0]-a[i]) / i
                 length = i
-            elif y < 0:
+            elif y < a[len(a)-1]:
                 if len(a[verts[len(verts)-1][0]-xoffset:]) == 0:
                     return [Segment(self,slope,verts,length)]
                 else:
