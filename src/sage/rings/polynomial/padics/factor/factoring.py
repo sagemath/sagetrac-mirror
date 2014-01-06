@@ -11,6 +11,82 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.padics.factor.frame import Frame
 from sage.structure.factorization import Factorization
 
+def pfactor_non_monic(f):
+    r"""
+    Wrapper around pfactor to handle non-monic polynomial
+    """
+    def make_monic(f):
+        # Transform a local ring polynomial into a monic one for factoring
+
+        Kx = f.parent()
+        K = Kx.base()
+        pi = K.uniformizer()
+
+        if f.leading_coefficient() == K(1):
+            return f,K(1),0,0
+
+        minval = min([a.valuation() for a in f.coeffs()])
+        divi = pi ** minval
+        g = Kx([a // divi for a in f.coeffs()])
+        multval = -minval
+
+        lead = g.leading_coefficient()
+        vlead = lead.valuation()
+        seq = g.coeffs()
+        exp = -1
+        expmult = g.degree()*exp-vlead
+        if not g.degree() <= 0:
+            while expmult < 0 or min([seq[i].valuation()-exp*i+expmult for i in range(1,len(seq))]) < 0:
+                exp += 1
+                expmult = g.degree()*exp-vlead
+        else:
+            exp = 0
+            expmult = -vlead
+
+        g = g * pi ** expmult
+        g = Kx([g.coeffs()[i] // pi**(exp*i) for i in range(g.degree()+1)])
+        multval = multval + expmult
+
+        uni = g.leading_coefficient()
+        g = Kx([a // uni for a in g.coeffs()])
+
+        return g,uni,multval,exp
+
+    def undo_monic(f,exp,h):
+        return h(f.parent().base().uniformizer() ** exp * f.parent().gen())
+
+    def dist_den(facts,multval):
+        if len(facts) == 0:
+            return []
+        Kx = facts[0].parent()
+        K = Kx.base_ring()
+        Kpi = facts[0].parent().base_ring().uniformizer()
+        newfacts = []
+        for fact in facts:
+            m = min([a.valuation() for a in fact.coeffs()])
+            newfacts.append(Kx([a // Kpi**m for a in fact.coeffs()]))
+            multval -= m
+        if multval > 0:
+            # This REALLY should not happen
+            raise StandardError, "Power of pi did not distribute over factors of non-monic polynomial."
+        return newfacts
+
+    Kx = f.parent()
+    g,uni,multval,exp = make_monic(f)
+    if multval > 0:
+        pi = f.base_ring().uniformizer()
+        prec = f.base_ring().precision_cap()
+        Ly = PolynomialRing(ZpFM(pi,prec+2*multval),names='y')
+        f = Ly(f)
+        g,uni,multval,exp = make_monic(f)
+    facts = [fact[0] for fact in pfactor(g)]
+    facts = [undo_monic(f,exp,fact) for fact in facts]
+    facts = dist_den(facts,multval)
+    if multval > 0:
+        uni = Kx(uni)
+        facts = [Kx(fact) for fact in facts]
+    return Factorization([(uni,1)]+[(fact,1) for fact in facts])
+
 def pfactor(Phi):
     r"""
     Return a factorization of Phi
@@ -20,8 +96,7 @@ def pfactor(Phi):
 
     INPUT:
 
-    - ``Phi`` -- squarefree, monic padic polynomial with fixed precision
-      coefficients
+    - ``Phi`` -- squarefree padic polynomial with fixed precision coefficients
 
     OUTPUT:
 
@@ -73,27 +148,33 @@ def pfactor(Phi):
         Phi = Phi >> 1
     else:
         x_divides = False
+ 
+    if not Phi.is_monic():
+        # Call non monic transform wrapper
+        return pfactor_non_monic(Phi)
+    else:
+        # Phi is monic
 
-    # Build an OM Tree for Phi
-    tree = OM_tree(Phi)
+        # Build an OM Tree for Phi
+        tree = OM_tree(Phi)
 
-    # If we only have one leaf, Phi is irreducible, so we do not lift it.
-    if len(tree) == 1:
+        # If we only have one leaf, Phi is irreducible, so we do not lift it.
+        if len(tree) == 1:
+            return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
+                                 [(Phi,1)])
+        # quo_rem is faster than single_factor_lift, so Phi = f*g is specially handled
+        if len(tree) == 2:
+            if tree[0].phi.degree() < tree[1].phi.degree():
+                fact = single_factor_lift(tree[0])
+                return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
+                                     [(fact,1),(Phi.quo_rem(fact)[0],1)])
+            else:
+                fact = single_factor_lift(tree[1])
+                return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
+                                     [(fact,1),(Phi.quo_rem(fact)[0],1)])
+        # Phi has more than two factors, so we lift them all
         return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                             [(Phi,1)])
-    # quo_rem is faster than single_factor_lift, so Phi = f*g is specially handled
-    if len(tree) == 2:
-        if tree[0].phi.degree() < tree[1].phi.degree():
-            fact = single_factor_lift(tree[0])
-            return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                                 [(fact,1),(Phi.quo_rem(fact)[0],1)])
-        else:
-            fact = single_factor_lift(tree[1])
-            return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                                 [(fact,1),(Phi.quo_rem(fact)[0],1)])
-    # Phi has more than two factors, so we lift them all
-    return Factorization(([(Phi.parent().gen(),1)] if x_divides else []) +
-                         [(single_factor_lift(frame),1) for frame in tree])
+                             [(single_factor_lift(frame),1) for frame in tree])
 
 
 def OM_tree(Phi):
