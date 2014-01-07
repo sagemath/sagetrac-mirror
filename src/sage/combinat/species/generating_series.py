@@ -72,7 +72,8 @@ weighted degree where each variable x_i has weight i.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from series import LazyPowerSeriesRing, LazyPowerSeries
+from series import (LazyPowerSeriesRing, LazyPowerSeries, SeriesStream,
+                    PowerStream, SumGeneratorStream, ListSumStream, TermStream)
 from stream import Stream, _integers_from
 from sage.rings.all import Integer, moebius, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
@@ -185,6 +186,38 @@ class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
         """
         LazyPowerSeriesRing.__init__(self, R, ExponentialGeneratingSeries)
 
+class EGSFunctorialCompositionStream(SeriesStream):
+    def __init__(self, outer, inner, **kwds):
+        self._outer = outer
+        self._inner = inner
+        super(EGSFunctorialCompositionStream, self).__init__(**kwds)
+
+    def children(self):
+        return [self._outer, self._inner]
+
+    def order_operation(self, a, b):
+        return 0
+
+    def compute(self, n):
+        """
+        Returns a generator for the coefficients of the functorial
+        composition of self with y.
+
+        EXAMPLES::
+
+            sage: E = species.SetSpecies()
+            sage: E2 = E.restricted(min=2, max=3)
+            sage: WP = species.SubsetSpecies()
+            sage: P2 = E2*E
+            sage: g1 = WP.generating_series()
+            sage: g2 = P2.generating_series()
+            sage: g = g1._functorial_compose_gen(g2, 0)
+            sage: [g.next() for i in range(10)]
+            [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
+        """
+        return self._outer.count(self._inner.count(n)) / factorial_stream[n]
+        
+
 class ExponentialGeneratingSeries(LazyPowerSeries):
     def count(self, n):
         """
@@ -242,29 +275,8 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: g.coefficients(10)
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
         """
-        return self._new(partial(self._functorial_compose_gen, y), lambda a,b: 0, self, y)
+        self._new(EGSFunctorialCompositionStream, self._stream, y._stream)
 
-    def _functorial_compose_gen(self, y, ao):
-        """
-        Returns a generator for the coefficients of the functorial
-        composition of self with y.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies()
-            sage: E2 = E.restricted(min=2, max=3)
-            sage: WP = species.SubsetSpecies()
-            sage: P2 = E2*E
-            sage: g1 = WP.generating_series()
-            sage: g2 = P2.generating_series()
-            sage: g = g1._functorial_compose_gen(g2, 0)
-            sage: [g.next() for i in range(10)]
-            [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
-        """
-        n = 0
-        while True:
-            yield self.count(y.count(n))/factorial_stream[n]
-            n += 1
 
 def factorial_gen():
     """
@@ -382,6 +394,40 @@ class CycleIndexSeries(LazyPowerSeries):
         return p.coefficient(t)
 
 
+    class StretchStream(SeriesStream):
+        def __init__(self, stream, k, **kwds):
+            self._stream = stream
+            self._k = k
+            kwds['cached'] = False
+            super(CycleIndexSeries.StretchStream, self).__init__(**kwds)
+
+        def children(self):
+            return [self._stream]
+
+        def order_operation(self, a):
+            return a * self._k
+
+        def compute(self, n):
+            """
+            EXAMPLES::
+
+                sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
+                sage: p = SymmetricFunctions(QQ).power()
+                sage: CIS = CycleIndexSeriesRing(QQ)
+                sage: f = CIS([p([1])])
+                sage: g = f._stretch_gen(2,0)
+                sage: [g.next() for i in range(10)]
+                [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
+            """
+            if n % self._k == 0:
+                return self._stream[n//self._k].map_support(self.stretch_partition)
+            else:
+                return self._zero
+
+        def stretch_partition(self, p):
+            from sage.combinat.partition import Partition
+            return Partition([self._k*i for i in p])
+
     def stretch(self, k):
         r"""
         Returns the stretch of a cycle index series by a positive integer
@@ -403,39 +449,38 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([p([1])])
             sage: f.stretch(3).coefficients(10)
             [p[3], 0, 0, p[3], 0, 0, p[3], 0, 0, p[3]]
         """
-        return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
+        return self._new(self.StretchStream, self._stream, k)
 
-    def _stretch_gen(self, k, ao):
-        """
-        EXAMPLES::
+    class IsotypeGeneratingSeriesStream(SeriesStream):
+        def __init__(self, stream, **kwds):
+            self._stream = stream
+            super(CycleIndexSeries.IsotypeGeneratingSeriesStream, self).__init__(**kwds)
 
-            sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
-            sage: f = CIS([p([1])])
-            sage: g = f._stretch_gen(2,0)
-            sage: [g.next() for i in range(10)]
-            [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
-        """
-        from sage.combinat.partition import Partition
-        BR = self.base_ring()
-        zero = BR(0)
+        def children(self):
+            return [self._stream]
 
-        stretch_k = lambda p: Partition([k*i for i in p])
+        def order_operation(self, a):
+            return a
 
-        yield self.coefficient(0).map_support(stretch_k)
+        def compute(self, n):
+            """
+            Returns a generator for the coefficients of the ordinary generating
+            series obtained from a cycle index series.
 
-        n = 1
-        while True:
-            for i in range(k-1):
-                yield BR(0)
-            yield self.coefficient(n).map_support(stretch_k)
-            n += 1
+            EXAMPLES::
+
+                sage: P = species.PermutationSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: g = cis._ogs_gen(0)
+                sage: [g.next() for i in range(10)]
+                [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
+            """
+            return sum(self._stream[n].coefficients())
 
     def isotype_generating_series(self):
         """
@@ -449,7 +494,7 @@ class CycleIndexSeries(LazyPowerSeries):
         """
         R = self.base_ring().base_ring()
         OGS = OrdinaryGeneratingSeriesRing(R)()
-        return OGS._new(self._ogs_gen, lambda ao: ao, self)
+        return OGS._new(self.IsotypeGeneratingSeriesStream, self._stream)
 
     def expand_as_sf(self, n, alphabet='x'):
         """
@@ -485,24 +530,32 @@ class CycleIndexSeries(LazyPowerSeries):
 
         return LPSR.sum_generator(expander_gen)
 
-    def _ogs_gen(self, ao):
-        """
-        Returns a generator for the coefficients of the ordinary generating
-        series obtained from a cycle index series.
+    class GeneratingSeriesStream(SeriesStream):
+        def __init__(self, stream, **kwds):
+            self._stream = stream
+            super(CycleIndexSeries.GeneratingSeriesStream, self).__init__(**kwds)
 
-        EXAMPLES::
+        def children(self):
+            return [self._stream]
 
-            sage: P = species.PermutationSpecies()
-            sage: cis = P.cycle_index_series()
-            sage: g = cis._ogs_gen(0)
-            sage: [g.next() for i in range(10)]
-            [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-        """
-        for i in range(ao):
-            yield 0
-        for i in _integers_from(ao):
-            yield sum( self.coefficient(i).coefficients() )
+        def order_operation(self, a):
+            return a
 
+        def compute(self, n):
+            """
+            Returns a generator for the coefficients of the exponential
+            generating series obtained from a cycle index series.
+
+            EXAMPLES::
+
+                sage: P = species.PermutationSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: g = cis._egs_gen(0)
+                sage: [g.next() for i in range(10)]
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return self._stream[n].coefficient([1]*n)
+        
     def generating_series(self):
         """
         EXAMPLES::
@@ -515,25 +568,7 @@ class CycleIndexSeries(LazyPowerSeries):
         """
         R = self.base_ring().base_ring()
         EGS = ExponentialGeneratingSeriesRing(R)()
-        return EGS._new(self._egs_gen, lambda ao: ao, self)
-
-    def _egs_gen(self, ao):
-        """
-        Returns a generator for the coefficients of the exponential
-        generating series obtained from a cycle index series.
-
-        EXAMPLES::
-
-            sage: P = species.PermutationSpecies()
-            sage: cis = P.cycle_index_series()
-            sage: g = cis._egs_gen(0)
-            sage: [g.next() for i in range(10)]
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        for i in range(ao):
-            yield 0
-        for i in _integers_from(ao):
-            yield self.coefficient(i).coefficient([1]*i)
+        return EGS._new(self.GeneratingSeriesStream, self._stream)
 
     def __invert__(self):
         """
@@ -820,72 +855,75 @@ class CycleIndexSeries(LazyPowerSeries):
         return factorial_stream[n]*p.coefficient([1]*n)
 
 
-    def _compose_gen(self, y, ao):
-        """
-        Returns a generator for the coefficients of the composition of this
-        cycle index series and the cycle index series y. This overrides the
-        the method defined in LazyPowerSeries.
+    class CompositionStream(LazyPowerSeries.CompositionStream):
+        def __init__(self, *args ,**kwds):
+            super(CycleIndexSeries.CompositionStream, self).__init__(*args, **kwds)
+            self._y_powers = PowerStream(self._inner)
+            
+        def compute_iterator(self):
+            """
+            Returns a generator for the coefficients of the composition of this
+            cycle index series and the cycle index series y. This overrides the
+            the method defined in LazyPowerSeries.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: g = E_cis._compose_gen(C.cycle_index_series(),0)
-            sage: [g.next() for i in range(4)]
-            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-        """
-        assert y.coefficient(0) == 0
-        y_powers = Stream(y._power_gen())
+                sage: E = species.SetSpecies(); C = species.CycleSpecies()
+                sage: E_cis = E.cycle_index_series()
+                sage: g = E_cis(C.cycle_index_series())
+                sage: [g[i] for i in range(4)]
+                [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
+            """
+            assert self._inner[0] == 0
+            y_powers = self._y_powers
 
-        parent = self.parent()
-        res =  parent.sum_generator(self._compose_term(self.coefficient(i), y_powers)
-                                    for i in _integers_from(0))
+            g = (self._compose_term(self._outer[i], y_powers)
+                 for i in _integers_from(0))
+            res = SumGeneratorStream(g, base_ring=self._base_ring)
 
-        for i in _integers_from(0):
-            yield res.coefficient(i)
+            for i in _integers_from(0):
+                yield res[i]
 
-    def _compose_term(self, p, y_powers):
-        """
-        Returns the composition of one term in self with y.
+        def _compose_term(self, p, y_powers):
+            """
+            Returns the composition of one term in self with y.
 
-        INPUT:
-
-
-        -  ``p`` - a term in self
-
-        -  ``y_powers`` - a stream for the powers of y
-           starting with y
+            INPUT:
 
 
-        EXAMPLES::
+            -  ``p`` - a term in self
 
-            sage: from sage.combinat.species.stream import Stream
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: C_cis = C.cycle_index_series()
-            sage: c_powers = Stream(C_cis._power_gen())
-            sage: p2 = E_cis.coefficient(2); p2
-            1/2*p[1, 1] + 1/2*p[2]
-            sage: E_cis._compose_term(p2, c_powers).coefficients(4)
-            [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
-        """
-        parent = self.parent()
-        if p == 0:
-            return parent(0)
+            -  ``y_powers`` - a stream for the powers of y
+               starting with y
 
-        res = []
-        #Go through all the partition, coefficient pairs in the term p
-        for m, c in p:
-            res_t = parent.term(c, 0)
 
-            for e,v in enumerate(m.to_exp()):
-                if v == 0:
-                    continue
-                res_t = res_t * y_powers[v-1].stretch(e+1)
-            res.append(res_t)
+            EXAMPLES::
 
-        return parent.sum(res)
+                sage: from sage.combinat.species.stream import Stream
+                sage: E = species.SetSpecies(); C = species.CycleSpecies()
+                sage: E_cis = E.cycle_index_series()
+                sage: C_cis = C.cycle_index_series()
+                sage: c_powers = Stream(C_cis._power_gen())
+                sage: p2 = E_cis.coefficient(2); p2
+                1/2*p[1, 1] + 1/2*p[2]
+                sage: E_cis._compose_term(p2, c_powers).coefficients(4)
+                [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
+            """
+            if p == 0:
+                return TermStream(n=0, value=self._zero, base_ring=self._base_ring)
 
+            res = []
+            #Go through all the partition, coefficient pairs in the term p
+            for m, c in p:
+                res_t = TermStream(n=0, value=c, base_ring=self._base_ring)
+                for e,v in enumerate(m.to_exp()):
+                    if v == 0:
+                        continue
+                    res_t = res_t * y_powers[v-1].stretch(e+1)
+                res.append(res_t)
+                
+            return ListSumStream(res, base_ring=self._base_ring)
+        
     def weighted_composition(self, y_species):
         """
         Returns the composition of this cycle index series with the cycle
