@@ -211,6 +211,20 @@ class FrameElt:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f); e
+            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1, [[3*2^5]phi1^2,
+             [3*2^5]phi1^4]phi2^2, [[3*2^4]phi1^2]phi2^3, [[274877906941*2^2]phi1^5]phi2^4,
+             [[1*2^0]phi1^0]phi2^6]
+            sage: e.reduce()
+            [[[2147483649*2^9]phi1^1, [4294967295*2^8]phi1^3, [33*2^40]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [8589934593*2^7]phi1^7]phi2^1]
+
         """
         if self.frame.is_first():
             return self
