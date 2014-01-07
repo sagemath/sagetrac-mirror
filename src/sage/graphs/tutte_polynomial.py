@@ -592,7 +592,6 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True, initial_call=True
         False
     """
     R = ZZ['x, y']
-    x, y = R.gens()
 
     if G.num_edges() == 0:
         return R.one()
@@ -601,13 +600,14 @@ def tutte_polynomial(G, edge_selector=None, forget_cache=True, initial_call=True
         G = G.relabel(inplace = False) # making sure the vertices are integers
         G.allow_loops(True)
         G.allow_multiple_edges(True)
+        if edge_selector is None:
+            edge_selector = MinimizeSingleDegree()
         ans = tutte_polynomial(G, edge_selector, initial_call=False)
         if forget_cache:
             tutte_polynomial.cache.clear()
         return ans
 
-    if edge_selector is None:
-        edge_selector = MinimizeSingleDegree()
+    x, y = R.gens()
 
     def recursive_tp(graph=None):
         """
