@@ -49,6 +49,14 @@ class Stream(SageObject):
     def set_constant(self, n, value):
         self._constant = (n, value)
 
+    def get_constant(self):
+        assert self._constant is not False
+        return self._constant[1]
+
+    def get_constant_position(self):
+        assert self._constant is not False
+        return self._constant[0]
+
     def __iter__(self):
         i = 0
         while True:
@@ -70,18 +78,6 @@ class Stream(SageObject):
             [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
         """
         return MappedStream(func, self)
-
-    def stretch(self, k):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.species.new_stream import Stream
-            sage: s = Stream(compute=lambda x: x)
-            sage: ss = s.stretch(2)
-            sage: [ss[i] for i in range(10)]
-            [0, 0, 1, 0, 2, 0, 3, 0, 4, 0]
-        """
-        return StretchedStream(k, self)
 
 class ConstantStream(Stream):
     def __init__(self, constant):
@@ -118,36 +114,11 @@ class MappedStream(DictCachedStream):
             self._constant = (n, value)
         return value
 
-class StretchedStream(Stream):
-    def __init__(self, k, stream):
-        self._k = k
-        self._stream = stream
-        super(StretchedStream, self).__init__()
-
-    def compute(self, n):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.species.new_stream import Stream, StretchedStream
-            sage: s = Stream(compute=lambda x: x)
-            sage: s_3 = StretchedStream(3, s)
-            sage: [s_3[i] for i in range(13)]
-            [0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4]
-        """
-        n = ZZ(n)
-        quo, rem = n.quo_rem(self._k)
-        if rem == 0:
-            value = self._stream[quo]
-            if self._constant is False and self._stream.is_constant():
-                self._constant = (n, value)
-            return value
-        else:
-            return ZZ(0)
-
 
 class ListCachedStream(Stream):
     def __init__(self, **kwds):
         self._cache = []
+        self._cached = kwds.pop('cached', True)
         super(ListCachedStream, self).__init__(**kwds)
 
     def __setitem__(self, n, value):
@@ -183,18 +154,17 @@ class ListCachedStream(Stream):
 
     @Stream.getitem_decorator
     def __getitem__(self, n):
+        if not self._cached:
+            return self.compute(n)
         pos = len(self._cache)
-        while n >= pos:
+        while pos <= n:
             value = self.compute(pos)
-            if self.is_constant():
-                return value
-            else:
-                self._cache.append(value)
-                pos += 1
+            self._cache.append(value)
+            pos += 1
         return self._cache[n]
 
 class StreamFromIterator(ListCachedStream):
-    def __init__(self, it):
+    def __init__(self, iterator=None, **kwds):
         """
         EXAMPLES::
 
@@ -206,9 +176,9 @@ class StreamFromIterator(ListCachedStream):
             sage: s[10]
             11
         """
-        self._it = it
-        super(StreamFromIterator, self).__init__()
-
+        self._it = iterator
+        super(StreamFromIterator, self).__init__(**kwds)            
+    
     def compute(self, n):
         """
         EXAMPLES:
@@ -239,7 +209,7 @@ class StreamFromIterator(ListCachedStream):
             
 
 class StreamFromFunc(ListCachedStream):
-    def __init__(self, func):
+    def __init__(self, func=None, **kwds):
         """
         EXAMPLES::
 
@@ -256,7 +226,7 @@ class StreamFromFunc(ListCachedStream):
             89
         """
         self._func = func
-        super(StreamFromFunc, self).__init__()
+        super(StreamFromFunc, self).__init__(**kwds)
 
     def compute(self, n):
         """
@@ -283,7 +253,7 @@ class StreamFromFunc(ListCachedStream):
         
 
 class StreamFromList(ListCachedStream):
-    def __init__(self, l):
+    def __init__(self, list=None, **kwds):
         """
         EXAMPLES::
 
@@ -295,14 +265,11 @@ class StreamFromList(ListCachedStream):
             3
 
         """
-        if len(l) < 0:
+        if len(list) < 0:
             raise ValueError, "list cannot be empty"
-        super(StreamFromList, self).__init__()
-        self._cache = l
-        self.set_constant(len(l) - 1, l[-1])
-
-    def compute(self, n):
-        assert False, "this should never be called"
+        super(StreamFromList, self).__init__(**kwds)
+        self._cache = list
+        self.set_constant(len(list) - 1, list[-1])
 
 
 def OldStreamBehavior(x=None, const=None):
