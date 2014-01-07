@@ -224,7 +224,6 @@ class FrameElt:
             sage: e.reduce()
             [[[2147483649*2^9]phi1^1, [4294967295*2^8]phi1^3, [33*2^40]phi1^7]phi2^0,
              [[8589934591*2^7]phi1^1, [8589934593*2^7]phi1^7]phi2^1]
-
         """
         if self.frame.is_first():
             return self
@@ -255,6 +254,16 @@ class FrameElt:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f); e.is_reduced()
+            False
+            sage: e = e.reduce()
+            sage: e.is_reduced()
+            True
         """
         return all([a.is_reduced() for a in self.terms])
 
@@ -826,6 +835,15 @@ class FrameEltTerm:
                 return FrameEltTerm(self.frameelt, self._coefficient**n, self._exponent*n)
 
     def __div__(self,right):
+        """
+        Division.
+
+        One can only divide by single term FrameEltTerms.
+
+        EXAMPLES::
+
+            sage: 
+        """
         if not right.is_single_term():
             raise NotImplementedError, "Cannot divide by a non-single term FrameEltTerm"
         else:
