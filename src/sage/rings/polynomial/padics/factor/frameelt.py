@@ -18,7 +18,10 @@ AUTHORS:
 
 """
 
-class FrameElt:
+from sage.rings.integer import Integer
+from sage.structure.sage_object import SageObject
+
+class FrameElt(SageObject):
     """
     Polynomials recursively represented by powers of the approximations
     $\phi_t(x)$ to a factor of $\Phi(x)$.
@@ -56,7 +59,7 @@ class FrameElt:
     first FrameEltTerm represents 1 and the second (3 * 2^1)*x^2::
 
         sage: f = f.polygon[0].factors[0].next_frame(); f
-        Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))
+        Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
         sage: FrameElt(f,6*x^2 + 1)
         [[1*2^0]phi1^0, [3*2^1]phi1^2]
 
@@ -101,6 +104,29 @@ class FrameElt:
                     q, r = q.quo_rem(self.frame.prev_frame().phi)
                     b.append(r)
             self.terms = [FrameEltTerm(self,b[i],i) for i in range(len(b)) if b[i].is_zero() == False]
+
+    def __cmp__(self, other):
+        """
+        Comparison.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f = Frame(x^32+16); f.seed(x)
+            sage: fe = FrameElt(f, 20)
+            sage: fe2 = FrameElt(f, 20)
+            sage: fe == fe2
+            True
+            sage: fe == 0
+            False
+            sage: FrameElt(f) == 0
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp((self.frame, self.terms), (other.frame, other.terms))
 
     def is_single_term(self):
         """
@@ -191,7 +217,8 @@ class FrameElt:
             sage: e = t.prev.gamma_frameelt ** 2 + t.prev.gamma_frameelt
             sage: e.residue()
             3*a0
-
+            sage: e.residue().parent()
+            Finite Field in a0 of size 5^2
         """
         if not self.is_reduced():
             self = self.reduce()
@@ -285,6 +312,15 @@ class FrameElt:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2 + 6)
+            sage: fe1.find_denominator()
+            1
         """
         if self.frame.is_first():
             return self.terms[0]._exponent
@@ -342,7 +378,16 @@ class FrameElt:
 
         EXAMPLES::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2+6); fe1
+            [[3*2^1]phi1^0, [5*2^2]phi1^2]
+            sage: -fe1
+            [[524285*2^1]phi1^0, [262139*2^2]phi1^2]
         """
         if self.frame.is_first():
             return FrameElt(self.frame,-self.polynomial())
@@ -357,7 +402,15 @@ class FrameElt:
 
         TESTS::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 + fe2 # indirect doctest
+            [[3*2^1]phi1^0, [5*2^2]phi1^2]
         """
         return self.__add__(l)
 
@@ -367,7 +420,15 @@ class FrameElt:
 
         EXAMPLES::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 + fe2 # indirect doctest
+            [[3*2^1]phi1^0, [5*2^2]phi1^2]
         """
         # For using sum() command, must be able to be added to int(0)
         if isinstance(r,int) and r == 0:
@@ -416,7 +477,15 @@ class FrameElt:
 
         TESTS::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 * fe2 # indirect doctest
+            [[15*2^3]phi1^2]
         """
         return self.__mul__(l)
 
@@ -426,7 +495,15 @@ class FrameElt:
 
         EXAMPLES::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 * fe2 # indirect doctest
+            [[15*2^3]phi1^2]
         """
         if isinstance(r,int) and r == 0:
             return self
@@ -478,13 +555,13 @@ class FrameElt:
             sage: fe = FrameElt(f,6*x**2); fe
             [[3*2^1]phi1^2]
             sage: fe.polynomial()
-            (6 + O(2^20))*x^2
+            (6 + O(2^20))*x^2 + (0 + O(2^20))*x + (0 + O(2^20))
             sage: fe.__pow__(2)
             [[9*2^2]phi1^4]
             sage: fe**2
             [[9*2^2]phi1^4]
             sage: (fe**2).polynomial()
-            (36 + O(2^20))*x^4
+            (36 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (0 + O(2^20))
 
         As soon as we are past the first frame, we must take care not to
         try to take powers of non-single-term FrameElts::
@@ -512,7 +589,15 @@ class FrameElt:
 
         EXAMPLES::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 / fe2 # indirect doctest
+            [[349527*2^1]phi1^2]
         """
         if not right.is_single_term():
             raise NotImplementedError, "Cannot divide by a non-single term FrameElt"
@@ -534,13 +619,12 @@ class FrameElt:
             sage: fe0 = FrameElt(f0,6)
             sage: f1 = f0.polygon[0].factors[0].next_frame()
             sage: fe1 = FrameElt(f1,6*x^2 + 1)
-            sage: fe0[0]
+            sage: fe0[0] # indirect doctest
             3*2^1
             sage: fe1[0]
             [1*2^0]phi1^0
             sage: fe1[1]
             [3*2^1]phi1^2
-            sage: 
         """
         return self.terms[i]
 
@@ -562,7 +646,7 @@ class FrameElt:
         """
         return repr(self.terms)
 
-class FrameEltTerm:
+class FrameEltTerm(SageObject):
     """
     A single term of the sum of powers of OM representations.
 
@@ -604,7 +688,7 @@ class FrameEltTerm:
     Moving to a higher frame and representing 6x^2 (or 6 * phi ^ 2)::
 
         sage: f = f.polygon[0].factors[0].next_frame(); f
-        Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))
+        Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
         sage: elt = FrameElt(f)
         sage: FrameEltTerm(elt,6,2)
         [3*2^1]phi1^2
@@ -652,6 +736,37 @@ class FrameEltTerm:
             self._coefficient = a
             a._zero_flag = False
 
+    def __cmp__(self, other):
+        """
+        Comparison.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt,FrameEltTerm
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: fet0 = FrameEltTerm(fe0,3,2)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1, 4*x^2 + 2)
+            sage: fet1 = FrameEltTerm(fe1,3,2)
+            sage: fet0 == fet1
+            False
+            sage: fet0 == FrameEltTerm(fe0,4,2)
+            False
+            sage: fet0 == 12
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        c = cmp((self.frameelt.frame, self._scalar_flag), (other.frameelt.frame, other._scalar_flag))
+        if c: return c
+        if self._scalar_flag:
+            return cmp((self._exponent, self._unit), (other._exponent, other._unit))
+        else:
+            return cmp((self._exponent, self._coefficient), (other._exponent, other._coefficient))
+
     def valuation(self):
         """
         Returns the valuation of this term.
@@ -689,6 +804,33 @@ class FrameEltTerm:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f); e.terms
+            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1,
+             [[3*2^5]phi1^2, [3*2^5]phi1^4]phi2^2,
+             [[3*2^4]phi1^2]phi2^3,
+             [[274877906941*2^2]phi1^5]phi2^4,
+             [[1*2^0]phi1^0]phi2^6]
+
+        Note that reducing the terms is not the same as reducing the element::
+
+            sage: for a in e.terms: a.reduce()
+            sage: e.terms
+            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1,
+             [[3*2^7]phi1^7, [3*2^7]phi1^9]phi2^0,
+             [[3*2^6]phi1^7]phi2^1,
+             [[274877906941*2^6]phi1^15]phi2^0,
+             [[1*2^6]phi1^15]phi2^0]
+
+            sage: ee = FrameElt(t, f); ee.reduce()
+            [[[2147483649*2^9]phi1^1, [4294967295*2^8]phi1^3, [33*2^40]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [8589934593*2^7]phi1^7]phi2^1]
         """
         if self.frameelt.frame.prev is None:
             return
@@ -696,7 +838,7 @@ class FrameEltTerm:
         Fplus = self.frameelt.frame.prev.Fplus
 
         if self._exponent >= Eplus * Fplus:
-            q,r = int(self._exponent).quo_rem(int(Eplus))
+            q,r = Integer(self._exponent).quo_rem(int(Eplus))
             self._exponent = r
             self._coefficient *= (self.frameelt.frame.prev.segment.psi ** (q*Fplus))
         self._coefficient.reduce()
@@ -709,6 +851,14 @@ class FrameEltTerm:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f)
+            sage: [a.is_reduced() for a in e.terms]
+            [True, True, False, False, False, False]
         """
         if self.frameelt.frame.prev is None:
             return True
@@ -756,7 +906,8 @@ class FrameEltTerm:
             sage: fet0.is_zero()
             False
             sage: fet1 = FrameEltTerm(fe0,0,4)
-            sage: 
+            sage: fet1.is_zero()
+            True
         """
         return self._zero_flag
 
@@ -767,6 +918,20 @@ class FrameEltTerm:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f); e.terms
+            [[[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0,
+             [[8589934591*2^7]phi1^1, [17179869183*2^6]phi1^7]phi2^1,
+             [[3*2^5]phi1^2, [3*2^5]phi1^4]phi2^2,
+             [[3*2^4]phi1^2]phi2^3,
+             [[274877906941*2^2]phi1^5]phi2^4,
+             [[1*2^0]phi1^0]phi2^6]
+            sage: [a.is_single_term() for a in e.terms]
+            [False, False, False, True, True, True]
         """
         if self._scalar_flag:
             return True
@@ -775,12 +940,30 @@ class FrameEltTerm:
 
     def value(self):
         """
-        Returns the coeffecient part of the term.  For scalars, this is a
-        single number.  For polynomials, this is the FrameElt representing
-        the polynomial coefficient.
+        Returns the coeffecient part of the term.  For scalars, this
+        is a single number (the unit).  For polynomials, this is the
+        FrameElt representing the polynomial coefficient.
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f)
+            sage: et = e.terms[0]; et
+            [[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^0
+            sage: et.value()
+            [[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]
+            sage: et = et.value().terms[0]; et
+            [4294967295*2^8]phi1^1
+            sage: et.value()
+            [4294967295*2^8]
+            sage: et = et.value().terms[0]; et
+            4294967295*2^8
+            sage: et.value()
+            4294967295 + O(2^40)
         """
         if self._scalar_flag:
             return self._unit
@@ -810,7 +993,7 @@ class FrameEltTerm:
             3*2^2
             sage: fet.__pow__(2)
             9*2^4
-            sage: fet**2        
+            sage: fet**2
             9*2^4
 
         Moving to a higher frame and squaring 12x^2 as a FrameEltTerm::
@@ -818,9 +1001,9 @@ class FrameEltTerm:
             sage: f = f.polygon[0].factors[0].next_frame()
             sage: fet = FrameEltTerm(FrameElt(f),12,2); fet
             [3*2^2]phi1^2
-            sage: fet.__pow__(2)                          
+            sage: fet.__pow__(2)
             [9*2^4]phi1^4
-            sage: fet**2        
+            sage: fet**2
             [9*2^4]phi1^4
 
         Starting at a depth of 2, we must take care not to try to take
@@ -855,7 +1038,14 @@ class FrameEltTerm:
 
         EXAMPLES::
 
-            sage: 
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: k = ZpFM(2,40,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^32+16)[0]
+            sage: f = t.phi**3
+            sage: e = FrameElt(t,f)
+            sage: e.terms[0] / e.terms[-1] # indirect doctest
+            [[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^-6
         """
         if not right.is_single_term():
             raise NotImplementedError, "Cannot divide by a non-single term FrameEltTerm"

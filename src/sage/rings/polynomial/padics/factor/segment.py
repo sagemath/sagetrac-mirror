@@ -10,8 +10,9 @@ from sage.rings.polynomial.padics.factor.associatedfactor import AssociatedFacto
 from sage.rings.arith import gcd
 from sage.rings.infinity import infinity
 from sage.misc.functional import denominator
+from sage.structure.sage_object import SageObject
 
-class Segment:
+class Segment(SageObject):
     r"""
     Segment of a newton polygon of higher order needed for OM computations.
 
@@ -52,13 +53,13 @@ class Segment:
         sage: f.polygon
         [Segment of length 32 and slope 1/8]
         sage: f = f.polygon[0].factors[0].next_frame()
-        sage: f.polygon                                 
+        sage: f.polygon
         [Segment of length 4 and slope 5/4]
-        sage: f = f.polygon[0].factors[0].next_frame()  
-        sage: f.polygon                               
+        sage: f = f.polygon[0].factors[0].next_frame()
+        sage: f.polygon
         [Segment of length 4 and slope 21/16]
         sage: f = f.polygon[0].factors[0].next_frame()
-        sage: f.polygon                               
+        sage: f.polygon
         [Segment of length 2 and slope 85/32]
 
     Segments note ramification increases (as ``Eplus``) and the valuation
@@ -69,21 +70,21 @@ class Segment:
         8
         sage: f.polygon[0].slope
         1/8
-        sage: f = f.polygon[0].factors[0].next_frame()  
-        sage: f.polygon[0].Eplus                      
+        sage: f = f.polygon[0].factors[0].next_frame()
+        sage: f.polygon[0].Eplus
         1
         sage: f = f.polygon[0].factors[0].next_frame()
-        sage: f.polygon[0].Eplus                      
+        sage: f.polygon[0].Eplus
         2
         sage: f = f.polygon[0].factors[0].next_frame()
-        sage: f.polygon[0].Eplus                      
+        sage: f.polygon[0].Eplus
         2
 
     Associate polynomials for each segment check for possible inertia and
     the residue field is extended by their irreducible factors::
 
         sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
-        sage: Phi = x^4+20*x^3+44*x^2+80*x+1040   
+        sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
         sage: f = Frame(Phi); f.seed(Phi.parent().gen())
         sage: f.polygon
         [Segment of length 4 and slope 1]
@@ -102,10 +103,17 @@ class Segment:
     """
     def __init__(self,frame,slope,verts,length):
         """
-        Initialises self.
+        Initializes self.
 
         See ``Segment`` for full documentation.
 
+        TESTS::
+
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+            sage: f = Frame(Phi); f.seed(Phi.parent().gen())
+            sage: TestSuite(f.polygon).run()
         """
         self.frame = frame
         self.verts = verts
@@ -118,8 +126,26 @@ class Segment:
         else:
             self.Eplus = 1
         self._associate_polynomial = self.associate_polynomial(cached=False)
-        self.factors = [AssociatedFactor(self,afact[0],afact[1]) 
+        self.factors = [AssociatedFactor(self,afact[0],afact[1])
                         for afact in list(self._associate_polynomial.factor())]
+
+    def __cmp__(self, other):
+        """
+        Comparison.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: Phi = x^4+20*x^3+44*x^2+80*x+1040
+            sage: f = Frame(Phi); f.seed(Phi.parent().gen()); P = f.polygon
+            sage: f = f.polygon[0].factors[0].next_frame(); Q = f.polygon
+            sage: P == Q
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp((self.length, self.verts, self.slope), (other.length, other.verts, other.slope))
 
     def associate_polynomial(self,cached=True):
         """
@@ -143,7 +169,7 @@ class Segment:
 
             sage: from sage.rings.polynomial.padics.factor.frame import Frame
             sage: from sage.rings.polynomial.padics.factor.segment import Segment
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)    
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
             sage: seg = Segment(f,1/8,[(0,4),(32,0)],32); seg
             Segment of length 32 and slope 1/8
@@ -178,7 +204,7 @@ class Segment:
     def __repr__(self):
         """
         Representation of self.
-        
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.factor.frame import Frame

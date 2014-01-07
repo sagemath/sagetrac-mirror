@@ -11,8 +11,9 @@ from sage.rings.polynomial.padics.factor.frameelt import FrameElt, FrameEltTerm
 from sage.rings.polynomial.padics.factor.segment import Segment
 from sage.rings.infinity import infinity
 from sage.misc.functional import denominator
+from sage.structure.sage_object import SageObject
 
-class Frame:
+class Frame(SageObject):
     """
     All data for one iteration of local field polynomial factorization.
 
@@ -49,13 +50,13 @@ class Frame:
         sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
         sage: f = Frame(Phi)
         sage: f
-        Unseeded Frame regarding (1 + O(2^20))*x^32 + (16 + O(2^20))
+        Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))
 
     Each Frame needs to be seeded to compute intermediate values::
 
         sage: f.seed(Phi.parent().gen())
         sage: f
-        Frame with phi (1 + O(2^20))*x
+        Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
 
     A Seeded Frame has a newton polygon as a list of Segment objects::
 
@@ -69,9 +70,9 @@ class Frame:
     New Frames in the tree can be created from each AssociatedFactor::
 
         sage: f.polygon[0].factors[0].next_frame()
-        Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))
+        Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
 
-    Notice that Frames created by AssociatedFactors are seeded.    
+    Notice that Frames created by AssociatedFactors are seeded.
 
     """
     def __init__(self,Phi,prev=None,iteration_count=0):
@@ -80,6 +81,12 @@ class Frame:
 
         See ``Frame`` for full documentation.
 
+        TESTS::
+
+            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: f = Frame(Phi)
+            sage: TestSuite(f).run()
         """
         self.prev = prev
         self.Phi = Phi
@@ -98,6 +105,23 @@ class Frame:
             self.E = self.prev_frame().E * self.prev.segment.Eplus
             self.F = self.prev_frame().F * self.prev.Fplus
             self.depth = self.prev_frame().depth + 1
+
+    def __cmp__(self, other):
+        """
+        Comparison.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frame import *
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
+            sage: f = Frame(Phi)
+            sage: g = Frame(Phi, iteration_count=4)
+            sage: f == g
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp((self.Phi, self.iteration), (other.Phi, other.iteration))
 
     def seed(self,phi,length=infinity):
         """
@@ -122,13 +146,13 @@ class Frame:
             sage: from sage.rings.polynomial.padics.factor.frame import *
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi); f
-            Unseeded Frame regarding (1 + O(2^20))*x^32 + (16 + O(2^20))
+            Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))
             sage: f.phi is None
             True
             sage: f.seed(Phi.parent().gen()); f
-            Frame with phi (1 + O(2^20))*x
+            Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
             sage: f.phi
-            (1 + O(2^20))*x
+            (1 + O(2^20))*x + (0 + O(2^20))
 
         """
         self.phi = phi
@@ -174,7 +198,7 @@ class Frame:
             sage: f.seed(Phi.parent().gen())
             sage: f = f.polygon[0].factors[0].next_frame()
             sage: f
-            Frame with phi (1 + O(2^20))*x^4 + (1048574 + O(2^20))
+            Frame with phi (1 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
 
         We get a valid FrameElt with integer exponents as long as the
         denominator of ``val`` divides the current ramification::
@@ -186,7 +210,7 @@ class Frame:
             sage: f.find_psi(7/4)
             [[1*2^1]phi1^3]
             sage: f.find_psi(7/4).polynomial()
-            (2 + O(2^20))*x^3
+            (2 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (0 + O(2^20))
 
         If the denominator does not divide the ramification, then we cannot
         construct a polynomial of this valuation and an error is raised::
@@ -308,22 +332,22 @@ class Frame:
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
             sage: f
-            Frame with phi (1 + O(2^20))*x
-            sage: len(f.polygon)           
+            Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
+            sage: len(f.polygon)
             1
             sage: len(f.polygon[0].factors)
             1
             sage: f = f.polygon[0].factors[0].next_frame()
             sage: f
-            Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))
+            Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
             sage: f.prev_frame()
-            Frame with phi (1 + O(2^20))*x
+            Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
 
         """
         if self.prev is None:
             return None
         else:
-            return self.prev.segment.frame      
+            return self.prev.segment.frame
 
     def is_first(self):
         """
@@ -355,13 +379,13 @@ class Frame:
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.factor.frame import *
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^3+x)          
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^3+x)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen())
             sage: f.Phi
-            (1 + O(2^20))*x^3 + (1 + O(2^20))*x
+            (1 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (1 + O(2^20))*x + (0 + O(2^20))
             sage: f.phi
-            (1 + O(2^20))*x
+            (1 + O(2^20))*x + (0 + O(2^20))
             sage: f.phi_divides_Phi()
             True
 
@@ -371,18 +395,17 @@ class Frame:
     def __repr__(self):
         """
         Representation of self.
-        
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.factor.frame import *
-            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)        
+            sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.__repr__()
-            'Unseeded Frame regarding (1 + O(2^20))*x^32 + (16 + O(2^20))'
+            'Unseeded Frame regarding (1 + O(2^20))*x^32 + (0 + O(2^20))*x^31 + (0 + O(2^20))*x^30 + (0 + O(2^20))*x^29 + (0 + O(2^20))*x^28 + (0 + O(2^20))*x^27 + (0 + O(2^20))*x^26 + (0 + O(2^20))*x^25 + (0 + O(2^20))*x^24 + (0 + O(2^20))*x^23 + (0 + O(2^20))*x^22 + (0 + O(2^20))*x^21 + (0 + O(2^20))*x^20 + (0 + O(2^20))*x^19 + (0 + O(2^20))*x^18 + (0 + O(2^20))*x^17 + (0 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (0 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (0 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (16 + O(2^20))'
             sage: f.seed(Phi.parent().gen())
             sage: f.__repr__()
-            'Frame with phi (1 + O(2^20))*x'
-
+            'Frame with phi (1 + O(2^20))*x + (0 + O(2^20))'
         """
         if self.phi:
             return 'Frame with phi '+repr(self.phi)

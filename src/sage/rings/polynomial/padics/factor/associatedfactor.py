@@ -14,7 +14,7 @@ from sage.rings.infinity import infinity
 
 class AssociatedFactor:
     r"""
-    An irreducible factors of the associated polynomials of higher order
+    An irreducible factor of the associated polynomials of higher order
     newton polygon segments needed for OM computation.
 
     For each distinct irreducible factor of the associated polynomial,
@@ -38,10 +38,16 @@ class AssociatedFactor:
     """
     def __init__(self,segment,rho,rhoexp):
         """
-        Initializes self.
+        Initialization.
 
         See ``AssociatedFactor`` for full documentation.
 
+        TESTS::
+
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^4+20*x^3+44*x^2+80*x+1040)
+            sage: TestSuite(t[0].prev).run()
         """
         self.segment = segment
         self.rho = rho
@@ -68,6 +74,22 @@ class AssociatedFactor:
             self.gamma = FFrho.roots()[0][0]
             basis = [(self.gamma**j*self.FFbase_gamma**i).polynomial() for j in range(0,self.Fplus) for i in range(0,self.FFbase.degree())]
             self.basis_trans_mat = Matrix([self.FF(b)._vector_() for b in basis])
+
+    def __cmp__(self, other):
+        """
+        Comparison.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: t = OM_tree(x^4+20*x^3+44*x^2+80*x+1040)
+            sage: t[0].prev == t[0].polygon[0].factors[0]
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp((self.segment, self.rho, self.rhoexp), (other.segment, other.rho, other.rhoexp))
 
     def FF_elt_to_FFbase_vector(self,a):
         """
@@ -104,7 +126,7 @@ class AssociatedFactor:
             [1, 1]
             sage: L.<a1> = t[0].polygon[0].factors[0].FF;L
             Finite Field in a1 of size 2^4
-            sage: t[0].polygon[0].factors[0].FF_elt_to_FFbase_vector(a1)         
+            sage: t[0].polygon[0].factors[0].FF_elt_to_FFbase_vector(a1)
             [1, a0 + 1]
 
         """
@@ -227,13 +249,13 @@ class AssociatedFactor:
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi)
             sage: f.seed(Phi.parent().gen());f
-            Frame with phi (1 + O(2^20))*x
-            sage: f = f.polygon[0].factors[0].next_frame();f 
-            Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))
+            Frame with phi (1 + O(2^20))*x + (0 + O(2^20))
             sage: f = f.polygon[0].factors[0].next_frame();f
-            Frame with phi (1 + O(2^20))*x^8 + (1048574 + O(2^20))*x^2 + (1048574 + O(2^20))
+            Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (0 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
             sage: f = f.polygon[0].factors[0].next_frame();f
-            Frame with phi (1 + O(2^20))*x^16 + (1048572 + O(2^20))*x^10 + (1048572 + O(2^20))*x^8 + (1048572 + O(2^20))*x^5 + (4 + O(2^20))*x^4 + (8 + O(2^20))*x^2 + (4 + O(2^20))
+            Frame with phi (1 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (0 + O(2^20))*x^5 + (0 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (1048574 + O(2^20))*x^2 + (0 + O(2^20))*x + (1048574 + O(2^20))
+            sage: f = f.polygon[0].factors[0].next_frame();f
+            Frame with phi (1 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (1048572 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (1048572 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (1048572 + O(2^20))*x^5 + (4 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (8 + O(2^20))*x^2 + (0 + O(2^20))*x + (4 + O(2^20))
 
         """
         from frame import Frame
@@ -241,7 +263,7 @@ class AssociatedFactor:
             next = Frame(self.segment.frame.Phi,self,self.segment.frame.iteration)
             self.next = next
             next.seed(self.segment.frame.phi,length=length)
-            return next            
+            return next
         if self.Fplus == 1 and self.segment.Eplus == 1:
             next = Frame(self.segment.frame.Phi,self.segment.frame.prev,self.segment.frame.iteration)
         else:

@@ -14,9 +14,25 @@ from sage.structure.factorization import Factorization
 def pfactor_non_monic(f):
     r"""
     Wrapper around pfactor to handle non-monic polynomial
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.padics.factor.factoring import pfactor_non_monic
+        sage: R.<x> = ZpFM(3,7)[]
+        sage: pfactor_non_monic(3*x^2 - 15)
+        (3 + O(3^7)) * ((1 + O(3^7))*x^2 + (O(3^7))*x + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^7)))
+        sage: pfactor_non_monic(3*x^2 + 15)
+        (3 + O(3^7)) * ((1 + O(3^7))*x + (2 + 2*3^2 + 3^4 + 3^6 + O(3^7))) * ((1 + O(3^7))*x + (1 + 2*3 + 2*3^3 + 3^4 + 2*3^5 + 3^6 + O(3^7)))
     """
     def make_monic(f):
-        # Transform a local ring polynomial into a monic one for factoring
+        """
+        Transform a polynomial over a local ring into a monic one for
+        factoring.
+
+        INPUT:
+
+        - ``f`` -- a polynomial over a local ring
+        """
 
         Kx = f.parent()
         K = Kx.base()
@@ -53,6 +69,9 @@ def pfactor_non_monic(f):
         return g,uni,multval,exp
 
     def undo_monic(f,exp,h):
+        """
+        Transform back to a monic polynomial
+        """
         return h(f.parent().base().uniformizer() ** exp * f.parent().gen())
 
     def dist_den(facts,multval):
@@ -114,7 +133,7 @@ def pfactor(Phi):
     See the irreducibility of x^32+16 in Zp(2)[x]::
 
         sage: pfactor(ZpFM(2)['x'](x^32+16))
-        (1 + O(2^20))*x^32 + (2^4 + O(2^20))
+        (1 + O(2^20))*x^32 + (O(2^20))*x^31 + (O(2^20))*x^30 + (O(2^20))*x^29 + (O(2^20))*x^28 + (O(2^20))*x^27 + (O(2^20))*x^26 + (O(2^20))*x^25 + (O(2^20))*x^24 + (O(2^20))*x^23 + (O(2^20))*x^22 + (O(2^20))*x^21 + (O(2^20))*x^20 + (O(2^20))*x^19 + (O(2^20))*x^18 + (O(2^20))*x^17 + (O(2^20))*x^16 + (O(2^20))*x^15 + (O(2^20))*x^14 + (O(2^20))*x^13 + (O(2^20))*x^12 + (O(2^20))*x^11 + (O(2^20))*x^10 + (O(2^20))*x^9 + (O(2^20))*x^8 + (O(2^20))*x^7 + (O(2^20))*x^6 + (O(2^20))*x^5 + (O(2^20))*x^4 + (O(2^20))*x^3 + (O(2^20))*x^2 + (O(2^20))*x + (2^4 + O(2^20))
 
     Test the irreducibility of test polynomial jorder4 for Zp(3)::
 
@@ -195,8 +214,7 @@ def OM_tree(Phi):
         sage: from sage.rings.polynomial.padics.factor.factoring import OM_tree
         sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
         sage: OM_tree(Phi)
-        [Frame with phi (1 + O(2^20))*x^16 + (1048572 + O(2^20))*x^10 + (1048572 + O(2^20))*x^8 + (1048572 + O(2^20))*x^5 + (4 + O(2^20))*x^4 + (8 + O(2^20))*x^2 + (4 + O(2^20))]
-
+        [Frame with phi (1 + O(2^20))*x^16 + (0 + O(2^20))*x^15 + (0 + O(2^20))*x^14 + (0 + O(2^20))*x^13 + (0 + O(2^20))*x^12 + (0 + O(2^20))*x^11 + (1048572 + O(2^20))*x^10 + (0 + O(2^20))*x^9 + (1048572 + O(2^20))*x^8 + (0 + O(2^20))*x^7 + (0 + O(2^20))*x^6 + (1048572 + O(2^20))*x^5 + (4 + O(2^20))*x^4 + (0 + O(2^20))*x^3 + (8 + O(2^20))*x^2 + (0 + O(2^20))*x + (4 + O(2^20))]
     """
     from sage.misc.flatten import flatten
 
