@@ -181,6 +181,17 @@ class FrameElt:
 
         EXAMPLES::
 
+            sage: from sage.rings.polynomial.padics.factor.factoring import *
+            sage: from sage.rings.polynomial.padics.factor.frameelt import *
+            sage: k = ZpFM(5,40,'terse'); kx.<x> = k[]
+            sage: f = kx([627500,6111375,13000,40,1])
+            sage: t = OM_tree(f)[0]
+            sage: t.prev.gamma_frameelt.residue()
+            4*a0 + 1
+            sage: e = t.prev.gamma_frameelt ** 2 + t.prev.gamma_frameelt
+            sage: e.residue()
+            3*a0
+
         """
         if not self.is_reduced():
             self = self.reduce()
@@ -302,6 +313,8 @@ class FrameElt:
             sage: fe1.polynomial()
             (6 + O(2^20))*x^2 + (0 + O(2^20))*x + (1 + O(2^20))
         """
+        if min([a._exponent for a in self.terms]) < 0:
+            raise ValueError, "Cannot cconstruct polynomial representation of FrameElt with negative exponents"
         if denominator:
             piexp = self.find_denominator()
             if piexp < 0:
