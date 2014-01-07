@@ -505,11 +505,11 @@ def _cached(func):
     _cache = {}
 
     @sage_wraps(func)
-    def wrapper(G, **kwds):
+    def wrapper(G, *args, **kwds):
         key = _cache_key(G)
         if key in _cache:
             return _cache[key]
-        result = func(G, **kwds)
+        result = func(G, *args, **kwds)
         _cache[key] = result
         return result
     wrapper.cache = _cache
@@ -521,7 +521,7 @@ def _cached(func):
 ####################
 
 @_cached
-def tutte_polynomial(G, initial_call=True, edge_selector=None, forget_cache=True):
+def tutte_polynomial(G, edge_selector=None, forget_cache=True, initial_call=True):
     r"""
     Returns the Tutte polynomial of the graph `G`.
 
@@ -601,7 +601,7 @@ def tutte_polynomial(G, initial_call=True, edge_selector=None, forget_cache=True
         G = G.relabel(inplace = False) # making sure the vertices are integers
         G.allow_loops(True)
         G.allow_multiple_edges(True)
-        ans = tutte_polynomial(G, initial_call=False, edge_selector=edge_selector)
+        ans = tutte_polynomial(G, edge_selector, initial_call=False)
         if forget_cache:
             tutte_polynomial.cache.clear()
         return ans
@@ -616,8 +616,7 @@ def tutte_polynomial(G, initial_call=True, edge_selector=None, forget_cache=True
         """
         if graph is None:
             graph = G
-        return tutte_polynomial(graph, initial_call=False,
-                                edge_selector=edge_selector)
+        return tutte_polynomial(graph, edge_selector, initial_call=False)
 
     #Remove loops
     with removed_loops(G) as loops:
