@@ -15,10 +15,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense
-from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_field
+from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_field, Polynomial_generic_domain
 from polynomial_padic import Polynomial_padic
 
-class Polynomial_padic_generic_ring(Polynomial_padic, Polynomial_generic_dense):
+class Polynomial_padic_generic_ring(Polynomial_padic, Polynomial_generic_domain, Polynomial_generic_dense):
     r"""
     A polynomial over a `p`-adic ring which is not a field.
 
