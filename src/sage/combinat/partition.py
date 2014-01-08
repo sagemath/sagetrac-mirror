@@ -84,7 +84,7 @@ When we are at the last partition, ``None`` will be returned::
     sage: Partitions(4).next([1,1,1,1]) is None
     True
 
-We can use ``iter`` to get an object which iterates over the partitions
+We can use ``iter`` to get an object which iterates over the partitions,
 one by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background::
 
@@ -103,7 +103,7 @@ one by one to save memory.  Note that when we do something like
     [1, 1, 1, 1]
 
 We can add constraints to the type of partitions we want. For
-example, to get all of the partitions of `4` of length `2`, we'd do the
+example, to get all of the partitions of `4` of length `2`, type the
 following::
 
     sage: Partitions(4, length=2).list()
@@ -206,7 +206,7 @@ The idea of a partition being followed by infinitely many parts of size
     0
 
 We can go back and forth between the standard and the exponential
-notations of a partition. The exponential notation can be padded with
+notations for a partition. The exponential notation can be padded with
 extra zeros::
 
     sage: Partition([6,4,4,2,1]).to_exp()

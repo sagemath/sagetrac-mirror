@@ -421,7 +421,7 @@ class TableauTuple(CombinatorialObject,Element):
         CombinatorialObject.__init__(self, t)
         self._level=len(self._list)
 
-    def _repr_(self, compact=False):
+    def _repr_(self):
         """
         The string representation of ``self``.
 
@@ -792,7 +792,7 @@ class TableauTuple(CombinatorialObject,Element):
 
     def entries(self):
         """
-        Returns a sorted list of all entries of ``self``, in the order
+        Return a sorted list of all entries of ``self``, in the order
         obtained by reading across the rows.
 
         EXAMPLES::
@@ -808,7 +808,7 @@ class TableauTuple(CombinatorialObject,Element):
 
     def entry(self, l, r, c):
         """
-        Returns the entry of the  cell ``(l, r, c)`` in ``self``.
+        Return the entry of the  cell ``(l, r, c)`` in ``self``.
 
         A cell is a tuple ``(l, r, c)`` of coordinates, where ``l`` is the
         component index, ``r`` is the row index, and ``c`` is the column index.
@@ -3187,6 +3187,7 @@ class StandardTableauTuples_level_size(StandardTableauTuples):
         size ``size``. Input is not checked; please use
         :class:`StandardTableauTuples` to ensure the options are properly
         parsed.
+
         EXAMPLES::
 
             sage: StandardTableauTuples(size=4,level=3)
@@ -4108,8 +4109,11 @@ class ResidueSequence(CombinatorialObject):
         try:
             return self._list[k-1]
         except IndexError:
-            raise IndexError,'k must be in the range {1, 2, ..., n}'
+            raise IndexError('k must be in the range {1, 2, ..., n}')       
 
+		# Just to be safe we check that tab is standard and has shape mu by
+        # using the class StandardTableauTuples(mu) to construct the tableau
+        return self.element_class(self,tab)
 
 
     def __setitem__(self,k, res):
@@ -4230,9 +4234,6 @@ class ResidueSequence(CombinatorialObject):
         else:
             from sage.combinat.partition_tuple import PartitionTuple
             return StandardTableaux_residue_shape(residue=self,shape=PartitionTuple(shape))
-        # Just to be safe we check that tab is standard and has shape mu by
-        # using the class StandardTableauTuples(mu) to construct the tableau
-        return self.element_class(self,tab)
 
     @lazy_attribute
     def negative(self):

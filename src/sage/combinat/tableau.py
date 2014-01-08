@@ -173,7 +173,7 @@ TableauOptions=GlobalOptions(name='tableaux',
     display=dict(default="list",
                  description='Controls the way in which tableaux are printed',
                  values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                             diagram='display as Young diagram (simlar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                              compact='minimal length string representation'),
                  alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
                  case_sensitive=False),
@@ -184,7 +184,7 @@ TableauOptions=GlobalOptions(name='tableaux',
                              compact='minimal length ascii art'),
                  case_sensitive=False),
     latex=dict(default="diagram",
-               description='Controls the way in which tableaux are latexed',
+               description='Controls the way in wich tableaux are latexed',
                values=dict(list='as a list', diagram='as a Young diagram'),
                alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
                case_sensitive=False),
@@ -769,7 +769,7 @@ class Tableau(CombinatorialObject, Element):
 
     def to_word(self):
         """
-        An alias for :meth:`to_word_by_row`.
+        An alias for to_word_by_row.
 
         EXAMPLES::
 
@@ -796,39 +796,6 @@ class Tableau(CombinatorialObject, Element):
         from sage.misc.superseded import deprecation
         deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
         return self.reading_word_permutation()
-
-    def attacking_pairs(self):
-        """
-        Deprecated in :trac:`15327`. Use ``T.shape().attacking_pairs()``
-        instead for a tableau ``T``.
-
-        Return a list of the attacking pairs of ``self``. A pair of
-        cells `(c, d)` of a Young tableau is said to be attacking if one
-        of the following conditions holds:
-
-        1. `c` and `d` lie in the same row with `c` strictly to the west
-           of `d`.
-
-        2. `c` is in the row immediately to the south of `d`, and `c`
-           lies strictly east of `d`.
-
-        This only depends on the shape of ``self``, not on the entries.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2,3],[2,5]])
-            sage: t.attacking_pairs()
-            doctest:...: DeprecationWarning: attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()
-            See http://trac.sagemath.org/15327 for details.
-            [((0, 0), (0, 1)),
-             ((0, 0), (0, 2)),
-             ((0, 1), (0, 2)),
-             ((1, 0), (1, 1)),
-             ((1, 1), (0, 0))]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15327, 'attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()')
-        return self.shape().attacking_pairs()
 
     def descents(self):
         """
@@ -883,16 +850,52 @@ class Tableau(CombinatorialObject, Element):
         """
         descents = self.descents()
         p = self.shape()
-        return len(descents) + sum([ p.leg_length(*d) for d in descents ])
+        return len(descents) + sum([ p.leg_length(*d) for d in descents])
+
+    def attacking_pairs(self):
+        """
+        Return a list of the attacking pairs of ``self``. A pair of
+        cells `(c, d)` is said to be attacking if one of the
+        following conditions hold:
+
+        1. `c` and `d` lie in the same row with `c` to the west of `d`.
+
+        2. `c` is in the row immediately to the south of `d`, and `c`
+           lies strictly east of `d`.
+
+        This only depends on the shape of ``self``, not on the entries.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.attacking_pairs()
+            [((0, 0), (0, 1)),
+             ((0, 0), (0, 2)),
+             ((0, 1), (0, 2)),
+             ((1, 0), (1, 1)),
+             ((1, 1), (0, 0))]
+        """
+        attacking_pairs = []
+        for i in range(len(self)):
+            for j in range(len(self[i])):
+                #c is in position (i,j)
+                #Find the d that satisfy condition 1
+                for k in range(j+1,len(self[i])):
+                    attacking_pairs.append( ((i,j),(i,k)) )
+
+                #Find the d that satisfy condition 2
+                if i == 0:
+                    continue
+                for k in range(j):
+                    attacking_pairs.append( ((i,j),(i-1,k)) )
+
+        return attacking_pairs
 
     def inversions(self):
         """
-        Return a list of the inversions of ``self``.
-
-        Let `T` be a tableau. An inversion is an attacking pair `(c,d)` of
-        the shape of `T` (see
-        :meth:`~sage.combinat.partition.Partition.attacking_pairs` for
-        a definition of this) such that the entry of `c` in `T` is
+        Return a list of the inversions of ``self``. An inversion is an
+        attacking pair `(c,d)` (see :meth:`attacking_pairs` for
+        a definition of this) such that the entry of `c` in ``self`` is
         greater than the entry of `d`.
 
         .. WARNING::
@@ -904,25 +907,11 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,2,3],[2,5]])
             sage: t.inversions()
             [((1, 1), (0, 0))]
-            sage: t = Tableau([[1,4,3],[5,2],[2,6],[3]])
-            sage: t.inversions()
-            [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
-        for i, row in enumerate(self):
-            for j, entry in enumerate(row):
-                #c is in position (i,j)
-                #Find the d that satisfy condition 1
-                for k in range(j+1, len(row)):
-                    if entry > row[k]:
-                        inversions.append( ((i,j),(i,k)) )
-                #Find the d that satisfy condition 2
-                if i == 0:
-                    continue
-                for k in range(j):
-                    if entry > previous_row[k]:
-                        inversions.append( ((i,j),(i-1,k)) )
-            previous_row = row
+        for (c,d) in self.attacking_pairs():
+            if self.entry(c) > self.entry(d):
+                inversions.append( (c,d) )
         return inversions
 
     def inversion_number(self):
@@ -1164,9 +1153,8 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(name ='reading word permutation')
     def reading_word_permutation(self):
         """
-        Return the permutation obtained by reading the entries of ``self``
-        row by row, starting with the bottommost row (in English
-        notation).
+        Returns a permutation with the entries of ``self`` obtained by reading
+        ``self`` in the given reading order.
 
         EXAMPLES::
 
@@ -1182,8 +1170,8 @@ class Tableau(CombinatorialObject, Element):
 
     def entries(self):
         """
-        Return a list of all entries of ``self``, in the order obtained
-        by reading across the rows from top to bottom.
+        Returns a list of all entries of self, in the order obtained
+        by reading across the rows.
 
         EXAMPLES::
 
@@ -1195,10 +1183,8 @@ class Tableau(CombinatorialObject, Element):
 
     def entry(self, cell):
         """
-        Returns the entry of cell ``cell`` in the tableau ``self``. Here,
-        ``cell`` should be given as a tuple `(i,j)` of zero-based
-        coordinates (so the northwesternmost cell in English notation
-        is `(0,0)`).
+        Returns the entry of cell in self. Cell is a tuple (i,j) of
+        coordinates.
 
         EXAMPLES::
 
@@ -1262,11 +1248,11 @@ class Tableau(CombinatorialObject, Element):
 
     def is_row_strict(self):
         """
-        Return ``True`` if ``self`` is a row strict tableau and ``False``
+        Returns ``True`` if ``self`` is a row strict tableau and ``False``
         otherwise.
 
-        A tableau is row strict if the entries in each row are in
-        (strictly) increasing order.
+        A tableau is row strict if the entries in each row are in increasing
+        order.
 
         EXAMPLES::
 
@@ -1327,11 +1313,11 @@ class Tableau(CombinatorialObject, Element):
 
     def is_column_strict(self):
         """
-        Return ``True`` if ``self`` is a column strict tableau and ``False``
+        Returns ``True`` if ``self`` is a column strict tableau and ``False``
         otherwise.
 
         A tableau is column strict if the entries in each column are in
-        (strictly) increasing order.
+        increasing order.
 
         EXAMPLES::
 
@@ -1501,8 +1487,8 @@ class Tableau(CombinatorialObject, Element):
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
         s = []
-        for i, row in enumerate(self):
-            s += [ (i,j) for j in range(len(row)) ]
+        for i in range(len(self)):
+            s += [ (i,j) for j in range(len(self[i])) ]
         return s
 
     def cells_containing(self, i):
@@ -1601,20 +1587,8 @@ class Tableau(CombinatorialObject, Element):
 
     def restrict(self, n):
         """
-        Return the restriction of the semistandard tableau ``self``
-        to ``n``. If possible, the restricted tableau will have the same
-        parent as this tableau.
-
-        If `T` is a semistandard tableau and `n` is a nonnegative integer,
-        then the restriction of `T` to `n` is defined as the
-        (semistandard) tableau obtained by removing all cells filled with
-        entries greater than `n` from `T`.
-
-        .. NOTE::
-
-            If only the shape of the restriction, rather than the whole
-            restriction, is needed, then the faster method
-            :meth:`restriction_shape` is preferred.
+        Return the restriction of the (standard) tableau to `n`. If possible,
+        the restricted tableau will have the same parent as this tableau.
 
         EXAMPLES::
 
@@ -1622,14 +1596,6 @@ class Tableau(CombinatorialObject, Element):
             [[1, 2], [3]]
             sage: StandardTableau([[1,2],[3],[4]]).restrict(2)
             [[1, 2]]
-            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(0)
-            []
-            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(2)
-            [[1, 2], [2]]
-            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(3)
-            [[1, 2, 3], [2], [3]]
-            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(5)
-            [[1, 2, 3], [2, 4, 4], [3]]
 
         If possible the restricted tableau will belong to the same category as
         the original tableau::
@@ -1652,7 +1618,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Semistandard tableaux
         """
-        res = [ [y for y in row if y <= n] for row in self ]
+        res = [ [y for y in row if y <= n] for row in self]
         res = [row for row in res if row != []]
         # attempt to return a tableau of the same type
         try:
@@ -1663,52 +1629,10 @@ class Tableau(CombinatorialObject, Element):
             except StandardError:
                 return Tableau(res)
 
-    def restriction_shape(self, n):
-        """
-        Return the shape of the restriction of the semistandard tableau
-        ``self`` to ``n``.
-
-        If `T` is a semistandard tableau and `n` is a nonnegative integer,
-        then the restriction of `T` to `n` is defined as the
-        (semistandard) tableau obtained by removing all cells filled with
-        entries greater than `n` from `T`.
-
-        This method computes merely the shape of the restriction. For
-        the restriction itself, use :meth:`restrict`.
-
-        EXAMPLES::
-
-            sage: Tableau([[1,2],[2,3],[3,4]]).restriction_shape(3)
-            [2, 2, 1]
-            sage: StandardTableau([[1,2],[3],[4],[5]]).restriction_shape(2)
-            [2]
-            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(0)
-            []
-            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(2)
-            [1, 1]
-            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(3)
-            [3, 1]
-            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(5)
-            [4, 3]
-
-            sage: all( T.restriction_shape(i) == T.restrict(i).shape()
-            ....:      for T in StandardTableaux(5) for i in range(1, 5) )
-            True
-        """
-        from sage.combinat.partition import Partition
-        res = [len([y for y in row if y <= n]) for row in self]
-        return Partition(res)
-
-    def to_chain(self, max_entry=None):
+    def to_chain(self):
         """
         Return the chain of partitions corresponding to the (semi)standard
-        tableau ``self``.
-
-        The optional keyword parameter ``max_entry`` can be used to
-        customize the length of the chain. Specifically, if this parameter
-        is set to a nonnegative integer ``n``, then the chain is
-        constructed from the positions of the letters `1, 2, \ldots, n`
-        in the tableau.
+        tableau.
 
         EXAMPLES::
 
@@ -1720,21 +1644,11 @@ class Tableau(CombinatorialObject, Element):
             [[], [2], [2], [2, 1]]
             sage: Tableau([]).to_chain()
             [[]]
-            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=2)
-            [[], [2], [2, 1]]
-            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=3)
-            [[], [2], [2, 1], [2, 1, 1]]
-            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=4)
-            [[], [2], [2, 1], [2, 1, 1], [2, 1, 1]]
-            sage: Tableau([[1,1,2],[2,3],[4,5]]).to_chain(max_entry=6)
-            [[], [2], [3, 1], [3, 2], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
         """
-        if max_entry is None:
-            if len(self) == 0:
-                max_entry = 0
-            else:
-                max_entry = max(max(row) for row in self)
-        return [self.restriction_shape(k) for k in range(max_entry+1)]
+        if self == []:
+            return [self.shape()]
+        m = max(self.to_word())
+        return [self.restrict(k).shape() for k in range(m+1)]
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_Gelfand_Tsetlin_pattern(self):
@@ -2553,7 +2467,7 @@ class Tableau(CombinatorialObject, Element):
     def charge(self):
         r"""
         Return the charge of the reading word of ``self``.  See
-        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.charge` for more information.
+        :meth:`sage.combinat.words.finite_word.FiniteWord_class.charge` for more information.
 
         EXAMPLES::
 
@@ -2577,7 +2491,7 @@ class Tableau(CombinatorialObject, Element):
     def cocharge(self):
         r"""
         Return the cocharge of the reading word of ``self``.  See
-        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.cocharge` for more information.
+        :meth:`sage.combinat.words.finite_word.FiniteWord_class.cocharge` for more information.
 
         EXAMPLES::
 
@@ -2948,128 +2862,6 @@ class Tableau(CombinatorialObject, Element):
         for i in range(1,len(ll)):
             lres[i] = ll[i] - ll[i-1]
         return lres
-
-    def residue_sequence(self, e, multicharge=(0,)):
-        """
-       INPUT:
-            - an integer `k`, with 1\le k\le n,
-            - an integer `e` in {0,2,3,4,5,...} (not checked!)
-            - an (optional) sequence of integers the `multicharge` of length 1.
-
-        OUTPUT:
-
-        The corresponding residue sequence of the tableau; see :class:`ResidueSequence`.
-
-        The `multicharge` is a list of length 1 which gives an offset for all of
-        the contents. It is included mainly for compatabilty with TableauTuples.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(2)
-            Residue sequence (0,1,1,0)
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(3)
-            Residue sequence (0,1,2,0)
-            sage: StandardTableauTuple([[1,2],[3,4]]).residue_sequence(4)
-            Residue sequence (0,1,3,0)
-        """
-        from tableau_tuple import ResidueSequence
-        Ze=IntegerModRing(e)
-        res=[0]*self.size()
-        for r in range(len(self)):
-            for c in range(len(self[r])):
-                res[self[r][c]-1]=Ze(multicharge[0]-r+c )
-        return ResidueSequence(e,multicharge,res)
-
-    def degree(self,e, multicharge=(0,)):
-        """
-        INPUT:
-
-        - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``).
-
-        OUTPUT:
-
-        The **degree** of the tableau ``self`` which is a integer.
-
-        This is defined recursively by successively stripping off the number
-        `k`, for `k=n,n-1,...,1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are below `k` in the diagram.
-
-        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by ``self``.
-
-        EXAMPLES::
-
-            sage: StandardTableau([[1,2,5],[3,4]]).degree(3)
-            0
-            sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
-            1
-
-        REFERENCE:
-
-        .. [BKW]  J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-                  J. Reine Angew. Math., 655 (2011), 61-87.
-        """
-        n=self.size()
-        if n==0: return 0
-
-        deg=self.shape()._initial_degree(e,multicharge)
-        res=self.shape().initial_tableau().residue_sequence(e, multicharge)
-        for r in self.reduced_row_word():
-            if res[r]==res[r+1]: 
-                deg-=2
-            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
-                deg+=(e==2 and 2 or 1)
-            res=res.swap_residues(r,r+1)
-        return deg
-
-    def codegree(self,e, multicharge=(0,)):
-        """
-        INPUT:
-
-        - ``e`` -- the **quantum characteristic** ``e``
-        - ``multicharge`` - the multicharge (default: ``[0]``).
-
-        OUTPUT:
-
-        The **codegree** of the tableau ``self`` which is a integer.
-
-        Return the integer which is the Brundan-Kleshchev-Wang codegree of the
-        standard tableau ``self``.
-
-        This is defined recursively by successively stripping off the number `k`,
-        for `k=n,n-1,...,1` and at stage adding the number of addable cell
-        of the same residue minus the number of removable cells of the same
-        residue as `k` and which are above `k` in the diagram.
-
-        The degrees of the tableau ``self`` gives the degree of the homogeneous basis
-        element of the Graded Specht module which is indexed by ``self``.
-
-        EXAMPLES::
-
-            sage: StandardTableau([[1,3,5],[2,4]]).codegree(3)
-            0
-            sage: StandardTableau([[1,2,5],[3,4]]).codegree(3)
-            1
-            sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
-            0
-
-        REFERENCE:
-            - J. Brundan, A. Kleshchev, and W. Wang, Graded Specht modules,
-              J. Reine Angew. Math., 655 (2011), 61-87.
-        """
-        if self==[]: return 0  # the trivial case
-
-        codeg=self.shape().conjugate()._initial_degree(e,multicharge)
-        res=self.shape().conjugate().initial_tableau().residue_sequence(e, multicharge)
-        for r in self.reduced_row_word():
-            if res[r]==res[r+1]: 
-                codeg-=2
-            elif res[r]==res[r+1]+1 or res[r]==res[r+1]-1:
-                codeg+=(e==2 and 2 or 1)
-            res=res.swap_residues(r,r+1)
-        return codeg
 
     def symmetric_group_action_on_entries(self, w):
         r"""
@@ -3666,37 +3458,6 @@ class StandardTableau(SemistandardTableau):
         return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
                         for m in xrange(1,1+self.size()))
 
-    def dominates(self, t):
-        r"""
-        Return ``True`` if ``self`` dominates the tableau ``t``. That is,
-        if the shape of the tableau restricted to `k` dominates the shape of
-        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
-
-        When the two tableaux have the same shape, then this ordering
-        coincides with the Bruhat ordering for the correspomding permutations.
-
-        INPUT:
-
-        - ``t`` -- A tableaux
-
-        EXAMPLES::
-
-            sage: s=StandardTableau([[1,2,3],[4,5]])
-            sage: t=StandardTableau([[1,2],[3,5],[4]])
-            sage: s.dominates(t)
-            True
-            sage: t.dominates(s)
-            False
-            sage: all(StandardTableau(s).dominates(t) for t in StandardTableaux([3,2]))
-            True
-            sage: s.dominates([[1,2,3,4,5]])
-            False
-
-        """
-        t=StandardTableau(t)
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
-                        for m in xrange(1,1+self.size()))
-
 
     def content(self, k, multicharge=[0]):
         """
@@ -3724,7 +3485,6 @@ class StandardTableau(SemistandardTableau):
           except ValueError:
             pass
         raise ValueError("%d does not appear in tableau"%k)
-
 
 
     def residue(self, k, e, multicharge=[0]):
@@ -3786,7 +3546,7 @@ class StandardTableau(SemistandardTableau):
 
         """
         t=StandardTableau(t)
-        return all(self.restriction_shape(m).dominates(t.restriction_shape(m))
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
                         for m in xrange(1,1+self.size()))
 
     def is_standard(self):
@@ -3965,7 +3725,7 @@ class StandardTableau(SemistandardTableau):
         [Sg2011]_ (p. 23) and in [St2009]_, and is the inverse of the map
         called "promotion" in [Hai1992]_ (p. 90).
 
-        See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
+        See the :meth:`sage.combinat.tableau.promotion_inverse` method for a
         more general operator.
 
         EXAMPLES::
@@ -4008,7 +3768,7 @@ class StandardTableau(SemistandardTableau):
         (p. 90). It is the inverse of the maps called "promotion" in [Sg2011]_
         (p. 23) and in [St2009]_.
 
-        See the :meth:`~sage.combinat.tableau.promotion` method for a
+        See the :meth:`sage.combinat.tableau.promotion` method for a
         more general operator.
 
         EXAMPLES::
@@ -5232,10 +4992,6 @@ class SemistandardTableaux_shape(SemistandardTableaux):
     """
     Semistandard tableaux of fixed shape `p` with a given max entry.
 
-    A semistandard tableau with max entry `i` is required to have all
-    its entries less or equal to `i`. It is not required to actually
-    contain an entry `i`.
-
     INPUT:
 
     - ``p`` -- A partition
@@ -5268,8 +5024,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
     def __iter__(self):
         """
-        An iterator for the semistandard tableaux of the specified shape
-        with the specified max entry.
+        An iterator for the semistandard partitions of the specified shape.
 
         EXAMPLES::
 
@@ -6038,10 +5793,6 @@ class StandardTableaux_shape(StandardTableaux):
                 col += 1
 
         yield self.element_class(self, tableau)
-
-        # iterate until we reach the last tableau which is 
-        # filled with the row indices.
-        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 
         # iterate until we reach the last tableau which is 
         # filled with the row indices.
