@@ -627,7 +627,7 @@ class CycleIndexSeries(LazyPowerSeries):
         def children(self):
             return [self._outer._stream, self._inner._stream]
 
-        def order_operator(self, a, b):
+        def order_operation(self, a, b):
             return 0
 
         def compute(self, n):
