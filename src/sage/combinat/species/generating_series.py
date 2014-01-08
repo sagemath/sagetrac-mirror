@@ -223,12 +223,6 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             self._inner = inner_series
             super(ExponentialGeneratingSeries.FunctorialCompositionStream, self).__init__(**kwds)
 
-        def children(self):
-            return [self._outer._stream, self._inner._stream]
-
-        def order_operation(self, a, b):
-            return 0
-
         def compute(self, n):
             """
             Returns a generator for the coefficients of the functorial
@@ -623,12 +617,6 @@ class CycleIndexSeries(LazyPowerSeries):
             self._outer = outer_series
             self._inner = inner_series
             super(CycleIndexSeries.FunctorialCompositionStream, self).__init__(**kwds)
-
-        def children(self):
-            return [self._outer._stream, self._inner._stream]
-
-        def order_operation(self, a, b):
-            return 0
 
         def compute(self, n):
             """

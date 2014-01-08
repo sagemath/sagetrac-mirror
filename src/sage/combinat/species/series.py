@@ -63,7 +63,7 @@ class SeriesStream(ListCachedStream):
         return []
 
     def order_operation(self, *series):
-        return self.aorder
+        return 0
 
     def __mul__(self, other):
         return ProductStream(self, other, base_ring=self._base_ring)
@@ -266,6 +266,9 @@ class TermStream(SeriesStream):
         else:
             self.set_constant(n + 1, self._zero)
 
+    def order_operation(self):
+        return self.order
+    
     def compute(self, n):
         if n == self._n:
             return self._value
@@ -317,10 +320,10 @@ class SumStream(SeriesStream):
     def children(self):
         return [self._left, self._right]
 
+    order_operation = staticmethod(min)
+
     def compute(self, n):
         return self._left[n] + self._right[n]
-
-    order_operation = min
 
     def is_constant(self):
         return self._left.is_constant() and self._right.is_constant()
@@ -340,6 +343,9 @@ class ProductStream(SeriesStream):
 
     def children(self):
         return [self._left, self._right]
+
+    def order_operation(self, a, b):
+        return a + b
 
     def compute(self, n):
         """
@@ -366,9 +372,6 @@ class ProductStream(SeriesStream):
             res += cx * self._right[n - k]
 
         return res
-
-    def order_operation(self, a, b):
-        return a + b
 
     def is_constant(self):
         return ((self._left.is_constant() and self._left.is_constant() == 0) and
@@ -540,6 +543,9 @@ class RecursiveStream(SeriesStream):
         self._stream._reference = self
         self._copy()
 
+    def order_operation(self):
+        return self._stream.aorder
+
     def _copy(self):
         self.aorder = self._stream.aorder
         self.order = self._stream.order
@@ -649,9 +655,6 @@ class SumGeneratorStream(SeriesStream):
         self._series_stream = SeriesStreamFromIterator(iterator=iter(series_stream), **kwds)
         super(SumGeneratorStream, self).__init__(**kwds)
 
-    def order_operation(self):
-        return 0
-    
     def compute(self, n):
         s = self._series_stream
         r = s[n][n]
@@ -664,9 +667,6 @@ class ProductGeneratorStream(SeriesStreamFromIterator):
         self._series_it = iter(series_iter)
         super(ProductGeneratorStream, self).__init__(iterator=self.compute_iterator(), **kwds)
 
-    def order_operation(self):
-        return 0
-    
     def compute_iterator(self):
         z = self._series_it.next()
         yield z[0]
