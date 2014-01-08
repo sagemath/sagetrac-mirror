@@ -1844,6 +1844,15 @@ ext_modules = [
 
         ################################
         ##
+        ## sage.rings.polynomial
+        ##
+        ################################
+
+    Extension('sage.rings.polynomial.padics.polynomial_padic',
+              sources = ['sage/rings/polynomial/polynomial_padic.pyx']),
+
+        ################################
+        ##
         ## sage.rings.semirings
         ##
         ################################

@@ -23,12 +23,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_domain
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.infinity import infinity
 
-class Polynomial_padic(Polynomial_generic_domain):
+cdef class Polynomial_padic(Polynomial):
     r"""
     A polynomial over a `p`-adic ring.
 
