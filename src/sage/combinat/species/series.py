@@ -1108,7 +1108,7 @@ class LazyPowerSeries(AlgebraElement):
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L(); s._name = 's'; s
+            sage: s = L(); s.set_name('s'); s
             s
 
         ::
@@ -1141,7 +1141,8 @@ class LazyPowerSeries(AlgebraElement):
         n = len(self._stream)
         x = self.parent()._name
         baserepr = repr_lincomb(self._get_repr_info(x))
-        if self._stream.is_constant():
+        if (self._stream.is_constant() and
+            (n - 1) >= self._stream.get_constant_position()):
             if self._stream[n-1] == 0:
                 l = baserepr
             else:
