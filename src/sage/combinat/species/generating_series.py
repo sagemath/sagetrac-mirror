@@ -484,7 +484,7 @@ class CycleIndexSeries(LazyPowerSeries):
                 sage: [g._stream.compute(i) for i in range(10)]
                 [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
             """
-            return sum(self._stream[n].coefficients())
+            return sum(self._stream[n].coefficients(), self._zero)
 
     def isotype_generating_series(self):
         """

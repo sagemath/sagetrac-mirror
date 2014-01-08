@@ -269,7 +269,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
 
-        zero = base_ring(0)
+        zero = p(0)
 
         yield zero
         for n in _integers_from(1):
