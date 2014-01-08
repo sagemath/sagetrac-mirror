@@ -74,7 +74,7 @@ import urllib
 
 def image_convert(files, format="jpg"):
     """
-    Converts to various image formats using PIL. 
+    Converts to various image formats using PIL.
 
     Saves result in SAGE_TMP.
 
@@ -206,7 +206,7 @@ def image_id(files):
         sage: image_id(infile)[0][1:]
         ['PNG', '891x837', 'RGB']
 
-        sage: infile2 =  SAGE_ROOT+'/local/lib/python2.7/site-packages/matplotlib/mpl-data/sample_data/lena.jpg'         
+        sage: infile2 =  SAGE_ROOT+'/local/lib/python2.7/site-packages/matplotlib/mpl-data/sample_data/lena.jpg'
         sage: image_id(infile2)[0][1:]
         ['JPEG', '512x512', 'RGB']
     """
@@ -404,7 +404,7 @@ def image_autocontrast(infile, outfile):
 
         sage: infile2 =  SAGE_ROOT+'/local/lib/python2.7/site-packages/matplotlib/mpl-data/sample_data/lena.jpg'
         sage: outfile = SAGE_TMP+"/pil-test-image1a.jpg"
-        sage: image_autocontrast(infile2, outfile)        
+        sage: image_autocontrast(infile2, outfile)
     """
     from ImageOps import autocontrast
     im = file_loader(infile)
