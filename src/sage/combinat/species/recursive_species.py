@@ -209,7 +209,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: F = CombinatorialSpecies()
             sage: F.generating_series()
-            Uninitialized lazy power series
+            O(1)
         """
         if base_ring not in self._generating_series:
             self._generating_series[base_ring] = series_ring()
@@ -226,7 +226,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: F = CombinatorialSpecies()
             sage: F.isotype_generating_series()
-            Uninitialized lazy power series
+            O(1)
         """
         if base_ring not in self._isotype_generating_series:
             self._isotype_generating_series[base_ring] = series_ring()
@@ -243,7 +243,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: F = CombinatorialSpecies()
             sage: F.cycle_index_series()
-            Uninitialized lazy power series
+            O(1)
         """
         if base_ring not in self._cycle_index_series:
             self._cycle_index_series[base_ring] = series_ring()
