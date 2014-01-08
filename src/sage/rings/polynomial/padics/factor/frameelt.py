@@ -19,6 +19,7 @@ AUTHORS:
 """
 
 from sage.rings.integer import Integer
+from sage.rings.rational import Rational
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -34,7 +35,7 @@ class FrameElt(SageObject):
     - ``a`` -- Polynomial, default None; The polynomial to be represented
       by self.
 
-    - ``this_exp`` -- Integer, default None; If ``this_exp`` is not None,
+    - ``this_exp`` -- int, default None; If ``this_exp`` is not None,
       then self is initialized as having a single term in its sum, namely
       ``a`` * ``phi`` ^ ``this_exp``
 
@@ -104,7 +105,7 @@ class FrameElt(SageObject):
                 while q != 0:
                     q, r = q.quo_rem(self.frame.prev_frame().phi)
                     b.append(r)
-            self.terms = [FrameEltTerm(self,b[i],i) for i in range(len(b)) if b[i].is_zero() == False]
+            self.terms = [FrameEltTerm(self,b[i],i) for i in range(len(b)) if not b[i].is_zero()]
 
     def __cmp__(self, other):
         """
@@ -360,7 +361,7 @@ class FrameElt(SageObject):
         if denominator:
             piexp = self.find_denominator()
             if piexp < 0:
-                return (self * FrameElt(self.frame,self.frame.Ox(self.frame.O.uniformizer()**(-piexp)))).polynomial(),-piexp
+                return (self * FrameElt(self.frame,self.frame.Ox(self.frame.O.uniformizer_pow(-piexp)))).polynomial(),-piexp
             else:
                 return self.polynomial(),0
         else:
@@ -729,7 +730,7 @@ class FrameEltTerm(SageObject):
         """
         self.frameelt = frelt
         self._scalar_flag = (self.frameelt.frame.prev is None)
-        self._exponent = e
+        self._exponent = int(e)
         self._zero_flag = False
 
         if a in self.frameelt.frame.Ox or a in self.frameelt.frame.O:
@@ -806,7 +807,7 @@ class FrameEltTerm(SageObject):
             1/8
         """
         if self.frameelt.frame.prev is None:
-            return self._exponent
+            return Rational(self._exponent)
         else:
             return self.frameelt.frame.prev.segment.slope * self._exponent + self._coefficient.valuation()
 

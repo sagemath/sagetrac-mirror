@@ -7,11 +7,10 @@ AUTHORS:
 
 """
 from sage.rings.polynomial.padics.factor.associatedfactor import AssociatedFactor
-from sage.rings.arith import gcd
 from sage.rings.infinity import infinity
-from sage.misc.functional import denominator
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.rings.integer import Integer
 
 class Segment(SageObject):
     r"""
@@ -119,11 +118,11 @@ class Segment(SageObject):
         self.slope = slope
         self.length = verts[-1][0] - verts[0][0]
         if slope is not infinity:
-            self.Eplus = (denominator(self.slope) /
-                          gcd(denominator(self.slope),int(self.frame.E)))
+            d = self.slope.denom().gcd(self.frame.E)
+            self.Eplus = self.slope.denom() // d
             self.psi = self.frame.find_psi(self.slope*self.Eplus)
         else:
-            self.Eplus = 1
+            self.Eplus = Integer(1)
         self.factors = [AssociatedFactor(self,afact[0],afact[1])
                         for afact in list(self.associate_polynomial().factor())]
 
@@ -178,16 +177,16 @@ class Segment(SageObject):
 
         a = self.frame._phi_expansion_as_elts
         vertx = [v[0] for v in self.verts]
-        chiex = [int((v-vertx[0]) // self.Eplus) for v in vertx]
-        chi = [a[vertx[i]] * self.psi**chiex[i] for i in range(len(vertx))]
+        chiex = [(v-vertx[0]) // self.Eplus for v in vertx]
+        chi = [a[v] * self.psi**c for v,c in zip(vertx,chiex)]
         psitilde = self.frame.find_psi(chi[0].valuation())
         Ahat = [(c/psitilde).reduce() for c in chi]
         if self.frame.prev is None:
-            Az = sum([(Ahat[i].residue())*self.frame.Rz.gen()**chiex[i]
-                       for i in range(len(Ahat))])
+            z = self.frame.Rz.gen()
+            Az = sum([a.residue() * z**c for a,c in zip(Ahat,chiex)])
         else:
-            Az = sum([(Ahat[i].residue())*self.frame.prev.FFz.gen()**chiex[i]
-                       for i in range(len(Ahat))])
+            z = self.frame.prev.FFz.gen()
+            Az = sum([a.residue() * z**c for a,c in zip(Ahat,chiex)])
         return Az
 
     def __repr__(self):

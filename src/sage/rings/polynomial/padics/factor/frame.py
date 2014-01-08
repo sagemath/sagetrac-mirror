@@ -12,6 +12,7 @@ from sage.rings.polynomial.padics.factor.segment import Segment
 from sage.rings.infinity import infinity
 from sage.misc.functional import denominator
 from sage.structure.sage_object import SageObject
+from sage.rings.integer import Integer
 
 class Frame(SageObject):
     """
@@ -246,7 +247,7 @@ class Frame(SageObject):
             psielt.terms = [FrameEltTerm(psielt, self.prev_frame().find_psi(val), s)]
         return psielt
 
-    def _newton_polygon(self,a,xoffset=0):
+    def _newton_polygon(self,a):
         """
         Compute the newton polygon of higher order of ``Phi`` with respect to
         the valuations of the phi-expansion of ``Phi``.
@@ -260,13 +261,9 @@ class Frame(SageObject):
         - ``a`` -- A List of the valuations of the coefficients in the 
           phi-expansion of ``Phi``.
 
-        - ``xoffset`` -- Integer, default 0; The first x value to consider
-          while constructing the newton polygon. The area to the left of
-          ``xoffset`` will be ignored. This is mainly used for recursion.
-
         OUTPUT:
 
-        - A List of Segments comprising the newton polygon of higher order.
+        - A list of Segments comprising the newton polygon of higher order.
 
         ALGORITHM:
 
@@ -296,7 +293,7 @@ class Frame(SageObject):
         lower = []
         segments = []
         for i in range(len(a)):
-            p = (i,a[i])
+            p = (Integer(i),a[i])
             # We check cross < 0 since we want to retain points on the boundary.
             while len(lower) >= 2 and cross(lower[-2], lower[-1], p) < 0:
                 lower.pop()
