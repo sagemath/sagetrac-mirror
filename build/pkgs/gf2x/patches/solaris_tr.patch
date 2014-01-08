@@ -1,0 +1,42 @@
+diff -druN gf2x-1.1.orig/config/acinclude.m4 gf2x-1.1/config/acinclude.m4
+--- gf2x-1.1.orig/config/acinclude.m4	2012-05-31 13:53:47.000000000 -0700
++++ gf2x-1.1/config/acinclude.m4	2014-01-08 02:47:34.477241590 -0800
+@@ -46,7 +46,7 @@
+     AC_CACHE_CHECK([the number of bits in an unsigned long],
+         [gf2x_cv_ulongbits],[
+         AC_RUN_IFELSE([WORDSIZE_CODE()],[
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 AC_MSG_ERROR([test program failed])
+             else
+diff -druN gf2x-1.1.orig/configure gf2x-1.1/configure
+--- gf2x-1.1.orig/configure	2012-05-31 13:54:00.000000000 -0700
++++ gf2x-1.1/configure	2014-01-08 02:47:13.837239526 -0800
+@@ -16691,7 +16691,7 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else
+@@ -16800,7 +16800,7 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else
+@@ -16919,7 +16919,7 @@
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+ 
+-            detected=`cat conftest.out | tr -d -c 0-9`
++            detected=`cat conftest.out`
+             if test x$detected = x ; then
+                 as_fn_error $? "test program failed" "$LINENO" 5
+             else
