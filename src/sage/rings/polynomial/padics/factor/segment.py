@@ -11,6 +11,7 @@ from sage.rings.arith import gcd
 from sage.rings.infinity import infinity
 from sage.misc.functional import denominator
 from sage.structure.sage_object import SageObject
+from sage.misc.cachefunc import cached_method
 
 class Segment(SageObject):
     r"""
@@ -39,8 +40,6 @@ class Segment(SageObject):
     - ``verts`` -- List of tuples; The list of vertices of points of the
       associated polynomial found on this segment. Most notably, this
       needs to include the endpoints of the segment.
-
-    - ``length`` -- Integer; The horizontal length of the segment.
 
     EXAMPLES::
 
@@ -101,7 +100,7 @@ class Segment(SageObject):
         [AssociatedFactor of rho z0^2 + a0*z0 + 1]
 
     """
-    def __init__(self,frame,slope,verts,length):
+    def __init__(self,frame,slope,verts):
         """
         Initializes self.
 
@@ -118,16 +117,15 @@ class Segment(SageObject):
         self.frame = frame
         self.verts = verts
         self.slope = slope
-        self.length = length
-        if slope != infinity:
+        self.length = verts[-1][0] - verts[0][0]
+        if slope is not infinity:
             self.Eplus = (denominator(self.slope) /
                           gcd(denominator(self.slope),int(self.frame.E)))
             self.psi = self.frame.find_psi(self.slope*self.Eplus)
         else:
             self.Eplus = 1
-        self._associate_polynomial = self.associate_polynomial(cached=False)
         self.factors = [AssociatedFactor(self,afact[0],afact[1])
-                        for afact in list(self._associate_polynomial.factor())]
+                        for afact in list(self.associate_polynomial().factor())]
 
     def __cmp__(self, other):
         """
@@ -147,7 +145,8 @@ class Segment(SageObject):
         if c: return c
         return cmp((self.length, self.verts, self.slope), (other.length, other.verts, other.slope))
 
-    def associate_polynomial(self,cached=True):
+    @cached_method
+    def associate_polynomial(self):
         """
         Return the associated polynomial of this segment.
 
@@ -155,15 +154,8 @@ class Segment(SageObject):
         segment, shortening the segment by the discovered ramification
         (the increase in slope denominator) and taking their residues.
 
-        INPUT:
-
-        - ``cached`` - Boolean; default TRUE. If TRUE, returns the cached associated
-          polynomial. If FALSE, complutes the associated polynomial anew.
-
-        OUTPUT:
-
-        - The associated polynomial of the segment, a polynomial over the
-          residue field, which may have been extended in previous Frames.
+        It is a polynomial over the residue field, which may have been
+        extended in previous Frames.
 
         EXAMPLES::
 
@@ -171,16 +163,13 @@ class Segment(SageObject):
             sage: from sage.rings.polynomial.padics.factor.segment import Segment
             sage: Phi = ZpFM(2,20,'terse')['x'](x^32+16)
             sage: f = Frame(Phi); f.seed(Phi.parent().gen())
-            sage: seg = Segment(f,1/8,[(0,4),(32,0)],32); seg
+            sage: seg = Segment(f,1/8,[(0,4),(32,0)]); seg
             Segment of length 32 and slope 1/8
             sage: seg.associate_polynomial()
             z^4 + 1
 
         """
-        if cached:
-            return self._associate_polynomial
-
-        if self.slope == infinity:
+        if self.slope is infinity:
             if self.frame.prev is None:
                 Az = self.frame.Rz.gen() ** self.length
             else:

@@ -170,7 +170,8 @@ class Frame(SageObject):
 
         # If phi divides Phi, we may be in a leaf that resembles its parent
         # and need to break recursion
-        if self.is_first() == False and self.phi == self.prev_frame().phi and self.phi_divides_Phi():
+        if not self.is_first() and self.phi == self.prev_frame().phi and self.phi_divides_Phi():
+            ### THIS DOES NOTHING EXCEPT LEAVE polygon UNDEFINED ###
             return
         else:
             self.polygon = self._newton_polygon([e.valuation() for e in self._phi_expansion_as_elts]) # list of segments
@@ -219,29 +220,30 @@ class Frame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Denominator of given valuation does not divide E
-
         """
 
-        if not self.E % denominator(val) == 0:
-            raise ValueError, "Denominator of given valuation does not divide E"
+        if self.E % val.denominator() != 0:
+            raise ValueError("Denominator of given valuation does not divide E")
         psielt = FrameElt(self)
         if self.prev is None:
-            psielt.terms = [FrameEltTerm(psielt,self.O(1),val)]
+            psielt.terms = [FrameEltTerm(psielt, self.O(1), val)]
         else:
             vphi = self.prev.segment.slope
             d = self.prev_frame().E
-            vprime = val*d
+            vprime = val * d
             e = vphi * d
-            psimod = denominator(e)
-            s = 0
-            if not psimod == 1:
+            psimod = e.denominator()
+            if psimod == 1:
+                s = 0
+            else:
                 s = vprime / e
                 if denominator(s) == 1:
                     s = s % psimod
                 else:
+                    # Problem here?
                     s = int(s % psimod)
-            val = val - s * vphi
-            psielt.terms = [FrameEltTerm(psielt,self.prev_frame().find_psi(val),s)]
+                val -= s * vphi
+            psielt.terms = [FrameEltTerm(psielt, self.prev_frame().find_psi(val), s)]
         return psielt
 
     def _newton_polygon(self,a,xoffset=0):
@@ -266,6 +268,11 @@ class Frame(SageObject):
 
         - A List of Segments comprising the newton polygon of higher order.
 
+        ALGORITHM:
+
+        - Monotone chain algorithm.
+          See http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.padics.factor.frame import *
@@ -280,40 +287,43 @@ class Frame(SageObject):
              Segment of length 1 and slope 0]
 
         """
-        if len(a) == 0:
-            raise ValueError, "Cannot compute Newton polygon from empty list"
+        def cross(o, a, b):
+            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+        def find_slope(a,b):
+            # Note that we negate the slope
+            return (a[1]-b[1]) / (b[0]-a[0])
 
-        # Handle the case where the first segment has infinite slope
-        # (This will occur iff phi divides Phi)
-        if self.phi_divides_Phi() and xoffset == 0:
-            for i in range(1,len(a)):
-                if a[i] < self.O.precision_cap():
-                    verts = [(0,infinity),(i,a[i])]
-                    slope = infinity
-                    length = i
-                    if i == len(a)-1:
-                        return [Segment(self,slope,verts,length)]
-                    else:
-                        return [Segment(self,slope,verts,length)]+self._newton_polygon(a[verts[len(verts)-1][0]-xoffset:],verts[len(verts)-1][0])
-
-        slope = (a[0]-a[len(a)-1]) / (len(a)-1)
-        verts = [(xoffset,a[0])]
-        length = 0
-        for i in range(1,len(a)):
-            y = a[0] - i*slope
-            if a[i] == y:
-                verts.append((xoffset+i,y))
-                length = i
-            elif a[i] < y:
-                verts = [(xoffset,a[0]),(xoffset+i,a[i])]
-                slope = (a[0]-a[i]) / i
-                length = i
-            elif y < a[len(a)-1]:
-                if len(a[verts[len(verts)-1][0]-xoffset:]) == 0:
-                    return [Segment(self,slope,verts,length)]
-                else:
-                    return [Segment(self,slope,verts,length)]+self._newton_polygon(a[verts[len(verts)-1][0]-xoffset:],verts[len(verts)-1][0])
-        return [Segment(self,slope,verts,length)]
+        lower = []
+        segments = []
+        for i in range(len(a)):
+            p = (i,a[i])
+            # We check cross < 0 since we want to retain points on the boundary.
+            while len(lower) >= 2 and cross(lower[-2], lower[-1], p) < 0:
+                lower.pop()
+            lower.append(p)
+        # If phi divides Phi then the first segment should have infinite slope.
+        if self.phi_divides_Phi():
+            for c in xrange(1,len(lower)):
+                if lower[c][1] < self.O.precision_cap():
+                    break
+            else:
+                raise ValueError("Entire polygon above precision cap")
+            segments.append(Segment(self,infinity,[(0,infinity),lower[c]]))
+            lower = lower[c:]
+        if len(lower) <= 1:
+            raise ValueError("Not enough vertices")
+        slope = find_slope(lower[0],lower[1])
+        verts = [lower[0],lower[1]]
+        for c in xrange(1,len(lower)-1):
+            new_slope = find_slope(lower[c],lower[c+1])
+            if new_slope == slope:
+                verts.append(lower[c+1])
+            else:
+                segments.append(Segment(self, slope, verts))
+                slope = new_slope
+                verts = [lower[c],lower[c+1]]
+        segments.append(Segment(self, slope, verts))
+        return segments
 
     # Data Access Methods
 

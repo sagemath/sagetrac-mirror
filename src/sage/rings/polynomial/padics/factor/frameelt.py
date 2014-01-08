@@ -20,6 +20,7 @@ AUTHORS:
 
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
+from sage.misc.cachefunc import cached_method
 
 class FrameElt(SageObject):
     """
@@ -192,14 +193,10 @@ class FrameElt(SageObject):
             sage: fe1.terms
             [[1*2^0]phi1^0]
         """
-        if not purge:
-            return min([a.valuation() for a in self.terms])
-        else:
-            if self.terms == []:
-                return self.frame.O.precision_cap()
-            v = min([a.valuation() for a in self.terms])
+        v = min([a.valuation() for a in self.terms]) if len(self.terms) > 0 else self.frame.O.precision_cap()
+        if purge:
             self.terms = [a for a in self.terms if a.valuation() == v]
-            return v
+        return v
 
     def residue(self):
         """
@@ -359,7 +356,7 @@ class FrameElt(SageObject):
             (6 + O(2^20))*x^2 + (0 + O(2^20))*x + (1 + O(2^20))
         """
         if min([a._exponent for a in self.terms]) < 0:
-            raise ValueError, "Cannot cconstruct polynomial representation of FrameElt with negative exponents"
+            raise ValueError("Cannot cconstruct polynomial representation of FrameElt with negative exponents")
         if denominator:
             piexp = self.find_denominator()
             if piexp < 0:
@@ -395,6 +392,24 @@ class FrameElt(SageObject):
             neg = FrameElt(self.frame)
             neg.terms = [-r for r in self.terms]
             return neg
+
+    def __sub__(self,r):
+        """
+        Subtraction.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.padics.factor.frameelt import FrameElt
+            sage: from sage.rings.polynomial.padics.factor.frame import Frame
+            sage: k = ZpFM(2,20,'terse'); kx.<x> = k[]
+            sage: f0 = Frame(x^32+16); f0.seed(x)
+            sage: fe0 = FrameElt(f0, 6)
+            sage: f1 = f0.polygon[0].factors[0].next_frame()
+            sage: fe1 = FrameElt(f1,20*x^2); fe2 = FrameElt(f1,6)
+            sage: fe1 - fe2 # indirect doctest
+            [[524285*2^1]phi1^0, [5*2^2]phi1^2]
+        """
+        return self.__add__(r.__neg__())
 
     def __radd__(self,l):
         """
@@ -434,7 +449,7 @@ class FrameElt(SageObject):
         if isinstance(r,int) and r == 0:
             return self
         if self.frame.phi != r.frame.phi:
-            raise ValueError, "Cannot add FrameElts with different values of phi"
+            raise ValueError("Cannot add FrameElts with different values of phi")
         if len(self.terms) == 0:
             return r
         sum = FrameElt(self.frame)
@@ -508,7 +523,7 @@ class FrameElt(SageObject):
         if isinstance(r,int) and r == 0:
             return self
         if self.frame.depth != r.frame.depth:
-            raise ValueError, "Cannot multiply FrameElts with different frame depths"
+            raise ValueError("Cannot multiply FrameElts with different frame depths")
         product = FrameElt(self.frame)
         if self.frame.prev is None:
             v = self.terms[0]._exponent + r.terms[0]._exponent
@@ -575,7 +590,7 @@ class FrameElt(SageObject):
 
         """
         if not self.is_single_term():
-            raise NotImplementedError, "Cannot take a power of a non-single term FrameElt"
+            raise NotImplementedError("Cannot take a power of a non-single term FrameElt")
         else:
             product = FrameElt(self.frame)
             product.terms = [self.terms[0]**n]
@@ -600,7 +615,7 @@ class FrameElt(SageObject):
             [[349527*2^1]phi1^2]
         """
         if not right.is_single_term():
-            raise NotImplementedError, "Cannot divide by a non-single term FrameElt"
+            raise NotImplementedError("Cannot divide by a non-single term FrameElt")
         else:
             quotient = FrameElt(self.frame)
             quotient.terms = [a / right.terms[0] for a in self.terms]
@@ -715,7 +730,6 @@ class FrameEltTerm(SageObject):
         self.frameelt = frelt
         self._scalar_flag = (self.frameelt.frame.prev is None)
         self._exponent = e
-        self._cached_valuation = None
         self._zero_flag = False
 
         if a in self.frameelt.frame.Ox or a in self.frameelt.frame.O:
@@ -767,6 +781,7 @@ class FrameEltTerm(SageObject):
         else:
             return cmp((self._exponent, self._coefficient), (other._exponent, other._coefficient))
 
+    @cached_method
     def valuation(self):
         """
         Returns the valuation of this term.
@@ -790,12 +805,10 @@ class FrameEltTerm(SageObject):
             sage: f1.prev.segment.slope
             1/8
         """
-        if self._cached_valuation is None:
-            if self.frameelt.frame.prev is None:
-                self._cached_valuation = self._exponent
-            else:
-                self._cached_valuation = self.frameelt.frame.prev.segment.slope * self._exponent + self._coefficient.valuation()
-        return self._cached_valuation
+        if self.frameelt.frame.prev is None:
+            return self._exponent
+        else:
+            return self.frameelt.frame.prev.segment.slope * self._exponent + self._coefficient.valuation()
 
     def reduce(self):
         """
@@ -841,7 +854,7 @@ class FrameEltTerm(SageObject):
             q,r = Integer(self._exponent).quo_rem(int(Eplus))
             self._exponent = r
             self._coefficient *= (self.frameelt.frame.prev.segment.psi ** (q*Fplus))
-        self._coefficient.reduce()
+        self._coefficient = self._coefficient.reduce()
         return
 
     def is_reduced(self):
@@ -1022,7 +1035,7 @@ class FrameEltTerm(SageObject):
 
         """
         if not self.is_single_term():
-            raise NotImplementedError, "Cannot take a power of a non-single term FrameEltTerm"
+            raise NotImplementedError("Cannot take a power of a non-single term FrameEltTerm")
         else:
             n = int(n)
             if self._scalar_flag:
@@ -1048,7 +1061,7 @@ class FrameEltTerm(SageObject):
             [[4294967295*2^8]phi1^1, [4294967295*2^8]phi1^3, [8589934591*2^7]phi1^7]phi2^-6
         """
         if not right.is_single_term():
-            raise NotImplementedError, "Cannot divide by a non-single term FrameEltTerm"
+            raise NotImplementedError("Cannot divide by a non-single term FrameEltTerm")
         else:
             if self._scalar_flag:
                 return FrameEltTerm(self.frameelt, self._unit/right._unit, self._exponent-right._exponent)
@@ -1112,9 +1125,3 @@ class FrameEltTerm(SageObject):
             return repr(self._unit.lift())+'*'+repr(self.frameelt.frame.O.uniformizer().lift())+'^'+repr(self._exponent)
         else:
             return repr(self._coefficient)+'phi'+repr(self.frameelt.frame.depth)+'^'+repr(self._exponent)
-        #if self._zero_flag:
-        #    return 'FET<0>'
-        #if self._scalar_flag:
-        #    return 'FET<pi^'+repr(self._exponent)+'*'+repr(self._unit)+'>'
-        #else:
-        #    return 'FET<'+repr(self._exponent)+','+repr(self._coefficient)+'>'

@@ -53,22 +53,23 @@ class AssociatedFactor:
         self.rho = rho
         self.rhoexp = rhoexp
         self.Fplus = self.rho.degree()
+        fr = self.segment.frame
 
         if self.segment.frame.is_first():
             # In the first frame, so FFbase is the residue class field of O
-            self.FFbase = self.segment.frame.R
+            self.FFbase = fr.R
         else:
             # Not the first frame
-            self.FFbase = self.segment.frame.prev.FF
+            self.FFbase = fr.prev.FF
 
         if self.Fplus == 1:
             self.FF = self.FFbase
-            self.FFz = PolynomialRing(self.FF,'z'+str(self.segment.frame.depth))
+            self.FFz = PolynomialRing(self.FF,'z'+str(fr.depth))
             # rho is linear delta is the root of rho
             self.delta = self.rho.roots()[0][0]
         else:
-            self.FF = GF(self.FFbase.order()**self.Fplus,'a'+str(self.segment.frame.depth))
-            self.FFz = PolynomialRing(self.FF,'z'+str(self.segment.frame.depth))
+            self.FF = GF(self.FFbase.order()**self.Fplus,'a'+str(fr.depth))
+            self.FFz = PolynomialRing(self.FF,'z'+str(fr.depth))
             self.FFbase_gamma = (self.FFz(self.FFbase.modulus())).roots()[0][0]
             FFrho = self.FFz([self.FFbase_elt_to_FF(a) for a in list(rho)])
             self.gamma = FFrho.roots()[0][0]
@@ -177,11 +178,12 @@ class AssociatedFactor:
             a1^2 + a1 + 1
 
         """
-        if self.segment.frame.is_first():
+        fr = self.segment.frame
+        if fr.is_first():
             return b
         elif self.Fplus == 1:
-            return self.segment.frame.prev.FFbase_elt_to_FF(b)
-        elif self.segment.frame.F == 1:
+            return fr.prev.FFbase_elt_to_FF(b)
+        elif fr.F == 1:
             return b * self.FFbase_gamma
         else:
             bvec = b._vector_()
@@ -219,13 +221,14 @@ class AssociatedFactor:
             [[1*2^0]phi1^0, [1*2^-1]phi1^1]
 
         """
-        if self.segment.frame.F == 1:
-            return FrameElt(self.segment.frame,self.segment.frame.Ox(delta))
-        elif self.segment.frame.prev.Fplus == 1:
-            return FrameElt(self.segment.frame,self.segment.frame.prev.lift(delta),this_exp=0)
+        fr = self.segment.frame
+        if fr.F == 1:
+            return FrameElt(fr,fr.Ox(delta))
+        elif fr.prev.Fplus == 1:
+            return FrameElt(fr,fr.prev.lift(delta),this_exp=0)
         else:
-            dvec = self.segment.frame.prev.FF_elt_to_FFbase_vector(delta)
-            return sum([self.segment.frame.prev.gamma_frameelt**i*FrameElt(self.segment.frame,self.segment.frame.prev.lift(dvec[i]),this_exp=0) for i in range(len(dvec)) if dvec[i] != 0])
+            dvec = fr.prev.FF_elt_to_FFbase_vector(delta)
+            return sum([fr.prev.gamma_frameelt**i*FrameElt(fr,fr.prev.lift(dvec[i]),this_exp=0) for i in range(len(dvec)) if dvec[i] != 0])
 
     def next_frame(self,length=infinity):
         """
@@ -259,33 +262,34 @@ class AssociatedFactor:
 
         """
         from frame import Frame
-        if self.segment.slope == infinity:
-            next = Frame(self.segment.frame.Phi,self,self.segment.frame.iteration)
+        fr = self.segment.frame
+        if self.segment.slope is infinity:
+            next = Frame(fr.Phi, self, fr.iteration)
             self.next = next
-            next.seed(self.segment.frame.phi,length=length)
+            next.seed(fr.phi, length=length)
             return next
         if self.Fplus == 1 and self.segment.Eplus == 1:
-            next = Frame(self.segment.frame.Phi,self.segment.frame.prev,self.segment.frame.iteration)
+            next = Frame(fr.Phi, fr.prev, fr.iteration)
         else:
-            next = Frame(self.segment.frame.Phi,self,self.segment.frame.iteration)
+            next = Frame(fr.Phi, self, fr.iteration)
         self.next = next
-        self.gamma_frameelt = FrameElt(next,self.segment.psi**-1,self.segment.Eplus)
-        if self.Fplus == 1 and self.segment.frame.F == 1:
-            next_phi = self.segment.frame.phi**self.segment.Eplus-(self.segment.psi.polynomial()*self.segment.frame.Ox(self.delta))
-            self.reduce_elt = FrameElt(next,self.segment.psi*self.lift(self.delta),0)
-            next.seed(next_phi,length=length)
+        self.gamma_frameelt = FrameElt(next, self.segment.psi**-1, self.segment.Eplus)
+        if self.Fplus == 1 and fr.F == 1:
+            next_phi = fr.phi**self.segment.Eplus - (self.segment.psi.polynomial() * fr.Ox(self.delta))
+            self.reduce_elt = FrameElt(next, self.segment.psi * self.lift(self.delta), 0)
+            next.seed(next_phi, length=length)
         elif self.Fplus == 1 and self.segment.Eplus == 1:
             delta_elt = self.lift(self.delta)
-            next_phi_tail = self.segment.psi*delta_elt.reduce()
-            next_phi = self.segment.frame.phi-next_phi_tail.polynomial()
-            self.reduce_elt = FrameElt(next,next_phi_tail,0)
-            next.seed(next_phi,length=length)
+            next_phi_tail = self.segment.psi * delta_elt.reduce()
+            next_phi = fr.phi - next_phi_tail.polynomial()
+            self.reduce_elt = FrameElt(next, next_phi_tail, 0)
+            next.seed(next_phi, length=length)
         else:
             lifted_rho_coeffs = [self.lift(r) for r in list(self.rho)]
-            lifted_rho_coeffs_with_psi = [FrameElt(next,(self.segment.psi**(self.Fplus-i)*lifted_rho_coeffs[i]).reduce(),0) for i in range(len(lifted_rho_coeffs))]
-            phi_elt = FrameElt(next,self.segment.frame.Ox(1),1)
-            next_phi_tail = sum([phi_elt**(self.segment.Eplus*i)*lifted_rho_coeffs_with_psi[i] for i in range(len(lifted_rho_coeffs_with_psi)-1)])
-            next_phi = (phi_elt**(self.segment.Eplus*self.Fplus)+next_phi_tail).polynomial()
-            self.reduce_elt = FrameElt(next)+(-next_phi_tail) # that is -next_phi_tail
-            next.seed(next_phi,length=length)
+            lifted_rho_coeffs_with_psi = [FrameElt(next, (self.segment.psi**(self.Fplus - i) * lifted_rho_coeffs[i]).reduce(), 0) for i in range(len(lifted_rho_coeffs))]
+            phi_elt = FrameElt(next, fr.Ox(1), 1)
+            next_phi_tail = sum([phi_elt**(self.segment.Eplus * i) * lifted_rho_coeffs_with_psi[i] for i in range(len(lifted_rho_coeffs_with_psi) - 1)])
+            next_phi = (phi_elt**(self.segment.Eplus * self.Fplus) + next_phi_tail).polynomial()
+            self.reduce_elt = FrameElt(next) - next_phi_tail
+            next.seed(next_phi, length=length)
         return next
