@@ -167,14 +167,7 @@ class Frame(SageObject):
             q, r = q.quo_rem(self.phi)
             self._phi_expansion_as_polynomials.append(r)
         self._phi_expansion_as_elts = [FrameElt(self,a) for a in self._phi_expansion_as_polynomials]
-
-        # If phi divides Phi, we may be in a leaf that resembles its parent
-        # and need to break recursion
-        if not self.is_first() and self.phi == self.prev_frame().phi and self.phi_divides_Phi():
-            ### THIS DOES NOTHING EXCEPT LEAVE polygon UNDEFINED ###
-            return
-        else:
-            self.polygon = self._newton_polygon([e.valuation() for e in self._phi_expansion_as_elts]) # list of segments
+        self.polygon = self._newton_polygon([e.valuation() for e in self._phi_expansion_as_elts]) # list of segments
 
     def find_psi(self,val):
         """
@@ -237,11 +230,7 @@ class Frame(SageObject):
                 s = 0
             else:
                 s = vprime / e
-                if s.denom(s) == 1:
-                    s = s % psimod
-                else:
-                    # Problem here?
-                    s = int(s % psimod)
+                s = s % psimod
                 val -= s * vphi
             psielt.terms = [FrameEltTerm(psielt, self.prev_frame().find_psi(val), s)]
         return psielt
