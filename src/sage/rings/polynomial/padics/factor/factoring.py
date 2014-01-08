@@ -104,6 +104,8 @@ def pfactor_non_monic(f):
     if multval > 0:
         uni = Kx(uni)
         facts = [Kx(fact) for fact in facts]
+    if multval < 0:
+        uni = uni * f.base_ring().uniformizer() ** -multval
     return Factorization([(uni,1)]+[(fact,1) for fact in facts])
 
 def pfactor(Phi):

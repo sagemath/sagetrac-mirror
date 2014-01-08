@@ -356,8 +356,6 @@ class FrameElt(SageObject):
             sage: fe1.polynomial()
             (6 + O(2^20))*x^2 + (0 + O(2^20))*x + (1 + O(2^20))
         """
-        if min([a._exponent for a in self.terms]) < 0:
-            raise ValueError("Cannot cconstruct polynomial representation of FrameElt with negative exponents")
         if denominator:
             piexp = self.find_denominator()
             if piexp < 0:
@@ -365,6 +363,8 @@ class FrameElt(SageObject):
             else:
                 return self.polynomial(),0
         else:
+            if min([a._exponent for a in self.terms]) < 0:
+                raise ValueError("Cannot construct polynomial representation of FrameElt over Zp with negative exponents without denominator flag")
             if self.frame.is_first():
                 return self.frame.O.uniformizer()**int(self.terms[0]._exponent)*self.terms[0]._unit
             else:
@@ -876,7 +876,7 @@ class FrameEltTerm(SageObject):
         """
         if self.frameelt.frame.prev is None:
             return True
-        if self._exponent < self.frameelt.frame.prev.segment.Eplus:
+        if self._exponent < self.frameelt.frame.prev.segment.Eplus * self.frameelt.frame.prev.Fplus:
             return self._coefficient.is_reduced()
         return False
 
