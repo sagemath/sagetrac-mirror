@@ -6,13 +6,12 @@ AUTHORS:
 - Brian Sinclair (2012-02-22): initial version
 
 """
+from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.padics.factor.frameelt import FrameElt, FrameEltTerm
 from sage.rings.polynomial.padics.factor.segment import Segment
 from sage.rings.infinity import infinity
-from sage.misc.functional import denominator
 from sage.structure.sage_object import SageObject
-from sage.rings.integer import Integer
 
 class Frame(SageObject):
     """
@@ -223,7 +222,7 @@ class Frame(SageObject):
             ValueError: Denominator of given valuation does not divide E
         """
 
-        if self.E % val.denominator() != 0:
+        if self.E % val.denom() != 0:
             raise ValueError("Denominator of given valuation does not divide E")
         psielt = FrameElt(self)
         if self.prev is None:
@@ -233,12 +232,12 @@ class Frame(SageObject):
             d = self.prev_frame().E
             vprime = val * d
             e = vphi * d
-            psimod = e.denominator()
+            psimod = e.denom()
             if psimod == 1:
                 s = 0
             else:
                 s = vprime / e
-                if denominator(s) == 1:
+                if s.denom(s) == 1:
                     s = s % psimod
                 else:
                     # Problem here?
