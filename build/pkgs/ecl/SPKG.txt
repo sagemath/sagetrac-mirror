@@ -45,8 +45,7 @@ Website: http://ecls.sourceforge.net/
    - The directory src/msvc/
    - The directory src/src/gc-unstable
    - The directory src/src/libffi
-   - Most of the contents of the src/src/gmp directory:
-     everything except install-sh, config.*, configfsf.*
+   - The directory src/src/gmp
    - The directory src/contrib/encodings/
    - The directory src/contrib/unicode/
  * The directories src/contrib/encodings/ and src/contrib/unicode/ may
@@ -65,7 +64,17 @@ Website: http://ecls.sourceforge.net/
    put some changes from ECL's into Sage's Boehm GC), then remove
    the src/src/gc directory, too.
 
+=== Patches ===
+ * configfsf.patch: update config.(guess|sub) scripts.
+ * implib.patch: better generation of shared library on Cygwin.
+ * infloop.patch: fix potential infinite loop triggered by precision issues.
+ * remove_gmp.patch: let configure succeed whithout the gmp directory.
+ * write_erro.patch: avoid infinite loop when failure to write on stderr.
+
 == Changelog ==
+
+=== ecl-12.12.1.p5 (Jean-Pierre Flori, 9 January 2014) ===
+ * #14648: Remove gmp directory and let ECL build on Cygwin64.
 
 === ecl-12.12.1.p4 (Jeroen Demeyer, 30 May 2013) ===
  * #14662: Add symbolic link local/lib/ecl/ecl -> local/include/ecl

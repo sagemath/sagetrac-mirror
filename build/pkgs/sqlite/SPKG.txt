@@ -19,9 +19,13 @@ Public Domain
 
 == Special Update/Build Instructions ==
 
-None
+=== Patches ===
+ * configfsf.patch: update config.(guess|sub).
 
 == Changelog ==
+
+=== sqlite-3.7.17.p2 (Jean-Pierre Flori, 9 January 2014) ===
+ * #14648: update config.(guess|sub) to let sqlite buld on Cygwin64.
 
 === sqlite-3.7.17.p1 (R. Andrew Ohana, 11 November 2013) ===
  * #15433: don't build sqlite on OS X 10.9, as it can cause issues

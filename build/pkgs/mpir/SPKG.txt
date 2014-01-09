@@ -43,6 +43,7 @@ See http://www.mpir.org
    bail out with an error when encountering "define(,1)".
    These files were patched using
      find mpn -name '*.asm' -exec sed -i 's/define(\(OPERATION[^,]*\),/define(\`\1'"'"',/' {} \;
+ * configfsf.patch: update FSF config.(guess|sub).
  * configure-cxx.patch: remove libtool C++ hack to let MPIR build correctly
    on Cygwin when C++ support is disabled.
  * configure.patch: add some extra run-time configure tests, remove
@@ -63,6 +64,9 @@ See http://www.mpir.org
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p5 (Jean-Pierre Flori, 9 January 2014) ===
+ * #14648: Update FSF config.(guess|sub) to recognize Cygwin64.
 
 === mpir-2.6.0.p4 (Jean-Pierre Flori, 6 November 2013) ===
  * #15364: remove libtool hack for C++ support.
