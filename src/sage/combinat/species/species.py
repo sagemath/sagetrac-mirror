@@ -50,12 +50,33 @@ three internal nodes.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing, CycleIndexSeriesRing
+from generating_series import (OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing,
+                               CycleIndexSeriesRing)
+from series import SeriesStream, SeriesStreamFromList, TermStream
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.combinat.species.misc import accept_size
 from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
+
+
+class SpeciesSeriesStream(SeriesStream):
+    def __init__(self, weight=None, species=None, **kwds):
+        assert weight is not None
+        assert species is not None
+        self._weight = weight
+        self._species = species
+        if hasattr(species, '_order'):
+            kwds['order'] = kwds['aorder'] = species._order()
+            kwds['aorder_changed'] = False
+        super(SpeciesSeriesStream, self).__init__(**kwds)
+
+class SpeciesTermStream(TermStream, SpeciesSeriesStream):
+    def __init__(self, weight=None, base_ring=None, species=None, **kwds):
+        self._n = kwds['n'] = species._order()
+        kwds['value'] = self.value(base_ring, weight)
+        super(SpeciesTermStream, self).__init__(weight=weight, base_ring=base_ring,
+                                                species=species, **kwds)
 
 class GenericCombinatorialSpecies(SageObject):
     def __init__(self, min=None, max=None, weight=None):
@@ -501,6 +522,19 @@ class GenericCombinatorialSpecies(SageObject):
             return getattr(self, prefix)(series_ring, base_ring)
         except AttributeError:
             pass
+
+        ###################
+        # Transition code #
+        ###################
+        if prefix == '_gs' and hasattr(self, 'GeneratingSeriesStream'):
+            return series_ring._new(self.GeneratingSeriesStream,
+                                    weight=self._weight, species=self)
+        elif prefix == '_itgs' and hasattr(self, 'IsotypeGeneratingSeriesStream'):
+            return series_ring._new(self.IsotypeGeneratingSeriesStream,
+                                    weight=self._weight, species=self)
+        elif prefix == '_cis' and hasattr(self, 'CycleIndexSeriesStream'):
+            return series_ring._new(self.CycleIndexSeriesStream,
+                                    weight=self._weight, species=self)
 
         #Try to return things like self._gs_iterator(base_ring).
         #This is used when the subclass just provides an iterator

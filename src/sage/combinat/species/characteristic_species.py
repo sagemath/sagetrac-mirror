@@ -15,7 +15,7 @@ Characteristic Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream, SpeciesTermStream
 from generating_series import factorial_stream
 from structure import GenericSpeciesStructure
 from set_species import SetSpecies
@@ -157,18 +157,6 @@ class CharacteristicSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     _isotypes = _structures
 
-    def _gs_term(self, base_ring):
-        """
-        EXAMPLES::
-
-            sage: F = species.CharacteristicSpecies(2)
-            sage: F.generating_series().coefficients(5)
-            [0, 0, 1/2, 0, 0]
-            sage: F.generating_series().count(2)
-            1
-        """
-        return base_ring(self._weight)/base_ring(factorial_stream[self._n])
-
     def _order(self):
         """
         Returns the order of the generating series.
@@ -181,36 +169,52 @@ class CharacteristicSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         return self._n
 
-    def _itgs_term(self, base_ring):
-        """
-        EXAMPLES::
+    class GeneratingSeriesStream(SpeciesTermStream):
+        def value(self, base_ring, weight):
+            """
+            EXAMPLES::
 
-            sage: F = species.CharacteristicSpecies(2)
-            sage: F.isotype_generating_series().coefficients(5)
-            [0, 0, 1, 0, 0]
+                sage: F = species.CharacteristicSpecies(2)
+                sage: F.generating_series().coefficients(5)
+                [0, 0, 1/2, 0, 0]
+                sage: F.generating_series().count(2)
+                1
+            """
+            
+            return base_ring(weight)/factorial_stream[self._n]
 
-        Here we test out weighting each structure by q.
+    class IsotypeGeneratingSeriesStream(SpeciesTermStream):
+        def value(self, base_ring, weight):
+            """
+            EXAMPLES::
 
-        ::
+                sage: F = species.CharacteristicSpecies(2)
+                sage: F.isotype_generating_series().coefficients(5)
+                [0, 0, 1, 0, 0]
 
-            sage: R.<q> = ZZ[]
-            sage: Fq = species.CharacteristicSpecies(2, weight=q)
-            sage: Fq.isotype_generating_series().coefficients(5)
-            [0, 0, q, 0, 0]
-        """
-        return base_ring(self._weight)
+            Here we test out weighting each structure by q.
 
-    def _cis_term(self, base_ring):
-        """
-        EXAMPLES::
+            ::
 
-            sage: F = species.CharacteristicSpecies(2)
-            sage: g = F.cycle_index_series()
-            sage: g.coefficients(5)
-            [0, 0, 1/2*p[1, 1] + 1/2*p[2], 0, 0]
-        """
-        cis = SetSpecies(weight=self._weight).cycle_index_series(base_ring)
-        return cis.coefficient(self._n)
+                sage: R.<q> = ZZ[]
+                sage: Fq = species.CharacteristicSpecies(2, weight=q)
+                sage: Fq.isotype_generating_series().coefficients(5)
+                [0, 0, q, 0, 0]
+            """
+            return base_ring(weight)
+
+    class CycleIndexSeriesStream(SpeciesTermStream):
+        def value(self, base_ring, weight):
+            """
+            EXAMPLES::
+
+                sage: F = species.CharacteristicSpecies(2)
+                sage: g = F.cycle_index_series()
+                sage: g.coefficients(5)
+                [0, 0, 1/2*p[1, 1] + 1/2*p[2], 0, 0]
+            """
+            cis = SetSpecies(weight=weight).cycle_index_series(base_ring.base_ring())
+            return cis.coefficient(self._n)
 
     def _equation(self, var_mapping):
         """

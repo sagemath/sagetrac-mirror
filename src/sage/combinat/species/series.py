@@ -56,7 +56,7 @@ class SeriesStream(ListCachedStream):
         # The following line must not be written n < self.get_aorder()
         # because comparison of Integer and OnfinityOrder is not implemented.
         if self.get_aorder() > n:
-            return self._base_ring.zero_element()
+            return self._zero
         return super(SeriesStream, self).__getitem__(n)
 
     def children(self):
@@ -224,13 +224,12 @@ class SeriesStream(ListCachedStream):
         return self.aorder_changed
 
 class SeriesStreamFromList(SeriesStream, StreamFromList):
-    def __init__(self, list=None, base_ring=None, **kwds):
-        assert list is not None
-        assert base_ring is not None
-        list = map(base_ring, list)
-        super(SeriesStreamFromList, self).__init__(list=list, base_ring=base_ring, **kwds)
+    def __init__(self, **kwds):
+        if 'list' in kwds:
+            kwds['list'] = map(kwds['base_ring'], kwds['list'])
+        super(SeriesStreamFromList, self).__init__(**kwds)
         self.get_aorder()
-        
+
     def compute_aorder(self):
         for i, value in enumerate(self._cache):
             if value != 0:
@@ -857,7 +856,7 @@ class LazyPowerSeriesRing(Algebra):
             return self.term(x, 0)
 
         if isinstance(x, (list, tuple)):
-            x = SeriesStreamFromList(x, base_ring=base_ring)
+            x = SeriesStreamFromList(list=x, base_ring=base_ring)
         elif hasattr(x, "__iter__") and not isinstance(x, Stream_class):
             x = iter(x)
 

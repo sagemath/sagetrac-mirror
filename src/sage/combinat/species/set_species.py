@@ -15,8 +15,9 @@ Set Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from generating_series import factorial_stream, _integers_from
+from series import SeriesStreamFromList
 from sage.combinat.species.structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -128,38 +129,42 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     _isotypes = _structures
 
-    def _gs_iterator(self, base_ring):
-        r"""
-        The generating series for the species of sets is given by
-        `e^x`.
+    def _order(self):
+        return self._min if self._min is not None else 0
 
-        EXAMPLES::
+    class GeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The generating series for the species of sets is given by
+            `e^x`.
 
-            sage: S = species.SetSpecies()
-            sage: g = S.generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
-            sage: [g.count(i) for i in range(10)]
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        for n in _integers_from(0):
-            yield base_ring(self._weight/factorial_stream[n])
+            EXAMPLES::
 
-    def _itgs_list(self, base_ring):
-        r"""
-        The isomorphism type generating series for the species of sets is
-        `\frac{1}{1-x}`.
+                sage: S = species.SetSpecies()
+                sage: g = S.generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
+                sage: [g.count(i) for i in range(10)]
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return self._base_ring(self._weight) / factorial_stream[n]
 
-        EXAMPLES::
+    class IsotypeGeneratingSeriesStream(SeriesStreamFromList, SpeciesSeriesStream):
+        def list(self):
+            r"""
+            The isomorphism type generating series for the species of sets is
+            `\frac{1}{1-x}`.
 
-            sage: S = species.SetSpecies()
-            sage: g = S.isotype_generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-            sage: [g.count(i) for i in range(10)]
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        return [base_ring(self._weight)]
+            EXAMPLES::
+
+                sage: S = species.SetSpecies()
+                sage: g = S.isotype_generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+                sage: [g.count(i) for i in range(10)]
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return [self._base_ring(self._weight)]
 
     def _cis(self, series_ring, base_ring):
         r"""

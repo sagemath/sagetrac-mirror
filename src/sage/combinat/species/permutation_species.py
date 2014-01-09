@@ -15,13 +15,15 @@ Permutation species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
+from series import SeriesStreamFromList
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.partition import Partitions
 from sage.combinat.species.misc import accept_size
 
 class PermutationSpeciesStructure(GenericSpeciesStructure):
@@ -186,83 +188,59 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         return structure_class(self, labels, perm)
 
 
-    def _gs_list(self, base_ring):
-        r"""
-        The generating series for the species of linear orders is
-        `\frac{1}{1-x}`.
+    class GeneratingSeriesStream(SeriesStreamFromList, SpeciesSeriesStream):
+        def list(self):
+            r"""
+            The generating series for the species of linear orders is
+            `\frac{1}{1-x}`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.PermutationSpecies()
-            sage: g = P.generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        return [base_ring(1)]
+                sage: P = species.PermutationSpecies()
+                sage: g = P.generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return [self._base_ring(1)]
 
+    class IsotypeGeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The isomorphism type generating series is given by
+            `\frac{1}{1-x}`.
 
-    def _itgs_iterator(self, base_ring):
-        r"""
-        The isomorphism type generating series is given by
-        `\frac{1}{1-x}`.
+            EXAMPLES::
 
-        EXAMPLES::
-
-            sage: P = species.PermutationSpecies()
-            sage: g = P.isotype_generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-        """
-        from sage.combinat.partitions import number_of_partitions
-        for n in _integers_from(0):
-            yield base_ring(number_of_partitions(n))
-
-
-    def _cis(self, series_ring, base_ring):
-        r"""
-        The cycle index series for the species of permutations is given by
-
-        .. math::
-
-             \prod{n=1}^\infty \frac{1}{1-x_n}.
+                sage: P = species.PermutationSpecies()
+                sage: g = P.isotype_generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
+            """
+            from sage.combinat.partitions import number_of_partitions
+            return self._base_ring(number_of_partitions(n))
 
 
+    class CycleIndexSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The cycle index series for the species of permutations is given by
 
-        EXAMPLES::
+            .. math::
 
-            sage: P = species.PermutationSpecies()
-            sage: g = P.cycle_index_series()
-            sage: g.coefficients(5)
-            [p[],
-             p[1],
-             p[1, 1] + p[2],
-             p[1, 1, 1] + p[2, 1] + p[3],
-             p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2] + p[3, 1] + p[4]]
-        """
-        CIS = series_ring
-        return CIS.product_generator( CIS(self._cis_gen(base_ring, i)) for i in _integers_from(ZZ(1)) )
+                 \prod{n=1}^\infty \frac{1}{1-x_n}.
 
-    def _cis_gen(self, base_ring, n):
-        """
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.PermutationSpecies()
-            sage: g = P._cis_gen(QQ, 2)
-            sage: [g.next() for i in range(10)]
-            [p[], 0, p[2], 0, p[2, 2], 0, p[2, 2, 2], 0, p[2, 2, 2, 2], 0]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(base_ring).power()
-
-        pn = p([n])
-
-        n = n - 1
-        yield p(1)
-
-        for k in _integers_from(1):
-            for i in range(n):
-                yield base_ring(0)
-            yield pn**k
+                sage: P = species.PermutationSpecies()
+                sage: g = P.cycle_index_series()
+                sage: g.coefficients(5)
+                [p[],
+                 p[1],
+                 p[1, 1] + p[2],
+                 p[1, 1, 1] + p[2, 1] + p[3],
+                 p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2] + p[3, 1] + p[4]]
+            """
+            return self._base_ring.sum_of_monomials(Partitions(n))
 
 #Backward compatibility
 PermutationSpecies_class = PermutationSpecies

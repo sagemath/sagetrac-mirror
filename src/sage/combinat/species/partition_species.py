@@ -16,7 +16,7 @@ Partition Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from generating_series import _integers_from, factorial_stream
 from subset_species import SubsetSpeciesStructure
 from set_species import SetSpecies
@@ -222,34 +222,34 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         breaks = [sum(p[:i]) for i in range(len(p)+1)]
         return structure_class(self, labels, [range(breaks[i]+1, breaks[i+1]+1) for i in range(len(p))])
 
-    def _gs_iterator(self, base_ring):
-        r"""
-        EXAMPLES::
+    class GeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            EXAMPLES::
 
-            sage: P = species.PartitionSpecies()
-            sage: g = P.generating_series()
-            sage: g.coefficients(5)
-            [1, 1, 1, 5/6, 5/8]
-        """
-        from sage.combinat.combinat import bell_number
-        for n in _integers_from(0):
-            yield self._weight*base_ring(bell_number(n)/factorial_stream[n])
+                sage: P = species.PartitionSpecies()
+                sage: g = P.generating_series()
+                sage: g.coefficients(5)
+                [1, 1, 1, 5/6, 5/8]
+            """
+            from sage.combinat.combinat import bell_number
+            return self._weight*self._base_ring(bell_number(n)/factorial_stream[n])
 
-    def _itgs_iterator(self, base_ring):
-        r"""
-        The isomorphism type generating series is given by
-        `\frac{1}{1-x}`.
+    class IsotypeGeneratingSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            r"""
+            The isomorphism type generating series is given by
+            `\frac{1}{1-x}`.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: P = species.PartitionSpecies()
-            sage: g = P.isotype_generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
-        """
-        from sage.combinat.partitions import number_of_partitions
-        for n in _integers_from(0):
-            yield self._weight*base_ring(number_of_partitions(n))
+                sage: P = species.PartitionSpecies()
+                sage: g = P.isotype_generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
+            """
+            from sage.combinat.partitions import number_of_partitions
+            return self._weight * self._base_ring(number_of_partitions(n))
 
     def _cis(self, series_ring, base_ring):
         r"""
@@ -258,8 +258,6 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         .. math::
 
              exp \sum_{n \ge 1} \frac{1}{n} \left( exp \left( \sum_{k \ge 1} \frac{x_{kn}}{k} \right) -1 \right).
-
-
 
         EXAMPLES::
 

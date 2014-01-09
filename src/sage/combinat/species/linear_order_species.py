@@ -15,7 +15,8 @@ Linear-order Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
+from species import GenericCombinatorialSpecies, SpeciesSeriesStream
+from series import SeriesStreamFromList
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
@@ -123,48 +124,48 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         yield structure_class(self, labels, range(1, len(labels)+1))
 
-    def _gs_list(self, base_ring):
-        r"""
-        The generating series for the species of linear orders is
-        `\frac{1}{1-x}`.
 
-        EXAMPLES::
+    class GeneratingSeriesStream(SeriesStreamFromList, SpeciesSeriesStream):
+        def list(self):
+            r"""
+            The generating series for the species of linear orders is
+            `\frac{1}{1-x}`.
 
-            sage: L = species.LinearOrderSpecies()
-            sage: g = L.generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        return [base_ring(1)]
+            EXAMPLES::
 
-    def _itgs_list(self, base_ring):
-        r"""
-        The isomorphism type generating series is given by
-        `\frac{1}{1-x}`.
+                sage: L = species.LinearOrderSpecies()
+                sage: g = L.generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return [self._base_ring(1)]
 
-        EXAMPLES::
+    class IsotypeGeneratingSeriesStream(SeriesStreamFromList, SpeciesSeriesStream):
+        def list(self):
+            r"""
+            The isomorphism type generating series is given by
+            `\frac{1}{1-x}`.
 
-            sage: L = species.LinearOrderSpecies()
-            sage: g = L.isotype_generating_series()
-            sage: g.coefficients(10)
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        return [base_ring(1)]
+            EXAMPLES::
 
+                sage: L = species.LinearOrderSpecies()
+                sage: g = L.isotype_generating_series()
+                sage: g.coefficients(10)
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            """
+            return [self._base_ring(1)]
+            
+    class CycleIndexSeriesStream(SpeciesSeriesStream):
+        def compute(self, n):
+            """
+            EXAMPLES::
 
-    def _cis_iterator(self, base_ring):
-        """
-        EXAMPLES::
-
-            sage: L = species.LinearOrderSpecies()
-            sage: g = L.cycle_index_series()
-            sage: g.coefficients(5)
-            [p[], p[1], p[1, 1], p[1, 1, 1], p[1, 1, 1, 1]]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(base_ring).power()
-        for n in _integers_from(0):
-            yield p([1]*n)
+                sage: L = species.LinearOrderSpecies()
+                sage: g = L.cycle_index_series()
+                sage: g.coefficients(5)
+                [p[], p[1], p[1, 1], p[1, 1, 1], p[1, 1, 1, 1]]
+            """
+            return self._base_ring([1]*n)
 
 #Backward compatibility
 LinearOrderSpecies_class = LinearOrderSpecies
