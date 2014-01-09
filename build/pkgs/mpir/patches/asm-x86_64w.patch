@@ -1,0 +1,3209 @@
+diff --git a/mpn/x86_64w/add_err1_n.asm b/mpn/x86_64w/add_err1_n.asm
+index 1d978f1..b84eb27 100644
+--- a/mpn/x86_64w/add_err1_n.asm
++++ b/mpn/x86_64w/add_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_err1_n)
++; PROLOGUE(mpn_add_err1_n)
+ 
+ ;  Copyright (C) 2009, David Harvey
+ ;
+diff --git a/mpn/x86_64w/add_err2_n.asm b/mpn/x86_64w/add_err2_n.asm
+index b687aa3..275e69b 100644
+--- a/mpn/x86_64w/add_err2_n.asm
++++ b/mpn/x86_64w/add_err2_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_err2_n)
++; PROLOGUE(mpn_add_err2_n)
+ ;
+ ;  AMD64 mpn_add_err2_n, mpn_sub_err2_n
+ ;
+diff --git a/mpn/x86_64w/addmul_2.asm b/mpn/x86_64w/addmul_2.asm
+index c656ed6..e65df7e 100644
+--- a/mpn/x86_64w/addmul_2.asm
++++ b/mpn/x86_64w/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+@@ -22,8 +22,6 @@
+ ;  rax                       rdi     rsi        rdx     rcx
+ ;  rax                       rcx     rdx         r8      r9
+ 
+-; PROLOGUE(mpn_addmul_2)
+-
+ %include "yasm_mac.inc"
+ 
+     CPU  Athlon64
+diff --git a/mpn/x86_64w/atom/add_n.asm b/mpn/x86_64w/atom/add_n.asm
+index 7add310..cac4b8c 100644
+--- a/mpn/x86_64w/atom/add_n.asm
++++ b/mpn/x86_64w/atom/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/atom/addlsh1_n.asm b/mpn/x86_64w/atom/addlsh1_n.asm
+index f6c1cd1..f499ea0 100644
+--- a/mpn/x86_64w/atom/addlsh1_n.asm
++++ b/mpn/x86_64w/atom/addlsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh1_n)
++; PROLOGUE(mpn_addlsh1_n)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/addlsh_n.asm b/mpn/x86_64w/atom/addlsh_n.asm
+index 3e6629f..8c35a6d 100644
+--- a/mpn/x86_64w/atom/addlsh_n.asm
++++ b/mpn/x86_64w/atom/addlsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh_n)
++; PROLOGUE(mpn_addlsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/addmul_1.asm b/mpn/x86_64w/atom/addmul_1.asm
+index 14a2e8b..2ec72c8 100644
+--- a/mpn/x86_64w/atom/addmul_1.asm
++++ b/mpn/x86_64w/atom/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/atom/addmul_2.asm b/mpn/x86_64w/atom/addmul_2.asm
+index 6f23f91..15b9ec2 100644
+--- a/mpn/x86_64w/atom/addmul_2.asm
++++ b/mpn/x86_64w/atom/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/and_n.asm b/mpn/x86_64w/atom/and_n.asm
+index ae777c9..899df35 100644
+--- a/mpn/x86_64w/atom/and_n.asm
++++ b/mpn/x86_64w/atom/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/atom/andn_n.asm b/mpn/x86_64w/atom/andn_n.asm
+index dd2a159..48e5707 100644
+--- a/mpn/x86_64w/atom/andn_n.asm
++++ b/mpn/x86_64w/atom/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/atom/com_n.asm b/mpn/x86_64w/atom/com_n.asm
+index 8a7352f..8a521ab 100644
+--- a/mpn/x86_64w/atom/com_n.asm
++++ b/mpn/x86_64w/atom/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/atom/copyd.asm b/mpn/x86_64w/atom/copyd.asm
+index 530de19..bd54d97 100644
+--- a/mpn/x86_64w/atom/copyd.asm
++++ b/mpn/x86_64w/atom/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/divexact_byff.asm b/mpn/x86_64w/atom/divexact_byff.asm
+index b96787b..7b138a2 100644
+--- a/mpn/x86_64w/atom/divexact_byff.asm
++++ b/mpn/x86_64w/atom/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/atom/divrem_hensel_qr_1_1.asm b/mpn/x86_64w/atom/divrem_hensel_qr_1_1.asm
+index 2f85d78..86695f6 100644
+--- a/mpn/x86_64w/atom/divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/atom/divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/iorn_n.asm b/mpn/x86_64w/atom/iorn_n.asm
+index 898978f..fbf6f81 100644
+--- a/mpn/x86_64w/atom/iorn_n.asm
++++ b/mpn/x86_64w/atom/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/atom/karaadd.asm b/mpn/x86_64w/atom/karaadd.asm
+index 5dcbf76..fd671cd 100644
+--- a/mpn/x86_64w/atom/karaadd.asm
++++ b/mpn/x86_64w/atom/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/atom/karasub.asm b/mpn/x86_64w/atom/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/atom/karasub.asm
++++ b/mpn/x86_64w/atom/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/atom/lshift1.asm b/mpn/x86_64w/atom/lshift1.asm
+index bf0110a..7fa25fd 100644
+--- a/mpn/x86_64w/atom/lshift1.asm
++++ b/mpn/x86_64w/atom/lshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift1)
++; PROLOGUE(mpn_lshift1)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/mod_1_1.asm b/mpn/x86_64w/atom/mod_1_1.asm
+index 5b26b6f..640825d 100644
+--- a/mpn/x86_64w/atom/mod_1_1.asm
++++ b/mpn/x86_64w/atom/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/mod_1_2.asm b/mpn/x86_64w/atom/mod_1_2.asm
+index 0c8c864..eab21fb 100644
+--- a/mpn/x86_64w/atom/mod_1_2.asm
++++ b/mpn/x86_64w/atom/mod_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_2)
++; PROLOGUE(mpn_mod_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/mod_1_3.asm b/mpn/x86_64w/atom/mod_1_3.asm
+index cee0769..232c35d 100644
+--- a/mpn/x86_64w/atom/mod_1_3.asm
++++ b/mpn/x86_64w/atom/mod_1_3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_3)
++; PROLOGUE(mpn_mod_1_3)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/mul_1.asm b/mpn/x86_64w/atom/mul_1.asm
+index 026335a..a2e209b 100644
+--- a/mpn/x86_64w/atom/mul_1.asm
++++ b/mpn/x86_64w/atom/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ 
+ ; Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/atom/mul_2.asm b/mpn/x86_64w/atom/mul_2.asm
+index 73873c1..9d24268 100644
+--- a/mpn/x86_64w/atom/mul_2.asm
++++ b/mpn/x86_64w/atom/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ 
+ ;  X86_64 mpn_mul_2
+ ;
+diff --git a/mpn/x86_64w/atom/mul_basecase.asm b/mpn/x86_64w/atom/mul_basecase.asm
+index 4708b36..baeb663 100644
+--- a/mpn/x86_64w/atom/mul_basecase.asm
++++ b/mpn/x86_64w/atom/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/nand_n.asm b/mpn/x86_64w/atom/nand_n.asm
+index dad12fc..1aafd99 100644
+--- a/mpn/x86_64w/atom/nand_n.asm
++++ b/mpn/x86_64w/atom/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/atom/nior_n.asm b/mpn/x86_64w/atom/nior_n.asm
+index 087aac6..b350d8c 100644
+--- a/mpn/x86_64w/atom/nior_n.asm
++++ b/mpn/x86_64w/atom/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ ;  Version 1.0.4
+ ;
+ ;  Copyright 2008 Jason Moxham
+diff --git a/mpn/x86_64w/atom/redc_1.asm b/mpn/x86_64w/atom/redc_1.asm
+index 467057e..0393f98 100644
+--- a/mpn/x86_64w/atom/redc_1.asm
++++ b/mpn/x86_64w/atom/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/rsh1add_n.asm b/mpn/x86_64w/atom/rsh1add_n.asm
+index 5411d9c..845e6f7 100644
+--- a/mpn/x86_64w/atom/rsh1add_n.asm
++++ b/mpn/x86_64w/atom/rsh1add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1add_n)
++; PROLOGUE(mpn_rsh1add_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/rsh1sub_n.asm b/mpn/x86_64w/atom/rsh1sub_n.asm
+index 0a60b12..d828f6d 100644
+--- a/mpn/x86_64w/atom/rsh1sub_n.asm
++++ b/mpn/x86_64w/atom/rsh1sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1sub_n)
++; PROLOGUE(mpn_rsh1sub_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/rsh_divrem_hensel_qr_1_1.asm b/mpn/x86_64w/atom/rsh_divrem_hensel_qr_1_1.asm
+index 6b6a1b6..3f120f1 100644
+--- a/mpn/x86_64w/atom/rsh_divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/atom/rsh_divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/sqr_basecase.asm b/mpn/x86_64w/atom/sqr_basecase.asm
+index 595d8c3..54c0451 100644
+--- a/mpn/x86_64w/atom/sqr_basecase.asm
++++ b/mpn/x86_64w/atom/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/atom/store.asm b/mpn/x86_64w/atom/store.asm
+index 04e6481..ed0c771 100644
+--- a/mpn/x86_64w/atom/store.asm
++++ b/mpn/x86_64w/atom/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/sub_n.asm b/mpn/x86_64w/atom/sub_n.asm
+index 27569d7..e274504 100644
+--- a/mpn/x86_64w/atom/sub_n.asm
++++ b/mpn/x86_64w/atom/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/atom/sublsh1_n.asm b/mpn/x86_64w/atom/sublsh1_n.asm
+index 387a8cb..92c8685 100644
+--- a/mpn/x86_64w/atom/sublsh1_n.asm
++++ b/mpn/x86_64w/atom/sublsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh1_n)
++; PROLOGUE(mpn_sublsh1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/sublsh_n.asm b/mpn/x86_64w/atom/sublsh_n.asm
+index ee8a33c..4bdea39 100644
+--- a/mpn/x86_64w/atom/sublsh_n.asm
++++ b/mpn/x86_64w/atom/sublsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh_n)
++; PROLOGUE(mpn_sublsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/atom/submul_1.asm b/mpn/x86_64w/atom/submul_1.asm
+index b9c7033..f49b158 100644
+--- a/mpn/x86_64w/atom/submul_1.asm
++++ b/mpn/x86_64w/atom/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/atom/xnor_n.asm b/mpn/x86_64w/atom/xnor_n.asm
+index 1f075f2..589c131 100644
+--- a/mpn/x86_64w/atom/xnor_n.asm
++++ b/mpn/x86_64w/atom/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/add_err1_n.asm b/mpn/x86_64w/bobcat/add_err1_n.asm
+index 0b970a6..2371e5e 100644
+--- a/mpn/x86_64w/bobcat/add_err1_n.asm
++++ b/mpn/x86_64w/bobcat/add_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_err1_n)
++; PROLOGUE(mpn_add_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/add_n.asm b/mpn/x86_64w/bobcat/add_n.asm
+index 7add310..cac4b8c 100644
+--- a/mpn/x86_64w/bobcat/add_n.asm
++++ b/mpn/x86_64w/bobcat/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/bobcat/addadd_n.asm b/mpn/x86_64w/bobcat/addadd_n.asm
+index 1cce716..1edca14 100644
+--- a/mpn/x86_64w/bobcat/addadd_n.asm
++++ b/mpn/x86_64w/bobcat/addadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addadd_n)
++; PROLOGUE(mpn_addadd_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/addlsh1_n.asm b/mpn/x86_64w/bobcat/addlsh1_n.asm
+index f6c1cd1..f499ea0 100644
+--- a/mpn/x86_64w/bobcat/addlsh1_n.asm
++++ b/mpn/x86_64w/bobcat/addlsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh1_n)
++; PROLOGUE(mpn_addlsh1_n)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/addlsh_n.asm b/mpn/x86_64w/bobcat/addlsh_n.asm
+index 3e6629f..8c35a6d 100644
+--- a/mpn/x86_64w/bobcat/addlsh_n.asm
++++ b/mpn/x86_64w/bobcat/addlsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh_n)
++; PROLOGUE(mpn_addlsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/addmul_1.asm b/mpn/x86_64w/bobcat/addmul_1.asm
+index 9002030..86de348 100644
+--- a/mpn/x86_64w/bobcat/addmul_1.asm
++++ b/mpn/x86_64w/bobcat/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/bobcat/addsub_n.asm b/mpn/x86_64w/bobcat/addsub_n.asm
+index b796e15..9de302a 100644
+--- a/mpn/x86_64w/bobcat/addsub_n.asm
++++ b/mpn/x86_64w/bobcat/addsub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addsub_n)
++; PROLOGUE(mpn_addsub_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/and_n.asm b/mpn/x86_64w/bobcat/and_n.asm
+index ae777c9..899df35 100644
+--- a/mpn/x86_64w/bobcat/and_n.asm
++++ b/mpn/x86_64w/bobcat/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/andn_n.asm b/mpn/x86_64w/bobcat/andn_n.asm
+index dd2a159..48e5707 100644
+--- a/mpn/x86_64w/bobcat/andn_n.asm
++++ b/mpn/x86_64w/bobcat/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/com_n.asm b/mpn/x86_64w/bobcat/com_n.asm
+index 5c5f475..302d483 100644
+--- a/mpn/x86_64w/bobcat/com_n.asm
++++ b/mpn/x86_64w/bobcat/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/copyd.asm b/mpn/x86_64w/bobcat/copyd.asm
+index d747aa2..3de6685 100644
+--- a/mpn/x86_64w/bobcat/copyd.asm
++++ b/mpn/x86_64w/bobcat/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/copyi.asm b/mpn/x86_64w/bobcat/copyi.asm
+index d48f0f6..bd33996 100644
+--- a/mpn/x86_64w/bobcat/copyi.asm
++++ b/mpn/x86_64w/bobcat/copyi.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyi)
++; PROLOGUE(mpn_copyi)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/divexact_byff.asm b/mpn/x86_64w/bobcat/divexact_byff.asm
+index b96787b..7b138a2 100644
+--- a/mpn/x86_64w/bobcat/divexact_byff.asm
++++ b/mpn/x86_64w/bobcat/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/bobcat/divrem_hensel_qr_1_1.asm b/mpn/x86_64w/bobcat/divrem_hensel_qr_1_1.asm
+index 2f85d78..86695f6 100644
+--- a/mpn/x86_64w/bobcat/divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/bobcat/divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/divrem_hensel_qr_1_2.asm b/mpn/x86_64w/bobcat/divrem_hensel_qr_1_2.asm
+index 04c26ea..2c065a1 100644
+--- a/mpn/x86_64w/bobcat/divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/bobcat/divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/divrem_hensel_r_1.asm b/mpn/x86_64w/bobcat/divrem_hensel_r_1.asm
+index fa07ae8..7f2b0ec 100644
+--- a/mpn/x86_64w/bobcat/divrem_hensel_r_1.asm
++++ b/mpn/x86_64w/bobcat/divrem_hensel_r_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_r_1)
++; PROLOGUE(mpn_divrem_hensel_r_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/hamdist.asm b/mpn/x86_64w/bobcat/hamdist.asm
+index 3f71fcd..9152ca8 100644
+--- a/mpn/x86_64w/bobcat/hamdist.asm
++++ b/mpn/x86_64w/bobcat/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/ior_n.asm b/mpn/x86_64w/bobcat/ior_n.asm
+index ddd3e52..64ddb2c 100644
+--- a/mpn/x86_64w/bobcat/ior_n.asm
++++ b/mpn/x86_64w/bobcat/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/iorn_n.asm b/mpn/x86_64w/bobcat/iorn_n.asm
+index 898978f..fbf6f81 100644
+--- a/mpn/x86_64w/bobcat/iorn_n.asm
++++ b/mpn/x86_64w/bobcat/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/karaadd.asm b/mpn/x86_64w/bobcat/karaadd.asm
+index 1e66c62..c469594 100644
+--- a/mpn/x86_64w/bobcat/karaadd.asm
++++ b/mpn/x86_64w/bobcat/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/bobcat/karasub.asm b/mpn/x86_64w/bobcat/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/bobcat/karasub.asm
++++ b/mpn/x86_64w/bobcat/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/bobcat/lshift.asm b/mpn/x86_64w/bobcat/lshift.asm
+index 99b82b5..4d98ea0 100644
+--- a/mpn/x86_64w/bobcat/lshift.asm
++++ b/mpn/x86_64w/bobcat/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/bobcat/lshift1.asm b/mpn/x86_64w/bobcat/lshift1.asm
+index bf0110a..7fa25fd 100644
+--- a/mpn/x86_64w/bobcat/lshift1.asm
++++ b/mpn/x86_64w/bobcat/lshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift1)
++; PROLOGUE(mpn_lshift1)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/lshift2.asm b/mpn/x86_64w/bobcat/lshift2.asm
+index 863ca59..a6a1c8e 100644
+--- a/mpn/x86_64w/bobcat/lshift2.asm
++++ b/mpn/x86_64w/bobcat/lshift2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift2)
++; PROLOGUE(mpn_lshift2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/lshiftc.asm b/mpn/x86_64w/bobcat/lshiftc.asm
+index f45b940..ddde236 100644
+--- a/mpn/x86_64w/bobcat/lshiftc.asm
++++ b/mpn/x86_64w/bobcat/lshiftc.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshiftc)
++; PROLOGUE(mpn_lshiftc)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/mod_1_1.asm b/mpn/x86_64w/bobcat/mod_1_1.asm
+index 464103f..376ae3a 100644
+--- a/mpn/x86_64w/bobcat/mod_1_1.asm
++++ b/mpn/x86_64w/bobcat/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ ;  Copyright 2011 The Code Cavern
+ ;
+ ;  Windows Conversion Copyright 2011 Brian Gladman
+diff --git a/mpn/x86_64w/bobcat/mul_1.asm b/mpn/x86_64w/bobcat/mul_1.asm
+index 20412b9..12bcde3 100644
+--- a/mpn/x86_64w/bobcat/mul_1.asm
++++ b/mpn/x86_64w/bobcat/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/mul_basecase.asm b/mpn/x86_64w/bobcat/mul_basecase.asm
+index 775313c..69d3d59 100644
+--- a/mpn/x86_64w/bobcat/mul_basecase.asm
++++ b/mpn/x86_64w/bobcat/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/nand_n.asm b/mpn/x86_64w/bobcat/nand_n.asm
+index faf49b4..287a8c4 100644
+--- a/mpn/x86_64w/bobcat/nand_n.asm
++++ b/mpn/x86_64w/bobcat/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ ;  Copyright 2008 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/bobcat/nior_n.asm b/mpn/x86_64w/bobcat/nior_n.asm
+index 9d643ef..5f77b5b 100644
+--- a/mpn/x86_64w/bobcat/nior_n.asm
++++ b/mpn/x86_64w/bobcat/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/not.asm b/mpn/x86_64w/bobcat/not.asm
+index 2aa428e..e6430b8 100644
+--- a/mpn/x86_64w/bobcat/not.asm
++++ b/mpn/x86_64w/bobcat/not.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(not)
++; PROLOGUE(mpn_not)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/bobcat/popcount.asm b/mpn/x86_64w/bobcat/popcount.asm
+index 276c69f..140f297 100644
+--- a/mpn/x86_64w/bobcat/popcount.asm
++++ b/mpn/x86_64w/bobcat/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  AMD64 mpn_popcount
+ ;  Copyright 2009 Jason Moxham
+diff --git a/mpn/x86_64w/bobcat/redc_1.asm b/mpn/x86_64w/bobcat/redc_1.asm
+index 20e4102..a4ae589 100644
+--- a/mpn/x86_64w/bobcat/redc_1.asm
++++ b/mpn/x86_64w/bobcat/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/rsh1add_n.asm b/mpn/x86_64w/bobcat/rsh1add_n.asm
+index 5411d9c..845e6f7 100644
+--- a/mpn/x86_64w/bobcat/rsh1add_n.asm
++++ b/mpn/x86_64w/bobcat/rsh1add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1add_n)
++; PROLOGUE(mpn_rsh1add_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/rsh1sub_n.asm b/mpn/x86_64w/bobcat/rsh1sub_n.asm
+index 0a60b12..d828f6d 100644
+--- a/mpn/x86_64w/bobcat/rsh1sub_n.asm
++++ b/mpn/x86_64w/bobcat/rsh1sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1sub_n)
++; PROLOGUE(mpn_rsh1sub_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_1.asm b/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_1.asm
+index 6b6a1b6..3f120f1 100644
+--- a/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_2.asm b/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_2.asm
+index 9700af7..04ceccb 100644
+--- a/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/bobcat/rsh_divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/rshift.asm b/mpn/x86_64w/bobcat/rshift.asm
+index 7adb334..50878d0 100644
+--- a/mpn/x86_64w/bobcat/rshift.asm
++++ b/mpn/x86_64w/bobcat/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Verdxon 1.1.4.
+ ;
+diff --git a/mpn/x86_64w/bobcat/rshift2.asm b/mpn/x86_64w/bobcat/rshift2.asm
+index 9b81105..dae365d 100644
+--- a/mpn/x86_64w/bobcat/rshift2.asm
++++ b/mpn/x86_64w/bobcat/rshift2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift2)
++; PROLOGUE(mpn_rshift2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/sqr_basecase.asm b/mpn/x86_64w/bobcat/sqr_basecase.asm
+index 92113c1..669fe16 100644
+--- a/mpn/x86_64w/bobcat/sqr_basecase.asm
++++ b/mpn/x86_64w/bobcat/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/bobcat/store.asm b/mpn/x86_64w/bobcat/store.asm
+index d3eaac9..ff6cc1c 100644
+--- a/mpn/x86_64w/bobcat/store.asm
++++ b/mpn/x86_64w/bobcat/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  This file is part of the MPIR Library.
+diff --git a/mpn/x86_64w/bobcat/sub_err1_n.asm b/mpn/x86_64w/bobcat/sub_err1_n.asm
+index 4548b3c..ffbbca0 100644
+--- a/mpn/x86_64w/bobcat/sub_err1_n.asm
++++ b/mpn/x86_64w/bobcat/sub_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_err1_n)
++; PROLOGUE(mpn_sub_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/sub_n.asm b/mpn/x86_64w/bobcat/sub_n.asm
+index 27569d7..e274504 100644
+--- a/mpn/x86_64w/bobcat/sub_n.asm
++++ b/mpn/x86_64w/bobcat/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/bobcat/subadd_n.asm b/mpn/x86_64w/bobcat/subadd_n.asm
+index 287979c..5e5920d 100644
+--- a/mpn/x86_64w/bobcat/subadd_n.asm
++++ b/mpn/x86_64w/bobcat/subadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(subadd_n)
++; PROLOGUE(mpn_subadd_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/sublsh1_n.asm b/mpn/x86_64w/bobcat/sublsh1_n.asm
+index 387a8cb..92c8685 100644
+--- a/mpn/x86_64w/bobcat/sublsh1_n.asm
++++ b/mpn/x86_64w/bobcat/sublsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh1_n)
++; PROLOGUE(mpn_sublsh1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/sublsh_n.asm b/mpn/x86_64w/bobcat/sublsh_n.asm
+index ee8a33c..4bdea39 100644
+--- a/mpn/x86_64w/bobcat/sublsh_n.asm
++++ b/mpn/x86_64w/bobcat/sublsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh_n)
++; PROLOGUE(mpn_sublsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/bobcat/submul_1.asm b/mpn/x86_64w/bobcat/submul_1.asm
+index af19a7b..3785a34 100644
+--- a/mpn/x86_64w/bobcat/submul_1.asm
++++ b/mpn/x86_64w/bobcat/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/bobcat/sumdiff_n.asm b/mpn/x86_64w/bobcat/sumdiff_n.asm
+index 0c2908c..1bec660 100644
+--- a/mpn/x86_64w/bobcat/sumdiff_n.asm
++++ b/mpn/x86_64w/bobcat/sumdiff_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sumdiff_n)
++; PROLOGUE(mpn_sumdiff_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/xnor_n.asm b/mpn/x86_64w/bobcat/xnor_n.asm
+index 1f075f2..589c131 100644
+--- a/mpn/x86_64w/bobcat/xnor_n.asm
++++ b/mpn/x86_64w/bobcat/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/bobcat/xor_n.asm b/mpn/x86_64w/bobcat/xor_n.asm
+index fbdc5c9..74ba055 100644
+--- a/mpn/x86_64w/bobcat/xor_n.asm
++++ b/mpn/x86_64w/bobcat/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/add_n.asm b/mpn/x86_64w/core2/add_n.asm
+index c60c719..51e700f 100644
+--- a/mpn/x86_64w/core2/add_n.asm
++++ b/mpn/x86_64w/core2/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/core2/addadd_n.asm b/mpn/x86_64w/core2/addadd_n.asm
+index fea8aef..74778af 100644
+--- a/mpn/x86_64w/core2/addadd_n.asm
++++ b/mpn/x86_64w/core2/addadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addadd_n)
++; PROLOGUE(mpn_addadd_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/core2/addlsh1_n.asm b/mpn/x86_64w/core2/addlsh1_n.asm
+index a6caabf..6a2bf57 100644
+--- a/mpn/x86_64w/core2/addlsh1_n.asm
++++ b/mpn/x86_64w/core2/addlsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh1_n)
++; PROLOGUE(mpn_addlsh1_n)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/addlsh_n.asm b/mpn/x86_64w/core2/addlsh_n.asm
+index 337e357..b6ad0b4 100644
+--- a/mpn/x86_64w/core2/addlsh_n.asm
++++ b/mpn/x86_64w/core2/addlsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh_n)
++; PROLOGUE(mpn_addlsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/addmul_1.asm b/mpn/x86_64w/core2/addmul_1.asm
+index 63dcae1..c9cdc37 100644
+--- a/mpn/x86_64w/core2/addmul_1.asm
++++ b/mpn/x86_64w/core2/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/core2/addmul_2.asm b/mpn/x86_64w/core2/addmul_2.asm
+index 0eb7efc..a166479 100644
+--- a/mpn/x86_64w/core2/addmul_2.asm
++++ b/mpn/x86_64w/core2/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/addsub_n.asm b/mpn/x86_64w/core2/addsub_n.asm
+index a35bb79..51e225b 100644
+--- a/mpn/x86_64w/core2/addsub_n.asm
++++ b/mpn/x86_64w/core2/addsub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addsub_n)
++; PROLOGUE(mpn_addsub_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/core2/and_n.asm b/mpn/x86_64w/core2/and_n.asm
+index d567d62..9a889a6 100644
+--- a/mpn/x86_64w/core2/and_n.asm
++++ b/mpn/x86_64w/core2/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/andn_n.asm b/mpn/x86_64w/core2/andn_n.asm
+index cc75050..9f8a009 100644
+--- a/mpn/x86_64w/core2/andn_n.asm
++++ b/mpn/x86_64w/core2/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/com_n.asm b/mpn/x86_64w/core2/com_n.asm
+index 8a7352f..8a521ab 100644
+--- a/mpn/x86_64w/core2/com_n.asm
++++ b/mpn/x86_64w/core2/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/copyd.asm b/mpn/x86_64w/core2/copyd.asm
+index 530de19..bd54d97 100644
+--- a/mpn/x86_64w/core2/copyd.asm
++++ b/mpn/x86_64w/core2/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/copyi.asm b/mpn/x86_64w/core2/copyi.asm
+index 32ccd4d..edd0d53 100644
+--- a/mpn/x86_64w/core2/copyi.asm
++++ b/mpn/x86_64w/core2/copyi.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyi)
++; PROLOGUE(mpn_copyi)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/divexact_byff.asm b/mpn/x86_64w/core2/divexact_byff.asm
+index c4bc136..8f06c30 100644
+--- a/mpn/x86_64w/core2/divexact_byff.asm
++++ b/mpn/x86_64w/core2/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/core2/divrem_hensel_qr_1_2.asm b/mpn/x86_64w/core2/divrem_hensel_qr_1_2.asm
+index 550b9be..23d5381 100644
+--- a/mpn/x86_64w/core2/divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/core2/divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/hamdist.asm b/mpn/x86_64w/core2/hamdist.asm
+index 0edbb15..2aaa8d3 100644
+--- a/mpn/x86_64w/core2/hamdist.asm
++++ b/mpn/x86_64w/core2/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ 
+ ;  mpn_hamdist
+ 
+diff --git a/mpn/x86_64w/core2/ior_n.asm b/mpn/x86_64w/core2/ior_n.asm
+index 2c648fc..2157927 100644
+--- a/mpn/x86_64w/core2/ior_n.asm
++++ b/mpn/x86_64w/core2/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/iorn_n.asm b/mpn/x86_64w/core2/iorn_n.asm
+index 41ba99d..b68323a 100644
+--- a/mpn/x86_64w/core2/iorn_n.asm
++++ b/mpn/x86_64w/core2/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/karaadd.asm b/mpn/x86_64w/core2/karaadd.asm
+index 5dcbf76..fd671cd 100644
+--- a/mpn/x86_64w/core2/karaadd.asm
++++ b/mpn/x86_64w/core2/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/core2/karasub.asm b/mpn/x86_64w/core2/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/core2/karasub.asm
++++ b/mpn/x86_64w/core2/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/core2/lshift.asm b/mpn/x86_64w/core2/lshift.asm
+index 1f883da..2348781 100644
+--- a/mpn/x86_64w/core2/lshift.asm
++++ b/mpn/x86_64w/core2/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/core2/lshift1.asm b/mpn/x86_64w/core2/lshift1.asm
+index ef9e28d..28faf31 100644
+--- a/mpn/x86_64w/core2/lshift1.asm
++++ b/mpn/x86_64w/core2/lshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift1)
++; PROLOGUE(mpn_lshift1)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/mod_1_1.asm b/mpn/x86_64w/core2/mod_1_1.asm
+index 464103f..376ae3a 100644
+--- a/mpn/x86_64w/core2/mod_1_1.asm
++++ b/mpn/x86_64w/core2/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ ;  Copyright 2011 The Code Cavern
+ ;
+ ;  Windows Conversion Copyright 2011 Brian Gladman
+diff --git a/mpn/x86_64w/core2/mod_1_2.asm b/mpn/x86_64w/core2/mod_1_2.asm
+index edc9f23..6aaeb95 100644
+--- a/mpn/x86_64w/core2/mod_1_2.asm
++++ b/mpn/x86_64w/core2/mod_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_2)
++; PROLOGUE(mpn_mod_1_2)
+ ;  Copyright 2011 The Code Cavern
+ ;
+ ;  Windows Conversion Copyright 2011 Brian Gladman
+diff --git a/mpn/x86_64w/core2/mod_1_3.asm b/mpn/x86_64w/core2/mod_1_3.asm
+index d7497d6..ba3caac 100644
+--- a/mpn/x86_64w/core2/mod_1_3.asm
++++ b/mpn/x86_64w/core2/mod_1_3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_3)
++; PROLOGUE(mpn_mod_1_3)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/mul_1.asm b/mpn/x86_64w/core2/mul_1.asm
+index 20412b9..12bcde3 100644
+--- a/mpn/x86_64w/core2/mul_1.asm
++++ b/mpn/x86_64w/core2/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/mul_2.asm b/mpn/x86_64w/core2/mul_2.asm
+index de7b33c..3f824a4 100644
+--- a/mpn/x86_64w/core2/mul_2.asm
++++ b/mpn/x86_64w/core2/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ 
+ ;  X86_64 mpn_mul_2
+ ;
+diff --git a/mpn/x86_64w/core2/mul_basecase.asm b/mpn/x86_64w/core2/mul_basecase.asm
+index 71ca68e..ee82e1d 100644
+--- a/mpn/x86_64w/core2/mul_basecase.asm
++++ b/mpn/x86_64w/core2/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/nand_n.asm b/mpn/x86_64w/core2/nand_n.asm
+index 4f35a9c..8e8cb4a 100644
+--- a/mpn/x86_64w/core2/nand_n.asm
++++ b/mpn/x86_64w/core2/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/nior_n.asm b/mpn/x86_64w/core2/nior_n.asm
+index 716cc7b..90226f2 100644
+--- a/mpn/x86_64w/core2/nior_n.asm
++++ b/mpn/x86_64w/core2/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ ;  Version 1.0.4
+ ;
+ ;  Copyright 2008 Jason Moxham
+diff --git a/mpn/x86_64w/core2/penryn/mod_1_1.asm b/mpn/x86_64w/core2/penryn/mod_1_1.asm
+index 4455257..f65c816 100644
+--- a/mpn/x86_64w/core2/penryn/mod_1_1.asm
++++ b/mpn/x86_64w/core2/penryn/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ ;  Copyright 2011 The Code Cavern
+ ;
+ ;  Windows Conversion Copyright 2011 Brian Gladman
+diff --git a/mpn/x86_64w/core2/penryn/sumdiff_n.asm b/mpn/x86_64w/core2/penryn/sumdiff_n.asm
+index 84aa5fe..28762c0 100644
+--- a/mpn/x86_64w/core2/penryn/sumdiff_n.asm
++++ b/mpn/x86_64w/core2/penryn/sumdiff_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sumdiff_n)
++; PROLOGUE(mpn_sumdiff_n)
+ ;
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/core2/popcount.asm b/mpn/x86_64w/core2/popcount.asm
+index dca3c47..c413524 100644
+--- a/mpn/x86_64w/core2/popcount.asm
++++ b/mpn/x86_64w/core2/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  mpn_popcount
+ 
+diff --git a/mpn/x86_64w/core2/redc_1.asm b/mpn/x86_64w/core2/redc_1.asm
+index c71406a..c4f72ea 100644
+--- a/mpn/x86_64w/core2/redc_1.asm
++++ b/mpn/x86_64w/core2/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/rsh1add_n.asm b/mpn/x86_64w/core2/rsh1add_n.asm
+index 3f884fe..788ee7b 100644
+--- a/mpn/x86_64w/core2/rsh1add_n.asm
++++ b/mpn/x86_64w/core2/rsh1add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1add_n)
++; PROLOGUE(mpn_rsh1add_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/rsh1sub_n.asm b/mpn/x86_64w/core2/rsh1sub_n.asm
+index 08d412d..7532617 100644
+--- a/mpn/x86_64w/core2/rsh1sub_n.asm
++++ b/mpn/x86_64w/core2/rsh1sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1sub_n)
++; PROLOGUE(mpn_rsh1sub_n)
+ 
+ ;  AMD64 mpn_rsh1sub_n
+ 
+diff --git a/mpn/x86_64w/core2/rsh_divrem_hensel_qr_1_2.asm b/mpn/x86_64w/core2/rsh_divrem_hensel_qr_1_2.asm
+index d7e5a08..2cbe82b 100644
+--- a/mpn/x86_64w/core2/rsh_divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/core2/rsh_divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/rshift.asm b/mpn/x86_64w/core2/rshift.asm
+index bb54b10..6ec9717 100644
+--- a/mpn/x86_64w/core2/rshift.asm
++++ b/mpn/x86_64w/core2/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Verdxon 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/core2/rshift1.asm b/mpn/x86_64w/core2/rshift1.asm
+index d8258a1..448570f 100644
+--- a/mpn/x86_64w/core2/rshift1.asm
++++ b/mpn/x86_64w/core2/rshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift1)
++; PROLOGUE(mpn_rshift1)
+ ;  Version 1.0.4.
+ ;
+ ;  Copyright 2008 Jason Moxham
+diff --git a/mpn/x86_64w/core2/sqr_basecase.asm b/mpn/x86_64w/core2/sqr_basecase.asm
+index 4be5678..18a2805 100644
+--- a/mpn/x86_64w/core2/sqr_basecase.asm
++++ b/mpn/x86_64w/core2/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/core2/store.asm b/mpn/x86_64w/core2/store.asm
+index 04e6481..ed0c771 100644
+--- a/mpn/x86_64w/core2/store.asm
++++ b/mpn/x86_64w/core2/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/sub_n.asm b/mpn/x86_64w/core2/sub_n.asm
+index cb4c585..a170ea6 100644
+--- a/mpn/x86_64w/core2/sub_n.asm
++++ b/mpn/x86_64w/core2/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/core2/subadd_n.asm b/mpn/x86_64w/core2/subadd_n.asm
+index 37e343b..1cd0ff5 100644
+--- a/mpn/x86_64w/core2/subadd_n.asm
++++ b/mpn/x86_64w/core2/subadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(subadd_n)
++; PROLOGUE(mpn_subadd_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/core2/sublsh1_n.asm b/mpn/x86_64w/core2/sublsh1_n.asm
+index 5aef063..9d57e76 100644
+--- a/mpn/x86_64w/core2/sublsh1_n.asm
++++ b/mpn/x86_64w/core2/sublsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh1_n)
++; PROLOGUE(mpn_sublsh1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/core2/submul_1.asm b/mpn/x86_64w/core2/submul_1.asm
+index 9aca530..d2d24fc 100644
+--- a/mpn/x86_64w/core2/submul_1.asm
++++ b/mpn/x86_64w/core2/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/core2/sumdiff_n.asm b/mpn/x86_64w/core2/sumdiff_n.asm
+index 0b86250..0889ae3 100644
+--- a/mpn/x86_64w/core2/sumdiff_n.asm
++++ b/mpn/x86_64w/core2/sumdiff_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sumdiff_n)
++; PROLOGUE(mpn_sumdiff_n)
+ ;
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/core2/udiv_qrnnd.asm b/mpn/x86_64w/core2/udiv_qrnnd.asm
+index 44c18e3..d098b1c 100644
+--- a/mpn/x86_64w/core2/udiv_qrnnd.asm
++++ b/mpn/x86_64w/core2/udiv_qrnnd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(udiv_qrnnd)
++; PROLOGUE(mpn_udiv_qrnnd)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/core2/umul_ppmm.asm b/mpn/x86_64w/core2/umul_ppmm.asm
+index 109720e..d24749c 100644
+--- a/mpn/x86_64w/core2/umul_ppmm.asm
++++ b/mpn/x86_64w/core2/umul_ppmm.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(umul_ppmm)
++; PROLOGUE(mpn_umul_ppmm)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/core2/xnor_n.asm b/mpn/x86_64w/core2/xnor_n.asm
+index 7dc3e55..2d603b5 100644
+--- a/mpn/x86_64w/core2/xnor_n.asm
++++ b/mpn/x86_64w/core2/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/core2/xor_n.asm b/mpn/x86_64w/core2/xor_n.asm
+index 57efe2b..c555b74 100644
+--- a/mpn/x86_64w/core2/xor_n.asm
++++ b/mpn/x86_64w/core2/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/divexact_1.asm b/mpn/x86_64w/divexact_1.asm
+index 58ebdf2..3876d79 100644
+--- a/mpn/x86_64w/divexact_1.asm
++++ b/mpn/x86_64w/divexact_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_1)
++; PROLOGUE(mpn_divexact_1)
+ 
+ ;  Copyright 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+ ;
+diff --git a/mpn/x86_64w/divexact_by3c.asm b/mpn/x86_64w/divexact_by3c.asm
+index 143f1e3..855de6a 100644
+--- a/mpn/x86_64w/divexact_by3c.asm
++++ b/mpn/x86_64w/divexact_by3c.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_by3c)
++; PROLOGUE(mpn_divexact_by3c)
+ 
+ ; Version 1.0.4.
+ ;
+diff --git a/mpn/x86_64w/divexact_byfobm1.asm b/mpn/x86_64w/divexact_byfobm1.asm
+index 449c9ca..6cc7fd8 100644
+--- a/mpn/x86_64w/divexact_byfobm1.asm
++++ b/mpn/x86_64w/divexact_byfobm1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byfobm1)
++; PROLOGUE(mpn_divexact_byfobm1)
+ 
+ ;  Copyright 2008 Jason Moxham and Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/divrem_2.asm b/mpn/x86_64w/divrem_2.asm
+index 42c842b..d016844 100644
+--- a/mpn/x86_64w/divrem_2.asm
++++ b/mpn/x86_64w/divrem_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_2)
++; PROLOGUE(mpn_divrem_2)
+ 
+ ;  x86-64 mpn_divrem_2 -- Divide an mpn number by a normalized 2-limb number.
+ 
+diff --git a/mpn/x86_64w/divrem_euclidean_qr_1.asm b/mpn/x86_64w/divrem_euclidean_qr_1.asm
+index d715b3e..360e7c4 100644
+--- a/mpn/x86_64w/divrem_euclidean_qr_1.asm
++++ b/mpn/x86_64w/divrem_euclidean_qr_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_euclidean_qr_1)
++; PROLOGUE(mpn_divrem_euclidean_qr_1)
+ 
+ ;  x86-64 mpn_divrem_euclidean_qr_1 -- mpn by limb division.
+ 
+diff --git a/mpn/x86_64w/divrem_euclidean_qr_2.asm b/mpn/x86_64w/divrem_euclidean_qr_2.asm
+index 77d1bba..7979af8 100644
+--- a/mpn/x86_64w/divrem_euclidean_qr_2.asm
++++ b/mpn/x86_64w/divrem_euclidean_qr_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_euclidean_qr_2)
++; PROLOGUE(mpn_divrem_euclidean_qr_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/add_err1_n.asm b/mpn/x86_64w/k8/add_err1_n.asm
+index 0b970a6..2371e5e 100644
+--- a/mpn/x86_64w/k8/add_err1_n.asm
++++ b/mpn/x86_64w/k8/add_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_err1_n)
++; PROLOGUE(mpn_add_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/add_n.asm b/mpn/x86_64w/k8/add_n.asm
+index 7add310..cac4b8c 100644
+--- a/mpn/x86_64w/k8/add_n.asm
++++ b/mpn/x86_64w/k8/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/k8/addadd_n.asm b/mpn/x86_64w/k8/addadd_n.asm
+index 1cce716..1edca14 100644
+--- a/mpn/x86_64w/k8/addadd_n.asm
++++ b/mpn/x86_64w/k8/addadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addadd_n)
++; PROLOGUE(mpn_addadd_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/addlsh1_n.asm b/mpn/x86_64w/k8/addlsh1_n.asm
+index f6c1cd1..f499ea0 100644
+--- a/mpn/x86_64w/k8/addlsh1_n.asm
++++ b/mpn/x86_64w/k8/addlsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh1_n)
++; PROLOGUE(mpn_addlsh1_n)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/addlsh_n.asm b/mpn/x86_64w/k8/addlsh_n.asm
+index 3e6629f..8c35a6d 100644
+--- a/mpn/x86_64w/k8/addlsh_n.asm
++++ b/mpn/x86_64w/k8/addlsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh_n)
++; PROLOGUE(mpn_addlsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/addmul_1.asm b/mpn/x86_64w/k8/addmul_1.asm
+index 27c6b1c..c60e2c3 100644
+--- a/mpn/x86_64w/k8/addmul_1.asm
++++ b/mpn/x86_64w/k8/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+         
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/k8/addmul_2.asm b/mpn/x86_64w/k8/addmul_2.asm
+index 6f23f91..15b9ec2 100644
+--- a/mpn/x86_64w/k8/addmul_2.asm
++++ b/mpn/x86_64w/k8/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/addsub_n.asm b/mpn/x86_64w/k8/addsub_n.asm
+index b796e15..9de302a 100644
+--- a/mpn/x86_64w/k8/addsub_n.asm
++++ b/mpn/x86_64w/k8/addsub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addsub_n)
++; PROLOGUE(mpn_addsub_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/and_n.asm b/mpn/x86_64w/k8/and_n.asm
+index ae777c9..899df35 100644
+--- a/mpn/x86_64w/k8/and_n.asm
++++ b/mpn/x86_64w/k8/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/andn_n.asm b/mpn/x86_64w/k8/andn_n.asm
+index dd2a159..48e5707 100644
+--- a/mpn/x86_64w/k8/andn_n.asm
++++ b/mpn/x86_64w/k8/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/com_n.asm b/mpn/x86_64w/k8/com_n.asm
+index 5c5f475..302d483 100644
+--- a/mpn/x86_64w/k8/com_n.asm
++++ b/mpn/x86_64w/k8/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/copyd.asm b/mpn/x86_64w/k8/copyd.asm
+index d747aa2..3de6685 100644
+--- a/mpn/x86_64w/k8/copyd.asm
++++ b/mpn/x86_64w/k8/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/copyi.asm b/mpn/x86_64w/k8/copyi.asm
+index d48f0f6..bd33996 100644
+--- a/mpn/x86_64w/k8/copyi.asm
++++ b/mpn/x86_64w/k8/copyi.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyi)
++; PROLOGUE(mpn_copyi)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/divexact_byff.asm b/mpn/x86_64w/k8/divexact_byff.asm
+index b96787b..7b138a2 100644
+--- a/mpn/x86_64w/k8/divexact_byff.asm
++++ b/mpn/x86_64w/k8/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/k8/divrem_hensel_qr_1_1.asm b/mpn/x86_64w/k8/divrem_hensel_qr_1_1.asm
+index 2f85d78..86695f6 100644
+--- a/mpn/x86_64w/k8/divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/k8/divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/divrem_hensel_qr_1_2.asm b/mpn/x86_64w/k8/divrem_hensel_qr_1_2.asm
+index 04c26ea..2c065a1 100644
+--- a/mpn/x86_64w/k8/divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/k8/divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/divrem_hensel_r_1.asm b/mpn/x86_64w/k8/divrem_hensel_r_1.asm
+index fa07ae8..7f2b0ec 100644
+--- a/mpn/x86_64w/k8/divrem_hensel_r_1.asm
++++ b/mpn/x86_64w/k8/divrem_hensel_r_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_r_1)
++; PROLOGUE(mpn_divrem_hensel_r_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/double.asm b/mpn/x86_64w/k8/double.asm
+index 4c5aafb..90547f4 100644
+--- a/mpn/x86_64w/k8/double.asm
++++ b/mpn/x86_64w/k8/double.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(double)
++; PROLOGUE(mpn_double)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/half.asm b/mpn/x86_64w/k8/half.asm
+index 2384900..7b58450 100644
+--- a/mpn/x86_64w/k8/half.asm
++++ b/mpn/x86_64w/k8/half.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(half)
++; PROLOGUE(mpn_half)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/hamdist.asm b/mpn/x86_64w/k8/hamdist.asm
+index 0edbb15..2aaa8d3 100644
+--- a/mpn/x86_64w/k8/hamdist.asm
++++ b/mpn/x86_64w/k8/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ 
+ ;  mpn_hamdist
+ 
+diff --git a/mpn/x86_64w/k8/ior_n.asm b/mpn/x86_64w/k8/ior_n.asm
+index ddd3e52..64ddb2c 100644
+--- a/mpn/x86_64w/k8/ior_n.asm
++++ b/mpn/x86_64w/k8/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/iorn_n.asm b/mpn/x86_64w/k8/iorn_n.asm
+index 898978f..fbf6f81 100644
+--- a/mpn/x86_64w/k8/iorn_n.asm
++++ b/mpn/x86_64w/k8/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/k10/hamdist.asm b/mpn/x86_64w/k8/k10/hamdist.asm
+index 3f71fcd..9152ca8 100644
+--- a/mpn/x86_64w/k8/k10/hamdist.asm
++++ b/mpn/x86_64w/k8/k10/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/k10/karaadd.asm b/mpn/x86_64w/k8/k10/karaadd.asm
+index 1e66c62..c469594 100644
+--- a/mpn/x86_64w/k8/k10/karaadd.asm
++++ b/mpn/x86_64w/k8/k10/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/k8/k10/karasub.asm b/mpn/x86_64w/k8/k10/karasub.asm
+index 004f379..c3193a4 100644
+--- a/mpn/x86_64w/k8/k10/karasub.asm
++++ b/mpn/x86_64w/k8/k10/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/k8/k10/lshift.asm b/mpn/x86_64w/k8/k10/lshift.asm
+index 00f31bc..c8d4a53 100644
+--- a/mpn/x86_64w/k8/k10/lshift.asm
++++ b/mpn/x86_64w/k8/k10/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.4.
+ ;
+diff --git a/mpn/x86_64w/k8/k10/popcount.asm b/mpn/x86_64w/k8/k10/popcount.asm
+index 7f1ddf9..c7f4b0c 100644
+--- a/mpn/x86_64w/k8/k10/popcount.asm
++++ b/mpn/x86_64w/k8/k10/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  AMD64 mpn_popcount
+ ;
+diff --git a/mpn/x86_64w/k8/k10/rshift.asm b/mpn/x86_64w/k8/k10/rshift.asm
+index 3d77a43..4b37b0e 100644
+--- a/mpn/x86_64w/k8/k10/rshift.asm
++++ b/mpn/x86_64w/k8/k10/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Version 1.0.4.
+ ;
+diff --git a/mpn/x86_64w/k8/k10/store.asm b/mpn/x86_64w/k8/k10/store.asm
+index d3eaac9..ff6cc1c 100644
+--- a/mpn/x86_64w/k8/k10/store.asm
++++ b/mpn/x86_64w/k8/k10/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  This file is part of the MPIR Library.
+diff --git a/mpn/x86_64w/k8/karaadd.asm b/mpn/x86_64w/k8/karaadd.asm
+index 5dcbf76..fd671cd 100644
+--- a/mpn/x86_64w/k8/karaadd.asm
++++ b/mpn/x86_64w/k8/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/k8/karasub.asm b/mpn/x86_64w/k8/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/k8/karasub.asm
++++ b/mpn/x86_64w/k8/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/k8/lshift.asm b/mpn/x86_64w/k8/lshift.asm
+index 99b82b5..4d98ea0 100644
+--- a/mpn/x86_64w/k8/lshift.asm
++++ b/mpn/x86_64w/k8/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/k8/lshift1.asm b/mpn/x86_64w/k8/lshift1.asm
+index bf0110a..7fa25fd 100644
+--- a/mpn/x86_64w/k8/lshift1.asm
++++ b/mpn/x86_64w/k8/lshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift1)
++; PROLOGUE(mpn_lshift1)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/lshift2.asm b/mpn/x86_64w/k8/lshift2.asm
+index 863ca59..a6a1c8e 100644
+--- a/mpn/x86_64w/k8/lshift2.asm
++++ b/mpn/x86_64w/k8/lshift2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift2)
++; PROLOGUE(mpn_lshift2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/lshift3.asm b/mpn/x86_64w/k8/lshift3.asm
+index 78c831d..7ada415 100644
+--- a/mpn/x86_64w/k8/lshift3.asm
++++ b/mpn/x86_64w/k8/lshift3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift3)
++; PROLOGUE(mpn_lshift3)
+ 
+ ;  mpn_lshift3
+ 
+diff --git a/mpn/x86_64w/k8/lshift4.asm b/mpn/x86_64w/k8/lshift4.asm
+index fad5a7b..1e3240f 100644
+--- a/mpn/x86_64w/k8/lshift4.asm
++++ b/mpn/x86_64w/k8/lshift4.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift4)
++; PROLOGUE(mpn_lshift4)
+ 
+ ;  mpn_lshift4
+ 
+diff --git a/mpn/x86_64w/k8/lshift5.asm b/mpn/x86_64w/k8/lshift5.asm
+index e1d336b..c0bb736 100644
+--- a/mpn/x86_64w/k8/lshift5.asm
++++ b/mpn/x86_64w/k8/lshift5.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift5)
++; PROLOGUE(mpn_lshift5)
+ 
+ ;  mpn_lshift5
+ 
+diff --git a/mpn/x86_64w/k8/lshift6.asm b/mpn/x86_64w/k8/lshift6.asm
+index 4055042..c336f63 100644
+--- a/mpn/x86_64w/k8/lshift6.asm
++++ b/mpn/x86_64w/k8/lshift6.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift6)
++; PROLOGUE(mpn_lshift6)
+ 
+ ;  mpn_lshift6
+ 
+diff --git a/mpn/x86_64w/k8/lshiftc.asm b/mpn/x86_64w/k8/lshiftc.asm
+index f45b940..ddde236 100644
+--- a/mpn/x86_64w/k8/lshiftc.asm
++++ b/mpn/x86_64w/k8/lshiftc.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshiftc)
++; PROLOGUE(mpn_lshiftc)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/mod_1_1.asm b/mpn/x86_64w/k8/mod_1_1.asm
+index 5b26b6f..640825d 100644
+--- a/mpn/x86_64w/k8/mod_1_1.asm
++++ b/mpn/x86_64w/k8/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/mod_1_2.asm b/mpn/x86_64w/k8/mod_1_2.asm
+index d7282f7..aaddab9 100644
+--- a/mpn/x86_64w/k8/mod_1_2.asm
++++ b/mpn/x86_64w/k8/mod_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_2)
++; PROLOGUE(mpn_mod_1_2)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/k8/mod_1_3.asm b/mpn/x86_64w/k8/mod_1_3.asm
+index cee0769..232c35d 100644
+--- a/mpn/x86_64w/k8/mod_1_3.asm
++++ b/mpn/x86_64w/k8/mod_1_3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_3)
++; PROLOGUE(mpn_mod_1_3)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/mul_1.asm b/mpn/x86_64w/k8/mul_1.asm
+index 80a224e..9d9f985 100644
+--- a/mpn/x86_64w/k8/mul_1.asm
++++ b/mpn/x86_64w/k8/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/k8/mul_2.asm b/mpn/x86_64w/k8/mul_2.asm
+index 73873c1..9d24268 100644
+--- a/mpn/x86_64w/k8/mul_2.asm
++++ b/mpn/x86_64w/k8/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ 
+ ;  X86_64 mpn_mul_2
+ ;
+diff --git a/mpn/x86_64w/k8/mul_basecase.asm b/mpn/x86_64w/k8/mul_basecase.asm
+index 4756a70..917df9a 100644
+--- a/mpn/x86_64w/k8/mul_basecase.asm
++++ b/mpn/x86_64w/k8/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/nand_n.asm b/mpn/x86_64w/k8/nand_n.asm
+index faf49b4..287a8c4 100644
+--- a/mpn/x86_64w/k8/nand_n.asm
++++ b/mpn/x86_64w/k8/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ ;  Copyright 2008 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/k8/nior_n.asm b/mpn/x86_64w/k8/nior_n.asm
+index 9d643ef..5f77b5b 100644
+--- a/mpn/x86_64w/k8/nior_n.asm
++++ b/mpn/x86_64w/k8/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ ;
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/not.asm b/mpn/x86_64w/k8/not.asm
+index 2aa428e..e6430b8 100644
+--- a/mpn/x86_64w/k8/not.asm
++++ b/mpn/x86_64w/k8/not.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(not)
++; PROLOGUE(mpn_not)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/k8/popcount.asm b/mpn/x86_64w/k8/popcount.asm
+index 4d9e555..9954f8d 100644
+--- a/mpn/x86_64w/k8/popcount.asm
++++ b/mpn/x86_64w/k8/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  mpn_popcount
+ 
+diff --git a/mpn/x86_64w/k8/redc_1.asm b/mpn/x86_64w/k8/redc_1.asm
+index 20e4102..a4ae589 100644
+--- a/mpn/x86_64w/k8/redc_1.asm
++++ b/mpn/x86_64w/k8/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/rsh1add_n.asm b/mpn/x86_64w/k8/rsh1add_n.asm
+index 5411d9c..845e6f7 100644
+--- a/mpn/x86_64w/k8/rsh1add_n.asm
++++ b/mpn/x86_64w/k8/rsh1add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1add_n)
++; PROLOGUE(mpn_rsh1add_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/rsh1sub_n.asm b/mpn/x86_64w/k8/rsh1sub_n.asm
+index 0a60b12..d828f6d 100644
+--- a/mpn/x86_64w/k8/rsh1sub_n.asm
++++ b/mpn/x86_64w/k8/rsh1sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1sub_n)
++; PROLOGUE(mpn_rsh1sub_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_1.asm b/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_1.asm
+index 6b6a1b6..3f120f1 100644
+--- a/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_2.asm b/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_2.asm
+index 9700af7..04ceccb 100644
+--- a/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/k8/rsh_divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/rshift.asm b/mpn/x86_64w/k8/rshift.asm
+index 7adb334..50878d0 100644
+--- a/mpn/x86_64w/k8/rshift.asm
++++ b/mpn/x86_64w/k8/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Verdxon 1.1.4.
+ ;
+diff --git a/mpn/x86_64w/k8/rshift1.asm b/mpn/x86_64w/k8/rshift1.asm
+index ab80a0e..24c2ddf 100644
+--- a/mpn/x86_64w/k8/rshift1.asm
++++ b/mpn/x86_64w/k8/rshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift1)
++; PROLOGUE(mpn_rshift1)
+ ;  Version 1.0.4.
+ ;
+ ;  Copyright 2008 Jason Moxham
+diff --git a/mpn/x86_64w/k8/rshift2.asm b/mpn/x86_64w/k8/rshift2.asm
+index 9b81105..dae365d 100644
+--- a/mpn/x86_64w/k8/rshift2.asm
++++ b/mpn/x86_64w/k8/rshift2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift2)
++; PROLOGUE(mpn_rshift2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/sqr_basecase.asm b/mpn/x86_64w/k8/sqr_basecase.asm
+index 4a52149..da1b232 100644
+--- a/mpn/x86_64w/k8/sqr_basecase.asm
++++ b/mpn/x86_64w/k8/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/k8/store.asm b/mpn/x86_64w/k8/store.asm
+index d3eaac9..ff6cc1c 100644
+--- a/mpn/x86_64w/k8/store.asm
++++ b/mpn/x86_64w/k8/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  This file is part of the MPIR Library.
+diff --git a/mpn/x86_64w/k8/sub_err1_n.asm b/mpn/x86_64w/k8/sub_err1_n.asm
+index 4548b3c..ffbbca0 100644
+--- a/mpn/x86_64w/k8/sub_err1_n.asm
++++ b/mpn/x86_64w/k8/sub_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_err1_n)
++; PROLOGUE(mpn_sub_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/sub_n.asm b/mpn/x86_64w/k8/sub_n.asm
+index 27569d7..e274504 100644
+--- a/mpn/x86_64w/k8/sub_n.asm
++++ b/mpn/x86_64w/k8/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/k8/subadd_n.asm b/mpn/x86_64w/k8/subadd_n.asm
+index 287979c..5e5920d 100644
+--- a/mpn/x86_64w/k8/subadd_n.asm
++++ b/mpn/x86_64w/k8/subadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(subadd_n)
++; PROLOGUE(mpn_subadd_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/sublsh1_n.asm b/mpn/x86_64w/k8/sublsh1_n.asm
+index 387a8cb..92c8685 100644
+--- a/mpn/x86_64w/k8/sublsh1_n.asm
++++ b/mpn/x86_64w/k8/sublsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh1_n)
++; PROLOGUE(mpn_sublsh1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/sublsh_n.asm b/mpn/x86_64w/k8/sublsh_n.asm
+index ee8a33c..4bdea39 100644
+--- a/mpn/x86_64w/k8/sublsh_n.asm
++++ b/mpn/x86_64w/k8/sublsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh_n)
++; PROLOGUE(mpn_sublsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/k8/submul_1.asm b/mpn/x86_64w/k8/submul_1.asm
+index 05d5215..352ff5e 100644
+--- a/mpn/x86_64w/k8/submul_1.asm
++++ b/mpn/x86_64w/k8/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+         
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/k8/sumdiff_n.asm b/mpn/x86_64w/k8/sumdiff_n.asm
+index 0c2908c..1bec660 100644
+--- a/mpn/x86_64w/k8/sumdiff_n.asm
++++ b/mpn/x86_64w/k8/sumdiff_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sumdiff_n)
++; PROLOGUE(mpn_sumdiff_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/udiv_qrnnd.asm b/mpn/x86_64w/k8/udiv_qrnnd.asm
+index 44c18e3..d098b1c 100644
+--- a/mpn/x86_64w/k8/udiv_qrnnd.asm
++++ b/mpn/x86_64w/k8/udiv_qrnnd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(udiv_qrnnd)
++; PROLOGUE(mpn_udiv_qrnnd)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/k8/umul_ppmm.asm b/mpn/x86_64w/k8/umul_ppmm.asm
+index 109720e..d24749c 100644
+--- a/mpn/x86_64w/k8/umul_ppmm.asm
++++ b/mpn/x86_64w/k8/umul_ppmm.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(umul_ppmm)
++; PROLOGUE(mpn_umul_ppmm)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/k8/xnor_n.asm b/mpn/x86_64w/k8/xnor_n.asm
+index 1f075f2..589c131 100644
+--- a/mpn/x86_64w/k8/xnor_n.asm
++++ b/mpn/x86_64w/k8/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/k8/xor_n.asm b/mpn/x86_64w/k8/xor_n.asm
+index fbdc5c9..74ba055 100644
+--- a/mpn/x86_64w/k8/xor_n.asm
++++ b/mpn/x86_64w/k8/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/modexact_1c_odd.asm b/mpn/x86_64w/modexact_1c_odd.asm
+index c5e8e41..081d804 100644
+--- a/mpn/x86_64w/modexact_1c_odd.asm
++++ b/mpn/x86_64w/modexact_1c_odd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(modexact_1c_odd)
++; PROLOGUE(mpn_modexact_1c_odd)
+ 
+ ;  Copyright 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+ ;
+diff --git a/mpn/x86_64w/mul_2.asm b/mpn/x86_64w/mul_2.asm
+index 7851eea..ce1df16 100644
+--- a/mpn/x86_64w/mul_2.asm
++++ b/mpn/x86_64w/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ 
+ ;  X86_64 mpn_mul_2
+ ;
+diff --git a/mpn/x86_64w/mulmid_basecase.asm b/mpn/x86_64w/mulmid_basecase.asm
+index 380674b..ef15d62 100644
+--- a/mpn/x86_64w/mulmid_basecase.asm
++++ b/mpn/x86_64w/mulmid_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mulmid_basecase)
++; PROLOGUE(mpn_mulmid_basecase)
+ ;
+ ;  AMD64 mpn_mulmid_basecase
+ ;
+diff --git a/mpn/x86_64w/nehalem/add_err1_n.asm b/mpn/x86_64w/nehalem/add_err1_n.asm
+index 685c667..e6d66d3 100644
+--- a/mpn/x86_64w/nehalem/add_err1_n.asm
++++ b/mpn/x86_64w/nehalem/add_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_err1_n)
++; PROLOGUE(mpn_add_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/add_n.asm b/mpn/x86_64w/nehalem/add_n.asm
+index c60c719..51e700f 100644
+--- a/mpn/x86_64w/nehalem/add_n.asm
++++ b/mpn/x86_64w/nehalem/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/nehalem/addadd_n.asm b/mpn/x86_64w/nehalem/addadd_n.asm
+index fea8aef..74778af 100644
+--- a/mpn/x86_64w/nehalem/addadd_n.asm
++++ b/mpn/x86_64w/nehalem/addadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addadd_n)
++; PROLOGUE(mpn_addadd_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/nehalem/addlsh1_n.asm b/mpn/x86_64w/nehalem/addlsh1_n.asm
+index 29f81d1..bf4a217 100644
+--- a/mpn/x86_64w/nehalem/addlsh1_n.asm
++++ b/mpn/x86_64w/nehalem/addlsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh1_n)
++; PROLOGUE(mpn_addlsh1_n)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/addlsh_n.asm b/mpn/x86_64w/nehalem/addlsh_n.asm
+index 47ef9eb..b18a829 100644
+--- a/mpn/x86_64w/nehalem/addlsh_n.asm
++++ b/mpn/x86_64w/nehalem/addlsh_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addlsh_n)
++; PROLOGUE(mpn_addlsh_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/addmul_1.asm b/mpn/x86_64w/nehalem/addmul_1.asm
+index 66b66e1..546be52 100644
+--- a/mpn/x86_64w/nehalem/addmul_1.asm
++++ b/mpn/x86_64w/nehalem/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/nehalem/addmul_2.asm b/mpn/x86_64w/nehalem/addmul_2.asm
+index 0eb7efc..a166479 100644
+--- a/mpn/x86_64w/nehalem/addmul_2.asm
++++ b/mpn/x86_64w/nehalem/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/addsub_n.asm b/mpn/x86_64w/nehalem/addsub_n.asm
+index a35bb79..51e225b 100644
+--- a/mpn/x86_64w/nehalem/addsub_n.asm
++++ b/mpn/x86_64w/nehalem/addsub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addsub_n)
++; PROLOGUE(mpn_addsub_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/nehalem/and_n.asm b/mpn/x86_64w/nehalem/and_n.asm
+index c74d91a..c04d40f 100644
+--- a/mpn/x86_64w/nehalem/and_n.asm
++++ b/mpn/x86_64w/nehalem/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  mpn_and_n
+ 
+diff --git a/mpn/x86_64w/nehalem/andn_n.asm b/mpn/x86_64w/nehalem/andn_n.asm
+index bc64a53..55e23ef 100644
+--- a/mpn/x86_64w/nehalem/andn_n.asm
++++ b/mpn/x86_64w/nehalem/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  mpn_andn_n
+ 
+diff --git a/mpn/x86_64w/nehalem/com_n.asm b/mpn/x86_64w/nehalem/com_n.asm
+index 5e2fbfc..824d08a 100644
+--- a/mpn/x86_64w/nehalem/com_n.asm
++++ b/mpn/x86_64w/nehalem/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  mpn_com_n
+ 
+diff --git a/mpn/x86_64w/nehalem/copyd.asm b/mpn/x86_64w/nehalem/copyd.asm
+index c01aca9..d44579b 100644
+--- a/mpn/x86_64w/nehalem/copyd.asm
++++ b/mpn/x86_64w/nehalem/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  mpn_copyd
+ 
+diff --git a/mpn/x86_64w/nehalem/copyi.asm b/mpn/x86_64w/nehalem/copyi.asm
+index 24b7655..fe45fe9 100644
+--- a/mpn/x86_64w/nehalem/copyi.asm
++++ b/mpn/x86_64w/nehalem/copyi.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyi)
++; PROLOGUE(mpn_copyi)
+ 
+ ;  mpn_copyi
+ 
+diff --git a/mpn/x86_64w/nehalem/divexact_byff.asm b/mpn/x86_64w/nehalem/divexact_byff.asm
+index 0688a25..ca94a4a 100644
+--- a/mpn/x86_64w/nehalem/divexact_byff.asm
++++ b/mpn/x86_64w/nehalem/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conver11on Copyright 2009 Brian Gladman
+diff --git a/mpn/x86_64w/nehalem/divrem_hensel_qr_1_2.asm b/mpn/x86_64w/nehalem/divrem_hensel_qr_1_2.asm
+index 04c26ea..2c065a1 100644
+--- a/mpn/x86_64w/nehalem/divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/nehalem/divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/hamdist.asm b/mpn/x86_64w/nehalem/hamdist.asm
+index 0aef5a1..c6ed93e 100644
+--- a/mpn/x86_64w/nehalem/hamdist.asm
++++ b/mpn/x86_64w/nehalem/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ 
+ ;  AMD64 mpn_hamdist
+ ;  Copyright 2009 Jason Moxham
+diff --git a/mpn/x86_64w/nehalem/ior_n.asm b/mpn/x86_64w/nehalem/ior_n.asm
+index c4a43cf..1b571c0 100644
+--- a/mpn/x86_64w/nehalem/ior_n.asm
++++ b/mpn/x86_64w/nehalem/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  mpn_ior_n
+ 
+diff --git a/mpn/x86_64w/nehalem/iorn_n.asm b/mpn/x86_64w/nehalem/iorn_n.asm
+index 8eaa0af..1d9c903 100644
+--- a/mpn/x86_64w/nehalem/iorn_n.asm
++++ b/mpn/x86_64w/nehalem/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  mpn_iorn_n
+ 
+diff --git a/mpn/x86_64w/nehalem/karaadd.asm b/mpn/x86_64w/nehalem/karaadd.asm
+index dcaa7e3..43c7184 100644
+--- a/mpn/x86_64w/nehalem/karaadd.asm
++++ b/mpn/x86_64w/nehalem/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/nehalem/karasub.asm b/mpn/x86_64w/nehalem/karasub.asm
+index 017783c..eb86d7e 100644
+--- a/mpn/x86_64w/nehalem/karasub.asm
++++ b/mpn/x86_64w/nehalem/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/nehalem/lshift.asm b/mpn/x86_64w/nehalem/lshift.asm
+index 55d2efc..e752a06 100644
+--- a/mpn/x86_64w/nehalem/lshift.asm
++++ b/mpn/x86_64w/nehalem/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/nehalem/mod_1_1.asm b/mpn/x86_64w/nehalem/mod_1_1.asm
+index 18326bf..b0afa6d 100644
+--- a/mpn/x86_64w/nehalem/mod_1_1.asm
++++ b/mpn/x86_64w/nehalem/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ ;  Copyright 2011 The Code Cavern
+ ;
+ ;  Windows Conversion Copyright 2011 Brian Gladman
+diff --git a/mpn/x86_64w/nehalem/mod_1_2.asm b/mpn/x86_64w/nehalem/mod_1_2.asm
+index 555bfea..c4ad0d7 100644
+--- a/mpn/x86_64w/nehalem/mod_1_2.asm
++++ b/mpn/x86_64w/nehalem/mod_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_2)
++; PROLOGUE(mpn_mod_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/mod_1_3.asm b/mpn/x86_64w/nehalem/mod_1_3.asm
+index 5f0770c..014abdb 100644
+--- a/mpn/x86_64w/nehalem/mod_1_3.asm
++++ b/mpn/x86_64w/nehalem/mod_1_3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_3)
++; PROLOGUE(mpn_mod_1_3)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/mul_1.asm b/mpn/x86_64w/nehalem/mul_1.asm
+index 08b6c1a..0c84feb 100644
+--- a/mpn/x86_64w/nehalem/mul_1.asm
++++ b/mpn/x86_64w/nehalem/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ ;  Copyright 2010 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2010 Brian Gladman
+diff --git a/mpn/x86_64w/nehalem/mul_2.asm b/mpn/x86_64w/nehalem/mul_2.asm
+index 80f160e..4df0860 100644
+--- a/mpn/x86_64w/nehalem/mul_2.asm
++++ b/mpn/x86_64w/nehalem/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ ;  X86_64 mpn_mul_2
+ ;
+ ;  Copyright 2010 Jason Moxham
+diff --git a/mpn/x86_64w/nehalem/mul_basecase.asm b/mpn/x86_64w/nehalem/mul_basecase.asm
+index 3f1a919..b517cea 100644
+--- a/mpn/x86_64w/nehalem/mul_basecase.asm
++++ b/mpn/x86_64w/nehalem/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/nand_n.asm b/mpn/x86_64w/nehalem/nand_n.asm
+index 44bcecd..d7dde87 100644
+--- a/mpn/x86_64w/nehalem/nand_n.asm
++++ b/mpn/x86_64w/nehalem/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ 
+ ;  mpn_nand_n
+ 
+diff --git a/mpn/x86_64w/nehalem/nior_n.asm b/mpn/x86_64w/nehalem/nior_n.asm
+index eb3b4b7..f974587 100644
+--- a/mpn/x86_64w/nehalem/nior_n.asm
++++ b/mpn/x86_64w/nehalem/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ 
+ ;  mpn_nior_n
+ 
+diff --git a/mpn/x86_64w/nehalem/popcount.asm b/mpn/x86_64w/nehalem/popcount.asm
+index 276c69f..140f297 100644
+--- a/mpn/x86_64w/nehalem/popcount.asm
++++ b/mpn/x86_64w/nehalem/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  AMD64 mpn_popcount
+ ;  Copyright 2009 Jason Moxham
+diff --git a/mpn/x86_64w/nehalem/redc_1.asm b/mpn/x86_64w/nehalem/redc_1.asm
+index 05536d4..d28d115 100644
+--- a/mpn/x86_64w/nehalem/redc_1.asm
++++ b/mpn/x86_64w/nehalem/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/rsh1add_n.asm b/mpn/x86_64w/nehalem/rsh1add_n.asm
+index 18d9f74..7d0ba2e 100644
+--- a/mpn/x86_64w/nehalem/rsh1add_n.asm
++++ b/mpn/x86_64w/nehalem/rsh1add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1add_n)
++; PROLOGUE(mpn_rsh1add_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/rsh1sub_n.asm b/mpn/x86_64w/nehalem/rsh1sub_n.asm
+index d1b00f1..65c04fb 100644
+--- a/mpn/x86_64w/nehalem/rsh1sub_n.asm
++++ b/mpn/x86_64w/nehalem/rsh1sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh1sub_n)
++; PROLOGUE(mpn_rsh1sub_n)
+ 
+ ;  AMD64 mpn_rsh1sub_n
+ 
+diff --git a/mpn/x86_64w/nehalem/rsh_divrem_hensel_qr_1_2.asm b/mpn/x86_64w/nehalem/rsh_divrem_hensel_qr_1_2.asm
+index 80590a4..a126a08 100644
+--- a/mpn/x86_64w/nehalem/rsh_divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/nehalem/rsh_divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/rshift.asm b/mpn/x86_64w/nehalem/rshift.asm
+index b54f795..026c07d 100644
+--- a/mpn/x86_64w/nehalem/rshift.asm
++++ b/mpn/x86_64w/nehalem/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Verdxon 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/nehalem/sqr_basecase.asm b/mpn/x86_64w/nehalem/sqr_basecase.asm
+index f233223..a5c48aa 100644
+--- a/mpn/x86_64w/nehalem/sqr_basecase.asm
++++ b/mpn/x86_64w/nehalem/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/nehalem/store.asm b/mpn/x86_64w/nehalem/store.asm
+index 6a5a336..4921108 100644
+--- a/mpn/x86_64w/nehalem/store.asm
++++ b/mpn/x86_64w/nehalem/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ 
+ ;  mpn_store
+ 
+diff --git a/mpn/x86_64w/nehalem/sub_err1_n.asm b/mpn/x86_64w/nehalem/sub_err1_n.asm
+index eda8335..18869c1 100644
+--- a/mpn/x86_64w/nehalem/sub_err1_n.asm
++++ b/mpn/x86_64w/nehalem/sub_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_err1_n)
++; PROLOGUE(mpn_sub_err1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/sub_n.asm b/mpn/x86_64w/nehalem/sub_n.asm
+index cb4c585..a170ea6 100644
+--- a/mpn/x86_64w/nehalem/sub_n.asm
++++ b/mpn/x86_64w/nehalem/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/nehalem/subadd_n.asm b/mpn/x86_64w/nehalem/subadd_n.asm
+index 37e343b..1cd0ff5 100644
+--- a/mpn/x86_64w/nehalem/subadd_n.asm
++++ b/mpn/x86_64w/nehalem/subadd_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(subadd_n)
++; PROLOGUE(mpn_subadd_n)
+ ;        
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/nehalem/sublsh1_n.asm b/mpn/x86_64w/nehalem/sublsh1_n.asm
+index 5aef063..9d57e76 100644
+--- a/mpn/x86_64w/nehalem/sublsh1_n.asm
++++ b/mpn/x86_64w/nehalem/sublsh1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sublsh1_n)
++; PROLOGUE(mpn_sublsh1_n)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/nehalem/submul_1.asm b/mpn/x86_64w/nehalem/submul_1.asm
+index 80d66f3..5cebec9 100644
+--- a/mpn/x86_64w/nehalem/submul_1.asm
++++ b/mpn/x86_64w/nehalem/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/nehalem/sumdiff_n.asm b/mpn/x86_64w/nehalem/sumdiff_n.asm
+index f10c947..7af5035 100644
+--- a/mpn/x86_64w/nehalem/sumdiff_n.asm
++++ b/mpn/x86_64w/nehalem/sumdiff_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sumdiff_n)
++; PROLOGUE(mpn_sumdiff_n)
+ ;
+ ;  Copyright 2011 The Code Cavern
+ ;
+diff --git a/mpn/x86_64w/nehalem/xnor_n.asm b/mpn/x86_64w/nehalem/xnor_n.asm
+index 494b340..50dc490 100644
+--- a/mpn/x86_64w/nehalem/xnor_n.asm
++++ b/mpn/x86_64w/nehalem/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  mpn_xnor_n
+ 
+diff --git a/mpn/x86_64w/nehalem/xor_n.asm b/mpn/x86_64w/nehalem/xor_n.asm
+index 0b15be0..cfadf0e 100644
+--- a/mpn/x86_64w/nehalem/xor_n.asm
++++ b/mpn/x86_64w/nehalem/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  mpn_xor_n
+ 
+diff --git a/mpn/x86_64w/netburst/addmul_1.asm b/mpn/x86_64w/netburst/addmul_1.asm
+index 69505b7..ddd09d3 100644
+--- a/mpn/x86_64w/netburst/addmul_1.asm
++++ b/mpn/x86_64w/netburst/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/netburst/addmul_2.asm b/mpn/x86_64w/netburst/addmul_2.asm
+index 0eb7efc..a166479 100644
+--- a/mpn/x86_64w/netburst/addmul_2.asm
++++ b/mpn/x86_64w/netburst/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/netburst/and_n.asm b/mpn/x86_64w/netburst/and_n.asm
+index d567d62..9a889a6 100644
+--- a/mpn/x86_64w/netburst/and_n.asm
++++ b/mpn/x86_64w/netburst/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/andn_n.asm b/mpn/x86_64w/netburst/andn_n.asm
+index cc75050..9f8a009 100644
+--- a/mpn/x86_64w/netburst/andn_n.asm
++++ b/mpn/x86_64w/netburst/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/com_n.asm b/mpn/x86_64w/netburst/com_n.asm
+index 8a7352f..8a521ab 100644
+--- a/mpn/x86_64w/netburst/com_n.asm
++++ b/mpn/x86_64w/netburst/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/ior_n.asm b/mpn/x86_64w/netburst/ior_n.asm
+index 2c648fc..2157927 100644
+--- a/mpn/x86_64w/netburst/ior_n.asm
++++ b/mpn/x86_64w/netburst/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/iorn_n.asm b/mpn/x86_64w/netburst/iorn_n.asm
+index 41ba99d..b68323a 100644
+--- a/mpn/x86_64w/netburst/iorn_n.asm
++++ b/mpn/x86_64w/netburst/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/karaadd.asm b/mpn/x86_64w/netburst/karaadd.asm
+index 5dcbf76..fd671cd 100644
+--- a/mpn/x86_64w/netburst/karaadd.asm
++++ b/mpn/x86_64w/netburst/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/netburst/karasub.asm b/mpn/x86_64w/netburst/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/netburst/karasub.asm
++++ b/mpn/x86_64w/netburst/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/netburst/mul_1.asm b/mpn/x86_64w/netburst/mul_1.asm
+index 3bc9f8a..1c2058c 100644
+--- a/mpn/x86_64w/netburst/mul_1.asm
++++ b/mpn/x86_64w/netburst/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ 
+ ; Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/netburst/mul_2.asm b/mpn/x86_64w/netburst/mul_2.asm
+index de7b33c..3f824a4 100644
+--- a/mpn/x86_64w/netburst/mul_2.asm
++++ b/mpn/x86_64w/netburst/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ 
+ ;  X86_64 mpn_mul_2
+ ;
+diff --git a/mpn/x86_64w/netburst/mul_basecase.asm b/mpn/x86_64w/netburst/mul_basecase.asm
+index c4142d1..6bad95f 100644
+--- a/mpn/x86_64w/netburst/mul_basecase.asm
++++ b/mpn/x86_64w/netburst/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/netburst/nand_n.asm b/mpn/x86_64w/netburst/nand_n.asm
+index 4f35a9c..8e8cb4a 100644
+--- a/mpn/x86_64w/netburst/nand_n.asm
++++ b/mpn/x86_64w/netburst/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/nior_n.asm b/mpn/x86_64w/netburst/nior_n.asm
+index 716cc7b..90226f2 100644
+--- a/mpn/x86_64w/netburst/nior_n.asm
++++ b/mpn/x86_64w/netburst/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ ;  Version 1.0.4
+ ;
+ ;  Copyright 2008 Jason Moxham
+diff --git a/mpn/x86_64w/netburst/redc_1.asm b/mpn/x86_64w/netburst/redc_1.asm
+index 5cd4e49..c9cee9a 100644
+--- a/mpn/x86_64w/netburst/redc_1.asm
++++ b/mpn/x86_64w/netburst/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/netburst/sqr_basecase.asm b/mpn/x86_64w/netburst/sqr_basecase.asm
+index b9e11c5..f25ade3 100644
+--- a/mpn/x86_64w/netburst/sqr_basecase.asm
++++ b/mpn/x86_64w/netburst/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/netburst/submul_1.asm b/mpn/x86_64w/netburst/submul_1.asm
+index 5750b44..23b0da1 100644
+--- a/mpn/x86_64w/netburst/submul_1.asm
++++ b/mpn/x86_64w/netburst/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+ 
+ ;  Copyright 2006  Jason Worth Martin <jason.worth.martin@gmail.com>
+ ;
+diff --git a/mpn/x86_64w/netburst/xnor_n.asm b/mpn/x86_64w/netburst/xnor_n.asm
+index 7dc3e55..2d603b5 100644
+--- a/mpn/x86_64w/netburst/xnor_n.asm
++++ b/mpn/x86_64w/netburst/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/netburst/xor_n.asm b/mpn/x86_64w/netburst/xor_n.asm
+index 57efe2b..c555b74 100644
+--- a/mpn/x86_64w/netburst/xor_n.asm
++++ b/mpn/x86_64w/netburst/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  Version 1.0.4
+ ;
+diff --git a/mpn/x86_64w/sandybridge/add_n.asm b/mpn/x86_64w/sandybridge/add_n.asm
+index 7add310..cac4b8c 100644
+--- a/mpn/x86_64w/sandybridge/add_n.asm
++++ b/mpn/x86_64w/sandybridge/add_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(add_n)
++; PROLOGUE(mpn_add_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/sandybridge/addmul_1.asm b/mpn/x86_64w/sandybridge/addmul_1.asm
+index c8fca65..06c9a68 100644
+--- a/mpn/x86_64w/sandybridge/addmul_1.asm
++++ b/mpn/x86_64w/sandybridge/addmul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_1)
++; PROLOGUE(mpn_addmul_1)
+         
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/sandybridge/addmul_2.asm b/mpn/x86_64w/sandybridge/addmul_2.asm
+index 0eb7efc..a166479 100644
+--- a/mpn/x86_64w/sandybridge/addmul_2.asm
++++ b/mpn/x86_64w/sandybridge/addmul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(addmul_2)
++; PROLOGUE(mpn_addmul_2)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/and_n.asm b/mpn/x86_64w/sandybridge/and_n.asm
+index c74d91a..c04d40f 100644
+--- a/mpn/x86_64w/sandybridge/and_n.asm
++++ b/mpn/x86_64w/sandybridge/and_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(and_n)
++; PROLOGUE(mpn_and_n)
+ 
+ ;  mpn_and_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/andn_n.asm b/mpn/x86_64w/sandybridge/andn_n.asm
+index bc64a53..55e23ef 100644
+--- a/mpn/x86_64w/sandybridge/andn_n.asm
++++ b/mpn/x86_64w/sandybridge/andn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(andn_n)
++; PROLOGUE(mpn_andn_n)
+ 
+ ;  mpn_andn_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/com_n.asm b/mpn/x86_64w/sandybridge/com_n.asm
+index 5e2fbfc..824d08a 100644
+--- a/mpn/x86_64w/sandybridge/com_n.asm
++++ b/mpn/x86_64w/sandybridge/com_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(com_n)
++; PROLOGUE(mpn_com_n)
+ 
+ ;  mpn_com_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/copyd.asm b/mpn/x86_64w/sandybridge/copyd.asm
+index c01aca9..d44579b 100644
+--- a/mpn/x86_64w/sandybridge/copyd.asm
++++ b/mpn/x86_64w/sandybridge/copyd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyd)
++; PROLOGUE(mpn_copyd)
+ 
+ ;  mpn_copyd
+ 
+diff --git a/mpn/x86_64w/sandybridge/copyi.asm b/mpn/x86_64w/sandybridge/copyi.asm
+index 32ccd4d..edd0d53 100644
+--- a/mpn/x86_64w/sandybridge/copyi.asm
++++ b/mpn/x86_64w/sandybridge/copyi.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(copyi)
++; PROLOGUE(mpn_copyi)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/divexact_byff.asm b/mpn/x86_64w/sandybridge/divexact_byff.asm
+index b96787b..7b138a2 100644
+--- a/mpn/x86_64w/sandybridge/divexact_byff.asm
++++ b/mpn/x86_64w/sandybridge/divexact_byff.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divexact_byff)
++; PROLOGUE(mpn_divexact_byff)
+ ;  Copyright 2009 Jason Moxham
+ ;
+ ;  Windows Conversion Copyright 2008 Brian Gladman
+diff --git a/mpn/x86_64w/sandybridge/divrem_hensel_qr_1_1.asm b/mpn/x86_64w/sandybridge/divrem_hensel_qr_1_1.asm
+index 2f85d78..86695f6 100644
+--- a/mpn/x86_64w/sandybridge/divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/sandybridge/divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/hamdist.asm b/mpn/x86_64w/sandybridge/hamdist.asm
+index 0aef5a1..c6ed93e 100644
+--- a/mpn/x86_64w/sandybridge/hamdist.asm
++++ b/mpn/x86_64w/sandybridge/hamdist.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(hamdist)
++; PROLOGUE(mpn_hamdist)
+ 
+ ;  AMD64 mpn_hamdist
+ ;  Copyright 2009 Jason Moxham
+diff --git a/mpn/x86_64w/sandybridge/ior_n.asm b/mpn/x86_64w/sandybridge/ior_n.asm
+index c4a43cf..1b571c0 100644
+--- a/mpn/x86_64w/sandybridge/ior_n.asm
++++ b/mpn/x86_64w/sandybridge/ior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(ior_n)
++; PROLOGUE(mpn_ior_n)
+ 
+ ;  mpn_ior_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/iorn_n.asm b/mpn/x86_64w/sandybridge/iorn_n.asm
+index 8eaa0af..1d9c903 100644
+--- a/mpn/x86_64w/sandybridge/iorn_n.asm
++++ b/mpn/x86_64w/sandybridge/iorn_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(iorn_n)
++; PROLOGUE(mpn_iorn_n)
+ 
+ ;  mpn_iorn_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/karaadd.asm b/mpn/x86_64w/sandybridge/karaadd.asm
+index bd4fb08..69c6b20 100644
+--- a/mpn/x86_64w/sandybridge/karaadd.asm
++++ b/mpn/x86_64w/sandybridge/karaadd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karaadd)
++; PROLOGUE(mpn_karaadd)
+ ;  mpn_karaadd  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/sandybridge/karasub.asm b/mpn/x86_64w/sandybridge/karasub.asm
+index ebfd616..abac62b 100644
+--- a/mpn/x86_64w/sandybridge/karasub.asm
++++ b/mpn/x86_64w/sandybridge/karasub.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(karasub)
++; PROLOGUE(mpn_karasub)
+ ;  mpn_karasub  
+ ;       
+ ;  Copyright 2011 The Code Cavern  
+diff --git a/mpn/x86_64w/sandybridge/lshift.asm b/mpn/x86_64w/sandybridge/lshift.asm
+index 00f31bc..c8d4a53 100644
+--- a/mpn/x86_64w/sandybridge/lshift.asm
++++ b/mpn/x86_64w/sandybridge/lshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift)
++; PROLOGUE(mpn_lshift)
+ 
+ ;  Version 1.0.4.
+ ;
+diff --git a/mpn/x86_64w/sandybridge/lshift1.asm b/mpn/x86_64w/sandybridge/lshift1.asm
+index bf0110a..7fa25fd 100644
+--- a/mpn/x86_64w/sandybridge/lshift1.asm
++++ b/mpn/x86_64w/sandybridge/lshift1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshift1)
++; PROLOGUE(mpn_lshift1)
+ 
+ ;  Copyright 2008 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/lshiftc.asm b/mpn/x86_64w/sandybridge/lshiftc.asm
+index f45b940..ddde236 100644
+--- a/mpn/x86_64w/sandybridge/lshiftc.asm
++++ b/mpn/x86_64w/sandybridge/lshiftc.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(lshiftc)
++; PROLOGUE(mpn_lshiftc)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/mod_1_1.asm b/mpn/x86_64w/sandybridge/mod_1_1.asm
+index 5b26b6f..640825d 100644
+--- a/mpn/x86_64w/sandybridge/mod_1_1.asm
++++ b/mpn/x86_64w/sandybridge/mod_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_1)
++; PROLOGUE(mpn_mod_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/mod_1_2.asm b/mpn/x86_64w/sandybridge/mod_1_2.asm
+index d7282f7..aaddab9 100644
+--- a/mpn/x86_64w/sandybridge/mod_1_2.asm
++++ b/mpn/x86_64w/sandybridge/mod_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_2)
++; PROLOGUE(mpn_mod_1_2)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/sandybridge/mod_1_3.asm b/mpn/x86_64w/sandybridge/mod_1_3.asm
+index cee0769..232c35d 100644
+--- a/mpn/x86_64w/sandybridge/mod_1_3.asm
++++ b/mpn/x86_64w/sandybridge/mod_1_3.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mod_1_3)
++; PROLOGUE(mpn_mod_1_3)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/mul_1.asm b/mpn/x86_64w/sandybridge/mul_1.asm
+index 28b8584..76ef795 100644
+--- a/mpn/x86_64w/sandybridge/mul_1.asm
++++ b/mpn/x86_64w/sandybridge/mul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_1)
++; PROLOGUE(mpn_mul_1)
+ 
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/sandybridge/mul_2.asm b/mpn/x86_64w/sandybridge/mul_2.asm
+index 80f160e..4df0860 100644
+--- a/mpn/x86_64w/sandybridge/mul_2.asm
++++ b/mpn/x86_64w/sandybridge/mul_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_2)
++; PROLOGUE(mpn_mul_2)
+ ;  X86_64 mpn_mul_2
+ ;
+ ;  Copyright 2010 Jason Moxham
+diff --git a/mpn/x86_64w/sandybridge/mul_basecase.asm b/mpn/x86_64w/sandybridge/mul_basecase.asm
+index 54b2944..717155a 100644
+--- a/mpn/x86_64w/sandybridge/mul_basecase.asm
++++ b/mpn/x86_64w/sandybridge/mul_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(mul_basecase)
++; PROLOGUE(mpn_mul_basecase)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/nand_n.asm b/mpn/x86_64w/sandybridge/nand_n.asm
+index 44bcecd..d7dde87 100644
+--- a/mpn/x86_64w/sandybridge/nand_n.asm
++++ b/mpn/x86_64w/sandybridge/nand_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nand_n)
++; PROLOGUE(mpn_nand_n)
+ 
+ ;  mpn_nand_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/nior_n.asm b/mpn/x86_64w/sandybridge/nior_n.asm
+index eb3b4b7..f974587 100644
+--- a/mpn/x86_64w/sandybridge/nior_n.asm
++++ b/mpn/x86_64w/sandybridge/nior_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(nior_n)
++; PROLOGUE(mpn_nior_n)
+ 
+ ;  mpn_nior_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/popcount.asm b/mpn/x86_64w/sandybridge/popcount.asm
+index 276c69f..140f297 100644
+--- a/mpn/x86_64w/sandybridge/popcount.asm
++++ b/mpn/x86_64w/sandybridge/popcount.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(popcount)
++; PROLOGUE(mpn_popcount)
+ 
+ ;  AMD64 mpn_popcount
+ ;  Copyright 2009 Jason Moxham
+diff --git a/mpn/x86_64w/sandybridge/redc_1.asm b/mpn/x86_64w/sandybridge/redc_1.asm
+index c71406a..c4f72ea 100644
+--- a/mpn/x86_64w/sandybridge/redc_1.asm
++++ b/mpn/x86_64w/sandybridge/redc_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(redc_1)
++; PROLOGUE(mpn_redc_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_1.asm b/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_1.asm
+index 6b6a1b6..3f120f1 100644
+--- a/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_1.asm
++++ b/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_1)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_1)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_2.asm b/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_2.asm
+index 9700af7..04ceccb 100644
+--- a/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_2.asm
++++ b/mpn/x86_64w/sandybridge/rsh_divrem_hensel_qr_1_2.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rsh_divrem_hensel_qr_1_2)
++; PROLOGUE(mpn_rsh_divrem_hensel_qr_1_2)
+ 
+ ;  Copyright 2009 Jason Moxham
+ ;
+diff --git a/mpn/x86_64w/sandybridge/rshift.asm b/mpn/x86_64w/sandybridge/rshift.asm
+index 3d77a43..4b37b0e 100644
+--- a/mpn/x86_64w/sandybridge/rshift.asm
++++ b/mpn/x86_64w/sandybridge/rshift.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(rshift)
++; PROLOGUE(mpn_rshift)
+ 
+ ;  Version 1.0.4.
+ ;
+diff --git a/mpn/x86_64w/sandybridge/sqr_basecase.asm b/mpn/x86_64w/sandybridge/sqr_basecase.asm
+index bacb3ae..d9ff587 100644
+--- a/mpn/x86_64w/sandybridge/sqr_basecase.asm
++++ b/mpn/x86_64w/sandybridge/sqr_basecase.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sqr_basecase)
++; PROLOGUE(mpn_sqr_basecase)
+ 
+ ;  Version 1.0L5
+ ;
+diff --git a/mpn/x86_64w/sandybridge/store.asm b/mpn/x86_64w/sandybridge/store.asm
+index 6a5a336..4921108 100644
+--- a/mpn/x86_64w/sandybridge/store.asm
++++ b/mpn/x86_64w/sandybridge/store.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(store)
++; PROLOGUE(mpn_store)
+ 
+ ;  mpn_store
+ 
+diff --git a/mpn/x86_64w/sandybridge/sub_n.asm b/mpn/x86_64w/sandybridge/sub_n.asm
+index 27569d7..e274504 100644
+--- a/mpn/x86_64w/sandybridge/sub_n.asm
++++ b/mpn/x86_64w/sandybridge/sub_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_n)
++; PROLOGUE(mpn_sub_n)
+ 
+ ;  Version 1.0.3.
+ ;
+diff --git a/mpn/x86_64w/sandybridge/submul_1.asm b/mpn/x86_64w/sandybridge/submul_1.asm
+index 662117b..b5547d0 100644
+--- a/mpn/x86_64w/sandybridge/submul_1.asm
++++ b/mpn/x86_64w/sandybridge/submul_1.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(submul_1)
++; PROLOGUE(mpn_submul_1)
+         
+ ;  Copyright 2011 The Code Cavern  
+ ;
+diff --git a/mpn/x86_64w/sandybridge/xnor_n.asm b/mpn/x86_64w/sandybridge/xnor_n.asm
+index 494b340..50dc490 100644
+--- a/mpn/x86_64w/sandybridge/xnor_n.asm
++++ b/mpn/x86_64w/sandybridge/xnor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xnor_n)
++; PROLOGUE(mpn_xnor_n)
+ 
+ ;  mpn_xnor_n
+ 
+diff --git a/mpn/x86_64w/sandybridge/xor_n.asm b/mpn/x86_64w/sandybridge/xor_n.asm
+index 0b15be0..cfadf0e 100644
+--- a/mpn/x86_64w/sandybridge/xor_n.asm
++++ b/mpn/x86_64w/sandybridge/xor_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(xor_n)
++; PROLOGUE(mpn_xor_n)
+ 
+ ;  mpn_xor_n
+ 
+diff --git a/mpn/x86_64w/sub_err1_n.asm b/mpn/x86_64w/sub_err1_n.asm
+index b2090df..ecfb37a 100644
+--- a/mpn/x86_64w/sub_err1_n.asm
++++ b/mpn/x86_64w/sub_err1_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_err1_n)
++; PROLOGUE(mpn_sub_err1_n)
+ 
+ ;  Copyright (C) 2009, David Harvey
+ ;
+diff --git a/mpn/x86_64w/sub_err2_n.asm b/mpn/x86_64w/sub_err2_n.asm
+index 0167a6f..45ff96c 100644
+--- a/mpn/x86_64w/sub_err2_n.asm
++++ b/mpn/x86_64w/sub_err2_n.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(sub_err2_n)
++; PROLOGUE(mpn_sub_err2_n)
+ ;
+ ;  AMD64 mpn_add_err2_n, mpn_sub_err2_n
+ ;
+diff --git a/mpn/x86_64w/udiv_qrnnd.asm b/mpn/x86_64w/udiv_qrnnd.asm
+index 44c18e3..d098b1c 100644
+--- a/mpn/x86_64w/udiv_qrnnd.asm
++++ b/mpn/x86_64w/udiv_qrnnd.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(udiv_qrnnd)
++; PROLOGUE(mpn_udiv_qrnnd)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
+diff --git a/mpn/x86_64w/umul_ppmm.asm b/mpn/x86_64w/umul_ppmm.asm
+index 109720e..d24749c 100644
+--- a/mpn/x86_64w/umul_ppmm.asm
++++ b/mpn/x86_64w/umul_ppmm.asm
+@@ -1,4 +1,4 @@
+-; PROLOGUE(umul_ppmm)
++; PROLOGUE(mpn_umul_ppmm)
+ 
+ ;  Copyright 2008 Brian Gladman
+ ;
