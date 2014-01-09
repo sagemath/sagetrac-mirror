@@ -671,5 +671,5 @@ class EnumeratedSets(Category_singleton):
             """
             return self.parent().rank(self)
 
-    Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', at_startup=True)
-    Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', at_startup=True)
+    Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', 'Finite', at_startup=True)
+    Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', 'Infinite', at_startup=True)

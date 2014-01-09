@@ -45,7 +45,7 @@ class Domains(CategoryWithAxiom):
         """
         return [Rings()]
 
-    Commutative = LazyImport('sage.categories.integral_domains', 'IntegralDomains', at_startup=True)
+    Commutative = LazyImport('sage.categories.integral_domains', 'IntegralDomains', 'Commutative', at_startup=True)
 
     class ParentMethods:
         pass

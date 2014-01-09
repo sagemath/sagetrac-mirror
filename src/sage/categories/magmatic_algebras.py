@@ -64,8 +64,8 @@ class MagmaticAlgebras(Category_over_base_ring):
         #return [DistributiveMagmasAndAdditiveMagmas(), Modules(R)]
         return Category.join([DistributiveMagmasAndAdditiveMagmas(), Modules(R)], as_list=True)
 
-    Associative = LazyImport('sage.categories.associative_algebras', 'AssociativeAlgebras', at_startup=True)
-    Unital = LazyImport('sage.categories.unital_algebras', 'UnitalAlgebras', at_startup=True)
+    Associative = LazyImport('sage.categories.associative_algebras', 'AssociativeAlgebras', 'Associative', at_startup=True)
+    Unital = LazyImport('sage.categories.unital_algebras', 'UnitalAlgebras', 'Unital', at_startup=True)
 
     class ParentMethods:
 

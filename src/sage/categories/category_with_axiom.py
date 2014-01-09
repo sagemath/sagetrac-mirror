@@ -548,18 +548,23 @@ class CategoryWithAxiom(Category):
             cls._base_category_class_and_axiom_origin = "set by __classget__"
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
-                "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)
-
-        # Workaround #15648: if Rings.Finite is a LazyImport object,
-        # this forces the substitution of the object back into Rings
-        # to avoid resolving the lazy import over and over
-        if isinstance(base_category_class.__dict__[cls._axiom], LazyImport):
-            setattr(base_category_class, cls._axiom, cls)
-
+                "base category class for %s mismatch; expected %s, got %s. Consider to provide %s not by a class attribute of %s, but by SubcategoryMethods."%(cls, cls._base_category_class_and_axiom[0], base_category_class, cls, base_category_class)
+        # Enforcing consistent names for lazy imports: If C is the class of a category
+        # and C.SomeAxiom is a LazyImport object, then it should be imported as "SomeAxiom".
+        # If this is the case, then the LazyImport will be replaced by the imported object
+        # in the class' dict. Moreover, we want that *only* the default construction, that
+        # is encoded in cls._axiom, is provided on the level of category classes. All non-default
+        # constructions should be provided by SubcategoryMethods.
+        if base_category_class.__dict__[cls._axiom] is not cls:
+            if isinstance(base_category_class.__dict__[cls._axiom], LazyImport):
+                raise TypeError("%s is supposed to be constructed by applying the axiom %s. So, in the lazy import of %s, provide `as_name='%s'."%(cls, cls._axiom, cls, cls._axiom))
+            else:
+                raise TypeError("%s is provided as a class attribute of %s, but it is required that the name of this attribute be %s. Consider to change the name, or to provide it on class instances by implementing SubcategoryMethods"%(cls, base_category_class, cls._axiom))
         if base_category is None:
              return cls
-        # For Rings().Finite, this returns the method
-        # Sets.SubcategoryMethods.Finite, with its first argument bound to Rings()
+        # Example for cls=FiniteRings, hence, cls._axiom='Finite':
+        # Rings().Finite() returns the method Sets.SubcategoryMethods.Finite,
+        # with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)
 
     def __init__(self, base_category):

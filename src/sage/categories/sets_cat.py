@@ -1361,8 +1361,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
     class HomCategory(HomCategory):
         pass
 
-    Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
-    Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
+    Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets', 'Facade')
+    Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', 'Finite', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 

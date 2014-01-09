@@ -130,7 +130,7 @@ class Magmas(Category_singleton):
             """
             return self._with_axiom("Unital")
 
-    Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
+    Associative = LazyImport('sage.categories.semigroups', 'Semigroups', 'Associative', at_startup=True)
 
     class Algebras(AlgebrasCategory):
 

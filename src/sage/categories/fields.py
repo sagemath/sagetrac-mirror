@@ -161,7 +161,7 @@ class Fields(CategoryWithAxiom):
         except AttributeError:
             raise TypeError, "unable to associate a field to %s"%x
 
-    Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', at_startup=True)
+    Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', 'Finite', at_startup=True)
 
     class ParentMethods:
 

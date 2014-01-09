@@ -47,4 +47,4 @@ class PermutationGroups(Category):
         """
         return [Groups()]
 
-    Finite = LazyImport('sage.categories.finite_permutation_groups', 'FinitePermutationGroups')
+    Finite = LazyImport('sage.categories.finite_permutation_groups', 'FinitePermutationGroups', 'Finite')

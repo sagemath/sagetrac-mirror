@@ -43,7 +43,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
     """
     _base_category_class_and_axiom = [AdditiveMonoids, "AdditiveInverse"]
 
-    AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
+    AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', 'AdditiveCommutative', at_startup=True)
 
     class ElementMethods:
         ##def -x, -(x,y):

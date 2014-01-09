@@ -151,7 +151,7 @@ class Posets(Category):
                 yield P
             n += 1
 
-    Finite = LazyImport('sage.categories.finite_posets', 'FinitePosets')
+    Finite = LazyImport('sage.categories.finite_posets', 'FinitePosets', 'Finite')
 
     class ParentMethods:
 
