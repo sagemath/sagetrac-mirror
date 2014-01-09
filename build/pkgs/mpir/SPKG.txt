@@ -46,6 +46,7 @@ See http://www.mpir.org
  * configfsf.patch: update FSF config.(guess|sub).
  * configure-cxx.patch: remove libtool C++ hack to let MPIR build correctly
    on Cygwin when C++ support is disabled.
+ * configure-cygwin64.patch: build correctly on Cygwin64.
  * configure.patch: add some extra run-time configure tests, remove
    mentions of Fortran. Re-generated configure (using the same versions
    of autoconf, automake and libtool as the original files).
@@ -64,6 +65,9 @@ See http://www.mpir.org
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p5 (Jean-Pierre Flori, 9 January 2014) ===
+ * #15651: Build correctly on Cygwin64.
 
 === mpir-2.6.0.p5 (Jean-Pierre Flori, 9 January 2014) ===
  * #14648: Update FSF config.(guess|sub) to recognize Cygwin64.
