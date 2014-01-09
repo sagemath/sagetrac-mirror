@@ -105,8 +105,8 @@ def pfactor_non_monic(f):
         uni = Kx(uni)
         facts = [Kx(fact) for fact in facts]
     if multval < 0:
-        uni = uni * f.base_ring().uniformizer() ** -multval
-    return Factorization([(uni,1)]+[(fact,1) for fact in facts])
+        return Factorization([(f.base_ring().uniformizer(),-multval)] + [(fact,1) for fact in facts],unit=uni)
+    return Factorization([(fact,1) for fact in facts],unit=uni)
 
 def pfactor(Phi):
     r"""
@@ -163,18 +163,21 @@ def pfactor(Phi):
     - Brian Sinclair and Sebastian Pauli (2012-02-22): initial version
 
     """
-    # Handle the situation that x is a factor of $\Phi(x)$
-    if Phi.constant_coefficient() == 0:
-        x_divides = True
-        Phi = Phi >> 1
-    else:
-        x_divides = False
- 
     if not Phi.is_monic():
         # Call non monic transform wrapper
         return pfactor_non_monic(Phi)
     else:
         # Phi is monic
+
+        # Handle the situation that x is a factor of $\Phi(x)$
+        if Phi.constant_coefficient() == 0:
+            x_divides = True
+            Phi = Phi >> 1
+        else:
+            x_divides = False
+
+        if Phi == Phi.base_ring().one():
+            return Factorization([(Phi.parent().gen(),1)] if x_divides else [])
 
         # Build an OM Tree for Phi
         tree = OM_tree(Phi)
