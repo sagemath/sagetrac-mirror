@@ -238,7 +238,7 @@ We can find the real and imaginary parts of an algebraic number (exactly)::
     x^5 - x - 1
     sage: r.real().minpoly()
     x^10 + 3/16*x^6 + 11/32*x^5 - 1/64*x^2 + 1/128*x - 1/1024
-    sage: r.imag().minpoly()  # long time (10s on sage.math, 2013)
+    sage: r.imag().minpoly()  # long time (14s on sage.math, 2014)
     x^20 - 5/8*x^16 - 95/256*x^12 - 625/1024*x^10 - 5/512*x^8 - 1875/8192*x^6 + 25/4096*x^4 - 625/32768*x^2 + 2869/1048576
 
 We can find the absolute value and norm of an algebraic number exactly.
@@ -3093,7 +3093,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
             [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
-            sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
+            sage: sage_input(rts, verify=True)
             # Verified
             R.<x> = AA[]
             cp = AA.common_polynomial(1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4)
@@ -7586,8 +7586,8 @@ class ANBinaryExpr(ANDescr):
             sage: import sys; sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()
-            sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
-            sage: a.exactify(); a # long time
+            sage: a = s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))  # long time (1s on sage.math, 2014)
+            sage: a.exactify(); a  # long time
             0
             sage: sys.getrecursionlimit()
             1000
