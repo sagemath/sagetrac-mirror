@@ -73,3 +73,7 @@ C files:
   determinant(), only collect garbage once per outer loop iteration.
   Better increase PARI stack size instead of collecting garbage too
   often.
+* lll_garbage.patch (Jeroen Demeyer, #15660): In Babai(), only collect
+  garbage in the outer loop.
+  Better increase PARI stack size instead of collecting garbage too
+  often.

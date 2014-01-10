@@ -1,0 +1,15 @@
+diff -ru src/src/basemath/lll.c b/src/basemath/lll.c
+--- src/src/basemath/lll.c	2013-10-02 15:27:58.000000000 +0200
++++ b/src/basemath/lll.c	2014-01-10 14:14:09.958552223 +0100
+@@ -191,11 +191,6 @@
+       tmp = gmael(mu,kappa,j);
+       if (absr_cmp(tmp, eta) <= 0) continue; /* (essentially) size-reduced */
+ 
+-      if (low_stack(lim, stack_lim(av,2)))
+-      {
+-        if(DEBUGMEM>1) pari_warn(warnmem,"Babai[2], a=%ld, j=%ld", aa,j);
+-        gerepileall(av,U?5:4,&B,&G,&maxmu,&max2mu,&U);
+-      }
+       go_on = 1;
+       /* we consider separately the case |X| = 1 */
+       if (absr_cmp(tmp, halfplus1) <= 0)
