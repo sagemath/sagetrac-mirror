@@ -202,9 +202,6 @@ class SeriesStream(ListCachedStream):
         if self.aorder == inf:
             self.order = inf
 
-        if hasattr(self, '_reference'):
-            self._reference._copy()
-
     def set_approximate_order(self, new_order):
         """
         Sets the approximate order of self and returns True if the
@@ -546,36 +543,59 @@ class CompositionStream(SeriesStream):
 class RecursiveStream(SeriesStream):
     def define(self, stream):
         self._stream = stream
-        self._stream._reference = self
-        self._copy()
 
     def order_operation(self):
+        return self.aorder
+
+    def not_defined_check(func):
+        from functools import wraps
+        @wraps(func)
+        def wrapper(self, *args, **kwds):
+            try:
+                self._stream
+            except AttributeError:
+                raise NotImplementedError, "must call define() first'"
+            return func(self, *args, **kwds)
+        return wrapper
+
+    @property
+    @not_defined_check
+    def aorder(self):
         return self._stream.aorder
 
-    def _copy(self):
-        self.aorder = self._stream.aorder
-        self.order = self._stream.order
-        self.aorder_changed = self._stream.aorder_changed
+    @aorder.setter
+    def aorder(self, value):
+        pass
 
+    @property
+    @not_defined_check
+    def order(self):
+        return self._stream.order
+
+    @order.setter
+    def order(self, value):
+        pass
+
+    @property
+    @not_defined_check
+    def aorder_changed(self):
+        return self._stream.aorder_changed
+
+    @aorder_changed.setter
+    def aorder_changed(self, value):
+        pass
+
+    @not_defined_check
     def refine_aorder(self):
-        try:
-            return self._stream.refine_aorder()
-        except AttributeError:
-            raise NotImplementedError
-        self._copy()
+        return self._stream.refine_aorder()
 
+    @not_defined_check
     def compute_aorder(self):
-        try:
-            return self._stream.compute_aorder()
-        except AttributeError:
-            raise NotImplementedError
-        self._copy()
-    
+        return self._stream.compute_aorder()
+
+    @not_defined_check
     def compute(self, n):
-        try:
-            return self._stream[n]
-        except AttributeError:
-            raise NotImplementedError
+        return self._stream[n]
 
 class RestrictedStream(SeriesStream):
     def __init__(self, stream, min=None, max=None, **kwds):
