@@ -12,7 +12,7 @@ diff -ru src/src/language/init.c b/src/language/init.c
 +
 +#include <sys/time.h>
 +static unsigned long gerepile_bytes = 0;
-+static const unsigned long gerepile_warn_factor = 8;
++static const unsigned long gerepile_warn_factor = 16;
 +static struct timeval tv_gerepile;
 +
 +void
@@ -35,7 +35,7 @@ diff -ru src/src/language/init.c b/src/language/init.c
 +        gettimeofday(&tv_now, NULL);
 +        delta_t = 1e-6*((long)tv_now.tv_usec - (long)tv_gerepile.tv_usec);
 +        delta_t += tv_now.tv_sec - tv_gerepile.tv_sec;
-+        if (delta_t < 1.0)
++        if (delta_t < 0.5)
 +        {
 +            fprintf(stderr, "WARNING: Moved %.2fMB on PARI stack (size = %.2fMB) in %.2f seconds\n",
 +                    1e-6*gerepile_bytes, 1e-6*(top-bot), delta_t);
