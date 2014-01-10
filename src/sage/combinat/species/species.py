@@ -522,9 +522,11 @@ class GenericCombinatorialSpecies(SageObject):
         #for example, returning the exponential of a
         #generating series.
         try:
-            return getattr(self, prefix)(series_ring, base_ring)
-        except AttributeError:
+            getattr(self, prefix)
+        except AttributeError, exc:
             pass
+        else:
+           return getattr(self, prefix)(series_ring, base_ring)
 
         ###################
         # Transition code #
