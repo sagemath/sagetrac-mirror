@@ -856,34 +856,28 @@ class CycleIndexSeries(LazyPowerSeries):
 
 
     class CompositionStream(LazyPowerSeries.CompositionStream):
+        """
+        Returns a generator for the coefficients of the composition of this
+        cycle index series and the cycle index series y. This overrides the
+        the method defined in LazyPowerSeries.
+
+        EXAMPLES::
+
+            sage: E = species.SetSpecies(); C = species.CycleSpecies()
+            sage: E_cis = E.cycle_index_series()
+            sage: g = E_cis(C.cycle_index_series())
+            sage: [g[i] for i in range(4)]
+            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
+        """
         def __init__(self, *args ,**kwds):
             super(CycleIndexSeries.CompositionStream, self).__init__(*args, **kwds)
             self._y_powers = PowerStream(self._inner)
-            
-        def compute_iterator(self):
-            """
-            Returns a generator for the coefficients of the composition of this
-            cycle index series and the cycle index series y. This overrides the
-            the method defined in LazyPowerSeries.
 
-            EXAMPLES::
-
-                sage: E = species.SetSpecies(); C = species.CycleSpecies()
-                sage: E_cis = E.cycle_index_series()
-                sage: g = E_cis(C.cycle_index_series())
-                sage: [g[i] for i in range(4)]
-                [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-            """
-            assert self._inner[0] == 0
-            y_powers = self._y_powers
-
-            g = (self._compose_term(self._outer[i], y_powers)
+        def recursive_stream(self):
+            g = (self._compose_term(self._outer[i], self._y_powers)
                  for i in _integers_from(0))
             res = SumGeneratorStream(g, base_ring=self._base_ring)
-            self._res_stream = res
-
-            for i in _integers_from(0):
-                yield res[i]
+            return res
 
         def _compose_term(self, p, y_powers):
             """
@@ -929,29 +923,26 @@ class CycleIndexSeries(LazyPowerSeries):
             return ListSumStream(res, base_ring=self._base_ring)
 
     class WeightedCompositionStream(LazyPowerSeries.CompositionStream):
+        """
+        Returns an iterator for the composition of this cycle index series
+        and the cycle index series of the weighted species y_species.
+
+        EXAMPLES::
+
+            sage: E = species.SetSpecies(); C = species.CycleSpecies()
+            sage: E_cis = E.cycle_index_series()
+            sage: g = E_cis.weighted_composition(C)
+            sage: [g[i] for i in range(4)]
+            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
+        """
         def __init__(self, outer, inner, inner_species, **kwds):
             self._inner_species = inner_species
             super(CycleIndexSeries.WeightedCompositionStream, self).__init__(outer, inner, **kwds)
-            
-        def compute_iterator(self):
-            """
-            Returns an iterator for the composition of this cycle index series
-            and the cycle index series of the weighted species y_species.
 
-            EXAMPLES::
-
-                sage: E = species.SetSpecies(); C = species.CycleSpecies()
-                sage: E_cis = E.cycle_index_series()
-                sage: g = E_cis.weighted_composition(C)
-                sage: [g[i] for i in range(4)]
-                [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-            """
+        def recursive_stream(self):
             g = (self._weighted_compose_term(self._outer[i], self._inner_species)
                  for i in _integers_from(0))
-            res =  SumGeneratorStream(g, base_ring=self._base_ring)
-            for i in _integers_from(0):
-                yield res[i]
-            
+            return SumGeneratorStream(g, base_ring=self._base_ring)
 
         def _weighted_compose_term(self, p, y_species):
             """
@@ -1014,6 +1005,6 @@ class CycleIndexSeries(LazyPowerSeries):
         base_ring = self.base_ring()
         y = y_species.cycle_index_series(base_ring)
         assert y.coefficient(0) == 0
-        return self._new(self.WeightedCompositionStream, self._stream, y, y_species)
+        return self._new(self.WeightedCompositionStream, self._stream, y._stream, y_species)
 
 

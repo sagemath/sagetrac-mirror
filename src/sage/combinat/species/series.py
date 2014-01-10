@@ -63,7 +63,10 @@ class SeriesStream(ListCachedStream):
         return []
 
     def order_operation(self, *series):
-        return 0
+        if self.aorder != unk:
+            return self.aorder
+        else:
+            return 0
 
     def __mul__(self, other):
         return ProductStream(self, other, base_ring=self._base_ring)
@@ -496,45 +499,49 @@ class IntegralStream(SeriesStream):
     def get_constant_position(self):
         return self._stream.get_constant_position() + 1
 
-class CompositionStream(SeriesStreamFromIterator):
+class CompositionStream(SeriesStream):
+    """
+    Returns a iterator for the coefficients of the composition of this
+    power series with the power series y.
+
+    EXAMPLES::
+
+        sage: L = LazyPowerSeriesRing(QQ)
+        sage: s = L([1])
+        sage: t = L([0,1])
+        sage: g = s(t)
+        sage: [g[i] for i in range(10)]
+        [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
+    """
+    
     def __init__(self, outer_stream, inner_stream, **kwds):
         self._outer = outer_stream
         self._inner = inner_stream
-        super(CompositionStream, self).__init__(iterator=self.compute_iterator(), **kwds)
-
+        super(CompositionStream, self).__init__(**kwds)
+        
     def children(self):
         return [self._outer, self._inner]
     
     def order_operation(self, a, b):
         return a*b
 
-    def compute_iterator(self):
-        """
-        Returns a iterator for the coefficients of the composition of this
-        power series with the power series y.
-
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L([1])
-            sage: t = L([0,1])
-            sage: g = s(t)
-            sage: [g[i] for i in range(10)]
-            [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
-        """
-        assert self._inner[0] == 0
-        yield self._outer[0]
-
+    def recursive_stream(self):
         res = TailStream(self._outer, base_ring=self._base_ring)
         res = CompositionStream(res, self._inner, base_ring=self._base_ring)
         res = ProductStream(res, self._inner, base_ring=self._base_ring)
-        self._stream = res
+        return res
 
-        self._stream[0]
-        n = 1
-        while True:
-            yield self._stream[n]
-            n += 1
+    def compute(self, n):
+        if n == 0:
+            assert self._inner[0] == 0
+            return self._outer[0]
+        
+        try:
+            res = self._res
+        except AttributeError:
+            res = self._res = self.recursive_stream()
+            res[0]
+        return res[n]
 
 class RecursiveStream(SeriesStream):
     def define(self, stream):
