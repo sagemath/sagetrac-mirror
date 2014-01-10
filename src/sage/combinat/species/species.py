@@ -52,7 +52,7 @@ three internal nodes.
 #*****************************************************************************
 from generating_series import (OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing,
                                CycleIndexSeriesRing)
-from series import SeriesStream, SeriesStreamFromList, TermStream
+from series import SeriesStream, TermStream
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -255,7 +255,6 @@ class GenericCombinatorialSpecies(SageObject):
         else:
             name = "Combinatorial species"
 
-        optional = False
         options  = []
 
         if self._min is not None:
@@ -523,7 +522,7 @@ class GenericCombinatorialSpecies(SageObject):
         #generating series.
         try:
             getattr(self, prefix)
-        except AttributeError, exc:
+        except AttributeError:
             pass
         else:
            return getattr(self, prefix)(series_ring, base_ring)

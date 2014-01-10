@@ -23,7 +23,6 @@ from set_species import SetSpecies
 from structure import GenericSpeciesStructure
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 
 class PartitionSpeciesStructure(GenericSpeciesStructure):
@@ -122,7 +121,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
         return PartitionSpeciesStructure(self.parent(), labels, [block.change_labels(labels) for block in self._list])
 
 
-class PartitionSpecies(GenericCombinatorialSpecies):
+class PartitionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     @staticmethod
     @accept_size
     def __classcall__(cls, *args, **kwds):

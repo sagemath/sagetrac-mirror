@@ -15,11 +15,10 @@ Characteristic Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies, SpeciesSeriesStream, SpeciesTermStream
+from species import GenericCombinatorialSpecies, SpeciesTermStream
 from generating_series import factorial_stream
 from structure import GenericSpeciesStructure
 from set_species import SetSpecies
-from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
 class CharacteristicSpeciesStructure(GenericSpeciesStructure):

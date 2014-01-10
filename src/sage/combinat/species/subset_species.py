@@ -20,7 +20,6 @@ from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from generating_series import _integers_from, factorial_stream
 from structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -98,7 +97,6 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             [{1, 3}, {1, 3}, {1, 3}, {1, 3}]
         """
         from sage.groups.all import SymmetricGroup, PermutationGroup
-        from sage.misc.all import uniq
         a = SymmetricGroup(self._list)
         b = SymmetricGroup(self.complement()._list)
         return PermutationGroup(a.gens()+b.gens())

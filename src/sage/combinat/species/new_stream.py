@@ -1,6 +1,4 @@
-from sage.rings.all import ZZ
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
 
 # TODO:
 # 1. __len__ / number_computed / max_computed??
@@ -143,7 +141,7 @@ class ListCachedStream(Stream):
         """
         pos = len(self._cache)
         while n >= pos:
-            _ = self[pos]
+            self[pos]
             pos += 1
         self._cache[n] = value
 

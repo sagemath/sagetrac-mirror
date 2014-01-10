@@ -21,7 +21,6 @@ from structure import GenericSpeciesStructure
 from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, divisors, euler_phi
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 
 class CycleSpeciesStructure(GenericSpeciesStructure):
@@ -59,7 +58,7 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
             sage: a.permutation_group_element()
             (1,2,3)
         """
-        from sage.groups.all import PermutationGroupElement, SymmetricGroup
+        from sage.groups.all import PermutationGroupElement
         return PermutationGroupElement(tuple(self._list))
 
     def transport(self, perm):

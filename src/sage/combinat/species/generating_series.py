@@ -72,14 +72,15 @@ weighted degree where each variable x_i has weight i.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from series import (LazyPowerSeriesRing, LazyPowerSeries, SeriesStream,
-                    PowerStream, SumGeneratorStream, ListSumStream, TermStream)
+from series import (LazyPowerSeriesRing, LazyPowerSeries)
+from series_stream import (SeriesStream, PowerStream, SumGeneratorStream,
+                           ListSumStream, TermStream)
 from stream import Stream, _integers_from
-from sage.rings.all import Integer, moebius, lcm, divisors
-from sage.combinat.partition import Partition, Partitions
-from functools import partial
+from sage.rings.all import Integer, moebius, lcm, divisors, gcd
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
+from sage.combinat.partition import Partition, Partitions
+
 
 @cached_function
 def OrdinaryGeneratingSeriesRing(R):
@@ -738,9 +739,6 @@ class CycleIndexSeries(LazyPowerSeries):
            :arXiv:`math/0503436v2`.
 
         """
-        from sage.combinat.partition import Partition, Partitions
-        from sage.combinat.species.stream import Stream, _integers_from
-        from sage.rings.arith import gcd, lcm, divisors
         from itertools import product, repeat, chain
 
         p = self.base_ring()

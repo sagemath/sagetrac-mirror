@@ -207,7 +207,7 @@ class Stream_class(SageObject):
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, 10]
         """
         #Compute all of the coefficients up to (and including) the ith one
-        test = self[i]
+        self[i]
 
         if i < len(self._list):
             #If we are here, we can just change the entry in self._list

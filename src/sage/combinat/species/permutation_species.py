@@ -18,10 +18,7 @@ Permutation species
 from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from series import SeriesStreamFromList
 from structure import GenericSpeciesStructure
-from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.partition import Partitions
 from sage.combinat.species.misc import accept_size
@@ -57,7 +54,6 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
             sage: a.permutation_group_element()
             (2,3)
         """
-        from sage.groups.all import PermutationGroupElement
         return Permutation(self._list).to_permutation_group_element()
 
     def transport(self, perm):
@@ -164,7 +160,6 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: P.isotypes([1,2,3]).list()
             [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
         """
-        from sage.combinat.partition import Partitions
         if labels == []:
             yield structure_class(self, labels, [])
             return
