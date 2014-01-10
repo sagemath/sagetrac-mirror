@@ -274,21 +274,38 @@ cdef class Farey:
 
         EXAMPLES::
 
+            sage: FareySymbol(Gamma0(3))._latex_()
+            '\\left( -\\infty\\underbrace{\\quad}_{1} 0\\underbrace{\\quad}_\\bullet 1\\underbrace{\\quad}_{1} \\infty\\right)' 
+
+            sage: latex.add_to_mathjax_avoid_list('xymatrix')
             sage: FareySymbol(Gamma0(11))._latex_()
-            '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}&\\infty}\\end{xy}'
+            '\\begin{xy}\\xymatrix{-\\infty\\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}& +\\infty }\\end{xy}'
         """
-        s = r'\begin{xy}\xymatrix{-\infty'
-        f = [x._latex_() for x in self.fractions()]+[r'+\infty']
-        f.reverse()
-        for p in self.pairings():
-            if p >= 0:
-                s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
-            elif p == -2:
-                s += r'\ar@{-}@/_1pc/[r]_{\circ}'
-            elif p == -3:
-                s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
-            s += r'& %s ' % f.pop()
-        s += r'}\end{xy}'
+        from sage.misc.latex import latex
+        if 'xymatrix' in latex.mathjax_avoid_list():
+            s = r'\begin{xy}\xymatrix{-\infty'
+            f = [x._latex_() for x in self.fractions()]+[r'+\infty']
+            f.reverse()
+            for p in self.pairings():
+                if p >= 0:
+                    s += r'\ar@{-}@/_1pc/[r]_{%s}' % p
+                elif p == -2:
+                    s += r'\ar@{-}@/_1pc/[r]_{\circ}'
+                elif p == -3:
+                    s += r'\ar@{-}@/_1pc/[r]_{\bullet}'
+                s += r'& %s ' % f.pop()
+            s += r'}\end{xy}'
+        else:
+            s = r'\left( -\infty' 
+            f = [x._latex_() for x in self.fractions()] + ['\infty'] 
+            for x, p in zip(f, self.pairings()):
+                if p >=0:
+                    s += r'\underbrace{\quad}_{%s} %s' % (p, x)
+                elif p == -2:
+                    s += r'\underbrace{\quad}_\circ %s' % x
+                elif p == -3:
+                    s += r'\underbrace{\quad}_\bullet %s' % x
+            s += r'\right)' 
         return s
 
     def index(self):
