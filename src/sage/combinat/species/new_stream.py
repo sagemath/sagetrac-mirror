@@ -24,8 +24,11 @@ class Stream(SageObject):
         from sage.misc.all import sage_wraps
         @sage_wraps(func)
         def wrapper(self, n):
-            # Handle constant
-            if self._constant is not False:
+            # Handle (eventually) constant streams
+            if self._constant is not False or self.is_constant():
+                if self._constant is False:
+                    self.set_constant(self.get_constant_position(),
+                                      self.get_constant())
                 pos, value = self._constant
                 if n >= pos:
                     return value
@@ -65,58 +68,9 @@ class Stream(SageObject):
             i += 1
         raise StopIteration
 
-    def map(self, func):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.species.new_stream import Stream
-            sage: s = Stream(compute=lambda x: x)
-            sage: ss = s.map(lambda x: x*x)
-            sage: [ss[i] for i in range(10)]
-            [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-        """
-        return MappedStream(func, self)
-
-class ConstantStream(Stream):
-    def __init__(self, constant):
-        super(ConstantStream, self).__init__()
-        self.set_constant(0, constant)
-
-class DictCachedStream(Stream):
-    def __init__(self, **kwds):
-        self._cache = {}
-        super(DictCachedStream, self).__init__(**kwds)
-
-    def __setitem__(self, n, value):
-        self._cache[n] = value
-
-    @Stream.getitem_decorator
-    def __getitem__(self, n):
-        value = self._cache.get(n, None)
-        if value is None:
-            value = self.compute(n)
-            self._cache[n] = value
-            return value
-        else:
-            return value
-            
-class MappedStream(DictCachedStream):
-    def __init__(self, func, stream):
-        self._func = func
-        self._stream = stream
-        super(MappedStream, self).__init__()
-
-    def compute(self, n):
-        value = self._func(self._stream[n])
-        if self._constant is False and self._stream.is_constant():
-            self._constant = (n, value)
-        return value
-
-
 class ListCachedStream(Stream):
     def __init__(self, **kwds):
         self._cache = []
-        self._cached = kwds.pop('cached', True)
         super(ListCachedStream, self).__init__(**kwds)
 
     def __setitem__(self, n, value):
@@ -152,8 +106,6 @@ class ListCachedStream(Stream):
 
     @Stream.getitem_decorator
     def __getitem__(self, n):
-        if not self._cached:
-            return self.compute(n)
         pos = len(self._cache)
         while pos <= n:
             value = self.compute(pos)
