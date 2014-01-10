@@ -67,7 +67,10 @@ class SpeciesSeriesStream(SeriesStream):
         self._weight = weight
         self._species = species
         if hasattr(species, '_order'):
-            kwds['order'] = kwds['aorder'] = species._order()
+            order = species._order()
+            if species._min is not None:
+                order = max(order, species._min)
+            kwds['order'] = kwds['aorder'] = order
             kwds['aorder_changed'] = False
         super(SpeciesSeriesStream, self).__init__(**kwds)
 

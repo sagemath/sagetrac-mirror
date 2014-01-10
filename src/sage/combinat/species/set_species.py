@@ -130,7 +130,7 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     _isotypes = _structures
 
     def _order(self):
-        return self._min if self._min is not None else 0
+        return 0
 
     class GeneratingSeriesStream(SpeciesSeriesStream):
         def compute(self, n):
