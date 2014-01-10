@@ -1,0 +1,75 @@
+Binary files src/Olinux-x86_64/init.o and b/Olinux-x86_64/init.o differ
+Only in src/Olinux-x86_64: libpari-gmp.so.2.5.5
+diff -ru src/src/language/init.c b/src/language/init.c
+--- src/src/language/init.c	2014-01-10 09:59:41.230652986 +0100
++++ b/src/language/init.c	2014-01-10 10:38:33.401130933 +0100
+@@ -709,6 +711,44 @@
+ }
+ 
+ /*********************************************************************/
++/*                       gerepile() WARNINGS                         */
++/*********************************************************************/
++
++#include <sys/time.h>
++static unsigned long gerepile_bytes = 0;
++static const unsigned long gerepile_warn_factor = 8;
++static struct timeval tv_gerepile;
++
++void
++gerepile_warn_reset()
++{
++    gerepile_bytes = 0;
++    gettimeofday(&tv_gerepile, NULL);
++}
++
++INLINE void
++gerepile_warn_bytes(unsigned long n)
++{
++    static struct timeval tv_now;
++    double delta_t;
++
++    gerepile_bytes += n;
++    /* We went through the stack gerepile_warn_factor times */
++    if (gerepile_bytes/gerepile_warn_factor >= top - bot)
++    {
++        gettimeofday(&tv_now, NULL);
++        delta_t = 1e-6*((long)tv_now.tv_usec - (long)tv_gerepile.tv_usec);
++        delta_t += tv_now.tv_sec - tv_gerepile.tv_sec;
++        if (delta_t < 1.0)
++        {
++            fprintf(stderr, "WARNING: Moved %.2fMB on PARI stack (size = %.2fMB) in %.2f seconds\n",
++                    1e-6*gerepile_bytes, 1e-6*(top-bot), delta_t);
++        }
++        gerepile_warn_reset();
++    }
++}
++
++/*********************************************************************/
+ /*                       LIBPARI INIT / CLOSE                        */
+ /*********************************************************************/
+ 
+@@ -752,6 +792,8 @@
+   pari_init_functions();
+   pari_var_init();
+   try_to_recover = 1;
++
++  gerepile_warn_reset();
+ }
+ 
+ void
+@@ -1446,6 +1488,7 @@
+ copy_bin(GEN x)
+ {
+   long t = taille0_nolist(x);
++  gerepile_warn_bytes(sizeof(GENbin) + 2*t*sizeof(long));  /* Factor 2 to count the copy back */
+   GENbin *p = (GENbin*)pari_malloc(sizeof(GENbin) + t*sizeof(long));
+   pari_sp AVMA = (pari_sp)(GENbinbase(p) + t);
+   p->canon = 0;
+@@ -1696,6 +1739,7 @@
+   if (q >= (GEN)av0 && q < (GEN)tetpil)
+     q = (GEN) (((pari_sp)q) + dec);
+ 
++  gerepile_warn_bytes(tetpil - av0);
+   for (x = (GEN)av, a = (GEN)tetpil; a > (GEN)av0; ) *--x = *--a;
+   avma = (pari_sp)x;
+   while (x < (GEN)av)
