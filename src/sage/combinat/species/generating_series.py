@@ -252,12 +252,9 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         `g = \sum_{n=0}^{\infty} f_n \frac{x^n}{n!}`, then
         functorial composition `f \Box g` is defined as
 
-
         .. math::
 
              f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
-
-
 
         REFERENCES:
 
@@ -267,6 +264,8 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
 
             sage: G = species.SimpleGraphSpecies()
             sage: g = G.generating_series()
+            sage: g._stream
+            <class 'sage.combinat.species.generating_series.FunctorialCompositionStream'>
             sage: g.coefficients(10)
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
         """
@@ -393,13 +392,26 @@ class CycleIndexSeries(LazyPowerSeries):
         def __init__(self, stream, k, **kwds):
             self._stream = stream
             self._k = k
-            kwds['cached'] = False
-            super(CycleIndexSeries.StretchStream, self).__init__(**kwds)
-
-        def children(self):
-            return [self._stream]
+            super(CycleIndexSeries.StretchStream, self).__init__(children=[stream], **kwds)
 
         def order_operation(self, a):
+            """
+            The order of a :class:`CycleIndexSeries.StretchStream` is
+            ``self._k`` times the order of the underlying stream.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
+                sage: p = SymmetricFunctions(QQ).power()
+                sage: CIS = CycleIndexSeriesRing(QQ)
+                sage: f = CIS([0, p([1])])
+                sage: g = f.stretch(2)
+                sage: f.get_order()
+                1
+                sage: s = g._stream
+                sage: s.order_operation(f.get_order())
+                2
+            """
             return a * self._k
 
         def compute(self, n):
@@ -421,7 +433,22 @@ class CycleIndexSeries(LazyPowerSeries):
                 return self._zero
 
         def stretch_partition(self, p):
-            from sage.combinat.partition import Partition
+            """
+            Returns the partition ``p`` "stretched" by ``self._k``;
+            that is, each component of ``p`` is scaled by ``self._k``.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
+                sage: p = SymmetricFunctions(QQ).power()
+                sage: CIS = CycleIndexSeriesRing(QQ)
+                sage: f = CIS([p([1])])
+                sage: g = f.stretch(2)
+                sage: s = g._stream; s
+                <class 'sage.combinat.species.generating_series.StretchStream'>
+                sage: s.stretch_partition([3,2,1])
+                [6, 4, 2]
+            """
             return Partition([self._k*i for i in p])
 
     def stretch(self, k):
@@ -458,12 +485,26 @@ class CycleIndexSeries(LazyPowerSeries):
     class IsotypeGeneratingSeriesStream(SeriesStream):
         def __init__(self, stream, **kwds):
             self._stream = stream
-            super(CycleIndexSeries.IsotypeGeneratingSeriesStream, self).__init__(**kwds)
-
-        def children(self):
-            return [self._stream]
+            super(CycleIndexSeries.IsotypeGeneratingSeriesStream, self).__init__(children=[stream],
+                                                                                 **kwds)
 
         def order_operation(self, a):
+            """
+            Returns the order of this stream which is the same as the
+            cycle index series stream.
+
+            EXAMPLES::
+
+                sage: P = species.PermutationSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: g = cis.isotype_generating_series()
+                sage: g.coefficients(4)
+                [1, 1, 2, 3]
+                sage: s = g._stream; s
+                <class 'sage.combinat.species.generating_series.IsotypeGeneratingSeriesStream'>
+                sage: s.order_operation(cis.get_order())
+                0
+            """
             return a
 
         def compute(self, n):
@@ -530,14 +571,41 @@ class CycleIndexSeries(LazyPowerSeries):
         return LPSR.sum_generator(expander_gen)
 
     class GeneratingSeriesStream(SeriesStream):
-        def __init__(self, stream, **kwds):
-            self._stream = stream
-            super(CycleIndexSeries.GeneratingSeriesStream, self).__init__(**kwds)
+        def __init__(self, cis_stream, **kwds):
+            """
+            A stream for the generating series of a species derived
+            from the cycle index series.
 
-        def children(self):
-            return [self._stream]
+            EXAMPLES::
+
+                sage: P = species.PermutationSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: g = cis.generating_series()
+                sage: s = g._stream; s
+                <class 'sage.combinat.species.generating_series.GeneratingSeriesStream'>
+                sage: s._stream is cis._stream
+                True
+            """
+            self._stream = cis_stream
+            super(CycleIndexSeries.GeneratingSeriesStream, self).__init__(children=[cis_stream], **kwds)
 
         def order_operation(self, a):
+            """
+            Returns the order of this stream which is the same as the
+            cycle index series stream.
+
+            EXAMPLES::
+
+                sage: P = species.PermutationSpecies()
+                sage: cis = P.cycle_index_series()
+                sage: g = cis.generating_series()
+                sage: g.coefficients(4)
+                [1, 1, 1, 1]
+                sage: s = g._stream; s
+                <class 'sage.combinat.species.generating_series.GeneratingSeriesStream'>
+                sage: s.order_operation(cis.get_order())
+                0
+            """
             return a
 
         def compute(self, n):
@@ -653,10 +721,12 @@ class CycleIndexSeries(LazyPowerSeries):
 
         If `F` and `G` are species, their functorial composition is the species
         `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
+        
         In other words, an `(F \Box G)`-structure on a set `A` of labels is an
         `F`-structure whose labels are the set of all `G`-structures on `A`.
 
-        It can be shown (as in section 2.2 of [BLL]_) that there is a corresponding operation on cycle indices:
+        It can be shown (as in section 2.2 of [BLL]_) that there is a
+        corresponding operation on cycle indices:
 
         .. math::
 
@@ -672,7 +742,10 @@ class CycleIndexSeries(LazyPowerSeries):
         This is how it is implemented in :meth:`~sage.combinat.species.library.SimpleGraphSpecies`::
 
             sage: S = species.SimpleGraphSpecies()
-            sage: S.cycle_index_series().coefficients(5)
+            sage: cis = S.cycle_index_series()
+            sage: cis._stream
+            <class 'sage.combinat.species.generating_series.FunctorialCompositionStream'>
+            sage: cis.coefficients(5)
             [p[],
              p[1],
              p[1, 1] + p[2],
@@ -872,6 +945,23 @@ class CycleIndexSeries(LazyPowerSeries):
             self._y_powers = PowerStream(self._inner)
 
         def recursive_stream(self):
+            """
+            Returns a stream whose tail is equal to the tail of this
+            composition stream.
+
+            EXAMPLES::
+            
+                sage: E = species.SetSpecies(); C = species.CycleSpecies()
+                sage: E_cis = E.cycle_index_series()
+                sage: g = E_cis(C.cycle_index_series())
+                sage: s = g._stream; s
+                <class 'sage.combinat.species.generating_series.CompositionStream'>
+                sage: g.coefficients(4)
+                [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
+                sage: res = s.recursive_stream()
+                sage: [res[i] for i in range(1, 4)]
+                [p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
+            """
             g = (self._compose_term(self._outer[i], self._y_powers)
                  for i in _integers_from(0))
             res = SumGeneratorStream(g, base_ring=self._base_ring)

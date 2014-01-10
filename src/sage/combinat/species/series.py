@@ -124,6 +124,19 @@ class LazyPowerSeriesRing(Algebra):
         return self(x)
 
     def _new(self, stream_cls, *args, **kwds):
+        """
+        Returns a new lazy power series with class ``stream_cls``.
+        This function automatically sets the ``base_ring`` parameter.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import TermStream
+            sage: L1 = LazyPowerSeriesRing(QQ)
+            sage: g = L1._new(TermStream, n=2, value=3)
+            sage: g.coefficients(5)
+            [0, 0, 3, 0, 0]
+
+        """
         kwds['base_ring'] = self.base_ring()
         return self._element_class(self, stream_cls(*args, **kwds))
         
@@ -404,20 +417,106 @@ class LazyPowerSeries(AlgebraElement):
         self._name = None
 
     def set_name(self, name):
+        """
+        Sets a custom name for this power series.
+
+        EXAMPLES::
+
+             sage: L = LazyPowerSeriesRing(QQ)
+             sage: three = L(iter([3,0])); three
+             O(1)
+             sage: three.set_name('3')
+             sage: three
+             3
+        """
         self._name = name
 
     @property
     def aorder(self):
+        """
+        Returns the (currently computed) approximate order for this
+        series.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.aorder
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.aorder
+            0
+            sage: g.get_aorder()
+            1
+            sage: g.aorder
+            1
+        """
         return self._stream.aorder
 
     def get_aorder(self):
+        """
+        Returns the approximate order for this series after refining
+        it (without computing additional coefficients).
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.aorder
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.get_aorder()
+            1
+        """
         return self._stream.get_aorder()
 
     @property
     def order(self):
+        """
+        Returns the (currently computed) approximate order for this
+        series.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,0,3,0]))
+            sage: g.order
+            Unknown series order
+            sage: g[1]
+            0
+            sage: g.order
+            Unknown series order
+            sage: g.get_order()
+            Unknown series order
+            sage: g[2]
+            3
+            sage: g.order
+            Unknown series order
+            sage: g.get_order()
+            2
+            sage: g.order
+            2
+        """
         return self._stream.order
 
     def get_order(self):
+        """
+        Returns the order for this series after refining
+        it (without computing additional coefficients).
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: g = L(iter([0,3,0]))
+            sage: g.order
+            Unknown series order
+            sage: g[1]
+            3
+            sage: g.get_order()
+            1
+        """
         return self._stream.get_order()
 
     def _get_repr_info(self, x):
@@ -626,6 +725,20 @@ class LazyPowerSeries(AlgebraElement):
         self._stream.define(x._stream)
 
     def _new(self, cls, *args, **kwds):
+        """
+        Returns a new lazy power series with class ``stream_cls``.
+        This function automatically sets the ``base_ring`` parameter.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import TermStream
+            sage: L1 = LazyPowerSeriesRing(QQ)
+            sage: x = L1.gen()
+            sage: g = x._new(TermStream, n=2, value=3)
+            sage: g.coefficients(5)
+            [0, 0, 3, 0, 0]
+
+        """
         parent = self.parent()
         kwds['base_ring'] = parent.base_ring()
         return self.__class__(parent, cls(*args, **kwds))
@@ -903,7 +1016,6 @@ class LazyPowerSeries(AlgebraElement):
         ::
 
             sage: s = L()
-            sage: s._name = 's'
             sage: s.define(one+monom*s*s)
             sage: u = s.derivative()
             sage: u.coefficients(5) #[1*1, 2*2, 3*5, 4*14, 5*42]

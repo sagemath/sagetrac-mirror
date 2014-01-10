@@ -129,6 +129,15 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     _isotypes = _structures
 
     def _order(self):
+        """
+        Returns the order of the species.
+
+        EXAMPLES::
+
+            sage: S = species.SetSpecies()
+            sage: S._order()
+            0
+        """
         return 0
 
     class GeneratingSeriesStream(SpeciesSeriesStream):

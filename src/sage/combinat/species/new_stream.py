@@ -4,61 +4,179 @@ from sage.structure.sage_object import SageObject
 # 1. __len__ / number_computed / max_computed??
 
 
-class Stream(SageObject):
-    def __init__(self, compute=None):
-        """
-        """
-        if compute is not None:
-            self.compute = compute
+def check_constant_decorator(func):
+    """
+    A method decorator for ``__getitem__`` which checks is the stream
+    is (eventually) constant before computing the $n^{th}$
+    coefficient.
 
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import Stream, check_constant_decorator
+        sage: s = Stream()
+        sage: def foo(self, n):
+        ....:     return self.compute(n)
+        sage: import types
+        sage: s.foo = types.MethodType(check_constant_decorator(foo), s)
+        sage: s.set_constant(1, 3)
+        sage: s.compute(5)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
+        sage: s.foo(5)
+        3
+
+    """
+    from sage.misc.all import sage_wraps
+    @sage_wraps(func)
+    def wrapper(self, n):
+        if self._constant is not False or self.is_constant():
+            if self._constant is False:
+                self.set_constant(self.get_constant_position(),
+                                  self.get_constant())
+            pos, value = self._constant
+            if n >= pos:
+                return value
+        return func(self, n)
+    return wrapper
+
+
+class Stream(SageObject):
+    def __init__(self):
+        """
+        A base class for streams.  This class is typically subclassed.
+        """
         self._constant = False
 
     def compute(self, n):
+        """
+        Computes the $n^{th}$ coefficient of this stream.  This should
+        be overridden by subclasses.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.compute(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def __setitem__(self, n, value):
+        """
+        Sets the $n^{th}$ coefficient of this stream to ``value``.
+        This should be overridden by subclasses.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s[0] = 2
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
-    # Will be changed to staticmethod later
-    def getitem_decorator(func):
-        from sage.misc.all import sage_wraps
-        @sage_wraps(func)
-        def wrapper(self, n):
-            # Handle (eventually) constant streams
-            if self._constant is not False or self.is_constant():
-                if self._constant is False:
-                    self.set_constant(self.get_constant_position(),
-                                      self.get_constant())
-                pos, value = self._constant
-                if n >= pos:
-                    return value
-            return func(self, n)
-        return wrapper
-
-    @getitem_decorator
+    @check_constant_decorator
     def __getitem__(self, n):
-        return self.compute(n)
+        """
+        Returns the $n^{th}$ coefficient of this stream.
 
-    getitem_decorator = staticmethod(getitem_decorator)
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: class MyStream(Stream):
+            ....:     def compute(self, n):
+            ....:         return n
+            sage: s = MyStream()
+            sage: s[10]
+            10
+        """
+        return self.compute(n)
 
     def is_constant(self):
         """
         Returns True if this stream is eventually constant.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.is_constant()
+            False
+            sage: s.set_constant(2, 4)
+            sage: s.is_constant()
+            True
         """
         return self._constant is not False
 
     def set_constant(self, n, value):
+        """
+        Sets this stream to be eventually constant at coefficient
+        ``n`` with value ``value``.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.set_constant(0, 2)
+            sage: s.get_constant()
+            2
+            sage: s.get_constant_position()
+            0
+            sage: s[3]
+            2
+        """
         self._constant = (n, value)
 
     def get_constant(self):
+        """
+        Returns the constant value if this stream is eventually
+        constant.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.set_constant(0, 2)
+            sage: s.get_constant()
+            2
+        """
         assert self._constant is not False
         return self._constant[1]
 
     def get_constant_position(self):
+        """
+        Returns the position where this stream is eventually constant.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.set_constant(1, 2)
+            sage: s.get_constant_position()
+            1
+        """
         assert self._constant is not False
         return self._constant[0]
 
     def __iter__(self):
+        """
+        Returns an iterator for this stream.
+
+        EXAMPLES::
+        
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: s = Stream()
+            sage: s.set_constant(0, 2)
+            sage: it = iter(s)
+            sage: [it.next() for i in range(5)]
+            [2, 2, 2, 2, 2]
+
+        """
         i = 0
         while True:
             try:
@@ -70,6 +188,25 @@ class Stream(SageObject):
 
 class ListCachedStream(Stream):
     def __init__(self, **kwds):
+        """
+        Returns a stream whose computed values are cached in a list.
+        Additionally, when the $n^{th}$ coefficient is requested, it
+        guarantees that all of the coefficients up to $n$ have been
+        computed.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+            sage: s = StreamFromFunc(h)
+            sage: isinstance(s, ListCachedStream)
+            True
+            sage: s[5]
+            8
+            sage: s._cache
+            [1, 1, 2, 3, 5, 8]
+
+        """
         self._cache = []
         super(ListCachedStream, self).__init__(**kwds)
 
@@ -99,13 +236,56 @@ class ListCachedStream(Stream):
             pos += 1
         self._cache[n] = value
 
-    def __len__(self):
+    def number_computed(self):
+        """
+        Returns the number of coefficients that have been computed so
+        far.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+            sage: s = StreamFromFunc(h)
+            sage: isinstance(s, ListCachedStream)
+            True
+            sage: s[5]
+            8
+            sage: s.number_computed()
+            6
+        """
         return len(self._cache)
 
-    number_computed = __len__
+    __len__ = number_computed
 
-    @Stream.getitem_decorator
+    @check_constant_decorator
     def __getitem__(self, n):
+        """
+        Returns the $n^{th}$ coefficient of this stream, checking the
+        cache before trying to compute the value.  This method
+        guarantees that all of the coefficients up to $n$ have been
+        computed first.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+            sage: s = StreamFromFunc(h)
+            sage: isinstance(s, ListCachedStream)
+            True
+            sage: s[5]
+            8
+            sage: s._cache
+            [1, 1, 2, 3, 5, 8]
+
+        We check to see that values are indeed returned from the cache
+        if already computed::
+
+            sage: def foo(self, n):
+            ....:    raise NotImplementedError
+            sage: s.compute = foo
+            sage: s[2]
+            2
+        """
         pos = len(self._cache)
         while pos <= n:
             value = self.compute(pos)

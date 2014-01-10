@@ -1,18 +1,6 @@
 """
 Series Streams
 
-This file provides an implementation of lazy univariate power
-series, which uses the stream class for its internal data
-structure. The lazy power series keep track of their approximate
-order as much as possible without forcing the computation of any
-additional coefficients. This is required for recursively defined
-power series.
-
-This code is based on the work of Ralf Hemmecke and Martin Rubey's
-Aldor-Combinat, which can be found at
-http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
-In particular, the relevant section for this file can be found at
-http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Mike Hansen <mhansen@gmail.com>,
@@ -43,17 +31,23 @@ class SeriesStream(ListCachedStream):
             self.order = inf
         self.aorder_changed = aorder_changed
         self._zero = base_ring(0)
+        self._children = kwds.pop('children', [])
         super(SeriesStream, self).__init__(**kwds)
 
     def __getitem__(self, n):
+        """
+        Returns the $n^{th}$ coefficient of this stream.  This method
+        returns zero without doing further computations if ``n`` is
+        less than the approximate order.
+        """
         # The following line must not be written n < self.get_aorder()
-        # because comparison of Integer and OnfinityOrder is not implemented.
+        # because comparison of Integer and InfinityOrder is not implemented.
         if self.get_aorder() > n:
             return self._zero
         return super(SeriesStream, self).__getitem__(n)
 
     def children(self):
-        return []
+        return self._children
 
     def order_operation(self, *series):
         if self.aorder != unk:
@@ -62,6 +56,10 @@ class SeriesStream(ListCachedStream):
             return 0
 
     def __mul__(self, other):
+        """
+        Returns the ProductStream of ``self`` and ``other``.
+
+        """
         return ProductStream(self, other, base_ring=self._base_ring)
 
     def stretch(self, k):
@@ -72,13 +70,14 @@ class SeriesStream(ListCachedStream):
 
     def get_aorder(self):
         """
-        Returns the approximate order of self.
+        Returns the approximate order for this stream after refining
+        it (without computing additional coefficients).
 
         EXAMPLES::
 
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L.gen()
-            sage: a._stream.get_aorder()
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+            sage: s = SeriesStreamFromList(list=[0,1,0], base_ring=QQ)
+            sage: s.get_aorder()
             1
         """
         if self.order is unk:
@@ -91,9 +90,9 @@ class SeriesStream(ListCachedStream):
 
         EXAMPLES::
 
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L.gen()
-            sage: a._stream.get_order()
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+            sage: s = SeriesStreamFromList(list=[0,1,0], base_ring=QQ)
+            sage: s.get_order()
             1
         """
         if self.order is unk:
@@ -107,9 +106,8 @@ class SeriesStream(ListCachedStream):
 
         EXAMPLES::
 
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: a = L(iter([0,0,0,0,1]))
-            sage: a = a._stream
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator
+            sage: a = SeriesStreamFromIterator(iterator=iter([0,0,0,0,1]), base_ring=QQ)
             sage: a.aorder
             Unknown series order
             sage: a[2]
@@ -122,8 +120,7 @@ class SeriesStream(ListCachedStream):
 
         ::
 
-            sage: a = L(iter([0,0]))
-            sage: a = a._stream
+            sage: a = SeriesStreamFromIterator(iterator=iter([0,0]), base_ring=QQ)
             sage: a.aorder
             Unknown series order
             sage: a[5]
@@ -134,8 +131,7 @@ class SeriesStream(ListCachedStream):
 
         ::
 
-            sage: a = L(iter([0,0,1,0,0,0]))
-            sage: a = a._stream
+            sage: a = SeriesStreamFromIterator(iterator=iter([0,0,1,0,0,0]), base_ring=QQ)
             sage: a[4]
             0
             sage: a.refine_aorder()
@@ -178,6 +174,13 @@ class SeriesStream(ListCachedStream):
                 self.order = self.aorder
 
     def compute_aorder(self):
+        """
+        Computes the approximate order of this stream based on its
+        children.
+
+        EXAMPLES:
+
+        """
         changed = self.aorder_changed
         
         ao = self.order_operation(*[c.aorder for c in self.children()])
@@ -201,13 +204,17 @@ class SeriesStream(ListCachedStream):
 
         EXAMPLES::
 
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L([0,0,0,3,2,1,0])
-            sage: f = f._stream
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+            sage: f = SeriesStreamFromList(list=[0,0,0,3,2,1,0], base_ring=QQ)
             sage: f.get_aorder()
             3
             sage: f.set_approximate_order(3)
             False
+            sage: f.set_approximate_order(2)
+            True
+            sage: f.set_approximate_order(3)
+            True
+            
         """
         self.aorder_changed = ( self.aorder != new_order )
         self.aorder = new_order
@@ -220,16 +227,21 @@ class SeriesStreamFromList(SeriesStream, StreamFromList):
         if 'list' in kwds:
             kwds['list'] = map(kwds['base_ring'], kwds['list'])
         super(SeriesStreamFromList, self).__init__(**kwds)
-        self.get_aorder()
+        self.get_aorder() # compute the approximate order right away
 
-    def compute_aorder(self):
+    def order_operation(self):
+        """
+        Returns the order of this stream.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+        """
         for i, value in enumerate(self._cache):
             if value != 0:
-                ao = i
-                break
+                return i
         else:
-            ao = inf
-        self.set_approximate_order(ao)
+            return inf
 
 class SeriesStreamFromIterator(SeriesStream, StreamFromIterator):
     def __init__(self, **kwds):
@@ -271,7 +283,7 @@ class ChangeRingStream(SeriesStream):
     def __init__(self, stream=None, new_ring=None, **kwds):
         self._stream = stream
         self._new_ring = new_ring
-        super(ChangeRingStream, self).__init__(**kwds)
+        super(ChangeRingStream, self).__init__(children=[stream], **kwds)
 
     def compute(self, n):
         """
@@ -288,9 +300,6 @@ class ChangeRingStream(SeriesStream):
         """
         return self._new_ring(self._stream[n])
 
-    def children(self):
-        return [self._stream]
-
     def order_operation(self, ao):
         return ao
 
@@ -298,7 +307,7 @@ class ChangeRingStream(SeriesStream):
         return self._stream.is_constant()
 
     def get_constant(self):
-        return self._stream.get_constant()
+        return self._new_ring(self._stream.get_constant())
 
     def get_constant_position(self):
         return self._stream.get_constant_position()
@@ -307,10 +316,7 @@ class SumStream(SeriesStream):
     def __init__(self, left_summand=None, right_summand=None, **kwds):
         self._left = left_summand
         self._right = right_summand
-        super(SumStream, self).__init__(**kwds)
-
-    def children(self):
-        return [self._left, self._right]
+        super(SumStream, self).__init__(children=[self._left, self._right], **kwds)
 
     order_operation = staticmethod(min)
 
@@ -331,10 +337,8 @@ class ProductStream(SeriesStream):
     def __init__(self, left_factor=None, right_factor=None, **kwds):
         self._left = left_factor
         self._right = right_factor
-        super(ProductStream, self).__init__(**kwds)
-
-    def children(self):
-        return [self._left, self._right]
+        super(ProductStream, self).__init__(children=[self._left, self._right],
+                                            **kwds)
 
     def order_operation(self, a, b):
         return a + b
@@ -381,13 +385,10 @@ class ProductStream(SeriesStream):
 class TailStream(SeriesStream):
     def __init__(self, stream, **kwds):
         self._stream = stream
-        super(TailStream, self).__init__(**kwds)
+        super(TailStream, self).__init__(children=[stream], **kwds)
         
     def compute(self, n):
         return self._stream[n + 1]
-
-    def children(self):
-        return [self._stream]
 
     order_operation = staticmethod(bounded_decrement)
 
@@ -403,10 +404,7 @@ class TailStream(SeriesStream):
 class DerivativeStream(SeriesStream):
     def __init__(self, stream, **kwds):
         self._stream = stream
-        super(DerivativeStream, self).__init__(**kwds)
-
-    def children(self):
-        return [self._stream]
+        super(DerivativeStream, self).__init__(children=[stream], **kwds)
 
     order_operation = staticmethod(bounded_decrement)
 
@@ -443,12 +441,9 @@ class IntegralStream(SeriesStream):
         if integration_constant != 0:
             kwds['order'] = kwds['aorder'] = 0
             kwds['aorder_changed'] = False
-        super(IntegralStream, self).__init__(**kwds)
+        super(IntegralStream, self).__init__(children=[stream], **kwds)
         self._stream = stream
         self._ic = self._base_ring(integration_constant)
-
-    def children(self):
-        return [self._stream]
 
     def order_operation(self, a):
         if self._ic == 0:
@@ -490,38 +485,89 @@ class IntegralStream(SeriesStream):
         return self._stream.get_constant_position() + 1
 
 class CompositionStream(SeriesStream):
-    """
-    Returns a iterator for the coefficients of the composition of this
-    power series with the power series y.
-
-    EXAMPLES::
-
-        sage: L = LazyPowerSeriesRing(QQ)
-        sage: s = L([1])
-        sage: t = L([0,1])
-        sage: g = s(t)
-        sage: [g[i] for i in range(10)]
-        [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
-    """
-    
     def __init__(self, outer_stream, inner_stream, **kwds):
+        """
+        A stream for thethe coefficients of the composition of
+        ``outer_stream`` with ``inner_stream``.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = L([1])
+            sage: t = L([0,1])
+            sage: g = s(t)
+            sage: stream = g._stream; stream
+            <class 'sage.combinat.species.series_stream.CompositionStream'>
+            sage: [stream[i] for i in range(10)]
+            [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
+        """
+
         self._outer = outer_stream
         self._inner = inner_stream
-        super(CompositionStream, self).__init__(**kwds)
+        super(CompositionStream, self).__init__(children=[self._outer, self._inner],
+                                                **kwds)
         
-    def children(self):
-        return [self._outer, self._inner]
-    
     def order_operation(self, a, b):
+        """
+        The order of a composition of two streams is the product of
+        their orders.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = L([0,0,0,1])
+            sage: t = L([0,0,1])
+            sage: g = s(t)
+            sage: stream = g._stream; stream
+            <class 'sage.combinat.species.series_stream.CompositionStream'>
+            sage: stream.order_operation(s.get_order(), t.get_order())
+            6
+        """
         return a*b
 
     def recursive_stream(self):
+        """
+        Returns a stream whose tail is equal to the tail of this
+        composition stream.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = L([2])
+            sage: t = L([0,3])
+            sage: g = s(t)
+            sage: stream = g._stream; stream
+            <class 'sage.combinat.species.series_stream.CompositionStream'>
+            sage: [stream[i] for i in range(1, 5)]
+            [6, 24, 96, 384]
+            sage: f = stream.recursive_stream()
+            sage: [f[i] for i in range(1, 5)]
+            [6, 24, 96, 384]
+
+        """
         res = TailStream(self._outer, base_ring=self._base_ring)
         res = CompositionStream(res, self._inner, base_ring=self._base_ring)
         res = ProductStream(res, self._inner, base_ring=self._base_ring)
         return res
 
     def compute(self, n):
+        """
+        Returns the $n^{th}$ coefficient of this composition stream.
+        If $n = 0$, then it will return the $0^{th}$ coefficient of
+        ``self._outer``; otherwise, it will return the $n^th$ coefficient
+        of the stream defined by :meth:`recursive_stream`.
+
+        EXAMPLES::
+        
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = L([2])
+            sage: t = L([0,3])
+            sage: g = s(t)
+            sage: stream = g._stream; stream
+            <class 'sage.combinat.species.series_stream.CompositionStream'>
+            sage: [stream.compute(i) for i in range(1, 5)]
+            [6, 24, 96, 384]
+        """
         if n == 0:
             assert self._inner[0] == 0
             return self._outer[0]
@@ -534,13 +580,29 @@ class CompositionStream(SeriesStream):
         return res[n]
 
 class RecursiveStream(SeriesStream):
+    """
+    A stream used for recursively defined series.
+    """
     def define(self, stream):
+        """
+        Defines this stream to be equal to ``stream``.  The stream
+        ``stream`` will be referred to as the definition stream.
+        """
         self._stream = stream
 
     def order_operation(self):
+        """
+        The order of this recursive stream is the order of the
+        definition stream.
+        """
         return self.aorder
 
     def not_defined_check(func):
+        """
+        A decorator which checks to see if the definition stream as
+        been set.  If so, the decorated function executes as normal;
+        otherwise, a ``NotImplementedError`` is raised.
+        """
         from functools import wraps
         @wraps(func)
         def wrapper(self, *args, **kwds):
@@ -554,53 +616,90 @@ class RecursiveStream(SeriesStream):
     @property
     @not_defined_check
     def aorder(self):
+        """
+        Returns the approximate order of the definition stream.
+        """
         return self._stream.aorder
 
     @aorder.setter
     def aorder(self, value):
+        """
+        Setting the approximate order on this stream does nothing.
+        """
         pass
 
     @property
     @not_defined_check
     def order(self):
+        """
+        Returns the order of the definition stream.
+        """
         return self._stream.order
 
     @order.setter
     def order(self, value):
+        """
+        Setting the order on this stream does nothing.
+        """
         pass
 
     @property
     @not_defined_check
     def aorder_changed(self):
+        """
+        Returns whether or not the approximate order on the definition
+        stream has changed.
+        """
         return self._stream.aorder_changed
 
     @aorder_changed.setter
     def aorder_changed(self, value):
+        """
+        Setting the ``aorder_changed`` flag on this stream does nothing.
+        """
         pass
 
     @not_defined_check
     def refine_aorder(self):
+        """
+        Refines the approximate order of the definition stream.
+        """
         return self._stream.refine_aorder()
 
     @not_defined_check
     def compute_aorder(self):
+        """
+        Computes the approximate order of the definition stream.
+        """
         return self._stream.compute_aorder()
 
     @not_defined_check
     def compute(self, n):
+        """
+        Returns the $n^{th}$ coefficient of this stream, which is the
+        same as the $n^{th}$ coefficient of the definition stream.
+        """
         return self._stream[n]
 
 class RestrictedStream(SeriesStream):
     def __init__(self, stream, min=None, max=None, **kwds):
+        """
+        Returns a stream whose $n^{th}$ coefficient is the $n^{th}$
+        coefficient of ``stream`` unless ``n < min`` or ``n >= max``
+        in which case it is $0$.  If either ``min`` or ``max`` are
+        ``None`` then the previous corresponding conditions are
+        considered ``False``.
+        """
         self._min = min
         self._max = max
         self._stream = stream
-        super(RestrictedStream, self).__init__(**kwds)
-
-    def children(self):
-        return [self._stream]
+        super(RestrictedStream, self).__init__(children=[stream], **kwds)
 
     def order_operation(self, a):
+        """
+        The order of the a restricted stream is the maximum of
+        ``self._min`` and the order of the underlying stream.
+        """
         return max(a, self._min)
 
     def compute(self, n):
@@ -630,13 +729,19 @@ class RestrictedStream(SeriesStream):
 
 class ListSumStream(SeriesStream):
     def __init__(self, stream_list, **kwds):
+        """
+        Returns a stream whose $n^{th}$ coefficient is the sum of the
+        $n^{th}$ coefficients of the streams in ``stream_list``.
+        These streams will be referred to as "child streams".
+        """
         self._stream_list = stream_list
-        super(ListSumStream, self).__init__(**kwds)
-
-    def children(self):
-        return self._stream_list
+        super(ListSumStream, self).__init__(children=stream_list, **kwds)
 
     def order_operation(self, *orders):
+        """
+        The order of a :class:`ListSumStream` is the minimum of all
+        the child streams.
+        """
         return min(orders)
     
     def compute(self, n):
@@ -661,9 +766,14 @@ class ListSumStream(SeriesStream):
         return sum([c[n] for c in self.children()], self._zero)
 
     def is_constant(self):
+        """
+        Returns whether or not this stream is constant.
+        """
         return all(c.is_constant() for c in self.children())
 
     def get_constant(self):
+        """
+        """
         return sum(c.get_constant() for c in self.children())
 
     def get_constant_position(self):

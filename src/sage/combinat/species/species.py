@@ -62,10 +62,20 @@ from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
 
 class SpeciesSeriesStream(SeriesStream):
     def __init__(self, weight=None, species=None, **kwds):
-        assert weight is not None
+        """
+        A SeriesStream which knows about the weight of the species as
+        well as its order.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.species import SpeciesSeriesStream
+            sage: S = species.SetSpecies(min=2)
+            sage: s = SpeciesSeriesStream(weight=S.weight(), species=S, base_ring=QQ)
+
+        """
         assert species is not None
-        self._weight = weight
         self._species = species
+        self._weight = weight if weight is not None else species.weight()
         if hasattr(species, '_order'):
             order = species._order()
             if species._min is not None:
@@ -76,6 +86,23 @@ class SpeciesSeriesStream(SeriesStream):
 
 class SpeciesTermStream(TermStream, SpeciesSeriesStream):
     def __init__(self, weight=None, base_ring=None, species=None, **kwds):
+        """
+        A :class:`TermStream` which gets its order from the order
+        defined on ``species`` and gets the value from :meth:`value`.
+
+        EXAMPLES:
+
+            sage: from sage.combinat.species.species import SpeciesTermStream
+            sage: S = species.SingletonSpecies()
+            sage: class STS(SpeciesTermStream):
+            ....:     def value(self, base_ring, weight):
+            ....:         return base_ring(1)
+            sage: s = STS(weight=S.weight(), base_ring=QQ, species=S)
+            sage: s[0]
+            0
+            sage: s[1]
+            1
+        """
         self._n = kwds['n'] = species._order()
         kwds['value'] = self.value(base_ring, weight)
         super(SpeciesTermStream, self).__init__(weight=weight, base_ring=base_ring,
@@ -109,6 +136,18 @@ class GenericCombinatorialSpecies(SageObject):
         """
         return hash(self._unique_info())
 
+    def weight(self):
+        """
+        Returns the weight of this species.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: S = species.SetSpecies(weight=q)
+            sage: S.weight()
+            q
+        """
+        return self._weight
 
     def _unique_info(self):
         """
