@@ -268,7 +268,7 @@ class GenericCombinatorialSpecies(SageObject):
         kwds.update({'weight': weight})
         return self.__class__(*[args_dict[i] for i in range(len(args_dict))], **kwds)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Returns a string representation of this species.
 
@@ -288,6 +288,11 @@ class GenericCombinatorialSpecies(SageObject):
             sage: t = ZZ['t'].gen()
             sage: species.SetSpecies(min=1, max=4, weight=t)
             Set species with min=1, max=4, weight=t
+            sage: L = species.SetSpecies()
+            sage: L.rename('L'); L
+            L
+            sage: L.rename('Set species'); L
+            Set species
         """
         if hasattr(self, "_name"):
             name = self._name if isinstance(self._name, str) else self._name()
