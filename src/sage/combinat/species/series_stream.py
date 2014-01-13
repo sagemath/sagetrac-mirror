@@ -533,7 +533,7 @@ class CompositionStream(SeriesStream):
         """
         return a*b
 
-    def recursive_stream(self):
+    def tail_stream(self):
         """
         Returns a stream whose tail is equal to the tail of this
         composition stream.
@@ -548,7 +548,7 @@ class CompositionStream(SeriesStream):
             <class 'sage.combinat.species.series_stream.CompositionStream'>
             sage: [stream[i] for i in range(1, 5)]
             [6, 24, 96, 384]
-            sage: f = stream.recursive_stream()
+            sage: f = stream.tail_stream()
             sage: [f[i] for i in range(1, 5)]
             [6, 24, 96, 384]
 
@@ -563,7 +563,7 @@ class CompositionStream(SeriesStream):
         Returns the $n^{th}$ coefficient of this composition stream.
         If $n = 0$, then it will return the $0^{th}$ coefficient of
         ``self._outer``; otherwise, it will return the $n^th$ coefficient
-        of the stream defined by :meth:`recursive_stream`.
+        of the stream defined by :meth:`tail_stream`.
 
         EXAMPLES::
         
@@ -583,7 +583,7 @@ class CompositionStream(SeriesStream):
         try:
             res = self._res
         except AttributeError:
-            res = self._res = self.recursive_stream()
+            res = self._res = self.tail_stream()
             res[0]
         return res[n]
 
