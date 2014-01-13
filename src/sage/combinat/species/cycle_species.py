@@ -18,7 +18,6 @@ Cycle Species
 from species import GenericCombinatorialSpecies, SpeciesSeriesStream
 from series import SeriesStreamFromList
 from structure import GenericSpeciesStructure
-from generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, divisors, euler_phi
 from sage.combinat.species.misc import accept_size

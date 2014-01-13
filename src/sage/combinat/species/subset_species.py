@@ -17,9 +17,10 @@ Subset Species
 #*****************************************************************************
 
 from species import GenericCombinatorialSpecies, SpeciesSeriesStream
-from generating_series import _integers_from, factorial_stream
+from generating_series import factorial_stream
 from structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
+from sage.sets.all import PositiveIntegers
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -237,7 +238,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
         yield base_ring(0)
-        for n in _integers_from(ZZ(1)):
+        for n in PositiveIntegers():
             yield 2*p([n])/n
 
 #Backward compatibility

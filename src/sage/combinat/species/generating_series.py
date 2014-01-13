@@ -15,15 +15,14 @@ as the coefficients of our cycle index series.
 
 TESTS::
 
-    sage: from sage.combinat.species.stream import Stream, _integers_from
     sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
     sage: p = SymmetricFunctions(QQ).power()
     sage: CIS = CycleIndexSeriesRing(QQ)
 
 ::
 
-    sage: geo1 = CIS((p([1])^i  for i in _integers_from(0)))
-    sage: geo2 = CIS((p([2])^i  for i in _integers_from(0)))
+    sage: geo1 = CIS((p([1])^i  for i in NN))
+    sage: geo2 = CIS((p([2])^i  for i in NN))
     sage: s = geo1 * geo2
     sage: s[0]
     p[]
@@ -41,10 +40,10 @@ weighted degree where each variable x_i has weight i.
 ::
 
     sage: def g():
-    ...       for i in _integers_from(0):
+    ...       for i in NN:
     ...           yield p([2])^i
     ...           yield p(0)
-    sage: geo1 = CIS((p([1])^i  for i in _integers_from(0)))
+    sage: geo1 = CIS((p([1])^i  for i in NN))
     sage: geo2 = CIS(g())
     sage: s = geo1 * geo2
     sage: s[0]
@@ -74,14 +73,12 @@ weighted degree where each variable x_i has weight i.
 #*****************************************************************************
 from series import (LazyPowerSeriesRing, LazyPowerSeries)
 from series_stream import (SeriesStream, PowerStream, SumGeneratorStream,
-                           ListSumStream, TermStream)
-from stream import Stream, _integers_from
-from sage.rings.all import Integer, moebius, lcm, divisors, gcd
+                           ListSumStream, TermStream, SeriesStreamFromIterator)
+from sage.rings.all import ZZ, Integer, moebius, lcm, divisors, gcd, NN
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
 from sage.combinat.partition import Partition, Partitions
 from sage.structure.element import coerce_binop
-
 
 class OrdinaryGeneratingSeriesRing(LazyPowerSeriesRing):
     def __init__(self, R):
@@ -269,9 +266,7 @@ def factorial_gen():
         yield z
         n += 1
 
-factorial_stream = Stream(factorial_gen())
-
-
+factorial_stream = SeriesStreamFromIterator(iterator=factorial_gen(), base_ring=ZZ)
 
 class CycleIndexSeriesRing(LazyPowerSeriesRing):
     def __init__(self, R):
@@ -530,7 +525,7 @@ class CycleIndexSeries(LazyPowerSeries):
         expanded_poly_ring = self.coefficient(0).expand(n, alphabet).parent()
         LPSR = LazyPowerSeriesRing(expanded_poly_ring)
 
-        expander_gen = (LPSR.term(self.coefficient(i).expand(n, alphabet), i) for i in _integers_from(0))
+        expander_gen = (LPSR.term(self.coefficient(i).expand(n, alphabet), i) for i in NN)
 
         return LPSR.sum_generator(expander_gen)
 
@@ -633,7 +628,7 @@ class CycleIndexSeries(LazyPowerSeries):
         def multinv_builder(i):
             return self.coefficient(0)**(-i-1) * (self.coefficient(0) + (-1)*self)**i
 
-        return self.parent().sum_generator(multinv_builder(i) for i in _integers_from(0))
+        return self.parent().sum_generator(multinv_builder(i) for i in NN)
 
     @coerce_binop
     def __div__(self, y):
@@ -823,7 +818,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         # Finally, we use the sum_generator method to assemble these results into a single
         # LazyPowerSeries object.
-        return self.parent().sum_generator(arith_prod_coeff(n) for n in _integers_from(0))
+        return self.parent().sum_generator(arith_prod_coeff(n) for n in NN)
 
     def _cycle_type(self, s):
         """
@@ -928,7 +923,7 @@ class CycleIndexSeries(LazyPowerSeries):
                 [p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
             """
             g = (self._compose_term(self._outer[i], self._y_powers)
-                 for i in _integers_from(0))
+                 for i in NN)
             res = SumGeneratorStream(g, base_ring=self._base_ring)
             return res
 
@@ -947,7 +942,6 @@ class CycleIndexSeries(LazyPowerSeries):
 
             EXAMPLES::
 
-                sage: from sage.combinat.species.stream import Stream
                 sage: E = species.SetSpecies(); C = species.CycleSpecies()
                 sage: E_cis = E.cycle_index_series()
                 sage: C_cis = C.cycle_index_series()
@@ -994,7 +988,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         def recursive_stream(self):
             g = (self._weighted_compose_term(self._outer[i], self._inner_species)
-                 for i in _integers_from(0))
+                 for i in NN)
             return SumGeneratorStream(g, base_ring=self._base_ring)
 
         def _weighted_compose_term(self, p, y_species):

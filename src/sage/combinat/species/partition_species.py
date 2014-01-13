@@ -17,12 +17,13 @@ Partition Species
 #*****************************************************************************
 
 from species import GenericCombinatorialSpecies, SpeciesSeriesStream
-from generating_series import _integers_from, factorial_stream
+from generating_series import factorial_stream
 from subset_species import SubsetSpeciesStructure
 from set_species import SetSpecies
 from structure import GenericSpeciesStructure
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
+from sage.sets.all import PositiveIntegers
 from sage.combinat.species.misc import accept_size
 
 class PartitionSpeciesStructure(GenericSpeciesStructure):
@@ -269,9 +270,10 @@ class PartitionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              5/6*p[1, 1, 1] + 3/2*p[2, 1] + 2/3*p[3],
              5/8*p[1, 1, 1, 1] + 7/4*p[2, 1, 1] + 7/8*p[2, 2] + p[3, 1] + 3/4*p[4]]
         """
+        PP = PositiveIntegers()
         ciset = SetSpecies().cycle_index_series(base_ring)
         CIS = ciset.parent()
-        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in _integers_from(ZZ(1))).exponential()
+        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in PP).exponential()
         if self.is_weighted():
             res *= self._weight
         return res

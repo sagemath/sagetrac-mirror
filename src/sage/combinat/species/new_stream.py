@@ -1,4 +1,5 @@
 from sage.structure.sage_object import SageObject
+from sage.misc.misc import is_iterator
 
 # TODO:
 # 1. __len__ / number_computed / max_computed??
@@ -299,14 +300,13 @@ class StreamFromIterator(ListCachedStream):
         EXAMPLES::
 
             sage: from sage.combinat.species.new_stream import StreamFromIterator
-            sage: from sage.combinat.species.stream import _integers_from
-            sage: s = StreamFromIterator(_integers_from(1))
+            sage: s = StreamFromIterator(iterator=NN)
             sage: s[0]
-            1
+            0
             sage: s[10]
-            11
+            10
         """
-        self._it = iterator
+        self._it = iterator if is_iterator(iterator) else iter(iterator)
         super(StreamFromIterator, self).__init__(**kwds)            
     
     def compute(self, n):

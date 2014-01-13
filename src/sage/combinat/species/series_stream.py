@@ -22,7 +22,7 @@ from sage.rings.all import Integer
 
 class SeriesStream(ListCachedStream):
     def __init__(self, order=unk, aorder=unk, base_ring=None,
-                 aorder_changed=True, **kwds):
+                 aorder_changed=True, convert=False, **kwds):
         assert base_ring is not None
         self._base_ring = base_ring
         self.aorder = aorder
@@ -31,6 +31,7 @@ class SeriesStream(ListCachedStream):
             self.order = inf
         self.aorder_changed = aorder_changed
         self._zero = base_ring(0)
+        self._convert = convert
         self._children = kwds.pop('children', [])
         super(SeriesStream, self).__init__(**kwds)
 
@@ -44,7 +45,14 @@ class SeriesStream(ListCachedStream):
         # because comparison of Integer and InfinityOrder is not implemented.
         if self.get_aorder() > n:
             return self._zero
-        return super(SeriesStream, self).__getitem__(n)
+        result = super(SeriesStream, self).__getitem__(n)
+        if self._convert:
+            return self._base_ring(result)
+        else:
+            return result
+
+    def base_ring(self):
+        return self._base_ring
 
     def children(self):
         return self._children

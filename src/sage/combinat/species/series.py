@@ -3,10 +3,7 @@ Lazy Power Series
 
 This file provides an implementation of lazy univariate power
 series, which uses the stream class for its internal data
-structure. The lazy power series keep track of their approximate
-order as much as possible without forcing the computation of any
-additional coefficients. This is required for recursively defined
-power series.
+structure.
 
 This code is based on the work of Ralf Hemmecke and Martin Rubey's
 Aldor-Combinat, which can be found at
@@ -28,8 +25,6 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-#from stream import Stream, Stream_class
-from new_stream import OldStreamBehavior as Stream, Stream as Stream_class
 from series_order import  inf, unk
 from sage.rings.all import Integer
 from sage.misc.misc import repr_lincomb, is_iterator
@@ -45,9 +40,6 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element, AlgebraElement
 from sage.algebras.algebra import Algebra
 from sage.categories.algebras import Algebras
-
-
-
 
 class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
     def __init__(self, R, element_class=None, category=None, names=None):
@@ -159,7 +151,6 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L()
             O(1)
@@ -169,8 +160,16 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
             sage: L(iter(ZZ)).coefficients(10)
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
-            sage: L(Stream(ZZ)).coefficients(10)
+
+        ::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: s = SeriesStreamFromIterator(iterator=ZZ, base_ring=QQ, convert=True)
+            sage: L(s).coefficients(10)
             [0, 1, -1, 2, -2, 3, -3, 4, -4, 5]
+            sage: _[0].parent()
+            Rational Field
 
         ::
 
@@ -218,13 +217,17 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
                                      new_ring=base_ring)
 
 
+        if isinstance(x, SeriesStream):
+            assert x.base_ring() == base_ring
+            return cls(self, x)
+        
         if isinstance(x, (list, tuple)):
             x = SeriesStreamFromList(list=x, base_ring=base_ring)
-        elif hasattr(x, "__iter__") and not isinstance(x, Stream_class):
+        elif hasattr(x, "__iter__"):
             x = iter(x)
 
         if is_iterator(x):
-            x = SeriesStreamFromIterator(iterator=x, base_ring=base_ring)
+            x = SeriesStreamFromIterator(iterator=x, base_ring=base_ring, convert=True)
 
         if isinstance(x, SeriesStream):
             return cls(self, x)
@@ -310,29 +313,6 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
             [0, 3, -3, 6, -6, 9, -9, 12, -12, 15]
         """
         return self._new(ListSumStream, [x._stream for x in a])
-
-    #Potentially infinite sum
-    def _sum_generator_gen(self, g):
-        """
-        EXAMPLES::
-
-            sage: L = LazyPowerSeriesRing(QQ)
-            sage: s = L([1])
-            sage: def f():
-            ...       while True:
-            ...           yield s
-            sage: g = L._sum_generator_gen(f())
-            sage: [g.next() for i in range(10)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        """
-        s = Stream(g)
-        n = 0
-        while True:
-            r = s[n].coefficient(n)
-            for i in range(min(n, len(s)-1)):
-                r += s[i].coefficient(n)
-            yield r
-            n += 1
 
     def sum_generator(self, g):
         """
@@ -1017,7 +997,6 @@ class LazyPowerSeries(AlgebraElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: L = LazyPowerSeriesRing(QQ)
             sage: f = L(range(10))
             sage: g = f.iterator(2)

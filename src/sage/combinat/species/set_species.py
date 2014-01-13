@@ -16,11 +16,13 @@ Set Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from species import GenericCombinatorialSpecies, SpeciesSeriesStream
-from generating_series import factorial_stream, _integers_from
+from generating_series import factorial_stream
 from series import SeriesStreamFromList
 from sage.combinat.species.structure import GenericSpeciesStructure
 from sage.combinat.species.misc import accept_size
+from sage.combinat.sf.sf import SymmetricFunctions
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.sets.all import PositiveIntegers
 
 class SetSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
@@ -201,10 +203,9 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: [g.next() for i in range(5)]
             [0, p[1], 1/2*p[2], 1/3*p[3], 1/4*p[4]]
         """
-        from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
         yield p(0)
-        for n in _integers_from(1):
+        for n in PositiveIntegers():
             yield p([n])/n
 
 
