@@ -80,44 +80,33 @@ from sage.rings.all import Integer, moebius, lcm, divisors, gcd
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
 from sage.combinat.partition import Partition, Partitions
+from sage.structure.element import coerce_binop
 
 
-@cached_function
-def OrdinaryGeneratingSeriesRing(R):
-    """
-    Returns the ring of ordinary generating series. Note that is is
-    just a LazyPowerSeriesRing whose elements have some extra methods.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-        sage: R = OrdinaryGeneratingSeriesRing(QQ); R
-        Lazy Power Series Ring over Rational Field
-        sage: R([1]).coefficients(4)
-        [1, 1, 1, 1]
-        sage: R([1]).counts(4)
-        [1, 1, 1, 1]
-
-    TESTS: We test to make sure that caching works.
-
-    ::
-
-        sage: R is OrdinaryGeneratingSeriesRing(QQ)
-        True
-    """
-    return OrdinaryGeneratingSeriesRing_class(R)
-
-class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
+class OrdinaryGeneratingSeriesRing(LazyPowerSeriesRing):
     def __init__(self, R):
         """
+        Returns the ring of ordinary generating series. Note that is is
+        just a LazyPowerSeriesRing whose elements have some extra methods.
+
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ)
-            sage: R == loads(dumps(R))
-            True
+            sage: R = OrdinaryGeneratingSeriesRing(QQ); R
+            Lazy Power Series Ring over Rational Field
+            sage: R([1]).coefficients(4)
+            [1, 1, 1, 1]
+            sage: R([1]).counts(4)
+            [1, 1, 1, 1]
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
-        LazyPowerSeriesRing.__init__(self, R, OrdinaryGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=OrdinaryGeneratingSeries)
+
+# Backward-compatibility
+OrdinaryGeneratingSeriesRing_class = OrdinaryGeneratingSeriesRing
 
 class OrdinaryGeneratingSeries(LazyPowerSeries):
     def count(self, n):
@@ -150,42 +139,30 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
         return [self.count(i) for i in range(n)]
 
 
-@cached_function
-def ExponentialGeneratingSeriesRing(R):
-    """
-    Returns the ring of ordinary generating series. Note that is is
-    just a LazyPowerSeriesRing whose elements have some extra methods.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-        sage: R = ExponentialGeneratingSeriesRing(QQ); R
-        Lazy Power Series Ring over Rational Field
-        sage: R([1]).coefficients(4)
-        [1, 1, 1, 1]
-        sage: R([1]).counts(4)
-        [1, 1, 2, 6]
-
-    TESTS: We test to make sure that caching works.
-
-    ::
-
-        sage: R is ExponentialGeneratingSeriesRing(QQ)
-        True
-    """
-    return ExponentialGeneratingSeriesRing_class(R)
-
-class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
+class ExponentialGeneratingSeriesRing(LazyPowerSeriesRing):
     def __init__(self, R):
         """
+        Returns the ring of ordinary generating series. Note that is is
+        just a LazyPowerSeriesRing whose elements have some extra methods.
+
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ)
-            sage: R == loads(dumps(R))
-            True
+            sage: R = ExponentialGeneratingSeriesRing(QQ); R
+            Lazy Power Series Ring over Rational Field
+            sage: R([1]).coefficients(4)
+            [1, 1, 1, 1]
+            sage: R([1]).counts(4)
+            [1, 1, 2, 6]
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
-        LazyPowerSeriesRing.__init__(self, R, ExponentialGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=ExponentialGeneratingSeries)
+
+# Backward compatibility
+ExponentialGeneratingSeriesRing_class = ExponentialGeneratingSeriesRing
 
 class ExponentialGeneratingSeries(LazyPowerSeries):
     def count(self, n):
@@ -296,44 +273,29 @@ factorial_stream = Stream(factorial_gen())
 
 
 
-@cached_function
-def CycleIndexSeriesRing(R):
-    """
-    Returns the ring of cycle index series. Note that is is just a
-    LazyPowerSeriesRing whose elements have some extra methods.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-        sage: R = CycleIndexSeriesRing(QQ); R
-        Cycle Index Series Ring over Symmetric Functions over Rational Field in the powersum basis
-        sage: R([1]).coefficients(4)
-        [p[], p[], p[], p[]]
-
-    TESTS: We test to make sure that caching works.
-
-    ::
-
-        sage: R is CycleIndexSeriesRing(QQ)
-        True
-    """
-    return CycleIndexSeriesRing_class(R)
-
-class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
+class CycleIndexSeriesRing(LazyPowerSeriesRing):
     def __init__(self, R):
         """
+        Returns the ring of cycle index series. Note that is is just a
+        LazyPowerSeriesRing whose elements have some extra methods.
+
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: R = CycleIndexSeriesRing(QQ); R
             Cycle Index Series Ring over Symmetric Functions over Rational Field in the powersum basis
-            sage: R == loads(dumps(R))
-            True
+            sage: R([1]).coefficients(4)
+            [p[], p[], p[], p[]]
+
+        TESTS::
+
+
+            sage: TestSuite(R).run()
         """
         R = SymmetricFunctions(R).power()
-        LazyPowerSeriesRing.__init__(self, R, CycleIndexSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=CycleIndexSeries)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -343,6 +305,8 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
         """
         return "Cycle Index Series Ring over %s"%self.base_ring()
 
+# Backward compatibility
+CycleIndexSeriesRing_class = CycleIndexSeriesRing
 
 class CycleIndexSeries(LazyPowerSeries):
     def count(self, t):
@@ -671,7 +635,8 @@ class CycleIndexSeries(LazyPowerSeries):
 
         return self.parent().sum_generator(multinv_builder(i) for i in _integers_from(0))
 
-    def _div_(self, y):
+    @coerce_binop
+    def __div__(self, y):
         """
         TESTS::
 
