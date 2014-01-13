@@ -1,9 +1,25 @@
+"""
+(New) Streams
+
+This code provides a new implementation of the streams found at
+:mod:`sage.combinat.species.stream`.
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import is_iterator
-
-# TODO:
-# 1. __len__ / number_computed / max_computed??
-
 
 def check_constant_decorator(func):
     """
@@ -46,6 +62,16 @@ class Stream(SageObject):
     def __init__(self):
         """
         A base class for streams.  This class is typically subclassed.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.new_stream import Stream
+            sage: class NNStream(Stream):
+            ....:    def compute(self, n):
+            ....:        return n
+            sage: s = NNStream()
+            sage: [s[i] for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
         self._constant = False
 
@@ -322,7 +348,7 @@ class StreamFromIterator(ListCachedStream):
             1
             sage: s.is_constant()
             False
-            sage: s[2], s[10]
+            sage: s[2], s[10]  # indirect doctest
             (3, 3)
             sage: s.is_constant()
             True
@@ -405,9 +431,36 @@ class StreamFromList(ListCachedStream):
 
 
 def OldStreamBehavior(x=None, const=None):
+    """
+    A function which emulates the behavior of
+    :func:`sage.combinat.species.stream.Stream` using
+    :class:`sage.combinat.species.new_stream.Stream`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import OldStreamBehavior
+        sage: s = OldStreamBehavior(const=3)
+        sage: [s[i] for i in range(5)]
+        [3, 3, 3, 3, 3]
+        sage: s = OldStreamBehavior([1,2,3])
+        sage: [s[i] for i in range(5)]
+        [1, 2, 3, 3, 3]
+        sage: s = OldStreamBehavior(iter([1,2,3]))
+        sage: [s[i] for i in range(5)]
+        [1, 2, 3, 3, 3]
+        sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+        sage: s = OldStreamBehavior(h)
+        sage: [s[i] for i in range(10)]
+        [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+        sage: s = OldStreamBehavior(4)
+        sage: [s[i] for i in range(5)]
+        [4, 0, 0, 0, 0]
+    """
     import types
     if const is not None:
-        return ConstantStream(const)
+        s = Stream()
+        s.set_constant(0, const)
+        return s
     elif isinstance(x, list):
         return StreamFromList(x)
     elif hasattr(x, '__iter__'):
