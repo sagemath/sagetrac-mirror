@@ -370,8 +370,8 @@ class ProductStream(SeriesStream):
         return res
 
     def is_constant(self):
-        return ((self._left.is_constant() and self._left.is_constant() == 0) and
-                (self._right.is_constant() and self._right.is_constant() == 0))
+        return ((self._left.is_constant() and self._left.get_constant() == 0) and
+                (self._right.is_constant() and self._right.get_constant() == 0))
 
     def get_constant(self):
         assert self.is_constant()
@@ -379,7 +379,7 @@ class ProductStream(SeriesStream):
 
     def get_constant_position(self):
         return (self._left.get_constant_position() *
-                self._right.get_constant_position()) - 1
+                self._right.get_constant_position())
                 
     
 class TailStream(SeriesStream):
