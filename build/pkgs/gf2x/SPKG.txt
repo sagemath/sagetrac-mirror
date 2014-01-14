@@ -23,12 +23,18 @@ Website: http://gf2x.gforge.inria.fr/
  * None
 
 == Special Update/Build Instructions ==
+ * As sse2_tr_fixes.patch touches config/acinclude.m4, we have to touch
+   aclocal.m4, configure, Makefile.in and gf2x/gf2x-config.h.in to prevent
+   autotools to try to regenerate these files.
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
+ * hardware_specific_code.patch: backport upstream commits 162 and 167 to disable
+   cpu-dependent optimizations.
+ * sse2_tr_fixes.patch: backport upstream fixes for non-portable use of tr and for
+   sse2 checks.
+ * x86_64_sse2.patch: always support SSE2 on x86_64.
  * update_thresholds.patch: rename update-thresholds for Cygwin64.
- * symlink already_tuned/x86_64/gf2x_mul2.h to ../../src/mul2k.c in spkg-install
-   so that we can build a fat binary on x86_64.
 
 == Changelog ==
 

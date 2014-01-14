@@ -19,12 +19,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# Let the non-optimized x86_64 version build without SSE2.
-# As this only needs changing a symlink, no patch is used.
-cd already_tuned/x86_64
-rm -f gf2x_mul2.h
-ln -s ../../src/mul2k.c gf2x_mul2.h
-cd ../..
+# As config/acinclude.m4 is patched, we need to touch some files to prevent
+# autotools to invoke black magic.
+touch aclocal.m4 configure Makefile.in gf2x/gf2x-config.h.in
 
 if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of gf2x."
@@ -40,8 +37,18 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-    echo "Disabling optimizations."
-    GF2X_CONFIGURE="--disable-sse2 --disable-pclmul $GF2X_CONFIGURE"
+    echo "Building a generic gf2x library."
+    case `uname -m`  in
+      x86_64)
+        GF2X_HWDIR="x86_64"
+        ;;
+      i?86)
+        GF2X_HWDIR="x86_nosse2"
+        ;;
+      *)
+        ;;
+    esac
+    GF2X_CONFIGURE="hwdir=$GF2X_HWDIR --disable-hardware-specific-code $GF2X_CONFIGURE"
 fi
 
 echo "Configuring gf2x."
