@@ -409,7 +409,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: F.structures([1,2,3]).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: must call define() first
         """
         return StructuresWrapper(self, labels, structure_class)
 
@@ -421,7 +421,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: F.isotypes([1,2,3]).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: must call define() first
         """
         return IsotypesWrapper(self, labels, structure_class=structure_class)
 

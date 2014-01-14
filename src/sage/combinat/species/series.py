@@ -316,6 +316,14 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
 
     def sum_generator(self, g):
         """
+        Returns a lazy power series whose $n^{th}$ coefficients is
+        the sum of $n^{th}$ coefficients for the first $n$ series in
+        ``g``.
+
+        INPUT:
+
+        - ``g`` - an iterable of lazy power series
+        
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
@@ -338,7 +346,23 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
 
     #Potentially infinite product
     def product_generator(self, g):
-        """
+        r"""
+        Returns a lazy power series which is the product of the
+        (potentially infinite) series in the iterable ``g``.  In order
+        to do this, we place restrictions on the form of the series
+        $g_n$.  In particular we require that
+
+        .. math::
+
+           g_n = 1 + \sum_{i=n}^{\infty} a_{n,i} x^i.
+
+        Then, the $n^{th}$ coefficient can be obtained from the first
+        $n$ series.
+
+        INPUT:
+
+        - ``g`` - an iterable of lazy power series
+        
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
