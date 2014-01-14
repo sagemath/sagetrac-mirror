@@ -584,38 +584,6 @@ class GenericCombinatorialSpecies(SageObject):
             return series_ring._new(self.CycleIndexSeriesStream,
                                     weight=self._weight, species=self)
 
-        #Try to return things like self._gs_iterator(base_ring).
-        #This is used when the subclass just provides an iterator
-        #for the coefficients of the generating series.  Optionally,
-        #the subclass can specify the order of the series.
-        try:
-            iterator = getattr(self, prefix+"_iterator")(base_ring)
-            try:
-                return series_ring(iterator, order=self._order())
-            except AttributeError:
-                return series_ring(iterator)
-        except AttributeError:
-            pass
-
-        #Try to use things like self._gs_term(base_ring).
-        #This is used when the generating series is just a single
-        #term.
-        try:
-            return series_ring.term( getattr(self, prefix+"_term")(base_ring),
-                                     self._order())
-        except AttributeError:
-            pass
-
-        #Try to use things like self._gs_list(base_ring).
-        #This is used when the coefficients of the generating series
-        #can be given by a finite list with the last coefficient repeating.
-        #The generating series with all ones coefficients is generated this
-        #way.
-        try:
-            return series_ring(getattr(self, prefix+"_list")(base_ring))
-        except AttributeError:
-            pass
-
         raise NotImplementedError
 
 
