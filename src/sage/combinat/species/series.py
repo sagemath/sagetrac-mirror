@@ -49,6 +49,55 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
             sage: from sage.combinat.species.series import LazyPowerSeriesRing
             sage: L = LazyPowerSeriesRing(QQ)
             sage: TestSuite(L).run()
+
+        Check that :trac:`15249`  is fixed::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: (L.zero() + x).coefficients(4)
+            [0, 1, 0, 0]
+            sage: (L.zero() - x).coefficients(4)
+            [0, -1, 0, 0]
+
+        Check that :trac:`15248` is fixed::
+
+        
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: m = matrix(L, [[x, x], [1, x]])
+            sage: m.det().coefficients(4)
+            [0, -1, 1, 0]
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: m = matrix(L, [[x, x], [1, x]])
+            sage: m.det().coefficients(4)
+            [0, -1, 1, 0]
+
+        Check that :trac:`10084` is fixed::
+
+            sage: one = L(0) + L(1)
+            sage: one.coefficients(4)
+            [1, 0, 0, 0]
+
+        Check that :trac:`10085` and :trac:`10086` are fixed::
+
+             sage: S1.<t> = LazyPowerSeriesRing(ZZ)
+             sage: S2.<y> = LazyPowerSeriesRing(S1)
+             sage: y.coefficient(1).coefficient(0)
+             1
+             sage: S2(t).coefficient(0)
+             t
+
+        Check that :trac:`13433` is fixed::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: x.coefficient(2).parent()
+            Rational Field
+
+        Check that :trac:`14685` is fixed::
+
+            sage: R = LazyPowerSeriesRing(QQ)
+            sage: b = R(iter([0,0,0,1,0]))
+            sage: coeffs = b.coefficients(10)
+            sage: b.aorder
+            3
         """
         #Make sure R is a ring with unit element
         if not R in Rings():
