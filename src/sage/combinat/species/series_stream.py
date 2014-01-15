@@ -46,7 +46,7 @@ class SeriesStream(ListCachedStream):
         self.order = order
         if aorder == inf:
             self.order = inf
-        self.aorder_changed = aorder_changed
+        self.aorder_changed = False if order != unk else aorder_changed
         self._zero = base_ring(0)
         self._convert = convert
         self._children = tuple(kwds.pop('children', ()))

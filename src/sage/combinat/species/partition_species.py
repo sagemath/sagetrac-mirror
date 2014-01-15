@@ -272,8 +272,7 @@ class PartitionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         PP = PositiveIntegers()
         ciset = SetSpecies().cycle_index_series(base_ring)
-        CIS = ciset.parent()
-        res = CIS.sum_generator(((1/n)*ciset).stretch(n) for n in PP).exponential()
+        res = ciset.composition(ciset - 1)
         if self.is_weighted():
             res *= self._weight
         return res

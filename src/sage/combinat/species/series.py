@@ -1109,6 +1109,8 @@ class LazyPowerSeries(AlgebraElement):
             yield z
             z = z*self
 
+    DerivativeStream = DerivativeStream
+
     def derivative(self):
         """
         EXAMPLES::
@@ -1164,7 +1166,7 @@ class LazyPowerSeries(AlgebraElement):
             sage: d.coefficients(5)
             [0, 8, 15, 24, 0]
         """
-        return self._new(DerivativeStream, self._stream)
+        return self._new(self.DerivativeStream, self._stream)
 
     ###########
     #Integrals#
