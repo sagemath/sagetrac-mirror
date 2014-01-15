@@ -6193,7 +6193,9 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         # because the rest of the mpz struct was already initialized
         # fully using the memcpy above.
 
+        sig_on()
         (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
+        sig_off()
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
