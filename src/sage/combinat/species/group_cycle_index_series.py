@@ -68,31 +68,28 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.rings.rational_field import RationalField
 from sage.misc.cachefunc import cached_function
+from sage.rings.all import QQ, NN
 from sage.combinat.free_module import CombinatorialFreeModule,CombinatorialFreeModuleElement
+from sage.structure.unique_representation import UniqueRepresentation
 
-@cached_function
-def GroupCycleIndexSeriesRing(G, R = RationalField()):
+class GroupCycleIndexSeriesRing(CombinatorialFreeModule, UniqueRepresentation):
     """
     Return the ring of group cycle index series.
 
     EXAMPLES::
 
         sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
-        sage: GCISR = GroupCycleIndexSeriesRing(SymmetricGroup(4)); GCISR
-        Ring of (Symmetric group of order 4! as a permutation group)-Cycle Index Series over Rational Field
+        sage: GCISR = GroupCycleIndexSeriesRing(SymmetricGroup(2)); GCISR
+        Ring of (Symmetric group of order 2! as a permutation group)-Cycle Index Series over Rational Field
 
-    TESTS: We test to make sure that caching works. ::
+    TESTS:
 
-        sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
-        sage: GCISR is GroupCycleIndexSeriesRing(SymmetricGroup(4))
-        True
+    We test to make sure the test suite runs::
+
+        sage: TestSuite(GCISR).run()
     """
-    return GroupCycleIndexSeriesRing_class(G, R)
-
-class GroupCycleIndexSeriesRing_class(CombinatorialFreeModule):
-    def __init__(self, G, R = RationalField()):
+    def __init__(self, G, R=QQ):
         """
         EXAMPLES::
 
@@ -110,7 +107,8 @@ class GroupCycleIndexSeriesRing_class(CombinatorialFreeModule):
         self._cisr = CISR
         self._group = G
 
-        CombinatorialFreeModule.__init__(self, CISR, G, element_class = GroupCycleIndexSeries, category = AlgebrasWithBasis(CISR), prefix = 'G')
+        CombinatorialFreeModule.__init__(self, CISR, G, element_class=GroupCycleIndexSeries,
+                                         category = AlgebrasWithBasis(CISR), prefix='G')
     
     def product_on_basis(self, left, right):
         """
@@ -147,7 +145,7 @@ class GroupCycleIndexSeriesRing_class(CombinatorialFreeModule):
             sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
             sage: GCISR = GroupCycleIndexSeriesRing(SymmetricGroup(2))
             sage: GCISR.one()
-            p[]*G[()] + p[]*G[(1,2)]
+            G[()] + G[(1,2)]
 
         """
         basis = self.basis()
@@ -163,20 +161,53 @@ class GroupCycleIndexSeriesRing_class(CombinatorialFreeModule):
         """
         return "Ring of (%s)-Cycle Index Series over %s" %(self._group, self._coeff_ring)
 
+    def group(self):
+        """
+        Returns the group of this :class:`GroupCycleIndexSeriesRing`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
+            sage: G = GroupCycleIndexSeriesRing(SymmetricGroup(4))
+            sage: G.group()
+            Symmetric group of order 4! as a permutation group
+        """
+        return self._group
+
+    def recursive_series(self):
+        """
+        Returns a group cycle index series ring that can de defined
+        recursively.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
+            sage: S2 = SymmetricGroup(2)
+            sage: GCISR = GroupCycleIndexSeriesRing(S2)
+            sage: from sage.combinat.species.group_cycle_index_series_library import LinearOrderWithReversalGroupCycleIndex
+            sage: L = LinearOrderWithReversalGroupCycleIndex()
+            sage: X = GCISR(species.SingletonSpecies().cycle_index_series())
+            sage: A = GCISR.recursive_series()
+            sage: A.define(X*L(A))
+            sage: A.quotient().isotype_generating_series().counts(8)
+            [0, 1, 1, 2, 4, 10, 26, 76]
+        """
+        terms = [(g, self._cisr()) for g in self.basis().keys()]
+        return self.sum_of_terms(terms, distinct=True)
+
 class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
     """
-    
     EXAMPLES::
 
         sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
         sage: GCISR = GroupCycleIndexSeriesRing(SymmetricGroup(4))
         sage: GCISR.an_element()
-        p[]*G[()] + 2*p[]*G[(3,4)] + 3*p[]*G[(2,3)] + p[]*G[(1,2,3,4)]
-    
+        G[()] + 2*G[(3,4)] + 3*G[(2,3)] + G[(1,2,3,4)]
     """
     
     def quotient(self):
-        """Return the quotient of this group cycle index.
+        r"""
+        Return the quotient of this group cycle index.
 
         This is defined to be the ordinary cycle index `F / \Gamma` obtained from a
         `\Gamma`-cycle index `F` by:
@@ -196,24 +227,26 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
             sage: S4 = SymmetricGroup(4)
             sage: GCISR = GroupCycleIndexSeriesRing(S4)
             sage: GCISR.an_element()
-            p[]*G[()] + 2*p[]*G[(3,4)] + 3*p[]*G[(2,3)] + p[]*G[(1,2,3,4)]
+            G[()] + 2*G[(3,4)] + 3*G[(2,3)] + G[(1,2,3,4)]
             sage: GCISR.an_element().quotient().coefficients(4)
             [7/24*p[], 0, 0, 0]
 
         REFERENCES:
 
         .. [AGdiss] Andrew Gainer. "`\Gamma`-species, quotients, and graph enumeration". Ph.D. diss. Brandeis University, 2012.
-        .. [Bousquet] Michel Bousquet. "Espèces de structures et applications du dénombrement de cartes et de cactus planaires". Ph.D. diss. Université du Québec à Montréal, 1999.
+        .. [Bousquet] Michel Bousquet. "Especes de structures et applications du denombrement de cartes et de cactus planaires". Ph.D. diss. Universite du Quebec a Montreal, 1999.
            http://lacim.uqam.ca/publications_pdf/24.pdf
 
         """
 
-        return 1/self.parent()._group.cardinality() * sum(self.coefficients())
+        return 1/self.parent().group().cardinality() * sum(self.coefficients())
 
-    def composition(self, y, test_constant_term_is_zero = True):
-        """Return the group-cycle-index plethysm of ``self`` with ``y``.
+    def composition(self, y, test_constant_term_is_zero=False):
+        r"""
+        Return the group-cycle-index plethysm of ``self`` with ``y``.
         
-        Plethysm of group cycle index series is defined by a sort of 'mixing' operation in [Hend]_:
+        Plethysm of group cycle index series is defined by a sort of
+        'mixing' operation in [Hend]_:
 
         .. MATH::
             (F \circ G) [\gamma] (p_{1}, p_{2}, p_{3}, \dots) =
@@ -264,7 +297,7 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
         .. [Hend] Anthony Henderson. "Species over a finite field". J. Algebraic Combin., 21(2):147-161, 2005.
 
         """
-        from sage.combinat.species.stream import Stream,_integers_from
+        from sage.combinat.species.series_stream import PowerStream
         from sage.misc.misc_c import prod
 
         assert self.parent() == y.parent()
@@ -272,17 +305,17 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
         parent = self.parent()
         cisr = parent._cisr
         sfa = cisr.base_ring()
-        group = parent._group
+        group = parent.group()
 
         if test_constant_term_is_zero:
             for ycis in y.coefficients():
                 assert ycis.coefficient(0) == 0
-
-        ypowers = { g: Stream(y[g]._power_gen()) for g in group }
+                
+        ypowers = {g: PowerStream(y[g]._stream) for g in group}
 
         def monomial_composer( partition, g ):
             partmults = ( (i+1, j) for i,j in enumerate(partition.to_exp()) if j != 0 )
-            ycontrib = lambda part, mult: ypowers[g**part][mult-1].stretch(part)
+            ycontrib = lambda part, mult: cisr(ypowers[g**part][mult-1]).stretch(part)
             res = cisr.one()*prod(ycontrib(part, mult) for part,mult in partmults)
             return res
         
@@ -299,7 +332,7 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
             #elif g == group.identity(): #Save time by using existing CIS composition code
             #    res = self[g](y[g])
             else:
-                res = cisr.sum_generator(term_map(self[g].coefficient(i), g) for i in _integers_from(0))
+                res = cisr.sum_generator(term_map(self[g].coefficient(i), g) for i in NN)
             return res
 
         components_dict = { g: component_builder(g) for g in group }
@@ -374,14 +407,13 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
             sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
             sage: S2 = SymmetricGroup(2)
             sage: GCISR = GroupCycleIndexSeriesRing(S2)
-            sage: e,t = GCISR.basis().keys()
             sage: from sage.combinat.species.group_cycle_index_series_library import LinearOrderWithReversalGroupCycleIndex
             sage: L = LinearOrderWithReversalGroupCycleIndex()
             sage: X = GCISR(species.SingletonSpecies().cycle_index_series())
 
         We can then use ``define`` to set up `\mathcal{A}`::
         
-            sage: A = GCISR(e)*0 + GCISR(t)*0
+            sage: A = GCISR.recursive_series()
             sage: A.define(X*L(A))
             sage: A.quotient().isotype_generating_series().counts(8)
             [0, 1, 1, 2, 4, 10, 26, 76]
@@ -389,7 +421,6 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
         (Compare :oeis:`A007123`.)
         
         """        
-        
         keys = self.parent().basis().keys()
         for key in keys:
             self[key].define(x[key])

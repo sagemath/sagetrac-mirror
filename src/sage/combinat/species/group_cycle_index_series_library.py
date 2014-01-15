@@ -12,8 +12,9 @@ Examples of group cycle indices
 from group_cycle_index_series import GroupCycleIndexSeriesRing
 from sage.misc.cachefunc import cached_function
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.rings.rational_field import RationalField
-from generating_series import _integers_from, CycleIndexSeriesRing
+from sage.rings.all import QQ
+from sage.sets.all import PositiveIntegers
+from generating_series import CycleIndexSeriesRing
 from sage.combinat.sf.sf import SymmetricFunctions
 
 @cached_function
@@ -44,7 +45,6 @@ def LinearOrderWithReversalGroupCycleIndex():
     """
     from sage.combinat.species.linear_order_species import LinearOrderSpecies
     
-    QQ = RationalField()
     CISR = CycleIndexSeriesRing(QQ)
 
     S2 = SymmetricGroup(2)
@@ -60,7 +60,7 @@ def LinearOrderWithReversalGroupCycleIndex():
         p = SymmetricFunctions(QQ).power()
         yield p[0]
         yield p[1]
-        for n in _integers_from(1):
+        for n in PositiveIntegers():
             yield p([2]*n)
             yield p([2]*n+[1])
 
@@ -98,7 +98,6 @@ def CyclicOrderWithReversalGroupCycleIndex():
     """
     from sage.combinat.species.cycle_species import CycleSpecies
     
-    QQ = RationalField()
     CISR = CycleIndexSeriesRing(QQ)
     p = SymmetricFunctions(QQ).power()
 
@@ -114,7 +113,7 @@ def CyclicOrderWithReversalGroupCycleIndex():
     def Ctgen():
         yield 0
         yield p[1]
-        for n in _integers_from(1):
+        for n in PositiveIntegers():
             yield QQ(1)/QQ(2) * (p([2]*n) + p([2]*(n-1) + [1]*2))
             yield p([2]*n+[1])
     
