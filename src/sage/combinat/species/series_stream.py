@@ -1867,3 +1867,116 @@ class StretchedStream(SeriesStream):
         """
         p = self._stream.get_constant_position()
         return (p - 1) * self._k + 1
+
+class LinearCombinationStream(SeriesStream):
+    def __init__(self, terms, **kwds):
+        """
+        A class for a linear combination of streams.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0, 1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0,0,1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: [s[i] for i in range(5)]
+            [0, 3, 8, 13, 18]
+        """
+        self._terms = terms
+        children = [p for (p, c) in terms if c != 0]
+        super(LinearCombinationStream, self).__init__(children=children, **kwds)
+
+    def order_operation(self, *orders):
+        """
+        Returns the approximate order of this series which is the
+        minimum of the approximate orders of its children.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0, 1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0, 0, 1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: s.order_operation(*[c.aorder for c in s.children()])
+            1
+        """
+        try:
+            return min(orders)
+        except ValueError:
+            return inf # orders == ()
+
+    def compute(self, n):
+        """
+        Returns the $n^{th}$ coefficient of this stream.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0,1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0,0,1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: [s.compute(i) for i in range(5)]
+            [0, 3, 8, 13, 18]
+        """
+        res = self._zero
+        for p, c in self._terms:
+            res += c * p[n]
+        return res
+
+    def is_constant(self):
+        """
+        Returns whether or not this stream is eventually constant.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0, 1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0, 0, 1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: s.is_constant()
+            True
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator
+            sage: t3 = SeriesStreamFromIterator(iterator=ZZ, base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t3, 5)], base_ring=ZZ)
+            sage: s.is_constant()
+            False            
+        """
+        return all(c.is_constant() for c in self.children())
+
+    def get_constant(self):
+        """
+        If this stream is eventually constant, returns the constant
+        value.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0, 1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0, 0, 1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: s.get_constant()
+            18
+        """
+        res = self._zero
+        for p, c in self._terms:
+            res += c * p.get_constant()
+        return res
+
+    def get_constant_position(self):
+        """
+        If the stream is eventually constant, returns the position
+        where the stream becomes constant.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, LinearCombinationStream
+            sage: t1 = SeriesStreamFromList(list=[0, 1], base_ring=ZZ)
+            sage: t2 = SeriesStreamFromList(list=[0, 0, 1,2,3], base_ring=ZZ)
+            sage: s = LinearCombinationStream([(t1, 3), (t2, 5)], base_ring=ZZ)
+            sage: s.get_constant_position()
+            4
+        """
+        try:
+            return max([p.get_constant_position() for p in self.children()])
+        except ValueError:
+            return 0 # children == ()

@@ -72,6 +72,9 @@ from sage.misc.cachefunc import cached_function
 from sage.rings.all import QQ, NN
 from sage.combinat.free_module import CombinatorialFreeModule,CombinatorialFreeModuleElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.species.series_stream import (LinearCombinationStream, TermStream,
+                                                 SumGeneratorStream, PowerStream)
+from sage.combinat.species.generating_series import CycleIndexSeries, CycleIndexSeriesRing
 
 class GroupCycleIndexSeriesRing(CombinatorialFreeModule, UniqueRepresentation):
     """
@@ -99,7 +102,6 @@ class GroupCycleIndexSeriesRing(CombinatorialFreeModule, UniqueRepresentation):
             sage: GCISR == loads(dumps(GCISR))
             True
         """
-        from sage.combinat.species.generating_series import CycleIndexSeriesRing
         from sage.categories.algebras_with_basis import AlgebrasWithBasis
         
         self._coeff_ring = R
@@ -241,7 +243,7 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
 
         return 1/self.parent().group().cardinality() * sum(self.coefficients())
 
-    def composition(self, y, test_constant_term_is_zero=False):
+    def composition(self, y, check=False):
         r"""
         Return the group-cycle-index plethysm of ``self`` with ``y``.
         
@@ -259,9 +261,10 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
         :class:`~sage.combinat.species.composition_species.CompositionSpecies`
         operation on ordinary species.
 
-        It is required that each of the components of `y` has zero constant term.
-        However, testing this may not be possible if `y` is of an exotic class.
-        Set ``test_constant_term_is_zero`` to ``False`` to suppress any testing.
+        It is required that each of the components of `y` has zero
+        constant term.  However, testing this may not be possible if
+        `y` is of an exotic class.  Set ``check`` to ``False`` to
+        suppress any testing.
 
         EXAMPLES::
 
@@ -274,10 +277,10 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
             sage: example = (E*GCISR.one())(C)
             sage: example.quotient().generating_series().counts(8)
             [1, 1, 2, 5, 17, 73, 398, 2636]
-            sage: x = oeis("A007868")
-            sage: x.first_terms(8)
+            sage: x = oeis("A007868")         # optional -- internet
+            sage: x.first_terms(8)            # optional -- internet
             (1, 1, 2, 5, 17, 73, 398, 2636)
-            sage: x.name()
+            sage: x.name()                    # optional -- internet
             'Number of inverse pairs of elements in symmetric group S_n, or pairs of total orders on n nodes (average of A000085 and A000142).'            
             sage: example[S2.identity()].coefficients(4)
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
@@ -286,10 +289,10 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
 
             sage: example[S2.gen()].generating_series().counts(8)
             [1, 1, 2, 4, 10, 26, 76, 232]
-            sage: x = oeis("A000085")
-            sage: x.first_terms(8)
+            sage: x = oeis("A000085")         # optional -- internet
+            sage: x.first_terms(8)            # optional -- internet
             (1, 1, 2, 4, 10, 26, 76, 232)
-            sage: x.name()
+            sage: x.name()                    # optional -- internet
             'Number of self-inverse permutations on n letters, also known as involutions; number of Young tableaux with n cells.'
 
         REFERENCES:
@@ -297,47 +300,135 @@ class GroupCycleIndexSeries(CombinatorialFreeModuleElement):
         .. [Hend] Anthony Henderson. "Species over a finite field". J. Algebraic Combin., 21(2):147-161, 2005.
 
         """
-        from sage.combinat.species.series_stream import PowerStream
-        from sage.misc.misc_c import prod
-
         assert self.parent() == y.parent()
 
-        parent = self.parent()
-        cisr = parent._cisr
-        sfa = cisr.base_ring()
-        group = parent.group()
-
-        if test_constant_term_is_zero:
+        if check:
             for ycis in y.coefficients():
                 assert ycis.coefficient(0) == 0
-                
-        ypowers = {g: PowerStream(y[g]._stream) for g in group}
 
-        def monomial_composer( partition, g ):
-            partmults = ( (i+1, j) for i,j in enumerate(partition.to_exp()) if j != 0 )
-            ycontrib = lambda part, mult: cisr(ypowers[g**part][mult-1]).stretch(part)
-            res = cisr.one()*prod(ycontrib(part, mult) for part,mult in partmults)
-            return res
-        
-        def term_map( term, g ):
-            if test_constant_term_is_zero and term == 0:
-                return cisr.zero()
-            else:
-                res = sum(coeff*monomial_composer(part, g) for part,coeff in term)
-                return res
+        # We define y_powers in this scope so that they can be reused
+        # across all of the component series
+        y_powers = {g: PowerStream(y[g]._stream) for g in self.parent().group()}
 
-        def component_builder( g ):
-            if test_constant_term_is_zero and self[g] == 0:
-                res = cisr.zero()
-            #elif g == group.identity(): #Save time by using existing CIS composition code
-            #    res = self[g](y[g])
-            else:
-                res = cisr.sum_generator(term_map(self[g].coefficient(i), g) for i in NN)
-            return res
+        # Map each stream to a composition stream
+        def component_builder(g, series):
+            return (g, series._new(self.CompositionStream, series._stream, y_powers, g))
+        return self.map_item(component_builder)
 
-        components_dict = { g: component_builder(g) for g in group }
-        res = parent._from_dict(components_dict)
-        return res
+    class CompositionStream(SumGeneratorStream):
+        def __init__(self, stream, y_powers, group_element, **kwds):
+            """
+            A class for the coefficients of the composition (plethysm)
+            of the group cycle index stream ``stream`` and the group
+            cycle index stream corresponding to ``y_powers``.
+
+            This stream is a :class:`SumGeneratorStream` whose
+            component streams are given by :meth:`stream_iterator`.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeriesRing
+                sage: from sage.combinat.species.group_cycle_index_series_library import CyclicOrderWithReversalGroupCycleIndex
+                sage: from sage.combinat.species.series_stream import PowerStream
+                sage: S2 = SymmetricGroup(2)
+                sage: e = S2.gen()
+                sage: GCISR = GroupCycleIndexSeriesRing(S2)
+                sage: E = sage.combinat.species.set_species.SetSpecies().cycle_index_series()
+                sage: C = CyclicOrderWithReversalGroupCycleIndex()
+                sage: EG = E*GCISR.one()
+                sage: y_powers = {g: PowerStream(C[g]._stream) for g in S2}
+                sage: s = EG.CompositionStream(EG[e]._stream, y_powers, e, base_ring=E.base_ring())
+                sage: [s[i] for i in range(4)]
+                [p[], p[1], p[1, 1] + p[2], 2/3*p[1, 1, 1] + 2*p[2, 1] + 1/3*p[3]]
+            """
+            self._stream = stream
+            self._y_powers = y_powers
+            self._g = group_element
+            super(GroupCycleIndexSeries.CompositionStream, self).__init__(self.stream_iterator(), **kwds)
+
+        @staticmethod
+        def example():
+            """
+            Returns an instance of
+            :class:`GroupCycleIndexSeries.CompositionStream`.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeries
+                sage: e = GroupCycleIndexSeries.CompositionStream.example(); e
+                <class 'sage.combinat.species.group_cycle_index_series.CompositionStream'>
+            """
+            from sage.groups.all import SymmetricGroup
+            from sage.combinat.species.group_cycle_index_series_library import CyclicOrderWithReversalGroupCycleIndex
+            from sage.combinat.all import species
+            S2 = SymmetricGroup(2)
+            GCISR = GroupCycleIndexSeriesRing(S2)
+            E = species.SetSpecies().cycle_index_series()
+            C = CyclicOrderWithReversalGroupCycleIndex()
+            example = (E*GCISR.one())(C)
+            return example[S2.gen()]._stream
+
+
+        def stream_iterator(self):
+            """
+            A generator for the composition of each of the terms in
+            ``self._stream`` with the group cycle index stream
+            corresponding to ``self._y_powers``.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeries
+                sage: e = GroupCycleIndexSeries.CompositionStream.example()
+                sage: outer = e._stream
+                sage: inner = e._y_powers[e._g][0]
+                sage: it = e.stream_iterator()
+                sage: t0 = it.next()
+                sage: outer[0]
+                p[]
+                sage: [t0[i] for i in range(4)]
+                [p[], 0, 0, 0]
+                sage: t1 = it.next() # outer[1](y)
+                sage: outer[1]
+                p[1]
+                sage: [t1[i] for i in range(4)]
+                [0, p[1], 1/2*p[1, 1] + 1/2*p[2], p[2, 1]]
+                sage: [inner[i] for i in range(4)]
+                [0, p[1], 1/2*p[1, 1] + 1/2*p[2], p[2, 1]]
+            """
+            for i in NN:
+                term = self._stream[i]
+                composed_terms = [(self.monomial_composer(p), c) for (p, c) in term if c != 0]
+                yield LinearCombinationStream(composed_terms,
+                                              base_ring=self._base_ring)
+
+        def monomial_composer(self, partition):
+            """
+            Returns a stream which corresponds to composing a single
+            monomial ``partition`` with the group cycle index series
+            $y$.
+
+            EXAMPLES::
+
+                sage: from sage.combinat.species.group_cycle_index_series import GroupCycleIndexSeries
+                sage: e = GroupCycleIndexSeries.CompositionStream.example()
+                sage: inner = e._y_powers[e._g][0]
+                sage: p = Partition([2])
+                sage: s = e.monomial_composer(p)
+                sage: [s[i] for i in range(7)]
+                [0, 0, p[2], 0, 1/2*p[2, 2] + 1/2*p[4], 0, 1/3*p[2, 2, 2] + 2/3*p[6]]
+                sage: [e._y_powers[e._g**2][0][i] for i in range(4)]
+                [0, p[1], 1/2*p[1, 1] + 1/2*p[2], 1/3*p[1, 1, 1] + 2/3*p[3]]
+            """
+            from sage.misc.misc_c import prod
+            if not partition:
+                return TermStream(n=0, value=self._base_ring.one(),
+                                  base_ring=self._base_ring)
+            exp = partition.to_exp_dict()
+            streams = []
+            for k, multiplicity in exp.items():
+                s = self._y_powers[self._g**k][multiplicity - 1]   # s = (y[g^k])^(multiplicity)
+                streams.append(CycleIndexSeries.StretchStream(s, k, base_ring=self._base_ring))
+            return prod(streams)
 
     __call__ = composition
 
