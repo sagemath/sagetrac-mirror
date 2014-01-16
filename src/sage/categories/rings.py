@@ -96,9 +96,9 @@ class Rings(CategoryWithAxiom):
             return self._with_axiom('Division')
 
 
-    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
-    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
-    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
+    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', 'NoZeroDivisors', at_startup=True)
+    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', 'Division', at_startup=True)
+    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', 'Commutative', at_startup=True)
 
     class ParentMethods:
         def is_ring(self):

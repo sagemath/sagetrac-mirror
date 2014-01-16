@@ -351,8 +351,8 @@ class Modules(Category_module):
             else:
                 return []
 
-    Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
-    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
+    Graded = LazyImport('sage.categories.graded_modules', 'GradedModules', 'Graded')
+    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis', 'WithBasis')
 
     class ParentMethods:
         pass

@@ -130,7 +130,7 @@ class AdditiveMagmas(Category_singleton):
             """
             return self._with_axiom("AdditiveUnital")
 
-    AdditiveAssociative = LazyImport('sage.categories.additive_semigroups', 'AdditiveSemigroups', at_startup=True)
+    AdditiveAssociative = LazyImport('sage.categories.additive_semigroups', 'AdditiveSemigroups', 'AdditiveAssociative', at_startup=True)
 
     class ParentMethods:
 

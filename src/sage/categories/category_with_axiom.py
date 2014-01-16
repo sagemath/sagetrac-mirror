@@ -106,6 +106,7 @@ import importlib
 import re
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
 from sage.misc.misc import call_method
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
@@ -181,12 +182,17 @@ def uncamelcase(s,separator=" "):
 
 def base_category_class_and_axiom(cls):
     """
-    Try to guess the axioms from the class name and, if the
-    class is not a nested class, the plain category.
+    Try to guess the base category and the axiom from the name of ``cls``.
+
+    The heuristic is to try to decompose the name as the concatenation
+    of the name of a category and the name of an axiom, and looking up
+    that category in the standard location (i.e. in
+    :mod:`sage.categories.hopf_algebras` for :class:`HopfAlgebras`,
+    and in :mod:`sets_cat` as a special case for :class:`Sets`).
 
     EXAMPLES::
 
-        sage: from sage.categories.category_with_axiom import base_category_class_and_axiom
+        sage: from sage.categories.category_with_axiom import base_category_class_and_axiom, CategoryWithAxiom
         sage: base_category_class_and_axiom(FiniteSets)
         (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
         sage: Sets.Finite
@@ -197,53 +203,68 @@ def base_category_class_and_axiom(cls):
         sage: base_category_class_and_axiom(FiniteDimensionalHopfAlgebrasWithBasis)
         (<class 'sage.categories.hopf_algebras_with_basis.HopfAlgebrasWithBasis'>, 'FiniteDimensional')
 
-        sage: Sets.Infinite
-        <class 'sage.categories.sets_cat.Sets.Infinite'>
-        sage: base_category_class_and_axiom(Sets.Infinite)
+        sage: base_category_class_and_axiom(HopfAlgebrasWithBasis)
+        (<class 'sage.categories.hopf_algebras.HopfAlgebras'>, 'WithBasis')
+
+    Along the way, this does some sanity checks::
+
+        sage: class FacadeSemigroups(CategoryWithAxiom):
+        ....:     pass
+        sage: base_category_class_and_axiom(FacadeSemigroups)
         Traceback (most recent call last):
         ...
-        TypeError: Could not retrieve base category class for <class 'sage.categories.sets_cat.Sets.Infinite'>
+        AssertionError: Missing (lazy import) link for <class 'sage.categories.semigroups.Semigroups'> to <class '__main__.FacadeSemigroups'> for axiom Facade?
+
+        sage: Semigroups.Facade = FacadeSemigroups
+        sage: base_category_class_and_axiom(FacadeSemigroups)
+        (<class 'sage.categories.semigroups.Semigroups'>, 'Facade')
 
     .. NOTE::
 
-        In the later case, we could possibly retrieve ``Sets`` from
-        the class name; however we ca notdo it robustly until #9107 is
-        fixed, we are stuck, and anyway we haven't needed it so far.
+        In the following example, we could possibly retrieve ``Sets``
+        from the class name. However this cannot be implemented
+        robustly until #9107 is fixed. Anyway this feature has not
+        been needed so far::
+
+            sage: Sets.Infinite
+            <class 'sage.categories.sets_cat.Sets.Infinite'>
+            sage: base_category_class_and_axiom(Sets.Infinite)
+            Traceback (most recent call last):
+            ...
+            TypeError: Could not retrieve the base category class and axiom for <class 'sage.categories.sets_cat.Sets.Infinite'>
+            ...
     """
     if "." in cls.__name__:
         # Case 1: class name of the form Sets.Infinite
-        #axiom = cls.__name__.split(".")[-1]
-        raise TypeError("Could not retrieve base category class for %s"%cls)
-
-    # Case 2: class name of the form FiniteSets or AlgebrasWithBasis
-    # The following checks that the class is defined in the module
-    # with the corresponding name (e.g. sage.categories.finite_sets)
-    # Otherwise the category should specify explicitly _base_category_class_and_axiom
-    # TODO: document this!
-    name = cls.__name__
-    module = uncamelcase(name, "_")
-    assert cls.__module__ == "sage.categories."+module,\
-        "%s should be implemented in `sage.categories.%s`"%(cls, module)
-    for axiom in all_axioms:
-        if axiom == "WithBasis" and name.endswith(axiom):
-            base_name = name[:-len(axiom)]
-            base_module_name = module[:-len(uncamelcase(axiom))-1]
-        elif name.startswith(axiom):
-            base_name = name[len(axiom):]
-            base_module_name = module[len(uncamelcase(axiom))+1:]
-        else:
-            continue
-        if base_module_name == "sets": # Special case for Sets which is in sets_cat
-            base_module_name = "sets_cat"
-        try:
-            base_module = importlib.import_module("sage.categories."+base_module_name)
-            base_category_class = getattr(base_module, base_name)
-            assert getattr(base_category_class, axiom, None) is cls, \
-                "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
-            return base_category_class, axiom
-        except (ImportError,AttributeError):
-            pass
-    raise TypeError("Could not retrieve base category class for %s"%cls)
+        # Start of implementation when #9107 will be fixed:
+        # axiom = cls.__name__.split(".")[-1]
+        # ...
+        pass
+    else:
+        # Case 2: class name of the form FiniteSets or AlgebrasWithBasis,
+        # with the base class (say Algebras) being implemented in the
+        # standard location (sage.categories.algebras)
+        name = cls.__name__
+        for axiom in all_axioms:
+            if axiom == "WithBasis" and name.endswith(axiom):
+                base_name = name[:-len(axiom)]
+            elif name.startswith(axiom):
+                base_name = name[len(axiom):]
+            else:
+                continue
+            if base_name == "Sets": # Special case for Sets which is in sets_cat
+                base_module_name = "sets_cat"
+            else:
+                base_module_name = uncamelcase(base_name, "_")
+            try:
+                base_module = importlib.import_module("sage.categories."+base_module_name)
+                base_category_class = getattr(base_module, base_name)
+                assert getattr(base_category_class, axiom, None) is cls, \
+                    "Missing (lazy import) link for %s to %s for axiom %s?"%(base_category_class, cls, axiom)
+                return base_category_class, axiom
+            except (ImportError,AttributeError):
+                pass
+    raise TypeError("Could not retrieve the base category class and axiom for %s\nPlease specify it explictly using the attribute _base_category_class_and_axiom.\nSee CategoryWithAxiom for details."%cls)
 
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
@@ -252,10 +273,9 @@ def axiom_of_nested_class(cls, nested_cls):
 
     EXAMPLES:
 
-    This uses some heuristic like checking if the nested_cls carries
+    This uses some heuristics like checking if the nested_cls carries
     the name of the axiom, or is built by appending or prepending the
-    name of the axiom to that of the class.
-
+    name of the axiom to that of the class::
 
         sage: from sage.categories.category_with_axiom import TestObjects, axiom_of_nested_class
         sage: axiom_of_nested_class(TestObjects, TestObjects.FiniteDimensional)
@@ -268,7 +288,7 @@ def axiom_of_nested_class(cls, nested_cls):
         'WithBasis'
 
     In all other cases, the nested class should provide an attribute
-    _base_category_class_and_axiom::
+    ``_base_category_class_and_axiom``::
 
         sage: Semigroups._base_category_class_and_axiom
         [<class 'sage.categories.magmas.Magmas'>, 'Associative']
@@ -276,7 +296,7 @@ def axiom_of_nested_class(cls, nested_cls):
         'Associative'
     """
     try:
-        axiom =nested_cls.__dict__["_base_category_class_and_axiom"][1]
+        axiom = nested_cls.__dict__["_base_category_class_and_axiom"][1]
     except KeyError:
         assert not isinstance(cls, DynamicMetaclass)
         nested_cls_name = nested_cls.__name__.split(".")[-1]
@@ -342,28 +362,50 @@ class CategoryWithAxiom(Category):
         The class of the base category and the axiom for this class.
 
         By default, this attribute is guessed from the name of this
-        category (see :func:`base_category_class_and_axiom`). It
-        should be overriden whenever it cannot be guessed properly.
+        class (see :func:`base_category_class_and_axiom`). For a
+        nested class, when the category is first created from its base
+        category, as in e.g. ``Sets().Infinite()``, this attribute is
+        instead set explicitly by :meth:``__classget__``.
 
-        When this attribute has been guessed, the attribute
-        ``_base_category_class_and_axiom_was_guessed`` is set to
-        ``True``.
+        When this is not sufficient, that is when ``cls`` is not
+        implemented as a nested class and the base category and the
+        axiom cannot be guessed from the name of ``cls``, this
+        attribute should be set explicitly by ``cls``.
+
+        The origin of the attribute is stored in the attribute
+        ``_base_category_class_and_axiom_origin``.
 
         .. SEEALSO:: :meth:`_axiom`
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: FiniteSets()._base_category_class_and_axiom
-            (<class 'sage.categories.sets_cat.Sets'>, 'Finite')
-            sage: FiniteSets()._base_category_class_and_axiom_was_guessed
-            True
+        ``CommutativeRings`` is not a nested class, but the name of
+        the base category and the axiom can be guessed::
+
+            sage: CommutativeRings()._base_category_class_and_axiom
+            (<class 'sage.categories.rings.Rings'>, 'Commutative')
+            sage: CommutativeRings()._base_category_class_and_axiom_origin
+            'guessed by base_category_class_and_axiom'
+
+        ``Sets.Infinite`` is a nested class, so the attribute is set
+        by :meth:`CategoryWithAxiom.__classget__` the first time
+        ``Sets().Infinite()`` is called::
+
+            sage: Sets().Infinite()
+            Category of infinite sets
+            sage: Sets.Infinite._base_category_class_and_axiom
+            (<class 'sage.categories.sets_cat.Sets'>, 'Infinite')
+            sage: Sets.Infinite._base_category_class_and_axiom_origin
+            'set by __classget__'
+
+        ``Fields`` is not a nested class, and the name of the base
+        category and axioms cannot be guessed; so this attributes
+        needs to be set explicitly in the ``Fields`` class::
 
             sage: Fields()._base_category_class_and_axiom
             (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
-            sage: Fields()._base_category_class_and_axiom_was_guessed
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'Fields_with_category' object has no attribute '_base_category_class_and_axiom_was_guessed'
+            sage: Fields()._base_category_class_and_axiom_origin
+            'hardcoded'
 
         .. NOTE::
 
@@ -376,8 +418,10 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
-        cls._base_category_class_and_axiom_was_guessed = True
+        cls._base_category_class_and_axiom_origin = "guessed by base_category_class_and_axiom"
         return (base_category_class, axiom)
+
+    _base_category_class_and_axiom_origin = "hardcoded"
 
     @lazy_class_attribute
     def _axiom(cls):
@@ -412,7 +456,6 @@ class CategoryWithAxiom(Category):
         Make ``FooBars(**)`` an alias for ``Foos(**)._with_axiom("Bar")``.
 
         EXAMPLES::
-
 
             sage: FiniteGroups()
             Category of finite groups
@@ -502,14 +545,26 @@ class CategoryWithAxiom(Category):
             base_category_class = base_category_class.__base__
         if "_base_category_class_and_axiom" not in cls.__dict__:
             cls._base_category_class_and_axiom = (base_category_class, axiom_of_nested_class(base_category_class, cls))
-            cls._base_category_class_and_axiom_was_guessed = False
+            cls._base_category_class_and_axiom_origin = "set by __classget__"
         else:
             assert cls._base_category_class_and_axiom[0] is base_category_class, \
-                "base category class for %s mismatch; expected %s, got %s"%(cls, cls._base_category_class_and_axiom[0], base_category_class)
+                "base category class for %s mismatch; expected %s, got %s. Consider to provide %s not by a class attribute of %s, but by SubcategoryMethods."%(cls, cls._base_category_class_and_axiom[0], base_category_class, cls, base_category_class)
+        # Enforcing consistent names for lazy imports: If C is the class of a category
+        # and C.SomeAxiom is a LazyImport object, then it should be imported as "SomeAxiom".
+        # If this is the case, then the LazyImport will be replaced by the imported object
+        # in the class' dict. Moreover, we want that *only* the default construction, that
+        # is encoded in cls._axiom, is provided on the level of category classes. All non-default
+        # constructions should be provided by SubcategoryMethods.
+        if base_category_class.__dict__[cls._axiom] is not cls:
+            if isinstance(base_category_class.__dict__[cls._axiom], LazyImport):
+                raise TypeError("%s is supposed to be constructed by applying the axiom %s. So, in the lazy import of %s, provide `as_name='%s'."%(cls, cls._axiom, cls, cls._axiom))
+            else:
+                raise TypeError("%s is provided as a class attribute of %s, but it is required that the name of this attribute be %s. Consider to change the name, or to provide it on class instances by implementing SubcategoryMethods"%(cls, base_category_class, cls._axiom))
         if base_category is None:
              return cls
-        # For Rings().Finite(), this returns the method
-        # Category.Finite, with its first argument bound to Rings()
+        # Example for cls=FiniteRings, hence, cls._axiom='Finite':
+        # Rings().Finite() returns the method Sets.SubcategoryMethods.Finite,
+        # with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)
 
     def __init__(self, base_category):
@@ -537,7 +592,7 @@ class CategoryWithAxiom(Category):
 
     def _test_category_with_axiom(self, **options):
         r"""
-        Run generic tests on this category with axioms
+        Run generic tests on this category with axioms.
 
         .. SEEALSO:: :class:`TestSuite`.
 
@@ -559,7 +614,7 @@ class CategoryWithAxiom(Category):
 
     def extra_super_categories(self):
         """
-        Returns the extra super categories of a category with axiom
+        Return the extra super categories of a category with axiom.
 
         Default implementation which returns ``[]``
 
@@ -573,7 +628,7 @@ class CategoryWithAxiom(Category):
     @cached_method
     def super_categories(self):
         """
-        Returns a list of the (immediate) super categories of
+        Return a list of the (immediate) super categories of
         ``self``, as per :meth:`Category.super_categories`.
 
         This implements the property that if ``As`` is a subcategory
@@ -701,7 +756,7 @@ class CategoryWithAxiom(Category):
 
     def base_category(self):
         r"""
-        Returns the plain category of ``self``
+        Return the base category of ``self``.
 
         EXAMPLES::
 
@@ -780,7 +835,7 @@ class CategoryWithAxiom(Category):
 
     def _without_axioms(self, named=False):
         """
-        Returns the category without the axioms that have been added to create it
+        Return the category without the axioms that have been added to create it.
 
         EXAMPLES::
 
@@ -802,11 +857,9 @@ class CategoryWithAxiom(Category):
             sage: Monoids().Finite()._without_axioms(named=True)
             Category of monoids
 
-        Technically we tests this by checking if the class has a
-        predefined attribute ``_base_category_class_and_axiom`` (if
-        instead this attribute is computed, then this computation
-        should set the attribute
-        ``_base_category_class_and_axiom_was_guessed``.
+        Technically we tests this by checking if the class specifies
+        explicitly the attribute ``_base_category_class_and_axiom``
+        by looking up ``_base_category_class_and_axiom_origin``.
 
         Some more examples::
 
@@ -818,7 +871,7 @@ class CategoryWithAxiom(Category):
         if named:
             base_category = self
             axioms = []
-            while isinstance(base_category, CategoryWithAxiom) and hasattr(base_category.__class__, "_base_category_class_and_axiom_was_guessed"): # and "." in Sets().Infinite().__class__.__name__:
+            while isinstance(base_category, CategoryWithAxiom) and base_category._base_category_class_and_axiom_origin != "hardcoded":
                 axioms.append(base_category._axiom)
                 base_category = base_category._base_category
             return base_category
@@ -828,7 +881,7 @@ class CategoryWithAxiom(Category):
     @cached_method
     def axioms(self):
         r"""
-        Returns the axioms of ``self``
+        Return the axioms of ``self``.
 
         EXAMPLES::
 

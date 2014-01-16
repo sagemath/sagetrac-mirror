@@ -38,8 +38,8 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
     _base_category_class_and_axiom = [AdditiveSemigroups, "AdditiveUnital"]
 
-    AdditiveCommutative = LazyImport('sage.categories.commutative_additive_monoids', 'CommutativeAdditiveMonoids', at_startup=True)
-    AdditiveInverse = LazyImport('sage.categories.additive_groups', 'AdditiveGroups', at_startup=True)
+    AdditiveCommutative = LazyImport('sage.categories.commutative_additive_monoids', 'CommutativeAdditiveMonoids', 'AdditiveCommutative', at_startup=True)
+    AdditiveInverse = LazyImport('sage.categories.additive_groups', 'AdditiveGroups', 'AdditiveInverse', at_startup=True)
 
     class ParentMethods:
         def sum(self, args):

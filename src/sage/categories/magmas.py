@@ -130,7 +130,7 @@ class Magmas(Category_singleton):
             """
             return self._with_axiom("Unital")
 
-    Associative = LazyImport('sage.categories.semigroups', 'Semigroups', at_startup=True)
+    Associative = LazyImport('sage.categories.semigroups', 'Semigroups', 'Associative', at_startup=True)
 
     class Algebras(AlgebrasCategory):
 
@@ -196,7 +196,14 @@ class Magmas(Category_singleton):
             @cached_method
             def Inverse(self):
                 r"""
-                Returns the full subcategory of the unital objects of ``self``.
+                Returns the full subcategory of the inverse objects of ``self``.
+
+                An inverse (multiplicative) magma is a unital magma
+                such that every element admits both an inverse on the
+                left and on the right. Such a magma is also called a
+                *loop*.
+
+                .. SEEALSO:: :wikipedia:`Inverse_element`, :wikipedia:`Quasigroup`
 
                 EXAMPLES::
 

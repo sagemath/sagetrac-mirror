@@ -64,4 +64,4 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
 #        __imul__ = __mul__
 
 
-    Unital = LazyImport('sage.categories.algebras', 'Algebras', at_startup=True)
+    Unital = LazyImport('sage.categories.algebras', 'Algebras', 'Unital', at_startup=True)

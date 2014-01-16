@@ -53,9 +53,9 @@ class DistributiveMagmasAndAdditiveMagmas(Category_singleton):
         class AdditiveCommutative(CategoryWithAxiom):
             class AdditiveUnital(CategoryWithAxiom):
                 class AdditiveInverse(CategoryWithAxiom):
-                    Associative = LazyImport('sage.categories.rngs', 'Rngs', at_startup=True)
+                    Associative = LazyImport('sage.categories.rngs', 'Rngs', 'Associative', at_startup=True)
                 class Associative(CategoryWithAxiom):
-                    Unital          = LazyImport('sage.categories.semirings', 'Semirings', at_startup=True)
+                    Unital          = LazyImport('sage.categories.semirings', 'Semirings', 'Unital', at_startup=True)
 
     class ParentMethods:
 

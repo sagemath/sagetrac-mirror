@@ -197,7 +197,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of commutative rings and
+         Category of finite monoids and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -233,38 +236,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     Next we compute with the integers modulo `16`.
 
-<<<<<<< HEAD
-            sage: FF = IntegerModRing(29)
-            sage: FF
-            Ring of integers modulo 29
-            sage: FF.category()
+    ::
+
+        sage: Z16 = IntegerModRing(16)
+        sage: Z16.category()
             Join of Category of commutative rings
                 and Category of finite monoids
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
-            sage: FF.is_field()
-            True
-            sage: FF.characteristic()
-            29
-            sage: FF.order()
-            29
-            sage: gens = FF.unit_gens()
-            sage: a = gens[0]
-            sage: a
-            2
-            sage: a.is_square()
-            False
-            sage: def pow(i): return a**i
-            sage: [pow(i) for i in range(16)]
-            [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
-            sage: TestSuite(FF).run()
-=======
-    ::
->>>>>>> develop
-
-        sage: Z16 = IntegerModRing(16)
-        sage: Z16.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -324,38 +303,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: TestSuite(F23).run()
             sage: Z16 = IntegerModRing(16)
-<<<<<<< HEAD
-            sage: Z16.category()
-            Join of Category of commutative rings
-                and Category of finite monoids
-                and Category of subquotients of monoids
-                and Category of quotients of semigroups
-            sage: Z16.is_field()
-            False
-            sage: Z16.order()
-            16
-            sage: Z16.characteristic()
-            16
-            sage: gens = Z16.unit_gens()
-            sage: gens
-            (15, 5)
-            sage: a = gens[0]
-            sage: b = gens[1]
-            sage: def powa(i): return a**i
-            sage: def powb(i): return b**i
-            sage: gp_exp = FF.unit_group_exponent()
-            sage: gp_exp
-            28
-            sage: [powa(i) for i in range(15)]
-            [1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 1]
-            sage: [powb(i) for i in range(15)]
-            [1, 5, 9, 13, 1, 5, 9, 13, 1, 5, 9, 13, 1, 5, 9]
-            sage: a.multiplicative_order()
-            2
-            sage: b.multiplicative_order()
-            4
-=======
->>>>>>> develop
             sage: TestSuite(Z16).run()
             sage: R = Integers(100000)
             sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
