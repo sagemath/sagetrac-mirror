@@ -223,9 +223,9 @@ class ListCachedStream(Stream):
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: isinstance(s, ListCachedStream)
             True
             sage: s[5]
@@ -241,9 +241,9 @@ class ListCachedStream(Stream):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: isinstance(s, ListCachedStream)
             True
             sage: s[1]
@@ -263,26 +263,26 @@ class ListCachedStream(Stream):
             pos += 1
         self._cache[n] = value
 
-    def number_computed(self):
+    def length_of_cache(self):
         """
         Returns the number of coefficients that have been computed so
         far.
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: isinstance(s, ListCachedStream)
             True
             sage: s[5]
             8
-            sage: s.number_computed()
+            sage: s.length_of_cache()
             6
         """
         return len(self._cache)
 
-    __len__ = number_computed
+    __len__ = length_of_cache
 
     @check_constant_decorator
     def __getitem__(self, n):
@@ -294,9 +294,9 @@ class ListCachedStream(Stream):
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc, ListCachedStream
+            sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: isinstance(s, ListCachedStream)
             True
             sage: s[5]
@@ -364,14 +364,14 @@ class StreamFromIterator(ListCachedStream):
             return value
             
 
-class StreamFromFunc(ListCachedStream):
+class StreamFromFunction(ListCachedStream):
     def __init__(self, func=None, **kwds):
         """
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc
+            sage: from sage.combinat.species.new_stream import StreamFromFunction
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: s[0]
             1
             sage: s[1]
@@ -382,7 +382,7 @@ class StreamFromFunc(ListCachedStream):
             89
         """
         self._func = func
-        super(StreamFromFunc, self).__init__(**kwds)
+        super(StreamFromFunction, self).__init__(**kwds)
 
     def compute(self, n):
         """
@@ -393,9 +393,9 @@ class StreamFromFunc(ListCachedStream):
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.new_stream import StreamFromFunc
+            sage: from sage.combinat.species.new_stream import StreamFromFunction
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
-            sage: s = StreamFromFunc(h)
+            sage: s = StreamFromFunction(h)
             sage: s.compute(0)
             1
             sage: s.compute(2)
@@ -466,6 +466,6 @@ def OldStreamBehavior(x=None, const=None):
     elif hasattr(x, '__iter__'):
         return StreamFromIterator(iter(x))
     elif isinstance(x, (types.FunctionType, types.LambdaType)):
-        return StreamFromFunc(x)
+        return StreamFromFunction(x)
     else:
         return StreamFromIterator(iter([x,0]))

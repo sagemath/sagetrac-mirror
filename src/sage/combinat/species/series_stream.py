@@ -253,7 +253,7 @@ class SeriesStream(ListCachedStream):
             self.compute_aorder()
         else:
             #Try to improve the approximate order
-            n = self.number_computed()
+            n = self.length_of_cache()
 
             if self.aorder < n:
                 while self.aorder < n:
@@ -1006,7 +1006,7 @@ class IntegralStream(SeriesStream):
     def __init__(self, stream, integration_constant=0, **kwds):
         """
         A class for a stream whose coefficients represent the
-        derivative of a power series.
+        integral of a power series.
 
         EXAMPLES::
 
@@ -1649,7 +1649,7 @@ class SumGeneratorStream(SeriesStream):
         """
         s = self._series_stream
         r = s[n][n]
-        for i in range(min(n, s.number_computed() - 1)):
+        for i in range(min(n, s.length_of_cache() - 1)):
             r += s[i][n]
         return r
 

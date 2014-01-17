@@ -408,7 +408,7 @@ class Stream_class(SageObject):
         """
         return len(self._list)
 
-    number_computed = __len__
+    length_of_cache = __len__
 
     def data(self):
         """
