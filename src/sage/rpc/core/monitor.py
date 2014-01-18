@@ -31,6 +31,7 @@ class MonitorClient(ClientBase):
         rpc['sage_eval.stdout'] = self._impl_sage_eval_stdout
         rpc['sage_eval.stderr'] = self._impl_sage_eval_stderr
         rpc['sage_eval.crash'] = self._impl_sage_eval_crash
+        rpc['code_completion.finished'] = self._impl_code_completion_finished
         return rpc        
 
     def __init__(self, transport, cookie):
@@ -111,6 +112,45 @@ class MonitorClient(ClientBase):
         """
         print('Compute server crashed.')
 
+    def code_complete(self, code_string, cursor_position, label=None):
+        """
+        Initiate code completion (tab completion)
+        
+        INPUT:
+
+        - ``code_string`` -- string. The input source code.
+
+        - ``cursor_position`` -- integer. The cursor position.
+
+        - ``label`` -- anything JSON-serializable. A label to attach
+          to the compute request. Can be ``None``, in which case one
+          is randomly chosen for you. See also :meth:`random_label`.
+
+        OUTPUT:
+    
+        The label of the request. Equals ``label`` if one was
+        specified.
+        """
+        if label is None:
+            label = self.random_label()
+        self.rpc.code_completion.start(code_string, cursor_position, label)
+        return label
+
+    def _impl_code_completion_finished(self, base, completions, label):
+        """
+        RPC callback for the tab completion result
+        
+        INPUT:
+        
+        - ``base`` -- string. substring of the input string ending at
+          the cursor position.
+
+        - ``completions`` -- list of strings. The suggested
+          completions (starting with ``base``). 
+        """
+        self.log.debug('tab completion for %s<tab>', base)
+        
+
 
 class MonitorServer(ServerBase):
     
@@ -120,6 +160,7 @@ class MonitorServer(ServerBase):
     def construct_rpc_table(self):
         rpc = super(MonitorServer, self).construct_rpc_table()
         rpc['sage_eval.start'] = self.monitor._impl_sage_eval_start
+        rpc['code_completion.start'] = self.monitor._impl_code_completion_start
         rpc['util.ping'] = self.monitor._impl_ping
         rpc['util.quit'] = self.monitor._impl_quit
         return rpc
@@ -140,6 +181,7 @@ class MonitoredComputeClient(ComputeClient):
     def construct_rpc_table(self):
         rpc = super(MonitoredComputeClient, self).construct_rpc_table()
         rpc['sage_eval.finished'] = self.monitor._impl_sage_eval_finished
+        rpc['code_completion.finished'] = self.monitor._impl_code_completion_finished
         rpc['util.pong'] = self.monitor._impl_pong
         return rpc
 
@@ -174,8 +216,12 @@ class Monitor(object):
         self.current_label = None
         
     def _impl_sage_eval_start(self, code_string, label):
+        """
+        Implementation of the RPC call to start evaluation
+        """
+        assert self.current_label is None  # no current computation
         self.current_label = label
-        self.client.rpc.compute.sage_eval(code_string, label)
+        self.client.rpc.sage_eval(code_string, label)
 
     def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
         """
@@ -190,7 +236,7 @@ class Monitor(object):
         """
         assert label == self.current_label
         self.process.stop_at(self.client.end_marker)
-        self.client.rpc.compute.print_end_marker()
+        self.client.rpc.print_end_marker()
         self._eval_cpu_time = cpu_time
         self._eval_wall_time = cpu_time
         
@@ -267,6 +313,16 @@ class Monitor(object):
 
     def _impl_quit(self):
         self.quit()
+
+    def _impl_code_completion_start(self, code_string, cursor_position, label):
+        assert self.current_label is None  # no current computation
+        self.current_label = label
+        self.client.rpc.code_completion.start(code_string, cursor_position, label)
+
+    def _impl_code_completion_finished(self, basestr, completions, label):
+        assert self.current_label == label
+        self.current_label = None
+        self.server.rpc.code_completion.finished(basestr, completions, label)
 
     def quit(self):
         print('monitor quit')

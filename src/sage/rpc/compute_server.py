@@ -90,9 +90,10 @@ class SageComputeServer(ServerBase):
 
     def construct_rpc_table(self):
         rpc = super(ServerBase, self).construct_rpc_table()
-        rpc['compute.print'] = self.rpc_print
-        rpc['compute.print_end_marker'] = self.rpc_print_end_marker
-        rpc['compute.sage_eval'] = self.rpc_sage_eval_init
+        rpc['print'] = self.rpc_print
+        rpc['print_end_marker'] = self.rpc_print_end_marker
+        rpc['sage_eval'] = self.rpc_sage_eval_init
+        rpc['code_completion.start'] = self.rpc_code_completion_start
         return rpc
 
     def __init__(self, transport, cookie):
@@ -144,3 +145,7 @@ class SageComputeServer(ServerBase):
         sys.stderr.write(self.end_marker)
         sys.stdout.flush()        
         sys.stderr.flush()
+
+    def rpc_code_completion_start(self, line, position, label):
+        basestr, completions = self._shell.complete(None, line, position)
+        self.rpc.code_completion.finished(basestr, completions, label)

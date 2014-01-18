@@ -22,6 +22,7 @@ class ComputeClient(ClientBase):
     def construct_rpc_table(self):
         rpc = super(ComputeClient, self).construct_rpc_table()
         rpc['sage_eval.finished'] = self._impl_sage_eval_finished
+        rpc['code_completion.finished'] = self._impl_code_completion_finished
         return rpc
 
     def __init__(self, transport, cookie):
@@ -58,6 +59,9 @@ class ComputeClient(ClientBase):
         return self._end_marker
 
     def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
+        raise NotImplementedError
+
+    def _impl_code_completion_finished(self, basestr, completions, label):
         raise NotImplementedError
 
 
