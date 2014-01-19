@@ -92,7 +92,7 @@ import sys, traceback
 
 from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 
-cpdef py_scalar_parent(py_type):
+cpdef py_scalar_parent(type py_type):
     """
     Returns the Sage equivalent of the given python type, if one exists.
     If there is no equivalent, return None.
@@ -111,13 +111,13 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(dict),
         (None,)
     """
-    if py_type is int or py_type is long:
+    if issubclass(py_type,int) or issubclass(py_type,long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
-    elif py_type is float:
+    elif issubclass(py_type,float):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
-    elif py_type is complex:
+    elif issubclass(py_type,complex):
         import sage.rings.complex_double
         return sage.rings.complex_double.CDF
     else:
