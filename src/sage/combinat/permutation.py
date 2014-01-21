@@ -3818,6 +3818,33 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.increasing_tree(compare).shape()
 
+    def immaculate_tree(self):
+        r"""
+        Return the immaculate tree of ``self``.
+
+        TODO::
+
+            Docstring and examples.
+        """
+        from sage.combinat.binary_tree import LabelledBinaryTree as LBT
+        res = LBT(None)
+        for i in self:
+            res = res.semistandard_insert(i)
+        return res
+
+    def immac_tree_col(self):
+        r"""
+        Return the (only) column of the immaculate tree of ``self``,
+        i. e., the list consisting of the root, its right child, the
+        right child of this right child and so on.
+        """
+        xs = []
+        i = self.immaculate_tree()
+        while not i.is_empty():
+            xs.append(i.label())
+            i = i[1]
+        return xs
+
     def binary_search_tree(self, left_to_right=True):
         """
         Return the binary search tree associated to ``self``.

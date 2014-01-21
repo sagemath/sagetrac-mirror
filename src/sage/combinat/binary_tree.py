@@ -2968,6 +2968,21 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         else:
             return "%s%s"%(self._label, self[:])
 
+    def row(self, i):
+        r"""
+        """
+        res = []
+        tree = self
+        while not tree.is_empty():
+            try:
+                label = tree[[0] * (i-1)].label()
+                if not label is None:
+                    res.append(label)
+            except StandardError:
+                pass
+            tree = tree[1]
+        return res
+
     def binary_search_insert(self, letter):
         """
         Return the result of inserting a letter ``letter`` into the
