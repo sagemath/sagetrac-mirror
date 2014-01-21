@@ -1152,7 +1152,7 @@ cdef class Matrix(matrix1.Matrix):
         # For small matrices, you can't beat the naive formula.
         if n <= 3:
             if n == 0:
-                d = R(1)
+                d = R.one()
             elif n == 1:
                 d = self.get_unsafe(0,0)
             elif n == 2:
@@ -1305,8 +1305,8 @@ cdef class Matrix(matrix1.Matrix):
         `n \times n` matrix `U` and any alternating `n \times n`
         matrix `A`.
 
-        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
-        sources, for further properties of Pfaffians.
+        See [Kn95]_, [DW95]_, [Rote2001]_ and [CSS12]_ (Section 2.1.3),
+        just to name four sources, for further properties of Pfaffians.
 
         ALGORITHM:
 
@@ -1441,6 +1441,131 @@ cdef class Matrix(matrix1.Matrix):
             # Product without base case since k == 0 case has
             # already been dealt with:
             res += sgn * prod([self.get_unsafe(edge[0], edge[1]) for edge in edges2])
+
+        return res
+
+    def hafnian(self, check=True):
+        r"""
+        Return the Hafnian of ``self``, assuming that ``self`` is a
+        symmetric matrix.
+
+        INPUT:
+
+        - ``check`` (default: ``True``) -- Boolean determining whether to
+          check ``self`` for symmetry and squareness. This has to be set
+          to ``False`` if ``self`` is defined over a non-discrete ring.
+
+        The Hafnian of a symmetric matrix is defined as follows:
+
+        Let `A` be a symmetric `k \times k` matrix over a commutative ring.
+        If `k` is odd, then the Hafnian of the matrix `A` is defined to be
+        `0`. Let us now define it when `k` is even. In this
+        case, set `n = k/2` (this is an integer). For every `i` and `j`,
+        we denote the `(i, j)`-th entry of `A` by `a_{i, j}`. Let `M`
+        denote the set of all perfect matchings of the set
+        `\{ 1, 2, \ldots, 2n \}` (see
+        :class:`sage.combinat.perfect_matching.PerfectMatchings` ).
+        For every matching `m \in M`, define the weight `w(m)` of `m` by
+        writing `m` as
+        `\{ \{ i_1, j_1 \}, \{ i_2, j_2 \}, \ldots, \{ i_n, j_n \} \}`
+        with `i_k < j_k` for all `k`, and setting
+        `w(m) = a_{i_1, j_1} a_{i_2, j_2} \cdots a_{i_n, j_n}`. Now, the
+        Hafnian of the matrix `A` is defined to be the sum
+
+        .. MATH::
+
+            \sum_{m \in M} w(m).
+
+        See [CSS12]_, Section A.1.2 for a brief discussion of Hafnians;
+        the definition apparently goes back to E. R. Caianiello. Hafnians
+        of `k \times k`-matrices have never been defined for `k` odd; the
+        convention used here simply follows an analogy with the Pfaffian
+        (:meth:`pfaffian`).
+
+        REFERENCES:
+
+        .. [CSS12] Sergio Caracciolo, Alan D. Sokal, Andrea Sportiello,
+           *Algebraic/combinatorial proofs of Cayley-type identities
+           for derivatives of determinants and pfaffians*,
+           :arxiv:`1105.6270v2`.
+
+        EXAMPLES:
+
+        We have stipulated that odd-size matrices have Hafnian 0
+        independently of their entries::
+
+            sage: MSp = MatrixSpace(Integers(27), 3)
+            sage: A = MSp([0, 2, 3,  2, 0, -8,  3, -8, 0])
+            sage: A.hafnian()
+            0
+            sage: parent(A.hafnian())
+            Ring of integers modulo 27
+
+        The Hafnian of a `2 \times 2` symmetric matrix is just its
+        northeast entry::
+
+            sage: MSp = MatrixSpace(QQ, 2)
+            sage: A = MSp([0, 4,  4, 0])
+            sage: A.hafnian()
+            4
+            sage: parent(A.hafnian())
+            Rational Field
+
+        The Hafnian of a `0 \times 0` symmetric matrix is `1`::
+
+            sage: MSp = MatrixSpace(ZZ, 0)
+            sage: A = MSp([])
+            sage: A.hafnian()
+            1
+            sage: parent(A.hafnian())
+            Integer Ring
+
+        Let us compute the Hafnian of a generic `4 \times 4`
+        symmetric matrix::
+
+            sage: R = PolynomialRing(QQ, 'x12,x13,x14,x23,x24,x34')
+            sage: x12, x13, x14, x23, x24, x34 = R.gens()
+            sage: A = matrix(R, [[   0,  x12,  x13,  x14],
+            ....:                [ x12,    0,  x23,  x24],
+            ....:                [ x13,  x23,    0,  x34],
+            ....:                [ x14,  x24,  x34,    0]])
+            sage: A.hafnian()
+            x14*x23 + x13*x24 + x12*x34
+            sage: parent(A.hafnian())
+            Multivariate Polynomial Ring in x12, x13, x14, x23, x24, x34 over Rational Field
+
+        AUTHORS:
+
+        - Darij Grinberg (18 Nov 2013).
+        """
+        k = self._nrows
+
+        if check:
+            if not self.is_symmetric():
+                raise ValueError("self must be symmetric")
+                # This includes a check for self being square.
+
+        R = self.base_ring()
+
+        if k % 2 == 1:
+            return R.zero()
+
+        if k == 0:
+            return R.one()
+
+        n = k // 2
+
+        res = R.zero()
+
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.misc.misc_c import prod
+        for m in PerfectMatchings(k):
+            # We don't need to sort the edges of the matching.
+            # Subtract 1 from everything for indexing purposes:
+            edges2 = [[i-1 for i in edge] for edge in m]
+            # Product without base case since k == 0 case has
+            # already been dealt with:
+            res += prod([self.get_unsafe(edge[0], edge[1]) for edge in edges2])
 
         return res
 
@@ -2162,7 +2287,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
             raise ArithmeticError, "incompatible dimensions"
-        s = self._base_ring(0)
+        s = self._base_ring.zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 s += self.get_unsafe(i, j) * other.get_unsafe(j, i)
@@ -2221,7 +2346,7 @@ cdef class Matrix(matrix1.Matrix):
         as `A`, and is upper triangular except possible for entries
         right below the diagonal.
 
-        ALGORITHM: See Henri Cohen's first book.
+        ALGORITHM: See Henri Cohen's first book [C2]_.
 
         EXAMPLES::
 
