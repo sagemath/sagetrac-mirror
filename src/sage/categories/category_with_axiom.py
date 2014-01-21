@@ -108,6 +108,7 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_import import LazyImport
 from sage.misc.misc import call_method
+from sage.categories.axioms.factory import axioms
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_types import Category_over_base_ring
@@ -117,14 +118,6 @@ from sage.structure.dynamic_class import DynamicMetaclass
 #             variant
 # qualifier / qualified category
 # axiom / constraint
-
-all_axioms = ("Flying", "Blue",
-              "Facade", "Finite", "Infinite",
-              "FiniteDimensional", "Connected", "WithBasis",
-              "Irreducible",
-              "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
-              "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
-              )
 
 # The order of the axioms implies that
 # Magmas().Commutative().Unital() is printed as
@@ -146,7 +139,9 @@ def axioms_rank(axiom):
     This is mostly used by :meth:`canonicalize_axioms`
 
     """
-    return all_axioms.index(axiom)
+    if isinstance(axiom, str):
+        axiom = axioms.deprecated_with_name(axiom)
+    return axiom._sort_key
 
 def canonicalize_axioms(axioms):
     r"""
@@ -245,7 +240,7 @@ def base_category_class_and_axiom(cls):
         # with the base class (say Algebras) being implemented in the
         # standard location (sage.categories.algebras)
         name = cls.__name__
-        for axiom in all_axioms:
+        for axiom in axioms.deprecated_all_names():
             if axiom == "WithBasis" and name.endswith(axiom):
                 base_name = name[:-len(axiom)]
             elif name.startswith(axiom):
@@ -300,7 +295,7 @@ def axiom_of_nested_class(cls, nested_cls):
     except KeyError:
         assert not isinstance(cls, DynamicMetaclass)
         nested_cls_name = nested_cls.__name__.split(".")[-1]
-        if nested_cls_name in all_axioms:
+        if nested_cls_name in axioms.deprecated_all_names():
             axiom = nested_cls_name
         else:
             cls_name = cls.__name__.split(".")[-1]
@@ -310,7 +305,7 @@ def axiom_of_nested_class(cls, nested_cls):
                 axiom = nested_cls_name[:-len(cls_name)]
             else:
                 raise ValueError, "could not infer axiom for the nested class %s of %s"%(nested_cls, cls)
-    assert axiom in all_axioms, \
+    assert axiom in axioms.deprecated_all_names(), \
         "Incorrect guess (%s) for the name of the axiom for the nested class %s of %s"%(axiom, nested_cls, cls)
     assert axiom in cls.__dict__ and cls.__dict__[axiom] == nested_cls, \
         "%s not a nested axiom class of %s for axiom %s"%(nested_cls, cls, axiom)

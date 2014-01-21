@@ -1,4 +1,5 @@
 from category import    is_Category, Category, HomCategory
+from axioms.factory import axioms
 
 from category_types import(
                         Elements,
