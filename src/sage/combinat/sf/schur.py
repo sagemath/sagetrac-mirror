@@ -445,6 +445,55 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                         result += coeff * quotient_prod
             return result
 
+        def vertensorung(self, n, shift=""):
+            r"""
+            Haxxperimental method.
+            """
+            # Extra hack for the n == 1 case, since lam.quotient(1)
+            # (for lam being a partition) returns a partition rather than
+            # a partition tuple.
+            if n == 1:
+                return self
+            
+            from sage.categories.tensor import tensor
+            parent = self.parent()
+            s_coords_of_self = self.monomial_coefficients().items()
+            from sage.combinat.partition import Partition
+            from sage.rings.integer import Integer
+            result = tensor([parent.zero() for i in range(n)])
+            from sage.combinat.permutation import Permutation
+            for (lam, coeff) in s_coords_of_self:
+                if len(lam.core(n)) == 0:
+                    quotient = lam.quotient(n)
+                    if shift == "length":
+                        if len(lam) % 2 == 0:
+                            quotient_prod = tensor([parent(part) for part in quotient])
+                        else:
+                            quotient_prod = tensor([parent(quotient[1]), parent(quotient[0])])
+                    else:
+                        quotient_prod = tensor([parent(part) for part in quotient])
+                    # Now, compute the sign of quotient_prod in the
+                    # n-th Verschiebung of lam.
+                    len_lam = len(lam)
+                    ns = len_lam + ((- len_lam) % n)
+                    s = Integer(ns / n)
+                    beta_list = lam.beta_numbers(ns)
+                    zipped_beta_list = zip(beta_list, range(1, ns + 1))
+                    zipped_beta_list.sort(key = lambda a: (- 1 - a[0]) % n)
+                    # We are using the fact that sort is a stable sort.
+                    perm_list = [a[1] for a in zipped_beta_list]
+                    if Permutation(perm_list).sign() == 1:
+                        minus_sign = False
+                    else:
+                        minus_sign = True
+                    if (n * s * (n-1) * (s-1)) % 8 == 4:
+                        minus_sign = not minus_sign
+                    if minus_sign:
+                        result -= coeff * quotient_prod
+                    else:
+                        result += coeff * quotient_prod
+            return result
+
         def expand(self, n, alphabet='x'):
             """
             Expands the symmetric function as a symmetric polynomial in `n` variables.
