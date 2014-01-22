@@ -71,7 +71,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
                 Traceback (most recent call last):
                 ...
                 AssertionError: base category class for <...AlgebrasWithBasis'> mismatch;
-                expected <...Algebras'>, got <...GradedAlgebrasWithBasis'>. Consider to provide <...AlgebrasWithBasis'> not by a class attribute of <...GradedAlgebrasWithBasis'>, but by SubcategoryMethods.
+                expected <...Algebras'>, got <...GradedAlgebrasWithBasis'>
         """
         module_name = cls.__module__.replace("graded_","")
         import sys

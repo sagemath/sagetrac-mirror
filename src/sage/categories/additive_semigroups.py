@@ -40,7 +40,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
         sage: TestSuite(C).run()
 
     """
-    _base_category_class_and_axiom = [AdditiveMagmas, axioms.AdditiveAssociative()]
+    _base_category_class_and_axiom = (AdditiveMagmas, axioms.AdditiveAssociative())
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_semigroups', 'CommutativeAdditiveSemigroups', 'AdditiveCommutative', at_startup=True)
     AdditiveUnital = LazyImport('sage.categories.additive_monoids', 'AdditiveMonoids', 'AdditiveUnital', at_startup=True)

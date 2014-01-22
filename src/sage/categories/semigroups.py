@@ -47,7 +47,7 @@ class Semigroups(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [Magmas, axioms.Associative()]
+    _base_category_class_and_axiom = (Magmas, axioms.Associative())
 
     def example(self, choice="leftzero", **kwds):
         r"""
@@ -333,8 +333,8 @@ class Semigroups(CategoryWithAxiom):
         __pow__ = _pow_
 
 
-    Finite = LazyImport('sage.categories.finite_semigroups', 'FiniteSemigroups', 'Finite', at_startup=True)
-    Unital = LazyImport('sage.categories.monoids', 'Monoids', 'Unital', at_startup=True)
+    Finite = LazyImport('sage.categories.finite_semigroups', 'FiniteSemigroups', at_startup=True)
+    Unital = LazyImport('sage.categories.monoids', 'Monoids', at_startup=True)
 
     #######################################
     class Subquotients(SubquotientsCategory):

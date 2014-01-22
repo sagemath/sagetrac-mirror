@@ -684,6 +684,7 @@ class Magmas(Category_singleton):
                 assert(x in self)
                 assert(y in self)
                 return self.retract(self.lift(x) * self.lift(y))
+
     class Realizations(RealizationsCategory):
 
         class ParentMethods:

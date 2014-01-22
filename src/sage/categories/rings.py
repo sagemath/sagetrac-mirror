@@ -50,7 +50,7 @@ class Rings(CategoryWithAxiom):
        in the category ``Algebras(P)``.
     """
 
-    _base_category_class_and_axiom = [Rngs, axioms.Unital()]
+    _base_category_class_and_axiom = (Rngs, axioms.Unital())
 
     class SubcategoryMethods:
 

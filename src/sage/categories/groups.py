@@ -33,7 +33,7 @@ class Groups(CategoryWithAxiom):
 
         sage: TestSuite(Groups()).run()
     """
-    _base_category_class_and_axiom = [Monoids, axioms.Inverse()]
+    _base_category_class_and_axiom = (Monoids, axioms.Inverse())
 
     def example(self):
         """
@@ -361,8 +361,8 @@ class Groups(CategoryWithAxiom):
         ## inv(x), x/y
         pass
 
-    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups', 'Finite')
-    #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras', 'Algebras')
+    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Algebras(AlgebrasCategory):
         """

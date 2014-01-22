@@ -55,7 +55,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(Algebras(ZZ)).run()
     """
-    _base_category_class_and_axiom = [AssociativeAlgebras, axioms.Unital()]
+    _base_category_class_and_axiom = (AssociativeAlgebras, axioms.Unital())
 
     # For backward compatibility?
     def __contains__(self, x):
@@ -87,9 +87,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     #     R = self.base_ring()
     #     return [Rings()] # TODO: won't be needed when Rings() will be Rngs().Unital()
 
-    Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', 'Commutative', at_startup=True)
-    Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras', 'Graded')
-    WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis', 'WithBasis')
+    Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
+    Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
+    WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy

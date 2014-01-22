@@ -38,4 +38,4 @@ class CommutativeAdditiveMonoids(CategoryWithAxiom):
 
         sage: TestSuite(CommutativeAdditiveMonoids()).run()
     """
-    _base_category_class_and_axiom = [AdditiveMonoids, axioms.AdditiveCommutative()]
+    _base_category_class_and_axiom = (AdditiveMonoids, axioms.AdditiveCommutative())
