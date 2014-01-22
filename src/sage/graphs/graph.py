@@ -932,7 +932,7 @@ class Graph(GenericGraph):
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
-          sage: g = Graph([(0, 2, '0'), (0, 2, '1'), (3, 3, '2')])
+          sage: g = Graph([(0, 2, '0'), (0, 2, '1'), (3, 3, '2')], loops=True, multiedges=True)
           sage: g.loops()
           [(3, 3, '2')]
 
@@ -1022,9 +1022,9 @@ class Graph(GenericGraph):
         Loops are not counted as multiedges (see :trac:`11693`) and edges are
         not counted twice ::
 
-            sage: Graph([[1,1]],multiedges=False).num_edges()
+            sage: Graph({1:[1]}).num_edges()
             1
-            sage: Graph([[1,2],[1,2]],multiedges=True).num_edges()
+            sage: Graph({1:[2,2]}).num_edges()
             2
 
         Invalid sequence of edges given as an input (they do not all
@@ -1197,6 +1197,11 @@ class Graph(GenericGraph):
 
                         if (multiedges is None and (u in data[v])):
                             multiedges = True
+                            deprecation(15706, "You created a graph with multiple "+
+                                        "edges from a list. Please set 'multiedges' "+
+                                        "to 'True' when you do so, as in the "+
+                                        "future the default behaviour will "+
+                                        "be to ignore those edges")
                             for uu, dd in data.iteritems():
                                 for vv, ddd in dd.iteritems():
                                     dd[vv] = [ddd]
@@ -1235,6 +1240,11 @@ class Graph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
+            if loops is None and any(x in dx for x,dx in data.iteritems()):
+                deprecation(15706, "You created a graph with loops from a list. "+
+                            "Please set 'loops' to 'True' when you do so, as in "+
+                            "the future the default behaviour will be to ignore "+
+                            "those edges")
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)
@@ -1433,11 +1443,13 @@ class Graph(GenericGraph):
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
-                        if loops is None: loops = True
+                        if loops is None:
+                            loops = True
                         elif loops is False:
                             raise ValueError("No loops but dict has loops.")
                         break
-                if loops is None: loops = False
+                if loops is None:
+                    loops = False
             if weighted is None: weighted = False
             for u in data:
                 verts=verts.union([v for v in data[u] if v not in verts])
@@ -1445,7 +1457,8 @@ class Graph(GenericGraph):
                     if multiedges is False:
                         from sage.misc.prandom import choice
                         raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
-                    if multiedges is None: multiedges = True
+                    if multiedges is None:
+                        multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
         elif format == 'NX':
@@ -1825,7 +1838,7 @@ class Graph(GenericGraph):
 
         This is useful for graphs with multiple edges::
 
-            sage: G = Graph([(1, 2, 'a'), (1, 2, 'b')])
+            sage: G = Graph([(1, 2, 'a'), (1, 2, 'b')], multiedges=True)
             sage: G.is_tree(certificate=True)
             (False, [1, 2])
             sage: G.is_tree(certificate=True, output='edge')
@@ -6286,13 +6299,13 @@ class Graph(GenericGraph):
 
         For the 'coffee bean' graph::
 
-            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')])
+            sage: G = Graph([(0,1,'a'),(0,1,'b'),(0,1,'c')],multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
             t0*t1 + t0*t2 + t1*t2
 
         For the 'parachute' graph::
 
-            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
             t0*t1 + t0*t2 + t1*t2 + t1*t3 + t2*t3
 
