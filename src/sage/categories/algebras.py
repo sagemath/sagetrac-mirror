@@ -18,6 +18,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.dual import DualObjectsCategory
@@ -54,7 +55,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(Algebras(ZZ)).run()
     """
-    _base_category_class_and_axiom = [AssociativeAlgebras, 'Unital']
+    _base_category_class_and_axiom = [AssociativeAlgebras, axioms.Unital()]
 
     # For backward compatibility?
     def __contains__(self, x):

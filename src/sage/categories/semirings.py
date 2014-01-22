@@ -8,6 +8,7 @@ Semirngs
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
 
@@ -31,7 +32,7 @@ class Semirings(CategoryWithAxiom):
         [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas, Category of monoids]
 
         sage: sorted(Semirings().axioms())
-        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveUnital', 'Associative', 'Unital']
+        [Associative, Unital, AdditiveCommutative, AdditiveAssociative, AdditiveUnital]
 
         sage: Semirings() is DistributiveMagmasAndAdditiveMagmas().Associative().AdditiveAssociative().AdditiveCommutative().AdditiveUnital().Unital()
         True
@@ -44,5 +45,5 @@ class Semirings(CategoryWithAxiom):
 
         sage: TestSuite(Semirings()).run()
     """
-    _base_category_class_and_axiom = [DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital"]
+    _base_category_class_and_axiom = [DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, axioms.Unital()]
 

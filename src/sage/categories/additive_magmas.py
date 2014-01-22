@@ -11,6 +11,7 @@ Additive Magmas
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -83,7 +84,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: Rings().AdditiveAssociative.__module__
                 'sage.categories.additive_magmas'
             """
-            return self._with_axiom('AdditiveAssociative')
+            return self._with_axiom(axioms.AdditiveAssociative())
 
         @cached_method
         def AdditiveCommutative(self):
@@ -105,7 +106,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: Rings().AdditiveCommutative.__module__
                 'sage.categories.additive_magmas'
             """
-            return self._with_axiom('AdditiveCommutative')
+            return self._with_axiom(axioms.AdditiveCommutative())
 
         @cached_method
         def AdditiveUnital(self):
@@ -128,7 +129,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: CommutativeAdditiveSemigroups().AdditiveUnital.__module__
                 'sage.categories.additive_magmas'
             """
-            return self._with_axiom("AdditiveUnital")
+            return self._with_axiom(axioms.AdditiveUnital())
 
     AdditiveAssociative = LazyImport('sage.categories.additive_semigroups', 'AdditiveSemigroups', 'AdditiveAssociative', at_startup=True)
 
@@ -538,7 +539,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: CommutativeAdditiveMonoids().AdditiveInverse.__module__
                     'sage.categories.additive_magmas'
                 """
-                return self._with_axiom("AdditiveInverse")
+                return self._with_axiom(axioms.AdditiveInverse())
 
         class AdditiveInverse(CategoryWithAxiom):
             pass

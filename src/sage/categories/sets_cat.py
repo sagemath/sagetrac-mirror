@@ -17,6 +17,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
+from sage.categories.axioms.factory import axioms
 from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
@@ -641,7 +642,7 @@ class Sets(Category_singleton):
                 sage: Rings().Finite.__module__
                 'sage.categories.sets_cat'
             """
-            return self._with_axiom('Finite')
+            return self._with_axiom(axioms.Finite())
 
         @cached_method
         def Infinite(self):
@@ -661,7 +662,7 @@ class Sets(Category_singleton):
                 sage: Rings().Infinite.__module__
                 'sage.categories.sets_cat'
             """
-            return self._with_axiom('Infinite')
+            return self._with_axiom(axioms.Infinite())
 
         def Facade(self):
             r"""
@@ -764,7 +765,7 @@ class Sets(Category_singleton):
                 sage: Posets().Facade().Finite() is  Posets().Finite().Facade()
                 True
             """
-            return self._with_axiom('Facade')
+            return self._with_axiom(axioms.Facade())
 
         Facades = Facade
 

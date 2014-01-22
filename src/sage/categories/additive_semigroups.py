@@ -10,6 +10,7 @@ Additive semigroups
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.additive_magmas import AdditiveMagmas
@@ -30,7 +31,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
         [Category of additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
         sage: C.axioms()
-        frozenset(['AdditiveAssociative'])
+        frozenset([AdditiveAssociative])
         sage: C is AdditiveMagmas().AdditiveAssociative()
         True
 
@@ -39,7 +40,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
         sage: TestSuite(C).run()
 
     """
-    _base_category_class_and_axiom = [AdditiveMagmas, "AdditiveAssociative"]
+    _base_category_class_and_axiom = [AdditiveMagmas, axioms.AdditiveAssociative()]
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_semigroups', 'CommutativeAdditiveSemigroups', 'AdditiveCommutative', at_startup=True)
     AdditiveUnital = LazyImport('sage.categories.additive_monoids', 'AdditiveMonoids', 'AdditiveUnital', at_startup=True)

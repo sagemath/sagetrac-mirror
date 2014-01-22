@@ -12,6 +12,7 @@ Groups
 #******************************************************************************
 
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -32,7 +33,7 @@ class Groups(CategoryWithAxiom):
 
         sage: TestSuite(Groups()).run()
     """
-    _base_category_class_and_axiom = [Monoids, "Inverse"]
+    _base_category_class_and_axiom = [Monoids, axioms.Inverse()]
 
     def example(self):
         """

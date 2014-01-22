@@ -11,6 +11,7 @@ Graded modules
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
@@ -190,7 +191,7 @@ class GradedModules(GradedModulesCategory):
                 sage: Coalgebras(QQ).Graded().Connected.__module__
                 'sage.categories.graded_modules'
             """
-            return self._with_axiom("Connected")
+            return self._with_axiom(axioms.Connected())
 
     class Connected(CategoryWithAxiom_over_base_ring):
         pass

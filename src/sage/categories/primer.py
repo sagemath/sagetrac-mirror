@@ -671,7 +671,7 @@ or the axioms satisfied by the operations of a category::
     sage: Groups().super_categories()
     [Category of monoids, Category of inverse unital magmas]
     sage: Groups().axioms()
-    frozenset(['Inverse', 'Associative', 'Unital'])
+    frozenset([Inverse, Associative, Unital])
 
 or constructing the intersection of two categories, or the smallest
 category containing them::

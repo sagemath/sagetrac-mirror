@@ -11,6 +11,7 @@ Magmas
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
+from sage.categories.axioms.factory import axioms
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -83,7 +84,7 @@ class Magmas(Category_singleton):
                 sage: Rings().Associative.__module__
                 'sage.categories.magmas'
             """
-            return self._with_axiom('Associative')
+            return self._with_axiom(axioms.Associative())
 
         @cached_method
         def Commutative(self):
@@ -103,7 +104,7 @@ class Magmas(Category_singleton):
                 sage: Rings().Commutative.__module__
                 'sage.categories.magmas'
             """
-            return self._with_axiom('Commutative')
+            return self._with_axiom(axioms.Commutative())
 
         @cached_method
         def Unital(self):
@@ -128,7 +129,7 @@ class Magmas(Category_singleton):
                 sage: Semigroups().Unital.__module__
                 'sage.categories.magmas'
             """
-            return self._with_axiom("Unital")
+            return self._with_axiom(axioms.Unital())
 
     Associative = LazyImport('sage.categories.semigroups', 'Semigroups', 'Associative', at_startup=True)
 
@@ -218,7 +219,7 @@ class Magmas(Category_singleton):
                     sage: Algebras(QQ).Inverse.__module__
                     'sage.categories.magmas'
                 """
-                return self._with_axiom("Inverse")
+                return self._with_axiom(axioms.Inverse())
 
         class Inverse(CategoryWithAxiom):
             pass

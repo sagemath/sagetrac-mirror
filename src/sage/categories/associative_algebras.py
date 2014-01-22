@@ -9,6 +9,7 @@ Associative algebras
 #******************************************************************************
 
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.magmas import Magmas
 from sage.categories.magmatic_algebras import MagmaticAlgebras
@@ -42,7 +43,7 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
         True
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [MagmaticAlgebras, "Associative"]
+    _base_category_class_and_axiom = [MagmaticAlgebras, axioms.Associative()]
 
     class ElementMethods:
 

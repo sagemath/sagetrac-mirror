@@ -8,6 +8,7 @@ Commutative additive groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_types import AbelianCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -25,7 +26,7 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
         sage: C.super_categories()
         [Category of additive groups, Category of commutative additive monoids]
         sage: sorted(C.axioms())
-        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital']
+        [AdditiveCommutative, AdditiveAssociative, AdditiveInverse, AdditiveUnital]
         sage: C is CommutativeAdditiveMonoids().AdditiveInverse()
         True
         sage: from sage.categories.additive_groups import AdditiveGroups
@@ -41,7 +42,7 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
 
         sage: TestSuite(CommutativeAdditiveGroups()).run()
     """
-    _base_category_class_and_axiom = [AdditiveGroups, "AdditiveCommutative"]
+    _base_category_class_and_axiom = [AdditiveGroups, axioms.AdditiveCommutative()]
 
     class Algebras(AlgebrasCategory):
         pass

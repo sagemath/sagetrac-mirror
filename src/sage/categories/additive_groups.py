@@ -9,6 +9,7 @@ Additive groups
 #******************************************************************************
 
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.additive_monoids import AdditiveMonoids
 from sage.structure.sage_object import have_same_parent
@@ -32,7 +33,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         [Category of additive groups, Category of additive inverse additive unital additive magmas, Category of additive monoids, Category of additive unital additive magmas, Category of additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
 
         sage: AdditiveGroups().axioms()
-        frozenset(['AdditiveAssociative', 'AdditiveUnital', 'AdditiveInverse'])
+        frozenset([AdditiveAssociative, AdditiveUnital, AdditiveInverse])
         sage: AdditiveGroups() is AdditiveMonoids().AdditiveInverse()
         True
 
@@ -41,7 +42,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         sage: C = AdditiveGroups()
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveMonoids, "AdditiveInverse"]
+    _base_category_class_and_axiom = [AdditiveMonoids, axioms.AdditiveInverse()]
 
     AdditiveCommutative = LazyImport('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', 'AdditiveCommutative', at_startup=True)
 

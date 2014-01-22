@@ -13,6 +13,7 @@ Rings
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from category import HomCategory
@@ -30,7 +31,8 @@ class Rings(CategoryWithAxiom):
       sage: sorted(Rings().super_categories(), key=str)
       [Category of rngs, Category of semirings]
       sage: sorted(Rings().axioms())
-      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Unital']
+      [Associative, Unital, AdditiveCommutative, AdditiveAssociative, AdditiveInverse, AdditiveUnital]
+
       sage: Rings() is Rngs().Unital()
       True
       sage: Rings() is Semirings().AdditiveInverse()
@@ -48,7 +50,7 @@ class Rings(CategoryWithAxiom):
        in the category ``Algebras(P)``.
     """
 
-    _base_category_class_and_axiom = [Rngs, "Unital"]
+    _base_category_class_and_axiom = [Rngs, axioms.Unital()]
 
     class SubcategoryMethods:
 
@@ -69,7 +71,7 @@ class Rings(CategoryWithAxiom):
                 sage: Algebras(QQ).NoZeroDivisors.__module__
                 'sage.categories.rings'
             """
-            return self._with_axiom('NoZeroDivisors')
+            return self._with_axiom(axioms.NoZeroDivisors())
 
         def Division(self):
             """
@@ -93,7 +95,7 @@ class Rings(CategoryWithAxiom):
                 sage: Algebras(QQ).Division.__module__
                 'sage.categories.rings'
             """
-            return self._with_axiom('Division')
+            return self._with_axiom(axioms.Division())
 
 
     NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', 'NoZeroDivisors', at_startup=True)

@@ -1581,7 +1581,7 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Category.join([EnumeratedSets().Infinite(), Sets().Facade()]).axioms()
-            frozenset(['Infinite', 'Facade'])
+            frozenset([Infinite, Facade])
         """
         return frozenset(axiom
                          for category in self.super_categories()
@@ -1602,22 +1602,23 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Sets()._with_axiom_categories('Finite')
+            sage: Sets()._with_axiom_categories(axioms.Finite())
             (Category of finite sets,)
-            sage: Magmas()._with_axiom_categories('Finite')
+            sage: Magmas()._with_axiom_categories(axioms.Finite())
             (Category of finite sets,)
-            sage: Sets().Finite()._with_axiom_categories('Infinite')
+            sage: Sets().Finite()._with_axiom_categories(axioms.Infinite())
             (Category of infinite sets,)
-            sage: HopfAlgebras(QQ)._with_axiom_categories('FiniteDimensional')
+            sage: HopfAlgebras(QQ)._with_axiom_categories(axioms.FiniteDimensional())
             (Category of finite dimensional modules over Rational Field,)
         """
-        axiom_attribute = getattr(self.__class__, axiom, None)
+        assert not isinstance(axiom, str)   # FIXME
+        axiom_attribute = getattr(self.__class__, str(axiom), None)
         if axiom_attribute is None:
             # If the axiom is not defined for this category
             # This uses the following invariant: the categories for
             # which a given axiom is defined form a lower set
             return ()
-        if axiom in self.__class__.__base__.__dict__:
+        if str(axiom) in self.__class__.__base__.__dict__:
             from category_with_axiom import CategoryWithAxiom
             if inspect.isclass(axiom_attribute) and issubclass(axiom_attribute, CategoryWithAxiom):
                 return (axiom_attribute(self),)
@@ -1627,7 +1628,7 @@ class Category(UniqueRepresentation, SageObject):
         result = set(cat
                      for category in self.super_categories()
                      for cat in category._with_axiom_categories(axiom))
-        hook = getattr(self, axiom+"_extra_super_categories", None)
+        hook = getattr(self, str(axiom)+"_extra_super_categories", None)
         if hook is not None:
             assert inspect.ismethod(hook)
             result = result.union(hook())
@@ -1638,7 +1639,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         EXAMPLES::
 
-            sage: Sets()._with_axiom("Finite")
+            sage: Sets()._with_axiom(axioms.Finite())
             Category of finite sets
 
             sage: type(Magmas().Finite().Commutative())
@@ -1649,6 +1650,7 @@ class Category(UniqueRepresentation, SageObject):
             True
 
         """
+        assert not isinstance(axiom, str)   # FIXME
         if axiom in self.axioms():
             return self
         return Category.join((self,) + self._with_axiom_categories(axiom))
@@ -1659,17 +1661,19 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Sets()._with_axioms(["Finite"])
+            sage: Sets()._with_axioms([axioms.Finite()])
             Category of finite sets
-            sage: Sets()._with_axioms(["Infinite"])
+            sage: Sets()._with_axioms([axioms.Infinite()])
             Category of infinite sets
-            sage: FiniteSets()._with_axioms(["Finite"])
+            sage: FiniteSets()._with_axioms([axioms.Finite()])
             Category of finite sets
 
         When the category does not define the axiom, the category
         itself is returned::
 
-            sage: Sets()._with_axioms(["FooBar"])
+            sage: from sage.categories.axioms.axiom import Axiom
+            sage: class FooBar(Axiom): pass
+            sage: Sets()._with_axioms([FooBar()])
             Category of sets
 
         Note that adding several axioms at once can do more than
@@ -1682,7 +1686,7 @@ class Category(UniqueRepresentation, SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'Semigroups_with_category' object has no attribute 'Inverse'
-            sage: Semigroups()._with_axioms(["Inverse"])
+            sage: Semigroups()._with_axioms([axioms.Inverse()])
             Category of semigroups
 
         So one needs to first add the ``Unital`` axiom, and then the
@@ -1693,14 +1697,14 @@ class Category(UniqueRepresentation, SageObject):
 
         or to specify all of them at once, in any order::
 
-            sage: Semigroups()._with_axioms(["Inverse", "Unital"])
+            sage: Semigroups()._with_axioms([axioms.Inverse(), axioms.Unital()])
             Category of groups
-            sage: Semigroups()._with_axioms(["Unital", "Inverse"])
+            sage: Semigroups()._with_axioms([axioms.Unital(), axioms.Inverse()])
             Category of groups
 
-            sage: Magmas()._with_axioms(['Commutative', 'Associative', 'Unital','Inverse'])
+            sage: Magmas()._with_axioms([axioms.Commutative(), axioms.Associative(), axioms.Unital(), axioms.Inverse()])
             Category of commutative groups
-            sage: Magmas()._with_axioms(['Inverse', 'Commutative', 'Associative', 'Unital'])
+            sage: Magmas()._with_axioms([axioms.Inverse(), axioms.Commutative(), axioms.Associative(), axioms.Unital()])
             Category of commutative groups
         """
         # We repeat adding axioms until they have all been
@@ -1728,13 +1732,13 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Sets()._without_axiom("Facade")
+            sage: Sets()._without_axiom(axioms.Facade())
             Category of sets
-            sage: Sets().Facade()._without_axiom("Facade")
+            sage: Sets().Facade()._without_axiom(axioms.Facade())
             Category of sets
-            sage: Algebras(QQ)._without_axiom("Unital")
+            sage: Algebras(QQ)._without_axiom(axioms.Unital())
             Category of associative algebras over Rational Field
-            sage: Groups()._without_axiom("Unital") # todo: not implemented
+            sage: Groups()._without_axiom(axioms.Unital()) # todo: not implemented
             Category of semigroups
         """
         if axiom not in self.axioms():
@@ -2005,7 +2009,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: TCF is (T.Facade() & T.Commutative())
             True
             sage: TCF.axioms()
-            frozenset(['Facade', 'Commutative'])
+            frozenset([Facade, Commutative])
             sage: type(TCF)
             <class 'sage.categories.category_with_axiom.Commutative.Facade_with_category'>
 
@@ -2080,6 +2084,7 @@ class Category(UniqueRepresentation, SageObject):
             axioms = {axiom
                       for category in categories
                       for axiom in category.axioms()}.union(axioms)
+            assert not any(isinstance(axs, str) for axs in axioms)   # FIXME
             # Invariants:
             # - the current list of categories is stored in the keys of ``done``
             # - todo contains the ``complement`` of done; i.e.
@@ -2774,7 +2779,7 @@ class JoinCategory(CategoryWithParameters):
         EXAMPLES::
 
             sage: C = Category.join([Monoids(), Posets()])
-            sage: C._with_axioms(["Finite"])
+            sage: C._with_axioms([axioms.Finite()])
             Join of Category of finite monoids and Category of finite posets
 
         TESTS::
@@ -2783,7 +2788,7 @@ class JoinCategory(CategoryWithParameters):
         the base categories::
 
             sage: C = Category.join([Monoids(), Magmas().Commutative()])
-            sage: C._with_axioms(["Finite"])
+            sage: C._with_axioms([axioms.Finite()])
             Category of finite commutative monoids
 
         This helps guaranteeing commutativity of taking axioms::
@@ -2810,13 +2815,13 @@ class JoinCategory(CategoryWithParameters):
 
             sage: C = Posets() & FiniteEnumeratedSets() & Sets().Facade(); C
             Join of Category of finite posets and Category of finite enumerated sets and Category of facade sets
-            sage: C._without_axiom("Facade")
+            sage: C._without_axiom(axioms.Facade())
             Join of Category of finite posets and Category of finite enumerated sets
 
             sage: C = Sets().Finite().Facade()
             sage: type(C)
             <class 'sage.categories.category.JoinCategory_with_category'>
-            sage: C._without_axiom("Facade")
+            sage: C._without_axiom(axioms.Facade())
             Category of finite sets
         """
         result = Category.join(C._without_axiom(axiom) for C in self.super_categories())

@@ -8,6 +8,7 @@ Commutative additive semigroups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.additive_semigroups import AdditiveSemigroups
 
@@ -27,7 +28,7 @@ class CommutativeAdditiveSemigroups(CategoryWithAxiom):
         [Category of additive commutative additive magmas,
          Category of additive semigroups]
         sage: sorted(C.axioms())
-        ['AdditiveAssociative', 'AdditiveCommutative']
+        [AdditiveCommutative, AdditiveAssociative]
         sage: C is AdditiveMagmas().AdditiveAssociative().AdditiveCommutative()
         True
 
@@ -40,4 +41,4 @@ class CommutativeAdditiveSemigroups(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [AdditiveSemigroups, "AdditiveCommutative"]
+    _base_category_class_and_axiom = [AdditiveSemigroups, axioms.AdditiveCommutative()]

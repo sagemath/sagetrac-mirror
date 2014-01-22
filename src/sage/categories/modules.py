@@ -13,6 +13,7 @@ Modules
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.category import HomCategory
 from category import JoinCategory
@@ -269,7 +270,7 @@ class Modules(Category_module):
                 sage: Coalgebras(QQ).FiniteDimensional.__module__
                 'sage.categories.modules'
             """
-            return self._with_axiom("FiniteDimensional")
+            return self._with_axiom(axioms.FiniteDimensional())
 
         @cached_method
         def Graded(self, base_ring=None):
@@ -327,7 +328,7 @@ class Modules(Category_module):
                 sage: Coalgebras(QQ).WithBasis.__module__
                 'sage.categories.modules'
             """
-            return self._with_axiom("WithBasis")
+            return self._with_axiom(axioms.WithBasis())
 
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
 

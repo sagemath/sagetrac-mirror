@@ -15,6 +15,7 @@ Semigroups
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.misc_c import prod
+from sage.categories.axioms.factory import axioms
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.subquotients import SubquotientsCategory
@@ -38,7 +39,7 @@ class Semigroups(CategoryWithAxiom):
         [Category of semigroups, Category of magmas,
          Category of sets, Category of sets with partial maps, Category of objects]
         sage: C.axioms()
-        frozenset(['Associative'])
+        frozenset([Associative])
         sage: C.example()
         An example of a semigroup: the left zero semigroup
 
@@ -46,7 +47,7 @@ class Semigroups(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-    _base_category_class_and_axiom = [Magmas, "Associative"]
+    _base_category_class_and_axiom = [Magmas, axioms.Associative()]
 
     def example(self, choice="leftzero", **kwds):
         r"""
