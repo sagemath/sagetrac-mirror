@@ -641,7 +641,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: x = polygen(QQ,'x')
             sage: R(x + x^2 + x^3 + x^5, 3)
             t + t^2 + O(t^3)
-            sage: S.<x> = QQ[];
             sage: R(1/(1-x), prec=5)
             1 + t + t^2 + t^3 + t^4 + O(t^5)
         """
