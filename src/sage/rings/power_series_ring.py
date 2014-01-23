@@ -134,6 +134,7 @@ import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
 from sage.interfaces.magma import MagmaElement
+from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
@@ -648,6 +649,8 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         elif isinstance(f, MagmaElement) and str(f.Type()) == 'RngSerPowElt':
             v = sage_eval(f.Eltseq())
             return self(v) * (self.gen(0)**f.Valuation())
+        elif isinstance(f, FractionFieldElement):
+            return self(f.numerator()) / self(f.denominator())
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
