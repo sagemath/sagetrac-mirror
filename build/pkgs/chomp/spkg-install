@@ -46,4 +46,4 @@ fi
 echo "Making symlinks for the old $NAME binaries..."
 cd $SAGE_LOCAL/bin
 ln -sf chomp-cubical homcubes
-ln -sf chomp-simplicial homssimpl
+ln -sf chomp-simplicial homsimpl
