@@ -982,14 +982,33 @@ cdef class LaurentSeries(AlgebraElement):
         """
         EXAMPLES::
 
-            sage: x = Frac(QQ[['x']]).0
+            sage: R.<x> = LaurentSeriesRing(QQ)
             sage: f = 1/x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1 - x + x^2 - x^4 + O(x^8)
             sage: f.valuation()
             -1
             sage: g.valuation()
             0
+
+        Note that the valuation of an element undistinguishable from
+        zero is infinite::
+
+            sage: h = f - f; h
+            O(x^7)
+            sage: h.valuation()
+            +Infinity
+
+        TESTS:
+
+        The valuation of the zero element is ``+Infinity``
+        (see :trac:`15088`)::
+
+            sage: zero = R(0)
+            sage: zero.valuation()
+            +Infinity
         """
+        if self.is_zero():
+            return infinity
         return self.__n
 
     def variable(self):
@@ -1021,6 +1040,47 @@ cdef class LaurentSeries(AlgebraElement):
             8
         """
         return self.__u.prec() + self.__n
+
+    def precision_absolute(self):
+        """
+        Return the absolute precision of this series.
+
+        By definition, the absolute precision of
+        `...+O(x^r)` is `r`.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_absolute()
+            3
+            sage: (1 - t^2 + O(t^100)).precision_absolute()
+            100
+        """
+        return self.prec()
+
+    def precision_relative(self):
+        """
+        Return the relative precision of this series, that
+        is the difference between its absolute precision  
+        and its valuation.
+
+        By convension, the relative precision of `0` (or
+        `O(x^r)` for any `r`) is `0`.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_relative()
+            1
+            sage: (1 - t^2 + O(t^100)).precision_relative()
+            100
+            sage: O(t^4).precision_relative()
+            0
+        """
+        if self.is_zero():
+            return 0
+        else:
+            return self.prec() - self.valuation()
 
     def __copy__(self):
         return LaurentSeries(self._parent, self.__u.copy(), self.__n)
