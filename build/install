@@ -357,6 +357,7 @@ BOOST_CROPPED=`newest_version boost_cropped`
 BZIP2=`newest_version bzip2`
 CDDLIB=`newest_version cddlib`
 CEPHES=`newest_version cephes`
+CHOMP=`newest_version chomp`
 CLIQUER=`newest_version cliquer`
 CONWAY=`newest_version conway_polynomials`
 CVXOPT=`newest_version cvxopt`

@@ -1,0 +1,11 @@
+--- src/source/Makefile.in	2013-09-16 08:25:19.000000000 -0700
++++ src/source/Makefile.in	2014-01-23 11:47:31.000000000 -0800
+@@ -336,7 +336,7 @@
+ 	../include/CImg.h
+ 
+ greyscale_to_cubical_LDADD = \
+-	-lm -lpthread -lX11
++	-lm -lpthread
+ 
+ all: config.h
+ 	$(MAKE) $(AM_MAKEFLAGS) all-am

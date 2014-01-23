@@ -22,11 +22,10 @@ http://chomp.rutgers.edu
 
 == Special Update/Build Instructions ==
 
-List patches that need to be applied and what they do
+* CImg.h.patch, Makefile.in.patch: don't require the use of X11. Since
+  X11 is not installed by default on OS X, these patches are necessary.
 
 == Changelog ==
-
-Provide a changelog of the spkg here, where the entries have this format:
 
 === chomp-1.0 (Volker Braun, 16 Sept 2013) ===
 

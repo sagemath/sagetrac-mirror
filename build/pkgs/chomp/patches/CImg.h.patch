@@ -1,0 +1,11 @@
+--- src/include/CImg.h	2013-09-16 03:01:06.000000000 -0700
++++ src/include/CImg.h	2014-01-23 11:42:09.000000000 -0800
+@@ -181,7 +181,7 @@
+ #define cimg_display 0
+ #elif cimg_OS==1
+ #if defined(__MACOSX__) || defined(__APPLE__)
+-#define cimg_display 1
++#define cimg_display 0
+ #else
+ #define cimg_display 1
+ #endif

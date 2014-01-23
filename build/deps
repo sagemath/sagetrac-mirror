@@ -29,6 +29,7 @@ all-sage: \
      $(INST)/$(BOEHM_GC) \
      $(INST)/$(BOOST_CROPPED) \
      $(INST)/$(CDDLIB) \
+     $(INST)/$(CHOMP) \
      $(INST)/$(CEPHES) \
      $(INST)/$(CLIQUER) \
      $(INST)/$(CONWAY) \
@@ -167,6 +168,9 @@ $(INST)/$(BOEHM_GC):
 
 $(INST)/$(BOOST_CROPPED):
 	+$(PIPE) "$(SAGE_SPKG) $(BOOST_CROPPED) 2>&1" "tee -a $(SAGE_LOGS)/$(BOOST_CROPPED).log"
+
+$(INST)/$(CHOMP): $(INST)/$(BOOST_CROPPED)
+	+$(PIPE) "$(SAGE_SPKG) $(CHOMP) 2>&1" "tee -a $(SAGE_LOGS)/$(CHOMP).log"
 
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
@@ -421,6 +425,7 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
 $(INST)/sage: \
 		 $(INST)/$(ATLAS) \
+		 $(INST)/$(CHOMP) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
 		 $(INST)/$(CYTHON) \
