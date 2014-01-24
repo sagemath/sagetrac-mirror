@@ -1470,6 +1470,118 @@ class TamariIntervalPoset(Element):
         """
         return len(list(self.maximal_chain_intervals()))
 
+    def initial_rise(self):
+        r"""
+        Return the initial rise of ``self``. The initial rise of an 
+        interval-poset is defined as being the initial rise of its upper
+        Dyck path [BFP]_.
+        
+        It can be computed directly from interval-poset [CCP]_: it is the first 
+        vertex `k` such that `k` precedes `k+1`. If there is not such vertex,
+        then it is the size of the interval-poset.
+        
+        REFERENCES:
+
+        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Mélou,
+         E. Fusy, L.-F. Préville-Ratelle
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.initial_rise()
+            3
+            sage: ip.upper_dyck_word().number_of_initial_rises()
+            3
+            sage: all( [ip.initial_rise() == ip.upper_dyck_word().number_of_initial_rises() for ip in TamariIntervalPosets(3)])
+            True
+        """
+        for i in xrange(1,self.size()):
+            if self.le(i,i+1):
+                return i
+        return self.size()
+        
+    def number_of_contacts(self):
+        r"""
+        Return the number of contacts of ``self``. The number of contacts
+        of a Tamari interval is defined to be the number of contacts of its
+        lower Dyck path [BFP]_. We don't include the initial contact.
+
+        In terms of interval-posets, this is the number of decreasing roots,
+        i.e., the number of connected compentends of the final forest [CCP]_.
+
+        REFERENCES:
+
+        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Mélou,
+         E. Fusy, L.-F. Préville-Ratelle
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.number_of_contacts()
+            2
+            sage: ip.lower_dyck_word().number_of_touch_points()
+            2
+            sage: all( [ip.number_of_contacts() == ip.lower_dyck_word().number_of_touch_points() for ip in TamariIntervalPosets(3)])
+            True
+
+        """
+        return len(self.decreasing_roots())
+
+    def lower_contacts_composition(self, ip2):
+        r"""
+        Return the lower contacts composition of ``self`` and ``ip2`` as 
+        described in [CCP]_. If ``p`` is not ``None``, then the partial 
+        composition is performed.
+
+        If ``self.size()`` is `n` and ``ip2.size()`` is `m`, the complete lower 
+        contacts composition of ``self`` and ``ip2`` consists of a set of 
+        interval-posets of size `n+m+1`. If ``self.number_of_contacts()`` is `c_1` 
+        and ``ip2.number_of_contacts()`` is `c_2`, then the number of interval-posets 
+        of the composition is `c_2+1` and the number of contacts of the 
+        resulting interval-posets are `c_1 + c_2 + 1, c_1 + c_2, c_1 + c_2 - 1, \dots, c_1 + 1`.
+
+        If ``p`` is not ``None``, then only a partial composition is performed 
+        and a unique interval-poset is returned with its number of contacts
+        equal to `c_1 + 1 + p`.
+
+        For a detailed description of the composition, please refer to [CCP]_.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        INPUT:
+
+        - ``ip2`` -- an interval-poset of size `m`
+        - ``p`` -- (default: ``None``) a Integer between 0 and ``ip2.number_of_contacts()``
+
+        OUTPUT:
+
+        A list of ``ip2.number_of_contacts()`` interval-posets of size `n+m+1`
+        if ``p`` is ``None`` or a unique interval-poset of size `n+m+1` if 
+        ``p`` is a number.
+
+        EXAMPLES::
+
+            sage: ip1 = TamariIntervalPoset(4,[(2,1),(3,1),(2,4),(3,4)])
+            sage: ip2 = TamariIntervalPoset(5,[(1,2),(3,2),(5,4)])
+            sage: ip1.lower_contacts_composition(ip2)
+            [The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (6, 5), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (9, 5), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)]]
+            sage: ip1.number_of_contacts()
+            2
+            sage: ip2.number_of_contacts()
+            3    
+            sage: [ip.number_of_contacts() for ip in ip1.lower_contacts_composition(ip2)]
+            [6, 5, 4, 3]
+
+        """
+        return TamariIntervalPosets.lower_contacts_composition(self,ip2)
+
 # Abstract class to serve as a Factory no instance are created.
 class TamariIntervalPosets(UniqueRepresentation, Parent):
     r"""
@@ -1835,6 +1947,122 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             return TamariIntervalPosets.from_binary_trees(tree1,tree2)
         except:
             raise ValueError, "The two Dyck words are not comparable on the Tamari lattice."%()
+
+    @staticmethod
+    def lower_contacts_composition(ip1, ip2, p = None):
+        r"""
+        Return the lower contacts composition of ``ip1`` and ``ip2`` as 
+        described in [CCP]_. If ``p`` is not ``None``, then the partial 
+        composition is performed.
+
+        If ``ip1.size()`` is `n` and ``ip2.size()`` is `m`, the complete lower 
+        contacts composition of ``ip1`` and ``ip2`` consists of a set of 
+        interval-posets of size `n+m+1`. If ``ip1.number_of_contacts()`` is `c_1` 
+        and ``ip2.number_of_contacts()`` is `c_2`, then the number of interval-posets 
+        of the composition is `c_2+1` and the number of contacts of the 
+        resulting interval-posets are `c_1 + c_2 + 1, c_1 + c_2, c_1 + c_2 - 1, \dots, c_1 + 1`.
+        
+        If ``p`` is not ``None``, then only a partial composition is performed 
+        and a unique interval-poset is returned with its number of contacts
+        equal to `c_1 + 1 + p`.
+
+        For a detailed description of the composition, please refer to [CCP]_.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        INPUT:
+
+        - ``ip1`` -- an interval-poset of size `n`
+        - ``ip2`` -- an interval-poset of size `m`
+        - ``p`` -- (default: ``None``) a Integer between 0 and ``ip2.number_of_contacts()``
+
+        OUTPUT:
+
+        A list of ``ip2.number_of_contacts()`` interval-posets of size `n+m+1`
+        if ``p`` is ``None`` or a unique interval-poset of size `n+m+1` if 
+        ``p`` is a number.
+
+        EXAMPLES::
+
+            sage: ip1 = TamariIntervalPoset(4,[(2,1),(3,1),(2,4),(3,4)])
+            sage: ip2 = TamariIntervalPoset(5,[(1,2),(3,2),(5,4)])
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip2)
+            [The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (6, 5), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)],
+             The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (9, 5), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)]]
+            sage: ip1.number_of_contacts()
+            2
+            sage: ip2.number_of_contacts()
+            3
+            sage: [ip.number_of_contacts() for ip in TamariIntervalPosets.lower_contacts_composition(ip1,ip2)]
+            [6, 5, 4, 3]
+            
+        partial composition::
+    
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip2,2)
+            The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip2,0)
+            The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (3, 1), (2, 1)]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip2,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid composition parameter
+            sage: [TamariIntervalPosets.lower_contacts_composition(ip1,ip2,p) for p in xrange(ip2.number_of_contacts()+1)] == TamariIntervalPosets.lower_contacts_composition(ip1,ip2)
+            True
+
+        composition with an empty interval-poset::
+
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip0)
+            [The tamari interval of size 5 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (3, 1), (2, 1)]]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip1,ip0,0)
+            The tamari interval of size 5 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (3, 1), (2, 1)]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip0,ip2)
+            [The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (5, 1), (4, 3), (3, 1), (2, 1)]]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip0,ip2,2)
+            The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (3, 1), (2, 1)]
+            sage: TamariIntervalPosets.lower_contacts_composition(ip0,ip0)
+            [The tamari interval of size 1 induced by relations []]
+
+        """
+        if p is not None and (p<0 or p>ip2.number_of_contacts()):
+            raise ValueError, "Invalid composition parameter"%()
+
+        k = ip1.size()+1
+        size = k + ip2.size()
+
+        ### left part ###
+
+        # we add all relations of ip1
+        relations = list(ip1._cover_relations)
+        # we add all relations i-->k for i in ip1
+        relations.extend([(i,k) for i in xrange(1,k)])
+        
+        ### right part ###
+
+        # we add all relations of ip2
+        relations.extend([(i+k,j+k) for (i,j) in ip2._cover_relations])
+        # we add the decreasing relations depending on p
+        result = []
+        if p is None:
+            result.append(TamariIntervalPoset(size,relations))
+        elif p==0:
+            return TamariIntervalPoset(size,relations)
+        c = 0
+        for j in ip2.decreasing_roots():
+            relations.append((j+k,k))
+            c+=1
+            if p is None:
+                result.append(TamariIntervalPoset(size,relations))
+            elif p==c:
+                return TamariIntervalPoset(size,relations)
+        return result
 
     def __call__(self, *args, **keywords):
         r"""
