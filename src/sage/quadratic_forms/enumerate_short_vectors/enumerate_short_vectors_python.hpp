@@ -18,7 +18,7 @@
  */
 
 boost::python::dict
-enumerate_short_vectors__python( boost::python::list, const long, const long, const bool up_to_sign = false );
+short_vectors( boost::python::list, const long, const long, const bool );
 
 boost::python::tuple
 to_python_vector( const std::vector<int> & );

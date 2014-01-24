@@ -28,38 +28,20 @@ using namespace boost::python
 {
   BOOST_PYTHON_MODULE(enumerate_short_vectors)
   {
-    def("short_vectors", enumerate_short_vectors__python);
+    def("short_vectors", short_vectors);
   }
 }
 
 using namespace std;
 namespace python = boost::python
 
-/*
- * Enumerate vectors of minimal norm ``lower_bound`` and maximal norm ``upper_bound``, either up to sign or not.
- * 
- * INPUT:
- *   
- *  - ``lattice`` - a list of list of integers which corresponds to the Gram matrix of a binary quadratic form.
- *
- *  - ``lower_bound`` - a positive integer.
- *
- *  - ``upper_bound`` - a positive integer.
- *
- *  - ``up_to_sign`` - a boolean (default: ``False``).
- *
- *  OUPUT:
- *
- *  - A dictionary mapping integers to a list of tuples.  Each tuple corresponds to a vector.
- */
-
 python::dict
-enumerate_short_vectors__python
+short_vectors
 (
  python::list lattice,
  const long lower_bound,
  const long upper_bound,
- const bool up_to_sign = false
+ const bool up_to_sign
  )
 {
   const long dim = lattice.len();
