@@ -311,7 +311,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1]])
         sage: RC.cardinality()
         8
-
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
