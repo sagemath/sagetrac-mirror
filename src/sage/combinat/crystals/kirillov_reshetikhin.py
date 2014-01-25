@@ -2885,7 +2885,6 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
             ....:   print t, prom[t]
-            ...
             [++++, []] [-+++, []]
             [-++-, []] [+++-, []]
         """

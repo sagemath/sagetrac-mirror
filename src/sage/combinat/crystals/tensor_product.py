@@ -936,11 +936,24 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t = T(b2, b1)
             sage: [t.phi(i) for i in B.index_set()]
             [1, 1, 4]
+
+        TESTS:
+
+        Check that :trac:`15462` is fixed::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: La = RootSystem(['A',2]).ambient_space().fundamental_weights()
+            sage: T = TensorProductOfCrystals(TCrystal(['A',2], La[1]+La[2]), B)
+            sage: t = T.an_element()
+            sage: t.phi(1)
+            2
+            sage: t.phi(2)
+            2
         """
         P = self[-1].parent().weight_lattice_realization()
         h = P.simple_coroots()
         omega = P(self.weight()).scalar(h[i])
-        return max([omega + self._sig(i, k) for k in range(len(self))])
+        return max([omega + self._sig(i, k) for k in range(1, len(self)+1)])
 
     @cached_in_parent_method
     def _sig(self,i,k):
@@ -1374,7 +1387,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: y.e_string_to_ground_state()
             ()
         """
-        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin':
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
+                not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
         I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)

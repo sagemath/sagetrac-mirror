@@ -204,10 +204,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
     REFERENCES:
 
-    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling
-       Affine crystal structure on rigged configurations of type `D_n^{(1)}`
-       J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z`,
-       `arxiv:`1109.3523` [math.QA]
+    .. [OSS2011] Masato Okado, Reiho Sakamoto, Anne Schilling,
+       Affine crystal structure on rigged configurations of type `D_n^{(1)}`,
+       J. Algebraic Combinatorics 37(3) (2013) 571-599 (:arxiv:`1109.3523` [math.QA])
 
     EXAMPLES:
 
@@ -455,3 +454,20 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement
 
+def HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B):
+    """
+    Deprecated in :trac:`13872`. Use instead the attribute
+    ``module_generators`` of :class:`TensorProductOfKirillovReshetikhinTableaux`.
+
+    EXAMPLES::
+
+        sage: HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',2,1], [[1,1]])
+        doctest:...: DeprecationWarning: this class is deprecated.
+         Use TensorProductOfKirillovReshetikhinTableaux(cartan_type, B).module_generators instead
+        See http://trac.sagemath.org/13872 for details.
+        Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and factor(s) ((1, 1),)
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13872, 'this class is deprecated. Use TensorProductOfKirillovReshetikhinTableaux('
+                       'cartan_type, B).module_generators instead')
+    return TensorProductOfKirillovReshetikhinTableaux(cartan_type, B).module_generators
