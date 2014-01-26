@@ -363,7 +363,13 @@ ext_modules = [
               sources = ['sage/graphs/cliquer.pyx'],
               libraries = ['cliquer']),
 
-
+    Extension('sage.graphs.somewhatfptufvs',
+              sources = ['sage/graphs/somewhatfptufvs.pyx'],
+	      language="c++",
+              libraries = ['somewhatfptufvs',"stdc++"]
+              ),
+    
+    
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
 

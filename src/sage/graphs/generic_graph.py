@@ -311,6 +311,7 @@ from sage.rings.rational import Rational
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation
+from sage.graphs.somewhatfptufvs import *
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -6234,7 +6235,9 @@ class GenericGraph(GenericGraph_pyx):
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
+	  :meth:''solve <sage.graphs.somewhatfptUFVS>
+	  set ``solver`` to ``reductions`` to use somewhatfptUFVS
+	  
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
@@ -6338,6 +6341,10 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The only implementation available for undirected graphs is with constraint_generation set to True.
+            
+        (Reductions)
+        
+	  There are fixed-parameter tractable (fpt-)algorithms for feedback vertex set problems.
         """
         if not constraint_generation and not self.is_directed():
             raise ValueError("The only implementation available for "
@@ -6350,9 +6357,20 @@ class GenericGraph(GenericGraph_pyx):
             if value_only:
                 return 0
             return []
+        
+        ########################################
+        # Using reductions #
+        ########################################
+	# .. TODO:: (solver=='reductions' and self.is_directed()):
+	if (solver=='reductions' and not self.is_directed()):
+	    v = minimum_FVS(self)
+            if value_only:
+                return len(v)
+            return v
+	  
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-
+	  
         ########################################
         # Constraint Generation Implementation #
         ########################################

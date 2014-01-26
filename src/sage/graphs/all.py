@@ -21,6 +21,7 @@ import sage.graphs.graph_decompositions
 import sage.graphs.modular_decomposition.modular_decomposition
 import sage.graphs.comparability
 from sage.graphs.cliquer import *
+from sage.graphs.somewhatfptufvs import *
 from graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
 

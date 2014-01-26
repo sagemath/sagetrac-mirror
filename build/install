@@ -456,6 +456,7 @@ SCIPY=`newest_version scipy`
 SCONS=`newest_version scons`
 SETUPTOOLS=`newest_version setuptools`
 SINGULAR=`newest_version singular`
+SOMEWHATFPTUFVS=`newest_version somewhatfptufvs`
 SPHINX=`newest_version sphinx`
 SQLALCHEMY=`newest_version sqlalchemy`
 SQLITE=`newest_version sqlite`
