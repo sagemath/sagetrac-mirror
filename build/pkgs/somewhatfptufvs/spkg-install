@@ -1,1 +1,98 @@
-/home/rumpe/Downloads/sage-6.0/build/pkgs/somewhatfptufvs/spkg-install
+    #!/usr/bin/env bash
+# MAKE=make
+NAME="somewhatfptUFVS"
+name="somewhatfptufvs"
+
+
+
+
+
+
+
+# Flags for building a dynamically linked shared object.
+# SAGESOFLAGS=" "
+# if [ "$UNAME" = "Linux" ] || [ "$UNAME" = "FreeBSD" ]; then
+#     SAGESOFLAGS="-shared -Wl,-soname,lib$name.so"
+# elif [ "$UNAME" = "Darwin" ]; then
+#     MACOSX_DEPLOYMENT_TARGET="10.3"
+#     export MACOSX_DEPLOYMENT_TARGET
+#     SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
+# elif [ "$UNAME" = "SunOS" ]; then
+#     SAGESOFLAGS="-shared -Wl,-h,lib$name.so -Wl,-ztext"
+# elif [ "$UNAME" = "CYGWIN" ]; then
+#     SAGESOFLAGS="-shared -Wl,-soname,lib$name.so"
+# else
+#     echo "Cannot determine your platform or it is not supported"
+#     echo "Since SAGE_PORT is set, setting SAGESOFLAGS to Linux defaults."
+#     SAGESOFLAGS="-shared -Wl,-soname,lib$name.so"
+# fi
+# export SAGESOFLAGS
+
+    cd src
+
+    
+    
+    
+    
+#    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error configuring $NAME"
+        exit 1
+    fi
+
+#    $MAKE
+    make all.so
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error building $NAME"
+        exit 1
+    fi
+
+    
+    
+    
+    
+    
+    
+if [ "$SAGE_CHECK" = "yes" ]; then
+    echo "Compiling with the running of test cases of $NAME..."
+
+    make test
+    if [ $? -ne 0 ]; then
+	echo "Some test of $NAME failed... exiting"
+	exit 1
+    fi
+fi    
+    
+    
+    
+    
+set -e    
+    
+ if [ ! -e "$SAGE_LOCAL/include/$name" ]; then
+    mkdir "$SAGE_LOCAL/include/$name/"
+else
+    rm -rf "$SAGE_LOCAL/include/$name/"
+    mkdir "$SAGE_LOCAL/include/$name/"
+fi
+
+#cp -f *.h "$SAGE_LOCAL/include/$NAME/"
+#fptUFVS/do_adjacency_list.hpp fptUFVS/common1.hpp
+cp -f externals.hpp "$SAGE_LOCAL/include/$name/"
+mv -f fptUFVS/b.out lib"$name".so
+if [ "$UNAME" = "Darwin" ]; then
+    cp -f lib"$name".so "$SAGE_LOCAL/lib/lib$name.dylib"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    cp -f lib"$name".so "$SAGE_LOCAL/lib/lib$name.dll"
+fi
+    cp -f lib"$name".so "$SAGE_LOCAL/lib/"
+    
+    
+
+    
+cd ..
+rm -Rf src
+#    $MAKE -j1 install
+#    if [ $? -ne 0 ]; then
+#        echo >&2 "Error installing somewhatfptUFVS"
+#        exit 1
+#    fi

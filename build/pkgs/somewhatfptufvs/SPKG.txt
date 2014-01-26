@@ -1,1 +1,29 @@
-/home/rumpe/Downloads/sage-6.0/build/pkgs/somewhatfptufvs/SPKG.txt
+     = PsomewhatfptUFVS =
+
+     == Description ==
+
+     Solves the graph problem FVS for undirected graph?
+
+     == License ==
+
+     GPLv3+ compatible
+
+     == SPKG Maintainers ==
+
+     * TODO
+
+     == Upstream Contact ==
+
+     TODO
+
+     == Dependencies ==
+
+     Put a bulleted list of dependencies here:
+
+--     * python
+     * c/c++
+
+     == Special Update/Build Instructions ==
+
+     
+ 
