@@ -20,7 +20,6 @@
 
      Put a bulleted list of dependencies here:
 
---     * python
      * c/c++
 
      == Special Update/Build Instructions ==

@@ -59,7 +59,7 @@ def minimum_FVS(graph):
     g=gal(graph.order())
     for e in graph.edge_iterator():
         (u,v,w)=e
-        gal_an_edge(g,u,v,1)
+        gal_an_edge(g,u,v)
 
     cdef int* list
     cdef int size
