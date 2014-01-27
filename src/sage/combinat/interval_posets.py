@@ -1482,8 +1482,8 @@ class TamariIntervalPoset(Element):
         
         REFERENCES:
 
-        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Mélou,
-         E. Fusy, L.-F. Préville-Ratelle
+        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Melou,
+         E. Fusy, L.-F. Preville-Ratelle
         .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
 
         EXAMPLES::
@@ -1512,8 +1512,8 @@ class TamariIntervalPoset(Element):
 
         REFERENCES:
 
-        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Mélou,
-         E. Fusy, L.-F. Préville-Ratelle
+        .. [BFP] The Number of intervals in the m-Tamari lattices, M. Bousquet-Melou,
+         E. Fusy, L.-F. Preville-Ratelle
         .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
 
         EXAMPLES::
@@ -1529,7 +1529,7 @@ class TamariIntervalPoset(Element):
         """
         return len(self.decreasing_roots())
 
-    def lower_contacts_composition(self, ip2):
+    def lower_contacts_composition(self, ip2, p=None):
         r"""
         Return the lower contacts composition of ``self`` and ``ip2`` as 
         described in [CCP]_. If ``p`` is not ``None``, then the partial 
@@ -1579,8 +1579,354 @@ class TamariIntervalPoset(Element):
             sage: [ip.number_of_contacts() for ip in ip1.lower_contacts_composition(ip2)]
             [6, 5, 4, 3]
 
+        partial composition::
+
+            sage: ip1.lower_contacts_composition(ip2,2)
+            The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (7, 5), (6, 5), (3, 1), (2, 1)]
+            sage: ip1.lower_contacts_composition(ip2,0)
+            The tamari interval of size 10 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (6, 7), (10, 9), (8, 7), (3, 1), (2, 1)]
+            sage: ip1.lower_contacts_composition(ip2,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid composition parameter
+            sage: [ip1.lower_contacts_composition(ip2,p) for p in xrange(ip2.number_of_contacts()+1)] == ip1.lower_contacts_composition(ip2)
+            True
+
+
+        composition with an empty interval-poset::
+
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: ip1.lower_contacts_composition(ip0)
+            [The tamari interval of size 5 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (3, 1), (2, 1)]]
+            sage: ip1.lower_contacts_composition(ip0,0)
+            The tamari interval of size 5 induced by relations [(1, 5), (2, 4), (3, 4), (4, 5), (3, 1), (2, 1)]
+            sage: ip0.lower_contacts_composition(ip2)
+            [The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (5, 1), (4, 3), (3, 1), (2, 1)]]
+            sage: ip0.lower_contacts_composition(ip2,2)
+            The tamari interval of size 6 induced by relations [(2, 3), (6, 5), (4, 3), (3, 1), (2, 1)]
+            sage: ip0.lower_contacts_composition(ip0)
+            [The tamari interval of size 1 induced by relations []]
         """
-        return TamariIntervalPosets.lower_contacts_composition(self,ip2)
+        return TamariIntervalPosets.lower_contacts_composition(self,ip2,p)
+
+    def lower_contacts_decomposition(self):
+        r"""
+        Return the the lower contacts decompostion of ``self`` into two
+        interval-posets of summed sizes equal to ``self.size()-1``. The 
+        decomposition algorithm is described in [CCP]_. 
+
+        It is the inverse operation of the composition performed in 
+        :method:`TamariIntervalPoset.lower_contacts_composition`. It consists of selecting
+        the minimal increasing root of ``self`` and splitting ``self`` into
+        two sub posets relatively to the root.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        OUTPUT:
+
+        A tuple of 3 elements:
+
+        - an interval-poset ``ip1`` which is the left part of the composition
+        - an interval-poset ``ip2`` which is the right part of the composition
+        - a parameter ``p``
+        
+        It is the unique triplet such that ``self == self.lower_contacts_composition(ip1,ip2,p)``.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.lower_contacts_decomposition()
+            (The tamari interval of size 0 induced by relations [],
+             The tamari interval of size 3 induced by relations [(1, 3), (2, 3)],
+             2)
+            sage: ip == TamariIntervalPosets.lower_contacts_composition(*(ip.lower_contacts_decomposition()))
+            True
+            sage: ip1 = TamariIntervalPoset(4,[(2,1),(3,1),(2,4),(3,4)])
+            sage: ip2 = TamariIntervalPoset(5,[(1,2),(3,2),(5,4)])
+            sage: ip1.lower_contacts_composition(ip2,2).lower_contacts_decomposition() == (ip1,ip2,2)
+            True
+
+            sage: u = TamariIntervalPoset(1,[])
+            sage: u.lower_contacts_decomposition()
+            (The tamari interval of size 0 induced by relations [],
+             The tamari interval of size 0 induced by relations [],
+             0)
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: ip0.lower_contacts_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: The empty interval-poset cannot be decomposed
+
+        TESTS::
+
+            sage: all([ip == TamariIntervalPosets.lower_contacts_composition(*(ip.lower_contacts_decomposition())) for ip in TamariIntervalPosets(4)])
+            True
+
+        """
+        if self.size()==0:
+            raise ValueError, "The empty interval-poset cannot be decomposed"%()
+        root = self.increasing_roots()[-1]
+        relations_ip1 = [(i,j) for (i,j) in self._cover_relations if i <root and j<root]
+        relations_ip2 = [(i-root,j-root) for (i,j) in self._cover_relations if i>root and j>root]
+        return (TamariIntervalPoset(root-1,relations_ip1),TamariIntervalPoset(self.size()-root,relations_ip2),len(self.decreasing_children(root)))
+
+    def initial_rise_composition(self,ip2,p=None):
+        r"""
+        Return the initial rise composition of ``self`` and ``ip2`` as 
+        described in [CCP]_. If ``p`` is not ``None``, then the partial 
+        composition is performed.
+
+        If ``self.size()`` is `n` and ``ip2.size()`` is `m`, the complete initial 
+        rise composition of ``self`` and ``ip2`` consists of a set of 
+        interval-posets of size `n+m+1`. If ``self.initial_rise()`` is `ir_1` 
+        and ``ip2.initial_rise()`` is `ir_2`, then the number of interval-posets 
+        of the composition is `ir_2+ir_1` and the initial rises of the 
+        resulting interval-posets are `ir_1 + ir_2 + 1, ir_1 + ir_2, ir_1 + ir_2 - 1, \dots, ir_1 + 1`.
+        
+        If ``p`` is not ``None``, then only a partial composition is performed 
+        and a unique interval-poset is returned with its initial rise
+        equal to `ir_1 + 1 + p`.
+
+        For a detailed description of the composition, please refer to [CCP]_.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        INPUT:
+
+        - ``ip2`` -- an interval-poset of size `m`
+        - ``p`` -- (default: ``None``) a Integer between 0 and ``ip2.initial_rise()``
+
+        OUTPUT:
+
+        A list of ``ip2.initial_rise()`` interval-posets of size `n+m+1`
+        if ``p`` is ``None`` or a unique interval-poset of size `n+m+1` if 
+        ``p`` is a number.
+
+        EXAMPLES::
+        
+            sage: ip1 = TamariIntervalPoset(3,[(1,2),(3,2)])
+            sage: ip2 = TamariIntervalPoset(5,[(2,3),(3,5),(4,5),(2,1),(3,1),(4,3)])
+            sage: ip1.initial_rise_composition(ip2)
+            [The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 5), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)],
+             The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 4), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)],
+             The tamari interval of size 9 induced by relations [(1, 8), (2, 3), (3, 8), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 3), (4, 3), (3, 1), (2, 1)]]
+            sage: ip1.initial_rise()
+            1
+            sage: ip2.initial_rise()
+            2
+            sage: [ip.initial_rise() for ip in ip1.initial_rise_composition(ip2)]
+            [4, 3, 2]
+
+        partial composition::
+
+            sage: ip1.initial_rise_composition(ip2,2)
+            The tamari interval of size 9 induced by relations [(1, 8), (2, 3), (3, 8), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 3), (4, 3), (3, 1), (2, 1)]
+            sage: ip1.initial_rise_composition(ip2,0)
+            The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 5), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)]
+            sage: ip1.initial_rise_composition(ip2,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid composition parameter
+            sage: [ip1.initial_rise_composition(ip2,p) for p in xrange(ip2.initial_rise()+1)] == ip1.initial_rise_composition(ip2)
+            True
+
+        composition with an empty interval-poset::
+
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: ip1.initial_rise_composition(ip0)
+            [The tamari interval of size 4 induced by relations [(1, 3), (2, 3), (4, 3), (2, 1)]]
+            sage: ip1.initial_rise_composition(ip0,0)
+            The tamari interval of size 4 induced by relations [(1, 3), (2, 3), (4, 3), (2, 1)]
+            sage: ip0.initial_rise_composition(ip2)
+            [The tamari interval of size 6 induced by relations [(2, 4), (3, 4), (4, 6), (5, 6), (5, 4), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (3, 4), (4, 6), (5, 6), (5, 4), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(1, 2), (3, 4), (4, 6), (5, 6), (5, 4), (4, 2), (3, 2)]]
+            sage: ip0.initial_rise_composition(ip2,2)
+            The tamari interval of size 6 induced by relations [(1, 2), (3, 4), (4, 6), (5, 6), (5, 4), (4, 2), (3, 2)]
+            sage: ip0.initial_rise_composition(ip0)
+            [The tamari interval of size 1 induced by relations []]
+        """
+        return TamariIntervalPosets.initial_rise_composition(self,ip2,p)
+        
+    def initial_rise_decomposition(self):
+        r"""
+        Return the the initial rise decompostion of ``self`` into two
+        interval-posets of summed sizes equal to ``self.size()-1``. The 
+        decomposition algorithm is described in [CCP]_. 
+
+        It is the inverse operation of the composition performed in 
+        :method:`TamariIntervalPoset.initial_rise_composition`.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        OUTPUT:
+
+        A tuple of 3 elements:
+
+        - an interval-poset ``ip1`` which is the left part of the composition
+        - an interval-poset ``ip2`` which is the right part of the composition
+        - a parameter ``p``
+        
+        It is the unique triplet such that ``self == self.initial_rise_composition(ip1,ip2,p)``.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(3,[(1,2),(3,2)])
+            sage: ip.initial_rise_decomposition()
+            (The tamari interval of size 0 induced by relations [],
+             The tamari interval of size 2 induced by relations [(2, 1)],
+             2)
+            sage: ip == TamariIntervalPosets.initial_rise_composition(*(ip.initial_rise_decomposition()))
+            True
+            sage: ip1 = TamariIntervalPoset(3,[(1,2),(3,2)])
+            sage: ip2 = TamariIntervalPoset(5,[(2,3),(3,5),(4,5),(2,1),(3,1),(4,3)])
+            sage: ip1.initial_rise_composition(ip2,1).initial_rise_decomposition() == (ip1,ip2,1)
+            True
+
+            sage: u = TamariIntervalPoset(1,[])
+            sage: u.initial_rise_decomposition()
+            (The tamari interval of size 0 induced by relations [],
+             The tamari interval of size 0 induced by relations [],
+             0)
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: ip0.initial_rise_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: The empty interval-poset cannot be decomposed
+
+        TESTS::
+
+            sage: all([ip == TamariIntervalPosets.initial_rise_composition(*(ip.initial_rise_decomposition())) for ip in TamariIntervalPosets(4)])
+            True
+        """
+
+        if self.size()==0:
+            raise ValueError, "The empty interval-poset cannot be decomposed"%()
+
+        ### separating ip1 and ip2 ##
+
+        relations_ip1 = []
+        relations_ip2 = []
+
+        ir = self.initial_rise()
+        a = self.decreasing_parent(ir)
+        while a!=None:
+            b = self.increasing_parent(a)
+            if (b is not None and self.le(b-1,a)) or self.le(self.size(),a):
+                break
+            a = self.decreasing_parent(a)
+
+        if a!=None:
+            if b is None:
+                b = self.size()+1
+            n2 = b-a-2
+        else:
+            a=0
+            b = self.size()+1
+            n2 = self.size()-1
+            
+        ## increasing relations ##
+
+        for (i,j) in self.increasing_cover_relations():
+            if j<=a:
+                relations_ip1.append((i,j))
+            if i<=a and j>=b:
+                relations_ip1.append((i,j-n2-1))
+            if i>=b:
+                relations_ip1.append((i-n2-1,j-n2-1))
+            if i>a and j<b:
+                if i<ir:
+                    relations_ip2.append((i-a,j-a-1))
+                if i>ir:
+                    relations_ip2.append((i-a-1,j-a-1))
+        
+        ## decreasing relations ##
+
+        # for ip1
+        for (j,i) in self.decreasing_cover_relations():
+            if i>=b:
+                relations_ip1.append((j-n2-1,i-n2-1))
+            if i<=a and j>=b:
+                relations_ip1.append((j-n2-1,i))
+            if j<=a:
+                relations_ip1.append((j,i))
+        
+        # for ip2
+        children = []
+        for i in xrange(b-1,ir,-1):
+            while len(children)>0:
+                j = children.pop()
+                if self.le(j,i):
+                    relations_ip2.append((j-1-a,i-1-a))
+                else:
+                    children.append(j)
+                    break 
+            children.append(i)
+        new_children = [i-1 for i in children]
+        children.append(ir)
+        for i in xrange(ir-1,a,-1):
+            while len(new_children)>0:
+                j = children.pop()
+                nj = new_children.pop()
+                if self.le(j,i):
+                    relations_ip2.append((nj-a,i-a))
+                else:
+                    children.append(j)
+                    new_children.append(nj)
+                    break
+            children.append(i)
+            new_children.append(i)
+        
+        ip1 = TamariIntervalPoset(self.size()-n2-1,relations_ip1)
+        ip2 = TamariIntervalPoset(n2,relations_ip2)
+        return ip1, ip2, a + ip2.initial_rise() + 1 - ir
+        
+    def initial_rise_involution(self):
+        r"""
+        Return the image of ``self`` by the initial rise involution. This 
+        involution is described in [CCP]_ : it consists of a recursive 
+        decomposition-recomposition of ``self`` through the methods :method:`self.lower_contacts_decomposition`
+        and :method:`TamariIntervalPosets.initial_rise_composition`. 
+
+        The main purpose of the involution is to exchange the initial rise
+        and number of contacts statistics.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: image = ip.initial_rise_involution(); image
+            The tamari interval of size 4 induced by relations [(2, 3), (4, 3)]
+            sage: ip.number_of_contacts(), ip.initial_rise()
+            (2, 3)
+            sage: image.number_of_contacts(), image.initial_rise()
+            (3, 2)
+            sage: image.initial_rise_involution() == ip
+            True
+
+        TESTS::
+
+            sage: all([ip == ip.initial_rise_involution().initial_rise_involution() for ip in TamariIntervalPosets(4)])
+            True
+            sage: all([ip.number_of_contacts()==ip.initial_rise_involution().initial_rise() for ip in TamariIntervalPosets(4)])
+            True
+        """
+        if self.size()==0 or self.size() ==1:
+            return self
+        dec = self.lower_contacts_decomposition()
+        return TamariIntervalPosets.initial_rise_composition(dec[0].initial_rise_involution(), dec[1].initial_rise_involution(),dec[2])
 
 # Abstract class to serve as a Factory no instance are created.
 class TamariIntervalPosets(UniqueRepresentation, Parent):
@@ -2030,6 +2376,11 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TamariIntervalPosets.lower_contacts_composition(ip0,ip0)
             [The tamari interval of size 1 induced by relations []]
 
+        TESTS::
+
+            sage: set(TamariIntervalPosets(4)) == set([ip for comp in [TamariIntervalPosets.lower_contacts_composition(ip1,ip2) for i in xrange(4) for ip1 in TamariIntervalPosets(i) for ip2 in TamariIntervalPosets(3-i)] for ip in comp])
+            True
+
         """
         if p is not None and (p<0 or p>ip2.number_of_contacts()):
             raise ValueError, "Invalid composition parameter"%()
@@ -2063,6 +2414,166 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             elif p==c:
                 return TamariIntervalPoset(size,relations)
         return result
+
+    @staticmethod
+    def initial_rise_composition(ip1,ip2,p=None):
+        r"""
+        Return the initial rise composition of ``ip1`` and ``ip2`` as 
+        described in [CCP]_. If ``p`` is not ``None``, then the partial 
+        composition is performed.
+
+        If ``ip1.size()`` is `n` and ``ip2.size()`` is `m`, the complete initial 
+        rise composition of ``ip1`` and ``ip2`` consists of a set of 
+        interval-posets of size `n+m+1`. If ``ip1.initial_rise()`` is `ir_1` 
+        and ``ip2.initial_rise()`` is `ir_2`, then the number of interval-posets 
+        of the composition is `ir_2+ir_1` and the initial rises of the 
+        resulting interval-posets are `ir_1 + ir_2 + 1, ir_1 + ir_2, ir_1 + ir_2 - 1, \dots, ir_1 + 1`.
+        
+        If ``p`` is not ``None``, then only a partial composition is performed 
+        and a unique interval-poset is returned with its initial rise
+        equal to `ir_1 + 1 + p`.
+
+        For a detailed description of the composition, please refer to [CCP]_.
+
+        REFERENCES:
+
+        .. [CCP] Two bijections on Tamari intervals, G. Chatel, V. Pons
+
+        INPUT:
+
+        - ``ip1`` -- an interval-poset of size `n`
+        - ``ip2`` -- an interval-poset of size `m`
+        - ``p`` -- (default: ``None``) a Integer between 0 and ``ip2.initial_rise()``
+
+        OUTPUT:
+
+        A list of ``ip2.initial_rise()`` interval-posets of size `n+m+1`
+        if ``p`` is ``None`` or a unique interval-poset of size `n+m+1` if 
+        ``p`` is a number.
+
+        EXAMPLES::
+        
+            sage: ip1 = TamariIntervalPoset(3,[(1,2),(3,2)])
+            sage: ip2 = TamariIntervalPoset(5,[(2,3),(3,5),(4,5),(2,1),(3,1),(4,3)])
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip2)
+            [The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 5), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)],
+             The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 4), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)],
+             The tamari interval of size 9 induced by relations [(1, 8), (2, 3), (3, 8), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 3), (4, 3), (3, 1), (2, 1)]]
+            sage: ip1.initial_rise()
+            1
+            sage: ip2.initial_rise()
+            2
+            sage: [ip.initial_rise() for ip in TamariIntervalPosets.initial_rise_composition(ip1,ip2)]
+            [4, 3, 2]
+
+        partial composition::
+
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip2,2)
+            The tamari interval of size 9 induced by relations [(1, 8), (2, 3), (3, 8), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 3), (4, 3), (3, 1), (2, 1)]
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip2,0)
+            The tamari interval of size 9 induced by relations [(1, 8), (2, 8), (3, 5), (4, 5), (5, 7), (6, 7), (7, 8), (9, 8), (7, 1), (6, 5), (5, 1), (4, 2), (3, 2), (2, 1)]
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip2,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid composition parameter
+            sage: [TamariIntervalPosets.initial_rise_composition(ip1,ip2,p) for p in xrange(ip2.initial_rise()+1)] == TamariIntervalPosets.initial_rise_composition(ip1,ip2)
+            True
+
+        composition with an empty interval-poset::
+
+            sage: ip0 = TamariIntervalPoset(0,[])
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip0)
+            [The tamari interval of size 4 induced by relations [(1, 3), (2, 3), (4, 3), (2, 1)]]
+            sage: TamariIntervalPosets.initial_rise_composition(ip1,ip0,0)
+            The tamari interval of size 4 induced by relations [(1, 3), (2, 3), (4, 3), (2, 1)]
+            sage: TamariIntervalPosets.initial_rise_composition(ip0,ip2)
+            [The tamari interval of size 6 induced by relations [(2, 4), (3, 4), (4, 6), (5, 6), (5, 4), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(2, 3), (3, 4), (4, 6), (5, 6), (5, 4), (3, 1), (2, 1)],
+             The tamari interval of size 6 induced by relations [(1, 2), (3, 4), (4, 6), (5, 6), (5, 4), (4, 2), (3, 2)]]
+            sage: TamariIntervalPosets.initial_rise_composition(ip0,ip2,2)
+            The tamari interval of size 6 induced by relations [(1, 2), (3, 4), (4, 6), (5, 6), (5, 4), (4, 2), (3, 2)]
+            sage: TamariIntervalPosets.initial_rise_composition(ip0,ip0)
+            [The tamari interval of size 1 induced by relations []]
+
+        TESTS::
+
+            sage: set(TamariIntervalPosets(4)) == set([ip for comp in [TamariIntervalPosets.initial_rise_composition(ip1,ip2) for i in xrange(4) for ip1 in TamariIntervalPosets(i) for ip2 in TamariIntervalPosets(3-i)] for ip in comp])
+            True
+
+        """
+        ir1 = ip1.initial_rise()
+        ir2 = ip2.initial_rise()
+        if p is None:
+            return [TamariIntervalPosets.initial_rise_composition(ip1,ip2,i) for i in xrange(ir2+1)]
+        if p<0 or p>ir2:
+            raise ValueError, "Invalid composition parameter"%()
+        relations = []
+        n2 = ip2.size()
+        n1 = ip1.size()
+
+        #### relations from ip2 ####
+
+        root = ir2 + 1 -p
+
+        ## increasing relations ##
+        for (i,j) in ip2.increasing_cover_relations():
+            if i>=root:
+                i+=1
+            if j>=root:
+                j+=1
+            relations.append((i+ir1,j+ir1))
+
+        if root!= ip2.size() +1:
+            relations.append((root+ir1,root+ir1+1))
+
+        ## decreasing relations ##
+
+        children_decreasing = []
+        for i in xrange(n2,root-1,-1):
+            while len(children_decreasing)>0:
+                j = children_decreasing.pop()
+                if ip2.le(j,i):
+                    relations.append((j+1+ir1,i+1+ir1))
+                else:
+                    children_decreasing.append(j)
+                    break 
+            children_decreasing.append(i)
+        new_children = [i+1 for i in children_decreasing]
+        if(root!= n2+1): new_children.append(root)
+        for i in xrange(root-1,0,-1):
+            while len(children_decreasing)>0:
+                j = children_decreasing.pop()
+                nj = new_children.pop()
+                if ip2.le(j,i):
+                    relations.append((nj+ir1,i+ir1))
+                else:
+                    children_decreasing.append(j)
+                    new_children.append(nj)
+                    break
+            children_decreasing.append(i)
+            new_children.append(i)
+            
+        #### relations from ip1 ####
+
+        for (i,j) in ip1._cover_relations:
+            if i>ir1:
+                i+=n2+1
+            if j>ir1:
+                j+=n2+1
+            relations.append((i,j))
+
+        # extra increasing relations
+        par = ip1.increasing_parent(ir1)
+        if par!=None:
+            for i in xrange(ir1+1,ir1+n2+2):
+                relations.append((i,par+n2+1))
+                
+        # extra decreasing relations
+        if(ir1!=0):
+            for i in xrange(ir1+1,ir1+n2+2):
+                relations.append((i,ir1))
+        
+        return TamariIntervalPoset(n1+n2+1,relations)
 
     def __call__(self, *args, **keywords):
         r"""
