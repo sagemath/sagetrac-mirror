@@ -19,6 +19,7 @@
 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
+#include "c_lib/interrupt.h"
 
 #include "enumerate_short_vectors.hpp"
 
@@ -28,7 +29,7 @@ using namespace boost::python
 {
   BOOST_PYTHON_MODULE(enumerate_short_vectors)
   {
-    def("short_vectors", short_vectors);
+    def("short_vectors", short_vectors, short_vectors_overloads());
   }
 }
 
@@ -41,7 +42,7 @@ short_vectors
  python::list lattice,
  const long lower_bound,
  const long upper_bound,
- const bool up_to_sign
+ const bool up_to_sign = false
  )
 {
   const long dim = lattice.len();
@@ -55,8 +56,9 @@ short_vectors
   if (upper_bound < lower_bound)
     return python::dict();
   if (upper_bound == 0) {
-    // todo: add zero vector
-    result[0] = python::list();
+    auto vec_lst = python::list();
+    for (long ix = 0; ix < dim; ++ix) vec_lst.append(0);
+    result[0] = python::tuple(vec_lst);
     return result;
   }
   
@@ -73,12 +75,15 @@ short_vectors
     for (python::object &e : row) lattice.last().emplace_back(python::extract<int>(e));
   }
 
+  sig_on()
+
   // invoke method
   map<unsigned int, vector<vector<int>>> short_vectors;
   try {
     enumerate_short_vectors( lattice_cpp, lower_bound, upper_bound, short_vectors );
   } catch (string &s) {
-    // todo: raise corresponding python error
+    PyErr_SetString(PyExc_ValueError, s);
+    throw_error_already_set();
   }
 
   // construct python return value
@@ -92,9 +97,15 @@ short_vectors
      }
   }
 
+  sig_off()
+
   if (add_zero_vector) {
-    // todo: add zero vector
+    auto vec_lst = python::list();
+    for (long ix = 0; ix < dim; ++ix) vec_lst.append(0);
+    result[0] = python::tuple(vec_lst);
   }
+
+  return result;
 }
   
 python::tuple

@@ -17,8 +17,13 @@
  *
  */
 
+#include <boost/python/module.hpp>
+#include <boost/python/def.hpp>
+
 boost::python::dict
 short_vectors( boost::python::list, const long, const long, const bool );
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(short_vectors_overloads, short_vectors, 3, 4)
 
 boost::python::tuple
 to_python_vector( const std::vector<int> & );
