@@ -1469,6 +1469,15 @@ ext_modules = [
               sources = ['sage/quadratic_forms/count_local_2.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.quadratic_forms.enumerate_short_vectors.enumerate_short_vectors_python',
+              sources = ['sage/quadratic_forms/enumerate_short_vectors/enumerate_short_vectors_python.cpp',
+                         'sage/quadratic_forms/enumerate_short_vectors/enumerate_short_vectors.cpp',
+                         'sage/quadratic_forms/enumerate_short_vectors/enumerate_short_vectors_internal.cpp'],
+              language = 'c++',
+              extra_compile_args=["-std=c++11"],
+              include_dirs = ['sage/c_libs/include'],
+              libraries = ['stdc++', 'boost', 'mpfi', 'mpfr', 'gmp']),
+
     Extension('sage.quadratic_forms.quadratic_form__evaluate',
               sources = ['sage/quadratic_forms/quadratic_form__evaluate.pyx']),
 
