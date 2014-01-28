@@ -21,11 +21,9 @@
  * Implement Fincke-Pohst algorithm with multi precision floating points.
  */
 
-#include <map>
-#include <vector>
+#include "enumerate_short_vectors_internal.hpp"
 
 #include "enumerate_short_vectors.hpp"
-#include "enumerate_short_vectors_internal.hpp"
 
 using namespace std;
 

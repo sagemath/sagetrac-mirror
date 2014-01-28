@@ -20,7 +20,6 @@
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include "c_lib/interrupt.h"
-
 #include "enumerate_short_vectors.hpp"
 
 #include "enumerate_short_vectors_python.hpp"
