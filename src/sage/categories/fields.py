@@ -6,6 +6,7 @@ Fields
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2012      Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -20,6 +21,7 @@ from sage.categories.division_rings import DivisionRings
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
 import sage.rings.ring
+from sage.structure.element import coerce_binop
 
 class Fields(Category_singleton):
     """
@@ -194,6 +196,33 @@ class Fields(Category_singleton):
             """
             return True
 
+        def _gcd_univariate_polynomial(self, f, g):
+            """
+            Return the greatest common divisor of ``f`` and ``g``, as a
+            monic polynomial.
+
+            INPUT:
+
+                - ``f``, ``g`` -- two polynomials defined over ``self``
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQbar[]
+                sage: QQbar._gcd_univariate_polynomial(2*x,2*x^2)
+                x
+
+            """
+            ret = EuclideanDomains().ElementMethods().gcd(f,g)
+            c = ret.leading_coefficient()
+            if c.is_unit():
+                return (1/c)*ret
+            return ret
+
         def _test_characteristic_fields(self, **options):
             """
             Run generic tests on the method :meth:`.characteristic`.
@@ -269,6 +298,67 @@ class Fields(Category_singleton):
             """
             from sage.modules.all import FreeModule
             return FreeModule(self, n)
+
+        def _xgcd_univariate_polynomial(self, other):
+            r"""
+            Extended gcd of ``self`` and ``other``.
+
+            INPUT:
+
+                - ``other`` -- a polynomial in the same ring as ``self``
+
+            OUTPUT:
+
+            Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.xgcd`
+
+            EXAMPLES::
+
+                sage: P.<x> = QQ[]
+                sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(F,G)
+                sage: g, u, v
+                (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
+                sage: u*F + v*G
+                x^2 + 2
+
+            ::
+
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(x,P(0)); g, u, v
+                (x, 1, 0)
+                sage: g == u*x + v*P(0)
+                True
+                sage: g, u, v = QQ._xgcd_univariate_polynomial(P(0),x); g, u, v
+                (x, 0, 1)
+                sage: g == u*P(0) + v*x
+                True
+
+            """
+            R = self.parent()
+            if other.is_zero():
+                return self, R.one_element(), R.zero_element()
+            # Algorithm 3.2.2 of Cohen, GTM 138
+            A = self
+            B = other
+            U = R.one_element()
+            G = A
+            V1 = R.zero_element()
+            V3 = B
+            while not V3.is_zero():
+                Q, R = G.quo_rem(V3)
+                T = U - V1*Q
+                U = V1
+                G = V3
+                V1 = T
+                V3 = R
+            V = (G-A*U)//B
+            lc = G.leading_coefficient()
+            return G/lc, U/lc, V/lc
+
 
     class ElementMethods:
 
@@ -397,3 +487,42 @@ class Fields(Category_singleton):
             if self==0 or other==0:
                 return P.zero()
             return P.one()
+
+        @coerce_binop
+        def xgcd(self, other):
+            """
+            Compute the extended gcd of ``self`` and ``other``.
+
+            INPUT:
+
+                - ``other`` -- an element with the same parent as ``self``
+
+            OUTPUT:
+
+                A tuple ``r,s,t`` of elements in the parent of ``self`` such
+                that ``r = s*self + t*other``. Since the computations are done
+                over a field, ``r`` is zero if ``self`` and ``other`` are zero,
+                and one otherwise.
+
+            AUTHORS:
+
+            - Julian Rueth (2012-10-19): moved here from
+              :class:`sage.structure.element.FieldElement`
+
+            EXAMPLES::
+
+                sage: (1/2).xgcd(2)
+                (1, 2, 0)
+                sage: (0/2).xgcd(2)
+                (1, 0, 1/2)
+                sage: (0/2).xgcd(0)
+                (0, 0, 0)
+
+            """
+            R = self.parent()
+            if not self.is_zero():
+                return R.one(), ~self, R.zero()
+            elif not other.is_zero():
+                return R.one(), R.zero(), ~other
+            else: # both are 0
+                return R.zero(), R.zero(), R.zero()
