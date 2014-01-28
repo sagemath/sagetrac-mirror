@@ -3923,6 +3923,38 @@ class PermutationGroup_generic(group.Group):
         UCS = self._gap_().UpperCentralSeriesOfGroup()
         return [self.subgroup(gap_group=group) for group in UCS]
 
+    def smaller_degree_symmetric_representation(self):
+        """
+        Tries to find an isomorphic permutation group of smaller degree.
+
+        Note that the result is not granted to have the smallest possible degree.
+        Note also that the procedure may involve the choice of random elements, so
+        the result may vary in different calls.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1, 2, 3), (4, 5, 6)]])
+            sage: G
+            Permutation Group with generators [(1,2,3)(4,5,6)]
+            sage: G.smaller_degree_symmetric_representation()
+            Permutation Group with generators [(1,2,3)]
+
+            sage: F.<a,b,c,d> = FreeGroup()
+            sage: W = F / [a^2, b^2, c^2, d^2, (a*b)^3, (a*c)^3, (a*d)^3, (b*c)^2, (b*d)^2, (c*d)^2]
+            sage: WP = W.as_permutation_group()
+            sage: WP.degree()
+            192
+            sage: WP.smaller_degree_symmetric_representation()
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(6,7),
+            (1,2)(7,8)]
+
+        """
+        current_randstate().set_seed_gap()
+        sdr = self._gap_().SmallerDegreePermutationRepresentation()
+        return PermutationGroup([sdr.Image(i._gap_()) for i in self.gens()])
+
+
+
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
     Subgroup subclass of ``PermutationGroup_generic``, so instance methods
