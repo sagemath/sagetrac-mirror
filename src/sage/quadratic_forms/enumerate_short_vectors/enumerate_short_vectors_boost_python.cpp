@@ -17,50 +17,53 @@
  *
  */
 
+#include <boost/python/errors.hpp>
+#include <boost/python/extract.hpp>
 #include <boost/python/module.hpp>
-#include <boost/python/def.hpp>
-#include "c_lib/interrupt.h"
+#include <boost/python/stl_iterator.hpp>
+#include "interrupt.h"
 #include "enumerate_short_vectors.hpp"
 
-#include "enumerate_short_vectors_python.hpp"
-
-using namespace boost::python
-{
-  BOOST_PYTHON_MODULE(enumerate_short_vectors)
-  {
-    def("short_vectors", short_vectors, short_vectors_overloads());
-  }
-}
+#include "enumerate_short_vectors_boost_python.hpp"
 
 using namespace std;
-namespace python = boost::python
+namespace python = boost::python;
+
+BOOST_PYTHON_MODULE(enumerate_short_vectors_boost_python)
+{
+  python::def("enumerate_short_vectors_boost_python", enumerate_short_vectors_boost_python);
+}
 
 python::dict
-short_vectors
+enumerate_short_vectors_boost_python
 (
  python::list lattice,
- const long lower_bound,
- const long upper_bound,
- const bool up_to_sign = false
+ long lower_bound,
+ long upper_bound,
+ bool up_to_sign = false
  )
 {
-  const long dim = lattice.len();
+  const long dim = python::len(lattice);
   bool add_zero_vector;
   python::dict result;
 
   // check dimensions
-  for (python::list &row : lattice) if (row.len() != dim) throw;
+  python::stl_input_iterator<python::list> lattice_end;
+  for (auto it = python::stl_input_iterator<python::list>(lattice);
+       it != lattice_end; ++it)
+    if (python::len(*it) != dim) {
+      PyErr_SetString(PyExc_ValueError, "Lattice must represent a square matrix");
+      python::throw_error_already_set();
+    }
 
   // check and correct bounds
   if (upper_bound < lower_bound)
     return python::dict();
   if (upper_bound == 0) {
-    auto vec_lst = python::list();
-    for (long ix = 0; ix < dim; ++ix) vec_lst.append(0);
-    result[0] = python::tuple(vec_lst);
+    result[0] = to_python_tuple(vector<int>(dim, 0));
     return result;
   }
-  
+
   if (lower_bound <= 0) {
     lower_bound = 2;
     add_zero_vector = true;
@@ -69,40 +72,43 @@ short_vectors
 
   // convert lattice to cpp
   vector<vector<int>> lattice_cpp;
-  for (python::list &row : lattice) {
+  for (auto it = python::stl_input_iterator<python::list>(lattice);
+       it != lattice_end; ++it) {
+    python::stl_input_iterator<int> row_begin(*it), row_end;
     lattice_cpp.emplace_back();
-    for (python::object &e : row) lattice.last().emplace_back(python::extract<int>(e));
+    for (auto row_it = row_begin; row_it != row_end; ++row_it)
+      lattice_cpp.back().emplace_back(*row_it);
   }
 
-  sig_on()
+
+  sig_on();
 
   // invoke method
   map<unsigned int, vector<vector<int>>> short_vectors;
   try {
     enumerate_short_vectors( lattice_cpp, lower_bound, upper_bound, short_vectors );
   } catch (string &s) {
-    PyErr_SetString(PyExc_ValueError, s);
-    throw_error_already_set();
+    PyErr_SetString(PyExc_ValueError, s.c_str());
+    python::throw_error_already_set();
   }
 
   // construct python return value
   for (auto &sv_pair : short_vectors) {
-     result[sv_pair.first()] = python::list();
-     auto &vs = &result[sv_pair.first()];
-
+    python::list vs;
      for (auto &v : sv_pair.second ) {
-       vs.append(to_pyton_vector(v));
-       if (!up_to_sign) vs.append(to_python_neg_vector(v));
+       vs.append(to_python_tuple(v));
+       if (!up_to_sign) vs.append(to_python_neg_tuple(v));
      }
+     result[sv_pair.first] = vs;
   }
-
-  sig_off()
-
   if (add_zero_vector) {
-    auto vec_lst = python::list();
-    for (long ix = 0; ix < dim; ++ix) vec_lst.append(0);
-    result[0] = python::tuple(vec_lst);
+    python::list vs;
+    vs.append( to_python_tuple(vector<int>(dim, 0)) );
+    result[0] = vs;
   }
+
+  sig_off();
+
 
   return result;
 }
@@ -113,8 +119,9 @@ to_python_tuple
  const vector<int> &v
  )
 {
-  python::tuple result;
-
+  python::list result;
+  for (auto e : v) result.append(e);
+  return python::tuple(result);
 }
 
 python::tuple
@@ -123,6 +130,7 @@ to_python_neg_tuple
  const vector<int> &v
  )
 {
-  python::tuple result;
-
+  python::list result;
+  for (auto e : v) result.append(-e);
+  return python::tuple(result);
 }

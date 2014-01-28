@@ -205,4 +205,3 @@ enumerate_short_vectors
   // clear variables
   clear( vec_Ti, vec_Ui, vec_Uij, C, Z, rmatrix, rdiag_sqrt, mpfr_tmp, mpfi_tmp, mpfi_tmp2 );
 }
-

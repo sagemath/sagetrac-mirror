@@ -17,6 +17,7 @@
  *
  */
 
+#include <boost/python/def.hpp>
 #include <boost/python/dict.hpp>
 #include <boost/python/list.hpp>
 #include <boost/python/overloads.hpp>
@@ -24,12 +25,10 @@
 
 
 boost::python::dict
-short_vectors( boost::python::list, const long, const long, const bool );
-
-BOOST_PYTHON_FUNCTION_OVERLOADS( short_vectors_overloads, short_vectors, 3, 4 )
+enumerate_short_vectors_boost_python( boost::python::list, long, long, bool );
 
 boost::python::tuple
-to_python_vector( const std::vector<int> & );
+to_python_tuple( const std::vector<int> & );
 
 boost::python::tuple
-to_python_neg_vector( const std::vector<int> & );
+to_python_neg_tuple( const std::vector<int> & );
