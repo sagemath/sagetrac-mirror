@@ -93,7 +93,7 @@ class QuantumDividedPowerAlgebra(CombinatorialFreeModule):
             sage: B[2]*B[3]
             (q^6+q^5+2*q^4+2*q^3+2*q^2+q+1)*B[5]
          """
-        return self.term(left+right, q_binomial(left+right, left, self.q))
+        return self.term(left + right, q_binomial(left + right, left, self.q))
 
     def degree_on_basis(self, t):
         """

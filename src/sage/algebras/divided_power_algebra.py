@@ -72,10 +72,11 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
             sage: B[3]*B[4]
             35*B[7]
          """
-        return self.term( left+right, binomial(left+right,left) )
+        return self.term(left + right, binomial(left + right, left))
 
     def coproduct_on_basis(self, t):
-        """ Coproduct, on basis elements.
+        r"""
+        Coproduct, on basis elements.
 
         EXAMPLES::
 
@@ -88,9 +89,9 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
 
         # This does not work because sage is not able to apply sum() to the tensor product.
         # sum( tensor([ self.monomial(k), self.monomial(t-k) ] for k in range(t+1) ) )
-        result  = tensor([ self.monomial(t), self.monomial(0) ])
+        result = tensor([self.monomial(t), self.monomial(0)])
         for k in range(t):
-            result += tensor([ self.monomial(k), self.monomial(t-k) ])
+            result += tensor([self.monomial(k), self.monomial(t - k)])
         return result
 
     def counit_on_basis(self, t):
@@ -109,8 +110,8 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
         """
         if t == 0:
             return self.one()
-        else:
-            return self.zero()
+
+        return self.zero()
 
     def antipode_on_basis(self, t):
         """
@@ -126,8 +127,8 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
         """
         if t % 2 == 0:
             return self.monomial(t)
-        else:
-            return self.term(t, -1)
+
+        return self.term(t, -1)
 
     def degree_on_basis(self, t):
         """
@@ -157,5 +158,11 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
         r"""
         The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
 
+        EXAMPLES::
+
+            sage: from sage.algebras.all import DividedPowerAlgebra
+            sage: A = DividedPowerAlgebra(ZZ)
+            sage: A.algebra_generators()
+            ?
         """
         return Family(NonNegativeIntegers())
