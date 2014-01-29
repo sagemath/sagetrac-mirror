@@ -2136,6 +2136,17 @@ if is_package_installed('cryptominisat'):
                   libraries = ['cryptominisat', 'z'])
         ])
 
+
+if True: #is_package_installed('decoding'):
+    ext_modules.append(
+        Extension('sage.libs.decoding',
+                  sources = ['sage/libs/decoding.pyx'],
+                  include_dirs = [os.path.join(SAGE_INC, 'decoding')],
+                  language="c",
+                  libraries = ['csage', 'm']) #,'decoding' ])
+        )
+
+
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
