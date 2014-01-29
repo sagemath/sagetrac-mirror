@@ -643,6 +643,10 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             t + t^2 + O(t^3)
             sage: R(1/(1-x), prec=5)
             1 + t + t^2 + t^3 + t^4 + O(t^5)
+            sage: R(1/x, 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Laurent Series Ring in t over Integer Ring to Power Series Ring in t over Integer Ring
         """
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
@@ -652,7 +656,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             v = sage_eval(f.Eltseq())
             return self(v) * (self.gen(0)**f.Valuation())
         elif isinstance(f, FractionFieldElement):
-            return self.element_class(self, f.numerator(), prec, check=check) / self.element_class(self, f.denominator(), prec, check=check)
+            return self.coerce(self.element_class(self, f.numerator(), prec, check=check) / self.element_class(self, f.denominator(), prec, check=check))
         return self.element_class(self, f, prec, check=check)
 
     def construction(self):
