@@ -96,8 +96,11 @@ enumerate_short_vectors_boost_python
   for (auto &sv_pair : short_vectors) {
     python::list vs;
      for (auto &v : sv_pair.second ) {
-       vs.append(to_python_tuple(v));
-       if (!up_to_sign) vs.append(to_python_neg_tuple(v));
+       // we append the negative vector, which has positive first
+       // entry, for compatibility with previous implementation in
+       // Sage
+       vs.append(to_python_neg_tuple(v));
+       if (!up_to_sign) vs.append(to_python_tuple(v));
      }
      result[sv_pair.first] = vs;
   }

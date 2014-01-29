@@ -222,52 +222,11 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     if not self.is_positive_definite() :
         raise ValueError( "Quadratic form must be positive definite in order to enumerate short vectors" )
 
-    ## Generate a PARI matrix string for the associated Hessian matrix
-    M_str = str(gp(self.matrix()))
+    from enumerate_short_vectors.enumerate_short_vectors_python import short_vectors
+    svs_dict = short_vectors(map(list, self.matrix().rows()),
+                             0, 2 * len_bound - 1, up_to_sign_flag)
 
-    if len_bound <= 0 :
-        return list()
-    elif len_bound == 1 :
-        return [ [(vector([ZZ(0) for _ in range(self.dim())]))] ]
-
-    ## Generate the short vectors
-    gp_mat = gp.qfminim(M_str, 2*len_bound - 2)[3]
-
-    ## We read all n-th entries at once so that not too many sage[...] variables are
-    ## used.  This is important when to many vectors are returned.
-    rows = [ map(ZZ, str(gp_mat[i,])[1:-1].split(','))
-             for i in range(1, gp_mat.matsize()[1] + 1) ]
-    vec_list = map(vector, zip(*rows))
-
-    if len(vec_list) > 500 :
-        eval_v_cython = cython_lambda( ", ".join( "int a{0}".format(i) for i in range(self.dim()) ),
-                                       " + ".join( "{coeff} * a{i} * a{j}".format(coeff = self[i,j], i = i, j = j)
-                                                   for i in range(self.dim()) for j in range(i, self.dim()) ) )
-        eval_v = lambda v: eval_v_cython(*v)
-    else :
-        eval_v = self
-
-    ## Sort the vectors into lists by their length
-    vec_sorted_list = [list() for i in range(len_bound)]
-    for v in vec_list:
-        v_evaluated = eval_v(v)
-        try :
-            vec_sorted_list[v_evaluated].append(v)
-            if not up_to_sign_flag :
-                vec_sorted_list[v_evaluated].append(-v)
-        except IndexError :
-            ## We deal with a Pari but, that returns longer vectors that requested.
-            ## E.g. : self.matrix() == matrix(2, [72, 12, 12, 120])
-            ##        len_bound = 22953421
-            ## gives maximal length 22955664
-            pass
-
-    ## Add the zero vector by hand
-    zero_vec = vector([ZZ(0)  for _ in range(self.dim())])
-    vec_sorted_list[0].append(zero_vec)
-
-    ## Return the sorted list
-    return vec_sorted_list
+    return [map(vector, svs_dict[l]) for l in range(0, 2 * len_bound, 2)]
 
 def short_primitive_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     """
