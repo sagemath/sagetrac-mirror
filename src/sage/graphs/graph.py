@@ -1,5 +1,5 @@
 r"""
-Undirected graphs
+Directed graphs
 
 This module implements functions and operations involving undirected
 graphs.
@@ -21,6 +21,8 @@ graphs.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
     :meth:`~Graph.join` | Returns the join of self and other.
 
+
+Hey
 
 **Distances:**
 
