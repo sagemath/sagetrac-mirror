@@ -4,6 +4,8 @@ Directed graphs
 This module implements functions and operations involving directed
 graphs. Here is what they can do
 
+Un autre hey
+
 **Graph basic operations:**
 
 .. csv-table::
