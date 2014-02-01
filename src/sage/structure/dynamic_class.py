@@ -120,7 +120,7 @@ from sage.misc.cachefunc import weak_cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
 def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
-                  prepend_cls_bases=True, cache=True):
+                  prepend_cls_bases=True, cache=True, metaclass=None):
     r"""
     INPUT:
 
@@ -131,6 +131,10 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     - ``doccls`` -- a class or ``None``
     - ``prepend_cls_bases`` -- a boolean (default: ``True``)
     - ``cache`` -- a boolean or ``"ignore_reduction"`` (default: ``True``)
+
+    - ``metaclass`` -- a subclass of ``DynamicMetaclass`` or ``None``
+      (default). To use as the metaclass. By default, an attempt is
+      made to chose a suitable metaclass.
 
     Constructs dynamically a new class ``C`` with name ``name``, and
     bases ``bases``. If ``cls`` is provided, then its methods will be
@@ -310,19 +314,20 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     assert(type(name) is str)
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
     if cache is True:
-        return dynamic_class_internal(name, bases, cls, reduction, doccls, prepend_cls_bases)
+        return dynamic_class_internal(name, bases, cls, reduction, doccls, prepend_cls_bases, metaclass)
     elif cache is False:
         # bypass the cached method
-        return dynamic_class_internal.f(name, bases, cls, reduction, doccls, prepend_cls_bases)
+        return dynamic_class_internal.f(name, bases, cls, reduction, doccls, prepend_cls_bases, metaclass)
     else: # cache = "ignore_reduction"
-        result = dynamic_class_internal(name, bases, cls, False, doccls, prepend_cls_bases)
+        result = dynamic_class_internal(name, bases, cls, False, doccls, prepend_cls_bases, metaclass)
         if result._reduction is False:
             result._reduction = reduction
         return result
 
 
 @weak_cached_function
-def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, prepend_cls_bases=True):
+def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, 
+                           prepend_cls_bases=True, metaclass=None):
     r"""
     See sage.structure.dynamic_class.dynamic_class? for indirect doctests.
 
@@ -399,15 +404,16 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     #        return sage_getdoc(cls)
     #    methods['_sage_src_lines_'] = _sage_getdoc
 
-    metaclass = DynamicMetaclass
-    # The metaclass of a class must derive from the metaclasses of its
-    # bases. The following handles the case where one of the base
-    # class is readilly in the ClasscallMetaclass. This
-    # approach won't scale well if we start using metaclasses
-    # elsewhere in Sage.
-    for base in bases:
-        if type(base) is ClasscallMetaclass:
-            metaclass = DynamicClasscallMetaclass
+    if metaclass is None:
+        metaclass = DynamicMetaclass
+        # The metaclass of a class must derive from the metaclasses of its
+        # bases. The following handles the case where one of the base
+        # class is readilly in the ClasscallMetaclass. This
+        # approach won't scale well if we start using metaclasses
+        # elsewhere in Sage.
+        for base in bases:
+            if type(base) is ClasscallMetaclass:
+                metaclass = DynamicClasscallMetaclass
     return metaclass(name, bases, methods)
 
 class DynamicMetaclass(type):

@@ -19,37 +19,31 @@ order.
 """
 
 
-class AxiomHolder(object):
+class AxiomLazyImporter(object):
 
-    def __init__(self, axiom, sort_key):
-        self._axiom = axiom
+    def __init__(self, module_name, axiom_name, sort_key):
+        self._module_name = module_name
+        self._axiom_name = axiom_name
         self._sort_key = sort_key
 
     def __cmp__(self, other):
         return cmp(self._sort_key, other._sort_key)
 
-    def __call__(self):
-        return self._axiom
-
-    def __str__(self):
-        return str(self._axiom)
+    @property
+    def __name__(self):
+        return self._axiom_name
 
     def __repr__(self):
-        return 'Method returning the axiom ' + str(self)
+        return 'Lazy importer for the axiom ' + self._axiom_name
 
-
-class AxiomLazyImporter(AxiomHolder):
-
-    def __init__(self, module_name, axiom_name, sort_key):
-        self._module_name = module_name
-        super(AxiomLazyImporter, self).__init__(axiom_name, sort_key)
-
-    def __call__(self):
-        axiom_name = self._axiom
-        module = __import__(self._module_name, fromlist=[axiom_name])
-        cls = module.__dict__[axiom_name]
-        instance = cls()
-        return instance
+    def __get__(self, instance, owner):
+        module = __import__(self._module_name, fromlist=[self._axiom_name])
+        cls = module.__dict__[self._axiom_name]
+        cls._sort_key = self._sort_key
+        assert cls.__module__ == self._module_name
+        assert cls.__name__ == self._axiom_name
+        instance._add_class(cls)
+        return cls
 
 
 class AxiomFactory(object):
@@ -103,13 +97,14 @@ class AxiomFactory(object):
         self._add_lazy('sage.categories.axioms.inverse', 'AdditiveInverse')
         self._add_lazy('sage.categories.axioms.unital', 'AdditiveUnital')
         
-    def _set_axiom(self, name, axiom_holder, overwrite=False):
+    def _set_axiom(self, name, axiom, overwrite=False):
         """
         Add another axiom to the list
         """
-        if overwrite != hasattr(self, name):
+        already_set = (name in AxiomFactory.__dict__.keys())
+        if overwrite != already_set:
             raise ValueError('overwrite argument mismatch')
-        setattr(self, name, axiom_holder)
+        setattr(AxiomFactory, name, axiom)
 
     def __repr__(self):
         return('Axiom factory object')
@@ -124,42 +119,53 @@ class AxiomFactory(object):
         assert (module_name, axiom_name) not in self._lazy_axiom_sort_key
         self._lazy_axiom_sort_key[(module_name, axiom_name)] = sort_key
         self._counter += 1
-        return sort_key
         
     def _add_instance(self, axiom):
         """
         Add instance of axiom
-
-        Note that this method is called by every axiom constructor, in
-        particular during the resolution of the lazily loaded axioms
-        from :meth:`_add_lazy`.
         """
         axiom_type = type(axiom)
-        module_name = axiom_type.__module__
-        axiom_name = axiom_type.__name__
+        self._add_class(axiom_type)
+
+    def _add_class(self, axiom_class):
+        """
+        Add axiom class
+        """
+        module_name = axiom_class.__module__
+        axiom_name = axiom_class.__name__
         try:
             sort_key = self._lazy_axiom_sort_key[(module_name, axiom_name)]
             overwrite = True
         except KeyError:
             sort_key = self._counter
+            axiom_class._sort_key = sort_key
             self._counter += 1
             overwrite = False
-        holder = AxiomHolder(axiom, sort_key)
-        self._set_axiom(axiom_name, holder, overwrite=overwrite)
-        return sort_key
+        self._set_axiom(axiom_name, axiom_class, overwrite=overwrite)
+
+    def register(self, new_axiom_class):
+        from axiom import Axiom
+        if not issubclass(new_axiom_class, Axiom):
+            raise ValueError('argument must be a subclass of Axiom')
+        if hasattr(new_axiom_class, '_sort_key'):
+            raise ValueError('already registered')
+        self._add_class(new_axiom_class)
 
     def _list_axioms(self):
         """
         Return the (sorted) current list of axiom holders.
         """
-        return sorted([axiom for axiom in self.__dict__.values()
-                       if isinstance(axiom, AxiomHolder)])
+        from axiom import Axiom
+        def is_axiom(ax):
+            return isinstance(ax, AxiomLazyImporter) or \
+                (isinstance(ax, type) and issubclass(ax, Axiom))
+        return sorted([axiom for axiom in AxiomFactory.__dict__.values() if is_axiom(axiom)])
 
     def explain(self):
         print("Sorted list of known axioms:")
         for axiom in self._list_axioms():
             instantiated = ' ' if isinstance(axiom, AxiomLazyImporter) else '*'
-            print('  {0} {1}'.format(instantiated, str(axiom)))
+            print('  {0} {1}'.format(instantiated, axiom.__name__))
         
     def _test_axioms(self):
         from sage.categories.axioms.axiom import Axiom
@@ -171,17 +177,16 @@ class AxiomFactory(object):
         """
         TODO: remove this method
         """
-        for axiom_holder in self._list_axioms():
-            if str(axiom_holder) == name:
-                return axiom_holder()
-        raise ValueError('no such axiom: '+str(name))
+        cls = getattr(self, name)
+        return cls()
 
     def deprecated_all_names(self):
         """
         TODO: remove this method
         """
-        return map(str, self._list_axioms())
+        return tuple(axiom.__name__ for axiom in self._list_axioms())
 
 
 axioms = AxiomFactory()
 axioms._init_axioms()
+

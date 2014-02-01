@@ -501,8 +501,8 @@ class Category(UniqueRepresentation, SageObject):
             else:
                 raise TypeError, "Argument string must be a string."
         self.__class__ = dynamic_class("%s_with_category"%self.__class__.__name__,
-                                       (self.__class__, self.subcategory_class, ),
-                                       cache = False, reduction = None,
+                                       (self.__class__, self.subcategory_class),
+                                       cache=False, reduction=None,
                                        doccls=self.__class__)
 
     @lazy_attribute
@@ -1636,6 +1636,9 @@ class Category(UniqueRepresentation, SageObject):
             from category_with_axiom import CategoryWithAxiom
             if inspect.isclass(axiom_attribute) and issubclass(axiom_attribute, CategoryWithAxiom):
                 return (axiom_attribute(self),)
+            from category_with_axioms import CategoryWithAxioms
+            if inspect.isclass(axiom_attribute) and issubclass(axiom_attribute, CategoryWithAxioms):
+                return (axiom_attribute(self),)
             warn("Expecting %s.%s to be a subclass of CategoryWithAxiom to implement a category with axiom; got %s; ignoring"%(self.__class__.__base__.__name__,axiom,axiom_attribute))
 
         # self does not implement this axiom
@@ -1701,7 +1704,8 @@ class Category(UniqueRepresentation, SageObject):
 
             sage: from sage.categories.axioms.axiom import Axiom
             sage: class FooBar(Axiom): pass
-            sage: Sets()._with_axioms([FooBar()])
+            sage: axioms.register(FooBar)
+            sage: Sets()._with_axioms([axioms.FooBar()])
             Category of sets
             sage: Magmas()._with_axioms([axioms.FooBar(), axioms.Unital()])
             Category of unital magmas

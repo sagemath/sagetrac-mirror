@@ -6,12 +6,14 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class Axiom(SageObject, UniqueRepresentation):
-
-    def __init__(self):
-        from factory import axioms
-        self._sort_key = axioms._add_instance(self)
-
+class Axiom(UniqueRepresentation, SageObject):
+    
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        if not hasattr(cls, '_sort_key'):
+            raise TypeError('you must call axioms.register(new_axiom) first')
+        return super(Axiom, cls).__classcall__(cls, *args, **kwds)
+    
     def __cmp__(self, other):
         return cmp(self._sort_key, other._sort_key)
 

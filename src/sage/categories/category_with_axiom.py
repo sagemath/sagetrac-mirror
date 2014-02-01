@@ -209,7 +209,8 @@ The axiom must be defined as a subclass of ``Axiom``:
 
     sage: from sage.categories.axioms.axiom import Axiom
     sage: class Green(Axiom): pass
-    sage: green = Green()
+    sage: axioms.register(Green)
+    sage: green = axioms.Green()
 
 We can now use the axiom as usual::
 
