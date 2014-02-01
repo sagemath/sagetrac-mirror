@@ -65,7 +65,7 @@ def try_run(command, ignore=False):
     if (not ignore) and (rc!=0):
         return None
     # concatenate stdout and stderr
-    return (result[0].strip() + result[1].strip()).decode('utf8')
+    return (result[0].strip() + result[1].strip()).decode('utf8', errors='ignore')
 
 
 def cp(source_pattern, destination):
@@ -136,7 +136,8 @@ except KeyError:
     conf['system'] = platform.system()
 
 try:
-    conf['release'] = subprocess.check_output(['uname', '-r']).decode('utf8').strip()
+    conf['release'] = subprocess.check_output(['uname', '-r']) \
+        .decode('utf8', errors='ignroe').strip()
 except subprocess.CalledProcessError:
     conf['release'] = ""
 
