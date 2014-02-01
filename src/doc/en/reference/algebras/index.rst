@@ -18,7 +18,13 @@ Algebras
 
    sage/algebras/iwahori_hecke_algebra
 
+   sage/algebras/lie_algebras/classical_lie_algebra
+   sage/algebras/lie_algebras/kac_moody
+   sage/algebras/lie_algebras/lie_algebra
+   sage/algebras/lie_algebras/lie_algebra_element
    sage/algebras/hall_algebra
+
+   quantum_groups
 
    sage/algebras/shuffle_algebra
 
