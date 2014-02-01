@@ -1,5 +1,8 @@
 # -*- shell-script -*-
 # to be sourced
+#
+# Note: echo -e doesn't work on OSX, the $'string' bash/zsh construct is a replacement
+#
 
 __sage_describe_branch()
 {
@@ -70,10 +73,10 @@ __sage_describe_branch()
         status="$branch"
     fi
     
-    local ansi_red='\e[0;31m'
-    local ansi_green='\e[0;32m'
-    local ansi_blue='\e[1;34m'
-    local ansi_clear='\e[0m'
+    local ansi_red=$'\e[0;31m'
+    local ansi_green=$'\e[0;32m'
+    local ansi_blue=$'\e[1;34m'
+    local ansi_clear=$'\e[0m'
     if [ $color == 'red' ]; then
         echo "$ansi_red{$status}$ansi_clear"
     elif [ $color == 'green' ]; then
@@ -85,15 +88,16 @@ __sage_describe_branch()
 
 __sage_ps1()
 {
-    local ansi_bblack='\e[1;30m'
-    local ansi_green='\e[0;32m'
-    local ansi_bblue='\e[1;34m'
-    local ansi_blue='\e[0;34m'
-    local ansi_clear='\e[0m'
+    local ansi_bblack=$'\e[1;30m'
+    local ansi_green=$'\e[0;32m'
+    local ansi_bblue=$'\e[1;34m'
+    local ansi_blue=$'\e[0;34m'
+    local ansi_clear=$'\e[0m'
     local time24h="\t"
     local pathshort="\w"
     echo "$ansi_bblue""Sage:$ansi_clear"\
          "$ansi_bblack$HOSTNAME$ansi_clear $time24h" \
-         "\$(echo -e \$(__sage_describe_branch)) $ansi_blue$pathshort$ansi_clear\n\$ "
+         "\$(__sage_describe_branch)" \
+         "$ansi_blue$pathshort$ansi_clear\n\$ "
 }
 
