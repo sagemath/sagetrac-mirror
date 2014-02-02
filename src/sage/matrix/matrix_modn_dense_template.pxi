@@ -3057,12 +3057,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef Py_ssize_t nrows = self._nrows
         cdef Py_ssize_t ncols = self._ncols
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, self._ncols, self._nrows)
-        cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = ncols ,ncols = nrows)
         cdef Py_ssize_t i,j
 
         for i from 0 <= i < ncols:
@@ -3239,11 +3234,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             bottom = bottom.change_ring(self._base_ring)
         cdef Matrix_modn_dense_template other = bottom.dense_matrix()
         cdef Matrix_modn_dense_template M
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, self._nrows+other._nrows,self._ncols)
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
+        M = self.new_matrix(nrows = self._nrows + other._nrows)
         cdef Py_ssize_t selfsize = self._ncols*self._nrows
         memcpy(M._entries, self._entries, sizeof(celement)*selfsize)
         memcpy(M._entries+selfsize, other._entries, sizeof(celement)*other._ncols*other._nrows)
@@ -3303,25 +3294,26 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: parent(m.submatrix(0, 0, 0))
             Full MatrixSpace of 0 by 4 dense matrices over Finite Field of size 17
         """
+        cdef Py_ssize_t r
         if ncols == -1:
             ncols = self._ncols - col
 
         if nrows == -1:
             nrows = self._nrows - row
 
-        if col !=0 or ncols != self._ncols:
-            return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
-
         if nrows < 0 or row < 0 or row+nrows > self._nrows:
             raise IndexError, "rows out of range"
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, nrows,self._ncols)
-        cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
-        memcpy(M._entries,self._entries+row*ncols,sizeof(celement)*ncols*nrows)
+        if ncols < 0 or col < 0 or col+ncols > self._ncols:
+            raise IndexError, "columns out of range"
+
+        cdef Matrix_modn_dense_template M=self.new_matrix(nrows = nrows, ncols = ncols)
+
+        if col==0 and ncols==self._ncols:
+            memcpy(M._entries,self._entries+row*ncols,sizeof(celement)*ncols*nrows)
+        else:
+            for r from 0<= r < nrows:
+                memcpy(M._entries+r*ncols,self._entries+col+(r+row)*self._ncols,sizeof(celement)*ncols)
         return M
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):
@@ -3357,18 +3349,13 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         if nrows * ncols != self._ncols:
             raise ValueError, "nrows * ncols must equal self's number of columns"
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, nrows, ncols)
-
-        cdef Matrix_modn_dense_template M
         cdef Py_ssize_t i
         cdef Py_ssize_t n = nrows * ncols
         ans = []
+        cdef Matrix_modn_dense_template M
         for i from 0 <= i < self._nrows:
             # Quickly construct a new mod-p matrix
-            M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-            M.p = self.p
+            M=self.new_matrix(nrows = nrows, ncols = ncols)
             # Set the entries
             memcpy(M._entries, self._entries+i*n, sizeof(celement)*n)
             ans.append(M)
@@ -3466,18 +3453,15 @@ cpdef __matrix_from_rows_of_matrices(X):
     ##     v = sum([y.list() for y in X],[])
     ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
 
-    from matrix_space import MatrixSpace
     cdef Matrix_modn_dense_template A, T
     cdef Py_ssize_t i, n, m
     n = len(X)
 
     T = X[0]
     m = T._nrows * T._ncols
-    A = T.__class__.__new__(T.__class__, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
-    A.p = T.p
+    A = T.new_matrix(nrows = n, ncols = m)
 
     for i from 0 <= i < n:
         T = X[i]
         memcpy(A._entries + i*m, T._entries, sizeof(celement)*m)
     return A
-

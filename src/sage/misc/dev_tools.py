@@ -79,7 +79,7 @@ def runsnake(command):
     from sage.misc.preparser import preparse
     tmpfile = tmp_filename()
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
-    os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)
+    os.system("unset PYTHONHOME; unset PYTHONPATH; sage-native-execute runsnake %s &"%tmpfile)
 
 def print_import_statement(module, name, lazy):
     r"""
