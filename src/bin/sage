@@ -255,6 +255,25 @@ if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
     exec local/bin/sage-upgrade "$@"
 fi
 
+function identify_shell {
+    case `basename "$SHELL"` in
+        bash)   echo 'bash'  ;;
+        ksh)    echo 'ksh'   ;;
+        zsh)    echo 'zsh'   ;;
+        *)  # guess the shell, see http://stackoverflow.com/a/3327022/1401572 
+            if [ -n $BASH ]; then
+                echo 'bash'
+            elif [ -n $KSH_VERSION ]; then 
+                echo 'ksh'
+            elif [ -n $ZSH_NAME ]; then
+                echo 'zsh'
+            else
+                echo 'unknown'
+            fi
+            ;;
+    esac
+}
+
 # Check for '--sh' before sourcing sage-env: We source sage-env *inside* the shell
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
     shift
@@ -262,10 +281,7 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
     # See src/sage/ext/shell/README.txt
     export _SAGE_ENV_SCRIPT="$0-env"
     SAGE_EXTCODE=`source $_SAGE_ENV_SCRIPT && echo \$SAGE_EXTCODE`
-    if [ -z "$SHELL" ]; then
-        SHELL=bash
-    fi
-    case `basename "$SHELL"` in
+    case $(identify_shell) in
         bash)
             set -- "$SHELL" --rcfile "$SAGE_EXTCODE/shell/bashrc" "$@"
             ;;
@@ -278,9 +294,9 @@ if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
             export ZDOTDIR="$SAGE_EXTCODE/shell"
             set -- "$SHELL" -d "$@"
             ;;
-        *)
-	    # We don't know how to specify alternate startup file, you are on your own
-	    source "$_SAGE_ENV_SCRIPT"
+        unknown)
+            # We don't know how to specify alternate startup file, you are on your own
+            source "$_SAGE_ENV_SCRIPT"
             set -- "$SHELL" "$@"
             ;;
     esac

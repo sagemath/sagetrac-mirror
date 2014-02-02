@@ -9,6 +9,9 @@ if [ -z "$_SAGE_ENV_SCRIPT" ] ; then
     echo "Error, can only be used from within the main sage script."
 fi
 
+# Workaround for OSX breakage (otherwise typeset -r will *unset* variable)
+export _SAGE_ENV_SCRIPT="$_SAGE_ENV_SCRIPT"
+
 # Set _SAGE_ENV_SCRIPT readonly so ~/.kshrc cannot modify it.
 typeset -r _SAGE_ENV_SCRIPT
 
