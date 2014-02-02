@@ -3021,13 +3021,13 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
     def transpose(self):
         """
-        Returns the transpose of self, without changing self.
+        Return the transpose of ``self``, without changing ``self``.
         
-        EXAMPLES: We create a matrix, compute its transpose, and note that
-        the original matrix is not changed.
-        
-        ::
-        
+        EXAMPLES:
+
+        We create a matrix, compute its transpose, and note that
+        the original matrix is not changed. ::
+
             sage: M = MatrixSpace(GF(41),  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
@@ -3054,10 +3054,9 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [---]
             [2 4]
         """
-        
         cdef Py_ssize_t nrows = self._nrows
         cdef Py_ssize_t ncols = self._ncols
-        
+
         from matrix_space import MatrixSpace
         F = self.base_ring()
         MS = MatrixSpace(F, self._ncols, self._nrows)
@@ -3073,21 +3072,21 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         if self._subdivisions is not None:
             row_divs, col_divs = self.subdivisions()
             M.subdivide(col_divs, row_divs)
- 
+
         return M
 
     def stack(self, bottom, subdivide=False):
         r"""
-        Returns a new matrix formed by appending the matrix
+        Return a new matrix formed by appending the matrix
         (or vector) ``bottom`` beneath ``self``.
 
         INPUT:
 
-        - ``bottom`` - a matrix, vector or free module element, whose
-          dimensions are compatible with ``self``.
+        - ``bottom`` -- a matrix, vector or free module element, whose
+          dimensions are compatible with ``self``
 
-        - ``subdivide`` - default: ``False`` - request the resulting
-          matrix to have a new subdivision, separating ``self`` from ``bottom``.
+        - ``subdivide`` -- default: ``False`` - request the resulting
+          matrix to have a new subdivision, separating ``self`` from ``bottom``
 
         OUTPUT:
 
@@ -3103,7 +3102,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         When ``subdivide`` is ``False`` there is no subdivision information
         in the result.
 
-        .. warning::
+        .. WARNING::
+
             If ``subdivide`` is ``True`` then unequal column subdivisions
             will be discarded, since it would be ambiguous how to interpret
             them.  If the subdivision behavior is not what you need,
@@ -3116,10 +3116,9 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             :func:`~sage.matrix.constructor.block_diagonal_matrix`
             useful and simpler in some instances.
 
-
         EXAMPLES:
 
-        Stacking with a matrix. ::
+        Stacking with a matrix::
 
             sage: A = matrix(GF(41), 4, 3, range(12))
             sage: B = matrix(GF(41), 3, 3, range(9))
@@ -3132,7 +3131,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [ 3  4  5]
             [ 6  7  8]
 
-        Stacking with a vector. ::
+        Stacking with a vector::
 
             sage: A = matrix(GF(41), 3, 2, [0, 2, 4, 6, 8, 10])
             sage: v = vector(GF(41), 2, [100, 200])
@@ -3142,7 +3141,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [ 8 10]
             [18 36]
 
-        Errors are raised if the sizes are incompatible. ::
+        Errors are raised if the sizes are incompatible::
 
             sage: A = matrix(GF(41), [[1, 2],[3, 4]])
             sage: B = matrix(GF(41), [[10, 20, 30], [40, 50, 60]])
@@ -3158,7 +3157,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             TypeError: number of columns must be the same
 
         Setting ``subdivide`` to ``True`` will, in its simplest form,
-        add a subdivision between ``self`` and ``bottom``. ::
+        add a subdivision between ``self`` and ``bottom``::
 
             sage: A = matrix(GF(41), 2, 5, range(10))
             sage: B = matrix(GF(41), 3, 5, range(15))
@@ -3171,8 +3170,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [10 11 12 13 14]
 
         Row subdivisions are preserved by stacking, and enriched,
-        if subdivisions are requested.  (So multiple stackings can
-        be recorded.) ::
+        if subdivisions are requested (so multiple stackings can
+        be recorded)::
 
             sage: A = matrix(GF(41), 2, 4, range(8))
             sage: A.subdivide([1], None)
@@ -3214,7 +3213,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [10 11 12 13 14]
 
         The result retains the base ring of ``self`` by coercing
-        the elements of ``bottom`` into the base ring of ``self``. ::
+        the elements of ``bottom`` into the base ring of ``self``::
 
             sage: A = matrix(GF(41), 1, 2, [1,2])
             sage: B = matrix(ZZ, 1, 2, [100, 100])
@@ -3231,7 +3230,6 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
             sage: D.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-
         """
         if hasattr(bottom, '_vector_'):
             bottom = bottom.row()
@@ -3255,31 +3253,30 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
                         Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
-
-        """
+        r"""
         Return the matrix constructed from self using the specified
         range of rows and columns.
 
         INPUT:
 
-        - ``row``, ``col`` - index of the starting row and column.
-          Indices start at zero.
+        - ``row``, ``col`` -- index of the starting row and column;
+          indices start at zero
 
-        - ``nrows``, ``ncols`` - (optional) number of rows and columns to
-          take. If not provided, take all rows below and all columns to
-          the right of the starting entry.
+        - ``nrows``, ``ncols`` -- (optional) number of rows and columns to
+          take; if not provided, take all rows below and all columns to
+          the right of the starting entry
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 
-        Take the `3 \\times 3` submatrix starting from entry (1,1) in a
-        `4 \\times 4` matrix::
+        Take the `3 \times 3` submatrix starting from entry (1,1) in a
+        `4 \times 4` matrix::
 
             sage: m = matrix(GF(17),4, [1..16])
             sage: m.submatrix(1, 1)
