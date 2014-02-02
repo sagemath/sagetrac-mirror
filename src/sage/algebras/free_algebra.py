@@ -839,10 +839,8 @@ class FreeAlgebra_generic(Algebra):
         if not isinstance(args, (list, tuple)):
             args = [args]
 
-        if kwds.get('side', 'twosided') == 'twosided':
-            from sage.algebras.finitely_presented_algebra import TwoSidedAlgebraIdeal
-            return TwoSidedAlgebraIdeal(self, args)
-        return super(FreeAlgebra_generic, self).ideal(self, *args, **kwds)
+        from sage.algebras.finitely_presented_algebra import FreeAlgebraIdeal
+        return FreeAlgebraIdeal(self, args, side=kwds.get('side', 'twosided'))
 
     def quotient(self, I, mats=None, names=None, category=None):
         """

@@ -273,6 +273,17 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
         """
         Return a side ``side`` ideal of ``self`` given by ``gens``.
         """
+        # Preprocess the arguments
+        if len(args) == 1:
+            args = args[0]
+        from sage.rings.noncommutative_ideals import Ideal_nc
+        if isinstance(args, Ideal_nc):
+            if args.ring() is self:
+                return args
+            args = map(self, args.gens())
+        if not isinstance(args, (list, tuple)):
+            args = [args]
+
         return PBWIdeal(self, args, side=kwds.get('side', 'twosided'))
 
     def quotient(self, I, names=None, category=None):
@@ -416,6 +427,11 @@ class PBWIdeal(Ideal_nc):
         Ideal_nc.__init__(self, pbw_algebra, gens, side)
 
         gens = self.gens()
+        if pbw_algebra.zero() in gens:
+            self._gb = (pbw_algebra.zero(),)
+            self._gb_todo = []
+            return
+
         gb = map(lambda x: x / x.leading_coefficient(), gens)
         self._gb = gb
         self._gb_todo = [(g, h) for g in gb for h in gb]

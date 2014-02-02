@@ -30,18 +30,18 @@ from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.noncommutative_ideals import Ideal_nc
 
-class TwoSidedAlgebraIdeal(Ideal_nc):
+class FreeAlgebraIdeal(Ideal_nc):
     """
-    A two-sided ideal of an algebra.
+    An ideal of a free algebra.
     """
-    def __init__(self, free_algebra, gens):
+    def __init__(self, free_algebra, gens, coerce=True, side="twosided"):
         """
         Initialize ``self``.
         """
+        Ideal_nc.__init__(self, free_algebra, gens, coerce, side)
         PBW = free_algebra.pbw_basis()
-        from sage.algebras.pbw_algebra import TwoSidedPBWIdeal
-        self._pbw_ideal = TwoSidedPBWIdeal(PBW, map(PBW, gens))
-        Ideal_nc.__init__(self, free_algebra, gens, "twosided")
+        from sage.algebras.pbw_algebra import PBWIdeal
+        self._pbw_ideal = PBWIdeal(PBW, map(PBW, self.gens()))
 
     def free_algebra(self):
         """
