@@ -29,7 +29,12 @@ elif tput rev &>/dev/null; then
     # no color but at least reverse
     PS1="\[$(tput rev)\](sage-sh)\[$(tput sgr0)\] \u@\h:\W\$ "
 else
-    # dump terminal
+    # dumb terminal
     PS1="(sage-sh) \u@\h:\w\$ "    
 fi
 export PS1
+
+# Hook for user configuration
+if [ -f "$DOT_SAGE/bashrc" ]; then
+    source "$DOT_SAGE/bashrc"
+fi
