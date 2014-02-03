@@ -257,20 +257,10 @@ fi
 
 function identify_shell {
     case `basename "$SHELL"` in
-        bash)   echo 'bash'  ;;
-        ksh)    echo 'ksh'   ;;
-        zsh)    echo 'zsh'   ;;
-        *)  # guess the shell, see http://stackoverflow.com/a/3327022/1401572 
-            if [ -n $BASH ]; then
-                echo 'bash'
-            elif [ -n $KSH_VERSION ]; then 
-                echo 'ksh'
-            elif [ -n $ZSH_NAME ]; then
-                echo 'zsh'
-            else
-                echo 'unknown'
-            fi
-            ;;
+        bash)   echo 'bash'    ;;
+        ksh)    echo 'ksh'     ;;
+        zsh)    echo 'zsh'     ;;
+        *)      echo 'unknown' ;;
     esac
 }
 
