@@ -4,21 +4,17 @@
 *.so
 *.dylib
 
-/*.m4
-/autom4te.cache
-/ar-lib
-/compile
-/config.*
+/aclocal.m4
+/config.h.in
 /configure
-/depcomp
-/install-sh
+/config.h
+/config.log
+/config.status
+/src/.deps/
+/src/.libs/
+/stamp-h1
 /libtool
 /ltmain.sh
-/m4
-/missing
-/stamp*
-.deps
-.libs
 Makefile
 Makefile.in
 

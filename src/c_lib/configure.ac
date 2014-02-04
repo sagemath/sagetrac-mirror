@@ -1,26 +1,33 @@
 AC_INIT([csage], [0], [sage-support@googlegroups.com])
-AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+dnl Share macro and aux dir with $SAGE_ROOT autotools project
+AC_CONFIG_MACRO_DIR([../../m4])
+AC_CONFIG_AUX_DIR([../../config])
 
-AC_CONFIG_MACRO_DIR([m4])
+dnl AX_PYTHON_DEVEL macro needs aclocal-1.13 to work
+AM_INIT_AUTOMAKE([1.13 foreign -Wall])
 
-# check for python
+# Set default prefix to $SAGE_LOCAL
+AC_PREFIX_DEFAULT(["$SAGE_LOCAL"])
+
+# Check for Python
 AX_PYTHON_DEVEL
 
-# use "make V=1" if you want to see the long awful lines
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+# Use "make V=1" if you want to see the long awful lines
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-# check for programs
+# Check for programs
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_AR
 
-# initialize libtool
+# Initialize libtool
 LT_INIT
 
+AC_CONFIG_HEADERS([config.h])
+
 AC_CONFIG_FILES([Makefile
-				 src/Makefile
-				 include/Makefile])
+    src/Makefile
+    include/Makefile])
 
 AC_OUTPUT

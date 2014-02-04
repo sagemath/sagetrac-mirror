@@ -26,9 +26,19 @@ MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
 
 bootstrap () {
+    # SAGE_ROOT and c_lib are two independent autotools projects
+    # sharing a top-level m4 and config directory.
     aclocal -I m4 && \
     automake --add-missing --copy build/Makefile-auto && \
-    autoconf
+    autoconf && \
+    (
+        cd src/c_lib && \
+        autoheader && \
+        libtoolize --copy && \
+        aclocal && \
+        automake --add-missing --copy && \
+        autoconf
+    )
 
     st=$?
     case $st in
@@ -80,7 +90,9 @@ save () {
     # Create configure tarball
     echo "Creating $CONFBALL..."
     mkdir -p upstream
-    tar zcf "$CONFBALL" configure config/* build/Makefile-auto.in
+    tar zcf "$CONFBALL" configure config/* build/Makefile-auto.in \
+        src/c_lib/configure src/c_lib/config.h.in src/c_lib/Makefile.in \
+        src/c_lib/include/Makefile.in src/c_lib/src/Makefile.in
     
     # Update version number
     echo "$CONFVERSION" >$PKG/package-version.txt

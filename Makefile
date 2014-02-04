@@ -84,9 +84,11 @@ bdist-clean: clean
 	rm -rf dist
 	rm -rf tmp
 	rm -f aclocal.m4 config.log config.status confcache
-	rm -rf autom4te.cache
-	rm -f build/Makefile build/Makefile-auto
+	cd m4 && rm -f libtool.m4 lt*.m4
+	rm -rf autom4te.cache src/c_lib/autom4te.cache
 	rm -f .BUILDSTART
+	cd build && rm -f Makefile Makefile-auto
+	cd src/c_lib && rm -f aclocal.m4 config.log config.status confcache Makefile config.h stamp*
 
 distclean: clean doc-clean lib-clean bdist-clean
 	@echo "Deleting all remaining output from build system ..."
@@ -96,9 +98,11 @@ distclean: clean doc-clean lib-clean bdist-clean
 # source tarball
 bootstrap-clean:
 	rm -rf config configure build/Makefile-auto.in
+	cd src/c_lib && rm -f config.h.in* configure Makefile.in src/Makefile.in include/Makefile.in
 
 # Remove absolutely everything which isn't part of the git repo
-maintainer-clean: distclean bootstrap-clean
+maintainer-clean: distclean
+	$(MAKE) bootstrap-clean
 	rm -rf upstream
 
 micro_release: bdist-clean lib-clean
@@ -153,7 +157,10 @@ ptestoptional: ptestall # just an alias
 ptestoptionallong: ptestalllong # just an alias
 
 configure: configure.ac src/bin/sage-version.sh \
-        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
+        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 \
+		m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4 \
+		m4/ax_python_devel.m4 \
+		src/c_lib/configure.ac src/c_lib/Makefile.am
 	./bootstrap -d
 
 install:

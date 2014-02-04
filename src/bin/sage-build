@@ -22,8 +22,13 @@ fi
 set -e
 
 # build c_lib
-cd "$SAGE_SRC"/c_lib
-scons -Q install
+cd "$SAGE_SRC/c_lib"
+if [ ! -f Makefile ]; then
+    echo >&2 "Error: `pwd`/Makefile does not exist."
+    echo >&2 "You must run make from the Sage root directory first."
+    exit 1
+fi
+$MAKE
 
 # build sage library
 cd "$SAGE_SRC"
