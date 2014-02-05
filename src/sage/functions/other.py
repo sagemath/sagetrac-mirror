@@ -575,26 +575,22 @@ class Function_floor(BuiltinFunction):
         # we get the floor at each of the endpoints is the same.
         # The precision will continue to be increased up to maximum_bits
         # of precision at which point it will raise a value error.
-        bits = 53
         try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_floor = x_interval.upper().floor()
-            lower_floor = x_interval.lower().floor()
-
-            while upper_floor != lower_floor and bits < maximum_bits:
-                bits += 100
+            for bits in range(53, maximum_bits, 100):
                 x_interval = RealIntervalField(bits)(x)
-                upper_floor = x_interval.upper().floor()
-                lower_floor = x_interval.lower().floor()
-
-            if bits < maximum_bits:
-                return lower_floor
-            else:
                 try:
-                    return floor(SR(x).full_simplify().simplify_radical())
+                    upper_floor = x_interval.upper().floor()
+                    lower_floor = x_interval.lower().floor()
                 except ValueError:
-                    pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+                    continue
+                if lower_floor == upper_floor:
+                    return lower_floor
+
+            try:
+                return floor(SR(x).full_simplify().simplify_radical())
+            except ValueError:
+                pass
+            raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
