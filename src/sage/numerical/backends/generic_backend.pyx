@@ -875,6 +875,9 @@ def default_mip_solver(solver = None):
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
 
+        - SCIP (``solver="SCIP"``). See the `SCIP
+          <http://scip/zib.de>`_ web site.
+          
         - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
           <http://www.coin-or.org>`_ web site.
 
@@ -885,7 +888,7 @@ def default_mip_solver(solver = None):
           <http://www.gurobi.com/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``, or ``"Gurobi"``.
+        ``"Coin"``, ``"CPLEX"``, ``SCIP`` or ``"Gurobi"``.
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -917,7 +920,7 @@ def default_mip_solver(solver = None):
             return default_solver
 
         else:
-            for s in ["Cplex", "Gurobi", "Coin", "Glpk"]:
+            for s in ["Cplex", "Gurobi", "Coin", "Glpk", "SCIP"]:
                 try:
                     default_mip_solver(s)
                     return s
@@ -950,6 +953,13 @@ def default_mip_solver(solver = None):
     elif solver == "Glpk":
         default_solver = solver
 
+    elif solver == "SCIP":
+        try:
+            from sage.libs.scip.scip import SCIP
+            default_solver = solver
+        except ImportError:
+            raise ValueError("SCIP is not available. Please refer to the documentation to install it.")
+
     else:
         raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi' or None.")
 
@@ -967,6 +977,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
           <http://www.coin-or.org>`_ web site.
 
+        - SCIP (``solver="SCIP"``). See the `SCIP
+          <http://scip/zib.de>`_ web site.
+          
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
 
@@ -982,10 +995,11 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     - ``constraint_generation`` (boolean) -- whether the solver
       returned is to be used for constraint/variable generation. As
-      the interface with Coin does not support constraint/variable
-      generation, setting ``constraint_generation`` to ``False``
-      ensures that the backend to Coin is not returned when ``solver =
-      None``. This is set to ``False`` by default.
+      the interfaces with Coin and SCIP do not support
+      constraint/variable generation, setting
+      ``constraint_generation`` to ``False`` ensures that the backend
+      to Coin or SCIP is not returned when ``solver = None``. This is
+      set to ``False`` by default.
 
     .. SEEALSO::
 
@@ -1001,7 +1015,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
         # We do not want to use Coin for constraint_generation. It just does not
         # work
-        if solver == "Coin" and constraint_generation:
+        if solver in ("Coin", "SCIP") and constraint_generation:
             solver = "Glpk"
 
     else:
@@ -1027,5 +1041,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         from sage.numerical.backends.ppl_backend import PPLBackend
         return PPLBackend()
 
+    elif solver == "Scip":
+        from sage.libs.scip.scip import SCIP
+        return SCIP()
+
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'PPL' or None (in which case the default one is used).")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'SCIP', 'PPL' or None (in which case the default one is used).")

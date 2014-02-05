@@ -2135,6 +2135,33 @@ if is_package_installed('cryptominisat'):
                   libraries = ['cryptominisat', 'z'])
         ])
 
+if is_package_installed('scip'):
+    ext_modules.append(
+        Extension('sage.libs.scip.constraint',
+                  sources = ['sage/libs/scip/constraint.pyx'],
+                  depends = [SAGE_LOCAL + "/include/scip/scip.h"],
+                  include_dirs = [SAGE_LOCAL+'/include/scip/'],
+                  libraries = ["scip", "lpispx", "soplex", "nlpi.cppad"]))
+    ext_modules.append(
+        Extension('sage.libs.scip.object',
+                  sources = ['sage/libs/scip/object.pyx'],
+                  depends = [SAGE_LOCAL + "/include/scip/scip.h"],
+                  include_dirs = [SAGE_LOCAL +'/include/scip/'],
+                  libraries = ["scip", "lpispx", "soplex", "nlpi.cppad"]))
+    ext_modules.append(
+        Extension('sage.libs.scip.scip',
+                  sources = ['sage/libs/scip/scip.pyx'],
+                  depends = [SAGE_LOCAL + "/include/scip/scip.h"],
+                  include_dirs = [SAGE_LOCAL+'/include/scip/'],
+                  libraries = ["scip", "lpispx", "soplex", "nlpi.cppad"]))
+    ext_modules.append(
+        Extension('sage.libs.scip.variable',
+                  sources = ['sage/libs/scip/variable.pyx'],
+                  depends = [SAGE_LOCAL + "/include/scip/scip.h"],
+                  include_dirs = [SAGE_LOCAL+'/include/scip/'],
+                  libraries = ["scip", "lpispx", "soplex", "nlpi.cppad"]))
+
+
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()
 if UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'):
