@@ -601,11 +601,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         r"""
         Return the Tamari interval between ``self`` and ``other`` as a
         :class:`TamariIntervalPoset`.
+
+        A "Tamari interval" is an interval in the Tamari order
+        (:meth:`tamari_greater`).
         
         INPUT:
 
-        - ``other`` -- an other binary tree greater than ``self`` for the 
-         Tamari order.
+        - ``other`` -- a binary tree greater or equal to ``self``
+          in the Tamari order
 
         EXAMPLES::
 
@@ -616,7 +619,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [[., [[., .], .]], .]
             sage: ip.upper_binary_tree()
             [., [[., [., .]], .]]
-            sage: ip.interval_size()
+            sage: ip.interval_cardinality()
             4
             sage: ip.length_of_maximal_chain()
             3
@@ -630,9 +633,29 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ...
             ValueError: The two binary trees are not comparable on the Tamari lattice.
 
+        TESTS:
+
+        Setting ``other`` equal to ``bt`` gives an interval consisting of
+        just one element::
+
+            sage: ip = bt.tamari_interval(bt)
+            sage: ip
+            The tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
+            sage: list(ip.binary_trees())
+            [[[., [[., .], .]], .]]
+
+        Empty trees work well::
+
+            sage: bt = BinaryTree()
+            sage: ip = bt.tamari_interval(bt)
+            sage: ip
+            The tamari interval of size 0 induced by relations []
+            sage: list(ip.binary_trees())
+            [.]
+
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
-        return TamariIntervalPosets.from_binary_trees(self,other)
+        return TamariIntervalPosets.from_binary_trees(self, other)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
