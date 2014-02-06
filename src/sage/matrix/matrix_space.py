@@ -340,6 +340,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage.structure.parent.Parent.__init__(self, category=category)
 
     @lazy_attribute
+    def transposed(self):
+        """
+        The transposed matrix space, having the same base ring and sparseness,
+        but number of columns and rows is swapped.
+
+        """
+        return MatrixSpace(self._base, self.__ncols, self.__nrows, self.__is_sparse)
+
+    @lazy_attribute
     def _copy_zero(self):
         """
         Is it faster to copy a zero matrix or is it faster to create a
