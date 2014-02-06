@@ -6,30 +6,13 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+SRC=`pwd`
+
 CFLAGS="$CFLAGS -I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib"
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     CFLAGS="$CFLAGS -O0 -ggdb"
 fi
-
-cd src
-SRC=$(pwd)
-
-if [ -z `find . -name "scip-*.tgz"` ]; then
-    echo "Could not find SCIP tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/build/pkgs/scipoptsuite/src"
-    exit 1;
-fi
-
-if [ -z `find . -name "soplex-*.tgz"` ]; then
-    echo "Could not find SoPlex tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/build/pkgs/scipoptsuite/src"
-    exit 1;
-fi
-
-echo "Extracting archives from scip.zib.de"
-
-for file in *.tgz; do
-  tar xfz "$file";
-done
 
 ARCH=`uname -m`
 if [ x"$ARCH" = x"i386" -o x"$ARCH" = x"i486" -o x"$ARCH" = x"i586" -o x"$ARCH" = x"i686" ]; then
@@ -38,14 +21,41 @@ fi
 
 OS=`uname -s | tr '[:upper:]' '[:lower:]'`
 
-SCIP_DIR=`find . -name "scip-*" -type d`
+SOPLEX_TARBALL=`find $SAGE_ROOT/upstream -name "soplex-*.tgz"`
 
-SCIP_DIR=`basename $SCIP_DIR`
-SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
+if [ -z $SOPLEX_TARBALL ]; then
+    echo "Could not find SoPlex tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/upstream"
+    exit 1;
+fi
+
+tar xvfz $SOPLEX_TARBALL;
+
+if [ $? -ne 0 ]; then
+    echo "Error unpacking SOPLEX."
+    exit 1
+fi
 
 SOPLEX_DIR=`find . -name "soplex-*" -type d`
 SOPLEX_DIR=`basename $SOPLEX_DIR`
 SOPLEX_VERSION=`echo "$SOPLEX_DIR" | sed -e "s/.*-//"`
+
+SCIP_TARBALL=`find $SAGE_ROOT/upstream -name "scip-*.tgz"`
+
+if [ -z $SCIP_TARBALL ]; then
+    echo "Could not find SCIP tarball. Please download it from http://scip.zib.de/ and place it in $SAGE_ROOT/upstream"
+    exit 1;
+fi
+
+tar xfz $SCIP_TARBALL;
+
+if [ $? -ne 0 ]; then
+    echo "Error unpacking SCIP."
+    exit 1
+fi
+
+SCIP_DIR=`find . -name "scip-*" -type d`
+SCIP_DIR=`basename $SCIP_DIR`
+SCIP_VERSION=`echo "$SCIP_DIR" | sed -e "s/.*-//"`
 
 echo "Compiling SoPlex"
 
@@ -73,7 +83,8 @@ ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.opt.so libso
 ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
 touch libsoplex.$OS.$ARCH.gnu.opt.a
 
-echo "starting to build scip with soplex"
+echo "Compiling SCIP"
+
 cd $SRC/$SCIP_DIR
 # for clp add the option LPS=clp
 make OPT=opt SHARED=true ZIMPL=false GMP=true ZLIB=false READLINE=false USRCFLAGS="$CFLAGS"
