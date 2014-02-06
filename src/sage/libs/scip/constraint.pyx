@@ -116,7 +116,7 @@ cdef class LinearConstraint(Constraint):
         self._scip = scip
 
         if name is None:
-            name = "<some constraint>"
+            name = "<linear constraint>"
         self._name = name
 
         cdef double _lhs, _rhs
@@ -472,7 +472,7 @@ cdef class ORConstraint(Constraint):
         cdef int i
         cdef int n = SCIPgetNVarsOr (self._scip._scip, self._cons)
         cdef SCIP_VAR **_vars = SCIPgetVarsOr (self._scip._scip, self._cons)
-        cdef SCIP_VAR *_var = SCIPgetResultantAnd(self._scip._scip, self._cons)
+        cdef SCIP_VAR *_var = SCIPgetResultantOr(self._scip._scip, self._cons)
 
         l = []
         for i in range(n):
@@ -821,7 +821,7 @@ cdef class QuadraticConstraint(Constraint):
     """
     SCIP's quadratic constraints"
     """
-    def __cinit__(self, SCIP scip, linterms, quadterms, name, lhs, rhs,
+    def __cinit__(self, SCIP scip, linterms, quadterms, name=None, lower_bound=None, upper_bound=None,
                   initial=True, 
                   separate=True, 
                   enforce=True, 
@@ -844,13 +844,24 @@ cdef class QuadraticConstraint(Constraint):
 
         - ``linterms`` - list of ``(v,c)`` tuples
 
-        - ``qyadterms`` - list of ``(v1,v2,c12)`` tuples
+        - ``quadterms`` - list of ``(v1,v2,c12)`` tuples
 
         - ``name`` - some name (default: ``None``)
 
-        - ``lhs`` - the lower bound for this constraint
+        - ``lower_bound`` - the lower bound for this constraint
 
-        - ``rhs`` - the upper bound for this constraint
+        - ``upper_bound`` - the upper bound for this constraint
+
+
+        EXAMPLE::
+
+            sage: from sage.libs.scip import SCIP # optional - SCIP
+            sage: from sage.libs.scip.constraint import QuadraticConstraint # optional - SCIP
+            sage: scip = SCIP() # optional - SCIP
+            sage: x = scip.variable(scip.add_variable()) # optional - SCIP
+            sage: y = scip.variable(scip.add_variable()) # optional - SCIP
+            sage: QuadraticConstraint(scip, [ (x,1.0), (y,2.0) ], [ (x,y,3.0) ], lower_bound=-1.0, upper_bound=1.0) # optional - SCIP
+            -1.000000 <= 3.000000*x0*x1 + 1.000000*x0 + 2.000000*x1 <= 1.000000
 
         .. note::
         
@@ -868,8 +879,8 @@ cdef class QuadraticConstraint(Constraint):
         self._name = name
 
 
-        _lhs = -SCIPinfinity(self._scip._scip) if lhs is None else float(lhs)
-        _rhs = SCIPinfinity(self._scip._scip) if rhs is None else float(rhs)
+        _lhs = -SCIPinfinity(self._scip._scip) if lower_bound is None else float(lower_bound)
+        _rhs =  SCIPinfinity(self._scip._scip) if upper_bound is None else float(upper_bound)
 
         cdef SCIP_RETCODE _retstat_
 
@@ -932,34 +943,76 @@ cdef class QuadraticConstraint(Constraint):
             raise RuntimeError("Error %d initialising SCIP quadratic constraint."%_retstat_)
 
     def _repr_(self):
-        return "QuadraticConstraint"
-    #     cdef double *lhs = SCIPgetLhsQuadratic(self._scip._scip, self._cons)
-    #     cdef double *rhs = SCIPgetRhsQuadratic(self._scip._scip, self._cons)
-    #     cdef int i
-    #     cdef int nlinterms = SCIPgetNLinearVarsQuadratic(self._scip._scip, self._cons)
-    #     cdef int nquadterms = SCIPgetNQuadVarsQuadratic(self._scip._scip, self._cons)
+        """
+        EXAMPLE::
 
-    #     cdef SCIP_VAR **linvars = SCIPgetLinearVarsQuadratic (self._scip._scip, self._cons)
-    #     cdef SCIP_VAR **quadvars = SCIPgetQuadVarsQuadratic (self._scip._scip, self._cons)
-    #     cdef double *lincoefs = SCIPgetCoefsLinearVarsQuadratic (self._scip._scip, self._cons)
-    #     cdef double *quadcoefs = SCIPgetLinearCoefsQuadVarsQuadratic (self._scip._scip, self._cons)
-    #     cdef double *sqrcoefs = SCIPgetSqrCoefsQuadVarsQuadratic (self._scip._scip, self._cons)
+            sage: from sage.libs.scip import SCIP # optional - SCIP
+            sage: from sage.libs.scip.constraint import QuadraticConstraint # optional - SCIP
+            sage: scip = SCIP() # optional - SCIP
+            sage: x = scip.variable(scip.add_variable()) # optional - SCIP
+            sage: y = scip.variable(scip.add_variable()) # optional - SCIP
+            sage: z = scip.variable(scip.add_variable()) # optional - SCIP
+            sage: QuadraticConstraint(scip, [ (x,1.0), (y,2.0) ], [  ], upper_bound=1.0) # optional - SCIP
+            -inf <= 1.000000*x0 + 2.000000*x1 <= 1.000000
         
+            sage: QuadraticConstraint(scip, [ (x,1.0), (y,2.0) ], [  ], upper_bound=1.0) # optional - SCIP
+            -inf <= 1.000000*x0 + 2.000000*x1 <= 1.000000
+        
+            sage: QuadraticConstraint(scip, [ (x,1.0), (y,2.0) ], [ (x,x,2.0) ], upper_bound=1.0) # optional - SCIP
+            -inf <= 2.000000*x1 + 1.000000*x0 + 2.000000*x0^2 <= 1.000000
 
-    #     if lhs[0] == -SCIPinfinity(self._scip._scip):
-    #         lhs_s = "-inf <= "
-    #     else:
-    #         lhs_s = "%f <= "%(lhs[0],)
+            sage: QuadraticConstraint(scip, [ ], [ (x,y,1.0) ], upper_bound=1.0) # optional - SCIP
+            -inf <= 1.000000*x0*x1 <= 1.000000
+        
+            sage: QuadraticConstraint(scip, [ (x,1.0), (y,2.0) ], [ (x,z,3.0), (x,x,2.0) ], lower_bound=2) # optional - SCIP
+            2.000000 <= 2.000000*x1 + 3.000000*x0*x2 + 1.000000*x0 + 2.000000*x0^2 <= inf
+        """
+        cdef double lhs = SCIPgetLhsQuadratic(self._scip._scip, self._cons)
+        cdef double rhs = SCIPgetRhsQuadratic(self._scip._scip, self._cons)
 
-    #     if rhs[0] == SCIPinfinity(self._scip._scip):
-    #         rhs_s = " <= inf"
-    #     else:
-    #         rhs_s = " <= %f"%(rhs[0],)
+        cdef int i        
 
-    #     c_s = []
-    #     for i in range(n):
-    #         c_s.append("%f*%s"%(c[i],v[i].name))
-    #     c_s = " + ".join(c_s)
+        if lhs == -SCIPinfinity(self._scip._scip):
+            lhs_s = "-inf <= "
+        else:
+            lhs_s = "%f <= "%(lhs,)
 
-    #     return "%s%s%s"%(lhs_s, c_s, rhs_s)
+        if rhs == SCIPinfinity(self._scip._scip):
+            rhs_s = " <= inf"
+        else:
+            rhs_s = " <= %f"%(rhs,)
+
+        cdef      int   nlin = SCIPgetNLinearVarsQuadratic(self._scip._scip, self._cons)
+        cdef SCIP_VAR **vlin = SCIPgetLinearVarsQuadratic(self._scip._scip, self._cons)
+        cdef double    *clin = SCIPgetCoefsLinearVarsQuadratic(self._scip._scip, self._cons)
+
+        lin_s = []
+        for i in range(nlin):
+            lin_s.append("%f*%s"%(clin[i], vlin[i].name))
+        lin_s = " + ".join(lin_s)
+
+        cdef int             nbilin = SCIPgetNBilinTermsQuadratic(self._scip._scip, self._cons)
+        cdef SCIP_BILINTERM*  bilin = SCIPgetBilinTermsQuadratic(self._scip._scip, self._cons)
+        
+        bilin_s = []
+        for i in range(nbilin):
+            bilin_s.append("%f*%s*%s"%(bilin[i].coef, bilin[i].var1.name, bilin[i].var2.name))
+        bilin_s = " + ".join(bilin_s)
+
+        cdef  int nquad              = SCIPgetNQuadVarTermsQuadratic(self._scip._scip, self._cons)
+        cdef  SCIP_QUADVARTERM *quad = SCIPgetQuadVarTermsQuadratic(self._scip._scip, self._cons)
+
+        quad_s = []
+        for i in range(nquad):
+            if quad[i].lincoef:
+                quad_s.append("%f*%s"%(quad[i].lincoef, quad[i].var.name))
+            if quad[i].sqrcoef:
+                quad_s.append("%f*%s^2"%(quad[i].sqrcoef, quad[i].var.name))
+        quad_s = " + ".join(quad_s)
+
+        l = [lin_s, bilin_s, quad_s]
+        
+        all_s = " + ".join([e for e in l if e])
+        
+        return "".join([lhs_s, all_s, rhs_s])
             

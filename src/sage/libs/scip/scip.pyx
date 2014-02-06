@@ -51,7 +51,6 @@ cdef class SCIP(GenericBackend):
         sage: y = scip.add_variable(obj=1.0, integer=True)           # optional - SCIP
         sage: scip.add_linear_constraint([(x,0.5),(y,0.5)],-3.0,3.0) # optional - SCIP
         sage: scip.solve()                                           # optional - SCIP
-        0
         sage: scip.get_variable_value(0)                             # optional - SCIP
         6.0
         sage: scip.get_variable_value(1)                             # optional - SCIP
@@ -581,7 +580,7 @@ cdef class SCIP(GenericBackend):
                              stickingatnode)
         self.add_scip_constraint(c)
 
-    cpdef int solve(self, known_solutions=None) except -1:
+    def solve(self, known_solutions=None):
         """
         Solve this instance.
 
@@ -608,7 +607,7 @@ cdef class SCIP(GenericBackend):
             sage: m1 = boolean_polynomials_scip(scip, F, use_xor=False); scip                            # optional - SCIP
             SCIP Constraint Integer Program "bool" ( maximization, 6 variables, 3 constraints )
 
-            sage: _ = scip.solve()                                                                       # optional - SCIP
+            sage: scip.solve()                                                                       # optional - SCIP
         """
         cdef SCIP_SOL  *sol
         cdef SCIP_SOL **sols
@@ -632,8 +631,6 @@ cdef class SCIP(GenericBackend):
         if n == 0:
             raise MIPSolverException("SCIP: No solution was found.")
 
-        return 0
-
     cpdef get_objective_value(self):
         """
         Return the value of the objective function for the best solution found
@@ -652,7 +649,7 @@ cdef class SCIP(GenericBackend):
             sage: p.add_linear_constraint([(0,1), (1,2)], 0, 3)  # optional - SCIP
             sage: p.set_objective([2, 5])                        # optional - SCIP
             sage: p.solve()                                      # optional - SCIP
-            0
+
             sage: p.get_objective_value()                        # optional - SCIP
             7.5
             sage: p.get_variable_value(0)                        # optional - SCIP
@@ -684,7 +681,7 @@ cdef class SCIP(GenericBackend):
             sage: p.add_linear_constraint([(0, 1), (1, 2)], 0, 3) # optional - SCIP
             sage: p.set_objective([2, 5])                 # optional - SCIP
             sage: p.solve()                               # optional - SCIP
-            0
+
             sage: p.get_objective_value()                 # optional - SCIP
             7.5
             sage: p.get_variable_value(0)                 # optional - SCIP
@@ -820,6 +817,8 @@ cdef class SCIP(GenericBackend):
             sage: p.add_linear_constraint([(0, -1), (1, 0.5)], None, 3) # optional - SCIP
             sage: p.set_objective([2, 5])                 # optional - SCIP
             sage: p.write_mps(SAGE_TMP+"/lp_problem.mps", True) # optional - SCIP
+            WARNING: At least one name of a constraint is empty, so file will be written with generic names.
+            WARNING: write original problem with generic variable and constraint names
         """
         if not name.endswith(".mps"):
             _name = name + ".mps"
@@ -1167,7 +1166,8 @@ cdef class SCIP(GenericBackend):
             sage: z = scip.add_variable(name='z', integer=True)        # optional - SCIP
             sage: scip.add_quadratic_constraint([(x,-2.0)],[(x,y,1.0)],0.0, 1.0) # optional - SCIP
             sage: scip.constraint(-1)                                  # optional - SCIP
-            QuadraticConstraint
+            0.000000 <= 1.000000*x*y + -2.000000*x <= 1.000000
+        
         """
         return self._constraints[i]
 
@@ -1440,7 +1440,7 @@ cdef class SCIP(GenericBackend):
             sage: scip.add_setppc_constraint([a,b,c],'partition')       # optional - SCIP
             sage: scip.constraint(-1)                                   # optional - SCIP
             sum(a, b, c) == 1
-            sage: _ = scip.solve()                                      # optional - SCIP
+            sage: scip.solve()                                          # optional - SCIP
             sage: [scip.get_variable_value(i) for i in (a,b,c)]         # optional - SCIP
             [1.0, 0.0, 0.0]
 
@@ -1451,7 +1451,7 @@ cdef class SCIP(GenericBackend):
             sage: scip.add_setppc_constraint([a,b,c],'packing')         # optional - SCIP
             sage: scip.constraint(-1)                                   # optional - SCIP
             sum(a, b, c) <= 1
-            sage: _ = scip.solve()                                      # optional - SCIP
+            sage: scip.solve()                                          # optional - SCIP
             sage: [scip.get_variable_value(i) for i in (a,b,c)]         # optional - SCIP
             [-0.0, -0.0, -0.0]
 
@@ -1462,7 +1462,7 @@ cdef class SCIP(GenericBackend):
             sage: scip.add_setppc_constraint([a,b,c],'covering')        # optional - SCIP
             sage: scip.constraint(-1)                                   # optional - SCIP
             sum(a, b, c) >= 1
-            sage: _ = scip.solve()                                      # optional - SCIP
+            sage: scip.solve()                                          # optional - SCIP
             sage: [scip.get_variable_value(i) for i in (a,b,c)]         # optional - SCIP
             [1.0, -0.0, -0.0]
         """
@@ -1530,7 +1530,6 @@ cdef class SCIP(GenericBackend):
             ValueError: Proposed solution not stored since it violates at least one constraint.
 
             sage: scip.solve()                     # optional - SCIP
-            0
             sage: scip.get_all_solutions()         # optional - SCIP
             [({0: -1.0, 1: -1.0}, -2.0), ({0: 1.0, 1: 1.0}, 2.0)]
         """

@@ -31,7 +31,7 @@ def default_objective_weight_callback(var):
 
 def solve(F, maximization=True, objective_weight_callback=None, parameters=None):
     """
-    Solve (Boolean) polynomial system ``F`` and solve using SCIP
+    Solve Boolean polynomial system ``F`` and solve using SCIP
     maximizing/minimizing the cost function given by
     ``objective_weight_callback``.
 
@@ -63,29 +63,13 @@ def solve(F, maximization=True, objective_weight_callback=None, parameters=None)
         {b: 0, c: 1, a: 1}
         sage: scip_solve(F,maximization=False)                           # optional - SCIP
         {b: 0, c: 1, a: 0}
-
-    ::
-
-        sage: from sage.libs.scip.polynomials import solve as scip_solve # optional - SCIP
-        sage: P = PolynomialRing(GF(7),5,'x')
-        sage: I = sage.rings.ideal.Katsura(P)
-        sage: I.variety()
-        [{x2: 0, x1: 0, x0: 1, x4: 0, x3: 0},
-         {x2: 0, x1: 0, x0: 5, x4: 5, x3: 0},
-         {x2: 3, x1: 0, x0: 6, x4: 5, x3: 0}]
-        sage: F = I.gens()
-
-        sage: scip_solve(F)                    # optional - SCIP
-        {x2: 3, x1: 0, x0: 6, x4: 5, x3: 0}
-        sage: scip_solve(F,maximization=False) # optional - SCIP
-        {x2: 0, x1: 0, x0: 1, x4: 0, x3: 0}
     """
     scip = SCIP(maximization=maximization)
 
     if F.ring().base_ring().order() == 2:
         Q = boolean_polynomials(scip, F, use_xor=True, objective_weight_callback=objective_weight_callback)
     else:
-        Q = polynomials(scip, F, objective_weight_callback=objective_weight_callback)
+        raise NotImplementedError
 
     if parameters:
         for k,v in parameters.iteritems():
@@ -108,6 +92,8 @@ def boolean_polynomials(scip, F, use_xor=True, objective_weight_callback=None):
 
     INPUT:
 
+    - ``scip`` - a SCIP instance
+    
     - ``F`` - an instance of :class:`PolynomialSequence
       <sage.rings.polynomial.multi_polynomial_sequence>`
 
@@ -121,6 +107,26 @@ def boolean_polynomials(scip, F, use_xor=True, objective_weight_callback=None):
       variables (default: ``None``)
 
     OUTPUT: A dictionary mapping polynomial ring variables to SCIP variables and back.
+
+
+    EXAMPLE:
+
+    We find the minimal solution for an underdetermined system of boolean polynomials::
+
+        sage: from sage.libs.scip.polynomials import boolean_polynomials # optional - SCIP
+        sage: from sage.libs.scip import SCIP                            # optional - SCIP
+        sage: scip = SCIP(maximization=False)                            # optional - SCIP
+        sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()                  # optional - SCIP
+        sage: F = Sequence([B.random_element() for _ in range(4)])       # optional - SCIP
+        sage: updown = boolean_polynomials(scip, F)                      # optional - SCIP
+        sage: scip.solve()                                               # optional - SCIP
+        sage: dict([(x,scip.get_variable_value(updown.down(x))) for x in B.gens()]) # optional - SCIP
+        {f: 1.0, e: 0.0, d: 0.0, b: 0.0, c: 1.0, a: 0.0}
+        sage: F.ideal().variety()                                        # optional - SCIP
+        [{f: 0, e: 0, d: 0, b: 1, c: 1, a: 1},
+         {f: 0, e: 0, d: 1, b: 1, c: 1, a: 1},
+         {f: 1, e: 0, d: 0, b: 0, c: 1, a: 0},
+         {f: 1, e: 0, d: 1, b: 1, c: 1, a: 1}]
     """
     V = sorted(F.variables())
     M = sorted(F.monomials())
@@ -161,59 +167,3 @@ def boolean_polynomials(scip, F, use_xor=True, objective_weight_callback=None):
             scip.add_linear_constraint(zip(indices, coeffs), cc, cc)
 
     return Q1
-
-def polynomials(scip, F, objective_weight_callback=None):
-    """
-    Read polynomial system ``F`` into SCIP instance ``scip``.
-
-    INPUT:
-
-    - ``F`` - an instance of :class:`PolynomialSequence
-      <sage.rings.polynomial.multi_polynomial_sequence>`
-
-    - ``objective_weight_callback`` - called on each variable and must return a
-      floating point number which is the coefficient of this variable in the
-      objective function. If ``None`` is given, the coefficient is 1.0 for all
-      variables (default: ``None``)
-
-    OUTPUT: A dictionary mapping polynomial ring variables to SCIP variables and back.
-    """
-    R = F.ring()
-    p = R.base_ring().order()
-    assert(p.is_prime())
-
-    if objective_weight_callback is None:
-        objective_weight_callback = default_objective_weight_callback
-
-    V = sorted(F.variables())
-
-    Q = UpDown()
-
-    assert(max([f.degree() for f in F]) <= 2)
-
-    for v in V:
-        obj = objective_weight_callback(v)
-        v1 = scip.add_variable(name=str(v), integer=True, obj=obj, lower_bound=0, upper_bound=p-1)
-        Q[v] = v1
-
-    for i,f in enumerate(F):
-        m1 = scip.add_variable(name="multp%d"%i, integer=True, obj=0.0, lower_bound=0)
-        l,q = [(m1,-p)],[]
-        cc = 0
-        for c, m in f:
-            if m.degree() == 2:
-                v = m.variables()
-                if len(v) == 1:
-                    v = v+v
-                q.append( tuple(map(Q.down,v)) + (c,) )
-            elif m.degree() == 1:
-                l.append( (Q.down(m),c) )
-            elif m.degree() == 0:
-                cc = c
-        if q:
-            scip.add_quadratic_constraint(l, q, -cc, -cc)
-        elif l:
-            scip.add_linear_constraint(l, -cc, -cc)
-        else:
-            pass
-    return Q

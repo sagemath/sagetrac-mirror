@@ -7,6 +7,19 @@ cdef extern from "scip/scip.h":
         double obj
         int index
 
+    ctypedef struct SCIP_QUADVARTERM:
+        SCIP_VAR*  var
+        double  lincoef
+        double sqrcoef
+        int nadjbilin
+        int adjbilinsize
+        int* adjbilin
+
+    ctypedef struct SCIP_BILINTERM:
+        SCIP_VAR*  var1
+        SCIP_VAR*  var2
+        double   coef
+
     ctypedef struct SCIP_CONS:
         pass
 
@@ -237,20 +250,64 @@ cdef extern from "scip/scip.h":
                                               bint 	removable,
                                               )
 
-    cdef int 	SCIPgetNLinearVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef SCIP_VAR ** 	SCIPgetLinearVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef int 	SCIPgetNQuadVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef SCIP_VAR ** 	SCIPgetQuadVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double * 	SCIPgetCoefsLinearVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double * 	SCIPgetLinearCoefsQuadVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double * 	SCIPgetSqrCoefsQuadVarsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef int 	SCIPgetNBilinTermsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef SCIP_VAR ** 	SCIPgetBilinVars1Quadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef SCIP_VAR ** 	SCIPgetBilinVars2Quadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double * 	SCIPgetBilinCoefsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double *	SCIPgetLhsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
-    cdef double * 	SCIPgetRhsQuadratic (SCIP_c *scip, SCIP_CONS *cons)
+    # Gets the number of variables in the linear part of a quadratic constraint.
+    cdef int SCIPgetNLinearVarsQuadratic(SCIP_c* scip, SCIP_CONS* cons)
 
+    # Gets the variables in the linear part of a quadratic constraint.
+    # Length is given by SCIPgetNLinearVarsQuadratic.
+
+    cdef SCIP_VAR** SCIPgetLinearVarsQuadratic(SCIP_c* scip, SCIP_CONS* cons)
+
+    # Gets the coefficients in the linear part of a quadratic constraint.
+    # Length is given by SCIPgetNQuadVarsQuadratic.
+
+    cdef double* SCIPgetCoefsLinearVarsQuadratic(SCIP_c* scip, SCIP_CONS* cons)
+
+    # Gets the number of quadratic variable terms of a quadratic constraint.
+    cdef  int SCIPgetNQuadVarTermsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Gets the quadratic variable terms of a quadratic constraint.
+    #  Length is given by SCIPgetNQuadVarTermsQuadratic.
+    cdef  SCIP_QUADVARTERM* SCIPgetQuadVarTermsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Ensures that quadratic variable terms are sorted. */
+    cdef SCIP_RETCODE SCIPsortQuadVarTermsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Finds the position of a quadratic variable term for a given variable.
+    # @note If the quadratic variable terms have not been sorted before, then a
+    # search may reorder the current order of the terms.
+    cdef  SCIP_RETCODE SCIPfindQuadVarTermQuadratic(SCIP_c* scip, SCIP_CONS* cons, SCIP_VAR* var, int* pos)
+
+    # Gets the number of bilinear terms of a quadratic constraint.
+    cdef int SCIPgetNBilinTermsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Gets the bilinear terms of a quadratic constraint.
+    # Length is given by SCIPgetNBilinTermQuadratic.
+    cdef SCIP_BILINTERM* SCIPgetBilinTermsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Gets the left hand side of a quadratic constraint.
+    cdef double SCIPgetLhsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Gets the right hand side of a quadratic constraint.
+    cdef double SCIPgetRhsQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Check the quadratic function of a quadratic constraint for its semi-definiteness, if not done yet.
+    cdef  SCIP_RETCODE SCIPcheckCurvatureQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Indicates whether the quadratic function of a quadratic constraint is (known to be) convex.
+    cdef  bint SCIPisConvexQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Indicates whether the quadratic function of a quadratic constraint is (known to be) concave.
+    cdef bint SCIPisConcaveQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+
+    # Gets the violation of a constraint by a solution. */
+    cdef  SCIP_RETCODE SCIPgetViolationQuadratic(SCIP_c* scip, SCIP_CONS* cons, SCIP_SOL* sol, double* violation)
+
+    # Indicates whether the quadratic constraint is local w.r.t. the current
+    # local bounds.  That is, checks whether each variable with a square term is
+    # fixed and for each bilinear term at least one variable is fixed.
+    cdef  bint SCIPisLinearLocalQuadratic(SCIP_c *scip, SCIP_CONS* cons)
+   
     cdef SCIP_RETCODE SCIPcreateConsLogicor(SCIP_c * 	scip,
                                             SCIP_CONS ** 	cons,
                                             char * 	name,
