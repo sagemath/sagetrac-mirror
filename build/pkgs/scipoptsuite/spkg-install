@@ -28,6 +28,7 @@ if [ -z $SOPLEX_TARBALL ]; then
     exit 1;
 fi
 
+rm -rf ./soplex-*
 tar xvfz $SOPLEX_TARBALL;
 
 if [ $? -ne 0 ]; then
@@ -46,6 +47,7 @@ if [ -z $SCIP_TARBALL ]; then
     exit 1;
 fi
 
+rm -rf ./scip-*
 tar xfz $SCIP_TARBALL;
 
 if [ $? -ne 0 ]; then
