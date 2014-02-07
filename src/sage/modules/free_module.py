@@ -3628,7 +3628,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         All these complements are only done with respect to the inner
         product in the usual basis.  Over finite fields, this means
         we can get complements which are only isomorphic to a vector
-        space decomposition complement.
+        space decomposition complement.::
 
             sage: F2 = GF(2,x)
             sage: V = F2^6
