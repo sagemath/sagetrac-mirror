@@ -157,7 +157,7 @@ ptestoptional: ptestall # just an alias
 ptestoptionallong: ptestalllong # just an alias
 
 configure: configure.ac src/bin/sage-version.sh \
-        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 \
+		m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 \
 		m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4 \
 		m4/ax_python_devel.m4 \
 		src/c_lib/configure.ac src/c_lib/Makefile.am

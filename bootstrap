@@ -24,6 +24,12 @@ test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
+if [ -z "$LIBTOOLIZE" ]; then
+    case `uname` in
+        Darwin*) LIBTOOLIZE=glibtoolize;;
+        *) LIBTOOLIZE=libtoolize;;
+    esac
+fi
 
 bootstrap () {
     # SAGE_ROOT and c_lib are two independent autotools projects
@@ -34,7 +40,7 @@ bootstrap () {
     (
         cd src/c_lib && \
         autoheader && \
-        libtoolize --copy && \
+        $LIBTOOLIZE --copy && \
         aclocal && \
         automake --add-missing --copy && \
         autoconf
