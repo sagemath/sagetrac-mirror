@@ -7,7 +7,7 @@ AUTHOR:
 
 EXAMPLES:
 
-Define a polynomial over an absolute number field and make basic operations::
+Define polynomials over an absolute number field and compute with them::
 
     sage: N.<a> = NumberField(x^2-2)
     sage: K.<x> = N[]
@@ -78,7 +78,6 @@ from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_pE import ntl_ZZ_pE
 from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
 from sage.structure.element import coerce_binop
-
 
 class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     """
