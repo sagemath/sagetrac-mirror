@@ -368,8 +368,7 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
         self._cg = cg
 
-        # .directed and not ._directed. Because of CGraph.
-        self.directed = cg.directed
+        self._directed = cg.directed
 
         vertices = G.vertices()
         self._order = len(vertices)
@@ -430,7 +429,7 @@ class StaticSparseBackend(CGraphBackend):
             sage: loads(dumps(gi)) == gi
             True
         """
-        if self.directed:
+        if self._directed:
             from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=self._loops, multiedges=self._multiedges)
             G.add_edges(list(self.iterator_out_edges(self.iterator_verts(None),True)))
