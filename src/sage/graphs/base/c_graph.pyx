@@ -2824,9 +2824,21 @@ class CGraphBackend(GenericGraphBackend):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ...        for i in range(50))                              # long time
             True
+
+        TESTS:
+
+        Assert that :trac:`15810` is fixed::
+
+            sage: D = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: D.is_directed_acyclic()
+            True
+            sage: I = D.copy(immutable=True)
+            sage: I.is_directed_acyclic()
+            True
+
         """
 
-        if not self._directed:
+        if not self.directed:
             raise ValueError("Input must be a directed graph.")
 
         # Activated vertices
