@@ -20,6 +20,8 @@ AUTHORS:
 
 - Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
 
+- Dillon Rose (2014-01):  Speed enhancements
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -193,7 +195,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         return self.codomain().point(P,check)
         
     def _fast_eval(self, x,check=True):
-         """
+        """
         Evaluate projective morphism at point described by list x.
 
         EXAMPLES::
@@ -2807,11 +2809,9 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         .. TODO::
 
-            - do not reutrn duplicate points
+            - do not return duplicate points
 
             - check == False to speed up?
-
-            - move to Cython
 
         """
         return _fast_possible_periods(self,return_points)
