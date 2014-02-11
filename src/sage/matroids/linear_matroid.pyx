@@ -1354,6 +1354,8 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 return False
         except TypeError:
             pass
+        except NotImplementedError:
+            pass
         return Matroid.has_line_minor(self, k, hyperlines)
 
     cpdef has_field_minor(self, N):
