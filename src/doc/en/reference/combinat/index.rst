@@ -10,6 +10,7 @@ Combinatorics
    sage/databases/oeis
    sage/combinat/expnums
    sage/combinat/alternating_sign_matrix
+   sage/combinat/asymptotics_multivariate_generating_functions
    sage/combinat/cartesian_product
    sage/combinat/combination
    sage/combinat/composition_signed
