@@ -6,5 +6,6 @@ Standard Semirings
 
    sage/rings/semirings/non_negative_integer_semiring
    sage/rings/semirings/tropical_semiring
+   sage/rings/semirings/lexicographic_semiring
 
 .. include:: ../footer.txt

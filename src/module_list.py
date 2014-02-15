@@ -1886,6 +1886,9 @@ ext_modules = [
     Extension('sage.rings.semirings.tropical_semiring',
               sources = ['sage/rings/semirings/tropical_semiring.pyx']),
 
+    Extension('sage.rings.semirings.lexicographic_semiring',
+              sources = ['sage/rings/semirings/lexicographic_semiring.pyx']),
+
     ################################
     ##
     ## sage.schemes
