@@ -395,7 +395,7 @@ class Rings(CategoryWithAxiom):
                  of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             """
-            if kwds.has_key('coerce'):
+            if 'coerce' in kwds:
                 coerce = kwds['coerce']
                 del kwds['coerce']
             else:
@@ -450,7 +450,7 @@ class Rings(CategoryWithAxiom):
                     for h in gens[1:]:
                         g = g.gcd(h)
                 gens = [g]
-            if kwds.has_key('ideal_class'):
+            if 'ideal_class' in kwds:
                 C = kwds['ideal_class']
                 del kwds['ideal_class']
             else:
