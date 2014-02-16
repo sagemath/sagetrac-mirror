@@ -575,22 +575,26 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
                       Call morphism:
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field
-        """
 
-        if R is self._R:
+        Let us check that coercion between Laurent Polynomials over
+        different base rings works (:trac:`15345`)::
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x')
+            sage: T = LaurentPolynomialRing(QQ, 'x')
+            sage: R.gen() + 3*T.gen()
+            4*x
+        """
+        if R is self._R or (isinstance(R, LaurentPolynomialRing_generic)
+            and self._R.has_coerce_map_from(R._R)):
             from sage.structure.coerce_maps import CallableConvertMap
             return CallableConvertMap(R, self, self._element_constructor_,
                                       parent_as_first_arg=False)
-        elif isinstance(R, LaurentPolynomialRing_generic) and \
-             R.variable_names() == self.variable_names() and \
-             self.base_ring().has_coerce_map_from(R.base_ring()):
-            return True
-        else:
-            f = self._R.coerce_map_from(R)
-            if f is not None:
-                from sage.categories.homset import Hom
-                from sage.categories.morphism import CallMorphism
-                return CallMorphism(Hom(self._R, self)) * f
+
+        f = self._R.coerce_map_from(R)
+        if f is not None:
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import CallMorphism
+            return CallMorphism(Hom(self._R, self)) * f
 
     def __cmp__(left, right):
         """
@@ -770,13 +774,27 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             base_ring = self.base_ring()
         if names is None:
             names = self.variable_names()
+        if order is None:
+            order = self.polynomial_ring().term_order()
         if self._n == 1:
             return LaurentPolynomialRing(base_ring, names[0], sparse = sparse)
         else:
-            if order is None:
-                order = self.polynomial_ring().term_order()
             return LaurentPolynomialRing(base_ring, self._n, names, order = order)
 
+    def fraction_field(self):
+        """
+        The fraction field is the same as the fraction field of the
+        polynomial ring.
+
+        EXAMPLES::
+
+            sage: L.<x> = LaurentPolynomialRing(QQ)
+            sage: L.fraction_field()
+            Fraction Field of Multivariate Polynomial Ring in x over Rational Field
+            sage: (x^-1 + 2) / (x - 1)
+            (2*x + 1)/(x^2 - x)
+        """
+        return self.polynomial_ring().fraction_field()
 
 class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
     def __init__(self, R, names):
