@@ -774,12 +774,12 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             base_ring = self.base_ring()
         if names is None:
             names = self.variable_names()
-        if order is None:
-            order = self.polynomial_ring().term_order()
         if self._n == 1:
             return LaurentPolynomialRing(base_ring, names[0], sparse = sparse)
-        else:
-            return LaurentPolynomialRing(base_ring, self._n, names, order = order)
+
+        if order is None:
+            order = self.polynomial_ring().term_order()
+        return LaurentPolynomialRing(base_ring, self._n, names, order = order)
 
     def fraction_field(self):
         """
