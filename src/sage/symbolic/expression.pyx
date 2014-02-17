@@ -2493,21 +2493,20 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators op
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
+        if is_a_relational(left._gobj) and is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
                 x = relational(gadd(left._gobj.lhs(), _right._gobj.lhs()),
                                gadd(left._gobj.rhs(), _right._gobj.rhs()),
                                op)
-            else:
-                x = relational(gadd(left._gobj.lhs(), _right._gobj),
-                               gadd(left._gobj.rhs(), _right._gobj),
-                               relational_operator(left._gobj))
-        elif is_a_relational(_right._gobj):
-            x = relational(gadd(left._gobj, _right._gobj.lhs()),
-                           gadd(left._gobj, _right._gobj.rhs()),
-                           relational_operator(_right._gobj))
+        #    else:
+        #        x = relational(gadd(left._gobj.lhs(), _right._gobj),
+        #                       gadd(left._gobj.rhs(), _right._gobj),
+        #                       relational_operator(left._gobj))
+        #elif is_a_relational(_right._gobj):
+        #    x = relational(gadd(left._gobj, _right._gobj.lhs()),
+        #                   gadd(left._gobj, _right._gobj.rhs()),
+        #                   relational_operator(_right._gobj))
         else:
             x = gadd(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
@@ -2545,21 +2544,20 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
+        if is_a_relational(left._gobj) and is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
                 x = relational(gsub(left._gobj.lhs(), _right._gobj.lhs()),
                                gsub(left._gobj.rhs(), _right._gobj.rhs()),
                                op)
-            else:
-                x = relational(gsub(left._gobj.lhs(), _right._gobj),
-                               gsub(left._gobj.rhs(), _right._gobj),
-                               relational_operator(left._gobj))
-        elif is_a_relational(_right._gobj):
-            x = relational(gsub(left._gobj, _right._gobj.lhs()),
-                           gsub(left._gobj, _right._gobj.rhs()),
-                           relational_operator(_right._gobj))
+        #    else:
+        #        x = relational(gsub(left._gobj.lhs(), _right._gobj),
+        #                       gsub(left._gobj.rhs(), _right._gobj),
+        #                       relational_operator(left._gobj))
+        #elif is_a_relational(_right._gobj):
+        #    x = relational(gsub(left._gobj, _right._gobj.lhs()),
+        #                   gsub(left._gobj, _right._gobj.rhs()),
+        #                   relational_operator(_right._gobj))
         else:
             x = gsub(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
@@ -2695,23 +2693,22 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
+        if is_a_relational(left._gobj) and is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
                 x = relational(gmul(left._gobj.lhs(), _right._gobj.lhs()),
                                gmul(left._gobj.rhs(), _right._gobj.rhs()),
                                op)
-            else:
-                o = relational_operator(left._gobj)
-                x = relational(gmul(left._gobj.lhs(), _right._gobj),
-                               gmul(left._gobj.rhs(), _right._gobj),
-                               o)
-        elif is_a_relational(_right._gobj):
-            o = relational_operator(_right._gobj)
-            x = relational(gmul(left._gobj, _right._gobj.lhs()),
-                           gmul(left._gobj, _right._gobj.rhs()),
-                           o)
+        #    else:
+        #        o = relational_operator(left._gobj)
+        #        x = relational(gmul(left._gobj.lhs(), _right._gobj),
+        #                       gmul(left._gobj.rhs(), _right._gobj),
+        #                       o)
+        #elif is_a_relational(_right._gobj):
+        #    o = relational_operator(_right._gobj)
+        #    x = relational(gmul(left._gobj, _right._gobj.lhs()),
+        #                   gmul(left._gobj, _right._gobj.rhs()),
+        #                   o)
         else:
             x = gmul(left._gobj, _right._gobj)
         return new_Expression_from_GEx(left._parent, x)
@@ -2798,23 +2795,22 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression _right = <Expression>right
         cdef operators o
         try:
-            if is_a_relational(left._gobj):
-                if is_a_relational(_right._gobj):
+            if is_a_relational(left._gobj) and is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),
                                              relational_operator(_right._gobj))
                     x = relational(gdiv(left._gobj.lhs(), _right._gobj.lhs()),
                                    gdiv(left._gobj.rhs(), _right._gobj.rhs()),
                                    op)
-                else:
-                    o = relational_operator(left._gobj)
-                    x = relational(gdiv(left._gobj.lhs(), _right._gobj),
-                                   gdiv(left._gobj.rhs(), _right._gobj),
-                                   o)
-            elif is_a_relational(_right._gobj):
-                o = relational_operator(_right._gobj)
-                x = relational(gdiv(left._gobj, _right._gobj.lhs()),
-                               gdiv(left._gobj, _right._gobj.rhs()),
-                               o)
+        #        else:
+        #            o = relational_operator(left._gobj)
+        #            x = relational(gdiv(left._gobj.lhs(), _right._gobj),
+        #                           gdiv(left._gobj.rhs(), _right._gobj),
+        #                           o)
+        #    elif is_a_relational(_right._gobj):
+        #        o = relational_operator(_right._gobj)
+        #        x = relational(gdiv(left._gobj, _right._gobj.lhs()),
+        #                       gdiv(left._gobj, _right._gobj.rhs()),
+        #                       o)
             else:
                 x = gdiv(left._gobj, _right._gobj)
             return new_Expression_from_GEx(left._parent, x)
@@ -3151,12 +3147,12 @@ cdef class Expression(CommutativeRingElement):
             nexp = exp
             base = nexp.coerce_in(self)
         cdef GEx x
-        if is_a_relational(base._gobj):
-            x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
-                           g_pow(base._gobj.rhs(), nexp._gobj),
-                           relational_operator(base._gobj))
-        else:
-            x = g_pow(base._gobj, nexp._gobj)
+        #if is_a_relational(base._gobj):
+        #    x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
+        #                   g_pow(base._gobj.rhs(), nexp._gobj),
+        #                   relational_operator(base._gobj))
+        #else:
+        x = g_pow(base._gobj, nexp._gobj)
         return new_Expression_from_GEx(base._parent, x)
 
     def derivative(self, *args):
