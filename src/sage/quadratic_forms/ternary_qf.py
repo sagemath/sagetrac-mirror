@@ -29,21 +29,19 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
-from sage.rings.arith import gcd, inverse_mod, kronecker_symbol
+from sage.rings.arith import gcd, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.matrix.matrix import Matrix, is_Matrix
+from sage.matrix.matrix import is_Matrix
 from sage.structure.element import is_Vector
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_with_matrix
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_without_matrix, _find_zeros_mod_p_odd, _find_zeros_mod_p_2, _find_p_neighbor_from_vec, _basic_lemma
 from sage.quadratic_forms.ternary import _find_all_ternary_qf_by_level_disc, _find_a_ternary_qf_by_level_disc
 from sage.misc.prandom import randint
 from sage.rings.finite_rings.integer_mod import mod
-from sage.modules.free_module_element import vector
 from sage.rings.ring import is_Ring
 from sage.rings.rational import Rational
-from sage.rings.rational_field import QQ
-from sage.rings.polynomial.polynomial_ring import polygen, polygens
+from sage.rings.polynomial.polynomial_ring import polygens
 
 class TernaryQF(SageObject):
     """
@@ -77,7 +75,7 @@ class TernaryQF(SageObject):
 
     possible_automorphisms = None
 
-    def __init__(self,v):
+    def __init__(self, v):
         """
         Creates the ternary quadratic form `a*x^2 + b*y^2 + c*z^2 + r*y*z + s*x*z + t*x*y.` from the
         tuple v=[a,b,c,r,s,t] over `\ZZ`.
@@ -99,7 +97,7 @@ class TernaryQF(SageObject):
 
         if len(v) != 6:
             # Check we have six coefficients
-            raise ValueError, "Ternary quadratic form must be given by a list of six coefficients"
+            raise ValueError("Ternary quadratic form must be given by a list of six coefficients")
         self._a, self._b, self._c, self._r, self._s, self._t = [ZZ(x) for x in v]
         self._automorphisms = None
         self._number_of_automorphisms = None
@@ -123,7 +121,7 @@ class TernaryQF(SageObject):
 
         return self._a, self._b, self._c, self._r, self._s, self._t
 
-    def coefficient(self,n):
+    def coefficient(self, n):
         """
         Return the n-th coefficient of the ternary quadratic form, with 0<=n<=5.
 
@@ -143,7 +141,7 @@ class TernaryQF(SageObject):
 
         return self.coefficients()[n]
 
-    def polynomial(self,names='x,y,z'):
+    def polynomial(self, names='x,y,z'):
         """
         Return the polynomial associated to the ternary quadratic form.
 
@@ -607,7 +605,7 @@ class TernaryQF(SageObject):
         m = gcd([A11, A22, A33, 2*A12, 2*A13, 2*A23])
         return m
 
-    def __eq__(self,right):
+    def __eq__(self, right):
         """
         Determines if two ternary quadratic forms are equal.
 
@@ -840,7 +838,7 @@ class TernaryQF(SageObject):
             v = _reduced_ternary_form_eisenstein_without_matrix(self._a,self._b,self._c,self._r,self._s,self._t)
             return TernaryQF(v)
 
-    def pseudorandom_primitive_zero_mod_p(self,p):
+    def pseudorandom_primitive_zero_mod_p(self, p):
         """
         Returns a tuple of the form v = (a, b, 1) such that is a zero of the given ternary quadratic
         positive definite form modulo an odd prime p, where p doesn't divides the discriminant of the form.
@@ -1139,7 +1137,7 @@ class TernaryQF(SageObject):
                     break
             return [b1, b2]
 
-    def automorphism_spin_norm(self,A):
+    def automorphism_spin_norm(self, A):
         """
         Return the spin norm of the automorphism A.
 
@@ -1165,7 +1163,7 @@ class TernaryQF(SageObject):
 
         return [(1, 0, 0, 0, 1, 0, 0, 0, 1)]
 
-    def _border(self,n):
+    def _border(self, n):
         """
         Auxiliar function to find the automorphisms of a positive definite ternary quadratic form.
         It return a boolean whether the n-condition is true. If Q = TernaryQF([a,b,c,r,s,t]), the conditions are:
@@ -1810,9 +1808,9 @@ class TernaryQF(SageObject):
         """
 
         if not self.is_definite():
-           raise ValueError, "Oops, only implemented for definite forms."
+            raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._automorphisms != None:
+        if self._automorphisms is not None:
             return self._automorphisms
 
         if self.is_positive_definite():
@@ -1830,8 +1828,6 @@ class TernaryQF(SageObject):
         else:
             self._automorphisms = (-self).automorphisms()
         return self._automorphisms
-
-
 
     def _number_of_automorphisms_reduced(self):
         """
@@ -1931,7 +1927,6 @@ class TernaryQF(SageObject):
                 # borders 7
                 return 2
 
-
         if self._border(8):
             if self._border(9):
                 if self._border(10) and self._border(11) and self._border(12):
@@ -2013,11 +2008,10 @@ class TernaryQF(SageObject):
 
         return 1
 
-
-
-    def number_of_automorphisms(self, slow = True):
+    def number_of_automorphisms(self, slow=True):
         """
-        Return the number of automorphisms of the definite ternary quadratic form.
+        Return the number of automorphisms of the definite ternary
+        quadratic form.
 
         EXAMPLES::
 
@@ -2037,13 +2031,11 @@ class TernaryQF(SageObject):
             True
             sage: Q.number_of_automorphisms(slow = False)
             24
-
         """
-
         if not self.is_definite():
-           raise ValueError, "Oops, only implemented for definite forms."
+            raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._number_of_automorphisms != None:
+        if self._number_of_automorphisms is not None:
             return self._number_of_automorphisms
 
         if slow:
@@ -2056,16 +2048,17 @@ class TernaryQF(SageObject):
 
         return self._number_of_automorphisms
 
-
     def swap_variables(self, i, j):
-        """
-        Switch the variables x_i and x_j in the ternary quadratic form.
+        r"""
+        Switch the variables `x_i` and `x_j` in the ternary quadratic form.
 
         INPUT:
-            i, j -- integers in {0, 1, 2}
-        
+
+        - ``i``, ``j`` -- integers in {0, 1, 2}
+
         OUTPUT:
-            a TernaryQF
+
+        A TernaryQF
 
         EXAMPLES::
 
@@ -2079,30 +2072,31 @@ class TernaryQF(SageObject):
             [1 3 2]
             [0 0 1]
         """
-       
         if i == j:
-             return self
-        elif j < i:
-             i, j = j, i
+            return self
+        if j < i:
+            i, j = j, i
         a, b, c, r, s, t = self.coefficients()
         if i == 0 and j == 1:
             return TernaryQF([b, a, c, s, r, t])
-        elif i == 0 and j == 2:
+        if i == 0 and j == 2:
             return TernaryQF([c, b, a, t, s, r])
-        else:
-            return TernaryQF([a, c, b, r, t, s])
+        return TernaryQF([a, c, b, r, t, s])
 
     def elementary_substitution(self, i, j, d):
-        """
-        Perform the substitution x_i --> x_i + d*x_j in the ternary quadratic form.
+        r"""
+        Perform the substitution `x_i \to x_i + d x_j` in the ternary
+        quadratic form.
 
         INPUT:
-            c -- an element of Z
-          
-            i, j -- integers in {0, 1, 2}
+
+        - c -- an element of Z
+
+        - i, j -- integers in {0, 1, 2}
 
         OUTPUT:
-            a TernaryQF
+
+        A TernaryQF
 
         EXAMPLES::
 
@@ -2116,32 +2110,33 @@ class TernaryQF(SageObject):
             [1 302 3]
             [60 1 10]
         """
-       
         a, b, c, r, s, t = self.coefficients()
         if i == 0 and j == 1:
             return TernaryQF([a, a*d**2 + d*t + b, c, d*s + r, s, 2*a*d + t])
-        elif i == 0 and j == 2:
+        if i == 0 and j == 2:
             return TernaryQF([a, b, a*d**2 + d*s + c, d*t + r, 2*a*d + s, t])
-        elif i == 1 and j == 2:
+        if i == 1 and j == 2:
             return TernaryQF([a, b, b*d**2 + d*r + c, 2*b*d + r, d*t + s, t])
-        elif i == 1 and j == 0:
+        if i == 1 and j == 0:
             return TernaryQF([b*d**2 + d*t + a, b, c, r, d*r + s, 2*b*d + t])
-        elif i == 2 and j == 0:
+        if i == 2 and j == 0:
             return TernaryQF([c*d**2 + d*s + a, b, c, r, 2*c*d + s, d*r + t])
-        elif i == 2 and j == 1:
+        if i == 2 and j == 1:
             return TernaryQF([a, c*d**2 + d*r + b, c, 2*c*d + r, s, d*s + t])
 
     def multiply_variable(self, i, d):
-        """                                                                                                                                                         
-        Replace the variables x_i by d*x_i in the ternary quadratic form.                                                                                           
+        r"""
+        Replace the variables `x_i` by `d x_i` in the ternary quadratic form.
 
         INPUT:
-            d -- an element of Z
-          
-            i -- an integer in {0, 1, 2}
+
+        - d -- an element of Z
+
+        - i -- an integer in {0, 1, 2}
 
         OUTPUT:
-            a TernaryQF
+
+        A TernaryQF
 
         EXAMPLES::
 
@@ -2155,29 +2150,30 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [1 8 3]
             [0 1 -4]
-
         """
-
         a, b, c, r, s, t = self.coefficients()
         if i == 0:
-             return TernaryQF([a*d**2, b, c, r, s*d, t*d])
-        elif i == 1:
-             return TernaryQF([a, b*d**2, c, r*d, s, t*d])
-        elif i == 2:
-             return TernaryQF([a, b, c*d**2, r*d, s*d, t])
+            return TernaryQF([a*d**2, b, c, r, s*d, t*d])
+        if i == 1:
+            return TernaryQF([a, b*d**2, c, r*d, s, t*d])
+        if i == 2:
+            return TernaryQF([a, b, c*d**2, r*d, s*d, t])
 
-    def find_lowest_p_entry(self, p, i0 = 0):
-        """
+    def find_lowest_p_entry(self, p, i0=0):
+        r"""
         Finds the entry of the quadratic form with minimal scale at the
         prime p, preferring diagonal entries in case of a tie. If i0 is 1
         looks over the coefficients involving y and z only.
 
         INPUT:
-            p -- a prime number > 0
-            i0 -- 0 or 1
+
+        - p -- a prime number > 0
+
+        - i0 -- 0 or 1
 
         OUTPUT:
-            a pair of integers >= 0
+
+        A pair of integers >= 0
 
         EXAMPLES::
 
@@ -2189,7 +2185,6 @@ class TernaryQF(SageObject):
             sage: Q.find_lowest_p_entry(2, i0 = 1)
             (1, 2)
         """
-
         if i0 == 0:
             l = [0, 1, 2, 3, 4, 5]
         elif i0 == 1:
@@ -2199,32 +2194,35 @@ class TernaryQF(SageObject):
         o = (2*v[l[0]]).valuation(p)
         i_f = l[0]
         for i in l[1:]:
-             if i < 3:
-                 o_temp = (2*v[i]).valuation(p)
-             else:
-                 o_temp = v[i].valuation(p)
-             if o_temp < o:
-                 o = o_temp
-                 i_f = i
+            if i < 3:
+                o_temp = (2*v[i]).valuation(p)
+            else:
+                o_temp = v[i].valuation(p)
+            if o_temp < o:
+                o = o_temp
+                i_f = i
         if i_f < 3:
             return (i_f, i_f)
-        elif i_f == 3:
+        if i_f == 3:
             return (1, 2)
-        elif i_f == 4:
+        if i_f == 4:
             return (0, 2)
-        elif i_f == 5:
+        if i_f == 5:
             return (0, 1)
 
     def _local_normal_form_odd_p(self, p):
-        """
-        Returns the locally integrally equivalent ternary quadratic form over the
-        p-adic integers Z_p which gives the Jordan decomposition for an odd prime.
+        r"""
+        Returns the locally integrally equivalent ternary quadratic
+        form over the p-adic integers Z_p which gives the Jordan
+        decomposition for an odd prime.
 
         INPUT:
-            p -- an odd prime
+
+        - p -- an odd prime
 
         OUTPUT:
-            a diagonal TernaryQF
+
+        A diagonal TernaryQF
 
         EXAMPLES::
 
@@ -2248,11 +2246,9 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [4 304 63193088]
             [0 0 0]
-            
         """
-
         i, j = self.find_lowest_p_entry(p)
-        if i == j:                                                                                                                                               
+        if i == j:
             q = self.swap_variables(0, i)
             i, j = 0, 0
         elif i == 1 and j == 2:
@@ -2273,7 +2269,7 @@ class TernaryQF(SageObject):
         q = q.elementary_substitution(0, 2, -s)
 
         i, j = q.find_lowest_p_entry(p, 1)
-        if i != j: #i = 1, j = 2
+        if i != j:  # i = 1, j = 2
             q = q.elementary_substitution(2, 1, 1)
         elif i == 2:
             q = q.swap_variables(1, 2)
@@ -2283,14 +2279,15 @@ class TernaryQF(SageObject):
         q = q.elementary_substitution(1, 2, -r//p**v_b)
         return q
 
-
     def _local_normal_form_p_2(self):
-        """
-        Returns the locally integrally equivalent ternary quadratic form over the
-        p-adic integers Z_p which gives the Jordan decomposition for p = 2.
+        r"""
+        Returns the locally integrally equivalent ternary quadratic
+        form over the p-adic integers Z_p which gives the Jordan
+        decomposition for p = 2.
 
         OUTPUT:
-            a TernaryQF
+
+        A TernaryQF
 
         EXAMPLES::
 
@@ -2310,11 +2307,9 @@ class TernaryQF(SageObject):
             [9 4 4]
             [4 0 0]
         """
-
         p = 2
         i, j = self.find_lowest_p_entry(p)
         if i == j:
-
             q = self.swap_variables(0, i)
             s, t = q._s, q._t
             q = q.multiply_variable(1, q._a)
@@ -2329,8 +2324,9 @@ class TernaryQF(SageObject):
                 small_det = big_det // (min_scale * min_scale)
                 if ((1 + small_det) % 8) == 0:
                     return TernaryQF([q._a, 0, 0, min_scale, 0, 0])
-                elif ((5 + small_det) % 8) == 0:
-                    return TernaryQF([q._a, min_scale, min_scale, min_scale, 0, 0])
+                if ((5 + small_det) % 8) == 0:
+                    return TernaryQF([q._a, min_scale, min_scale,
+                                      min_scale, 0, 0])
             else:
                 q = q.swap_variables(1, i)
                 min_val = q._b.valuation(2)
@@ -2340,7 +2336,7 @@ class TernaryQF(SageObject):
                 q = q.elementary_substitution(1, 2, -r//(2*min_scale))
                 return q
 
-        else: # i != j
+        else:  # i != j
 
             if i == 0 and j == 1:
                 q = self.swap_variables(0, 0)
@@ -2360,16 +2356,18 @@ class TernaryQF(SageObject):
             q = q.elementary_substitution(1, 2, y)
             if ((1 + det) % 8) == 0:
                 return TernaryQF([0, 0, q._c, 0, 0, min_scale])
-            elif ((5 + det) % 8) == 0:
+            if ((5 + det) % 8) == 0:
                 return TernaryQF([min_scale, min_scale, q._c, 0, 0, min_scale])
 
     def local_normal_form(self, p):
-        """
-        Returns the locally integrally equivalent ternary quadratic form over the
-        p-adic integers Z_p which gives the Jordan decomposition.
+        r"""
+        Returns the locally integrally equivalent ternary quadratic
+        form over the p-adic integers Z_p which gives the Jordan
+        decomposition.
 
         OUTPUT:
-            a TernaryQF
+
+        A TernaryQF
 
         EXAMPLES::
 
@@ -2406,20 +2404,16 @@ class TernaryQF(SageObject):
             [0 0 0]
             sage: Q.local_normal_form(5)
             Ternary quadratic form with integer coefficients:
-            [4 304 63193088]                                                                                                                      
+            [4 304 63193088]
             [0 0 0]
-
-
         """
-
         #TODO: primitive case
         if p == 2:
             return self._local_normal_form_p_2()
-        else:
-            return self._local_normal_form_odd_p(p)
+        return self._local_normal_form_odd_p(p)
 
     def jordan_decomposition(self, p):
-        """
+        r"""
         Returns a list of pairs (s_i, L_i) where L_i is a maximal
         p^{s_i}-unimodular Jordan component which is further decomposed
         into block diagonals of block size <= 2. For each L_i the 2x2
@@ -2427,14 +2421,16 @@ class TernaryQF(SageObject):
         convention of the "local_normal_form()" method).
 
         INPUT:
-            p -- a prime number
+
+        - p -- a prime number
 
         OUTPUT:
-            A list of of [s_i, l_i] where:
+
+        A list of of [s_i, l_i] where:
 
             s_i is an integer.
-            l_i is a list of integers and matrices                                                                                                               
-                                                                                                                                                                 
+            l_i is a list of integers and matrices
+
         EXAMPLES::
 
             sage: Q = TernaryQF([7, 8, 8, -7, -3, -4])
@@ -2449,12 +2445,9 @@ class TernaryQF(SageObject):
             [[0, [7, 1456]], [1, [1861793024]]]
             sage: Q.jordan_decomposition(233)
             [[0, [7, 1456]], [1, [39952640]]]
-
         """
-
         q = self.local_normal_form(p)
         if p > 2:
-            
             a, b, c = q._a, q._b, q._c
             v_a, v_b, v_c = a.valuation(p), b.valuation(p), c.valuation(p)
             if v_a == v_b:
@@ -2465,10 +2458,9 @@ class TernaryQF(SageObject):
             elif v_b == v_c:
                 return [[v_a, [a//p**v_a]], [v_b, [b//p**v_b, c//p**v_b]]]
             else:
-                return [[v_a, [a//p**v_a]], [v_b, [b//p**v_b]], [v_c, [c//p**v_c]]]                                                                              
-                                                                                                                                                                 
-        else: #p = 2
+                return [[v_a, [a//p**v_a]], [v_b, [b//p**v_b]], [v_c, [c//p**v_c]]]
 
+        else:  # p = 2
             a, b, c, r, s, t = q.coefficients()
             v_a, v_b, v_c = a.valuation(p), b.valuation(p), c.valuation(p)
             v_r, v_s, v_t = r.valuation(p), s.valuation(p), t.valuation(p)
@@ -2488,14 +2480,16 @@ class TernaryQF(SageObject):
                 return [[v_a, [a//p**v_a]], [v_r, [q.matrix()[1:, 1:]/p**v_r]]]
 
     def conway_p_mass(self, p):
-        """
+        r"""
         Computes Conway's `p`-mass.
-        
+
         INPUT:
-            `p` -- a prime number > 0                                                                                                                            
+
+        - `p` -- a prime number > 0
 
         OUTPUT:
-            a rational number > 0
+
+        A rational number > 0
 
         EXAMPLES::
 
@@ -2513,44 +2507,42 @@ class TernaryQF(SageObject):
             sage: Q.conway_p_mass(2)
             1/12
         """
-
-        if p>2:
-            
+        if p > 2:
             # f = diagonal(u_1, p**alpha * u_2, p**(alpha + beta) * u_3)
             l = self.jordan_decomposition(p)
-            if len(l) == 1: # alpha = 0, beta = 0
+            if len(l) == 1:  # alpha = 0, beta = 0
                 return p**2/2/(p**2 - 1)
-            
+
             elif len(l) == 2:
-                
-                if len(l[0][1]) == 2: # alpha = 0, beta > 0
+
+                if len(l[0][1]) == 2:  # alpha = 0, beta > 0
                     sign = kronecker_symbol(l[0][1][0] * l[0][1][1], p)
-                    if p%4 == 1:
+                    if p % 4 == 1:
                         sign = -sign
                     return p**(l[1][0] + 1)/4/(p + sign)
-                else: # alpha > 0, beta = 0
+                else:  # alpha > 0, beta = 0
                     sign = kronecker_symbol(l[1][1][0] * l[1][1][1], p)
-                    if p%4 == 1:
+                    if p % 4 == 1:
                         sign = -sign
                     return p**(l[1][0] + 1)/4/(p + sign)
-            
-            else: # alpha > 0, beta > 0                                                                                                                          
-                                                                                                                                                                 
+
+            else:  # alpha > 0, beta > 0
+
                 return p**l[2][0]/8
 
         elif p == 2:
-            
+
             l = self.jordan_decomposition(p)
             if len(l) == 1:
                 u1, u2, u3 = l[0][1]
-                if u1%4 == u2%4 and u2%4 == u3%4:
+                if u1 % 4 == u2 % 4 and u2 % 4 == u3 % 4:
                     return Rational('1/12')
                 else:
                     return Rational('1/4')
             elif len(l) == 2:
                 if is_Matrix(l[0][1][0]):
                     alpha = l[1][0] + 1
-                    u1 = l[0][1][0][0,0]
+                    u1 = l[0][1][0][0, 0]
                     if alpha == 1:
                         return Rational('1/6')
                     elif alpha > 1 and u1 == 0:
@@ -2559,10 +2551,10 @@ class TernaryQF(SageObject):
                         return Rational(2**(alpha - 4)/3)
                 elif is_Matrix(l[1][1][0]):
                     alpha = l[1][0]
-                    u1 = l[1][1][0][0,0]
+                    u1 = l[1][1][0][0, 0]
                     if alpha == 1 and u1 == 2:
                         return Rational('1/12')
-                    elif alpha == 1 and u1 == 0:                                                                                                                 
+                    elif alpha == 1 and u1 == 0:
                         return Rational('1/4')
                     elif alpha == 2:
                         return Rational('1/6')
@@ -2579,12 +2571,12 @@ class TernaryQF(SageObject):
                     if alpha == 1:
                         return Rational('1/4')
                     elif alpha == 2:
-                        if u1%4 == u2%4:
+                        if u1 % 4 == u2 % 4:
                             return Rational('1/4')
                         else:
                             return Rational('1/2')
                     else:
-                        if u1%4 == u2%4:
+                        if u1 % 4 == u2 % 4:
                             return Rational(2**(alpha - 5))
                         else:
                             return Rational(2**(alpha - 4))
@@ -2595,16 +2587,17 @@ class TernaryQF(SageObject):
                 n2 = [alpha, beta, alpha + beta].count(2)
                 return Rational(2**(alpha + beta + n1 + n2 - 6))
 
-
     def conway_standard_p_mass(self, p):
-        """
+        r"""
         Computes Conway's standard `p`-mass, which is p^2/(2*(p^2 - 1)).
 
         INPUT:
-            `p` -- a prime number
+
+        - `p` -- a prime number
 
         OUTPUT:
-            a rational number > 0
+
+        A rational number > 0
 
         EXAMPLES::
 
@@ -2613,21 +2606,22 @@ class TernaryQF(SageObject):
             2/3
             sage: Q.conway_standard_p_mass(3)
             9/16
-            sage: Q.conway_standard_p_mass(53)                                                                                                                   
+            sage: Q.conway_standard_p_mass(53)
             2809/5616
-
         """
-
         return Rational(p**2/2/(p**2 - 1))
 
     def conway_mass(self):
         """
-        Computes Conway's mass formula for ternary quadratic forms. The formula is:
-        1/6 times the product over the primes p, that divides 2 times the discriminant of the
-        ternary quadratic form, of the `p`-mass divided by the standard `p`-mass.
+        Computes Conway's mass formula for ternary quadratic forms.
+
+        The formula is: 1/6 times the product over the primes p, that
+        divides 2 times the discriminant of the ternary quadratic
+        form, of the `p`-mass divided by the standard `p`-mass.
 
         OUTPUT:
-            a rational number > 0.
+
+        A rational number > 0.
 
         EXAMPLES::
 
@@ -2641,10 +2635,9 @@ class TernaryQF(SageObject):
             sage: Q.conway_mass()
             13/12
         """
-        
         mass = Rational('1/6')
-        for p in (2*self.disc()).prime_divisors():
-            mass = mass * Rational(self.conway_p_mass(p))/Rational(self.conway_standard_p_mass(p))                                                               
+        for p in (2 * self.disc()).prime_divisors():
+            mass *= Rational(self.conway_p_mass(p))/Rational(self.conway_standard_p_mass(p))
         return mass
 
 
@@ -2715,9 +2708,7 @@ def find_a_ternary_qf_by_level_disc(N, d):
         Traceback (most recent call last):
         ...
         ValueError: There are no ternary forms of this level and discriminant
-
     """
-
     q = _find_a_ternary_qf_by_level_disc(N, d)
-    if q != None:
+    if q is not None:
         return TernaryQF(q)
