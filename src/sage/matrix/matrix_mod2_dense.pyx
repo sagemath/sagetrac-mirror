@@ -1661,64 +1661,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if subdivide:
             Z._subdivide_on_stack(self, other)
         return Z
-
-    def submatrix(self, lowr, lowc, nrows , ncols):
-        """
-        Return submatrix from the index lowr,lowc (inclusive) with
-        dimension nrows x ncols.
-
-        INPUT:
-            lowr -- index of start row
-            lowc -- index of start column
-            nrows -- number of rows of submatrix
-            ncols -- number of columns of submatrix
-
-        EXAMPLES::
-
-             sage: A = random_matrix(GF(2),200,200)
-             sage: A[0:2,0:2] == A.submatrix(0,0,2,2)
-             True
-             sage: A[0:100,0:100] == A.submatrix(0,0,100,100)
-             True
-             sage: A == A.submatrix(0,0,200,200)
-             True
-
-             sage: A[1:3,1:3] == A.submatrix(1,1,2,2)
-             True
-             sage: A[1:100,1:100] == A.submatrix(1,1,99,99)
-             True
-             sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
-             True
-        """
-        cdef Matrix_mod2_dense A
-
-        cdef int highr, highc
-
-        highr = lowr + nrows
-        highc = lowc + ncols
-
-        if nrows <= 0 or ncols <= 0:
-            raise TypeError("Expected nrows, ncols to be > 0, but got %d,%d instead."%(nrows, ncols))
-
-        if highc > self._entries.ncols:
-            raise TypeError("Expected highc <= self.ncols(), but got %d > %d instead."%(highc, self._entries.ncols))
-
-        if highr > self._entries.nrows:
-            raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows))
-
-        if lowr < 0:
-            raise TypeError("Expected lowr >= 0, but got %d instead."%lowr)
-
-        if lowc < 0:
-            raise TypeError("Expected lowc >= 0, but got %d instead."%lowc)
-
-        A = self.new_matrix(nrows = nrows, ncols = ncols)
-        if self._ncols == 0 or self._nrows == 0:
-            return A
-        A._entries = mzd_submatrix(A._entries, self._entries, lowr, lowc, highr, highc)
-        return A
-
-    def __reduce__(self):
+   
+   def __reduce__(self):
         """
         Serialize ``self``.
 
