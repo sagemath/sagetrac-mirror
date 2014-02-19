@@ -132,7 +132,11 @@ from fraction_field import FractionField
 Frac = FractionField
 
 # continued fractions
-from contfrac import continued_fraction, CFF, ContinuedFractionField
+from continued_fractions import (
+        continued_fraction, continued_fraction_list,
+        CFF, ContinuedFractionField,
+        Hirzebruch_Jung_continued_fraction_list)
+
 
 # Arithmetic
 from arith import *

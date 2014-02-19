@@ -896,6 +896,68 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return 1
         return -1
 
+    def continued_fraction_list(self):
+        r"""
+        Return the preperiod and the period of the continued fraction expansion
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: sqrt2.continued_fraction_list()
+            ((1,), (2,))
+            sage: (1/2+sqrt2/3).continued_fraction_list()
+            ((0, 1, 33), (1, 32))
+
+        Check that it works even for rational entries::
+
+            sage: K(123/567).continued_fraction_list()
+            ((0, 4, 1, 1, 1, 1, 3, 2), (0,))
+        """
+        cdef NumberFieldElement_quadratic x
+
+        if mpz_sgn(self.b) == 0:
+            return tuple(Rational(self).continued_fraction_list()),(0,)
+
+        if mpz_sgn(self.D.value) < 0:
+            raise ValueError("the method is only available for positive discriminant")
+
+        x = self
+        orbit = []
+        quots = []
+        while x not in orbit:
+            quots.append(x.floor())
+            orbit.append(x)
+            x = ~(x - quots[-1])
+
+        i = orbit.index(x)
+
+        return tuple(quots[:i]), tuple(quots[i:])
+
+    def continued_fraction(self, R=None):
+        r"""
+        Return the (finite or ultimately periodic) continued fraction of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: cf = sqrt2.continued_fraction(); cf
+            [1; (2)*]
+            sage: cf.n()
+            1.41421356237310
+            sage: sqrt2.n()
+            1.41421356237310
+            sage: cf.value()
+            sqrt2
+
+            sage: (sqrt2/3 + 1/4).continued_fraction()
+            [0; 1, (2, 1, 1, 2, 3, 2, 1, 1, 2, 5, 1, 1, 14, 1, 1, 5)*]
+        """
+        if R is None:
+            from sage.rings.continued_fractions import CFF
+            R = CFF
+        return R(self.continued_fraction_list())
+
 #########################################################
 # Arithmetic
 #########################################################
