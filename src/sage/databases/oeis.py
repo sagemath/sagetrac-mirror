@@ -147,7 +147,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.contfrac import ContinuedFractionField
+from sage.rings.continued_fractions import ContinuedFractionField
 from sage.rings.real_lazy import RealLazyField
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method

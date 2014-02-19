@@ -1047,7 +1047,7 @@ class ContinuedFraction_periodic(ContinuedFraction_generic):
 
         EXAMPLES::
 
-        Some purely periodic examples::
+            Some purely periodic examples::
 
             sage: cf = CFF([(),(2,)]); cf
             [(2)*]
@@ -1070,7 +1070,7 @@ class ContinuedFraction_periodic(ContinuedFraction_generic):
             sage: cf.value().continued_fraction() == cf
             True
 
-        Some ultimately periodic but non periodic examples::
+            Some ultimately periodic but non periodic examples::
 
             sage: cf = CFF([(1,),(2,)]); cf
             [1; (2)*]
@@ -2082,7 +2082,6 @@ def continued_fraction(x, bits=None, nterms=None):
 
         - ``nterms`` -- None (default) or a positive integer
 
-
         - ``bits`` -- None (default) or a positive integer. If not ``None`` then
           use an approximation of ``x`` with ``bits`` precision.
 
@@ -2200,8 +2199,11 @@ def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
 
     - ``nterms`` -- integer (default: None). The upper bound on the
       number of terms in the continued fraction expansion to return.
-    A lits of integers, the coefficients in the Hirzebruch-Jung continued
-    fraction expansion of ``x``.
+      A lits of integers, the coefficients in the Hirzebruch-Jung continued
+      fraction expansion of ``x``.
+
+    EXAMPLES::
+
         sage: Hirzebruch_Jung_continued_fraction_list(17/11)
         doctest:...: DeprecationWarning: Hirzebruch_Jung_continued_fraction_list(x) is replaced by
             continued_fraction_list(x,type="hj")
