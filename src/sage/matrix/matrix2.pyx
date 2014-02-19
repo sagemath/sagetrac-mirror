@@ -12410,7 +12410,9 @@ cdef class Matrix(matrix1.Matrix):
 
         # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
         # of the 0th row and column, so we apply smith_form to the smaller submatrix
-        mm = t.submatrix(1,1)
+        submatrix_rows = t.rows() - 1
+        submatrix_cols = t.cols() -1
+        mm = t.submatrix(1,1,submatrix_rows,submatrix_cols)
         dd, uu, vv = mm.smith_form()
         mone = self.new_matrix(1, 1, [1])
         d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
