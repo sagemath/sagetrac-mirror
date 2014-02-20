@@ -492,18 +492,8 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         try:
             return self.__multiplicative_order
         except AttributeError:
-            if self.is_zero():
-                raise ArithmeticError("Multiplicative order of 0 not defined.")
-            n = self.parent().order() - 1
-            order = 1
-            for p, e in arith.factor(n):
-                # Determine the power of p that divides the order.
-                a = self**(n//(p**e))
-                while a != 1:
-                    order *= p
-                    a = a**p
-            self.__multiplicative_order = order
-            return order
+            self.__multiplicative_order = FinitePolyExtElement.multiplicative_order(self)
+            return self.__multiplicative_order
 
     def __copy__(self):
         """

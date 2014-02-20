@@ -3778,6 +3778,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: is_primitive() not defined for polynomials over infinite fields.
+            sage: R.<x>= GF(2)[]
+            sage: f = x^237 + x^92 + x^82 + x^25 + 1
+            sage: f.is_primitive()
+            True
 
           Ring semantics examples.
 
@@ -3848,10 +3852,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if not self.is_irreducible():
                 return False
             if n is None:
-                q = self.base_ring().order()
+                q = R.order()
                 n = q ** self.degree() - 1
             y = self.parent().quo(self).gen()
             from sage.groups.generic import order_from_multiple
+            if n_prime_divs is None and R.characteristic() < 13:
+                from sage.rings.factorint import factor_cunningham
+                n_prime_divs = [p for p, _ in factor_cunningham(n)]
             return n == order_from_multiple(y, n, n_prime_divs, operation="*")
         else:
             return R.ideal(self.coefficients())==R.ideal(1)

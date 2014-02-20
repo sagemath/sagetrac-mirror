@@ -11,6 +11,7 @@ include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
 from sage.rings.integer import Integer
+from sage.rings.factorint import factor_cunningham
 
 def is_FiniteFieldElement(x):
     """
@@ -30,7 +31,7 @@ def is_FiniteFieldElement(x):
     return isinstance(x, Element) and is_FiniteField(x.parent())
 
 cdef class FiniteRingElement(CommutativeRingElement):
-    def _nth_root_common(self, n, all, algorithm, cunningham):
+    def _nth_root_common(self, n, all, algorithm):
         """
         This function exists to reduce code duplication between finite field
         nth roots and integer_mod nth roots.
@@ -40,9 +41,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         TESTS::
 
             sage: a = Zmod(17)(13)
-            sage: a._nth_root_common(4, True, "Johnston", False)
-            [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            sage: a._nth_root_common(4, True, "Johnston")
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -61,7 +60,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         n = n % (q-1)
         if n == 0:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         gcd, alpha, beta = n.xgcd(q-1) # gcd = alpha*n + beta*(q-1), so 1/n = alpha/gcd (mod q-1)
         if gcd == 1:
             return [self**alpha] if all else self**alpha
@@ -71,8 +70,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             if all: return []
             else: raise ValueError, "no nth root"
         self = self**alpha
-        if cunningham:
-            from sage.rings.factorint import factor_cunningham
+        if K.characteristic() < 13: # bases in the Cunningham tables
             F = factor_cunningham(n)
         else:
             F = n.factor()
@@ -495,6 +493,15 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: Multiplicative order of 0 not defined.
+
+        TESTS::
+
+            sage: K.<a> = GF(17^5)
+            sage: a.multiplicative_order()
+            1419856
+            sage: K.<a> = GF(2^257)
+            sage: a.multiplicative_order()
+            231584178474632390847141970017375815706539969331281128078915168015826259279871
         """
         import sage.rings.arith
 
@@ -530,7 +537,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             return Integer(1)
         return self.parent().characteristic()
 
-    def nth_root(self, n, extend = False, all = False, algorithm=None, cunningham=False):
+    def nth_root(self, n, extend = False, all = False, algorithm=None):
         r"""
         Returns an `n`\th root of ``self``.
 
@@ -650,7 +657,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             raise NotImplementedError
         from sage.rings.integer import Integer
         n = Integer(n)
-        return self._nth_root_common(n, all, algorithm, cunningham)
+        return self._nth_root_common(n, all, algorithm)
 
     def pth_power(self, int k = 1):
         """

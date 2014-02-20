@@ -1052,7 +1052,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     square_root = sqrt
 
-    def nth_root(self, n, extend = False, all = False, algorithm = None, cunningham = False):
+    def nth_root(self, n, extend = False, all = False, algorithm = None):
         r"""
         Returns an `n`\th root of ``self``.
 
@@ -1303,7 +1303,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 return ans
             else:
                 return sign[0] * K(R.teichmuller(modp) * (plog // n).exp())
-        return self._nth_root_common(n, all, algorithm, cunningham)
+        return self._nth_root_common(n, all, algorithm)
 
     def _nth_root_naive(self, n):
         """
