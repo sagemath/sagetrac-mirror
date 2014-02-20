@@ -1662,7 +1662,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Z._subdivide_on_stack(self, other)
         return Z
    
-   def __reduce__(self):
+    def __reduce__(self):
         """
         Serialize ``self``.
 
