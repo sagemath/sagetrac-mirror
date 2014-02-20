@@ -105,7 +105,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
 
 class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflict
     r"""
-    The ideal of a Lie algebra `\mathfrak{g}`.
+    A generic ideal of a Lie algebra `\mathfrak{g}`.
     """
     def __init__(self, lie_algebra, gens, coerce=True):
         """
@@ -168,6 +168,10 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
             return '\n(\n  %s\n)\n'%(',\n\n  '.join(L))
         return '(%s)'%(', '.join(L))
 
+class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
+    """
+    An ideal of a finitely presented Lie algebra.
+    """
     @cached_method
     def groebner_basis(self):
         """

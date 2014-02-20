@@ -105,10 +105,10 @@ class KacMoodyAlgebra(FinitelyPresentedLieAlgebra):
         self._cartan_matrix = cm
 
         # Construct the base free Lie algebra
-        names  = ['e%s'%i for i in index_set]
-        names += ['f%s'%i for i in index_set]
-        names += ['h%s'%i for i in index_set]
-        names += ['d%s'%i for i in range(n-cm.rank())]
+        names  = ['e{}'.format(i) for i in index_set]
+        names += ['f{}'.format(i) for i in index_set]
+        names += ['h{}'.format(i) for i in index_set]
+        names += ['d{}'.format(i) for i in range(n-cm.rank())]
         F = FreeLieAlgebra(R, names).Lyndon()
         e = F.gens()[:n]
         f = F.gens()[n:2*n]
@@ -345,10 +345,10 @@ class NoSerreKacMoodyAlgebra(KacMoodyAlgebra):
         self._cartan_matrix = cm
 
         # Construct the base free Lie algebra
-        names  = ['e%s'%i for i in index_set]
-        names += ['f%s'%i for i in index_set]
-        names += ['h%s'%i for i in index_set]
-        names += ['d%s'%i for i in range(n-cm.rank())]
+        names  = ['e{}'.format(i) for i in index_set]
+        names += ['f{}'.format(i) for i in index_set]
+        names += ['h{}'.format(i) for i in index_set]
+        names += ['d{}'.format(i) for i in range(n-cm.rank())]
         F = FreeLieAlgebra(R, names).Lyndon()
         e = F.gens()[:n]
         f = F.gens()[n:2*n]
@@ -445,9 +445,9 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         roots = RL.roots()
         num_sroots = len(alpha)
 
-        names = ['h%s'%i for i in range(1, num_sroots+1)]
-        e_names = ['e%s'%i for i in range(1, num_sroots+1)]
-        f_names = ['f%s'%i for i in range(1, num_sroots+1)]
+        names = ['h{}'.format(i) for i in range(1, num_sroots+1)]
+        e_names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
+        f_names = ['f{}'.format(i) for i in range(1, num_sroots+1)]
 
         # Determine the signs for the structure coefficients from the root system
         # We first create the special roots
@@ -550,7 +550,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
             sage: LieAlgebra(QQ, cartan_type=['A', 2])
             Lie algebra of ['A', 2] in the Chevalley basis
         """
-        return "Lie algebra of %s in the Chevalley basis"%self._cartan_type
+        return "Lie algebra of {} in the Chevalley basis".format(self._cartan_type)
 
     def _repr_generator(self, m):
         """

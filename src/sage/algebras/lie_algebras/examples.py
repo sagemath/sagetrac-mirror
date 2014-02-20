@@ -55,9 +55,9 @@ def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     X = names[0]
     Y = names[1]
     Z = names[2]
-    from sage.algebras.lie_algebras.lie_algebra import LieAlgebraWithStructureCoefficients
+    from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
     s_coeff = {(X,Y): {Z:a, Y:d}, (Y,Z): {X:b}, (Z,X): {Y:c, Z:-d}}
-    return LieAlgebraWithStructureCoefficients(R, tuple(names), s_coeff)
+    return LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
 
 def cross_product(R, names=['X', 'Y', 'Z']):
     r"""
@@ -116,12 +116,14 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         X = names[0]
         Y = names[1]
         Z = names[2]
-        from sage.algebras.lie_algebras.lie_algebra import LieAlgebraWithStructureCoefficients
+        from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
         if a == 0:
-            L = LieAlgebraWithStructureCoefficients(R, tuple(names), {(X,Y): {Y:R.one()}, (X,Z): {Y:R(a)}})
+            s_coeff = {(X,Y): {Y:R.one()}, (X,Z): {Y:R(a)}}
+            L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
             L.rename("Degenerate Lie algebra of dimension 3 and rank 2 over {}".format(R))
         else:
-            L = LieAlgebraWithStructureCoefficients(R, tuple(names), {(X,Y): {Y:R.one()}, (X,Z): {Y:R.one(), Z:R.one()}})
+            s_coeff = {(X,Y): {Y:R.one()}, (X,Z): {Y:R.one(), Z:R.one()}}
+            L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
             L.rename("Lie algebra of dimension 3 and rank 2 with parameter {} over {}".format(a, R))
         return L
     if n == 3:
@@ -148,9 +150,9 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
         return LieAlgebraFromAssociative(self, R, M, gens, names)
     X = names[0]
     Y = names[1]
-    from sage.algebras.lie_algebras.lie_algebra import LieAlgebraWithStructureCoefficients
+    from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
     s_coeff = {(X,Y): {Y:R.one()}}
-    L = LieAlgebraWithStructureCoefficients(R, names, s_coeff)
+    L = LieAlgebraWithStructureCoefficients(R, s_coeff, names)
     L.rename("Lie algebra of affine transformations of a line over {}".format(R))
     return L
 
@@ -222,8 +224,8 @@ def upper_triangluar_matrices(R, n):
     from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
     MS = MatrixSpace(R, n, sparse=True)
     one = R.one()
-    names = tuple('n%s'%i for i in range(n-1))
-    names = tuple('t%s'%i for i in range(n))
+    names = tuple('n{}'.format(i) for i in range(n-1))
+    names = tuple('t{}'.format(i) for i in range(n))
     gens = [MS({(i,i+1):one}) for i in range(n-1)]
     gens += [MS({(i,i):one}) for i in range(n)]
     L = LieAlgebraFromAssociative(R, MS, gens, names)
@@ -244,7 +246,7 @@ def strictly_upper_triangular_matrices(R, n):
     from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
     MS = MatrixSpace(R, n, sparse=True)
     one = R.one()
-    names = tuple('n%s'%i for i in range(n-1))
+    names = tuple('n{}'.format(i) for i in range(n-1))
     gens = tuple(MS({(i,i+1):one}) for i in range(n-1))
     L = LieAlgebraFromAssociative(R, MS, gens, names)
     L.rename("Lie algebra of {}-dimensional strictly upper triangular matrices over {}".format(n, L.base_ring()))

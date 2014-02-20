@@ -158,6 +158,13 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         _construct_UEA = pbw_basis
 
+        def free_module(self):
+            """
+            Return ``self`` as a free module.
+            """
+            from sage.combinat.free_module import CombinatorialFreeModule
+            return CombinatorialFreeModule(self.base_ring(), self.basis().keys())
+
     class ElementMethods:
         def _bracket_(self, y):
             """

@@ -108,13 +108,13 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     INPUT:
     
-    -  ``lie`` -- a Lie algebra
+    - ``lie`` -- a Lie algebra
 
-    -  ``I`` -- an ideal of ``lie``
+    - ``I`` -- an ideal of ``lie``
 
     - ``names`` -- a list of generator names
     """
-    def __init__(self, lie, I, names, category=None):
+    def __init__(self, lie, I, names, index_set, category=None):
         r"""
         Create the quotient Lie algebra of `\mathfrak{g}` by the ideal `I`.
 
@@ -133,7 +133,7 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
         if not self._is_category_initialized():
             if category is None:
                 category = check_default_category(LieAlgebras(R).Quotients(), category)
-            FinitelyGeneratedLieAlgebra.__init__(self, R, names=names, category=category)
+            FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, category)
         # self._populate_coercion_lists_([lie]) # we don't want to do this, since subclasses will often implement improved coercion maps.
 
     def _repr_(self):

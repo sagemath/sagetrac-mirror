@@ -57,12 +57,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     rels[g0*g1] = g1*g0 + sum(val*d[g._name] for g, val in S[k])
             return F.g_algebra(rels)
 
-        def ambient_module(self):
-            """
-            Return the ambient module of ``self``.
-            """
-            return FreeModule(self.base_ring(), self.dimension())
-
         def killing_matrix(self, x, y):
             r"""
             Return the Killing matrix of ``x`` and ``y``.
@@ -298,18 +292,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         def is_isomorphic(self, g):
             """
             Check to see if ``self`` is isomorphic to ``g`` (as Lie algebras).
-
-            It is clear that `\mathfrak{g}` and `\mathfrak{g}^{\prime}` are
-            isomorphic only if the structure graphs in are isomorphic.
-            Since we strip all singletons for simplicity, we also need to check
-            that the dimensions agree.
-
-            .. SEEALSO::
-
-                :meth:`structure_graph()` for a definition/construction of the
-                structure graph of a Lie algebra.
             """
-            # This is not quite sufficient...
+            # This is not sufficient...
             return self.dimension() == g.dimension() \
                 and self.structure_graph().is_isomorphic(g.structure_graph(), edge_labels=True)
 
@@ -325,28 +309,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return ZZ(len(self.basis()))
 
-        def _dense_free_module(self, base_ring=None):
-            """
-            Return ``self`` as a free module (i.e. forgetting the Lie
-            bracket structure).
-
-            EXAMPLES::
-
-                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
-                sage: L._dense_free_module()
-                Vector space of dimension 2 over Rational Field
-            """
-            if base_ring is None:
-                base_ring = self.base_ring()
-            from sage.modules.free_module import FreeModule
-            return FreeModule(base_ring, self.dimension())
-
     class ElementMethods:
         def to_vector(self):
             """
-            Return ``self`` as a dense vector.
+            Return ``self`` as a vector.
             """
-            M = self.parent()._dense_free_module()
+            M = self.parent().vector_space()
             if not self:
                 return M.zero()
             gd = self.parent().gens_dict()

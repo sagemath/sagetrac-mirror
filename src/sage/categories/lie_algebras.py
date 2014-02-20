@@ -126,11 +126,11 @@ class LieAlgebras(Category_over_base_ring):
         return Example(self.base_ring(), gens)
 
     WithBasis = LazyImport('sage.categories.lie_algebras_with_basis',
-                           'LieAlgebrasWithBasis')
+                           'LieAlgebrasWithBasis', as_name='WithBasis')
 
     class FiniteDimensional(CategoryWithAxiom_over_base_ring):
         WithBasis = LazyImport('sage.categories.finite_dimensional_lie_algebras_with_basis',
-                               'FiniteDimensionalLieAlgebrasWithBasis')
+                               'FiniteDimensionalLieAlgebrasWithBasis', as_name='WithBasis')
 
         def extra_super_categories(self):
             """
@@ -189,11 +189,17 @@ class LieAlgebras(Category_over_base_ring):
                 Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             """
 
+        @abstract_method
+        def vector_space(self):
+            """
+            Return ``self`` as a vector space.
+            """
+
         @lazy_attribute
         def lift(self):
             """
-            Construct the lift map from ``self`` to the universal enveloping
-            algebra.
+            Construct the lift morphism from ``self`` to the universal
+            enveloping algebra of ``self``.
             """
             return LiftMorphism(self, self._construct_UEA())
 
@@ -227,7 +233,7 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self.quotient(I)
 
-        def product_space(self, Y, ambient=None):
+        def product_space(self, Y, ambient=None): # TODO: move to Lie subalgebra
             """
             Return the product space ``[self, Y]`` in ``ambient``.
 
@@ -381,7 +387,6 @@ class LieAlgebras(Category_over_base_ring):
             EXAMPLES::
             """
 
-        @abstract_method
         def lift(self):
             """
             Lift ``self`` into an element of the universal enveloping algebra.
@@ -392,6 +397,7 @@ class LieAlgebras(Category_over_base_ring):
                 sage: x.lift()
                 x
             """
+            return self.parent().lift(self)
 
         def killing_form(self, x):
             """
@@ -415,4 +421,10 @@ class LiftMorphism(Morphism):
         Lift ``x`` to the universal enveloping algebra.
         """
         return x.lift()
+
+    def section(self):
+        """
+        Return the section map of ``self``.
+        """
+        raise NotImplementedError
 

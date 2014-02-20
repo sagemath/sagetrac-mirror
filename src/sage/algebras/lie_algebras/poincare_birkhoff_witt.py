@@ -40,7 +40,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         if basis_indices is None:
             basis_indices = g.basis().keys()
-        elif len(basis_indices) != len(g.basis()):
+        elif basis_indices.cardinality() != g.basis().cardinality():
             raise ValueError("the number of basis indices does not"
                              " match the number of basis elements")
         return super(PoincareBirkhoffWittBasis, cls).__classcall__(cls,
@@ -59,9 +59,10 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
         monoid_cmp = lambda x,y: basis_cmp(x[0],y[0])
         self._basis_cmp = basis_cmp
-        basis = IndexedFreeAbelianMonoid(basis_indices, prefix,
-                                         monomial_cmp=monoid_cmp, **kwds)
-        self._basis_map = {x: basis.gen(basis_indices[i]) for i,x in enumerate(g.basis().keys())}
+        monomials = IndexedFreeAbelianMonoid(basis_indices, prefix,
+                                             monomial_cmp=monoid_cmp, **kwds)
+        self._basis_map = {x: monomials.gen(basis_indices[i])
+                           for i,x in enumerate(g.basis().keys())}
         self._basis_map_inv = {basis_indices[i]: x for i,x in enumerate(g.basis())}
 
         CombinatorialFreeModule.__init__(self, R, basis,
@@ -69,15 +70,23 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
                                          category=AlgebrasWithBasis(R))
 
         # Default lifting coercion
-        basis_function = lambda x: self.monomial(self._basis_map[x])
-        g.module_morphism(basis_function, codomain=self,
-                          triangular='upper', unitriangular=True).register_as_coercion()
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
         """
         return "Poincare-Birkhoff-Witt basis corresponding to {}".format(self._g)
+
+    def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coercion map from ``R`` to ``self``.
+        """
+        if R == self._g:
+            basis_function = lambda x: self.monomial(self._basis_map[x])
+            # TODO: this diagonal, but with a smaller indexing set...
+            return g.module_morphism(basis_function, codomain=self,
+                                     triangular='upper', unitriangular=True)
+        return super(PoincareBirkhoffWittBasis, self)._coerce_map_from_(R)
 
     def lie_algebra(self):
         """

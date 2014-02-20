@@ -251,9 +251,9 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         """
         d = {}
         for i in self.index_set():
-            d['e%s'%i] = self._e[i]
-            d['f%s'%i] = self._f[i]
-            d['h%s'%i] = self._h[i]
+            d['e{}'.format(i)] = self._e[i]
+            d['f{}'.format(i)] = self._f[i]
+            d['h{}'.format(i)] = self._h[i]
         return Family(d)
 
     def affine(self, kac_moody=False):

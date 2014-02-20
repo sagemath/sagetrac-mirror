@@ -23,7 +23,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
-from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
+from sage.algebras.lie_algebras.ideal import LieAlgebraIdealFinitelyPresented
 from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra, QuotientLieAlgebraElement
 
 class FinitelyPresentedLieAlgebra(QuotientLieAlgebra):
@@ -45,15 +45,17 @@ class FinitelyPresentedLieAlgebra(QuotientLieAlgebra):
        Mathematics and Theoretical Computer Science. **1** (1997). 217-228.
        http://www.emis.de/journals/DMTCS/volumes/abstracts/pdfpapers/dm010113.pdf
     """
-    def __init__(self, F, relations, names=None, category=None):
+    def __init__(self, F, relations, names=None, index_set=None, category=None):
         """
         Initialize ``self``.
         """
         self._rels = relations
-        I = LieAlgebraIdeal(F, relations, False)
+        I = LieAlgebraIdealFinitelyPresented(F, relations, False)
         if names is None:
             names = F.variable_names()
-        QuotientLieAlgebra.__init__(self, F, I, names, category)
+        if index_set is None:
+            index_set = tuple(names)
+        QuotientLieAlgebra.__init__(self, F, I, names, index_set, category)
 
     def relations(self):
         """
