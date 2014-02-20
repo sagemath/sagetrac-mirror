@@ -50,14 +50,15 @@ database engine.
 .. toctree::
    :maxdepth: 1
 
+   sage/databases/conway
    sage/databases/cremona
-   sage/databases/stein_watkins
+   sage/databases/cunningham
    sage/databases/jones
    sage/databases/lincodes
    sage/databases/oeis
    sage/databases/sloane
-   sage/databases/conway
    sage/databases/odlyzko
+   sage/databases/stein_watkins
    sage/databases/symbolic_data
 
 .. include:: ../footer.txt
