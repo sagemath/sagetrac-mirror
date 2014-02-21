@@ -479,14 +479,14 @@ $(INST)/sage: \
 		touch $@; \
 	fi
 
-$(INST)/csage: $(INST)/$(SCONS) \
+$(INST)/csage: $(SAGE_SRC)/c_lib/configure \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
-		$(PIPE) 'time scons -Q install 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
+		$(PIPE) 'time { ./configure && $(MAKE) install;} 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

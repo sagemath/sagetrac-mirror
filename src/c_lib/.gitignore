@@ -1,4 +1,23 @@
-*.os
+*.o
+*.lo
+*.la
 *.so
 *.dylib
+
+/aclocal.m4
+/config.h.in
+/configure
+/config.h
+/config.log
+/config.status
+/src/.deps/
+/src/.libs/
+/stamp-h1
+/libtool
+/ltmain.sh
+Makefile
+Makefile.in
+
+# for old scons artifacts
+*.os
 .sconsign.dblite
