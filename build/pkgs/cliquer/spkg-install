@@ -51,11 +51,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+set -e
+
 $MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Failed to compile cliquer"
-    exit 1
-fi
 
 rm -rf "$SAGE_LOCAL/include/cliquer/"
 mkdir "$SAGE_LOCAL/include/cliquer/"
