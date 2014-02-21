@@ -1045,7 +1045,7 @@ class ContinuedFraction_periodic(ContinuedFraction_generic):
         Return the value of ``self`` as a quadratic number (with square free
         discriminant).
 
-        EXAMPLES::
+        EXAMPLES:
 
             Some purely periodic examples::
 
