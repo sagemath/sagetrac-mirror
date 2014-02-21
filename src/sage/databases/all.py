@@ -52,11 +52,11 @@ from conway import ConwayPolynomials
 
 from cremona import CremonaDatabase
 
+from cunningham_tables import CunninghamDatabase
+
 from jones import JonesDatabase
 
 from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
-
-from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
@@ -84,4 +84,4 @@ from db_class_polynomials import \
 
 from symbolic_data import SymbolicData
 
-from cunningham_tables import cunningham_prime_factors
+from install import database_install

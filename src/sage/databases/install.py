@@ -1,94 +1,65 @@
 """
-This file gathers together all the standard tables and databases in Sage.
+Automated database installation.
 
-    * ConwayPolynomials() -- database of selected Conway polynomials.
-
-    * CremonaDatabase() - Cremona's tables of elliptic curves and related data.
-
-    * CunninghamDatabase() -- Prime factors of numbers of the form `b^k \pm 1` for
-      `b` in `\{2,3,5,6,7,10,11,12\}`.
-
-    * JonesDatabase() -- returns the John Jones table of number fields
-      with bounded ramification and degree <= 6.
-
-    * oeis -- The On-Line Encyclopedia of Integer Sequences (http://oeis.org/).
-
-    * SloaneEncyclopedia -- Local copy of Sloane On-Line Encyclopedia of
-      Integer Sequences.
-
-    * SteinWatkinsAllData() and SteinWatkinsPrimeData() - The
-      Stein-Watkins tables of elliptic curves and related data.
-
-    * SymbolicData() -- many benchmark and testing ideals
-
-EXAMPLES::
-
-    sage: ConwayPolynomials()
-    Frank Luebeck's database of Conway polynomials
-
-    sage: CremonaDatabase()
-    Cremona's database of elliptic curves with conductor...
-
-    sage: CunninghamDatabase()
-    Database of factors of numbers of the form b^k + 1 and b^k - 1
-    for b in 2,3,5,6,7,10,11,12
-
-    sage: JonesDatabase()
-    John Jones's table of number fields with bounded ramification and degree <= 6
-
-    sage: oeis
-    The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
-
-    sage: SymbolicData()
-    SymbolicData with ... ideals
+This file defines a command "database_install":
+           -- takes name of db as argument
+           -- if db sitting in SAGE_ROOT, installs it
+           -- if not, downloads it with wget from modular
+               and installs it.
 """
 
-#*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+
+from sage.misc.misc import SAGE_SHARE
+
+class GenericDatabaseInstaller:
+    def __init__(self, name):
+        self._name = name
+
+    def __repr__(self):
+        return "Database installer for database %s"%self._name
+
+    def name(self):
+        return self._name
+
+    def directory(self):
+        """
+        Returns the directory that contains this database.
+        """
+        return "%s/%s"%(SAGE_SHARE, self._name)
+
+    def archive_filename(self):
+        """
+        Returns the filename of the database archive.
+        """
+        return 'db-%s.tar'%self._name
+
+    def get_archive_file(self):
+        """
+        Makes sure that the archive file is in the SAGE_ROOT
+        directory.
+        """
+        filename = self.archive_filename()
+
+    def install(self):
+        F = self.archive_filename()
+        raise NotImplementedError
 
 
-from sql_db import SQLQuery, SQLDatabase
 
-from conway import ConwayPolynomials
+def database_install(name):
+    """
+    Install the database name.
 
-from cremona import CremonaDatabase
+    INPUT:
+        name -- string
+    OUTPUT:
+        installs the database so it is available to Sage.
+        (You may have to restart Sage.)
+    """
+    i = name.find('.')
+    if i != -1:
+        name = name[:i]
+        print("Truncating database name to '%s'"%name)
+    D = GenericDatabaseInstaller(name)
+    D.install()
 
-from jones import JonesDatabase
-
-from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
-
-from install import database_install
-
-from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.databases.oeis', 'oeis')
-
-from symbolic_data import SymbolicData
-
-# commented out, since it's broken -- nobody updated the parser
-# for the new format; nobody complained it didn't work, so it
-# can't be that important.
-#from lincodes import linear_code_bound
-
-from odlyzko import zeta_zeros
-
-from db_modular_polynomials import \
-     ClassicalModularPolynomialDatabase, \
-     DedekindEtaModularPolynomialDatabase, \
-     DedekindEtaModularCorrespondenceDatabase, \
-     AtkinModularPolynomialDatabase, \
-     AtkinModularCorrespondenceDatabase
-
-from db_class_polynomials import \
-     HilbertClassPolynomialDatabase
-
-from symbolic_data import SymbolicData
-
-from cunningham_tables import CunninghamDatabase
