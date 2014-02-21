@@ -81,7 +81,7 @@ def random_odd_arithgroup(index,nu3_max=None):
         sage: G.is_odd()
         True
     """
-    assert index%4 == 0
+    assert index % 4 == 0
     G = random_even_arithgroup(index//2,nu2_max=0,nu3_max=nu3_max)
     return G.one_odd_subgroup(random=True)
 
@@ -107,7 +107,7 @@ class Test:
         self.congroups = []
         i = 1
         self.odd_probability = odd_probability
-        if index%4:
+        if index % 4:
             self.odd_probability=0
         while Gamma(i).index() < index_max:
             self.congroups.append(Gamma(i))
@@ -228,7 +228,7 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test().test_relabel() # random
         """
-        if prandom.uniform(0,1) < self.odd_probability:
+        if prandom.uniform(0, 1) < self.odd_probability:
             G = random_odd_arithgroup(self.index)
         else:
             G = random_even_arithgroup(self.index)
@@ -323,7 +323,7 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test(index=20).test_cong_closure() # long time
         """
-        if prandom.uniform(0,1) < self.odd_probability:
+        if prandom.uniform(0, 1) < self.odd_probability:
             G = random_odd_arithgroup(self.index)
         else:
             G = random_even_arithgroup(self.index)
@@ -334,7 +334,7 @@ class Test:
 
         iscong = (G == Gc)
         if not iscong == G.is_congruence():
-            raise AssertionError("Hsu congruence test failed for group %s")
+            raise AssertionError("Hsu congruence test failed for group %s" % G)
 
     def test_contains(self):
         r"""
@@ -346,7 +346,7 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test().test_contains() #random
         """
-        if prandom.uniform(0,1) < self.odd_probability:
+        if prandom.uniform(0, 1) < self.odd_probability:
             G = random_odd_arithgroup(self.index)
         else:
             G = random_even_arithgroup(self.index)
@@ -354,7 +354,7 @@ class Test:
         for _ in xrange(20):
             g = G.random_element()
             if G.random_element() not in G:
-                raise AssertionError, "%s not in %s" %(g,G)
+                raise AssertionError("%s not in %s" % (g, G))
 
     def test_spanning_trees(self):
         r"""
