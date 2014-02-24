@@ -55,6 +55,8 @@ class LieSubalgebra(LieAlgebra):
         self._gens = gens
         if category is None:
             category = ambient.category()
+        if names is None and index_set is None:
+            index_set = range(len(gens))
         LieAlgebra.__init__(self, ambient.base_ring(), names, index_set, category)
 
     def _repr_(self):

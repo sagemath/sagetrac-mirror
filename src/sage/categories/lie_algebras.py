@@ -214,10 +214,12 @@ class LieAlgebras(Category_over_base_ring):
             """
             Return an ideal of ``self``.
             """
-            from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
+            # TODO: Change this to just parse arguments for ideals
+            #    (probably higher up in code which has ideals as a separate _parse_ideal_args method)
+            from sage.algebras.lie_algebras.ideal import LieAlgebraIdealFinitelyPresented
             if len(args) > 0 and isinstance(args[0], (list,tuple)):
                 args = args[0]
-            return LieAlgebraIdeal(self, args, **kwds)
+            return LieAlgebraIdealFinitelyPresented(self, tuple(args), **kwds)
 
         def quotient(self, I):
             """

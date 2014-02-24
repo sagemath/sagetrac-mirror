@@ -40,8 +40,8 @@ class FinitelyPresentedLieAlgebra(QuotientLieAlgebra):
 
     REFERENCES:
 
-    .. [GK] *An algorithm for analysis of the structure of finitely presented
-       Lie algebras*. Vladimir Gerdt and Vladimir Kornyak. Discrete
+    .. [GK97] *An algorithm for analysis of the structure of finitely
+       presented Lie algebras*. Vladimir Gerdt and Vladimir Kornyak. Discrete
        Mathematics and Theoretical Computer Science. **1** (1997). 217-228.
        http://www.emis.de/journals/DMTCS/volumes/abstracts/pdfpapers/dm010113.pdf
     """

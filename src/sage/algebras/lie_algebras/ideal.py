@@ -26,11 +26,13 @@ from sage.structure.parent import Parent
 from sage.structure.element import MonoidElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
+from sage.rings.infinity import infinity
 from sage.categories.monoids import Monoids
 from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
 from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
+from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
 from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 
 class LieIdealMonoid(Parent, UniqueRepresentation):
@@ -136,7 +138,7 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
             gens = (lie_algebra.zero_element(),)
         else:
             # Make sure the leading term has a coefficient of 1 (?)
-            gens = tuple(map(lambda x: x/x.leading_coefficient(), gens))
+            gens = tuple(map(lambda x: x/x.leading_coefficient(term_cmp), gens))
         LieSubalgebra.__init__(self, lie_algebra, gens)
         #MonoidElement.__init__(self, LieIdealMonoid(lie_algebra))
 
@@ -150,7 +152,7 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
         """
         Short representation for the list of generators.
 
-        EXAMPLES::
+        EXAMPLES:
 
         If the string representation of a generator contains a line break,
         the generators are not represented from left to right but from
@@ -165,110 +167,263 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
                 s = s.replace('\n','\n  ')
             L.append(s)
         if has_return:
-            return '\n(\n  %s\n)\n'%(',\n\n  '.join(L))
-        return '(%s)'%(', '.join(L))
+            return '\n(\n  {}\n)\n',format(',\n\n  '.join(L))
+        return '({})'.format(', '.join(L))
 
 class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
     """
     An ideal of a finitely presented Lie algebra.
     """
-    @cached_method
-    def groebner_basis(self):
+    def __init__(self, lie_algebra, gens, coerce=True):
+        """
+        Initialize ``self``.
+        """
+        LieAlgebraIdeal.__init__(self, lie_algebra, gens, coerce=True)
+        gb = self._inner_reduce(self._gens)
+        self._gb = set(gb)
+        gb = list(gb)
+        self._gb_todo = set([(g,h) for i,g in enumerate(gb) for h in gb[i+1:]])
+
+    def groebner_basis(self, max_size=infinity):
         """
         Return a Groebner-Shirshov basis for ``self``.
         """
+        zero = self._ambient.zero()
+        while len(self._gb_todo) != 0 and len(self._gb) < max_size:
+            p = self._gb_todo.pop()
+            for c in self._useful_compositions(p[0], p[1]):
+                g = self._normal_from(self, self._gb)
+                if g == zero: # Completely reduced, nothing to do
+                    continue
+
+                # Normalize and add more things to check
+                g /= g.leading_coefficient(term_cmp)
+                for f in M:
+                    D.add((f, g))
+
+                M, orig_to_red = self._inner_reduce_with_map(self._basis + [g])
+                D = set()
+                for k in orig_to_red:
+                    # Filter out the entries (f, k)
+                    for d in D:
+                        if d[1] != k:
+                            D.add(d)
+                    # Add new entries as needed
+                    val = orig_to_red[k]
+                    if val is not None:
+                        for f in M:
+                            D.add((f, val))
+                self._gb_todo = D
+        if len(self._gb_todo) != 0:
+            print("WARNING: only a partial Groebner basis has been computed,"
+                  " the result may not be completely reduced")
+        return tuple(self._gb)
+
+    def is_groebner_basis(self, G):
+        """
+        Return if ``G`` is a Groebner basis.
+        """
         # Currently we just test that we are a Groebner basis
         zero = self._ambient.zero()
-        for x in self._gens:
-            for y in self._gens:
-                b = self.reduce(x.bracket(y))
+        for g in G:
+            for h in G:
+                b = self._normal_form(g.bracket(h), G) # This should be a composition
                 if b != zero: # It is not a Groebner basis
-                    print x
-                    print y
                     return False
         return True
 
-    def reduce(self, x):
+    def _inner_reduce(self, G):
+        """
+        Return a self-reduced generating set ``M`` from a (finite)
+        generating set ``G``.
+        """
+        reduced = False
+        zero = self._ambient.zero()
+        while not reduced:
+            M = set()
+            reduced = False
+            for i,g in enumerate(G):
+                red = self._normal_form(g, G[:i] + G[i+1:])
+                red /= red.leading_coefficient(term_cmp)
+                if red != g:
+                    reduced = True
+                if red != zero:
+                    M.add(red)
+            G = list(M)
+        return G
+
+    def _inner_reduce_with_map(self, G):
+        """
+        Return a self-reduced generating set from a (finite)
+        generating set ``G`` along with a map from the original element to the
+        final reduced element.
+        """
+        reduced = False
+        zero = self._ambient.zero()
+        MG = list(G)
+        ret_map = {g:g for g in G}
+        while not reduced:
+            M = set()
+            for i,g in enumerate(MG):
+                red = self._normal_form(g, MG[:i] + MG[i+1:])
+                red /= red.leading_coefficient(term_cmp)
+                if red != g:
+                    reduced = True
+                    ret_map[red] = ret_map[g]
+                    del ret_map[g]
+                if red != zero:
+                    M.add(red)
+            MG = list(M)
+
+        # Add in all the generators which were completely reduced
+        ret_map = {v:k for k,v in ret_map.items()}
+        for g in G:
+            if g not in ret_map:
+                ret_map[g] = None
+        return G, ret_map
+
+    def _useful_compositions(self, l, r):
+        """
+        Return all useful compositions of ``l`` and ``r`` with respect
+        to the currently Groebner basis of ``self``.
+        """
+        lm,lc = l.leading_item(term_cmp)
+        rm,rc = l.leading_item(term_cmp)
+        lw = lm.to_word()
+        rw = lm.to_word()
+
+        L = self._ambient
+        std = L._standard_bracket
+        for i in range(min(len(lw), len(rw))):
+            # Determine if there is an overlapping factor of ``lw`` and ``rw``.
+            # In other words, can we write ``lw = ab`` and ``rw = bc`` for ``b`` non-empty?
+            if lw[-i:] != rw[:i]:
+                continue
+
+            lhs = lw[:-i]
+            #mid = lw[-i:]
+            rhs = rw[i:]
+
+            h = std(lw + rhs)
+            app_l = self._appliance(lm, h)
+            app_r = self._appliance(rm, h)
+
+            lhs = l
+            for key,side in app_l:
+                if side: # Left
+                    lhs = lhs.bracket(L.monomial(key))
+                else:
+                    lhs = L.monomial(key).bracket(lhs)
+            lhs = r
+            for key,side in app_r:
+                if side: # Left
+                    rhs = rhs.bracket(L.monomial(key))
+                else:
+                    rhs = L.monomial(key).bracket(rhs)
+
+            yield lhs - rhs
+
+    def reduce(self, x, max_size=infinity):
         """
         Return ``x`` modulo ``self``.
         """
-        ret = x
-        reducing = True
-        zero = self._ambient.zero()
+        return self._normal_form(x, self.groebner_basis(max_size))
 
-        while reducing:
-            reducing = False
-            for g in self._gens:
-                if ret == zero:
-                    return ret
-                cur = self._appliance(g, ret)
-                if cur is None:
+    def _normal_form(self, x, G):
+        """
+        Return the normal form of ``x`` modulo ``G``.
+        """
+        L = self._ambient
+        zero = L.zero()
+        cur = x
+        ret = zero
+
+        # TODO: this could be improved by sorting the generators by their
+        #   leading monomials and using the descending chain condition
+        while cur != zero:
+            was_reduced = False
+            for g in G:
+                gm = g.leading_support(term_cmp)
+                hm, hc = cur.leading_item(term_cmp)
+
+                app = self._appliance(gm, hm)
+                if app is None:
                     continue
-                reducing = True
-                ret -= cur
-                print "ret:", ret
+
+                for key,side in app:
+                    if side: # Left
+                        g = g.bracket(L.monomial(key))
+                    else:
+                        g = L.monomial(key).bracket(g)
+                g = g * hc / g.leading_coefficient(term_cmp)
+
+                cur -= g
+                was_reduced = True
+                break
+
+            if not was_reduced:
+                ret += cur.leading_term(term_cmp)
+                cur -= cur.leading_term(term_cmp)
         return ret
 
-    def _appliance(self, g, x):
+    def _appliance(self, gm, hm):
         """
-        Return the applicance which applied to ``cur`` from the associated
-        ``split`` has a leading term of ``xm``.
+        Return the output of an applicance, which when applied to ``gm`` has a
+        leading term equal to the leading term of ``hm``. If no such
+        applicance exists, then return ``None``.
         """
-        gm, gc = g.leading_item(term_cmp)
-        xm, xc = x.leading_item(term_cmp)
+        # Trivial case of the leading monomials are equal
+        if gm == hm:
+            return []
 
-        # Check to see if gm exists as a subword of xm
-        l_factor = None
-        xw = xm.to_word()
+        # Trivial case where hm is a single letter
+        if isinstance(hm, LieGenerator) and gm != hm:
+            return None
+
+        # Check to see if gm exists as a subword of hm
         gw = gm.to_word()
-        l_gw = len(gw)
-        for i in range(len(xw) - l_gw + 1):
-            if all(xw[i+j] == gw[j] for j in range(l_gw)):
-                l_factor,r_factor = xw[:i], xw[i+l_gw:]
-                break
-        if l_factor is None: # It does not exist as a subword
+        hw = hm.to_word()
+        if not is_subword(gw, hw): # It does not exist as a subword
             return None
 
         #print "\nCurrent:", x
         #print "Reducing {} by {}".format(xm, g)
 
         L = self._ambient
-        cur = gc**-1 * g
-        one = L.base_ring().one()
-        std = lambda x: L.element_class(L, {L._standard_bracket(x): one})
 
-        # Go through all Lyndon factorizations of the left factors
-        for l_comp in Compositions(len(l_factor)):
-            l_fact = lyndon_factorization(l_factor, l_comp)
-            if l_fact is None:
+        # app is the appliance as pairs (key, side)
+        # the side is True for left, False for right
+        app = []
+        cur = hm
+        while cur is not None:
+            a = cur[0].to_word()
+            b = cur[1].to_word()
+
+            if gw == a:
+                app.append((cur[1], False))
+                break
+            if gw == b:
+                app.append((cur[0], True))
+                break
+
+            if is_subword(gw, a):
+                cur = cur[0]
+                app.append((cur[1], False))
                 continue
-            l_fact = map(std, reversed(l_fact)) # Need to apply these in reversed order
 
-            # Go through all Lyndon factorizations of the right factors
-            for r_comp in Compositions(len(r_factor)):
-                r_fact = lyndon_factorization(r_factor, r_comp)
-                if r_fact is None:
-                    continue
-                r_fact = map(std, r_fact)
+            if is_subword(gw, b):
+                cur = cur[1]
+                app.append((cur[0], True))
+                continue
 
-                # Loop through all left/right bracketing patterns
-                for p in Permutations([0]*len(l_fact) + [1]*len(r_fact)):
-                    il,ir = 0,0 # indexing counters
-                    temp = cur
-                    for i in p:
-                        if i == 0: # left side
-                            temp = L.bracket(l_fact[il], temp)
-                            il += 1
-                        else: # i == 1: right side
-                            temp = L.bracket(temp, r_fact[ir])
-                            ir += 1
-                    #print "temp:", temp
-                    #print "leading support:", temp.leading_support(term_cmp)
+            rf = cur.to_word()
+            lyn_fact = lyndon_factorization(rf)
+            brackets = reversed(map(L._standard_bracket, lyn_fact))
+            app.extend([(x, False) for x in brackets])
 
-                    # If the leading term is xm, we have found an appliance
-                    if temp.leading_support(term_cmp) == xm:
-                        return xc / temp.leading_coefficient(term_cmp) * temp
-        assert False, "could not find an appliance for {}".format(xm)
+            cur = None # This breaks us out of the loop
+
+        return reversed(app)
 
 LieIdealMonoid.Element = LieAlgebraIdeal
 
@@ -308,7 +463,42 @@ def term_cmp(x, y):
         return -1
     return cmp(wy, wx)
 
-def lyndon_factorization(w, c):
+def is_subword(u, v):
+    """
+    Helper function to see if ``v`` can be written as ``lur``.
+    """
+    lu = len(u)
+    for i in range(len(v) - lu + 1):
+        if all(v[i+j] == val for j,val in enumerate(u)):
+            return True
+    return False
+
+def lyndon_factorization(w):
+    """
+    Return the Lyndon factorization of ``w``.
+    """
+    # We compute the indexes of the factorization.
+    n = len(w)
+    k = -1
+    F = [0]
+    while k < n-1:
+        i = k+1
+        j = k+2
+        while j < n:
+            if w[i] < w[j]:
+                i = k+1
+                j += 1
+            elif w[i] == w[j]:
+                i += 1
+                j += 1
+            else:
+                break
+        while k < i:
+            F.append(k + j - i + 1)
+            k = k + j - i
+    return [w[F[i]:F[i+1]] for i in range(len(F)-1)]
+
+def lyndon_factorization_old(w, c):
     """
     Return the Lyndon factorization of ``w`` given by the composition ``c``
     of ``len(w)`` or ``None`` if it does not give a Lyndon factorization.

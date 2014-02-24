@@ -334,7 +334,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
             return '0'
         return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
 
-    def __mul__(self, y):
+    def _mul_(self, y):
         """
         If we are multiplying two non-zero elements, automatically
         lift up to the universal enveloping algebra.

@@ -447,8 +447,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         # Lie algebras in the same variable over any base that coerces in:
         if not isinstance(R, LieAlgebra):
-            if self.base_vector_space() is not NotImplemented:
-                return self.base_vector_space().has_coerce_map_from(R)
+            if self.free_module() is not NotImplemented:
+                return self.free_module().has_coerce_map_from(R)
             return False
 
         if R.variable_names() != self.variable_names():
@@ -535,6 +535,16 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         Return the monomial indexed by ``i``.
         """
         return self.element_class(self, {i: self.base_ring().one()})
+
+    def term(self, i, c=None):
+        """
+        Return the term indexed by ``i`` with coefficient ``c``.
+        """
+        if c is None:
+            c = self.base_ring().one()
+        else:
+            c = self.base_ring()(c)
+        return self.element_class(self, {i: c})
 
     def lie_algebra_generators(self):
         """

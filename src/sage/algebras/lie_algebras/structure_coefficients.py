@@ -254,6 +254,7 @@ class LieAlgebraIdealWithStructureCoefficients(LieAlgebraIdeal,
         return self._ambient(vec)
 
 # This should either not inherit from QuotientLieAlgebra or refactor out common code
+# This should inherit from LieAlgebraWithStructureCoefficients
 class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
     """
     A quotient Lie algebra of a Lie algebra given by structure coefficients.

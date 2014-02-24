@@ -114,7 +114,7 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     - ``names`` -- a list of generator names
     """
-    def __init__(self, lie, I, names, index_set, category=None):
+    def __init__(self, lie, I, names=None, index_set=None, category=None):
         r"""
         Create the quotient Lie algebra of `\mathfrak{g}` by the ideal `I`.
 

@@ -163,7 +163,12 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return ``self`` as a free module.
             """
             from sage.combinat.free_module import CombinatorialFreeModule
-            return CombinatorialFreeModule(self.base_ring(), self.basis().keys())
+            try:
+                # Try to see if it has an indexing set
+                return CombinatorialFreeModule(self.base_ring(), self.basis().keys())
+            except AttributeError:
+                # Otherwise just index by the basis of ``self`` as a fallback
+                return CombinatorialFreeModule(self.base_ring(), self.basis())
 
     class ElementMethods:
         def _bracket_(self, y):
