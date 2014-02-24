@@ -110,7 +110,7 @@ def weierstrass_p(E, prec=20, algorithm=None):
         sage: E.weierstrass_p(prec=4, algorithm='pari')
         Traceback (most recent call last):
         ...
-        ValueError: for computing the Weierstrass p-function via pari, the characteristic (%s) of the underlying field must be zero
+        ValueError: for computing the Weierstrass p-function via pari, the characteristic (11) of the underlying field must be zero
 
     TESTS::
 
@@ -133,7 +133,7 @@ def weierstrass_p(E, prec=20, algorithm=None):
 
     if algorithm == "pari":
         if p > 0:
-            raise ValueError("for computing the Weierstrass p-function via pari, the characteristic (%s) of the underlying field must be zero")
+            raise ValueError("for computing the Weierstrass p-function via pari, the characteristic (%s) of the underlying field must be zero"%p)
         return compute_wp_pari(E, prec)
 
     # quadratic and fast algorithms require short Weierstrass model
