@@ -616,6 +616,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         """
         return self.domain().cartan_type().classical()
 
+    @cached_method
     def simple_reflections(self):
         """
         EXAMPLES::
