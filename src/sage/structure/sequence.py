@@ -1,5 +1,5 @@
 r"""
-Sequences
+Finite Sequences
 
 A mutable sequence of elements with a common guaranteed category,
 which can be set immutable.
@@ -14,7 +14,7 @@ canonical parent at the end.  (Note that canonical coercion is very
 restrictive.)  The sequence then has a function ``universe()``
 which returns either the common canonical parent (if the coercion
 succeeded), or the category of all objects (Objects()).  So if you
-have a list `v` and type
+have a list `v` and type::
 
     sage: v = [1, 2/3, 5]
     sage: w = Sequence(v)
@@ -30,7 +30,7 @@ elements of `w` are rationals::
     Rational Field
 
 If you do assignment to `w` this property of being rationals is guaranteed
-to be preserved.
+to be preserved::
 
     sage: w[0] = 2
     sage: w[0].parent()
@@ -552,7 +552,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
     def append(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
             sage: v = Sequence([1,2,3,4], immutable=True)
             sage: v.append(34)
             Traceback (most recent call last):
@@ -629,7 +629,13 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         """
         Sort this list *IN PLACE*.
 
-        cmp(x, y) -> -1, 0, 1
+        INPUT:
+
+        - ``cmp`` - see Python ``list sort``
+        
+        - ``key`` - see Python ``list sort``
+        
+        - ``reverse`` - see Python ``list sort``
 
         EXAMPLES::
 
