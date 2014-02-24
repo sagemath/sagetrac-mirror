@@ -146,10 +146,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         sage: v.universe()
         Rational Field
         sage: v.parent()
-        Category of sequences in Rational Field
-        sage: v.parent()([3,4/3])
-        [3, 4/3]
-
+        <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     Note that assignment coerces if possible,::
 
@@ -214,12 +211,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     in the given universe.::
 
         sage: w.category()
-        Category of sequences in Rational Field
-
-    This is also the parent of any sequence::
-
-        sage: w.parent()
-        Category of sequences in Rational Field
+        <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     The default universe for any sequence, if no compatible parent structure
     can be found, is the universe of all Sage objects.
@@ -231,10 +223,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         [1, 2, 1, 3]
         sage: v.universe()
         Finite Field of size 5
-        sage: v.parent()
-        Category of sequences in Finite Field of size 5
-        sage: v.parent()([7,8,9])
-        [2, 3, 4]
     """
     from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -357,11 +345,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         [1, 2, 1]
         sage: v.universe()
         Rational Field
-        sage: v.parent()
-        Category of sequences in Rational Field
-        sage: v.parent()([3,4/3])
-        [3, 4/3]
-
 
     Note that assignment coerces if possible,
 
@@ -428,19 +411,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         sage: w
         [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    Sequences themselves live in a category, the category of all sequences
-    in the given universe.
-
-    ::
-
-        sage: w.category()
-        Category of sequences in Rational Field
-
-    This is also the parent of any sequence::
-
-        sage: w.parent()
-        Category of sequences in Rational Field
-
     The default universe for any sequence, if no compatible parent structure
     can be found, is the universe of all Sage objects.
 
@@ -453,11 +423,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         [1, 2, 1, 3]
         sage: v.universe()
         Finite Field of size 5
-        sage: v.parent()
-        Category of sequences in Finite Field of size 5
-        sage: v.parent()([7,8,9])
-        [2, 3, 4]
-
 
     """
     def __init__(self, x, universe=None, check=True, immutable=False,
@@ -762,10 +727,10 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         EXAMPLES::
 
             sage: Sequence([1,2/3,-2/5]).category()
-            Category of sequences in Rational Field
+            <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
         """
         import sage.categories.all
-        return sage.categories.all.Sequences(self.universe())
+        return sage.categories.finite_enumerated_sets.FiniteEnumeratedSets
 
     def parent(self):
         """
@@ -773,7 +738,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         EXAMPLES::
 
             sage: Sequence([1,2/3,-2/5]).parent()
-            Category of sequences in Rational Field
+            <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
         """
         return self.category()
 
