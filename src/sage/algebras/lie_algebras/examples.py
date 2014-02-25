@@ -7,6 +7,8 @@ There are the following examples of Lie algebras:
 - All 3-dimensional Lie algebras
 - The Lie algebra of affine transformations of the line
 - All abelian Lie algebras
+- The Lie algebra of upper triangular matrices
+- The Lie algebra of strictly upper triangular matrices
 
 AUTHORS:
 
@@ -104,7 +106,7 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         names = names.split(',')
     names = tuple(names)
     if n == 0:
-        from sage.algebras.lie_algebras.lie_algebra import AbelianLieAlgebra
+        from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
         return AbelianLieAlgebra(R, names)
     if n == 1:
         L = three_dimensional(R, 0, 1, 0, 0, names) # Strictly upper triangular matrices
@@ -167,7 +169,7 @@ def abelian(R, names):
     """
     if isinstance(names, str):
         names = names.split(',')
-    from sage.algebras.lie_algebras.lie_algebra import AbelianLieAlgebra
+    from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
     return AbelianLieAlgebra(R, tuple(names))
 
 def Heisenberg(R, n, representation="structure"):
