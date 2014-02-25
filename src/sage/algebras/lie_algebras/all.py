@@ -18,6 +18,5 @@ Lie Algebras
 #*****************************************************************************
 
 from lie_algebra import LieAlgebra
-from kac_moody import KacMoodyAlgebra
 import examples as lie_algebras
 

@@ -27,13 +27,24 @@ EXAMPLES::
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.indexed_generators import IndexedGenerators
+from sage.misc.misc import repr_lincomb
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import RingElement
+from sage.categories.algebras import Algebras
+from sage.categories.lie_algebras import LieAlgebras
+
 from sage.algebras.algebra import Algebra
+from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra, LieAlgebraFromAssociative
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.categories.lie_algebras import LieAlgebras
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.arith import binomial
 from sage.sets.family import Family
 
 class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
@@ -655,65 +666,262 @@ class su(ClassicalMatrixLieAlgebra):
         i = self.index_set().index(i)
         return h[i,i] - h[i+1,i+1]
 
-class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
+
+#######################################
+## Chevalley Basis
+
+# TODO: inherit from LieAlgebraWithStructureCoefficients
+class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
-    Affine Lie algebra.
+    A simple Lie algebra in the Chevalley basis.
 
-    Given a finite dimensional simple Lie algebra `\mathfrak{g}` over `R`,
-    we construct an affine Lie algebra `\hat{\mathfrak{g}}` as
-
-    .. MATH::
-
-        \hat{\mathfrak{g}} = \left( \mathfrak{g} \otimes R[t, t^{-1}] \right)
-        \oplus R c
-
-    where `c` is the canonical central element and `R[t, t^{-1}]` is the
-    Laurent polynomial ring over `R`. We define the Lie bracket as
+    Let `L` be a simple complex Lie algebra with roots `\Phi`, then the
+    Chevalley basis is given by `e_{\alpha}` for all `\alpha \in \Phi` and
+    `h_{\alpha_i} := h_i` where `\alpha_i` is a simple root subject. These
+    generators are subject to the relations:
 
     .. MATH::
 
-        [a \otimes t^n + \alpha c, b \otimes t^m + \beta c] =
-        [a, b] \otimes t^{n+m} + \delta_{n+m,0} \langle a \mid b \rangle n c
+        \begin{aligned}
+        [h_i, h_j] & = 0
+        \\ [h_i, e_{\beta}] & = A_{\alpha_i, \beta} e_{\beta}
+        \\ [e_{\beta}, e_{-\beta}] & = \sum_i A_{\beta, \alpha_i} h_i
+        \\ [e_{\beta}, e_{\gamma}] & = \begin{cases}
+        N_{\beta,\gamma} e_{\beta + \gamma} & \beta + \gamma \in \Phi \\
+        0 & \text{otherwise.} \end{cases}
+        \end{aligned}
 
-    where `\langle a \mid b \rangle` is the Killing form on `\mathfrak{g}`.
+    where `A_{\alpha, \beta} = \frac{2 (\alpha, \beta)}{(\alpha, \alpha)}` and
+    `N_{\alpha, \beta}` is the maximum such that
+    `\alpha - N_{\alpha, \beta} \beta \in \Phi`.
 
-    We can also form the affine Kac--Moody algebra by adding the additional
-    generator `d` such that `[d, x] = \delta(x)` where `\delta` is the
-    Lie derivative.
+    For computing the signs of the coefficients, see Section 3 of [CMT]_.
+
+    REFERNCES:
+
+    .. [CMT] A. M. Cohen, S. H. Murray, D. E. Talyor. *Groups of Lie type*.
+       http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
     """
-    def __init__(self, g, kac_moody=False):
+    @staticmethod
+    def __classcall_private__(cls, R, cartan_type):
         """
-        Initalize ``self``.
+        Normalize ``self`` to ensure a unique represntation.
+
+        TESTS::
+
+            sage: L1 = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L2 = LieAlgebra(QQ, CartanType(['A', 2]))
+            sage: L3 = LieAlgebra(QQ, cartan_type=CartanMatrix(['A', 2]))
+            sage: L1 is L2 and L2 is L3
+            True
         """
-        self._g = g
-        self._cartan_type = g.cartan_type().affine()
-        R = g.base_ring()
-        names = list(g.variable_names()) + ['e0', 'f0', 'c']
-        if kac_moody:
-            names += ['d']
-        self._kac_moody = kac_moody
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names, LieAlgebras(R).WithBasis())
+        return super(LieAlgebraChevalleyBasis, cls).__classcall__(
+            cls, R, CartanType(cartan_type))
+
+    def __init__(self, R, cartan_type):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: TestSuite(LieAlgebra(QQ, cartan_type=['A',2])).run()
+        """
+        self._cartan_type = cartan_type
+        RL = cartan_type.root_system().root_lattice()
+        alpha = RL.simple_roots()
+        p_roots = list(RL.positive_roots_by_height())
+        n_roots = map(lambda x: -x, p_roots)
+        alphacheck = RL.simple_coroots()
+        roots = RL.roots()
+        num_sroots = len(alpha)
+
+        names = ['h{}'.format(i) for i in range(1, num_sroots+1)]
+        e_names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
+        f_names = ['f{}'.format(i) for i in range(1, num_sroots+1)]
+
+        # Determine the signs for the structure coefficients from the root system
+        # We first create the special roots
+        sp_sign = {}
+        for i,a in enumerate(p_roots):
+            for b in p_roots[i+1:]:
+                if a + b not in p_roots:
+                    continue
+
+                # Compute the sign for the extra special pair
+                x, y = (a + b).extraspecial_pair()
+
+                if (x, y) == (a, b): # If it already is an extra special pair
+                    sp_sign[(x, y)] = 1
+                    sp_sign[(y, x)] = -1
+                    continue
+
+                if b - x in roots:
+                    t1 = (b-x).norm_squared() / b.norm_squared() * sp_sign[(x, b-x)] * sp_sign[(a, y-a)]
+                else:
+                    t1 = 0
+                if a - x in roots:
+                    t2 = (a-x).norm_squared() / a.norm_squared() * sp_sign[(x, a-x)] * sp_sign[(b, y-b)]
+                else:
+                    t2 = 0
+
+                if t1 - t2 > 0:
+                    sp_sign[(a,b)] = 1
+                else:
+                    sp_sign[(a,b)] = -1
+                sp_sign[(b,a)] = -sp_sign[(a,b)]
+
+        # Function to construct the structure coefficients (up to sign)
+        def e_coeff(r, s):
+            p = 1
+            while r - p*s in roots:
+                p += 1
+            return p
+
+        # Now we can compute all necessary structure coefficients
+        coeffs = {}
+        for i,r in enumerate(p_roots):
+            # [e_r, h_i] and [h_i, f_r]
+            for ac in alphacheck:
+                c = r.scalar(ac)
+                if c == 0:
+                    continue
+                coeffs[(r, ac)] = {r: -c}
+                coeffs[(ac, -r)] = {-r: -c}
+
+            # [e_r, f_r]
+            h_sum = {}
+            for j, c in r.associated_coroot():
+                h_sum[alphacheck[j]] = c
+            coeffs[(r, -r)] = h_sum
+
+            # [e_r, e_s] and [e_r, f_s] with r != +/-s
+            for j, s in enumerate(p_roots[i+1:]):
+                j += i+1
+                # Since h(s) > h(r), we will always have s - r > 0 (if it is a root)
+                # [e_r, f_s]
+                if s - r in p_roots:
+                    c = e_coeff(r, -s)
+                    a,b = s-r, r
+                    if p_roots.index(a) + 1 > p_roots.index(b): # Note a != b
+                        c = -c * sp_sign[(b, a)]
+                    else:
+                        c *= sp_sign[(a, b)]
+                    coeffs[(-r, s)] = {a: -c}
+                    coeffs[(r, -s)] = {a: c}
+
+                # [e_r, e_s]
+                a = r + s
+                if a in p_roots:
+                    # (r, s) is a special pair
+                    c = e_coeff(r, s) * sp_sign[(r, s)]
+                    index = p_roots.index(r+s) + 1
+                    coeffs[(r, s)] = {a: c}
+                    coeffs[(-r, -s)] = {-a: -c}
+
+        # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
+        for a,b in coeffs.keys():
+            if self._basis_cmp(a, b) > 0:
+                coeffs[(b,a)] = {k:-v for k,v in coeffs[(a, b)].items()}
+                del coeffs[(a, b)]
+        self._s_coeff = coeffs
+
+        names = e_names + f_names + names
+        category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
+        IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
+                                   prefix='E', monomial_cmp=self._basis_cmp)
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
-        """
-        base = "Affine "
-        rep = repr(self._g)
-        if self._kac_moody:
-            old_len = len(rep)
-            rep = rep.replace("Lie", "Kac-Moody")
-            if len(rep) == old_len: # We did not replace anything
-                base += "Kac-Moody "
-        return base + rep
 
-    def derived_subalgebra(self):
+        EXAMPLES::
+
+            sage: LieAlgebra(QQ, cartan_type=['A', 2])
+            Lie algebra of ['A', 2] in the Chevalley basis
         """
-        Return the derived subalgebra of ``self``.
+        return "Lie algebra of {} in the Chevalley basis".format(self._cartan_type)
+
+    def _repr_generator(self, m):
         """
-        if self._kac_moody:
-            return AffineLieAlgebra(self._g)
-        raise NotImplementedError
+        Return a string representation of the basis element indexed by ``m``.
+        """
+        if m in self._cartan_type.root_system().root_lattice().simple_coroots():
+            return "h{}".format(m.support()[0])
+        return IndexedGenerators._repr_generator(self, m)
+
+    def _basis_cmp(self, x, y):
+        """
+        Compare two basis element indices. We order the basis elements by
+        positive roots, coroots, and negative roots and then according to
+        height.
+
+        OUTPUT:
+
+        If ``x == y``, return 0. If ``x < y``, return -1. Else return 1.
+        """
+        if x == y:
+            return 0
+
+        RL = self._cartan_type.root_system().root_lattice()
+        p_roots = list(RL.positive_roots_by_height())
+        n_roots = map(lambda x: -x, p_roots)
+        alphacheck = RL.simple_coroots()
+
+        if x in p_roots:
+            if y in p_roots:
+                return cmp(p_roots.index(x), p_roots.index(y))
+            return -1
+
+        if x in alphacheck:
+            if y in p_roots:
+                return 1
+            if y in alphacheck:
+                return cmp(x, y)
+            return -1
+
+        # x is in n_roots
+        if y not in n_roots:
+            return 1
+        return cmp(n_roots.index(x), n_roots.index(y))
+
+    def dimension(self):
+        """
+        Return the dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.dimension()
+            8
+        """
+        return len(self.basis())
+
+    def bracket_on_basis(self, x, y):
+        """
+        Return the Lie bracket of ``[x, y]``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: e1,e2,f1,f2,h1,h2 = L.gens()
+            sage: L.bracket(e1, f1) # indirect doctest
+            h1
+            sage: L.bracket(h1, e1)
+            2*E[alpha[1]]
+            sage: L.bracket(h1, f1)
+            -2*E[-alpha[1]]
+            sage: L.bracket(e1, e1)
+            0
+            sage: k = L.bracket(e1, e2); k
+            E[alpha[1] + alpha[2]]
+            sage: L.bracket(e1, k)
+            0
+        """
+        b = (x, y)
+        if b not in self._s_coeff:
+            return self.zero()
+        return self.element_class(self, self._s_coeff[b])
 
     def cartan_type(self):
         """
@@ -721,97 +929,114 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         """
         return self._cartan_type
 
-    def classical(self):
+    def weyl_group(self):
         """
-        Return the classical Lie algebra of ``self``.
+        Return the Weyl group of ``self``.
         """
-        return self._g
+        from sage.combinat.root_system.weyl_group import WeylGroup
+        return WeylGroup(self._cartan_type)
 
-    def _construct_UEA(self):
+    def affine(self, kac_moody=False):
         """
-        Construct the universal enveloping algebra of ``self``.
+        Return the (untwisted) affine Lie algebra of ``self``.
         """
-        # These are placeholders and will require something more complex
-        if self._kac_moody:
-            PolynomialRing(self._g.universal_enveloping_algebra(), 't,c,d')
-        return PolynomialRing(self._g.universal_enveloping_algebra(), 't,c')
+        from sage.algebras.lie_algebras.classical_lie_algebra import AffineLieAlgebra
+        return AffineLieAlgebra(self, kac_moody)
+
+    # Useful in creating the UEA
+    @cached_method
+    def indices_to_positive_roots_map(self):
+        """
+        Return the map from indices to positive roots.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: L.indices_to_positive_roots_map()
+            {1: alpha[1], 2: alpha[2], 3: alpha[1] + alpha[2]}
+        """
+        RL = self._cartan_type.root_system().root_lattice()
+        return {i+1:r for i,r in enumerate(RL.positive_roots())}
+
+    @cached_method
+    def gens(self):
+        """
+        Return the generators of ``self`` in the order of `e_i`, `f_i`,
+        and `h_i`.
+        """
+        index_set = self._cartan_type.index_set()
+        RL = self._cartan_type.root_system().root_lattice()
+        alpha = RL.simple_roots()
+        alphacheck = RL.simple_coroots()
+        B = self.basis()
+
+        ret = []
+        for i in index_set:
+            ret.append(B[alpha[i]])
+        for i in index_set:
+            ret.append(B[-alpha[i]])
+        for i in index_set:
+            ret.append(B[alphacheck[i]])
+        return tuple(ret)
 
     def gen(self, i):
         """
-        Return the `i`-th generator of ``self``.
+        Return the ``i``-th generator of ``self``.
         """
-        n = self.ngens()
-        if self._kac_moody:
-            if i == n - 1:
-                return self.element_class(self, {'d': 1})
-            n -= 1
-        # If it is a standard generator
-        if i < n - 3:
-            return self.element_class(self, {(self._g.gen(i), 0): 1})
+        return self.gens()[i]
 
-        if i == n - 3: # e_0 = f_{\theta} t
-            return self.element_class(self, {(self._g.highest_root_basis_elt(False), 1):1})
-        if i == n - 2: # f_0 = e_{\theta} t^-1
-            return self.element_class(self, {(self._g.highest_root_basis_elt(True), -1):1})
+    def basis(self):
+        """
+        Return the basis of ``self``.
+        """
+        one = self.base_ring().one()
+        return Family(self._indices, lambda x: self.element_class(self, {x: one}))
 
-        if i == n - 1: # c
-            return self.element_class(self, {'c': 1})
-        raise ValueError("i is too large")
+    def algebra_generators(self):
+        """
+        Return the Lie algebra generators of ``self``.
+        """
+        RL = self._cartan_type.root_system().root_lattice()
+        alpha = RL.simple_roots()
+        alphacheck = RL.simple_coroots()
+        d = {}
+        B = self.basis()
+        for i in self._cartan_type.index_set():
+            d['e{}'.format(i)] = B[alpha[i]]
+            d['f{}'.format(i)] = B[-alpha[i]]
+            d['h{}'.format(i)] = B[alphacheck[i]]
+        return Family(d)
 
-    # A summand is either pairs (a, i) where a is an element in the classical
-    #   Lie algebra and i is in ZZ representing the power of t, or it's 'c'
-    #   for the canonical central element.
+    def highest_root_basis_elt(self, pos=True):
+        r"""
+        Return the basis element corresponding to the highest root `\theta`.
+        If ``pos`` is ``True``, then returns `e_{\theta}`, otherwise it
+        returns `f_{\theta}`.
+        """
+        RL = self._cartan_type.root_system().root_lattice()
+        theta = RL.highest_root()
+        B = self.basis()
+        if pos:
+            return B[theta]
+        return B[-theta]
+
     class Element(LieAlgebraElement):
-        """
-        Element of an affine Lie algebra.
-        """
-        def _bracket_(self, y):
-            """
-            Return the Lie bracket ``[self, y]``.
-            """
-            s_mon = sorted(self.list())
-            y_mon = sorted(y.list())
-            if not self or not y or s_mon == y_mon:
-                return self.parent().zero()
-            d = {}
-            gd = self.parent()._g.gens_dict()
-            for ml,cl in sorted(s_mon): # The left monomials
-                for mr,cr in sorted(y_mon): # The right monomials
-                    if ml == mr or ml == 'c' or mr == 'c':
-                        continue
-                    if ml == 'd' and mr != 'd' and mr[1] != 0:
-                        d[mr] = cr * mr[1]
-                        continue
-                    if mr == 'd' and ml[1] != 0:
-                        d[ml] = -cl * ml[1]
-                        continue
-                    gl,tl = ml
-                    gr,tr = mr
-                    b = gl._bracket_(gr)
-                    if b:
-                        for m, c in b:
-                            d[(gd[m], tl+tr)] = cl * cr * c
-                    if tl != 0 and tr + tl == 0:
-                        d['c'] = gl.killing_form(gr) * cl * cr * tl
-            if len(d) == 0:
-                return self.parent().zero()
-            return self.__class__(self.parent(), d)
-
-        def lie_derivative(self):
+        def _repr_(self):
             r"""
-            Return the Lie derivative `\delta` of ``self``.
-
-            The Lie derivative `\delta` is defined as
-
-            .. MATH::
-
-                \delta(a \otimes t^m + \alpha c) = a \otimes m t^m.
-
-            Another formulation is by `\delta = t \frac{d}{dt}`.
+            Return a string representation of ``self``.
             """
-            d = {}
-            for m, c in self.list():
-                if m != 'c' and m[1] != 0:
-                    d[m] = c*m[1]
-            return self.__class__(self.parent(), d)
+            return repr_lincomb(self._sorted_items_for_printing(),
+                                scalar_mult=self.parent()._print_options['scalar_mult'],
+                                repr_monomial = self.parent()._repr_generator,
+                                strip_one = True)
+
+        def _latex_(self):
+            r"""
+            Return a `\LaTeX` representation of ``self``.
+            """
+            return repr_lincomb(self._sorted_items_for_printing(),
+                                scalar_mult       = self.parent()._print_options['scalar_mult'],
+                                latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
+                                repr_monomial = self.parent()._latex_generator,
+                                is_latex=True, strip_one = True)
 

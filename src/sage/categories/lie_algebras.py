@@ -201,30 +201,11 @@ class LieAlgebras(Category_over_base_ring):
         #    names = map(lambda n: n + "bar", self.variable_names())
         #    return QuotientLieAlgebra(self, I, tuple(names))
 
-        def quo(self, I):
-            """
-            Alias for :meth:`quotient()`.
-            """
-            return self.quotient(I)
-
-        def product_space(self, Y, ambient=None): # TODO: move to Lie subalgebra
-            """
-            Return the product space ``[self, Y]`` in ``ambient``.
-
-            INPUT:
-
-            - ``Y`` -- the other subspace of ``ambient``
-            - ``ambient`` -- (optional) the ambient space to compute the
-              product space; the default is to use ``self`` as the ambient
-              space
-            """
-            if ambient is None:
-                ambient = self
-                X_gens = self.gens()
-            else:
-                X_gens = map(ambient, self.gens())
-            Y_gens = map(ambient, Y.gens())
-            return ambient.subalgebra(X_gens + Y_gens)
+        #def quo(self, I):
+        #    """
+        #    Alias for :meth:`quotient()`.
+        #    """
+        #    return self.quotient(I)
 
         @abstract_method(optional=True)
         def killing_form(self, x, y):
