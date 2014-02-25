@@ -34,9 +34,9 @@ AUTHORS:
 
 - Chris Wuthrich 11/09: major restructuring
 
-- Jeroen Demeyer (2014-02-24): code clean up, fix characteristic bound
-  for quadratic algorithm, remove PARI algorithm in positive
-  characteristic (:trac:`15855`)
+- Jeroen Demeyer, Peter Bruin (2014-02-24): code clean up, fix
+  characteristic bound for quadratic algorithm, use native algorithms
+  by default (:trac:`15855`)
 
 """
 
@@ -102,15 +102,7 @@ def weierstrass_p(E, prec=20, algorithm=None):
         sage: E.weierstrass_p(prec=9)
         Traceback (most recent call last):
         ...
-        NotImplementedError: currently no algorithms for computing the Weierstrass p-function for that characteristic / precision pair is implemented. Lower the precision below char(k) - 2
-        sage: E.weierstrass_p(prec=9, algorithm="quadratic")
-        Traceback (most recent call last):
-        ...
-        ValueError: for computing the Weierstrass p-function via the quadratic algorithm, the characteristic (11) of the underlying field must be greater than prec + 2 = 11
-        sage: E.weierstrass_p(prec=4, algorithm='pari')
-        Traceback (most recent call last):
-        ...
-        ValueError: for computing the Weierstrass p-function via pari, the characteristic (11) of the underlying field must be zero
+        ValueError: for computing the Weierstrass p-function, the characteristic (11) of the underlying field must be greater than prec + 2 = 11
 
     TESTS::
 
@@ -122,18 +114,17 @@ def weierstrass_p(E, prec=20, algorithm=None):
     k = E.base_ring()
     p = k.characteristic()
 
+    if 0 < p <= prec + 2:
+        raise ValueError("for computing the Weierstrass p-function, the characteristic (%s) of the underlying field must be greater than prec + 2 = %s"%(p,prec+2))
+
     # if the algorithm is not set, try to determine algorithm from input
     if algorithm is None:
         if p == 0 or p > prec + 4:
             algorithm = "fast"
-        elif p > prec + 2:
-            algorithm = "quadratic"
         else:
-            raise NotImplementedError("currently no algorithms for computing the Weierstrass p-function for that characteristic / precision pair is implemented. Lower the precision below char(k) - 2")
+            algorithm = "quadratic"
 
     if algorithm == "pari":
-        if p > 0:
-            raise ValueError("for computing the Weierstrass p-function via pari, the characteristic (%s) of the underlying field must be zero"%p)
         return compute_wp_pari(E, prec)
 
     # quadratic and fast algorithms require short Weierstrass model
@@ -143,8 +134,6 @@ def weierstrass_p(E, prec=20, algorithm=None):
     B = Esh.a6()
 
     if algorithm == "quadratic":
-        if 0 < p <= prec + 2:
-            raise ValueError("for computing the Weierstrass p-function via the quadratic algorithm, the characteristic (%s) of the underlying field must be greater than prec + 2 = %s"%(p,prec+2))
         wp = compute_wp_quadratic(k, A, B, prec)
     elif algorithm == "fast":
         if 0 < p <= prec + 4:
