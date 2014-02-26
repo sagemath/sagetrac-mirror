@@ -13,7 +13,7 @@ Parallel Iterator built using Python's multiprocessing module
 
 from multiprocessing import Pool
 from functools import partial
-from sage.misc.fpickle import pickle_function, call_pickled_function
+from sage.misc.fpickle import pickle_function
 import ncpus
 
 def pyprocessing(processes=0):
@@ -41,6 +41,36 @@ def pyprocessing(processes=0):
     """
     if processes == 0: processes = ncpus.ncpus()
     return partial(parallel_iter, processes)
+
+def call_pickled_function(fpargs):
+    """
+    Helper function for :meth:`parallel_iter` to call a function pickled with 
+    :meth:`sage.misc.fpickle.pickle_function` with arguments.
+
+    INPUT:
+
+    - ``fpargs`` -- a tuple ``(pickled, (args, kwargs))`` of a pickled function
+                    and a list of arguments and a dictionary of keyword arguments
+
+    OUTPUT:
+
+    Returns a tuple ``((args, kwargs), res)`` consisting of the original
+    arguments and the result of the function call.
+
+    EXAMPLES::
+
+        sage: def f(l, n=2): return l*n
+        sage: pickled = pickle_function(f)
+        sage: from sage.parallel.multiprocessing_sage import call_pickled_function
+        sage: call_pickled_function( (pickled, ([3],{'n':5})) )
+        (([3], {'n': 5}), 15)
+    """
+    import sage.all
+    from sage.misc.fpickle import unpickle_function
+    (fp, (args, kwds)) = fpargs
+    f = eval("unpickle_function(fp)", sage.all.__dict__, {'fp':fp})
+    res = eval("f(*args, **kwds)",sage.all.__dict__, {'args':args, 'kwds':kwds, 'f':f})
+    return ((args, kwds), res)
 
 def parallel_iter(processes, f, inputs):
     """
@@ -73,4 +103,3 @@ def parallel_iter(processes, f, inputs):
     result = p.imap_unordered(call_pickled_function, [ (fp, t) for t in inputs ])
     for res in result:
         yield res
-
