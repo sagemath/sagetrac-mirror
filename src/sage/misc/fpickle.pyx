@@ -31,11 +31,11 @@ def pickle_code(co):
     """
     This function provides pickling for code objects.
 
-    INPUT::
+    INPUT:
 
     - ``co`` -- a code object to pickle
 
-    OUTPUT::
+    OUTPUT:
 
     Returns data that can be used to unpickle the code object.
 
@@ -130,7 +130,7 @@ def pickleMethod(method):
     This function provides pickling for methods. It was originally copied from
     twisted.persisted.styles.  We chose not to import twisted.persisted.styles
     anymore since it takes a long time to import and we hardly use anything it
-    provides. (see #11716)
+    provides. (see :trac:`11716`)
 
     INPUT:
 
@@ -168,13 +168,14 @@ def unpickleMethod(im_name, im_self, im_class):
     This function provides unpickling for methods pickled with help of
     :meth:`pickleMethod`. It was originally copied from twisted.persisted.styles.
     We chose not to import twisted.persisted.styles anymore since it takes a long
-    time to import and we hardly use anything it provides. (see #11716)
+    time to import and we hardly use anything it provides. (see :trac:`11716`)
 
     INPUT:
 
     - ``im_name`` -- the method's name
 
-    - ``im_self`` -- the method's class instance object or None if this is a class method
+    - ``im_self`` -- the method's class instance object or ``None`` if this is
+      a class method
 
     - `` im_class`` -- the class which defined the method
 
@@ -232,7 +233,7 @@ def pickleModule(module):
     This function provides pickling for modules. It was originally copied from
     twisted.persisted.styles.  We chose not to import twisted.persisted.styles
     anymore since it takes a long time to import and we hardly use anything it
-    provides. (see #11716)
+    provides. (see trac:`11716`)
 
     INPUT:
 
@@ -256,7 +257,7 @@ def unpickleModule(name):
     This function provides unpickling for modules pickled with the help of
     :meth:`pickleModule`. It was originally copied from twisted.persisted.styles.
     We chose not to import twisted.persisted.styles anymore since it takes a long
-    time to import and we hardly use anything it provides. (see #11716)
+    time to import and we hardly use anything it provides. (see :trac:`11716`)
 
     INPUT:
 
