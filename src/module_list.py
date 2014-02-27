@@ -369,9 +369,8 @@ ext_modules = [
               libraries = ['gmp']),
 
     Extension('sage.graphs.cliquer',
-              sources = ['sage/graphs/cliquer.pyx'],
+              sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
               libraries = ['cliquer']),
-
 
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
@@ -1205,6 +1204,9 @@ ext_modules = [
 
     Extension('sage.misc.constant_function',
               sources = ['sage/misc/constant_function.pyx']),
+
+    Extension('sage.misc.cstdio_buffer',
+              sources = ['sage/misc/cstdio_buffer.pyx']),
 
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']),
