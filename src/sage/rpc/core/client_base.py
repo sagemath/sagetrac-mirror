@@ -23,7 +23,7 @@ class ClientBase(RemoteProcedureCaller):
     
     def api_version(self):
         return 'base class v1'
-
+q
     def construct_rpc_table(self):
         rpc = super(ClientBase, self).construct_rpc_table()
         logger = self.log

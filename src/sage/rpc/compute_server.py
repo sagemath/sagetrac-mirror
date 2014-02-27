@@ -8,7 +8,12 @@ somehow. Usually, it is running under the control of
 
 EXAMPLES::
 
-    
+    sage: from sage.rpc.factory import sage_remote
+    sage: c = sage_remote.new_client().wait_for_initialization()
+    sage: c.sage_eval('1+1')
+    sage: c.loop()
+    sage: c.loop()
+    sage: c.loop()
 """
 
 from __future__ import print_function
@@ -16,62 +21,31 @@ from __future__ import print_function
 import os
 import sys
 import time
+from sage.misc.cstdio_buffer import linebuffer_output
 from sage.rpc.core.server_base import ServerBase
 from sage.rpc.core.transport import TransportError
 
 
-def cstdio_line_buffer_mode():
-    import ctypes
-    libc = ctypes.CDLL('libc.so.6')
-    libc.setlinebuf(libc.stdout)
-    libc.setlinebuf(libc.stderr)
 
-
-class OutputStreamWrapper(object):
-
-    @staticmethod
-    def install():
-        if not isinstance(sys.stdout, OutputStreamWrapper):
-            sys.stdout = OutputStreamWrapper(sys.stdout)
-        if not isinstance(sys.stderr, OutputStreamWrapper):
-            sys.stderr = OutputStreamWrapper(sys.stderr)
-
-    def __init__(self, stream):
-        self.__stream = stream
-
-    def write(self, data):
-        n = self.__stream.write(data)
-        self.__stream.flush()
-        return n
-
-    def writelines(self, data):
-        self.__stream.writelines(data)
-        self.__stream.flush()
-
-    def isatty(self):
-        return True
-
-    def __getattr__(self, name):
-        return getattr(self.__stream, name)
-
-
-
-def linebuffer_output():
+def start_server(port, interface):
     """
-    Switch stdout/stderr to line buffer mode
+    Start the compute server
+
+    INPUT:
+
+    - ``port`` -- integer. The port to connect to.
+
+    - ``interface`` -- string. The interface to listen on.
+
+    OUTPUT:
+
+    This function never returns. Instead it keeps waiting for new
+    compute tasks, and processing them as they come in.
 
     EXAMPLES::
 
-        sage: from sage.rpc.compute_server import linebuffer_output
-        sage: linebuffer_output()
-        sage: 1+1
-        2
+        sage: from sage.rpc.compute_server import start_server
     """
-    cstdio_line_buffer_mode()
-    OutputStreamWrapper.install()
-
-
-def start_server(port, interface):
     cookie = os.environ['COOKIE']
     from sage.rpc.core.transport import Transport
     uri = 'tcp://{0}:{1}'.format(interface, port)
@@ -131,9 +105,6 @@ class SageComputeServer(ServerBase):
         t1_wall = time.time()
         sys.stdout.flush()
         sys.stderr.flush()
-        # This kills the process... why?
-        #os.fsync(sys.stdout.fileno())
-        #os.fsync(sys.stderr.fileno())
         self.rpc.sage_eval.finished(t1_cpu - t0_cpu, t1_wall - t0_wall, label)
 
     def rpc_print(self, value):
