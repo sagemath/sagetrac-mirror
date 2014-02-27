@@ -65,6 +65,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
     :meth:`~FinitePoset.is_slender` | Returns whether the poset ``self`` is slender or not.
+    :meth:`~FinitePoset.is_subposet` | Returns whether the poset ``self`` is an induced subposet of `P` or not.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise
     :meth:`~FinitePoset.level_sets` | Returns a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
     :meth:`~FinitePoset.linear_extension` | Returns a linear extension of this poset.
@@ -3137,27 +3138,27 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-        sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
-        sage: Q = Poset(DiGraph({1:[4]}))
-        sage: Q.is_subposet(P)
-        True
-        sage: S = Poset(DiGraph({2:[3]}))
-        sage: S.is_subposet(P)
-        False
+            sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
+            sage: Q = Poset(DiGraph({1:[4]}))
+            sage: Q.is_subposet(P)
+            True
+            sage: S = Poset(DiGraph({2:[3]}))
+            sage: S.is_subposet(P)
+            False
 
-        sage: P = Posets.BooleanLattice(3)
-        sage: Q = Poset(DiGraph({0:[2,4],2:[7],4:[7]}))
-        sage: Q.is_subposet(P)
-        True   
+            sage: P = Posets.BooleanLattice(3)
+            sage: Q = Poset(DiGraph({0:[2,4],2:[7],4:[7]}))
+            sage: Q.is_subposet(P)
+            True   
 
         TESTS::
 
-        sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
-        sage: R = Poset(DiGraph({5:[6]}))
-        sage: R.is_subposet(P)
-        Traceback (most recent call last):
-        ...
-        IndexError: tuple index out of range
+            sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
+            sage: R = Poset(DiGraph({5:[6]}))
+            sage: R.is_subposet(P)
+            Traceback (most recent call last):
+            ...
+            IndexError: tuple index out of range
         """
         Q = P.subposet( self._elements )
         return self._hasse_diagram == Q._hasse_diagram
