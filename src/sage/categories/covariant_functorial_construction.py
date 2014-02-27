@@ -225,13 +225,14 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args):
+    def __call__(self, args, **keywords):
         """
         Functorial construction application
 
         INPUT:
          - ``self``: a covariant functorial construction `F`
          - ``args``: a tuple (or iterable) of parents or elements
+         - ``keywords``: a dictionary of keyword=value arguments
 
         Returns `F(args)`
 
@@ -240,11 +241,12 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"]); E.rename("E")
             sage: tensor((E, E, E))
             E # E # E
+
         """
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         assert(all( hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:])
+        return getattr(args[0], self._functor_name)(*args[1:], **keywords)
 
 class CovariantConstructionCategory(Category): # Should this be CategoryWithBase?
     """

@@ -2621,7 +2621,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 2*B[1] # B[3] # B[5] + 2*B[1] # B[3] # B[6] + B[1] # B[4] # B[5] + B[1] # B[4] # B[6] + 4*B[2] # B[3] # B[5] + 4*B[2] # B[3] # B[6] + 2*B[2] # B[4] # B[5] + 2*B[2] # B[4] # B[6]
             """
             assert(module in ModulesWithBasis(self.base_ring()) for module in modules)
-            assert(sage.categories.tensor.tensor(modules) == self)
+            #assert(sage.categories.tensor.tensor(modules) == self)
             # a list l such that l[i] is True if modules[i] is readily a tensor product
             is_tensor = [isinstance(module, CombinatorialFreeModule_Tensor) for module in modules]
             # the tensor_constructor, on basis elements
