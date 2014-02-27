@@ -3128,8 +3128,36 @@ class FinitePoset(UniqueRepresentation, Parent):
         return self.subposet(elements)
         
     def is_subposet(self,P):
-        """
+        r"""
         Returns True if self is an induced subposet of P.
+
+        INPUT: 
+
+        - ``P`` -- a poset
+
+        EXAMPLES::
+
+        sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
+        sage: Q = Poset(DiGraph({1:[4]}))
+        sage: Q.is_subposet(P)
+        True
+        sage: S = Poset(DiGraph({2:[3]}))
+        sage: S.is_subposet(P)
+        False
+
+        sage: P = Posets.BooleanLattice(3)
+        sage: Q = Poset(DiGraph({0:[2,4],2:[7],4:[7]}))
+        sage: Q.is_subposet(P)
+        True   
+
+        TESTS::
+
+        sage: P = Poset(DiGraph({1:[2,3],2:[4],3:[4]}))
+        sage: R = Poset(DiGraph({5:[6]}))
+        sage: R.is_subposet(P)
+        Traceback (most recent call last):
+        ...
+        IndexError: tuple index out of range
         """
         Q = P.subposet( self._elements )
         return self._hasse_diagram == Q._hasse_diagram
