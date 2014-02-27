@@ -165,6 +165,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E)) # todo: not implemented (see upcoming category patch #5985)
+
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -225,13 +226,14 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args):
+    def __call__(self, args, **keywords):
         """
         Functorial construction application
 
         INPUT:
          - ``self``: a covariant functorial construction `F`
          - ``args``: a tuple (or iterable) of parents or elements
+         - ``keywords``: a dictionary of keyword=value arguments
 
         Returns `F(args)`
 
@@ -244,7 +246,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         assert(all( hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:])
+        return getattr(args[0], self._functor_name)(*args[1:],**keywords)
 
 class CovariantConstructionCategory(Category): # Should this be CategoryWithBase?
     """
@@ -356,7 +358,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         """
         return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories])
 
-    def __init__(self, category, *args):
+    def __init__(self, category, *args, **keywords):
         """
         TESTS::
 

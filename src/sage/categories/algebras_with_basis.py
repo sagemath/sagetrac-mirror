@@ -377,6 +377,79 @@ class AlgebrasWithBasis(Category_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        @cached_method
+        def mult_tensor(self):
+            r"""
+            The multiplication map as a module morphism from the twofold tensor of ``self``, to ``self``.
+            
+            EXAMPLES::
+
+                sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                sage: A = W.algebra(ZZ); A.rename("A")
+                sage: mA = A.mult_tensor(); mA
+                Generic morphism:
+                From: A # A
+                To:   A
+                sage: a = A.monomial(W.from_reduced_word([1,2])); a
+                B[s1*s2]
+                sage: b = A.an_element(); b
+                B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
+                sage: ab = tensor([a,b]); ab
+                B[s1*s2] # B[s1*s2*s1] + 3*B[s1*s2] # B[s1*s2] + 3*B[s1*s2] # B[s2*s1]
+                sage: mA(ab)
+                3*B[s2*s1] + B[s2] + 3*B[1]
+                sage: a*b
+                3*B[s2*s1] + B[s2] + 3*B[1]
+                sage: AA = tensor([A,A])
+                sage: mAA = AA.mult_tensor()
+                sage: mAA(tensor([a,b,b,b]))
+                27*B[s2*s1] # B[s1*s2] + 27*B[s2*s1] # B[s2*s1] + 18*B[s2*s1] # B[s1] + 18*B[s2*s1] # B[s2] + 57*B[s2*s1] # B[1] + 9*B[s2] # B[s1*s2] + 9*B[s2] # B[s2*s1] + 6*B[s2] # B[s1] + 6*B[s2] # B[s2] + 19*B[s2] # B[1] + 27*B[1] # B[s1*s2] + 27*B[1] # B[s2*s1] + 18*B[1] # B[s1] + 18*B[1] # B[s2] + 57*B[1] # B[1]
+
+            """
+            from sage.combinat.free_module import CombinatorialFreeModule_Tensor
+
+            if isinstance(self, CombinatorialFreeModule_Tensor):
+                n_factors = len(self._sets)
+                on_basis = lambda x: self.monomial(x[0:n_factors])*self.monomial(x[n_factors:2*n_factors])
+            else:
+                on_basis = lambda x: self.monomial(x[0])*self.monomial(x[1])
+            AA = tensor([self,self])
+            return AA.module_morphism(on_basis = on_basis, codomain=self,category=ModulesWithBasis(self.base_ring()))
+
+        @cached_method
+        def tensor_with_unit(self, A, side='right'):
+            r"""
+            Return the algebra morphism from ``self`` to the tensor product of ``self`` with the algebra `A`,
+            which is the identity map on ``self`` and which places the identity element of `A` in the
+            other tensor factor.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',2],prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: f = A.tensor_with_unit(A)
+                sage: a = A.an_element(); a
+                B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
+                sage: f(a)
+                B[s1*s2*s1] # B[1] + 3*B[s1*s2] # B[1] + 3*B[s2*s1] # B[1]
+                sage: g = A.tensor_with_unit(A, side='left')
+                sage: g(a)
+                B[1] # B[s1*s2*s1] + 3*B[1] # B[s1*s2] + 3*B[1] # B[s2*s1]
+
+            TODO:: Probably the right way to do this is to tensor the identity on ``self``,
+            with the algebra map from the base ring to `A`. We get rid of some overhead.
+            """
+            from sage.categories.morphism import SetMorphism
+            from sage.categories.homset import Hom
+            R = self.base_ring()
+            assert A.category().is_subcategory(AlgebrasWithBasis(R))
+            if side == 'right':
+                codomain = tensor([self, A])
+                return SetMorphism(Hom(self,codomain,category=AlgebrasWithBasis(R)), lambda x: tensor([x, A.one()]))
+            else:
+                codomain = tensor([A, self])
+                return SetMorphism(Hom(self,codomain,category=AlgebrasWithBasis(R)), lambda x: tensor([A.one(), x]))
+
     class ElementMethods:
 
         def __invert__(self):

@@ -435,21 +435,60 @@ class ModulesWithBasis(Category_over_base_ring):
             else:
                 return repr(type(self))
 
-
-        def tensor(*parents):
+        def tensor(*parents, **keywords):
             """
             Return the tensor product of the parents.
+
+            INPUT:
+
+            - parents -- the modules to be tensored
+            - keywords -- optional keyword parameters
+
+            The keyword parameter 'category' can be used to specify the
+            category of the tensor product.
 
             EXAMPLES::
 
                 sage: C = AlgebrasWithBasis(QQ)
                 sage: A = C.example(); A.rename("A")
-                sage: A.tensor(A,A)
+                sage: TA = A.tensor(A,A)
+                sage: TA
                 A # A # A
-                sage: A.rename(None)
-            """
-            return parents[0].__class__.Tensor(parents, category = tensor.category_from_parents(parents))
+                sage: TA.category()
+                Category of tensor products of algebras with basis over Rational Field
+                sage: M = A.tensor(A, A, category = ModulesWithBasis(QQ)); M
+                A # A # A
+                sage: M.category()
+                Category of modules with basis over Rational Field
 
+            """
+            category = tensor.category_from_parents(parents)
+            if 'category' in keywords.keys():
+                user_category = keywords['category']
+                # use the requested category only if the category-from-parents is a subcategory
+                if category.is_subcategory(user_category):
+                    category = user_category
+            return parents[0].__class__.Tensor(parents, category = category)
+
+        @cached_method
+        def identity_map(self):
+            r"""
+            Returns the identity morphism in the category of modules over the base ring.
+
+            EXAMPLES::
+
+                sage: M = CombinatorialFreeModule(ZZ, [1,2]); M.rename("M")
+                sage: iM = M.identity_map()
+                sage: iM
+                Generic endomorphism of M                
+                sage: m = M.an_element(); m
+                2*B[1] + 2*B[2]
+                sage: iM(m)
+                2*B[1] + 2*B[2]
+
+            """
+            from sage.categories.morphism import SetMorphism
+            return SetMorphism(Hom(self, self, category=ModulesWithBasis(self.base_ring())), lambda x: x)
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
@@ -460,7 +499,7 @@ class ModulesWithBasis(Category_over_base_ring):
 #             """
 #             Default implementation of negation by trying to multiply by -1.
 #             TODO: doctest
-#             """
+#             """a
 #             return self._lmul_(-self.parent().base_ring().one(), self)
 
 
@@ -901,7 +940,7 @@ class ModulesWithBasis(Category_over_base_ring):
         map_term = deprecated_function_alias(8890, map_item)
         map_mc   = deprecated_function_alias(8890, map_item)
 
-        def tensor(*elements):
+        def tensor(*elements, **keywords):
             """
             Return the tensor product of its arguments, as an element of
             the tensor product of the parents of those elements.
@@ -918,7 +957,7 @@ class ModulesWithBasis(Category_over_base_ring):
             """
             assert(all(isinstance(element, Element) for element in elements))
             parents = [parent(element) for element in elements]
-            return tensor(parents)._tensor_of_elements(elements) # good name???
+            return tensor(parents, **keywords)._tensor_of_elements(elements) # good name???
 
     class HomCategory(HomCategory):
         """
@@ -1026,6 +1065,39 @@ class ModulesWithBasis(Category_over_base_ring):
                 """
                 monomial = self.domain().monomial
                 return lambda t: self(monomial(t))
+
+            def tensor(*maps):
+                """
+                Return the tensor product of maps.
+
+                EXAMPLES::
+
+                    sage: C = AlgebrasWithBasis(QQ)
+                    sage: A = C.example()
+                    sage: (a,b,c) = A.algebra_generators()
+                    sage: AA = tensor([A,A])
+                    sage: ab = tensor([a,b])
+                    sage: ac = tensor([a,c])
+                    sage: mA = AA.module_morphism(on_basis = lambda x: A.monomial(x[0])*A.monomial(x[1]),codomain=A)
+                    sage: AAAA = tensor([A,A,A,A])
+                    sage: x = tensor([ab,ac]); x
+                    B[word: a] # B[word: b] # B[word: a] # B[word: c]
+                    sage: mm = tensor([mA,mA])
+                    sage: mm(x)
+                    B[word: ab] # B[word: ac]
+
+                """
+                assert len(maps) > 0
+                domains = [map.domain() for map in maps]
+                n_tensor_factors = [len(dom._sets) for dom in domains]
+                lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
+                upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
+
+                domain = tensor(domains)
+                codomain = tensor([map.codomain() for map in maps])
+                def on_basis(key_tuple):
+                    return tensor([maps[i](maps[i].domain().monomial(key_tuple[lower_bounds[i]:upper_bounds[i]])) for i in range(len(maps))])
+                return domain.module_morphism(on_basis=on_basis, codomain=codomain)
 
     class CartesianProducts(CartesianProductsCategory):
         """
