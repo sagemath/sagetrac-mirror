@@ -53,6 +53,8 @@ from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 
+from libc.stdint cimport uint_fast32_t, uint_fast64_t
+
 cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False):
     r"""
     List of all primes between start and stop-1, inclusive.  If the
@@ -159,6 +161,146 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     else:
         raise ValueError("algorithm argument must be either ``pari_primes`` or ``pari_isprime``")
     return res
+
+def quality_bounds(*coordinates, uint_fast32_t prime_bound=10**5):
+    """
+    Given projective rational coordinates, returns a lower and upper
+    bound on the quality of the projective point.
+
+    With the default ``prime_bound``, the lower bound is in fact
+    equal to the quality in >99.9999% of all cases.
+
+    INPUT:
+
+        - ``coordinates`` - projective coordinates
+
+        - ``prime_bound`` - upper bound used in trial division
+
+    EXAMPLES::
+
+        sage: quality_bounds(1, 8, 9)
+        (log(9)/log(6), log(9)/log(6))
+        sage: map(n, quality_bounds(614474125456, 24966161193627, 25580635319083))
+        [0.374709057573204, 0.849777081840407]
+        sage: map(n, quality_bounds(614474125456, 24966161193627, 25580635319083, prime_bound=10**6))
+        [0.536657184562553, 0.536657184562553]
+        sage: for i in range(100):
+        ....:     x = 1
+        ....:     while not x.is_squarefree() or x == 1:
+        ....:         x = ZZ.random_element(-10**5, 10**5)
+        ....:     if quality_bounds(x, 1) != (1, 1):
+        ....:         print x
+        sage: quality_bounds(ProjectiveSpace(2, QQ)(3, 4, 5))
+        (log(5)/log(30), log(5)/log(30))
+    """
+    if len(coordinates) == 1:
+        try:
+            coordinates = tuple(coordinates[0])
+        except TypeError:
+            coordinates = (coordinates[0],)
+
+    # fixup coordinates to be integral
+    from sage.rings.rational_field import QQ
+    try:
+        coordinates = map(QQ, coordinates)
+    except TypeError:
+        raise NotImplementedError(
+                "quality bounds are only implemented over the rationals")
+
+    cdef uint_fast32_t n = len(coordinates)
+    cdef uint_fast32_t i
+
+    for q in coordinates:
+        for i in range(n):
+            coordinates[i] *= q.denominator()
+    coordinates = map(Integer, coordinates)
+    coordinates = map(abs, coordinates)
+    height = max(coordinates)
+    if height == 0:
+        raise ValueError("projective points must have a non-zero coordinate")
+
+    # need to divide out by the gcd
+    from sage.rings.integer import GCD_list
+    cdef Integer rad = GCD_list(coordinates)
+    height = height/rad
+
+    # convert coordinates to an mpz_t array
+    cdef mpz_t *coord_array = <mpz_t *>sage_malloc(sizeof(mpz_t)*n)
+    for i, q in enumerate(coordinates):
+        mpz_init(coord_array[i])
+        mpz_divexact(coord_array[i], (<Integer>q).value, rad.value)
+
+    tmp = prime_range(prime_bound, py_ints=True)
+
+    cdef uint_fast32_t m = len(tmp)
+    # setup c tables
+    # we don't want cython to repeatedly convert
+    # python ints to c longs as we trial divide
+    cdef uint_fast32_t *primes = <uint_fast32_t *>sage_malloc(sizeof(uint_fast32_t)*m)
+    cdef uint_fast64_t *squares = <uint_fast64_t *>sage_malloc(sizeof(uint_fast64_t)*m)
+
+    if not sig_on_no_except():
+        for i in range(n):
+            mpz_clear(coord_array[i])
+
+        sage_free(coord_array)
+        sage_free(primes)
+        sage_free(squares)
+
+        cython_check_exception()
+
+    # populate prime and squares tables
+    for i in range(m):
+        primes[i] = squares[i] = tmp.pop()
+        squares[i] *= squares[i]
+
+    mpz_set_ui(rad.value, 1u)
+
+    # trial divide prime squares
+    for i in range(n):
+        for j in range(m):
+            if mpz_divisible_ui_p(coord_array[i], squares[j]):
+                if not mpz_divisible_ui_p(rad.value, primes[j]):
+                    mpz_mul_ui(rad.value, rad.value, primes[j])
+                mpz_divexact_ui(coord_array[i], coord_array[i], squares[j])
+                while mpz_divisible_ui_p(coord_array[i], primes[j]):
+                    mpz_divexact_ui(coord_array[i], coord_array[i], primes[j])
+
+    # upper bound = log(height)/log(prod p * bound^3)
+    cdef Integer rad2 = <Integer>PY_NEW(Integer)
+    mpz_mul_ui(rad2.value, rad.value, prime_bound)
+    mpz_mul_ui(rad2.value, rad2.value, prime_bound)
+    mpz_mul_ui(rad2.value, rad2.value, prime_bound)
+
+    # lower bound = log(height)/log(prod p * remainder)
+    for i in range(n):
+        mpz_mul(rad.value, rad.value, coord_array[i])
+
+    sig_off()
+
+    # cleanup
+    for i in range(n):
+        mpz_clear(coord_array[i])
+
+    sage_free(coord_array)
+    sage_free(primes)
+    sage_free(squares)
+
+    if rad < rad2:
+        # in this case we have computed the exact quality
+        rad2 = rad
+
+    from sage.functions.log import log
+    # deal with annoying edge cases where the radical is 1
+    try:
+        ret0 = log(height, rad)
+    except (ValueError, ZeroDivisionError):
+        ret0 = QQ(1)/QQ(3)
+    try:
+        return ret0, log(height, rad2)
+    except (ValueError, ZeroDivisionError):
+        from sage.rings.infinity import infinity
+        return ret0, infinity
 
 cdef class arith_int:
     cdef public int abs_int(self, int x) except -1:
@@ -428,7 +570,3 @@ cdef class arith_llong:
         cdef long long n, d
         self.c_rational_recon_longlong(a, m, &n, &d)
         return (n,d)
-
-
-
-
