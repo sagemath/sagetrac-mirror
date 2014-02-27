@@ -1049,16 +1049,29 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: mm(x)
                     B[word: ab] # B[word: ac]
 
+                    sage: ImI = tensor([A.identity_map(), A.mult_tensor(), A.identity_map()])
+                    sage: ImI(tensor([ab,ac]))
+
                 """
                 assert len(maps) > 0
                 domains = [map.domain() for map in maps]
-                n_tensor_factors = [len(dom._sets) for dom in domains]
+                n_tensor_factors = []
+                for dom in domains:
+                    if hasattr(dom, '_sets'):
+                        n_tensor_factors.append(len(dom._sets))
+                    else:
+                        n_tensor_factors.append(1)
                 lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
                 upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
                 domain = tensor(domains)
                 codomain = tensor([map.codomain() for map in maps])
                 def on_basis(key_tuple):
-                    return tensor([maps[i](maps[i].domain().monomial(key_tuple[lower_bounds[i]:upper_bounds[i]])) for i in range(len(maps))])
+                    def key_fixer(arg):
+                        if len(arg) == 1:
+                            return arg[0]
+                        else:
+                            return arg
+                    return tensor([maps[i](maps[i].domain().monomial(key_fixer(key_tuple[lower_bounds[i]:upper_bounds[i]]))) for i in range(len(maps))])
                 return domain.module_morphism(on_basis=on_basis, codomain=codomain)
 
         class ElementMethods:
