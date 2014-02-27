@@ -1205,6 +1205,9 @@ ext_modules = [
     Extension('sage.misc.constant_function',
               sources = ['sage/misc/constant_function.pyx']),
 
+    Extension('sage.misc.cstdio_buffer',
+              sources = ['sage/misc/cstdio_buffer.pyx']),
+
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']),
 
