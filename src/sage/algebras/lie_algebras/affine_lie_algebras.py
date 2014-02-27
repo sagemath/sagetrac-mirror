@@ -37,15 +37,15 @@ from sage.sets.family import Family
 
 class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     r"""
-    Affine Lie algebra.
+    An (untwisted) affine Lie algebra.
 
     Given a finite dimensional simple Lie algebra `\mathfrak{g}` over `R`,
-    we construct an affine Lie algebra `\hat{\mathfrak{g}}` as
+    we construct an affine Lie algebra `\widehat{\mathfrak{g}}^{\prime}` as
 
     .. MATH::
 
-        \hat{\mathfrak{g}} = \left( \mathfrak{g} \otimes R[t, t^{-1}] \right)
-        \oplus R c
+        \widehat{\mathfrak{g}}^{\prime} = \left( \mathfrak{g} \otimes
+        R[t, t^{-1}] \right) \oplus R c
 
     where `c` is the canonical central element and `R[t, t^{-1}]` is the
     Laurent polynomial ring over `R`. We define the Lie bracket as
@@ -53,26 +53,75 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     .. MATH::
 
         [a \otimes t^n + \alpha c, b \otimes t^m + \beta c] =
-        [a, b] \otimes t^{n+m} + \delta_{n+m,0} \langle a \mid b \rangle n c
+        [a, b] \otimes t^{n+m} + \delta_{n+m,0} ( a | b ) n c
 
-    where `\langle a \mid b \rangle` is the Killing form on `\mathfrak{g}`.
+    where `( a | b )` is the Killing form on `\mathfrak{g}`.
 
-    We can also form the affine Kac--Moody algebra by adding the additional
-    generator `d` such that `[d, x] = \delta(x)` where `\delta` is the
-    Lie derivative.
+    There is a canonical derivative on `\widehat{\mathfrak{g}}^{\prime}`
+    which is known as the *Lie derivative* and is denoted by `\delta`.
+    The Lie derivative is defined as
+
+    .. MATH::
+
+        \delta(a \otimes t^m + \alpha c) = a \otimes m t^m,
+
+    or equivalently by `\delta = t \frac{d}{dt}`.
+
+    We can form the affine Kac-Moody algebra `\widehat{\mathfrak{g}}`
+    by adding the additional generator `d` such that `[d, x] = \delta(x)`
+    where `\delta` is the Lie derivative. We note that the derived subalgebra
+    of the Kac-Moody algebra is the affine Lie algebra.
     """
-    def __init__(self, g, kac_moody=False):
+    @staticmethod
+    def __classcall_private__(cls, arg0, kac_moody=False, cartan_type=None):
+        """
+        Parse input to ensure a unique representation.
+
+        INPUT:
+
+        - ``arg0`` -- a simple Lie algebra or a base ring
+        - ``cartan_type`` -- a Cartan type
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
+            sage: ClassicalMatrixLieAlgebra(QQ, ['A', 4])
+            Special linear Lie algebra of rank 5 over Rational Field
+            sage: ClassicalMatrixLieAlgebra(QQ, CartanType(['B',4]))
+            Special orthogonal Lie algebra of rank 9 over Rational Field
+            sage: ClassicalMatrixLieAlgebra(QQ, 'C4')
+            Symplectic Lie algebra of rank 8 over Rational Field
+            sage: ClassicalMatrixLieAlgebra(QQ, cartan_type=['D',4])
+            Special orthogonal Lie algebra of rank 8 over Rational Field
+        """
+        if isinstance(arg0, LieAlgebra):
+            ct = arg0.cartan_type()
+            if not ct.is_finite():
+                raise ValueError("the base Lie algebra is not simple")
+            cartan_type = ct.affine()
+            g = arg0
+        else:
+            cartan_type = CartanType(cartan_type)
+            if not ct.is_affine():
+                raise ValueError("the Cartan type must be affine")
+            g = LieAlgebra(arg0, cartan_type=cartan_type.classical())
+
+        if not cartan_type.is_untwisted_affine():
+            raise NotImplementedError("only currently implemented for untwisted affine types")
+        return super(AffineLieAlgebra, self).__classcall__(self, g, cartan_type, kac_moody)
+
+    def __init__(self, g, cartan_type, kac_moody):
         """
         Initalize ``self``.
         """
         self._g = g
-        self._cartan_type = g.cartan_type().affine()
+        self._cartan_type = cartan_type
         R = g.base_ring()
         names = list(g.variable_names()) + ['e0', 'f0', 'c']
         if kac_moody:
             names += ['d']
         self._kac_moody = kac_moody
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names, LieAlgebras(R).WithBasis())
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names, LieAlgebras(R))#.WithBasis())
 
     def _repr_(self):
         """
@@ -92,8 +141,8 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         Return the derived subalgebra of ``self``.
         """
         if self._kac_moody:
-            return AffineLieAlgebra(self._g)
-        raise NotImplementedError
+            return AffineLieAlgebra(self._g, False)
+        raise NotImplementedError # I think this is self...
 
     def cartan_type(self):
         """
@@ -179,7 +228,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
         def lie_derivative(self):
             r"""
-            Return the Lie derivative `\delta` of ``self``.
+            Return the Lie derivative `\delta` applied to ``self``.
 
             The Lie derivative `\delta` is defined as
 

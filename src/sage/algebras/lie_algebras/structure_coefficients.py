@@ -46,7 +46,6 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule, span
 from sage.sets.family import Family, AbstractFamily
 
-# Move to FiniteDimLieAlgWithBasis category
 class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     A Lie algebra with a set of specified structure coefficients.
@@ -133,7 +132,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: TestSuite(L).run()
         """
-        cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        cat = LieAlgebras(R)#.FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
         self.__s_coeff = s_coeff
 
@@ -179,6 +178,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return self.basis().cardinality()
 
+    # Move to FiniteDimensionalLieAlgebrasWithBasis category
     def bracket_on_basis(self, x, y):
         """
         Return the Lie bracket of ``[self, y]``.
