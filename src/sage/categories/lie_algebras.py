@@ -107,7 +107,7 @@ class LieAlgebras(Category_over_base_ring):
         """
         return [Modules(self.base_ring())]
 
-    def example(self, gens = ('a','b','c')):
+    def example(self, gens=('a','b','c')):
         """
         Return an example of algebra with basis as per
         :meth:`Category.example <sage.categories.category.Category.example>`.
@@ -162,7 +162,6 @@ class LieAlgebras(Category_over_base_ring):
                 lhs, rhs = get_coercion_model().canonical_coercion(lhs, rhs)
             return lhs._bracket_(rhs)
 
-        @cached_method
         def universal_enveloping_algebra(self):
             """
             Return the universal enveloping algebra of ``self``.
@@ -173,9 +172,7 @@ class LieAlgebras(Category_over_base_ring):
                 sage: L.universal_enveloping_algebra()
                 Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             """
-            M = self.lift
-            M.register_as_coercion()
-            return M.codomain()
+            return self.lift.codomain()
 
         @abstract_method
         def _construct_UEA(self):
@@ -201,7 +198,9 @@ class LieAlgebras(Category_over_base_ring):
             Construct the lift morphism from ``self`` to the universal
             enveloping algebra of ``self``.
             """
-            return LiftMorphism(self, self._construct_UEA())
+            M = LiftMorphism(self, self._construct_UEA())
+            M.register_as_coercion()
+            return M
 
         def subalgebra(self, gens, names=None):
             """
@@ -395,7 +394,7 @@ class LieAlgebras(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: L.<x, y> = LieAlgebra(QQ, abelian=True)
+                sage: L.<x,y> = LieAlgebra(QQ, abelian=True)
                 sage: x.lift()
                 x
             """
@@ -403,7 +402,7 @@ class LieAlgebras(Category_over_base_ring):
 
         def killing_form(self, x):
             """
-            Return the Killing form of``self`` and ``x``.
+            Return the Killing form of ``self`` and ``x``.
             """
             return self.parent().killing_form(self, x)
 

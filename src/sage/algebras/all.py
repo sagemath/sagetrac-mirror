@@ -19,8 +19,6 @@ Algebras
 from sage.misc.lazy_import import lazy_import
 
 from quatalg.all import *
-from lie_algebras.all import *
-from quantum_groups.all import *
 
 # Algebra base classes
 from algebra import Algebra, is_Algebra
@@ -36,6 +34,7 @@ from steenrod.all import *
 
 from group_algebra_new import GroupAlgebra
 
+from lie_algebras.all import *
 from quantum_groups.all import *
 
 from iwahori_hecke_algebra import IwahoriHeckeAlgebra, IwahoriHeckeAlgebraT

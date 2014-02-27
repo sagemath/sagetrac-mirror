@@ -76,10 +76,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         cartan_type = CartanType(cartan_type)
 
         if cartan_type.is_affine():
-            if not cartan_type.is_untwisted_affine():
-                raise NotImplementedError("Only currently implemented for untwisted affine types")
-            classical = ct.classical()
-            return AffineLieAlgebra(ClassicalMatrixLieAlgebra(R, classical))
+            raise ValueError("only for finite types")
 
         if cartan_type.type() == 'A':
             return sl(R, cartan_type.rank() + 1)
@@ -106,7 +103,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         names += ['h%s'%i for i in range(1, n+1)]
         LieAlgebraFromAssociative.__init__(self, R, e[0].parent(),
                                            tuple(e + f + h), tuple(names),
-                                           category=LieAlgebras(R).FiniteDimensional().WithBasis())
+                                           category=LieAlgebras(R))#.FiniteDimensional().WithBasis())
         self._cartan_type = ct
 
         gens = self.gens()
@@ -299,7 +296,7 @@ class gl(LieAlgebraFromAssociative):
                 gens.append(mat)
         self._n = n
         LieAlgebraFromAssociative.__init__(self, R, MS, tuple(gens), tuple(names),
-                                           category=LieAlgebras(R).FiniteDimensional().WithBasis())
+                                           category=LieAlgebras(R))#.FiniteDimensional().WithBasis())
 
     def _repr_(self):
         """
@@ -724,7 +721,8 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
 
         TESTS::
 
-            sage: TestSuite(LieAlgebra(QQ, cartan_type=['A',2])).run()
+            sage: L = LieAlgebra(QQ, cartan_type=['A',2])
+            sage: TestSuite(L).run()
         """
         self._cartan_type = cartan_type
         RL = cartan_type.root_system().root_lattice()
@@ -826,7 +824,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         self._s_coeff = coeffs
 
         names = e_names + f_names + names
-        category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        category = LieAlgebras(R)#.FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
         IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
                                    prefix='E', monomial_cmp=self._basis_cmp)

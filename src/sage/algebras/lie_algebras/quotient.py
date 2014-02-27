@@ -23,12 +23,11 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
-#from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 from sage.structure.category_object import check_default_category
-from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.lie_algebras import LieAlgebras
 
-class QuotientLieAlgebraElement(ElementWrapper):
+class QuotientLieAlgebraElement(LieAlgebraElementWrapper):
     r"""
     An element of a quotient Lie algebra.
     """

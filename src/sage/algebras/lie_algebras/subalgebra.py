@@ -23,11 +23,10 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
-from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 from sage.rings.all import ZZ
-from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
 
 class LieSubalgebra(LieAlgebra):
     r"""
@@ -95,7 +94,7 @@ class LieSubalgebra(LieAlgebra):
         """
         return self._ambient.free_module()
 
-    class Element(ElementWrapper):
+    class Element(LieAlgebraElementWrapper):
         """
         An element in a Lie subalgebra.
         """
@@ -107,21 +106,6 @@ class LieSubalgebra(LieAlgebra):
             """
             return self.__class__(self.parent(), self.value.bracket(rhs.value))
 
-        def _add_(self, rhs):
-            """
-            Add ``self`` and ``rhs``.
-
-            EXAMPLES::
-            """
-            return self.__class__(self.parent(), self.value + rhs.value)
-
-        def _sub_(self, rhs):
-            """
-            Subtract ``self`` and ``rhs``.
-
-            EXAMPLES::
-            """
-            return self.__class__(self.parent(), self.value - rhs.value)
 
         def _acted_upon_(self, scalar, self_on_left=False):
             """
@@ -142,12 +126,4 @@ class LieSubalgebra(LieAlgebra):
             if self_on_left:
                 return self.__class__(self.parent(), self.value * scalar)
             return self.__class__(self.parent(), scalar * self.value)
-
-        def __neg__(self):
-            """
-            Return the negation of ``self``.
-
-            EXAMPLES::
-            """
-            return self.__class__(self.parent(), -self.value)
 
