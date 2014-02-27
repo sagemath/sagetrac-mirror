@@ -219,6 +219,9 @@ def quality_bounds(*coordinates, uint_fast32_t prime_bound=10**5):
     if height == 0:
         raise ValueError("projective points must have a non-zero coordinate")
 
+    if min(coordinates) == 0:
+        return 0, 0
+
     # need to divide out by the gcd
     from sage.rings.integer import GCD_list
     cdef Integer rad = GCD_list(coordinates)
