@@ -1035,27 +1035,27 @@ class ModulesWithBasis(Category_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: C = AlgebrasWithBasis(QQ)
-                    sage: A = C.example()
-                    sage: (a,b,c) = A.algebra_generators()
+                    sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                    sage: r = W.from_reduced_word
+                    sage: A = W.algebra(ZZ)
+                    sage: r1 = r([1]); r2 = r([2])
                     sage: AA = tensor([A,A])
-                    sage: ab = tensor([a,b])
-                    sage: ac = tensor([a,c])
-                    sage: mA = AA.module_morphism(on_basis = lambda x: A.monomial(x[0])*A.monomial(x[1]),codomain=A)
-                    sage: AAAA = tensor([A,A,A,A])
-                    sage: x = tensor([ab,ac]); x
-                    B[word: a] # B[word: b] # B[word: a] # B[word: c]
+                    sage: a = AA.monomial((r1,r2))
+                    sage: mA = A.mult_tensor()
                     sage: mm = tensor([mA,mA])
-                    sage: mm(x)
-                    B[word: ab] # B[word: ac]
-
-                    sage: ImI = tensor([A.identity_map(), A.mult_tensor(), A.identity_map()])
-                    sage: ImI(tensor([ab,ac]))
+                    sage: aa = tensor([a,a]); aa
+                    B[s1] # B[s2] # B[s1] # B[s2]
+                    sage: mm(aa)
+                    B[s1*s2] # B[s1*s2]
+                    sage: ImI = tensor([A.identity_map(), mA, A.identity_map()])
+                    sage: ImI(aa)
 
                 """
                 assert len(maps) > 0
                 domains = [map.domain() for map in maps]
                 n_tensor_factors = []
+                # we need a real method to determine how to break up keys into single elements or tuples
+                # depending on whether each "tensor factor" is itself a tensor product or not.
                 for dom in domains:
                     if hasattr(dom, '_sets'):
                         n_tensor_factors.append(len(dom._sets))
