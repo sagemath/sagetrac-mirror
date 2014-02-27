@@ -3126,6 +3126,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             if random.random() <= p:
                 elements.append(v)
         return self.subposet(elements)
+        
+    def is_subposet(self,P):
+        """
+        Returns True if self is an induced subposet of P.
+        """
+        Q = P.subposet( self._elements )
+        return self._hasse_diagram == Q._hasse_diagram
 
     def order_filter(self,elements):
         """
