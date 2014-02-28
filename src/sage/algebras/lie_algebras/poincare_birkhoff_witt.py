@@ -65,7 +65,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
                            for i,x in enumerate(g.basis().keys())}
         self._basis_map_inv = {basis_indices[i]: x for i,x in enumerate(g.basis())}
 
-        CombinatorialFreeModule.__init__(self, R, basis,
+        CombinatorialFreeModule.__init__(self, R, monomials,
                                          prefix='', bracket=False, latex_bracket=False,
                                          category=AlgebrasWithBasis(R))
 
@@ -82,6 +82,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         Return ``True`` if there is a coercion map from ``R`` to ``self``.
         """
         if R == self._g:
+            # Make this into the lift map
             basis_function = lambda x: self.monomial(self._basis_map[x])
             # TODO: this diagonal, but with a smaller indexing set...
             return g.module_morphism(basis_function, codomain=self,
@@ -100,6 +101,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         G = self._indices.gens()
         return Family(self._indices._indices, lambda x: self.monomial(G[x]))
+
+    gens = algebra_generators
 
     @cached_method
     def one_basis(self):
