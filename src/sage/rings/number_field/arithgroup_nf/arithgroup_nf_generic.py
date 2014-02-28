@@ -20,7 +20,10 @@ AUTHORS:
 #
 #############################################################################
 
-from sage.rings.all import ZZ, Integer, is_Ring, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
+from sage.categories.rings import Rings
+from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.groups.matrix_gps.linear import LinearMatrixGroup_generic
@@ -62,7 +65,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             name = 'Arithmetic Subgroup of the Group {0} of degree {1} over {2}'.format(group, degree, ring)
         if ltx == '':
             ltx = 'GL({0}, {1})'.format(degree, latex(ring))
-        assert is_Ring(ring)
+        assert ring in Rings
         if group == 'SL':
             special = True
         else:
@@ -195,7 +198,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             sage: G.fundamental_domain()
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError
         """
         if self._fundamental_domain is not None:
             return self._fundamental_domain
@@ -215,7 +218,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             sage: G.nu(6)
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -233,7 +236,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             sage: G.nu2()
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError
         """
         return self.nu(2)
 
@@ -251,7 +254,7 @@ class ArithmeticSubgroup_NF_class(LinearMatrixGroup_generic):
             sage: G.nu3()
             Traceback (most recent call last):
             ...
-            NotImplementedError:
+            NotImplementedError
         """
         return self.nu(3)
 
