@@ -1029,51 +1029,6 @@ class ModulesWithBasis(Category_over_base_ring):
                 return self.domain().module_morphism(codomain = self.codomain(),
                                                      **options)
 
-            def tensor(*maps):
-                """
-                Return the tensor product of maps.
-
-                EXAMPLES::
-
-                    sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
-                    sage: r = W.from_reduced_word
-                    sage: A = W.algebra(ZZ)
-                    sage: r1 = r([1]); r2 = r([2])
-                    sage: AA = tensor([A,A])
-                    sage: a = AA.monomial((r1,r2))
-                    sage: mA = A.mult_tensor()
-                    sage: mm = tensor([mA,mA])
-                    sage: aa = tensor([a,a]); aa
-                    B[s1] # B[s2] # B[s1] # B[s2]
-                    sage: mm(aa)
-                    B[s1*s2] # B[s1*s2]
-                    sage: ImI = tensor([A.identity_map(), mA, A.identity_map()])
-                    sage: ImI(aa)
-
-                """
-                assert len(maps) > 0
-                domains = [map.domain() for map in maps]
-                n_tensor_factors = []
-                # we need a real method to determine how to break up keys into single elements or tuples
-                # depending on whether each "tensor factor" is itself a tensor product or not.
-                for dom in domains:
-                    if hasattr(dom, '_sets'):
-                        n_tensor_factors.append(len(dom._sets))
-                    else:
-                        n_tensor_factors.append(1)
-                lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
-                upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
-                domain = tensor(domains)
-                codomain = tensor([map.codomain() for map in maps])
-                def on_basis(key_tuple):
-                    def key_fixer(arg):
-                        if len(arg) == 1:
-                            return arg[0]
-                        else:
-                            return arg
-                    return tensor([maps[i](maps[i].domain().monomial(key_fixer(key_tuple[lower_bounds[i]:upper_bounds[i]]))) for i in range(len(maps))])
-                return domain.module_morphism(on_basis=on_basis, codomain=codomain)
-
         class ElementMethods:
             """
             Abstract class for morphisms of modules with basis.
@@ -1108,6 +1063,52 @@ class ModulesWithBasis(Category_over_base_ring):
                 """
                 monomial = self.domain().monomial
                 return lambda t: self(monomial(t))
+
+            def tensor(*maps):
+                """
+                Return the tensor product of maps.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                    sage: r = W.from_reduced_word
+                    sage: A = W.algebra(ZZ)
+                    sage: r1 = r([1]); r2 = r([2])
+                    sage: AA = tensor([A,A])
+                    sage: a = AA.monomial((r1,r2))
+                    sage: mA = A.mult_tensor()
+                    sage: mm = tensor([mA,mA])
+                    sage: aa = tensor([a,a]); aa
+                    B[s1] # B[s2] # B[s1] # B[s2]
+                    sage: mm(aa)
+                    B[s1*s2] # B[s1*s2]
+                    sage: ImI = tensor([A.identity_map(), mA, A.identity_map()])
+                    sage: ImI(aa)
+                    B[s1] # B[s2*s1] # B[s2]
+
+                """
+                assert len(maps) > 0
+                domains = [map.domain() for map in maps]
+                n_tensor_factors = []
+                # we need a real method to determine how to break up keys into single elements or tuples
+                # depending on whether each "tensor factor" is itself a tensor product or not.
+                for dom in domains:
+                    if hasattr(dom, '_sets'):
+                        n_tensor_factors.append(len(dom._sets))
+                    else:
+                        n_tensor_factors.append(1)
+                lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
+                upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
+                domain = tensor(domains)
+                codomain = tensor([map.codomain() for map in maps])
+                def on_basis(key_tuple):
+                    def key_fixer(arg):
+                        if len(arg) == 1:
+                            return arg[0]
+                        else:
+                            return arg
+                    return tensor([maps[i](maps[i].domain().monomial(key_fixer(key_tuple[lower_bounds[i]:upper_bounds[i]]))) for i in range(len(maps))])
+                return domain.module_morphism(on_basis=on_basis, codomain=codomain)
 
     class CartesianProducts(CartesianProductsCategory):
         """
