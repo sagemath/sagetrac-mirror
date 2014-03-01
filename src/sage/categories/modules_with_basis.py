@@ -1064,7 +1064,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 monomial = self.domain().monomial
                 return lambda t: self(monomial(t))
 
-            def tensor(*maps):
+            def tensor(*maps, **keywords):
                 """
                 Return the tensor product of maps.
 
@@ -1099,8 +1099,8 @@ class ModulesWithBasis(Category_over_base_ring):
                         n_tensor_factors.append(1)
                 lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
                 upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
-                domain = tensor(domains)
-                codomain = tensor([map.codomain() for map in maps])
+                domain = tensor(domains, **keywords)
+                codomain = tensor([map.codomain() for map in maps], **keywords)
                 def on_basis(key_tuple):
                     def key_fixer(arg):
                         if len(arg) == 1:
@@ -1108,7 +1108,7 @@ class ModulesWithBasis(Category_over_base_ring):
                         else:
                             return arg
                     return tensor([maps[i](maps[i].domain().monomial(key_fixer(key_tuple[lower_bounds[i]:upper_bounds[i]]))) for i in range(len(maps))])
-                return domain.module_morphism(on_basis=on_basis, codomain=codomain)
+                return domain.module_morphism(on_basis=on_basis, codomain=codomain, **keywords)
 
     class CartesianProducts(CartesianProductsCategory):
         """
