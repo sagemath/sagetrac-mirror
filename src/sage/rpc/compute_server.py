@@ -9,11 +9,14 @@ somehow. Usually, it is running under the control of
 EXAMPLES::
 
     sage: from sage.rpc.factory import sage_remote
-    sage: c = sage_remote.new_client().wait_for_initialization()
+    sage: c = sage_remote.new_client()
     sage: c.sage_eval('1+1')
-    sage: c.loop()
-    sage: c.loop()
-    sage: c.loop()
+    1
+    sage: c.wait('sage_eval.result')
+    STDOUT 2
+    <BLANKLINE>
+    Evaluation finished in cpu=...ms, wall=...ms
+    <sage.rpc.core.monitor.MonitorClient object at 0x...>
 """
 
 from __future__ import print_function
@@ -24,7 +27,7 @@ import time
 from sage.misc.cstdio_buffer import linebuffer_output
 from sage.rpc.core.server_base import ServerBase
 from sage.rpc.core.transport import TransportError
-
+from sage.rpc.core.decorator import remote_callable
 
 
 def start_server(port, interface):
@@ -62,14 +65,6 @@ class SageComputeServer(ServerBase):
     def api_version(self):
         return 'compute v1'
 
-    def construct_rpc_table(self):
-        rpc = super(ServerBase, self).construct_rpc_table()
-        rpc['print'] = self.rpc_print
-        rpc['print_end_marker'] = self.rpc_print_end_marker
-        rpc['sage_eval'] = self.rpc_sage_eval_init
-        rpc['code_completion.start'] = self.rpc_code_completion_start
-        return rpc
-
     def __init__(self, transport, cookie):
         super(SageComputeServer, self).__init__(transport, cookie)
         self._init_shell()
@@ -96,7 +91,8 @@ class SageComputeServer(ServerBase):
         """
         self.end_marker = extra['end_marker']
         
-    def rpc_sage_eval_init(self, code_string, label):
+    @remote_callable('sage_eval')
+    def _impl_sage_eval(self, code_string, label):
         t0_cpu = time.clock()
         t0_wall = time.time()
         linebuffer_output()
@@ -107,16 +103,19 @@ class SageComputeServer(ServerBase):
         sys.stderr.flush()
         self.rpc.sage_eval.finished(t1_cpu - t0_cpu, t1_wall - t0_wall, label)
 
-    def rpc_print(self, value):
+    @remote_callable('print')
+    def _impl_print(self, value):
         print(value)
         sys.stdout.flush()        
 
-    def rpc_print_end_marker(self):
+    @remote_callable('print_end_marker')
+    def _impl_print_end_marker(self):
         sys.stdout.write(self.end_marker)
         sys.stderr.write(self.end_marker)
         sys.stdout.flush()        
         sys.stderr.flush()
 
-    def rpc_code_completion_start(self, line, position, label):
+    @remote_callable('code_completion.start')
+    def _impl_code_completion_start(self, line, position, label):
         basestr, completions = self._shell.complete(None, line, position)
         self.rpc.code_completion.finished(basestr, completions, label)

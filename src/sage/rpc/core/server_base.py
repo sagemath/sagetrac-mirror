@@ -69,10 +69,6 @@ class ServerBase(RemoteProcedureCaller):
     def api_version(self):
         return 'base class v1'
 
-    def construct_rpc_table(self):
-        rpc = super(ServerBase, self).construct_rpc_table()
-        return rpc
-
     def __init__(self, transport, cookie):
         self.log = RemoteProcedureLogger(self)
         super(ServerBase, self).__init__(transport, cookie)

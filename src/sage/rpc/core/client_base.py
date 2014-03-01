@@ -24,8 +24,9 @@ class ClientBase(RemoteProcedureCaller):
     def api_version(self):
         return 'base class v1'
 
-    def construct_rpc_table(self):
-        rpc = super(ClientBase, self).construct_rpc_table()
+    def _init_rpc_table(self):
+        super(ClientBase, self)._init_rpc_table()
+        rpc = self._rpc
         logger = self.log
         rpc['log.debug']     = logger.debug
         rpc['log.info']      = logger.info
@@ -35,7 +36,6 @@ class ClientBase(RemoteProcedureCaller):
         rpc['log.exception'] = logger.exception
         rpc['log.critical']  = logger.critical
         rpc['log.fatal']     = logger.critical
-        return rpc
 
     def __init__(self, transport, cookie, logger=None, remote_logger=None):
         self.log = logger_client if logger is None else logger

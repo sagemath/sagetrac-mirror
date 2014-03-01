@@ -4,6 +4,7 @@ RPC handling that is common to both Server and Client
 
 
 from sage.rpc.core.transport import TransportError
+from sage.rpc.core.decorator import remote_callable, remote_callable_iter
 
 
 TYPE_INIT_CONNECTION = 'init_connection'
@@ -14,7 +15,6 @@ TYPE_RPC_METHOD_CALL = 'rpc_method_call'
 
 class RemoteProcedureException(TransportError):
     pass
-
 
 
 class ProxyCaller(object):
@@ -87,33 +87,31 @@ class ProxyCaller(object):
         
 class RemoteProcedureCaller(object):
 
-    class UtilsImplementation(object):
-    
-        def __init__(self, rpc_caller):
-            self._rpc_caller = rpc_caller
+    @remote_callable('util.ping')
+    def _impl_ping(self, count, start_time):
+        self.log.debug('ping #%s', count)
+        self('util.pong', count, start_time)
 
-        def ping(self, count, start_time):
-            self._rpc_caller.log.debug('ping #%s', count)
-            self._rpc_caller('util.pong', count, start_time)
+    @remote_callable('util.pong')
+    def _impl_pong(self, count, start_time):
+        import time
+        elapsed_ms = int(1000*(time.time() - start_time))            
+        self.log.debug('pong #%s (%sms)', count, elapsed_ms)
+        print('pong #{0} ({1}ms)'.format(count, elapsed_ms))
 
-        def pong(self, count, start_time):
-            import time
-            elapsed_ms = int(1000*(time.time() - start_time))            
-            self._rpc_caller.log.debug('pong #%s (%sms)', count, elapsed_ms)
-            print('pong #{0} ({1}ms)'.format(count, elapsed_ms))
-    
-        def quit(self):
-            self._rpc_caller.log.debug('received quit command')
-            self._rpc_caller.close()
-            import sys
-            sys.exit(0)
+    @remote_callable('util.quit')
+    def _impl_quit(self):
+        self.log.debug('received quit command')
+        self.close()
+        import sys
+        sys.exit(0)
 
-        def remote_is_ready(self):
-            """
-            Called once when the remote has started up successfully
-            """
-            self._rpc_caller.log.debug('Remote signaled that it started successfully')
-
+    @remote_callable('util.remote_is_ready')
+    def remote_is_ready(self):
+        """
+        Called once when the remote has started up successfully
+        """
+        self.log.debug('Remote signaled that it started successfully')
 
     def __init__(self, transport, cookie):
         self._rpc_count = 0
@@ -122,27 +120,21 @@ class RemoteProcedureCaller(object):
         self._cookie = cookie
         self._initialized_local_rpc = False
         self._initialized_remote_rpc = False
-        self._rpc = None
+        self._wait_for_rpc_cmd = None
         self._init_rpc_table()
-
-    def construct_rpc_table(self):
-        """
-        """
-        if self._rpc is not None:
-            raise RuntimeError('table must be constructed only once')
-        rpc = dict()
-        utils = RemoteProcedureCaller.UtilsImplementation(self)
-        rpc['util.ping'] = utils.ping
-        rpc['util.pong'] = utils.pong
-        rpc['util.quit'] = utils.quit
-        rpc['util.remote_is_ready'] = utils.remote_is_ready
-        return rpc
 
     def _init_rpc_table(self):
         """
         Initialize the list of methods that the remote can call on us.
+        
+        This method can be overridden to register non-methods for rpc
+        calls. See
+        :meth:`sage.rpc.core.client_base.Clientbase._init_rpc_table`
+        as an example.
         """
-        self._rpc = self.construct_rpc_table()
+        self._rpc = dict()
+        for name, method in remote_callable_iter(self):
+            self._rpc[name] = method
         if self._initialized_local_rpc:
             error = 'multiple initialization of local rpc table'
             self.log.critical(error)
@@ -187,6 +179,29 @@ class RemoteProcedureCaller(object):
         ``self`` again, so you can chain calls.
         """
         while not all([self._initialized_remote_rpc, self._initialized_local_rpc]):
+            self.loop()
+        return self
+
+    def wait(self, rpc_command=True):
+        """
+        Block until a rpc command was received
+
+        This method is mostly for doctesting, as it allows us to wait
+        for the remote side to send its reply. A real application
+        would do something else in the meantime.
+
+        INPUT:
+
+        - ``rpc_command`` -- string or ``True``. A string denotes the
+          name of the rpc command to wait for. ``True`` indicates that
+          we want to wait for any rpc command.
+
+        OUTPUT:
+
+        ``self`` again, so you can chain calls.
+        """
+        self._wait_for_rpc_cmd = rpc_command
+        while self._wait_for_rpc_cmd is not None:
             self.loop()
         return self
 
@@ -420,6 +435,10 @@ class RemoteProcedureCaller(object):
         if not self._initialized_remote_rpc:
             raise RemoteProcedureException('RPC call before negotiaton with remote end')
         cmd = msg.get('cmd', None)
+        if self._wait_for_rpc_cmd is not None:
+            if self._wait_for_rpc_cmd is True or self._wait_for_rpc_cmd == cmd:
+                # Clear the attribute to indicate that we encountered the rpc call
+                self._wait_for_rpc_cmd = None
         args = msg.get('args', ())
         kwds = msg.get('kwds', {})
         return self.handle_method_call(cmd ,args, kwds)

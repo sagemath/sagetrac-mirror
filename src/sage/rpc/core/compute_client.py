@@ -11,19 +11,13 @@ example that ties everything together.
 """
 
 from sage.rpc.core.client_base import ClientBase
-
+from sage.rpc.core.decorator import remote_callable
 
 
 class ComputeClient(ClientBase):
     
     def api_version(self):
         return 'compute v1'
-
-    def construct_rpc_table(self):
-        rpc = super(ComputeClient, self).construct_rpc_table()
-        rpc['sage_eval.finished'] = self._impl_sage_eval_finished
-        rpc['code_completion.finished'] = self._impl_code_completion_finished
-        return rpc
 
     def __init__(self, transport, cookie):
         """
@@ -58,9 +52,11 @@ class ComputeClient(ClientBase):
     def end_marker(self):
         return self._end_marker
 
+    @remote_callable('sage_eval.finished')
     def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
         raise NotImplementedError
 
+    @remote_callable('code_completion.finished')
     def _impl_code_completion_finished(self, basestr, completions, label):
         raise NotImplementedError
 

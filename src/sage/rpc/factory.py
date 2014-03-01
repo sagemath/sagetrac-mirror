@@ -278,12 +278,10 @@ class SageRemoteFactory(object):
         EXAMPLES::
 
             sage: client = sage_remote.new_client()
-            sage: def idle():
-            ....:     for i in range(10):
-            ....:         client.loop(0); sleep(0.01)
             sage: client.ping()
-            sage: idle()
+            sage: client.wait()
             pong #0 (...ms)
+            <sage.rpc.core.monitor.MonitorClient object at 0x...>
         """
         cookie = self.random_cookie()
         from sage.rpc.core.transport import TransportListen

@@ -17,22 +17,13 @@ from sage.rpc.core.client_base import ClientBase
 from sage.rpc.core.compute_client import ComputeClient
 from sage.rpc.core.server_base import ServerBase
 from sage.rpc.core.stream_with_marker import StreamWithMarker, StreamStoppedException
+from sage.rpc.core.decorator import remote_callable
 
 
 class MonitorClient(ClientBase):
     
     def api_version(self):
         return 'monitor v1'
-
-    def construct_rpc_table(self):
-        rpc = super(MonitorClient, self).construct_rpc_table()
-        rpc['sage_eval.result'] = self._impl_sage_eval_result
-        rpc['sage_eval.stdin'] = self._impl_sage_eval_stdin
-        rpc['sage_eval.stdout'] = self._impl_sage_eval_stdout
-        rpc['sage_eval.stderr'] = self._impl_sage_eval_stderr
-        rpc['sage_eval.crash'] = self._impl_sage_eval_crash
-        rpc['code_completion.finished'] = self._impl_code_completion_finished
-        return rpc        
 
     def __init__(self, transport, cookie):
         """
@@ -78,6 +69,7 @@ class MonitorClient(ClientBase):
         self.rpc.sage_eval.start(code_string, label)
         return label
 
+    @remote_callable('sage_eval.result')
     def _impl_sage_eval_result(self, cpu_time, wall_time, label):
         """
         RPC callback when evaluation is finished
@@ -85,6 +77,7 @@ class MonitorClient(ClientBase):
         print('Evaluation finished in cpu={0}ms, wall={1}ms'
               .format(int(1000*cpu_time), int(1000*wall_time)))
 
+    @remote_callable('sage_eval.stdin')
     def _impl_sage_eval_stdin(self, label):
         """
         RPC callback when evaluation requests stdin
@@ -92,6 +85,7 @@ class MonitorClient(ClientBase):
         self.log.debug('stdin')
         print('Input requested')
 
+    @remote_callable('sage_eval.stdout')
     def _impl_sage_eval_stdout(self, stdout, label):
         """
         RPC callback when evaluation produces stdout
@@ -99,6 +93,7 @@ class MonitorClient(ClientBase):
         self.log.debug('stdout %s', stdout.strip())
         print('STDOUT ' + stdout)
 
+    @remote_callable('sage_eval.stderr')
     def _impl_sage_eval_stderr(self, stderr, label):
         """
         RPC callback when evaluation produces stderr
@@ -106,6 +101,7 @@ class MonitorClient(ClientBase):
         self.log.debug('stderr %s', stderr.strip())
         print('STDERR ' + stderr)
 
+    @remote_callable('sage_eval.crash')
     def _impl_sage_eval_crash(self, label):
         """
         RPC callback when the compute server crashed
@@ -136,6 +132,7 @@ class MonitorClient(ClientBase):
         self.rpc.code_completion.start(code_string, cursor_position, label)
         return label
 
+    @remote_callable('code_completion.finished')
     def _impl_code_completion_finished(self, base, completions, label):
         """
         RPC callback for the tab completion result
@@ -157,14 +154,6 @@ class MonitorServer(ServerBase):
     def api_version(self):
         return 'monitor v1'
 
-    def construct_rpc_table(self):
-        rpc = super(MonitorServer, self).construct_rpc_table()
-        rpc['sage_eval.start'] = self.monitor._impl_sage_eval_start
-        rpc['code_completion.start'] = self.monitor._impl_code_completion_start
-        rpc['util.ping'] = self.monitor._impl_ping
-        rpc['util.quit'] = self.monitor._impl_quit
-        return rpc
-
     def __init__(self, monitor, transport, cookie):
         """
         The server half of the monitor
@@ -174,16 +163,27 @@ class MonitorServer(ServerBase):
         self.monitor = monitor
         super(MonitorServer, self).__init__(transport, cookie)
         self.log.info('MonitorServer started')
+        print('server', self)
+
+    @remote_callable('sage_eval.start')
+    def _impl_sage_eval_start(self, code_string, label):
+        self.monitor.server_sage_eval_start(code_string, label)
+
+    @remote_callable('code_completion.start')
+    def _impl_code_completion_start(self, code_string, cursor_position, label):
+        self.monitor.server_code_completion_start(code_string, cursor_position, label)
+
+    @remote_callable('util.ping')
+    def _impl_ping(self, count, time):
+        self.log.debug('ping #%s', count)
+        self.monitor.server_ping(count, time)
+
+    @remote_callable('util.quit')
+    def _impl_quit(self):
+        self.monitor.server_quit()
 
 
 class MonitoredComputeClient(ComputeClient):
-
-    def construct_rpc_table(self):
-        rpc = super(MonitoredComputeClient, self).construct_rpc_table()
-        rpc['sage_eval.finished'] = self.monitor._impl_sage_eval_finished
-        rpc['code_completion.finished'] = self.monitor._impl_code_completion_finished
-        rpc['util.pong'] = self.monitor._impl_pong
-        return rpc
 
     def __init__(self, monitor, transport, cookie):
         """
@@ -202,6 +202,20 @@ class MonitoredComputeClient(ComputeClient):
         self.log = RemoteProcedureLogger(monitor.server, origin='compute')
         self.log.info('MonitoredComputeClient started')
 
+    @remote_callable('sage_eval.finished')
+    def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
+        self.monitor.client_sage_eval_finished(cpu_time, wall_time, label)
+
+    @remote_callable('code_completion.finished')
+    def _impl_code_completion_finished(self, basestr, completions, label):
+        self.monitor.client_code_completion_finished(basestr, completions, label)
+
+    @remote_callable('util.pong')
+    def _impl_pong(self, count, time):
+        self.log.debug('pong #%s', count)
+        self.monitor.client_pong(count, time)
+
+
  
 class Monitor(object):
 
@@ -215,7 +229,7 @@ class Monitor(object):
         self.log = self.server.log
         self.current_label = None
         
-    def _impl_sage_eval_start(self, code_string, label):
+    def server_sage_eval_start(self, code_string, label):
         """
         Implementation of the RPC call to start evaluation
         """
@@ -223,7 +237,7 @@ class Monitor(object):
         self.current_label = label
         self.client.rpc.sage_eval(code_string, label)
 
-    def _impl_sage_eval_finished(self, cpu_time, wall_time, label):
+    def client_sage_eval_finished(self, cpu_time, wall_time, label):
         """
         Callback when the compute server finished.
 
@@ -303,23 +317,27 @@ class Monitor(object):
         self.process.wait()
         sys.exit(0)                    
         
-    def _impl_ping(self, count, time):
-        self.log.debug('ping #%s', count)
+    def server_ping(self, count, time):
+        """
+        Implementation of the RPC ping call
+        """
         self.client.rpc.util.ping(count, time)
 
-    def _impl_pong(self, count, time):
-        self.log.debug('pong #%s', count)
+    def client_pong(self, count, time):
+        """
+        Implementation of the RPC pong response
+        """
         self.server.rpc.util.pong(count, time)
 
-    def _impl_quit(self):
+    def server_quit(self):
         self.quit()
 
-    def _impl_code_completion_start(self, code_string, cursor_position, label):
+    def server_code_completion_start(self, code_string, cursor_position, label):
         assert self.current_label is None  # no current computation
         self.current_label = label
         self.client.rpc.code_completion.start(code_string, cursor_position, label)
 
-    def _impl_code_completion_finished(self, basestr, completions, label):
+    def client_code_completion_finished(self, basestr, completions, label):
         assert self.current_label == label
         self.current_label = None
         self.server.rpc.code_completion.finished(basestr, completions, label)
