@@ -7,6 +7,17 @@ separate process so that it does not block while a computation is
 running::
 
     MonitorClient <-> [MonitorServer, MonitoredComputeClient] <-> Sage Compute Server
+
+This involves three separate processes:
+
+* The UI process has the MonitorClient instance. It can initiate
+  actions like evaluation of code or code completion.
+
+* The compute server loads the Sage library and answers requests.
+
+* The monitor process sits in-between the two. It facilitates
+  communication, captures stdout / stderr from the compute process,
+  and can send interrupt signals to the computation.
 """
 
 import os
@@ -219,14 +230,25 @@ class MonitoredComputeClient(ComputeClient):
  
 class Monitor(object):
 
-    def __init__(self, process, server_transport, client_transport, cookie):
+    def __init__(self, process, server_transport, cookie):
         """
         The monitor
         """
-        self.server = MonitorServer(self, server_transport, cookie)
-        self.client = MonitoredComputeClient(self, client_transport, cookie)
+        self.cookie = cookie
+        self.server = MonitorServer(self, server_transport, self.cookie)
         self.process = process
+        self._init_client_transport()
         self.log = self.server.log
+
+    def _init_client_transport(self):
+        """
+        Initialize the transport to the compute client
+        
+        This needs to be called whenever the monitored process is
+        restarted.
+        """
+        transport = self.process.transport()
+        self.client = MonitoredComputeClient(self, transport, self.cookie)
         self.current_label = None
         
     def server_sage_eval_start(self, code_string, label):
@@ -255,6 +277,12 @@ class Monitor(object):
         self._eval_wall_time = cpu_time
         
     def on_end_marker_received(self):
+        """
+        Called after the end marker has been read.
+
+        This method is called after both stdout and stderr have
+        received the end marker from the monitored process.
+        """
         self.process.stop_at(None)
         self.server.rpc.sage_eval.result(
             self._eval_cpu_time, self._eval_wall_time, self.current_label)        
@@ -265,7 +293,7 @@ class Monitor(object):
         try:
             crl, cwl, cxl = self.client.select_args()
         except TransportError:
-            self.handle_client_disconnect()
+            return self.handle_client_disconnect()
         try:
             srl, swl, sxl = self.server.select_args()
         except TransportError:
@@ -281,7 +309,7 @@ class Monitor(object):
         try:
             self.client.select_handle(rlist, wlist, xlist)
         except TransportError:
-            self.handle_client_disconnect()
+            return self.handle_client_disconnect()
         try:
             self.server.select_handle(rlist, wlist, xlist)
         except TransportError:
@@ -294,6 +322,7 @@ class Monitor(object):
         
         Compare with :meth:`handle_client_disconnect`.
         """
+        # We can't rely on the logging mechanism any more at this point
         print('Monitor: disconnected, killing subprocess and exiting.')
         try:
             self.client.rpc.util.quit()
@@ -310,12 +339,12 @@ class Monitor(object):
 
         Compare with :meth:`handle_server_disconnect`.
         """
-        print('Monitor: Compute server died.')
+        self.log.critical('compute server died')
         self.server.rpc.sage_eval.crash(self.current_label)
         self.server._transport.flush()
-        # todo: restart?
-        self.process.wait()
-        sys.exit(0)                    
+        self.process.restart()
+        self._init_client_transport()
+        self.log.debug('compute server restarted')
         
     def server_ping(self, time, label):
         """
@@ -387,11 +416,10 @@ class MonitoredProcess(object):
         
         INPUT:
 
-        - ``argv`` -- list of string.
+        - ``argv`` -- list of strings.
         """
-        self._init_listen()
-        self._init_process(argv)
-        self.transport().accept()
+        self._argv = argv
+        self._start_process()
         self._stdout = StreamWithMarker()
         self._stderr = StreamWithMarker()
 
@@ -406,17 +434,19 @@ class MonitoredProcess(object):
         client_uri = 'tcp://localhost:0'
         self._transport = TransportListen(client_uri)
 
-    def _init_process(self, argv):
+    def _start_process(self):
+        self._init_listen()
         t = self.transport()
         self._cmd = [cmd.format(port=t.port(), interface=t.interface())
-                     for cmd in argv]
+                     for cmd in self._argv]
         from subprocess import Popen, PIPE
         self._proc = Popen(self._cmd, stdin=None, stdout=PIPE, stderr=PIPE)
+        t.accept()
         import fcntl
         for fd in [self._proc.stdout.fileno(), self._proc.stderr.fileno()]:
             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
+    
     def select_args(self):
         proc = self._proc
         fd_out = proc.stdout.fileno()
@@ -454,6 +484,10 @@ class MonitoredProcess(object):
     def wait(self):
         self._proc.wait()
 
+    def restart(self):
+        self.close()
+        self._start_process()
+
 
 def start_monitor(port, interface):
     print('starting monitor process')
@@ -471,7 +505,7 @@ def start_monitor(port, interface):
 
     # start up
     cookie = os.environ['COOKIE']
-    monitor = Monitor(process, transport, process.transport(), cookie)
+    monitor = Monitor(process, transport, cookie)
     while True:
         # print('monitor loop')
         monitor.loop()

@@ -9,6 +9,10 @@ EXAMPLES::
     sage: s = sage_remote.test_blocking()
     sage: s.eval('1+1')
     '2'
+
+The Sage session is restarted automatically if it dies unexpectedly::
+
+    sage: s.eval('exit()')
 """
 
 import os
