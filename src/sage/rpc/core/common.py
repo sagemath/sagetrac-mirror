@@ -88,16 +88,16 @@ class ProxyCaller(object):
 class RemoteProcedureCaller(object):
 
     @remote_callable('util.ping')
-    def _impl_ping(self, count, start_time):
-        self.log.debug('ping #%s', count)
-        self('util.pong', count, start_time)
+    def _impl_ping(self, start_time, label):
+        self.log.debug('ping #%s', label)
+        self('util.pong', start_time, label)
 
     @remote_callable('util.pong')
-    def _impl_pong(self, count, start_time):
+    def _impl_pong(self, start_time, label):
         import time
         elapsed_ms = int(1000*(time.time() - start_time))            
-        self.log.debug('pong #%s (%sms)', count, elapsed_ms)
-        print('pong #{0} ({1}ms)'.format(count, elapsed_ms))
+        self.log.debug('pong #%s (%sms)', label, elapsed_ms)
+        print('pong #{0} ({1}ms)'.format(label, elapsed_ms))
 
     @remote_callable('util.quit')
     def _impl_quit(self):
@@ -307,7 +307,7 @@ class RemoteProcedureCaller(object):
 
     def ping(self):
         import time
-        self('util.ping', self._ping_count, time.time())
+        self('util.ping', time.time(), self._ping_count)
         self._ping_count += 1
 
     def can_handle(self):

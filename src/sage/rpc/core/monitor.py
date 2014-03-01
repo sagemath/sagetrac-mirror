@@ -174,9 +174,9 @@ class MonitorServer(ServerBase):
         self.monitor.server_code_completion_start(code_string, cursor_position, label)
 
     @remote_callable('util.ping')
-    def _impl_ping(self, count, time):
-        self.log.debug('ping #%s', count)
-        self.monitor.server_ping(count, time)
+    def _impl_ping(self, time, label):
+        self.log.debug('ping #%s', label)
+        self.monitor.server_ping(time, label)
 
     @remote_callable('util.quit')
     def _impl_quit(self):
@@ -211,9 +211,9 @@ class MonitoredComputeClient(ComputeClient):
         self.monitor.client_code_completion_finished(basestr, completions, label)
 
     @remote_callable('util.pong')
-    def _impl_pong(self, count, time):
-        self.log.debug('pong #%s', count)
-        self.monitor.client_pong(count, time)
+    def _impl_pong(self, time, label):
+        self.log.debug('pong #%s', label)
+        self.monitor.client_pong(time, label)
 
 
  
@@ -317,17 +317,17 @@ class Monitor(object):
         self.process.wait()
         sys.exit(0)                    
         
-    def server_ping(self, count, time):
+    def server_ping(self, time, label):
         """
         Implementation of the RPC ping call
         """
-        self.client.rpc.util.ping(count, time)
+        self.client.rpc.util.ping(time, label)
 
-    def client_pong(self, count, time):
+    def client_pong(self, time, label):
         """
         Implementation of the RPC pong response
         """
-        self.server.rpc.util.pong(count, time)
+        self.server.rpc.util.pong(time, label)
 
     def server_quit(self):
         self.quit()

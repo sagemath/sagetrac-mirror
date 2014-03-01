@@ -19,9 +19,9 @@ The actual rpc call is under the ``rpc`` attribute::
     * util.pong
     * util.quit
     * util.remote_is_ready
-    sage: client.rpc.util.ping('arg', int(0))
+    sage: client.rpc.util.ping(int(0), 'count')
     sage: sage_remote.test_idle()
-    pong #arg (...ms)
+    pong #count (...ms)
 
 Another feature is that server logs are sent and displayed at the
 client::
@@ -279,7 +279,7 @@ class SageRemoteFactory(object):
 
             sage: client = sage_remote.new_client()
             sage: client.ping()
-            sage: client.wait()
+            sage: client.wait('util.pong')
             pong #0 (...ms)
             <sage.rpc.core.monitor.MonitorClient object at 0x...>
         """
@@ -293,12 +293,100 @@ class SageRemoteFactory(object):
         client = MonitorClient(transport, cookie)
         client.wait_for_initialization()
         self._add_idle(client)        
-        import time
-        for i in range(200):
-            self._inputhook()
-            time.sleep(0.01)
-
         return client
+
+    def _new_monitor_client(self, monitor_client_class, interface='localhost'):
+        """
+        Construct a new client instance.
+
+        This method is for internal use only.
+
+        INPUT:
+
+        - ``monitor_client_class`` -- subclass of
+          :class:`~sage.rpc.core.monitor.MonitorClient`.
+
+        - ``interface`` -- string, defaults to
+          ``'localhost'``. Network interface to listen on.
+
+        OUTPUT:
+
+        A new ``monitor_client_class`` instance.
+
+        EXAMPLES::
+
+            sage: client = sage_remote.new_client()
+            sage: client.ping()
+            sage: client.wait('util.pong')
+            pong #0 (...ms)
+            <sage.rpc.core.monitor.MonitorClient object at 0x...>
+        """
+        cookie = self.random_cookie()
+        from sage.rpc.core.transport import TransportListen
+        uri = 'tcp://localhost:0'.format(interface)
+        transport = TransportListen(uri)
+        proc = self.spawn_monitor(cookie, transport.port(), interface)
+        transport.accept()
+        client = monitor_client_class(transport, cookie)
+        client.wait_for_initialization()
+        self._add_idle(client)        
+        return client
+
+    def new_client(self, interface='localhost'):
+        """
+        Construct a new client instance.
+
+        INPUT:
+
+        - ``interface`` -- string, defaults to
+          ``'localhost'``. Network interface to listen on.
+
+        OUTPUT:
+
+        A new :class:`~sage.rpc.core.monitor.MonitorClient` instance.
+
+        EXAMPLES::
+
+            sage: client = sage_remote.new_client()
+            sage: client.ping()
+            sage: client.wait('util.pong')
+            pong #0 (...ms)
+            <sage.rpc.core.monitor.MonitorClient object at 0x...>
+        """
+        from sage.rpc.core.monitor import MonitorClient
+        return self._new_monitor_client(MonitorClient, interface)
+
+    def new_blocking(self, interface='localhost'):
+        """
+        Construct a new blocking interface to another Sage session.
+
+        INPUT:
+
+        - ``interface`` -- string, defaults to
+          ``'localhost'``. Network interface to listen on.
+
+        OUTPUT:
+
+        A new :class:`~sage.rpc.sage_interface.BlockingSage` instance.
+
+        EXAMPLES::
+
+            sage: s = sage_remote.test_blocking()  # indirect doctest
+            sage: s.ping()
+            pong #0 (...ms)
+        """
+        from sage.rpc.sage_client import SageClient
+        from sage.rpc.sage_interface import BlockingSageInterface
+        client = self._new_monitor_client(SageClient, interface)
+        return BlockingSageInterface(client)
+
+    def test_blocking(self):
+        try:
+            return self._test_blocking
+        except AttributeError:
+            pass
+        self._test_blocking = self.new_blocking()
+        return self._test_blocking
 
     def test_instance(self):
         """
