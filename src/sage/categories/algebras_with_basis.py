@@ -394,7 +394,8 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 B[s1*s2]
                 sage: b = A.an_element(); b
                 B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
-                sage: ab = tensor([a,b]); ab
+                sage: cat = ModulesWithBasis(ZZ)
+                sage: ab = tensor([a,b],category=cat); ab
                 B[s1*s2] # B[s1*s2*s1] + 3*B[s1*s2] # B[s1*s2] + 3*B[s1*s2] # B[s2*s1]
                 sage: mA(ab)
                 3*B[s2*s1] + B[s2] + 3*B[1]
@@ -402,7 +403,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 3*B[s2*s1] + B[s2] + 3*B[1]
                 sage: AA = tensor([A,A])
                 sage: mAA = AA.mult_tensor()
-                sage: mAA(tensor([a,b,b,b]))
+                sage: mAA(tensor([a,b,b,b], category=cat))
                 27*B[s2*s1] # B[s1*s2] + 27*B[s2*s1] # B[s2*s1] + 18*B[s2*s1] # B[s1] + 18*B[s2*s1] # B[s2] + 57*B[s2*s1] # B[1] + 9*B[s2] # B[s1*s2] + 9*B[s2] # B[s2*s1] + 6*B[s2] # B[s1] + 6*B[s2] # B[s2] + 19*B[s2] # B[1] + 27*B[1] # B[s1*s2] + 27*B[1] # B[s2*s1] + 18*B[1] # B[s1] + 18*B[1] # B[s2] + 57*B[1] # B[1]
 
             """
@@ -410,11 +411,14 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
             if isinstance(self, CombinatorialFreeModule_Tensor):
                 n_factors = len(self._sets)
-                on_basis = lambda x: self.monomial(x[0:n_factors])*self.monomial(x[n_factors:2*n_factors])
+                def on_basis(x):
+                    return self.monomial(x[0:n_factors])*self.monomial(x[n_factors:2*n_factors])
             else:
-                on_basis = lambda x: self.monomial(x[0])*self.monomial(x[1])
-            AA = tensor([self,self])
-            return AA.module_morphism(on_basis = on_basis, codomain=self,category=ModulesWithBasis(self.base_ring()))
+                def on_basis(x):
+                    return self.monomial(x[0])*self.monomial(x[1])
+            category = ModulesWithBasis(self.base_ring())
+            AA = tensor([self,self], category=category)
+            return AA.module_morphism(on_basis = on_basis, codomain=self, category=category)
 
         @cached_method
         def tensor_with_unit(self, A, side='right'):
@@ -441,14 +445,17 @@ class AlgebrasWithBasis(Category_over_base_ring):
             """
             from sage.categories.morphism import SetMorphism
             from sage.categories.homset import Hom
-            R = self.base_ring()
-            assert A.category().is_subcategory(AlgebrasWithBasis(R))
+            assert A.category().is_subcategory(AlgebrasWithBasis(self.base_ring()))
             if side == 'right':
                 codomain = tensor([self, A])
-                return SetMorphism(Hom(self,codomain,category=AlgebrasWithBasis(R)), lambda x: tensor([x, A.one()]))
+                def tensor_one_right(x):
+                    return tensor([x, A.one()])
+                return SetMorphism(Hom(self,codomain), tensor_one_right)
             else:
                 codomain = tensor([A, self])
-                return SetMorphism(Hom(self,codomain,category=AlgebrasWithBasis(R)), lambda x: tensor([A.one(), x]))
+                def tensor_one_left(x):
+                    return tensor([A.one(), x])
+                return SetMorphism(Hom(self,codomain), tensor_one_left)
 
     class ElementMethods:
 

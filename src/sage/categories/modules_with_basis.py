@@ -469,9 +469,9 @@ class ModulesWithBasis(Category_over_base_ring):
             return parents[0].__class__.Tensor(parents, category = category)
 
         @cached_method
-        def identity_map(self):
+        def identity_map(self, category=None):
             r"""
-            Returns the identity morphism in the category of modules over the base ring.
+            Returns the identity morphism.
 
             EXAMPLES::
 
@@ -483,10 +483,18 @@ class ModulesWithBasis(Category_over_base_ring):
                 2*B[1] + 2*B[2]
                 sage: iM(m)
                 2*B[1] + 2*B[2]
+                sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: iA = A.identity_map(); iA
+                Generic endomorphism of Group algebra of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) over Integer Ring
 
             """
             from sage.categories.morphism import SetMorphism
-            return SetMorphism(Hom(self, self, category=ModulesWithBasis(self.base_ring())), lambda x: x)
+            def the_id(x):
+                return x
+            if category is None:
+                return SetMorphism(Hom(self,self,category=self.category()),the_id)
+            return SetMorphism(Hom(self, self, category=category), the_id)
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
@@ -1068,22 +1076,34 @@ class ModulesWithBasis(Category_over_base_ring):
                 """
                 Return the tensor product of maps.
 
+                The optional keyword parameters can be used to pass the category for the tensor products.
+                The default category is `ModulesWithBasis` over the base ring.
+
                 EXAMPLES::
 
                     sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
                     sage: r = W.from_reduced_word
-                    sage: A = W.algebra(ZZ)
-                    sage: r1 = r([1]); r2 = r([2])
+                    sage: A = W.algebra(ZZ); A.rename("A")
                     sage: AA = tensor([A,A])
-                    sage: a = AA.monomial((r1,r2))
+                    sage: a = AA.monomial((r([1]),r([2]))); a
+                    B[s1] # B[s2]
                     sage: mA = A.mult_tensor()
                     sage: mm = tensor([mA,mA])
                     sage: aa = tensor([a,a]); aa
                     B[s1] # B[s2] # B[s1] # B[s2]
-                    sage: mm(aa)
+                    sage: aa.parent()
+                    A # A # A # A
+                    sage: aa.parent().category()
+                    Category of tensor products of hopf algebras with basis over Integer Ring
+                    sage: mm.domain()
+                    A # A # A # A
+                    sage: mm.domain().category()
+                    Category of tensor products of modules with basis over Integer Ring
+                    sage: mm(mm.domain()(aa))
                     B[s1*s2] # B[s1*s2]
-                    sage: ImI = tensor([A.identity_map(), mA, A.identity_map()])
-                    sage: ImI(aa)
+                    sage: IA = A.identity_map(category=ModulesWithBasis(ZZ))
+                    sage: ImI = tensor([IA, mA, IA])
+                    sage: ImI(ImI.domain()(aa))
                     B[s1] # B[s2*s1] # B[s2]
 
                 """
