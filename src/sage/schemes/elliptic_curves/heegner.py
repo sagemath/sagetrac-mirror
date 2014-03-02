@@ -149,6 +149,7 @@ def heegner_points(N, D=None, c=None):
         sage: heegner_points(389,-7,5)
         All Heegner points of conductor 5 on X_0(389) associated to QQ[sqrt(-7)]
     """
+    #print 'BOOYAH!'
     if D is None and c is None:
         return HeegnerPoints_level(N)
     if D is not None and c is None:
@@ -368,6 +369,7 @@ class RingClassField(SageObject):
         return K.class_number() * self.degree_over_H()
 
     @cached_method
+    # comment: this degree_over_H function is broken when D =  -3 or -4. -- Hao Chen.
     def degree_over_H(self):
         """
         Return the degree of this field over the Hilbert class field `H` of `K`.
@@ -2236,6 +2238,16 @@ def is_kolyvagin_conductor(N, E, D, r, n, c):
                 return False
     return True
 
+##################
+# Helper function -- Hao Chen
+###############
+def class_number_order(D):
+    """
+    return the class number cl(D)
+    """
+    return len([f for f in BinaryQF_reduced_representatives(D) if f.is_primitive()])
+################
+
 
 class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_disc):
     """
@@ -2438,6 +2450,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
 
 
     @cached_method
+    # was broken: I changed it so that it works -- Hao Chen.
     def points(self, beta=None):
         r"""
         Return the Heegner points in ``self``.  If `\beta` is given,
@@ -2480,24 +2493,23 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
 
         U = []
         R = []
-        h = self.ring_class_field().degree_over_K()
+        h = class_number_order(disc)
         a = 1
         while len(U) < h:
-            if c.gcd(a) != 1:
-                a += 1
-                continue
-            # todo (optimize) -- replace for over all s with for over solution set
             y = ZZ((b*b - disc)/(4*N))
             for s in Integers(a):
+            # todo (optimize) -- replace for over all s with for over solution set
                 if N*s*s + b*s + y == 0:
                     s = s.lift()
-                    f = (a*N, b+2*N*s, ZZ( ((b + 2*N*s)**2 - disc)/(4*a*N)) )
-                    g = BinaryQF(f).reduced_form()
-                    assert g.discriminant() == disc
-                    if g not in U:
-                        U.append(g)
-                        R.append(HeegnerPointOnX0N(N,D,c,f))
-                        if len(U) >= h: break
+                    A, B, C = a*N, b+2*N*s, ZZ( ((b + 2*N*s)**2 - disc)/(4*a*N))
+                    #f = (a*N, b+2*N*s, ZZ( ((b + 2*N*s)**2 - disc)/(4*a*N)))
+                    if gcd(gcd(A,B),C) == 1 and gcd(gcd(ZZ(A/N),B),C*N) == 1:
+                        f = (A,B,C)
+                        g = BinaryQF(f).reduced_form()
+                        if g not in U:
+                            U.append(g)
+                            R.append(HeegnerPointOnX0N(N,D,c,f))
+                            if len(U) >= h: break
             a += 1
         return tuple(sorted(R))
 
