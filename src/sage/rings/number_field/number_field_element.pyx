@@ -1666,6 +1666,15 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: 2^sqrt2
+            2^sqrt(2)
+            sage: K.<a> = NumberField(x^2+1)
+            sage: 2^a
+            Traceback (most recent call last):
+            ...
+            TypeError: An embedding into RR or CC must be specified.
+            
         """
         if (PY_TYPE_CHECK(base, NumberFieldElement) and
             (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
@@ -1679,14 +1688,15 @@ cdef class NumberFieldElement(FieldElement):
             # symbolics library from trying to simplify this expression
             # again. This would lead to infinite loops otherwise.
             from sage.symbolic.ring import SR
-            try:
-                res = QQ(base)**exp
-            except TypeError:
-                pass
-            else:
-                if res.parent() is not SR:
-                    return parent(cbase)(res)
-                return res
+#            try:
+#                qbase = QQ(base)
+#            except TypeError:
+#                pass
+#            else:
+#                res = qbase**exp
+#                if res.parent() is not SR:
+#                    return parent(cbase)(res)
+#                return res
             sbase = SR(base)
             if sbase.operator() is operator.pow:
                 nbase, pexp = sbase.operands()
