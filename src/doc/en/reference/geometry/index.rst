@@ -18,6 +18,8 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/rings/polynomial/groebner_fan
 
    sage/geometry/lattice_polytope
+   sage/geometry/lattice_polytopes
+   sage/geometry/lattice_polytopes_backend
 
    sage/geometry/polyhedron/constructor
    sage/geometry/polyhedron/representation
