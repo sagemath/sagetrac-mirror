@@ -50,7 +50,7 @@ bootstrap () {
     case $st in
         0) true;; # Success
 
-        63|127)  # Autotools not installed or version too old
+        *)
             if [ $DOWNLOAD = yes ]; then
                 echo >&2 "Bootstrap failed, downloading required files instead."
                 bootstrap-download || exit $?
@@ -60,12 +60,10 @@ bootstrap () {
                 else
                     verb="upgrade"
                 fi
-                echo >&2 "Bootstrap failed. Either $verb autotools or run bootstrap with"
-                echo >&2 "the -d option to download the auto-generated files instead."
+                echo >&2 "Bootstrap failed. Either fix the error above or $verb autotools or"
+                echo >&2 "run bootstrap with the -d option to download the auto-generated files."
                 exit $st
             fi;;
-
-        *) exit $st;; # Failure
     esac
 }
 
