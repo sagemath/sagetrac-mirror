@@ -50,7 +50,7 @@ class Monoids(CategoryWithAxiom):
 
     """
 
-    _base_category_class_and_axiom = [Semigroups, "Unital"]
+    _base_category_class_and_axiom = (Semigroups, "Unital")
 
     Finite = LazyImport('sage.categories.finite_monoids', 'FiniteMonoids', 'Finite', at_startup=True)
     Inverse = LazyImport('sage.categories.groups', 'Groups', 'Inverse', at_startup=True)

@@ -3,14 +3,14 @@ Modules With Basis
 
 AUTHORS:
 
-- Nicolas M. Thiery (2008-2010): initial revision
+- Nicolas M. Thiery (2008-2014): initial revision, axiomatization
 - Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
