@@ -244,7 +244,6 @@ class BetaAdicMonoid(Monoid_class):
         return orbit_points
     
     def points (self, n=None, place=None, ss=None, iss=None, prec=53):
-        
         r"""
         Returns a set of values (real or complex) corresponding to the drawing of the limit set of the beta-adic monoid.
 
@@ -262,7 +261,7 @@ class BetaAdicMonoid(Monoid_class):
         
         - ``iss`` - set of initial states of the automaton ss (default: ``None``)
         
-        - ``prec` - precision of returned values (default: ``53``)
+        - ``prec`` - precision of returned values (default: ``53``)
         
         OUTPUT:
 
@@ -328,7 +327,7 @@ class BetaAdicMonoid(Monoid_class):
     
     def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, verb=False):
         r"""
-        Plot the limit set of the beta-adic monoid (with subshift if any).
+        Draw the limit set of the beta-adic monoid (with or without subshift).
 
         INPUT:
         
@@ -354,7 +353,7 @@ class BetaAdicMonoid(Monoid_class):
         
         OUTPUT:
 
-        A Graphics object.
+            A Graphics object.
 
         EXAMPLES:
 
@@ -362,7 +361,7 @@ class BetaAdicMonoid(Monoid_class):
 
             sage: m=BetaAdicMonoid(1/(1+I), {0,1})
             sage: m.plot()     # long time
-        
+
         #. The Rauzy fractal of the Tribonacci substitution::
 
             sage: s = WordMorphism('1->12,2->13,3->1')
@@ -379,20 +378,21 @@ class BetaAdicMonoid(Monoid_class):
         
         #. The dragon fractal and its boundary::
 
-            sage: m=BetaAdicMonoid(1/(1+I), {0,1})
+            sage: m = BetaAdicMonoid(1/(1+I), {0,1})
             sage: p1 = m.plot()                                  # long time
             sage: ssi = m.intersection_words(w1=[0], w2=[1])     # long time
             sage: p2 = m.plot(ss = ssi, n=18)                    # long time
             sage: p1+p2                                          # long time
-        
-        #. The “Hokkaido” fractal and its boundary::
+            
+        #. The "Hokkaido" fractal and its boundary::
           
-              sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
-              sage: m = s.rauzy_fractal_beta_adic_monoid()
-              sage: p1 = m.plot()                                     # long time
-              sage: ssi = m.intersection_words(w1=[0], w2=[1])        # long time
-              sage: p2 = m.plot(ss=ssi, n=40)                         # long time
-              sage: p1+p2                                             # long time
+            sage: s = WordMorphism('a->ab,b->c,c->d,d->e,e->a')
+            sage: m = s.rauzy_fractal_beta_adic_monoid()
+            sage: p1 = m.plot()                                     # long time
+            sage: ssi = m.intersection_words(w1=[0], w2=[1])        # long time
+            sage: p2 = m.plot(ss=ssi, n=40)                         # long time
+            sage: p1+p2                                             # long time
+        
         """
         
         global co
