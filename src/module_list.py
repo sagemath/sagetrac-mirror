@@ -256,6 +256,9 @@ ext_modules = [
 
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
+    
+    Extension('sage.combinat.words.automata',
+              sources=['sage/combinat/words/automata.pyx']),
 
     ################################
     ##
@@ -1386,6 +1389,16 @@ ext_modules = [
     #           sources = ['sage/modules/vector_rational_sparse.pyx'],
     #           libraries = ['gmp']),
 
+	    ################################
+    ## 
+    ## sage.monoids
+    ##
+    ################################
+    
+    Extension('sage.monoids.beta_adic_monoid',
+              sources = ['sage/monoids/beta_adic_monoid.pyx'],
+              libraries=[]),
+    
     ################################
     ##
     ## sage.numerical

@@ -1163,9 +1163,18 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
     cdef int u_int
     if u in vertex_ints:
         return vertex_ints[u]
-    try:
-        u_int = u
-    except StandardError:
+#    return -1
+#    try:
+#        u_int = u
+#    except StandardError:
+#        return -1
+    from sage.rings.integer_ring import IntegerRing
+    if u in IntegerRing():
+        try:
+            u_int = u
+        except StandardError:
+            return -1
+    else:
         return -1
     if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
@@ -1445,7 +1454,7 @@ class CGraphBackend(GenericGraphBackend):
 
         EXAMPLE::
 
-
+                                                                                                                                                                                                              
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
             sage: D.out_degree(1)
             2
@@ -1699,9 +1708,6 @@ class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
         """
-        if not self._directed:
-            return self.iterator_out_nbrs(v)
-
         return iter(set(self.iterator_in_nbrs(v)) |
                     set(self.iterator_out_nbrs(v)))
 
@@ -2656,22 +2662,16 @@ class CGraphBackend(GenericGraphBackend):
            False
 
         A graph with non-integer vertex labels::
-
             sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
             True
         """
-        cdef int v_int
-        cdef CGraph cg = <CGraph> self._cg
-
-        if cg.num_edges() < cg.num_verts - 1:
-            return False
-
-        v_int = bitset_first(cg.active_vertices)
+        cdef int v_int = 0
+        v_int = bitset_first((<CGraph>self._cg).active_vertices)
 
         if v_int == -1:
             return True
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
-        return len(list(self.depth_first_search(v, ignore_direction=True))) == cg.num_verts
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+        return len(list(self.depth_first_search(v, ignore_direction=True))) == (<CGraph>self._cg).num_verts
 
     def is_strongly_connected(self):
         r"""
@@ -2737,7 +2737,7 @@ class CGraphBackend(GenericGraphBackend):
         return list(a & b)
 
     def is_directed_acyclic(self, certificate = False):
-        r"""
+        r""" 
         Returns whether the graph is both directed and acylic (possibly with a
         certificate)
 
@@ -2784,14 +2784,14 @@ class CGraphBackend(GenericGraphBackend):
         EXAMPLES:
 
         At first, the following graph is acyclic::
-
+        
             sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
             sage: D.plot(layout='circular').show()
             sage: D.is_directed_acyclic()
             True
-
+        
         Adding an edge from `9` to `7` does not change it::
-
+        
             sage: D.add_edge(9,7)
             sage: D.is_directed_acyclic()
             True
@@ -2801,9 +2801,9 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: D.is_directed_acyclic(certificate = True)
             (True, [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10])
-
+        
         Adding an edge from 7 to 4, though, makes a difference::
-
+        
             sage: D.add_edge(7,4)
             sage: D.is_directed_acyclic()
             False
@@ -2829,43 +2829,43 @@ class CGraphBackend(GenericGraphBackend):
         if not self._directed:
             raise ValueError("Input must be a directed graph.")
 
-        # Activated vertices
+        # Activated vertices 
         cdef bitset_t activated
         bitset_init(activated, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(activated, (<CGraph>self._cg).active_vertices.size)
 
-        # Vertices whose neighbors have already been added to the stack
+        # Vertices whose neighbors have already been added to the stack 
         cdef bitset_t tried
         bitset_init(tried, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(tried, 0)
-
-        # Parent of a vertex in the discovery tree
-        cdef dict parent = {}
-
-        # The vertices left to be visited
-        cdef list stack = []
+         
+        # Parent of a vertex in the discovery tree 
+        cdef dict parent = {} 
+         
+        # The vertices left to be visited 
+        cdef list stack = [] 
 
         # Final ordering, if the graph turns out to be acyclic
         cdef list ordering = []
 
         # Circuit, if the graph turns out to contain one
         cdef list cycle
-
+         
         # We try any vertex as the source of the exploration tree
         for v in (<CGraph>self._cg).verts():
-
-            # We are not interested in trying de-activated vertices
-            if bitset_not_in(activated, v):
-                continue
-
+                 
+            # We are not interested in trying de-activated vertices 
+            if bitset_not_in(activated, v): 
+                continue 
+         
             stack = [v]
-
-            # For as long as some vertices are to be visited
-            while stack:
-
-                # We take the last one (depth-first search)
-                u = stack[-1]
-
+         
+            # For as long as some vertices are to be visited 
+            while stack: 
+         
+                # We take the last one (depth-first search) 
+                u = stack[-1] 
+         
                 # This vertex may have been deactivated since we added it.
                 if bitset_not_in(activated, u):
                     stack.pop(-1)
@@ -2879,48 +2879,48 @@ class CGraphBackend(GenericGraphBackend):
                     bitset_discard(tried, u)
                     bitset_discard(activated, u)
                     stack.pop(-1)
-                    continue
+                    continue 
 
 
                 # If we never tried it, now is the time to do it. We also must
                 # remember it
                 bitset_add(tried, u)
-
+         
                 # We append its out-neighbours to the stack.
-                for uu in self._cg.out_neighbors(u):
-
+                for uu in self._cg.out_neighbors(u): 
+         
                     # If we have found a new vertex, we put it at the end of the
                     # stack. We ignored de-activated vertices.
-                    if bitset_not_in(tried, uu):
-                        if bitset_in(activated, uu):
-                            parent[uu] = u
-                            stack.append(uu)
-
+                    if bitset_not_in(tried, uu): 
+                        if bitset_in(activated, uu): 
+                            parent[uu] = u 
+                            stack.append(uu) 
+         
                     # If we have already met this vertex, it means we have found
                     # a circuit !
-                    else:
+                    else: 
                         bitset_free(activated)
                         bitset_free(tried)
-
+                        
                         if not certificate:
                             return False
-
-                        # We build it, then return it
+         
+                        # We build it, then return it 
                         # // answer = [u]
                         cycle = [vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg)]
-
-                        tmp = u
-                        while u != uu:
-                            u = parent.get(u,uu)
-                            cycle.append(vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
-
-                        cycle.reverse()
+                        
+                        tmp = u 
+                        while u != uu: 
+                            u = parent.get(u,uu) 
+                            cycle.append(vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg)) 
+         
+                        cycle.reverse() 
                         return (False, cycle)
 
-        # No Cycle... Good news ! Let's return it.
+        # No Cycle... Good news ! Let's return it. 
         bitset_free(activated)
         bitset_free(tried)
-
+        
         if certificate:
             return (True, ordering)
         else:
@@ -3008,7 +3008,7 @@ cdef class Search_iterator:
           orientations and consider the graph as undirected.
 
         EXAMPLE::
-
+        
             sage: g = graphs.PetersenGraph()
             sage: list(g.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
@@ -3056,7 +3056,7 @@ cdef class Search_iterator:
         Return an iterator object over a traversal of a graph.
 
         EXAMPLE::
-
+        
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
             <generator object breadth_first_search at ...
@@ -3068,7 +3068,7 @@ cdef class Search_iterator:
         Return the next vertex in a traversal of a graph.
 
         EXAMPLE::
-
+        
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
             <generator object breadth_first_search at ...
