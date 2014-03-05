@@ -46,7 +46,7 @@ And since `a^3 = -3x + 1`, we have::
 ::
 
     sage: R.<x> = PolynomialRing(QQ)
-    sage: S.<a> = R.quotient(x^3-2)             
+    sage: S.<a> = R.quotient(x^3-2)
     sage: a
     a
     sage: a^3
@@ -103,34 +103,34 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __init__(self, parent, polynomial, check=True):
         """
         Create an element of the quotient of a polynomial ring.
-        
+
         INPUT:
-        
-        
+
+
         -  ``parent`` - a quotient of a polynomial ring
-        
+
         -  ``polynomial`` - a polynomial
-        
+
         -  ``check`` - bool (optional): whether or not to
            verify that x is a valid element of the polynomial ring and reduced
            (mod the modulus).
         """
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
-        
+
         commutative_ring_element.CommutativeRingElement.__init__(self, parent)
         if check:
             if not isinstance(parent, PolynomialQuotientRing_generic):
                 raise TypeError, "parent must be a polynomial quotient ring"
-            
+
             if not isinstance(polynomial, Polynomial):
                 raise TypeError, "polynomial must be a polynomial"
-            
+
             if not polynomial in parent.polynomial_ring():
                 raise TypeError, "polynomial must be in the polynomial ring of the parent"
 
         f = parent.modulus()
-        if polynomial.degree() >= f.degree():
+        if polynomial.degree() >= f.degree() and polynomial.degree() >= 0:
             try:
                 polynomial %= f
             except AttributeError:
@@ -143,7 +143,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
                 while R.degree() >= B.degree():
                     S = P((R.leading_coefficient()/B.leading_coefficient())) * X**(R.degree()-B.degree())
                     Q = Q + S
-                    R = R - S*B            
+                    R = R - S*B
                 polynomial = R
         self._polynomial = polynomial
 
@@ -156,7 +156,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __reduce__(self):
         """
         EXAMPLES::
-        
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(2*x^3 + 3/2*x -1/3)
             sage: 2 * a^3
@@ -169,7 +169,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def _repr_(self):
         r"""
         EXAMPLES::
-        
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
             sage: 3 * a^3 + S.modulus()
@@ -182,13 +182,13 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def _latex_(self):
         r"""
         EXAMPLES::
-        
+
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
             sage: latex(a*(3 * a^3) + S.modulus())
             -\frac{3}{2} a^{2} + \frac{1}{3} a
         """
-        return self._polynomial._latex_(self.parent().variable_name())        
+        return self._polynomial._latex_(self.parent().variable_name())
 
     def _pari_(self):
         """
@@ -206,14 +206,14 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
     ##################################################
     # Arithmetic
-    ##################################################    
+    ##################################################
 
     def _mul_(self, right):
         """
         Return the product of two polynomial ring quotient elements.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) * (a+2)
@@ -226,9 +226,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def _sub_(self, right):
         """
         Return the difference of two polynomial ring quotient elements.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 - 2)
             sage: (a^2 - 4) - (a+2)
@@ -238,13 +238,13 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self.__class__(self.parent(),
                                              self._polynomial - right._polynomial, check=False)
-    
+
     def _add_(self, right):
         """
         Return the sum of two polynomial ring quotient elements.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) + (a+2)
@@ -258,9 +258,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def _div_(self, right):
         """
         Return the quotient of two polynomial ring quotient elements.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: (a^2 - 4) / (a+2)
@@ -275,12 +275,12 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         Compare this element with something else, where equality testing
         coerces the object on the right, if possible (and necessary).
-        
+
         EXAMPLES:
         """
         return cmp(self._polynomial, other._polynomial)
 
-    
+
 
     def __getitem__(self, n):
         return self._polynomial[n]
@@ -288,9 +288,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __int__(self):
         """
         Coerce this element to an int if possible.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: int(S(10))
@@ -395,9 +395,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __long__(self):
         """
         Coerce this element to a long if possible.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: long(S(10))
@@ -408,44 +408,44 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             TypeError: cannot coerce nonconstant polynomial to long
         """
         return long(self._polynomial)
-    
+
     def field_extension(self, names):
         r"""
         Given a polynomial with base ring a quotient ring, return a
         3-tuple: a number field defined by the same polynomial, a
         homomorphism from its parent to the number field sending the
         generators to one another, and the inverse isomorphism.
-        
+
         INPUT:
-        
+
         - ``names`` - name of generator of output field
-        
-        
+
+
         OUTPUT:
-                
+
         -  field
-        
+
         -  homomorphism from self to field
-        
+
         -  homomorphism from field to self
-        
-        
+
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<alpha> = R.quotient(x^3-2)
             sage: F.<a>, f, g = alpha.field_extension()
-            sage: F 
+            sage: F
             Number Field in a with defining polynomial x^3 - 2
             sage: a = F.gen()
             sage: f(alpha)
             a
             sage: g(a)
             alpha
-        
+
         Over a finite field, the corresponding field extension is not a
         number field::
-        
+
             sage: R.<x> = GF(25,'b')['x']
             sage: S.<a> = R.quo(x^3 + 2*x + 1)
             sage: F.<b>, g, h = a.field_extension()
@@ -453,17 +453,17 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             a^2 + 3
             sage: g(x^2 + 2)
             b^2 + 2
-        
+
         We do an example involving a relative number field::
-        
+
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
             sage: Q.<b> = S.quo(X^3 + 2*X + 1)
             sage: F, g, h = b.field_extension('c')
-        
+
         Another more awkward example::
-        
+
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
@@ -478,8 +478,8 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: h(g(z))
             z
             sage: g(h(w))
-            w        
-        
+            w
+
         AUTHORS:
 
         - Craig Citro (2006-08-06)
@@ -509,7 +509,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 ##             sage: F, g, h = a.field_extension()
 ##             Traceback (most recent call last):
 ##             ...
-##             ValueError: polynomial must be irreducible        
+##             ValueError: polynomial must be irreducible
 
 
         R = self.parent()
@@ -517,34 +517,34 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         F = R.modulus().root_field(names)
         alpha = F.gen()
-        
+
         f = R.hom([alpha], F, check=False)
 
         if number_field_rel.is_RelativeNumberField(F):
 
             base_hom = F.base_field().hom([R.base_ring().gen()])
             g = F.Hom(R)(x, base_hom)
-            
+
         else:
             g = F.hom([x], R, check=False)
 
-        return F, f, g 
-    
+        return F, f, g
+
 
     def charpoly(self, var):
         """
         The characteristic polynomial of this element, which is by
         definition the characteristic polynomial of right multiplication by
         this element.
-        
+
         INPUT:
-        
-        
+
+
         -  ``var`` - string - the variable name
-        
-        
+
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quo(x^3 -389*x^2 + 2*x - 5)
             sage: a.charpoly('X')
@@ -556,9 +556,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         Return the factorization of the characteristic polynomial of this
         element.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.fcp('x')
@@ -572,9 +572,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         Return lift of this polynomial quotient ring element to the unique
         equivalent polynomial of degree less than the modulus.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
             sage: b = a^2 - 3
@@ -592,9 +592,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         Return list of the elements of self, of length the same as the
         degree of the quotient polynomial ring.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 + 2*x - 5)
             sage: a^10
@@ -607,14 +607,13 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         n = R.degree()
         return v + [R.base_ring()(0)]*(n - len(v))
 
-
     def matrix(self):
         """
         The matrix of right multiplication by this element on the power
         basis for the quotient ring.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 + 2*x - 5)
             sage: a.matrix()
@@ -653,9 +652,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         The norm of this element, which is the norm of the matrix of right
         multiplication by this element.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.norm()
@@ -667,9 +666,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         The trace of this element, which is the trace of the matrix of
         right multiplication by this element.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.trace()
@@ -677,4 +676,4 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self.matrix().trace()
 
-        
+
