@@ -366,10 +366,18 @@ class RingClassField(SageObject):
         K = self.quadratic_field()
 
         # Multiply class number by relative degree of the Hilbert class field H over K.
-        return K.class_number() * self.degree_over_H()
+        #return K.class_number() * self.degree_over_H()
+        return self.class_number()
+
+    def class_number(self):
+        """
+        return the class number of self
+        """
+        Disc = self.__D*(self.__c)**2
+        return len([f for f in BinaryQF_reduced_representatives(Disc) if f.is_primitive()])
 
     @cached_method
-    # comment: this degree_over_H function is broken when D =  -3 or -4. -- Hao Chen.
+    # comment: this degree_over_H function is broken when D =  -3 or -4. Now I fixed it -- Hao Chen.
     def degree_over_H(self):
         """
         Return the degree of this field over the Hilbert class field `H` of `K`.
@@ -414,7 +422,6 @@ class RingClassField(SageObject):
         c = self.__c
         if c == 1:
             return ZZ(1)
-
         # Let K_c be the ring class field.  We have by class field theory that
         #           Gal(K_c / H) = (O_K/c*O_K)^* / (Z/cZ)^*.
         #
@@ -443,20 +450,21 @@ class RingClassField(SageObject):
 
         K = self.quadratic_field()
 
-        n = ZZ(1)
-        for p, e in c.factor():
-            F = K.factor(p)
-            if len(F) == 2:
-                # split case
-                n *= p**e - p**(e-1)
-            else:
-                if F[0][1] > 1:
+        #n = ZZ(1)
+        #for p, e in c.factor():
+        #    F = K.factor(p)
+        #    if len(F) == 2:
+        #        # split case
+        #        n *= p**e - p**(e-1)
+        #    else:
+         #       if F[0][1] > 1:
                     # ramified case
-                    n *= p**e
-                else:
+        #            n *= p**e
+        #        else:
                     # inert case
-                    n *= p**e + p**(e-1)
-        return n
+        #            n *= p**e + p**(e-1)
+        #return n
+        return ZZ(self.class_number()/K.class_number())
 
     @cached_method
     def absolute_degree(self):
@@ -2240,12 +2248,13 @@ def is_kolyvagin_conductor(N, E, D, r, n, c):
 
 ##################
 # Helper function -- Hao Chen
-###############
 def class_number_order(D):
     """
     return the class number cl(D)
     """
     return len([f for f in BinaryQF_reduced_representatives(D) if f.is_primitive()])
+###############
+
 ################
 
 
@@ -2493,7 +2502,8 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
 
         U = []
         R = []
-        h = class_number_order(disc)
+        h = RingClassField(D,c).class_number()
+        #h = class_number_order(disc)
         a = 1
         while len(U) < h:
             y = ZZ((b*b - disc)/(4*N))
