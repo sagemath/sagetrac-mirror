@@ -834,13 +834,13 @@ class WeylGroupElement(MatrixGroupElement_gap):
     # Descents
     ##########################################################################
 
-    def has_descent(self, i, positive=False, side = "right"):
-        """
-        Tests if self has a descent at position `i`, that is if self is
+    def has_descent(self, i, side="right", positive=False):
+        r"""
+        Test if ``self`` has a descent at position `i`, that is if ``self`` is
         on the strict negative side of the `i^{th}` simple reflection
         hyperplane.
 
-        If positive is True, tests if it is on the strict positive
+        If positive is ``True``, tests if it is on the strict positive
         side instead.
 
         EXAMPLES::
@@ -898,11 +898,35 @@ class WeylGroupElement(MatrixGroupElement_gap):
             self = ~self
 
         if use_rho:
-            s = self.action(L.rho()   ).scalar(L.alphacheck()[i]) >= 0
+            s = self.action(L.rho()).scalar(L.alphacheck()[i]) >= 0
         else:
             s = self.action(L.alpha()[i]).is_positive_root()
 
         return s is positive
+
+    def has_left_descent(self, i):
+        r"""
+        Test if ``self`` has a left descent at position ``i``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',4])
+            sage: w = W.from_reduced_word([3,4,2])
+            sage: w.has_left_descent(3)
+        """
+        return self.has_descent(i, side="left")
+
+    def has_right_descent(self, i):
+        r"""
+        Test if ``self`` has a right descent at position ``i``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',4])
+            sage: w = W.from_reduced_word([3,4,2])
+            sage: w.has_right_descent(3)
+        """
+        return self.has_descent(i, side="right")
 
     def apply_simple_reflection(self, i, side = "right"):
         s = self.parent().simple_reflections()

@@ -684,7 +684,7 @@ class CoxeterGroups(Category_singleton):
                     tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
     class ElementMethods:
-        def has_descent(self, i, side = 'right', positive=False):
+        def has_descent(self, i, side='right', positive=False):
             """
             Returns whether i is a (left/right) descent of self.
 
@@ -708,12 +708,12 @@ class CoxeterGroups(Category_singleton):
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
             if not isinstance(positive, bool):
-                raise TypeError, "%s is not a boolean"%(bool)
+                raise TypeError("{} is not a boolean".format(positive))
             if side == 'right':
                 return self.has_right_descent(i) != positive
             if side != 'left':
-                raise ValueError, "%s is neither 'right' nor 'left'"%(side)
-            return self.has_left_descent(i)  != positive
+                raise ValueError("{} is neither 'right' nor 'left'".format(side))
+            return self.has_left_descent(i) != positive
 
 #        @abstract_method(optional = True)
         def has_right_descent(self, i):
@@ -733,7 +733,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w.has_right_descent(2)
                 True
             """
-            return (~self).has_left_descent(i)
+            return (~self).has_descent(i, side="left")
 
         def has_left_descent(self, i):
             """
@@ -760,7 +760,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w.has_left_descent.__module__
                 'sage.categories.coxeter_groups'
             """
-            return (~self).has_right_descent(i)
+            return (~self).has_descent(i, side="right")
 
         def first_descent(self, side = 'right', index_set=None, positive=False):
             """
