@@ -31,7 +31,7 @@ REFERENCES:
    Cambridge University Press, 2001.
 
 .. [StaCat98] R. Stanley, *Exercises on Catalan and Related Numbers
-   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999),
+   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999)*,
    version of 23 June 1998.
    http://www-math.mit.edu/~rstan/ec/catalan.pdf
 
@@ -1490,7 +1490,8 @@ class DyckWord(CombinatorialObject, Element):
     def to_binary_tree(self, usemap="1L0R"):
         r"""
         Return a binary tree recursively constructed from the Dyck path
-        by the sent ``usemap``. The default usemap is ``1L0R`` which means:
+        ``self`` by the map ``usemap``. The default ``usemap`` is ``'1L0R'``
+        which means:
 
         - an empty Dyck word is a leaf,
 
@@ -1499,11 +1500,13 @@ class DyckWord(CombinatorialObject, Element):
 
         INPUT:
 
-        - ``usemap`` -- a string, either ``1L0R``, ``1R0L``, ``L1R0``,
-          ``R1L0``.
+        - ``usemap`` -- a string, either ``'1L0R'``, ``'1R0L'``, ``'L1R0'``,
+          ``'R1L0'``.
 
-        Other valid ``usemap`` are ``1R0L``, ``L1R0``, and ``R1L0`` and all
-        corresponding to different recursive definitions of Dyck paths.
+        Other valid ``usemap`` are ``'1R0L'``, ``'L1R0'``, and ``'R1L0'``.
+        These correspond to different maps from Dyck paths to binary
+        trees, whose recursive definitions are hopefully clear from the
+        names.
 
         EXAMPLES::
 
@@ -1558,8 +1561,11 @@ class DyckWord(CombinatorialObject, Element):
     @combinatorial_map(name="to the Tamari corresponding Binary tree")
     def to_binary_tree_tamari(self):
         r"""
-        Return the binary tree with consistency with the Tamari order
-        of ``self``.
+        Return the binary tree corresponding to ``self`` in a way which
+        is consistent with the Tamari orders on the set of Dyck paths and
+        on the set of binary trees.
+
+        This is the ``'L1R0'`` map documented in :meth:`to_binary_tree`.
 
         EXAMPLES::
 
@@ -1589,7 +1595,7 @@ class DyckWord(CombinatorialObject, Element):
         INPUT:
 
         - ``other`` -- a Dyck word greater or equal to ``self`` in the
-         Tamari order.
+          Tamari order.
 
         EXAMPLES::
 
@@ -1613,6 +1619,7 @@ class DyckWord(CombinatorialObject, Element):
             Traceback (most recent call last):
             ...
             ValueError: The two Dyck words are not comparable on the Tamari lattice.
+
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_dyck_words(self, other)
