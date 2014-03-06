@@ -913,6 +913,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: W = WeylGroup(['A',4])
             sage: w = W.from_reduced_word([3,4,2])
             sage: w.has_left_descent(3)
+            True
         """
         return self.has_descent(i, side="left")
 
@@ -925,6 +926,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: W = WeylGroup(['A',4])
             sage: w = W.from_reduced_word([3,4,2])
             sage: w.has_right_descent(3)
+            False
         """
         return self.has_descent(i, side="right")
 
