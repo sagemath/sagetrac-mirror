@@ -361,9 +361,6 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-20,11).ring_class_field().degree_over_K()
             24
         """
-        D, c = self.__D, self.__c
-
-        K = self.quadratic_field()
 
         # Multiply class number by relative degree of the Hilbert class field H over K.
         #return K.class_number() * self.degree_over_H()
@@ -371,7 +368,8 @@ class RingClassField(SageObject):
 
     def class_number(self):
         """
-        return the class number of self
+        return the class number of self.
+
         """
         Disc = self.__D*(self.__c)**2
         return len([f for f in BinaryQF_reduced_representatives(Disc) if f.is_primitive()])
@@ -391,6 +389,11 @@ class RingClassField(SageObject):
             3
             sage: QuadraticField(-59,'a').class_number()
             3
+
+        One example where the old code gives the wrong answer 4::
+
+            sage: heegner_point(89,-4,5).ring_class_field().degree_over_H()
+            2
 
         Some examples in which prime dividing c is inert::
 
@@ -422,49 +425,8 @@ class RingClassField(SageObject):
         c = self.__c
         if c == 1:
             return ZZ(1)
-        # Let K_c be the ring class field.  We have by class field theory that
-        #           Gal(K_c / H) = (O_K/c*O_K)^* / (Z/cZ)^*.
-        #
-        # To compute the cardinality of the above Galois group, we
-        # first reduce to the case that c = p^e is a prime power
-        # (since the expression is multiplicative in c).
-        # Of course, note also that #(Z/cZ)^* = phi(c)
-        #
-        # Case 1: p splits in O_K.  Then
-        #         #(O_K/p^e*O_K)^* = (#(Z/p^eZ)^*)^2 = phi(p^e)^2, so
-        #           #(O_K/p^e*O_K)^*/(Z/p^eZ)^* = phi(p^e) = p^e - p^(e-1)
-        #
-        # Case 2: p is inert in O_K.  Then
-        #         #(O_K/p^e O_K)^* = p^(2*e)-p^(2*(e-1))
-        #         so #(O_K/p^e*O_K)^*/(Z/p^eZ)^*
-        #              = (p^(2*e)-p^(2*(e-1)))/(p^e-p^(e-1)) = p^e + p^(e-1).
-        #
-        # Case 3: p ramified in O_K. Then
-        #         #(O_K/p^e O_K)^* = p^(2*e) - p^(2*e-1),
-        #         so #(O_K/p^e O_K)^*/#(Z/p^eZ)^* = p^e.
-        #
-        # Section 4.2 of Cohen's "Advanced Computational Algebraic
-        # Number Theory" GTM is also relevant, though Cohen is working
-        # with *ray* class fields and here we want the cardinality
-        # of the *ring* class field, which is a subfield.
-
         K = self.quadratic_field()
-
-        #n = ZZ(1)
-        #for p, e in c.factor():
-        #    F = K.factor(p)
-        #    if len(F) == 2:
-        #        # split case
-        #        n *= p**e - p**(e-1)
-        #    else:
-         #       if F[0][1] > 1:
-                    # ramified case
-        #            n *= p**e
-        #        else:
-                    # inert case
-        #            n *= p**e + p**(e-1)
-        #return n
-        return ZZ(self.class_number()/K.class_number())
+        return Integer(ZZ(self.class_number()/K.class_number()))
 
     @cached_method
     def absolute_degree(self):
@@ -2246,16 +2208,7 @@ def is_kolyvagin_conductor(N, E, D, r, n, c):
                 return False
     return True
 
-##################
-# Helper function -- Hao Chen
-def class_number_order(D):
-    """
-    return the class number cl(D)
-    """
-    return len([f for f in BinaryQF_reduced_representatives(D) if f.is_primitive()])
-###############
 
-################
 
 
 class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_disc):
@@ -2503,7 +2456,6 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
         U = []
         R = []
         h = RingClassField(D,c).class_number()
-        #h = class_number_order(disc)
         a = 1
         while len(U) < h:
             y = ZZ((b*b - disc)/(4*N))
@@ -2512,7 +2464,6 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
                 if N*s*s + b*s + y == 0:
                     s = s.lift()
                     A, B, C = a*N, b+2*N*s, ZZ( ((b + 2*N*s)**2 - disc)/(4*a*N))
-                    #f = (a*N, b+2*N*s, ZZ( ((b + 2*N*s)**2 - disc)/(4*a*N)))
                     if gcd(gcd(A,B),C) == 1 and gcd(gcd(ZZ(A/N),B),C*N) == 1:
                         f = (A,B,C)
                         g = BinaryQF(f).reduced_form()
