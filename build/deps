@@ -147,7 +147,7 @@ base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
 
 $(INST)/prereq: ../configure
 	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
-	./configure $$PREREQ_OPTIONS || ( \
+	./configure --disable-maintainer-mode $$PREREQ_OPTIONS || ( \
 	    if [ "x$$SAGE_PORT" = x ]; then \
 	        echo "If you would like to try to build Sage anyway (to help porting),"; \
 	        echo "export the variable 'SAGE_PORT' to something non-empty."; \
@@ -486,7 +486,7 @@ $(INST)/csage: $(SAGE_SRC)/c_lib/configure \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
-		$(PIPE) 'time { ./configure && $(MAKE) install;} 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
+		$(PIPE) 'time { ./configure --disable-maintainer-mode && $(MAKE) install;} 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

@@ -81,11 +81,7 @@ bootstrap-download () {
         fi
     fi
 
-    # The "m" option to tar ensures that timestamps are set to the
-    # current time, not taken from the tarball.
-    # We need these files to be more recent than the input files
-    # like configure.ac, otherwise "make" gets confused.
-    tar xzmf $CONFBALL || exit $?
+    tar xzf $CONFBALL || exit $?
 }
 
 save () {
