@@ -26,7 +26,8 @@ from sage.rings.integer_ring import ZZ
 
 class QuantumDividedPowerAlgebra(CombinatorialFreeModule):
     r"""
-    An example of a graded algebra with basis: the quantum divided power algebra.
+    An example of a graded algebra with basis: the quantum divided power
+    algebra in one variable.
 
     This class illustrates a minimal implementation of the quantum
     divided power algebra.
@@ -60,7 +61,7 @@ class QuantumDividedPowerAlgebra(CombinatorialFreeModule):
     @cached_method
     def one(self):
         """
-        Returns the unit of the algebra
+        Return the unit of the algebra
         as per :meth:`AlgebrasWithBasis.ParentMethods.one_basis`.
 
         EXAMPLES::
@@ -92,7 +93,7 @@ class QuantumDividedPowerAlgebra(CombinatorialFreeModule):
             sage: B = A.basis()
             sage: B[2]*B[3]
             (q^6+q^5+2*q^4+2*q^3+2*q^2+q+1)*B[5]
-         """
+        """
         return self.term(left + right, q_binomial(left + right, left, self.q))
 
     def degree_on_basis(self, t):
