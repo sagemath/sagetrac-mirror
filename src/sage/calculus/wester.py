@@ -407,7 +407,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Transform equations, (x==2)/2+(1==1)=>x/2+1==2.
     sage: eq1 = x == 2
     sage: eq2 = SR(1) == SR(1)
-    sage: eq1/2 + eq2
+    sage: (eq1.lhs()/2 == eq1.rhs()/2) + eq2
     1/2*x + 1 == 2
 
 ::

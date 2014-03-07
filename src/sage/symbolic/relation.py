@@ -58,7 +58,7 @@ Add two symbolic equations::
     sage: n = 136 == 10 * a + b
     sage: m + n
     280 == 2*b
-    sage: int(-144) + m
+    sage: m.add_to_both_sides(-144)
     0 == -10*a + b - 144
 
 Subtract two symbolic equations::
@@ -69,7 +69,7 @@ Subtract two symbolic equations::
     sage: n = 136 == 10 * a + b
     sage: m - n
     8 == 10*a
-    sage: int(144) - m
+    sage: int(144) - m.lhs() == int(144) - m.rhs()
     0 == -20*a - b + 144
 
 Multiply two symbolic equations::
@@ -80,7 +80,7 @@ Multiply two symbolic equations::
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
-    sage: int(-1) * m
+    sage: -m.lhs() == -m.rhs()
     -2*x == -3*x^2 + 5
 
 Divide two symbolic equations::
@@ -290,12 +290,12 @@ below::
     sage: f = x + 3 == y - 2
     sage: f
     x + 3 == y - 2
-    sage: g = f - 3; g
+    sage: f.lhs()-3 == f.rhs()-3
     x == y - 5
     sage: h =  x^3 + sqrt(2) == x*y*sin(x)
     sage: h
     x^3 + sqrt(2) == x*y*sin(x)
-    sage: h - sqrt(2)
+    sage: h.lhs() - sqrt(2) == h.rhs() - sqrt(2)
     x^3 == x*y*sin(x) - sqrt(2)
     sage: h + f
     x^3 + x + sqrt(2) + 3 == x*y*sin(x) + y - 2
@@ -305,8 +305,8 @@ below::
     x + 1 < -x + y - 12
     sage: f + g
     x + 5 < x + y + 8
-    sage: f*(-1)
-    -x - 3 < -y + 2
+    sage: -f.lhs() > -f.rhs()
+    -x - 3 > -y + 2
 
 TESTS:
 

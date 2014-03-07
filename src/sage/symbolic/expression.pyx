@@ -10,49 +10,26 @@ We create a relational expression::
     sage: eqn.subs(x == 5)
     16 <= 18
 
-Notice that squaring the relation squares both sides.
+Notice that applying an operation to the relational only works formally.
 
 ::
-
+    sage: 5+eqn
+    ((x - 1)^2 <= x^2 - 2*x + 3) + 5
+    sage: -eqn
+    -((x - 1)^2 <= x^2 - 2*x + 3)
     sage: eqn^2
-    (x - 1)^4 <= (x^2 - 2*x + 3)^2
-    sage: eqn.expand()
-    x^2 - 2*x + 1 <= x^2 - 2*x + 3
+    ((x - 1)^2 <= x^2 - 2*x + 3)^2
 
-The can transform a true relational into a false one::
+If you want to transform the relational you must take care of the rules yourself::
 
-    sage: eqn = SR(-5) < SR(-3); eqn
-    -5 < -3
-    sage: bool(eqn)
-    True
-    sage: eqn^2
-    25 < 9
-    sage: bool(eqn^2)
-    False
+    sage: eqn.add_to_both_sides(5)
+    (x - 1)^2 + 5 <= x^2 - 2*x + 8
+    sage: -eqn.lhs() >= -eqn.rhs()
+    -(x - 1)^2 >= -x^2 + 2*x - 3
+    sage: abs(eqn.lhs()) <= abs(eqn.rhs())
+    abs((x - 1)^2) <= abs(x^2 - 2*x + 3)
 
-We can do arithmetic with relationals::
-
-    sage: e = x+1 <= x-2
-    sage: e + 2
-    x + 3 <= x
-    sage: e - 1
-    x <= x - 3
-    sage: e*(-1)
-    -x - 1 <= -x + 2
-    sage: (-2)*e
-    -2*x - 2 <= -2*x + 4
-    sage: e*5
-    5*x + 5 <= 5*x - 10
-    sage: e/5
-    1/5*x + 1/5 <= 1/5*x - 2/5
-    sage: 5/e
-    5/(x + 1) <= 5/(x - 2)
-    sage: e/(-2)
-    -1/2*x - 1/2 <= -1/2*x + 1
-    sage: -2/e
-    -2/(x + 1) <= -2/(x - 2)
-
-We can even add together two relations, so long as the operators are
+We can add together two relations, so long as the operators are
 the same::
 
     sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
@@ -2433,13 +2410,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( (x+y) > x ) + ( x > y )
             2*x + y > x + y
 
-            sage: ( (x+y) > x ) + x
-            2*x + y > 2*x
-
         TESTS::
-
-            sage: x + ( (x+y) > x )
-            2*x + y > 2*x
 
             sage: ( x > y) + (y < x)
             Traceback (most recent call last):
@@ -2525,13 +2496,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( (x+y) > x ) - ( x > y )
             y > x - y
 
-            sage: ( (x+y) > x ) - x
-            y > 0
-
         TESTS::
-
-            sage: x - ( (x+y) > x )
-            -y > 0
 
             sage: ( x > y) - (y < x)
             Traceback (most recent call last):
@@ -2578,16 +2543,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( (x+y) > x ) * ( x > y )
             (x + y)*x > x*y
 
-            sage: ( (x+y) > x ) * x
-            (x + y)*x > x^2
-
-            sage: ( (x+y) > x ) * -1
-            -x - y > -x
-
         TESTS::
-
-            sage: x * ( (x+y) > x )
-            (x + y)*x > x^2
 
             sage: ( x > y) * (y < x)
             Traceback (most recent call last):
@@ -2729,16 +2685,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ( (x+y) > x ) / ( x > y )
             (x + y)/x > x/y
 
-            sage: ( (x+y) > x ) / x
-            (x + y)/x > 1
-
-            sage: ( (x+y) > x ) / -1
-            -x - y > -x
-
         TESTS::
-
-            sage: x / ( (x+y) > x )
-            x/(x + y) > 1
 
             sage: ( x > y) / (y < x)
             Traceback (most recent call last):
@@ -10033,7 +9980,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if not is_a_relational(self._gobj):
             raise TypeError, "this expression must be a relation"
-        return self + x
+        return self.operator()(self.lhs() + x, self.rhs() + x)
 
     def subtract_from_both_sides(self, x):
         """
@@ -10050,20 +9997,20 @@ cdef class Expression(CommutativeRingElement):
         """
         if not is_a_relational(self._gobj):
             raise TypeError, "this expression must be a relation"
-        return self - x
+        return self.operator()(self.lhs() - x, self.rhs() - x)
 
     def multiply_both_sides(self, x, checksign=None):
         """
         Returns a relation obtained by multiplying both sides of this
         relation by *x*.
-
+ 
         .. note::
-
+ 
            The *checksign* keyword argument is currently ignored and
            is included for backward compatibility reasons only.
-
+ 
         EXAMPLES::
-
+ 
             sage: var('x,y'); f = x + 3 < y - 2
             (x, y)
             sage: f.multiply_both_sides(7)
@@ -10074,11 +10021,11 @@ cdef class Expression(CommutativeRingElement):
             -2/3*x - 2 < -2/3*y + 4/3
             sage: f*(-pi)
             -pi*(x + 3) < -pi*(y - 2)
-
+ 
         Since the direction of the inequality never changes when doing
         arithmetic with equations, you can multiply or divide the
         equation by a quantity with unknown sign::
-
+ 
             sage: f*(1+I)
             (I + 1)*x + 3*I + 3 < (I + 1)*y - 2*I - 2
             sage: f = sqrt(2) + x == y^3
@@ -10086,10 +10033,10 @@ cdef class Expression(CommutativeRingElement):
             I*x + I*sqrt(2) == I*y^3
             sage: f.multiply_both_sides(-1)
             -x - sqrt(2) == -y^3
-
+ 
         Note that the direction of the following inequalities is
         not reversed::
-
+ 
             sage: (x^3 + 1 > 2*sqrt(3)) * (-1)
             -x^3 - 1 > -2*sqrt(3)
             sage: (x^3 + 1 >= 2*sqrt(3)) * (-1)
@@ -10099,20 +10046,20 @@ cdef class Expression(CommutativeRingElement):
         """
         if not is_a_relational(self._gobj):
             raise TypeError, "this expression must be a relation"
-        return self * x
-
+        return self.operator()(self.lhs() * x, self.rhs() * x)
+ 
     def divide_both_sides(self, x, checksign=None):
         """
         Returns a relation obtained by dividing both sides of this
         relation by *x*.
-
+ 
         .. note::
-
+ 
            The *checksign* keyword argument is currently ignored and
            is included for backward compatibility reasons only.
-
+ 
         EXAMPLES::
-
+ 
             sage: theta = var('theta')
             sage: eqn =   (x^3 + theta < sin(x*theta))
             sage: eqn.divide_both_sides(theta, checksign=False)
@@ -10124,7 +10071,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if not is_a_relational(self._gobj):
             raise TypeError, "this expression must be a relation"
-        return self / x
+        return self.operator()(self.lhs() / x, self.rhs() / x)
 
 
     # Functions to add later, maybe.  These were in Ginac mainly
