@@ -51,7 +51,7 @@ def DynkinDiagram(*args, **kwds):
 
     The edge multiplicities are encoded as edge labels. This uses the
     convention in Hong and Kang, Kac, Fulton Harris, and crystals. This is the
-    **opposite** convention in Bourbaki and Wikipedia's Dynkin diagram
+    **opposite** convention to Bourbaki and Wikipedia's Dynkin diagram
     (:wikipedia:`Dynkin_diagram`). That is for `i \neq j`::
 
        i <--k-- j <==> a_ij = -k

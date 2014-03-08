@@ -132,8 +132,8 @@ Elements of Mathematics, Springer (2002). ISBN 978-3540426509. For example::
 
 .. NOTE::
 
-    The direction of the arrows is the **opposite** (i.e. the transpose)
-    of Bourbaki's convention, but agrees with Kac's.
+    Sage's convention for Cartan matrices is the **opposite** (i.e. the transpose)
+    of Bourbaki's convention, but agrees with Kac's. The Dynkin diagram is the same though.
 
     For example, in type `C_2`, we have::
 
