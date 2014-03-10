@@ -244,7 +244,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
         """
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
-        assert(all( hasattr(arg, self._functor_name) for arg in args))
+        assert(all(hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
         return getattr(args[0], self._functor_name)(*args[1:], **keywords)
 

@@ -19,10 +19,11 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
-from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.tensor import tensor, TensorProducts, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
@@ -459,14 +460,16 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: M = A.tensor(A, A, category = ModulesWithBasis(QQ)); M
                 A # A # A
                 sage: M.category()
-                Category of modules with basis over Rational Field
+                Category of tensor products of modules with basis over Rational Field
 
             """
             if 'category' in keywords.keys():
-                category = keywords['category'] # should we check this?
+                category = keywords['category'] # should this be checked?
+                category = category.TensorProducts()
+                keywords.pop('category')
             else:
                 category = tensor.category_from_parents(parents)
-            return parents[0].__class__.Tensor(parents, category = category)
+            return parents[0].__class__.Tensor(parents, category = category, **keywords)
 
         @cached_method
         def identity_map(self, category=None):
@@ -476,13 +479,12 @@ class ModulesWithBasis(Category_over_base_ring):
             EXAMPLES::
 
                 sage: M = CombinatorialFreeModule(ZZ, [1,2]); M.rename("M")
-                sage: iM = M.identity_map()
-                sage: iM
+                sage: iM = M.identity_map(); iM
                 Generic endomorphism of M                
                 sage: m = M.an_element(); m
                 2*B[1] + 2*B[2]
-                sage: iM(m)
-                2*B[1] + 2*B[2]
+                sage: iM(m) == m
+                True
                 sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
                 sage: A = W.algebra(ZZ)
                 sage: iA = A.identity_map(); iA
@@ -493,8 +495,26 @@ class ModulesWithBasis(Category_over_base_ring):
             def the_id(x):
                 return x
             if category is None:
-                return SetMorphism(Hom(self,self,category=self.category()),the_id)
+                category = self.category()
             return SetMorphism(Hom(self, self, category=category), the_id)
+
+        @abstract_method
+        def tensor_unit(self, **keywords):
+            r"""
+            The distinguished unit object in the tensor category. It is a copy of the base ring
+            as a module over itself.
+
+            Ironically, it is a single module and technically not constructed by the tensor product. 
+            Morally it is the zero-fold tensor product.
+
+            EXAMPLES::
+
+                sage: M = CombinatorialFreeModule(ZZ, [1,2])
+                sage: tensor([M]) == tensor([M, M.tensor_unit()])
+                True
+
+            """
+            pass
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
@@ -1077,7 +1097,6 @@ class ModulesWithBasis(Category_over_base_ring):
                 Return the tensor product of maps.
 
                 The optional keyword parameters can be used to pass the category for the tensor products.
-                The default category is `ModulesWithBasis` over the base ring.
 
                 EXAMPLES::
 
@@ -1087,7 +1106,7 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: AA = tensor([A,A])
                     sage: a = AA.monomial((r([1]),r([2]))); a
                     B[s1] # B[s2]
-                    sage: mA = A.mult_tensor()
+                    sage: mA = A._product_morphism()
                     sage: mm = tensor([mA,mA])
                     sage: aa = tensor([a,a]); aa
                     B[s1] # B[s2] # B[s1] # B[s2]
@@ -1099,36 +1118,31 @@ class ModulesWithBasis(Category_over_base_ring):
                     A # A # A # A
                     sage: mm.domain().category()
                     Category of tensor products of modules with basis over Integer Ring
-                    sage: mm(mm.domain()(aa))
+                    sage: daa = mm.domain()(aa); daa
+                    B[s1] # B[s2] # B[s1] # B[s2]
+                    sage: mm(daa)
                     B[s1*s2] # B[s1*s2]
                     sage: IA = A.identity_map(category=ModulesWithBasis(ZZ))
                     sage: ImI = tensor([IA, mA, IA])
                     sage: ImI(ImI.domain()(aa))
                     B[s1] # B[s2*s1] # B[s2]
+                    sage: iaa = ImI.domain()(aa); iaa
+                    B[s1] # B[s2] # B[s1] # B[s2]
+                    sage: ImI(iaa)
+                    B[s1] # B[s2*s1] # B[s2]
 
                 """
-                assert len(maps) > 0
-                domains = [map.domain() for map in maps]
-                n_tensor_factors = []
-                # we need a real method to determine how to break up keys into single elements or tuples
-                # depending on whether each "tensor factor" is itself a tensor product or not.
-                for dom in domains:
-                    if hasattr(dom, '_sets'):
-                        n_tensor_factors.append(len(dom._sets))
-                    else:
-                        n_tensor_factors.append(1)
-                lower_bounds = [sum(n_tensor_factors[:i]) for i in range(len(maps))]
-                upper_bounds = [sum(n_tensor_factors[:i+1]) for i in range(len(maps))]
-                domain = tensor(domains, **keywords)
-                codomain = tensor([map.codomain() for map in maps], **keywords)
-                def on_basis(key_tuple):
-                    def key_fixer(arg):
-                        if len(arg) == 1:
-                            return arg[0]
-                        else:
-                            return arg
-                    return tensor([maps[i](maps[i].domain().monomial(key_fixer(key_tuple[lower_bounds[i]:upper_bounds[i]]))) for i in range(len(maps))])
-                return domain.module_morphism(on_basis=on_basis, codomain=codomain, **keywords)
+                first_domain = maps[0].domain()
+                R = first_domain.base_ring()
+                if 'category' in keywords.keys():
+                    category = keywords['category']
+                else:
+                    category = maps[0].category_for()
+                assert category.is_subcategory(ModulesWithBasis(R))
+                assert all(hasattr(map, 'category_for') for map in maps)
+                assert all(map.category_for().is_subcategory(category) for map in maps)
+                domain = tensor([map.domain() for map in maps], **keywords)
+                return domain._tensor_of_maps(maps, **keywords)
 
     class CartesianProducts(CartesianProductsCategory):
         """
@@ -1327,7 +1341,6 @@ class ModulesWithBasis(Category_over_base_ring):
                 [Category of vector spaces over Rational Field]
             """
             return [Modules(self.base_category().base_ring())]
-
 
 class ModuleMorphismByLinearity(Morphism):
     """
