@@ -173,7 +173,7 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         """
         EXAMPLES::
 
@@ -324,7 +324,7 @@ class Octave(Expect):
             sage: octave.set('x', '2') # optional - octave
             sage: octave.clear('x') # optional - octave
             sage: octave.get('x') # optional - octave
-            "error: `x' undefined near line ... column 1"
+            "error: 'x' undefined near line ... column 1"
         """
         self.eval('clear %s'%var)
 
@@ -515,7 +515,7 @@ class OctaveElement(ExpectElement):
 
 
 # An instance
-octave = Octave(script_subdirectory='user')
+octave = Octave(script_subdirectory=None)
 
 def reduce_load_Octave():
     """
