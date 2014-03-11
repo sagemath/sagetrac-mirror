@@ -173,7 +173,7 @@ cdef class QualityBounder(object):
         self._prime_bound = prime_bound
 
         from sage.functions.prime_pi import prime_pi
-        self._len = prime_pi(prime_bound)
+        self._len = prime_pi(prime_bound-1)
 
         # use c tables
         self._primes = <uint_fast32_t *>sage_malloc(sizeof(uint_fast32_t)*self._len)
