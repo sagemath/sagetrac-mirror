@@ -377,7 +377,6 @@ class AlgebrasWithBasis(Category_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
-        @cached_method
         def _product_morphism(self):
             r"""
             The multiplication map as a module morphism from the twofold tensor of ``self``, to ``self``.
@@ -410,6 +409,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
             category = ModulesWithBasis(self.base_ring())
             if self in category.TensorProducts():
+                # the algebra is itself a tensor product
                 n_factors = len(self._sets)
                 def on_basis(x):
                     return self.monomial(x[0:n_factors])*self.monomial(x[n_factors:2*n_factors])
@@ -419,10 +419,12 @@ class AlgebrasWithBasis(Category_over_base_ring):
             AA = tensor([self,self], category=category)
             return AA.module_morphism(on_basis = on_basis, codomain=self, category=category)
 
-        @cached_method
         def _unit_morphism(self):
             r"""
             The unit map as a module morphism from the base ring to ``self``.
+
+            Note that the domain is the tensor unit module,
+            the base ring viewed as a free module.
 
             EXAMPLES::
 

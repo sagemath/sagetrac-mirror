@@ -2792,7 +2792,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: from sage.categories.morphism import SetMorphism
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: s = Sym.s()
-                sage: id_s = s.identity_map()
+                sage: id_s = s._identity_map()
                 sage: antipode_map = SetMorphism(Hom(s,s),lambda x: s.antipode(x))
                 sage: iS = tensor([id_s, antipode_map])
                 sage: ss = tensor([s,s])
@@ -2813,7 +2813,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             # delete any map from the tensor unit to itself
             maps = [map for map in maps if map.domain() != tensor_unit or map.codomain() != tensor_unit]
             if len(maps) == 0:
-                return tensor_unit.identity_map()
+                return tensor_unit._identity_map()
             tensor_category = self.category()
             codomains = [map.codomain() for map in maps]
             # flag which codomains are tensors
@@ -3150,10 +3150,6 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
         - category -- tensor category of result
         - keywords -- optional keyword arguments
 
-        Special keywords that get intercepted are:
-
-        - 'one_basis' -- Gives the name of the single basis element
-
         EXAMPLES::
 
             sage: M = CombinatorialFreeModule(ZZ,[1,2])
@@ -3161,14 +3157,8 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
             The unit object in Category of tensor products of modules with basis over Integer Ring
 
         """
-        # determine the string to represent the unique basis element, which is tuple([])
-        if 'one_basis' in keywords:
-            one_basis = keywords['one_basis']
-            keywords.pop('one_basis')
-        else:
-            one_basis = tensor.unit_symbol
         self._one_key = tuple([])
-        # tricky: call with empty list of modules
+        # tricky: call with empty list of modules, bypassing the usual calling mechanism
         CombinatorialFreeModule_Tensor.__init__(self, tuple([]), category = category, **keywords)
         assert self._one_key == self.basis().keys().an_element()
 
@@ -3277,11 +3267,11 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
 
             sage: M = CombinatorialFreeModule(ZZ,[1])
             sage: A = M.tensor_unit(category=HopfAlgebrasWithBasis(ZZ))
-            sage: A.counit_on_basis(A.one_basis()) == A.one()
+            sage: A.counit_on_basis(A.one_basis()) == A.base_ring().one()
             True
 
         """
-        return self.one()
+        return self.base_ring().one()
 
     def antipode_on_basis(self, g):
         r"""
