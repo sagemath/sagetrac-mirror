@@ -1172,9 +1172,7 @@ class ModulesWithBasis(Category_over_base_ring):
                     category = maps[0].category_for()
                 if not category.is_subcategory(ModulesWithBasis(R)):
                     raise TypeError, "Category must be a subcategory of the module category of the base ring"
-                # should be all(map.category().is_subcategory(category.HomCategory()) for map in maps)
-                if not all(hasattr(map, 'category_for') for map in maps) or \
-                   not all(map.category_for().is_subcategory(category) for map in maps): \
+                if not all(map.category().is_subcategory(category.hom_category()) for map in maps):
                     raise TypeError, "Not all maps are homomorphisms for the module category of the base ring"
                 domain = tensor([map.domain() for map in maps], **keywords)
                 return domain._tensor_of_maps(maps, **keywords)
