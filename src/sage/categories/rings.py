@@ -645,7 +645,10 @@ class Rings(Category_singleton):
             ring, a power series ring, or an algebraic extension.
 
             This is a convenience method intended primarily for interactive
-            use.
+            use. Due to numerous corner cases and special behavior for
+            ``arg`` being an integer (so as not to conflict with the
+            notation `S[i]` for the `i`-th element of an enumerated set
+            `S`), this is not a method that should be relied on in code.
 
             .. SEEALSO::
 
@@ -711,6 +714,37 @@ class Rings(Category_singleton):
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5
                 sage: ZZ[sqrt(2)+sqrt(3)]
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+
+            A similar syntax works on finite rings::
+
+                sage: GF81 = GF(81, 'x')
+                sage: GF81
+                Finite Field in x of size 3^4
+                sage: x = GF81.gen()
+                sage: GF3 = GF(3)
+                sage: GF3[x]
+                Finite Field in x of size 3^4
+                sage: GF3[x^3]
+                Finite Field in a of size 3^4
+                sage: GF3[x^40]
+                Finite Field of size 3
+                sage: GF3[x^20]
+                Finite Field in a of size 3^2
+                sage: GF3[x^60]
+                Finite Field in a of size 3^2
+
+            However, caution is advised because when ``arg`` is an
+            integer, instead of adjoining it the method returns the
+            ``arg``-th element of the enumerated set ``self``::
+
+                sage: GF3[2]
+                2
+                sage: GF81[16]
+                2*x^2 + x + 2
+                sage: CartesianProduct(GF81, GF81, GF81)[100]
+                [0, x, 2*x^3 + 2*x]
+                sage: CartesianProduct(GF81, GF81, GF81).unrank(100)
+                [0, x, 2*x^3 + 2*x]
 
             TESTS:
 
@@ -782,6 +816,12 @@ class Rings(Category_singleton):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
+
+            # 1a. If arg is an int or integer, try to return the arg-th
+            #    element of self
+
+            if isinstance(arg, (int, sage.rings.integer.Integer)):
+                return self.unrank(arg)
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension
