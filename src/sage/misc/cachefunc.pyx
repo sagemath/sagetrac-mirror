@@ -590,9 +590,9 @@ cdef class CachedFunction(object):
 
         def __get__(self):
             try:
-                return f.__module__
+                return self.f.__module__
             except AttributeError:
-                return f.__objclass__.__module__
+                return self.f.__objclass__.__module__
 
     cdef argfix_init(self):
         """
