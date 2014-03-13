@@ -131,7 +131,7 @@ def Mod(n, m, parent=None):
         2
 
     Illustrates that trac #5971 is fixed. Consider `n` modulo `m` when
-    `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0` is
+    `m = 0`. Then `\ZZ/0\ZZ` is isomorphic to `\ZZ` so `n` modulo `0`
     is equivalent to `n` for any integer value of `n`::
 
         sage: Mod(10, 0)
@@ -725,8 +725,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def lift_centered(self):
         r"""
-        Lift ``self`` to an integer `i` such that `n/2 < i <= n/2`
-        (where `n` denotes the modulus).
+        Lift ``self`` to a centered congruent integer.
+
+        OUTPUT:
+
+            The unique integer `i` such that `-n/2 < i \leq n/2` and `i = self \mod n`
+            (where `n` denotes the modulus).
 
         EXAMPLES::
 
@@ -754,7 +758,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return x - n
 
-    centerlift = deprecated_function_alias(8558,lift_centered)
+    centerlift = deprecated_function_alias(15804,lift_centered)
 
     cpdef bint is_one(self):
         raise NotImplementedError
