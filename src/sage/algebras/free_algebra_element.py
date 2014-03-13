@@ -52,17 +52,17 @@ class FreeAlgebraElement(AlgebraElement):
             sage: TestSuite(elt).run()
         """
         if isinstance(x, FreeAlgebraElement):
-            x = x.__monomial_coefficients
+            x = x._monomial_coefficients
         AlgebraElement.__init__(self, A)
         R = A.base_ring()
         if isinstance(x, AlgebraElement): #and x.parent() == A.base_ring():
-            self.__monomial_coefficients = { A.monoid()(1):R(x) }
+            self._monomial_coefficients = { A.monoid()(1):R(x) }
         elif isinstance(x, FreeMonoidElement):
-            self.__monomial_coefficients = { x:R(1) }
+            self._monomial_coefficients = { x:R(1) }
         elif True:
-            self.__monomial_coefficients = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
+            self._monomial_coefficients = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
         else:
-            raise TypeError("Argument x (= %s) is of the wrong type."%x)
+            raise TypeError("Argument x (= {}) is of the wrong type.".format(x))
 
     def __iter__(self):
         """
@@ -74,7 +74,7 @@ class FreeAlgebraElement(AlgebraElement):
             sage: list(3*a[0]*a[1]*a[4]**3*a[0]+1)
             [(1, 1), (3, a0*a1*a4^3*a0)]
         """
-        for (key,val) in self.__monomial_coefficients.iteritems():
+        for (key,val) in self._monomial_coefficients.iteritems():
             yield (val,key)
 
     def _repr_(self):
@@ -96,7 +96,7 @@ class FreeAlgebraElement(AlgebraElement):
             -a + 3*b*c
 
         """
-        v = sorted(self.__monomial_coefficients.items())
+        v = sorted(self._monomial_coefficients.items())
         P = self.parent()
         M = P.monoid()
         from sage.structure.parent_gens import localvars
@@ -117,7 +117,7 @@ class FreeAlgebraElement(AlgebraElement):
             sage: latex(alpha-beta)
             \alpha - \beta
         """
-        v = sorted(self.__monomial_coefficients.items())
+        v = sorted(self._monomial_coefficients.items())
         return repr_lincomb(v, strip_one=True, is_latex=True)
 
     def __call__(self, *x, **kwds):
@@ -164,7 +164,7 @@ class FreeAlgebraElement(AlgebraElement):
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
         result = None
-        for m, c in self.__monomial_coefficients.iteritems():
+        for m, c in self._monomial_coefficients.iteritems():
             if result is None:
                 result = c*m(x)
             else:
@@ -191,9 +191,29 @@ class FreeAlgebraElement(AlgebraElement):
             sage: y * x < x * y
             False
         """
-        v = sorted(left.__monomial_coefficients.items())
-        w = sorted(right.__monomial_coefficients.items())
+        v = sorted(left._monomial_coefficients.items())
+        w = sorted(right._monomial_coefficients.items())
         return cmp(v, w)
+
+    def __getitem__(self, i):
+        """
+        Return the coefficient of the monomial indexed by ``i``.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: f = x*y*x*x*z - 2*x
+            sage: s = f.leading_support()
+            sage: f[s]
+            1
+            sage: f[x.leading_support()]
+            -2
+            sage: f[y.leading_support()]
+            0
+        """
+        if i not in self._monomial_coefficients:
+            return self.parent().base_ring().zero()
+        return self._monomial_coefficients[i]
 
     def _add_(self, y):
         """
@@ -208,19 +228,19 @@ class FreeAlgebraElement(AlgebraElement):
         """
         A = self.parent()
 ##         if isinstance(y, (int, long, Integer)):
-##             z_elt = dict(self.__monomial_coefficients)
+##             z_elt = dict(self._monomial_coefficients)
 ##             e = A.monoid()(1)
 ##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(y)
 ##             z = A(0)
-##             z.__monomial_coefficients = z_elt
+##             z._monomial_coefficients = z_elt
 ##             return z
 ##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
 ##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
-        z_elt = dict(self.__monomial_coefficients)
-        for m, c in y.__monomial_coefficients.iteritems():
+        z_elt = dict(self._monomial_coefficients)
+        for m, c in y._monomial_coefficients.iteritems():
             if m in z_elt:
                 cm = z_elt[m] + c
                 if cm == 0:
@@ -230,7 +250,7 @@ class FreeAlgebraElement(AlgebraElement):
             else:
                 z_elt[m] = c
         z = A(0)
-        z.__monomial_coefficients = z_elt
+        z._monomial_coefficients = z_elt
         return z
 
     def _neg_(self):
@@ -245,9 +265,9 @@ class FreeAlgebraElement(AlgebraElement):
         """
         y = self.parent()(0)
         y_elt = {}
-        for m, c in self.__monomial_coefficients.iteritems():
+        for m, c in self._monomial_coefficients.iteritems():
             y_elt[m] = -c
-        y.__monomial_coefficients = y_elt
+        y._monomial_coefficients = y_elt
         return y
 
     def _sub_(self, y):
@@ -263,19 +283,19 @@ class FreeAlgebraElement(AlgebraElement):
         """
         A = self.parent()
 ##         if isinstance(y, (int, long, Integer)):
-##             z_elt = dict(self.__monomial_coefficients)
+##             z_elt = dict(self._monomial_coefficients)
 ##             e = A.monoid()(1)
 ##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(-y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(-y)
 ##             z = A(0)
-##             z.__monomial_coefficients = z_elt
+##             z._monomial_coefficients = z_elt
 ##             return z
 ##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
 ##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
-        z_elt = dict(self.__monomial_coefficients)
-        for m, c in y.__monomial_coefficients.iteritems():
+        z_elt = dict(self._monomial_coefficients)
+        for m, c in y._monomial_coefficients.iteritems():
             if m in z_elt:
                 cm = z_elt[m] - c
                 if cm == 0:
@@ -285,7 +305,7 @@ class FreeAlgebraElement(AlgebraElement):
             else:
                 z_elt[m] = -c
         z = A(0)
-        z.__monomial_coefficients = z_elt
+        z._monomial_coefficients = z_elt
         return z
 
     def _mul_(self, y):
@@ -301,16 +321,47 @@ class FreeAlgebraElement(AlgebraElement):
         """
         A = self.parent()
         z_elt = {}
-        for mx, cx in self.__monomial_coefficients.iteritems():
-            for my, cy in y.__monomial_coefficients.iteritems():
+        for mx, cx in self._monomial_coefficients.iteritems():
+            for my, cy in y._monomial_coefficients.iteritems():
                 key = mx*my
                 if key in z_elt:
                     z_elt[key] += cx*cy
                 else:
                     z_elt[key] = cx*cy
         z = A(0)
-        z.__monomial_coefficients = z_elt
+        z._monomial_coefficients = z_elt
         return z
+
+    def __div__(self, x, self_on_left=False):
+        """
+        Division by coefficients
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: f = x*y*x*x*z - 2*x
+            sage: f / 3
+            -2/3*x + 1/3*x*y*x^2*z
+        """
+        F = self.parent()
+        if F.base_ring().is_field():
+            x = F.base_ring()( x )
+            x_inv = x**-1
+            D = self._monomial_coefficients
+            from sage.combinat.dict_addition import dict_linear_combination
+            if self_on_left:
+                D = dict_linear_combination( [ ( D, x_inv ) ], factor_on_left=False )
+            else:
+                D = dict_linear_combination( [ ( D, x_inv ) ] )
+
+            return self.__class__(F, D)
+
+        def _divide_if_possible(x, y):
+            q, r = x.quo_rem(y)
+            if r != 0:
+                raise ValueError("{} is not divisible by {}".format(x, y))
+            return q
+        return self.map_coefficients(lambda c: _divide_if_possible(c, x))
 
     def monomials(self):
         """
@@ -318,27 +369,27 @@ class FreeAlgebraElement(AlgebraElement):
         """
         one = self.parent().base_ring().one()
         m = lambda k: self.__class__(self.parent(), {k:one})
-        return map(m, self.__monomial_coefficients.keys())
+        return map(m, self._monomial_coefficients.keys())
 
     def terms(self):
         """
         Return the terms of ``self``.
         """
         t = lambda x: self.__class__(self.parent(), {x[0]:x[1]})
-        return map(t, self.__monomial_coefficients.items())
+        return map(t, self._monomial_coefficients.items())
 
     def items(self):
         """
         Return a list of pairs ``(monomial, coefficient)`` over all monomials
         of ``self``.
         """
-        return list(self.__monomial_coefficients.items())
+        return list(self._monomial_coefficients.items())
 
     def support(self):
         """
         Return the support of ``self``.
         """
-        return list(self.__monomial_coefficients.keys())
+        return list(self._monomial_coefficients.keys())
 
     def to_pbw_basis(self):
         """

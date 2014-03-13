@@ -34,14 +34,25 @@ class FreeAlgebraIdeal(Ideal_nc):
     """
     An ideal of a free algebra.
     """
-    def __init__(self, free_algebra, gens, coerce=True, side="twosided"):
+    def __init__(self, F, gens, coerce=True, side="twosided"):
         """
         Initialize ``self``.
         """
-        Ideal_nc.__init__(self, free_algebra, gens, coerce, side)
-        PBW = free_algebra.pbw_basis()
-        from sage.algebras.pbw_algebra import PBWIdeal
-        self._pbw_ideal = PBWIdeal(PBW, map(PBW, self.gens()))
+        Ideal_nc.__init__(self, F, gens, coerce, side)
+
+        gens = self.gens()
+        if F.zero() in gens:
+            self._gb = (F.zero(),)
+            self._gb_todo = []
+            return
+        if F.one() in gens:
+            self._gb = tuple(F.gens())
+            self._gb_todo = []
+            return
+
+        gb = map(lambda x: x / x.leading_coefficient(FreeAlgebraIdeal._lead_cmp), gens)
+        self._gb = gb
+        self._gb_todo = [(g, h) for g in gb for h in gb]
 
     def free_algebra(self):
         """
@@ -49,33 +60,151 @@ class FreeAlgebraIdeal(Ideal_nc):
         """
         return self.ring()
 
-    def partial_groebner_basis(self, d):
+    @staticmethod
+    def _lead_cmp(x, y):
         """
-        Return a partial Groebner basis of ``self`` up to degree ``d``.
+        Compare ``x`` and ``y`` by degree then reverse lex so
+        :meth:`leading_item()` returns the largest degree and smallest lex.
         """
-        F = self.ring()
-        return tuple(map(F, self._pbw_ideal.partial_groebner_basis(d)))
+        x = x.to_word()
+        y = y.to_word()
+        c = cmp(len(x), len(y))
+        if c != 0:
+            return c
+        return cmp(y, x)
 
-    def groebner_basis(self):
-        r"""
+    def groebner_basis(self, max_steps=infinity):
+        """
         Return a Groebner basis of ``self``.
+
+        INPUT:
+
+        - ``max_steps`` -- (default: infinity) the maximum number of steps to
+          do before terminating
 
         .. WARNING::
 
-            This will run forever if the Groebner basis is infinite.
-        """
-        return self.partial_groebner_basis(infinity)
+            This will run forever if the Groebner basis is infinite and
+            ``max_steps`` is not specified.
 
-    def reduce(self, x):
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - x*y)
+            sage: I.groebner_basis(5)
+            WARNING: returning an incomplete Groebner basis
+            (x^2 - x*y,
+             x*y*x - x*y^2,
+             x*y^2*x - x*y^3,
+             x*y^3*x - x*y^4,
+             x*y^4*x - x*y^5)
+            sage: I = F.ideal(z^2 - z*y)
+            sage: I.groebner_basis()
+            (z*y - z^2,)
+            sage: I = F.ideal(x^2 - x*y, x*y*x - y*x*y)
+            sage: I.groebner_basis()
+            (x^2 - x*y, x*y*x - y*x*y, x*y^2 - y*x*y)
+            sage: I = F.ideal(z^2 - z*y, z*y*z - y*z*y)
+            sage: I.groebner_basis()
+            (z*y - z^2, y*z*y - z*y*z, y*z^4 - z^5)
         """
-        Return ``x`` modulo ``self``.
+        side = self.side()
+        if side != "twosided":
+            raise NotImplementedError
+
+        # Setup variables and functions
+        l_cmp = FreeAlgebraIdeal._lead_cmp
+        F = self.ring()
+
+        n = len(F.gens())
+        FM = F._basis_keys
+
+        # Run Groebner basis algorithm
+
+        zero = F.zero()
+        from sage.combinat.words.word import Word
+        while len(self._gb_todo) > 0 and len(self._gb) < max_steps:
+            p = self._gb_todo.pop(0)
+
+            # Compute the essential common multiples of the leading terms
+            f = map(lambda x: list(x.leading_support(l_cmp).to_word()), p)
+            ell = min(len(f[0]), len(f[1]))
+            for k in range(1, ell):
+                if f[0][:k] == f[1][-k:]:
+                    w0 = Word(f[1][:-k])
+                    w1 = Word(f[0][k:])
+
+                    # Compute the S-polynomial
+                    h = F(FM(w0)) * p[0] - p[1] * F(FM(w1))
+                    h = self._normal_form(h, self._gb)
+
+                    if h != zero:
+                        h = h / h.leading_coefficient(l_cmp)
+                        self._gb_todo.extend([(g, h) for g in self._gb])
+                        self._gb.append(h)
+
+        if len(self._gb_todo) != 0:
+            print "WARNING: returning an incomplete Groebner basis"
+
+        return tuple(self._gb)
+
+    def _normal_form(self, x, G):
+        """
+        Return ``x`` modulo ``G`` (i.e. the normal form with respect
+        to ``G``).
         """
         F = self.ring()
-        if x == F.zero():
+        ret = F.zero()
+        FM = F._basis_keys
+        l_cmp = FreeAlgebraIdeal._lead_cmp
+        side = self.side()
+
+        while x != 0:
+            u, la = x.leading_item(l_cmp)
+            found = False
+            for g in G:
+                LM, mu = g.leading_item(l_cmp)
+
+                # Factor u by LM if possible
+                w = u.to_word()
+                lmw = LM.to_word()
+                if side == 'twosided':
+                    f = lmw.first_pos_in(w)
+                    if f is not None:
+                        found = True
+                        x -= la / mu * F(FM(w[:f])) * g * F(FM(w[f+len(LM):]))
+                        break
+                elif side == 'left':
+                    if lmw.is_proper_suffix(w):
+                        x -= la / mu * F(FM(w[len(lmw):])) * g
+                        break
+                elif side == 'right':
+                    if lmw.is_proper_prefix(w):
+                        x -= la / mu * g * F(FM(w[:-len(lmw)]))
+                        break
+            if not found:
+                ret += la * F(u)
+                x -= la * F(u)
+        return ret
+
+    def reduce(self, x, max_steps=infinity):
+        """
+        Return ``x`` modulo ``self``.
+
+        INPUT:
+
+        - ``max_steps`` -- (default: infinity) the maximum number of steps to
+          compute in the Groebner basis before terminating
+
+        .. WARNING::
+
+            If this terminates after ``max_steps``, the resulting reduction
+            may not fully reduce the element.
+        """
+        if x == self.ring().zero():
             return x
-        PBW = F.pbw_basis()
-        p = PBW(x)
-        return F(self._pbw_ideal.reduce(p))
+        G = self.groebner_basis(max_steps)
+        return self._normal_form(x, G)
 
 class FinitelyPresentedAlgebra(Algebra, UniqueRepresentation):
     """

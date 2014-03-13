@@ -408,12 +408,22 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             The exponent of a monomial `m = x_1^{\alpha_1} \cdots
             x_k^{\alpha_k}` is the list of powers
             `[\alpha_1, \ldots, \alpha_k]`.
+
+            EXAMPLES::
+
+                sage: F = FreeAlgebra(QQ, 2, 'x,y')
+                sage: PBW = F.pbw_basis()
+                sage: x,y = PBW.gens()
+                sage: f = x^2*y + y*x; f
+                PBW[y]*PBW[x] + PBW[x^2*y] + PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
+                sage: f.leading_exponent()
+                {x: 2, y: 1}
             """
             lf = self.leading_support(mcmp).to_word().lyndon_factorization()
             exp = {}
             for f in lf:
-                f = self._basis_keys(f)
-                exp[f] += exp.get(f, 0) + 1
+                f = self.parent()._basis_keys(f)
+                exp[f] = exp.get(f, 0) + 1
             return exp
 
 class PBWIdeal(Ideal_nc):
@@ -424,15 +434,19 @@ class PBWIdeal(Ideal_nc):
         """
         Initialize ``self``.
         """
-        Ideal_nc.__init__(self, pbw_algebra, gens, side)
+        Ideal_nc.__init__(self, pbw_algebra, gens, coerce, side)
 
         gens = self.gens()
         if pbw_algebra.zero() in gens:
             self._gb = (pbw_algebra.zero(),)
             self._gb_todo = []
             return
+        if pbw_algebra.one() in gens:
+            self._gb = tuple(pbw_algebra.gens())
+            self._gb_todo = []
+            return
 
-        gb = map(lambda x: x / x.leading_coefficient(), gens)
+        gb = map(lambda x: x / x.leading_coefficient(PBWIdeal._lead_cmp), gens)
         self._gb = gb
         self._gb_todo = [(g, h) for g in gb for h in gb]
 
@@ -471,7 +485,8 @@ class PBWIdeal(Ideal_nc):
 
         .. WARNING::
 
-            This will run forever if the Groebner basis is infinite.
+            This will run forever if the Groebner basis is infinite and
+            ``max_steps`` is not specified.
         """
         # Setup variables and functions
         l_cmp = PBWIdeal._lead_cmp
@@ -489,10 +504,9 @@ class PBWIdeal(Ideal_nc):
 
         # Run Groebner basis algorithm
 
-        n_steps = 0
-        while len(self._gb_todo) > 0 and n_steps < max_steps:
-            n_steps += 1
-            p = self._gb_todo.pop()
+        zero = PBW.zero()
+        while len(self._gb_todo) > 0 and len(self._gb) < max_steps:
+            p = self._gb_todo.pop(0)
 
             if isinstance(p[1], tuple) and p[1][0] == 'ts':
                 i = p[1][1]
@@ -512,7 +526,7 @@ class PBWIdeal(Ideal_nc):
 
             h = self._normal_form(h, self._gb)
 
-            if h != PBW.zero():
+            if h != zero:
                 h /= h.leading_coefficient(l_cmp)
                 if side == "twosided":
                     for g in self._gb:
@@ -522,15 +536,15 @@ class PBWIdeal(Ideal_nc):
                     self._gb_todo.extend((g, h) for g in self._gb)
                 self._gb.append(h)
 
-        if len(self._gb_todo) != 0 and n_steps == max_steps:
+        if len(self._gb_todo) != 0:
             print "WARNING: returning an incomplete Groebner basis"
 
         return tuple(self._gb)
 
     def _normal_form(self, x, G):
         """
-        Return ``x`` modulo ``G`` (i.e. the normal form) where ``x`` is in
-        the PBW basis.
+        Return ``x`` modulo ``G`` (i.e. the normal form with respect
+        to ``G``) where ``x`` is in the PBW basis.
         """
         PBW = self.ring()
         ret = PBW.zero()
