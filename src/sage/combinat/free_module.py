@@ -1564,6 +1564,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self.element_class(self, {})
 
+<<<<<<< HEAD
     def combinatorial_class(self):
         """
         Returns the combinatorial class that indexes the basis elements.
@@ -1588,6 +1589,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         deprecation(6136, '"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
         return self._indices
 
+=======
+>>>>>>> public/ticket/10963-doc-distributive
     def dimension(self):
         """
         Returns the dimension of the combinatorial algebra (which is given

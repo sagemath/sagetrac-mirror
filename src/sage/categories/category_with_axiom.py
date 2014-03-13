@@ -30,7 +30,7 @@ exists a class for the category of finite semigroups::
 In this case, we say that the category of semigroups *implements* the
 axiom ``Finite``, and code about finite semigroups should go in the
 class :class:`FiniteSemigroups` (or, as usual, in its nested classes
-ParentMethods, ElementsMethods and so on).
+``ParentMethods``, ``ElementMethods``, and so on).
 
 On the other hand, there is no class for the category of infinite
 semigroups::
@@ -85,6 +85,8 @@ all the methods of finite sets and of finite `C`'s, as desired::
     sage: P.foo()                   # Provided by Cs.Finite.ParentMethods
     I am a method on finite C's
 
+.. _category-with-axiom-design:
+
 .. NOTE::
 
     - This follows the same idiom as for
@@ -96,19 +98,24 @@ all the methods of finite sets and of finite `C`'s, as desired::
       can complement this method with extra data (here a mixin class)
       in the form of a class attribute ``Cs.Finite``.
 
-      It may come as a surprise that we can use the same name
-      ``Finite`` for this mixin class as for the method. This indeed
-      takes a bit of magic under the hood, since by default a class
-      does not have a binding behavior and would completely override
-      the method.
+      This should be thought of as the natural analogue of
+      complementing a method from some superclass by overriding it,
+      calling it with a ``super`` call, and doing more stuff.
 
-      This magic should be thought of as implementing the natural
-      analogue of a method in a class `C` complementing a method of
-      the same name in a superclass `B` by overriding it and calling
-      it with a super call. It gives a concise naming scheme.
+    - It may come as a surprise that we can actually use the same name
+      ``Finite`` for the mixin class and for the method defining the
+      axiom; indeed, by default a class does not have a binding
+      behavior and would completely override the method. See the
+      section :ref:`axioms-defining-a-new-axiom` for details and the
+      rationale behind it.
+
+      An alternative would have been to give another name to the mixin
+      class, like ``FiniteCategory``. However this would have resulted
+      in more namespace pollution, whereas using ``Finite`` is already
+      clear, explicit, and easier to remember.
 
     - Under the hood, the category ``Cs().Finite()`` is aware that it
-      has been constructed from the category ``Cs()`` and adding the
+      has been constructed from the category ``Cs()`` by adding the
       axiom ``Finite``::
 
         sage: Cs().Finite().base_category()
@@ -117,8 +124,8 @@ all the methods of finite sets and of finite `C`'s, as desired::
         'Finite'
 
 Over time, the nested class ``Cs.Finite`` may become large and too
-cumbersome to keep as a nested class of ``Cs``. Or the category with
-axiom may have a name of its own in the litterature, like *semigroups*
+cumbersome to keep as a nested subclass of ``Cs``. Or the category with
+axiom may have a name of its own in the literature, like *semigroups*
 rather than *associative magmas*, or *fields* rather than *commutative
 division rings*. In this case, the category with axiom can be put
 elsewhere, typically in a separate file, with just a link from
@@ -150,7 +157,7 @@ importing :class:`FiniteGroups`.
     :class:`LazyImport`, in order to quiet the warning about that lazy
     import being resolved upon startup. See for example ``Sets.Finite``.
 
-    This is undoubtly a code smell. Nethertheless it should be kept as
+    This is undoubtedly a code smell. Nethertheless it should be kept as
     is, first to resolve the import order properly, and more
     importantly as a reminder that the category would be best not
     constructed upon Sage's startup. This to entice developpers to
@@ -236,12 +243,15 @@ class from the base category class::
     sage: Algebras.WithBasis._base_category_class_and_axiom_origin
     'set by __classget__'
 
-Hence, for whatever this notation is worth, one can safely do::
+Hence, for whatever this notation is worth, one can currently do::
 
     sage: Algebras.WithBasis(QQ)
     Category of algebras with basis over Rational Field
 
-As a second step, Sage tries some obvious heuristics to guess the link
+We don't recommend using this syntax which may eventually be
+deprecated.
+
+As a second step, Sage tries some obvious heuristics to deduce the link
 from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
@@ -251,18 +261,18 @@ covers the following examples::
     sage: FiniteGroups() is Groups().Finite()
     True
     sage: FiniteGroups._base_category_class_and_axiom_origin
-    'guessed by base_category_class_and_axiom'
+    'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
     Category of finite dimensional algebras with basis over Rational Field
     sage: FiniteDimensionalAlgebrasWithBasis(QQ) is Algebras(QQ).FiniteDimensional().WithBasis()
     True
 
-When this guessing fails, typically because the category has a name of
-its own like :class:`Fields`, the attribute
-``_base_category_class_and_axiom`` should be set explicitly. For more
-examples, see the code of the classes :class:`Semigroups` or
-:class:`Fields`.
+If the heuristic succeeds, the result is guaranteed to be correct. If
+it fails, typically because the category has a name of its own like
+:class:`Fields`, the attribute ``_base_category_class_and_axiom``
+should be set explicitly. For more examples, see the code of the
+classes :class:`Semigroups` or :class:`Fields`.
 
 .. NOTE::
 
@@ -276,19 +286,22 @@ examples, see the code of the classes :class:`Semigroups` or
     See :meth:`CategoryWithAxiom._without_axioms`,
     :meth:`CategoryWithAxiom._repr_object_names_static`.
 
-In our running example ``FiniteCs``, Sage failed to guess
+In our running example ``FiniteCs``, Sage failed to deduce
 automatically the base category class and axiom because the class
 ``Cs`` is not in the standard location ``sage.categories.cs``.
 
 .. TOPIC:: Design discussion
 
-    The above guessing based on names is undoubtedly inelegant and
-    somewhat brittle. However it saves on some redundant information
-    and is only used for the simple shorthands like ``FiniteGroups()``
-    for ``Groups().Finite()``; furthermore most if not all of these
+    The above deduction, based on names, is undoubtedly inelegant. But
+    it's safe (either the result is guaranteed to be correct, or an
+    error is raised), it saves on some redundant information, and it
+    is only used for the simple shorthands like ``FiniteGroups()`` for
+    ``Groups().Finite()``. Finally, most if not all of these
     shorthands are likely to eventually disappear (see :trac:`15741`
     and the :ref:`related discussion in the primer
     <category-primer-axioms-single-entry-point>`).
+
+.. _axioms-defining-a-new-axiom:
 
 Defining a new axiom
 --------------------
@@ -328,16 +341,16 @@ We can now use the axiom as usual::
 
 Compared with our first example, the only newcomer is the method
 ``.Green()`` that can be used by any subcategory ``Ds()`` of ``Cs()``
-to add the axiom ``Green``. Due to some magic, ``Ds().Green`` always
-gives back this method, regardless of whether ``Ds`` has a nested
-class ``Ds.Green`` or not (an implementation detail)::
+to add the axiom ``Green``. Note that the expression ``Ds().Green``
+always evaluates to this method, regardless of whether ``Ds`` has a
+nested class ``Ds.Green`` or not (an implementation detail)::
 
     sage: Cs().Green
     <bound method Cs_with_category.Green of Category of cs>
 
-Thanks to this feature, the user is systematically referred to the
-documentation of this method when doing introspection on
-``Ds().Green``::
+Thanks to this feature (implemented in :meth:`CategoryWithAxiom.__classget__`),
+the user is systematically referred to the documentation of this
+method when doing introspection on ``Ds().Green``::
 
     sage: C = Cs()
     sage: C.Green?             # not tested
@@ -348,8 +361,8 @@ It is therefore the natural spot for the documentation of the axiom.
 
 .. NOTE::
 
-    The presence of the nested class ``Green`` in ``Cs`` is mandatory
-    even if it is empty.
+    The presence of the nested class ``Green`` in ``Cs`` is currently
+    mandatory even if it is empty.
 
 .. TODO::
 
@@ -367,13 +380,13 @@ It is therefore the natural spot for the documentation of the axiom.
 .. NOTE::
 
     ``all_axioms`` is only used marginally, for sanity checks and when
-    trying to guess the base category class. The order of the axioms
-    in this tuple also controls the order in which they appear when
-    printing out categories with axioms (see
+    trying to derive automatically the base category class. The order
+    of the axioms in this tuple also controls the order in which they
+    appear when printing out categories with axioms (see
     :meth:`CategoryWithAxiom._repr_object_names_static`).
 
-    During a Sage session, new axioms should only be added at the end
-    of ``all_axioms`` as above, so as to not break the cache of
+    During a Sage session, new axioms should only be added at the *end*
+    of ``all_axioms``, as above, so as to not break the cache of
     :func:`axioms_rank`. Otherwise, they can be inserted statically
     anywhere in the tuple. For axioms defined within the Sage library,
     the name is best inserted by editing directly the definition of
@@ -382,19 +395,19 @@ It is therefore the natural spot for the documentation of the axiom.
 .. TOPIC:: Design note
 
     Let us state again that, unlike what the existence of
-    ``all_axioms`` might suggests, the definition of an axiom is local
+    ``all_axioms`` might suggest, the definition of an axiom is local
     to a category and its subcategories. In particular, two
     independent categories ``Cs()`` and ``Ds()`` can very well define
-    axioms with the same name and different semantic. As long as the
+    axioms with the same name and different semantics. As long as the
     two hierarchies of subcategories don't intersect, this is not a
     problem. And if they do intersect naturally (that is if one is
     likely to create a parent belonging to both categories), this
-    probably means that ``Cs`` and ``Ds`` are about related enough
-    areas of mathematics that one should clear the ambiguity by having
-    either the same semantic or different names.
+    probably means that the categories ``Cs`` and ``Ds`` are about
+    related enough areas of mathematics that one should clear the
+    ambiguity by having either the same semantic or different names.
 
-    This caveat is no different from that of name clash issues in
-    hierarchy of classes involving multiple inheritance.
+    This caveat is no different from that of name clashes in hierarchy
+    of classes involving multiple inheritance.
 
 .. TODO::
 
@@ -407,7 +420,7 @@ Special case: defining an axiom depending on several categories
 
 In some cases, the largest category where the axiom makes sense is the
 intersection of two categories. This is typically the case for axioms
-specify compatibility conditions between two otherwise unrelated
+specifying compatibility conditions between two otherwise unrelated
 operations, like ``Distributive`` which specifies a compatibility
 between `*` and `+`. Ideally, we would want the ``Distributive`` axiom
 to be defined by::
@@ -452,7 +465,7 @@ The downsides of this workaround are:
   ``Groups()``) with a method that is irrelevant (but safely complains
   if called).
 
-- ``C._with_axiom('Distributive`)`` is not strictly equivalent to
+- ``C._with_axiom('Distributive')`` is not strictly equivalent to
   ``C.Distributive()``, which can be unpleasantly surprising::
 
     sage: (Monoids() & CommutativeAdditiveGroups()).Distributive()
@@ -537,14 +550,15 @@ Abstract model
 As we have seen in the :ref:`Primer <category-primer-axioms-explosion>`,
 the objects of a category ``Cs()`` can usually satisfy, or not, many
 different axioms. Out of all combinations of axioms, only a small
-number are relevant in practice; in the sense that we actually want to
+number are relevant in practice, in the sense that we actually want to
 provide features for the objects satisfying these axioms.
 
-Therefore, in the context of the category class `Cs`, we want to
-provide the system with a collection `(D_S)_{S\in \mathcal S}` were
-`S` is a subset of the axioms and `D_S` is a class for the subcategory
-of the object of ``Cs()`` satisfying the axioms in `S`. For example,
-if ``Cs()`` is the category of magmas, the pairs would include::
+Therefore, in the context of the category class ``Cs``, we want to
+provide the system with a collection `(D_S)_{S\in \mathcal S}` where
+each `S` is a subset of the axioms and the corresponding `D_S` is a
+class for the subcategory of the objects of ``Cs()`` satisfying the
+axioms in `S`. For example, if ``Cs()`` is the category of magmas, the
+pairs `(S, D_S)` would include::
 
     {Associative}                 : Semigroups
     {Associative, Unital}         : Monoids
@@ -557,8 +571,8 @@ select automatically the relevant classes
 `(D_S)_{S\in \mathcal S, S\subset T}`,
 and build from them a category for the objects of ``Cs`` satisfying
 the axioms in `T`, together with its hierarchy of super categories. If
-`T` is in `\mathcal S`, then the class of the resulting category is
-directly `D_T`::
+`T` is in the indexing set `\mathcal S`, then the class of the
+resulting category is directly `D_T`::
 
     sage: C = Magmas().Unital().Inverse().Associative(); C
     Category of groups
@@ -578,7 +592,7 @@ Concrete model as an arborescence of nested classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We further want the construction to be efficient and amenable to
-lazyness. This led us to the following design decision: the collection
+laziness. This led us to the following design decision: the collection
 `(D_S)_{S\in \mathcal S}` of classes should be structured as an
 arborescence. The root is ``Cs``, corresponding to `S=\emptyset`. Any
 other class `D_S` should be the child of a single class `D_{S'}` where
@@ -621,8 +635,8 @@ on other axioms and deduction rules. See below.
 Asymmetry
 ~~~~~~~~~
 
-As we have seen at the beginning of this section this design
-introduces an asymmetry. It's not so bad in practice as in most
+As we have seen at the beginning of this section, this design
+introduces an asymmetry. It's not so bad in practice, since in most
 practical cases, we want to work incrementally. It's for example more
 natural to describe :class:`FiniteFields` as :class:`Fields` with the
 axiom ``Finite`` rather than :class:`Magmas` and
@@ -673,7 +687,7 @@ Mismatch between the arborescence of nested classes and the hierarchy of categor
 
 The fact that the hierarchy relation between categories is not
 reflected directly as a relation between the classes may sound
-suspicious at first! However, as mentionned in the primer, this is
+suspicious at first! However, as mentioned in the primer, this is
 actually a big selling point of the axioms infrastructure: by
 calculating automatically the hierarchy relation between categories
 with axioms one avoids the nightmare of maintaining it by hand.
@@ -1658,13 +1672,16 @@ def uncamelcase(s,separator=" "):
 
 def base_category_class_and_axiom(cls):
     """
-    Try to guess the base category and the axiom from the name of ``cls``.
+    Try to deduce the base category and the axiom from the name of ``cls``.
 
     The heuristic is to try to decompose the name as the concatenation
     of the name of a category and the name of an axiom, and looking up
     that category in the standard location (i.e. in
     :mod:`sage.categories.hopf_algebras` for :class:`HopfAlgebras`,
     and in :mod:`sage.categories.sets_cat` as a special case for :class:`Sets`).
+
+    If the heuristic succeeds, the result is guaranteed to be
+    correct. Otherwise, an error is raised.
 
     EXAMPLES::
 
@@ -1787,7 +1804,7 @@ def axiom_of_nested_class(cls, nested_cls):
             else:
                 raise ValueError, "could not infer axiom for the nested class %s of %s"%(nested_cls, cls)
     assert axiom in all_axioms, \
-        "Incorrect guess (%s) for the name of the axiom for the nested class %s of %s"%(axiom, nested_cls, cls)
+        "Incorrect deduction (%s) for the name of the axiom for the nested class %s of %s"%(axiom, nested_cls, cls)
     assert axiom in cls.__dict__ and cls.__dict__[axiom] == nested_cls, \
         "%s not a nested axiom class of %s for axiom %s"%(nested_cls, cls, axiom)
     return axiom
@@ -1808,15 +1825,16 @@ class CategoryWithAxiom(Category):
         r"""
         The class of the base category and the axiom for this class.
 
-        By default, this attribute is guessed from the name of this
-        class (see :func:`base_category_class_and_axiom`). For a
-        nested class, when the category is first created from its base
-        category, as in e.g. ``Sets().Infinite()``, this attribute is
-        instead set explicitly by :meth:``__classget__``.
+        By default, and when possible, this attribute is deduced from
+        the name of this class (see
+        :func:`base_category_class_and_axiom`). For a nested class,
+        when the category is first created from its base category as
+        in e.g. ``Sets().Infinite()``, this attribute is instead set
+        explicitly by :meth:``__classget__``.
 
         When this is not sufficient, that is when ``cls`` is not
         implemented as a nested class and the base category and the
-        axiom cannot be guessed from the name of ``cls``, this
+        axiom cannot be deduced from the name of ``cls``, this
         attribute should be set explicitly by ``cls``.
 
         The origin of the attribute is stored in the attribute
@@ -1827,12 +1845,12 @@ class CategoryWithAxiom(Category):
         EXAMPLES:
 
         ``CommutativeRings`` is not a nested class, but the name of
-        the base category and the axiom can be guessed::
+        the base category and the axiom can be deduced::
 
             sage: CommutativeRings()._base_category_class_and_axiom
             (<class 'sage.categories.rings.Rings'>, 'Commutative')
             sage: CommutativeRings()._base_category_class_and_axiom_origin
-            'guessed by base_category_class_and_axiom'
+            'deduced by base_category_class_and_axiom'
 
         ``Sets.Infinite`` is a nested class, so the attribute is set
         by :meth:`CategoryWithAxiom.__classget__` the first time
@@ -1846,8 +1864,9 @@ class CategoryWithAxiom(Category):
             'set by __classget__'
 
         ``Fields`` is not a nested class, and the name of the base
-        category and axioms cannot be guessed; so this attributes
-        needs to be set explicitly in the ``Fields`` class::
+        category and axioms cannot be deduced from the name
+        ``Fields``; so this attributes needs to be set explicitly in
+        the ``Fields`` class::
 
             sage: Fields()._base_category_class_and_axiom
             (<class 'sage.categories.division_rings.DivisionRings'>, 'Commutative')
@@ -1865,7 +1884,7 @@ class CategoryWithAxiom(Category):
             ``Monoids._base_category_class``.
         """
         base_category_class, axiom = base_category_class_and_axiom(cls)
-        cls._base_category_class_and_axiom_origin = "guessed by base_category_class_and_axiom"
+        cls._base_category_class_and_axiom_origin = "deduced by base_category_class_and_axiom"
         return (base_category_class, axiom)
 
     _base_category_class_and_axiom_origin = "hardcoded"
@@ -1937,35 +1956,22 @@ class CategoryWithAxiom(Category):
     @staticmethod
     def __classget__(cls, base_category, base_category_class):
         """
-        A bit of black magic to support the following syntax.
+        Implements the binding behavior for categories with axioms.
 
-        EXAMPLES::
+        This method implements a binding behavior on category with
+        axioms so that, when a category ``Cs`` implements an axiom
+        ``A`` with a nested class ``Cs.A``, the expression ``Cs().A``
+        evaluates to the method defining the axiom ``A`` and not the
+        nested class. See `those design notes
+        <category-with-axiom-design>`_ for the rationale behind this
+        behavior.
 
-            sage: Sets().Finite()
-            Category of finite sets
+        EXAMPLES:
 
-        When a category does not provide code or properties for its
-        finite objects, we get a join category::
-
-            sage: Rings().Finite()
-            Category of finite rings
-
-        Well, we have to open the hood to actually see it::
-
-            sage: Rings().Finite()._repr_(as_join=True)
-            'Join of Category of rings and Category of finite monoids'
-
-        .. NOTE:: the above example is subject to change
-
-        Thanks to this magic, the documentation obtained by
-        introspection on ``Sets().Infinite`` is that of
-        :func:`sage.categories.category_with_axiom.Infinite`.
-
+            sage: Sets().Infinite()
+            Category of infinite sets
             sage: Sets().Infinite
             Cached version of <function Infinite at ...>
-
-        TESTS::
-
             sage: Sets().Infinite.f == Sets.SubcategoryMethods.Infinite.f
             True
 
@@ -1975,14 +1981,22 @@ class CategoryWithAxiom(Category):
             sage: Sets().Finite
             Cached version of <function Finite at ...>
 
-        There is no black magic when accessing ``Finite`` or
+        There is no binding behavior when accessing ``Finite`` or
         ``Infinite`` from the class of the category instead of the
-        category::
+        category itself::
 
             sage: Sets.Finite
             <class 'sage.categories.finite_sets.FiniteSets'>
             sage: Sets.Infinite
             <class 'sage.categories.sets_cat.Sets.Infinite'>
+
+        This method also initializes the attribute
+        ``_base_category_class_and_axiom`` if not already set::
+
+            sage: Sets.Infinite._base_category_class_and_axiom
+            (<class 'sage.categories.sets_cat.Sets'>, 'Infinite')
+            sage: Sets.Infinite._base_category_class_and_axiom_origin
+            'set by __classget__'
         """
         # TODO: this is super paranoid; see if this can be simplified a bit
         if base_category is not None:
