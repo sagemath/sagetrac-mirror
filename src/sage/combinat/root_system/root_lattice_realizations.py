@@ -719,9 +719,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: [x for x in PhiP]
                 [alpha[1], alpha[2], alpha[3], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
 
-            warning::
+            .. warning::
 
-                This returns an error if the cartan type is not finite.
+                This returns an error if the Cartan type is not finite.
 
             """
             if not self.cartan_type().is_finite():
@@ -756,9 +756,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: lattice.positive_roots_nonparabolic((1,2,3))
                 []
 
-            warning::
+            .. warning::
 
-                This returns an error if the cartan type is not finite.
+                This returns an error if the Cartan type is not finite.
 
             """
             if not self.cartan_type().is_finite():
@@ -790,9 +790,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: lattice.positive_roots_nonparabolic_sum((1,2,3))
                 0
 
-            warning::
+            .. warning::
 
-                This returns an error if the cartan type is not finite.
+                This returns an error if the Cartan type is not finite.
 
             """
 
@@ -2367,9 +2367,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
                 Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
                 sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
-                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2)]
+                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('black', 2), ('blue', 1), ('black', 2), ('red', 1), ('black', 2), ('red', 1), ('black', 2), ('blue', 1)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):
@@ -2431,7 +2429,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 simple_roots = self.simple_roots()
                 translation_vectors = Family({i: translation_factors[i]*simple_roots[i]
                                           for i in cartan_type.classical().index_set()})
-                # The elements of the classical weyl group, as elements of W
+                # The elements of the classical Weyl group, as elements of W
                 W0 = [W.from_reduced_word(w.reduced_word()) for w in self.weyl_group().classical()]
                 for alcove in alcoves:
                     # The translation mapping the center of the
