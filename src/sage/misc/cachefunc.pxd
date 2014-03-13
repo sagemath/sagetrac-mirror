@@ -1,6 +1,5 @@
 cdef class CachedFunction(object):
     cdef public str __name__
-    cdef public str __module__
     cdef object _argument_fixer
     cdef public object _fix_to_pos
     cdef public object f

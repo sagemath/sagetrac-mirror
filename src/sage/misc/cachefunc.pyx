@@ -581,14 +581,18 @@ cdef class CachedFunction(object):
             self.__name__ = f.func_name
         else:
             self.__name__ = f.__name__
-        try:
-            self.__module__ = f.__module__
-        except AttributeError:
-            self.__module__ = f.__objclass__.__module__
         if argument_fixer is not None: # it is None unless the argument fixer
                                        # was known previously. See #15038.
             self._argument_fixer = argument_fixer
             self._fix_to_pos = argument_fixer.fix_to_pos
+
+    property __module__:
+
+        def __get__(self):
+            try:
+                return f.__module__
+            except AttributeError:
+                return f.__objclass__.__module__
 
     cdef argfix_init(self):
         """
