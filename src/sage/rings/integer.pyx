@@ -694,55 +694,48 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     xs += 1
                 if mpz_set_str(self.value, xs, ibase) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
-
-            elif PyObject_HasAttrString(x, "_integer_"):
-                # TODO: Note that PyObject_GetAttrString returns NULL if
-                # the attribute was not found. If we could test for this,
-                # we could skip the double lookup. Unfortunately Cython doesn't
-                # seem to let us do this; it flags an error if the function
-                # returns NULL, because it can't construct an "object" object
-                # out of the NULL pointer. This really sucks. Perhaps we could
-                # make the function prototype have return type void*, but
-                # then how do we make Cython handle the reference counting?
-                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))(the_integer_ring))
-
-            elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
-                b = the_integer_ring(base)
-                if b == 2: # we use a faster method
-                    for j from 0 <= j < len(x):
-                        otmp = x[j]
-                        if not PY_TYPE_CHECK(otmp, Integer):
-                            # should probably also have fast code for Python ints...
-                            otmp = Integer(otmp)
-                        if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
-                            mpz_setbit(self.value, j)
-                        elif mpz_sgn((<Integer>otmp).value) != 0:
-                            # one of the entries was something other than 0 or 1.
-                            break
-                    else:
-                        return
-                tmp = the_integer_ring(0)
-                for i in range(len(x)):
-                    tmp += the_integer_ring(x[i])*b**i
-                mpz_set(self.value, tmp.value)
-
             else:
-                import numpy
-                if isinstance(x, numpy.integer):
-                    mpz_set_pylong(self.value, x.__long__())
-                    return
+                integer_method=getattr(x,"_integer_",None)
+                if integer_method is not None:
+                    set_from_Integer(self, integer_method(the_integer_ring))
 
-                elif PY_TYPE_CHECK(x, Element):
-                    try:
-                        lift = x.lift()
-                        if lift._parent != (<Element>x)._parent:
-                            tmp = the_integer_ring(lift)
-                            mpz_swap(tmp.value, self.value)
+                elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
+                    b = the_integer_ring(base)
+                    if b == 2: # we use a faster method
+                        for j from 0 <= j < len(x):
+                            otmp = x[j]
+                            if not PY_TYPE_CHECK(otmp, Integer):
+                                # should probably also have fast code for Python ints...
+                                otmp = Integer(otmp)
+                            if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                                mpz_setbit(self.value, j)
+                            elif mpz_sgn((<Integer>otmp).value) != 0:
+                                # one of the entries was something other than 0 or 1.
+                                break
+                        else:
                             return
-                    except AttributeError:
-                        pass
+                    tmp = the_integer_ring(0)
+                    for i in range(len(x)):
+                        tmp += the_integer_ring(x[i])*b**i
+                    mpz_set(self.value, tmp.value)
 
-                raise TypeError, "unable to coerce %s to an integer" % type(x)
+                else:
+                    import numpy
+                    if isinstance(x, numpy.integer):
+                        mpz_set_pylong(self.value, x.__long__())
+                        return
+
+                    elif PY_TYPE_CHECK(x, Element):
+                        try:
+                            lift = x.lift()
+                            if lift._parent != (<Element>x)._parent:
+                                tmp = the_integer_ring(lift)
+                                mpz_swap(tmp.value, self.value)
+                                return
+                        except AttributeError:
+                            pass
+
+                    raise TypeError, "unable to coerce %s to an integer" % type(x)
 
     def __reduce__(self):
         """
