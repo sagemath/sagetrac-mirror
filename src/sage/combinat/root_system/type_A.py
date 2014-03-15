@@ -273,13 +273,13 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
         else:
             ret = ""
         if node_labels == None:
-            ret = ret + "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"
+            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"
                                   %((i-1)*node_dist, label(i)) for i in self.index_set())
         else:
-            ret = ret + "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"
+            ret +=  "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"
                                   %((i-1)*node_dist, node_labels[i-1]) for i in self.index_set())
         if crossed_nodes != None:
-            ret = ret + "\n" + "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist)
+            ret += "\n" + "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist)
                                   for i in crossed_nodes)
         return ret
 
