@@ -268,6 +268,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             self.add_vertices(index_set)
         elif t is not None:
             self.add_vertices(t.index_set())
+        self.node_labels = None
+        self.crossed_nodes = None
 
     def _repr_(self):
         """
@@ -287,6 +289,19 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         else:
             return result+"%s"%ct._repr_(compact=True)
             #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
+
+    def set_node_labels(self, node_labels):
+        if len(node_labels) != self.rank():
+            raise ValueError("The number of node labels must be the same as rank.")
+        else:
+            self.node_labels = node_labels
+
+    def set_crossed_nodes(self, crossed_nodes):
+        if crossed_nodes != None and len(crossed_nodes) > self.rank():
+            raise ValueError("The number of crossed nodes cannot be bigger than rank.")
+        else:
+            self.crossed_nodes = crossed_nodes
+
 
     def _latex_(self, scale=0.5):
         r"""
@@ -309,8 +324,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if self.cartan_type() is None:
             return "Dynkin diagram of rank %s"%self.rank()
         ret = "\\begin{tikzpicture}[scale=%s]\n"%scale
-        ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
-        ret += self.cartan_type()._latex_dynkin_diagram()
+        if self.crossed_nodes == None and self.node_labels == None:
+            ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
+        ret += self.cartan_type()._latex_dynkin_diagram(node_labels=self.node_labels, crossed_nodes=self.crossed_nodes)
         ret += "\n\\end{tikzpicture}"
         return ret
 
