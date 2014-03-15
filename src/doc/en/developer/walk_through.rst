@@ -334,6 +334,10 @@ your changes. Your branch is based on the original author's branch, so
 s/he can easily incorporate your changes into his/her own branch (see
 below).
 
+In the `Branch:` field of the ticket you can see something like `u/user/12345`.
+This is the default remote path for your ticket commits but you can
+put branches into `public/` too, which makes sense if there is intense collaboration.
+
 
 .. _section-walkthrough-collaborate:
 

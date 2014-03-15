@@ -318,7 +318,7 @@ overview:
 * **Work issues:** Issues that need to be resolved before the ticket
   can leave the "needs work" status.
 
-* **Branch:** See :ref:`section-git-branch`
+* **Branch:** The remote path with the most recent branch. See also :ref:`section-git-push`
 
 * **Dependencies:** Does the ticket depend on another ticket?
   Sometimes, a ticket requires that another ticket be applied
