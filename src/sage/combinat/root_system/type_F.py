@@ -265,7 +265,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         g.set_edge_label(2,3,2)
         return g
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=None):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -290,9 +290,16 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip(1.5*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip(1.5*node_dist+0.2, 0, 0)
-        for i in range(3):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-        ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(3*node_dist, label(4))
+
+        if node_labels == None:
+            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(i*node_dist, label(i+1))
+                             for i in range(4))
+        else:
+            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"%(i*node_dist, node_labels[i])
+                             for i in range(4))
+
+        if crossed_nodes != None:
+            ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes)
         return ret
 
     def ascii_art(self, label = lambda x: x):
