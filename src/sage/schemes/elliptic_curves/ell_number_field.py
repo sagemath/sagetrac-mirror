@@ -1731,12 +1731,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r"""
         Returns the local root number of this elliptic curve at `P`.
 
-        ALGORITHM: The computation for primes not dividing 2 or 3 is based on:
+        ALGORITHM:
+
+        The computation for primes not dividing 2 or 3 is based on:
         "Galois theory, elliptic curves, and root numbers" -- D. Rohrlich
 
         INPUT:
-        
-        - ``E`` - an elliptic curve
 
         - ``P``- a prime ideal
 
@@ -1744,15 +1744,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The local root number of the elliptic curve at the prime ideal, either
         1 or -1.
-        
+
         EXAMPLES::
 
-        sage: E = EllipticCurve('19a')
-        sage: E._root_number_local(5)
-        1
-        sage: E._root_number_local(19)
-        -1
+            sage: E = EllipticCurve('19a')
+            sage: E._root_number_local(5)
+            1
+            sage: E._root_number_local(19)
+            -1
 
+            sage: K.<a> = NumberField(x^4+2)
+            sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
+            sage: E._root_number_local(K.ideal(a+1))
+            1
         """
 
         K = E.base_field()
@@ -1763,7 +1767,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return 1
         elif d.has_split_multiplicative_reduction():
             return -1
-        else: # additive reduction
+        else:  # additive reduction
             p = P.gen() if K is QQ else P.smallest_integer()
             j = E.j_invariant()
             jv = j.valuation(P) if not K is QQ else valuation(j, p)
@@ -1771,14 +1775,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 # potential multiplicative reduction
                 if P.base_ring() is ZZ:
                     return hilbert_symbol(-1, -E.c6(), p)
-                else:
-                    return generalized_hilbert_symbol(-1, -E.c6(), P)
-                    # return hilbert_symbol_magma(-1, -E.c6(), P)
+                return generalized_hilbert_symbol(-1, -E.c6(), P)
+                # return hilbert_symbol_magma(-1, -E.c6(), P)
             else:
                 # potential good reduction
-                if p==2: # prime | 2
+                if p == 2:  # prime | 2
                     return E._root_number_local_2(P)
-                if p==3: # prime | 3
+                if p == 3:  # prime | 3
                     return E._root_number_local_3(P)
 
                 if K is QQ:
@@ -1788,13 +1791,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
                     f = P.residue_class_degree()
                     e = 12 / gcd(12, E.discriminant().valuation(P))
 
-                if f%2==0 or e==1:
+                if f % 2 == 0 or e == 1:
                     eps = 1
-                elif e==2 or e==6:
+                elif e == 2 or e == 6:
                     eps = legendre_symbol(-1, p)
-                elif e==3:
+                elif e == 3:
                     eps = legendre_symbol(-3, p)
-                elif e==4:
+                elif e == 4:
                     eps = legendre_symbol(-2, p)
                 return eps
 
@@ -1804,12 +1807,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         where `P` is a prime ideal dividing 3 at which this elliptic
         curve has (bad) potential good reduction.
 
-        ALGORITHM: The computation for primes dividing 3 is based on:
-        "The local root number of elliptic curves with wild ramification" -- S. Kobayashi
+        ALGORITHM:
+
+        The computation for primes dividing 3 is based on: "The local
+        root number of elliptic curves with wild ramification" --
+        S. Kobayashi
 
         INPUT:
-
-        - ``E`` - an elliptic curve
 
         - ``P`` - a prime ideal dividing 3
 
@@ -1817,22 +1821,37 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The local root number of the elliptic curve at the prime ideal.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('19a')
+            sage: E._root_number_local_3(ZZ.ideal(3))
+            1
+            sage: E = EllipticCurve('289a')
+            sage: E._root_number_local_3(ZZ.ideal(3))
+            1
+
+            sage: K.<a> = NumberField(x^4+2)
+            sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
+            sage: E._root_number_local_3(K.ideal(a+1))
+            1
         """
         def _val(a, P):
             if P.base_ring() is ZZ:
                 return valuation(a, P.gen())
             return a.valuation(P)
+
         def quadr_residue_symbol(a):
             return Kr(a).is_square() and 1 or -1
+
         def quadr_symbol(a):
             av =  _val(a, P)
-            if av%2==1:
+            if av % 2 == 1:
                 return -1
             if P.base_ring() is ZZ:
                 pi = P.gen()
             else:
                 pi = P.number_field().uniformizer(P)
-            b = a / pi**av
+            b = a / pi ** av
             return quadr_residue_symbol(b)
         # assume potential good reduction
         Es = E.local_data(P, algorithm='generic').minimal_model(reduce=False)
@@ -1843,25 +1862,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Kr = P.residue_field()
 
         ks = str(Es.kodaira_symbol(P))
-        if ks=='I0' or ks=='I0*':
-            assert vD%2==0, "error -- valuation of discriminant should be even"
-            return quadr_residue_symbol(-1)**(vD/2)
-        elif ks=='III' or ks=='III*':
+        if ks == 'I0' or ks == 'I0*':
+            assert vD % 2 == 0, "error -- valuation of discriminant should be even"
+            return quadr_residue_symbol(-1) ** (vD / 2)
+        elif ks == 'III' or ks == 'III*':
             return quadr_residue_symbol(-2)
-        else: 
-            assert ks=='II' or ks=='II*' or ks=='IV' or ks=='IV*', "error -- unexpected kodeira symbol"
+        else:
+            assert ks == 'II' or ks == 'II*' or ks == 'IV' or ks == 'IV*', "error -- unexpected kodaira symbol"
             d = quadr_symbol(disc)
             c = Es.a6()
             cv = _val(c, P)
-            assert cv%3!=0, "error -- 3 should not divide the valuation of the constant term anymore"
+            assert cv % 3 != 0, "error -- 3 should not divide the valuation of the constant term anymore"
             if P.base_ring() is ZZ:
                 hs = hilbert_symbol(disc, c, P.gen())
             else:
                 hs = generalized_hilbert_symbol(disc, c, P)
-            qr1 = quadr_residue_symbol(cv)**vD
-            qr2 = quadr_residue_symbol(-1)**(vD*(vD-1)/2)
-            return d*hs*qr1*qr2
-
+            qr1 = quadr_residue_symbol(cv) ** vD
+            qr2 = quadr_residue_symbol(-1) ** (vD * (vD - 1) / 2)
+            return d * hs * qr1 * qr2
 
     def _root_number_local_2(E, P):
         r"""
@@ -1869,12 +1887,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         where `P` is a prime ideal dividing 2 at which this elliptic
         curve has (bad) potential good reduction.
 
-        ALGORITHM: The computation for primes dividing 2 is based on:
-        "Root numbers and parity ranks of elliptic curves" -- T. and V. Dokchitser
+        ALGORITHM:
+
+        The computation for primes dividing 2 is based on: "Root
+        numbers and parity ranks of elliptic curves" -- T. and
+        V. Dokchitser
 
         INPUT:
-
-        - ``E`` - an elliptic curve
 
         - ``P`` - a prime ideal dividing 2
 
@@ -1882,12 +1901,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The local root number of the elliptic curve at the prime ideal.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('19a')
+            sage: E._root_number_local_2(ZZ.ideal(2))
+            1
+            sage: E = EllipticCurve('289a')
+            sage: E._root_number_local_2(ZZ.ideal(2))
+            -1
+
+            sage: K.<a> = NumberField(x^4+2)
+            sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
+            sage: E._root_number_local_2(K.ideal(a))
+            1
         """
         K = E.base_field()
-        rn = -1 if K is QQ else (-1)**(P.residue_class_degree() * P.ramification_index())
+        rn = -1 if K is QQ else (-1) ** (P.residue_class_degree() * P.ramification_index())
 
         t = polygen(K)
-        f = t**3+E.a2()*t**2+E.a4()*t+E.a6() + (E.a1()*t+E.a3())**2/4
+        f = t ** 3 + E.a2() * t ** 2+E.a4()*t + E.a6() + (E.a1()*t+E.a3())**2/4
 
         def _val(a, P):
             if P.base_ring() is ZZ:
@@ -1897,24 +1929,26 @@ class EllipticCurve_number_field(EllipticCurve_field):
         def _change_ring(F, els):
             L = F.absolute_field('l')
             fromL, toL = L.structure()
-            PL = L.ideal([ toL(pgen) for pgen in P.gens() ])
-            EL =  EllipticCurve(L, [ toL(a) for a in E.ainvs() ])
-            return (EL, PL, [ toL(e) for e in els ])
+            PL = L.ideal([toL(pgen) for pgen in P.gens()])
+            EL =  EllipticCurve(L, [toL(a) for a in E.ainvs()])
+            return (EL, PL, [toL(e) for e in els])
 
         def _H(E, PO, ell=2):
             H = 1
-            L = [(ZZ.ideal(2),1)] if PO.base_ring() is ZZ else PO.factor()
-            for P,_ in L:
+            L = [(ZZ.ideal(2), 1)] if PO.base_ring() is ZZ else PO.factor()
+            for P, _ in L:
                 t = E.tamagawa_number(P)
-                cv = valuation(t,ell) + (0 if ell==3 else _u_of_E(E, P))
-                if cv%2==1: H *= -1
+                cv = valuation(t, ell) + (0 if ell == 3 else _u_of_E(E, P))
+                if cv % 2 == 1:
+                    H *= -1
             return H
 
         def _Hp(E, r, PO, ell=2):
             # translate with two isogeny
-            E = E.change_weierstrass_model(1,r,0,0)
+            E = E.change_weierstrass_model(1, r, 0, 0)
             assert E.a1() == 0 and E.a3() == 0
-            E = EllipticCurve(E.base_field(), [0,-2*E.a2(),0,E.a2()**2-4*E.a4(),0])
+            E = EllipticCurve(E.base_field(), [0, -2 * E.a2(), 0,
+                                               E.a2() ** 2 - 4 * E.a4(), 0])
             return _H(E, PO, ell)
 
         def _u_of_E(E, P):
@@ -1923,35 +1957,32 @@ class EllipticCurve_number_field(EllipticCurve_field):
             discmin = Emin.discriminant()
             if E.base_field() is QQ:
                 return Integer(_val(disc/discmin, P) / 12)
-            else:
-                return Integer(P.residue_class_degree() * _val(disc/discmin, P) / 12)
-
+            return Integer(P.residue_class_degree() * _val(disc/discmin, P) / 12)
 
         disc = E.discriminant()
         roots = f.roots(multiplicities=False)
-        if len(roots) == 3: # d=1
+        if len(roots) == 3:  # d=1
             return rn * _H (E, P) * _Hp(E, roots[0], P) * _Hp(E, roots[1], P) * _Hp(E, roots[2], P)
 
-        elif len(roots) == 1: # d=2
-            E = E.change_weierstrass_model(1,roots[0],0,0) # E: y^2 = ... x
+        elif len(roots) == 1:  # d=2
+            E = E.change_weierstrass_model(1, roots[0], 0, 0) # E: y^2 = ... x
             K2 = K.extension(t**2+E.a2()*t+E.a4(), 'a2')
             EL, PL, [rL]   = _change_ring(K2, [K2('a2')])
             return rn * _H (E, P) * _Hp(E, 0, P) * _Hp(EL, 0, PL) * _Hp(EL, rL, PL)
 
-        elif disc.is_square(): # d=3
+        elif disc.is_square():  # d=3
             K3 = K.extension(f, 'a3')
             EL, PL, [rL] = _change_ring(K3, [K3('a3')])
             return rn * _H(EL, PL) * _Hp(EL, rL, PL)
 
-        else: # d=6
-            K2 = K.extension(t**2-disc, 'a2')
+        else:  # d=6
+            K2 = K.extension(t ** 2 - disc, 'a2')
             K3 = K.extension(f, 'a3')
-            K6 = K3.extension(t**2-disc, 'a6')
-            EM, PM, []   = _change_ring(K2, [])
+            K6 = K3.extension(t ** 2 - disc, 'a6')
+            EM, PM, [] = _change_ring(K2, [])
             EL, PL, [rL] = _change_ring(K3, [K3('a3')])
             EF, PF, [rF] = _change_ring(K6, [K3('a3')])
             return rn * _H(EL, PL) * _Hp(EL, rL, PL) * _H(EF, PF) * _H(EF, PF, 3) * _Hp(EF, rF, PF) * _H(EM, PM, 3)
-
 
     def _torsion_bound(self,number_of_places = 20):
         r"""
