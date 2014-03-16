@@ -529,7 +529,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             g.add_edge(i, i+1)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=None):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -547,11 +547,34 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             \draw[fill=white] (4 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
         """
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-2)*node_dist)
-        ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
-        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
-        for i in range(1, self.n-1):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
-        ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+
+        if node_labels == None:
+            ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
+            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
+            for i in range(1, self.n-1):
+                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+        else:
+            ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, -node_dist)
+            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%node_labels[0]
+            for i in range(1, self.n-1):
+                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%(i*node_dist, node_labels[i+1])
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, -node_dist, node_labels[1])
+
+        if crossed_nodes != None:
+            ret += "\n"
+            for i in crossed_nodes:
+                if i == 2:
+                    if node_labels == None:
+                        ret += "\\draw node[cross out,draw=black] at (%s cm, %s cm){};\n"%(2*node_dist, node_dist)
+                    else:
+                        ret += "\\draw node[cross out,draw=black] at (%s cm, %s cm){};\n"%(2*node_dist, -node_dist)
+                elif i == 1:
+                    ret += "\\draw node[cross out,draw=black] at (0 cm, 0 cm){};\n"
+                else:
+                    ret += "\\draw node[cross out,draw=black] at (%s cm, 0 cm){};\n"%((i-2)*node_dist)
+            ret = ret[:-1] # strip the last newline
+
         return ret
 
     def ascii_art(self, label = lambda x: x):
