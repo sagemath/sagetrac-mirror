@@ -280,7 +280,13 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             - :meth:`sage.combinat.root_system.type_BC_affine.CartanType._latex_dynkin_diagram`
         """
         if self.n == 1:
-            return "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};"
+            if node_labels == None:
+                ret = "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};"
+            else:
+                ret = "\\draw[fill=white] (0,0) circle (.25cm) node[above=4pt]{$%s$};"%node_labels[0]
+            if crossed_nodes != None:
+                ret += "\n \\draw node[cross out, draw=black] at (0,0){};"
+
         n = self.n
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((n-2)*node_dist)
         ret += "\\draw (%s cm, 0.1 cm) -- +(%s cm,0);\n"%((n-2)*node_dist, node_dist)
@@ -289,13 +295,16 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist+0.2, 0, 0)
-        for i in range(self.n):
-            if node_labels == None:
-                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-            else:
-                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%(i*node_dist, node_labels[i])
+
+        if node_labels == None:
+            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(i*node_dist, label(i+1))
+                             for i in range(self.n))
+        else:
+            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"%(i*node_dist, node_labels[i])
+                             for i in range(self.n))
+
         if crossed_nodes != None:
-            ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes )
+            ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes)
         return ret
 
     def _default_folded_cartan_type(self):
