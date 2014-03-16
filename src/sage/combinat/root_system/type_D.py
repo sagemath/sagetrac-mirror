@@ -249,7 +249,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             g.add_edge(n-2, n)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=None):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -265,18 +265,44 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             \draw[fill=white] (4 cm, -0.7 cm) circle (.25cm) node[right=3pt]{$3$};
         """
         if self.n == 2:
-            ret = "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};\n"
-            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$2$};"%node_dist
+            if node_labels == None:
+                ret = "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};\n"
+                ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$2$};"%node_dist
+            else:
+                ret = "\\draw[fill=white] (0,0) circle (.25cm) node[above=4pt]{$%s$};\n"%node_labels[0]
+                ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[above=4pt]{$%s$};"%(node_dist, node_labels[1])
+            if crossed_nodes != None:
+                ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes)
             return ret
-        rt_most = (self.n-2) * node_dist
-        center_point = rt_most - node_dist
+
+        center_point = (self.n-3)*node_dist
+        rt_most = center_point + 0.5*node_dist
+        height = 0.866025404*node_dist
+
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%center_point
-        ret += "\\draw (%s cm,0) -- (%s cm,0.7 cm);\n"%(center_point, rt_most)
-        ret += "\\draw (%s cm,0) -- (%s cm,-0.7 cm);\n"%(center_point, rt_most)
-        for i in range(self.n-2):
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
-        ret += "\\draw[fill=white] (%s cm, 0.7 cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, label(self.n))
-        ret += "\\draw[fill=white] (%s cm, -0.7 cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, label(self.n-1))
+        ret += "\\draw (%s cm,0) -- (%s cm,%s cm);\n"%(center_point, rt_most, height)
+        ret += "\\draw (%s cm,0) -- (%s cm,%s cm);\n"%(center_point, rt_most, -height)
+
+        if node_labels == None:
+            for i in range(self.n-2):
+                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, height, label(self.n))
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, -height, label(self.n-1))
+        else:
+            for i in range(self.n-3):
+                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%(i*node_dist, node_labels[i])
+            ret += "\\draw[fill=white] (%s cm, 0 cm) circle (.25cm) node[right=3pt]{$%s$};\n"%((self.n-3)*node_dist, node_labels[-3])
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, height, node_labels[-1])
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, -height, node_labels[-2])
+
+        if crossed_nodes != None:
+            for i in crossed_nodes:
+                if i < self.n-1:
+                    ret += "\n\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist)
+                elif i == self.n-1:
+                    ret += "\n\\draw node[cross out,draw=black] at (%s cm, %s cm){};"%(rt_most, -height)
+                elif i == self.n:
+                    ret += "\n\\draw node[cross out,draw=black] at (%s cm, %s cm){};"%(rt_most, height)
         return ret
 
     def ascii_art(self, label = lambda x: x):
