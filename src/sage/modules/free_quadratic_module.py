@@ -357,7 +357,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             r = n//2
         else:
             r = (n-1)//2
-        return (-1)^r*self.gram_matrix().determinant()
+        return (-1)**r * self.gram_matrix().determinant()
 
     def gram_matrix(self):
         """

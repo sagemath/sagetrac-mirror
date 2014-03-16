@@ -2696,6 +2696,46 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
         return v
 
+    def LLL(self, *args, **kwargs):
+        """Return an LLL reduced or approximated LLL reduced lattice for
+        ``self`` interpreted as a lattice.
+        
+        For details, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
+        
+        EXAMPLE::
+        
+            sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
+            sage: A.LLL()
+            [ 1/28 -1/40 -1/18]
+            [ 1/28 -1/40  1/18]
+            [    0 -3/40     0]
+        """
+        A, d = self._clear_denom()
+        return A.LLL(*args, **kwargs) / d
+    
+    def LLL_gram(self, *args, **kwargs):
+        """LLL reduction of the lattice whose gram matrix is ``self``.
+        
+        For details, see
+        :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL_gram`.
+        
+        EXAMPLES::
+        
+            sage: M = Matrix(ZZ, 2, 2, [5,3,3,2]) / 7 ; M
+            [5/7 3/7]
+            [3/7 2/7]
+            sage: U = M.LLL_gram(); U
+            [-1  1]
+            [ 1 -2]
+            sage: U.transpose() * M * U
+            [1/7   0]
+            [  0 1/7]
+
+        """
+        A, d = self._clear_denom()
+        return A.LLL_gram(*args, **kwargs)
+        
     def column(self, Py_ssize_t i, from_list=False):
         """
         Return the i-th column of this matrix as a dense vector.

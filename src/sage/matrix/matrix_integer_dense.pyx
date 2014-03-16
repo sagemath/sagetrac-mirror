@@ -2418,20 +2418,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # LLL
     ####################################################################################
     def LLL_gram(self):
-        """
-        LLL reduction of the lattice whose gram matrix is self.
+        """LLL reduction of the lattice whose gram matrix is self.
 
         INPUT:
 
-
-        -  ``M`` - gram matrix of a definite quadratic form
+        - ``M`` - gram matrix of a definite quadratic form
 
 
         OUTPUT:
 
-
-        -  ``U`` - unimodular transformation matrix such that
-           U.transpose() \* M \* U  is LLL-reduced.
+        - ``U`` - unimodular transformation matrix such that U.transpose() * M *
+          U is LLL-reduced.
 
         ALGORITHM: Use PARI
 

@@ -168,6 +168,8 @@ sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 
 from sage.tensor.all     import *
 
+from sage.lattices.all import *
+
 from sage.matroids.all   import *
 
 # Lazily import notebook functions and interacts (#15335)
