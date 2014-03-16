@@ -985,7 +985,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             try:
                 F = self.base_ring()
                 self.__discriminant = F.hilbert_conductor(self._a,self._b)
-            except NotImplementedError: raise "base field must be rational numbers or number field"
+            except NotImplementedError:
+                raise TypeError("base field must be rational numbers or number field")
         else:
             self.__discriminant = hilbert_conductor(self._a, self._b)
         return self.__discriminant
