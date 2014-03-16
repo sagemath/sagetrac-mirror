@@ -215,25 +215,9 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
         ASB._has_opposite = True
         BSA._has_opposite = True
 
-        # set up coercions
+        # set up coercions between ASB and BSA
         ABmod = twist.codomain()
         BAmod = twist.domain()
-#        def coerce_to_ABmod(x):
-#            return ABmod(x)
-#        def coerce_to_BAmod(x):
-#            return BAmod(x)
-#        def coerce_to_ASB(x):
-#            return ASB(x)
-#        def coerce_to_BSA(x):
-#            return BSA(x)
-#
-#        ASB_to_ABmod = SetMorphism(Hom(ASB, ABmod, category=module_category), coerce_to_ABmod)
-#        ABmod_to_ASB = SetMorphism(Hom(ABmod, ASB, category=module_category), coerce_to_ASB)
-#        BSA_to_BAmod = SetMorphism(Hom(BSA, BAmod, category=module_category), coerce_to_BAmod)
-#        BAmod_to_BSA = SetMorphism(Hom(BAmod, BSA, category=module_category), coerce_to_BSA)
-#
-#        ASB_to_BSA = SetMorphism(Hom(ASB, BSA, category=module_category), BAmod_to_BSA * untwist * ASB_to_ABmod)
-#        BSA_to_ASB = SetMorphism(Hom(BSA, ASB, category=module_category), ABmod_to_ASB * twist * BSA_to_BAmod)
 
         def exalted_untwist(x):
             return BSA(untwist(ABmod(x)))
@@ -422,6 +406,34 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
         """
         return self.from_direct_product(self.factors()[0].an_element(),self.factors()[1].an_element())
 
+    def monomial_from_pair(self, k1, k2):
+        r"""
+        Monomial with index obtained from flattening the indices k1 and k2 of basis elements in the tensor factors
+        of the smash product.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: A = W.algebra(ZZ)
+            sage: AA = tensor([A,A])
+            sage: AA.category()
+            Category of tensor products of hopf algebras with basis over Integer Ring
+            sage: cat = ModulesWithBasis(ZZ)
+            sage: AAAmod = tensor([A,AA], category=cat)
+            sage: def func((x0,x1,x2)):
+            ...       return (x2,x0,x1)
+            sage: twist = AAAmod.module_morphism(on_basis=func, codomain=AAAmod, category=cat)
+            sage: ASAA = SmashProductAlgebra(A, AA, twist)
+            sage: k1 = A.basis().keys().an_element(); k1
+            s1*s2
+            sage: k2 = AA.basis().keys().an_element(); k2
+            (s1*s2*s1, s1*s2*s1)
+            sage: ASAA.monomial_from_pair(k1,k2)
+            B[s1*s2] # B[s1*s2*s1] # B[s1*s2*s1]
+
+        """
+        return self.monomial(self._key_flattener(k1, k2))
+
     @cached_method
     def factor_embedding(self, i):
         r"""
@@ -451,11 +463,12 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
         """
         if i == 0:
             def on_basis_left(x):
-                return self.monomial(self._key_flattener(x,self._id_keys[1]))
+                # should this be "inlined" for speed?
+                return self.monomial_from_pair(x,self._id_keys[1])
             on_basis = on_basis_left
         elif i == 1:
             def on_basis_right(x):
-                return self.monomial(self._key_flattener(self._id_keys[0],x))
+                return self.monomial_from_pair(self._id_keys[0],x)
             on_basis = on_basis_right
         else:
             raise ValueError, "Embedding Factor %s must be 0 or 1"%(i)
