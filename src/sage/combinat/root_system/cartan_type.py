@@ -895,6 +895,30 @@ class CartanType_abstract(object):
         """
         return "\\draw[shift={(%s, %s)}, rotate=%s] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);\n"%(x, y, rot)
 
+    def _latex_draw_node(self, x, y, position="below", node_label=None, crossed=False):
+        """
+        Draws (possibly crossed out) circular node ``i`` at the position ``(x,y)`` with node label ``node_label`` .
+
+        ``position`` -- position of the label relative to the node, can be one of ``['above', 'below', 'right', 'left']]``
+        """
+        ret = "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[%s=4pt]{$%s$};"%(x, y, position, node_label)
+        if crossed:
+            ret += "\n\\draw node[cross out,draw=black] at (%s cm, %s cm){};"%(x, y)
+        return ret + "\n"
+
+    def _latex_draw_node_string(self, indices, label, node_dist, node_labels, crossed_nodes):
+        ret = ""
+        for i in indices:
+            crossed = label(i) in crossed_nodes
+            if node_labels is None:
+                position = "below"
+                node_label = label(i)
+            else:
+                position = "above"
+                node_label = node_labels[label(i)-1]
+            ret += self._latex_draw_node((i-1)*node_dist, 0, position, node_label, crossed)
+        return ret
+
     @abstract_method
     def rank(self):
         """

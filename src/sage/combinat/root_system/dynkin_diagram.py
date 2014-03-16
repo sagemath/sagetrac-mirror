@@ -269,7 +269,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         elif t is not None:
             self.add_vertices(t.index_set())
         self.node_labels = None
-        self.crossed_nodes = None
+        self.crossed_nodes = []
 
     def _repr_(self):
         """

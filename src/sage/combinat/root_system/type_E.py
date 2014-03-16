@@ -547,35 +547,20 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             \draw[fill=white] (4 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
         """
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-2)*node_dist)
-
-        if node_labels == None:
+        if node_labels is None:
             ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
-            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
-            for i in range(1, self.n-1):
-                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
-            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+            ret += self._latex_draw_node(0, 0, "below",label(1), label(1) in crossed_nodes)
+            ret += self._latex_draw_node(2*node_dist, node_dist, "right", label(2), label(2) in crossed_nodes)
         else:
             ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, -node_dist)
-            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%node_labels[0]
-            for i in range(1, self.n-1):
-                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%(i*node_dist, node_labels[i+1])
-            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, -node_dist, node_labels[1])
-
-        if crossed_nodes != None:
-            ret += "\n"
-            for i in crossed_nodes:
-                if i == 2:
-                    if node_labels == None:
-                        ret += "\\draw node[cross out,draw=black] at (%s cm, %s cm){};\n"%(2*node_dist, node_dist)
-                    else:
-                        ret += "\\draw node[cross out,draw=black] at (%s cm, %s cm){};\n"%(2*node_dist, -node_dist)
-                elif i == 1:
-                    ret += "\\draw node[cross out,draw=black] at (0 cm, 0 cm){};\n"
-                else:
-                    ret += "\\draw node[cross out,draw=black] at (%s cm, 0 cm){};\n"%((i-2)*node_dist)
-            ret = ret[:-1] # strip the last newline
-
-        return ret
+            ret += self._latex_draw_node(0, 0, "above", node_labels[label(1)-1], label(1) in crossed_nodes)
+            ret += self._latex_draw_node(2*node_dist, -node_dist, "right", node_labels[label(2)-1], label(2) in crossed_nodes)
+        for i in range(1,self.n-1):
+            position = "below" if node_labels is None else "above"
+            node_label = label(i+2) if node_labels is None else node_labels[label(i+2)-1]
+            crossed = label(i+2) in crossed_nodes
+            ret += self._latex_draw_node(i*node_dist, 0, position, node_label, crossed)
+        return ret.strip()
 
     def ascii_art(self, label = lambda x: x):
         """

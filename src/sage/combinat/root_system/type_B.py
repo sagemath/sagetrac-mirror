@@ -295,17 +295,8 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip((n-1.5)*node_dist+0.2, 0, 0)
-
-        if node_labels == None:
-            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(i*node_dist, label(i+1))
-                             for i in range(self.n))
-        else:
-            ret += "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"%(i*node_dist, node_labels[i])
-                             for i in range(self.n))
-
-        if crossed_nodes != None:
-            ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes)
-        return ret
+        ret += self._latex_draw_node_string(self.index_set(), label, node_dist, node_labels, crossed_nodes)
+        return ret.strip()
 
     def _default_folded_cartan_type(self):
         """

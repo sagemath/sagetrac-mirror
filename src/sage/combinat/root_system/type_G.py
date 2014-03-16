@@ -194,14 +194,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip(0.5*node_dist+0.2, 0, 0)
         else:
             ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
-        if node_labels == None:
-            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(node_dist, label(2))
-        else:
-            ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[above=4pt]{$%s$};\n"%node_labels[0]
-            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[above=4pt]{$%s$};"%(node_dist, node_labels[1])
-        if crossed_nodes != None:
-            ret += "\n".join("\\draw node[cross out,draw=black] at (%s cm, 0){};"%((i-1)*node_dist) for i in crossed_nodes)
+        ret += self._latex_draw_node_string(self.index_set(), label, node_dist, node_labels, crossed_nodes)
         return ret
 
     def ascii_art(self, label = lambda x: x):
