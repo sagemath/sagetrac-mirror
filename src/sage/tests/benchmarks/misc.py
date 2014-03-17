@@ -1,4 +1,5 @@
-from misc import cputime
+from sage.misc.misc import cputime
+from sage.tests.benchmark import Benchmark
 
 from sage.all import *
 
@@ -54,12 +55,13 @@ def benchmark(n=-1):
     if n != -1:
         print "Running benchmark %s"%n
         try:
-            desc, t = eval("bench%s()"%n)
+            b = eval("Bench%d()"%n)
         except NameError:
             raise RuntimeError, "no benchmark %s"%n
-        print desc
+        t = b.sage()
+        print b
         print "Time: %s seconds"%t
-        return (n, t, desc)
+        return (n, t, str(b))
 
     t = cputime()
     m = 0
@@ -72,134 +74,150 @@ def benchmark(n=-1):
             break
     return v, cputime(t)
 
-def bench0():
+class Bench0(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench0()[0]
+        sage: print Bench0()
         Benchmark 0: Factor the following polynomial over
             the rational numbers: (x^97+19*x+1)*(x^103-19*x^97+14)*(x^100-1)
 
     """
-    desc = """Benchmark 0: Factor the following polynomial over
-    the rational numbers: (x^97+19*x+1)*(x^103-19*x^97+14)*(x^100-1)"""
-    x = polygen(QQ,"x")
-    f = (x**97+19*x+1)*(x**103-19*x**97+14)*(x**100-1)
-    t = cputime()
-    F = f.factor()
-    return (desc, cputime(t))
 
-def bench1():
+    def __init__(self):
+        self.repr_str = """Benchmark 0: Factor the following polynomial over
+        the rational numbers: (x^97+19*x+1)*(x^103-19*x^97+14)*(x^100-1)"""
+
+    def sage(self):
+        x = polygen(QQ,"x")
+        f = (x**97+19*x+1)*(x**103-19*x**97+14)*(x**100-1)
+        t = cputime()
+        F = f.factor()
+        return cputime(t)
+
+class Bench1(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench1()[0]
+        sage: print Bench1()
         Find the Mordell-Weil group of the elliptic curve 5077A using mwrank
 
     """
-    desc = """Find the Mordell-Weil group of the elliptic curve 5077A using mwrank"""
-    E = mwrank_EllipticCurve([0, 0, 1, -7, 6])
-    t = cputime()
-    g = E.gens()
-    return (desc, cputime(t))
 
-def bench2():
+    def __init__(self):
+        self.repr_str = """Find the Mordell-Weil group of the elliptic curve 5077A using mwrank"""
+
+    def sage(self):
+        E = mwrank_EllipticCurve([0, 0, 1, -7, 6])
+        t = cputime()
+        g = E.gens()
+        return cputime(t)
+
+class Bench2(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench2()[0]
+        sage: print Bench2()
         Some basic arithmetic with very large Integer numbers: '3^1000001 * 19^100001
 
     """
-    desc = """Some basic arithmetic with very large Integer numbers: '3^1000001 * 19^100001"""
-    t = cputime()
-    a = ZZ(3)**1000001 * ZZ(19)**100001
-    return (desc, cputime(t))
 
-def bench3():
+    def __init__(self):
+        self.repr_str = """Some basic arithmetic with very large Integer numbers: '3^1000001 * 19^100001"""
+
+    def sage(self):
+        t = cputime()
+        a = ZZ(3)**1000001 * ZZ(19)**100001
+        return cputime(t)
+
+class Bench3(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench3()[0]
+        sage: print Bench3()
         Some basic arithmetic with very large Rational numbers: '(2/3)^100001 * (17/19)^100001
 
     """
-    desc = """Some basic arithmetic with very large Rational numbers: '(2/3)^100001 * (17/19)^100001"""
-    t = cputime()
-    a = QQ('2/3')**100001 * QQ('17/19')**100001
-    return (desc, cputime(t))
 
-def bench4():
+    def __init__(self):
+        self.repr_str = """Some basic arithmetic with very large Rational numbers: '(2/3)^100001 * (17/19)^100001"""
+
+    def sage(self):
+        t = cputime()
+        a = QQ('2/3')**100001 * QQ('17/19')**100001
+        return cputime(t)
+
+class Bench4(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench4()[0]
+        sage: print Bench4()
         Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200.
 
     """
-    desc = """Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200."""
-    x = PolynomialRing(QQ, 'x').gen()
-    t = cputime()
-    f = x**29 + 17*x-5
-    a = f**200
-    return (desc, cputime(t))
 
-def bench5():
+    def __init__(self):
+        self.repr_str = """Rational polynomial arithmetic using Sage. Compute (x^29+17*x-5)^200."""
+
+    def sage(self):
+        x = PolynomialRing(QQ, 'x').gen()
+        t = cputime()
+        f = x**29 + 17*x-5
+        a = f**200
+        return cputime(t)
+
+class Bench5(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench5()[0]
+        sage: print Bench5()
         Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times.
 
     """
-    desc = """Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times."""
-    x = PolynomialRing(QQ, 'x').gen()
-    t = cputime()
-    f = x**19 - 18*x + 1
-    w = [f**50 for _ in range(100)]
-    return (desc, cputime(t))
 
-def bench6():
+    def __init__(self):
+        self.repr_str = """Rational polynomial arithmetic using Sage. Compute (x^19 - 18*x + 1)^50 one hundred times."""
+
+    def sage(self):
+        x = PolynomialRing(QQ, 'x').gen()
+        t = cputime()
+        f = x**19 - 18*x + 1
+        w = [f**50 for _ in range(100)]
+        return cputime(t)
+
+class Bench6(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench6()[0]
+        sage: print Bench6()
         Compute the p-division polynomials of y^2 = x^3 + 37*x - 997 for primes p < 40.
 
     """
-    desc = """Compute the p-division polynomials of y^2 = x^3 + 37*x - 997 for primes p < 40."""
-    E = EllipticCurve([0,0,0,37,-997])
-    t = cputime()
-    for p in [2,3,5,7,11,13,17,19,23,29,31,37]:
-        f = E.division_polynomial(p)
-    return (desc, cputime(t))
 
-def bench7():
+    def __init__(self):
+        self.repr_str = """Compute the p-division polynomials of y^2 = x^3 + 37*x - 997 for primes p < 40."""
+
+    def sage(self):
+        E = EllipticCurve([0,0,0,37,-997])
+        t = cputime()
+        for p in [2,3,5,7,11,13,17,19,23,29,31,37]:
+            f = E.division_polynomial(p)
+        return cputime(t)
+
+class Bench7(Benchmark):
     """
-    Run a benchmark.
-
-    BENCHMARK:
+    EXAMPLE:
         sage: from sage.tests.benchmarks.misc import *
-        sage: print bench7()[0]
+        sage: print Bench7()
         Compute the Mordell-Weil group of y^2 = x^3 + 37*x - 997.
 
     """
-    desc = """Compute the Mordell-Weil group of y^2 = x^3 + 37*x - 997."""
-    E = EllipticCurve([0,0,0,37,-997])
-    t = cputime()
-    G = E.gens()
-    return (desc, cputime(t))
+
+    def __init__(self):
+        self.repr_str = """Compute the Mordell-Weil group of y^2 = x^3 + 37*x - 997."""
+
+    def sage(self):
+        E = EllipticCurve([0,0,0,37,-997])
+        t = cputime()
+        G = E.gens()
+        return cputime(t)
