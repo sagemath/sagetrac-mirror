@@ -31,6 +31,10 @@ from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
 from sage.structure.element import Element, parent
 
+# this is an artifact to beat the pickling test and implement identity morphisms
+def _the_id(x):
+    return x
+
 class ModulesWithBasis(Category_over_base_ring):
     """
     The category of modules with a distinguished basis.
@@ -474,7 +478,6 @@ class ModulesWithBasis(Category_over_base_ring):
                 category = tensor.category_from_parents(parents)
             return parents[0].__class__.Tensor(parents, category = category, **keywords)
 
-        @cached_method
         def _identity_map(self, category=None):
             r"""
             Returns the identity morphism.
@@ -499,13 +502,11 @@ class ModulesWithBasis(Category_over_base_ring):
                 Generic endomorphism of Group algebra of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) over Integer Ring
 
             """
-            def the_id(x):
-                return x
             if category is None:
                 category = self.category()
-            return SetMorphism(Hom(self, self, category=category), the_id)
+            return SetMorphism(Hom(self, self, category=category), _the_id)
 
-        @abstract_method
+        @abstract_method(optional=True)
         def tensor_unit(self, **keywords):
             r"""
             The distinguished unit object in the tensor category. It is a distinguished copy of the base ring
