@@ -12,6 +12,7 @@ Algebras With Basis
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.constant_function import ConstantFunction
 from sage.categories.all import ModulesWithBasis, Algebras
 from sage.categories.tensor import TensorProducts, TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -377,6 +378,73 @@ class AlgebrasWithBasis(Category_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def _product_on_tensor_basis_atomic(self, two_tuple_of_basis_indices):
+            r"""
+            If ``self`` is not a tensor product of modules, return the product of the basis elements
+            indexed by the 2-tuple ``two_tuple_of_basis_indices``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup("A2",prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: AA = tensor([A,A])
+                sage: k = AA.basis().keys().an_element(); k
+                (s1*s2*s1, s1*s2*s1)
+                sage: A._product_on_tensor_basis_atomic(k)
+                B[1]
+                
+            """
+            return self.monomial(two_tuple_of_basis_indices[0]) * self.monomial(two_tuple_of_basis_indices[1])
+
+        def _product_on_tensor_basis_tensor(self, tensor_square_basis_index):
+            r"""
+            If ``self`` is a tensor product of modules, return the product of the basis elements
+            indexed by the tuple ``tensor_square_basis_index`` which is the concatenation of two
+            indexing tuples of the basis of ``self``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup("A2",prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: AA = tensor([A,A])
+                sage: AAAA = tensor([AA,AA])
+                sage: kk = AAAA.basis().keys().an_element(); kk
+                (s1*s2*s1, s1*s2*s1, s1*s2*s1, s1*s2*s1)
+                sage: AA._product_on_tensor_basis_tensor(kk)
+                B[1] # B[1]
+
+            """
+            n_factors = len(self._sets)
+            return self.monomial(tensor_square_basis_index[0:n_factors])*self.monomial(tensor_square_basis_index[n_factors:2*n_factors])
+
+        def _product_on_tensor_basis(self):
+            r"""
+            Return the function whose sole input is an index for the tensor square of ``self``,
+            and whose output is the product of monomials indexed by the corresponding pair of basis elements.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup("A2",prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: AA = tensor([A,A])
+                sage: k = AA.basis().keys().an_element(); k
+                (s1*s2*s1, s1*s2*s1)
+                sage: A._product_on_tensor_basis()(k)
+                B[1]
+                sage: AAAA = tensor([AA,AA])
+                sage: kk = AAAA.basis().keys().an_element(); kk
+                (s1*s2*s1, s1*s2*s1, s1*s2*s1, s1*s2*s1)
+                sage: AA._product_on_tensor_basis()(kk)
+                B[1] # B[1]
+
+            """
+            category = ModulesWithBasis(self.base_ring())
+            if self in category.TensorProducts():
+                # the algebra is itself a tensor product
+                return self._product_on_tensor_basis_tensor
+            else:
+                return self._product_on_tensor_basis_atomic
+
         def _product_morphism(self):
             r"""
             The multiplication map as a module morphism from the twofold tensor of ``self``, to ``self``.
@@ -406,18 +474,9 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 27*B[s2*s1] # B[s1*s2] + 27*B[s2*s1] # B[s2*s1] + 18*B[s2*s1] # B[s1] + 18*B[s2*s1] # B[s2] + 57*B[s2*s1] # B[1] + 9*B[s2] # B[s1*s2] + 9*B[s2] # B[s2*s1] + 6*B[s2] # B[s1] + 6*B[s2] # B[s2] + 19*B[s2] # B[1] + 27*B[1] # B[s1*s2] + 27*B[1] # B[s2*s1] + 18*B[1] # B[s1] + 18*B[1] # B[s2] + 57*B[1] # B[1]
 
             """
-
-            category = ModulesWithBasis(self.base_ring())
-            if self in category.TensorProducts():
-                # the algebra is itself a tensor product
-                n_factors = len(self._sets)
-                def on_basis(x):
-                    return self.monomial(x[0:n_factors])*self.monomial(x[n_factors:2*n_factors])
-            else:
-                def on_basis(x):
-                    return self.monomial(x[0])*self.monomial(x[1])
-            AA = tensor([self,self], category=category)
-            return AA.module_morphism(on_basis = on_basis, codomain=self, category=category)
+            category=ModulesWithBasis(self.base_ring())
+            AA = tensor([self,self],category=category)
+            return AA.module_morphism(on_basis = self._product_on_tensor_basis(), codomain=self, category=category)
 
         def _unit_morphism(self):
             r"""
@@ -439,8 +498,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
             """
             U = self.tensor_unit()
-            def one_func(x):
-                return self.one()
+            one_func = ConstantFunction(self.one())
             return U.module_morphism(on_basis = one_func, codomain=self, category=ModulesWithBasis(self.base_ring()))
 
     class ElementMethods:
