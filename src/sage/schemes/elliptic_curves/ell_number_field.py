@@ -106,7 +106,7 @@ from sage.rings.polynomial.polynomial_ring import polygen
 import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
-from sage.rings.arith import valuation
+from sage.rings.arith import valuation, legendre_symbol, hilbert_symbol
 from sage.misc.cachefunc import cached_method
 
 import gal_reps_number_field
@@ -1639,10 +1639,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         This is 1 if the order of vanishing of the L-function L(E,s) at 1 
         is even, and -1 if it is odd.
 
-        The computations are based on:
-        "Galois theory, elliptic curves, and root numbers" -- D. Rohrlich
-        (P|3) "The local root number of elliptic curves with wild ramification" -- S. Kobayashi
-        (P|2) "Root numbers and parity ranks of elliptic curves" -- T. and V. Dokchitser
+        The computations are based on [Rohr]_, [Koba]_ for primes `P|3`
+        and [Dokch]_ for primes `P|2`.
 
         INPUT:
 
@@ -1708,13 +1706,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, [0,2,0,2*a+4,2*a+3])
             sage: E.root_number()
             1
+
+        REFERENCES:
+
+        .. [Rohr] D. Rohrlich "Galois theory, elliptic curves, and root numbers"
+        .. [Koba] S. Kobayashi "The local root number of elliptic curves with wild ramification"
+        .. [Dokch] T. and V. Dokchitser "Root numbers and parity ranks of elliptic curves"
         """
-        if algorithm=="pari" and self.base_field() is QQ:
+        if algorithm == "pari" and self.base_field() is QQ:
             e = self.pari_mincurve()
             if P is None:
                 return Integer(e.ellrootno())
 
             return Integer(e.ellrootno(P if P in ZZ else P.gen()))
+
+        if algorithm == "magma":
+            raise NotImplementedError('not yet available via magma')
 
         if P is None:
             # contribution from places at infinity
@@ -1733,8 +1740,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ALGORITHM:
 
-        The computation for primes not dividing 2 or 3 is based on:
-        "Galois theory, elliptic curves, and root numbers" -- D. Rohrlich
+        The computation for primes not dividing 2 or 3 is based on [Rohr]_.
 
         INPUT:
 
@@ -1747,18 +1753,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('19a')
-            sage: E._root_number_local(5)
-            1
-            sage: E._root_number_local(19)
-            -1
-
             sage: K.<a> = NumberField(x^4+2)
             sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
             sage: E._root_number_local(K.ideal(a+1))
             1
         """
-
         K = E.base_field()
         if K is QQ and P in QQ:
             P = ZZ.ideal(P)
@@ -1773,9 +1772,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             jv = j.valuation(P) if not K is QQ else valuation(j, p)
             if jv < 0:
                 # potential multiplicative reduction
-                if P.base_ring() is ZZ:
+                if K is QQ:
                     return hilbert_symbol(-1, -E.c6(), p)
-                return generalized_hilbert_symbol(-1, -E.c6(), P)
+                return K.hilbert_symbol(-1, -E.c6(), p)
                 # return hilbert_symbol_magma(-1, -E.c6(), P)
             else:
                 # potential good reduction
@@ -1809,9 +1808,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ALGORITHM:
 
-        The computation for primes dividing 3 is based on: "The local
-        root number of elliptic curves with wild ramification" --
-        S. Kobayashi
+        The computation for primes dividing 3 is based on [Koba]_.
 
         INPUT:
 
@@ -1823,16 +1820,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('19a')
-            sage: E._root_number_local_3(ZZ.ideal(3))
-            1
-            sage: E = EllipticCurve('289a')
-            sage: E._root_number_local_3(ZZ.ideal(3))
-            1
-
             sage: K.<a> = NumberField(x^4+2)
             sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
-            sage: E._root_number_local_3(K.ideal(a+1))
+            sage: E._root_number_local(K.ideal(a+1))  # indirect doctest
+            1
+
+            sage: K.<r> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([r-1, r, 1, r-1, -1])
+            sage: P3 = K.ideal(2*r-1)
+            sage: P3.is_prime() and P3.norm() == 3
+            True
+            sage: E.has_additive_reduction(P3)
+            True
+            sage: E.root_number(P3)  # indirect doctest
             1
         """
         def _val(a, P):
@@ -1873,10 +1873,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             c = Es.a6()
             cv = _val(c, P)
             assert cv % 3 != 0, "error -- 3 should not divide the valuation of the constant term anymore"
-            if P.base_ring() is ZZ:
+            K = P.number_field()
+            if K is QQ:
                 hs = hilbert_symbol(disc, c, P.gen())
             else:
-                hs = generalized_hilbert_symbol(disc, c, P)
+                hs = K.hilbert_symbol(disc, c, P)
             qr1 = quadr_residue_symbol(cv) ** vD
             qr2 = quadr_residue_symbol(-1) ** (vD * (vD - 1) / 2)
             return d * hs * qr1 * qr2
@@ -1889,9 +1890,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ALGORITHM:
 
-        The computation for primes dividing 2 is based on: "Root
-        numbers and parity ranks of elliptic curves" -- T. and
-        V. Dokchitser
+        The computation for primes dividing 2 is based on [Dokch]_.
 
         INPUT:
 
@@ -1903,17 +1902,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('19a')
-            sage: E._root_number_local_2(ZZ.ideal(2))
-            1
-            sage: E = EllipticCurve('289a')
-            sage: E._root_number_local_2(ZZ.ideal(2))
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([1+i, 1+i, 0, i, 0])
+            sage: P2 = K.ideal(1+i)
+            sage: P2.is_prime() and P2.norm() == 2
+            True
+            sage: E.has_additive_reduction(P2)
+            True
+            sage: E.root_number(P2)
             -1
-
-            sage: K.<a> = NumberField(x^4+2)
-            sage: E = EllipticCurve(K, [1, a, 0, 1+a, 0])
-            sage: E._root_number_local_2(K.ideal(a))
-            1
         """
         K = E.base_field()
         rn = -1 if K is QQ else (-1) ** (P.residue_class_degree() * P.ramification_index())
@@ -2017,7 +2014,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         bound = 0
         k = 0
         K = E.base_field()
-        OK = K.ring_of_integers()
         disc = E.discriminant()
         p = Integer(1)
         # runs through primes, decomposes them into prime ideals
