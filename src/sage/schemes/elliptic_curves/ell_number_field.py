@@ -1909,7 +1909,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: E.has_additive_reduction(P2)
             True
-            sage: E.root_number(P2)
+            sage: E.root_number(P2)  # indirect doctest
             -1
         """
         K = E.base_field()
