@@ -222,3 +222,17 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
             return "        O %s\n        |\n        |\nO---O---O---O---O---O---O---"%label(2) + special_str + \
                 "\n%s   %s   %s   %s   %s   %s   %s   %s"%tuple(label(i) for i in (1,3,4,5,6,7,8,0))
 
+    def lorentzian(self):
+        r"""
+        Return the Lorentzian type corresponding to ``self``.
+        """
+        if self.n == 6:
+            from sage.combinat.root_systems.type_lorentzian import CartanType_E6Lorentzian
+            return CartanType_CartanType_E6Lorentzian()
+        elif self.n == 7:
+            from sage.combinat.root_systems.type_lorentzian import CartanType_E7Lorentzian
+            return CartanType_CartanType_E7Lorentzian()
+        elif self.n == 8:
+            from sage.combinat.root_systems.type_lorentzian import CartanType_E10
+            return CartanType_E10()
+

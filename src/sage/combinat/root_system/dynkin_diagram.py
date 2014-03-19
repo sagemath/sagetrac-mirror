@@ -307,9 +307,12 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             \end{tikzpicture}
         """
         if self.cartan_type() is None:
-            return "Dynkin diagram of rank %s"%self.rank()
-        ret = "\\begin{tikzpicture}[scale=%s]\n"%scale
-        ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
+            return "Dynkin diagram of rank {}".format(self.rank())
+
+        from sage.graphs.graph_latex import setup_latex_preamble
+        setup_latex_preamble()
+        ret = "\\begin{{tikzpicture}}[scale={}]\n".format(scale)
+        ret += "\\draw (-1,0) node[anchor=east] {{${}$}};\n".format(self.cartan_type()._latex_())
         ret += self.cartan_type()._latex_dynkin_diagram()
         ret += "\n\\end{tikzpicture}"
         return ret
@@ -524,6 +527,14 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if self._cartan_type is not None:
             return self._cartan_type.is_affine()
         return self.cartan_matrix().is_affine()
+
+    def is_lorentzian(self):
+        """
+        Check if ``self`` corresponds to a Lorentzian type.
+        """
+        if self._cartan_type is not None:
+            return self._cartan_type.is_lorentzian()
+        return self.cartan_matrix().is_lorentzian()
 
     def is_irreducible(self):
         """
