@@ -471,7 +471,7 @@ CartanTypeOptions=GlobalOptions(name='cartan_type',  doc=r"""
         sage: CartanType.global_options.reset()
     """,
     notation=dict(default="Stembridge",
-                  description='Specifies which notation Cartan types should use when printed',
+                  description='Specifies which notation affine Cartan types should use when printed',
                   values=dict(Stembridge="use Stembridge's notation",
                               Kac="use Kac's notation"),
                   case_sensitive=False,
@@ -605,7 +605,11 @@ class CartanTypeFactory(SageObject):
                         import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
-                if t[2] == 1: # Untwisted affind
+                if letter == "H": # Hyperbolic types
+                    import type_hyperbolic
+                    return type_byperbolic.construct(t[2], t[1])
+
+                if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
                             import type_A_affine
@@ -650,7 +654,7 @@ class CartanTypeFactory(SageObject):
                         return CartanType(["G", 2, 1]).dual().relabel([0,2,1])
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
-            raise ValueError("%s is not a valid Cartan type"%t)
+            raise ValueError("{} is not a valid Cartan type".format(t))
         import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
