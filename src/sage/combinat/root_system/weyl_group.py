@@ -594,7 +594,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             raise ValueError("Crossed nodes must be a subset of self.index_set()")
 
         if not self.is_finite():
-            return [w.coset_representative(index_set, side) for w in self]
+            raise NotImplementedError("The set of minimal representatives is implemented only for finite Weyl groups.")
 
         from sage.combinat.root_system.root_system import RootSystem
         from copy import copy
