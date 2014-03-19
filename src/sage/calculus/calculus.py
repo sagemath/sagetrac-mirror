@@ -435,38 +435,38 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     Returns the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
 
-        .. WARNING::
-        
-            This function only works with symbolic expressions. To sum any
-            other objects like list elements or function return values,
-            please use python summation, see
-            http://docs.python.org/2.7/library/functions.html#sum
+    .. WARNING::
+    
+        This function only works with symbolic expressions. To sum any
+        other objects like list elements or function return values,
+        please use python summation, see
+        http://docs.python.org/2.7/library/functions.html#sum
 
-            In particular, this does not work::
+        In particular, this does not work::
+        
+            sage: n = var('n')
+            sage: list=[1,2,3,4,5]
+            sage: sum(list[n],n,0,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=n) to an integer
             
-                sage: n = var('n')
-                sage: list=[1,2,3,4,5]
-                sage: sum(list[n],n,0,3)
-                Traceback (most recent call last):
-                ...
-                TypeError: unable to convert x (=n) to an integer
-                
-            Use python sum() instead::
+        Use python sum() instead::
+        
+            sage: sum(list[n] for n in range(4))
+            10
             
-                sage: sum(list[n] for n in range(4))
-                10
-                
-            Also, only a limited number of functions are recognized in symbolic sums::
+        Also, only a limited number of functions are recognized in symbolic sums::
+        
+            sage: sum(valuation(n,2),n,1,5)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
             
-                sage: sum(valuation(n,2),n,1,5)
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-                
-            Again, use python sum()::
-            
-                sage: sum(valuation(n+1,2) for n in range(5))
-                3
+        Again, use python sum()::
+        
+            sage: sum(valuation(n+1,2) for n in range(5))
+            3
     
     INPUT:
 
