@@ -324,9 +324,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if self.cartan_type() is None:
             return "Dynkin diagram of rank %s"%self.rank()
         ret = "\\begin{tikzpicture}[scale=%s]\n"%scale
-        if self.crossed_nodes == None and self.node_labels == None:
+        if self.cartan_type().is_finite() and self.cartan_type().is_crystallographic():
+            if self.crossed_nodes == [] and self.node_labels is None:
+                ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
+            ret += self.cartan_type()._latex_dynkin_diagram(node_labels=self.node_labels, crossed_nodes=self.crossed_nodes)
+        else:
+            if not(self.crossed_nodes == [] and self.node_labels is None):
+                print("Warning: node_labels and crossed_nodes are currently implemented only for finite crystallographic Cartan types")
             ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
-        ret += self.cartan_type()._latex_dynkin_diagram(node_labels=self.node_labels, crossed_nodes=self.crossed_nodes)
+            ret += self.cartan_type()._latex_dynkin_diagram()
         ret += "\n\\end{tikzpicture}"
         return ret
 
