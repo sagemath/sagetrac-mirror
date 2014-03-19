@@ -161,35 +161,60 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     return res
 
 cdef class QualityBounder(object):
+    """
+    Given projective rational coordinates, returns a lower and upper
+    bound on the quality of the projective point.
+
+    INPUT:
+
+        - ``coordinates`` - projective coordinates
+
+    EXAMPLES::
+
+        sage: from sage.rings.fast_arith import QualityBounder
+        sage: qb = QualityBounder()
+        sage: qb(1, 8, 9)
+        (log(9)/log(6), log(9)/log(6))
+        sage: for i in range(100):
+        ....:     x = 1
+        ....:     while not x.is_squarefree() or x == 1:
+        ....:         x = ZZ.random_element(-10**5, 10**5)
+        ....:     if qb(x, 1) != (1, 1):
+        ....:         print x
+        sage: qb(ProjectiveSpace(2, QQ)(3, 4, 5))
+        (log(5)/log(30), log(5)/log(30))
+    """
 
     cdef uint_fast32_t *_primes
-    cdef uint_fast64_t *_squares
     cdef uint_fast32_t _len, _prime_bound
 
     def __cinit__(self, uint_fast32_t prime_bound=10**5):
         """
         Allocates memory for the c tables used for trial division.
         """
-        self._prime_bound = prime_bound
 
-        from sage.functions.prime_pi import prime_pi
-        self._len = prime_pi(prime_bound-1)
+        if prime_bound > 1:
+            self._prime_bound = prime_bound
+
+            from sage.functions.prime_pi import prime_pi
+            self._len = prime_pi(prime_bound-1)
+        else:
+            self._prime_bound = 1u
+            self._len = 0u
 
         # use c tables
         self._primes = <uint_fast32_t *>sage_malloc(sizeof(uint_fast32_t)*self._len)
-        self._squares = <uint_fast64_t *>sage_malloc(sizeof(uint_fast64_t)*self._len)
 
     def __dealloc__(self):
         """
         Deallocates memory for the c tables used for trial division.
         """
         sage_free(self._primes)
-        sage_free(self._squares)
 
     def __init__(self, uint_fast32_t prime_bound=10**5):
         """
-        An object for bounding the quality of projective points
-        over the rationals.
+        Constructs an object for bounding the quality of projective
+        points over the rationals.
 
         INPUT:
 
@@ -201,17 +226,16 @@ cdef class QualityBounder(object):
             sage: qb1 = QualityBounder(prime_bound=10**5)
             sage: qb2 = QualityBounder(prime_bound=10**6)
             sage: map(n, qb1(614474125456, 24966161193627, 25580635319083))
-            [0.374709057573204, 0.849777081840407]
+            [0.374709057573204, 0.698836005185383]
             sage: map(n, qb2(614474125456, 24966161193627, 25580635319083))
             [0.536657184562553, 0.536657184562553]
         """
         tmp = prime_range(prime_bound, py_ints=True)
 
         cdef uint_fast32_t i
-        # populate prime and squares tables
+        # populate prime table
         for i in range(self._len):
-            self._primes[i] = self._squares[i] = tmp.pop()
-            self._squares[i] *= self._squares[i]
+            self._primes[i] = tmp.pop()
 
     @staticmethod
     def _fix_up_coordinates(*coordinates):
@@ -279,7 +303,8 @@ cdef class QualityBounder(object):
         INPUT:
 
             - ``coordinates`` -- projective coordinates, assumed to be
-              relatively prime Sage Integers (not all zero)
+              relatively prime non-negative Sage Integers
+              (not all zero)
 
         WARNING:
 
@@ -289,76 +314,91 @@ cdef class QualityBounder(object):
 
             sage: from sage.rings.fast_arith import QualityBounder
             sage: qb = QualityBounder()
-            sage: a = next_prime(2*10**5)*2**8
-            sage: b = next_prime(4*10**5)*3**4
+            sage: a = next_prime(2*10**5)**3*2**8
+            sage: b = next_prime(4*10**5)**2*3**4
             sage: c = a+b
             sage: a,b,c
-            (51200768, 32400729, 83601497)
+            (2048092161382406912, 12960583206561, 2048105121965613473)
             sage: qb._rad_bounds(a, b, c)
-            (42000000000000000, 5732889057212777502)
+            (399793800000, 15730863037389643841037540121480095666228392706)
             sage: a,b,c
-            (200003, 400009, 1706153)
+            (8000360005400027, 160007200081, 3073742197051)
         """
-        cdef uint_fast32_t i
-        cdef Integer rad1, rad2, tmp
+        cdef uint_fast32_t i, prime, not_exact
+        cdef uint_fast64_t prime_bound_squared
+        cdef Integer rad1, rad2, tmp, tmp2
 
         rad1 = <Integer>PY_NEW(Integer)
         rad2 = <Integer>PY_NEW(Integer)
+        not_exact = len(coordinates)
+        prime_bound_squared = <uint_fast64_t>self._prime_bound
+        prime_bound_squared *= prime_bound_squared
 
         sig_on()
 
         mpz_set_ui(rad1.value, 1ul)
 
-        # trial divide prime squares
+        # trial divide primes
         for tmp in coordinates:
+            if not mpz_cmp_ui(tmp.value, 1ul):
+                not_exact -= 1u
+                continue
             for i in range(self._len):
-                if mpz_divisible_ui_p(tmp.value, self._squares[i]):
-                    if not mpz_divisible_ui_p(rad1.value, self._primes[i]):
-                        mpz_mul_ui(rad1.value, rad1.value, self._primes[i])
-                    mpz_divexact_ui(tmp.value, tmp.value, self._squares[i])
-                    while mpz_divisible_ui_p(tmp.value, self._primes[i]):
-                        mpz_divexact_ui(tmp.value, tmp.value, self._primes[i])
+                if mpz_divisible_ui_p(tmp.value, self._primes[i]):
+                    prime = self._primes[i]
+                    if not mpz_divisible_ui_p(rad1.value, prime):
+                        mpz_mul_ui(rad1.value, rad1.value, prime)
+                    for tmp2 in coordinates:
+                        while mpz_divisible_ui_p(tmp2.value, prime):
+                            mpz_divexact_ui(tmp2.value, tmp2.value, prime)
+                    if not mpz_cmp_ui(tmp.value, 1ul):
+                        not_exact -= 1u
+                        break
 
-        # lower bound = prod p * prime_bound^3
-        mpz_mul_ui(rad2.value, rad1.value, self._prime_bound)
-        mpz_mul_ui(rad2.value, rad2.value, self._prime_bound)
-        mpz_mul_ui(rad2.value, rad2.value, self._prime_bound)
-
-        # upper bound = prod p * remainder
         for tmp in coordinates:
-            mpz_mul(rad1.value, rad1.value, tmp.value)
+            if not mpz_cmp_ui(tmp.value, 1ul):
+                continue
+            if mpz_cmp_ui(tmp.value, prime_bound_squared) < 0:
+                # must be a prime, via sieving
+
+                mpz_mul(rad1.value, rad1.value, tmp.value)
+                # store value, since it will be changed to 1 in for loop
+                mpz_set(rad2.value, tmp.value)
+                for tmp2 in coordinates:
+                    while mpz_divisible_p(tmp2.value, rad2.value):
+                        mpz_divexact(tmp2.value, tmp2.value, rad2.value)
+                not_exact -= 1u
+
+        if not_exact:
+            # lower bound = prod p * prime_bound
+            mpz_mul_ui(rad2.value, rad1.value, self._prime_bound)
+
+            # upper bound = prod p * remainder
+            for tmp in coordinates:
+                mpz_mul(rad1.value, rad1.value, tmp.value)
+
+        else:
+            mpz_set(rad2.value, rad1.value)
 
         sig_off()
-
-        if rad1 < rad2:
-            # in this case we have computed the exact quality
-            rad2 = rad1
 
         return rad2, rad1
 
     def __call__(self, *coordinates):
         """
-        Given projective rational coordinates, returns a lower and upper
-        bound on the quality of the projective point.
-
-        INPUT:
-
-            - ``coordinates`` - projective coordinates
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.rings.fast_arith import QualityBounder
-            sage: qb = QualityBounder()
+            sage: qb = QualityBounder(2)
+            sage: for p in Permutations((1, 4, 8, 16)):
+            ....:     assert qb(*p) == (log(16, 512), 4)
+            sage: qb = QualityBounder(3)
+            sage: for p in Permutations((1, 4, 8, 16)):
+            ....:     assert qb(*p) == (4, 4)
             sage: qb(1, 8, 9)
+            (log(9)/log(18), log(9)/log(6))
+            sage: QualityBounder(4)(1, 8, 9)
             (log(9)/log(6), log(9)/log(6))
-            sage: for i in range(100):
-            ....:     x = 1
-            ....:     while not x.is_squarefree() or x == 1:
-            ....:         x = ZZ.random_element(-10**5, 10**5)
-            ....:     if qb(x, 1) != (1, 1):
-            ....:         print x
-            sage: qb(ProjectiveSpace(2, QQ)(3, 4, 5))
-            (log(5)/log(30), log(5)/log(30))
         """
         coordinates = QualityBounder._fix_up_coordinates(*coordinates)
 
