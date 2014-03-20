@@ -1327,7 +1327,8 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
     def is_congruence(self):
         r"""
-        Return True if this is a congruence subgroup, and False otherwise.
+        Return ``True`` if this is a congruence subgroup, and ``False``
+        otherwise.
 
         ALGORITHM:
 
@@ -1351,9 +1352,11 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
              (L R^{-1} L)^2 = (R^2 L^{1/2})^3
 
-          holds, where `1/2` is understood as the multiplicative inverse of 2 modulo N.
+          holds, where `1/2` is understood as the multiplicative
+          inverse of 2 modulo N.
 
-        - if `N` is a power of 2, then `G` is congruence if and only if the relations
+        - if `N` is a power of 2, then `G` is congruence if and only
+          if the relations
 
           .. math::
 
@@ -1382,7 +1385,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: a.is_congruence()
             True
 
-        This example is congruence -- it's `\Gamma_0(3)` in disguise: ::
+        This example is congruence -- it is `\Gamma_0(3)` in disguise: ::
 
             sage: S2 = SymmetricGroup(4)
             sage: l = S2((2,3,4))
@@ -1397,7 +1400,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: G.is_congruence()
             True
 
-        This one is noncongruence: ::
+        This one is noncongruence::
 
             sage: import sage.modular.arithgroup.arithgroup_perm as ap
             sage: ap.HsuExample10().is_congruence()
@@ -1428,38 +1431,38 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         R = self.R()              # action of R
 
         if self.is_even():
-            N = ZZ(L.order()) # generalised level of the group
+            N = ZZ(L.order())  # generalised level of the group
         else:
-            N = ZZ(2*L.order())
+            N = ZZ(2 * L.order())
 
         # write N as N = em where e = 2^k and m odd
         m = N.odd_part()
         e = N // m
 
-        if e==1:
+        if e == 1:
             # N is odd
             # this only gets called if self is even
-            onehalf = ZZ(~Zmod(N)(2))   #i.e. 2^(-1) mod N
+            onehalf = ZZ(~Zmod(N)(2))   # i.e. 2^(-1) mod N
             rel = (R*R*L**(-onehalf))**3
             return rel.is_one()
 
-        elif m==1:
+        elif m == 1:
             # N is a power of 2
-            onefifth=ZZ(~Zmod(N)(5))   #i.e. 5^(-1) mod N
-            S=L**20*R**onefifth*L**(-4)*~R
+            onefifth = ZZ(~Zmod(N)(5))   # i.e. 5^(-1) mod N
+            S = L**20*R**onefifth*L**(-4)*~R
 
             # congruence if the three below permutations are trivial
-            rel=(~L*R*~L) * S * (L*~R*L) * S
+            rel = (~L*R*~L) * S * (L*~R*L) * S
             if not rel.is_one():
                 verbose("Failed relation A1")
                 return False
 
-            rel=~S*R*S*R**(-25)
+            rel = ~S*R*S*R**(-25)
             if not rel.is_one():
                 verbose("Failed relation A2")
                 return False
 
-            rel=(S*R**5*L*~R*L)**3 * ~(L * ~R * L)**2
+            rel = (S*R**5*L*~R*L)**3 * ~(L * ~R * L)**2
             if not rel.is_one():
                 verbose("Failed relation A3")
                 return False
@@ -1468,48 +1471,48 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         else:
             # e>1, m>1
-            onehalf=int(~Zmod(m)(2))    #i.e. 2^(-1)  mod m
-            onefifth=int(~Zmod(e)(5))   #i.e. 5^(-1)  mod e
-            c=int(~Zmod(m)(e))*e        # c=0 mod e, c=1 mod m
-            d=int(~Zmod(e)(m))*m        # d=1 mod e, d=0 mod m
-            a=L**c
-            b=R**c
-            l=L**d
-            r=R**d
-            s=l**20*r**onefifth*l**(-4)*~r
+            onehalf = int(~Zmod(m)(2))    # i.e. 2^(-1)  mod m
+            onefifth = int(~Zmod(e)(5))   # i.e. 5^(-1)  mod e
+            c = int(~Zmod(m)(e))*e        # c=0 mod e, c=1 mod m
+            d = int(~Zmod(e)(m))*m        # d=1 mod e, d=0 mod m
+            a = L**c
+            b = R**c
+            l = L**d
+            r = R**d
+            s = l**20 * r**onefifth * l**(-4) * ~r
 
             #Congruence if the seven permutations below are trivial:
-            rel=~a*~r*a*r
+            rel  =~a*~r*a*r
             if not rel.is_one():
                 verbose("Failed relation B1")
                 return False
 
-            rel=(a*~b*a)**4
+            rel = (a*~b*a)**4
             if not rel.is_one():
                 verbose("Failed relation B2")
                 return False
 
-            rel=(a*~b*a)**2*(~a*b)**3
+            rel = (a*~b*a)**2*(~a*b)**3
             if not rel.is_one():
                 verbose("Failed relation B3")
                 return False
 
-            rel=(a*~b*a)**2*(b*b*a**(-onehalf))**(-3)
+            rel = (a*~b*a)**2*(b*b*a**(-onehalf))**(-3)
             if not rel.is_one():
                 verbose("Failed relation B4")
                 return False
 
-            rel=(~l*r*~l)*s*(l*~r*l)*s
+            rel = (~l*r*~l)*s*(l*~r*l)*s
             if not rel.is_one():
                 verbose("Failed relation B5")
                 return False
 
-            rel=~s*r*s*r**(-25)
+            rel = ~s*r*s*r**(-25)
             if not rel.is_one():
                 verbose("Failed relation B6")
                 return False
 
-            rel=(l*~r*l)**2*(s*r**5*l*~r*l)**(-3)
+            rel = (l*~r*l)**2*(s*r**5*l*~r*l)**(-3)
             if not rel.is_one():
                 verbose("Failed relation B7")
                 return False
