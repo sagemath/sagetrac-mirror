@@ -111,6 +111,7 @@ from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.schemes.toric.weierstrass import _fdiv
 
 
 
@@ -698,7 +699,7 @@ class AlgebraicForm(FormsBase):
         for c,m in coefficient_monomial_iter:
             i = index(m)
             coeffs[i] = c*m + coeffs.pop(i, R.zero())
-        result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
+        result = tuple(_fdiv(coeffs.pop(index(m), R.zero()), m) for m in monomials)
         if len(coeffs):
             raise ValueError('Less monomials were passed than the form actually has.')
         return result
@@ -1750,9 +1751,9 @@ class TernaryCubic(AlgebraicForm):
         a = self.coeffs()
         F = self._ring.base_ring()
         return (a[0], a[1], a[2],
-                1/F(3)*a[3], 1/F(3)*a[4], 1/F(3)*a[5],
-                1/F(3)*a[6], 1/F(3)*a[7], 1/F(3)*a[8],
-                1/F(6)*a[9])
+                F(1)/F(3)*a[3], F(1)/F(3)*a[4], F(1)/F(3)*a[5],
+                F(1)/F(3)*a[6], F(1)/F(3)*a[7], F(1)/F(3)*a[8],
+                F(1)/F(6)*a[9])
 
 
     def S_invariant(self):
@@ -1867,9 +1868,9 @@ class TernaryCubic(AlgebraicForm):
         A00 = 3*x*a30 + y*a21 + z*a20
         A11 = x*a12 + 3*y*a03 + z*a02
         A22 = x*a10 + y*a01 + 3*z*a00
-        A01 = x*a21 + y*a12 + 1/F(2)*z*a11
-        A02 = x*a20 + 1/F(2)*y*a11 + z*a10
-        A12 = 1/F(2)*x*a11 + y*a02 + z*a01
+        A01 = x*a21 + y*a12 + F(1)/F(2)*z*a11
+        A02 = x*a20 + F(1)/F(2)*y*a11 + z*a10
+        A12 = F(1)/F(2)*x*a11 + y*a02 + z*a01
         polar = matrix(self._ring, [[A00, A01, A02],[A01, A11, A12],[A02, A12, A22]])
         return polar
 
@@ -1909,7 +1910,7 @@ class TernaryCubic(AlgebraicForm):
         Uzz = 2*x*a10 + 2*y*a01 + 6*z*a00
         H = matrix(self._ring, [[Uxx, Uxy, Uxz],[Uxy, Uyy, Uyz],[Uxz, Uyz, Uzz]])
         F = self._ring.base_ring()
-        return 1/F(216) * H.det()
+        return F(1)/F(216) * H.det()
 
 
     def Theta_covariant(self):
@@ -1944,7 +1945,7 @@ class TernaryCubic(AlgebraicForm):
                      H_conic[0,1], H_conic[0,2], H_conic[1,2] )
         quadratic = TernaryQuadratic(3, 2, self._ring.zero(), self.variables())
         F = self._ring.base_ring()
-        return 1/F(9) * _covariant_conic(U_coeffs, H_coeffs, quadratic.monomials())
+        return F(1)/F(9) * _covariant_conic(U_coeffs, H_coeffs, quadratic.monomials())
 
 
     def J_covariant(self):
@@ -2628,7 +2629,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             * (a3*A0 - a0*A3) * (-a2*A0 + a0*A2) * (-a1*A0 + a0*A1)
         """
         F = self._ring.base_ring()
-        return 1/F(16) * self._jacobian_determinant(
+        return F(1)/F(16) * self._jacobian_determinant(
             [self.first().form(), 2],
             [self.second().form(), 2],
             [self.T_covariant(), 4],

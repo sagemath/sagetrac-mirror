@@ -222,6 +222,18 @@ def WeierstrassForm_P3(quadratic1, quadratic2, variables=None):
         (4, 107)
         sage: b.total_degree(), len(b.coefficients())
         (6, 648)
+
+        sage: S1.<a0,a1,a2,a3,b0,b1,b2,b3,b4,b5> = QQ[]
+        sage: S2.<w,x,y,z> = S1[]
+        sage: p1 = w^2 + x^2 + y^2 + z^2
+        sage: p2 = a0*w^2 + a1*x^2 + a2*y^2 + a3*z^2
+        sage: p2 += b0*x*y + b1*x*z + b2*x*w + b3*y*z + b4*y*w + b5*z*w
+        sage: a, b = WeierstrassForm_P3(p1, p2)
+        sage: a, b = a.coefficients()[0], b.coefficients()[0]
+        sage: a.total_degree(), len(a.coefficients())
+        (4, 107)
+        sage: b.total_degree(), len(b.coefficients())
+        (6, 648)
     """
     biquadratic, quartic, from_aux = \
         _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=variables)

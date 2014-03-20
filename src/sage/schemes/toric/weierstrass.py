@@ -160,6 +160,7 @@ from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.all import invariant_theory
+from sage.rings.rational_field import QQ
 
 ######################################################################
 #
@@ -253,6 +254,51 @@ def j_invariant(polynomial, variables=None):
 #  Weierstrass form of any elliptic curve
 #
 ######################################################################
+
+def _fdiv(a, b):
+    r"""
+    Return a // b even if b is an element of a ring 
+    whose base ring is not a field.
+
+    This is just a helper function to allow divisions a // b
+    for a and b elements of a ring over another ring.
+    It works only if b has constant coefficients.
+
+    INPUT:
+    
+    - a -- an element of a polynomial ring
+
+    - b -- an element of a polynomial ring with constant coefficients
+
+    OUTPUT:
+
+    An element of a polynomial ring.
+
+    TESTS::
+    
+        sage: from sage.schemes.toric.weierstrass import _fdiv
+        sage: R.<a0,a1> = PolynomialRing(QQ, 2)
+        sage: S.<x,y> = PolynomialRing(R, 2)
+        sage: _fdiv(a0*x^2 + 3*a1*x*y - a1**2*y, 2*x)
+        1/2*a0*x + 3/2*a1*y
+        sage: _fdiv(a0**2 + a1, a1)
+        1
+        sage: _fdiv(a0*x*y + y, a0*x)
+        Traceback (most recent call last):
+        ...
+        TypeError: not a constant polynomial
+    """    
+    R = (a + b).parent()
+    if R.is_field() or R.base_ring().is_field():
+        return a // b
+    else:
+        R_aux = R.change_ring(QQ)
+        # This can be done if b has only constant coefficients,
+        # otherwise this fails
+        b_aux = R_aux(b)
+        coeffs, monoms = a.coefficients(), a.monomials()
+        return sum([c*R(R_aux(m) // b_aux) for c, m in zip(coeffs, monoms)])
+
 def Newton_polytope_vars_coeffs(polynomial, variables):
     """
     Return the Newton polytope in the given variables.
@@ -298,7 +344,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
     for c, m in polynomial:
         e = m.exponents()[0]
         v = tuple([e[i] for i in var_indices])
-        m_red = m // prod(x**i for x, i in zip(variables, v))
+        m_red = _fdiv(m, prod(x**i for x, i in zip(variables, v)))
         result[v] = result.get(v, R.zero()) + c*m_red
     return result
 
@@ -466,6 +512,14 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
         sage: WeierstrassForm(cubic, variables=[x,y,z])
         (0, -27/4*a^6)
 
+    Alternatively, one can take the base ring to be another polynomial ring::
+
+        sage: P.<a> = QQ[]
+        sage: R.<x,y,z> = P[]
+        sage: cubic = x^3 + a*y^3 + a^2*z^3
+        sage: WeierstrassForm(cubic)
+        (0, -27/4*a^6)
+
     TESTS::
 
         sage: for P in ReflexivePolytopes(2):
@@ -613,7 +667,7 @@ def _extract_coefficients(polynomial, monomials, variables):
     for c, m in polynomial:
         i = index(m)
         coeffs[i] = c*m + coeffs.pop(i, R.zero())
-    result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
+    result = tuple(_fdiv(coeffs.pop(index(m), R.zero()), m) for m in monomials)
     if len(coeffs) != 0:
         raise ValueError('The polynomial contains more monomials than '
                          'given: '+str(coeffs))
@@ -770,7 +824,7 @@ def WeierstrassForm_P2(polynomial, variables=None):
     F = polynomial.base_ring()
     S = cubic.S_invariant()
     T = cubic.T_invariant()
-    return (27*S, -27/F(4)*T)
+    return (F(27)*S, -F(27)/F(4)*T)
 
 
 ######################################################################
@@ -948,6 +1002,38 @@ def WeierstrassForm_P1xP1(biquadric, variables=None):
 
         sage: _ == WeierstrassForm_P1xP1(biquadric.subs(x1=1,y1=1), [x0, y0])
         True
+
+        sage: S1.<a00,a10,a20,a01,a11,a21,a02,a12,a22> = QQ[]
+        sage: S2.<x0,x1,y0,y1> = S1[]
+        sage: biquadric = ( x0^2*y0^2*a00 + x0*x1*y0^2*a10 + x1^2*y0^2*a20
+        ....:    + x0^2*y0*y1*a01 + x0*x1*y0*y1*a11 + x1^2*y0*y1*a21
+        ....:    + x0^2*y1^2*a02 + x0*x1*y1^2*a12 )
+        sage: WeierstrassForm_P1xP1(biquadric)
+        (-1/48*a11^4 + 1/6*a01*a11^2*a21 - 1/3*a01^2*a21^2
+         + 1/6*a20*a11^2*a02 + 1/3*a20*a01*a21*a02 - 1/2*a10*a11*a21*a02
+         + a00*a21^2*a02 - 1/3*a20^2*a02^2 - 1/2*a20*a01*a11*a12
+         + 1/6*a10*a11^2*a12 + 1/3*a10*a01*a21*a12 - 1/2*a00*a11*a21*a12
+         + 1/3*a10*a20*a02*a12 - 1/3*a10^2*a12^2 + a00*a20*a12^2, 1/864*a11^6
+         - 1/72*a01*a11^4*a21 + 1/18*a01^2*a11^2*a21^2 - 2/27*a01^3*a21^3
+         - 1/72*a20*a11^4*a02 + 1/36*a20*a01*a11^2*a21*a02
+         + 1/24*a10*a11^3*a21*a02 + 1/9*a20*a01^2*a21^2*a02
+         - 1/6*a10*a01*a11*a21^2*a02 - 1/12*a00*a11^2*a21^2*a02
+         + 1/3*a00*a01*a21^3*a02 + 1/18*a20^2*a11^2*a02^2
+         + 1/9*a20^2*a01*a21*a02^2 - 1/6*a10*a20*a11*a21*a02^2
+         + 1/4*a10^2*a21^2*a02^2 - 2/3*a00*a20*a21^2*a02^2 - 2/27*a20^3*a02^3
+         + 1/24*a20*a01*a11^3*a12 - 1/72*a10*a11^4*a12
+         - 1/6*a20*a01^2*a11*a21*a12 + 1/36*a10*a01*a11^2*a21*a12
+         + 1/24*a00*a11^3*a21*a12 + 1/9*a10*a01^2*a21^2*a12
+         - 1/6*a00*a01*a11*a21^2*a12 - 1/6*a20^2*a01*a11*a02*a12
+         + 1/36*a10*a20*a11^2*a02*a12 + 1/18*a10*a20*a01*a21*a02*a12
+         - 1/6*a10^2*a11*a21*a02*a12 + 5/6*a00*a20*a11*a21*a02*a12
+         - 1/6*a00*a10*a21^2*a02*a12 + 1/9*a10*a20^2*a02^2*a12
+         + 1/4*a20^2*a01^2*a12^2 - 1/6*a10*a20*a01*a11*a12^2
+         + 1/18*a10^2*a11^2*a12^2 - 1/12*a00*a20*a11^2*a12^2
+         + 1/9*a10^2*a01*a21*a12^2 - 1/6*a00*a20*a01*a21*a12^2
+         - 1/6*a00*a10*a11*a21*a12^2 + 1/4*a00^2*a21^2*a12^2
+         + 1/9*a10^2*a20*a02*a12^2 - 2/3*a00*a20^2*a02*a12^2
+         - 2/27*a10^3*a12^3 + 1/3*a00*a10*a20*a12^3)
     """
     x, y, s, t = _check_polynomial_P1xP1(biquadric, variables)
     delta = _partial_discriminant(biquadric, s, t)
@@ -1051,7 +1137,8 @@ def WeierstrassForm_P2_112(polynomial, variables=None):
         sage: R.<x,y,z,t,a40,a30,a20,a10,a00,a21,a11,a01,a02> = QQ[]
         sage: p = ( a40*x^4*t^2 + a30*x^3*z*t^2 + a20*x^2*z^2*t^2 + a10*x*z^3*t^2 +
         ....:       a00*z^4*t^2 + a21*x^2*y*t + a11*x*y*z*t + a01*y*z^2*t + a02*y^2 )
-        sage: WeierstrassForm_P2_112(p, [x,y,z,t])
+        sage: wf = WeierstrassForm_P2_112(p, [x,y,z,t])
+        sage: wf
         (-1/48*a11^4 + 1/6*a21*a11^2*a01 - 1/3*a21^2*a01^2 + a00*a21^2*a02
          - 1/2*a10*a21*a11*a02 + 1/6*a20*a11^2*a02 + 1/3*a20*a21*a01*a02
          - 1/2*a30*a11*a01*a02 + a40*a01^2*a02 - 1/3*a20^2*a02^2 + a30*a10*a02^2
@@ -1072,7 +1159,7 @@ def WeierstrassForm_P2_112(polynomial, variables=None):
          + 1/3*a30*a20*a10*a02^3 - a40*a10^2*a02^3 - a30^2*a00*a02^3
          + 8/3*a40*a20*a00*a02^3)
 
-        sage: _ == WeierstrassForm_P2_112(p.subs(z=1,t=1), [x,y])
+        sage: wf == WeierstrassForm_P2_112(p.subs(z=1,t=1), [x,y])
         True
 
         sage: cubic = p.subs(a40=0)
@@ -1082,6 +1169,31 @@ def WeierstrassForm_P2_112(polynomial, variables=None):
         sage: from sage.schemes.toric.weierstrass import WeierstrassForm_P2
         sage: (a,b) == WeierstrassForm_P2(cubic.subs(t=1,z=1), [x,y])
         True
+
+        sage: S1.<a40, a30, a20, a10, a00, a21, a11, a01, a02> = QQ[]
+        sage: S2.<x,y,z,t> = S1[]
+        sage: p = ( a40*x^4*t^2 + a30*x^3*z*t^2 + a20*x^2*z^2*t^2 + a10*x*z^3*t^2 +
+        ....:       a00*z^4*t^2 + a21*x^2*y*t + a11*x*y*z*t + a01*y*z^2*t + a02*y^2 )
+        sage: WeierstrassForm_P2_112(p)
+        (-1/48*a11^4 + 1/6*a21*a11^2*a01 - 1/3*a21^2*a01^2 + a00*a21^2*a02
+         - 1/2*a10*a21*a11*a02 + 1/6*a20*a11^2*a02 + 1/3*a20*a21*a01*a02
+         - 1/2*a30*a11*a01*a02 + a40*a01^2*a02 - 1/3*a20^2*a02^2 + a30*a10*a02^2
+         - 4*a40*a00*a02^2, 1/864*a11^6 - 1/72*a21*a11^4*a01
+         + 1/18*a21^2*a11^2*a01^2 - 2/27*a21^3*a01^3 - 1/12*a00*a21^2*a11^2*a02
+         + 1/24*a10*a21*a11^3*a02 - 1/72*a20*a11^4*a02 + 1/3*a00*a21^3*a01*a02
+         - 1/6*a10*a21^2*a11*a01*a02 + 1/36*a20*a21*a11^2*a01*a02
+         + 1/24*a30*a11^3*a01*a02 + 1/9*a20*a21^2*a01^2*a02
+         - 1/6*a30*a21*a11*a01^2*a02 - 1/12*a40*a11^2*a01^2*a02
+         + 1/3*a40*a21*a01^3*a02 + 1/4*a10^2*a21^2*a02^2
+         - 2/3*a20*a00*a21^2*a02^2 - 1/6*a20*a10*a21*a11*a02^2
+         + a30*a00*a21*a11*a02^2 + 1/18*a20^2*a11^2*a02^2
+         - 1/12*a30*a10*a11^2*a02^2 - 2/3*a40*a00*a11^2*a02^2
+         + 1/9*a20^2*a21*a01*a02^2 - 1/6*a30*a10*a21*a01*a02^2
+         - 4/3*a40*a00*a21*a01*a02^2 - 1/6*a30*a20*a11*a01*a02^2
+         + a40*a10*a11*a01*a02^2 + 1/4*a30^2*a01^2*a02^2
+         - 2/3*a40*a20*a01^2*a02^2 - 2/27*a20^3*a02^3
+         + 1/3*a30*a20*a10*a02^3 - a40*a10^2*a02^3 - a30^2*a00*a02^3
+         + 8/3*a40*a20*a00*a02^3)
     """
     x, y, z, t = _check_polynomial_P2_112(polynomial, variables)
     delta = _partial_discriminant(polynomial, y, t)
