@@ -656,6 +656,12 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
 
+    def lorentzian(self):
+        r"""
+        Return the Lorentzian type corresponding to ``self``.
+        """
+        letter = self._dual.type()
+        raise NotImplementedError
 
 ###########################################################################
 class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):

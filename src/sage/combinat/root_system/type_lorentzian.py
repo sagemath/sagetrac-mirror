@@ -10,16 +10,49 @@ Root system data for Lorentzian types
 
 from sage.combinat.root_system.cartan_type import CartanType_simply_laced, CartanType_lorentzian
 
+class CartanType_baseline(CartanType_lorentzian):
+    """
+    Lorentzian Cartan types whose overextended node lies on the baseline of
+    the affine Cartan type.
+    """
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+        """
+        ret = "\\draw (0 cm,0) -- ({} cm,0);\n".format(node_dist)
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{{${}$}};".format(label(-1))
+        # TODO: Move the frame over node_dist units
+        ret = self._affine._latex_dynkin_diagram(label, node_dist)
+        # TODO: Move the frame back?
+        return ret
+
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the Lorentzian Dynkin diagram.
+
+        EXAMPLES::
+        """
+        ret = self._affine.ascii_art(label).splitlines()
+        return sum(ret[:-2], "") + "O---" + ret[-2] + "{}   ".format(label(-1)) + ret[-1]
+
 #####################################################################
 ## XE_n
 
 class CartanType_DEn(CartanType_simply_laced, CartanType_lorentzian):
     r"""
-    The Cartan type `D_n^{(1)\wedge}`.
+    The Cartan type `DE_n`.
 
-    These are also denoted by `DE_{n+2}` and `H_1^{(n+2)}`.
+    These are also denoted by `D_{n-2}^{(1)\wedge}` and `H_1^{(n)}`.
     """
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+        """
+        CartanType_lorentzian.__init__(self, ['D', n-2, 1])
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -38,7 +71,7 @@ class CartanType_DEn(CartanType_simply_laced, CartanType_lorentzian):
         ret += "\\draw[fill=white] ({} cm, 0) circle (.25cm) node[below=4pt]{{${}$}};".format((n-3)*node_dist, label(n))
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda x: x):
         r"""
         Return a ascii art representation of the extended Dynkin diagram.
 
@@ -57,9 +90,15 @@ class CartanType_XEn(CartanType_lorentzian):
     r"""
     The Cartan type `XE_n` for `X = B,C` and `n = 7,8,9,10`.
 
-    These are also denoted by `H_i^{(n)}` where `i = 2,3` for `X = B,C`
+    These are also denoted by `B_{n-2} `H_i^{(n)}` where `i = 2,3` for `X = B,C`
     respectively.
     """
+    def __init__(self, n, letter):
+        """
+        Initialize ``self``.
+        """
+        CartanType_lorentzian.__init__(self, [letter, n, 1])
+
     def dual(self):
         """
         Types `EB_n` and `EC_n` are in duality:
@@ -74,7 +113,7 @@ class CartanType_XEn(CartanType_lorentzian):
         # otherwise self.letter == 'C'
         return CartanType_XEn('B', self.n)
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -114,13 +153,23 @@ class CartanType_XEn(CartanType_lorentzian):
 
 class CartanType_E6Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
     r"""
-    The Cartan type `E_7^{(1) \wedge}` which is `T_{4,3,3}` or `H_5^{(8)}`.
+    The Cartan type `E_6^{(1) \wedge}` which is `T_{4,3,3}` or `H_5^{(8)}`.
     """
     def __init__(self):
         """
         Initialize ``self``.
         """
         CartanType_lorentzian.__init__(self, ['E',6,1])
+
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the extended Dynkin diagram.
+
+        EXAMPLES::
+        """
+        return ("        O {}\n        |\n        |\n"*3 +
+                "O---O---O---O---O\n{}   {}   {}   {}   {}").format(
+                *map(label, [-1,0,2,1,3,4,5,6]))
 
 class CartanType_E7Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
     r"""
@@ -132,6 +181,16 @@ class CartanType_E7Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
         """
         CartanType_lorentzian.__init__(self, ['E',7,1])
 
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the extended Dynkin diagram.
+
+        EXAMPLES::
+        """
+        return ("            O {}\n            |\n            |\n" +
+                " O" + "---O"*7 + "\n{}" + "   {}"*7).format(
+                *map(label, [2,-1,0,1,3,4,5,6,7]))
+
 class CartanType_E10(CartanType_simply_laced, CartanType_lorentzian):
     r"""
     The Cartan type `E_{10}` which is `E_8^{(1)\wedge}` or `H_4^{(10)}`.
@@ -142,7 +201,7 @@ class CartanType_E10(CartanType_simply_laced, CartanType_lorentzian):
         """
         CartanType_lorentzian.__init__(self, ['E',8,1])
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -158,7 +217,7 @@ class CartanType_E10(CartanType_simply_laced, CartanType_lorentzian):
         ret += "\\draw[fill=white] ({} cm, 0) circle (.25cm) node[below=4pt]{{${}$}};\n".format(8*node_dist, label(-1))
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda x: x):
         r"""
         Return a ascii art representation of the extended Dynkin diagram.
 

@@ -2601,7 +2601,7 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
         return self.classical()._latex_()+"^{(1)}"
 
 ##########################################################################
-class CartanType_lorentzian(CartanType_hyperbolic, CartanType_crystallographic):
+class CartanType_lorentzian(CartanType_crystallographic):
     """
     A concrete base class for simple Lorentzian Cartan types.
     """

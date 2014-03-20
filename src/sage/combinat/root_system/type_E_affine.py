@@ -227,12 +227,12 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         Return the Lorentzian type corresponding to ``self``.
         """
         if self.n == 6:
-            from sage.combinat.root_systems.type_lorentzian import CartanType_E6Lorentzian
-            return CartanType_CartanType_E6Lorentzian()
+            from sage.combinat.root_system.type_lorentzian import CartanType_E6Lorentzian
+            return CartanType_E6Lorentzian()
         elif self.n == 7:
-            from sage.combinat.root_systems.type_lorentzian import CartanType_E7Lorentzian
-            return CartanType_CartanType_E7Lorentzian()
+            from sage.combinat.root_system.type_lorentzian import CartanType_E7Lorentzian
+            return CartanType_E7Lorentzian()
         elif self.n == 8:
-            from sage.combinat.root_systems.type_lorentzian import CartanType_E10
+            from sage.combinat.root_system.type_lorentzian import CartanType_E10
             return CartanType_E10()
 

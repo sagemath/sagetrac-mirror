@@ -20,7 +20,7 @@ def construct_hyperbolic(rank, index):
        hyperbolic Dynkin diagrams, root lengths, and Weyl orbits*. (2009).
     """
 
-from cartan_type import CartanType_simple, CartanType_crystallographic, CartanType_hyperbolic
+from cartan_type import CartanType_simple, CartanType_crystallographic, CartanType_hyperbolic, CartanType_lorentzian
 class CartanType(CartanType_simple, CartanType_crystallographic, CartanType_hyperbolic):
     r"""
     Hyperbolic Cartan types in rank at least 3.
@@ -51,4 +51,15 @@ class CartanType(CartanType_simple, CartanType_crystallographic, CartanType_hype
         Return a latex representation of ``self``.
         """
         return "H_{{{}}}^{{({})}}".format(self.index, self.n)
+
+class CartanType_lorentzian(CartanType, CartanType_lorenztian):
+    """
+    Concrete base class for hyperbolic Lorentzian types.
+    """
+    def __init__(self, affine, index):
+        """
+        Initialize ``self``.
+        """
+        CartanType_lorenztian.__init__(self, affine)
+        CartanType.__init__(self._affine.rank()+1, index)
 
