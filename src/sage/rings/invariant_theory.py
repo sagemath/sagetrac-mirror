@@ -249,6 +249,33 @@ class FormsBase(SageObject):
         jac = [diff(p,d) for p,d in args]
         return matrix(self._ring, jac).det()
 
+    def base_ring(self):
+        """
+        Return the base ring.
+
+        OUTPUT:
+
+        The lowest base ring.
+
+        EXAMPLES::
+
+            sage: R.<x,y,t> = QQ[]
+            sage: quartic = invariant_theory.binary_quartic(x^4+y^4+t*x^2*y^2, [x,y])
+            sage: quartic.base_ring()
+            Rational Field
+
+            sage: S.<t> = QQ[]
+            sage: R.<x,y> = S[]
+            sage: quartic = invariant_theory.binary_quartic(x^4+y^4+t*x^2*y^2)
+            sage: quartic.ring().base_ring()
+            Univariate Polynomial Ring in t over Rational Field
+            sage: quartic.base_ring()
+            Rational Field
+        """
+        F = self._ring.base_ring()
+        while not F is F.base_ring():
+            F = F.base_ring()
+        return F
 
     def ring(self):
         """
@@ -489,7 +516,7 @@ class AlgebraicForm(FormsBase):
         assert self._homogeneous
         from sage.matrix.constructor import vector, random_matrix
         if g is None:
-            F = self._ring.base_ring()
+            F = self.base_ring()
             g = random_matrix(F, self._n, algorithm='unimodular')
         v = vector(self.variables())
         g_v = g*v
@@ -1557,7 +1584,7 @@ class TernaryQuadratic(QuadraticForm):
             sage: invariant_theory.ternary_quadratic(p.subs(z=1), x, y).scaled_coeffs()
             (a20, a02, a00, 1/2*a11, 1/2*a10, 1/2*a01)
         """
-        F = self._ring.base_ring()
+        F = self.base_ring()
         a200, a020, a002, a110, a101, a011 = self.coeffs()
         return (a200, a020, a002, a110/F(2), a101/F(2), a011/F(2))
 
@@ -1749,7 +1776,7 @@ class TernaryCubic(AlgebraicForm):
             (a30, a03, a00, 1/3*a21, 1/3*a20, 1/3*a12, 1/3*a02, 1/3*a10, 1/3*a01, 1/6*a11)
         """
         a = self.coeffs()
-        F = self._ring.base_ring()
+        F = self.base_ring()
         return (a[0], a[1], a[2],
                 F(1)/F(3)*a[3], F(1)/F(3)*a[4], F(1)/F(3)*a[5],
                 F(1)/F(3)*a[6], F(1)/F(3)*a[7], F(1)/F(3)*a[8],
@@ -1864,7 +1891,7 @@ class TernaryCubic(AlgebraicForm):
             x,y,z = self.variables()
         else:
             x,y,z = (self._x, self._y, 1)
-        F = self._ring.base_ring()
+        F = self.base_ring()
         A00 = 3*x*a30 + y*a21 + z*a20
         A11 = x*a12 + 3*y*a03 + z*a02
         A22 = x*a10 + y*a01 + 3*z*a00
@@ -1909,7 +1936,7 @@ class TernaryCubic(AlgebraicForm):
         Uyz = x*a11 + 2*y*a02 + 2*z*a01
         Uzz = 2*x*a10 + 2*y*a01 + 6*z*a00
         H = matrix(self._ring, [[Uxx, Uxy, Uxz],[Uxy, Uyy, Uyz],[Uxz, Uyz, Uzz]])
-        F = self._ring.base_ring()
+        F = self.base_ring()
         return F(1)/F(216) * H.det()
 
 
@@ -1944,7 +1971,7 @@ class TernaryCubic(AlgebraicForm):
         H_coeffs = ( H_conic[0,0], H_conic[1,1], H_conic[2,2],
                      H_conic[0,1], H_conic[0,2], H_conic[1,2] )
         quadratic = TernaryQuadratic(3, 2, self._ring.zero(), self.variables())
-        F = self._ring.base_ring()
+        F = self.base_ring()
         return F(1)/F(9) * _covariant_conic(U_coeffs, H_coeffs, quadratic.monomials())
 
 
@@ -1964,8 +1991,8 @@ class TernaryCubic(AlgebraicForm):
             sage: cubic.J_covariant()
             x^6*y^3 - x^3*y^6 - x^6 + y^6 + x^3 - y^3
         """
-        F = self._ring.base_ring()
-        return 1 / F(9) * self._jacobian_determinant(
+        F = self.base_ring()
+        return F(1) / F(9) * self._jacobian_determinant(
             [self.form(), 3], 
             [self.Hessian(), 3], 
             [self.Theta_covariant(), 6])
@@ -2227,7 +2254,7 @@ class SeveralAlgebraicForms(FormsBase):
         assert self._homogeneous
         from sage.matrix.constructor import vector, random_matrix
         if g is None:
-            F = self._ring.base_ring()
+            F = self.base_ring()
             g = random_matrix(F, self._n, algorithm='unimodular')
         v = vector(self.variables())
         g_v = g*v
@@ -2628,7 +2655,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             z * y * x * w * (a3*A2 - a2*A3) * (a3*A1 - a1*A3) * (-a2*A1 + a1*A2)
             * (a3*A0 - a0*A3) * (-a2*A0 + a0*A2) * (-a1*A0 + a0*A1)
         """
-        F = self._ring.base_ring()
+        F = self.base_ring()
         return F(1)/F(16) * self._jacobian_determinant(
             [self.first().form(), 2],
             [self.second().form(), 2],

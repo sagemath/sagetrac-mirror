@@ -822,6 +822,8 @@ def WeierstrassForm_P2(polynomial, variables=None):
     x, y, z = _check_polynomial_P2(polynomial, variables)
     cubic = invariant_theory.ternary_cubic(polynomial, x, y, z)
     F = polynomial.base_ring()
+    while not F is F.base_ring():
+        F = F.base_ring()
     S = cubic.S_invariant()
     T = cubic.T_invariant()
     return (F(27)*S, -F(27)/F(4)*T)
