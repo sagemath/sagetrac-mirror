@@ -471,12 +471,20 @@ class ModulesWithBasis(Category_over_base_ring):
 
             """
             if 'category' in keywords.keys():
-                category = keywords['category'] # should this be checked?
+                category = keywords['category']
                 category = category.TensorProducts()
                 keywords.pop('category')
             else:
                 category = tensor.category_from_parents(parents)
-            return parents[0].__class__.Tensor(parents, category = category, **keywords)
+            base_category = category.base_category()
+            R = base_category.base_ring()
+            if not base_category.is_subcategory(ModulesWithBasis(R)):
+                raise TypeError, "Must be a category of modules"
+            from sage.categories.algebras_with_basis import AlgebrasWithBasis
+            if base_category.is_subcategory(AlgebrasWithBasis(R)):
+                return parents[0].__class__.TensorGrouped(parents, category, **keywords)
+            else:
+                return parents[0].__class__.Tensor(parents, category, **keywords)
 
         def _identity_map(self, category=None):
             r"""
@@ -1015,7 +1023,7 @@ class ModulesWithBasis(Category_over_base_ring):
             """
             if not all(isinstance(element, Element) for element in elements):
                 raise TypeError, "Not all items are elements"
-            parents = [parent(element) for element in elements]
+            parents = tuple(parent(element) for element in elements)
             return tensor(parents, **keywords)._tensor_of_elements(elements)
 
     class HomCategory(HomCategory):
@@ -1165,17 +1173,11 @@ class ModulesWithBasis(Category_over_base_ring):
                     B[s1] # B[s2*s1] # B[s2]
 
                 """
-                first_domain = maps[0].domain()
-                R = first_domain.base_ring()
-                if 'category' in keywords.keys():
-                    category = keywords['category']
-                else:
-                    category = maps[0].category_for()
-                if not category.is_subcategory(ModulesWithBasis(R)):
-                    raise TypeError, "Category must be a subcategory of the module category of the base ring"
-                if not all(map.category().is_subcategory(category.hom_category()) for map in maps):
-                    raise TypeError, "Not all maps are homomorphisms for the module category of the base ring"
-                domain = tensor([map.domain() for map in maps], **keywords)
+                try:
+                    domains = [map.domain() for map in maps]
+                except AttributeError:
+                    raise TypeError, "Items to be tensored are not all maps"
+                domain = tensor(domains, **keywords)
                 return domain._tensor_of_maps(maps, **keywords)
 
     class CartesianProducts(CartesianProductsCategory):
