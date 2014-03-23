@@ -590,8 +590,8 @@ class CartanTypeFactory(SageObject):
                         import type_E_affine
                         return type_E_affine.CartanType(8)
                     if n == 10:
-                        import type_lorentzian
-                        return type_lorentzian.CartanType_E10()
+                        import type_E_lorentzian
+                        return type_E_lorentzian.CartanType_E10()
                 if letter == "F":
                     if n == 4:
                         import type_F
@@ -2709,7 +2709,7 @@ class CartanType_lorentzian(CartanType_crystallographic):
 
             sage: t = CartanType(['A^', 3, 1])
             sage: t[0]
-            'A'
+            'A^'
             sage: t[1]
             3
             sage: t[2]
@@ -2720,7 +2720,7 @@ class CartanType_lorentzian(CartanType_crystallographic):
             IndexError: index out of range
         """
         if i == 0:
-            return self._affine.letter
+            return self._affine.letter + '^'
         elif i==1:
             return self.n
         elif i == 2:
