@@ -616,7 +616,7 @@ class CartanTypeFactory(SageObject):
                     if n >= 1:
                         import type_I
                         return type_I.CartanType(n)
-            if len(t) == 3:
+            elif len(t) == 3:
                 if letter == "H": # Hyperbolic types
                     import type_hyperbolic
                     return type_byperbolic.construct(t[2], t[1])
@@ -667,6 +667,20 @@ class CartanTypeFactory(SageObject):
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
             raise ValueError("{} is not a valid Cartan type".format(t))
+
+        # See if it is a hyperbolic type
+        valid_letters = ['A', 'B', 'C', 'G', 'G*', 'BC', 'BC*', 'A~']
+        if all(l in valid_letters for l in t):
+            import type_hyperbolic
+            if len(t) == 2:
+                return type_hyperbolic.CartanType_rank3_XY(*t)
+
+            elif len(t) == 3:
+                if t[0] == 'A':
+                    return type_hyperbolic.CartanType_rank3_AXY(t[1], t[2])
+
+            raise NotImplementedError
+
         import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 

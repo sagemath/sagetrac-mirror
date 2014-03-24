@@ -198,7 +198,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             sage: latex(CartanType(['F', 4, 1]).dual())
             F_4^{(1)\vee}
         """
-        return self._dual._latex_()+"^"+self.global_options('dual_latex')
+        return self._dual._latex_()+"^{{{}}}".format(self.global_options('dual_latex'))
 
     def __reduce__(self):
         """

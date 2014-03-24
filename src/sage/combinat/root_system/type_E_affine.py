@@ -225,6 +225,11 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
     def lorentzian(self):
         r"""
         Return the Lorentzian type corresponding to ``self``.
+        EXAMPLES::
+
+            sage: CartanType(['E',6,1]).lorentzian()
+            sage: CartanType(['E',7,1]).lorentzian()
+            sage: CartanType(['E',8,1]).lorentzian()
         """
         if self.n == 6:
             from sage.combinat.root_system.type_E_lorentzian import CartanType_E6Lorentzian
