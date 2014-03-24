@@ -9,10 +9,15 @@ Algebras With Basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.lazy_import import LazyImport
+from functools import partial
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import LazyImport
-from sage.categories.tensor import TensorProductsCategory, tensor
+from sage.misc.constant_function import ConstantFunction
+from sage.misc.misc import compose
+from sage.categories.all import ModulesWithBasis, Algebras
+from sage.categories.tensor import TensorProducts, TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from unital_algebras import UnitalAlgebras
@@ -189,6 +194,89 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def _product_on_basis_tuple(self, tup):
+            return self.product_on_basis(*tup)
+
+        def _product_on_tensor_basis(self):
+            r"""
+            Return the function whose sole input is an index for the tensor square of ``self``,
+            and whose output is the product of monomials indexed by the corresponding pair of basis elements.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup("A2",prefix="s")
+                sage: A = W.algebra(ZZ)
+                sage: AA = tensor([A,A])
+                sage: k = AA.basis().keys().an_element(); k
+                (s1*s2*s1, s1*s2*s1)
+                sage: A._product_on_tensor_basis()(k)
+                B[1]
+                sage: AAAA = tensor([AA,AA])
+                sage: kk = AAAA.basis().keys().an_element(); kk
+                (s1*s2*s1, s1*s2*s1, s1*s2*s1, s1*s2*s1)
+                sage: AA._product_on_tensor_basis()(kk)
+                B[1] # B[1]
+
+            """
+            # The algebra tensor product has functions which handle basis indices
+            AA = tensor([self,self])
+            return compose(self._product_on_basis_tuple, AA.index_to_indices())
+
+        def _product_morphism(self):
+            r"""
+            The multiplication map as a module morphism from the twofold tensor of ``self``, to ``self``.
+            
+            EXAMPLES::
+
+                sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                sage: A = W.algebra(ZZ); A.rename("A")
+                sage: mA = A._product_morphism(); mA
+                Generic morphism:
+                From: A # A
+                To:   A
+                sage: a = A.monomial(W.from_reduced_word([1,2])); a
+                B[s1*s2]
+                sage: b = A.an_element(); b
+                B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
+                sage: ab = tensor([a,b]); ab
+                B[s1*s2] # B[s1*s2*s1] + 3*B[s1*s2] # B[s1*s2] + 3*B[s1*s2] # B[s2*s1]
+                sage: mA(mA.domain()(ab))
+                3*B[s2*s1] + B[s2] + 3*B[1]
+                sage: a*b
+                3*B[s2*s1] + B[s2] + 3*B[1]
+                sage: AA = tensor([A,A])
+                sage: mAA = AA._product_morphism()
+                sage: mAA(mAA.domain()(tensor([a,b,b,b])))
+                27*B[s2*s1] # B[s1*s2] + 27*B[s2*s1] # B[s2*s1] + 18*B[s2*s1] # B[s1] + 18*B[s2*s1] # B[s2] + 57*B[s2*s1] # B[1] + 9*B[s2] # B[s1*s2] + 9*B[s2] # B[s2*s1] + 6*B[s2] # B[s1] + 6*B[s2] # B[s2] + 19*B[s2] # B[1] + 27*B[1] # B[s1*s2] + 27*B[1] # B[s2*s1] + 18*B[1] # B[s1] + 18*B[1] # B[s2] + 57*B[1] # B[1]
+
+            """
+            module_category = ModulesWithBasis(self.base_ring())
+            AA = tensor([self, self], category=module_category)
+            return AA.module_morphism(on_basis = self._product_on_tensor_basis(), codomain=self, category=module_category)
+
+        def _unit_morphism(self):
+            r"""
+            The unit map as a module morphism from the base ring to ``self``.
+
+            Note that the domain is the tensor unit module,
+            the base ring viewed as a free module.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
+                sage: A = W.algebra(ZZ); A.rename("A")
+                sage: unit = A._unit_morphism(); unit
+                Generic morphism:
+                From: The unit object in Category of tensor products of hopf algebras with basis over Integer Ring
+                To:   A
+                sage: unit(3*unit.domain().one())
+                3*B[1]
+
+            """
+            U = self.tensor_unit()
+            one_func = ConstantFunction(self.one())
+            return U.module_morphism(on_basis = one_func, codomain=self, category=ModulesWithBasis(self.base_ring()))
+
     class ElementMethods:
 
         def __invert__(self):
@@ -320,8 +408,42 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         class ParentMethods:
             """
-            implements operations on tensor products of algebras with basis
+            Implements operations on tensor products of algebras with basis
             """
+
+            @abstract_method
+            def factors(self):
+                r"""
+                The tensor factor algebras of `self`.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ); A.rename("A")
+                    sage: A2 = tensor([A,A])
+                    sage: A22 = tensor([A2,A2])
+                    sage: A22.factors()
+                    (A # A, A # A)
+                    sage: A4 = tensor([A,A,A,A])
+                    sage: A4.factors()
+                    (A, A, A, A)
+
+                """
+                pass
+
+            @abstract_method
+            def index_to_indices(self):
+                r"""
+                The function which maps a basis index of ``self`` to a tuple of basis indices for ``self.factors()``.
+                """
+                pass
+
+            @abstract_method
+            def indices_to_index(self):
+                r"""
+                The function which maps a tuple of basis indices for ``self.factors()`` to an index of ``self.basis()``.
+                """
+                pass
 
             @cached_method
             def one_basis(self):
@@ -344,12 +466,14 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     (word: , word: , word: )
                     sage: B.one()
                     B[word: ] # B[word: ] # B[word: ]
+
+
                 """
-                # FIXME: this method should be conditionaly defined,
-                # so that B.one_basis returns NotImplemented if not
+                # FIXME: this method should be conditionally defined,
+                # so that .one_basis returns NotImplemented if not
                 # all modules provide one_basis
-                if all(hasattr(module, "one_basis") for module in self._sets):
-                    return tuple(module.one_basis() for module in self._sets)
+                if all(hasattr(module, "one_basis") for module in self.factors()):
+                    return self.indices_to_index()(*tuple(module.one_basis() for module in self.factors()))
                 else:
                     raise NotImplementedError
 
@@ -378,10 +502,33 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: x*y
                     B[word: a] # B[word: c] + B[word: ac] # B[word: ca] + 2*B[word: b] # B[word: c] + 2*B[word: bc] # B[word: ca]
 
-
                 TODO: optimize this implementation!
+
                 """
-                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self._sets, t1, t2)) ) #.
+                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2)))) #.
+
+            def _monomial_almost_one(self, i, x):
+                ids = [algebra.one_basis() for algebra in self.factors()]
+                ids[i] = x
+                return self.monomial(tuple(ids))
+
+            @cached_method
+            def factor_embedding(self, i):
+                r"""
+                The algebra embedding from the `i`-th tensor factor of ``self`` to ``self``.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ)
+                    sage: A3 = tensor([A,A,A])
+                    sage: A3.factor_embedding(1)(A.monomial(W.from_reduced_word([2,1])))
+                    B[1] # B[s2*s1] # B[1]
+
+                """
+                if i not in range(len(self.factors())):
+                    raise ValueError, "index is out of range"
+                return self.factors()[i].module_morphism(on_basis=partial(self._monomial_almost_one,i),codomain=self)
 
         class ElementMethods:
             """

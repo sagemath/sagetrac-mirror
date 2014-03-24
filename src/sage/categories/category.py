@@ -108,6 +108,59 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
+_join_cache = WeakValueDictionary()
+
+def _join(categories, as_list):
+    """
+    This is an auxiliary function for :meth:`Category.join`
+
+    INPUT:
+
+    - ``categories``: A tuple (no list) of categories.
+    - ``as_list`` (boolean): Whether or not the result should be represented as a list.
+
+    EXAMPLES::
+
+        sage: Category.join((Groups(), CommutativeAdditiveMonoids()))  # indirect doctest
+        Join of Category of groups and Category of commutative additive monoids
+        sage: Category.join((Modules(ZZ), FiniteFields()), as_list=True)
+        [Category of finite fields, Category of modules over Integer Ring]
+
+    """
+    # Since Objects() is the top category, it is the neutral element of join
+    if len(categories) == 0:
+        from objects import Objects
+        return Objects()
+
+    if not as_list:
+        try:
+            return _join_cache[categories]
+        except KeyError:
+            pass
+
+    # Ensure associativity by flattening JoinCategory's
+    # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
+    categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
+                       for category in categories), ())
+
+    # canonicalize, by removing redundant categories which are super
+    # categories of others, and by sorting
+    result = ()
+    for category in categories:
+        if any(cat.is_subcategory(category) for cat in result):
+            continue
+        result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
+    result = tuple(sorted(result, key = category_sort_key, reverse=True))
+    if as_list:
+        return list(result)
+    if len(result) == 1:
+        out = _join_cache[categories] = result[0]
+    else:
+        out = _join_cache[categories] = JoinCategory(result)
+    return out
+
 class Category(UniqueRepresentation, SageObject):
     r"""
     The base class for modeling mathematical categories, like for example:
