@@ -2949,7 +2949,7 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
         self._unflattening_function = CartesianProductWithUnflattening(self._is_tensor, self._n_factors)
         self._flattening_function = CartesianProductWithFlattening(self._is_tensor)
         flattened_modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
-        CombinatorialFreeModule_Tensor.__init__(self, flattened_modules, category, **keywords)
+        CombinatorialFreeModule_Tensor.__init__(self, flattened_modules, category.TensorProducts(), **keywords)
 
     def _repr_(self):
         """
