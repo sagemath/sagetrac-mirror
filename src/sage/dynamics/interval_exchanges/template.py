@@ -13,9 +13,12 @@ AUTHORS:
 
 TODO:
 
+- disallow access to stratum, stratum component for permutations with flip
+
 - construct dynamic graphs
 
 - construct coherent _repr_
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -172,7 +175,7 @@ def labelize_flip(couple):
     return ' ' + str(couple[0])
 
 #
-# CLASSES
+# CLASSES FOR PERMUTATIONS
 #
 
 class Permutation(SageObject):
@@ -189,7 +192,9 @@ class Permutation(SageObject):
     It has three attributes
 
      - ``_twin`` -- the permutation
+
      - ``_labels`` -- None or the list of labels
+
      - ``_flips`` -- None or the list of flips (each flip is either ``1`` or
        ``-1``)
 
@@ -222,13 +227,13 @@ class Permutation(SageObject):
 
         ::
 
-            sage: p._repr_type = 'separatrix_diagram'
+            sage: p._repr_type = 'interval_diagram'
             sage: p._repr_options = (False,)
             sage: p   #indirect doctest
-            [[('c', 'a'), 'b'], ['b', ('c', 'a')]]
+            [['a', 'b', 'c'], ['a', 'b', 'c']]
             sage: p._repr_options = (True,)
             sage: p
-            [[(('c', 'a'), 'L'), ('b', 'R')], [('b', 'L'), (('c', 'a'), 'R')]]
+            [['b', ('c', 'a')], ['b', ('c', 'a')]]
 
         ::
 
@@ -439,6 +444,7 @@ class Permutation(SageObject):
             sage: p = iet.Permutation('a b c','c b a',reduced=True)
             sage: p.length()
             (3, 3)
+
             sage: p = iet.GeneralizedPermutation('a a b','c d c b d',reduced=False)
             sage: p.length()
             (3, 5)
@@ -524,7 +530,7 @@ class Permutation(SageObject):
 
         OUTPUT:
 
-        -- either None or the current alphabet
+        - either None or the current alphabet
 
 
         EXAMPLES::
@@ -580,8 +586,8 @@ class Permutation(SageObject):
 
         There are two other symmetries of permutation which are accessible via
         the methods
-        :meth:`~sage.dynamics.interval_exchanges.template.Permutation.top_bottom_inverse` and
-        :meth:`\sage.dynamics.interval_exchanges.template.Permutation.symmetric`.
+        :meth:`Permutation.top_bottom_inverse` and
+        :meth:`Permutation.symmetric`.
 
         OUTPUT: a permutation
 
@@ -646,8 +652,8 @@ class Permutation(SageObject):
 
         There are two other symmetries of permutation which are accessible via
         the methods
-        :meth:`~sage.dynamics.interval_exchanges.template.Permutation.left_right_inverse` and
-        :meth:`\sage.dynamics.interval_exchanges.template.Permutation.symmetric`.
+        :meth:`Permutation.left_right_inverse` and
+        :meth:`Permutation.symmetric`.
 
         OUTPUT: a permutation
 
@@ -705,8 +711,8 @@ class Permutation(SageObject):
 
         There are two other symmetries of permutation which are accessible via
         the methods
-        :meth:`~sage.dynamics.interval_exchanges.template.Permutation.left_right_inverse` and
-        :meth:`\sage.dynamics.interval_exchanges.template.Permutation.top_bottom_inverse`.
+        :meth:`Permutation.left_right_inverse` and
+        :meth:`Permutation.top_bottom_inverse`.
 
         OUTPUT: a permutation
 
@@ -760,6 +766,127 @@ class Permutation(SageObject):
 
         return res
 
+    def interval_diagram(self, glue_ends=True, sign=False):
+        r"""
+        Return the interval diagram of self
+
+        Convention, the first letter is always the left hand side.
+
+        INPUT:
+
+        - ``glue_ends`` - bool (default: True)
+
+        - ``sign`` - bool (default: False)
+
+        EXAMPLES::
+
+            sage: p = iet.Permutation('a b c','c b a')
+            sage: p.interval_diagram()
+            [['b', ('c', 'a')], ['b', ('c', 'a')]]
+
+            sage: p = iet.Permutation('a b c','c a b')
+            sage: p.interval_diagram()
+            [['a', 'b'], [('c', 'b'), ('c', 'a')]]
+
+            sage: p = iet.GeneralizedPermutation('a a','b b c c')
+            sage: p.interval_diagram()
+            [['a'], [('b', 'a', 'c')], ['b'], ['c']]
+
+            sage: p = iet.GeneralizedPermutation('a a b b','c c')
+            sage: p.interval_diagram()
+            [['a'], [('b', 'c', 'a')], ['b'], ['c']]
+
+            sage: p = iet.GeneralizedPermutation((0,1,0,2),(3,2,4,1,4,3))
+            sage: p.interval_diagram()
+            [[0, 1, 4, 1], [2, 3, 4, (2, 3, 0)]]
+        """
+        if self._flips is not None:
+            raise ValueError("not implemented for flipped permutation")
+        twin = self.twin_list()
+        labels = self.list()
+        letters = set((label,j) for label in self.letters() for j in xrange(2))
+        label_to_twins = dict((label,[]) for label in self.letters())
+               # position of each label
+        twin_to_index = [] # list of lists of {0,1} of the same size as self.
+                           # Each pairs of letters is exactly mapped to a 0 and
+                           # a 1 in a canonic way which is compatible with
+                           # label_to_twins.
+        for i in xrange(2):
+            twin_to_index.append([])
+            line = labels[i]
+            for p in xrange(len(line)):
+                twin_to_index[-1].append(len(label_to_twins[line[p]]))
+                label_to_twins[line[p]].append((i,p))
+        m0 = len(labels[0])
+        m1 = len(labels[1])
+
+        singularities = []
+
+        just_glued = False     # True iff the last elt in singularity is paired
+        glued_at_begin = False # True iff the 1st elt in singularity is paired
+        while letters:
+            label,j = letters.pop()
+            i,p = label_to_twins[label][j]
+            if sign:
+                singularity = [(label,j)]
+            else:
+                singularity = [label]
+            while True:
+                i,p = twin[i][p]
+                if i == 0:
+                    p += 1
+                    if p == m0:
+                        i = 1
+                        p = m1-1
+                        j = 1
+                else:
+                    p-=1
+                    if p == -1:
+                        i = 0
+                        p = 0
+                        j = 0
+                label = labels[i][p]
+                j = twin_to_index[i][p]
+                if (label,j) not in letters:
+                    if (glue_ends and
+                        ((i == 1 and p == m1-1) or (i == 0 and p == 0))):
+                        sg2 = singularity.pop(0)
+                        sg1 = singularity.pop(-1)
+                        if glued_at_begin:
+                            singularity.append((sg1,) + sg2)
+                        elif just_glued:
+                            singularity.append(sg1 +(sg2,))
+                        else:
+                            singularity.append((sg1,sg2))
+                    break
+                letters.remove((label,j))
+                if (glue_ends and (
+                    (i == 1 and p==m1-1) or (i == 0 and p == 0))):
+                    sg1 = singularity.pop(-1)
+                    if sign:
+                        sg2 = (label,j)
+                    else:
+                        sg2 = label
+                    if len(singularity) == 0:
+                        glued_at_begin = True
+                    if just_glued:
+                        singularity.append(sg1 + (sg2,))
+                    else:
+                        singularity.append((sg1,sg2))
+                    just_glued = True
+                else:
+                    if sign:
+                        singularity.append((label,j))
+                    else:
+                        singularity.append(label)
+                    just_glued = False
+
+            singularities.append(singularity)
+            just_glued = False
+            glued_at_begin = False
+
+        return singularities
+
 class PermutationIET(Permutation):
     def _init_twin(self, a):
         r"""
@@ -783,6 +910,35 @@ class PermutationIET(Permutation):
                 j = a[1].index(a[0][i])
                 self._twin[0][i] = j
                 self._twin[1][j] = i
+
+    def twin_list(self):
+        r"""
+        Returns the twin list of self.
+
+        The twin list is the involution without fixed point associated to that
+        permutation seen as two lines of symbols. As the domain is two lines,
+        the position are 2-tuples `(i,j)` where `i` specifies the line and `j`
+        the position in the line.
+
+        EXAMPLES::
+
+            sage: p = iet.Permutation('a b c','c b a')
+            sage: p.twin_list()[0]
+            [(1, 2), (1, 1), (1, 0)]
+            sage: p.twin_list()[1]
+            [(0, 2), (0, 1), (0, 0)]
+
+        We may check that it is actually an involution without fixed point::
+
+            sage: t = p.twin_list()
+            sage: all(t[i][j] != (i,j) for i in xrange(2) for j in xrange(len(t[i])))
+            True
+            sage: all(t[t[i][j][0]][t[i][j][1]] == (i,j) for i in xrange(2) for j in xrange(len(t[i])))
+            True
+        """
+        twin0 = [(1,i) for i in self._twin[0]]
+        twin1 = [(0,i) for i in self._twin[1]]
+        return [twin0,twin1]
 
     def _init_alphabet(self,a) :
         r"""
@@ -1205,6 +1361,586 @@ class PermutationLI(Permutation):
                         position_to,
                         self._twin[interval].pop(position))
 
+    def twin_list(self):
+        r"""
+        Returns the twin list of self.
+
+        The twin list is the involution without fixed point which defines it. As the
+        domain is naturally split into two lines we use a 2-tuple (i,j) to
+        specify the element at position j in line i.
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('a a b','b c c')
+            sage: p.twin_list()[0]
+            [(0, 1), (0, 0), (1, 0)]
+            sage: p.twin_list()[1]
+            [(0, 2), (1, 2), (1, 1)]
+
+        And we may check that it is actually an involution without fixed point::
+
+            sage: t = p.twin_list()
+            sage: all(t[i][j] != (i,j) for i in xrange(2) for j in xrange(len(t[i])))
+            True
+            sage: all(t[t[i][j][0]][t[i][j][1]] == (i,j) for i in xrange(2) for j in xrange(len(t[i])))
+            True
+
+        A slightly more complicated example::
+
+            sage: q = iet.GeneralizedPermutation('a b c a','d e f e g c b g d f')
+            sage: q.twin_list()[0]
+            [(0, 3), (1, 6), (1, 5), (0, 0)]
+            sage: q.twin_list()[1]
+            [(1, 8), (1, 3), (1, 9), (1, 1), (1, 7), (0, 2), (0, 1), (1, 4), (1, 0), (1, 2)]
+
+        ::
+
+            sage: t = q.twin_list()
+            sage: all(t[t[i][j][0]][t[i][j][1]] == (i,j) for i in xrange(2) for j in xrange(len(t[i])))
+            True
+        """
+        return [self._twin[0][:],self._twin[1][:]]
+
+    def to_cylindric(self):
+        r"""
+        Return a cylindric permutation in the same extended Rauzy class
+
+        A generalized permutation is *cylindric* if the first letter in the top
+        interval is the same as the last letter in the bottom interval.
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('a b d a c','c e b e d')
+            sage: p.is_irreducible()
+            True
+            sage: p.to_cylindric().is_cylindric()
+            True
+
+        ALGORITHM:
+
+        The algorithm is naive. It computes the extended Rauzy class until it
+        finds a cylindric permutation.
+        """
+        wait = []
+        rauzy_class = set([self])
+        q = self
+        while True:
+            if q.has_rauzy_move('t'): # top rauzy move
+                qq = q.rauzy_move('t')
+                if qq not in rauzy_class:
+                    if qq._twin[1][-1] == (0,0):
+                        return qq
+                    wait.append(qq)
+                    rauzy_class.add(qq)
+            if q.has_rauzy_move('b'): # bot rauzy move
+                qq = q.rauzy_move('b')
+                if qq not in rauzy_class:
+                    if qq._twin[1][-1] == (0,0):
+                        return qq
+                    wait.append(qq)
+                    rauzy_class.add(qq)
+            qq = q.symmetric() # symmetric
+            if qq not in rauzy_class:
+                if qq._twin[1][-1] == (0,0):
+                    return qq
+                wait.append(qq)
+                rauzy_class.add(qq)
+            q = wait.pop()
+
+        raise ValueError, "no cylindric permutation in the extended Rauzy class"
+
+    def is_cylindric(self):
+        r"""
+        Test if the permutation is cylindric
+
+        EXAMPLES::
+
+            sage: q = iet.GeneralizedPermutation('a b b','c c a')
+            sage: q.is_cylindric()
+            True
+            sage: q = iet.GeneralizedPermutation('a a b b','c c')
+            sage: q.is_cylindric()
+            False
+        """
+        return self._twin[0][-1] == (1,0) or self._twin[1][-1] == (0,0)
+
+    def stratum(self):
+        r"""
+        Returns the stratum associated to self
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('a b b','c c a')
+            sage: p.stratum()
+            Q_0(-1^4)
+        """
+        from sage.dynamics.flat_surfaces.quadratic_strata import QuadraticStratum
+        if self.is_irreducible():
+            return QuadraticStratum([x-2 for x in self.profile()])
+        raise ValueError("stratum is well defined only for irreducible permutations")
+
+    def profile(self):
+        r"""
+        Returns the ``profile`` of self.
+
+        The *profile* of a generalized permutation is the list `(d_1, \ldots,
+        d_k)` where `(d_1 \pi, \ldots, d_k \pi)` is the list of angles of any
+        suspension of that generalized permutation.
+
+        See also :meth:`marked_profile`.
+
+        EXAMPLES::
+
+            sage: p1 = iet.GeneralizedPermutation('a a b','b c c')
+            sage: p1.profile()
+            [1, 1, 1, 1]
+            sage: all(p.profile() == [1, 1, 1, 1] for p in p1.rauzy_diagram())
+            True
+
+            sage: p2 = iet.GeneralizedPermutation('0 1 2 1 3','4 3 4 2 0')
+            sage: p2.profile()
+            [4, 4]
+            sage: all(p.profile() == [4,4] for p in p2.rauzy_diagram())
+            True
+
+            sage: p3 = iet.GeneralizedPermutation('0 1 2 3 3','2 1 4 4 0')
+            sage: p3.profile()
+            [3, 3, 1, 1]
+            sage: all(p.profile() == [3, 3, 1, 1] for p in p3.rauzy_diagram())
+            True
+        """
+        from sage.combinat.partition import Partition
+        s = self.interval_diagram(sign=False,glue_ends=True)
+        return Partition(sorted((len(x) for x in s),reverse=True))
+
+    def genus(self):
+        r"""
+        Returns the genus of any suspension of self.
+
+        The genus `g` can be deduced from the profile (see :meth:`profile`)
+        `p=(p_1,\ldots,p_k)` of self by the formula:
+        `4g-4 = \sum_{i=1}^k (p_i - 2)`.
+
+        EXAMPLES::
+
+            sage: iet.GeneralizedPermutation('a a b','b c c').genus()
+            0
+            sage: iet.GeneralizedPermutation((0,1,2,1,3),(4,3,4,2,0)).genus()
+            2
+        """
+        p = self.profile()
+        return Integer((sum(p)-2*len(p))/4+1)
+
+    def marking(self):
+        r"""
+        Return the marking induced by the two sides of the interval
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('0 1 2 3 4 3 5 6 7','1 6 8 4 2 7 5 8 0')
+            sage: p.marking()
+            8|7
+
+            sage: p = iet.GeneralizedPermutation('0 1 2 3 4 3 5 6 7','1 6 8 4 2 7 8 0 5')
+            sage: p.marking()
+            8o8
+        """
+        return self.marked_profile().marking()
+
+    def marked_profile(self):
+        r"""
+        Returns the marked profile of self.
+
+        The *marked profile* of a generalized permutation is an integer
+        partition and some additional data associated to the angles of conical
+        singularities in the the suspension. The partition, called the
+        *profile*, is the list of angles divided by `2\pi` (see
+        :meth:`profile`). The additional is called the *marking* and may be of
+        two different types.
+
+        If the left endpoint and the right endpoint of the interval associated
+        to the permutation coincides, then the marking is of *type 1* and the
+        additional data consists of a couple `(m,a)` such that `m` is the
+        angle of the conical singularity and `a` is the angle between the
+        outgoing separatrix associated to the left endpoint and the incoming
+        separatrix associated to the right endpoint. A marking of type one is
+        denoted `m | a`.
+
+        If the left endpoint and the right endpoint are two different conical
+        singularities in the suspension, then the marking is of *type 2* and the
+        data consists in a couple `(m_l,m_r)` where `m_l` (resp. `m_r`) is
+        the conical angle of the singularity at the left endpoint (resp. right
+        endpoint). A marking of type two is denoted `m_l \circ m_r`
+
+        EXAMPLES:
+
+        All possible markings for the profile [1, 1, 1, 1]::
+
+            sage: p = iet.GeneralizedPermutation('a a b','b c c')
+            sage: p.marked_profile()
+            1o1 [1, 1, 1, 1]
+            sage: p = iet.GeneralizedPermutation('a a','b b c c')
+            sage: p.marked_profile()
+            1|0 [1, 1, 1, 1]
+
+        All possible markings for the profile [4, 4]::
+
+            sage: p = iet.GeneralizedPermutation('0 1 2 1 3','3 4 0 4 2')
+            sage: p.marked_profile()
+            4o4 [4, 4]
+
+            sage: p = iet.GeneralizedPermutation('0 1 2 1 3','4 3 2 0 4')
+            sage: p.marked_profile()
+            4|0 [4, 4]
+
+            sage: p = iet.GeneralizedPermutation('0 1 0 2 3 2','4 3 4 1')
+            sage: p.marked_profile()
+            4|1 [4, 4]
+
+            sage: p = iet.GeneralizedPermutation('0 1 2 3 2','4 3 4 1 0')
+            sage: p.marked_profile()
+            4|2 [4, 4]
+
+            sage: p = iet.GeneralizedPermutation('0 1 0 1','2 3 2 4 3 4')
+            sage: p.marked_profile()
+            4|3 [4, 4]
+        """
+        from marked_partition import MarkedPartition
+
+        if len(self) == 1:
+            return MarkedPartition([],2,(0,0))
+
+        g = self.interval_diagram(glue_ends=True,sign=True)
+        p = sorted(map(lambda x: len(x), g),reverse=True)
+
+        if self._twin[1][0][0] == 0:
+            left1 = ((self[1][0],0),(self[0][0],0))
+        else:
+            left1 = ((self[1][0],1),(self[0][0],0))
+        left2 = (left1[1],left1[0])
+        if self._twin[0][-1][0] == 1:
+            right1 = ((self[0][-1],1),(self[1][-1],1))
+        else:
+            right1 = ((self[0][-1],0),(self[1][-1],1))
+        right2 = (right1[1],right1[0])
+        if len(set(left1+right1)) == 3:
+            if left1[0] == right1[0]:
+                lr1 = (left1[1], left1[0],right1[1])
+                lr2 = (right1[1], left1[0], left1[1])
+            elif left1[0] == right1[1]:
+                lr1 = (left1[1], left1[0], right1[0])
+                lr2 = (right1[0], left1[0], left1[1])
+            elif left1[1] == right1[0]:
+                lr1 = (left1[0], left1[1], right1[1])
+                lr2 = (right1[1], left1[1], left1[0])
+            elif left1[1] == right1[1]:
+                lr1 = (left1[0], left1[1], right1[0])
+                lr2 = (right1[0], left1[1], left1[0])
+            for c in g:
+                if lr1 in c or lr2 in c:
+                    break
+            return MarkedPartition(p, 1, (len(c), 0))
+        else:
+            c_left = c_right = None
+            for c in g:
+                if left1 in c or left2 in c: c_left = c
+                if right1 in c or right2 in c: c_right = c
+
+        if c_left == c_right:
+            mm = len(c_left)
+            if right1 in c_right:
+                r = c_right.index(right1)
+            else:
+                r = c_right.index(right2)
+            if left1 in c_left:
+                l = c_left.index(left1)
+            else:
+                l = c_left.index(left2)
+            a = ((r-l)%mm)
+            return MarkedPartition(p, 1, (mm, a))
+
+        else:
+            m_l = len(c_left)
+            m_r = len(c_right)
+            return MarkedPartition(p, 2, (m_l,m_r))
+
+    def erase_marked_points(self):
+        r"""
+        Return a permutation without marked points.
+
+        This method is not implemented for generalized permutations.
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('a a b','b c c')
+            sage: p.stratum()
+            Q_0(-1^4)
+            sage: p.erase_marked_points()
+            a a b
+            b c c
+            sage: p = iet.GeneralizedPermutation('a d d a b','b c c')
+            sage: p.stratum()
+            Q_0(0, -1^4)
+            sage: p.erase_marked_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not yet implemented! Do it!
+        """
+        if self.stratum().nb_fake_zeros():
+            raise NotImplementedError, "Not yet implemented! Do it!"
+        else:
+            return self
+
+    def is_hyperelliptic(self,verbose=False):
+        r"""
+        Test if this permutation is in an hyperelliptic connected component.
+
+        EXAMPLES:
+
+        An example of hyperelliptic permutation::
+
+            sage: p = iet.GeneralizedPermutation([0,1,2,0,6,5,3,1,2,3],[4,5,6,4])
+            sage: p.is_hyperelliptic()
+            True
+
+        Check for the corresondance::
+
+            sage: q = QuadraticStratum(6,6)
+            sage: c_hyp, c_reg, c_irr = q.components()
+
+            sage: p_hyp = c_hyp.permutation_representative()
+            sage: p_hyp
+            0 1 2 3 4 1 5 6 7
+            7 6 5 8 4 3 2 8 0
+            sage: p_hyp.is_hyperelliptic()
+            True
+
+            sage: p_reg = c_reg.permutation_representative()
+            sage: p_reg
+            0 1 2 3 4 5 2 6 7 5
+            1 4 6 8 7 8 3 0
+            sage: p_reg.is_hyperelliptic()
+            False
+
+            sage: p_irr = c_irr.permutation_representative()
+            sage: p_irr
+            0 1 2 3 4 3 5 6 7
+            1 6 8 4 2 7 5 8 0
+            sage: p_irr.is_hyperelliptic()
+            False
+
+            sage: q = QuadraticStratum(3,3,2)
+            sage: c_hyp, c_non_hyp = q.components()
+            sage: p_hyp = c_hyp.permutation_representative()
+            sage: p_hyp.is_hyperelliptic()
+            True
+            sage: p_non_hyp = c_non_hyp.permutation_representative()
+            sage: p_non_hyp.is_hyperelliptic()
+            False
+            sage: q = QuadraticStratum(5,5,2)
+            sage: c_hyp, c_non_hyp = q.components()
+            sage: p_hyp = c_hyp.permutation_representative()
+            sage: p_hyp.is_hyperelliptic()
+            True
+            sage: p_non_hyp = c_non_hyp.permutation_representative()
+            sage: p_non_hyp.is_hyperelliptic()
+            False
+            sage: q = QuadraticStratum(3,3,1,1)
+            sage: c_hyp, c_non_hyp = q.components()
+            sage: p_hyp = c_hyp.permutation_representative()
+            sage: p_hyp.is_hyperelliptic()
+            True
+            sage: p_non_hyp = c_non_hyp.permutation_representative()
+            sage: p_non_hyp.is_hyperelliptic()
+            False
+        """
+        p = self.erase_marked_points()
+        s = p.stratum()
+        zeros = s.zeros()
+
+        if not s.has_hyperelliptic_component():
+            return False
+
+        q = p.to_cylindric()
+
+        if q[0][0] == q[1][-1]:
+            l0 = []
+            q0 = q[0][1:]
+            q1 = q[1][:-1]
+            for i,j in q._twin[0][1:]:
+                if i == 0: l0.append((0,j-1))
+                else: l0.append((1,j))
+            l1 = []
+            for i,j in q._twin[1][:-1]:
+                if i == 0: l1.append((0,j-1))
+                else: l1.append((1,j))
+        else:
+            l0 = []
+            q0 = q[0][:-1]
+            q1 = q[1][1:]
+            for i,j in q._twin[0][:-1]:
+                if i == 1: l0.append((1,j-1))
+                else: l0.append((0,j))
+            l1 = []
+            for i,j in q._twin[1][1:]:
+                if i ==1: l1.append((1,j-1))
+                else: l1.append((0,j))
+
+        if verbose:
+            print "found Jenkins-Strebel"
+            print q
+            print l0
+            print l1
+
+        if any(x[0] == 1 for x in l0):
+            if verbose: print "potential form 1"
+            i0 = []; i1 = []
+            for i in xrange(len(l0)):
+                if l0[i][0] == 0:
+                    i0.append(i)
+            for i in xrange(len(l1)):
+                if l1[i][0] == 1:
+                    i1.append(i)
+            if len(i0) != 2 or len(i1) != 2:
+                if verbose: print "no repetition twice in intervals"
+                return False
+
+            q0_0 = q0[i0[0]+1:i0[1]]
+            q0_1 = q0[i0[1]+1:] + q0[:i0[0]]
+            q0_0.reverse()
+            q0_1.reverse()
+
+            q1_0 = q1[i1[0]+1:i1[1]]
+            q1_1 = q1[i1[1]+1:] + q1[:i1[0]]
+
+            if verbose:
+                print q0_0, q0_1
+                print q1_0, q1_1
+
+            return (q0_0 == q1_0 and q0_1 == q1_1) or (q0_0 == q1_1 and q0_1 == q1_0)
+
+        else:
+            if verbose: print "potential form 2"
+            if any(i==1 for i,_ in l0) or any(i==0 for i,_ in l1):
+                return False
+            j = len(l0) // 2
+            for i in xrange(j):
+                if l0[i][1] != j+i:
+                    return False
+
+            j = len(l1) // 2
+            for i in xrange(j):
+                if l1[i][1] != j+i:
+                    return False
+
+            return True
+
+    def stratum_component(self):
+        r"""
+        Return the connected component of stratum in which self belongs to.
+
+        EXAMPLES::
+
+            sage: p = iet.GeneralizedPermutation('a b b','c c a')
+            sage: p.stratum_component()
+            Q_0(-1^4)^c
+
+        Test the exceptionnal strata in genus 3::
+
+            sage: Q = QuadraticStratum(9,-1)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(9, -1)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(9, -1)^irr
+
+            sage: Q = QuadraticStratum(6,3,-1)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(6, 3, -1)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(6, 3, -1)^irr
+
+            sage: Q = QuadraticStratum(3,3,3,-1)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(3^3, -1)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_3(3^3, -1)^irr
+
+        Test the exceptionnal strata in genus 4::
+
+            sage: Q = QuadraticStratum(12)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(12)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(12)^irr
+
+            sage: Q = QuadraticStratum(9,3)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(9, 3)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(9, 3)^irr
+
+            sage: Q = QuadraticStratum(6,6)
+            sage: p = Q.hyperelliptic_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(6^2)^hyp
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(6^2)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(6^2)^irr
+
+            sage: Q = QuadraticStratum(6,3,3)
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(6, 3^2)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(6, 3^2)^irr
+
+            sage: Q = QuadraticStratum(3,3,3,3)
+            sage: p = Q.hyperelliptic_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(3^4)^hyp
+            sage: p = Q.regular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(3^4)^reg
+            sage: p = Q.irregular_component().permutation_representative()
+            sage: p.stratum_component()  # long time
+            Q_4(3^4)^irr
+        """
+        stratum = self.stratum()
+        cc = stratum.components()
+
+        if len(cc) == 1: # connected
+            return cc[0]
+
+        elif stratum.has_hyperelliptic_component(): # hyp / nonhyp
+            if self.is_hyperelliptic():
+                return stratum.hyperelliptic_component()
+            elif len(cc) == 2:
+                return stratum.non_hyperelliptic_component()
+
+        # reg / irr
+        from sage.databases.flat_surfaces import IrregularComponentTwins
+        D = IrregularComponentTwins()
+        if len(D.list_strata()) != 8:
+            raise NotImplementedError, "database of irregular twins not available"
+        p = self.erase_marked_points().to_cylindric()
+
+        if p._twin in D.get(stratum):
+            return stratum.irregular_component()
+        return stratum.regular_component()
 
     def has_rauzy_move(self, winner, side='right'):
         r"""
@@ -1315,6 +2051,7 @@ class OrientablePermutationIET(PermutationIET):
     AUTHOR:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def is_identity(self):
         r"""
@@ -1366,14 +2103,14 @@ class OrientablePermutationIET(PermutationIET):
             return True, (self[0],[],self[1],[])
         return True
 
+    #TODO: change the name
     def decompose(self):
         r"""
-        Returns the decomposition of self.
+        Returns the decomposition as a concatenation of irreducible permutations.
 
         OUTPUT:
 
-        -- a list of permutations
-
+        a list of permutations
 
         EXAMPLES::
 
@@ -1406,7 +2143,7 @@ class OrientablePermutationIET(PermutationIET):
 
         return l
 
-    def intersection_matrix(self):
+    def intersection_matrix(self,ring=None):
         r"""
         Returns the intersection matrix.
 
@@ -1443,8 +2180,11 @@ class OrientablePermutationIET(PermutationIET):
             [-1  0  0  0  1]
             [-1 -1 -1 -1  0]
         """
+        if ring is None:
+            from sage.rings.integer_ring import ZZ
+            ring = ZZ
         n = self.length_top()
-        m = matrix(n)
+        m = matrix(ring,n)
         for i in range(n):
             for j in range(i,n):
                 if self._twin[0][i] > self._twin[0][j]:
@@ -1458,7 +2198,7 @@ class OrientablePermutationIET(PermutationIET):
 
         OUTPUT:
 
-        -- a positive integer
+        - a positive integer
 
 
         EXAMPLES::
@@ -1470,8 +2210,8 @@ class OrientablePermutationIET(PermutationIET):
             sage: p2.attached_out_degree()
             1
         """
-        left_corner = ((self[1][0], self[0][0]), 'L')
-        for s in self.separatrix_diagram(side=True):
+        left_corner = (self[1][0],0)
+        for s in self.interval_diagram(glue_ends=False,sign=True):
             if left_corner in s:
                 return len(s)//2 - 1
 
@@ -1481,7 +2221,7 @@ class OrientablePermutationIET(PermutationIET):
 
         OUTPUT:
 
-        -- a positive integer
+        - a positive integer
 
 
         EXAMPLES::
@@ -1493,160 +2233,128 @@ class OrientablePermutationIET(PermutationIET):
             sage: p2.attached_in_degree()
             3
         """
-        right_corner = ((self[0][-1], self[1][-1]), 'R')
+        right_corner = (self[1][-1],1)
 
-        for s in self.separatrix_diagram(side=True):
+        for s in self.interval_diagram(glue_ends=False,sign=True):
             if right_corner in s:
                 return len(s)//2 - 1
 
-    def attached_type(self):
+    def profile(self):
         r"""
-        Return the singularity degree attached on the left and the right.
-
-        OUTPUT:
-
-        ``([degre], angle_parity)`` -- if the same singularity is attached on the left and right
-
-        ``([left_degree, right_degree], 0)`` -- the degrees at the left and the right which are different singularitites
-
-        EXAMPLES:
-
-        With two intervals::
-
-            sage: p = iet.Permutation('a b','b a')
-            sage: p.attached_type()
-            ([0], 1)
-
-        With three intervals::
-
-            sage: p = iet.Permutation('a b c','b c a')
-            sage: p.attached_type()
-            ([0], 1)
-
-            sage: p = iet.Permutation('a b c','c a b')
-            sage: p.attached_type()
-            ([0], 1)
-
-            sage: p = iet.Permutation('a b c','c b a')
-            sage: p.attached_type()
-            ([0, 0], 0)
-
-        With four intervals::
-
-            sage: p = iet.Permutation('1 2 3 4','4 3 2 1')
-            sage: p.attached_type()
-            ([2], 0)
-        """
-        left_corner = ((self[1][0], self[0][0]), 'L')
-        right_corner = ((self[0][-1], self[1][-1]), 'R')
-
-        l = self.separatrix_diagram(side=True)
-
-        for s in l:
-            if left_corner in s and right_corner in s:
-                i1 = s.index(left_corner)
-                i2 = s.index(right_corner)
-                return ([len(s)//2 - 1], ((i2-i1+1)//2) % 2)
-            elif left_corner in s:
-                left_degree = len(s)//2 - 1
-            elif right_corner in s:
-                right_degree = len(s)//2 - 1
-
-        return ([left_degree,right_degree], 0)
-
-    def separatrix_diagram(self,side=False):
-        r"""
-        Returns the separatrix diagram of the permutation.
-
-        INPUT:
-
-        - ``side`` - boolean
-
-
-        OUTPUT:
-
-        -- a list of lists
-
+        Returns the profile of the permutation
 
         EXAMPLES::
 
-            sage: iet.Permutation([0, 1], [1, 0]).separatrix_diagram()
-            [[(1, 0), (1, 0)]]
-
-        ::
-
-            sage: iet.Permutation('a b c d','d c b a').separatrix_diagram()
-            [[('d', 'a'), 'b', 'c', ('d', 'a'), 'b', 'c']]
+            sage: iet.Permutation('a b c d','d c b a').profile()
+            [3]
+            sage: iet.Permutation('a b c d e','e d c b a').profile()
+            [2, 2]
         """
-        separatrices = range(len(self)) # bottom intervals
-        labels = self[1] # their labels
+        from sage.combinat.partition import Partition
+        s = self.interval_diagram(glue_ends=True,sign=False)
+        return Partition(sorted((len(x)/2 for x in s),reverse=True))
 
-        singularities = []
+    def marking(self):
+        r"""
+        Return the marking induced by the two sides of the interval
 
+        EXAMPLES::
 
-        twin = self._twin
-        n = len(self)-1
+            sage: p = iet.Permutation('a b c d e f','f a e b d c')
+            sage: p.marking()
+            5|0
+            sage: p = iet.Permutation('0 1 2 3 4 5 6','3 2 4 6 5 1 0')
+            sage: p.marking()
+            3o3
+        """
+        return self.marked_profile().marking()
 
-        while separatrices != []:
-            start = separatrices.pop(0)
-            separatrix = start
-            if side:
-                singularity = [(labels[start],'L')]
-            else:
-                singularity = [labels[start]]
+    def marked_profile(self):
+        r"""
+        Returns the marked profile of the permutation
 
-            while True:
-                if separatrix == 0:
-                    separatrix = twin[0][0]
-                    if side:
-                        a = singularity.pop()[0]
-                    else:
-                        a = singularity.pop()
-                    if side:
-                        singularity.append(((a,labels[separatrix]), 'L'))
-                    else:
-                        singularity.append((a,labels[separatrix]))
+        The marked profile of a permutation corresponds to the integer partition
+        associated to the angles of conical singularities in the the suspension
+        together with a data associated to the endpoint called marking.
 
-                    if separatrix == start:
-                        singularities.append(singularity)
-                        break
+        If the left endpoint and the right endpoint of the interval associated
+        to the permutation, then the marking is of type one and consists in a
+        couple ``(m,a)`` such that ``m`` is the angle of the conical singularity
+        and ``a`` is the angle between the outgoing separatrix associated to the
+        left endpoint and the incoming separatrix associated to the right
+        endpoint. A marking of type one is denoted ``(m|a)``.
 
-                    del separatrices[separatrices.index(separatrix)]
+        If the left endpoint and the right endpoint are two different conical
+        singularities in the suspension the the marking is of type two and
+        consists in a couple ``(m_l,m_r)`` where ``m_l`` (resp. ``m_r``) is the
+        conical angle of the singularity at the left endpoint (resp. right
+        endpoint). A marking of type two is denoted ``m_l o m_r``
 
-                else:
-                    separatrix -= 1
-                    if side:
-                        singularity.append((labels[separatrix],'R'))
-                    else:
-                        singularity.append(labels[separatrix])
+        EXAMPLES:
 
-                    if separatrix == twin[0][n] :
-                        separatrix = n
-                        if side:
-                            a = singularity.pop()[0]
-                        else:
-                            a = singularity.pop()
-                        if side:
-                            singularity.append(((a,labels[separatrix]),'R'))
-                        else:
-                            singularity.append((a,labels[separatrix]))
+        The irreducible permutation on 1 interval has marked profile of type 2
+        with data `(0,0)`::
 
-                    separatrix = twin[0][twin[1][separatrix]+1]
+            sage: p = iet.Permutation('a','a')
+            sage: p.marked_profile()
+            0o0 []
 
-                if separatrix == start:
-                    singularities.append(singularity)
-                    break
+        Permutations in H(3,1) with all possible profiles::
 
-                elif separatrix != twin[0][0]:
-                    del separatrices[separatrices.index(separatrix)]
-                    if side:
-                        singularity.append((labels[separatrix],'L'))
-                    else:
-                        singularity.append(labels[separatrix])
+            sage: p = iet.Permutation('a b c d e f g','b g a c f e d')
+            sage: p.interval_diagram()
+            [['a', ('b', 'a'), ('g', 'd'), 'e', 'f', 'g', 'b', 'c'], ['f', 'c', 'd', 'e']]
+            sage: p.marked_profile()
+            4|0 [4, 2]
 
-        return singularities
+            sage: p = iet.Permutation('a b c d e f g','c a g d f b e')
+            sage: p.interval_diagram()
+            [['a', 'b', 'f', 'g'], ['c', 'd', ('g', 'e'), 'f', 'd', 'e', 'b', ('c', 'a')]]
+            sage: p.marked_profile()
+            4|1 [4, 2]
 
-    def stratum(self, marked_separatrix='no'):
+            sage: p = iet.Permutation('a b c d e f g','e b d g c a f')
+            sage: p.interval_diagram()
+            [['a', 'b', 'e', 'f'], ['c', 'd', 'b', 'c', ('g', 'f'), 'g', 'd', ('e', 'a')]]
+            sage: p.marked_profile()
+            4|2 [4, 2]
+
+            sage: p = iet.Permutation('a b c d e f g', 'e c g b a f d')
+            sage: p.interval_diagram()
+            [['a', 'b', ('g', 'd'), ('e', 'a'), 'b', 'c', 'e', 'f'], ['f', 'g', 'c', 'd']]
+            sage: p.marked_profile()
+            4|3 [4, 2]
+
+            sage: p = iet.Permutation('a b c d e f g', 'f d c a g e b')
+            sage: p.interval_diagram()
+            [['a', 'b', 'e', ('f', 'a'), 'c', 'd', 'f', 'g'], [('g', 'b'), 'c', 'd', 'e']]
+            sage: p.marked_profile()
+            4o2 [4, 2]
+        """
+        from marked_partition import MarkedPartition
+
+        if len(self) == 1:
+            return MarkedPartition([],2,(0,0))
+
+        g = self.interval_diagram(glue_ends=True,sign=True)
+        p = sorted(map(lambda x: len(x)//2, g),reverse=True)
+        left = ((self[1][0],0),(self[0][0],0))
+        right = ((self[0][-1],1),(self[1][-1],1))
+        for c in g:
+            if left in c: c_left = c
+            if right in c: c_right = c
+
+        if c_left == c_right:
+            mm = len(c_left)
+            a = ((c_right.index(right)-c_left.index(left)-1) %mm) // 2
+            return MarkedPartition(p, 1, (mm//2, a))
+
+        else:
+            m_l = len(c_left) // 2
+            m_r = len(c_right) //2
+            return MarkedPartition(p, 2, (m_l,m_r))
+
+    def stratum(self):
         r"""
         Returns the strata in which any suspension of this permutation lives.
 
@@ -1658,18 +2366,15 @@ class OrientablePermutationIET(PermutationIET):
 
             sage: p = iet.Permutation('a b c', 'c b a')
             sage: print p.stratum()
-            H(0, 0)
+            H_1(0^2)
 
             sage: p = iet.Permutation('a b c d', 'd a b c')
             sage: print p.stratum()
-            H(0, 0, 0)
+            H_1(0^3)
 
             sage: p = iet.Permutation(range(9), [8,5,2,7,4,1,6,3,0])
             sage: print p.stratum()
-            H(1, 1, 1, 1)
-
-        You can specify that you want to attach the singularity on the left (or
-        on the right) with the option marked_separatrix::
+            H_3(1^4)
 
             sage: a = 'a b c d e f g h i j'
             sage: b3 = 'd c g f e j i h b a'
@@ -1677,42 +2382,37 @@ class OrientablePermutationIET(PermutationIET):
             sage: b1 = 'e d c g f h j i b a'
             sage: p3 = iet.Permutation(a, b3)
             sage: p3.stratum()
-            H(3, 2, 1)
-            sage: p3.stratum(marked_separatrix='out')
-            H^out(3, 2, 1)
+            H_4(3, 2, 1)
             sage: p2 = iet.Permutation(a, b2)
             sage: p2.stratum()
-            H(3, 2, 1)
-            sage: p2.stratum(marked_separatrix='out')
-            H^out(2, 3, 1)
+            H_4(3, 2, 1)
             sage: p1 = iet.Permutation(a, b1)
             sage: p1.stratum()
-            H(3, 2, 1)
-            sage: p1.stratum(marked_separatrix='out')
-            H^out(1, 3, 2)
+            H_4(3, 2, 1)
 
         AUTHORS:
-            - Vincent Delecroix (2008-12-20)
+
+        - Vincent Delecroix (2008-12-20)
         """
-        from sage.dynamics.flat_surfaces.strata import AbelianStratum
+        from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum
 
         if not self.is_irreducible():
-            return map(lambda x: x.stratum(marked_separatrix), self.decompose())
+            return map(lambda x: x.stratum(), self.decompose())
 
         if len(self) == 1:
             return AbelianStratum([])
 
-        singularities = [len(x)//2 - 1 for x in self.separatrix_diagram()]
+        singularities = [x - 1 for x in self.profile()]
 
-        return AbelianStratum(singularities,marked_separatrix=marked_separatrix)
+        return AbelianStratum(singularities)
 
     def genus(self) :
         r"""
-        Returns the genus corresponding to any suspension of the permutation.
+        Returns the genus corresponding to any suspension of self.
 
-        OUTPUT:
-
-        -- a positive integer
+        The genus can be deduced from the profile (see :meth:`profile`)
+        `p = (p_1,\ldots,p_k)` of self by the formula:
+        `2g-2 = \sum_{i=1}^k (p_i-1)`.
 
         EXAMPLES::
 
@@ -1720,24 +2420,43 @@ class OrientablePermutationIET(PermutationIET):
             sage: p.genus()
             1
 
-        ::
-
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: p.genus()
             2
 
         REFERENCES:
-            Veech
+
+            Veech, 1982
         """
-        return self.stratum().genus()
+        p = self.profile()
+        return Integer((sum(p)-len(p))//2+1)
 
     def arf_invariant(self):
         r"""
-        Returns the Arf invariant of the suspension of self.
+        Returns the Arf invariant of the permutation.
 
-        OUTPUT:
+        To a permutation `\pi` is associated a quadratic form on the field with
+        2 elements. The *Arf invariant* is the total invariant of linear
+        equivalence class of quadratic form of given rank.
 
-        integer -- 0 or 1
+        Let `V` be a vector space on the field with two elements `\FF_2`.  `V`
+        there are two equivalence classes of non degenerate quadratic forms.  A
+        complete invariant for quadratic forms is the *Arf invariant*.
+
+        For non zero degenerate quadratic forms there are three equivalence
+        classes. If `B` denotes the bilinear form associated to `q` then the
+        three classes are as follows
+
+        - the restriction of `q` to `ker(B)` is non zero
+
+        - the restriction of `q` to `ker(B)` is zero and the spin parity of `q`
+          on the quotient `V/ker(B)` is 0
+
+        - the restriction of `q` to `ker(B)` is zero and the spin parity of `q`
+          on the quotient `V/ker(B)` is 1
+
+        The function returns respectively `None`, `0` or `1` depending on the
+        three alternatives above.
 
         EXAMPLES:
 
@@ -1774,41 +2493,40 @@ class OrientablePermutationIET(PermutationIET):
         spaces of Abelian differentials with prescribed singularities",
         Inventiones Mathematicae, 153, 2003, 631-678
         """
-        M = self.intersection_matrix()
+        if any((z+1)%2 for z in self.profile()):
+            return None
+
+        from sage.rings.finite_rings.constructor import GF
+        GF2 = GF(2)
+
+        M = self.intersection_matrix(GF2)
         F, C = M.symplectic_form()
 
         g = F.rank()/2
         n = F.ncols()
 
-        s = 0
+        s = GF2(0)
         for i in range(g):
             a = C.row(i)
 
-            a_indices = []
-            for k in xrange(n):
-                if a[k] != 0: a_indices.append(k)
-
-            t_a = len(a_indices) % 2
+            a_indices = [k for k in xrange(n) if a[k]]
+            t_a = GF2(len(a_indices))
             for j1 in xrange(len(a_indices)):
                 for j2 in xrange(j1+1,len(a_indices)):
-                    t_a = (t_a + M[a_indices[j1], a_indices[j2]]) % 2
+                    t_a += M[a_indices[j1], a_indices[j2]]
 
             b = C.row(g+i)
-
-            b_indices = []
-            for k in xrange(n):
-                if b[k] != 0: b_indices.append(k)
-
-            t_b = len(b_indices) % 2
+            b_indices = [k for k in xrange(n) if b[k]]
+            t_b = GF2(len(b_indices))
             for j1 in xrange(len(b_indices)):
                 for j2 in xrange(j1+1,len(b_indices)):
-                    t_b = (t_b + M[b_indices[j1],b_indices[j2]]) % 2
+                    t_b += M[b_indices[j1],b_indices[j2]]
 
-            s = (s + t_a * t_b) % 2
+            s += t_a * t_b
 
         return s
 
-    def connected_component(self,marked_separatrix='no'):
+    def stratum_component(self):
         r"""
         Returns a connected components of a stratum.
 
@@ -1823,12 +2541,12 @@ class OrientablePermutationIET(PermutationIET):
             sage: p_hyp = iet.Permutation(a, b_hyp)
             sage: p_odd = iet.Permutation(a, b_odd)
             sage: p_even = iet.Permutation(a, b_even)
-            sage: print p_hyp.connected_component()
-            H_hyp(6)
-            sage: print p_odd.connected_component()
-            H_odd(6)
-            sage: print p_even.connected_component()
-            H_even(6)
+            sage: print p_hyp.stratum_component()
+            H_4(6)^hyp
+            sage: print p_odd.stratum_component()
+            H_4(6)^odd
+            sage: print p_even.stratum_component()
+            H_4(6)^even
 
         Permutations from the stratum H(4,4)::
 
@@ -1841,57 +2559,44 @@ class OrientablePermutationIET(PermutationIET):
             sage: p_even = iet.Permutation(a,b_even)
             sage: p_hyp.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_hyp.connected_component()
-            H_hyp(4, 4)
+            sage: print p_hyp.stratum_component()
+            H_5(4^2)^hyp
             sage: p_odd.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_odd.connected_component()
-            H_odd(4, 4)
+            sage: print p_odd.stratum_component()
+            H_5(4^2)^odd
             sage: p_even.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_even.connected_component()
-            H_even(4, 4)
+            sage: print p_even.stratum_component()
+            H_5(4^2)^even
 
         As for stratum you can specify that you want to attach the singularity
         on the left of the interval using the option marked_separatrix::
 
-            sage: a = [1,2,3,4,5,6,7,8,9]
-            sage: b4_odd = [4,3,6,5,7,9,8,2,1]
-            sage: b4_even = [6,5,4,3,7,9,8,2,1]
-            sage: b2_odd = [4,3,5,7,6,9,8,2,1]
-            sage: b2_even = [7,6,5,4,3,9,8,2,1]
-            sage: p4_odd = iet.Permutation(a,b4_odd)
-            sage: p4_even = iet.Permutation(a,b4_even)
-            sage: p2_odd = iet.Permutation(a,b2_odd)
-            sage: p2_even = iet.Permutation(a,b2_even)
-            sage: p4_odd.connected_component(marked_separatrix='out')
-            H_odd^out(4, 2)
-            sage: p4_even.connected_component(marked_separatrix='out')
-            H_even^out(4, 2)
-            sage: p2_odd.connected_component(marked_separatrix='out')
-            H_odd^out(2, 4)
-            sage: p2_even.connected_component(marked_separatrix='out')
-            H_even^out(2, 4)
-            sage: p2_odd.connected_component() == p4_odd.connected_component()
-            True
-            sage: p2_odd.connected_component('out') == p4_odd.connected_component('out')
-            False
+            sage: a = range(1,10)
+            sage: b_odd = [4,3,6,5,7,9,8,2,1]
+            sage: b_even = [6,5,4,3,7,9,8,2,1]
+            sage: p_odd = iet.Permutation(a,b_odd)
+            sage: p_even = iet.Permutation(a,b_even)
+            sage: p_odd.stratum_component()
+            H_4(4, 2)^odd
+            sage: p_even.stratum_component()
+            H_4(4, 2)^even
         """
-        from sage.dynamics.flat_surfaces.strata import (CCA, HypCCA, NonHypCCA, OddCCA, EvenCCA)
+        from sage.dynamics.flat_surfaces.abelian_strata import (ASC, HypASC, NonHypASC, OddASC, EvenASC)
 
         if not self.is_irreducible():
-            return map(lambda x: x.connected_component(marked_separatrix),
-            self.decompose())
+            return map(lambda x: x.stratum_component(), self.decompose())
 
-        stratum = self.stratum(marked_separatrix=marked_separatrix)
+        stratum = self.stratum()
         cc = stratum._cc
 
         if len(cc) == 1:
-            return stratum.connected_components()[0]
+            return stratum.components()[0]
 
-        if HypCCA in cc:
+        if HypASC in cc:
             if self.is_hyperelliptic():
-                return HypCCA(stratum)
+                return HypASC(stratum)
             else:
                 cc = cc[1:]
 
@@ -1901,9 +2606,9 @@ class OrientablePermutationIET(PermutationIET):
         else:
             spin = self.arf_invariant()
             if spin == 0:
-                return EvenCCA(stratum)
+                return EvenASC(stratum)
             else:
-                return OddCCA(stratum)
+                return OddASC(stratum)
 
     def order_of_rauzy_action(self, winner, side=None):
         r"""
@@ -2092,39 +2797,106 @@ class OrientablePermutationIET(PermutationIET):
 
         EXAMPLES::
 
-            sage: a = iet.Permutation('a b1 b2 c d', 'd c b1 b2 a')
-            sage: a.erase_marked_points()
+            sage: p = iet.Permutation('a b','b a')
+            sage: p.erase_marked_points()
+            a b
+            b a
+            sage: p = iet.Permutation('a b1 b2 c d', 'd c b1 b2 a')
+            sage: p.erase_marked_points()
             a b1 c d
             d c b1 a
+            sage: p = iet.Permutation('a0 a1 b0 b1 c0 c1 d0 d1','d0 d1 c0 c1 b0 b1 a0 a1')
+            sage: p.erase_marked_points()
+            a0 b0 c0 d0
+            d0 c0 b0 a0
+            sage: p = iet.Permutation('a b y0 y1 x0 x1 c d','c x0 x1 a d y0 y1 b')
+            sage: p.erase_marked_points()
+            a b c d
+            c a d b
+            sage: p = iet.Permutation('a x y z b','b x y z a')
+            sage: p.erase_marked_points()
+            a b
+            b a
+            sage: p = iet.Permutation("0 1 2 3 4 5 6","6 0 3 2 4 1 5")
+            sage: p.stratum()
+            H_3(4, 0)
+            sage: p.erase_marked_points().stratum()
+            H_3(4)
         """
-        from sage.graphs.graph import DiGraph
+        if len(self) == 1:
+            return self
 
-        res = copy(self)
+        if not self.is_irreducible():
+            raise ValueError, "the permutation must be irreducible"
 
-        l = res.list()
-        left_corner = (l[1][0], l[0][0])
-        right_corner = (l[0][-1], l[1][-1])
+        tops = [True]*len(self)  # true if we keep and false if not
+        bots = [True]*len(self)
 
-        s = res.separatrix_diagram()
-        s2 = filter(lambda x: len(x) == 2, s)
+        # remove the zeros which are not at the endpoints
+        i = 0
+        while i < len(self):
+            i += 1
+            while i < len(self) and self._twin[0][i] == self._twin[0][i-1]+1:
+                tops[i] = False
+                bots[self._twin[0][i]] = False
+                i += 1
 
-        G = DiGraph()
-        for x in s2:
-            G.add_edge(x[0], x[1])
+        # remove the fake zero on the left
+        i0 = self._twin[1][0]-1
+        i1 = self._twin[0][0]-1
+        while i0>0 and i1>0 and self._twin[0][i0] == i1:
+            tops[i0] = False
+            bots[i1] = False
+            i0 -= 1
+            i1 -= 1
 
-        for k in G.connected_components():
-            if left_corner in k:
-                del k[k.index(left_corner)]
-            elif right_corner in k:
-                del k[k.index(right_corner)]
+        # remove the fake zero on the right
+        i0 = self._twin[1][-1]+1
+        i1 = self._twin[0][-1]+1
+        n = len(self)
+        while i0<n and i1<n and self._twin[0][i0] == i1:
+            tops[i0] = False
+            bots[i1] = False
+            i0 += 1
+            i1 += 1
+
+
+        top_labs = self[0]
+        bot_labs = self[1]
+        top = []
+        bot = []
+        for i in xrange(len(self)):
+            if tops[i]:
+                top.append(top_labs[i])
+            if bots[i]:
+                bot.append(bot_labs[i])
+
+        # remove the fake zero on the left-right
+        if len(top)>2:
+            if top[-1] == bot[0] and bot[-1] != top[0]:
+                if bot[1] == top[0] and bot[-1] == top[-2]:
+                    del bot[-1]
+                    del bot[1]
+                    del top[-2]
+                    bot.append(top[0])
+
+            elif top[-1] != bot[0] and bot[-1] == top[0]:
+                    if top[1] == bot[0] and top[-1] == bot[-2]:
+                        del top[-1]
+                        del top[1]
+                        del bot[-2]
+                        top.append(bot[0])
+
             else:
-                k = k[1:]
+                i0 = top.index(bot[-1])
+                i1 = bot.index(top[-1])
+                if bot[i1+1] == top[0] and top[i0+1] == bot[0]:
+                    del top[i0+1]
+                    del bot[i1]
+                    del bot[0]
+                    bot.insert(0, top[-1])
 
-            for i in k:
-                del l[0][l[0].index(i)]
-                del l[1][l[1].index(i)]
-
-        return self.__class__(l)
+        return self.__class__((top,bot))
 
     def is_hyperelliptic(self):
         r"""
@@ -2154,26 +2926,25 @@ class OrientablePermutationIET(PermutationIET):
         test = self.erase_marked_points()
 
         n = test.length_top()
-        cylindric = test.cylindric()
+        cylindric = test.to_standard()
         return cylindric._twin[0] == range(n-1,-1,-1)
 
-    def cylindric(self):
+    def to_cylindric(self):
         r"""
-        Returns a permutation in the Rauzy class such that
+        Returns a cylindric permutation in the same Rauzy class.
 
-            twin[0][-1] == 0
-            twin[1][-1] == 0
+        A permutation is *cylindric* if the first letter in the top interval is
+        also the last letter of the bottom interval or if the last letter of the
+        top interval is the first letter of the bottom interval.
 
         TESTS::
 
             sage: p = iet.Permutation('a b c','c b a')
-            sage: p.cylindric() == p
+            sage: p.to_cylindric() == p
             True
             sage: p = iet.Permutation('a b c d','b d a c')
-            sage: q = p.cylindric()
-            sage: q[0][0] == q[1][-1]
-            True
-            sage: q[1][0] == q[1][0]
+            sage: q = p.to_cylindric()
+            sage: q[0][0] == q[1][-1] or q[1][0] == q[1][0]
             True
         """
         tmp = copy(self)
@@ -2202,31 +2973,75 @@ class OrientablePermutationIET(PermutationIET):
             a1 = tmp._twin[1][-1]
             p_min = min(a0,a1)
 
-        if a0 == 0:
-            k = n - tmp._twin[1].index(0) - 1
-
-            for j in range(k):
-                tmp = tmp.rauzy_move(0)
-
-        else:
-            k = n - tmp._twin[0].index(0) - 1
-
-            for j in range(k):
-                tmp = tmp.rauzy_move(1)
-
         return tmp
 
     def is_cylindric(self):
         r"""
-        Returns True if the permutation is Rauzy_1n.
+        Returns True if the permutation is cylindric
 
-        A permutation is cylindric if 1 and n are exchanged.
+        A permutation `\pi` is cylindric if `\pi(1) = n` or `\pi(n) = 1`. The
+        name cylindric comes from geometry. A cylindric permutation has a
+        suspension which is a flat surface with a completely periodic horizontal
+        direction which is made of only one cylinder.
+
 
         EXAMPLES::
 
             sage: iet.Permutation('1 2 3','3 2 1').is_cylindric()
             True
-            sage: iet.Permutation('1 2 3','2 1 3').is_cylindric()
+            sage: iet.Permutation('1 2 3','3 1 2').is_cylindric()
+            True
+            sage: iet.Permutation('1 2 3 4','3 1 2 4').is_cylindric()
+            False
+        """
+        return self._twin[0][-1] == 0 or self._twin[1][-1] == 0
+
+    def to_standard(self):
+        r"""
+        Returns a standard permutation in the same Rauzy class.
+
+        TESTS::
+
+            sage: p = iet.Permutation('a b c','c b a')
+            sage: p.to_standard() == p
+            True
+            sage: p = iet.Permutation('a b c d','b d a c')
+            sage: q = p.to_standard()
+            sage: q[0][0] == q[1][-1]
+            True
+            sage: q[1][0] == q[1][0]
+            True
+        """
+        tmp = self.to_cylindric()
+        n = len(self)
+
+        a0 = tmp._twin[0][-1]
+        a1 = tmp._twin[1][-1]
+        p_min = min(a0,a1)
+
+        if a0 == 0:
+            for j in range(n - tmp._twin[1].index(0) - 1):
+                tmp = tmp.rauzy_move(0)
+
+        else:
+            for j in range(n - tmp._twin[0].index(0) - 1):
+                tmp = tmp.rauzy_move(1)
+
+        return tmp
+
+    def is_standard(self):
+        r"""
+        Test if the permutation is standard
+
+        A permutation `\pi` is standard if '\pi(n) = 1` and `\pi(1) = n`.
+
+        EXAMPLES::
+
+            sage: p = iet.Permutation('a b c d','d c b a')
+            sage: p.is_standard()
+            True
+            sage: p = p.rauzy_move('top')
+            sage: p.is_standard()
             False
         """
         return self._twin[0][-1] == 0 and self._twin[1][-1] == 0
@@ -2262,6 +3077,7 @@ class OrientablePermutationLI(PermutationLI):
     AUTHOR:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def rauzy_move(self, winner, side=-1):
         r"""
@@ -2439,7 +3255,7 @@ class OrientablePermutationLI(PermutationLI):
 
         AUTHORS:
 
-            - Vincent Delecroix (2008-12-20)
+        - Vincent Delecroix (2008-12-20)
         """
         l0 = self.length_top()
         l1 = self.length_bottom()
@@ -2511,6 +3327,7 @@ class FlippedPermutation(Permutation):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def _init_flips(self,intervals,flips):
         r"""
@@ -2699,6 +3516,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def flips(self):
         r"""
@@ -2867,6 +3685,7 @@ class RauzyDiagram(SageObject):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
     __metaclass__ = NestedClassMetaclass
@@ -3441,7 +4260,9 @@ class RauzyDiagram(SageObject):
 
             INPUT:
 
-            - ``function`` - function must be of the form (indice,type) -> element. Moreover function(None,None) must be an identity element for initialization.
+            - ``function`` - function must be of the form (indice,type) ->
+              element. Moreover function(None,None) must be an identity element
+              for initialization.
 
             - ``composition`` - the composition function for the function. * if None (defaut None)
 
@@ -3490,10 +4311,10 @@ class RauzyDiagram(SageObject):
          INPUT:
 
          - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+           right induction
 
          - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+           left induction
 
          - ``left_right_inversion`` - consider the left right inversion
 
@@ -3665,7 +4486,7 @@ class RauzyDiagram(SageObject):
 
             sage: r = iet.RauzyDiagram('a b c d','d c b a')
             sage: from itertools import ifilter
-            sage: r_1n = ifilter(lambda x: x.is_cylindric(), r)
+            sage: r_1n = ifilter(lambda x: x.is_standard(), r)
             sage: for p in r_1n: print p
             a b c d
             d c b a
@@ -4183,9 +5004,9 @@ class RauzyDiagram(SageObject):
             b a
             sage: r = iet.RauzyDiagram('a b c','c b a')
             sage: for p in r: print p.stratum()
-            H(0, 0)
-            H(0, 0)
-            H(0, 0)
+            H_1(0^2)
+            H_1(0^2)
+            H_1(0^2)
         """
         for data in self._succ.iterkeys():
             yield self._vertex_to_permutation(data)
@@ -4421,6 +5242,7 @@ class FlippedRauzyDiagram(RauzyDiagram):
     AUTHORS:
 
     - Vincent Delecroix (2009-09-29): initial version
+
     """
     def complete(self, p, reducible=False):
         r"""
