@@ -10,5 +10,6 @@ from weyl_group import WeylGroup, WeylGroupElement
 from extended_affine_weyl_group import ExtendedAffineWeylGroup, ExtendedAffineWeylGroup_Class
 from fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
 from coxeter_group import CoxeterGroup
-from weyl_characters import WeylCharacterRing, branch_weyl_character, branching_rule_from_plethysm, get_branching_rule, WeightRing
+from weyl_characters import WeylCharacterRing, WeightRing
+from branching_rules import branch_weyl_character, branching_rule_from_plethysm, get_branching_rule
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')

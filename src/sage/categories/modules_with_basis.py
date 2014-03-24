@@ -23,9 +23,9 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 
-from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
+from sage.categories.category import HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
-from sage.categories.tensor import tensor, TensorProducts, TensorProductsCategory
+from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
@@ -467,13 +467,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: TA.category()
                 Category of tensor products of algebras with basis over Rational Field
-                sage: M = A.tensor(A, A, category = ModulesWithBasis(QQ)); M
+                sage: M = tensor([A,A,A], category=ModulesWithBasis(QQ)); M
                 A # A # A
                 sage: M.category()
                 Category of tensor products of modules with basis over Rational Field
+                sage: A.rename()
 
             """
-            if 'category' in keywords.keys():
+            if 'category' in keywords:
                 category = keywords['category']
                 category = category.TensorProducts()
                 keywords.pop('category')
@@ -481,8 +482,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 category = tensor.category_from_parents(parents)
             base_category = category.base_category()
             R = base_category.base_ring()
-            if not base_category.is_subcategory(ModulesWithBasis(R)):
-                raise TypeError, "Must be a category of modules"
+            #if not base_category.is_subcategory(ModulesWithBasis(R)):
+            #    raise TypeError, "%s must be a category of modules"%base_category
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
             if base_category.is_subcategory(AlgebrasWithBasis(R)):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)
