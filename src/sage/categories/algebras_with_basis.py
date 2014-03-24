@@ -9,6 +9,7 @@ Algebras With Basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from functools import partial
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -692,10 +693,31 @@ class AlgebrasWithBasis(Category_over_base_ring):
 
                 TODO: optimize this implementation!
 
-                FIX THIS EXAMPLE!!!
-
                 """
                 return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2)))) #.
+
+            def _monomial_almost_one(self, i, x):
+                ids = [algebra.one_basis() for algebra in self.factors()]
+                ids[i] = x
+                return self.monomial(tuple(ids))
+
+            @cached_method
+            def factor_embedding(self, i):
+                r"""
+                The algebra embedding from the `i`-th tensor factor of ``self`` to ``self``.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ)
+                    sage: A3 = tensor([A,A,A])
+                    sage: A3.factor_embedding(1)(A.monomial(W.from_reduced_word([2,1])))
+                    B[1] # B[s2*s1] # B[1]
+
+                """
+                if i not in range(len(self.factors())):
+                    raise ValueError, "index is out of range"
+                return self.factors()[i].module_morphism(on_basis=partial(self._monomial_almost_one,i),codomain=self)
 
         class ElementMethods:
             """

@@ -19,7 +19,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.tensor import tensor
 from sage.categories.homset import Hom
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor, \
-CartesianProductWithFlattening, CartesianProductWithUnflattening
+CombinatorialFreeModule_TensorGrouped, CartesianProductWithFlattening, CartesianProductWithUnflattening
 
 """
 It allows two ways to construct smash products: a single smash product
@@ -100,7 +100,7 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
         """
         return self.parent().opposite()(self)
 
-class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
+class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
     r"""
     Smash products of algebras.
 
@@ -249,24 +249,12 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
             Smash product of A and A
 
         """
-        # all type checking is done through :class:`SmashProductAlgebra`.
-        self._factors = (A,B)
-        # Note the difference between self._factors and the eventual self._sets coming from
-        # the superclass CombinatorialFreeModule_Tensor: the latter
-        # give the factors of the flattened tensor product if A or B happen to also be tensor products.
+        R = A.base_ring()
+        CombinatorialFreeModule_TensorGrouped.__init__(self, (A,B), AlgebrasWithBasis(R))
         self._twist = twist
         self._has_opposite = False # default: no "opposite" smash product is available
-        self._id_keys = (A.one_basis(), B.one_basis())
-        R = A.base_ring()
         module_category=ModulesWithBasis(R)
         tensor_category=module_category.TensorProducts()
-        self._factor_is_tensor = tuple([x in tensor_category for x in self._factors])
-        self._n_factors = tuple([len(x) if isinstance(x, tuple) else 1 for x in self._id_keys])
-        if not all(x != 0 for x in self._n_factors):
-            raise TypeError, "Tensor factors should be nontrivial"
-        self._key_flattener = CartesianProductWithFlattening(self._factor_is_tensor)
-        self._key_unflattener = CartesianProductWithUnflattening(self._factor_is_tensor, self._n_factors)
-        
         # Define the product morphism using twist
         ItwistI = tensor([A._identity_map(), twist, B._identity_map()], category=module_category)
         mAmB = tensor([A._product_morphism(),B._product_morphism()], category=module_category)
@@ -274,12 +262,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
 
         # the following imparts the structure of having a product and bilinear tensor product
         # TODO: for Hopf algebras, define the additional structure maps
-        self._category = Category.join((AlgebrasWithBasis(R), tensor_category))
-
-        CombinatorialFreeModule_Tensor.__init__(self, twist.codomain()._sets, category=self._category)
-
-        # wanted to register self.factor_embedding(i) as coercions but this produces
-        # incorrect results if the tensor factors are the same
+        self._category = AlgebrasWithBasis(R).TensorProducts()
 
     def _repr_(self):
         r"""
@@ -300,50 +283,6 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
 
         """
         return "Smash product of %s and %s"%(self.factors()[0], self.factors()[1])
-
-    @cached_method
-    def one_basis(self):
-        r"""
-        The tuple that indexes the unit element of the smash product.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup("A2",prefix="s")
-            sage: r = W.from_reduced_word
-            sage: A = W.algebra(ZZ)
-            sage: cat = ModulesWithBasis(ZZ)
-            sage: AA = tensor([A,A], category=cat)
-            sage: twist = AA.module_morphism(on_basis=lambda x: AA.monomial((x[1],x[0])), category=cat, codomain=AA)
-            sage: A2 = SmashProductAlgebra(A,A,twist)
-            sage: A2.one_basis()
-            (1, 1)
-            sage: AAA = tensor([A,A,A], category=cat)
-            sage: twist2= AAA.module_morphism(on_basis=lambda x: AAA.monomial((x[2],x[0],x[1])), category=cat, codomain=AAA)
-            sage: AA2 = SmashProductAlgebra(A,A2,twist2)
-            sage: AA2.one_basis()
-            (1, 1, 1)
-
-        """
-        return self._key_flattener(*self._id_keys)
-
-    def factors(self):
-        r"""
-        The list of factors in the smash product.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup("A2",prefix="s")
-            sage: A = W.algebra(ZZ); A.rename("A")
-            sage: AA = tensor([A,A],category=ModulesWithBasis(ZZ))
-            sage: def t_map(x):
-            ...       return AA.monomial((x[1],x[0]))
-            sage: twist = AA.module_morphism(on_basis=t_map, codomain=AA, category=ModulesWithBasis(ZZ))
-            sage: C = SmashProductAlgebra(A,A,twist)
-            sage: C.factors()
-            (A, A)
-
-        """
-        return self._factors
 
     def twist(self):
         r"""
@@ -406,74 +345,6 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
         """
         return self.from_direct_product(self.factors()[0].an_element(),self.factors()[1].an_element())
 
-    def monomial_from_pair(self, k1, k2):
-        r"""
-        Monomial with index obtained from flattening the indices k1 and k2 of basis elements in the tensor factors
-        of the smash product.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup("A2",prefix="s")
-            sage: A = W.algebra(ZZ)
-            sage: AA = tensor([A,A])
-            sage: AA.category()
-            Category of tensor products of hopf algebras with basis over Integer Ring
-            sage: cat = ModulesWithBasis(ZZ)
-            sage: AAAmod = tensor([A,AA], category=cat)
-            sage: def func((x0,x1,x2)):
-            ...       return (x2,x0,x1)
-            sage: twist = AAAmod.module_morphism(on_basis=func, codomain=AAAmod, category=cat)
-            sage: ASAA = SmashProductAlgebra(A, AA, twist)
-            sage: k1 = A.basis().keys().an_element(); k1
-            s1*s2
-            sage: k2 = AA.basis().keys().an_element(); k2
-            (s1*s2*s1, s1*s2*s1)
-            sage: ASAA.monomial_from_pair(k1,k2)
-            B[s1*s2] # B[s1*s2*s1] # B[s1*s2*s1]
-
-        """
-        return self.monomial(self._key_flattener(k1, k2))
-
-    @cached_method
-    def factor_embedding(self, i):
-        r"""
-        The algebra embedding from factor ``i`` to ``self``.
-
-        INPUT:
-
-        - ``i`` -- If 0, the left factor, and if 1, the right factor.
-
-        EXAMPLES::
-
-        sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
-        sage: r = W.from_reduced_word
-        sage: A = W.algebra(ZZ); A.rename("A")
-        sage: AA = tensor([A,A], category=ModulesWithBasis(ZZ))
-        sage: twist = AA.module_morphism(on_basis=lambda x: AA.monomial((x[0]*x[1]*x[0]**(-1),x[0])),codomain=AA)
-        sage: C = SmashProductAlgebra(A, A, twist)
-        sage: c = C.factor_embedding(0)(A.monomial(r([1,2]))); c
-        B[s1*s2] # B[1]
-        sage: d = C.factor_embedding(1)(A.monomial(r([2]))); d
-        B[1] # B[s2]
-        sage: c*d
-        B[s1*s2] # B[s2]
-        sage: d*c
-        B[s2*s1] # B[s2]
-
-        """
-        if i == 0:
-            def on_basis_left(x):
-                # should this be "inlined" for speed?
-                return self.monomial_from_pair(x,self._id_keys[1])
-            on_basis = on_basis_left
-        elif i == 1:
-            def on_basis_right(x):
-                return self.monomial_from_pair(self._id_keys[0],x)
-            on_basis = on_basis_right
-        else:
-            raise ValueError, "Embedding Factor %s must be 0 or 1"%(i)
-        return self.factors()[i].module_morphism(on_basis = on_basis, codomain = self, category=ModulesWithBasis(self.base_ring()))
-
     def _product_morphism(self):
         r"""
         The multiplication map on the smash product.
@@ -498,6 +369,11 @@ class SmashProductAlgebra(CombinatorialFreeModule_Tensor):
             sage: p2 = (r([1,2,1]),r([2]))
             sage: C.product_on_basis(p1,p2)
             B[1] # B[s1]
+            sage: C2 = tensor([C,C])
+            sage: p = C2.indices_to_index()(p1,p2); p
+            (s1, s1*s2, s1*s2*s1, s2)
+            sage: C2.product_on_basis(p,p)
+            B[s1*s2] # B[s2*s1] # B[s1*s2] # B[1]
 
         """
         mult = self._product_morphism()
