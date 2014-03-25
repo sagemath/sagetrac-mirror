@@ -133,7 +133,7 @@ graphs.
     :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
 
 AUTHORS:
 
@@ -1089,6 +1089,12 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g = Graph(g.edges(),immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
+
+        And their name is set::
+
+            sage: g = graphs.PetersenGraph()
+            sage: Graph(g, immutable=True)
+            Petersen graph: Graph on 10 vertices
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1316,7 +1322,7 @@ class Graph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted graph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -1536,7 +1542,6 @@ class Graph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = False
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -1790,7 +1795,7 @@ class Graph(GenericGraph):
 
         When the certificate cycle is given as a list of edges, the
         edges are given as `(v_i, v_{i+1}, l)` where `v_1, v_2, \dots,
-        v\n` are the vertices of the cycles (in their cyclic order).
+        v_n` are the vertices of the cycles (in their cyclic order).
 
         EXAMPLES::
 
@@ -2609,116 +2614,6 @@ class Graph(GenericGraph):
 
         return self_complement.is_odd_hole_free(certificate = certificate)
 
-    def is_strongly_regular(self, parameters=False):
-        r"""
-        Tests whether ``self`` is strongly regular.
-
-        A graph `G` is said to be strongly regular with parameters (n, k,
-        \lambda, \mu)` if and only if:
-
-            * `G` has `n` vertices.
-
-            * `G` is `k`-regular.
-
-            * Any two adjacent vertices of `G` have `\lambda` common neighbors.
-
-            * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
-
-        By convention, the complete graphs, the graphs with no edges
-        and the empty graph are not strongly regular.
-
-        See :wikipedia:`Strongly regular graph`
-
-        INPUT:
-
-        - ``parameters`` (boolean) -- whether to return the quadruple `(n,
-          k,\lambda,\mu)`. If ``parameters = False`` (default), this method only
-          returns ``True`` and ``False`` answers. If ``parameters=True``, the
-          ``True`` answers are replaced by quadruples `(n, k,\lambda,\mu)`. See
-          definition above.
-
-        EXAMPLES:
-
-        Petersen's graph is strongly regular::
-
-            sage: g = graphs.PetersenGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (10, 3, 0, 1)
-
-        And Clebsch's graph is too::
-
-            sage: g = graphs.ClebschGraph()
-            sage: g.is_strongly_regular()
-            True
-            sage: g.is_strongly_regular(parameters = True)
-            (16, 5, 0, 2)
-
-        But Chvatal's graph is not::
-
-            sage: g = graphs.ChvatalGraph()
-            sage: g.is_strongly_regular()
-            False
-
-        Complete graphs are not strongly regular. (:trac:`14297`) ::
-
-            sage: g = graphs.CompleteGraph(5)
-            sage: g.is_strongly_regular()
-            False
-
-        Completements of graphs are not strongly regular::
-
-            sage: g = graphs.CompleteGraph(5).complement()
-            sage: g.is_strongly_regular()
-            False
-
-        The empty graph is not strongly regular::
-
-            sage: g = graphs.EmptyGraph()
-            sage: g.is_strongly_regular()
-            False
-        """
-        self._scream_if_not_simple(allow_loops=True)
-
-        if self.size() == 0: # no vertices or no edges
-            return False
-
-        degree = self.degree()
-        k = degree[0]
-        if not all(d == k for d in degree):
-            return False
-
-        if self.is_clique():
-            return False
-        else:
-            l = m = None
-            for u in self:
-                nu = set(self.neighbors(u))
-                for v in self:
-                    if u == v:
-                        continue
-                    nv = set(self.neighbors(v))
-                    inter = len(nu&nv)
-
-                    if v in nu:
-                        if l is None:
-                            l = inter
-                        else:
-                            if l != inter:
-                                return False
-                    else:
-                        if m is None:
-                            m = inter
-                        else:
-                            if m != inter:
-                                return False
-
-        if parameters:
-            return (self.order(),k,l,m)
-        else:
-            return True
-
     def odd_girth(self):
         r"""
         Returns the odd girth of self.
@@ -3017,7 +2912,7 @@ class Graph(GenericGraph):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable()
+        b = p.new_variable(binary=True)
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
@@ -3040,7 +2935,6 @@ class Graph(GenericGraph):
             p.add_constraint(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
 
         p.set_objective(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
-        p.set_binary(b)
 
         try:
             p.solve(log=verbose)
@@ -3225,20 +3119,18 @@ class Graph(GenericGraph):
         # and indicates whether the edge uv
         # with u<v goes from u to v ( equal to 0 )
         # or from v to u ( equal to 1)
-        orientation = p.new_variable(dim=2)
+        orientation = p.new_variable(binary=True)
 
-        degree = p.new_variable()
+        degree = p.new_variable(nonnegative=True)
 
         # Whether an edge adjacent to a vertex u counts
         # positively or negatively
         outgoing = lambda u,v,variable : (1-variable) if u>v else variable
 
         for u in self:
-            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v)][max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
+            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v),max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
 
         p.set_objective(degree['max'])
-
-        p.set_binary(orientation)
 
         p.solve(log=verbose)
 
@@ -3257,7 +3149,7 @@ class Graph(GenericGraph):
             if u>v:
                 u,v=v,u
 
-            if orientation[min(u,v)][max(u,v)] == 1:
+            if orientation[min(u,v),max(u,v)] == 1:
                 edges.append((max(u,v),min(u,v)))
             else:
                 edges.append((min(u,v),max(u,v)))
@@ -3747,17 +3639,16 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(dim=2)
+            b = p.new_variable(binary = True)
             p.set_objective(
-                p.sum([weight(w) * b[min(u, v)][max(u, v)]
+                p.sum([weight(w) * b[min(u, v),max(u, v)]
                      for u, v, w in g.edges()]))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum([b[min(u, v)][max(u, v)]
+                    p.sum([b[min(u, v),max(u, v)]
                          for u in g.neighbors(v)]), max=1)
-            p.set_binary(b)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -3767,7 +3658,7 @@ class Graph(GenericGraph):
                 p.solve(log=verbose)
                 b = p.get_values(b)
                 return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v)][max(u, v)] == 1]
+                        if b[min(u, v),max(u, v)] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -3863,7 +3754,7 @@ class Graph(GenericGraph):
         if core:
 
             # the value of m is one if the corresponding vertex of h is used.
-            m = p.new_variable()
+            m = p.new_variable(nonnegative=True)
             for uh in H:
                 for ug in self:
                     p.add_constraint(b[ug,uh] <= m[uh])
@@ -3941,8 +3832,8 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(constraint_generation = True)
 
         # One variable per edge
-        r = p.new_variable(dim = 2)
-        R = lambda x,y : r[x][y] if x<y else r[y][x]
+        r = p.new_variable(nonnegative=True)
+        R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
         p.set_objective( p.sum( R(u,v) for u,v in g.edges(labels = False)))
@@ -4054,8 +3945,8 @@ class Graph(GenericGraph):
 
         p = MixedIntegerLinearProgram(maximization=True, solver = solver)
 
-        d = p.new_variable()
-        one = p.new_variable()
+        d = p.new_variable(nonnegative=True)
+        one = p.new_variable(nonnegative=True)
 
         # Reorders u and v so that uv and vu are not considered
         # to be different edges
@@ -4167,7 +4058,7 @@ class Graph(GenericGraph):
 
         # Boolean variable indicating whether the vertex
         # is the representative of some set
-        vertex_taken=p.new_variable()
+        vertex_taken=p.new_variable(binary=True)
 
         # Boolean variable in two dimension whose first
         # element is a vertex and whose second element
@@ -4175,7 +4066,7 @@ class Graph(GenericGraph):
         # When true, indicated that the vertex is the representant
         # of the corresponding set
 
-        classss=p.new_variable(dim=2)
+        classss=p.new_variable(binary = True)
 
         # Associates to the vertices the classes
         # to which they belong
@@ -4185,12 +4076,12 @@ class Graph(GenericGraph):
             [lists[v].append(i) for v in f]
 
             # a classss has exactly one representant
-            p.add_constraint(p.sum([classss[v][i] for v in f]),max=1,min=1)
+            p.add_constraint(p.sum([classss[v,i] for v in f]),max=1,min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
         # vertex_taken[v]==1 if v is the representative of some classss
 
-        [p.add_constraint(p.sum([classss[v][i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
+        [p.add_constraint(p.sum([classss[v,i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
 
         # Two adjacent vertices can not both be representants of a set
 
@@ -4199,12 +4090,9 @@ class Graph(GenericGraph):
 
         p.set_objective(None)
 
-        p.set_binary(vertex_taken)
-        p.set_binary(classss)
-
         try:
             p.solve(log=verbose)
-        except StandardError:
+        except Exception:
             return None
 
         classss=p.get_values(classss)
@@ -4212,7 +4100,7 @@ class Graph(GenericGraph):
         repr=[]
         for i,f in enumerate(family):
             for v in f:
-                if classss[v][i]==1:
+                if classss[v,i]==1:
                     repr.append(v)
                     break
 
@@ -4313,61 +4201,58 @@ class Graph(GenericGraph):
         S = lambda (x,y) : (x,y) if x<y else (y,x)
 
         # rs = Representative set of a vertex
-        # for h in H, v in G is such that rs[h][v] == 1 if and only if v
+        # for h in H, v in G is such that rs[h,v] == 1 if and only if v
         # is a representant of h in self
-        rs = p.new_variable(dim=2)
+        rs = p.new_variable(binary = True)
 
         for v in self:
-            p.add_constraint(p.sum([rs[h][v] for h in H]), max = 1)
+            p.add_constraint(p.sum([rs[h,v] for h in H]), max = 1)
 
         # We ensure that the set of representatives of a
         # vertex h contains a tree, and thus is connected
 
         # edges represents the edges of the tree
-        edges = p.new_variable(dim = 2)
+        edges = p.new_variable(binary = True)
 
         # there can be a edge for h between two vertices
         # only if those vertices represent h
         for u,v in self.edges(labels=None):
             for h in H:
-                p.add_constraint(edges[h][S((u,v))] - rs[h][u], max = 0 )
-                p.add_constraint(edges[h][S((u,v))] - rs[h][v], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,u], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,v], max = 0 )
 
         # The number of edges of the tree in h is exactly the cardinal
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(p.sum([edges[h][S(e)] for e in self.edges(labels=None)])-p.sum([rs[h][v] for v in self]), min=-1, max=-1)
+            p.add_constraint(p.sum([edges[h,S(e)] for e in self.edges(labels=None)])-p.sum([rs[h,v] for v in self]), min=-1, max=-1)
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
-        r_edges = p.new_variable(dim=2)
+        r_edges = p.new_variable(nonnegative=True)
 
         for h in H:
             for u,v in self.edges(labels=None):
-                p.add_constraint(r_edges[h][(u,v)] + r_edges[h][(v,u)] - edges[h][S((u,v))], min = 0)
+                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,S((u,v))], min = 0)
 
             for v in self:
-                p.add_constraint(p.sum([r_edges[h][(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
+                p.add_constraint(p.sum([r_edges[h,(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
-        h_edges = p.new_variable(dim=2)
+        h_edges = p.new_variable(nonnegative=True)
 
         for h1, h2 in H.edges(labels=None):
 
             for v1, v2 in self.edges(labels=None):
 
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h2][v2], max = 0)
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h1][v1], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h2,v2], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h1,v1], max = 0)
 
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h1][v2], max = 0)
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h2][v1], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h1,v2], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h2,v1], max = 0)
 
-            p.add_constraint(p.sum([h_edges[(h1,h2)][S(e)] + h_edges[(h2,h1)][S(e)] for e in self.edges(labels=None) ]), min = 1)
-
-        p.set_binary(rs)
-        p.set_binary(edges)
+            p.add_constraint(p.sum([h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)] for e in self.edges(labels=None) ]), min = 1)
 
         p.set_objective(None)
 
@@ -4380,7 +4265,7 @@ class Graph(GenericGraph):
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h][v]==1]
+            rs_dict[h] = [v for v in self if rs[h,v]==1]
 
         return rs_dict
 
@@ -4821,7 +4706,7 @@ class Graph(GenericGraph):
         G = self
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
 
         # This is an existence problem
         p.set_objective(None)
@@ -4830,19 +4715,18 @@ class Graph(GenericGraph):
         # Vertex representant #
         #######################
         #
-        # v_repr[h][g] = 1 if vertex h from H is represented by vertex
+        # v_repr[h,g] = 1 if vertex h from H is represented by vertex
         # g from G, 0 otherwise
 
-        v_repr = p.new_variable(binary = True, dim = 2)
+        v_repr = p.new_variable(binary = True)
 
         # Exactly one representant per vertex of H
         for h in H:
-            p.add_constraint( p.sum( v_repr[h][g] for g in G), min = 1, max = 1)
+            p.add_constraint( p.sum( v_repr[h,g] for g in G), min = 1, max = 1)
 
         # A vertex of G can only represent one vertex of H
         for g in G:
-            p.add_constraint( p.sum( v_repr[h][g] for h in H), max = 1)
-
+            p.add_constraint( p.sum( v_repr[h,g] for h in H), max = 1)
 
         ###################
         # Is representent #
@@ -4854,8 +4738,7 @@ class Graph(GenericGraph):
 
         for g in G:
             for h in H:
-                p.add_constraint( v_repr[h][g] - is_repr[g], max = 0)
-
+                p.add_constraint( v_repr[h,g] - is_repr[g], max = 0)
 
         ###################################
         # paths between the representents #
@@ -4866,16 +4749,16 @@ class Graph(GenericGraph):
         # a flow of intensity 1 from one to the other.
         # We are then writing a flow problem for each edge of H.
         #
-        # The variable flow[(h1,h2)][(g1,g2)] indicates the amount of
+        # The variable flow[(h1,h2),(g1,g2)] indicates the amount of
         # flow on the edge (g1,g2) representing the edge (h1,h2).
 
-        flow = p.new_variable(binary = True, dim = 2)
+        flow = p.new_variable(binary = True)
 
         # This lambda function returns the balance of flow
         # corresponding to commodity C at vertex v v
 
-        flow_in = lambda C, v : p.sum( flow[C][(v,u)] for u in G.neighbors(v) )
-        flow_out = lambda C, v : p.sum( flow[C][(u,v)] for u in G.neighbors(v) )
+        flow_in = lambda C, v : p.sum( flow[C,(v,u)] for u in G.neighbors(v) )
+        flow_out = lambda C, v : p.sum( flow[C,(u,v)] for u in G.neighbors(v) )
 
         flow_balance = lambda C, v : flow_in(C,v) - flow_out(C,v)
 
@@ -4887,7 +4770,7 @@ class Graph(GenericGraph):
                 # a representant of h1 or h2 in G, or a reprensentant
                 # of none
 
-                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1][v] - v_repr[h2][v] )
+                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )
 
         #############################
         # Internal vertex of a path #
@@ -4896,13 +4779,12 @@ class Graph(GenericGraph):
         # is_internal[C][g] = 1 if a vertex v from G is located on the
         # path representing the edge (=commodity) C
 
-        is_internal = p.new_variable(dim = 2, binary = True)
+        is_internal = p.new_variable(binary = True)
 
         # When is a vertex internal for a commodity ?
         for C in H.edges(labels = False):
             for g in G:
-                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C][g], max = 1)
-
+                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max = 1)
 
         ############################
         # Two paths do not cross ! #
@@ -4912,7 +4794,7 @@ class Graph(GenericGraph):
         # the vertex is a representent
 
         for g in G:
-            p.add_constraint( p.sum( is_internal[C][g] for C in H.edges(labels = False))
+            p.add_constraint( p.sum( is_internal[C,g] for C in H.edges(labels = False))
                               + is_repr[g], max = 1 )
 
         # (The following inequalities are not necessary, but they seem
@@ -4925,15 +4807,15 @@ class Graph(GenericGraph):
 
         for g1,g2 in G.edges(labels = None):
 
-            p.add_constraint(   p.sum( flow[C][(g1,g2)] for C in H.edges(labels = False) )
-                              + p.sum( flow[C][(g2,g1)] for C in H.edges(labels = False) ),
+            p.add_constraint(   p.sum( flow[C,(g1,g2)] for C in H.edges(labels = False) )
+                              + p.sum( flow[C,(g2,g1)] for C in H.edges(labels = False) ),
                                 max = 1)
 
 
         # Now we can solve the problem itself !
 
         try:
-            p.solve(solver = solver, log = verbose)
+            p.solve(log = verbose)
 
         except MIPSolverException:
             return False
@@ -4950,7 +4832,7 @@ class Graph(GenericGraph):
             used = False
             for C in H.edges(labels = False):
 
-                if flow[C][(u,v)] + flow[C][(v,u)] > .5:
+                if flow[C,(u,v)] + flow[C,(v,u)] > .5:
                     used = True
                     minor.set_edge_label(u,v,C)
                     break
@@ -4963,7 +4845,7 @@ class Graph(GenericGraph):
         for g in minor:
             if is_repr[g] > .5:
                 for h in H:
-                    if v_repr[h][v] > .5:
+                    if v_repr[h,v] > .5:
                         minor.set_vertex(g,h)
                         break
 
@@ -5563,7 +5445,7 @@ class Graph(GenericGraph):
 
             from sage.numerical.mip import MixedIntegerLinearProgram
             p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-            b = p.new_variable()
+            b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
             p.set_objective(p.sum([b[v] for v in g.vertices()]))
@@ -5571,8 +5453,6 @@ class Graph(GenericGraph):
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
-
-            p.set_binary(b)
 
             if value_only:
                 size_cover_g = p.solve(objective_only=True, log=verbosity)
@@ -6441,6 +6321,77 @@ class Graph(GenericGraph):
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
 
+    def ihara_zeta_function_inverse(self):
+        """
+        Compute the inverse of the Ihara zeta function of the graph
+
+        This is a polynomial in one variable with integer coefficients. The
+        Ihara zeta function itself is the inverse of this polynomial.
+
+        See :wikipedia:`Ihara zeta function`
+
+        ALGORITHM:
+
+        This is computed here using the determinant of a square matrix
+        of size twice the number of edges, related to the adjacency
+        matrix of the line graph, see for example Proposition 9
+        in [ScottStorm]_.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (2*t - 1) * (t + 1)^2 * (t - 1)^3 * (2*t^2 + t + 1)^3
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (3*t - 1) * (t + 1)^5 * (t - 1)^6 * (3*t^2 + t + 1)^4
+
+            sage: G = graphs.PetersenGraph()
+            sage: factor(G.ihara_zeta_function_inverse())
+            (-1) * (2*t - 1) * (t + 1)^5 * (t - 1)^6 * (2*t^2 + 2*t + 1)^4
+            * (2*t^2 - t + 1)^5
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.ihara_zeta_function_inverse()
+            1
+
+        REFERENCES:
+
+        .. [HST] Matthew D. Horton, H. M. Stark, and Audrey A. Terras,
+           What are zeta functions of graphs and what are they good for?
+           in Quantum graphs and their applications, 173-189,
+           Contemp. Math., Vol. 415
+
+        .. [Terras] Audrey Terras, Zeta functions of graphs: a stroll through
+           the garden, Cambridge Studies in Advanced Mathematics, Vol. 128
+
+        .. [ScottStorm] Geoffrey Scott and Christopher Storm, The coefficients
+           of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        ring = PolynomialRing(ZZ, 't')
+        t = ring.gen()
+
+        N = self.size()
+
+        labeled_g = DiGraph()
+        labeled_g.add_edges([(u, v, i) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
+                             enumerate(self.edges(labels=False))])
+
+        M = matrix(ring, 2 * N, 2 * N, ring.one())
+        for u, v, i in labeled_g.edges():
+            for vv, ww, j in labeled_g.outgoing_edges(v):
+                M[i, j] += -t
+            M[i, (i + N) % (2 * N)] += t  # fixing the 2-cycles
+
+        return M.determinant()
+
 # Aliases to functions defined in Cython modules
 import types
 
@@ -6466,6 +6417,9 @@ Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.g
 
 import sage.graphs.distances_all_pairs
 Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
+
+import sage.graphs.base.static_dense_graph
+Graph.is_strongly_regular = types.MethodType(sage.graphs.base.static_dense_graph.is_strongly_regular, None, Graph)
 
 # From Python modules
 import sage.graphs.line_graph
