@@ -12,7 +12,9 @@ algorithms related to translation surfaces:
 import os
 import sage.misc.misc
 from sage.rings.integer import Integer
-FLAT_DB_HOME='%s/data/flat_surfaces'%sage.misc.misc.SAGE_ROOT
+
+from sage.env import SAGE_SHARE
+FLAT_DB_HOME='%s/flat_surfaces'%SAGE_SHARE
 
 def line_count(filename):
     r"""
