@@ -265,7 +265,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         g.set_edge_label(2,3,2)
         return g
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=None):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=[]):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -290,7 +290,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip(1.5*node_dist-0.2, 0, 180)
         else:
             ret += self._latex_draw_arrow_tip(1.5*node_dist+0.2, 0, 0)
-        ret += self._latex_draw_node_string(self.index_set(), label, node_dist, node_labels, crossed_nodes)
+        ret += self._latex_draw_node_chain(self.index_set(), label, node_dist, node_labels, crossed_nodes)
         return ret.strip()
 
     def ascii_art(self, label = lambda x: x):

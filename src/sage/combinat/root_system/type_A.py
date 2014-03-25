@@ -272,7 +272,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-1)*node_dist)
         else:
             ret = ""
-        ret += self._latex_draw_node_string(self.index_set(), label, node_dist, node_labels, crossed_nodes)
+        ret += self._latex_draw_node_chain(self.index_set(), label, node_dist, node_labels, crossed_nodes)
         return ret.strip()
 
 

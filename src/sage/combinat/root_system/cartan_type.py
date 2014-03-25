@@ -901,12 +901,12 @@ class CartanType_abstract(object):
 
         ``position`` -- position of the label relative to the node, can be one of ``['above', 'below', 'right', 'left']]``
         """
-        ret = "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[%s=4pt]{$%s$};"%(x, y, position, node_label)
+        ret = "\\draw[fill=white] (%s cm, %s) circle (.25cm) node[%s=4pt]{$%s$};"%(x, y, position, node_label)
         if crossed:
             ret += "\n\\draw node[cross out,draw=black] at (%s cm, %s cm){};"%(x, y)
         return ret + "\n"
 
-    def _latex_draw_node_string(self, indices, label, node_dist, node_labels, crossed_nodes):
+    def _latex_draw_node_chain(self, indices, label, node_dist, node_labels, crossed_nodes):
         ret = ""
         for i in indices:
             crossed = label(i) in crossed_nodes

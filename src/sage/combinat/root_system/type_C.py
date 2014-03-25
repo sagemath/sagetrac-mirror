@@ -208,7 +208,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         """
         return self.dual().dynkin_diagram().dual()
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=None):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=[]):
         r"""
         Return a latex representation of the Dynkin diagram.
 

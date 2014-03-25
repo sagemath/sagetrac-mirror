@@ -83,7 +83,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             \draw (0, 0.15 cm) -- +(2 cm,0);
             \draw (0, -0.15 cm) -- +(2 cm,0);
             \draw[shift={(0.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
             \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
             \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$0$};
         """

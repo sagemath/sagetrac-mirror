@@ -529,7 +529,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             g.add_edge(i, i+1)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=None):
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=[]):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -538,13 +538,13 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             sage: print CartanType(['E',7])._latex_dynkin_diagram()
             \draw (0 cm,0) -- (10 cm,0);
             \draw (4 cm, 0 cm) -- +(0,2 cm);
-            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (4 cm, 2) circle (.25cm) node[right=4pt]{$2$};    
             \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$4$};
             \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$5$};
             \draw[fill=white] (8 cm, 0) circle (.25cm) node[below=4pt]{$6$};
             \draw[fill=white] (10 cm, 0) circle (.25cm) node[below=4pt]{$7$};
-            \draw[fill=white] (4 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
         """
         ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-2)*node_dist)
         if node_labels is None:

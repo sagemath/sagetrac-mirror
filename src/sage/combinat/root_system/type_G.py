@@ -173,7 +173,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         g.set_edge_label(2,1,3)
         return g
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=None):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False, node_labels=None, crossed_nodes=[]):
         r"""
         Return a latex representation of the Dynkin diagram.
 
@@ -184,7 +184,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw (0, 0.15 cm) -- +(2 cm,0);
             \draw (0, -0.15 cm) -- +(2 cm,0);
             \draw[shift={(0.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
             \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
         """
         ret = "\\draw (0,0) -- (%s cm,0);\n"%node_dist
@@ -194,8 +194,8 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             ret += self._latex_draw_arrow_tip(0.5*node_dist+0.2, 0, 0)
         else:
             ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
-        ret += self._latex_draw_node_string(self.index_set(), label, node_dist, node_labels, crossed_nodes)
-        return ret
+        ret += self._latex_draw_node_chain(self.index_set(), label, node_dist, node_labels, crossed_nodes)
+        return ret.rstrip()
 
     def ascii_art(self, label = lambda x: x):
         """

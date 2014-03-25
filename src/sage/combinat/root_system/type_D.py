@@ -249,20 +249,20 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             g.add_edge(n-2, n)
         return g
 
-    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=None):
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, node_labels=None, crossed_nodes=[]):
         r"""
         Return a latex representation of the Dynkin diagram.
 
         EXAMPLES::
 
             sage: print CartanType(['D',4])._latex_dynkin_diagram()
-            \draw (0 cm,0) -- (2 cm,0);
-            \draw (2 cm,0) -- (4 cm,0.7 cm);
-            \draw (2 cm,0) -- (4 cm,-0.7 cm);
+            \draw (0 cm, 0) -- (2 cm, 0);
+            \draw (2 cm, 0) -- (3.0 cm, 1.732050808 cm);
+            \draw (2 cm, 0) -- (3.0 cm, -1.732050808 cm);
             \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
             \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0.7 cm) circle (.25cm) node[right=3pt]{$4$};
-            \draw[fill=white] (4 cm, -0.7 cm) circle (.25cm) node[right=3pt]{$3$};
+            \draw[fill=white] (3.0 cm, -1.732050808) circle (.25cm) node[right=4pt]{$3$};
+            \draw[fill=white] (3.0 cm, 1.732050808) circle (.25cm) node[right=4pt]{$4$};
         """
         if self.n == 2:
             if node_labels == None:
@@ -282,16 +282,16 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
         rt_most = center_point + 0.5*node_dist
         height = 0.866025404*node_dist
 
-        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%center_point
-        ret += "\\draw (%s cm,0) -- (%s cm,%s cm);\n"%(center_point, rt_most, height)
-        ret += "\\draw (%s cm,0) -- (%s cm,%s cm);\n"%(center_point, rt_most, -height)
+        ret = "\\draw (0 cm, 0) -- (%s cm, 0);\n"%center_point
+        ret += "\\draw (%s cm, 0) -- (%s cm, %s cm);\n"%(center_point, rt_most, height)
+        ret += "\\draw (%s cm, 0) -- (%s cm, %s cm);\n"%(center_point, rt_most, -height)
 
         if node_labels is None:
-            ret += self._latex_draw_node_string(range(1,n-1),label,node_dist,node_labels,crossed_nodes)
+            ret += self._latex_draw_node_chain(range(1,n-1),label,node_dist,node_labels,crossed_nodes)
             ret += self._latex_draw_node(rt_most, -height, "right", label(n-1), label(n-1) in crossed_nodes)
             ret += self._latex_draw_node(rt_most, height, "right", label(n), label(n) in crossed_nodes)
         else:
-            ret += self._latex_draw_node_string(range(1,n-2),label,node_dist,node_labels,crossed_nodes)
+            ret += self._latex_draw_node_chain(range(1,n-2),label,node_dist,node_labels,crossed_nodes)
             ret += self._latex_draw_node((n-3)*node_dist, 0, "right", node_labels[label(n-2)-1], label(n-2) in crossed_nodes)
             ret += self._latex_draw_node(rt_most, -height, "right", node_labels[label(n-1)-1], label(n-1) in crossed_nodes)
             ret += self._latex_draw_node(rt_most, height, "right", node_labels[label(n)-1], label(n) in crossed_nodes)
