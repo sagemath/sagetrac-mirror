@@ -417,9 +417,9 @@ class CylinderDiagrams(GenericRepertoryDatabase):
             ...
             AssertionError: the argument must be a stratum of Abelian differential
         """
-        from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum_class
+        from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum
 
-        assert isinstance(stratum, AbelianStratum_class), "the argument must be a stratum of Abelian differential"
+        assert isinstance(stratum, AbelianStratum), "the argument must be a stratum of Abelian differential"
         return self.has_component(stratum.one_component())
 
     def list_strata(self):
@@ -560,8 +560,7 @@ class CylinderDiagrams(GenericRepertoryDatabase):
             sage: from sage.misc.misc import SAGE_TMP
             sage: import os
 
-            sage: rep = os.path.join(SAGE_TMP, "cylinder_diagrams")
-            sage: C = CylinderDiagrams(rep)
+            sage: C = CylinderDiagrams(SAGE_TMP)
             sage: C.update(AbelianStratum(4), verbose=True)
             computation for H_3(4)
              ncyls = 1
@@ -601,9 +600,9 @@ class CylinderDiagrams(GenericRepertoryDatabase):
         Returns the number of cylinder diagrams for a stratum or a component of
         stratum with given number of cylinders.
         """
-        from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum_class
+        from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum
 
-        if isinstance(comp, AbelianStratum_class):
+        if isinstance(comp, AbelianStratum):
             return sum(self.count(cc, ncyls) for cc in comp.components())
 
         if ncyls is None:
