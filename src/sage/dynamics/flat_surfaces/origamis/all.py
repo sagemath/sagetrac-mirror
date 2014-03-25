@@ -6,3 +6,5 @@ from origami import Origami, PillowcaseCover
 
 from teichmueller_curve import TeichmuellerCurvesOfOrigamis
 from generators import origamis, pillowcases
+
+from origami_database import OrigamiDatabase
