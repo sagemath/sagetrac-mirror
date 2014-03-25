@@ -10,4 +10,5 @@ Abelian differentials and flat surfaces
    ../sage/dynamics/flat_surfaces/origamis/origami
    ../sage/dynamics/flat_surfaces/origamis/generators
    ../sage/dynamics/flat_surfaces/origamis/teichmueller_curve
+   ../sage/dynamics/flat_surfaces/origamis/origami_database
    ../sage/dynamics/flat_surfaces/origamis/origami_genus2
