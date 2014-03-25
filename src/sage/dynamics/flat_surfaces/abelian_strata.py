@@ -151,7 +151,7 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
-from sage.combinat.partition import Partitions
+from sage.combinat.partition import Partitions, Partition
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.rings.infinity import Infinity
@@ -235,6 +235,10 @@ class AbelianStratum(Stratum):
         self._nb_fake_zeros = sum(1 for x in l if not x)
         self._zeros.sort(reverse=True)
 
+        if self._zeros == []:
+            if self._nb_fake_zeros == 0:
+                raise ValueError, "there must be at least one zero"
+
         s = sum(self._zeros)
         if s%2:
             raise ValueError("the sum of the degrees must be even")
@@ -287,7 +291,7 @@ class AbelianStratum(Stratum):
         """
         if fake_zeros:
             return self._zeros + [0]*self._nb_fake_zeros
-        return self._zeros
+        return self._zeros[:]
 
     def nb_zeros(self, fake_zeros=True):
         r"""
@@ -696,9 +700,89 @@ class AbelianStratumComponent(StratumComponent):
             p.alphabet(range(len(p)))
         return p
 
-    def rauzy_diagram(self, reduced=True):
+    def random_standard_permutation(self, nsteps=64):
         r"""
-        Returns the Rauzy diagram associated to this connected component.
+        Perform a random walk on rauzy diagram stopped on a standard permutation.
+
+        INPUT:
+
+        - ``nsteps`` - integer or None - perform nsteps and then stops as soon
+          as a Strebel differential is found.
+
+        At each step, with probability 1/3 we perform one of the following
+        moves:
+
+        - exchange top,bottom and left,right (proba 1/10)
+
+        - top rauzy move (proba 9/20)
+
+        - bot rauzy move (proba 9/20)
+
+        EXAMPLES:
+
+            sage: C = AbelianStratum(10).hyperelliptic_component()
+            sage: p = C.random_standard_permutation(); p   # random
+            0 1 2 3 4 5 6 7 8 9 10 11
+            11 10 9 8 7 6 5 4 3 2 1 0
+            sage: p.stratum_component()
+            H_6(10)^hyp
+
+            sage: C = AbelianStratum(6,4,2).odd_component(); C
+            H_7(6, 4, 2)^odd
+            sage: p = C.random_standard_permutation(); p  # random
+            0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+            15 2 14 12 3 11 6 10 8 5 9 13 7 4 1 0
+            sage: p.stratum_component()
+            H_7(6, 4, 2)^odd
+
+            sage: C = AbelianStratum(2,2,2,2).even_component(); C
+            H_5(2^4)^even
+            sage: p = C.random_standard_permutation(); p  # random
+            0 1 2 3 4 5 6 7 8 9 10 11 12
+            12 4 9 11 8 3 7 6 1 10 2 5 0
+            sage: p.stratum_component()
+            H_5(2^4)^even
+
+            sage: C = AbelianStratum(32).odd_component(); C
+            H_17(32)^odd
+            sage: p = C.random_standard_permutation(); p  # random
+            0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
+            33 30 10 3 32 19 11 28 4 14 24 15 21 20 9 12 25 6 2 29 26 23 27 13 8 1 18 17 16 31 7 22 5 0
+            sage: p.stratum_component()
+            H_17(32)^odd
+        """
+        import sage.misc.prandom as prandom
+
+        p = self.permutation_representative()
+        if nsteps is None:
+            nsteps = 64 * self.stratum().dimension()
+        d = len(p)-1
+
+        for _ in xrange(nsteps):
+            rd = prandom.random()
+            if rd < 0.1:   # (inplace) symmetric with proba 1/10
+                p._inversed_twin()
+                p._reversed_twin()
+            elif rd < .55: # (inplace) rauzy move top with proba 9/20
+                p._move(1, 0, p._twin[0][0])
+            else:          # (inplace) rauzy move bot with proba 9/20
+                p._move(0, 0, p._twin[1][0])
+
+        while not p.is_standard():
+            rd = prandom.random()
+            if rd < 0.1:   # (inplace) symmetric with proba 1/10
+                p._inversed_twin()
+                p._reversed_twin()
+            elif rd < .55: # (inplace) rauzy move top with proba 9/20
+                p._move(1, 0, p._twin[0][0])
+            else:          # (inplace) rauzy move bot with proba 9/20
+                p._move(0, 0, p._twin[1][0])
+
+        return p
+
+    def rauzy_diagram(self, *args, **kwds):
+        r"""
+        Returns the extended Rauzy diagram associated to this connected component.
 
         OUTPUT:
 
@@ -709,7 +793,206 @@ class AbelianStratumComponent(StratumComponent):
             sage: c = AbelianStratum(0).components()[0]
             sage: r = c.rauzy_diagram()
         """
-        return self.permutation_representative(reduced=reduced).rauzy_diagram()
+        if kwds.get("left_degree",None) is not None:
+            return self.permutation_representative(*args, **kwds).rauzy_diagram()
+        return self.permutation_representative(*args,**kwds).rauzy_diagram(extended=True)
+
+    def rauzy_class_cardinality(self, left_degree=None, reduced=True):
+        r"""
+        Rauzy diagram cardinality for connected components.
+
+        Returns the cardinality of the extended Rauzy diagram associated to this
+        connected component.
+
+        If left_degree is provided then it returns the cardinality of the Rauzy
+        diagram with a singularity of that degree attached on the left.
+        Otherwise it returns the cardinality of the extended Rauzy diagram.
+
+        INPUT:
+
+        - ``left_degree`` - the degree to be attached to the singularity on the
+          left
+
+        - ``reduced`` - boolean (default: True) - consider the cardinality of
+          reduced or extended Rauzy diagram
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum({1:4}).unique_component(); a
+            H_3(1^4)^c
+            sage: a.rauzy_diagram()
+            Rauzy diagram with 1255 permutations
+            sage: a.rauzy_class_cardinality()
+            1255
+
+            sage: cc = AbelianStratum(3,2,1).unique_component()
+            sage: cc.rauzy_diagram(left_degree=3)   # long time
+            Rauzy diagram with 96434 permutations
+            sage: cc.rauzy_class_cardinality(left_degree=3)
+            96434
+
+            sage: cc.rauzy_diagram(left_degree=2)   # long time
+            Rauzy diagram with 72006 permutations
+            sage: cc.rauzy_class_cardinality(left_degree=2)
+            72006
+
+            sage: cc.rauzy_diagram(left_degree=1)   # long time
+            Rauzy diagram with 48954 permutations
+            sage: cc.rauzy_class_cardinality(left_degree=1)
+            48954
+
+            sage: a = AbelianStratum({1:8}).unique_component(); a
+            H_5(1^8)^c
+            sage: a.rauzy_class_cardinality()
+            55184875
+
+        Cardinalities for labeled Rauzy classes instead of reduced::
+
+            sage: cc=AbelianStratum(2,1,1).unique_component()
+            sage: cc.rauzy_diagram(left_degree=2,reduced=False)
+            Rauzy diagram with 3676 permutations
+            sage: cc.rauzy_class_cardinality(left_degree=2,reduced=False)
+            3676
+
+            sage: cc.rauzy_diagram(left_degree=1,reduced=False)
+            Rauzy diagram with 3774 permutations
+            sage: cc.rauzy_class_cardinality(left_degree=1,reduced=False)
+            3774
+
+            sage: cc=AbelianStratum(2,1,1,0).unique_component()
+            sage: cc.rauzy_diagram(left_degree=2,reduced=False) # long time
+            Rauzy diagram with 33084 permutations
+            sage: cc.rauzy_diagram(left_degree=1,reduced=False) # long time
+            Rauzy diagram with 33966 permutations
+            sage: cc.rauzy_diagram(left_degree=0,reduced=False) # long time
+            Rauzy diagram with 30828 permutations
+
+            sage: cc.rauzy_class_cardinality(left_degree=2,reduced=False)
+            33084
+            sage: cc.rauzy_class_cardinality(left_degree=1,reduced=False)
+            33966
+            sage: cc.rauzy_class_cardinality(left_degree=0,reduced=False)
+            30828
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = map(lambda x: x+1, self.stratum().zeros())
+        s = self.stratum().nb_zeros()
+
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            left_degree = int(left_degree) + 1
+            assert left_degree in profile, "if not None, the degree should be one of the degree of the stratum"
+
+            if reduced:
+                return Integer(rdc.gamma_irr(profile,left_degree))
+            return Rational((1,2)) * (Partition(profile).centralizer_size() /
+                    (left_degree * profile.count(left_degree)) *
+                    Integer(rdc.gamma_irr(profile,left_degree)))
+
+        if reduced:
+            return Integer(rdc.gamma_irr(profile))
+
+        raise NotImplementedError, "not known formula for labeled extended Rauzy classes"
+
+    def standard_permutations_number(self, left_degree=None):
+        r"""
+        Return the number of standard permutations in the Rauzy class associated
+        to this connected component.
+
+        EXAMPLES::
+
+            sage: cc = AbelianStratum(3,1).unique_component()
+            sage: print sum(1 for p in cc.rauzy_diagram() if p.is_standard())
+            24
+            sage: cc.standard_permutations_number()
+            24
+
+            sage: print sum(1 for p in cc.rauzy_diagram(left_degree=3) if p.is_standard())
+            16
+            sage: cc.standard_permutations_number(left_degree=3)
+            16
+
+            sage: print sum(1 for p in cc.rauzy_diagram(left_degree=1) if p.is_standard())
+            8
+            sage: cc.standard_permutations_number(left_degree=1)
+            8
+
+            sage: cc = AbelianStratum({1:10}).unique_component(); cc
+            H_6(1^10)^c
+            sage: cc.standard_permutations_number()
+            59520825
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = [x+1 for x in self.stratum().zeros()]
+
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            left_degree = int(left_degree) + 1
+            assert left_degree in profile, "if not None, the degree should be one of the degree of the stratum"
+            return Integer(rdc.number_of_standard_permutations(profile,left_degree))
+
+        return Integer(rdc.number_of_standard_permutations(profile))
+
+    def standard_permutations(self):
+        r"""
+        Return the set of standard permutations.
+
+        EXAMPLES::
+
+            sage: C = AbelianStratum(4).odd_component()
+            sage: C
+            H_3(4)^odd
+            sage: for p in C.standard_permutations(): print p,"\n***********"
+            0 1 2 3 4 5
+            5 2 1 4 3 0
+            ***********
+            0 1 2 3 4 5
+            5 2 4 1 3 0
+            ***********
+            0 1 2 3 4 5
+            5 2 4 3 1 0
+            ***********
+            0 1 2 3 4 5
+            5 3 1 4 2 0
+            ***********
+            0 1 2 3 4 5
+            5 3 2 4 1 0
+            ***********
+            0 1 2 3 4 5
+            5 4 1 3 2 0
+            ***********
+            0 1 2 3 4 5
+            5 4 2 1 3 0
+            ***********
+        """
+        p = self.permutation_representative(reduced=True)
+        p.alphabet(range(len(p)))
+        waiting = set([p])
+        res = set([])
+        N = self.stratum().dimension()
+
+        while waiting:
+            p = waiting.pop()
+            s = set([p.rauzy_move('top','left'),
+                     p.rauzy_move('bot','left'),
+                     p.symmetric()])
+
+            for i in xrange(N):
+                ss = set([])
+                for p in s:
+                    if p.is_standard() and p not in res:
+                        res.add(p)
+                        if i > N//2:
+                            waiting.add(p)
+                    ss.add(p.rauzy_move('top','left'))
+                    ss.add(p.rauzy_move('bot','left'))
+                    ss.add(p.symmetric())
+                s = ss
+
+        assert len(res) == self.standard_permutations_number()
+        return sorted(res)
 
 ASC = AbelianStratumComponent
 
@@ -886,14 +1169,274 @@ class HypAbelianStratumComponent(ASC):
             p.alphabet(range(len(p)))
         return p
 
-HypASC = HypAbelianStratumComponent
 
+    def rauzy_class_cardinality(self, left_degree=None, reduced=True):
+        r"""
+        Return the cardinality of the extended Rauzy diagram associated to the
+        hyperelliptic component
+
+        The cardinality of the rauzy diagram or extended Rauzy diagram
+        associated to `H_{hyp}(2g-2,0^k)` or `H_{hyp}(g-1,g-1,0^k)` depends only
+        on the dimension `d` of the inital stratum `\mathcal{H}_{hyp}(2g-2)` for
+        which `d=2g` or `\mathcal{H}_{hyp}(g-1,g-1)` for which `d=2g+1` and the
+        number of fake zeros `k`. The formula is
+
+        .. MATH::
+
+            \binom{d+k+1}{k} (2^{d-1}-1) + d \binom{d+k}{k-1}
+
+        INPUT:
+
+        - ``left_degree`` - integer - the degree of the singularity attached at
+          the left of the interval.
+
+        - ``reduced`` - boolean (default: True) - if False, consider labeled
+          Rauzy diagrams instead of reduced.
+
+        EXAMPLES:
+
+        The case of the torus is a little bit different::
+
+            sage: c = AbelianStratum(0).hyperelliptic_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 1 permutation
+            sage: c.rauzy_class_cardinality()
+            1
+            sage: c = AbelianStratum(0,0).hyperelliptic_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 3 permutations
+            sage: c.rauzy_class_cardinality()
+            3
+
+        Examples in genus 2::
+
+            sage: c = AbelianStratum(2,0).hyperelliptic_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 46 permutations
+            sage: c.rauzy_class_cardinality()
+            46
+
+            sage: c.rauzy_diagram(left_degree=2)
+            Rauzy diagram with 35 permutations
+            sage: c.rauzy_class_cardinality(left_degree=2)
+            35
+
+            sage: c.rauzy_diagram(left_degree=0)
+            Rauzy diagram with 11 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0)
+            11
+            sage: c.rauzy_diagram(left_degree=0, reduced=False)
+            Rauzy diagram with 33 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0, reduced=False)
+            33
+
+            sage: c = AbelianStratum(1,1,0,0).hyperelliptic_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 455 permutations
+            sage: c.rauzy_class_cardinality()
+            455
+
+            sage: c.rauzy_diagram(left_degree=1)
+            Rauzy diagram with 315 permutations
+            sage: c.rauzy_class_cardinality(left_degree=1)
+            315
+            sage: c.rauzy_diagram(left_degree=1, reduced=False)
+            Rauzy diagram with 630 permutations
+            sage: c.rauzy_class_cardinality(left_degree=1, reduced=False)
+            630
+
+            sage: c.rauzy_diagram(left_degree=0)
+            Rauzy diagram with 140 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0)
+            140
+            sage: c.rauzy_diagram(left_degree=0, reduced=False)
+            Rauzy diagram with 560 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0, reduced=False)
+            560
+
+        Other examples in higher genus::
+
+            sage: c = AbelianStratum(12,0,0).hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            1114200
+            sage: c.rauzy_class_cardinality(left_degree=12, reduced=False)
+            1965840
+
+            sage: c = AbelianStratum(14).hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            32767
+        """
+        from sage.rings.arith import binomial
+
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            assert left_degree in self.stratum().zeros(), "if not None, the degree should be one of the degree of the stratum"
+
+        if reduced is False:
+            if left_degree is None:
+                raise NotImplementedError, "no formula known for cardinality of labeled extended Rauzy classes"
+            zeros = self.stratum().zeros()
+            profile = Partition([x+1 for x in zeros])
+            if self.stratum().nb_zeros(fake_zeros=False) == 1:
+                epsilon = 1
+            else:
+                epsilon = Rational((1,self.stratum().genus()))
+            return epsilon * (profile.centralizer_size() /
+                    ((left_degree+1) * zeros.count(left_degree)) *
+                    self.rauzy_class_cardinality(left_degree=left_degree,reduced=True))
+
+        k = self.stratum().nb_fake_zeros()
+        dd = self.stratum().dimension()  # it is d+k
+        d = dd-k
+
+        if self.stratum().genus() == 1:
+            if k == 0: return 1
+            return binomial(dd,2)
+
+        if left_degree is None:
+            return binomial(dd+1,k) * (2**(d-1)-1) + d * binomial(dd,k-1)
+
+        if left_degree == 0:
+            return binomial(dd,k-1) * (2**(d-1)-1 + d)
+        else:
+            return binomial(dd,k) * (2**(d-1)-1)
+
+    def random_standard_permutation(self, nsteps=None):
+        r"""
+        In hyperelliptic component there is only one standard permutation.
+        """
+        if not self.stratum().nb_fake_zeros():
+            return self.permutation_representative()
+
+        raise NotImplementedError, "not implemented when there are fake zeros"
+
+    def standard_permutations(self):
+        if not self.nb_fake_zeros():
+            d = self.stratum().dimension()
+            return [iet.Permutation(range(d),range(d-1,-1,-1))]
+
+        raise NotImplementedError, "not implemented when there are fake zeros"
+
+    def standard_permutations_number(self):
+        if not self.stratum().nb_fake_zeros():
+            return Integer(1)
+
+        raise NotImplementedError("not implemented when there are fake zeros")
+
+HypASC = HypAbelianStratumComponent
 
 class NonHypAbelianStratumComponent(ASC):
     """
     Non hyperelliptic component of Abelian stratum.
     """
     _name = 'nonhyp'
+
+    def rauzy_class_cardinality(self, left_degree=None, reduced=True):
+        r"""
+        Return the cardinality of Rauzy diagram associated to this non
+        hyperelliptic component.
+
+        INPUT:
+
+        - ``left_degree`` - integer
+
+        - ``reduced`` - boolean (default: True)
+
+        EXAMPLES:
+
+        Examples in genus 3::
+
+            sage: c = AbelianStratum(3,3).non_hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            15568
+
+            sage: c = AbelianStratum(3,3,0).non_hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            173723
+
+            sage: c.rauzy_diagram(left_degree=3)  # long time
+            Rauzy diagram with 155680 permutations
+            sage: c.rauzy_class_cardinality(left_degree=3)
+            155680
+            sage: c.rauzy_diagram(left_degree=3, reduced=False)  # long time
+            Rauzy diagram with 311360 permutations
+            sage: c.rauzy_class_cardinality(left_degree=3, reduced=False)
+            311360
+
+            sage: c.rauzy_diagram(left_degree=0)  # long time
+            Rauzy diagram with 18043 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0)
+            18043
+            sage: cc.rauzy_diagram(left_degree=0, reduced=False) # long time
+            Rauzy diagram with 288688 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0,reduced=False)
+            288688
+
+        When genus growths, the size of the Rauzy diagram becomes very big::
+
+            sage: c = AbelianStratum(5,5).non_hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            136116680
+
+            sage: c = AbelianStratum(7,7,0).non_hyperelliptic_component()
+            sage: c.rauzy_class_cardinality()
+            88484743236111
+            sage: c.rauzy_class_cardinality(left_degree=7, reduced=False)
+            334071852804864
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = map(lambda x: x+1,self.stratum().zeros())
+        hyp = self.stratum().hyperelliptic_component()
+
+
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            left_degree = int(left_degree) + 1
+            assert left_degree in profile, "if not None, the degree should be one of the degree of the stratum"
+
+            if reduced:
+                n = Integer(rdc.gamma_irr(profile,left_degree))
+                n_hyp = hyp.rauzy_class_cardinality(left_degree-1)
+
+            else:
+                return Rational((1,2)) * (Partition(profile).centralizer_size() /
+                    ((left_degree) * profile.count(left_degree)) *
+                    self.rauzy_class_cardinality(left_degree-1,reduced=True))
+
+        elif reduced is True:
+            n = Integer(rdc.gamma_irr(profile))
+            n_hyp = hyp.rauzy_class_cardinality()
+
+        else:
+            raise NotImplementedError, "no formula known for cardinality of extended labeled Rauzy classes"
+
+
+        return n - n_hyp
+
+    def standard_permutations_number(self):
+        r"""
+        EXAMPLES::
+
+            sage: C = AbelianStratum(3,3).non_hyperelliptic_component()
+            sage: len(C.standard_permutations())  # long time
+            275
+            sage: C.standard_permutations_number()
+            275
+
+            sage: C = AbelianStratum(5,5).non_hyperelliptic_component()
+            sage: C.standard_permutations_number()
+            1022399
+
+            sage: C = AbelianStratum(7,7).non_hyperelliptic_component()
+            sage: C.standard_permutations_number()
+            19229011199
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = map(lambda x: x+1, self.stratum().zeros())
+        return rdc.number_of_standard_permutations(profile) - self.stratum().hyperelliptic_component().standard_permutations_number()
+
 
 NonHypASC = NonHypAbelianStratumComponent
 
@@ -1054,6 +1597,130 @@ class EvenAbelianStratumComponent(ASC):
             p.alphabet(range(len(p)))
         return p
 
+    def rauzy_class_cardinality(self, left_degree=None, reduced=True):
+        r"""
+        Cardinality of rauzy diagram for even component of a stratum
+
+        INPUT:
+
+        - ``left_degree`` - integer
+
+        - ``reduced`` - boolean
+
+
+        EXAMPLES::
+
+            sage: c = AbelianStratum(6).even_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 2327 permutations
+            sage: c.rauzy_class_cardinality()
+            2327
+
+            sage: c = AbelianStratum(4,2,0).even_component()
+            sage: c.rauzy_class_cardinality()
+            117472
+
+            sage: c.rauzy_diagram(left_degree=4)  # long time
+            Rauzy diagram with 66140 permutations
+            sage: c.rauzy_class_cardinality(left_degree=4)
+            66140
+            sage: c.rauzy_diagram(left_degree=4, reduced=False)  # long time
+            Rauzy diagram with 198420 permutations
+            sage: c.rauzy_class_cardinality(left_degree=4,reduced=False)
+            198420
+
+            sage: c.rauzy_class_cardinality(2)
+            39540
+            sage: c.rauzy_diagram(left_degree=2)  # long time
+            Rauzy diagram with 39540 permutations
+            sage: c.rauzy_diagram(left_degree=2, reduced=False)  # long time
+            Rauzy diagram with 197700 permutations
+            sage: c.rauzy_class_cardinality(left_degree=2, reduced=False)
+            197700
+
+            sage: c.rauzy_class_cardinality(0)
+            11792
+            sage: c.rauzy_diagram(left_degree=0)
+            Rauzy diagram with 11792 permutations
+            sage: c.rauzy_diagram(left_degree=0, reduced=False)  # long time
+            Rauzy diagram with 176880 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0, reduced=False)
+            176880
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = map(lambda x: x+1, self.stratum().zeros())
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            left_degree = int(left_degree) + 1
+            assert left_degree in profile, "if not None, the degree should be one of the degree of the stratum"
+
+            if reduced is False:
+                return (Partition(profile).centralizer_size() /
+                        (left_degree * profile.count(left_degree)) *
+                        self.rauzy_class_cardinality(left_degree-1, reduced=True))
+
+        elif reduced is False:
+            raise NotImplementedError("no formula known for extended labeled Rauzy classes")
+
+        N = Integer(rdc.gamma_irr(profile,left_degree) - rdc.delta_irr(profile,left_degree))/2
+
+        if (self.stratum().number_of_components() == 3 and
+            self.stratum().hyperelliptic_component().spin() == 0):
+            if left_degree is None:
+                hyp_card = self.stratum().hyperelliptic_component().rauzy_class_cardinality()
+            else:
+                hyp_card = self.stratum().hyperelliptic_component().rauzy_class_cardinality(left_degree-1)
+
+            return N - hyp_card
+
+        return N
+
+    def standard_permutations_number(self):
+        r"""
+        Return the number of standard permutation of this even component.
+
+        EXAMPLES:
+
+        For strata in genus 3, the number of standard permutations is reasonably
+        small and the whole set can be computed::
+
+            sage: C = AbelianStratum(6).even_component()
+            sage: len(C.standard_permutations())  # long time
+            44
+            sage: C.standard_permutations_number()
+            44
+
+            sage: C = AbelianStratum(4,2).even_component()
+            sage: len(C.standard_permutations())   # long time
+            136
+            sage: C.standard_permutations_number()
+            136
+
+            sage: C = AbelianStratum(2,2,2).even_component()
+            sage: len(C.standard_permutations())   # long time
+            92
+            sage: C.standard_permutations_number()
+            92
+
+        For higher genera, this number can be very big::
+
+            sage: C = AbelianStratum(20).even_component()
+            sage: C.standard_permutations_number()
+            109398514483439999
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = [x+1 for x in self.stratum().zeros()]
+        N = Integer(rdc.gamma_std(profile) - rdc.delta_std(profile)) / 2
+
+        if (self.stratum().number_of_components() == 3 and
+            self.stratum().hyperelliptic_component().spin() == 0):
+            return N - 1
+
+        return N
+
+
 EvenASC = EvenAbelianStratumComponent
 
 class OddAbelianStratumComponent(ASC):
@@ -1192,10 +1859,157 @@ class OddAbelianStratumComponent(ASC):
             p.alphabet(range(len(p)))
         return p
 
+    def rauzy_class_cardinality(self, left_degree=None, reduced=True):
+        r"""
+        Cardinality of rauzy diagram for odd component
+
+        INPUT:
+
+        - ``left_degree`` - integer (optional)
+
+        - ``reduced`` - boolean (default: True)
+
+        EXAMPLES:
+
+        The genus must be at least 3 to have an odd component::
+
+            sage: c = AbelianStratum(4).odd_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 134 permutations
+            sage: c.rauzy_class_cardinality()
+            134
+            sage: c = AbelianStratum(4,0).odd_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 1114 permutations
+            sage: c.rauzy_class_cardinality()
+            1114
+
+            sage: c = AbelianStratum(2,2).odd_component()
+            sage: c.rauzy_diagram()
+            Rauzy diagram with 294 permutations
+            sage: c.rauzy_class_cardinality()
+            294
+
+            sage: c = AbelianStratum(2,2,0).odd_component()
+            sage: c.rauzy_class_cardinality()
+            2723
+
+            sage: c.rauzy_diagram(left_degree=2)
+            Rauzy diagram with 2352 permutations
+            sage: c.rauzy_class_cardinality(left_degree=2)
+            2352
+            sage: c.rauzy_diagram(left_degree=2, reduced=False)
+            Rauzy diagram with 7056 permutations
+            sage: c.rauzy_class_cardinality(left_degree=2, reduced=False)
+            7056
+
+            sage: c.rauzy_diagram(left_degree=0)
+            Rauzy diagram with 371 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0)
+            371
+            sage: c.rauzy_diagram(left_degree=0, reduced=False)
+            Rauzy diagram with 6678 permutations
+            sage: c.rauzy_class_cardinality(left_degree=0, reduced=False)
+            6678
+
+
+        Example in higher genus for which an explicit computation of the Rauzy
+        diagram would be very long::
+
+            sage: c = AbelianStratum(4,2,0).odd_component()
+            sage: c.rauzy_class_cardinality()
+            262814
+            sage: c = AbelianStratum(4,4,4).odd_component()
+            sage: c.rauzy_class_cardinality()
+            24691288838
+            sage: c.rauzy_class_cardinality(left_degree=4, reduced=False)
+            1234564441900
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = map(lambda x: x+1, self.stratum().zeros())
+        if left_degree is not None:
+            assert isinstance(left_degree, (int,Integer)), "if not None, left_degree should be an integer"
+            left_degree = int(left_degree) + 1
+            assert left_degree in profile, "if not None, the degree should be one of the degree of the stratum"
+
+            if reduced is False:
+                return (Partition(profile).centralizer_size() /
+                        (left_degree * profile.count(left_degree)) *
+                        self.rauzy_class_cardinality(left_degree-1, reduced=True))
+
+        elif reduced is False:
+            raise NotImplementedError, "no formula known for labeled extended Rauzy classes"
+
+        N = sum(rdc.gamma_irr(profile,left_degree) + rdc.delta_irr(profile,left_degree))//2
+
+        if (self.stratum().number_of_components() == 3 and
+            self.stratum().hyperelliptic_component().spin() == 1):
+            return N - self.stratum().hyperelliptic_component().rauzy_class_cardinality()
+
+        return N
+
+    def standard_permutations_number(self):
+        r"""
+        Return the number of standard permutation of this even component.
+
+
+        EXAMPLES:
+
+        In genus 2, there are two strata which contains an odd component::
+
+            sage: C = AbelianStratum(4).odd_component()
+            sage: len(C.standard_permutations())
+            7
+            sage: C.standard_permutations_number()
+            7
+
+            sage: C = AbelianStratum(2,2).odd_component()
+            sage: len(C.standard_permutations())
+            11
+            sage: C.standard_permutations_number()
+            11
+
+        In genus 3, the number of standard permutations is reasonably small and
+        the whole set can be computed::
+
+            sage: C = AbelianStratum(6).odd_component()
+            sage: len(C.standard_permutations())   # long time
+            135
+            sage: C.standard_permutations_number()
+            135
+
+            sage: C = AbelianStratum(4,2).odd_component()
+            sage: len(C.standard_permutations())   # long time
+            472
+            sage: C.standard_permutations_number()
+            472
+
+            sage: C = AbelianStratum(2,2,2).odd_component()
+            sage: len(C.standard_permutations())   # long time
+            372
+            sage: C.standard_permutations_number()
+            372
+
+        For higher genera, this number can be very big::
+
+            sage: C = AbelianStratum(8,6,4,2).odd_component()
+            sage: C.standard_permutations_number()
+            26596699869748377600
+        """
+        import sage.dynamics.interval_exchanges.rauzy_class_cardinality as rdc
+
+        profile = [x+1 for x in self.stratum().zeros()]
+        N = Integer(rdc.gamma_std(profile) + rdc.delta_std(profile)) / 2
+
+        if (self.stratum().number_of_components() == 3 and
+            self.stratum().hyperelliptic_component().spin() == 1):
+            return N - 1
+
+        return N
+
+
 OddASC = OddAbelianStratumComponent
-
-
-
 
 
 #
@@ -1263,7 +2077,6 @@ def AbelianStrata(genus=None, dimension=None, fake_zeros=None):
     sage for s in AbelianStrata(dimension=4): print s
     H^out([2])
     H^out([0], 0, 0)
-
 
     Get outisde of tests
     sage  for s in AbelianStrata(dimension=5): print s

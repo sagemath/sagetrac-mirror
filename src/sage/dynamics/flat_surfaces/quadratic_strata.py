@@ -584,6 +584,12 @@ class QuadraticStratum(Stratum):
         return self.random_component().random_cylindric_permutation()
 
 
+    def random_cylindric_permutation(self):
+        r"""
+        Return a random cylindric permutation that belongs to this stratum.
+        """
+        return self.random_component().random_cylindric_permutation()
+
 class QuadraticStratumComponent(StratumComponent):
     r"""
     Generic class for component of quadratic stratum.
@@ -668,7 +674,6 @@ class QuadraticStratumComponent(StratumComponent):
         contains the set of orientation cover of quadratic differentials in this
         connected component.
 
-
         ALGORITHM:
 
         The spin only depends on the component and the only components for which
@@ -733,6 +738,78 @@ class QuadraticStratumComponent(StratumComponent):
         # 4) as connected components are treated in 0 there remains only non
         # hyperelliptic components
         return astratum.non_hyperelliptic_component()
+
+    def random_cylindric_permutation(self, nsteps=64):
+        r"""
+        Return a cylindric permutation of the form ``p = ((0,...),(..., 0))``
+        where 0 can be any label.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticStratum({4:1,-1:4}); Q
+            Q_1(4, -1^4)
+            sage: c = Q.components()[0]
+            sage: p = c.random_cylindric_permutation()
+            XX
+            YY
+            sage: p.stratum()
+            H(2^2)
+            sage: p = c.random_cylindric_permutation()
+            XX
+            YY
+            sage: p.stratum()
+            H(2^2)
+
+            sage: Q = QuadraticStratum(12); Q
+            Q_4(12)
+            sage: c_hyp, c_reg, c_irr = Q.components()
+
+            sage: for _ in xrange(3):
+            ...      p = c_reg.random_cylindric_permutation()
+            ...      print p
+            ...      print p.stratum()
+            XX
+            YY
+            Q_4(12)
+            XX
+            YY
+            Q_4(12)
+            XX
+            YY
+            Q_4(12)
+        """
+        import sage.misc.prandom as prandom
+
+        p = self.permutation_representative()
+
+        for _ in xrange(nsteps):
+            while not p.has_rauzy_move(0):
+                p = p.rauzy_move(1)
+            while not p.has_rauzy_move(1):
+                p = p.rauzy_move(0)
+
+            rd = prandom.random()
+            if rd < 0.1:  # inplace (symmetric)
+                p._inversed_twin()
+                p._reversed_twin()
+            elif rd < 0.55:
+                p = p.rauzy_move(0)
+            else:
+                p = p.rauzy_move(1)
+
+        while p[0][0] != p[1][-1]:
+            rd = prandom.random()
+            if rd < 0.1:  # inplace (symmetric)
+                p._inversed_twin()
+                p._reversed_twin()
+            elif not p.has_rauzy_move(0):
+                p = p.rauzy_move(1)
+            elif not p.has_rauzy_move(1) or rd < .55:
+                p = p.rauzy_move(0)
+            else:
+                p = p.rauzy_move(1)
+
+        return p
 
 QSC = QuadraticStratumComponent
 
