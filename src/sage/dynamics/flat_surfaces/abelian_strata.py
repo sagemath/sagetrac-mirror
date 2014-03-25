@@ -547,6 +547,135 @@ class AbelianStratum(Stratum):
 
         return res
 
+    #
+    # Separatrix and cylinder diagrams
+    #
+
+    def separatrix_diagram_iterator(self, ncyls=None, up_to_isomorphism=True):
+        r"""
+        Return an iterator over the separatrix diagrams of this stratum.
+
+        For strata of small dimension, it could be faster to use the method
+        separatrix_diagrams.
+        """
+        if up_to_isomorphism:
+            from separatrix_diagram import separatrix_diagram_iterator
+            return separatrix_diagram_iterator([m+1 for m in self.zeros()],ncyls)
+        else:
+            from separatrix_diagram import separatrix_diagram_fast_iterator
+            return separatrix_diagram_fast_iterator([m+1 for m in self.zeros()],ncyls)
+
+    def separatrix_diagrams(self, ncyls=None):
+        r"""
+        Returns the list of separatrix diagrams that appears in this stratum.
+
+        INPUT:
+
+        - ``database`` - boolean (default: True) - if True, use the
+          FlatSurfacesDatabase
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(2); a
+            H(2)
+            sage: for s in a.separatrix_diagrams(): print s
+            Separatrix diagram
+             bot (0,1,2)
+             top (0,1,2)
+            Separatrix diagram
+             bot (0)(1,2)
+             top (0,1)(2)
+        """
+        from separatrix_diagram import separatrix_diagrams
+        return separatrix_diagrams([m+1 for m in self.zeros()],ncyls)
+
+    def cylinder_diagram_iterator(self, ncyls=None, up_to_isomorphism=True):
+        r"""
+        Iterator over all cylinder diagram of this stratum.
+
+        INPUT:
+
+        - ``up_to_isomorphism`` - boolean (default: True) - if True, partial
+          result is cached in order to output only once each isomorphism class
+          of cylinder diagram. It may be faster to set this option to False.
+        """
+        for sd in self.separatrix_diagram_iterator(ncyls, up_to_isomorphism):
+            for cd in sd.cylinder_diagram_iterator(up_to_isomorphism=up_to_isomorphism):
+                yield cd
+
+    def cylinder_diagrams(self, ncyls=None, force_computation=False):
+        r"""
+        Return a list of cylinder diagram of this stratum.
+        """
+        if ncyls is not None:
+            if not isinstance(ncyls, (int,Integer)):
+                raise TypeError, "ncyls should be None or an integer"
+            if ncyls < 0:
+                raise ValueError
+            if ncyls > self.genus() + self.nb_zeros()-1:
+                return []
+
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return CylinderDiagrams().get(self, ncyls)
+            except ValueError:
+                pass
+
+        l = []
+        for sd in self.separatrix_diagrams(ncyls):
+            l.extend(sd.cylinder_diagrams())
+        return l
+
+    def cylinder_diagrams_by_component(self, ncyls=None, force_computation=False):
+        r"""
+        Return a dictionnary component -> list of cylinder diagrams.
+
+        INPUT:
+
+        - ``ncyls`` - None or integer (default: None) - the number of cylinders
+
+        - ``force_computation`` - boolean (default: False) - if False, then try
+          to use the database.
+
+        EXAMPLES::
+
+            sage: A = AbelianStratum(4)
+            sage: A_hyp = A.hyperelliptic_component()
+            sage: A_odd = A.odd_component()
+            sage: cyls = A.cylinder_diagrams_by_component(ncyls=2, force_computation=True)
+
+            sage: all(c.ncyls() == 2 for c in cyls[A_hyp])
+            True
+            sage: all(c.stratum_component() == A_hyp for c in cyls[A_hyp])
+            True
+
+            sage: all(c.ncyls() == 2 for c in cyls[A_odd])
+            True
+            sage: all(c.stratum_component() == A_odd for c in cyls[A_odd])
+            True
+        """
+        if ncyls is not None:
+            if not isinstance(ncyls, (int,Integer)):
+                raise TypeError, "ncyls should be None or an integer"
+            if ncyls < 0:
+                raise ValueError
+            if ncyls > self.genus() + self.nb_zeros()-1:
+                return dict((c,[]) for c in self.components())
+
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return dict((c,CylinderDiagrams().get(c,ncyls)) for c in self.components())
+            except ValueError:
+                pass
+
+        d = dict((c,[]) for c in self.components())
+        for cyl in self.cylinder_diagrams(ncyls, force_computation=True):
+            d[cyl.stratum_component()].append(cyl)
+        return d
+
+
 class AbelianStratumComponent(StratumComponent):
     r"""
     Connected component of Abelian stratum.
@@ -657,6 +786,76 @@ class AbelianStratumComponent(StratumComponent):
                 z.remove(left_degree)
                 z.insert(len(z),left_degree)
 
+    def separatrix_diagrams_number(self, ncyls=None):
+        r"""
+        Return the number of separatrix diagram that belongs to this stratum.
+        """
+        return sum(1 for _ in self.separatrix_diagram_iterator(ncyls))
+
+    #TODO: how ?
+    def one_separatrix_diagram(self,ncyls=1):
+        r"""
+        Return a separatrix diagram that belongs to that stratum.
+
+        INPUT:
+
+        - ``ncyls`` - integer (optional) - the number of cylinders
+        """
+        raise NotImplementedError
+
+    #TODO: how ?
+    def random_separatrix_diagram(self,ncyls=1):
+        r"""
+        Return a random separatrix diagram that belongs to this stratum.
+
+        INPUT:
+
+        - ``ncyls`` - integer (default: 1) - the number of cylinders
+        """
+        raise NotImplementedError
+
+    def cylinder_diagrams_number(self, ncyls=None, force_computation=False):
+        r"""
+        Return the number of cylinder diagram that belongs to this stratum.
+        """
+        if ncyls is not None and ncyls > self.genus() + self.nb_zeros() - 1:
+            return 0
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return sum(CylinderDiagrams().count(cc, ncyls) for cc in self.components())
+            except ValueError:
+                pass
+
+        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
+
+    #TODO: implement the case ncyls > 1
+    def one_cylinder_diagram(self,ncyls=1):
+        r"""
+        Return a diagram with one cylinder in this connected component.
+
+        The diagram returned is the one deduced from the method representative.
+
+        INPUT:
+
+        - ``ncyls`` - the number of cylinders
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(3,2,1); a
+            H(3, 2, 1)
+            sage: c = a.one_cylinder_diagram();c
+            (0,2,1,5,4,3,8,7,6)-(0,8,7,6,5,4,3,2,1)
+            sage: c.stratum()
+            H(3,2,1)
+        """
+        if ncyls != 1:
+            raise NotImplementedError
+        return self.components()[-1].one_cylinder_diagram()
+
+    #TODO: how ?
+    def random_cylinder_diagram(self):
+        raise NotImplementedError
 
         k = 1
         l0 = [0]
@@ -994,6 +1193,106 @@ class AbelianStratumComponent(StratumComponent):
         assert len(res) == self.standard_permutations_number()
         return sorted(res)
 
+    def one_cylinder_diagram(self):
+        r"""
+        Return a diagram with one cylinder in this connected component.
+
+        The diagram returned is the one deduced from the method
+        permutation_representative.
+        """
+        from separatrix_diagram import CylinderDiagram
+        t = self.permutation_representative(reduced=True).to_standard()
+        t.alphabet(range(len(t)))
+        return CylinderDiagram([(t[1][1:],t[0][-2::-1])],check=True)
+
+    def cylinder_diagram_iterator(self, ncyls=None):
+        r"""
+        Use computation only.
+        """
+        return self.stratum().cylinder_diagram_iterator(ncyls)
+
+    def cylinder_diagrams(self, ncyls=None, force_computation=False):
+        r"""
+        Return the list of cylinder diagrams associated to this component.
+
+        INPUT:
+
+        - ``ncyls`` - integer or list of integers (default: None) - consider
+          only the cylinder diagrams with a given number of cylinders.
+
+        EXAMPLES::
+
+            sage: C = AbelianStratum(1,1,1,1).unique_component(); C
+            H_c(1^4)
+            sage: for c in C.cylinder_diagrams(6): print c
+            (0,1)-(7) (2)-(1) (3)-(0) (4,7)-(5,6) (5)-(4) (6)-(2,3)
+            (0,1)-(7) (2)-(0) (3)-(4) (4,7)-(5,6) (5)-(1) (6)-(2,3)
+            (0,3)-(6,7) (1,2)-(4,5) (4)-(1) (5)-(3) (6)-(2) (7)-(0)
+            (0,3)-(6,7) (1,2)-(4,5) (4)-(3) (5)-(0) (6)-(2) (7)-(1)
+        """
+        if ncyls is not None:
+            if not isinstance(ncyls, (int,Integer)):
+                raise TypeError, "ncyls should be None or an integer"
+            if ncyls < 0:
+                raise ValueError
+            if ncyls > self.stratum().genus() + self.stratum().nb_zeros()-1:
+                return []
+
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return CylinderDiagrams().get(self, ncyls)
+            except ValueError:
+                pass
+
+        return sorted(self.cylinder_diagram_iterator(ncyls))
+
+    def cylinder_diagrams_number(self, ncyls=None, force_computation=False):
+        r"""
+        Return the number of cylinder diagrams.
+
+        INPUT:
+
+        - ``ncyls`` - integer or list of integers (default: None) - restrict the
+          counting to a given number of cylinders.
+
+        EXAMPLES::
+
+            sage: C = AbelianStratum(3,1).unique_component()
+            sage: C.cylinder_diagrams_number(1)
+            4
+            sage: C.cylinder_diagrams_number(2)
+            30
+            sage: C.cylinder_diagrams_number(3)
+            44
+            sage: C.cylinder_diagrams_number(4)
+            10
+
+            sage: C = AbelianStratum(6)
+            sage: C_hyp = C.hyperelliptic_component()
+            sage: C_odd = C.odd_component()
+            sage: C_even = C.even_component()
+            sage: for i in xrange(1,5): print "%3d"%C.cylinder_diagrams_number(i),
+             30 201 382 191
+            sage: for i in xrange(1,5): print C_hyp.cylinder_diagrams_number(i),
+              1  21  70  35
+            sage: for i in xrange(1,5): print C_odd.cylinder_diagrams_number(i),
+             21 132 240 120
+            sage: for i in xrange(1,5): print C_even.cylinder_diagrams_number(i),
+              8  66 132  66
+        """
+        if ncyls is not None and ncyls > self.stratum().genus() + self.stratum().nb_zeros() - 1:
+            return 0
+
+        if not force_computation:
+            from sage.databases.flat_surfaces import CylinderDiagrams
+            try:
+                return CylinderDiagrams().count(self,ncyls)
+            except ValueError:
+                pass
+
+        return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
+
 ASC = AbelianStratumComponent
 
 class HypAbelianStratumComponent(ASC):
@@ -1323,6 +1622,61 @@ class HypAbelianStratumComponent(ASC):
 
         raise NotImplementedError("not implemented when there are fake zeros")
 
+    def cylinder_diagram_iterator(self, ncyls=None):
+        r"""
+        Returns the list of cylinder diagrams associated to this hyperelliptic
+        component.
+
+        TODO:
+
+        - isomorphism free
+
+        - ncyls without ifilter
+
+        EXAMPLES::
+
+            sage: C = AbelianStratum(2,2).hyperelliptic_component()
+            sage: for c in C.cylinder_diagram_iterator(1): print c
+            (0,4,3,2,1)-(1,5,4,3,2) (5)-(0)
+            (0,3,2,1)-(1,4,3,2) (4,5)-(0,5)
+            (0,2,1)-(1,3,2) (3,5,4)-(0,5,4)
+            (0,1)-(1,2) (2,5,4,3)-(0,5,4,3)
+            (0,5)-(0,1) (1,4,3,2)-(2,5,4,3)
+            (0,5,4)-(0,5,1) (1,3,2)-(2,4,3)
+            (0,5,4,3)-(0,5,4,1) (1,2)-(2,3)
+            (0,5,1)-(0,2,1) (2,4,3)-(3,5,4)
+            (0,5,4,1)-(0,5,2,1) (2,3)-(3,4)
+            (0,5,2,1)-(0,3,2,1) (3,4)-(4,5)
+            (0,5,3,2,1)-(0,4,3,2,1) (4)-(5)
+            (0,4,3,5,1)-(0,4,3,2,1) (2)-(5)
+            (0)-(5) (1,5,4,3,2)-(0,4,3,2,1)
+            (0,4,3,2,5)-(0,4,3,2,1) (1)-(5)
+            (0,4,5,2,1)-(0,4,3,2,1) (3)-(5)
+        """
+        from separatrix_diagram import hyperelliptic_cylinder_diagram_iterator
+
+        if ncyls is not None:
+            from itertools import ifilter
+            if isinstance(ncyls,(int,Integer)):
+                ncyls = [ncyls]
+            ncyls = set(map(Integer,ncyls))
+            return ifilter(lambda c: c.ncyls() in ncyls, self.cylinder_diagram_iterator())
+
+        stratum = self.stratum()
+
+        if stratum.nb_fake_zeros():
+            raise ValueError
+
+        z = stratum.zeros()
+
+        return hyperelliptic_cylinder_diagram_iterator(len(z)+sum(z))
+
+    def cylinder_diagrams(self, ncyls=None):
+        r"""
+        Returns the list of cylinder diagrams for that component.
+        """
+        return sorted(self.cylinder_diagram_iterator(ncyls))
+
 HypASC = HypAbelianStratumComponent
 
 class NonHypAbelianStratumComponent(ASC):
@@ -1437,6 +1791,14 @@ class NonHypAbelianStratumComponent(ASC):
         profile = map(lambda x: x+1, self.stratum().zeros())
         return rdc.number_of_standard_permutations(profile) - self.stratum().hyperelliptic_component().standard_permutations_number()
 
+
+    def cylinder_diagram_iterator(self, ncyls=None):
+        r"""
+        Return the list of cylinder diagrams (or completely periodic
+        configurations) associated to this non-hyperelliptic component.
+        """
+        from itertools import ifilter
+        return ifilter(lambda c: not c.is_hyperelliptic(), self.stratum().cylinder_diagram_iterator(ncyls))
 
 NonHypASC = NonHypAbelianStratumComponent
 
@@ -1720,6 +2082,18 @@ class EvenAbelianStratumComponent(ASC):
 
         return N
 
+
+    def cylinder_diagram_iterator(self, ncyls=None):
+        r"""
+        Iterator over cylinder diagram.
+        """
+        from itertools import ifilter
+        if self.stratum().has_hyperelliptic_component():
+            return ifilter(
+                    lambda c: not c.is_hyperelliptic() and c.spin_parity() == 0,
+                    self.stratum().cylinder_diagram_iterator(ncyls))
+
+        return ifilter(lambda c: c.spin_parity() == 0, self.stratum().cylinder_diagram_iterator(ncyls))
 
 EvenASC = EvenAbelianStratumComponent
 
@@ -2008,6 +2382,43 @@ class OddAbelianStratumComponent(ASC):
 
         return N
 
+
+    def cylinder_diagram_iterator(self, ncyls=None):
+        r"""
+        Return the list of cylinder diagrams associated to this odd connected
+        component.
+
+        EXAMPLES::
+
+            sage: C = AbelianStratum(4).odd_component()
+            sage: for c in C.cylinder_diagrams(1): print c
+            (0,2,3,1,4)-(0,1,4,2,3)
+            (0,2,1,3,4)-(0,1,4,2,3)
+            (0,2,3,1,4)-(0,1,2,4,3)
+            sage: for c in C.cylinder_diagrams(2): print c
+            (0,2,3,1)-(2,4) (4)-(0,3,1)
+            (0,3,1,2)-(0,4,1) (4)-(2,3)
+            (0,1,2,3)-(0,4,1,2) (4)-(3)
+            (0,1,2,3)-(0,1,4,2) (4)-(3)
+            (0,2,4)-(3) (1,3)-(0,2,1,4)
+            (0,2,4)-(2,3) (1,3)-(0,1,4)
+            (0,1,2)-(0,3,1,4) (3,4)-(2)
+            sage: for c in C.cylinder_diagrams(3): print c
+            (0,2,1)-(0,3,4) (3)-(1) (4)-(2)
+            (0,2)-(0,3) (1,3)-(1,4) (4)-(2)
+            (0,2)-(4) (1,4)-(2,3) (3)-(0,1)
+            (0,1)-(0,3,4) (2,3)-(1) (4)-(2)
+            (0,1)-(0,3,4) (2,4)-(1) (3)-(2)
+            (0,3,1)-(0,4) (2)-(1) (4)-(2,3)
+            (0,3,1)-(0,4) (2)-(3) (4)-(1,2)
+        """
+        from itertools import ifilter
+        if self.stratum().has_hyperelliptic_component():
+            return ifilter(
+                    lambda c: not c.is_hyperelliptic() and c.spin_parity() == 1,
+                    self.stratum().cylinder_diagram_iterator())
+
+        return ifilter(lambda c: c.spin_parity == 1, self.stratum().cylinder_diagram_iterator())
 
 OddASC = OddAbelianStratumComponent
 
