@@ -1272,7 +1272,7 @@ class Sets(Category_singleton):
             """
             return parents[0].__class__.CartesianProduct(parents, category = cartesian_product.category_from_parents(parents))
 
-        def algebra(self, base_ring, category = None):
+        def algebra(self, base_ring, category = None, **keywords):
             """
             Returns the algebra of ``self`` over ``base_ring``
 
@@ -1327,7 +1327,7 @@ class Sets(Category_singleton):
 Constructing its algebra is ambiguous.
 Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             from sage.combinat.free_module import CombinatorialFreeModule
-            return CombinatorialFreeModule(base_ring, self, category = category.Algebras(base_ring))
+            return CombinatorialFreeModule(base_ring, self, category = category.Algebras(base_ring), **keywords)
 
 
     class ElementMethods:
