@@ -389,9 +389,14 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
         return WordMorphism(d)
 
-    def rauzy_diagram(self, **kargs):
+    def rauzy_diagram(self,extended=False,**kwds):
         r"""
-        Returns the associated Rauzy diagram.
+        Returns a Rauzy diagram associated to this permutation
+
+        INPUT:
+
+        - ``extended`` - boolean (default: False) - if True return extended
+          Rauzy diagram
 
         OUTPUT:
 
@@ -410,7 +415,154 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
         For more information, try help RauzyDiagram
         """
-        return ReducedRauzyDiagram(self, **kargs)
+        options = kwds
+        if extended:
+            options['symmetric'] = True
+        return ReducedRauzyDiagram(self,**options)
+
+    def rauzy_class_cardinality(self,extended=False):
+        r"""
+        Cardinality of Rauzy diagram
+
+        As proved in [Del10], there exists a closed formula for the cardinality
+        of Rauzy diagrams. This function uses the formula without any
+        explicit computation of the rauzy class.
+
+        INPUT:
+
+        - ``extended`` - boolean (default: False) - return cardinality for
+          extended Rauzy diagrams
+
+        EXAMPLES:
+
+        Examples for permutations such that the suspensions are tori::
+
+            sage: p=iet.Permutation('a b','b a',reduced=True)
+            sage: p.stratum()
+            H(0)
+            sage: p.rauzy_diagram()
+            Rauzy diagram with 1 permutation
+            sage: p.rauzy_class_cardinality()
+            1
+
+            sage: p = iet.Permutation('a 1 b','b 1 a',reduced=True)
+            sage: p.stratum()
+            H(0^2)
+            sage: p.rauzy_diagram()
+            Rauzy diagram with 3 permutations
+            sage: p.rauzy_class_cardinality()
+            3
+
+            sage: p = iet.Permutation('a 1 2 b','b 1 2 a',reduced=True)
+            sage: p.stratum()
+            H(0^3)
+            sage: p.rauzy_diagram()
+            Rauzy diagram with 6 permutations
+            sage: p.rauzy_class_cardinality()
+            6
+
+            sage: p = iet.Permutation('a 1 2 3 b','b 1 2 3 a',reduced=True)
+            sage: p.rauzy_class_cardinality()
+            10
+            sage: p = iet.Permutation('a 1 2 3 4 b','b 1 2 3 4 a',reduced=True)
+            sage: p.rauzy_class_cardinality()
+            15
+
+        You should have recognize the sequence 1, 3, 6, 10, 15... which is the
+        sequence with general term the binomial ``n(n+1)/2``.
+
+        An example of extended Rauzy diagram which is different from Rauzy
+        diagram::
+
+            sage: p = iet.Permutation('a b c d e f g','g c b f e d a',reduced=True)
+            sage: p.marked_profile()
+            (2o4 [4, 2])
+            sage: pp = p.left_right_inverse()
+            sage: pp.marked_profile()
+            (4o2 [4, 2])
+            sage: p.rauzy_class_cardinality()
+            261
+            sage: pp.rauzy_class_cardinality()
+            509
+            sage: p.rauzy_class_cardinality(extended=True)
+            770
+            sage: 261 + 509 == 770
+            True
+
+        And one can check that this the algorithm for cardinality is True::
+
+            sage: p.rauzy_diagram()
+            Rauzy diagram with 261 permutations
+            sage: pp.rauzy_diagram()
+            Rauzy diagram with 509 permutations
+            sage: p.rauzy_diagram(extended=True)
+            Rauzy diagram with 770 permutations
+
+        And we end by an example of Rauzy diagram associated to an hyperelliptic
+        component::
+
+            sage: p = iet.Permutation('a b c d e 0 f','f e d c b 0 a',reduced=True)
+            sage: p.rauzy_diagram()
+            Rauzy diagram with 37 permutations
+            sage: p.rauzy_class_cardinality()
+            37
+            sage: p.rauzy_diagram(extended=True)
+            Rauzy diagram with 254 permutations
+            sage: p.rauzy_class_cardinality(extended=True)
+            254
+        """
+        from rauzy_class_cardinality import gamma_irr,delta_irr
+        from sage.rings.arith import binomial
+
+        s = self.stratum()
+        mp = self.marked_profile()
+        p = mp.partition()
+
+        if extended:
+            return self.connected_component().rauzy_class_cardinality()
+
+        if s.is_connected():  # easy stuff
+            return gamma_irr(p,mp.left())
+
+        cc = self.connected_component()
+        zeros = s.zeros(fake_zeros=False)
+        g = s.genus()
+        if zeros == [2*g-2] or zeros == [g-1,g-1]:  # hyp component + others
+            if cc.spin() == s.hyperelliptic_component().spin():
+                d = len(self) # number of intervals of self
+                if g == 1: # genus 1 is particular
+                    nb_hyp = binomial(d,2)
+                else:
+                    k = s.nb_fake_zeros()
+                    d -= k
+                    if extended:
+                        nb_hyp = binomial(d+k,k) * (2*d-1) + binomial(d+k-1,k-1) * d
+                    elif mp.left() == 1:
+                        nb_hyp = binomial(d+k,k-1) * (2**(d-1)-1+d)
+                    elif mp.left() == d-1:
+                        nb_hyp = binomial(d+k,k) * (2**(d-1)-1)
+                    else:
+                        raise ValueError, "this should not happen"
+
+                if cc == s.hyperelliptic_component(): # hyp
+                    return nb_hyp
+
+                if s.nb_connected_components() == 2: # other is alone
+                    N = gamma_irr(p,mp.left())
+
+                else: # others are odd and even
+                    t = (-1)**(1-cc.spin())
+                    N = (gamma_irr(p,mp.left()) + t * delta_irr(p,mp.left()))/2
+
+                return N - nb_hyp
+
+            else: # cc.spin() != s.hyperelliptic_component().spin()
+                t = (-1)**(1-cc.spin())
+                return (gamma_irr(p,mp.left()) + t * delta_irr(p,mp.left()))/2
+
+        else:   # odd and even components
+            t = (-1)**(1-cc.spin())  # 1 if odd and -1 if even
+            return (gamma_irr(p,mp.left()) + t * delta_irr(p,mp.left()))/2
 
 class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
     r"""
