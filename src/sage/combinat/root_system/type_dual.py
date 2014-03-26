@@ -11,13 +11,11 @@ Root system data for dual Cartan types
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import SageObject
 from sage.combinat.root_system import cartan_type
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.combinat.root_system import ambient_space
 
-class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crystallographic):
+class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crystallographic):
     r"""
     A class for dual Cartan types.
 
@@ -139,9 +137,9 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
-       """
+        """
         assert type.is_crystallographic()
-        self._dual = type
+        cartan_type.CartanType_decorator.__init__(self, type)
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_relabel.CartanType.__init__
@@ -149,8 +147,6 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             self.__class__ = CartanType_finite
         elif type.is_affine():
             self.__class__ = CartanType_affine
-        elif type.is_lorentzian():
-            self.__class__ = CartanType_lorenztian
         abstract_classes = tuple(cls
                                  for cls in self._stable_abstract_classes
                                  if isinstance(type, cls))
@@ -198,7 +194,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             sage: latex(CartanType(['F', 4, 1]).dual())
             F_4^{(1)\vee}
         """
-        return self._dual._latex_()+"^{{{}}}".format(self.global_options('dual_latex'))
+        return self._dual._latex_()+"^"+self.global_options('dual_latex')
 
     def __reduce__(self):
         """
@@ -604,15 +600,15 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             sage: CartanType.global_options.reset()
         """
         if self.global_options('notation') == "Kac":
-            if self.dual().type() == 'B':
+            if self._type.type() == 'B':
                 return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
-            elif self.dual().type() == 'BC':
+            elif self._type.type() == 'BC':
                 return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
             elif self.dual().type() == 'C':
                 return "D_{%s}^{(2)}"%(self.rank)
             elif self.dual().type() == 'F':
                 return "E_6^{(2)}"
-        result = self._dual._latex_()
+        result = self._type._latex_()
         import re
         if re.match(".*\^{\(\d\)}$", result):
             return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
@@ -637,17 +633,17 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             ['G', 2, 1]^* as a folding of ['D', 4, 1]
         """
         from sage.combinat.root_system.type_folded import CartanTypeFolded
-        letter = self._dual.type()
+        letter = self._type.type()
         if letter == 'BC': # A_{2n}^{(2)\dagger}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['A', 2*n - 1, 1],
                 [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
         if letter == 'B': # A_{2n-1}^{(2)}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['D', n + 1, 1],
                 [[i] for i in range(n)] + [[n, n+1]])
         if letter == 'C': # D_{n+1}^{(2)}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['A', 2*n-1, 1],
                 [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
         if letter == 'F': # E_6^{(2)}
