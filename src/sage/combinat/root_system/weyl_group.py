@@ -675,15 +675,20 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         g = self.bruhat_poset(index_set, crossed_nodes, side, facade=True).interval(x,y)
         ref = self.reflections()
         d = {}
-        for x in g:
-            d[x] = {}
-            for y in g:
-                if side == "right":
-                    r = y*x.inverse()
-                else:
-                    r = x.inverse()*y
-                if x.length() < y.length() and ref.has_key(r):
-                    d[x][y] = r
+        if side == "right":
+            for x in g:
+                d[x] = {}
+                for y in g:
+                    r = y*x.inverse()  # this is the only place where these two loops differ
+                    if r in ref and x.length() < y.length():
+                        d[x][y] = r
+        else:
+            for x in g:
+                d[x] = {}
+                for y in g:
+                    r = x.inverse()*y # this is the only place where these two loops differ
+                    if r in ref and x.length() < y.length():
+                        d[x][y] = r
         return DiGraph(d)
 
     def bruhat_poset(self, index_set=[], crossed_nodes=None, side="right", facade=False):
