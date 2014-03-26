@@ -680,14 +680,14 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 d[x] = {}
                 for y in g:
                     r = y*x.inverse()  # this is the only place where these two loops differ
-                    if r in ref and x.length() < y.length():
+                    if ref.has_key(r) and x.length() < y.length():
                         d[x][y] = r
         else:
             for x in g:
                 d[x] = {}
                 for y in g:
                     r = x.inverse()*y # this is the only place where these two loops differ
-                    if r in ref and x.length() < y.length():
+                    if ref.has_key(r) and x.length() < y.length():
                         d[x][y] = r
         return DiGraph(d)
 
