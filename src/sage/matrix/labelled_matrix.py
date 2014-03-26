@@ -62,17 +62,17 @@ process of calculating.
     1^5   | . . . . . . 1
     sage: d.options(row_order=lambda a,b: 1 if a>b else -1, col_label='compact_low',triangular='upper')
     sage: d.display()
-          <BLANKLINE>
-          -------------------------------------------------
-                |   1^5 1^3,2 1,2^2 1^2,3   2,3   1,4     5
-          ------|------------------------------------------
-          1^5   |     1     .     .     .     .     .     .
-          2,1^3 |           1     .     .     .     .     .
-          2^2,1 |                 1     .     .     .     .
-          3,1^2 |                       1     .     .     .
-          3,2   |                             1     .     1
-          4,1   |                                   1     .
-          5     |                                         1
+    <BLANKLINE>
+    -------------------------------------------------
+        |   1^5 1^3,2 1,2^2 1^2,3   2,3   1,4     5
+    ------|------------------------------------------
+    1^5   |     1     .     .     .     .     .     .
+    2,1^3 |           1     .     .     .     .     .
+    2^2,1 |                 1     .     .     .     .
+    3,1^2 |                       1     .     .     .
+    3,2   |                             1     .     1
+    4,1   |                                   1     .
+    5     |                                         1
 
 The indexing set for a :class:`LabelledMatrix` can be any iterable sage
 object or a :class:`CombinatorialFreeModule`, in which case the rows and columns
@@ -229,6 +229,7 @@ AUTHORS:
 
 import types
 
+from __builtin__ import classmethod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.rings import Rings
@@ -285,7 +286,7 @@ class LabelledMatrix(SageObject):
 
         sage: from sage.matrix.labelled_matrix import LabelledMatrix
         sage: P4=CombinatorialFreeModule(ZZ,Partitions(4),prefix='P')
-        sage: K4=KleshchevPartitions(3,4)
+        sage: K4=Partitions(4, min_slope=-2)  # 3-regular partitions
         sage: d=LabelledMatrix(rows=P4,columns=K4, unitriangular=True, default_value=0)
         sage: d.display()
         <BLANKLINE>
@@ -696,6 +697,17 @@ class LabelledMatrix(SageObject):
         else:
             return [[ring(c) for c in row] for row in self._array]
 
+    @classmethod
+    def _new_labelled_matrix(cls, *args, **kw_args):
+        r"""
+        Return a new labelled matrix of the specified class.
+
+        Many instances of :class:`LabelledMatrix`
+
+        EXAMPLES::
+
+        """
+        return cls(*args, **kw_args)
 
     def _display_row(self, row, row_order, col_order, width, sep):
         """
@@ -823,21 +835,17 @@ class LabelledMatrix(SageObject):
                              self._display_row(row,row_order,col_order,col_width,sep), end_row)
                                  for row in row_order)+end_display
 
-
     def _latex_(self):
         """
         Return a string for printing the tableau in latex.
         """
         return self._display('latex')
 
-
     def latex(self):
         return self._latex_()
 
-
     def display(self):
         print self._display()
-
 
     def _html_display(self, filename, url_include):
         r"""
@@ -847,7 +855,6 @@ class LabelledMatrix(SageObject):
         if not hasattr(self, '__html_display'):
             self.__html_display=HTMLDisplay(title=self._name, html_file=filename, url_include=url_include)
         return self.__html_display
-
 
     def _html_table(self):
         r"""
@@ -1149,10 +1156,10 @@ class LabelledMatrix(SageObject):
         """
         options=self._current_options(transpose=True)
         if is_Matrix(self._array):
-            return LabelledMatrix(array=self._array.transpose(), **options)
+            return self._new_labelled_matrix(array=self._array.transpose(), **options)
         else:
             options['array']=[[self._array[r][c] for r in xrange(len(self._rows))] for c in xrange(len(self._cols))]
-            return LabelledMatrix(**options)
+            return self._new_labelled_matrix(**options)
 
 
     def inverse(self):
@@ -1162,7 +1169,7 @@ class LabelledMatrix(SageObject):
         """
         if self._is_matrix:
             try:
-                return LabelledMatrix(matrix=self._array.inverse(), **self._current_options())
+                return self._new_labelled_matrix(matrix=self._array.inverse(), **self._current_options())
             except ZeroDivisionError:
                 raise ZeroDivisionError('input matrix must be nonsingular\n')
         else:
@@ -1181,7 +1188,7 @@ class LabelledMatrix(SageObject):
         for comp in G.connected_components():
             options['rows']=[self._rows[i] for i in comp]
             options['array']=matrix([[self._array[r][c] for c in comp] for r in comp])
-            blocks.append(LabelledMatrix(**options))
+            blocks.append(self._new_labelled_matrix(**options))
         return blocks
 
 
