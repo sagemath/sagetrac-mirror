@@ -393,7 +393,7 @@ def float_function(x):
     return latex(RDF(x))
 
 
-latex_table = {types.NoneType: None_function,
+latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,

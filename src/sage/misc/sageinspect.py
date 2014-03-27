@@ -1456,7 +1456,7 @@ def _sage_getdoc_unformatted(obj):
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
     import types
-    if not isinstance(r, types.StringTypes):
+    if not isinstance(r, str):
         return ''
 
     from sagenb.misc.misc import encoded_str

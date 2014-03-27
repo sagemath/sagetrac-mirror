@@ -799,7 +799,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
