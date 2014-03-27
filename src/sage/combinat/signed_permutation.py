@@ -1,7 +1,5 @@
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
 from itertools import permutations, product
 
 class SignedPermutation(Element):
@@ -15,9 +13,7 @@ class SignedPermutation(Element):
     - ``l`` -- a list of integers, viewed as one-line permutation notation.
     """
     
-    __metaclass__ = ClasscallMetaclass
-    
-    def __init__(self, parent, l):
+    def __init__(self, l):
         """Constructor 
         
         INPUT:
@@ -32,7 +28,7 @@ class SignedPermutation(Element):
             return self.w[i-1]
         return -self.w[-i-1]
         
-class SignedPermutations(UniqueRepresentation, Parent):
+class SignedPermutations(Parent):
     r"""
     Class of signed permutations of `\{\pm 1, \pm 2,\ldots, \pm n\}`
     """
