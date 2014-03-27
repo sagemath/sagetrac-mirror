@@ -711,9 +711,12 @@ class AbelianStratumComponent(StratumComponent):
 
         At each step, with probability 1/3 we perform one of the following
         moves:
-            * exchange top,bottom and left,right (proba 1/10)
-            * top rauzy move (proba 9/20)
-            * bot rauzy move (proba 9/20)
+
+        - exchange top,bottom and left,right (proba 1/10)
+
+        - top rauzy move (proba 9/20)
+
+        - bot rauzy move (proba 9/20)
 
         EXAMPLES:
 
@@ -1866,7 +1869,7 @@ class OddAbelianStratumComponent(ASC):
 
         - ``reduced`` - boolean (default: True)
 
-        EXAMPLES::
+        EXAMPLES:
 
         The genus must be at least 3 to have an odd component::
 
