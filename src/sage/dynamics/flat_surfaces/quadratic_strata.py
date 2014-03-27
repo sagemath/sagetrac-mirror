@@ -129,17 +129,12 @@ List the connected components of a stratum::
 
 .. TODO::
 
-    - implement connected components for generalized permutations
-
-    - iterators for quadratic strata with constraints on genus and/or dimension
-
-    - implement an "alphabet" option for the "permutation_representative" method
-
-    - include examples with fake zeros in documentation
-
-    - include an attribute "hyp" / "nonhyp" for components of strata?
-
-    - include __init__ for all classes of connected components? no
+    implement connected components for generalized permutations
+    iterators for quadratic strata with constraints on genus and/or dimension
+    implement an "alphabet" option for the "permutation_representative" method
+    include examples with fake zeros in documentation
+    include an attribute "hyp" / "nonhyp" for components of strata?
+    include __init__ for all classes of connected components? no
 
 """
 #*****************************************************************************
@@ -1894,6 +1889,7 @@ class QuadraticStrata_gd(QuadraticStrata_class):
     - ``genus`` - an integer - the genus of the surfaces
 
     - ``dimension`` - an integer - the dimension of strata
+
     """
     def __init__(self,genus,dimension,min_nb_poles,max_nb_poles):
         r"""
