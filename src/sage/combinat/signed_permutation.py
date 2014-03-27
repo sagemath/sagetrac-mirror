@@ -1,6 +1,6 @@
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-from itertools import permutations, product
+import itertools
 
 class SignedPermutation(Element):
     r"""
@@ -28,6 +28,12 @@ class SignedPermutation(Element):
             return self.w[i-1]
         return -self.w[-i-1]
         
+    def __str__(self):
+        return repr(self)
+        
+    def _repr_(self):
+        return rerp(self.l)
+        
 class SignedPermutations(Parent):
     r"""
     Class of signed permutations of `\{\pm 1, \pm 2,\ldots, \pm n\}`
@@ -37,6 +43,9 @@ class SignedPermutations(Parent):
     
     def __init__(self, n):
         self.n = n
+    
+    def _repr_(self):
+        return "Signed Permutations on %s",self.n
         
     def __iter__(self):
         for p in itertools.permutations(range(1,self.n+1)):
