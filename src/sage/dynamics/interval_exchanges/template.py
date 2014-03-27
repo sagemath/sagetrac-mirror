@@ -18,6 +18,7 @@ TODO:
 - construct dynamic graphs
 
 - construct coherent _repr_
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -191,7 +192,9 @@ class Permutation(SageObject):
     It has three attributes
 
      - ``_twin`` -- the permutation
+
      - ``_labels`` -- None or the list of labels
+
      - ``_flips`` -- None or the list of flips (each flip is either ``1`` or
        ``-1``)
 
@@ -527,7 +530,7 @@ class Permutation(SageObject):
 
         OUTPUT:
 
-        -- either None or the current alphabet
+        - either None or the current alphabet
 
 
         EXAMPLES::
@@ -2048,6 +2051,7 @@ class OrientablePermutationIET(PermutationIET):
     AUTHOR:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def is_identity(self):
         r"""
@@ -2194,7 +2198,7 @@ class OrientablePermutationIET(PermutationIET):
 
         OUTPUT:
 
-        -- a positive integer
+        - a positive integer
 
 
         EXAMPLES::
@@ -2217,7 +2221,7 @@ class OrientablePermutationIET(PermutationIET):
 
         OUTPUT:
 
-        -- a positive integer
+        - a positive integer
 
 
         EXAMPLES::
@@ -2387,7 +2391,8 @@ class OrientablePermutationIET(PermutationIET):
             H_4(3, 2, 1)
 
         AUTHORS:
-            - Vincent Delecroix (2008-12-20)
+
+        - Vincent Delecroix (2008-12-20)
         """
         from sage.dynamics.flat_surfaces.abelian_strata import AbelianStratum
 
@@ -2443,8 +2448,10 @@ class OrientablePermutationIET(PermutationIET):
         three classes are as follows
 
         - the restriction of `q` to `ker(B)` is non zero
+
         - the restriction of `q` to `ker(B)` is zero and the spin parity of `q`
           on the quotient `V/ker(B)` is 0
+
         - the restriction of `q` to `ker(B)` is zero and the spin parity of `q`
           on the quotient `V/ker(B)` is 1
 
@@ -3070,6 +3077,7 @@ class OrientablePermutationLI(PermutationLI):
     AUTHOR:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def rauzy_move(self, winner, side=-1):
         r"""
@@ -3247,7 +3255,7 @@ class OrientablePermutationLI(PermutationLI):
 
         AUTHORS:
 
-            - Vincent Delecroix (2008-12-20)
+        - Vincent Delecroix (2008-12-20)
         """
         l0 = self.length_top()
         l1 = self.length_bottom()
@@ -3319,6 +3327,7 @@ class FlippedPermutation(Permutation):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def _init_flips(self,intervals,flips):
         r"""
@@ -3507,6 +3516,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     def flips(self):
         r"""
@@ -3675,6 +3685,7 @@ class RauzyDiagram(SageObject):
     AUTHORS:
 
     - Vincent Delecroix (2008-12-20): initial version
+
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
     __metaclass__ = NestedClassMetaclass
@@ -4249,7 +4260,9 @@ class RauzyDiagram(SageObject):
 
             INPUT:
 
-            - ``function`` - function must be of the form (indice,type) -> element. Moreover function(None,None) must be an identity element for initialization.
+            - ``function`` - function must be of the form (indice,type) ->
+              element. Moreover function(None,None) must be an identity element
+              for initialization.
 
             - ``composition`` - the composition function for the function. * if None (defaut None)
 
@@ -4298,10 +4311,10 @@ class RauzyDiagram(SageObject):
          INPUT:
 
          - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+           right induction
 
          - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+           left induction
 
          - ``left_right_inversion`` - consider the left right inversion
 
@@ -5229,6 +5242,7 @@ class FlippedRauzyDiagram(RauzyDiagram):
     AUTHORS:
 
     - Vincent Delecroix (2009-09-29): initial version
+
     """
     def complete(self, p, reducible=False):
         r"""

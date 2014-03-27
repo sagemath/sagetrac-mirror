@@ -48,19 +48,25 @@ class Stratum(SageObject):
     Assumes there are
 
     - a method .zeros() which returns the list of all zeros
+
     - a method .nb_zeros() which returns the number of zeros with an option
       fake_zeros which could be true or false
+
     - a method .nb_fake_zeros() which returns the number of fake zeros
+
     - a method .dimension() which returns the dimension of the stratum
+
     - an attribute ._cc which is a list of classes associated to the
-    connected components of self
+      connected components of self
 
     There may be
 
     - an attribute ._name which corresponds to the begining of the string
       representation (default is the empty string)
+
     - an attribute ._latex_name which corresponds to the begining of the latex
       string representation (uses _name by default)
+
     """
     _name = ''
     _latex_name = ''
@@ -373,7 +379,9 @@ class StratumComponent(SageObject):
     There may be
 
     - an attribute ._name
+
     - an attribute ._latex_name
+
     """
     _name = ''
     _latex_name = ''

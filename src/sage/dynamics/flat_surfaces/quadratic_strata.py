@@ -415,6 +415,10 @@ class QuadraticStratum(Stratum):
 
         The proof of that formula is the object of [La04]_.
 
+        REFERENCES:
+
+        .. [La04] E. Lanneau, "Spin"
+
         EXAMPLES::
 
             sage: QuadraticStratum(1,3).spin()
