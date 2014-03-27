@@ -28,12 +28,19 @@ A representative for each connected component of stratum is given by Zorich in [
 This is implemented here following [Zor08]_:
 
 - genus zero stratum :meth:`~GZQSC.permutation_representative`
+
 - genus one stratum :meth:`~GOQSC.permutation_representative`
+
 - genus two hyperellitic component :meth:`~GTHQSC.permutation_representative`
+
 - genus two non-hyperellitic component :meth:`~GTNQSC.permutation_representative`
+
 - hyperelliptic component :meth:`~HQSC.permutation_representative`
+
 - non-hyperelliptic component :meth:`~NQSC.permutation_representative`
+
 - regular component of exceptional stratum :meth:`~REQSC.permutation_representative`
+
 - irregular component of exceptional stratum :meth:`~IEQSC.permutation_representative`
 
 The inverse operation, i.e., starting from a permutation, determine
@@ -47,31 +54,17 @@ implemented all this for Mathematica in [ZS]_.
 
 REFERENCES:
 
-.. [KonZor03] M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescripebd singularities" Invent. math. 153,
-   631-678 (2003)
-
 .. [Lan04] E. Lanneau "Parity of the spin structure defined by a quadratic
    differential", Geometry and Topology 8 (2004)
 
-.. [Lan08] E. Lanneau "Connected components of the strata of the moduli spaces
-   of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
-   41, 1-56 (2008)
+.. SEEALSO::
 
-.. [Zor08] A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
-   Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
-   no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
-
-.. [ZS] Anton Zorich, "Generalized Permutation software"
-   (http://perso.univ-rennes1.fr/anton.zorich/Software/software_en.html)
-
-NOTE:
-
-See also abelian_strata.
+    See also :mod:`abelian_strata`.
 
 AUTHORS:
 
 - Vincent Delecroix (2009-09-29): initial version
+
 - Samuel Lelievre (2010-10-08): quadratic strata
 
 EXAMPLES:
@@ -134,17 +127,20 @@ List the connected components of a stratum::
     0 1 2 3 1 4 5
     2 6 5 4 6 3 0
 
-TODO:
+.. TODO::
 
-- implement connected components for generalized permutations
+    - implement connected components for generalized permutations
 
-FURTHER TODO:
+    - iterators for quadratic strata with constraints on genus and/or dimension
 
-- iterators for quadratic strata with constraints on genus and/or dimension
-- implement an "alphabet" option for the "permutation_representative" method
-- include examples with fake zeros in documentation
-- include an attribute "hyp" / "nonhyp" for components of strata?
-- include __init__ for all classes of connected components? no
+    - implement an "alphabet" option for the "permutation_representative" method
+
+    - include examples with fake zeros in documentation
+
+    - include an attribute "hyp" / "nonhyp" for components of strata?
+
+    - include __init__ for all classes of connected components? no
+
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -330,9 +326,7 @@ class QuadraticStratum(Stratum):
         r"""
         Returns the genus.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: QuadraticStratum(-1,-1,-1,-1).genus()
             0
@@ -358,7 +352,7 @@ class QuadraticStratum(Stratum):
         Return the stratum of Abelian differentials which contains the set of
         orientation cover of quadratic differentials in this stratum.
 
-        OPTIONS::
+        OPTIONS:
 
         - ``fake_zeros`` - boolean - if True, add fake zeros which corresponds
           to the double cover of poles.
@@ -434,11 +428,6 @@ class QuadraticStratum(Stratum):
             1
             sage: QuadraticStratum(2,2).spin() is None
             True
-
-        REFERENCES::
-
-        [La04] Erwan Lanneau "Parity of the spin structure defined by a
-               quadratic differential", Geometry & Topology (2004) 8.
         """
         k = [0,0,0,0]
         for z in self.zeros():
@@ -694,13 +683,10 @@ class QuadraticStratumComponent(StratumComponent):
         the double cover belongs to a hyperelliptic component are
         Q(k,-1^k+4) and Q(2g-1,2g-1,-1,-1)^hyp
 
-        OPTIONS::
+        OPTIONS:
 
         - ``fake_zeros`` - boolean - if True, add fake zeros which corresponds
           to the double cover of poles.
-
-        TODO:
-        check
 
         EXAMPLES::
 
