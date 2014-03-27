@@ -25,6 +25,9 @@ from permutation import Permutation, Permutations, Arrangements, PermutationOpti
 from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
+#Signed Permutations
+from signed_permutations import SignedPermutation, SignedPermutations
+
 #RSK
 from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
                 RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
