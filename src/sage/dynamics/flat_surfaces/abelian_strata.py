@@ -9,17 +9,21 @@ lists connected components of a stratum.
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
 Zorich in [KonZor03]_ and for quadratic differentials by Erwan Lanneau in
-[Lan08]_. Zorich gave an algorithm to pass from a connected component of a
+[Lan08]. Zorich gave an algorithm to pass from a connected component of a
 stratum to the associated Rauzy class (for both interval exchange
 transformations and linear involutions) in [Zor08]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.permutation_representative`
+
 - for hyperellitic component
   :meth:`~HypConnectedComponentOfAbelianStratum.permutation_representative`
+
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
+
 - for odd component :meth:`~OddConnectedComponentOfAbelianStratum.permutation_representative`
+
 - for even component :meth:`~EvenConnectedComponentOfAbelianStratum.permutation_representative`
 
 The inverse operation (pass from an interval exchange transformation to
@@ -80,7 +84,7 @@ By convention, the degrees are always written in decreasing order::
     sage: a1 == a2
     True
 
-It is possible to lis strata and their connected components:
+It is possible to lis strata and their connected components::
 
     sage: AbelianStratum(10).components()
     [H_6(10)^hyp, H_6(10)^odd, H_6(10)^even]
@@ -107,16 +111,17 @@ Obtains the connected components of a stratum::
     [1, 1, 1, 3, 13, 71, 461, 3447, 29093, 273343]
 
 ::
+
     sage: A = AbelianStrata(dimension=5, fake_zeros=True)
     sage: N = 0
     sage: for a in A:
-    ...      for cc in a.components():
-    ...         for z in set(a.zeros()):
-    ...             p = cc.permutation_representative(left_degree=z)
-    ...             n = p.rauzy_diagram().cardinality()
-    ...             print "%13s, %d  :  %d"%(cc, z, n)
-    ...             print p
-    ...             N += n
+    ....:    for cc in a.components():
+    ....:       for z in set(a.zeros()):
+    ....:           p = cc.permutation_representative(left_degree=z)
+    ....:           n = p.rauzy_diagram().cardinality()
+    ....:           print "%13s, %d  :  %d"%(cc, z, n)
+    ....:           print p
+    ....:           N += n
     H_2(2, 0)^hyp, 0  :  11
     0 1 2 3 4
     4 2 1 3 0
@@ -133,6 +138,7 @@ Obtains the connected components of a stratum::
     71
     sage: nb_irred_perm(5)
     71
+
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -300,7 +306,7 @@ class AbelianStratum(Stratum):
 
     def nb_fake_zeros(self):
         r"""
-        Return the number of fake zeros
+        Return the number of fake zeros.
 
         EXAMPLES::
 
@@ -316,15 +322,13 @@ class AbelianStratum(Stratum):
 
     def genus(self):
         r"""
-        Returns the genus of the stratum.
+        Return the genus of the stratum.
 
         OUTPUT:
 
         integer -- the genus
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: AbelianStratum(0).genus()
             1
@@ -337,7 +341,7 @@ class AbelianStratum(Stratum):
 
     def dimension(self):
         r"""
-        Returns the complex dimension of this stratum.
+        Return the complex dimension of this stratum.
 
         The dimension is `2g-2+s+1` where `g` is the genus of surfaces in the
         stratum, `s` the number of singularities. The complex dimension of a
@@ -384,7 +388,7 @@ class AbelianStratum(Stratum):
 
     def unique_component(self):
         r"""
-        If the stratum is connected, returns the unique component.
+        If the stratum is connected, return the unique component.
 
         EXAMPLES::
 
@@ -403,7 +407,7 @@ class AbelianStratum(Stratum):
 
     def odd_component(self):
         r"""
-        Return the odd spin component of self (if there is any).
+        Return the odd component of self (if any).
 
         EXAMPLES::
 
@@ -417,7 +421,7 @@ class AbelianStratum(Stratum):
 
     def even_component(self):
         r"""
-        Return the even spin component of self (if there is any)
+        Return the even component of self (if any)
 
         EXAMPLES::
 
@@ -431,7 +435,7 @@ class AbelianStratum(Stratum):
 
     def hyperelliptic_component(self):
         r"""
-        Return the hyperelliptic component of self (if there is any)
+        Return the hyperelliptic component of self (if any)
 
         EXAMPLES::
 
@@ -445,7 +449,7 @@ class AbelianStratum(Stratum):
 
     def non_hyperelliptic_component(self):
         r"""
-        Return the non hyperelliptic component of self (if there is any)
+        Return the non hyperelliptic component of self (if any)
 
         EXAMPLES::
 
@@ -470,7 +474,7 @@ class AbelianStratum(Stratum):
         If ``fake_zeros`` (default: False) is True we do care about poles which
         becomes a marked zero.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The stratum H(2g-2) has one conic singularities of angle `2(2g-1)pi`. The
         only way a surface in H(2g-2) covers a quadratic differential is that
@@ -576,14 +580,14 @@ class AbelianStratumComponent(StratumComponent):
         - ``alphabet`` - an alphabet or ``None``: whether you want to
           specify an alphabet for your permutation
 
-          - ``left_degree`` - the degree of the singularity on the left of the
-            interval.
+        - ``left_degree`` - the degree of the singularity on the left of the
+          interval.
 
         OUTPUT:
 
         permutation -- a permutation which lives in this component
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: c = AbelianStratum(1,1,1,1).unique_component()
             sage: p = c.permutation_representative(alphabet="abcdefghi")
@@ -700,9 +704,7 @@ class AbelianStratumComponent(StratumComponent):
 
         rauzy diagram -- the Rauzy diagram associated to this stratum
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: c = AbelianStratum(0).components()[0]
             sage: r = c.rauzy_diagram()
@@ -939,9 +941,7 @@ class EvenAbelianStratumComponent(ASC):
         - ``relabel`` - boolean (default: True) - if False uses Zorich's natural
           numbering otherwise uses 0,1,...
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: c = AbelianStratum(6).even_component()
             sage: c
@@ -1081,9 +1081,7 @@ class OddAbelianStratumComponent(ASC):
         A. Zorich constructs explicitely interval exchange
         transformations for each stratum in [Zor08]_.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: a = AbelianStratum(6).odd_component()
             sage: p = a.permutation_representative()
@@ -1652,6 +1650,7 @@ class AbelianStrata_gd(AbelianStrata_class):
     - ``dimension`` - an integer - the dimension of strata
 
     - ``fake_zeros`` - boolean - allows or not fake zeros
+
     """
     def __init__(self,genus,dimension,fake_zeros):
         r"""
@@ -1827,27 +1826,3 @@ class AbelianStrata_all(AbelianStrata_class):
         for g in count(1):
             for a in AbelianStrata_g(g):
                 yield a
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

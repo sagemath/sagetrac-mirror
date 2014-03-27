@@ -14,7 +14,7 @@ A stratum corresponds to the Sage object
 :class:`~sage.dynamics.flat_surfaces.strata.QuadraticStratum`.
 
 The classification of connected components of strata of quadratic
-differentials was established by Erwan Lanneau in [Lan08]_,
+differentials was established by Erwan Lanneau in [Lan08],
 after a similar classification was established by Kontsevich
 and Zorich in [KonZor03]_.
 
@@ -52,14 +52,7 @@ See:
 The code here implements the descriptions in [Zor08]_. Zorich already
 implemented all this for Mathematica in [ZS]_.
 
-REFERENCES:
-
-.. [Lan04] E. Lanneau "Parity of the spin structure defined by a quadratic
-   differential", Geometry and Topology 8 (2004)
-
-.. SEEALSO::
-
-    See also :mod:`abelian_strata`.
+See also :mod:`abelian_strata` for Abelian strata.
 
 AUTHORS:
 
@@ -362,7 +355,7 @@ class QuadraticStratum(Stratum):
             H_3(2^2, 0^4)
 
         For hyperelliptic strata (orientation cover of quadratic strata of the
-        form `Q(n,-1^{n+4})`) the dimension coincide. From [Lan08]_ we know that
+        form `Q(n,-1^{n+4})`) the dimension coincide. From [Lan08] we know that
         it only happens for those ones::
 
             sage: q = QuadraticStratum(4,genus=0); q
