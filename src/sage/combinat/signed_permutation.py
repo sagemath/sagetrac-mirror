@@ -32,7 +32,7 @@ class SignedPermutation(Element):
         return repr(self)
         
     def _repr_(self):
-        return rerp(self.l)
+        return repr(self.w)
         
 class SignedPermutations(Parent):
     r"""
