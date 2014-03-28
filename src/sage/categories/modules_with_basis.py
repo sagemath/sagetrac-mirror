@@ -25,7 +25,7 @@ from sage.misc.sage_itertools import max_cmp, min_cmp
 
 from sage.categories.category import HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
-from sage.categories.tensor import tensor, TensorProducts, TensorProductsCategory
+from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
