@@ -46,6 +46,7 @@ AUTHORS:
   problems with IPython history; add text logger; improve
   documentation about viewers.
 """
+from __future__ import absolute_import
 
 # Note: there is a web browser module standard with Python.
 # But it seems so dated as to be useless.
@@ -61,9 +62,9 @@ AUTHORS:
 import os
 import time
 
-import interpreter
-import latex
-import misc
+from . import interpreter
+from . import latex
+from . import misc
 
 from   sage.misc.viewer  import browser, dvi_viewer
 

@@ -226,6 +226,7 @@ In Sage, we write
 More complicated programs should be put in a separate file and
 loaded.
 """
+from __future__ import absolute_import
 
 #############################################################################
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -237,7 +238,7 @@ loaded.
 
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 
 import pexpect
 

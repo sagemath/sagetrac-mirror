@@ -1,6 +1,7 @@
 r"""
 Partition/Diagram Algebras
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -16,16 +17,16 @@ Partition/Diagram Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, catalan_number
-from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from .combinat import CombinatorialClass, catalan_number
+from .combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
 from sage.rings.arith import factorial, binomial
-from permutation import Permutations
+from .permutation import Permutations
 from sage.rings.all import Integer
 from sage.rings.real_mpfr import is_RealNumber
-from subset import Subsets
+from .subset import Subsets
 from sage.functions.all import ceil
 import functools, math
 

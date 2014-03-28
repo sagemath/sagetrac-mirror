@@ -1,6 +1,7 @@
 """
 Root system data for type BC affine
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -10,7 +11,7 @@ Root system data for type BC affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_affine
+from .cartan_type import CartanType_standard_affine
 from sage.rings.integer_ring import ZZ
 class CartanType(CartanType_standard_affine):
     def __init__(self, n):
@@ -106,7 +107,7 @@ class CartanType(CartanType_standard_affine):
             [(0, 1, 1), (1, 0, 4)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
         if n == 1:
@@ -246,7 +247,7 @@ class CartanType(CartanType_standard_affine):
             sage: CartanType(["BC", 3, 2]).classical()
             ['C', 3]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
     def _default_folded_cartan_type(self):

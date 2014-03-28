@@ -20,6 +20,7 @@ Check the fix from trac #8323::
     False
 
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -37,11 +38,11 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 from warnings import warn
 import operator, os, stat, socket, sys, signal, time, weakref, resource, math
 import sage.misc.prandom as random
-from lazy_string import lazy_string
+from .lazy_string import lazy_string
 
 from sage.misc.temporary_file import tmp_dir, tmp_filename, delete_tmpfiles
 
-from banner import version, banner
+from .banner import version, banner
 
 # for backwards compatiblity
 from sage.env import *

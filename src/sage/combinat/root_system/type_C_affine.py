@@ -1,13 +1,14 @@
 """
 Root system data for (untwisted) type C affine
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from cartan_type import CartanType_standard_untwisted_affine
+from .cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
     def __init__(self, n):
         """
@@ -62,11 +63,11 @@ class CartanType(CartanType_standard_untwisted_affine):
         """
         n = self.n
         if n == 1:
-            import cartan_type
+            from . import cartan_type
             res = cartan_type.CartanType(["A",1,1]).dynkin_diagram()
             res._cartan_type = self
             return res
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, n):
             g.add_edge(i, i+1)
@@ -114,7 +115,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$0$};
         """
         if self.n == 1:
-            import cartan_type
+            from . import cartan_type
             return cartan_type.CartanType(["A",1,1])._latex_dynkin_diagram(label, node_dist)
         if self.global_options('mark_special_node') in ['latex', 'both']:
             special_fill = 'black'
@@ -154,7 +155,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             0   1
         """
         n = self.n
-        from cartan_type import CartanType
+        from .cartan_type import CartanType
         if n == 1:
             return CartanType(["A",1,1]).ascii_art(label)
         if self.global_options('mark_special_node') in ['printing', 'both']:

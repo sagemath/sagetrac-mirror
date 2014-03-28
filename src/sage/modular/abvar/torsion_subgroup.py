@@ -77,6 +77,7 @@ TESTS::
     sage: loads(dumps(T)) == T
     True
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -85,7 +86,7 @@ TESTS::
 ###########################################################################
 
 from sage.modules.module            import Module
-from finite_subgroup                import FiniteSubgroup, TorsionPoint
+from .finite_subgroup                import FiniteSubgroup, TorsionPoint
 from sage.rings.all                 import divisors, gcd, ZZ, prime_range
 from sage.sets.primes               import Primes
 from sage.modular.arithgroup.all    import is_Gamma0

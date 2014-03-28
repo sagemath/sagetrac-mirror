@@ -16,6 +16,7 @@ AUTHORS:
     - Florent Hivert (2009-04)
     - Christian Stump (2012-11) added pretty printing
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
@@ -31,7 +32,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.integer import Integer
-from combinat import (CombinatorialClass, CombinatorialObject,
+from .combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass, catalan_number)
 from copy import copy
 

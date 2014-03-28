@@ -1,6 +1,7 @@
 """
 HTML typesetting for the notebook
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -270,7 +271,7 @@ class HTML:
             </html>
 
         """
-        from table import table
+        from .table import table
         table(x, header_row=header)._html_()
 
     def iframe(self, url, height=400, width=800):

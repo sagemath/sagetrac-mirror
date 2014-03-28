@@ -7,6 +7,7 @@ AUTHORS:
 
 - John Cremona (2008-01): EllipticCurve(j) fixed for all cases
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -288,7 +289,7 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
         TypeError: invalid input to EllipticCurve constructor
 
     """
-    import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
+    from . import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
     if j is not None:
         if not x is None:
@@ -1113,5 +1114,5 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         3^5,
         2^6 * 3^2]
     """
-    from ell_egros import (egros_from_jlist, egros_get_j)
+    from .ell_egros import (egros_from_jlist, egros_get_j)
     return egros_from_jlist(egros_get_j(S, proof=proof, verbose=verbose), S)

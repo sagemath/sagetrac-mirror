@@ -1,6 +1,7 @@
 r"""
 Objects
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -83,7 +84,7 @@ class Objects(Category):
                 sage: Objects().hom_category().extra_super_categories()
                 [Category of sets]
             """
-            from sets_cat import Sets
+            from .sets_cat import Sets
             return [Sets()]
 
         class ParentMethods:

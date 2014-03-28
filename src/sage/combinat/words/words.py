@@ -23,6 +23,7 @@ EXAMPLES::
     sage: Words('natural numbers')
     Words over Non negative integers
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                          Sébastien Labbé <slabqc@gmail.com>,
@@ -648,7 +649,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             False
         """
 
-        from paths import WordPaths_all
+        from .paths import WordPaths_all
         # Specific case of Words_over_Alphabet and WordPath. See #15480
         # i.e. when self,other in Words_over_Alphabet, WordPath and one of them at least is a wordpath
         if ((isinstance(self,WordPaths_all) and isinstance(other,WordPaths_all)) or

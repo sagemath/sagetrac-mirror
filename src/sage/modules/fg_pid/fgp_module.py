@@ -199,6 +199,7 @@ AUTHOR:
 
     - William Stein, 2009
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -218,8 +219,8 @@ AUTHOR:
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
 from sage.structure.sequence import Sequence
-from fgp_element  import DEBUG, FGP_Element
-from fgp_morphism import FGP_Morphism, FGP_Homset
+from .fgp_element  import DEBUG, FGP_Element
+from .fgp_morphism import FGP_Morphism, FGP_Homset
 from sage.rings.all import Integer, ZZ, lcm
 from sage.misc.cachefunc import cached_method
 

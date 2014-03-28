@@ -44,6 +44,7 @@ two variables::
     sage: t*(x+y)
     (x + y)*t
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -385,7 +386,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         except TypeError:
             pass
 
-        from multi_polynomial_libsingular import MPolynomial_libsingular
+        from .multi_polynomial_libsingular import MPolynomial_libsingular
 
         if isinstance(x, MPolynomial_polydict):
             P = x.parent()

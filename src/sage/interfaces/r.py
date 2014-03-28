@@ -198,6 +198,7 @@ AUTHORS:
 - Harald Schilly (2008-03-20)
 - Mike Hansen (2008-04-19)
 """
+from __future__ import absolute_import
 
 ##########################################################################
 #
@@ -211,7 +212,7 @@ AUTHORS:
 #
 ##########################################################################
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import DOT_SAGE
 import re
 import sage.rings.integer

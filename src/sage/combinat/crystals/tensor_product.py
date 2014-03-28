@@ -13,6 +13,7 @@ AUTHORS:
   non-regular crystals and created new subclass to take advantage of
   the regularity
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
 #                          Nicolas Thiery <nthiery at users.sf.net>
@@ -43,8 +44,8 @@ from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
-from letters import CrystalOfLetters
-from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
+from .letters import CrystalOfLetters
+from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
 from sage.rings.integer import Integer
 

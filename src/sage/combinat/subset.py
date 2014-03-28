@@ -12,6 +12,7 @@ AUTHORS:
 - Florent Hivert (2009/02/06): doc improvements + new methods
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -35,7 +36,7 @@ import sage.combinat.choose_nk as choose_nk
 import sage.misc.prandom as rnd
 import __builtin__
 import itertools
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from sage.sets.set import Set_object_enumerated
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 

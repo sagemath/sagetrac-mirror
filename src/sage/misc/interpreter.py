@@ -56,6 +56,7 @@ that shell.  The bulk of this functionality is provided through
 :class:`InterfaceShellTransformer`.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004-2012 William Stein <wstein@gmail.com>
@@ -69,7 +70,7 @@ import os, re, new, sys
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
-from preparser import (preparse, preparse_file, load_wrap)
+from .preparser import (preparse, preparse_file, load_wrap)
 
 def embedded():
     """
@@ -407,7 +408,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: ift.preparse_imports_from_sage('2 + gap(a)')
             '2 + gap(a)'
         """
-        from sage_eval import sage_eval
+        from .sage_eval import sage_eval
         for sage_code in self._sage_import_re.findall(line):
             expr = preparse(sage_code)
             result = self.shell.interface(sage_eval(expr, self.shell.user_ns))

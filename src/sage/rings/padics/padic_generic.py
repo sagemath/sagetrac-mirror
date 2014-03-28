@@ -11,6 +11,7 @@ AUTHORS:
 - Julian Rueth (2013-03-16): test methods for basic arithmetic
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -27,7 +28,7 @@ AUTHORS:
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
-from local_generic import LocalGeneric
+from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
@@ -804,7 +805,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K.frobenius_endomorphism(6) == Frob
             True
         """
-        from morphism import FrobeniusEndomorphism_padics
+        from .morphism import FrobeniusEndomorphism_padics
         return FrobeniusEndomorphism_padics(self, n)
 
     def _test_elements_eq_transitive(self, **options):

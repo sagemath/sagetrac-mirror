@@ -80,6 +80,7 @@ AUTHORS:
 - Chris Wuthrich: more documentation 2010-01
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -105,8 +106,8 @@ from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_NumberFieldElemen
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.ideal import is_Ideal
 
-from constructor import EllipticCurve
-from kodaira_symbol import KodairaSymbol
+from .constructor import EllipticCurve
+from .kodaira_symbol import KodairaSymbol
 
 class EllipticCurveLocalData(SageObject):
     r"""

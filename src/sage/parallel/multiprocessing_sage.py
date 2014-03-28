@@ -1,6 +1,7 @@
 """
 Parallel Iterator built using Python's multiprocessing module
 """
+from __future__ import absolute_import
 
 ################################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -14,7 +15,7 @@ Parallel Iterator built using Python's multiprocessing module
 from multiprocessing import Pool
 from functools import partial
 from sage.misc.fpickle import pickle_function, call_pickled_function
-import ncpus
+from . import ncpus
 
 def pyprocessing(processes=0):
     """

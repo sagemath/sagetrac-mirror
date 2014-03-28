@@ -37,6 +37,7 @@ REFERENCES:
 - Data provided by Jason Grout (Brigham Young University). [Online]
   Available: http://artsci.drake.edu/grout/graphs/
 """
+from __future__ import absolute_import
 
 ################################################################################
 #           Copyright (C) 2007 Emily A. Kirkman
@@ -46,7 +47,7 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 
-import graph
+from . import graph
 import os,re
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...

@@ -527,6 +527,7 @@ AUTHORS:
 
 - Carl Witty (2008-03): initial version
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Carl Witty <Carl.Witty@gmail.com>
@@ -546,7 +547,7 @@ from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.misc.preparser import implicit_mul
 
-from expect import Expect, ExpectFunction, AsciiArtString
+from .expect import Expect, ExpectFunction, AsciiArtString
 
 def _qepcad_cmd(memcells=None):
     r"""

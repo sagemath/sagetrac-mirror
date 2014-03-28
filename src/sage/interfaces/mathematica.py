@@ -346,6 +346,7 @@ AUTHORS:
 - Felix Lawrence (2009-08-21): Added support for importing Mathematica lists
   and floats with exponents.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -365,7 +366,7 @@ AUTHORS:
 import os
 import re
 
-from expect import (Expect, ExpectElement, ExpectFunction,
+from .expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
 def clean_output(s):

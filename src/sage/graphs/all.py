@@ -1,16 +1,17 @@
+from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.graphs.graph_generators", "graphs")
 lazy_import("sage.graphs.digraph_generators", "digraphs")
 lazy_import("sage.graphs.hypergraph_generators", "hypergraphs")
-from graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
-from graph import Graph
-from digraph import DiGraph
-from hypergraph import Hypergraph
-from bipartite_graph import BipartiteGraph
-from graph_bundle import GraphBundle
-import weakly_chordal
-import graph_list as graphs_list
+from .graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
+from .graph import Graph
+from .digraph import DiGraph
+from .hypergraph import Hypergraph
+from .bipartite_graph import BipartiteGraph
+from .graph_bundle import GraphBundle
+from . import weakly_chordal
+from . import graph_list as graphs_list
 import sage.graphs.generic_graph_pyx
 import sage.graphs.generic_graph
 import sage.graphs.graph_decompositions
@@ -21,7 +22,7 @@ import sage.graphs.graph_decompositions
 import sage.graphs.modular_decomposition.modular_decomposition
 import sage.graphs.comparability
 from sage.graphs.cliquer import *
-from graph_database import graph_db_info
+from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
 
 import sage.graphs.isgci

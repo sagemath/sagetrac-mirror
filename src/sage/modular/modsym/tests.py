@@ -6,6 +6,7 @@ TESTS:
     sage: [(g.degree(), e) for g, e in m.T(2).fcp()]
     [(1, 1), (1, 2), (2, 2), (3, 2), (6, 2), (20, 2)]
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -27,7 +28,7 @@ TESTS:
 
 import random
 
-import modsym
+from . import modsym
 import sage.modular.dirichlet as dirichlet
 import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime

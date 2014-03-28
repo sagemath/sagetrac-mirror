@@ -37,6 +37,7 @@ REFERENCES:
    With an Appendix on the Combinatorics of Macdonald Polynomials, James Haglund,
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -53,9 +54,9 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, catalan_number
+from .combinat import CombinatorialObject, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
-from backtrack import GenericBacktracker
+from .backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent

@@ -56,6 +56,7 @@ For display options, see :meth:`Tableaux.global_options`.
 
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2011 Jason Bandlow <jbandlow@gmail.com>
@@ -85,11 +86,11 @@ from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.composition import Composition, Compositions
-from integer_vector import IntegerVectors
+from .integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 import copy
-import permutation
+from . import permutation
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq, prod
@@ -542,7 +543,7 @@ class Tableau(CombinatorialObject, Element):
         """
         if len(self) == 0:
             return "{\\emptyset}"
-        from output import tex_from_array
+        from .output import tex_from_array
         return tex_from_array(self)
 
     def __div__(self, t):

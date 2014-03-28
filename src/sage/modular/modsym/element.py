@@ -1,6 +1,7 @@
 """
 A single element of an ambient space of modular symbols
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -23,7 +24,7 @@ A single element of an ambient space of modular symbols
 import sage.modules.free_module_element
 import sage.misc.misc as misc
 import sage.structure.formal_sum as formal_sum
-import ambient
+from . import ambient
 import sage.modular.hecke.all as hecke
 import sage.misc.latex as latex
 

@@ -1,6 +1,7 @@
-from dokchitser import Dokchitser
+from __future__ import absolute_import
+from .dokchitser import Dokchitser
 
-from lcalc import lcalc
+from .lcalc import lcalc
 
-from sympow import sympow
+from .sympow import sympow
 

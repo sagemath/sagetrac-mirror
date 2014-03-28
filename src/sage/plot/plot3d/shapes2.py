@@ -8,6 +8,7 @@ AUTHORS:
 - William Stein and Robert Bradshaw (2008-01): Many improvements
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #      Copyright (C) 2007 William Stein <wstein@gmail.com>
 #      Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
@@ -26,20 +27,20 @@ AUTHORS:
 
 
 import math
-import shapes
+from . import shapes
 
-from base import PrimitiveObject, point_list_bounding_box
+from .base import PrimitiveObject, point_list_bounding_box
 
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.decorators import options, rename_keyword
 from sage.misc.misc import srange
 
-from texture import Texture
+from .texture import Texture
 
 TACHYON_PIXEL = 1/200.0
 
-from shapes import Text, Sphere
+from .shapes import Text, Sphere
 
 from sage.structure.element import is_Vector
 
@@ -216,7 +217,7 @@ def bezier3d(path, **options):
         sage: curve = bezier3d(path, thickness=5, color='blue')
         sage: curve
     """
-    import parametric_plot3d as P3D
+    from . import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
     from sage.calculus.calculus import var
 
@@ -730,7 +731,7 @@ class Point(PrimitiveObject):
         """
         T = render_params.transform
         if T is None:
-            import transform
+            from . import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
         S = shapes.Sphere(self.size / 200.0).translate(T(self.loc))
@@ -868,7 +869,7 @@ class Line(PrimitiveObject):
         """
         T = render_params.transform
         if T is None:
-            import transform
+            from . import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
         L = line3d([T(P) for P in self.points], radius=self.thickness / 200.0, arrow_head=self.arrow_head, texture=self.texture)

@@ -6,6 +6,7 @@ AUTHORS:
  - David Kohel & William Stein (2005): initial revision
  - Nicolas M. Thiery (2008): rewrote for new category framework
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -16,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.homset import Hom
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.dual import DualObjectsCategory

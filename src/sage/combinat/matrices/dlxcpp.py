@@ -1,6 +1,7 @@
 """
 Dancing links C++ wrapper
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Carlo Hamalainen <carlo.hamalainen@gmail.com>,
 #
@@ -19,7 +20,7 @@ Dancing links C++ wrapper
 # OneExactCover and AllExactCovers are almost exact copies of the
 # functions with the same name in sage/combinat/dlx.py by Tom Boothby.
 
-from dancing_links import dlx_solver
+from .dancing_links import dlx_solver
 
 def DLXCPP(rows):
     """

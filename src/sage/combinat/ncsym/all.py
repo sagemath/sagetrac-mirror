@@ -1,3 +1,4 @@
-from ncsym import SymmetricFunctionsNonCommutingVariables
-from dual import SymmetricFunctionsNonCommutingVariablesDual
+from __future__ import absolute_import
+from .ncsym import SymmetricFunctionsNonCommutingVariables
+from .dual import SymmetricFunctionsNonCommutingVariablesDual
 

@@ -1,6 +1,7 @@
 r"""
 GroupAlgebras
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -10,7 +11,7 @@ GroupAlgebras
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.sets.family import Family
@@ -59,7 +60,7 @@ class GroupAlgebras(Category_over_base_ring):
             sage: GroupAlgebras(QQ).super_categories()
             [Category of monoid algebras over Rational Field]
         """
-        from monoid_algebras import MonoidAlgebras
+        from .monoid_algebras import MonoidAlgebras
         return [MonoidAlgebras(self.base_ring())] # TODO: could become Kac algebras / Hopf algebras
 
     def example(self, G = None):

@@ -16,11 +16,12 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys, platform
 
 from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
-from misc import SPYX_TMP
+from .misc import SPYX_TMP
 
 def cblas():
     """

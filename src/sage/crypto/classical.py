@@ -30,6 +30,7 @@ AUTHORS:
 
 - Minh Van Nguyen (2009-08): shift cipher, affine cipher
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -57,8 +58,8 @@ from sage.rings.arith import xgcd
 from random import randint
 from sage.matrix.matrix_space import MatrixSpace
 
-from cryptosystem import SymmetricKeyCryptosystem
-from classical_cipher import (
+from .cryptosystem import SymmetricKeyCryptosystem
+from .classical_cipher import (
     AffineCipher,
     HillCipher,
     ShiftCipher,

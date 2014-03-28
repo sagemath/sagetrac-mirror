@@ -4,6 +4,7 @@ Small graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
@@ -303,8 +304,8 @@ def WellsGraph():
       Distance-Regular Graphs,
       Springer, 1989.
     """
-    from platonic_solids import DodecahedralGraph
-    from basic import CompleteBipartiteGraph
+    from .platonic_solids import DodecahedralGraph
+    from .basic import CompleteBipartiteGraph
 
     # Following the construction from the book "Distance-regular graphs"
     dodecahedron = DodecahedralGraph()

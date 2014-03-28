@@ -1,6 +1,7 @@
 """
 Interactively tracing execution of a command
 """
+from __future__ import absolute_import
 
 def trace(code, preparse=True):
     r"""
@@ -83,7 +84,7 @@ def trace(code, preparse=True):
     except NameError:
         raise NotImplementedError("the trace command can only be run from the Sage command-line")
 
-    import preparser
+    from . import preparser
     code = preparser.preparse(code)
     return pdb.run(code, ipython.user_ns)
 

@@ -45,12 +45,13 @@ while the full version has the layout::
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
-from sql_db import SQLDatabase, verify_column
+from .sql_db import SQLDatabase, verify_column
 from sage.misc.package import is_package_installed
 from sage.misc.misc import SAGE_SHARE, walltime
 

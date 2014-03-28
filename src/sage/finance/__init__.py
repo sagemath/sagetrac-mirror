@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # Quantitative Finance
 
-import all
+from . import all

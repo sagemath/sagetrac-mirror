@@ -12,6 +12,7 @@ These are special classes of free monoid elements with distinct printing.
 The internal representation of elements does not use the exponential
 compression of FreeMonoid elements (a feature), and could be packed into words.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -26,8 +27,8 @@ from sage.rings.integer import Integer
 from sage.rings.all import RealField
 # from sage.structure.element import MonoidElement
 from sage.probability.random_variable import DiscreteProbabilitySpace
-from free_monoid_element import FreeMonoidElement
-import string_monoid
+from .free_monoid_element import FreeMonoidElement
+from . import string_monoid
 
 def is_StringMonoidElement(x):
     r"""

@@ -303,6 +303,7 @@ see ticket #11645::
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
     'ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
 """
+from __future__ import absolute_import
 
 #We could also do these calculations without using the singular
 #interface (behind the scenes the interface is used by Sage):
@@ -331,7 +332,7 @@ see ticket #11645::
 
 import os, re, sys
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.structure.sequence import Sequence
 

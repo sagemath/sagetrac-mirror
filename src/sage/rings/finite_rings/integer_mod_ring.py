@@ -46,6 +46,7 @@ AUTHORS:
 
 - Simon King (2011-04-21): allow to prescribe a category
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -70,7 +71,7 @@ import sage.misc.prandom as random
 from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.field as field
-import integer_mod
+from . import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring
@@ -561,7 +562,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except AttributeError:
             if not self.is_field():
                 raise ValueError("self must be a field")
-            import constructor
+            from . import constructor
             k = constructor.FiniteField(self.order())
             self.__field = k
             return k

@@ -61,6 +61,7 @@ This test catches a tricky corner case for spaces with character::
     sage: ModularSymbols(DirichletGroup(20).1**3, weight=3, sign=1).cuspidal_subspace()
     Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 and level 20, weight 3, character [1, -zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -81,7 +82,7 @@ This test catches a tricky corner case for spaces with character::
 
 import weakref
 
-import ambient
+from . import ambient
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field

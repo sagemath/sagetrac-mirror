@@ -10,6 +10,7 @@ AUTHORS:
 - Julian Rueth: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -80,7 +81,7 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
             from sage.dev.trac_error import TracConnectionError
             raise TracConnectionError
 
-        from server_proxy import DoctestServerProxy
+        from .server_proxy import DoctestServerProxy
         return DoctestServerProxy(self._server)
 
     @property
@@ -107,5 +108,5 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
             from sage.dev.trac_error import TracConnectionError
             raise TracConnectionError
 
-        from server_proxy import AuthenticatedDoctestServerProxy
+        from .server_proxy import AuthenticatedDoctestServerProxy
         return AuthenticatedDoctestServerProxy(self._server, self._username, self._password)

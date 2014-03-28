@@ -10,6 +10,7 @@ AUTHORS:
   initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
 #                          Julian Rueth <julian.rueth@fsfe.org>
@@ -206,7 +207,7 @@ class TracInterface(object):
         # and should never be relied on for something other than informational
         # messages
         import os
-        from saving_dict import SavingDict
+        from .saving_dict import SavingDict
         from sage.env import DOT_SAGE
         ticket_cache_file = self._config.get('ticket_cache', os.path.join(DOT_SAGE,'ticket_cache'))
         self.__ticket_cache = SavingDict(ticket_cache_file)
@@ -483,7 +484,7 @@ class TracInterface(object):
             server = self._config.get('server', TRAC_SERVER_URI)
             import urlparse
             url = urlparse.urljoin(server, 'xmlrpc')
-            from digest_transport import DigestTransport
+            from .digest_transport import DigestTransport
             transport = DigestTransport()
             from xmlrpclib import ServerProxy
             self.__anonymous_server_proxy = ServerProxy(url, transport=transport)
@@ -536,8 +537,8 @@ class TracInterface(object):
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('login', 'xmlrpc')))
             while True:
                 from xmlrpclib import ServerProxy
-                from digest_transport import DigestTransport
-                from trac_error import TracAuthenticationError
+                from .digest_transport import DigestTransport
+                from .trac_error import TracAuthenticationError
                 transport = DigestTransport()
                 transport.add_authentication(realm=realm, url=server, username=self._username, password=self._password)
                 proxy = ServerProxy(url, transport=transport)
@@ -882,7 +883,7 @@ class TracInterface(object):
         comment = list(open(filename).read().splitlines())
         comment = [line for line in comment if not line.startswith("#")]
         if all([line.strip()=="" for line in comment]):
-            from user_interface_error import OperationCancelledError
+            from .user_interface_error import OperationCancelledError
             raise OperationCancelledError("comment creation aborted")
         comment = "\n".join(comment)
 
@@ -921,7 +922,7 @@ class TracInterface(object):
 
         ret = self._edit_ticket_interactive(summary, description, attributes)
         if ret is None:
-            from user_interface_error import OperationCancelledError
+            from .user_interface_error import OperationCancelledError
             raise OperationCancelledError("edit aborted")
 
         attributes['summary'] = ret[0]
@@ -1005,7 +1006,7 @@ class TracInterface(object):
                     break
 
             if ret is None:
-                from user_interface_error import OperationCancelledError
+                from .user_interface_error import OperationCancelledError
                 raise OperationCancelledError("ticket edit aborted")
 
         finally:
@@ -1040,7 +1041,7 @@ class TracInterface(object):
         ret = self._edit_ticket_interactive("", None, attributes)
 
         if ret is None:
-            from user_interface_error import OperationCancelledError
+            from .user_interface_error import OperationCancelledError
             raise OperationCancelledError("ticket creation aborted")
 
         ticket = self.create_ticket(*ret)

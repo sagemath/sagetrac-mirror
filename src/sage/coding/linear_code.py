@@ -201,6 +201,7 @@ TESTS::
     sage: C == loads(dumps(C))
     True
 """
+from __future__ import absolute_import
 
 #******************************************************************************
 #       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
@@ -689,7 +690,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     d=int(b)
     if d!=b or d%2==1 or d <= 0:
         raise ValueError("b (%s) must be a positive even integer."%b)
-    from binary_code import BinaryCode, BinaryCodeClassifier
+    from .binary_code import BinaryCode, BinaryCodeClassifier
     if k < 1 or n < 2:
         return
     if equal:
@@ -1476,7 +1477,7 @@ class LinearCode(module.Module_old):
         Does not work for very long codes since the syndrome table grows too
         large.
         """
-        from decoder import decode
+        from .decoder import decode
         if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
             return decode(self,right)
         elif algorithm == 'guava':

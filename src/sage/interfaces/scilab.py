@@ -171,6 +171,7 @@ AUTHORS:
    -- Ronan Paixao (2008-11-26), based on the MATLAB tutorial by
       William Stein (2006-10-11)
 """
+from __future__ import absolute_import
 ##############################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Ronan Paixao <ronanpaixao@yahoo.com.br>
@@ -189,7 +190,7 @@ AUTHORS:
 
 import os
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 
 
 class Scilab(Expect):

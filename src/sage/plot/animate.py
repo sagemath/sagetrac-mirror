@@ -87,6 +87,7 @@ REFERENCES:
 .. [FF]  http://www.ffmpeg.org
 
 """
+from __future__ import absolute_import
 
 ############################################################################
 #  Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -98,7 +99,7 @@ import os
 
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_filename, tmp_dir
-import plot
+from . import plot
 import sage.misc.misc
 import sage.misc.viewer
 

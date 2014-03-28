@@ -142,6 +142,7 @@ We can also make mutable copies of an immutable simplicial complex
     sage: S == T
     True
 """
+from __future__ import absolute_import
 
 # possible future directions for SimplicialComplex:
 #
@@ -2699,7 +2700,7 @@ class SimplicialComplex(GenericCellComplex):
             sage: T.homology() == Td.homology()
             True
         """
-        from delta_complex import DeltaComplex
+        from .delta_complex import DeltaComplex
         data = {}
         dim = self.dimension()
         n_cells = self.n_cells(dim)

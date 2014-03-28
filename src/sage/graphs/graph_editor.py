@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #*****************************************************************************
 #      Copyright (C) 2009   Radoslav Kirov
 #
@@ -14,7 +15,7 @@
 #*****************************************************************************
 import sys
 
-from graph_generators import graphs
+from .graph_generators import graphs
 from sage.misc.html import html
 
 import sagenb.notebook.interact

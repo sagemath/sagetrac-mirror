@@ -1,6 +1,7 @@
 r"""
 Modular abelian varieties
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -10,9 +11,9 @@ Modular abelian varieties
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base
+from .category_types import Category_over_base
 from sage.misc.cachefunc import cached_method
-from sets_cat import Sets
+from .sets_cat import Sets
 
 class ModularAbelianVarieties(Category_over_base):
     """

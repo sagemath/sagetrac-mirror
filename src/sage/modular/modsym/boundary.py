@@ -77,6 +77,7 @@ REFERENCES:
 
 - Stein, "Modular Forms, a computational approach." AMS (2007).
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -113,9 +114,9 @@ import sage.modular.hecke.all as hecke
 import sage.rings.all as rings
 import sage.rings.arith as arith
 
-import ambient
-import element
-import manin_symbols
+from . import ambient
+from . import element
+from . import manin_symbols
 
 
 class BoundarySpaceElement(hecke.HeckeModuleElement):

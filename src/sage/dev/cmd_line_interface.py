@@ -20,6 +20,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 from subprocess import check_call, CalledProcessError
 from getpass import getpass
 
@@ -27,8 +28,8 @@ import os
 import textwrap
 import itertools
 
-from user_interface import UserInterface
-from user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
+from .user_interface import UserInterface
+from .user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
 
 try:
     from sage.doctest import DOCTEST_MODE
@@ -143,7 +144,7 @@ class CmdLineInterface(UserInterface):
                 except StopIteration:
                     return ret
         except KeyboardInterrupt:
-            from user_interface_error import OperationCancelledError
+            from .user_interface_error import OperationCancelledError
             raise OperationCancelledError("cancelled by keyboard interrupt")
 
     def select(self, prompt, options, default=None):
@@ -401,5 +402,5 @@ class CmdLineInterface(UserInterface):
             editor = os.environ.get('EDITOR', 'nano')
             check_call(['sage-native-execute', editor, filename])
         except CalledProcessError:
-            from user_interface_error import OperationCancelledError
+            from .user_interface_error import OperationCancelledError
             raise OperationCancelledError("Editor returned non-zero exit value")

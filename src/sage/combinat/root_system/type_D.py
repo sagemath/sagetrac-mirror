@@ -1,6 +1,7 @@
 """
 Root system data for type D
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -9,7 +10,7 @@ Root system data for type D
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import ambient_space
+from . import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
     def dimension(self):
@@ -122,7 +123,7 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_A', 'ambient_space',  AmbientSpace)
 
 from sage.misc.cachefunc import cached_method
-from cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
+from .cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simply_laced):
     def __init__(self, n):
         """
@@ -240,7 +241,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             sage: sorted(d.edges())
             []
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         n = self.n
         if n >= 3:

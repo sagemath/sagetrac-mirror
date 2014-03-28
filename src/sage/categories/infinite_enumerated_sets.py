@@ -6,6 +6,7 @@ AUTHORS:
  - Florent Hivert (2009-11): initial revision.
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
@@ -14,7 +15,7 @@ AUTHORS:
 #******************************************************************************
 
 
-from category_types import Category
+from .category_types import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets

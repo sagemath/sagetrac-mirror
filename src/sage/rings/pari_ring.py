@@ -8,6 +8,7 @@ AUTHORS:
   proper initialisation of elements.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -23,7 +24,7 @@ import operator
 
 import sage.libs.pari.all as pari
 import sage.rings.ring as ring
-import ring_element
+from . import ring_element
 
 from sage.structure.unique_representation import UniqueRepresentation
 

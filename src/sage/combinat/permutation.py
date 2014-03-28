@@ -202,6 +202,7 @@ AUTHORS:
 Classes and methods
 ===================
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -233,17 +234,17 @@ from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
 from sage.combinat.composition import Composition
-import tableau
-from permutation_nk import PermutationsNK
+from . import tableau
+from .permutation_nk import PermutationsNK
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
-from combinat import CombinatorialObject, catalan_number
+from .combinat import CombinatorialObject, catalan_number
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
-from backtrack import GenericBacktracker
+from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 
@@ -6403,7 +6404,7 @@ class CyclicPermutations(Permutations_mset):
             for i in index_list:
                 content[i] += 1
 
-        from necklace import Necklaces
+        from .necklace import Necklaces
         for necklace in Necklaces(content):
             yield [self.mset[x-1] for x in necklace]
 

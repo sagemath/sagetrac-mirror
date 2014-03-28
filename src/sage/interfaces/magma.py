@@ -205,6 +205,7 @@ AUTHORS:
 - William Stein (2006-03-09): added nvals argument for
   magma.functions...
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -224,7 +225,7 @@ AUTHORS:
 import re, sys
 
 from sage.structure.parent import Parent
-from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
 
 SAGE_REF = "_sage_ref"

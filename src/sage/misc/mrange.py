@@ -9,6 +9,7 @@ AUTHORS:
 
 - Jon Hanke
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -18,7 +19,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import misc
+from . import misc
 
 def _len(L):
     """

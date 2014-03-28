@@ -1,10 +1,11 @@
 """
 Cremona's mwrank C++ library
 """
+from __future__ import absolute_import
 
 __doc_exclude = []  # to include everything
 
-from interface import (mwrank_EllipticCurve, mwrank_MordellWeil,
+from .interface import (mwrank_EllipticCurve, mwrank_MordellWeil,
                        get_precision, set_precision)
 
 
@@ -27,7 +28,7 @@ def mwrank_initprimes(filename, verb=False):
         sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^6)]))
         sage: mwrank_initprimes(file, verb=False)
     """
-    from mwrank import initprimes as mwrank_initprimes
+    from .mwrank import initprimes as mwrank_initprimes
     return mwrank_initprimes(filename, verb)
 
 

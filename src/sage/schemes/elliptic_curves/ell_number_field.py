@@ -73,6 +73,7 @@ REFERENCE:
 - [Sil2] Silverman, Joseph H. Advanced topics in the arithmetic of elliptic curves. Graduate Texts in
   Mathematics, 151. Springer, 1994.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -90,24 +91,24 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ell_field import EllipticCurve_field
-import ell_point
+from .ell_field import EllipticCurve_field
+from . import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors
 from sage.misc.misc import prod
-import ell_torsion
-from ell_generic import is_EllipticCurve
+from . import ell_torsion
+from .ell_generic import is_EllipticCurve
 
-from gp_simon import simon_two_descent
-from constructor import EllipticCurve
+from .gp_simon import simon_two_descent
+from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, RealField
 import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
 from sage.rings.arith import valuation
 
-import gal_reps_number_field
+from . import gal_reps_number_field
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""

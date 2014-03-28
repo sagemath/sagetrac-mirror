@@ -12,6 +12,7 @@ AUTHORS:
 
 - Mariah Lenox (2011-03): Added set_order method
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -31,14 +32,14 @@ AUTHORS:
 from sage.misc.randstate import current_randstate
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
-from ell_field import EllipticCurve_field
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .ell_field import EllipticCurve_field
+from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.all import is_FiniteFieldElement
 import sage.groups.generic as generic
-import ell_point
+from . import ell_point
 from sage.rings.arith import gcd, lcm
 from sage.structure.sequence import Sequence
 
@@ -1668,7 +1669,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E1.is_isogenous(E7,GF(13^30,'j'))
             False
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
             raise ValueError, "Second argument is not an Elliptic Curve."
         if self.is_isomorphic(other):

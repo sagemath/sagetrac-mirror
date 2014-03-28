@@ -11,6 +11,7 @@ AUTHORS:
     The list(self) function in this file used the :class:`Permutation` class improperly, returning
     a list of, generally speaking, invalid permutations (repeated entries, including 0).
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                2010 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -28,7 +29,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.words.word import Word
-from permutation import Permutation
+from .permutation import Permutation
 
 def WeightedIntegerVectors(n = None, weight = None):
     """

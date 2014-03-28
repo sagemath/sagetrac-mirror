@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # init file
 
-import all
+from . import all

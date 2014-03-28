@@ -14,6 +14,7 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
 In particular, the relevant section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -28,8 +29,8 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from stream import Stream, Stream_class
-from series_order import  bounded_decrement, increment, inf, unk
+from .stream import Stream, Stream_class
+from .series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer
 from sage.misc.misc import prod
 from functools import partial

@@ -8,6 +8,7 @@ REFERENCES:
     "A Polyhedron Full of Surprises",
     Mathematics Magazine 85 (2012), no. 5, 334-342.
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -29,7 +30,7 @@ from sage.functions.other import sqrt, floor, ceil
 from sage.functions.trig import sin, cos
 from sage.misc.decorators import rename_keyword
 
-from constructor import Polyhedron
+from .constructor import Polyhedron
 
 
 

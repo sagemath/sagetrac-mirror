@@ -162,6 +162,7 @@ Python floats.
     sage: float(axiom(2))     #optional - axiom
     2.0
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -176,7 +177,7 @@ Python floats.
 
 import os, re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import verbose, DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace

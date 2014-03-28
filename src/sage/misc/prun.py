@@ -5,6 +5,7 @@ AUTHORS:
 
 - Timo Kluck (2012-09-05): initial version
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2012 William Stein <wstein@gmail.com>
@@ -15,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from preparser import preparse_file
+from .preparser import preparse_file
 class Prun(object):
     r"""
     Run cell contents in a profiler

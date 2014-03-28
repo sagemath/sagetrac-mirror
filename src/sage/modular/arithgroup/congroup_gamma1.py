@@ -1,6 +1,7 @@
 r"""
 Congruence Subgroup `\Gamma_1(N)`
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -17,7 +18,7 @@ Congruence Subgroup `\Gamma_1(N)`
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.misc import prod
-from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
+from .congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup
 
@@ -67,7 +68,7 @@ def Gamma1_constructor(N):
         True
     """
     if N == 1 or N == 2:
-        from congroup_gamma0 import Gamma0_constructor
+        from .congroup_gamma0 import Gamma0_constructor
         return Gamma0_constructor(N)
     try:
         return _gamma1_cache[N]
@@ -228,7 +229,7 @@ class Gamma1_class(GammaH_class):
             return self.farey_symbol().generators()
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.g1list import G1list
-            from congroup_pyx import generators_helper
+            from .congroup_pyx import generators_helper
             level = self.level()
             gen_list = generators_helper(G1list(level), level, Mat2Z)
             return [self(g, check=False) for g in gen_list]
@@ -418,7 +419,7 @@ class Gamma1_class(GammaH_class):
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
         """
 
-        from all import Gamma0
+        from .all import Gamma0
 
         # first deal with special cases
 
@@ -460,7 +461,7 @@ class Gamma1_class(GammaH_class):
         elif algorithm == "CohenOesterle":
             K = eps.base_ring()
             from sage.modular.dims import CohenOesterle
-            from all import Gamma0
+            from .all import Gamma0
             return ZZ( K(Gamma0(N).index() * (k-1)/ZZ(12)) + CohenOesterle(eps,k) )
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
@@ -512,7 +513,7 @@ class Gamma1_class(GammaH_class):
             sage: [Gamma1(48).dimension_eis(3,eps,algorithm="Quer") for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]
         """
-        from all import Gamma0
+        from .all import Gamma0
 
         # first deal with special cases
 
@@ -615,12 +616,12 @@ class Gamma1_class(GammaH_class):
         N = self.level()
         eps = DirichletGroup(N)(eps)
 
-        from all import Gamma0
+        from .all import Gamma0
 
         if eps.is_trivial():
             return Gamma0(N).dimension_new_cusp_forms(k, p)
 
-        from congroup_gammaH import mumu
+        from .congroup_gammaH import mumu
 
         if p == 0 or N%p != 0 or eps.conductor().valuation(p) == N.valuation(p):
             D = [eps.conductor()*d for d in divisors(N//eps.conductor())]

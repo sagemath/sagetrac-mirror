@@ -1,15 +1,16 @@
-from block_design import (BlockDesign)
+from __future__ import absolute_import
+from .block_design import (BlockDesign)
 
-from ext_rep import (designs_from_XML, designs_from_XML_url)
+from .ext_rep import (designs_from_XML, designs_from_XML_url)
 
-from incidence_structures import (IncidenceStructure,
+from .incidence_structures import (IncidenceStructure,
                           IncidenceStructureFromMatrix)
 
-from covering_design import (CoveringDesign,
+from .covering_design import (CoveringDesign,
                              schonheim,
                              trivial_covering_design)
 
-import design_catalog as designs
+from . import design_catalog as designs
 
 from sage.misc.superseded import deprecated_callable_import
 deprecated_callable_import(14499,

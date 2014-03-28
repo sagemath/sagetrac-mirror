@@ -515,6 +515,7 @@ Graphs are mutable, and thus unusable as dictionary keys, unless
 Methods
 -------
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #      Copyright (C) 2006 - 2007 Robert L. Miller <rlmillster@gmail.com>
@@ -5166,7 +5167,7 @@ class Graph(GenericGraph):
             Bipartite graph on 6 vertices
             sage: (G.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
-        from bipartite_graph import BipartiteGraph
+        from .bipartite_graph import BipartiteGraph
         import networkx
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 

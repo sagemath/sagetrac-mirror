@@ -58,17 +58,18 @@ AUTHORS:
 - Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
+from __future__ import absolute_import
 from sage.structure.element         import FieldElement
 from sage.structure.parent_gens     import ParentWithGens
 from sage.libs.pari.all             import pari
 
-from field                          import Field
-from rational_field                 import QQ
-from integer_ring                   import ZZ
-from infinity                       import infinity
-from real_mpfr                      import is_RealNumber, RealField
-from real_double                    import RDF
-from arith                          import (continued_fraction_list,
+from .field                          import Field
+from .rational_field                 import QQ
+from .integer_ring                   import ZZ
+from .infinity                       import infinity
+from .real_mpfr                      import is_RealNumber, RealField
+from .real_double                    import RDF
+from .arith                          import (continued_fraction_list,
                                             convergent, convergents)
 
 

@@ -41,6 +41,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
     Wall time: ...
     2 * 3^3 * 11
 """
+from __future__ import absolute_import
 
 from IPython.core.hooks import TryNext
 from IPython.core.magic import Magics, magics_class, line_magic
@@ -229,7 +230,7 @@ class SageMagics(Magics):
               2  4,   3  4,   3   ,   4   ,   4   ,   4 ]
             sage: shell.run_cell('%display simple')
         """
-        import displayhook, ascii_art
+        from . import displayhook, ascii_art
         args_split = mode.split(" ")
         if len(args_split) < 2:
             if mode == "":
@@ -252,7 +253,7 @@ class SageMagics(Magics):
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
 
 
-import displayhook
+from . import displayhook
 class SageCustomizations(object):
     startup_code = """from sage.all_cmdline import *
 from sage.misc.interpreter import sage_prompt
@@ -364,7 +365,7 @@ from sage.misc.interpreter import sage_prompt
         """
         import sage
         import sage.all
-        from interpreter import (SagePreparseTransformer,
+        from .interpreter import (SagePreparseTransformer,
                                  sage_prompt_transformer,
                                  magic_transformer)
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):

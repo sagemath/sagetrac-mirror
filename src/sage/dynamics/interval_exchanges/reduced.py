@@ -45,6 +45,7 @@ TESTS::
     sage: p = ReducedPermutationIET([[1,2,3],[3,2,1]])
     sage: d = ReducedRauzyDiagram(p)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -59,12 +60,12 @@ from copy import copy
 from sage.combinat.words.alphabet import Alphabet
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI   # permutations
-from template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
+from .template import PermutationIET, PermutationLI   # permutations
+from .template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
 
-from template import interval_conversion, side_conversion
+from .template import interval_conversion, side_conversion
 
 class ReducedPermutation(SageObject) :
     r"""

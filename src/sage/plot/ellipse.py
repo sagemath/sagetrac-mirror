@@ -1,6 +1,7 @@
 """
 Ellipses
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -15,7 +16,7 @@ Ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from primitive import GraphicPrimitive
+from .primitive import GraphicPrimitive
 from sage.plot.misc import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, sqrt, pi, fmod

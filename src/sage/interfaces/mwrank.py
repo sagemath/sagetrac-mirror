@@ -1,6 +1,7 @@
 r"""
 Interface to mwrank
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -18,7 +19,7 @@ Interface to mwrank
 #*****************************************************************************
 
 import os, weakref
-from expect import Expect
+from .expect import Expect
 
 instances={}
 def Mwrank(options="", server=None, server_tmpdir=None):

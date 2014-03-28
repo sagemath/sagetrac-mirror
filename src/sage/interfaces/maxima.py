@@ -439,6 +439,7 @@ A long complicated input expression::
     sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
     '1/n9^9+1/n8^8+1/n7^7+1/n6^6+1/n5^5+1/n4^4+1/n3^3+1/n2^2+1/n1+1'
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -465,10 +466,10 @@ from sage.env import DOT_SAGE, SAGE_LOCAL
 
 ##import sage.rings.all
 
-from expect import (Expect, ExpectElement, FunctionElement,
+from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled, AsciiArtString)
 
-from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
+from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
                              MaximaAbstractFunctionElement,
                              MaximaAbstractElementFunction)

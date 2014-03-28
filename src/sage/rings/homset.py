@@ -1,6 +1,7 @@
 """
 Space of homomorphisms between two rings
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -14,8 +15,8 @@ from sage.categories.homset import HomsetWithBase
 from sage.categories.rings import Rings
 _Rings = Rings()
 
-import morphism
-import quotient_ring
+from . import morphism
+from . import quotient_ring
 
 def is_RingHomset(H):
     """

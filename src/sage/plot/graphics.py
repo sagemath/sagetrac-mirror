@@ -13,6 +13,7 @@ AUTHORS:
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
@@ -31,7 +32,7 @@ from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename, graphics_filename
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
-from colors import rgbcolor
+from .colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
@@ -2005,7 +2006,7 @@ class Graphics(SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2031,7 +2032,7 @@ class Graphics(SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))

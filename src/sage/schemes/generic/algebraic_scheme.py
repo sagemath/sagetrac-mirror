@@ -106,6 +106,7 @@ AUTHORS:
 - Volker Braun (2010-12-24): documentation of schemes and
   refactoring. Added coordinate neighborhoods and is_smooth()
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
@@ -145,8 +146,8 @@ from sage.calculus.functions import jacobian
 
 import sage.schemes.projective
 import sage.schemes.affine
-import ambient_space
-import scheme
+from . import ambient_space
+from . import scheme
 
 
 

@@ -1,6 +1,7 @@
 """
 Jacobian of a General Hyperelliptic Curve
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -10,8 +11,8 @@ Jacobian of a General Hyperelliptic Curve
 
 from sage.rings.all import Integer
 from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
-import jacobian_homset
-import jacobian_morphism
+from . import jacobian_homset
+from . import jacobian_morphism
 
 class HyperellipticJacobian_generic(Jacobian_generic):
     """

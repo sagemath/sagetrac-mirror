@@ -8,6 +8,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -20,14 +21,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from pow_computer_ext import PowComputer_ext_maker
+from .pow_computer_ext import PowComputer_ext_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
-from unramified_extension_generic import UnramifiedExtensionGeneric
-from eisenstein_extension_generic import EisensteinExtensionGeneric
+from .unramified_extension_generic import UnramifiedExtensionGeneric
+from .eisenstein_extension_generic import EisensteinExtensionGeneric
 #from padic_general_extension_generic import pAdicGeneralExtensionGeneric
 
-from generic_nodes import pAdicCappedRelativeRingGeneric, \
+from .generic_nodes import pAdicCappedRelativeRingGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFixedModRingGeneric
@@ -42,9 +43,9 @@ from generic_nodes import pAdicCappedRelativeRingGeneric, \
 #from padic_general_extension_capped_relative_element import pAdicGeneralExtensionCappedRelativeElement
 #from padic_general_extension_lazy_element import pAdicGeneralExtensionLazyElement
 
-from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
-from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
-from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
+from .padic_ZZ_pX_FM_element import pAdicZZpXFMElement
+from .padic_ZZ_pX_CR_element import pAdicZZpXCRElement
+from .padic_ZZ_pX_CA_element import pAdicZZpXCAElement
 
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):

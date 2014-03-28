@@ -29,6 +29,7 @@ EXAMPLES::
     q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)
     ]
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -42,8 +43,8 @@ from sage.rings.all import Integer
 from sage.misc.all import verbose
 from sage.matrix.all import Matrix
 
-import submodule
-import vm_basis
+from . import submodule
+from . import vm_basis
 
 class CuspidalSubmodule(submodule.ModularFormsSubmodule):
     """

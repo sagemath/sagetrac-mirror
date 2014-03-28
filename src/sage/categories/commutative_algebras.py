@@ -1,6 +1,7 @@
 r"""
 Commutative algebras
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -11,9 +12,9 @@ Commutative algebras
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category_over_base_ring
-from algebras import Algebras
-from commutative_rings import CommutativeRings
+from .category_types import Category_over_base_ring
+from .algebras import Algebras
+from .commutative_rings import CommutativeRings
 
 class CommutativeAlgebras(Category_over_base_ring):
     """

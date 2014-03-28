@@ -1,7 +1,8 @@
-from posets import Poset
+from __future__ import absolute_import
+from .posets import Poset
 
-from lattices import LatticePoset
-from lattices import MeetSemilattice
-from lattices import JoinSemilattice
+from .lattices import LatticePoset
+from .lattices import MeetSemilattice
+from .lattices import JoinSemilattice
 
-from poset_examples import posets, Posets
+from .poset_examples import posets, Posets

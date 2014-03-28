@@ -56,6 +56,7 @@ See trac 5886::
     [0 1]...
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -74,7 +75,7 @@ See trac 5886::
 
 import sage.categories.homset
 import sage.matrix.all as matrix
-import free_module_morphism
+from . import free_module_morphism
 from inspect import isfunction
 from sage.misc.cachefunc import cached_method
 

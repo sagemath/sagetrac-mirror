@@ -20,6 +20,7 @@ We test that pickling works::
     sage: I == loads(dumps(I))
     True
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -49,7 +50,7 @@ import sage.rings.arith as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.constructor import FiniteField
 
-import number_field
+from . import number_field
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod

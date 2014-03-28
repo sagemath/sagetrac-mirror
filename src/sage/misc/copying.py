@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import os
-import pager
+from . import pager
 
 from sage.env import SAGE_ROOT
 

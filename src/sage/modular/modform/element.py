@@ -2,6 +2,7 @@
 """
 Elements of modular forms spaces
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
@@ -11,7 +12,7 @@ Elements of modular forms spaces
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-import space
+from . import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 from sage.modular.modsym.space import is_ModularSymbolsSpace
@@ -1049,7 +1050,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             verbose("character of product not determined")
 
         # now do the math
-        from constructor import ModularForms
+        from .constructor import ModularForms
         if newchar is not None:
             verbose("creating a parent with char")
             newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())

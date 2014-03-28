@@ -13,15 +13,16 @@ EXAMPLES::
     sage: S.base_ring()
     Univariate Polynomial Ring in x over Finite Field of size 17
 """
+from __future__ import absolute_import
 
 import weakref
 
-import laurent_series_ring_element
-import power_series_ring
-import polynomial
-import commutative_ring
-import integral_domain
-import field
+from . import laurent_series_ring_element
+from . import power_series_ring
+from . import polynomial
+from . import commutative_ring
+from . import integral_domain
+from . import field
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
@@ -443,7 +444,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ## field, since you can always (mathematically!) construct
         ## some power series that doesn't converge.
         ## Note that 0 is not a *ring* homomorphism.
-        from power_series_ring import is_PowerSeriesRing
+        from .power_series_ring import is_PowerSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0 and codomain.has_coerce_map_from(self.base_ring())
         return False

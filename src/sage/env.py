@@ -6,6 +6,7 @@ AUTHORS:
 - \R. Andrew Ohana (2012): Initial version.
 
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
@@ -18,7 +19,7 @@ AUTHORS:
 ########################################################################
 
 import os, socket
-import version
+from . import version
 
 opj = os.path.join
 

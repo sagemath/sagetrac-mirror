@@ -12,6 +12,7 @@ AUTHORS:
     - Tom Boothby (2008/05/02): Exact Cover, Dancing Links algorithm
     - Robert Beezer (2009/05/29): Backtracking algorithm, Sudoku class
 """
+from __future__ import absolute_import
 ######################################################################
 #       Copyright (C) 2009, Robert A. Beezer <beezer@ups.edu>
 #
@@ -716,7 +717,7 @@ class Sudoku(SageObject):
         .. [sudoku:escargot]  "Al Escargot", due to Arto Inkala, http://timemaker.blogspot.com/2006/12/ai-escargot-vwv.html
         .. [sudoku:wikipedia]  "Near worst case", Wikipedia: "Algorithmics of sudoku", http://en.wikipedia.org/wiki/Algorithmics_of_sudoku
         """
-        from sudoku_backtrack import backtrack_all
+        from .sudoku_backtrack import backtrack_all
         solutions = backtrack_all(self.n, self.puzzle)
         for soln in solutions:
             yield soln

@@ -9,6 +9,7 @@ AUTHORS:
 
 - David Kohel (2006-01)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -32,7 +33,7 @@ from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
 
-from curve import Curve_generic
+from .curve import Curve_generic
 
 class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
     def _repr_type(self):

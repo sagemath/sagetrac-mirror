@@ -1,6 +1,7 @@
 r"""
 Combinations
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -19,9 +20,9 @@ Combinations
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer
 from sage.rings.arith import binomial
-from combinat import CombinatorialClass
-from choose_nk import rank, from_rank
-from integer_vector import IntegerVectors
+from .combinat import CombinatorialClass
+from .choose_nk import rank, from_rank
+from .integer_vector import IntegerVectors
 from sage.misc.misc import uniq
 
 def Combinations(mset, k=None):

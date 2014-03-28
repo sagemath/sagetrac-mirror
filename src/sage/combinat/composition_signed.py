@@ -1,6 +1,7 @@
 r"""
 Signed Compositions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -16,8 +17,8 @@ Signed Compositions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from composition import Compositions_n, Composition
-import cartesian_product
+from .composition import Compositions_n, Composition
+from . import cartesian_product
 from sage.rings.all import Integer
 from sage.rings.arith import binomial
 import __builtin__

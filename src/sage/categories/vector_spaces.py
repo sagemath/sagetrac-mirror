@@ -1,6 +1,7 @@
 r"""
 Vector Spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -11,7 +12,7 @@ Vector Spaces
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_module
+from .category_types import Category_module
 from sage.categories.fields import Fields
 from sage.categories.dual import DualObjectsCategory
 from sage.misc.cachefunc import cached_method

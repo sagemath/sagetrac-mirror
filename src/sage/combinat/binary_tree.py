@@ -30,6 +30,7 @@ REFERENCES:
    *Counting smaller trees in the Tamari order*,
    :arxiv:`1212.0751v1`.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
@@ -2736,7 +2737,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(5).cardinality()
             42
         """
-        from combinat import catalan_number
+        from .combinat import catalan_number
         return catalan_number(self._size)
 
     def __iter__(self):

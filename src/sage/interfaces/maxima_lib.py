@@ -50,6 +50,7 @@ which is anyway set to raise an error::
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -70,7 +71,7 @@ from sage.symbolic.ring import SR, var
 
 from sage.libs.ecl import *
 
-from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
+from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
   MaximaAbstractElementFunction)
 

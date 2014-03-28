@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -8,7 +9,7 @@
 
 from sage.rings.all import RealField
 from sage.probability.random_variable import DiscreteProbabilitySpace
-from string_monoid_element import StringMonoidElement
+from .string_monoid_element import StringMonoidElement
 
 def strip_encoding(S):
     """

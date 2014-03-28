@@ -6,6 +6,7 @@ AUTHORS:
 - Peter Bruin (June 2013): initial version, based on
   finite_field_ext_pari.py by William Stein et al.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013 Peter Bruin <peter.bruin@math.uzh.ch>
@@ -17,8 +18,8 @@ AUTHORS:
 #*****************************************************************************
 
 
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_base import FiniteField
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_base import FiniteField
 
 
 class FiniteField_pari_ffelt(FiniteField):
@@ -113,7 +114,7 @@ class FiniteField_pari_ffelt(FiniteField):
             sage: k = FiniteField_pari_ffelt(3, x^2 + 2*x + 2, 'a'); k
             Finite Field in a of size 3^2
         """
-        import constructor
+        from . import constructor
         from sage.libs.pari.all import pari
         from sage.rings.integer import Integer
         from sage.structure.proof.all import arithmetic

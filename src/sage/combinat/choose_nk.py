@@ -1,6 +1,7 @@
 """
 Low-level Combinations
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -18,7 +19,7 @@ Low-level Combinations
 import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
 from sage.misc.misc import uniq
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 
 class ChooseNK(CombinatorialClass):
     """

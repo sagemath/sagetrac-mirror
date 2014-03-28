@@ -23,6 +23,7 @@ AUTHOR:
    -- Kociemba was written by Dik T. Winter <dik.winter@cwi.nl> (1993)
    -- Initial interface by Robert Bradshaw (2007-08)
 """
+from __future__ import absolute_import
 
 ########################################################################
 #   Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -35,7 +36,7 @@ AUTHOR:
 ########################################################################
 
 import pexpect, time
-import cleaner
+from . import cleaner
 
 from sage.groups.perm_gps.cubegroup import *
 

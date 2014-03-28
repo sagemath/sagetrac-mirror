@@ -1,6 +1,7 @@
 """
 Generate cdd ``.ext`` / ``.ine`` file format
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -12,7 +13,7 @@ Generate cdd ``.ext`` / ``.ine`` file format
 ########################################################################
 
 
-from misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
+from .misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
 
 
 

@@ -5,6 +5,7 @@ AUTHOR:
     -- David Joyner (2006-01-26): written
     -- William Stein (2006-01-23) -- inclusion in Sage
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdj@usna.edu>
@@ -17,7 +18,7 @@ AUTHOR:
 
 import copy
 
-import linear_code
+from . import linear_code
 
 from sage.matrix.all import MatrixSpace
 

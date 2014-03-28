@@ -1,6 +1,7 @@
 r"""
 Algebras With Basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -15,7 +16,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import ModulesWithBasis, Algebras
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 
 class AlgebrasWithBasis(Category_over_base_ring):
     """

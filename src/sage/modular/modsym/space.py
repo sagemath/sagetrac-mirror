@@ -5,6 +5,7 @@ Space of modular symbols (base class)
 All the spaces of modular symbols derive from this class. This class is an
 abstract base class.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -36,7 +37,7 @@ import sage.modular.modsym.ambient
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
 
-import hecke_operator
+from . import hecke_operator
 
 from sage.misc.cachefunc import cached_method
 

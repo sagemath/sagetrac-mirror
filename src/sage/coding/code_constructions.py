@@ -139,6 +139,7 @@ Functions
 ---------
 
 """
+from __future__ import absolute_import
 ############################################################################
 ## Copyright David Joyner, 2007. wdjoyner@gmail.com.
 ##  This is released under the GPL, version 2 or later (www.fsf.org).
@@ -150,7 +151,7 @@ from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.misc import prod
-from linear_code import LinearCodeFromVectorSpace, LinearCode
+from .linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence

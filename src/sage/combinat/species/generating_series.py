@@ -58,6 +58,7 @@ weighted degree where each variable x_i has weight i.
     sage: s[4]
     p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2]
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -72,8 +73,8 @@ weighted degree where each variable x_i has weight i.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from series import LazyPowerSeriesRing, LazyPowerSeries
-from stream import Stream, _integers_from
+from .series import LazyPowerSeriesRing, LazyPowerSeries
+from .stream import Stream, _integers_from
 from sage.rings.all import Integer, moebius, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial

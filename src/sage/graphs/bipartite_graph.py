@@ -24,6 +24,7 @@ TESTS::
     sage: type(B.copy())
     <class 'sage.graphs.bipartite_graph.BipartiteGraph'>
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
@@ -32,7 +33,7 @@ TESTS::
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from graph import Graph
+from .graph import Graph
 
 class BipartiteGraph(Graph):
     r"""

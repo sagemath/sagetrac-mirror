@@ -5,6 +5,7 @@ In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -56,7 +57,7 @@ import subprocess
 import types
 
 from sage.misc.temporary_file import tmp_dir, graphics_filename
-import sage_eval
+from . import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
 
@@ -1156,7 +1157,7 @@ class Latex(LatexCall):
         """
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
-        from latex_macros import sage_configurable_latex_macros
+        from .latex_macros import sage_configurable_latex_macros
         global sage_configurable_latex_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)
@@ -1546,7 +1547,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
             See http://trac.sagemath.org/13508 for details.
             []
         """
-        from superseded import deprecation
+        from .superseded import deprecation
         deprecation(13508, 'Use mathjax_avoid_list instead.')
         if L is None:
             return _Latex_prefs._option['mathjax_avoid']
@@ -1593,7 +1594,7 @@ Warning: `%s` is not part of this computer's TeX installation."""%file_name
             See http://trac.sagemath.org/13508 for details.
             sage: latex.mathjax_avoid_list([])  # reset list to default
         """
-        from superseded import deprecation
+        from .superseded import deprecation
         deprecation(13508, 'Use add_to_mathjax_avoid_list instead.')
         self.add_to_mathjax_avoid_list(s)
 

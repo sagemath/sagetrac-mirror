@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 ##########################################################################
 #
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -11,7 +12,7 @@
 
 import sage.modular.hecke.hecke_operator
 from sage.rings.arith import is_prime
-import heilbronn
+from . import heilbronn
 
 class HeckeOperator(sage.modular.hecke.hecke_operator.HeckeOperator):
     def apply_sparse(self, x):

@@ -1,6 +1,7 @@
 r"""
 Rngs
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #
@@ -11,8 +12,8 @@ Rngs
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.misc.cachefunc import cached_method
-from commutative_additive_groups import CommutativeAdditiveGroups
-from semigroups import Semigroups
+from .commutative_additive_groups import CommutativeAdditiveGroups
+from .semigroups import Semigroups
 
 class Rngs(Category_singleton):
     """

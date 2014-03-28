@@ -1,6 +1,7 @@
 r"""
 Tuples
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -17,7 +18,7 @@ Tuples
 #*****************************************************************************
 
 
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ
 

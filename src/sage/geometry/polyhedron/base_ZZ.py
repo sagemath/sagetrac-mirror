@@ -1,6 +1,7 @@
 r"""
 Base class for polyhedra over `\ZZ`
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
@@ -16,8 +17,8 @@ from sage.rings.all import ZZ, QQ, gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from constructor import Polyhedron
-from base import Polyhedron_base
+from .constructor import Polyhedron
+from .base import Polyhedron_base
 
 
 

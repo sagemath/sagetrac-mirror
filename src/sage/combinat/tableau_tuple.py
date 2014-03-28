@@ -196,6 +196,7 @@ REFERENCES:
    Adv. Math., 222 (2009), 1883-1942"
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2012 Andrew Mathas <andrew dot mathas at sydney dot edu dot au>
 #
@@ -233,7 +234,7 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
-import permutation
+from . import permutation
 
 #--------------------------------------------------
 # Tableau tuple - element class
@@ -563,7 +564,7 @@ class TableauTuple(CombinatorialObject,Element):
             \end{array}$}
             } \Bigg)
         """
-        from output import tex_from_array_tuple
+        from .output import tex_from_array_tuple
         return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
 
 

@@ -19,6 +19,7 @@ Also Liu has given me explicit permission to include
 genus2reduction with Sage and for people to modify the C source
 code however they want.
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -30,7 +31,7 @@ code however they want.
 
 
 import os
-from expect import Expect
+from .expect import Expect
 from sage.structure.sage_object import SageObject
 
 class Genus2reduction_expect(Expect):

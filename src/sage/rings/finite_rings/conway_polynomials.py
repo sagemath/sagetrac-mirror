@@ -9,6 +9,7 @@ AUTHORS:
 
 - Peter Bruin
 """
+from __future__ import absolute_import
 from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.constructor import FiniteField
 import sage.databases.conway
@@ -296,7 +297,7 @@ def _find_pow_of_frobenius(p, n, x, y):
         11
 
     """
-    from integer_mod import mod
+    from .integer_mod import mod
     for i in xrange(n):
         if x == y: break
         y = y**p
@@ -390,7 +391,7 @@ def _frobenius_shift(K, generators, check_only=False):
     p = K.characteristic()
     n = K.degree()
     compatible = {}
-    from integer_mod import mod
+    from .integer_mod import mod
     for m in n.divisors():
         compatible[m] = {}
     for q, x in generators.iteritems():
@@ -416,7 +417,7 @@ def _frobenius_shift(K, generators, check_only=False):
             j = qlist.index(mqlist[k])
             i = qlist.index(mqlist[k-1])
             crt[(i,j)].append(_find_pow_of_frobenius(p, m, compatible[m][qlist[j]], compatible[m][qlist[i]]))
-    from integer_mod import mod
+    from .integer_mod import mod
     pairs = crt.keys()
     for i, j in pairs:
         L = crt[(i,j)]

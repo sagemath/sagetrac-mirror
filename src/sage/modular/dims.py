@@ -29,6 +29,7 @@ These functions mostly call the methods dimension_cusp_forms,
 dimension_modular_forms and so on of the corresponding congruence subgroup
 classes.
 """
+from __future__ import absolute_import
 
 ##########################################################################
 #       Copyright (C) 2004,2005,2006,2007,2008 William Stein <wstein@gmail.com>
@@ -47,7 +48,7 @@ from sage.rings.arith import (factor, is_prime,
 from sage.misc.misc import mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
-import dirichlet
+from . import dirichlet
 Z = ZZ  # useful abbreviation.
 
 from sage.modular.arithgroup.all import Gamma0, Gamma1, is_ArithmeticSubgroup, is_GammaH

@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 # In the long run, this will be the single entry point
 # Nothing else will be exported
 from sage.misc.lazy_import import lazy_import
 
-from sf import SymmetricFunctions
+from .sf import SymmetricFunctions
 
 # This is deprecated:
 lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra'])
@@ -11,4 +12,4 @@ lazy_import('sage.combinat.sf.sfa', ['SymmetricFunctionAlgebra'])
 
 lazy_import('sage.combinat.sf.kfpoly', 'KostkaFoulkesPolynomial')
 
-from ns_macdonald import NonattackingFillings, AugmentedLatticeDiagramFilling, LatticeDiagram
+from .ns_macdonald import NonattackingFillings, AugmentedLatticeDiagramFilling, LatticeDiagram

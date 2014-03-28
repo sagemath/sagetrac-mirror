@@ -10,6 +10,7 @@ AUTHORS:
   Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
 #                          Frej Drejhammar <frej.drejhammar@gmail.com>
@@ -53,8 +54,8 @@ GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should w
 HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
-from user_interface_error import OperationCancelledError
-from git_error import GitError
+from .user_interface_error import OperationCancelledError
+from .git_error import GitError
 
 
 class MercurialPatchMixin(object):
@@ -221,7 +222,7 @@ class MercurialPatchMixin(object):
                     self._UI.debug("Deleting {0}.".format(local_file))
                     os.unlink(local_file)
         elif patchname or url:
-            from sagedev import SageDevValueError
+            from .sagedev import SageDevValueError
             raise SageDevValueError("if local_file is specified, patchname and url must not be specified")
         else:
             lines = open(local_file).read().splitlines()
@@ -406,7 +407,7 @@ class MercurialPatchMixin(object):
             ticket = self._current_ticket()
 
         if ticket is None:
-            from sagedev import SageDevValueError
+            from .sagedev import SageDevValueError
             raise SageDevValueError("ticket or url must be specified if not currently on a ticket")
 
         ticket = self._ticket_from_ticket_name(ticket)
@@ -426,7 +427,7 @@ class MercurialPatchMixin(object):
         else:
             attachments = self.trac.attachment_names(ticket)
             if len(attachments) == 0:
-                from sagedev import SageDevValueError
+                from .sagedev import SageDevValueError
                 raise SageDevValueError("Ticket #%s has no attachments."%ticket)
             if len(attachments) == 1:
                 ret = self.download_patch(ticket = ticket, patchname = attachments[0])
@@ -583,7 +584,7 @@ class MercurialPatchMixin(object):
                     if format is None:
                         format = name
                     if format != name:
-                        from sagedev import SageDevValueError
+                        from .sagedev import SageDevValueError
                         raise SageDevValueError("File appears to have mixed diff formats.")
 
         if format is None:
@@ -666,7 +667,7 @@ class MercurialPatchMixin(object):
                                 if path_format is None:
                                     path_format = name
                                 if path_format != name:
-                                    from sagedev import SageDevValueError
+                                    from .sagedev import SageDevValueError
                                     raise SageDevValueError("File appears to have mixed path formats.")
 
         if path_format is None:
@@ -885,7 +886,7 @@ class MercurialPatchMixin(object):
         """
         lines = list(lines)
         if not lines:
-            from sagedev import SageDevValueError
+            from .sagedev import SageDevValueError
             raise SageDevValueError("patch is empty")
 
         if HG_HEADER_REGEX.match(lines[0]):
@@ -996,7 +997,7 @@ class MercurialPatchMixin(object):
 
         lines = list(lines)
         if not lines:
-            from sagedev import SageDevValueError
+            from .sagedev import SageDevValueError
             raise SageDevValueError("empty patch file")
 
         if from_format is None:
@@ -1011,7 +1012,7 @@ class MercurialPatchMixin(object):
             for (key, regex) in regexs:
                 if i > len(lines):
                     if mandatory:
-                        from sagedev import SageDevValueError
+                        from .sagedev import SageDevValueError
                         raise SageDevValueError('Malformed patch. Missing line for regular expression "%s".'
                                                 %(regex.pattern))
                     else:
@@ -1022,7 +1023,7 @@ class MercurialPatchMixin(object):
                         header[key] = match.groups()[0]
                     i += 1
                 elif mandatory:
-                    from sagedev import SageDevValueError
+                    from .sagedev import SageDevValueError
                     raise SageDevValueError('Malformed patch. Line "%s" does not match regular expression "%s".'
                                             %(lines[i],regex.pattern))
 

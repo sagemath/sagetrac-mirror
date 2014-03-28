@@ -15,6 +15,7 @@ AUTHOR:
 
     -- William Stein, based on code by Fernando Perez included in IPython
 """
+from __future__ import absolute_import
 
 
 class SageTimeitResult():
@@ -196,7 +197,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     import time, math
     import timeit as timeit_
 
-    import preparser, interpreter
+    from . import preparser, interpreter
 
     number=int(number)
     repeat=int(repeat)

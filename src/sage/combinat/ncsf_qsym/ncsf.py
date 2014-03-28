@@ -1,6 +1,7 @@
 """
 Non-Commutative Symmetric Functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #                     2012 Franco Saliola <saliola@gmail.com>,
@@ -422,7 +423,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             """
             R = self.base().base_ring()
-            from generic_basis_code import GradedModulesWithInternalProduct
+            from .generic_basis_code import GradedModulesWithInternalProduct
             return [BasesOfQSymOrNCSF(self.base()),
                     GradedModulesWithInternalProduct(R).Realizations()]
 

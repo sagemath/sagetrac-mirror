@@ -1,6 +1,7 @@
 r"""
 Modules
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -12,12 +13,12 @@ Modules
 #******************************************************************************
 
 from sage.categories.category import HomCategory
-from category_types import Category_module
+from .category_types import Category_module
 from sage.misc.cachefunc import cached_method
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
 _Fields = Fields()
-from vector_spaces import VectorSpaces
+from .vector_spaces import VectorSpaces
 
 class Modules(Category_module):
     r"""
@@ -221,5 +222,5 @@ class Modules(Category_module):
                 sage: Hom(ZZ^3, ZZ^3).category().extra_super_categories() # todo: not implemented
                 [Category of algebras over Integer Ring]
             """
-            from algebras import Algebras
+            from .algebras import Algebras
             return [Algebras(self.base_category.base_ring())]

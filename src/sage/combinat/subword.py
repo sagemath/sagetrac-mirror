@@ -31,6 +31,7 @@ AUTHORS:
 
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -50,7 +51,7 @@ AUTHORS:
 import sage.combinat.combination as combination
 from sage.rings.arith import factorial
 import itertools
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 
 
 def Subwords(w, k=None):

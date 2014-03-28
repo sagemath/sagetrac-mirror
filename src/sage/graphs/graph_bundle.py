@@ -17,6 +17,7 @@ TESTS::
     True
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
@@ -25,7 +26,7 @@ TESTS::
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from graph import Graph
+from .graph import Graph
 
 class GraphBundle(Graph):
 
@@ -117,7 +118,7 @@ class GraphBundle(Graph):
             Bipartite petersen graph: graph on 10 vertices
 
         """
-        from bipartite_graph import BipartiteGraph
+        from .bipartite_graph import BipartiteGraph
         return BipartiteGraph(self, [self.fiber[left_vertex], self.fiber[right_vertex]], check=False)
 
     def _repr_(self):

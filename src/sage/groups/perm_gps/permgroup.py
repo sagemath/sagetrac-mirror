@@ -115,6 +115,7 @@ REFERENCES:
    generators.
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -684,7 +685,7 @@ class PermutationGroup_generic(group.Group):
             ...
             TypeError: no implicit coercion of element into permutation group
         """
-        from permgroup_named import SymmetricGroup
+        from .permgroup_named import SymmetricGroup
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
             if x_parent is self:
@@ -3363,7 +3364,7 @@ class PermutationGroup_generic(group.Group):
 
         dsts = [right(iso.Image(x), check=False) for x in self.gens()]
 
-        from permgroup_morphism import PermutationGroupMorphism_im_gens
+        from .permgroup_morphism import PermutationGroupMorphism_im_gens
         return PermutationGroupMorphism_im_gens(self, right, dsts)
 
     def is_isomorphic(self, right):

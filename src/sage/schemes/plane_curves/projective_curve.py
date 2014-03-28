@@ -11,6 +11,7 @@ AUTHORS:
 
 - Moritz Minzlaff (2010-11)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -28,7 +29,7 @@ from sage.rings.all import degree_lowest_rational_function
 
 from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
-from curve import Curve_generic_projective
+from .curve import Curve_generic_projective
 
 class ProjectiveSpaceCurve_generic(Curve_generic_projective):
     def _repr_type(self):
@@ -252,7 +253,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         # one avoiding "infinity", i.e. the one corresponding to the
         # last projective coordinate being nonzero
         patch = kwds.pop('patch', self.ngens() - 1)
-        from constructor import Curve
+        from .constructor import Curve
         C = Curve(self.affine_patch(patch))
         return C.plot(*args, **kwds)
 

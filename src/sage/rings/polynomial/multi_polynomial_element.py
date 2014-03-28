@@ -35,6 +35,7 @@ We verify Lagrange's four squares identity::
     sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
     True
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -61,7 +62,7 @@ from sage.structure.element import CommutativeRingElement, canonical_coercion, c
 import sage.misc.misc as misc
 import sage.rings.integer
 
-import polydict
+from . import polydict
 
 from sage.structure.factorization import Factorization
 
@@ -70,7 +71,7 @@ from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singu
 from sage.structure.sequence import Sequence
 
 
-from multi_polynomial import MPolynomial
+from .multi_polynomial import MPolynomial
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)

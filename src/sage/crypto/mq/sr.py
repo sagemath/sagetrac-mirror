@@ -310,6 +310,7 @@ REFERENCES:
   Within the AES*\; in Advances in Cryptology \- CRYPTO 2002\; LNCS
   2442\; Springer Verlag 2002
 """
+from __future__ import absolute_import
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, BooleanPolynomialRing_constructor as BooleanPolynomialRing
@@ -324,7 +325,7 @@ from sage.misc.flatten import flatten
 from sage.modules.vector_modn_dense import Vector_modn_dense
 
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-from mpolynomialsystemgenerator import MPolynomialSystemGenerator
+from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
 

@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
-from ag_code import ag_code
+from .ag_code import ag_code
 
-from code_constructions import (permutation_action,
+from .code_constructions import (permutation_action,
                    walsh_matrix,cyclotomic_cosets)
 
 from sage.misc.superseded import deprecated_callable_import
@@ -46,7 +47,7 @@ deprecated_callable_import(15445,
                             "way anymore. To use it, you can now call it by "
                             "typing codes.%(name)s"))
 
-from code_bounds import (codesize_upper_bound,
+from .code_bounds import (codesize_upper_bound,
                          dimension_upper_bound,
                          volume_hamming,
                          gilbert_lower_bound,
@@ -64,14 +65,14 @@ from code_bounds import (codesize_upper_bound,
                          elias_bound_asymp,
                          mrrw1_bound_asymp)
 
-from linear_code import (LinearCode, LinearCodeFromVectorSpace,
+from .linear_code import (LinearCode, LinearCodeFromVectorSpace,
                          hamming_weight,
                          best_known_linear_code,
                          best_known_linear_code_www,
                          bounds_minimum_distance,
                          self_orthogonal_binary_codes)
 
-from sd_codes import self_dual_codes_binary
+from .sd_codes import self_dual_codes_binary
 
 lazy_import("sage.coding.delsarte_bounds",
     ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])

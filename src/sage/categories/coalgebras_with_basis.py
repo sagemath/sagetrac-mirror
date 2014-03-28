@@ -1,6 +1,7 @@
 r"""
 Coalgebras with basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -12,7 +13,7 @@ Coalgebras with basis
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.all import Coalgebras, ModulesWithBasis, tensor, Hom
 #from sage.categories.homset import Hom
 

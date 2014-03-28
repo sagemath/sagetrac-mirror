@@ -7,6 +7,7 @@ AUTHORS:
 - Christian Stump (2012, initial version)
 - Hugh Thomas (2012, initial version)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <gmusiker@gmail.com>
 #                          Christian Stump <christian.stump@gmail.com>
@@ -741,7 +742,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             sage: mut_type.standard_quiver()
             Quiver on 12 vertices of type [ ['A', 3], ['B', 3], ['X', 6] ]
         """
-        from quiver import ClusterQuiver
+        from .quiver import ClusterQuiver
         Q = ClusterQuiver( self._digraph )
         Q._mutation_type = self
         return Q

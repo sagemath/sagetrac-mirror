@@ -1,6 +1,7 @@
 """
 Miscellaneous arithmetic functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -26,10 +27,10 @@ from sage.structure.element import parent
 from sage.misc.misc import prod, union
 from sage.rings.real_mpfi import RealIntervalField
 
-import fast_arith
+from . import fast_arith
 
-from integer_ring import ZZ
-import integer
+from .integer_ring import ZZ
+from . import integer
 
 ##################################################################
 # Elementary Arithmetic
@@ -796,7 +797,7 @@ def prime_powers(start, stop=None):
         return [];
 
     # find all the primes in the given range
-    from fast_arith import prime_range
+    from .fast_arith import prime_range
     temp = prime_range(stop)
     output = [p for p in temp if p>=start]
 

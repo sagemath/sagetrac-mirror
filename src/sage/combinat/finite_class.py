@@ -1,6 +1,7 @@
 r"""
 Finite combinatorial classes
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,7 +16,7 @@ Finite combinatorial classes
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 
 class FiniteCombinatorialClass(CombinatorialClass):
     """

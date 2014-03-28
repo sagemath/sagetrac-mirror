@@ -207,6 +207,7 @@ Test if #8237 is fixed::
     sage: maxima('minf').sage()
     -Infinity
 """
+from __future__ import absolute_import
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -232,7 +233,7 @@ sage.symbolic.pynac.register_symbol(infinity, {'maxima':'inf'})
 sage.symbolic.pynac.register_symbol(minus_infinity, {'maxima':'minf'})
 sage.symbolic.pynac.register_symbol(unsigned_infinity, {'maxima':'infinity'})
 
-from pynac import I
+from .pynac import I
 sage.symbolic.pynac.register_symbol(I, {'mathematica':'I'})
 
 

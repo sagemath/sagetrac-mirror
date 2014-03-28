@@ -1,6 +1,7 @@
 """
 Hecke modules
 """
+from __future__ import absolute_import
 
 ##########################################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
@@ -29,9 +30,9 @@ from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
 
-import algebra
-import element
-import hecke_operator
+from . import algebra
+from . import element
+from . import hecke_operator
 
 from sage.modules.all import FreeModule
 

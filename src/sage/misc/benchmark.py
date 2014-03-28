@@ -1,4 +1,5 @@
-from misc import cputime
+from __future__ import absolute_import
+from .misc import cputime
 
 from sage.all import *
 

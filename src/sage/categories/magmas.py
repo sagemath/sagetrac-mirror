@@ -1,6 +1,7 @@
 r"""
 Magmas
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -413,7 +414,7 @@ class Magmas(Category_singleton):
                 Category of Cartesian products of monoids
                 sage: TestSuite(C).run()
             """
-            from cartesian_product import cartesian_product
+            from .cartesian_product import cartesian_product
             from sage.rings.integer_ring import ZZ
             from sage.rings.rational_field import QQ
             return cartesian_product([QQ, ZZ, ZZ])

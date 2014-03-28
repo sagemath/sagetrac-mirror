@@ -118,6 +118,7 @@ AUTHORS:
 - Paul Scurek (2013-08-03): added polish_notation, full_tree,
   updated docstring formatting
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein.gmail.com>
 #       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
@@ -129,9 +130,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import booleval
-import logictable
-import logicparser
+from . import booleval
+from . import logictable
+from . import logicparser
 # import boolopt
 from types import TupleType, ListType
 from sage.misc.flatten import flatten

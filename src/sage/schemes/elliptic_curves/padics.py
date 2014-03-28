@@ -5,6 +5,7 @@ Miscellaneous p-adic functions
 p-adic functions from ell_rational_field.py, moved here to reduce
 crowding in that file.
 """
+from __future__ import absolute_import
 
 ######################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -23,7 +24,7 @@ crowding in that file.
 
 
 import sage.rings.all as rings
-import padic_lseries as plseries
+from . import padic_lseries as plseries
 import sage.rings.arith as arith
 from sage.rings.all import (
     Qp, Zp,
@@ -37,7 +38,7 @@ import math
 import sage.misc.misc as misc
 import sage.matrix.all as matrix
 sqrt = math.sqrt
-import monsky_washnitzer
+from . import monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
 
 def __check_padic_hypotheses(self, p):

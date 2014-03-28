@@ -1,8 +1,9 @@
 """
 Coercion via Construction Functors
 """
-from functor import Functor, IdentityFunctor_generic
-from basic import *
+from __future__ import absolute_import
+from .functor import Functor, IdentityFunctor_generic
+from .basic import *
 
 from sage.structure.parent import CoercionException
 
@@ -618,7 +619,7 @@ class PolynomialFunctor(ConstructionFunctor):
             True
 
         """
-        from rings import Rings
+        from .rings import Rings
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate

@@ -1,10 +1,11 @@
 """
 Finite Fields of Characteristic 2
 """
+from __future__ import absolute_import
 
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.libs.pari.all import pari
-from finite_field_ext_pari import FiniteField_ext_pari
+from .finite_field_ext_pari import FiniteField_ext_pari
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
