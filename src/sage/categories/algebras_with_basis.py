@@ -16,7 +16,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import compose
 from sage.categories.all import ModulesWithBasis, Algebras
-from sage.categories.tensor import TensorProducts, TensorProductsCategory, tensor
+from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
 from category_types import Category_over_base_ring
 

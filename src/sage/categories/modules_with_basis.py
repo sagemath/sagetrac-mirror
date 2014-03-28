@@ -23,7 +23,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
-from sage.categories.tensor import tensor, TensorProducts, TensorProductsCategory
+from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
