@@ -25,7 +25,7 @@ from sage.misc.sage_itertools import max_cmp, min_cmp
 
 from sage.categories.category import HomCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
-from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.tensor import tensor, TensorProducts, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
@@ -474,7 +474,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.rename()
 
             """
-            if 'category' in keywords:
+            if 'category' in keywords.keys():
                 category = keywords['category']
                 category = category.TensorProducts()
                 keywords.pop('category')
@@ -483,7 +483,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             base_category = category.base_category()
             R = base_category.base_ring()
             #if not base_category.is_subcategory(ModulesWithBasis(R)):
-            #    raise TypeError, "%s must be a category of modules"%base_category
+            #    raise TypeError, "Must be a category of modules"
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
             if base_category.is_subcategory(AlgebrasWithBasis(R)):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)

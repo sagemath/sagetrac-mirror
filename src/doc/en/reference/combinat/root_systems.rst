@@ -25,6 +25,7 @@ Root Systems
    ../sage/combinat/root_system/weyl_characters
    ../sage/combinat/root_system/hecke_algebra_representation
    ../sage/combinat/root_system/non_symmetric_macdonald_polynomials
+   ../sage/combinat/root_system/branching_rules
 
    ../sage/combinat/root_system/type_affine
    ../sage/combinat/root_system/type_dual
