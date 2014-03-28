@@ -10,6 +10,7 @@ Author: Mark Shimozono
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import partial
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -20,32 +21,6 @@ from sage.categories.tensor import tensor
 from sage.categories.homset import Hom
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor, \
 CombinatorialFreeModule_TensorGrouped, CartesianProductWithFlattening, CartesianProductWithUnflattening
-
-"""
-It allows two ways to construct smash products: a single smash product
-A#B or an isomorphic pair of them A#B and B#A.
-
-The single smash product construction is straightforward. 
-
-The isomorphic pair is trickier.
-In addition to having each of A#B and B#A we want them
-to know about each other via :meth:`opposite`()
-and even to construct coercions between them.
-
-Both A#B and B#A are constructed in the same kind of way but
-with different input data.
-
-The single smash product case (when ``untwist`` is None) is straightforward.
-
-For the pair, first A#B is constructed.
-To make B#A the class :class:`SmashProductAlgebra` is invoked recursively,
-but with the single smash product option (and different parameters).
-It returns with the instance B#A.
-Now that both A#B and B#A have been constructed as full-fledged :class:`SmashProductAlgebra` instances,
-the two instances are told about each other and their mutual coercions are
-established. Then the job is done.
-
-"""
 
 class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
     r"""
@@ -83,7 +58,9 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
             ...       return BA.monomial((x[1],x[0]))
             sage: untwist = AB.module_morphism(on_basis=untwist_func, codomain=BA, category=cat)
 
-            sage: ASB = SmashProductAlgebra(A, B, twist, untwist) # finally!
+            sage: ASB = SmashProductAlgebra(A, B, twist)
+            sage: BSA = SmashProductAlgebra(B, A, untwist)
+            sage: ASB.register_opposite(BSA)
             sage: ab = ASB.an_element(); ab
             2*A[a] # B[s1] + 2*A[a] # B[1]
             sage: BSA = ASB.opposite()
@@ -108,15 +85,17 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
         - ``A`` and ``B`` -- algebras with basis over the same commutative ring
         - ``twist`` -- a module homomorphism from `B` tensor `A` to `A` tensor `B`
-        - ``untwist`` -- optional (default: None); the inverse of ``twist``
+        - ``category`` -- optional (default: None) category for resulting algebra
+        This should be a subcategory of AlgebrasWithBasis(R).TensorProducts()
+        where `R` is the base ring.
 
     Returns the smash product `S(A,B,twist)`. As a module it is `A` tensor `B`.
     The product is determined by a module homomorphism ``twist`` from `B` tensor `A`
     to `A` tensor `B` as described below.
-    If ``untwist`` is not None, it is assumed to be the inverse map of ``twist``.
-    In this case ``untwist`` is an algebra isomorphism from `S(A,B,twist)` to `S(B,A,untwist)`.
-    Both `S(A,B,twist)` and `S(B,A,untwist)` are created, and coercions are registered between them,
-    and each is given a way to access the other via :meth:`opposite`.
+
+    Particular rings that are realized as smash products are the cohomological and K-theoretic nilHecke rings
+    of Kostant and Kumar, the affine Hecke algebra, and the double affine Hecke algebra. These all come from actions
+    of one algebra on another. Another class of examples comes from quasi-triangular Hopf algebras and the R-matrix.
 
     ..RUBRIC::
 
@@ -170,70 +149,21 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         sage: cd * cd
         9*B[s2*s1] # B[s1*s2] + 9*B[s2*s1] # B[s2*s1] + 3*B[s2*s1] # B[s1] + 3*B[s2*s1] # B[s2] + 18*B[s2*s1] # B[1] + 3*B[1] # B[s1] + 3*B[1] # B[s2] + B[1] # B[1]
 
-    Particular rings that are realized as smash products are the cohomological and K-theoretic nilHecke rings
-    of Kostant and Kumar, the affine Hecke algebra, and the double affine Hecke algebra. These all come from actions
-    of one algebra on another. Another class of examples comes from quasi-triangular Hopf algebras and the R-matrix.
+    ..RUBRIC:: Opposite order smash product
 
-    Some implementation details: The smash product is the flattened tensor product of `A` and `B`.
-    Coercion is allowed between this flattened tensor product and the smash product.
+    If the map ``twist`` has an inverse ``untwist``, then ``untwist`` is an algebra isomorphism from
+    `S(A,B,twist)` to `S(B,A,untwist)`. To set up coercions between these two algebras, first create both algebras
+    (call them ``ASB`` and ``BSA`` for short), and then invoke `ASB.register_opposite(BSA)`.
+
+    ..IMPLEMENTATION:: The smash product is the flattened tensor product of `A` and `B`. However it knows its
+    tensor factors. Coercion is immediately allowed between this underlying flattened tensor product module and the smash product,
+    with no additional definitions. Intentionally, the coercion registration is made entirely separate from the creation of the
+    algebras, for convenience of use by algebras with realizations which carry additional category information and use both
+    forms of the smash product.
+
     """
 
-    @staticmethod
-    def __classcall__(cls, A, B, twist, untwist=None):
-        # type checking
-        R = A.base_ring()
-        module_category = ModulesWithBasis(R)
-        algebra_category = AlgebrasWithBasis(R)
-        tensor_category = module_category.TensorProducts()
-        if R != B.base_ring():
-            raise TypeError, "%s and %s must have the same base ring"%(A,B)
-        if A not in algebra_category or B not in algebra_category:
-            raise TypeError, "Tensor factors should be AlgebrasWithBasis over %s"%(R)
-        if not twist.category().is_subcategory(module_category.hom_category()):
-            raise TypeError, "twist should be a module morphism"
-        AB = tensor([A,B], category=module_category)
-        BA = tensor([B,A], category=module_category)
-        if twist.codomain() != AB or twist.domain() != BA:
-            raise TypeError, "Domain or codomain of twist is incorrect"
-
-        if untwist is not None:
-            if not untwist.category().is_subcategory(module_category.hom_category()):
-                raise TypeError, "untwist should be a module morphism"
-            if untwist.domain() != AB or untwist.codomain() != BA:
-                raise TypeError, "Domain or codomain of untwist is incorrect"
-
-        ASB = super(SmashProductAlgebra, cls).__classcall__(cls, A, B, twist)
-
-        # the single smash product case
-        if untwist is None:
-            return ASB
-
-        BSA = SmashProductAlgebra(B, A, untwist)
-        
-        ASB._opposite_product = BSA
-        BSA._opposite_product = ASB
-        ASB._has_opposite = True
-        BSA._has_opposite = True
-
-        # set up coercions between ASB and BSA
-        ABmod = twist.codomain()
-        BAmod = twist.domain()
-
-        def exalted_untwist(x):
-            return BSA(untwist(ABmod(x)))
-
-        ASB_to_BSA = SetMorphism(Hom(ASB, BSA, category=module_category), exalted_untwist)
-        ASB_to_BSA.register_as_coercion()
-
-        def exalted_twist(x):
-            return ASB(twist(BAmod(x)))
-
-        BSA_to_ASB = SetMorphism(Hom(BSA, ASB, category=module_category), exalted_twist)
-        BSA_to_ASB.register_as_coercion()
-
-        return ASB
-
-    def __init__(self, A, B, twist):
+    def __init__(self, A, B, twist, category=None):
         """
         EXAMPLES::
 
@@ -250,19 +180,34 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
         """
         R = A.base_ring()
-        CombinatorialFreeModule_TensorGrouped.__init__(self, (A,B), AlgebrasWithBasis(R))
+        module_category = ModulesWithBasis(R)
+        algebra_category = AlgebrasWithBasis(R)
+        tensor_category = module_category.TensorProducts()
+        if R != B.base_ring():
+            raise TypeError, "%s and %s must have the same base ring"%(A,B)
+        if A not in algebra_category or B not in algebra_category:
+            raise TypeError, "Tensor factors should be AlgebrasWithBasis over %s"%(R)
+        if not twist.category().is_subcategory(module_category.hom_category()):
+            raise TypeError, "twist should be a module morphism"
+        AB = tensor([A,B], category=module_category)
+        BA = tensor([B,A], category=module_category)
+        if twist.codomain() != AB or twist.domain() != BA:
+            raise TypeError, "Domain or codomain of twist is incorrect"
+
+        default_category = AlgebrasWithBasis(R).TensorProducts()
+        if not category:
+            category = default_category
+        elif not category.is_subcategory(default_category):
+            raise TypeError, "Category %s is not a subcategory of %s"%(category, default_category)
+        self._category = category
+
+        CombinatorialFreeModule_TensorGrouped.__init__(self, (A,B), category=category)
         self._twist = twist
-        self._has_opposite = False # default: no "opposite" smash product is available
-        module_category=ModulesWithBasis(R)
-        tensor_category=module_category.TensorProducts()
+        self._has_opposite = False # default: no "opposite" smash product has been registered
         # Define the product morphism using twist
         ItwistI = tensor([A._identity_map(), twist, B._identity_map()], category=module_category)
         mAmB = tensor([A._product_morphism(),B._product_morphism()], category=module_category)
         self._product_morphism_map = SetMorphism(Hom(ItwistI.domain(), mAmB.codomain(), category=module_category), mAmB * ItwistI)
-
-        # the following imparts the structure of having a product and bilinear tensor product
-        # TODO: for Hopf algebras, define the additional structure maps
-        self._category = AlgebrasWithBasis(R).TensorProducts()
 
     def _repr_(self):
         r"""
@@ -378,6 +323,35 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         """
         mult = self._product_morphism()
         return self(mult(mult.domain().monomial(p1+p2)))
+
+    def _the_coercion_map(self, other_algebra_module, twist, x):
+        return self(twist(other_algebra_module(x)))
+
+    def register_opposite(self, other_algebra):
+        if not isinstance(other_algebra, SmashProductAlgebra):
+            raise TypeError, "%s is not a smash product"
+        if not other_algebra.factors()[0] == self.factors()[1] or not other_algebra.factors()[1] == self.factors()[0]:
+            raise TypeError, "Factors are not opposite"
+        twist = self.twist()
+        untwist = other_algebra.twist()
+        ABmod = twist.codomain()
+        BAmod = twist.domain()
+        if untwist.domain() != ABmod or untwist.codomain() != BAmod:
+            raise TypeError, "Twists are not inverse"
+        self._opposite_product = other_algebra
+        other_algebra._opposite_product = self
+        self._has_opposite = True
+        other_algebra._has_opposite = True
+
+        # set up coercions between ASB and BSA
+
+        module_category=ModulesWithBasis(self.base_ring())
+
+        other_to_self = SetMorphism(Hom(other_algebra, self, category=module_category), partial(self._the_coercion_map, BAmod, twist))
+        other_to_self.register_as_coercion()
+
+        self_to_other = SetMorphism(Hom(self, other_algebra, category=module_category), partial(other_algebra._the_coercion_map, ABmod, untwist))
+        self_to_other.register_as_coercion()
 
     def opposite(self):
         r"""
