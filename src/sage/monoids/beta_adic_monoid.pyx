@@ -1061,7 +1061,7 @@ class BetaAdicMonoid(Monoid_class):
         a = a.emonde0_simplify()
         
         #determinize
-        ad = a.determinize(verb=verb)
+        ad = a.determinize(nof=a.F, verb=verb)
         #ad = a.determinize(I, self.C, nof, verb=verb)
         
         if verb: print "apres determinisation : a=%s"%ad
