@@ -499,7 +499,7 @@ class BetaAdicMonoid(Monoid_class):
 
         A Automaton.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: m = BetaAdicMonoid(3, {0,1,3})
             sage: m.relations_automaton()
@@ -637,6 +637,77 @@ class BetaAdicMonoid(Monoid_class):
             res.emonde0()
             res.F = res.vertices()
         return res
+    
+    def complexity (self, verb = False):
+        r"""
+        Return a estimation of an upper bound of the number of states of the relations automaton.
+        
+        INPUT:
+        
+         - ``verb`` - Boolean (default: False) Display informations for debug.
+        
+        OUTPUT:
+
+        A positive real number.
+
+        EXAMPLES::
+
+            sage: m = BetaAdicMonoid(3, {0,1,3})
+            sage: m.complexity()
+            7.06858347...
+        """
+        K = self.C[0].parent()
+        b = self.b
+        
+        if verb: print K
+        
+        #détermine les places qu'il faut considérer
+        parch = K.places()
+        r = len(parch)
+        pi = K.defining_polynomial()
+        from sage.rings.arith import gcd
+        pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
+#        den = pi.constant_coefficient().denominator()
+#        lp = (pi.list()[pi.degree()].numerator()*den).prime_divisors() #liste des nombres premiers concernés
+        lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
+        pultra = [] #liste des places ultramétriques considérées
+        for p in lp:
+            #détermine toutes les places au dessus de p dans le corps de nombres K
+            k = Qp(p)
+            Kp = k['a']
+            a = Kp.gen()
+            for f in pi(a).factor():
+                kp = f[0].root_field('e')
+#                c = kp.gen()
+                if kp == k:
+                    c = f[0].roots(kp)[0][0]
+                else:
+                    c = kp.gen()
+                if verb: print "c=%s (abs=%s)"%(c, (c.norm().abs())**(1/f[0].degree()))
+                if c.norm().abs() != 1: #absp(c, c, f[0].degree()) > 1:
+                    pultra += [(c, f[0].degree())]
+        
+        if verb: print "places: "; print parch; print pultra
+        
+        #calcule les bornes max pour chaque valeur absolue
+        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        if verb: print "Cd = %s"%Cd
+        vol = 1.
+        from sage.rings.real_mpfr import RR
+        for p in parch:
+            if p.codomain().has_coerce_map_from(RR):
+                vol *= 2*max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+            else:
+                vol *= 3.1415926535*(max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs()))**2
+            #vol *= max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+            #vol *= max(1, max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs()))
+        for p, d in pultra:
+            vol *= max([(c.polynomial())(p).norm().abs() for c in Cd])
+            #vol *= max([absp(c, p, d) for c in Cd])
+            #vol *= max(1, max([absp(c, p, d) for c in Cd]))
+        #from sage.functions.other import sqrt
+        #return vol/(K.regulator()*(sqrt(r+1).n()))
+        return vol
     
     #def infinite_relations_automaton (self, verb=False):
     #    a = self.relations_automaton (ext=True, verb=verb)
@@ -825,19 +896,19 @@ class BetaAdicMonoid(Monoid_class):
 
         EXAMPLES:
             
-            #. 3-adic expansion with numerals set {0,1,3}
+            #. 3-adic expansion with numerals set {0,1,3}::
             
                 sage: m = BetaAdicMonoid(3, {0,1,3})
                 sage: m.reduced_words_automaton()
                 Finite automaton with 2 states
             
-            #. phi-adic expansion with numerals set {0,1}
+            #. phi-adic expansion with numerals set {0,1}::
             
                 sage: m = BetaAdicMonoid((1+sqrt(5))/2, {0,1})
                 sage: m.reduced_words_automaton()
                 Finite automaton with 3 states
             
-            #. beta-adic expansion with numerals set {0,1} where beta is the plastic number
+            #. beta-adic expansion with numerals set {0,1} where beta is the plastic number::
                 sage: b = (x^3-x-1).roots(ring=QQbar)[0][0]
                 sage: m = BetaAdicMonoid(b, {0,1})
                 sage: m.reduced_words_automaton()        # long time
@@ -978,12 +1049,20 @@ class BetaAdicMonoid(Monoid_class):
             I = ['O']
             nof=Set([K.zero()])
         
+        a.I = I
+        a.F = nof
+        a.C = self.C
+        
         if verb: print "avant determinisation : a=%s"%a
         if step == 6:
             return ("automate des mots généraux non réduits, émondé", a)
         
+        #rend l'automate plus simple
+        a = a.emonde0_simplify()
+        
         #determinize
-        ad = a.determinize(I, self.C, nof, verb=verb)
+        ad = a.determinize(verb=verb)
+        #ad = a.determinize(I, self.C, nof, verb=verb)
         
         if verb: print "apres determinisation : a=%s"%ad
         if step == 7:
