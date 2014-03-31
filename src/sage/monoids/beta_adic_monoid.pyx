@@ -393,6 +393,13 @@ class BetaAdicMonoid(Monoid_class):
             sage: p2 = m.plot(ss=ssi, n=40)                         # long time
             sage: p1+p2                                             # long time
         
+        #. A limit set that look like a tiling::
+            
+            sage: P=x^4 + x^3 - x + 1
+            sage: b = P.roots(ring=QQbar)[2][0]
+            sage: m = BetaAdicMonoid(b, {0,1})
+            sage: m.plot(18)                                    # long time
+        
         """
         
         global co
@@ -435,6 +442,11 @@ class BetaAdicMonoid(Monoid_class):
         r"""
         Used by relations_automaton()
         """
+        global count
+        #print count
+        if count == 0:
+            return di
+        count -= 1
         
         b = self.b
         if not di.has_key(current_state):
@@ -465,13 +477,13 @@ class BetaAdicMonoid(Monoid_class):
                 if ok:
                     #on ajoute l'état et la transition à l'automate
                     di[current_state][e] = c
-                    di = self._relations_automaton_rec (e, di, parch, pultra, m, Cd, ext, verb)
+                    di = self._relations_automaton_rec (current_state=e, di=di, parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb)
             else:
                 #ajoute la transition
                 di[current_state][e] = c
         return di
     
-    def relations_automaton (self, ext=False, ss=None, noss=False, verb=False, step=100):
+    def relations_automaton (self, ext=False, ss=None, noss=False, verb=False, step=100, limit=None):
         r"""
         Compute the relations automaton of the beta-adic monoid (with or without subshift).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
@@ -481,19 +493,22 @@ class BetaAdicMonoid(Monoid_class):
         - ``ext`` - bool (default: ``False``)
           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).
         
-        - ``ss``- Automaton (default: ``None``)
+        - ``ss`` - Automaton (default: ``None``)
           The subshift to associate to the beta-adic monoid for this operation.
         
-        - ``noss``- bool (default: ``False``)
+        - ``noss`` - bool (default: ``False``)
           
         
-        - ``verb``- bool (default: ``False``)
+        - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
         
-        - ``prec`- precision of returned values (default: ``53``)
+        - ``prec`` - precision of returned values (default: ``53``)
         
-        - ``step``- int (default: ``100``)
+        - ``step`` - int (default: ``100``)
           Stop to an intermediate state of the computing to verify that all is right.
+         
+        - ``limit``- int (default: None)
+          Stop the computing after a number of states limit.
         
         OUTPUT:
 
@@ -518,7 +533,7 @@ class BetaAdicMonoid(Monoid_class):
         """
         
         if not noss:
-            a = self.relations_automaton(ext=ext, ss=None, noss=True, verb=verb)
+            a = self.relations_automaton(ext=ext, ss=None, noss=True, verb=verb, step=step, limit=limit)
             if not step:
                 return a
             step = step-1
@@ -617,7 +632,17 @@ class BetaAdicMonoid(Monoid_class):
         
         if verb: print K.zero().parent()
         
+        global count
+        #print limit
+        if limit is None:
+            count = -1
+        else:
+            count = limit
+        #print count
         di = self._relations_automaton_rec (current_state=K.zero(), di=dict([]), parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb)
+        
+        if count == 0:
+            print "Nombre max d'états atteint."
         
         #a = Automaton([K.zero()], [K.zero()], di)
         
@@ -844,10 +869,11 @@ class BetaAdicMonoid(Monoid_class):
                 sage: m.intersection_words(w1=[0], w2=[1])
                 Finite automaton with 21 states
             
-            #. Draw the intersection of two sub-sets of a limit set
+            #. Draw the intersection of two sub-sets of a limit set::
                 
-                sage: m = BetaAdicMonoid(2/(1+I), {0,1})
-            
+                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: ssi = m.intersection_words(w1=[0], w2=[1])
+                sage: m.plot(n=10, ss=ssi)                        # long time
         """
     
         if ss is None:
@@ -1151,10 +1177,6 @@ class BetaAdicMonoid(Monoid_class):
                 sage: m.critical_exponent_free()
                 log(y)/log(|1/2*b^2 - 1/2*b + 1/2|) where y is the max root of x^3 - x^2 + x - 2
                 1.5485260383...
-            
-#            #. Critical exponent that is not the Hausdorff dimension of the limit set::
-#                
-#                sage: 
         """
         
         if ss is None:
@@ -1164,8 +1186,12 @@ class BetaAdicMonoid(Monoid_class):
             y = self.C.cardinality()
             print "log(%s)/log(|%s|)"%(y, self.b)
         else:
+            print ""
             M = ss.adjacency_matrix()
-            y = max(M.eigenvalues())
+            #print "eigenvalues..."
+            e = M.eigenvalues()
+            #print "max..."
+            y = max(e, key=abs)
             print "log(y)/log(|%s|) where y is the max root of %s"%(self.b, QQbar(y).minpoly())
             y = y.N(prec)
         from sage.functions.log import log
@@ -1207,7 +1233,16 @@ class BetaAdicMonoid(Monoid_class):
                 sage: m.critical_exponent()
                 log(y)/log(|b|) where y is the max root of x^2 - x - 1
                 1.0000000000...
-                
+            
+            #. Critical exponent that is not the Hausdorff dimension of the limit set::
+            
+                sage: P = x^7 - 2*x^6 + x^3 - 2*x^2 + 2*x - 1
+                sage: b = P.roots(ring=QQbar)[3][0]
+                sage: m = BetaAdicMonoid(b, {0,1})
+                sage: m.critical_exponent()                    # long time
+                log(y)/log(|b|) where y is the max root of x^11 - 2*x^10 - 4*x^2 + 8*x + 2
+                3.3994454205...
+            
             #. See more examples with doc critical_exponent_free()
             
         """
