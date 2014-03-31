@@ -952,9 +952,11 @@ class BetaAdicMonoid(Monoid_class):
         
         K = self.C[0].parent()
         
+        if verb: print "Calcul de l'automate des relations..."
+        
         a = self.relations_automaton(noss=True)
         
-        if verb: print "automate des relations : a=%s (%s etats)"%(a, a.num_verts())
+        if verb: print " -> %s"%a
         
         if step == 1:
             return ("automate des relations", a)
@@ -984,7 +986,7 @@ class BetaAdicMonoid(Monoid_class):
                 
         a.add_edge('O', 'O', a.edge_label(K.zero(), K.zero()))
         
-        if verb: print a.incoming_edges(K.zero(), labels=True)
+        #if verb: print a.incoming_edges(K.zero(), labels=True)
         
         #remove outgoing edges from K.0 (except from K.0 to K.0)
         for f, d, l in a.outgoing_edges(K.zero(), labels=True):
@@ -1010,7 +1012,7 @@ class BetaAdicMonoid(Monoid_class):
                         m[c-c2] += [(c,c2)]
                     else:
                         m[c-c2] = [(c,c2)]
-            if verb: print "m=%s"%m
+            #if verb: print "m=%s"%m
             
             #calculate the 'product to the right' of a with ss            
             d = dict([])
@@ -1024,7 +1026,7 @@ class BetaAdicMonoid(Monoid_class):
                             d[(ka,kss)] = k[0]
                             break
                             
-            if verb: print "d=%s"%d
+            #if verb: print "d=%s"%d
             if verb: print "avant produit : a=%s (%s etats)"%(a, a.num_verts())
             a = a.product(A=ss, d=d)
             if verb: print "après produit : a=%s"%a
@@ -1034,7 +1036,7 @@ class BetaAdicMonoid(Monoid_class):
             I = [('O',i) for i in Iss]
             nof = Set([(K.zero(),i) for i in ss.vertices()])
             
-            if verb: print "I=%s, F=%s"%(I, nof)
+            #if verb: print "I=%s, F=%s"%(I, nof)
             
             if ext:
                 #a.emondeI(I=I)
@@ -1063,7 +1065,7 @@ class BetaAdicMonoid(Monoid_class):
                         m[c-c2] += [c]
                     else:
                         m[c-c2] = [c]
-            if verb: print "m=%s"%m
+            #if verb: print "m=%s"%m
             
             a.allow_multiple_edges(True)
             #replace each label by its mapping
@@ -1086,11 +1088,12 @@ class BetaAdicMonoid(Monoid_class):
         #rend l'automate plus simple
         a = a.emonde0_simplify()
         
+        if verb: print "Determinization..."
         #determinize
-        ad = a.determinize(nof=a.F, verb=verb)
+        ad = a.determinize(nof=a.F, verb=False)
         #ad = a.determinize(I, self.C, nof, verb=verb)
         
-        if verb: print "apres determinisation : a=%s"%ad
+        if verb: print " -> %s"%ad
         if step == 7:
             return ("automate des mots généraux réduits", ad)
         
@@ -1098,13 +1101,13 @@ class BetaAdicMonoid(Monoid_class):
             #calculate the intersection with ss
             ad = ad.emonde0_simplify()
             ad = ad.intersection(ss)
+            if verb: print "apres intersection : a=%s"%ad
         
-        if verb: print "apres intersection : a=%s"%ad
         if step == 8:
             return ("automate des mots réduits", ad)
         
         #F2=[e for e in a.vertices() nof in e[0]]
-        if verb: print "I2=%s"%I2 #, F2=%s"%(I2,F2)
+        #if verb: print "I2=%s"%I2 #, F2=%s"%(I2,F2)
         ad.A = self.C
         #ad.emondeI(I=I2) #, F=F2)
         ad = ad.emonde0_simplify()
@@ -1186,12 +1189,13 @@ class BetaAdicMonoid(Monoid_class):
             y = self.C.cardinality()
             print "log(%s)/log(|%s|)"%(y, self.b)
         else:
-            print ""
+            if verb: print ""
             M = ss.adjacency_matrix()
-            #print "eigenvalues..."
+            if verb: print "Valeurs propres..."
             e = M.eigenvalues()
-            #print "max..."
+            if verb: print "max..."
             y = max(e, key=abs)
+            if verb: print ""
             print "log(y)/log(|%s|) where y is the max root of %s"%(self.b, QQbar(y).minpoly())
             y = y.N(prec)
         from sage.functions.log import log
@@ -1253,6 +1257,8 @@ class BetaAdicMonoid(Monoid_class):
         if ss is None:
             if hasattr(self, 'ss'):
                 ss = self.ss
+        if verb:
+            print "Calcul de l'automate des mots réduits...\n"
         a = self.reduced_words_automaton(ss=ss, verb=verb)
         return self.critical_exponent_free (prec=prec, ss=a, verb=verb)
         

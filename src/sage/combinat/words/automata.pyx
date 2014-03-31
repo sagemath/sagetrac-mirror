@@ -308,13 +308,15 @@ class Automaton (DiGraph):
         #from sage.sets.set import set
         #A2 = set([])
         
+        if verb: print S
+        
         if not a.has_key(S):
             a[S] = dict([])
             o = dict([]) #associe à chaque lettre l'ensemble des états partants de S
             for s in S:
                 for f, d, l in self.outgoing_edges(s):
                     #A2 = A2.union(set([l]))
-                    if verb: print "l=%s"%l
+                    #if verb: print "l=%s"%l
                     if not o.has_key(l):
                         o[l] = set()
                     o[l].add(d)
@@ -329,7 +331,7 @@ class Automaton (DiGraph):
                 if o.has_key(l) or not noempty:
                     if not o.has_key(l):
                         o[l] = set()
-                    if verb: print "S=%s, l=%s, o[l]=%s"%(S, l, o[l])
+                    #if verb: print "S=%s, l=%s, o[l]=%s"%(S, l, o[l])
                     if set(nof).isdisjoint(o[l]):
                         o[l] = Set(o[l])
                         if not a[S].has_key(o[l]):
