@@ -608,6 +608,13 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             True
 
         """
+        # handle constants that canonically coerce into self.base_ring()
+        try:
+            connecting = base_ring.coerce_map_from(P)
+            if connecting is not None:
+                return self.coerce_map_from(base_ring) * connecting
+        except TypeError:
+            pass
         if self.base_ring().has_coerce_map_from(S):
             return True
         if (is_PolynomialRing(S) or is_PowerSeriesRing(S)) and self.base_ring().has_coerce_map_from(S.base_ring()) \
