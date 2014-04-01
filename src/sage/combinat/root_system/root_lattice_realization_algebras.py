@@ -1347,7 +1347,8 @@ class Algebras(AlgebrasCategory):
                 sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
                 sage: KL = L.algebra(K)
                 sage: M = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p); M
-                A representation of the (Finite family {0: v0, 1: vl, 2: v}, Finite family {0: (-1)/v0, 1: (-1)/vl, 2: (-1)/v})-Hecke algebra of type ['C', 2, 1]^* on Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                A representation of the Hecke algebra of type ['C', 2, 1]^* on Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+
             """
             I = self.cartan_type().index_set()
             if not isinstance(q1, FiniteFamily):
@@ -1384,7 +1385,7 @@ class Algebras(AlgebrasCategory):
             def on_basis(l,i):
                 return funcs[i](l)
 
-            return HeckeAlgebraRepresentation(KL0, on_basis, self.cartan_type(), q1, q2, q, side=side, unequal_parameters=True, doubled_parameters=doubled_parameters)
+            return HeckeAlgebraRepresentation(KL0, on_basis, self.cartan_type(), q1, q2, q, side=side, doubled_parameters=doubled_parameters)
 
     class ElementMethods:
 
