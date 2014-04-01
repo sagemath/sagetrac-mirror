@@ -18,7 +18,7 @@ from sage.categories.algebra_functor import AlgebrasCategory
 lazy_import('sage.rings.integer_ring', 'ZZ')
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-from sage.sets.family import Family
+from sage.sets.family import Family, FiniteFamily
 
 class Algebras(AlgebrasCategory):
     """
@@ -1313,7 +1313,7 @@ class Algebras(AlgebrasCategory):
                 return result
 
 
-        def nonreduced_demazure_lusztig_operators_on_classical(self, q, q1, q2, convention="antidominant", unequal_parameters=None, doubled_parameters=None,side="right"):
+        def nonreduced_demazure_lusztig_operators_on_classical(self, q, q1, q2=None, convention="antidominant", doubled_parameters=None,side="right"):
             r"""
             Given a lattice realization algebra of affine type, return the representation
             of the not-necessarily reduced affine Hecke algebra with possibly unequal parameters, on the lattice realization
@@ -1324,12 +1324,12 @@ class Algebras(AlgebrasCategory):
             - ``self`` -- Must be the algebra of a weight space of unmixed affine type (either untwisted affine or the
             dual of untwisted affine)
             - `q` -- An invertible element of the base ring associated with the null root of the affine algebra.
-            - `q1, q2` -- The eigenvalues of the Hecke algebra generators `T_i`. If ``unequal_parameters`` is None,
-            these are two invertible base ring elements. If ``unequal_parameters`` is True, then each of `q1` and `q2` is a
-            Family with key set equal to the affine Dynkin node set `I`, and `q1[i]` and `q2[i]` are the eigenvalues of
-            `T_i`.
+            - `q1, q2` -- The eigenvalues of the Hecke algebra generators `T_i`. If `q1, q2` are single ring elements
+            then the equal-parameter case is assumed. If `q2` is None then it is assumed that the second eigenvalue
+            is always the negative reciprocal of the first. `q1` and `q2` can also be Families with key set equal to the
+            affine Dynkin node set, whose values are the eigenvalues (ring elements).
             - ``convention`` -- either (default: "antidominant") or "dominant"
-            - ``unequal_parameters`` -- (default: None) If True, indicates that `q1` and `q2` are Families as above.
+
             - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of doubled nodes `i` in a nonreduced
             affine root system, and whose values are associated with the doubled simple roots.
             - ``side`` -- (default: "right") Define a left or right action
@@ -1346,11 +1346,28 @@ class Algebras(AlgebrasCategory):
                 sage: q2 = Family(dict([[0,-1/v0],[1,-1/vl],[2,-1/v]]))
                 sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
                 sage: KL = L.algebra(K)
-                sage: M = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p); M
+                sage: M = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p); M
                 A representation of the (Finite family {0: v0, 1: vl, 2: v}, Finite family {0: (-1)/v0, 1: (-1)/vl, 2: (-1)/v})-Hecke algebra of type ['C', 2, 1]^* on Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
             """
-            if not unequal_parameters:
-                return self.demazure_lusztig_operators_on_classical(q, q1, q2, convention=convention)
+            I = self.cartan_type().index_set()
+            if not isinstance(q1, FiniteFamily):
+                if not q1 in self.base_ring():
+                    raise ValueError, "%s should be in the base ring %s"%(q1,self.base_ring())
+                try:
+                    1/q1
+                except ZeroDivisionError:
+                    raise ValueError, "%s should be invertible"%q1
+                q1 = Family(dict([[i,q1] for i in I]))
+            if not q2:
+                q2 = Family(dict([[i,-1/q1[i]] for i in I]))
+            elif not isinstance(q2, FiniteFamily):
+                if not q2 in self.base_ring():
+                    raise ValueError, "%s should be in the base ring %s"%(q1,self.base_ring())
+                try:
+                    1/q2
+                except ZeroDivisionError:
+                    raise ValueError, "%s should be invertible"%q1
+                q2 = Family(dict([[i,q2] for i in I]))
             KL0 = self.classical()
             funcs = dict()
             for i in self.cartan_type().index_set():

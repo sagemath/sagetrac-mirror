@@ -462,7 +462,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: q2 = Family(dict([[0,-1/v0],[1,-1/vl],[2,-1/v]]))
             sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
             sage: T._test_relations()
 
             sage: L = CartanType(['B',3,1]).root_system().ambient_space()
@@ -472,7 +472,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: q2 = Family(dict([[0,-1/vl],[1,-1/vl],[2,-1/vl],[3,-1/v]]))
             sage: p = Family(dict([[3,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
             sage: T._test_relations()
 
             sage: L = CartanType(['A',1,1]).root_system().ambient_space()
@@ -482,7 +482,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: q2 = Family(dict([[0,-1/v0],[1,-1/v]]))
             sage: p = Family(dict([[0,vz-1/vz],[1,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant",doubled_parameters=p)
             sage: T._test_relations()
 
             sage: L = CartanType(['C',2,1]).root_system().ambient_space()
@@ -492,7 +492,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: q2 = Family(dict([[0,-1/vl],[1,-1/v],[2,-1/vl]]))
             sage: p = Family(dict([[1,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
             sage: T._test_relations()
 
         """
