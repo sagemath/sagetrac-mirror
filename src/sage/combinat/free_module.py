@@ -2718,6 +2718,21 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             return self.tensor_constructor(tuple(element.parent() for element in elements), **keywords)(*elements)
 
+        def an_element(self):
+            r"""
+            An element of ``self``.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3])
+                sage: FG = tensor([F,G])
+                sage: FG.an_element()
+                4*B[1] # B[3] + 4*B[2] # B[3]
+
+            """
+            return self(tensor([module.an_element() for module in self._sets]))
+
         def _coerce_map_from_(self, R):
             """
             Return ``True`` if there is a coercion from ``R`` into ``self`` and
@@ -2745,9 +2760,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: S.has_coerce_map_from(S2)
                 False
                 sage: S.an_element()
-                3*B[0] # B[-1] + 2*B[0] # B[0] + 2*B[0] # B[1]
+                9*B[-1] # B[-1] + 3*B[-1] # B[0] + 9*B[-1] # B[1] + 3*B[0] # B[-1] + B[0] # B[0] + 3*B[0] # B[1] + 9*B[1] # B[-1] + 3*B[1] # B[0] + 9*B[1] # B[1]
                 sage: S2(S.an_element())
-                2*B[0] # B[0] + 5*B[0] # B[1]
+                B[0] # B[0] + 6*B[0] # B[1] + 6*B[1] # B[0] + 36*B[1] # B[1]
 
             ::
 
@@ -3306,6 +3321,20 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
 
         """
         return self.monomial(self._one_key)
+
+    def an_element(self):
+        r"""
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ,[1])
+            sage: A = M.tensor_unit()
+            sage: A.an_element()
+            2*B[()]
+
+        """
+        return 2 * self.one()
 
     def product_on_basis(self, g1, g2):
         r"""
