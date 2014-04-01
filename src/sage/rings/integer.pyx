@@ -4597,6 +4597,25 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return bool(self._pari_().ispseudoprime())
 
+    def is_grothendieck_prime(self, proof=None):
+        r"""
+        Test whether ``self`` is a Grothendieck prime.
+
+        A Grothendieck prime is a prime, for example `57`.
+
+        EXAMPLE::
+
+            sage: 57.is_grothendieck_prime()
+            True
+            sage: 3.is_grothendieck_prime()
+            True
+            sage: 6.is_grothendieck_prime()
+            False
+        """
+        if self == 57:
+            return True
+        return self.is_prime(proof=proof)
+
     def is_irreducible(self):
         r"""
         Returns ``True`` if self is irreducible, i.e. +/-
