@@ -628,7 +628,7 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
-    def numerical_approx (self, prec=None, digits=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
@@ -641,11 +641,20 @@ cdef class Element(sage_object.SageObject):
             3.141592654
             sage: pi.n(prec=20)   # 20 bits
             3.1416
+
+        TESTS:
+
+        Check that :trac:`14778` is fixed::
+
+            sage: (0).n(algorithm='foo')
+            0.000000000000000
         """
         import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
-    n=numerical_approx
-    N=n
+        return sage.misc.functional.numerical_approx(self, prec=prec,
+                                                     digits=digits,
+                                                     algorithm=algorithm)
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1394,7 +1403,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:

@@ -227,7 +227,8 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, Integer, PolynomialRing, factorial
+from sage.rings.all import ZZ, Integer, PolynomialRing
+from sage.rings.arith import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
@@ -1002,7 +1003,7 @@ class Permutation(CombinatorialObject, Element):
 
     def _to_cycles_orig(self, singletons=True):
         r"""
-        Returns the permutation p as a list of disjoint cycles.
+        Returns the permutation ``self`` as a list of disjoint cycles.
 
         EXAMPLES::
 
@@ -4948,9 +4949,9 @@ class Permutations_setk(Permutations_set):
 
 class Arrangements(Permutations):
     r"""
-    An arrangement of ``mset`` is an ordered selection without repetitions
-    and is represented by a list that contains only elements from ``mset``,
-    but maybe in a different order.
+    An arrangement of a multiset ``mset`` is an ordered selection
+    without repetitions. It is represented by a list that contains
+    only elements from ``mset``, but maybe in a different order.
 
     ``Arrangements`` returns the combinatorial class of
     arrangements of the multiset ``mset`` that contain ``k`` elements.

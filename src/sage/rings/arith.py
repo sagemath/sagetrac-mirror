@@ -3118,6 +3118,7 @@ def binomial(x, m, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import binomial
         sage: binomial(5,2)
         10
         sage: binomial(2,0)
@@ -3255,7 +3256,7 @@ def binomial(x, m, **kwds):
         if m < 0 or (x >= 0 and m > x):
             return ZZ.zero()
 
-        s = sys.maxint
+        s = sys.maxsize
         if m > s:
             m = x - m
             if m > s:

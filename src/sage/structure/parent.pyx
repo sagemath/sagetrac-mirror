@@ -1470,12 +1470,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: MatrixSpace(GF(3), 2, 2)[9]
-            [0 2]
-            [0 0]
-            sage: MatrixSpace(GF(3), 2, 2)[0]
-            [0 0]
-            [0 0]
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),
@@ -1506,8 +1500,17 @@ cdef class Parent(category_object.CategoryObject):
             'coucou'
         """
         try:
-            return super(Parent, self).__getitem__(n)
+            meth = super(Parent, self).__getitem__
         except AttributeError:
+            pass
+        # needed when self is a Cython object (super() does not call getattr())
+        try:
+            meth = getattr_from_other_class(self, self._category.parent_class, '__getitem__')
+        except AttributeError:
+            pass
+        try:
+            return meth(n)
+        except NameError:
             return self.list()[n]
 
 
@@ -2296,7 +2299,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
             return mor
-        except CoercionException, ex:
+        except CoercionException as ex:
             _record_exception()
             return None
         finally:
@@ -3017,7 +3020,7 @@ cdef class Set_PythonType_class(Set_generic):
             return two
         elif self._type is int:
             import sys
-            return two*sys.maxint + 2
+            return two * sys.maxsize + 2
         elif self._type is float:
             return 2 * two**52 * (two**11 - 1) + 3 # all NaN's are the same from Python's point of view
         else:

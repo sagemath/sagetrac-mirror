@@ -407,7 +407,7 @@ cdef class Function(SageObject):
             if isinstance(args[0], FastDoubleFunc):
                 try:
                     return getattr(args[0], self._name)()
-                except AttributeError, err:
+                except AttributeError as err:
                     raise TypeError, "cannot handle fast float arguments"
 
         # support numpy arrays as arguments
@@ -432,7 +432,7 @@ cdef class Function(SageObject):
         if coerce:
             try:
                 args = map(SR.coerce, args)
-            except TypeError, err:
+            except TypeError as err:
                 # If the function takes only one argument, we try to call
                 # a method with the name of this function on the object.
                 # This makes the following work:
@@ -640,7 +640,7 @@ cdef class Function(SageObject):
         args = [fast_float.fast_float_arg(n) for n in range(self.number_of_arguments())]
         try:
             return self(*args)
-        except TypeError, err:
+        except TypeError as err:
             return fast_float.fast_float_func(self, *args)
 
     def _fast_callable_(self, etb):
@@ -717,7 +717,7 @@ cdef class GinacFunction(BuiltinFunction):
         # get serial
         try:
             self._serial = find_function(fname, self._nargs)
-        except ValueError, err:
+        except ValueError as err:
             raise ValueError, "cannot find GiNaC function with name %s and %s arguments"%(fname, self._nargs)
 
         global sfunction_serial_dict
@@ -889,6 +889,8 @@ cdef class BuiltinFunction(Function):
             sage: p3 = AFunction('p3', 3)
             sage: p3(x)
             x^3
+            sage: loads(dumps(cot)) == cot    # :trac:`15138`
+            True
         """
         # check if already defined
         cdef int serial = -1
@@ -896,22 +898,16 @@ cdef class BuiltinFunction(Function):
         # search ginac registry for name and nargs
         try:
             serial = find_function(self._name, self._nargs)
-        except ValueError, err:
+        except ValueError as err:
             pass
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and self._name in sfunction_serial_dict and \
-                sfunction_serial_dict[self._name].__class__ == self.__class__:
+        if serial != -1 and serial in sfunction_serial_dict and \
+                sfunction_serial_dict[serial].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial
                     return True
-
-        # search the function table to check if any of this type
-        for key, val in sfunction_serial_dict.iteritems():
-            if key == self._name and val.__class__ == self.__class__:
-                self._serial = key
-                return True
 
         return False
 
@@ -963,7 +959,7 @@ cdef class SymbolicFunction(Function):
             sage: class my_function(SymbolicFunction):
             ....:     def __init__(self):
             ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ....:     def _evalf_(self, x, y, parent=None):
+            ....:     def _evalf_(self, x, y, parent=None, algorithm=None):
             ....:         return x*y*2r
             ....:     def _conjugate_(self, x, y):
             ....:         return x
@@ -1087,7 +1083,7 @@ cdef class SymbolicFunction(Function):
             sage: u(y,x)
             2*y
 
-            sage: def evalf_f(self, x, parent=None): return int(6)
+            sage: def evalf_f(self, x, **kwds): return int(6)
             sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
             sage: foo.__getstate__()
             (2, 'foo', 1, None, {}, True, [None, "...", None, None, None, None, None, None, None, None, None])
