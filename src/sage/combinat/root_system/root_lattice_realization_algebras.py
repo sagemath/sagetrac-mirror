@@ -18,6 +18,7 @@ from sage.categories.algebra_functor import AlgebrasCategory
 lazy_import('sage.rings.integer_ring', 'ZZ')
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
+from sage.sets.family import Family
 
 class Algebras(AlgebrasCategory):
     """
@@ -1113,6 +1114,260 @@ class Algebras(AlgebrasCategory):
                                               self.cartan_type().classical().dual().affine().dual(),
                                               q1, q2,
                                               side = "left")
+
+        def nonreduced_demazure_lusztig_operator_on_classical_on_basis(self, weight, i, q1, q2, p, convention="antidominant"):
+            r"""
+            The value of the Demazure-Lusztig operator `T_i` on ``weight`` for a doubled Dynkin node `i` in a
+            nonreduced root system.
+
+            INPUT:
+
+            - ``self`` -- the algebra of the ambient space of an unmixed affine type
+            - ``weight`` -- an element of the finite weight space
+            - `i` -- a Dynkin node
+            - `q1, q2` -- Eigenvalues of `T_i`
+            - `p` -- Value associated with the doubled simple root `2\alpha_i` in a nonreduced root system.
+            - ``convention`` -- (default: "antidominant") or "dominant"
+
+            The "dominant" form is
+
+            ..MATH::
+
+                q_1 s_i(weight) + (q_1 + q_2 + p X^{\alpha_i})(weight - s_i(weight)) / (1-X^{2\alpha_i}).
+
+            The antidominant form is
+
+            ..MATH::
+
+                q_1 s_i(weight) + (q_1 + q_2 + p X^{-\alpha_i})(weight - s_i(weight)) / (1-X^{-2\alpha_i}).
+
+            Both of these operators satisfy
+
+            ..MATH::
+
+                (T_i - q_1)(T_i - q_2) = 0.
+
+            Note that if we set `p = q_1 + q_2` then the formulas reduce to their respective
+            reduced Demazure-Lusztig operators:
+
+            ..MATH::
+
+                \begin{align*}
+                    q_1 s_i(weight) + (q_1+q_2) (weight - s_i(weight)) / (1 - X^{\alpha_i}) \\
+                    q_1 s_i(weight) + (q_1+q_2) (weight - s_i(weight)) / (1 - X^{-\alpha_i}) \\
+                \end{align*}
+
+            EXAMPLES::
+
+                sage: L=CartanType(['B',2,1]).root_system().ambient_space()
+                sage: K=QQ['q1,q2,p'].fraction_field()
+                sage: q1,q2,p = K.gens()
+                sage: KL = L.algebra(K)
+                sage: L0 = L.classical()
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,3)), 2, q1, q2, p, convention="dominant")
+                (-p)*B[(0, 0)] + (-q2)*B[(0, -3)] + (-p)*B[(0, -2)] + (-q1-q2)*B[(0, -1)] + (-q1-q2)*B[(0, 1)] + (-p)*B[(0, 2)]
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,-3)), 2, q1, q2, p, convention="dominant")
+                p*B[(0, 0)] + (q1+q2)*B[(0, -3)] + p*B[(0, -2)] + (q1+q2)*B[(0, -1)] + (q1+q2)*B[(0, 1)] + p*B[(0, 2)] + q1*B[(0, 3)]
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,3)), 2, q1, q2, p)
+                p*B[(0, 0)] + q1*B[(0, -3)] + p*B[(0, -2)] + (q1+q2)*B[(0, -1)] + (q1+q2)*B[(0, 1)] + p*B[(0, 2)] + (q1+q2)*B[(0, 3)]
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,-3)), 2, q1, q2, p)
+                (-p)*B[(0, 0)] + (-p)*B[(0, -2)] + (-q1-q2)*B[(0, -1)] + (-q1-q2)*B[(0, 1)] + (-p)*B[(0, 2)] + (-q2)*B[(0, 3)]
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,0)), 2, q1, q2, p, convention="dominant")
+                q1*B[(0, 0)]
+                sage: KL.nonreduced_demazure_lusztig_operator_on_classical_on_basis(L0((0,0)), 2, q1, q2, p)
+                q1*B[(0, 0)]
+
+            """
+
+            KL0 = self.classical()
+            if convention == "dominant":
+                weight = - weight
+            L0 = KL0.basis().keys()
+            alphai=L0.simple_root(i)
+            two_alphai = 2*alphai
+            #should always be even; I think L0 has to be an ambient space for this to work
+            n=weight.scalar(L0.simple_coroot(i))/2
+            q12 = q1+q2
+            if n >= 0:
+                wts = [weight - j * two_alphai for j in range(n)]
+                result = KL0.sum_of_terms([(wt,q12) for wt in wts]+[(wt-alphai,p) for wt in wts]+[(weight-n*two_alphai,q1)],distinct=True)
+            else:
+                wts = [weight + j * two_alphai for j in range(1,1-n)]
+                result = KL0.sum_of_terms([(wt,-q12) for wt in wts]+[(wt-alphai,-p) for wt in wts],distinct=True)+KL0.term(weight-n*two_alphai,q1)
+            if convention == "dominant":
+                return result.map_support(operator.neg)
+            else:
+                return result
+
+        def nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(self, weight, q, q1, q2, p, convention="antidominant"):
+            r"""
+            The value of the Demazure-Lusztig operator `T_0` on ``weight`` for a doubled Dynkin node `0` in a
+            nonreduced affine root system.
+
+            INPUT:
+
+            - ``self`` -- the algebra of an affine root system of unmixed type (untwisted affine or dual is untwisted affine)
+            - ``weight`` -- an element of the weight space of finite type
+            - `q` -- the null root parameter
+            - `q1, q2` -- Eigenvalues of `T_i`
+            - `p` -- Value associated with the doubled simple root `2\alpha_0`
+            - ``convention`` -- (default: "antidominant") or "dominant"
+
+            The result is an element of the lattice algebra of finite type.
+
+            For the formula of the operator, see :meth:`.nonreduced_demazure_lusztig_operator_on_classical_on_basis`.
+            The only difference is that `X^{\alpha_0}` and `s_0` involve `q` since `q=X^{\delta}`.
+
+            EXAMPLES::
+
+                sage: L=CartanType(['D',3,2]).root_system().ambient_space()
+                sage: K=QQ['q,q1,q2,p'].fraction_field()
+                sage: q,q1,q2,p = K.gens()
+                sage: KL = L.algebra(K)
+                sage: KL0 = KL.classical()
+                sage: L0 = KL0.basis().keys()
+                sage: mu = L0((3,0))
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p); ans
+                (-q^3*p)*B[(0, 0)] + (-q^6*q2)*B[(-3, 0)] + (-q^5*p)*B[(-2, 0)] + (-q^4*q1-q^4*q2)*B[(-1, 0)] + (-q^2*q1-q^2*q2)*B[(1, 0)] + (-q*p)*B[(2, 0)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2))
+                (-q^3*q1-q^3*q2)*B[(0, 0)] + (-q^6*q2)*B[(-3, 0)] + (-q^5*q1-q^5*q2)*B[(-2, 0)] + (-q^4*q1-q^4*q2)*B[(-1, 0)] + (-q^2*q1-q^2*q2)*B[(1, 0)] + (-q*q1-q*q2)*B[(2, 0)]
+                sage: KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2)
+                (-q^3*q1-q^3*q2)*B[(0, 0)] + (-q^6*q2)*B[(-3, 0)] + (-q^5*q1-q^5*q2)*B[(-2, 0)] + (-q^4*q1-q^4*q2)*B[(-1, 0)] + (-q^2*q1-q^2*q2)*B[(1, 0)] + (-q*q1-q*q2)*B[(2, 0)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2)
+                True
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p, convention="dominant"); ans
+                q^3*p*B[(0, 0)] + q^6*q1*B[(-3, 0)] + q^5*p*B[(-2, 0)] + (q^4*q1+q^4*q2)*B[(-1, 0)] + (q^2*q1+q^2*q2)*B[(1, 0)] + q*p*B[(2, 0)] + (q1+q2)*B[(3, 0)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2,convention="dominant")
+                True
+                sage: mu = L0((-3,0))
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p); ans
+                p/q^3*B[(0, 0)] + (q1+q2)*B[(-3, 0)] + p/q*B[(-2, 0)] + ((q1+q2)/q^2)*B[(-1, 0)] + ((q1+q2)/q^4)*B[(1, 0)] + p/q^5*B[(2, 0)] + q1/q^6*B[(3, 0)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2)
+                True
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p, convention="dominant"); ans
+                ((-p)/q^3)*B[(0, 0)] + ((-p)/q)*B[(-2, 0)] + ((-q1-q2)/q^2)*B[(-1, 0)] + ((-q1-q2)/q^4)*B[(1, 0)] + ((-p)/q^5)*B[(2, 0)] + ((-q2)/q^6)*B[(3, 0)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2,convention="dominant")
+                True
+                sage: KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(L0((0,0)), q, q1, q2, p)
+                q1*B[(0, 0)]
+                sage: KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(L0((0,0)), q, q1, q2, p, convention="dominant")
+                q1*B[(0, 0)]
+                sage: L=CartanType(['A',1,1]).root_system().ambient_space()
+                sage: K=QQ['q,q1,q2,p'].fraction_field()
+                sage: q,q1,q2,p = K.gens()
+                sage: KL = L.algebra(K)
+                sage: KL0 = KL.classical()
+                sage: L0 = KL0.basis().keys()
+                sage: mu = L0((4,0))
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p); ans
+                (-q^3*p)*B[(1, 3)] + (-q^2*q1-q^2*q2)*B[(2, 2)] + (-q*p)*B[(3, 1)] + (-q^4*q2)*B[(0, 4)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2)
+                True
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p, convention="dominant"); ans
+                q^3*p*B[(1, 3)] + (q^2*q1+q^2*q2)*B[(2, 2)] + q*p*B[(3, 1)] + (q1+q2)*B[(4, 0)] + q^4*q1*B[(0, 4)]
+                sage: mu = L0((-4,0))
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p); ans
+                (q1+q2)*B[(-4, 0)] + p/q*B[(-3, -1)] + ((q1+q2)/q^2)*B[(-2, -2)] + p/q^3*B[(-1, -3)] + q1/q^4*B[(0, -4)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2)
+                True
+                sage: ans = KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(mu, q, q1, q2, p, convention="dominant"); ans
+                ((-p)/q)*B[(-3, -1)] + ((-q1-q2)/q^2)*B[(-2, -2)] + ((-p)/q^3)*B[(-1, -3)] + ((-q2)/q^4)*B[(0, -4)]
+                sage: ans.map_coefficients(lambda x: x.subs(p=q1+q2)) == KL.demazure_lusztig_operator_on_classical_on_basis(mu,0,q,q1,q2,convention="dominant")
+                True
+                sage: KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(L0((0,0)), q, q1, q2, p)
+                q1*B[(0, 0)]
+                sage: KL.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis(L0((0,0)), q, q1, q2, p, convention="dominant")
+                q1*B[(0, 0)]
+
+            """
+            if not self.cartan_type().is_untwisted_affine() and not self.cartan_type().dual().is_untwisted_affine():
+                raise TypeError, "Root system must be of unmixed affine type"
+
+            if convention == "dominant":
+                weight = - weight
+                # reverse the recording of the null root
+                the_q = 1/q
+            else:
+                the_q = q
+            KL0 = self.classical()
+            L0 = KL0.basis().keys()
+            if self.cartan_type().is_untwisted_affine():
+                alpha = -L0.highest_root()
+                alphav = alpha.associated_coroot()
+            else:
+                alphav = -L0.root_system.coroot_lattice().highest_root().to_ambient()
+                alpha = alphav.associated_coroot()
+            two_alpha = 2*alpha
+            #should always be even
+            n=weight.scalar(alphav)/2
+            q12 = q1+q2
+            if n >= 0:
+                wtsq = [(weight - j * two_alpha, the_q**(-2*j)) for j in range(n)]
+                result = KL0.sum_of_terms([(wt[0],q12*wt[1]) for wt in wtsq]+[(wt[0]-alpha,p*wt[1]/the_q) for wt in wtsq]+[(weight-n*two_alpha,q1*(the_q**(-2*n)))],distinct=True)
+            else:
+                wtsq = [(weight + j * two_alpha, the_q**(2*j)) for j in range(1,1-n)]
+                result = KL0.sum_of_terms([(wt[0],-q12*wt[1]) for wt in wtsq]+[(wt[0]-alpha,-p*wt[1]/the_q) for wt in wtsq],distinct=True)+KL0.term(weight-n*two_alpha,q1*(the_q**(-2*n)))
+            if convention == "dominant":
+                return result.map_support(operator.neg)
+            else:
+                return result
+
+
+        def nonreduced_demazure_lusztig_operators_on_classical(self, q, q1, q2, convention="antidominant", unequal_parameters=None, doubled_parameters=None,side="right"):
+            r"""
+            Given a lattice realization algebra of affine type, return the representation
+            of the not-necessarily reduced affine Hecke algebra with possibly unequal parameters, on the lattice realization
+            algebra of finite type.
+
+            INPUT:
+
+            - ``self`` -- Must be the algebra of a weight space of unmixed affine type (either untwisted affine or the
+            dual of untwisted affine)
+            - `q` -- An invertible element of the base ring associated with the null root of the affine algebra.
+            - `q1, q2` -- The eigenvalues of the Hecke algebra generators `T_i`. If ``unequal_parameters`` is None,
+            these are two invertible base ring elements. If ``unequal_parameters`` is True, then each of `q1` and `q2` is a
+            Family with key set equal to the affine Dynkin node set `I`, and `q1[i]` and `q2[i]` are the eigenvalues of
+            `T_i`.
+            - ``convention`` -- either (default: "antidominant") or "dominant"
+            - ``unequal_parameters`` -- (default: None) If True, indicates that `q1` and `q2` are Families as above.
+            - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of doubled nodes `i` in a nonreduced
+            affine root system, and whose values are associated with the doubled simple roots.
+            - ``side`` -- (default: "right") Define a left or right action
+
+            Our example gives the Koornwinder affine Hecke representation.
+
+            EXAMPLES::
+
+                sage: L = CartanType(['D',3,2]).root_system().ambient_space()
+                sage: K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
+                sage: q,v,vl,v0,v2,vz = K.gens()
+                sage: I = L.cartan_type().index_set()
+                sage: q1 = Family(dict([[0,v0],[1,vl],[2,v]]))
+                sage: q2 = Family(dict([[0,-1/v0],[1,-1/vl],[2,-1/v]]))
+                sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
+                sage: KL = L.algebra(K)
+                sage: M = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p); M
+                A representation of the (Finite family {0: v0, 1: vl, 2: v}, Finite family {0: (-1)/v0, 1: (-1)/vl, 2: (-1)/v})-Hecke algebra of type ['C', 2, 1]^* on Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+            """
+            if not unequal_parameters:
+                return self.demazure_lusztig_operators_on_classical(q, q1, q2, convention=convention)
+            KL0 = self.classical()
+            funcs = dict()
+            for i in self.cartan_type().index_set():
+                if doubled_parameters and i in doubled_parameters.keys():
+                    if i == 0:
+                        funcs[0] = functools.partial(self.nonreduced_demazure_lusztig_operator_zero_on_classical_on_basis, q=q, q1=q1[0], q2=q2[0], p=doubled_parameters[0], convention=convention)
+                    else:
+                        funcs[i] = functools.partial(self.nonreduced_demazure_lusztig_operator_on_classical_on_basis, i=i, q1=q1[i], q2=q2[i], p=doubled_parameters[i], convention=convention)
+                else:
+                    funcs[i] = functools.partial(self.demazure_lusztig_operator_on_classical_on_basis, i=i, q=q, q1=q1[i], q2=q2[i], convention=convention)
+
+            funcs=Family(funcs)
+
+            def on_basis(l,i):
+                return funcs[i](l)
+
+            return HeckeAlgebraRepresentation(KL0, on_basis, self.cartan_type(), q1, q2, q, side=side, unequal_parameters=True, doubled_parameters=doubled_parameters)
 
     class ElementMethods:
 

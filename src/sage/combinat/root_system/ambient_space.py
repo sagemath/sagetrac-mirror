@@ -14,6 +14,8 @@ from weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
 from sage.modules.free_module_element import vector
+from sage.sets.family import Family
+from sage.rings.finite_rings.integer_mod import Mod
 
 class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     r"""
@@ -348,6 +350,34 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             return x
         return id
 
+    @cached_method
+    def fundamental_coweights(self):
+        r"""
+        The family of fundamental coweights.
+
+        Only implemented for finite type.
+
+        EXAMPLES::
+
+            sage: CartanType("A2").root_system().ambient_space().fundamental_coweights()
+            Finite family {1: (1, 0, 0), 2: (1, 1, 0)}
+            sage: CartanType("B2").root_system().ambient_space().fundamental_coweights()
+            Finite family {1: (1, 0), 2: (1, 1)}
+            sage: CartanType("C2").root_system().ambient_space().fundamental_coweights()
+            Finite family {1: (1, 0), 2: (1/2, 1/2)}
+            sage: CartanType("G2").root_system().ambient_space().fundamental_coweights()
+            Finite family {1: (1, 0, -1), 2: (2/3, -1/3, -1/3)}
+
+        """
+        if not self.cartan_type().is_finite():
+            raise NotImplementedError
+
+        def constant_of_proportionality(v, w):
+            i = v.support()[0]
+            return w[i]/v[i]
+
+        return Family(dict([[i, constant_of_proportionality(self.simple_root(i),self.simple_coroot(i))*self.fundamental_weight(i)] for i in self.cartan_type().index_set()]))
+
 class AmbientSpaceElement(CombinatorialFreeModuleElement):
     def __hash__(self):
         """
@@ -544,3 +574,29 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
 
         """
         return self
+
+    def in_root_lattice(self):
+        r"""
+        Is ``self`` in the root lattice?
+
+        EXAMPLES::
+
+            sage: L0 = CartanType("B2").root_system().ambient_space()
+            sage: L0.fundamental_weight(1).in_root_lattice()
+            True
+            sage: L0.fundamental_weight(2).in_root_lattice()
+            False
+            sage: L0 = CartanType("C2").root_system().ambient_space()
+            sage: L0.fundamental_weight(1).in_root_lattice()
+            False
+            sage: L0.fundamental_weight(2).in_root_lattice()
+            True
+
+        """
+        cartan_type = self.parent().cartan_type()
+        if not cartan_type.is_finite():
+            raise NotImplementedError
+        if cartan_type.letter == 'A':
+            if Mod(ZZ(QQ.sum(self.coefficients())),1+cartan_type.n) != 0:
+                return False
+        return all( self.scalar(v) in ZZ for v in self.parent().fundamental_coweights())

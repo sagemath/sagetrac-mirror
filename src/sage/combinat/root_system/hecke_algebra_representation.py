@@ -5,6 +5,9 @@ Hecke algebra representations
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Anne Schilling <anne at math.ucdavis.edu>
 #
+#                     2014 Mark Shimozono <mshimo@math.vt.edu>
+#                     Hecke algebras with unequal parameters
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -43,6 +46,8 @@ class HeckeAlgebraRepresentation(SageObject):
     - ``q1,q2`` -- The eigenvalues of the generators `T` of the Hecke algebra
     - ``side`` -- "left" or "right" (default: "right")
       whether this is a left or right representation
+    - ``unequal_parameters`` -- (default: None) If True, `q1` and `q2` are families with keys given by indices `i`
+    and values the parameters of the corresponding generator
 
     EXAMPLES::
 
@@ -70,7 +75,7 @@ class HeckeAlgebraRepresentation(SageObject):
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """
-    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right"):
+    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right", unequal_parameters=None, doubled_parameters=None):
         r"""
         TESTS::
 
@@ -89,6 +94,11 @@ class HeckeAlgebraRepresentation(SageObject):
         self._q = q
         self._cartan_type = cartan_type
         self._side = side
+        if unequal_parameters:
+            self._unequal_parameters = True
+        else:
+            self._unequal_parameters = False
+        self._doubled_parameters = doubled_parameters
 
     def _repr_(self):
         r"""
@@ -124,7 +134,17 @@ class HeckeAlgebraRepresentation(SageObject):
             starting point for implementing parameters depending on
             the node `i` of the Dynkin diagram.
         """
-        return self._q1, self._q2
+        return (self._q1, self._q2) if not self._unequal_parameters else (self._q1[i], self._q2[i])
+
+    @cached_method
+    def parameters_sum(self, i):
+        q1,q2 = self.parameters(i)
+        return q1+q2
+
+    @cached_method
+    def parameters_product(self, i):
+        q1,q2 = self.parameters(i)
+        return q1*q2
 
     def cartan_type(self):
         r"""
@@ -201,9 +221,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: rho.Ti_inverse_on_basis(w, 1)
             -1/q2*B[1231] + ((q1+q2)/(q1*q2))*B[123]
         """
-        q1 = self._q1
-        q2 = self._q2
-        return (self._domain.term(x, q1+q2) - self.Ti_on_basis(x, i))/(q1*q2)
+        return (self._domain.term(x, self.parameters_sum(i)) - self.Ti_on_basis(x, i))/self.parameters_product(i)
 
     @cached_method
     def on_basis(self, x, word, signs=None, scalar=None):
@@ -430,27 +448,73 @@ class HeckeAlgebraRepresentation(SageObject):
 
         EXAMPLES::
 
-            sage: L = RootSystem(["A",3]).ambient_space()
-            sage: K = QQ['q1,q2'].fraction_field()
-            sage: q1, q2 = K.gens()
+#            sage: L = RootSystem(["A",3]).ambient_space()
+#            sage: K = QQ['q1,q2'].fraction_field()
+#            sage: q1, q2 = K.gens()
+#            sage: KL = L.algebra(K)
+#            sage: T = KL.demazure_lusztig_operators(q1,q2)
+#            sage: T._test_relations()
+
+            sage: L = CartanType(['D',3,2]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
+            sage: q,v,vl,v0,v2,vz = K.gens()
+            sage: q1 = Family(dict([[0,v0],[1,vl],[2,v]]))
+            sage: q2 = Family(dict([[0,-1/v0],[1,-1/vl],[2,-1/v]]))
+            sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
             sage: KL = L.algebra(K)
-            sage: T = KL.demazure_lusztig_operators(q1,q2)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
             sage: T._test_relations()
+
+            sage: L = CartanType(['B',3,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v2'].fraction_field()
+            sage: q,v,vl,v2 = K.gens()
+            sage: q1 = Family(dict([[0,vl],[1,vl],[2,vl],[3,v]]))
+            sage: q2 = Family(dict([[0,-1/vl],[1,-1/vl],[2,-1/vl],[3,-1/v]]))
+            sage: p = Family(dict([[3,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T._test_relations()
+
+            sage: L = CartanType(['A',1,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,v0,v2,vz'].fraction_field()
+            sage: q,v,v0,v2,vz = K.gens()
+            sage: q1 = Family(dict([[0,v0],[1,v]]))
+            sage: q2 = Family(dict([[0,-1/v0],[1,-1/v]]))
+            sage: p = Family(dict([[0,vz-1/vz],[1,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T._test_relations()
+
+            sage: L = CartanType(['C',2,1]).root_system().ambient_space()
+            sage: K = QQ['q,v,vl,v2'].fraction_field()
+            sage: q,v,vl,v2 = K.gens()
+            sage: q1 = Family(dict([[0,vl],[1,v],[2,vl]]))
+            sage: q2 = Family(dict([[0,-1/vl],[1,-1/v],[2,-1/vl]]))
+            sage: p = Family(dict([[1,v2-1/v2]]))
+            sage: KL = L.algebra(K)
+            sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", unequal_parameters=True,doubled_parameters=p)
+            sage: T._test_relations()
+
         """
         tester = self._tester(**options)
+
         cartan_type = self.cartan_type()
+
         # In some use cases, the operators are not defined everywhere.
         # This allows to specify which elements the tests
         # should be run on. This does not work when calling this
         # method indirectly via TestSuite though.
         elements = options.get('elements', self.domain().some_elements())
-        q1 = self._q1
-        q2 = self._q2
+        if self._doubled_parameters:
+            # only test elements whose support is in the root lattice
+            # In type A_1^{(1)} the general check is incorrect
+            elements = [elt for elt in elements if all(v.in_root_lattice() for v in elt.support())]
         T = self
         def Ti(x,i,c):
             return T[i](x)+c*x
         # Check the quadratic relation
         for i in cartan_type.index_set():
+            q1,q2 = self.parameters(i)
             for x in elements:
                 tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero())
         G = cartan_type.coxeter_diagram()
@@ -485,16 +549,18 @@ class HeckeAlgebraRepresentation(SageObject):
         """
         tester = self._tester(**options)
         elements = self.domain().some_elements()
-        q1 = self._q1
-        q2 = self._q2
-        if q1.is_unit() and q2.is_unit():
-            I = self.cartan_type().index_set()
-            for w in [[i] for i in I] + [tuple(I)]:
-                Tw = self.Tw(w)
-                Tw_inverse = self.Tw_inverse(w)
-                for x in elements:
-                    tester.assertEqual(Tw_inverse(Tw(x)), x)
-                    tester.assertEqual(Tw(Tw_inverse(x)), x)
+        I = self.cartan_type().index_set()
+        for i in I:
+            q1, q2 = self.parameters(i)
+            if not q1.is_unit() or not q2.is_unit():
+                return
+
+        for w in [[i] for i in I] + [tuple(I)]:
+            Tw = self.Tw(w)
+            Tw_inverse = self.Tw_inverse(w)
+            for x in elements:
+                tester.assertEqual(Tw_inverse(Tw(x)), x)
+                tester.assertEqual(Tw(Tw_inverse(x)), x)
 
     def Y_lambdacheck(self, lambdacheck):
         r"""
