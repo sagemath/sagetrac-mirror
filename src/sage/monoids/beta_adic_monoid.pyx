@@ -442,6 +442,10 @@ class BetaAdicMonoid(Monoid_class):
         r"""
         Used by relations_automaton()
         """
+        
+        if verb and count%10000 == 0: print count
+        #current_state
+        
         global count
         #print count
         if count == 0:
@@ -454,7 +458,7 @@ class BetaAdicMonoid(Monoid_class):
         for c in Cd: #parcours les transitions partant de current_state
             #e = b*current_state + c #calcule l'état obtenu en suivant la transition c
             e = (current_state + c)/b #calcule l'état obtenu en suivant la transition c
-            if verb: print "b=%s, e=%s, cur=%s, c=%s, di=%s"%(b, e, current_state, c, di)
+            #if verb: print "b=%s, e=%s, cur=%s, c=%s, di=%s"%(b, e, current_state, c, di)
             if not di.has_key(e): #détermine si l'état est déjà dans le dictionnaire
                 ok = True
                 #calcule les valeurs abolues pour déterminer si l'état n'est pas trop grand
@@ -464,14 +468,14 @@ class BetaAdicMonoid(Monoid_class):
                             ok = False
                             break
                     else:
-                        if p(e).abs() > m[p]+.000001:
+                        if p(e).abs() > m[p]+.000000001:
                             ok = False
                             break
                 if not ok:
                     continue #cesse de considérer cette transition
                 for p, d in pultra:
                     if absp(e, p, d) > m[p]:
-                        if verb: print "abs(%s)=%s trop grand !"%(e, absp(e, p, d))
+                        #if verb: print "abs(%s)=%s trop grand !"%(e, absp(e, p, d))
                         ok = False
                         break
                 if ok:
@@ -639,14 +643,21 @@ class BetaAdicMonoid(Monoid_class):
         else:
             count = limit
         #print count
+        if verb: print "Parcours..."
         di = self._relations_automaton_rec (current_state=K.zero(), di=dict([]), parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb)
         
         if count == 0:
             print "Nombre max d'états atteint."
+        else:
+            if verb:
+                if limit is None:
+                    print "%s états parcourus."%(-1-count)
+                else:
+                    print "%s états parcourus."%(limit-count)
         
         #a = Automaton([K.zero()], [K.zero()], di)
         
-        if verb: print "di = %s"%di
+        #if verb: print "di = %s"%di
         
         res = Automaton(di, loops=True) #, multiedges=True)
         
@@ -654,6 +665,7 @@ class BetaAdicMonoid(Monoid_class):
         
         res.I = [K.zero()]
         res.A = Set([c-c2 for c in self.C for c2 in self.C])
+        if verb: print "Emondation..."
         if not ext:
             res.F = [K.zero()]
             res.emonde()
@@ -718,12 +730,14 @@ class BetaAdicMonoid(Monoid_class):
         Cd = Set([c-c2 for c in self.C for c2 in self.C])
         if verb: print "Cd = %s"%Cd
         vol = 1.
-        from sage.rings.real_mpfr import RR
+        #from sage.rings.real_mpfr import RR
         for p in parch:
-            if p.codomain().has_coerce_map_from(RR):
-                vol *= 2*max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+            if (p(b)).imag() == 0:
+                vol *= 2*max([p(c).abs() for c in Cd])/abs(1-p(b).abs())
+                if verb: print "place réelle %s"%p
             else:
-                vol *= 3.1415926535*(max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs()))**2
+                vol *= 3.1415926535*(max([p(c).abs() for c in Cd])/abs(1-p(b).abs()))**2
+                if verb: print "place complexe %s"%p
             #vol *= max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
             #vol *= max(1, max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs()))
         for p, d in pultra:
