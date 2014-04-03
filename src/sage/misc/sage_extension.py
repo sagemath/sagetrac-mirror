@@ -252,6 +252,25 @@ class SageMagics(Magics):
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
 
 
+import importlib
+
+_transitioned_packages = [
+    'sage.games',
+    ]
+
+_transitioned_packages = map(importlib.import_module, _transitioned_packages)
+
+def recursive_import(module):
+    __all__ = getattr(module, '__all__',
+            (key for key in dir(module) if key[0] != '_'))
+    ret = {key: getattr(module, key) for key in __all__}
+
+    __all_modules__ = getattr(module, '__all_modules__', [])
+    for key in __all_modules__:
+        submodule = importlib.import_module('.'+key, module.__name__)
+        ret.update(recursive_import(submodule))
+    return ret
+
 import displayhook
 class SageCustomizations(object):
     startup_code = """from sage.all_cmdline import *
@@ -323,6 +342,9 @@ from sage.misc.interpreter import sage_prompt
         """
         Set up Sage command-line environment
         """
+        # eventually this method would just be the following two lines
+        # import sage
+        # self.shell.user_ns.update(recursive_import(sage))
         try:
             self.shell.run_cell('from sage.all import Integer, RealNumber')
         except Exception:
@@ -335,6 +357,8 @@ from sage.misc.interpreter import sage_prompt
             print 'and then type "%debug" to enter the interactive debugger'
             sys.exit(1)
         self.shell.run_cell(self.startup_code)
+        for module in _transitioned_packages:
+            self.shell.user_ns.update(recursive_import(module))
         self.run_init()
 
 

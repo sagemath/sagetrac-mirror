@@ -1,3 +1,4 @@
-# init file
-
-import all
+__all_modules__ = [
+    'sudoku',
+    'hexad',
+    ]

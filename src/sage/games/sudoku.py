@@ -888,8 +888,7 @@ class Sudoku(SageObject):
             else:
                 yield None
 
-
-
-
-
-
+__all__ = [
+    'Sudoku',
+    'sudoku',
+    ]

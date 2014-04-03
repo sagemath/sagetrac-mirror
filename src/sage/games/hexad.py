@@ -86,7 +86,7 @@ def view_list(L):
     as in Curtis' paper.
 
     EXAMPLES::
-        sage: from sage.games.hexad import *
+        sage: from sage.games.hexad import view_list
         sage: M = Minimog(type="shuffle")
         sage: view_list(M.line[1])
         <BLANKLINE>
@@ -655,5 +655,6 @@ class Minimog():
         print "This is a hexad. \n There is no winning move, so make a random legal move."
         return L0
 
-
-
+__all__ = [
+    'Minimog',
+    ]
