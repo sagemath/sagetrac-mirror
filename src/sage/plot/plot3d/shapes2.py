@@ -608,7 +608,7 @@ def sphere(center=(0,0,0), size=1, **kwds):
     H._set_extra_kwds(kwds)
     return H
 
-def text3d(txt, (x,y,z), **kwds):
+def text3d(txt, x_y_z, **kwds):
     r"""
     Display 3d text.
 
@@ -645,6 +645,7 @@ def text3d(txt, (x,y,z), **kwds):
 
         sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
     """
+    (x, y, z) = x_y_z 
     if 'color' not in kwds and 'rgbcolor' not in kwds:
         kwds['color'] = (0,0,0)
     G = Text(txt, **kwds).translate((x,y,z))
@@ -964,7 +965,9 @@ class Line(PrimitiveObject):
             cur, prev_dir = next, next_dir
 
             # quicker than making them vectors first
-            def dot((x0,y0,z0), (x1,y1,z1)):
+            def dot(x0_y0_z0, x1_y1_z1):
+                (x0, y0, z0) = x0_y0_z0
+                (x1, y1, z1) = x1_y1_z1
                 return x0*x1 + y0*y1 + z0*z1
 
             for next in self.points[2:]:
