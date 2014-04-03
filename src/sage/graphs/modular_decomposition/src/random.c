@@ -67,9 +67,9 @@ void test(int n, long int ppm, int *C)
     {
       if(VERBEUX)
         {
-          printf("Ajacence de %i: ",i+1);
+          printf("Ajacence de %i: ",i);
           for(a=G.G[i]; a!=NULL; a=a->suiv)
-            printf("%i ",1+a->s);
+            printf("%i ",a->s);
         }
       for(j=i+1;j<n;j++)
         {
@@ -86,7 +86,7 @@ void test(int n, long int ppm, int *C)
             a->suiv=G.G[j];
             G.G[j]=a;
             if(VERBEUX)
-              printf("%i ",j+1);
+              printf("%i ",j);
           }
         }
       if(VERBEUX)
