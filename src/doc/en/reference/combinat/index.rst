@@ -4,7 +4,11 @@ Combinatorics
 .. toctree::
    :maxdepth: 2
 
+   sage/combinat/demo_short
+   sage/combinat/demo
+   sage/combinat/demo_algebraic_combinatorics
    sage/combinat/tutorial
+   sage/combinat/tutorial_enumerated_sets
    sage/combinat/combinat
    sage/combinat/sloane_functions
    sage/databases/oeis

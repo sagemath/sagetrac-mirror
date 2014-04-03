@@ -4,6 +4,8 @@ Words
 .. toctree::
    :maxdepth: 2
 
+   ../sage/combinat/words/demo
+
    ../sage/combinat/words/alphabet
    ../sage/combinat/words/abstract_word
    ../sage/combinat/words/finite_word

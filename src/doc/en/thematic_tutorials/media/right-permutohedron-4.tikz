@@ -1,0 +1,82 @@
+\begin{tikzpicture}[>=latex,join=bevel,baseline=(current bounding box.east)]
+%%
+  \node (N_1) at (125bp,300bp) [draw,draw=none] {$1234$};
+
+  \node (N_4) at ( 75bp,250bp) [draw,draw=none] {$2134$};
+  \node (N_3) at (125bp,250bp) [draw,draw=none] {$1324$};
+  \node (N_2) at (175bp,250bp) [draw,draw=none] {$1243$};
+
+  \node (N_13)at ( 25bp,200bp) [draw,draw=none] {$2314$};
+  \node (N_8) at ( 75bp,200bp) [draw,draw=none] {$3124$};
+  \node (N_6) at (125bp,200bp) [draw,draw=none] {$2143$};
+  \node (N_7) at (175bp,200bp) [draw,draw=none] {$1342$};
+  \node (N_5) at (225bp,200bp) [draw,draw=none] {$1423$};
+
+  \node (N_2341)at (  0bp,150bp) [draw,draw=none] {$2341$};
+  \node (N_16)at ( 50bp,150bp) [draw,draw=none] {$3214$};
+  \node (N_14)at (100bp,150bp) [draw,draw=none] {$2413$};
+  \node (N_3142)at (150bp,150bp) [draw,draw=none] {$3142$};
+  \node (N_4123)at (200bp,150bp) [draw,draw=none] {$4123$};
+  \node (N_9) at (250bp,150bp) [draw,draw=none] {$1432$};
+
+  \node (N_18)at ( 25bp,100bp) [draw,draw=none] {$3241$};
+  \node (N_2431)at ( 75bp,100bp) [draw,draw=none] {$2431$};
+  \node (N_3412)at (125bp,100bp) [draw,draw=none] {$3412$};
+  \node (N_4213)at (175bp,100bp) [draw,draw=none] {$4213$};
+  \node (N_4132)at (225bp,100bp) [draw,draw=none] {$4132$};
+
+  \node (N_3421)at ( 75bp, 50bp) [draw,draw=none] {$3421$};
+  \node (N_20)at (125bp, 50bp) [draw,draw=none] {$4231$};
+  \node (N_23)at (175bp, 50bp) [draw,draw=none] {$4312$};
+
+  \node (N_24)at (125bp,  0bp) [draw,draw=none] {$4321$};
+
+
+  \draw [blue,->] (N_2) -- (N_6);
+  \pgfsetstrokecolor{black}
+  \draw [red,->] (N_18) -- (N_3421);
+  \draw [green,->] (N_3412) -- (N_3421);
+  \draw [blue,->] (N_1) -- (N_4);
+  \draw [red,->] (N_6) -- (N_14);
+  \draw [blue,->] (N_9) -- (N_4132);
+  \draw [red,->] (N_3142) -- (N_3412);
+  \draw [blue,->] (N_2341) -- (N_18);
+  \draw [green,->] (N_4123) -- (N_4132);
+  \draw [green,->] (N_4213) -- (N_20);
+  \draw [red,->] (N_7) -- (N_9);
+  \draw [blue,->] (N_2431) -- (N_20);
+  \draw [green,->] (N_4) -- (N_6);
+  \draw [red,->] (N_20) -- (N_24);
+  \draw [red,->] (N_4) -- (N_13);
+  \draw [blue,->] (N_13) -- (N_16);
+  \draw [green,->] (N_8) -- (N_3142);
+  \draw [blue,->] (N_3412) -- (N_23);
+  \draw [blue,->] (N_7) -- (N_3142);
+  \draw [red,->] (N_4132) -- (N_23);
+  \draw [blue,->] (N_14) -- (N_4213);
+  \draw [red,->] (N_1) -- (N_3);
+  \draw [blue,->] (N_3421) -- (N_24);
+  \draw [blue,->] (N_5) -- (N_4123);
+  \draw [green,->] (N_16) -- (N_18);
+  \draw [red,->] (N_2) -- (N_5);
+  \draw [green,->] (N_14) -- (N_2431);
+  \draw [green,->] (N_13) -- (N_2341);
+  \draw [green,->] (N_23) -- (N_24);
+  \draw [green,->] (N_1) -- (N_2);
+  \draw [red,->] (N_2341) -- (N_2431);
+  \draw [green,->] (N_3) -- (N_7);
+  \draw [red,->] (N_8) -- (N_16);
+  \draw [blue,->] (N_3) -- (N_8);
+  \draw [green,->] (N_5) -- (N_9);
+  \draw [red,->] (N_4123) -- (N_4213);
+\end{tikzpicture}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
