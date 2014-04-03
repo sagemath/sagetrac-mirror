@@ -35,6 +35,7 @@ different types.  The hierarchy is as follows:
     class ManinSymbolList_character(ManinSymbolList)
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -64,7 +65,7 @@ import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject
 
-from apply import apply_to_monomial
+from .apply import apply_to_monomial
 
 def is_ManinSymbol(x):
     """

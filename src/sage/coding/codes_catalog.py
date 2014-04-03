@@ -29,13 +29,14 @@ The ``codes`` object may be used to access the codes that Sage can build.
 - :func:`codes.WalshCode <sage.coding.code_constructions.WalshCode>`
 
 """
+from __future__ import absolute_import
 
 # Implementation note:
 #
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
-from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
+from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
@@ -45,4 +46,4 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
-from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+from .guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava

@@ -32,10 +32,11 @@ See also the functions cremona_curves() and cremona_optimal_curves()
 which enable easy looping through the Cremona elliptic curve database.
 
 """
+from __future__ import absolute_import
 
 import os
 
-from ell_rational_field import (EllipticCurve_rational_field)
+from .ell_rational_field import (EllipticCurve_rational_field)
 
 class EllipticCurves:
     def rank(self, rank, tors=0, n=10, labels=False):

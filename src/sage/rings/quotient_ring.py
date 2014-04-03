@@ -96,6 +96,7 @@ easily::
     True
 
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #
@@ -108,10 +109,10 @@ easily::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import quotient_ring_element
+from . import quotient_ring_element
 import sage.misc.latex as latex
-import commutative_ring, ring
-import ideal
+from . import commutative_ring, ring
+from . import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
@@ -616,7 +617,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         try:
             return self.__cover
         except AttributeError:
-            import morphism
+            from . import morphism
             pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
             lift = self.lifting_map()
             pi._set_lift(lift)
@@ -682,7 +683,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             return self.__lift
         except AttributeError:
             pass
-        from morphism import RingMap_lift
+        from .morphism import RingMap_lift
         m = RingMap_lift(self, self.__R)
         self.__lift = m
         return m

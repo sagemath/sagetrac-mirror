@@ -164,6 +164,7 @@ classical) does not apply.
 
 -----------
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -188,7 +189,7 @@ from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
 import weakref
 
-from weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
+from .weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
 __ocmfdict = {}
 
 ####################

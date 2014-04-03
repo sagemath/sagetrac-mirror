@@ -7,6 +7,7 @@ AUTHORS:
 
 - Jeroen Demeyer (2010-12-16): fix formatting of docstrings (:trac:`10487`)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2005,2007 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Jeroen Demeyer <jdemeyer@cage.ugent.be>
@@ -26,7 +27,7 @@ import sage.rings.rational as rational
 
 import sage.libs.pari.all as pari
 
-import element_ext_pari
+from . import element_ext_pari
 
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
@@ -176,7 +177,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             Finite Field in a of size 3^2
         """
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
-        from constructor import FiniteField as GF
+        from .constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError, "q must be a prime power"
@@ -206,7 +207,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__is_field = True
 
         if modulus is None or modulus == "default":
-            from conway_polynomials import exists_conway_polynomial
+            from .conway_polynomials import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
                 modulus = "conway"
             else:
@@ -214,7 +215,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         if isinstance(modulus,str):
             if modulus == "conway":
-                from conway_polynomials import conway_polynomial
+                from .conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(self.__char, self.__degree)
             elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since
@@ -621,7 +622,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         try:
             return self.__polynomial[name]
         except (AttributeError, KeyError):
-            from constructor import FiniteField as GF
+            from .constructor import FiniteField as GF
             R = GF(self.characteristic())[name]
             f = R(self._pari_modulus())
             try:

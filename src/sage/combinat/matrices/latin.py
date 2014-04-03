@@ -114,6 +114,7 @@ TESTS::
     True
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Carlo Hamalainen <carlo.hamalainen@gmail.com>,
@@ -147,7 +148,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.spyx"
 #load "dancing_links.sage"
 
-from dlxcpp import DLXCPP
+from .dlxcpp import DLXCPP
 
 class LatinSquare:
     def __init__(self, *args):

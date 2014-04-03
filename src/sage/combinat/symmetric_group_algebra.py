@@ -1,6 +1,7 @@
 r"""
 Symmetric Group Algebra
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -8,12 +9,12 @@ Symmetric Group Algebra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from combinatorial_algebra import CombinatorialAlgebra
-from free_module import CombinatorialFreeModule
+from .combinatorial_algebra import CombinatorialAlgebra
+from .free_module import CombinatorialFreeModule
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
-import permutation
-import partition
-from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
+from . import permutation
+from . import partition
+from .tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, PolynomialRing
 from sage.rings.arith import factorial

@@ -32,6 +32,7 @@ AUTHORS:
 This is an abstract class implementing the functions shared between the Pexpect
 and library interfaces to Maxima.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -59,7 +60,7 @@ import sage.server.support
 
 ##import sage.rings.all
 
-from interface import (Interface, InterfaceElement, InterfaceFunctionElement,
+from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list

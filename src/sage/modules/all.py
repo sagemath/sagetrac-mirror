@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -13,18 +14,18 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from free_module import FreeModule, VectorSpace, span
+from .free_module import FreeModule, VectorSpace, span
 
-from free_quadratic_module import (FreeQuadraticModule, QuadraticSpace,
+from .free_quadratic_module import (FreeQuadraticModule, QuadraticSpace,
                                    InnerProductSpace)
 
-from free_module_element import (vector, free_module_element, zero_vector,
+from .free_module_element import (vector, free_module_element, zero_vector,
                                  random_vector)
 
-from module_element import ModuleElement
+from .module_element import ModuleElement
 
-import vector_callable_symbolic_dense
+from . import vector_callable_symbolic_dense
 
-from vector_space_morphism import linear_transformation
+from .vector_space_morphism import linear_transformation
 
-import vector_symbolic_dense
+from . import vector_symbolic_dense

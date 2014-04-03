@@ -21,6 +21,7 @@ AUTHORS:
 - Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
 
 """
+from __future__ import absolute_import
 
 # Historical note: in trac #11599, V.B. renamed
 # * _point_morphism_class -> _morphism
@@ -1865,7 +1866,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree()==1:
             raise NotImplementedError("Minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, False ,prime_list ,True))
 
     def minimal_model(self, return_transformation = False,prime_list=None):
@@ -1983,7 +1984,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.degree()==1:
             raise NotImplementedError("Minimality is only for degree 2 or higher")
 
-        from endPN_minimal_model import affine_minimal
+        from .endPN_minimal_model import affine_minimal
         return(affine_minimal(self, return_transformation,prime_list,False))
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

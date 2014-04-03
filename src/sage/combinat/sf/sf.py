@@ -1,6 +1,7 @@
 """
 Symmetric functions, with their multiple realizations
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2009-2012 Jason Bandlow <jbandlow@gmail.com>
@@ -26,15 +27,15 @@ from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
 
-import schur
-import monomial
-import powersum
-import elementary
-import homogeneous
-import hall_littlewood
-import jack
-import macdonald
-import llt
+from . import schur
+from . import monomial
+from . import powersum
+from . import elementary
+from . import homogeneous
+from . import hall_littlewood
+from . import jack
+from . import macdonald
+from . import llt
 
 class SymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -863,7 +864,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: SymmetricFunctions(QQ).witt(coerce_h=False, coerce_e=True, coerce_p=True)
             Symmetric Functions over Rational Field in the Witt basis
         """
-        import witt
+        from . import witt
         return witt.SymmetricFunctionAlgebra_witt(self, coerce_h=coerce_h, coerce_e=coerce_e, coerce_p=coerce_p)
     w = witt
     # Currently needed by sfa.SymmetricFunctionsBases.corresponding_basis_over

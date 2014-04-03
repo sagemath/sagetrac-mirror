@@ -44,6 +44,7 @@ An example in characteristic `7`::
     sage: ModularForms(13,3,base_ring=GF(7)).base_ring()
     Finite Field of size 7
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -62,10 +63,10 @@ import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 from sage.rings.power_series_ring_element import is_PowerSeries
 
-import defaults
-import element
-import hecke_operator_on_qexp
-import submodule
+from . import defaults
+from . import element
+from . import hecke_operator_on_qexp
+from . import submodule
 
 import sage.modular.modform.constructor
 

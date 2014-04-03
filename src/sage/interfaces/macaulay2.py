@@ -76,6 +76,7 @@ AUTHORS:
 TODO:
    -- get rid of all numbers in output, e.g., in ideal function below.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 Kiran S. Kedlaya <kedlaya@mit.edu>
@@ -96,7 +97,7 @@ TODO:
 
 import os
 
-from expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
+from .expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
 
 from sage.misc.multireplace import multiple_replace
 

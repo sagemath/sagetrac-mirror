@@ -32,6 +32,7 @@ AUTHORS:
   numbers of higher level
 
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2005,2006,2007 William Stein <wstein@gmail.com>
@@ -48,21 +49,21 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-import constructor
-import BSD
-from   ell_generic import is_EllipticCurve
-import ell_modular_symbols
-from   ell_number_field import EllipticCurve_number_field
-import ell_point
-import ell_tate_curve
-import ell_torsion
-import heegner
-from   gp_simon import simon_two_descent
-from   lseries_ell import Lseries_ell
-import mod5family
-from   modular_parametrization import ModularParameterization
-import padic_lseries
-import padics
+from . import constructor
+from . import BSD
+from   .ell_generic import is_EllipticCurve
+from . import ell_modular_symbols
+from   .ell_number_field import EllipticCurve_number_field
+from . import ell_point
+from . import ell_tate_curve
+from . import ell_torsion
+from . import heegner
+from   .gp_simon import simon_two_descent
+from   .lseries_ell import Lseries_ell
+from . import mod5family
+from   .modular_parametrization import ModularParameterization
+from . import padic_lseries
+from . import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
 
@@ -2705,7 +2706,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__tamagawa_number = {}
         if p not in self.__kodaira_type:
             v = self.pari_mincurve().elllocalred(p)
-            from kodaira_symbol import KodairaSymbol
+            from .kodaira_symbol import KodairaSymbol
             self.__kodaira_type[p] = KodairaSymbol(v[1])
             self.__tamagawa_number[p] = Integer(v[3])
         return self.__kodaira_type[p]
@@ -2985,7 +2986,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__lseries
         except AttributeError:
-            from lseries_ell import Lseries_ell
+            from .lseries_ell import Lseries_ell
             self.__lseries = Lseries_ell(self)
             return self.__lseries
 
@@ -4184,7 +4185,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ValueError: 4 is not prime.
 
         """
-        from isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
+        from .isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
@@ -4703,7 +4704,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__rho
         except AttributeError:
-            from gal_reps import GaloisRepresentation
+            from .gal_reps import GaloisRepresentation
             self.__rho = GaloisRepresentation(self)
         return self.__rho
 
@@ -5044,7 +5045,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__sha
         except AttributeError:
-            from sha_tate import Sha
+            from .sha_tate import Sha
             self.__sha = Sha(self)
             return self.__sha
 

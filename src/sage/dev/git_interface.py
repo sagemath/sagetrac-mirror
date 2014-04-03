@@ -9,6 +9,7 @@ AUTHORS:
   initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
 #                          Julian Rueth <julian.rueth@fsfe.org>
@@ -29,7 +30,7 @@ from sage.env import (
     SAGE_REPO_ANONYMOUS
 )
 
-from git_error import GitError, DetachedHeadError
+from .git_error import GitError, DetachedHeadError
 
 class GitProxy(object):
     r"""

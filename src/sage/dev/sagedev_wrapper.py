@@ -8,6 +8,7 @@ AUTHORS:
 
 - Julian Rueth: initial version
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -167,11 +168,11 @@ class SageDevWrapper(object):
             sage: dev._local_branch_for_ticket
             <function wrapped at 0x...>
         """
-        from user_interface_error import OperationCancelledError
-        from git_error import GitError, DetachedHeadError, InvalidStateError
-        from trac_error import TracConnectionError
-        from sagedev import SageDevValueError
-        from user_interface import NORMAL, INFO, DEBUG
+        from .user_interface_error import OperationCancelledError
+        from .git_error import GitError, DetachedHeadError, InvalidStateError
+        from .trac_error import TracConnectionError
+        from .sagedev import SageDevValueError
+        from .user_interface import NORMAL, INFO, DEBUG
         UI = self._sagedev._UI
         def wrap(f):
             from sage.misc.decorators import sage_wraps

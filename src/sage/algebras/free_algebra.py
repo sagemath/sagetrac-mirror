@@ -118,6 +118,7 @@ Note that the letterplace implementation can only be used if the corresponding
     NotImplementedError: The letterplace implementation is not available for the free algebra you requested
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
@@ -849,7 +850,7 @@ class FreeAlgebra_generic(Algebra):
             sage: H.<i,j,k> = A.quotient(mons, mats); H
             Free algebra quotient on 3 generators ('i', 'j', 'k') and dimension 4 over Rational Field
         """
-        import free_algebra_quotient
+        from . import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
 
     quo = quotient

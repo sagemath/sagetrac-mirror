@@ -107,6 +107,7 @@ AUTHORS:
   functions to ``EllipticCurvePoint_finite_field`` class
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -138,7 +139,7 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
                                                       SchemeMorphism_point_abelian_variety_field)
 from sage.schemes.generic.morphism import is_SchemeMorphism
 
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.misc.superseded import deprecated_function_alias
 
 oo = rings.infinity       # infinity

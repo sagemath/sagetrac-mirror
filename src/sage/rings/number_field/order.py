@@ -35,15 +35,16 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     sage: factor(m)
     17^45
 """
+from __future__ import absolute_import
 
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
 
-from number_field_element import OrderElement_absolute, OrderElement_relative
+from .number_field_element import OrderElement_absolute, OrderElement_relative
 
-from number_field_element_quadratic import OrderElement_quadratic
+from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
 
@@ -98,7 +99,7 @@ def EquationOrder(f, names):
         ...
         ValueError: each generator must be integral
     """
-    from number_field import NumberField
+    from .number_field import NumberField
     R = ZZ['x']
     if isinstance(f, (list, tuple)):
         for g in f:
@@ -563,7 +564,7 @@ class Order(IntegralDomain):
             return self.__free_module
         except AttributeError:
             pass
-        from number_field_ideal import basis_to_module
+        from .number_field_ideal import basis_to_module
         M = basis_to_module(self.basis(), self.number_field())
         self.__free_module = M
         return M

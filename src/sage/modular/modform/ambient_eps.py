@@ -66,6 +66,7 @@ TESTS::
     sage: type(m)
     <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps_with_category'>
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -81,10 +82,10 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
 
-import ambient
-import ambient_R
-import cuspidal_submodule
-import eisenstein_submodule
+from . import ambient
+from . import ambient_R
+from . import cuspidal_submodule
+from . import eisenstein_submodule
 
 class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
     """
@@ -265,7 +266,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: M.hecke_module_of_level(30)
             Modular Forms space of dimension 16, character [-1, 1] and weight 3 over Rational Field
         """
-        import constructor
+        from . import constructor
         if N % self.level() == 0:
             return constructor.ModularForms(self.character().extend(N), self.weight(), self.base_ring(), prec=self.prec())
         elif self.level() % N == 0:

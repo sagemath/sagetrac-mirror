@@ -1,6 +1,7 @@
 """nodoctest
 all.py -- export of projective_space to Sage
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -20,7 +21,7 @@ all.py -- export of projective_space to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from projective_space import ProjectiveSpace, is_ProjectiveSpace
+from .projective_space import ProjectiveSpace, is_ProjectiveSpace
 
 
 

@@ -1,6 +1,7 @@
 """
 Root system data for type E
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -9,7 +10,7 @@ Root system data for type E
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import ambient_space
+from . import ambient_space
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
 
@@ -432,7 +433,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
 
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_simply_laced
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_simply_laced
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simply_laced):
     def __init__(self, n):
         """
@@ -521,7 +522,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
              (6, 7, 1), (7, 6, 1), (7, 8, 1), (8, 7, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         g.add_edge(1,3)
         g.add_edge(2,4)

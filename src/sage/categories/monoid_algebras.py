@@ -1,6 +1,7 @@
 r"""
 Monoid algebras
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -10,7 +11,7 @@ Monoid algebras
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
 
 class MonoidAlgebras(Category_over_base_ring):

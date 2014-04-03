@@ -21,6 +21,7 @@ AUTHORS:
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
 #                     2009 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -37,9 +38,9 @@ from sage.structure.element import Element
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
-from combinat import CombinatorialObject
-from cartesian_product import CartesianProduct
-from integer_list import IntegerListsLex
+from .combinat import CombinatorialObject
+from .cartesian_product import CartesianProduct
+from .integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map

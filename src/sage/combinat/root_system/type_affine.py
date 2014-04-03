@@ -1,6 +1,7 @@
 """
 Root system data for affine Cartan types
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
@@ -10,7 +11,7 @@ Root system data for affine Cartan types
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.free_module import CombinatorialFreeModule
-from weight_lattice_realizations import WeightLatticeRealizations
+from .weight_lattice_realizations import WeightLatticeRealizations
 
 class AmbientSpace(CombinatorialFreeModule):
     r"""

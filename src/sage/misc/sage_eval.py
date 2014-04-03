@@ -1,6 +1,7 @@
 r"""
 Evaluating a String in Sage
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -11,7 +12,7 @@ Evaluating a String in Sage
 #*****************************************************************************
 
 from copy import copy
-import preparser
+from . import preparser
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""

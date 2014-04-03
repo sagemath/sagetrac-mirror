@@ -1,6 +1,7 @@
 r"""
 Enumerated Sets
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
@@ -9,7 +10,7 @@ Enumerated Sets
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category
+from .category_types import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError

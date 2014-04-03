@@ -1,6 +1,7 @@
 """
 Step function plots
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>,
@@ -47,7 +48,7 @@ def plot_step_function(v, vertical_lines=True, **kwds):
         sage: v = [(i,sin(i)) for i in range(5,20)]
         sage: plot_step_function(v, vertical_lines=False, thickness=30, rgbcolor='purple', axes=False)
     """
-    from plot import line
+    from .plot import line
     # make sorted copy of v (don't change in place, since that would be rude).
     v = list(sorted(v))
     if len(v) <= 1:

@@ -76,6 +76,7 @@ AUTHORS:
     - David Ackerman
     - William Stein
 """
+from __future__ import absolute_import
 
 ###############################################################################
 #   Sage: Open Source Mathematical Software
@@ -90,8 +91,8 @@ AUTHORS:
 import re
 
 # Sage library
-from ring import SR
-from expression import Expression
+from .ring import SR
+from .expression import Expression
 
 ###############################################################################
 # Unit conversions dictionary.

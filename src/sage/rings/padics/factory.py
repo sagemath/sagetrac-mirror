@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -24,7 +25,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from padic_base_leaves import pAdicRingCappedRelative, \
+from .padic_base_leaves import pAdicRingCappedRelative, \
                               pAdicRingCappedAbsolute, \
                               pAdicRingFixedMod, \
                               pAdicFieldCappedRelative
@@ -35,7 +36,7 @@ from padic_base_leaves import pAdicRingCappedRelative, \
 # factory when it finds a given class in the ground ring of the tower.
 ######################################################
 
-from padic_extension_leaves import *
+from .padic_extension_leaves import *
 #This imports all of the classes used in the ext_table below.
 
 ext_table = {}
@@ -163,7 +164,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
 #
 #######################################################################################################
 
-import padic_printing
+from . import padic_printing
 padic_field_cache = {}
 DEFAULT_PREC = Integer(20)
 DEFAULT_HALT = Integer(40)

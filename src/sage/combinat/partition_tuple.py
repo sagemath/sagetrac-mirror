@@ -245,6 +245,7 @@ subgroup::
     [1, 2, 3, 6, 8, 11, 12]
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>,
 #
@@ -252,10 +253,10 @@ subgroup::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
-from combinat import CombinatorialObject
-from integer_vector import IntegerVectors
-from partition import Partition, Partitions, Partitions_n, _Partitions
+from .cartesian_product import CartesianProduct
+from .combinat import CombinatorialObject
+from .integer_vector import IntegerVectors
+from .partition import Partition, Partitions, Partitions_n, _Partitions
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -838,7 +839,7 @@ class PartitionTuple(CombinatorialObject,Element):
             sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
             Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
         """
-        from tableau_tuple import StandardTableauTuples
+        from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(shape=self)
 
 
@@ -1035,7 +1036,7 @@ class PartitionTuple(CombinatorialObject,Element):
             sage: PartitionTuple([ [2,1],[3,2] ]).initial_tableau()
             ([[1, 2], [3]], [[4, 5, 6], [7, 8]])
         """
-        from tableau_tuple import StandardTableauTuples
+        from .tableau_tuple import StandardTableauTuples
         return StandardTableauTuples(self).first()
 
     def garnir_tableau(self, *cell):
@@ -1107,7 +1108,7 @@ class PartitionTuple(CombinatorialObject,Element):
 
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
-        from tableau_tuple import TableauTuple
+        from .tableau_tuple import TableauTuple
         g = TableauTuple(self.initial_tableau().to_list())
         a=g[comp][row][col]
         g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
@@ -1195,7 +1196,7 @@ class PartitionTuple(CombinatorialObject,Element):
         # now we will put the number m,m+1,...,t[row+1][col] in order into t
         t[comp][row][col:a+col]=[m+col-b+1+i for i in range(a)]
         t[comp][row+1][col-b+1:col+1]=[m+a+col-b+1+i for i in range(b)]
-        from tableau_tuple import StandardTableauTuple
+        from .tableau_tuple import StandardTableauTuple
         return StandardTableauTuple(t)
 
     def arm_length(self, k,r,c):

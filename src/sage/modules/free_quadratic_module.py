@@ -53,6 +53,7 @@ TESTS:
 AUTHORS:
     --David Kohel (2008-06): First created (based on free_module.py)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -83,7 +84,7 @@ import sage.rings.integral_domain as integral_domain
 import sage.rings.integer
 import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-import free_module
+from . import free_module
 
 ###############################################################################
 #

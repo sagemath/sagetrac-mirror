@@ -24,6 +24,7 @@ see :trac:`12849`::
     ...           print line
     <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -828,7 +829,7 @@ You can build this with 'sage -docbuild %s html'.""" % s
                           extra2, extra3, extra4, extra5] if s])
         print format_search_as_html(title, results, terms)
     else:
-        import pager
+        from . import pager
         pager.pager()(results)
 
 
@@ -1152,7 +1153,7 @@ def format_search_as_html(what, r, search):
 #######################################
 ## Add detex'ing of documentation
 #######################################
-import sageinspect
+from . import sageinspect
 
 def my_getsource(obj, is_binary):
     """

@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 try:
-    from cryptominisat import CryptoMiniSat
+    from .cryptominisat import CryptoMiniSat
 except ImportError:
     raise ImportError("Failed to import 'sage.sat.solvers.cryptominisat.CryptoMiniSat'. Run \"install_package('cryptominisat')\" to install it.")
 
-from solverconf import SolverConf
+from .solverconf import SolverConf

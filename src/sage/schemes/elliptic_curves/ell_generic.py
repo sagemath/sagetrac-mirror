@@ -29,6 +29,7 @@ AUTHORS:
 
 - John Cremona (2008-01): isomorphisms, automorphisms and twists in all characteristics
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -64,11 +65,11 @@ import sage.misc.misc as misc
 import sage.schemes.projective.projective_space as projective_space
 from sage.schemes.projective.projective_homset import SchemeHomset_points_abelian_variety_field
 
-import ell_point
-import ell_torsion
-import constructor
-import formal_group
-import weierstrass_morphism as wm
+from . import ell_point
+from . import ell_torsion
+from . import constructor
+from . import formal_group
+from . import weierstrass_morphism as wm
 
 
 factor = arith.factor
@@ -2461,7 +2462,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.short_weierstrass_model(complete_cube=False).is_isomorphic(E)
             True
         """
-        import constructor
+        from . import constructor
         K = self.base_ring()
 
         # any curve of the form y^2 = x^3 +.. is singular in characteristic 2

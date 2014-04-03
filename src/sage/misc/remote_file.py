@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os, sys
 
 def get_remote_file(filename, verbose=True):
@@ -18,7 +19,7 @@ def get_remote_file(filename, verbose=True):
     """
     if verbose:
         print "Attempting to load remote file: " + filename
-    import misc
+    from . import misc
 
     temp_name = misc.tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
     # IMPORTANT -- urllib takes a long time to load,

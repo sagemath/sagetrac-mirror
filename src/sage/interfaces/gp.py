@@ -128,6 +128,7 @@ AUTHORS:
 
 - William Stein (2006-05-17): updated to work with PARI 2.2.13-beta
 """
+from __future__ import absolute_import
 
 ##########################################################################
 #
@@ -139,7 +140,7 @@ AUTHORS:
 #
 ##########################################################################
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
 from sage.libs.pari.all import pari
 import sage.rings.complex_field

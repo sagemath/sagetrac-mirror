@@ -32,15 +32,16 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
 import sage.misc.randstate as randstate
-from util import Timer, RecordingDict, count_noun
-from sources import DictAsObject
-from parsing import OriginalSource, reduce_hex
+from .util import Timer, RecordingDict, count_noun
+from .sources import DictAsObject
+from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
-from parsing import SageOutputChecker, pre_hash, get_source
+from .parsing import SageOutputChecker, pre_hash, get_source
 
 
 def init_sage():

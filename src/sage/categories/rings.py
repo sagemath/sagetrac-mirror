@@ -1,6 +1,7 @@
 r"""
 Rings
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -16,7 +17,7 @@ from sage.categories.rngs import Rngs
 from sage.categories.semirings import Semirings
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
-from category import HomCategory
+from .category import HomCategory
 from sage.misc.cachefunc import cached_method
 import sage
 

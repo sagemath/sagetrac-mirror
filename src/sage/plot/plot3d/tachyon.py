@@ -46,8 +46,9 @@ TODO:
 
 - clean up trianglefactory stuff
 """
+from __future__ import absolute_import
 
-from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
+from .tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 
 from sage.interfaces.tachyon import tachyon_rt

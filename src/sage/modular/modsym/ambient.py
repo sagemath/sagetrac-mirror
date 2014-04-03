@@ -54,6 +54,7 @@ factor `x`.
     sage: M0.T(2).matrix().fcp('x')
     (x - 9)^2 * (x^2 - 2*x - 2)^2
 """
+from __future__ import absolute_import
 
 ################################################################################
 #       Sage: Open Source Mathematical Software
@@ -94,16 +95,16 @@ import sage.categories.all as cat
 from sage.modular.cusps import Cusp
 import sage.structure.all
 
-import boundary
-import element
-import heilbronn
-import manin_symbols
-import modular_symbols
-import modsym
-import p1list
-import relation_matrix
-import space
-import subspace
+from . import boundary
+from . import element
+from . import heilbronn
+from . import manin_symbols
+from . import modular_symbols
+from . import modsym
+from . import p1list
+from . import relation_matrix
+from . import space
+from . import subspace
 
 QQ = rings.Rational
 ZZ = rings.Integers

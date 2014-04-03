@@ -1,6 +1,7 @@
 r"""
 Ribbon Shaped Tableaux
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -23,7 +24,7 @@ from sage.combinat.tableau import TableauOptions
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.combinat.skew_partition import SkewPartition
 from sage.rings.integer import Integer
-from combinat import CombinatorialObject
+from .combinat import CombinatorialObject
 from sage.combinat.words.words import Words
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

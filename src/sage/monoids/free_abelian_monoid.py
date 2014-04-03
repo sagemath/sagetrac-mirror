@@ -44,6 +44,7 @@ lists of integer exponents.
     sage: x.list()
     [7, 2, 0, 1, 1]
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
@@ -55,7 +56,7 @@ lists of integer exponents.
 
 
 from sage.structure.parent_gens import ParentWithGens, normalize_names
-from free_abelian_monoid_element import FreeAbelianMonoidElement
+from .free_abelian_monoid_element import FreeAbelianMonoidElement
 from sage.rings.integer import Integer
 
 from sage.structure.factory import UniqueFactory

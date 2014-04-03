@@ -1,6 +1,7 @@
 r"""
 Ribbon Tableaux
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -28,7 +29,7 @@ from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.partition import Partition, _Partitions
-import permutation
+from . import permutation
 import functools
 
 class RibbonTableau(SkewTableau):

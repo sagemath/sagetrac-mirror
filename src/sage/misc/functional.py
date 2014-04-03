@@ -11,6 +11,7 @@ AUTHORS:
 
 - David Joyner (2005-12-20): More Examples
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -1652,7 +1653,7 @@ def show(x, *args, **kwds):
 def _do_show(x):
     if sage.doctest.DOCTEST_MODE:
         return sage.misc.latex.latex(x)
-    from latex import view
+    from .latex import view
     view(x, mode='display')
     #raise AttributeError, "object %s does not support show."%(x, )
 

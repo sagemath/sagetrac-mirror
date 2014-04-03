@@ -40,10 +40,11 @@ There are two plotting methods for iet::
 
     sage: T.plot_function()
 """
+from __future__ import absolute_import
 from copy import copy
 from sage.structure.sage_object import SageObject
 
-from template import side_conversion, interval_conversion
+from .template import side_conversion, interval_conversion
 
 class IntervalExchangeTransformation(SageObject):
     r"""
@@ -112,7 +113,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: p == loads(dumps(p))
             True
         """
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
         if permutation is None or lengths is None:
             self._permutation = LabelledPermutationIET()
             self._lengths = []
@@ -410,7 +411,7 @@ class IntervalExchangeTransformation(SageObject):
                self.length() == other.length()):
             raise ValueError("self and other are not IET of the same length")
 
-        from labelled import LabelledPermutationIET
+        from .labelled import LabelledPermutationIET
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]

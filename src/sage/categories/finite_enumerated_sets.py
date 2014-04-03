@@ -1,6 +1,7 @@
 r"""
 Finite Enumerated Sets
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
@@ -9,7 +10,7 @@ Finite Enumerated Sets
 #******************************************************************************
 
 
-from category_types import Category
+from .category_types import Category
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.rings.integer import Integer

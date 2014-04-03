@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
@@ -25,10 +26,10 @@ from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
 from sage.ext.c_lib import AlarmInterrupt, _init_csage
 
-from sources import FileDocTestSource, DictAsObject
-from forker import DocTestDispatcher
-from reporting import DocTestReporter
-from util import NestedName, Timer, count_noun, dict_difference
+from .sources import FileDocTestSource, DictAsObject
+from .forker import DocTestDispatcher
+from .reporting import DocTestReporter
+from .util import NestedName, Timer, count_noun, dict_difference
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')

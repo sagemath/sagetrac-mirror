@@ -1,6 +1,7 @@
 """
 Matrix Constructor
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -27,7 +28,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from matrix import is_Matrix
+from .matrix import is_Matrix
 from copy import copy
 
 import sage.categories.pushout

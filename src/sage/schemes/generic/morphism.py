@@ -58,6 +58,7 @@ AUTHORS:
 
 - Ben Hutz (June 2012): added support for projective ring
 """
+from __future__ import absolute_import
 
 # Historical note: in trac #11599, V.B. renamed
 # * _point_morphism_class -> _morphism
@@ -81,9 +82,9 @@ from sage.categories.homset   import Homset
 from sage.rings.all           import Integer
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
-from point                    import is_SchemeTopologicalPoint
+from .point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
-import scheme
+from . import scheme
 
 from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
@@ -407,7 +408,7 @@ class SchemeMorphism(Element):
                             Rational Field by the ideal (x*y - 1)
                       Defn: y |--> ybar
         """
-        import glue
+        from . import glue
         return glue.GluedScheme(self, other)
 
 class SchemeMorphism_id(SchemeMorphism):

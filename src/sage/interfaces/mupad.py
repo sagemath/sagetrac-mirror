@@ -78,6 +78,7 @@ TESTS:
                                      q t - 1
 
 """
+from __future__ import absolute_import
 
 #############################################################################
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -90,7 +91,7 @@ TESTS:
 
 import os
 
-from expect import (Expect, ExpectElement, ExpectFunction,
+from .expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
 

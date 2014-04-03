@@ -7,6 +7,7 @@ AUTHORS:
 
 Sage supports a wide range of specific free string monoids.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -17,9 +18,9 @@ Sage supports a wide range of specific free string monoids.
 
 # from sage.rings.integer import Integer
 # from sage.structure.parent_gens import ParentWithGens, normalize_names
-from free_monoid import FreeMonoid_class
-from string_monoid_element import StringMonoidElement
-from string_ops import strip_encoding
+from .free_monoid import FreeMonoid_class
+from .string_monoid_element import StringMonoidElement
+from .string_ops import strip_encoding
 
 import weakref
 

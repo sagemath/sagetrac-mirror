@@ -29,6 +29,7 @@ REFERENCES:
    Macdonald Polynomials, IRMN no. 18 (1998).
    :arXiv:`math/9808050`.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -49,7 +50,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.calculus.var import var
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
-import sfa
+from . import sfa
 import sage.combinat.partition
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ

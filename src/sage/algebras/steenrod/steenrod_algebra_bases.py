@@ -117,6 +117,7 @@ REFERENCES:
 - [W] R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
   Math. Soc. 30 (1998), no. 5, 449-517.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
@@ -185,7 +186,7 @@ def convert_to_milnor_matrix(n, basis, p=2):
     """
     from sage.matrix.constructor import matrix
     from sage.rings.all import GF
-    from steenrod_algebra import SteenrodAlgebra
+    from .steenrod_algebra import SteenrodAlgebra
     if n == 0:
         return matrix(GF(p), 1, 1, [[1]])
     milnor_base = steenrod_algebra_basis(n,'milnor',p)
@@ -355,7 +356,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
         sage: steenrod_algebra_basis(5,'pst-rlex')
         (((0, 1), (2, 1)), ((1, 1), (0, 2)))
     """
-    from steenrod_algebra_misc import get_basis_name
+    from .steenrod_algebra_misc import get_basis_name
     try:
         if n < 0 or int(n) != n:
             return ()

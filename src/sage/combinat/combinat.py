@@ -131,6 +131,7 @@ AUTHORS:
 Functions and classes
 ---------------------
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>,
@@ -159,7 +160,7 @@ from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from combinat_cython import _stirling_number2
+from .combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
 def bell_number(n, algorithm='dobinski', **options):

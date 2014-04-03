@@ -49,10 +49,11 @@ AUTHORS:
   Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
+from __future__ import absolute_import
 
-import rational
-import integer
-import infinity
+from . import rational
+from . import integer
+from . import infinity
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
@@ -298,7 +299,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             (FractionField, Integer Ring)
         """
         from sage.categories.pushout import FractionField
-        import integer_ring
+        from . import integer_ring
         return FractionField(), integer_ring.ZZ
 
     def completion(self, p, prec, extras = {}):
@@ -356,7 +357,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         global ZZ
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
@@ -596,7 +597,7 @@ class RationalField(_uniq, number_field_base.NumberField):
               To:   Complex Field with 20 bits of precision
               Defn: 1 |--> 1.0000
         """
-        import complex_field
+        from . import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
@@ -761,7 +762,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.ring_of_integers ()
             Integer Ring
         """
-        from integer_ring import ZZ
+        from .integer_ring import ZZ
         return ZZ
 
     def number_field(self):
@@ -865,7 +866,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         """
         global ZZ
         if ZZ is None:
-            import integer_ring
+            from . import integer_ring
             ZZ = integer_ring.ZZ
         if num_bound == None:
             num = ZZ.random_element(*args, **kwds)

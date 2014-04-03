@@ -5,6 +5,7 @@ AUTHORS:
 
  - Nicolas M. Thiery (2009-2010): initial revision
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -12,7 +13,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from category import Category
+from .category import Category
 
 # could do SelfDualCategory
 

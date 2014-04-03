@@ -5,6 +5,7 @@ AUTHORS:
 
 David Roe (2012-03-29) -- initial version.
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
@@ -24,7 +25,7 @@ David Roe (2012-03-29) -- initial version.
 
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
-import constructor
+from . import constructor
 import sage.databases.cremona
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method

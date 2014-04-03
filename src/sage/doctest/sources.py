@@ -8,6 +8,7 @@ AUTHORS:
 
 - David Roe (2012-03-27) -- initial version, based on Robert Bradshaw's code.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2012 David Roe <roed.math@gmail.com>
@@ -23,8 +24,8 @@ import os, sys, re, random
 import doctest
 from sage.misc.preparser import preparse, load
 from sage.misc.lazy_attribute import lazy_attribute
-from parsing import SageDocTestParser
-from util import NestedName
+from .parsing import SageDocTestParser
+from .util import NestedName
 from sage.structure.dynamic_class import dynamic_class
 from sage.env import SAGE_SRC, SAGE_LOCAL
 

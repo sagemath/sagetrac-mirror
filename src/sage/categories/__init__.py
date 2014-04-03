@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 __doc__ = r"""
 Sage categories quickref
 ------------------------
@@ -26,4 +27,4 @@ Todo: put the quickref in quickref.py, and only some pointers here?
 
 """
 
-import primer
+from . import primer

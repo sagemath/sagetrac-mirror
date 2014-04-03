@@ -86,6 +86,7 @@ TESTS::
     sage: loads(dumps(G.0)) == G.0
     True
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -100,7 +101,7 @@ from sage.structure.sequence  import Sequence
 from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
 from sage.misc.misc           import prod
 
-import abvar as abelian_variety
+from . import abvar as abelian_variety
 from sage.categories.fields import Fields
 _Fields = Fields()
 

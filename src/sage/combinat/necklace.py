@@ -7,6 +7,7 @@ The algorithm used in this file comes from
   Theoretical Computer Science archive Volume 301 , Issue 1-3 (May
   2003)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -22,7 +23,7 @@ The algorithm used in this file comes from
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.composition import Composition
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from sage.rings.arith import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
 from sage.misc.misc import prod

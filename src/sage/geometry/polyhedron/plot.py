@@ -1,6 +1,7 @@
 """
 Functions for plotting polyhedra
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -25,7 +26,7 @@ from sage.plot.all import point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
-from base import is_Polyhedron
+from .base import is_Polyhedron
 
 
 

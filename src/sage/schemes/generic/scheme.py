@@ -7,6 +7,7 @@ AUTHORS:
 
 - Volker Braun (2011-08-11): documenting, improving, refactoring.
 """
+from __future__ import absolute_import
 
 
 #*****************************************************************************
@@ -853,7 +854,7 @@ class AffineScheme(Scheme):
             return self.Hom(x).natural_map()
         if Y is None:
             if is_RingHomomorphism(x):
-                import spec
+                from . import spec
                 Y = spec.Spec(x.domain())
         return Scheme.hom(self, x, Y)
 

@@ -1,6 +1,7 @@
 r"""
 Schubert Polynomials
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -20,7 +21,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.categories.all import GradedAlgebrasWithBasis
 from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
-import permutation
+from . import permutation
 import sage.libs.symmetrica.all as symmetrica
 
 from sage.combinat.permutation import Permutations

@@ -70,6 +70,7 @@ required have conductors 13068 and 52272 so are in the database)::
 AUTHORS:
    * John Cremona (6 April 2009): initial version (over Q only).
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #   Copyright (C) 2009 John Cremona <john.cremona@gmail.com>
@@ -89,7 +90,7 @@ AUTHORS:
 from sage.misc.misc import prod
 from sage.misc.all import xmrange
 from sage.rings.all import QQ
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .constructor import EllipticCurve, EllipticCurve_from_j
 
 def is_possible_j(j,S=[]):
     r"""

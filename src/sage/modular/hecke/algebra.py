@@ -11,6 +11,7 @@ Hecke algebras", which include Hecke operators coprime to the level. Morphisms
 in the category of Hecke modules are not required to commute with the action of
 the full Hecke algebra, only with the anemic algebra.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -33,8 +34,8 @@ import weakref
 import sage.rings.arith as arith
 import sage.rings.infinity
 import sage.misc.latex as latex
-import module
-import hecke_operator
+from . import module
+from . import hecke_operator
 import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
 from sage.rings.arith import lcm

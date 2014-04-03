@@ -12,6 +12,7 @@ EXAMPLES::
     sage: M.cuspidal_subspace()
     Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -21,7 +22,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-import space
+from . import space
 
 import sage.modular.hecke.submodule
 

@@ -104,6 +104,7 @@ AUTHORS:
 - David Loeffler (2011): congruence testing for odd subgroups, enumeration of
   liftings of projective subgroups
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -117,8 +118,8 @@ AUTHORS:
 #
 ################################################################################
 
-from all import SL2Z
-from arithgroup_generic import ArithmeticSubgroup
+from .all import SL2Z
+from .arithgroup_generic import ArithmeticSubgroup
 from sage.rings.all import Zmod
 from sage.misc.cachefunc import cached_method
 import sage.rings.arith as arith
@@ -1308,7 +1309,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         else:
             N = 2*self.generalised_level()
 
-        from congroup_generic import CongruenceSubgroup_constructor as CS
+        from .congroup_generic import CongruenceSubgroup_constructor as CS
         return CS(N, [x.matrix() for x in self.gens()])
 
 class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
@@ -1628,7 +1629,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             N = 2*self.generalised_level()
             from sage.groups.matrix_gps.all import MatrixGroup
             H = MatrixGroup([x.matrix().change_ring(Zmod(N)) for x in self.gens()])
-            from congroup_gamma import Gamma_constructor as Gamma
+            from .congroup_gamma import Gamma_constructor as Gamma
             return Gamma(N).index() == self.index() * H.order()
 
 class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):

@@ -206,6 +206,7 @@ Behind the scenes what happens is the following::
    large Sage integers are much more efficient than Python integers,
    since they are implemented using the GMP C library.
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -1427,7 +1428,7 @@ def is_loadable_filename(filename):
     return False
 
 def load_cython(name):
-    import cython
+    from . import cython
     cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
@@ -1732,7 +1733,7 @@ def load(filename, globals, attach=False):
             # we will do this.
             # http://www.diveintopython.org/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")
-        from remote_file import get_remote_file
+        from .remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=False)
 
     if not is_loadable_filename(filename):

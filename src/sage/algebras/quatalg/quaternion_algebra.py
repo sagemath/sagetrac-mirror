@@ -17,6 +17,7 @@ Pickling test::
     sage: Q == loads(dumps(Q))
     True
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -58,8 +59,8 @@ from sage.modules.free_module_element import vector
 
 from operator import itemgetter
 
-import quaternion_algebra_element
-import quaternion_algebra_cython
+from . import quaternion_algebra_element
+from . import quaternion_algebra_cython
 
 from sage.modular.modsym.p1list import P1List
 

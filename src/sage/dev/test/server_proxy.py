@@ -9,6 +9,7 @@ AUTHORS:
 - Julian Rueth: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -260,7 +261,7 @@ class DoctestTicketProxy(object):
         """
         self._server_proxy._check_authentication("TICKET_CREATE")
 
-        from trac_server import Ticket
+        from .trac_server import Ticket
         ticket = len(self._server_proxy._server.tickets)+1
         self._server_proxy._server.tickets[ticket] = Ticket(ticket, summary, description, attributes)
         return ticket

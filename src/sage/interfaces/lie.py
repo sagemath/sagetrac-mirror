@@ -272,6 +272,7 @@ AUTHORS:
     -- Mike Hansen 2007-08-27
     -- William Stein (template)
 """
+from __future__ import absolute_import
 
 ##########################################################################
 #
@@ -284,7 +285,7 @@ AUTHORS:
 #
 ##########################################################################
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_LOCAL
 
 

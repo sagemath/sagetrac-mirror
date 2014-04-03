@@ -5,6 +5,7 @@ AUTHORS:
 
 - William Stein
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -24,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import ring_element
+from . import ring_element
 
 from sage.interfaces.singular import singular as singular_default
 

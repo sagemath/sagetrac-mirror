@@ -11,6 +11,7 @@ AUTHORS:
      entries).
  *   Federico Poloni (2013) - specialized rank()
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
@@ -27,14 +28,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from __builtin__ import list as builtinlist
 from sage.rings.integer import Integer
 from sage.rings.arith import binomial
-import misc
+from . import misc
 from sage.rings.infinity import PlusInfinity
-import integer_list
-import cartesian_product
+from . import integer_list
+from . import cartesian_product
 import functools
 
 

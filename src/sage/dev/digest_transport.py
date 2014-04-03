@@ -6,6 +6,7 @@ AUTHORS:
 - David Roe, Julian Rueth, Robert Bradshaw: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
 #                          Julian Rueth <julian.rueth@fsfe.org>
@@ -120,11 +121,11 @@ class DigestTransport(object, SafeTransport):
             self.verbose = verbose
             return self.parse_response(response)
         except Fault as e:
-            from trac_error import TracInternalError
+            from .trac_error import TracInternalError
             raise TracInternalError(e)
         except urllib2.HTTPError as e:
             if e.code == 401:
-                from trac_error import TracAuthenticationError as TracError
+                from .trac_error import TracAuthenticationError as TracError
             else:
-                from trac_error import TracConnectionError as TracError
+                from .trac_error import TracConnectionError as TracError
             raise TracError()

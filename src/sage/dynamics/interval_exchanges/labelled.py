@@ -90,6 +90,7 @@ REFERENCES:
 .. [MMY03] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
    cohomological equation for interval exchange maps", :arxiv:`math/0304469v1`
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -108,11 +109,11 @@ from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import identity_matrix
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI
-from template import FlippedPermutationIET, FlippedPermutationLI
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
-from template import interval_conversion, side_conversion
+from .template import PermutationIET, PermutationLI
+from .template import FlippedPermutationIET, FlippedPermutationLI
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
+from .template import interval_conversion, side_conversion
 
 class LabelledPermutation(SageObject):
     r"""
@@ -831,7 +832,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: p.reduced() == q
             True
         """
-        from reduced import ReducedPermutationIET
+        from .reduced import ReducedPermutationIET
 
         return ReducedPermutationIET(self.list(), alphabet=self._alphabet)
 
@@ -1410,7 +1411,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             sage: p.rauzy_move(0).reduced() == q.rauzy_move(0)
             True
         """
-        from reduced import ReducedPermutationLI
+        from .reduced import ReducedPermutationLI
 
         return ReducedPermutationLI(self.list(),alphabet=self._alphabet)
 

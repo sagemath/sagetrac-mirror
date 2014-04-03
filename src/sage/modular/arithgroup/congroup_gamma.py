@@ -1,6 +1,7 @@
 r"""
 Congruence Subgroup `\Gamma(N)`
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -14,7 +15,7 @@ Congruence Subgroup `\Gamma(N)`
 #
 ################################################################################
 
-from congroup_generic import CongruenceSubgroup
+from .congroup_generic import CongruenceSubgroup
 from sage.misc.misc import prod
 from sage.rings.all import ZZ, Zmod, gcd, QQ
 from sage.rings.integer import GCD_list
@@ -22,7 +23,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
 
-from congroup_sl2z import SL2Z
+from .congroup_sl2z import SL2Z
 
 _gamma_cache = {}
 def Gamma_constructor(N):

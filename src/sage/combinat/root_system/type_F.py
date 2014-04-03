@@ -1,6 +1,7 @@
 """
 Root system data for type F
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -9,7 +10,7 @@ Root system data for type F
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import ambient_space
+from . import ambient_space
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
@@ -197,7 +198,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
@@ -258,7 +259,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, 4):
             g.add_edge(i, i+1)

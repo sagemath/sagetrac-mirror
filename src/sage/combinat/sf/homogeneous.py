@@ -1,6 +1,7 @@
 """
 Homogeneous symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -22,7 +23,7 @@ Homogeneous symmetric functions
 # Homogeneous Symmetric Functions  #
 #                                  #
 ####################################
-import multiplicative, classical
+from . import multiplicative, classical
 from sage.combinat.partition import Partition
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):

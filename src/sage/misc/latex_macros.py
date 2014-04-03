@@ -45,6 +45,7 @@ tutorial latex`` (for example), and look at the resulting LaTeX file in
 ``SAGE_DOC/output/latex/en/tutorial/``.  The preamble should
 contain '\newcommand' lines for each of the entries in ``macros``.
 """
+from __future__ import absolute_import
 
 def produce_latex_macro(name, *sample_args):
     r"""
@@ -141,7 +142,7 @@ def convert_latex_macro_to_mathjax(macro):
     else:
         return name + ': ["' + defn + '",' + str(num_args) + ']'
 
-from superseded import deprecated_function_alias
+from .superseded import deprecated_function_alias
 convert_latex_macro_to_jsmath = deprecated_function_alias(13508, convert_latex_macro_to_mathjax)
 
 # To add a new macro for use in the Sage documentation, add a list or

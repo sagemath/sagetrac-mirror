@@ -159,6 +159,7 @@ AUTHORS:
 - William Stein (2006-03-02): added tab completions: gap.[tab], x =
   gap(...), x.[tab], and docs, e.g., gap.function? and x.function?
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -175,8 +176,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import expect
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from . import expect
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_64_bit, is_in_string
 import re

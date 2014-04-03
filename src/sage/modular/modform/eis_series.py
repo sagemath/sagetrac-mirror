@@ -2,6 +2,7 @@
 """
 Eisenstein Series
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -23,7 +24,7 @@ from sage.rings.all import (bernoulli, CyclotomicField,
                             is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
 from sage.rings.power_series_ring import PowerSeriesRing
-from eis_series_cython import eisenstein_series_poly, Ek_ZZ
+from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""

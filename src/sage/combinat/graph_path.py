@@ -1,6 +1,7 @@
 r"""
 Paths in Directed Acyclic Graphs
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,7 +16,7 @@ Paths in Directed Acyclic Graphs
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 import sage.graphs.digraph as digraph
 
 

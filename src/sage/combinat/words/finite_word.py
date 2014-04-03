@@ -179,6 +179,7 @@ Left-special and bispecial factors::
     sage: f.bispecial_factors()
     [word: , word: 0, word: 010, word: 010010, word: 01001010010]
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                     2008 Amy Glen <amy.glen@gmail.com>,
@@ -6228,7 +6229,7 @@ class CallableFromListOfWords(tuple):
         """
         l = []
         for w in words:
-            from word_infinite_datatypes import WordDatatype_callable
+            from .word_infinite_datatypes import WordDatatype_callable
             if isinstance(w, WordDatatype_callable) and \
                     isinstance(w._func, CallableFromListOfWords):
                 l.extend(w._func)

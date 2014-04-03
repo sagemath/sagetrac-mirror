@@ -55,6 +55,7 @@ AUTHORS:
 
     - Volker Braun: initial version, 2012
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
@@ -1158,7 +1159,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: sub.vertices()
             ((0, 1), (3, 0), (0, 3), (1, 0))
         """
-        from ppl_lattice_polygon import sub_reflexive_polygons
+        from .ppl_lattice_polygon import sub_reflexive_polygons
         from sage.geometry.polyhedron.lattice_euclidean_group_element import \
             LatticePolytopesNotIsomorphicError, LatticePolytopeNoEmbeddingError
         for p, ambient in sub_reflexive_polygons():

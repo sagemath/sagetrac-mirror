@@ -1,6 +1,7 @@
 """
 Set Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,8 +16,8 @@ Set Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from generating_series import factorial_stream, _integers_from
+from .species import GenericCombinatorialSpecies
+from .generating_series import factorial_stream, _integers_from
 from sage.combinat.species.structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size

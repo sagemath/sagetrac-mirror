@@ -1,6 +1,7 @@
 """
 Disks
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -222,10 +223,10 @@ class Disk(GraphicPrimitive):
         xdata.append(x)
         ydata.append(y)
         if fill:
-            from polygon import Polygon
+            from .polygon import Polygon
             return Polygon(xdata, ydata, options).plot3d(z)
         else:
-            from line import Line
+            from .line import Line
             return Line(xdata, ydata, options).plot3d().translate((0,0,z))
 
 @rename_keyword(color='rgbcolor')

@@ -52,6 +52,7 @@ TESTS::
     sage: F == loads(dumps(F))
     True
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #
@@ -71,9 +72,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import ring
-import field
-import fraction_field_element
+from . import ring
+from . import field
+from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 

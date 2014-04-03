@@ -151,6 +151,7 @@ AUTHORS:
     - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
     - Volker Braun: rewrite to use PPL instead of cddlib, 2011
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
@@ -164,7 +165,7 @@ AUTHORS:
 from sage.rings.all import QQ, ZZ, RDF
 from sage.misc.decorators import rename_keyword
 
-from misc import _make_listlist, _common_length_of
+from .misc import _make_listlist, _common_length_of
 
 
 

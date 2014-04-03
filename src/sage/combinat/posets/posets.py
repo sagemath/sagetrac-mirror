@@ -106,6 +106,7 @@ This module implements finite partially ordered sets. It defines:
 Classes and functions
 ---------------------
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
 #                          Franco Saliola <saliola@gmail.com>
@@ -1294,7 +1295,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
 
         """
-        from linear_extensions import LinearExtensionsOfPoset
+        from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
     def is_linear_extension(self, l):

@@ -136,6 +136,7 @@ EXAMPLES::
     sage: my_vector1 * my_vector2            # optional - octave
     75
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -153,7 +154,7 @@ EXAMPLES::
 #*****************************************************************************
 
 import os
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 from sage.misc.misc import verbose
 
 

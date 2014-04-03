@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 
 from sage.rings.all import PolynomialRing, QQ, FractionField, lcm
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 
 def mod5family(a,b):
     """

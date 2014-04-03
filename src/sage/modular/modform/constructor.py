@@ -18,6 +18,7 @@ EXAMPLES::
     ]
 
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
@@ -36,11 +37,11 @@ import sage.rings.all as rings
 
 from sage.rings.commutative_ring import is_CommutativeRing
 
-import ambient_eps
-import ambient_g0
-import ambient_g1
-import ambient_R
-import defaults
+from . import ambient_eps
+from . import ambient_g0
+from . import ambient_g1
+from . import ambient_R
+from . import defaults
 
 
 def canonical_parameters(group, level, weight, base_ring):

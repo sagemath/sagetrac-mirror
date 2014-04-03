@@ -1,6 +1,7 @@
 """
 Submodules of Hecke modules
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -25,8 +26,8 @@ from sage.misc.cachefunc import cached_method
 
 import sage.modules.all
 
-import module
-import ambient_module
+from . import module
+from . import ambient_module
 
 
 def is_HeckeSubmodule(x):

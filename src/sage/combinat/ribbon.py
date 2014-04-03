@@ -1,6 +1,7 @@
 r"""
 Ribbons
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,7 +16,7 @@ Ribbons
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
+from .ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
 
 def Ribbon(r):
     """

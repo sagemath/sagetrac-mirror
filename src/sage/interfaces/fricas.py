@@ -139,6 +139,7 @@ Python floats.
     sage: float(fricas(2))     #optional - fricas
     2.0
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -150,7 +151,7 @@ Python floats.
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
+from .axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
 
 
 class FriCAS(PanAxiom):

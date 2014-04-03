@@ -1,6 +1,7 @@
 r"""
 Base class for polyhedra
 """
+from __future__ import absolute_import
 
 
 ########################################################################
@@ -29,7 +30,7 @@ from sage.graphs.graph import Graph
 
 from sage.combinat.cartesian_product import CartesianProduct
 
-from constructor import Polyhedron
+from .constructor import Polyhedron
 
 
 #########################################################################
@@ -593,7 +594,7 @@ class Polyhedron_base(Element):
         opts = [merge_options(opt1, opt2, kwds)
                 for opt1, opt2 in zip(opts, [point, line, polygon])]
 
-        from plot import render_2d, render_3d, render_4d
+        from .plot import render_2d, render_3d, render_4d
         render_method = [ None, None, render_2d, render_3d, render_4d ]
         if self.ambient_dim() < len(render_method):
             render = render_method[self.ambient_dim()]
@@ -674,7 +675,7 @@ class Polyhedron_base(Element):
              1 0 -1
             end
         """
-        from cdd_file_format import cdd_Hrepresentation
+        from .cdd_file_format import cdd_Hrepresentation
         try:
             cdd_type = self._cdd_type
         except AttributeError:
@@ -711,7 +712,7 @@ class Polyhedron_base(Element):
              1 1 1
             end
         """
-        from cdd_file_format import cdd_Vrepresentation
+        from .cdd_file_format import cdd_Vrepresentation
         try:
             cdd_type = self._cdd_type
         except AttributeError:
@@ -3320,7 +3321,7 @@ class Polyhedron_base(Element):
             sage: proj
             The projection of a polyhedron into 3 dimensions
         """
-        from plot import Projection
+        from .plot import Projection
         self.projection = Projection(self)
         return self.projection
 

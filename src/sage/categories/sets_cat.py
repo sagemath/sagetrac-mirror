@@ -1,6 +1,7 @@
 r"""
 Sets
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -1063,9 +1064,9 @@ class Sets(Category_singleton):
                 sage: Sets().CartesianProducts().example()
                 The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
             """
-            from finite_enumerated_sets import FiniteEnumeratedSets
-            from infinite_enumerated_sets import InfiniteEnumeratedSets
-            from cartesian_product import cartesian_product
+            from .finite_enumerated_sets import FiniteEnumeratedSets
+            from .infinite_enumerated_sets import InfiniteEnumeratedSets
+            from .cartesian_product import cartesian_product
             S1 = Sets().example()
             S2 = InfiniteEnumeratedSets().example()
             S3 = FiniteEnumeratedSets().example()

@@ -5,6 +5,7 @@ This file contains functions that are used by the various ambient modular
 symbols classes to compute presentations of spaces in terms of generators and
 relations, using the standard methods based on Manin symbols.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -34,7 +35,7 @@ from sage.rings.rational_field import is_RationalField
 
 import sage.misc.misc as misc
 
-import manin_symbols
+from . import manin_symbols
 
 
 # S = [0,-1; 1,0]
@@ -460,7 +461,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         rels.update(modI_relations(syms,sign))
 
     if syms._apply_S_only_0pm1() and is_RationalField(field):
-        import relation_matrix_pyx
+        from . import relation_matrix_pyx
         mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
     else:
         mod = sparse_2term_quotient(rels, len(syms), field)

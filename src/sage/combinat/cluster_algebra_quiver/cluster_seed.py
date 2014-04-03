@@ -14,6 +14,7 @@ AUTHORS:
 
 .. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
@@ -89,7 +90,7 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',4])
             sage: TestSuite(S).run()
         """
-        from quiver import ClusterQuiver
+        from .quiver import ClusterQuiver
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):

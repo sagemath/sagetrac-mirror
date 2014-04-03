@@ -135,6 +135,7 @@ AUTHORS:
 
 - Martin Albrecht: Givaro and ntl.GF2E implementations
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -165,7 +166,7 @@ import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_elemen
 # We don't late import this because this means trouble with the Givaro library
 # On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
 # TODO: figure out why
-from finite_field_givaro import FiniteField_givaro
+from .finite_field_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
 
@@ -417,7 +418,7 @@ class FiniteFieldFactory(UniqueFactory):
                     name = kwds['prefix'] + str(n)
 
                 if 'conway' in kwds and kwds['conway']:
-                    from conway_polynomials import conway_polynomial
+                    from .conway_polynomials import conway_polynomial
                     if 'prefix' not in kwds:
                         raise ValueError("a prefix must be specified if conway=True")
                     if modulus is not None:
@@ -473,7 +474,7 @@ class FiniteFieldFactory(UniqueFactory):
             elem_cache = order < 500
 
         if n == 1 and (impl is None or impl == 'modn'):
-            from finite_field_prime_modn import FiniteField_prime_modn
+            from .finite_field_prime_modn import FiniteField_prime_modn
             # Using a check option here is probably a worthwhile
             # compromise since this constructor is simple and used a
             # huge amount.
@@ -512,14 +513,14 @@ class FiniteFieldFactory(UniqueFactory):
                         repr = 'poly'
                     K = FiniteField_givaro(order, name, modulus, repr=repr, cache=elem_cache)
                 elif impl == 'ntl':
-                    from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+                    from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
                     K = FiniteField_ntl_gf2e(order, name, modulus)
                 elif impl == 'pari_ffelt':
-                    from finite_field_pari_ffelt import FiniteField_pari_ffelt
+                    from .finite_field_pari_ffelt import FiniteField_pari_ffelt
                     K = FiniteField_pari_ffelt(p, modulus, name)
                 elif (impl == 'pari_mod'
                       or impl == 'pari'):    # for unpickling old pickles
-                    from finite_field_ext_pari import FiniteField_ext_pari
+                    from .finite_field_ext_pari import FiniteField_ext_pari
                     K = FiniteField_ext_pari(order, name, modulus)
                 else:
                     raise ValueError("no such finite field implementation: %s" % impl)
@@ -554,15 +555,15 @@ class FiniteFieldFactory(UniqueFactory):
             if K.degree() > 1:
                 modulus = K.modulus().change_variable_name('x')
             new_keys = [(order, name, modulus, impl, _, p, n, proof)]
-            from finite_field_prime_modn import FiniteField_prime_modn
+            from .finite_field_prime_modn import FiniteField_prime_modn
             if isinstance(K, FiniteField_prime_modn):
                 impl = 'modn'
             elif isinstance(K, FiniteField_givaro):
                 impl = 'givaro'
             else:
-                from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                from finite_field_ext_pari import FiniteField_ext_pari
-                from finite_field_pari_ffelt import FiniteField_pari_ffelt
+                from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+                from .finite_field_ext_pari import FiniteField_ext_pari
+                from .finite_field_pari_ffelt import FiniteField_pari_ffelt
                 if isinstance(K, FiniteField_ntl_gf2e):
                     impl = 'ntl'
                 elif isinstance(K, FiniteField_ext_pari):
@@ -592,7 +593,7 @@ def is_PrimeFiniteField(x):
         sage: is_PrimeFiniteField(GF(next_prime(10^90,proof=False)))
         True
     """
-    from finite_field_prime_modn import FiniteField_prime_modn
+    from .finite_field_prime_modn import FiniteField_prime_modn
     from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
     return isinstance(x, FiniteField_prime_modn) or \

@@ -1,4 +1,5 @@
-from optimize import (find_fit,
+from __future__ import absolute_import
+from .optimize import (find_fit,
                       find_local_maximum,
                       find_local_minimum,
                       find_maximum_on_interval,

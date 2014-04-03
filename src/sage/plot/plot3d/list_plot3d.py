@@ -1,6 +1,7 @@
 """
 List Plots
 """
+from __future__ import absolute_import
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from sage.rings.all  import RDF
@@ -179,15 +180,15 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     if isinstance(v, list):
         if len(v) == 0:
             # return empty 3d graphic
-            from base import Graphics3d
+            from .base import Graphics3d
             return Graphics3d()
         elif len(v) == 1:
             # return a point
-            from shapes2 import point3d
+            from .shapes2 import point3d
             return point3d(v[0], **kwds)
         elif len(v) == 2:
             # return a line
-            from shapes2 import line3d
+            from .shapes2 import line3d
             return line3d(v, **kwds)
         elif isinstance(v[0],tuple) or point_list==True and len(v[0]) == 3:
             return list_plot3d_tuples(v,interpolation_type,texture=texture, **kwds)
@@ -229,7 +230,7 @@ def list_plot3d_matrix(m, texture, **kwds):
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3]) # indirect doctest
         sage: list_plot3d(m, texture='yellow', interpolation_type='linear') # indirect doctest
     """
-    from parametric_surface import ParametricSurface
+    from .parametric_surface import ParametricSurface
     f = lambda i,j: (i,j,float(m[int(i),int(j)]))
     G = ParametricSurface(f, (range(m.nrows()), range(m.ncols())), texture=texture, **kwds)
     G._set_extra_kwds(kwds)
@@ -354,7 +355,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     import scipy
     from random import random
     from scipy import interpolate
-    from plot3d import plot3d
+    from .plot3d import plot3d
 
     if len(v)<3:
         raise ValueError, "We need at least 3 points to perform the interpolation"
@@ -412,7 +413,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         f.default_value=0.0
         j=numpy.complex(0,1)
         vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
-        from parametric_surface import ParametricSurface
+        from .parametric_surface import ParametricSurface
 
         def g(x,y):
             i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
@@ -433,7 +434,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         f.default_value=0.0
         j=numpy.complex(0,1)
         vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
-        from parametric_surface import ParametricSurface
+        from .parametric_surface import ParametricSurface
         def g(x,y):
             i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
             j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
@@ -445,7 +446,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         return G
 
     if interpolation_type =='spline':
-        from plot3d import plot3d
+        from .plot3d import plot3d
         kx=kwds['kx'] if 'kx' in kwds else 3
         ky=kwds['ky'] if 'ky' in kwds else 3
         if 'degree' in kwds:

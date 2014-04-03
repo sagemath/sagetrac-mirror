@@ -1,6 +1,7 @@
 r"""
 Bialgebras with basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -10,7 +11,7 @@ Bialgebras with basis
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.all import AlgebrasWithBasis, CoalgebrasWithBasis, Bialgebras
 
 class BialgebrasWithBasis(Category_over_base_ring):

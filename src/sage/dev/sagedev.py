@@ -10,6 +10,7 @@ AUTHORS:
   R. Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 David Roe <roed.math@gmail.com>
 #                          Frej Drejhammar <frej.drejhammar@gmail.com>
@@ -31,10 +32,10 @@ import os
 import urllib, urlparse
 import re
 
-from user_interface_error import OperationCancelledError
-from trac_error import TracConnectionError, TracInternalError, TracError
-from git_error import GitError
-from patch import MercurialPatchMixin
+from .user_interface_error import OperationCancelledError
+from .trac_error import TracConnectionError, TracInternalError, TracError
+from .git_error import GitError
+from .patch import MercurialPatchMixin
 
 from sage.env import TRAC_SERVER_URI
 
@@ -100,7 +101,7 @@ class SageDev(MercurialPatchMixin):
         """
         self.config = config
         if self.config is None:
-            from config import Config
+            from .config import Config
             self.config = Config()
 
         # create some empty config sections if they do not yet exist
@@ -110,17 +111,17 @@ class SageDev(MercurialPatchMixin):
 
         self._UI = UI
         if self._UI is None:
-            from cmd_line_interface import CmdLineInterface
+            from .cmd_line_interface import CmdLineInterface
             self._UI = CmdLineInterface(self.config['UI'])
 
         self.trac = trac
         if self.trac is None:
-            from trac_interface import TracInterface
+            from .trac_interface import TracInterface
             self.trac = TracInterface(self.config['trac'], self._UI)
 
         self.git = git
         if self.git is None:
-            from git_interface import GitInterface
+            from .git_interface import GitInterface
             self.git = GitInterface(self.config['git'], self._UI)
 
         # create some SavingDicts to store the relations between branches and tickets
@@ -167,7 +168,7 @@ class SageDev(MercurialPatchMixin):
         # these. Ideally these fields should only be touched by single
         # underscore methods such as _set_remote_branch which do some checking
         # on the parameters
-        from saving_dict import SavingDict
+        from .saving_dict import SavingDict
         self.__branch_to_ticket = SavingDict(ticket_file)
         self.__ticket_to_branch = SavingDict(branch_file, paired=self.__branch_to_ticket)
         self.__ticket_dependencies = SavingDict(dependencies_file, default=tuple)
@@ -1266,7 +1267,7 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev push" to push your commits to the trac server once you are done.
         """
-        from git_error import DetachedHeadError
+        from .git_error import DetachedHeadError
         try:
             branch = self.git.current_branch()
         except DetachedHeadError:
@@ -1384,7 +1385,7 @@ class SageDev(MercurialPatchMixin):
             'u/doctest/foo'
         """
         if branch_or_ticket is None:
-            from git_error import DetachedHeadError
+            from .git_error import DetachedHeadError
             try:
                 branch = self.git.current_branch()
             except DetachedHeadError:
@@ -1686,7 +1687,7 @@ class SageDev(MercurialPatchMixin):
             ticket = self._ticket_from_ticket_name(ticket)
             self._check_ticket_name(ticket, exists=True)
 
-        from git_error import DetachedHeadError
+        from .git_error import DetachedHeadError
         try:
             branch = self.git.current_branch()
         except DetachedHeadError:
@@ -2803,7 +2804,7 @@ class SageDev(MercurialPatchMixin):
                 self._UI.error("Cannot delete the master branch.")
                 raise OperationCancelledError("protecting the user")
 
-            from git_error import DetachedHeadError
+            from .git_error import DetachedHeadError
             try:
                 if self.git.current_branch() == branch:
                     self._UI.error('Cannot delete "{0}": is the current branch.', branch)
@@ -3167,7 +3168,7 @@ class SageDev(MercurialPatchMixin):
                           self._format_command('commit'))
             raise OperationCancelledError("working directory not clean")
 
-        from git_error import DetachedHeadError
+        from .git_error import DetachedHeadError
         try:
             current_branch = self.git.current_branch()
         except DetachedHeadError:
@@ -3251,7 +3252,7 @@ class SageDev(MercurialPatchMixin):
                           branch, current_branch)
             local_merge_branch = branch
 
-        from git_error import GitError
+        from .git_error import GitError
         try:
             self.git.super_silent.merge(local_merge_branch)
             self._UI.show('Automatic merge successful.')
@@ -3358,7 +3359,7 @@ class SageDev(MercurialPatchMixin):
             * #2: ticket/2 summary
         """
         branches = self.git.local_branches()
-        from git_error import DetachedHeadError
+        from .git_error import DetachedHeadError
         try:
             current_branch = self.git.current_branch()
         except DetachedHeadError:
@@ -3738,7 +3739,7 @@ class SageDev(MercurialPatchMixin):
                                                  ' least not its latest version).', dependency, branch)
                                 self._UI.info(['(use "{0}" to merge it)', ''],
                                               self._format_command("merge", ticket_or_branch=str(dependency)))
-                            from git_error import GitError
+                            from .git_error import GitError
                             try:
                                 self.git.super_silent.merge('FETCH_HEAD')
                             except GitError as e:
@@ -4084,7 +4085,7 @@ class SageDev(MercurialPatchMixin):
         if self.config['git'].get('ssh_key_set', False):
             return
 
-        from user_interface_error import OperationCancelledError
+        from .user_interface_error import OperationCancelledError
         try:
             self.upload_ssh_key()
         except OperationCancelledError:
@@ -4439,7 +4440,7 @@ class SageDev(MercurialPatchMixin):
         if exists is any:
             return True
 
-        from git_error import GitError
+        from .git_error import GitError
         try:
             self.git.super_silent.ls_remote(self.git._repository_anonymous, "refs/heads/"+name, exit_code=True)
             remote_exists = True
@@ -5118,7 +5119,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev._current_ticket()
             1
         """
-        from git_error import DetachedHeadError
+        from .git_error import DetachedHeadError
         try:
             branch = self.git.current_branch()
         except DetachedHeadError:

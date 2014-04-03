@@ -35,6 +35,7 @@ AUTHORS:
 
 - Robert Bradshaw (2007-04): generalization to hyperelliptic curves
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -62,8 +63,8 @@ from sage.rings.arith import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
-from ell_generic import is_EllipticCurve
-from constructor import EllipticCurve
+from .ell_generic import is_EllipticCurve
+from .constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):

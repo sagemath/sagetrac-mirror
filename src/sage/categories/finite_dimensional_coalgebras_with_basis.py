@@ -1,6 +1,7 @@
 r"""
 Finite dimensional coalgebras with basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #
@@ -8,7 +9,7 @@ Finite dimensional coalgebras with basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.all import FiniteDimensionalModulesWithBasis, CoalgebrasWithBasis
 from sage.misc.cachefunc import cached_method
 

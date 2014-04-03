@@ -412,6 +412,7 @@ Note that KASH seems to not support string or integer literals with
 more than 1024 digits, which is why the above example uses a list
 unlike for the other interfaces.
 """
+from __future__ import absolute_import
 
 
 
@@ -430,7 +431,7 @@ unlike for the other interfaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 import os
 
 class Kash(Expect):

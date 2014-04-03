@@ -1,6 +1,7 @@
 """
 Saving Sage objects to a file
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
@@ -20,7 +21,7 @@ Saving Sage objects to a file
 
 import cPickle
 import os
-import misc
+from . import misc
 
 PATH = misc.SAGE_ROOT + "/db"
 

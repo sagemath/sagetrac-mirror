@@ -301,6 +301,7 @@ can be applied on both. Here is what it can do:
 Methods
 -------
 """
+from __future__ import absolute_import
 
 from sage.misc.decorators import options
 from sage.misc.cachefunc import cached_method
@@ -308,7 +309,7 @@ from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
+from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
@@ -3051,7 +3052,7 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 4), (4, 3), (4, 1), (4, 0)]
         """
         if algorithm == "Kruskal":
-            from spanning_tree import kruskal
+            from .spanning_tree import kruskal
             return kruskal(self, wfunction=weight_function, check=check)
         elif algorithm == "Prim_fringe":
             if starting_vertex is None:
@@ -4038,7 +4039,7 @@ class GenericGraph(GenericGraph_pyx):
                 faces = len(self.faces(on_embedding))
                 return (2-verts+edges-faces)/2
         else: # then compute either maximal or minimal genus of all embeddings
-            import genus
+            from . import genus
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
@@ -10722,7 +10723,7 @@ class GenericGraph(GenericGraph_pyx):
         # SubgraphSearch assumes the graph we are searching for has order at least 2.
         if G.order() == 1:
             if self.order() >= 1:
-                import graph
+                from . import graph
                 return graph.Graph({ self.vertices()[0]:[]})
             else:
                 return None
@@ -10891,7 +10892,7 @@ class GenericGraph(GenericGraph_pyx):
             return []
 
         elif G.order() == 1:
-            import graph
+            from . import graph
             return iter([graph.Graph({v:[]}) for v in self.vertices()])
         else:
             from sage.graphs.generic_graph_pyx import SubgraphSearch
@@ -15400,7 +15401,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
         """
-        from graph_plot import graphplot_options
+        from .graph_plot import graphplot_options
 
         # This dictionary only contains the options that graphplot
         # understands. These options are removed from kwds at the same
@@ -15549,7 +15550,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`plot`
             - :meth:`graphviz_string`
         """
-        import graph_plot
+        from . import graph_plot
         layout_options = dict( (key,kwds[key]) for key in kwds.keys() if key     in graph_plot.layout_options )
         kwds           = dict( (key,kwds[key]) for key in kwds.keys() if key not in graph_plot.layout_options )
         if pos3d is None:

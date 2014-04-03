@@ -44,6 +44,7 @@ AUTHORS:
 Methods
 -------
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #           Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
@@ -54,7 +55,7 @@ Methods
 
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from graph_generators import GraphGenerators
+from .graph_generators import GraphGenerators
 
 def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""

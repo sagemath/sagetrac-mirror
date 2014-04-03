@@ -5,6 +5,7 @@ Finite fields that are implemented using Zech logs and the
 cardinality must be less than `2^{16}`. By default, conway polynomials are
 used as minimal polynomial.
 """
+from __future__ import absolute_import
 
 from sage.rings.finite_rings.finite_field_base import FiniteField, is_FiniteField
 from sage.rings.integer import Integer
@@ -118,7 +119,7 @@ class FiniteField_givaro(FiniteField):
         if q >= 1<<16:
             raise ValueError, "q must be < 2^16"
 
-        import constructor
+        from . import constructor
         FiniteField.__init__(self, constructor.FiniteField(p), name, normalize=False)
 
         self._kwargs['repr'] = repr
@@ -407,7 +408,7 @@ class FiniteField_givaro(FiniteField):
         try:
             return self._prime_subfield
         except AttributeError:
-            import constructor
+            from . import constructor
             self._prime_subfield = constructor.FiniteField(self.characteristic())
             return self._prime_subfield
 
@@ -559,7 +560,7 @@ class FiniteField_givaro(FiniteField):
             Finite Field in z of size 3^4
         """
         f = self.polynomial()
-        import finite_field_ext_pari
+        from . import finite_field_ext_pari
         return finite_field_ext_pari.FiniteField_ext_pari(self.order(),
                                                           self.variable_name(), f)
 
@@ -572,7 +573,7 @@ class FiniteField_givaro(FiniteField):
             sage: list(GF(2**2, 'a'))
             [0, a, a + 1, 1]
         """
-        from element_givaro import FiniteField_givaro_iterator
+        from .element_givaro import FiniteField_givaro_iterator
         return FiniteField_givaro_iterator(self._cache)
 
     def a_times_b_plus_c(self, a, b, c):

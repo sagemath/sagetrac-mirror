@@ -58,6 +58,7 @@ REFERENCES:
   available at
   http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 """
+from __future__ import absolute_import
 
 import string
 import pexpect
@@ -67,8 +68,8 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
-from multi_polynomial_ideal import is_MPolynomialIdeal
-from polynomial_ring_constructor import PolynomialRing
+from .multi_polynomial_ideal import is_MPolynomialIdeal
+from .polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ

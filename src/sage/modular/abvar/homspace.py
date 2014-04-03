@@ -164,6 +164,7 @@ AUTHORS:
 
 - Craig Citro, Robert Bradshaw (2008-03): Rewrote with modabvar overhaul
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -177,8 +178,8 @@ from sage.categories.homset import HomsetWithBase, End
 from sage.misc.functional import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
-import abvar as abelian_variety
-import morphism
+from . import abvar as abelian_variety
+from . import morphism
 
 import sage.rings.integer_ring
 import sage.rings.all

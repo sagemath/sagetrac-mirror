@@ -1,6 +1,7 @@
 """
 Root system data for (untwisted) type F affine
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -10,7 +11,7 @@ Root system data for (untwisted) type F affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_untwisted_affine
+from .cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
     def __init__(self):
         """
@@ -62,7 +63,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, 4):
             g.add_edge(i, i+1)

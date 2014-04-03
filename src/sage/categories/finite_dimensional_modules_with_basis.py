@@ -1,6 +1,7 @@
 r"""
 Finite dimensional modules with basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #
@@ -8,7 +9,7 @@ Finite dimensional modules with basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_over_base_ring
+from .category_types import Category_over_base_ring
 from sage.categories.all import ModulesWithBasis
 from sage.misc.cachefunc import cached_method
 

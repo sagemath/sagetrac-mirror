@@ -1,6 +1,7 @@
 r"""
 Commutative ring ideals
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -11,9 +12,9 @@ Commutative ring ideals
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category_ideal
+from .category_types import Category_ideal
 from sage.categories.commutative_rings import CommutativeRings
-from ring_ideals import RingIdeals
+from .ring_ideals import RingIdeals
 
 class CommutativeRingIdeals(Category_ideal):
     """

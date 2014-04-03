@@ -8,6 +8,7 @@ AUTHORS:
 - Nick Alexander (2008-01-08)
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Nick Alexander <ncalexander@gmail.com>
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
@@ -119,7 +120,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             if not S.has_coerce_map_from(B):
                 raise ValueError, "No natural map from the base ring of self " \
                                   "(= %s) to S (= %s)" % (self, S)
-            from constructor import Conic
+            from .constructor import Conic
             con = Conic([S(c) for c in self.coefficients()], \
                         self.variable_names())
             if self._rational_point != None:
@@ -335,7 +336,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
         """
         if names == None:
             names = self.defining_polynomial().parent().variable_names()
-        from constructor import Conic
+        from .constructor import Conic
         D, T = self.diagonal_matrix()
         con = Conic(D, names = names)
         return con, con.hom(T, self), self.hom(T.inverse(), con)
@@ -643,7 +644,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             [  1   0   0]) does not define a map from self (= Projective Conic Curve over Rational Field defined by -x^2 + y^2 + z^2) to Y (= Projective Conic Curve over Rational Field defined by -x^2 + y^2 + z^2)
         """
         if is_Matrix(x):
-            from constructor import Conic
+            from .constructor import Conic
             y = x.inverse()
             A = y.transpose()*self.matrix()*y
             im = Conic(A)

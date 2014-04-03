@@ -85,6 +85,7 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
         sage: v.category()
         Category of elements of Vector space of dimension 3 over Rational Field
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
@@ -129,7 +130,7 @@ def _join(categories, as_list):
     """
     # Since Objects() is the top category, it is the neutral element of join
     if len(categories) == 0:
-        from objects import Objects
+        from .objects import Objects
         return Objects()
 
     if not as_list:
@@ -1638,7 +1639,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: VectorSpaces(QQ).category()
             Category of objects
         """
-        from objects import Objects
+        from .objects import Objects
         return Objects()
 
     # For better code locality and to avoid import loops, those
@@ -1729,7 +1730,7 @@ class Category(UniqueRepresentation, SageObject):
         # Add the base ring as optional argument if this is a category over base ring
         # This really should be in Category_over_base_ring.example,
         # but that would mean duplicating the documentation above.
-        from category_types import Category_over_base_ring
+        from .category_types import Category_over_base_ring
         if isinstance(self, Category_over_base_ring): # Huh, smelly Run Time Type Checking, isn't it?
             if "base_ring" not in keywords:
                 keywords["base_ring"]=self.base_ring()
@@ -2289,7 +2290,7 @@ class JoinCategory(CategoryWithParameters):
             Category of facade groups
         """
         categories = self._super_categories
-        from sets_cat import Sets
+        from .sets_cat import Sets
         if len(categories) == 2 and Sets().Facades() in categories:
             categories = list(categories)
             categories.remove(Sets().Facades())

@@ -4,6 +4,7 @@ Morphisms between finitely generated modules over a PID
 AUTHOR:
 - William Stein, 2009
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -21,7 +22,7 @@ AUTHOR:
 ####################################################################################
 
 from sage.categories.all import Morphism, is_Morphism
-import fgp_module
+from . import fgp_module
 
 
 class FGP_Morphism(Morphism):
@@ -273,7 +274,7 @@ class FGP_Morphism(Morphism):
             sage: phi(4*Q.1) == phi(x)
             True
         """
-        from fgp_module import is_FGP_Module
+        from .fgp_module import is_FGP_Module
         if is_FGP_Module(x):
             if not x.is_submodule(self.domain()):
                 raise ValueError, "x must be a submodule or element of the domain"
@@ -351,7 +352,7 @@ class FGP_Morphism(Morphism):
             ...
             ValueError: A must be a submodule of the codomain
         """
-        from fgp_module import is_FGP_Module
+        from .fgp_module import is_FGP_Module
         if not is_FGP_Module(A):
             raise TypeError, "A must be a finitely generated quotient module"
         if not A.is_submodule(self.codomain()):

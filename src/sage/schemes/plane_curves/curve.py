@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from sage.misc.all import latex
 
 
@@ -142,7 +143,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
             return self.__genus
 
     def union(self, other):
-        from constructor import Curve
+        from .constructor import Curve
         return Curve(AlgebraicScheme_subscheme.union(self, other))
 
     __add__ = union

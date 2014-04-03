@@ -1,6 +1,7 @@
 r"""
 Cartesian Products
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -19,7 +20,7 @@ Cartesian Products
 from inspect import isgenerator
 import sage.misc.prandom as rnd
 import __builtin__
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.misc.mrange import xmrange_iter, _is_finite, _len

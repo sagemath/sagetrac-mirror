@@ -8,13 +8,14 @@ AUTHORS:
 
 - William Stein (2007-08-24): first version
 """
+from __future__ import absolute_import
 
 
 from sage.rings.all              import Integer, QQ, ZZ, PowerSeriesRing
 from sage.misc.misc              import prod, verbose
 from sage.misc.cachefunc         import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
-from constructor                 import ModularForms
+from .constructor                 import ModularForms
 from sage.structure.sage_object  import SageObject
 from random import shuffle
 

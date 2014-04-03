@@ -1,6 +1,7 @@
 """
 Root lattices and root spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -11,7 +12,7 @@ Root lattices and root spaces
 from sage.misc.cachefunc import ClearCacheOnPickle, cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 from sage.misc.cachefunc import cached_in_parent_method
 
 # TODO: inheriting from ClearCacheOnPickle is a technical detail unrelated to root spaces

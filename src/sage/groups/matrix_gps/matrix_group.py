@@ -36,6 +36,7 @@ AUTHORS:
 - Simon King (2010-05): Improve invariant_generators by using GAP
   for the construction of the Reynolds operator in Singular.
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
@@ -463,7 +464,7 @@ class MatrixGroup_generic(MatrixGroup_base):
             raise TypeError
         if not is_MatrixGroup(G):
             raise TypeError, "G (=%s) must be a matrix group."%G
-        import homset
+        from . import homset
         return homset.MatrixGroupHomset(self, G)
 
     def hom(self, x):

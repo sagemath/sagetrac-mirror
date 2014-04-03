@@ -1,6 +1,7 @@
 """
 Coxeter matrices
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,7 +16,7 @@ Coxeter matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from cartan_type import CartanType
+from .cartan_type import CartanType
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
 

@@ -1,13 +1,14 @@
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import hyperelliptic_generic
-import jacobian_g2
+from . import hyperelliptic_generic
+from . import jacobian_g2
 
-import invariants
+from . import invariants
 
 
 class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_generic):

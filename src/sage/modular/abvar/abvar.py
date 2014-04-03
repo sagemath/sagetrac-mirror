@@ -19,6 +19,7 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
+from __future__ import absolute_import
 
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
@@ -29,10 +30,10 @@ TESTS::
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
 from sage.structure.parent_base import ParentWithBase
-from morphism                   import HeckeOperator, Morphism, DegeneracyMap
-from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
-from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
-from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
+from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
+from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
+from .finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
+from .cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup, RationalCuspSubgroup
 from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
                                         divisors, Integer, prime_range)
 from sage.rings.ring import is_Ring
@@ -48,9 +49,9 @@ from sage.misc.misc             import prod
 
 from copy import copy
 
-import homology
-import homspace
-import lseries
+from . import homology
+from . import homspace
+from . import lseries
 
 def is_ModularAbelianVariety(x):
     """
@@ -517,7 +518,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 if not (self.lattice().matrix() * mat).is_zero():
                     break
 
-        from constructor import AbelianVariety
+        from .constructor import AbelianVariety
         Af = AbelianVariety(self.newform_label())
         H = A.Hom(Af.ambient_variety())
         m = H(Morphism(H, mat))
@@ -2922,7 +2923,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             else:
                 # Decompose each ambient modular symbols factor.
                 #X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
-                from abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
+                from .abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
                 X = [ModAbVar_ambient_jacobian_class(G) for G in self.groups()]
                 E = [A.decomposition(simple=simple, bound=bound) for A in X]
                 i = 0

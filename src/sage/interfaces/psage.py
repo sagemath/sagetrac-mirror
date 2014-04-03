@@ -39,10 +39,11 @@ finished::
      23^2 * 47 * 89 * 178481 * 4103188409 * 199957736328435366769577 * 44667711762797798403039426178361,
      9623 * 68492481833 * 23579543011798993222850893929565870383844167873851502677311057483194673]
 """
+from __future__ import absolute_import
 
 import os, time
 
-from sage0 import Sage, SageElement
+from .sage0 import Sage, SageElement
 from pexpect import ExceptionPexpect
 
 number = 0

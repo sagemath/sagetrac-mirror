@@ -1,6 +1,7 @@
 """
 Low-level splits
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -19,7 +20,7 @@ Low-level splits
 from sage.rings.arith import binomial
 import sage.misc.prandom as rnd
 import sage.combinat.choose_nk as choose_nk
-from combinat import CombinatorialClass
+from .combinat import CombinatorialClass
 
 def SplitNK(n, k):
     """

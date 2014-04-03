@@ -132,6 +132,7 @@ language works). Use square brackets or the set function::
               12           4          23
                8           1           1
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -150,7 +151,7 @@ language works). Use square brackets or the set function::
 
 import os
 
-from expect import Expect, ExpectElement
+from .expect import Expect, ExpectElement
 
 
 #import sage.matrix.matrix_space

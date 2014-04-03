@@ -10,6 +10,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-10-18): Added documentation for full coverage.
 """
+from __future__ import absolute_import
 
 #################################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -19,11 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import complex_number
-import complex_double
-import field
-import integer
-import real_mpfr
+from . import complex_number
+from . import complex_double
+from . import field
+from . import integer
+from . import real_mpfr
 import weakref
 from sage.misc.sage_eval import sage_eval
 
@@ -68,8 +69,8 @@ def late_import():
         QQbar = sage.rings.qqbar.QQbar
         import sage.symbolic.ring
         SR = sage.symbolic.ring.SR
-        from real_lazy import CLF, RLF
-        from complex_double import CDF
+        from .real_lazy import CLF, RLF
+        from .complex_double import CDF
 
 def is_ComplexField(x):
     """
@@ -624,7 +625,7 @@ class ComplexField_class(field.Field):
             sage: C.zeta(5)
             0.309016994374947 + 0.951056516295154*I
         """
-        from integer import Integer
+        from .integer import Integer
         n = Integer(n)
         if n == 1:
             x = self(1)

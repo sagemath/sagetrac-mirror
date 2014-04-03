@@ -10,6 +10,7 @@ AUTHORS:
 - Julian Rueth: initial version
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -81,13 +82,13 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             sage: type(DoctestSageDev(DoctestConfig(), DoctestTracServer()))
             <class 'sage.dev.test.sagedev.DoctestSageDev'>
         """
-        from user_interface import DoctestUserInterface
+        from .user_interface import DoctestUserInterface
         UI = DoctestUserInterface(config['UI'])
         if trac_server is None:
             from sage.dev.trac_interface import TracInterface
             trac = TracInterface(config['trac'], UI)
         else:
-            from trac_interface import DoctestTracInterface
+            from .trac_interface import DoctestTracInterface
             trac = DoctestTracInterface(config['trac'], UI, trac_server)
             repo = trac_server.git._config['src']
             config['git']['repository_anonymous'] = config['git']['repository'] = repo
@@ -148,8 +149,8 @@ def single_user_setup():
         sage: from sage.dev.test.sagedev import single_user_setup
         sage: dev, config, UI, server = single_user_setup()
     """
-    from trac_server import DoctestTracServer
-    from config import DoctestConfig
+    from .trac_server import DoctestTracServer
+    from .config import DoctestConfig
     server = DoctestTracServer()
     config = DoctestConfig()
     config['trac']['password'] = 'secret'
@@ -172,7 +173,7 @@ def single_user_setup_with_internet():
         sage: from sage.dev.test.sagedev import single_user_setup_with_internet
         sage: _ = single_user_setup_with_internet()
     """
-    from config import DoctestConfig
+    from .config import DoctestConfig
     config = DoctestConfig()
     config['trac']['password'] = 'secret'
     dev = DoctestSageDevWrapper(config, None)
@@ -189,8 +190,8 @@ def two_user_setup():
         sage: alice, alice_config, bob, bob_config, server = two_user_setup()
 
     """
-    from trac_server import DoctestTracServer
-    from config import DoctestConfig
+    from .trac_server import DoctestTracServer
+    from .config import DoctestConfig
     server = DoctestTracServer()
     config_alice = DoctestConfig('alice')
     config_alice['trac']['password'] = 'secret'

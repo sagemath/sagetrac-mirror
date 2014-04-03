@@ -1,3 +1,4 @@
-from lattice import gen_lattice
+from __future__ import absolute_import
+from .lattice import gen_lattice
 
-import all
+from . import all

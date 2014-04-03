@@ -1,6 +1,7 @@
 """
 Root system data for (untwisted) type D affine
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
@@ -10,7 +11,7 @@ Root system data for (untwisted) type D affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
+from .cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
 class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
     def __init__(self, n):
         """
@@ -97,10 +98,10 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
            [(0, 2, 1), (0, 3, 1), (1, 2, 1), (1, 3, 1), (2, 0, 1), (2, 1, 1), (3, 0, 1), (3, 1, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         if n == 3:
-            import cartan_type
+            from . import cartan_type
             res = cartan_type.CartanType(["A",3,1]).relabel({0:0, 1:3, 2:1, 3: 2}).dynkin_diagram()
             res._cartan_type = self
             return res
@@ -131,7 +132,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         """
         n = self.n
         if n == 3:
-            import cartan_type
+            from . import cartan_type
             relabel = {0:label(0), 1:label(3), 2:label(1), 3:label(2)}
             return cartan_type.CartanType(["A",3,1]).relabel(relabel)._latex_dynkin_diagram(node_dist=node_dist)
         if self.global_options('mark_special_node') in ['latex', 'both']:
@@ -185,7 +186,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         """
         n = self.n
         if n == 3:
-            import cartan_type
+            from . import cartan_type
             return cartan_type.CartanType(["A",3,1]).relabel({0:0, 1:3, 2:1, 3: 2}).ascii_art(label)
         if self.global_options('mark_special_node') in ['printing', 'both']:
             special_str = self.global_options('special_node_str')

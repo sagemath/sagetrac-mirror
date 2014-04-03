@@ -62,6 +62,7 @@ AUTHORS:
 - David Loeffler (01/2011): added nontrivial Teichmueller components
 
 """
+from __future__ import absolute_import
 
 ######################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -95,7 +96,7 @@ import sage.rings.arith as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
-import monsky_washnitzer
+from . import monsky_washnitzer
 # from sage.interfaces.all import gp
 from sage.misc.functional import log
 
