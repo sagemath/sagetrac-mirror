@@ -303,7 +303,7 @@ class Maple(Expect):
         self._expect.sendline(chr(3))  # send ctrl-c
         self._expect.expect(self._prompt)
         self._expect.expect(self._prompt)
-        raise RuntimeError, "Ctrl-c pressed while running %s"%self
+        raise RuntimeError("Ctrl-c pressed while running %s"%self)
 
     def __reduce__(self):
         """
@@ -557,7 +557,7 @@ connection to a server running Maple; for hints, type
                 e.sendline('%s__sage__;'%(chr(8)*len(line)))
                 e.expect('__sage__;')
                 e.expect(self._prompt)
-                raise RuntimeError, "An error occurred running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
+                raise RuntimeError("An error occurred running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z))
         return z
 
     def cputime(self, t=None):
@@ -595,7 +595,7 @@ connection to a server running Maple; for hints, type
         cmd = '%s:=%s:'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Maple\nCODE:\n\t%s\nMaple ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Maple\nCODE:\n\t%s\nMaple ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -702,7 +702,7 @@ connection to a server running Maple; for hints, type
         cmd = 'echo "interface(verboseproc=2): print(%s);" | maple -q'%s
         src = os.popen(cmd).read()
         if src.strip() == s:
-            raise RuntimeError, "no source code could be found"
+            raise RuntimeError("no source code could be found")
         else:
             return src
 
@@ -982,7 +982,7 @@ class MapleElement(ExpectElement):
                 else:
                     return 1
             else:
-                raise RuntimeError, e
+                raise RuntimeError(e)
         if P.eval("evalb(%s %s %s)"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
         # everything is supposed to be comparable in Python, so we define
@@ -1023,7 +1023,7 @@ class MapleElement(ExpectElement):
         try:
             return P.new('%s . %s'%(self._name, right._name))
         except Exception as msg:
-            raise TypeError,msg
+            raise TypeError(msg)
 
     def trait_names(self):
         """
@@ -1102,7 +1102,7 @@ class MapleElement(ExpectElement):
             from sage.symbolic.all import SR
             return SR(result)
         except Exception:
-            raise NotImplementedError, "Unable to parse Maple output: %s" % result
+            raise NotImplementedError("Unable to parse Maple output: %s" % result)
 
 # An instance
 maple = Maple(script_subdirectory='user')

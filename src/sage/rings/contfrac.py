@@ -255,7 +255,7 @@ class ContinuedFractionField_class(Field):
             ...
             TypeError: len() of unsized object
         """
-        raise TypeError, 'len() of unsized object'
+        raise TypeError('len() of unsized object')
 
     def gens(self):
         """
@@ -279,7 +279,7 @@ class ContinuedFractionField_class(Field):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def degree(self):
         """
@@ -390,7 +390,7 @@ class ContinuedFraction(FieldElement):
             x = [ZZ(a) for a in x]
             for i in range(1,len(x)):
                 if x[i] <= 0:
-                    raise ValueError, "each entry except the first must be positive"
+                    raise ValueError("each entry except the first must be positive")
             self._x = list(x)
         else:
             self._x = [ZZ(a) for a in continued_fraction_list(x, bits=bits, nterms=nterms)]
@@ -510,9 +510,9 @@ class ContinuedFraction(FieldElement):
             (80143857, 25510582)
         """
         if n < -2:
-            raise ValueError, "n must be at least -2"
+            raise ValueError("n must be at least -2")
         if n > len(self._x):
-            raise ValueError, "n must be at most %s"%len(self._x)
+            raise ValueError("n must be at most %s"%len(self._x))
         try:
             return self.__pn[n+2]
         except AttributeError:
@@ -542,9 +542,9 @@ class ContinuedFraction(FieldElement):
             (80143857, 25510582)
         """
         if n < -2:
-            raise ValueError, "n must be at least -2"
+            raise ValueError("n must be at least -2")
         if n > len(self._x):
-            raise ValueError, "n must be at most %s"%len(self._x)
+            raise ValueError("n must be at most %s"%len(self._x))
         try:
             return self.__qn[n+2]
         except (AttributeError, IndexError):
@@ -765,7 +765,7 @@ class ContinuedFraction(FieldElement):
         """
         r = self._rational_()
         if r < 0:
-            raise ValueError, "self must be positive"
+            raise ValueError("self must be positive")
         X = r.sqrt(all=all, prec=prec)
         if not all:
             return ContinuedFraction(self.parent(), X)

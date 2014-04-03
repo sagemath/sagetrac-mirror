@@ -187,7 +187,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             n = O[0]
             self._order = n
             return n
-        raise RuntimeError, "Unable to compute order of torsion subgroup (it is in %s)"%O
+        raise RuntimeError("Unable to compute order of torsion subgroup (it is in %s)"%O)
 
     def lattice(self):
         """
@@ -237,7 +237,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         if R.order() == self.multiple_of_order():
             return R.lattice()
         else:
-            raise NotImplementedError, "unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)"
+            raise NotImplementedError("unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)")
 
     def possible_orders(self):
         """
@@ -363,7 +363,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             #       then compute some charpoly involving
             #       that directly...
             # (2) use (1) -- see my MAGMA code.
-            raise NotImplementedError, "torsion multiple only implemented for Gamma0"
+            raise NotImplementedError("torsion multiple only implemented for Gamma0")
         cnt = 0
         if maxp is None:
             X = Primes()

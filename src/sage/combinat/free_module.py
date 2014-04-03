@@ -937,7 +937,7 @@ def _divide_if_possible(x, y):
     """
     q, r = x.quo_rem(y)
     if r != 0:
-        raise ValueError, "%s is not divisible by %s"%(x, y)
+        raise ValueError("%s is not divisible by %s"%(x, y))
     else:
         return q
 
@@ -1282,7 +1282,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         #Make sure R is a ring with unit element
         from sage.categories.all import Rings
         if R not in Rings():
-            raise TypeError, "Argument R must be a ring."
+            raise TypeError("Argument R must be a ring.")
 
         if category is None:
             category = ModulesWithBasis(R)
@@ -1525,7 +1525,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             if x == 0:
                 return self.zero()
             else:
-                raise TypeError, "do not know how to make x (= %s) an element of %s"%(x, self)
+                raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
         #x is an element of the basis enumerated set;
         # This is a very ugly way of testing this
         elif ((hasattr(self._basis_keys, 'element_class') and
@@ -1541,7 +1541,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
                     return self._coerce_end(x)
                 except TypeError:
                     pass
-            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+            raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
     def _an_element_impl(self):
         """
@@ -1742,7 +1742,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
                              ]:
                     self._print_options[option] = kwds[option]
                 else:
-                    raise ValueError, '%s is not a valid print option.' % option
+                    raise ValueError('%s is not a valid print option.' % option)
         else:
             return self._print_options
 

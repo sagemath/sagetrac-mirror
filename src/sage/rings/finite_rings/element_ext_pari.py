@@ -262,15 +262,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                         value = value.Mod(parent._pari_modulus())
                     self.__value = value * parent._pari_one()
                 except RuntimeError:
-                    raise TypeError, "no possible coercion implemented"
+                    raise TypeError("no possible coercion implemented")
             elif isinstance(value, FiniteField_ext_pariElement):
                 if parent != value.parent():
-                    raise TypeError, "no coercion implemented"
+                    raise TypeError("no coercion implemented")
                 else:
                     self.__value = value.__value
             elif isinstance(value, FreeModuleElement):
                 if parent.vector_space() != value.parent():
-                    raise TypeError, "e.parent must match self.vector_space"
+                    raise TypeError("e.parent must match self.vector_space")
                 self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
                 for i in range(len(value)):
                     self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
@@ -300,15 +300,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                     GFp = parent.prime_subfield()
                     self.__value = pari([GFp(c) for c in value]).Polrev("a").Mod(parent._pari_modulus())
             elif isinstance(value, str):
-                raise TypeError, "value must not be a string"
+                raise TypeError("value must not be a string")
             else:
                 try:
                     self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
                 except RuntimeError:
-                    raise TypeError, "no coercion implemented"
+                    raise TypeError("no coercion implemented")
 
         except (AttributeError, TypeError):
-            raise TypeError, "unable to coerce"
+            raise TypeError("unable to coerce")
 
     def __hash__(self):
         """
@@ -440,7 +440,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         if all:
             return []
         else:
-            raise ValueError, "must be a perfect square."
+            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """
@@ -470,10 +470,10 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             2/3
         """
         if self.parent().degree() != 1:
-            raise ArithmeticError, "finite field must be prime"
+            raise ArithmeticError("finite field must be prime")
         t = arith.rational_reconstruction(int(self), self.parent().characteristic())
         if t == None or t[1] == 0:
-            raise ZeroDivisionError, "unable to compute rational reconstruction"
+            raise ZeroDivisionError("unable to compute rational reconstruction")
         return rational.Rational((t[0],t[1]))
 
     def multiplicative_order(self):
@@ -630,7 +630,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         F = self.parent()
         if F.order() > 65536:
-            raise TypeError, "order must be at most 65536"
+            raise TypeError("order must be at most 65536")
 
         if self == 0:
             return '0*Z(%s)'%F.order()
@@ -718,7 +718,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         try:
             return int(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to int"
+            raise TypeError("cannot coerce to int")
 
     def _integer_(self, ZZ=None):
         """
@@ -749,7 +749,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         try:
             return long(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to long"
+            raise TypeError("cannot coerce to long")
 
     def __float__(self):
         """
@@ -764,7 +764,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         try:
             return float(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to float"
+            raise TypeError("cannot coerce to float")
 
     def __pow__(self, _right):
         """
@@ -836,7 +836,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             ...
             ArithmeticError: absolute value not defined
         """
-        raise ArithmeticError, "absolute value not defined"
+        raise ArithmeticError("absolute value not defined")
 
     def __invert__(self):
         """
@@ -853,7 +853,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
 
         if self.__value == 0:
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         return FiniteField_ext_pariElement(self.parent(), ~self.__value, value_from_pari=True)
 
     def lift(self):

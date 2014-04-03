@@ -163,7 +163,7 @@ class ModulesWithBasis(Category_over_base_ring):
             if M.base_ring() != self.base_ring():
                 M = M.change_ring(self.base_ring())
         except (TypeError, AttributeError) as msg:
-            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
+            raise TypeError("%s\nunable to coerce x (=%s) into %s"%(msg,x,self))
         return M
 
     def is_abelian(self):
@@ -488,7 +488,7 @@ class ModulesWithBasis(Category_over_base_ring):
             if len(self) == 1:
                 return self.support()[0]
             else:
-                raise ValueError, "%s is not a single term"%(self)
+                raise ValueError("%s is not a single term"%(self))
 
         def leading_support(self, cmp=None):
             r"""
@@ -1700,7 +1700,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             1/2*B[2] - 1/2*B[3]
         """
         if not self._invertible:
-            raise ValueError, "Non invertible morphism"
+            raise ValueError("Non invertible morphism")
         else:
             return self.section()
 

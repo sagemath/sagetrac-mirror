@@ -182,7 +182,7 @@ class ManinSymbolList(SageObject):
             NotImplementedError: Only implemented in derived classes
 
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def _apply_S_only_0pm1(self):
         """
@@ -218,7 +218,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_I(self, j):
         """
@@ -235,7 +235,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_T(self, j):
         """
@@ -252,7 +252,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_TT(self, j):
         """
@@ -269,7 +269,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def index(self, x):
         """
@@ -383,7 +383,7 @@ class ManinSymbolList(SageObject):
             sage: m.normalize((0,6,7)) # not implemented in base class
 
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def weight(self):
         """
@@ -1548,11 +1548,11 @@ class ManinSymbol(SageObject):
 
         """
         if not isinstance(parent, ManinSymbolList):
-            raise TypeError, "parent (=%s) must be of type ManinSymbolList."%(
-                parent)
+            raise TypeError("parent (=%s) must be of type ManinSymbolList."%(
+                parent))
         self.__parent = parent
         if not isinstance(t, tuple):
-            raise TypeError, "t (=%s) must be of type tuple."%t
+            raise TypeError("t (=%s) must be of type tuple."%t)
         self.__t = t
 
     def tuple(self):
@@ -1815,7 +1815,7 @@ class ManinSymbol(SageObject):
         else:
             N=int(N)
             if N < 1:
-                raise ArithmeticError, "N must be positive"
+                raise ArithmeticError("N must be positive")
         a,b,c,d = self.lift_to_sl2z()
         return cusps.Cusp(b,d), cusps.Cusp(a,c)
 

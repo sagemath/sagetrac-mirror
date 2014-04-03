@@ -179,7 +179,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         source = source[1]
 
     if not isinstance(source, basestring):
-        raise TypeError, "source must be a string."
+        raise TypeError("source must be a string.")
 
     if locals is None:
         locals = {}

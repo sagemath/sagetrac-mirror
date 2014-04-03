@@ -214,7 +214,7 @@ class EnumeratedSets(Category_singleton):
             elif self.list != self._list_default:
                 return self._iterator_from_list()
             else:
-                raise NotImplementedError, "iterator called but not implemented"
+                raise NotImplementedError("iterator called but not implemented")
 
         def cardinality(self):
             """
@@ -238,7 +238,7 @@ class EnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
             """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
 
         def list(self):
             """
@@ -255,7 +255,7 @@ class EnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
             """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
         _list_default  = list # needed by the check system.
 
 
@@ -335,7 +335,7 @@ class EnumeratedSets(Category_singleton):
                 if counter == r:
                     return u
                 counter += 1
-            raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+            raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
         unrank = _unrank_from_iterator
 
         def _rank_from_iterator(self, x):
@@ -543,7 +543,7 @@ class EnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
                 """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
 
         def map(self, f, name=None):
             r"""

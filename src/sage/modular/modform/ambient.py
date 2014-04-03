@@ -106,7 +106,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             True
         """
         if not arithgroup.is_CongruenceSubgroup(group):
-            raise TypeError, 'group (=%s) must be a congruence subgroup'%group
+            raise TypeError('group (=%s) must be a congruence subgroup'%group)
         weight = rings.Integer(weight)
 
         if character is None and arithgroup.is_Gamma0(group):
@@ -228,7 +228,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ValueError: N (=9) must be a divisor or a multiple of the level of self (=4)
         """
         if not (N % self.level() == 0 or self.level() % N == 0):
-            raise ValueError, "N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level())
+            raise ValueError("N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level()))
         from . import constructor
         return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
 
@@ -472,7 +472,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ]
         """
         if n < 0:
-            raise ValueError, "n (=%s) must be >= 0"%n
+            raise ValueError("n (=%s) must be >= 0"%n)
         self.__prec = rings.Integer(n)
 
     ####################################################################
@@ -569,7 +569,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         if not p is None:
             p = rings.Integer(p)
             if not p.is_prime():
-               raise ValueError, "p (=%s) must be a prime or None."%p
+               raise ValueError("p (=%s) must be a prime or None."%p)
         M = self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
         self.__new_submodule[p] = M
         return M

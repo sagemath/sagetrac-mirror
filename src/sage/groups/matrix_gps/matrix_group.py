@@ -463,7 +463,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         if not (cat is None or (cat is G.category() and cat is self.category())):
             raise TypeError
         if not is_MatrixGroup(G):
-            raise TypeError, "G (=%s) must be a matrix group."%G
+            raise TypeError("G (=%s) must be a matrix group."%G)
         from . import homset
         return homset.MatrixGroupHomset(self, G)
 
@@ -495,7 +495,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         v = Sequence(x)
         U = v.universe()
         if not is_MatrixGroup(U):
-            raise TypeError, "u (=%s) must have universe a matrix group."%U
+            raise TypeError("u (=%s) must have universe a matrix group."%U)
         return self.Hom(U)(x)
 
 

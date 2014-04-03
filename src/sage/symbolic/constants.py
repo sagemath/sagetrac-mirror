@@ -1297,7 +1297,7 @@ class LimitedPrecisionConstant(Constant):
         """
         if R.precision() <= self._bits:
             return R(self._value)
-        raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
 
     def _real_double_(self, R):
         """
@@ -1310,7 +1310,7 @@ class LimitedPrecisionConstant(Constant):
         """
         if R.precision() <= self._bits:
             return R(self._value)
-        raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
 
     def __float__(self):
         """
@@ -1323,7 +1323,7 @@ class LimitedPrecisionConstant(Constant):
 
         """
         if self._bits < 53:
-            raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+            raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
         return float(self._value)
 
 class Brun(LimitedPrecisionConstant):

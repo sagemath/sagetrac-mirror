@@ -20,7 +20,7 @@ def strip_encoding(S):
         'THECATINTHEHAT'
     """
     if not isinstance(S,str):
-        raise TypeError, "Argument S (= %s) must be a string."
+        raise TypeError("Argument S (= %s) must be a string.")
     X = ''
     for i in range(len(S)):
         C = S[i]
@@ -49,7 +49,7 @@ def frequency_distribution(S, n=1, field=None):
             else:
                 P[c] = eps
         return DiscreteProbabilitySpace(S,P,field)
-    raise TypeError, "Argument S (= %s) must be a string, list, or tuple."
+    raise TypeError("Argument S (= %s) must be a string, list, or tuple.")
 
 def coincidence_index(S,n=1):
     """
@@ -63,7 +63,7 @@ def coincidence_index(S,n=1):
         try:
             S.coincidence_index(n)
         except AttributeError:
-            raise TypeError, "Argument S (= %s) must be a string."
+            raise TypeError("Argument S (= %s) must be a string.")
     S = strip_encoding(S)
     N = len(S)-n+1
     X = {}
@@ -89,18 +89,18 @@ def coincidence_discriminant(S,n=2):
         0.0827001855677322
     """
     if not isinstance(S,(list,tuple)):
-        raise TypeError, "Argument S (= %s) must be a list or tuple" % S
+        raise TypeError("Argument S (= %s) must be a list or tuple" % S)
     if n != 2:
-        raise ValueError, "Argument n (= %s) is only implemented for n = 2" % n
+        raise ValueError("Argument n (= %s) is only implemented for n = 2" % n)
     truth = True
     for bool in ( isinstance(c,(str,StringMonoidElement)) for c in S ):
         truth = truth and bool
     if not truth:
-        raise TypeError, "Argument S (= %s) must be a list of strings."
+        raise TypeError("Argument S (= %s) must be a list of strings.")
     for bool in ( len(c) == n for c in S ):
         truth = truth and bool
     if not truth:
-        raise ValueError, "Argument S (= %s) must be a list of strings of length 2" % S
+        raise ValueError("Argument S (= %s) must be a list of strings of length 2" % S)
     X1 = [ frequency_distribution([ s[i] for s in S]) for i in range(2) ]
     XX = frequency_distribution(S)
     if isinstance(S[0],StringMonoidElement):

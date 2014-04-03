@@ -196,7 +196,7 @@ def characteristic_polynomial(x, var='x'):
     try:
         return x.charpoly(var)
     except AttributeError:
-        raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
+        raise NotImplementedError("computation of charpoly of x (=%s) not implemented"%x)
 
 charpoly = characteristic_polynomial
 
@@ -991,7 +991,7 @@ def lift(x):
     try:
         return x.lift()
     except AttributeError:
-        raise ArithmeticError, "no lift defined."
+        raise ArithmeticError("no lift defined.")
 
 def log(x,b=None):
     r"""
