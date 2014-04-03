@@ -22,7 +22,7 @@ from .parent_gens import (ParentWithGens,
                          ParentWithMultiplicativeAbelianGens,
                          localvars)
 
-from . import proof.all as proof
+from .proof import all as proof
 
 from .formal_sum  import FormalSums, FormalSum
 

@@ -65,7 +65,7 @@ class PariGroup(Group):
     def permutation_group(self):
         if self.__degree is None:
             raise NotImplementedError
-        from . import perm_gps.permgroup_named
-        return perm_gps.permgroup_named.TransitiveGroup(self.__degree, self.__x[2])
+        from .perm_gps import permgroup_named
+        return permgroup_named.TransitiveGroup(self.__degree, self.__x[2])
 
     _permgroup_ = permutation_group
