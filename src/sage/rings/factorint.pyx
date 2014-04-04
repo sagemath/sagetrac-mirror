@@ -235,8 +235,13 @@ def factor_cunningham(m, proof=None):
         2^2 * 379963 * 1152921504606847009 * 1017291527198723292208309354658785077827527
 
     """
-    from sage.databases.cunningham_tables import CunninghamDatabase
-    cunningham_prime_factors = CunninghamDatabase().list_primes()
+    try:
+        from sage.databases.cunningham_tables import CunninghamDatabase
+        cunningham_prime_factors = CunninghamDatabase().list_primes()
+    except ImportError:
+        from sage.databases import cunningham_tables
+        cunningham_prime_factors = cunningham_tables.cunningham_prime_factors()
+        
     if m.nbits() < 100 or len(cunningham_prime_factors) == 0:
         return m.factor(proof=proof)
     n = Integer(m)
@@ -251,6 +256,7 @@ def factor_cunningham(m, proof=None):
         return IntegerFactorization(L)
     else:
         return IntegerFactorization(L)*n.factor(proof=proof)
+
 
 cpdef factor_trial_division(m, long limit=LONG_MAX):
     r"""

@@ -15,8 +15,8 @@ def cunningham_prime_factors():
     if os.path.exists(file):
         return map(Integer,load(file))
     else:
-        from warnings import warn
-        warn("You might consider installing the optional package for factoring Cunningham numbers with the following command: ``sage -i cunningham_tables``")
+#        from warnings import warn
+#        warn("You might consider installing the optional package for factoring Cunningham numbers with the following command: ``sage -i cunningham_tables``")
         return []
 
 
