@@ -438,16 +438,16 @@ class BetaAdicMonoid(Monoid_class):
 
         return G
     
-    def _relations_automaton_rec (self, current_state, di, parch, pultra, m, Cd, ext, verb=False):
+    def _relations_automaton_rec (self, current_state, di, parch, pultra, m, Cd, ext, verb=False, niter=-1):
         r"""
         Used by relations_automaton()
         """
         
-        if verb and count%10000 == 0: print count
-        #current_state
+        if niter == 0:
+            return di
         
         global count
-        #print count
+        if verb and count%10000 == 0: print count
         if count == 0:
             return di
         count -= 1
@@ -481,13 +481,13 @@ class BetaAdicMonoid(Monoid_class):
                 if ok:
                     #on ajoute l'état et la transition à l'automate
                     di[current_state][e] = c
-                    di = self._relations_automaton_rec (current_state=e, di=di, parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb)
+                    di = self._relations_automaton_rec (current_state=e, di=di, parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb, niter=niter-1)
             else:
                 #ajoute la transition
                 di[current_state][e] = c
         return di
     
-    def relations_automaton (self, ext=False, ss=None, noss=False, verb=False, step=100, limit=None):
+    def relations_automaton (self, ext=False, ss=None, noss=False, verb=False, step=100, limit=None, niter=None):
         r"""
         Compute the relations automaton of the beta-adic monoid (with or without subshift).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
@@ -505,9 +505,7 @@ class BetaAdicMonoid(Monoid_class):
         
         - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
-        
-        - ``prec`` - precision of returned values (default: ``53``)
-        
+                
         - ``step`` - int (default: ``100``)
           Stop to an intermediate state of the computing to verify that all is right.
          
@@ -642,9 +640,11 @@ class BetaAdicMonoid(Monoid_class):
             count = -1
         else:
             count = limit
+        if niter is None:
+            niter = -1
         #print count
         if verb: print "Parcours..."
-        di = self._relations_automaton_rec (current_state=K.zero(), di=dict([]), parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb)
+        di = self._relations_automaton_rec (current_state=K.zero(), di=dict([]), parch=parch, pultra=pultra, m=m, Cd=Cd, ext=ext, verb=verb, niter=niter)
         
         if count == 0:
             print "Nombre max d'états atteint."
@@ -674,6 +674,162 @@ class BetaAdicMonoid(Monoid_class):
             res.emonde0()
             res.F = res.vertices()
         return res
+    
+    def relations_automaton2 (self, verb=False, step=100, limit=None, niter=None):
+        r"""
+        
+        Do the same as relations_automaton, but avoid recursivity in order to avoid the crash of sage.
+        
+        INPUT:
+                
+        - ``verb`` - bool (default: ``False``)
+          If True, print informations for debugging.
+                
+        - ``step`` - int (default: ``100``)
+          Stop to an intermediate state of the computing to verify that all is right.
+         
+        - ``limit``- int (default: None)
+          Stop the computing after a number of states limit.
+        
+        OUTPUT:
+
+        A Automaton.
+        """
+        
+        K = self.C[0].parent()
+        b = self.b
+        
+        if verb: print K
+        
+        #détermine les places qu'il faut considérer
+        parch = []
+        for p in K.places(): #places archimédiennes
+            if p(b).abs() < 1:
+                parch += [p]
+        pi = K.defining_polynomial()
+        from sage.rings.arith import gcd
+        pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
+        lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
+        pultra = [] #liste des places ultramétriques considérées
+        for p in lp:
+            #détermine toutes les places au dessus de p dans le corps de nombres K
+            k = Qp(p)
+            Kp = k['a']
+            a = Kp.gen()
+            for f in pi(a).factor():
+                kp = f[0].root_field('e')
+                if kp == k:
+                    c = f[0].roots(kp)[0][0]
+                else:
+                    c = kp.gen()
+                if verb: print "c=%s (abs=%s)"%(c, (c.norm().abs())**(1/f[0].degree()))
+                if (c.norm().abs())**(1/f[0].degree()) < 1: #absp(c, c, f[0].degree()) > 1:
+                    pultra += [(c, f[0].degree())]
+        
+        if verb: print "places: "; print parch; print pultra
+        
+        #calcule les bornes max pour chaque valeur absolue
+        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        if verb: print "Cd = %s"%Cd
+        m = dict([])
+        for p in parch:
+            m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+        for p, d in pultra:
+            m[p] = max([absp(c, p, d) for c in Cd])
+        
+        if verb: print "m = %s"%m
+        
+        if verb: print K.zero().parent()
+        
+        if limit is None:
+            count = -1
+        else:
+            count = limit
+        if niter is None:
+            niter = -1
+
+        if verb: print "Parcours..."
+        
+        di=dict([])
+        S = [K.zero()] #set of states to look at
+        iter = 0
+        while len(S) != 0:
+            if iter == niter:
+                break
+            for s in S:
+                 S.remove(s)
+                 if not di.has_key(s):
+                     di[s] = dict([])
+                     if count%10000 == 0:
+                         print count
+                     count-=1
+                     if count == 0:
+                         iter = niter-1 #to break the main loop
+                         break
+                 for c in Cd: #parcours les transitions partant de current_state
+                    e = (s + c)/b #calcule l'état obtenu en suivant la transition c
+                    #if verb: print "b=%s, e=%s, cur=%s, c=%s, di=%s"%(b, e, current_state, c, di)
+                    if not di.has_key(e): #détermine si l'état est déjà dans le dictionnaire
+                        ok = True
+                        #calcule les valeurs abolues pour déterminer si l'état n'est pas trop grand
+                        for p in parch:
+                            if p(e).abs() >= m[p]:
+                                ok = False
+                                break
+                        if not ok:
+                            continue #cesse de considérer cette transition
+                        for p, d in pultra:
+                            if absp(e, p, d) > m[p]:
+                                #if verb: print "abs(%s)=%s trop grand !"%(e, absp(e, p, d))
+                                ok = False
+                                break
+                        if ok:
+                            #on ajoute l'état et la transition à l'automate
+                            di[s][e] = c
+                            S.append(e)
+                    else:
+                        #ajoute la transition
+                        di[s][e] = c
+            iter+=1
+        
+        if count == 0:
+            print "Nombre max d'états atteint."
+            return
+        else:
+            if verb:
+                if limit is None:
+                    print "%s états parcourus."%(-1-count)
+                else:
+                    print "%s états parcourus."%(limit-count)
+        
+        res = Automaton(di, loops=True) #, multiedges=True)
+        
+        if verb: print "Avant emondation : %s"%res
+        
+        res.I = [K.zero()]
+        res.A = Set([c-c2 for c in self.C for c2 in self.C])
+        res.F = [K.zero()]
+        if verb: print "Emondation..."
+        res.emonde()
+        return res
+    
+    def critical_exponent_aprox (self, niter=10, verb=False):
+        b = self.b
+        K = b.parent()
+        C = self.C
+        S = set([K.zero()])
+        for i in range(niter):
+            S2 = set([])
+            for s in S:
+                for c in C:
+                    S2.add((s+c)/b)
+            #intervertit S et S2
+            S3 = S2
+            S2 = S
+            S = S3
+            if verb: print len(S)
+        from sage.functions.log import log
+        print "%s"%(log(len(S)).n()/(niter*abs(log(abs(b.n())))))
     
     def complexity (self, verb = False):
         r"""
@@ -907,7 +1063,7 @@ class BetaAdicMonoid(Monoid_class):
         ssd = ssd.emonde0_simplify()
         return ssd
     
-    def reduced_words_automaton (self, ss=None, Iss=None, ext=False, verb=False, step=None):
+    def reduced_words_automaton (self, ss=None, Iss=None, ext=False, verb=False, step=None, arel=None):
         r"""
         Compute the reduced words automaton of the beta-adic monoid (with or without subshift).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
@@ -924,11 +1080,14 @@ class BetaAdicMonoid(Monoid_class):
         - ``ext`` - bool (default: ``True``)
           If True, compute the extended relations automaton (which permit to describe infinite words in the monoid).  
         
-        - ``verb``- bool (default: ``False``)
+        - ``verb`` - bool (default: ``False``)
           If True, print informations for debugging.
         
         - ``step`` - int (default: ``None``)
           Stop to a intermediate state of the computing to make verifications.
+        
+        - ``arel`` - Automaton (default: ``None``)
+          Automaton of relations.
         
         OUTPUT:
 
@@ -968,7 +1127,10 @@ class BetaAdicMonoid(Monoid_class):
         
         if verb: print "Calcul de l'automate des relations..."
         
-        a = self.relations_automaton(noss=True)
+        if arel is None:
+            a = self.relations_automaton(noss=True)
+        else:
+            a = arel
         
         if verb: print " -> %s"%a
         
