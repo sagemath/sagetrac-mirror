@@ -44,6 +44,12 @@ class CombinatorialStructure(SageObject):
         """
         raise NotImplementedError
 
+    def random_element(self):
+        """
+        Returns a random element of this combinatorial structure.
+        """
+        raise NotImplementedError
+
 
 # be aware: there is sage.combinat.binary_tree.BinaryTrees
 class PlaneBinaryTrees(CombinatorialStructure):
