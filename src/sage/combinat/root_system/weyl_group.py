@@ -183,6 +183,7 @@ def WeylGroup(x, prefix=None):
         sage: w = s[0]*s[2]
         sage: w.reduced_word()
         [2, 0]
+        sage: W = groups.misc.WeylGroup(['A',3,1])
     """
     if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)
@@ -245,6 +246,20 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             ['F', 4]
         """
         return self.domain().cartan_type()
+
+    def coxeter_matrix(self):
+        """
+        Return the Coxeter matrix associated to ``self``.
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['A',3])
+            sage: G.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """
+        return self.cartan_type().coxeter_matrix()
 
     @cached_method
     def index_set(self):
@@ -347,7 +362,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 r = self(m)
                 ret[r] = alp
             return Family(ret)
-        except StandardError:
+        except Exception:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
     def _repr_(self):
@@ -425,7 +440,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: G.domain()
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
 
-        This method used to be called ``lattice``:
+        This method used to be called ``lattice``::
 
             sage: G.lattice()
             doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
@@ -554,7 +569,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         generalizations: classical methods (University Park, PA, 1991), 53--61,
         Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = WeylGroup("A3", prefix = "s")
             sage: [s1,s2,s3] = W.simple_reflections()
@@ -565,7 +580,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         ref = self.reflections()
         d = {}
         for x in g:
-            d[x] = [y for y in g if x.length() < y.length() and ref.has_key(x*y.inverse())]
+            d[x] = [y for y in g if x.length() < y.length() and x*y.inverse() in ref]
         return DiGraph(d)
 
 
@@ -596,11 +611,13 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     Caveat: the interface is likely to change. The current main
     application is for plots.
 
-    TODO: implement:
-     - Parabolic subrootsystems
-     - Parabolic subgroups with a set of nodes as argument
-    """
+    .. TODO::
 
+        implement:
+
+        - Parabolic subrootsystems
+        - Parabolic subgroups with a set of nodes as argument
+    """
     @cached_method
     def cartan_type(self):
         """
@@ -931,11 +948,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
     def to_permutation_string(self):
         """
         EXAMPLES::
+
             sage: W = WeylGroup(["A",3])
             sage: s = W.simple_reflections()
             sage: (s[1]*s[2]*s[3]).to_permutation_string()
             '2341'
-
         """
         return "".join(str(i) for i in self.to_permutation())
 

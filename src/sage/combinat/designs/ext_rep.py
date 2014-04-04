@@ -694,7 +694,7 @@ class XTree(object):
             [0, 1, 2]
         """
 
-        if self.xt_attributes.has_key(attr):
+        if attr in self.xt_attributes:
             return self.xt_attributes[attr]
         else:
             for child in self.xt_children:
@@ -731,12 +731,18 @@ class XTree(object):
             [0, 1, 2]
             sage: xt.__getitem__(1)
             [0, 3, 4]
-        """
 
+        TESTS::
+
+            sage: xt.__getitem__(119)
+            Traceback (most recent call last):
+            ...
+            IndexError: XTree<blocks> has no index 119
+        """
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError, '%s no index %s' % (self.__repr__(), `i`)
+            raise IndexError('{} has no index {}'.format(self.__repr__(), i))
         if type(child) == TupleType:
             name, attributes, children = child
             if len(attributes) > 0:
@@ -1010,7 +1016,7 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters()
+        sage: d.parameters(t=2)
         (2, 2, 2, 2)
     """
 

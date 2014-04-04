@@ -78,7 +78,7 @@ EXAMPLES:
 
 A difficult conversion::
 
-    sage: RR(sys.maxint)
+    sage: RR(sys.maxsize)
     9.22337203685478e18      # 64-bit
     2.14748364700000e9       # 32-bit
 
@@ -138,8 +138,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.pari.gen import PariInstance, gen
-from sage.libs.pari.gen cimport PariInstance, gen
+import sage.libs.pari.pari_instance
+from sage.libs.pari.gen cimport gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -2273,8 +2274,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6.00000000000000
         """
         cdef RealNumber x
-        if n > sys.maxint:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxint))
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2310,8 +2311,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(1.5)._rshift_(2)
             0.375000000000000
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         cdef RealNumber x = self._new()
         mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2994,11 +2995,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Check that the largest and smallest exponents representable by
         PARI convert correctly::
 
-            sage: a = pari(0.5) << (sys.maxint+1)/4
-            sage: RR(a) >> (sys.maxint+1)/4
+            sage: a = pari(0.5) << (sys.maxsize+1)/4
+            sage: RR(a) >> (sys.maxsize+1)/4
             0.500000000000000
-            sage: a = pari(0.5) >> (sys.maxint-3)/4
-            sage: RR(a) << (sys.maxint-3)/4
+            sage: a = pari(0.5) >> (sys.maxsize-3)/4
+            sage: RR(a) << (sys.maxsize-3)/4
             0.500000000000000
         """
         # This uses interfaces of MPFR and PARI which are documented
@@ -3042,8 +3043,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
-        cdef PariInstance P
-        P = sage.libs.pari.all.pari
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return P.new_gen(pari_float)
 
     def _mpmath_(self, prec=None, rounding=None):
@@ -5000,7 +5000,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         -  ``n`` -- A positive number, rounded down to the
            nearest integer. Note that `n` should be less than
-           ```sys.maxint```.
+           ```sys.maxsize```.
 
         -  ``algorithm`` -- Set this to 1 to call mpfr directly,
            set this to 2 to use interval arithmetic and logarithms, or leave
