@@ -21,7 +21,8 @@ from sage.misc.misc import attrcall
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
+from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules
+from sage.categories.category import HomCategory, JoinCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
@@ -476,10 +477,17 @@ class ModulesWithBasis(Category_over_base_ring):
                 keywords.pop('category')
             else:
                 category = tensor.category_from_parents(parents)
-            base_category = category.base_category()
+            base_category = None
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        base_category = supercategory.base_category()
+                        break
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Category should be a subcategory of a module tensor category"
             R = base_category.base_ring()
-            if not base_category.is_subcategory(ModulesWithBasis(R)):
-                raise TypeError, "Must be a category of modules"
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
             if base_category.is_subcategory(AlgebrasWithBasis(R)):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)
