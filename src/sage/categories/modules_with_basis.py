@@ -24,6 +24,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 
 from sage.categories.category import HomCategory, JoinCategory
+from sage.categories.category_types import Category_over_base_ring
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
@@ -492,7 +493,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 raise TypeError, "Category should be a subcategory of a module tensor category"
             R = base_category.base_ring()
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
-            if base_category.is_subcategory(AlgebrasWithBasis(R)):
+            if category.is_subcategory(AlgebrasWithBasis(R).TensorProducts()):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)
             else:
                 return parents[0].__class__.Tensor(parents, category, **keywords)
