@@ -547,12 +547,34 @@ cdef class FiniteField(Field):
         The format is for compatibility with
         :mod:`~sage.rings.finite_rings.integer_mod_ring`.
 
-        EXAMPLES::
+        .. WARNING::
+
+            If the characteristic of this field is 2,3,5,7, or 11, Cunningham tables are used.
+            While this speeds up the computation greatly, for some extension degrees p^k-1 is not
+            fully factored into primes.  As a consequence, this function will occasionally return
+            a factorization where some factors are composite.
+            See :meth:`~sage.databases.cunningham_tables.cunningham_composite_factors`
+
+        The smallest degrees for which a composite factor occurs are:
+
+        - 2^929 - 1
+        - 3^589 - 1
+        - 5^389 - 1
+        - 7^323 - 1
+        - 11^269 - 1
+
+          EXAMPLES::
 
             sage: GF(7^2,'a').factored_unit_order()
             [2^4 * 3]
-        """
-        if self.__factored_unit_order is None:
+            sage: k.<a> = GF(2^227)
+            sage: k.factored_unit_order()
+            [26986333437777017 * 7992177738205979626491506950867720953545660121688631]
+         """
+        if self.__factored_unit_order < 13:
+            from sage.rings.factorint import factor_cunningham
+            self.__factored_unit_order = [factor_cunningham(self.order()-1)]
+        else:
             self.__factored_unit_order = [(self.order()-1).factor()]
         return self.__factored_unit_order
 
