@@ -322,6 +322,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
+        self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = t
+        return t
+
 
     integral_points = integral_points
 
