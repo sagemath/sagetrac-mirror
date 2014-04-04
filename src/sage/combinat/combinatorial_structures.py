@@ -17,6 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
 
 
 
@@ -30,16 +31,18 @@ class CombinatorialStructure(SageObject):
     Abstact base class.
 
     """
-    def __init__(self):
+    def __init__(self, size=None):
         """
 
         """
         self.structure = None
+        self.size = size
 
     def __iter__(self):
         """
         Returns an iterator of this combinatorial structure.
         """
+        raise NotImplementedError
 
 
 # be aware: there is sage.combinat.binary_tree.BinaryTrees
@@ -49,14 +52,17 @@ class PlaneBinaryTrees(CombinatorialStructure):
     
     EXAMPLES::
 
-        sage: len([T for T in PlaneBinaryTrees(4)])
+        sage: from sage.combinat.combinatorial_structures import PlaneBinaryTrees
+        sage: len([T for T in PlaneBinaryTrees(4)])  # not tested
         
 
     """
-    def __init__(self):
+    def __init__(self, size=None):
         """
 
         """
+        super(PlaneBinaryTrees, self).__init__(size=size)
+
         # T = z + z T^2
         T = CSConstruction()
         T.assign(CSDisjointUnion(CSAtom(), CSCartesianProduct(CSAtom(), T, T)))
@@ -65,13 +71,15 @@ class PlaneBinaryTrees(CombinatorialStructure):
 
 class NonAdjacentForms(CombinatorialStructure):
     def __init__(self):
+        super(PlaneBinaryTrees, self).__init__(size=size)
+
         # NAF = (0 + P0 + M0)* (P + M + e)  with (P = 1, M = -1)
         zero = CSAtom('0')
         pone = CSAtom('P')
         mone = CSAtom('M')
         empty = CSEmpty('')
         NAF = CSConstruction((pone + mone + empty) \
-                                 CSSequence(zero + zero*pone + zero*mone))
+                                 * CSSequence(zero + zero*pone + zero*mone))
 
         self.structure = NAF
 
@@ -91,7 +99,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self.assign(*operands)
 
@@ -101,7 +109,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self.operands = operands
         
@@ -111,7 +119,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self.operands.append(operand)
     
@@ -121,7 +129,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
  
     def __add__(self, other):
@@ -130,7 +138,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         if is_CSBase(other):
             #if is_CSDisjointUnion(self):
@@ -146,7 +154,7 @@ class CSBase(SageObject):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         if is_CSBase(other):
             return CSCartesianProduct(self, other)
@@ -155,12 +163,14 @@ class CSBase(SageObject):
             
 #*****************************************************************************
 
-class CSConstruction(CSBase)
+class CSConstruction(CSBase):
+    pass
 
 #*****************************************************************************
 
 # not sure if needed
-class CSFiniteSet(CSBase)
+class CSFiniteSet(CSBase):
+    pass
 
 #*****************************************************************************
 
@@ -174,7 +184,7 @@ class CSSingleton(CSFiniteSet):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self._set_singleton_(singleton, size)
         
@@ -184,7 +194,7 @@ class CSSingleton(CSFiniteSet):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self.singleton = singleton
         self.size = size
@@ -198,38 +208,42 @@ class CSEmpty(CSSingleton):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self._set_singleton_(singleton=empty, size=0)
 
 #*****************************************************************************
 
-class CSAtom(CSSingleton)
+class CSAtom(CSSingleton):
     def __init__(self, atom=[[]]):
         """
         TODO
 
         EXAMPLES::
 
-            sage: TODO
+            sage: TODO  # not tested
         """
         self._set_singleton_(singleton=atom, size=1)
 
 #*****************************************************************************
 
-class CSDisjointUnion(CSBase)
+class CSDisjointUnion(CSBase):
+    pass
 
 #*****************************************************************************
 
-class CSCartesianProduct(CSBase)
+class CSCartesianProduct(CSBase):
+    pass
 
 #*****************************************************************************
 
-class CSSequence(CSBase)
+class CSSequence(CSBase):
+    pass
 
 #*****************************************************************************
 
-class CSMultiSet(CSBase)
+class CSMultiSet(CSBase):
+    pass
 
 
 #*****************************************************************************
