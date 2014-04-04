@@ -29,8 +29,9 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
-from sage.categories.tensor import tensor
+from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.misc.misc import repr_lincomb
+from sage.categories.category import JoinCategory
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 
 class CombinatorialFreeModuleElement(Element):
@@ -2493,8 +2494,18 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 True
 
             """
-            category = category.TensorProducts()
-            base_category = category.base_category()
+            # category should be a subcategory of a tensor category
+            # this code finds the first tensor category in a join and returns its base category
+            base_category = None
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        base_category = supercategory.base_category()
+                        break
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Category should be a subcategory of a tensor category of modules"
             R = base_category.base_ring()
             if len(modules) > 0:
                 tensor_unit = modules[0].tensor_unit(category=base_category)
@@ -2503,7 +2514,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 if len(modules) == 0:
                     return tensor_unit
                 # flatten the tensor product
-                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
+                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else module.factors() if isinstance(module, CombinatorialFreeModule_TensorGrouped) else (module,) for module in modules],())
             return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, category, **options)
 
         def __init__(self, modules, category, **options):
@@ -2519,7 +2530,17 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             from sage.categories.tensor import tensor
             # save the flattened tensor factors
             self._sets = modules
-            CombinatorialFreeModule.__init__(self, category.base_category().base_ring(), CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), category=category, **options)
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        base_category = supercategory.base_category()
+                        break
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            else:
+                raise TypeError, "Category should be a subcategory of tensor products of modules"
+            CombinatorialFreeModule.__init__(self, base_category.base_ring(), CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), category=category, **options)
+
             # the following is not the best option, but it's better than nothing.
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
@@ -2964,7 +2985,7 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
         self._unflattening_function = CartesianProductWithUnflattening(self._is_tensor, self._n_factors)
         self._flattening_function = CartesianProductWithFlattening(self._is_tensor)
         flattened_modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
-        CombinatorialFreeModule_Tensor.__init__(self, flattened_modules, category.TensorProducts(), **keywords)
+        CombinatorialFreeModule_Tensor.__init__(self, flattened_modules, category, **keywords)
 
     def _repr_(self):
         """
