@@ -1096,5 +1096,5 @@ class TorsionPoint(ModuleElement):
             sage: x._relative_element()
             (0, 1/7, 6/7, 5/7)
         """
-        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element)
+        return self.parent().abelian_variety().lattice().vector_space().coordinate_vector(self.__element)
 
