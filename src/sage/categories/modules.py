@@ -73,7 +73,7 @@ class Modules(Category_module):
     """
 
     @staticmethod
-    def __classcall_private__(cls, base_ring, dispatch = False):
+    def __classcall_private__(cls, base_ring, dispatch = True):
         """
         This method implements the default behavior of dispatching
         ``Modules(field)`` to ``VectorSpaces(field)``. This feature

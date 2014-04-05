@@ -2956,3 +2956,21 @@ class JoinCategory(CategoryWithParameters):
             except ValueError:
                 pass
         return "Join of %s"%(" and ".join(str(cat) for cat in self._super_categories))
+
+    def extra_super_categories(self):
+        r"""
+        A list of the extra supercategories of the categories being joined.
+
+        EXAMPLES::
+
+            sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
+            [Category of modules with basis over Rational Field, Category of vector spaces over Rational Field]
+            sage: ModulesWithBasis(ZZ).TensorProducts().extra_super_categories()
+            [Category of modules with basis over Integer Ring]
+
+        """
+        categories = []
+        for supercategory in self.super_categories():
+            if hasattr(supercategory, 'extra_super_categories'):
+                categories = categories + supercategory.extra_super_categories()
+        return categories
