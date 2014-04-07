@@ -17,6 +17,6 @@ Quantum Groups
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.misc.lazy_import import lazy_import
-#lazy_import('sage.algebras.quantum_groups.representations', 'GlobalCrystalBasis')
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.algebras.quantum_groups.representations', 'HighestWeightRepresentationFromCrystal')
 
