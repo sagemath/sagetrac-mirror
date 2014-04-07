@@ -70,8 +70,9 @@ class PlaneBinaryTrees(CombinatorialStructure):
         super(PlaneBinaryTrees, self).__init__(size=size)
 
         # T = z + z T^2
-        T = CSConstruction()
-        T.assign(CSDisjointUnion(CSAtom(), CSCartesianProduct(CSAtom(), T, T)))
+        T = CSConstructionUnlabelled()
+        Z = CSAtomUnlabelled()
+        T.assign(disjoint_union(Z, cartesian_product(Z, T, T)))
 
         self.structure = T
 
@@ -80,12 +81,12 @@ class NonAdjacentForms(CombinatorialStructure):
         super(PlaneBinaryTrees, self).__init__(size=size)
 
         # NAF = (0 + P0 + M0)* (P + M + e)  with (P = 1, M = -1)
-        zero = CSAtom('0')
-        pone = CSAtom('P')
-        mone = CSAtom('M')
-        empty = CSEmpty('')
-        NAF = CSConstruction((pone + mone + empty) \
-                                 * CSSequence(zero + zero*pone + zero*mone))
+        zero = CSAtomUnlabelled('0')
+        pone = CSAtomUnlabelled('P')
+        mone = CSAtomUnlabelled('M')
+        empty = CSEmptyUnlabelled('')
+        NAF = CSConstructionUnlabelled((pone + mone + empty) \
+                                       * sequence(zero + zero*pone + zero*mone))
 
         self.structure = NAF
 
@@ -166,21 +167,48 @@ class CSBase(SageObject):
             return CSCartesianProduct(self, other)
         else:
             raise TypeError, "Operation not supported."
-            
+
+class CSFlavor(SageObject):
+    pass
+
+class CSUnlabelled(CSFlavor):
+    pass
+
+class CSLabelled(CSFlavor):
+    pass
+
 #*****************************************************************************
 
+def construction(*args, **kwargs):
+    return CSConstructionUnlabelled(*args, **kwargs)  # TODO
+
 class CSConstruction(CSBase):
+    pass
+
+class CSConstructionUnlabelled(CSBase, CSUnlabelled):
+    pass
+
+class CSConstructionLabelled(CSBase, CSLabelled):
     pass
 
 #*****************************************************************************
 
 # not sure if needed
-class CSFiniteSet(CSBase):
+class CSFiniteSetBase(CSBase):
+    pass
+
+class CSFiniteSetUnlabelled(CSBase, CSUnlabelled):
+    pass
+
+class CSFiniteSetLabelled(CSBase, CSLabelled):
     pass
 
 #*****************************************************************************
 
-class CSSingleton(CSFiniteSet):
+def singleton(*args, **kwargs):
+    return CSSingletonUnlabelled(*args, **kwargs)  # TODO
+
+class CSSingletonBase(CSFiniteSetBase):
     """
 
     """
@@ -205,9 +233,15 @@ class CSSingleton(CSFiniteSet):
         self.singleton = singleton
         self.size = size
 
+class CSSingletonLabelled(CSSingletonBase, CSFiniteSetLabelled):
+    pass
+
+class CSSingletonUnlabelled(CSSingletonBase, CSFiniteSetUnlabelled):
+    pass
+
 #*****************************************************************************
 
-class CSEmpty(CSSingleton):
+class CSEmptyBase(CSSingletonBase):
     def __init__(self, empty=[]):
         """
         TODO
@@ -218,9 +252,15 @@ class CSEmpty(CSSingleton):
         """
         self._set_singleton_(singleton=empty, size=0)
 
+class CSEmptyUnlabelled(CSEmptyBase, CSSingletonUnlabelled):
+    pass
+
+class CSEmptyLabelled(CSEmptyBase, CSSingletonLabelled):
+    pass
+
 #*****************************************************************************
 
-class CSAtom(CSSingleton):
+class CSAtomBase(CSSingletonBase):
     def __init__(self, atom=[[]]):
         """
         TODO
@@ -231,24 +271,66 @@ class CSAtom(CSSingleton):
         """
         self._set_singleton_(singleton=atom, size=1)
 
-#*****************************************************************************
+class CSAtomUnlabelled(CSAtomBase, CSSingletonUnlabelled):
+    pass
 
-class CSDisjointUnion(CSBase):
+class CSAtomLabelled(CSAtomBase, CSSingletonLabelled):
     pass
 
 #*****************************************************************************
 
-class CSCartesianProduct(CSBase):
+def disjoint_union(*args, **kwargs):
+    return CSDisjointUnionUnlabelled(*args, **kwargs)  # TODO
+
+class CSDisjointUnionBase(CSBase):
+    pass
+
+class CSDisjointUnionUnlabelled(CSDisjointUnionBase, CSUnlabelled):
+    pass
+
+class CSDisjointUnionLabelled(CSDisjointUnionBase, CSLabelled):
     pass
 
 #*****************************************************************************
 
-class CSSequence(CSBase):
+def cartesian_product(*args, **kwargs):
+    return CSCartesianProductUnlabelled(*args, **kwargs)  # TODO
+
+class CSCartesianProductBase(CSBase):
+    pass
+
+class CSCartesianProductUnlabelled(CSCartesianProductBase, CSUnlabelled):
+    pass
+
+class CSCartesianProductLabelled(CSCartesianProductBase, CSLabelled):
     pass
 
 #*****************************************************************************
 
-class CSMultiSet(CSBase):
+def sequence(*args, **kwargs):
+    return CSSequenceUnlabelled(*args, **kwargs)  # TODO
+
+class CSSequenceBase(CSBase):
+    pass
+
+class CSSequenceUnlabelled(CSSequenceBase, CSUnlabelled):
+    pass
+
+class CSSequenceLabelled(CSSequenceBase, CSLabelled):
+    pass
+
+#*****************************************************************************
+
+def multi_set(*args, **kwargs):
+    return CSMultiSetUnlabelled(*args, **kwargs)  # TODO
+
+class CSMultiSetBase(CSBase):
+    pass
+
+class CSMultiSetUnlabelled(CSMultiSetBase, CSUnlabelled):
+    pass
+
+class CSMultiSetLabelled(CSMultiSetBase, CSLabelled):
     pass
 
 
