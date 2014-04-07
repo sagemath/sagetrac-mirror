@@ -79,8 +79,8 @@ The preparser
     sage: P = plot(f, -10, 10, color='red')
     sage: P
 
-.. image:: demo-montrealpython-2010_media/cell_3_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_3_sage0.png
+..    :align: center
 
 
 .. end of output
@@ -90,8 +90,8 @@ The preparser
     sage: Q = line([(3,0.9), (7,0.9), (7,1.1), (3,1.1), (3,0.9)], color='green')
     sage: Q
 
-.. image:: demo-montrealpython-2010_media/cell_43_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_43_sage0.png
+..    :align: center
 
 
 .. end of output
@@ -101,8 +101,8 @@ The preparser
     sage: R = text('$f(x) = \\sin(\\frac{1}{x})$', (5,1))
     sage: R
 
-.. image:: demo-montrealpython-2010_media/cell_6_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_6_sage0.png
+..     :align: center
 
 
 .. end of output
@@ -111,8 +111,8 @@ The preparser
 
     sage: Q + R + P
 
-.. image:: demo-montrealpython-2010_media/cell_44_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_44_sage0.png
+..     :align: center
 
 
 .. end of output
@@ -459,8 +459,8 @@ La commande complex_plot pour les fonctions complexe
 
     sage: complex_plot(f, (-2,2), (-2,2))
 
-.. image:: demo-montrealpython-2010_media/cell_37_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_37_sage0.png
+..    :align: center
 
 
 .. end of output
@@ -479,8 +479,8 @@ La commande complex_plot pour les fonctions complexe
 
     sage: complex_plot(lambda z : newton(f, z), (-1,1), (-1,1))
 
-.. image:: demo-montrealpython-2010_media/cell_66_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_66_sage0.png
+..     :align: center
 
 
 .. end of output
@@ -669,8 +669,8 @@ Théorie des graphes
     sage: D = graphs.DodecahedralGraph()
     sage: D.show()
 
-.. image:: demo-montrealpython-2010_media/cell_49_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_49_sage0.png
+..     :align: center
 
 
 .. end of output
@@ -700,8 +700,8 @@ Théorie des graphes
 
     sage: D.show()
 
-.. image:: demo-montrealpython-2010_media/cell_52_sage0.png
-    :align: center
+.. .. image:: demo-montrealpython-2010_media/cell_52_sage0.png
+..     :align: center
 
 
 .. end of output

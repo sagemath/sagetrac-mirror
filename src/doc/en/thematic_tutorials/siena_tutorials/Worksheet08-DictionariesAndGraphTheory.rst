@@ -53,8 +53,8 @@ Dictionaries behave as lists, tuples, and strings for several important operatio
 #. In the directed graph below, the vertex 1 points to the vertices in the
    list [2, 3].
 
-   .. image:: media/graph0.png
-       :align: center
+..    .. image:: media/graph0.png
+..        :align: center
 
    Create a dictionary with keys the vertices of the above directed graph, and
    with values the lists of vertices pointed to by the vertex.
@@ -98,8 +98,8 @@ The Seven Bridges of Königsberg
 
     The problem was to find a walk through the city that would cross each bridge once and only once. The islands could not be reached by any route other than the bridges, and every bridge must have been crossed completely every time (one could not walk halfway onto the bridge and then turn around to come at it from another side)."
 
-    .. image:: media/euler.png
-        :align: center
+..    .. image:: media/euler.png
+..         :align: center
 
     (The quotation and image are from `Seven Bridges of Königsberg (Wikipedia)
     <http://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg>`_; the

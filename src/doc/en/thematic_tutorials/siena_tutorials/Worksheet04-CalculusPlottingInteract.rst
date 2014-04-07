@@ -154,8 +154,8 @@ Let :math:`a>b>0` be fixed real numbers and form a triangle with one vertex on
 the line :math:`y=x`, one vertex on the line :math:`y=0` and the third vertex
 equal to :math:`(a,b)`.
 
-.. image:: media/calc_problem.png
-    :align: center
+.. .. image:: media/calc_problem.png
+..     :align: center
 
 Find the coordinates of the vertices that minimize the perimeter of the
 triangle (remember that (a,b) is fixed!). What is the perimeter?

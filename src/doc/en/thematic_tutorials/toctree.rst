@@ -5,14 +5,79 @@ Thematic tutorial document tree
 .. toctree::
    :maxdepth: 2
 
-   tutorial-notebook-and-help-long
-   sandpile
+   2010-03-29-SLC64
+   2010-05-06-SageDays20.5
+   2010-06-11-Sage-demo-LAGA
+   2010-06-14-Sage-demo-Orsay
+   2010-07-07-Toronto
+   2010-08-03-FPSAC
+   2010-09-01-LACIM
+   2010-12-11-Nikolaus
+   2011-01-17-SageDays28
+   2011-05-02-SageDays30
+   2011-05-23-SMAI
+   2011-12-13-ScienceWorkshop
+   2012-02-16-Sage-Paris
+   2012-04-28-JIL
+   2012-10-29-CIMPA-Bobo/combinatoire-des-mots.rst
+   2012-10-29-CIMPA-Bobo/dynamique.rst
+   2012-10-29-CIMPA-Bobo/index.rst
+   2012-10-29-CIMPA-Bobo/introduction.rst
+   agregation-option-calcul-formel/algebre_lineaire.rst
+   agregation-option-calcul-formel/algebre_lineaire_rapide.rst
+   agregation-option-calcul-formel/bibliotheque_tsetlin.rst
+   agregation-option-calcul-formel/codes_correcteurs.rst
+   agregation-option-calcul-formel/groupe_symmetrique.rst
+   agregation-option-calcul-formel/index.rst
+   agregation-option-calcul-formel/introduction.rst
+   agregation-option-calcul-formel/multiplications_rapides.rst
+   agregation-option-calcul-formel/programmation_lineaire.rst
+   agregation-option-calcul-formel/tris_et_complexite.rst
+   coercion_and_categories
+   demo-GAP3-Semigroupe
+   demo-basics
+   demo-constructions-categories-short
+   demo-cython
+   demo-doc
+   demo-interfaces
+   demo-modelling-mathematics
+   demo-monoids-character_rings
+   demo-monoids-characters
+   demo-monoids-jtrivial
+   demo-montrealpython-2010
+   demo-number-theory
+   demo-origamis
+   demo-plot-short
+   demo-symbolics
+   demo-symmetric-functions
+   demo-tsetlin
+   functional_programming
    group_theory
+   index
+   index-sage-combinat
    lie
    linear_programming
    numtheory_rsa
-   tutorial-programming-python
+   sandpile
+   talks
+   toctree
    tutorial-comprehensions
+   tutorial-editing-sage-sources
+   tutorial-first-exercises
+   tutorial-implementing-algebraic-structures
+   tutorial-notebook-and-help
+   tutorial-notebook-and-help-long
    tutorial-objects-and-classes
-   functional_programming
-   coercion_and_categories
+   tutorial-parallel
+   tutorial-programming-python
+   siena_tutorials/siena_tutorials.rst
+   siena_tutorials/Worksheet01-GettingHelp.rst
+   siena_tutorials/Worksheet02-Lists.rst
+   siena_tutorials/Worksheet03-FirstStepsTowardsProgramming.rst
+   siena_tutorials/Worksheet04-CalculusPlottingInteract.rst
+   siena_tutorials/Worksheet05-CollatzConjecture.rst
+   siena_tutorials/Worksheet06-LinearAlgebra.rst
+   siena_tutorials/Worksheet07-StringsAndTheBWT.rst
+   siena_tutorials/Worksheet08-DictionariesAndGraphTheory.rst
+   siena_tutorials/Worksheet09-CombinatoricsIteratorsGenerators.rst
+   siena_tutorials/Worksheet10-IntroductionToCython.rst

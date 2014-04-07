@@ -243,14 +243,14 @@ où l'on maîtrise la croissance des coefficients intermédiaires.
 
     #.  Choisir `k` éléments du corps de base.
 
-    #.  Prendre le morphisme d'évaluation en ces points::
+    #.  Prendre le morphisme d'évaluation en ces points:
 
-    .. MATH::
+	.. MATH::
 
-        \phi: \begin{cases}
-	        K[x] &\rightarrow K^k\\
-		P    &\mapsto (P(a_1), \dots, P(a_k))
-	      \end{cases}
+	    \phi: \begin{cases}
+		    K[x] &\rightarrow K^k\\
+		    P    &\mapsto (P(a_1), \dots, P(a_k))
+		  \end{cases}
 
     #.  Calculer `\phi(\det(M))` en se ramenant au calcul de `k`
 	déterminants de matrices à coefficients dans le corps de base.
@@ -421,7 +421,7 @@ Algorithme de Wiedemann
 
 .. TOPIC:: Définition: espace de Krilov
 
-
+    .. TODO::
 
 
 Application: calcul d'inverses
@@ -560,8 +560,8 @@ Fixons un entier `n`. On va considérer la matrice `T_n` dont
 .. figure:: ../media/tree-incidence-matrix-6.png
    :align: center
 
-   :alt: La matrice d'incidence `T_6` des graphes acycliques à `6`
-	 sommets et `5` arêtes versus ceux à `4` arêtes
+   La matrice d'incidence `T_6` des graphes acycliques à `6` sommets
+   et `5` arêtes versus ceux à `4` arêtes
 
 .. TOPIC:: Exercice
 
@@ -615,7 +615,7 @@ Fixons un entier `n`. On va considérer la matrice `T_n` dont
     Jean-Guillaume Dumas et Gilles Villard,
     Computer Algebra in Scientific Computing, 2002
 
-.. [Massey.1969] `Shift-register synthesis and BCH Decoding
-    <http://nicolas.thiery.name/Enseignement/Agregation/Textes/Massey.1969.pdf>`_
-   James L. Massey, IEEE transactions on information theory, 1969
+.. .. [Massey.1969] `Shift-register synthesis and BCH Decoding
+..     <http://nicolas.thiery.name/Enseignement/Agregation/Textes/Massey.1969.pdf>`_
+..    James L. Massey, IEEE transactions on information theory, 1969
 
