@@ -171,6 +171,7 @@ class VectorSpaces(Category_module):
 
                 sage: C = VectorSpaces(QQ).TensorProducts()
                 sage: C.extra_super_categories()
+                [Category of vector spaces over Rational Field]
 
             """
             return [self.base_category()]

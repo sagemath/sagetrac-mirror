@@ -44,6 +44,6 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
 from smash_product_algebra import SmashProductAlgebra
 
-from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra
+from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 
 from double_affine_hecke_algebra import DoubleAffineHeckeAlgebra

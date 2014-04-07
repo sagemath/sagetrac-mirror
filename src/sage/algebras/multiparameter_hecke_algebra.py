@@ -22,6 +22,67 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.all import QQ, ZZ
 
+def ParameterFamilies(I, q1=None, q2=None):
+    r"""
+    Returns a triple `(F, f1, f2)` where `F` is a ring and `f1` and `f2` are families
+    with key set `I` and values in `F`.
+
+    INPUT:
+
+    - `I` -- Index set
+    - `q1, q2` -- parameters 
+
+    If `q1` is a Family then `f1` is set to `q1`.
+    If `q1` is a ring element then `f1` is set to the family on `I` with constant value `q1`.
+    If `q1` is None (default) then `f1` is the constant family on `I` with value given by the
+    generator of the field `QQ['v'].fraction_field()`.
+
+    If `q2` is None (default) then `f2[i]` is set to `-1/f1[i]` for all `i \in I`.
+    Otherwise `f2` is obtained from `q2` as `f1` is obtained from `q1`.
+
+    EXAMPLES::
+
+        sage: ParameterFamilies((1,2))
+        (Fraction Field of Univariate Polynomial Ring in v over Rational Field, Finite family {1: v, 2: v}, Finite family {1: -1/v, 2: -1/v})
+        sage: K = QQ['q1,q2,t1,t2'].fraction_field(); q1,q2,t1,t2 = K.gens()
+        sage: ParameterFamilies((1,2),q1)
+        (Fraction Field of Multivariate Polynomial Ring in q1, q2, t1, t2 over Rational Field, Finite family {1: q1, 2: q1}, Finite family {1: (-1)/q1, 2: (-1)/q1})
+        sage: ParameterFamilies((1,2),q1,q2)
+        (Fraction Field of Multivariate Polynomial Ring in q1, q2, t1, t2 over Rational Field, Finite family {1: q1, 2: q1}, Finite family {1: q2, 2: q2})
+        sage: ParameterFamilies((1,2),Family(dict([[1,q1],[2,t1]])))
+        (Fraction Field of Multivariate Polynomial Ring in q1, q2, t1, t2 over Rational Field, Finite family {1: q1, 2: t1}, Finite family {1: (-1)/q1, 2: (-1)/t1})
+        sage: ParameterFamilies((1,2),Family(dict([[1,q1],[2,t1]])),Family(dict([[1,q2],[2,t2]])))
+        (Fraction Field of Multivariate Polynomial Ring in q1, q2, t1, t2 over Rational Field, Finite family {1: q1, 2: t1}, Finite family {1: q2, 2: t2})
+
+    """
+    def ParameterFamily(I, q):
+        def parent_ring(x):
+            try:
+                return x.parent()
+            except:
+                raise TypeError, "%s should be a Family or a ring element"%x
+
+        if isinstance(q, FiniteFamily):
+            F = parent_ring(q[I[0]])
+            if not all(i in q.keys() and q[i] in F for i in I):
+                raise TypeError, "All parameters should be elements of a common ring"
+        else:
+            if q is None:
+                F = QQ['v'].fraction_field()
+                q = F.gen(0)
+            else:
+                F = parent_ring(q)
+            q = Family(dict([[i, q] for i in I]))
+        return (F, q)
+    F, q1 = ParameterFamily(I, q1)
+    if q2 is None:
+        q2 = Family(dict([[i, -1/q1[i]] for i in I]))
+    else:
+        G, q2 = ParameterFamily(I, q2)
+        if F != G:
+            raise TypeError, "All parameters should be elements of a common base ring"
+    return (F, q1, q2)
+
 class MultiParameterHeckeAlgebraElement(CombinatorialFreeModuleElement):
     r"""
     The element class of :class:`MultiParameterHeckeAlgebra`.

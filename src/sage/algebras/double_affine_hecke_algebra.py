@@ -914,7 +914,6 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         KF = self.fundamental_group_algebra()
         HF = tensor([H,KF],category=ModulesWithBasis(self.base_ring()))
         FH = tensor([KF,H],category=ModulesWithBasis(self.base_ring()))
-        print "category of Hecke tensor group algebra: ", HF.category()
         twist = HF.module_morphism(on_basis = lambda (w,pi): FH.monomial((pi,pi.inverse().act_on_affine_weyl(w))), codomain=FH, category=ModulesWithBasis(self.base_ring()))
         FSH = SmashProductAlgebra(KF, H, twist)
         untwist = FH.module_morphism(on_basis = lambda (pi,w): HF.monomial((pi.act_on_affine_weyl(w),pi)), codomain=HF, category=ModulesWithBasis(self.base_ring()))

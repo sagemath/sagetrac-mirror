@@ -18,6 +18,7 @@ from sage.categories.algebra_functor import AlgebrasCategory
 lazy_import('sage.rings.integer_ring', 'ZZ')
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
+from sage.algebras.multiparameter_hecke_algebra import ParameterFamilies
 from sage.sets.family import Family, FiniteFamily
 
 class Algebras(AlgebrasCategory):
@@ -1122,7 +1123,7 @@ class Algebras(AlgebrasCategory):
 
             INPUT:
 
-            - ``self`` -- the algebra of the ambient space of an unmixed affine type
+            - ``self`` -- the algebra of the ambient space of an unmixed affine type (or finite type)
             - ``weight`` -- an element of the finite weight space
             - `i` -- a Dynkin node
             - `q1, q2` -- Eigenvalues of `T_i`
@@ -1178,8 +1179,10 @@ class Algebras(AlgebrasCategory):
                 q1*B[(0, 0)]
 
             """
-
-            KL0 = self.classical()
+            if self.cartan_type().is_finite():
+                KL0 = self
+            else:
+                KL0 = self.classical()
             if convention == "dominant":
                 weight = - weight
             L0 = KL0.basis().keys()
@@ -1351,24 +1354,8 @@ class Algebras(AlgebrasCategory):
 
             """
             I = self.cartan_type().index_set()
-            if not isinstance(q1, FiniteFamily):
-                if not q1 in self.base_ring():
-                    raise ValueError, "%s should be in the base ring %s"%(q1,self.base_ring())
-                try:
-                    1/q1
-                except ZeroDivisionError:
-                    raise ValueError, "%s should be invertible"%q1
-                q1 = Family(dict([[i,q1] for i in I]))
-            if not q2:
-                q2 = Family(dict([[i,-1/q1[i]] for i in I]))
-            elif not isinstance(q2, FiniteFamily):
-                if not q2 in self.base_ring():
-                    raise ValueError, "%s should be in the base ring %s"%(q1,self.base_ring())
-                try:
-                    1/q2
-                except ZeroDivisionError:
-                    raise ValueError, "%s should be invertible"%q1
-                q2 = Family(dict([[i,q2] for i in I]))
+            F, q1, q2 = ParameterFamilies(I, q1, q2)
+
             KL0 = self.classical()
             funcs = dict()
             for i in self.cartan_type().index_set():
@@ -1386,6 +1373,45 @@ class Algebras(AlgebrasCategory):
                 return funcs[i](l)
 
             return HeckeAlgebraRepresentation(KL0, on_basis, self.cartan_type(), q1, q2, q, side=side, doubled_parameters=doubled_parameters)
+
+        def nonreduced_demazure_lusztig_operators(self, q1=None, q2=None, convention="antidominant", doubled_parameters=None,side="right"):
+            r"""
+            Given a lattice realization algebra of finite type of the not-necessarily reduced Hecke algebra
+            with possibly unequal parameters, on the lattice realization algebra.
+
+            INPUT:
+
+            - ``self`` -- Must be the algebra of an ambient space of finite type
+            - `q1, q2`, ``doubled_parameters`` -- See `:meth:.nonreduced_demazure_lusztig_operators_on_classical`.
+            - ``side`` -- (default: "right") Define a left or right action
+
+            EXAMPLES::
+
+                sage: L = CartanType("A1").root_system().ambient_space()
+                sage: K = QQ['q1,q2,p'].fraction_field()
+                sage: q1,q2,p=K.gens()
+                sage: pf = Family(dict([[1,p]]))
+                sage: KL = L.algebra(K)
+                sage: KL.nonreduced_demazure_lusztig_operators(q1, q2, convention="dominant", doubled_parameters=pf)
+                A representation of the Hecke algebra of type ['A', 1] on Group algebra of the Ambient space of the Root system of type ['A', 1] over Fraction Field of Multivariate Polynomial Ring in q1, q2, p over Rational Field
+
+            """
+            I = self.cartan_type().index_set()
+            F, q1, q2 = ParameterFamilies(I, q1, q2)
+
+            funcs = dict()
+            for i in I:
+                if i in doubled_parameters.keys():
+                    funcs[i] = functools.partial(self.nonreduced_demazure_lusztig_operator_on_classical_on_basis, i=i, q1=q1[i], q2=q2[i], p=doubled_parameters[i], convention=convention)
+                else:
+                    funcs[i] = functools.partial(self.demazure_lusztig_operator_on_basis, i=i, q1=q1[i], q2=q2[i], convention=convention)
+            funcs=Family(funcs)
+
+            def on_basis(l,i):
+                return funcs[i](l)
+
+            return HeckeAlgebraRepresentation(self, on_basis, self.cartan_type(), q1, q2, q=1, side=side, doubled_parameters=doubled_parameters)
+            
 
     class ElementMethods:
 

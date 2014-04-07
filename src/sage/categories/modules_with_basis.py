@@ -23,9 +23,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
 
-from sage.sets.set import Set
-from sage.categories.category import HomCategory, JoinCategory
-from sage.categories.category_types import Category_over_base_ring
+from sage.categories.category import HomCategory, JoinCategory, Category
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory

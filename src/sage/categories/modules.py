@@ -181,7 +181,8 @@ class Modules(Category_module):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts()
-                Category of tensor products of modules with basis over Rational Field
+                Join of Category of tensor products of modules with basis over Rational Field and Category of vector spaces with basis over Rational Field and Category of tensor products of vector spaces over Rational Field
+
             """
             return TensorProductsCategory.category_of(self)
 
