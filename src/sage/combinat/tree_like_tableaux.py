@@ -17,8 +17,60 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
-    SetFactory, SetFactoryParent, TopMostParentPolicy)
+    SetFactory, SetFactoryParent, TopMostParentPolicy
+)
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.structure.global_options import GlobalOptions
+
+default_tikz_options = dict(
+    scale=1, line_size=1, ribbon_size=1, point_size=3, 
+    color_array='black', color_ribbon='red', color_point='black'
+    , color_special_point='black', color_tabular='black'
+    , translation=[0,0], rotation=0
+)
+
+TreeLikeTableauxOptions=GlobalOptions(
+    name = 'tree-like tableaux',
+    doc=r"""
+    """,
+    end_doc=r"""
+    """,
+    tikz_options=dict(
+        default= default_tikz_options,
+        description='the tikz options',
+        checker=lambda x: Set(x.keys()).issubset(
+            Set( [
+                'scale', 'line_size', 'ribbon_size', 'point_size', 'color_array'
+                , 'color_ribbon', 'color_point', 'color_special_point'
+                , 'color_tabular', 'translation', 'rotation'
+            ] )
+        )
+    ),
+    drawing_components=dict(
+        default= dict( diagram=True ),
+        description='Different tree-like tableaux components to draw',
+        checker=lambda x: Set(x.keys()).issubset(
+            Set( [
+                'diagram', 'tree', 'insertion_history', 'ribbons', '2+12'
+                , '1+21'
+            ] )
+        )
+    ),
+    display=dict(
+        default="list",
+        values= dict(
+            list='displayed as list',
+            drawing='as a drawing',
+        )
+    ),
+    latex=dict(
+        default="drawing",
+        values= dict(
+            list='displayed as list',
+            drawing='as a drawing',
+        )
+    )
+)
 
 class TreeLikeTableau( ClonableList ):
     r"""
@@ -208,14 +260,32 @@ class TreeLikeTableau( ClonableList ):
 
     def __repr__(self):
         r"""
-        The text representation of a tree-lke tableau
+        The text representation of a tree-like tableau
         
         EXAMPLES::
             sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
             sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
             sage: tlt
         """
+        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+
+    def _repr_list( self ):
         return ClonableList.__repr__(self)
+
+    def _repr_drawing( self ):
+        NotImplemented
+
+    def get_tikz_options():
+        res = default_tikz_options
+        user = self.options()['tikz']
+        for opt in user:
+            res[opt] = user[opt]
+        return res
+
+    def to_tikz( self ):
+        tikz_options = get_tikz_options()
+        drawing_components = self.options()['drawing_components']
+        NotImplemented
 
     def size( self ):
         r"""
@@ -229,6 +299,27 @@ class TreeLikeTableau( ClonableList ):
             8
         """
         NotImplemented
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX version of ``self``.
+
+        For more on the latex options, see :meth:`Partitions.global_options`.
+
+        """
+        return self.parent().global_options.dispatch(self, '_latex_', 'latex')
+
+    def _latex_drawing( self ):
+        latex.add_package_to_preamble_if_available("tikz")
+        tikz_options = self.get_tikz_options()
+        res = "\n\\begin{tikzpicture}[scale=%s]"%(tikz_options['scale'])
+        tikz_code = self.to_tikz()
+        res += "\n\\end{tikzpicture}"
+        return res
+
+    def _latex_list( self ):
+        NotImplemented
+
 
 class TreeLikeTableauxFactory(SetFactory):
     r"""
@@ -300,6 +391,8 @@ class TreeLikeTableaux_size(SetFactoryParent, UniqueRepresentation):
         """
         NotImplemented
 
+    global_options = TreeLikeTableauxOptions
+
 
 
 class TreeLikeTableaux_all( SetFactoryParent, DisjointUnionEnumeratedSets ):
@@ -332,3 +425,5 @@ class TreeLikeTableaux_all( SetFactoryParent, DisjointUnionEnumeratedSets ):
             sage: TLTS.check_element(TLTS.an_element(), True)
         """
         pass
+
+    global_options = TreeLikeTableauxOptions
