@@ -11,7 +11,9 @@ Integer vectors modulo the action of a permutation group
 #*****************************************************************************
 
 from itertools import imap
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.set_factories import SetFactory, SetFactoryParent, TopMostParentPolicy
 from sage.rings.semirings.all import NN
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -24,7 +26,7 @@ from sage.combinat.enumeration_mod_permgroup import is_canonical, orbit, canonic
 
 from sage.combinat.integer_vector import IntegerVectors
 
-class IntegerVectorsModPermutationGroup(UniqueRepresentation):
+class IntegerVectorsModPermutationGroup_Factory(SetFactory):
     r"""
     Returns an enumerated set containing integer vectors which are
     maximal in their orbit under the action of the permutation group
@@ -207,8 +209,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         1287
         2002
     """
-    @staticmethod
-    def __classcall__(cls, G, sum=None, max_part=None, sgs=None):
+    def __call__(self, G, sum=None, max_part=None, sgs=None, policy=None):
         r"""
         TESTS::
 
@@ -221,16 +222,79 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
             ValueError: Value -2 in not in Non negative integer semiring.
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]), 8, max_part=5)
         """
+        if policy is None:
+            policy = self._default_policy
+
         if sum is None and max_part is None:
-            return IntegerVectorsModPermutationGroup_All(G, sgs=sgs)
+            return IntegerVectorsModPermutationGroup_All(G, sgs=sgs, policy=policy)
         else:
             if sum is not None:
                 assert (sum == NN(sum))
             if max_part is not None:
                 assert (max_part == NN(max_part))
-            return IntegerVectorsModPermutationGroup_with_constraints(G, sum, max_part, sgs=sgs)
+            return IntegerVectorsModPermutationGroup_with_constraints(G, sum, max_part, sgs=sgs, policy=policy)
 
-class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
+    def add_constraints(self, cons, kwargs):
+        r"""
+
+
+        EXAMPLES::
+
+        """
+        sum = cons[0]
+        max_part = cons[1]
+        sgs = cons[2]
+
+        # The sum of entries of vector must be unique if defined
+        if "sum" in kwargs:
+            if sum is not None:
+                assert(kwargs["sum"] == sum), "Arguments are not compatibles"
+            else:
+                sum = kwargs["sum"]
+
+        # The minimum of defined max_part
+        if "max_part" in kwargs:
+            if max_part is not None:
+                if max_part > kwargs["max_part"]:
+                    max_part = kwargs["max_part"]
+            else:
+                max_part = kwargs["max_part"]
+                
+        # we doesn't check sgs are the same, the user is responsible
+        # if he want to use it
+        if "sgs" in kwargs:
+            sgs = kwargs["sgs"]
+
+        return (sum, max_part, sgs)
+
+    @lazy_attribute
+    def _default_policy(self):
+        r"""
+        TESTS::
+
+            sage: from sage.structure.set_factories_example import XYPairsFactory
+            sage: XYPairs = XYPairsFactory()
+            sage: XYPairs._default_policy
+        """
+        return TopMostParentPolicy(self, (None, None, None), ClonableIntArray)
+
+IntegerVectorsModPermutationGroup = IntegerVectorsModPermutationGroup_Factory()
+
+class IntVector_ModPermgroup(ClonableIntArray):
+    r"""
+    Element class for the set of integer vectors of given sum enumerated modulo
+    the action of a permutation group. These vector are clonable lists of integers
+    which must check conditions comming form the parent appearing in the method
+    :meth:`~sage.structure.list_clone.ClonableIntArray.check`.
+    
+    TESTS::
+    
+        sage: 
+
+    """
+    pass
+
+class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest, SetFactoryParent):
     r"""
     A class for integer vectors enumerated up to the action of a
     permutation group.
@@ -266,7 +330,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
         sage: TestSuite(I).run()
     """
-    def __init__(self, G, sgs=None):
+    def __init__(self, G, sgs=None, policy=None):
         """
         TESTS::
 
@@ -277,7 +341,11 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             Join of Category of infinite enumerated sets and Category of quotients of sets
             sage: TestSuite(I).run()
         """
-        SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
+        SetFactoryParent.__init__(self, (None, None, sgs), 
+                                  policy, category = InfiniteEnumeratedSets().Quotients())
+        SearchForest.__init__(self, algorithm = 'breadth')
+        # SearchForest.__init__(self, algorithm = 'breadth', 
+        #                       category = InfiniteEnumeratedSets().Quotients())
         self._permgroup = G
         self.n = G.degree()
 
@@ -437,46 +505,6 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
                 assert (p == NN(p)), 'Elements of %s should be integers'%s
         return is_canonical(self._sgs, self.element_class(self, list(v), check=False))
 
-    def __contains__(self, v):
-        """
-        EXAMPLES::
-
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: [2,2,0,0] in I
-            True
-            sage: [2,0,1,0] in I
-            True
-            sage: [2,0,0,1] in I
-            True
-            sage: [2,0,0,2] in I
-            False
-            sage: [2,0,0,2,12] in I
-            False
-        """
-        try:
-            return self.is_canonical(self.element_class(self, list(v), check=False), check=False)
-        except Exception:
-            return False
-
-    def __call__(self, v, check=True):
-        r"""
-        Returns an element of ``self`` constructed from ``v`` if
-        possible.
-
-        TESTS::
-
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: I([3,2,1,0])
-            [3, 2, 1, 0]
-        """
-        try:
-            if v.parent() is self:
-                return v
-            else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except Exception:
-            return self.element_class(self, list(v), check=check)
-
     def orbit(self, v):
         r"""
         Returns the orbit of the integer vector ``v`` under the action of the
@@ -508,60 +536,28 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
-    def subset(self, sum=None, max_part=None):
+    def check_element(self, elem, check=True):
         r"""
-        Returns the subset of ``self`` containing integer vectors
-        whose entries sum to ``sum``.
+        Checks that ``self`` verify the invariants needed for
+        living in ``self.parent()``.
 
         EXAMPLES::
 
-            sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: S.subset(4)
-            Integer vectors of length 4 and of sum 4 enumerated up to
-            the action of Permutation Group with generators
-            [(1,2,3,4)]
-        """
-        return IntegerVectorsModPermutationGroup_with_constraints(self.permutation_group(), sum, max_part)
-
-    class Element(ClonableIntArray):
-        r"""
-        Element class for the set of integer vectors of given sum enumerated modulo
-        the action of a permutation group. These vector are clonable lists of integers
-        which must check conditions comming form the parent appearing in the method
-        :meth:`~sage.structure.list_clone.ClonableIntArray.check`.
-
-        TESTS::
-
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: v = I.element_class(I, [4,3,2,1]); v
-            [4, 3, 2, 1]
-            sage: TestSuite(v).run()
-            sage: I.element_class(I, [4,3,2,5])
+            sage: v = I.an_element()
+            sage: v.check()
+            sage: w = I([0,4,0,0], check=False); w
+            [0, 4, 0, 0]
+            sage: w.check()
             Traceback (most recent call last):
             ...
             AssertionError
         """
-        def check(self):
-            r"""
-            Checks that ``self`` verify the invariants needed for
-            living in ``self.parent()``.
-
-            EXAMPLES::
-
-                sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-                sage: v = I.an_element()
-                sage: v.check()
-                sage: w = I([0,4,0,0], check=False); w
-                [0, 4, 0, 0]
-                sage: w.check()
-                Traceback (most recent call last):
-                ...
-                AssertionError
-            """
+        if check:
             assert self.parent().is_canonical(self)
 
 
-class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, SearchForest):
+class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, SearchForest, SetFactoryParent):
     r"""
     This class models finite enumerated sets of integer vectors with
     constraint enumerated up to the action of a permutation group.
@@ -596,13 +592,19 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
         sage: TestSuite(I).run()
     """
-    def __init__(self, G, d, max_part, sgs=None):
+    def __init__(self, G, d, max_part, sgs=None, policy=None):
         r"""
         TESTS::
 
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 6, max_part=4)
         """
-        SearchForest.__init__(self, algorithm = 'breadth', category = (FiniteEnumeratedSets(), FiniteEnumeratedSets().Quotients()))
+        SearchForest.__init__(self, algorithm = 'breadth', 
+                              category = (FiniteEnumeratedSets(), 
+                                          FiniteEnumeratedSets().Quotients()))
+        SetFactoryParent.__init__(self, (d, max_part, sgs), 
+                                  policy, 
+                                  category = (FiniteEnumeratedSets(), 
+                                              FiniteEnumeratedSets().Quotients()))
         self._permgroup = G
         self.n = G.degree()
         self._sum = d
@@ -679,49 +681,6 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             Permutation Group with generators [(1,2,3)]
         """
         return self._permgroup
-
-    def __contains__(self, v):
-        r"""
-        TESTS::
-
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),6)
-            sage: [6,0,0,0] in I
-            True
-            sage: [5,0,1,0] in I
-            True
-            sage: [0,5,1,0] in I
-            False
-            sage: [3,0,1,3] in I
-            False
-            sage: [3,3,1,0] in I
-            False
-        """
-        try:
-            return (self(v)).parent() is self
-        except Exception:
-            return False
-
-    def __call__(self, v, check=True):
-        r"""
-        Make `v` an element living in ``self``.
-
-        TESTS::
-
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 4)
-            sage: v = I([2,1,0,1]); v
-            [2, 1, 0, 1]
-            sage: v.parent()
-            Integer vectors of length 4 and of sum 4 enumerated up to
-            the action of Permutation Group with generators
-            [(1,2,3,4)]
-        """
-        try:
-            if v.parent() is self:
-                return v
-            else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except Exception:
-            return self.element_class(self, list(v), check=check)
 
     def __iter__(self):
         r"""
@@ -939,40 +898,16 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
-    class Element(ClonableIntArray):
+    def check_elememt(self, elem, check=True):
         r"""
-        Element class for the set of integer vectors with constraints enumerated
-        modulo the action of a permutation group. These vectors are clonable lists
-        of integers which must check conditions comming form the parent as in
-        the method :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_with_constraints.Element.check`.
+        Checks that ``elem`` meets the constraints of being an element of ``self``.
+        
+        EXAMPLES::
+        
+            sage: 
 
-        TESTS::
-
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 4)
-            sage: v = I.element_class(I, [3,1,0,0]); v
-            [3, 1, 0, 0]
-            sage: TestSuite(v).run()
-            sage: v = I.element_class(I, [3,2,0,0])
-            Traceback (most recent call last):
-            ...
-            AssertionError: [3, 2, 0, 0] should be a integer vector of sum 4
         """
-        def check(self):
-            r"""
-            Checks that ``self`` meets the constraints of being an element of ``self.parent()``.
-
-            EXAMPLES::
-
-                sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 4)
-                sage: v = I.an_element()
-                sage: v.check()
-                sage: w = I([0,4,0,0], check=False); w
-                [0, 4, 0, 0]
-                sage: w.check()
-                Traceback (most recent call last):
-                ...
-                AssertionError
-            """
+        if check:
             if self.parent()._sum is not None:
                 assert sum(self) == self.parent()._sum, '%s should be a integer vector of sum %s'%(self, self.parent()._sum)
             if self.parent()._max_part >= 0:
