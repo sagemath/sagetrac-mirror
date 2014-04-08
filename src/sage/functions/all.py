@@ -1,4 +1,6 @@
-from piecewise import piecewise, Piecewise
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.functions.piecewise_real', 'piecewise_real')
 
 from trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,
