@@ -20,6 +20,7 @@ Combinatorics
    sage/combinat/derangements
    sage/combinat/dlx
    sage/combinat/matrices/dlxcpp
+   sage/combinat/double_square_tile
    sage/combinat/dyck_word
    sage/combinat/tamari_lattices
    sage/combinat/e_one_star
