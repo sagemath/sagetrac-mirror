@@ -85,7 +85,7 @@ class TreeLikeTableau( ClonableList ):
     def __classcall_private__(cls, *args, **opts):
         r"""
         """
-        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
+        return cls._auto_parent._element_constructor_( *args, **opts )
 
     @lazy_class_attribute
     def _auto_parent(cls):
@@ -258,7 +258,7 @@ class TreeLikeTableau( ClonableList ):
         self.check_mutable()
         NotImplemented
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         The text representation of a tree-like tableau
         
@@ -270,7 +270,7 @@ class TreeLikeTableau( ClonableList ):
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_list( self ):
-        NotImplemented
+        return ClonableList._repr_(self)
 
     def _repr_drawing( self ):
         NotImplemented
