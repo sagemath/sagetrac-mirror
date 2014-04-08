@@ -21,14 +21,29 @@ from series_order import bounded_decrement, inf, unk
 from sage.rings.all import Integer
 
 class SeriesStream(ListCachedStream):
+    """
+    A class for streams that represent power series.  The class
+    keeps track of the (approximate) order of the power series
+    which allows for recursively defined streams.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStream
+        sage: class MyStream(SeriesStream):
+        ....:     def compute(self, n):
+        ....:         return 4
+        sage: s = MyStream(order=3, aorder=3, base_ring=QQ, aorder_changed=False, convert=True)
+        sage: [s[i] for i in range(6)]
+        [0, 0, 0, 4, 4, 4]
+        sage: parent(_[0])
+        Rational Field
+
+    """
+
     def __init__(self, order=unk, aorder=unk, base_ring=None,
                  aorder_changed=True, convert=False, **kwds):
         """
-        A class for streams that represent power series.  The class
-        keeps track of the (approximate) order of the power series
-        which allows for recursively defined streams.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStream
             sage: class MyStream(SeriesStream):
@@ -39,6 +54,15 @@ class SeriesStream(ListCachedStream):
             [0, 0, 0, 4, 4, 4]
             sage: parent(_[0])
             Rational Field
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <class '__main__.MyStream'>: attribute lookup __main__.MyStream failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
         """
         assert base_ring is not None
         self._base_ring = base_ring
@@ -54,9 +78,9 @@ class SeriesStream(ListCachedStream):
 
     def __getitem__(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.  This method
-        returns zero without doing further computations if ``n`` is
-        less than the approximate order.
+        Return the $n$-th$ coefficient of this stream.
+        This method returns zero without doing further computations
+        if ``n`` is less than the approximate order.
 
         EXAMPLES::
 
@@ -79,7 +103,7 @@ class SeriesStream(ListCachedStream):
 
     def base_ring(self):
         """
-        Returns the base ring of this series stream.
+        Return the base ring of this series stream.
 
         EXAMPLES::
 
@@ -92,9 +116,10 @@ class SeriesStream(ListCachedStream):
 
     def children(self):
         """
-        Returns the children of this series stream.  If this series
-        stream depends on other streams, then those streams are
-        considered its "children".
+        Return the children of this series stream.
+
+        If this series stream depends on other streams, then those
+        streams are considered its "children".
 
         EXAMPLES::
 
@@ -110,9 +135,11 @@ class SeriesStream(ListCachedStream):
 
     def order_operation(self, *orders):
         """
-        Returns the approximate order of this stream give the
-        approximate orders of its children.  For streams with no
-        children and unknown approximate order, it returns ``0``.
+        Return the approximate order of this stream give the
+        approximate orders of its children.
+
+        For streams with no children and unknown approximate order,
+        it returns ``0``.
 
         EXAMPLES::
 
@@ -128,7 +155,7 @@ class SeriesStream(ListCachedStream):
 
     def __mul__(self, other):
         """
-        Returns the product of two streams.
+        Return the product of two streams.
 
         EXAMPLES::
 
@@ -142,7 +169,7 @@ class SeriesStream(ListCachedStream):
 
     def __add__(self, other):
         """
-        Returns the sum of two streams.
+        Return the sum of two streams.
 
         EXAMPLES::
 
@@ -156,8 +183,9 @@ class SeriesStream(ListCachedStream):
 
     def stretch(self, k):
         """
-        Returns a this stream stretched by $k$.  See
-        :class:`StretchedStream` for a defintion.
+        Return a this stream stretched by $k$.
+
+        See :class:`StretchedStream` for a defintion.
 
         EXAMPLES::
 
@@ -171,7 +199,7 @@ class SeriesStream(ListCachedStream):
 
     def get_aorder(self):
         """
-        Returns the approximate order for this stream after refining
+        Return the approximate order for this stream after refining
         it (without computing additional coefficients).
 
         EXAMPLES::
@@ -187,7 +215,7 @@ class SeriesStream(ListCachedStream):
 
     def get_order(self):
         """
-        Returns the order of this stream after refining it (without
+        Return the order of this stream after refining it (without
         computing additional coefficients).
 
         EXAMPLES::
@@ -203,7 +231,7 @@ class SeriesStream(ListCachedStream):
 
     def refine_aorder(self):
         """
-        Refines the approximate order of self as much as possible without
+        Refine the approximate order of self as much as possible without
         computing any coefficients.
 
         EXAMPLES::
@@ -277,7 +305,7 @@ class SeriesStream(ListCachedStream):
 
     def compute_aorder(self):
         """
-        Computes the approximate order of this stream based on its
+        Compute the approximate order of this stream based on its
         children.
 
         EXAMPLES:
@@ -316,7 +344,7 @@ class SeriesStream(ListCachedStream):
 
     def set_order(self, order):
         """
-        Sets the order of this stream.
+        Set the order of this stream.
 
         EXAMPLES::
 
@@ -332,7 +360,7 @@ class SeriesStream(ListCachedStream):
 
     def set_approximate_order(self, new_order):
         """
-        Sets the approximate order of this stream and returns ``True``
+        Set the approximate order of this stream and returns ``True``
         if the approximate order has changed otherwise it will return
         ``False``.
 
@@ -355,15 +383,36 @@ class SeriesStream(ListCachedStream):
         return self.aorder_changed
 
 class SeriesStreamFromList(SeriesStream, StreamFromList):
+    """
+    A class for streams where the coefficients of the stream are
+    given by a list.
+
+    Either the ``list`` keyword can be specified
+    in ``__init__``, or a subclass can define a ``list`` method to
+    determine the list of coefficients.   See
+    :class:`sage.combinat.species.new_stream.StreamFromList`.
+
+    EXAMPLES::
+    
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+        sage: f = SeriesStreamFromList(list=[0,0,0,3,2,1,0], base_ring=QQ)
+        sage: [f[i] for i in range(10)]
+        [0, 0, 0, 3, 2, 1, 0, 0, 0, 0]
+
+        sage: class MyStream(SeriesStreamFromList):
+        ....:     def list(self):
+        ....:         return [1, 2, 3]
+        sage: f = MyStream(base_ring=QQ)
+        sage: [f[i] for i in range(5)]
+        [1, 2, 3, 3, 3]
+        sage: parent(_[0])
+        Rational Field
+
+    """
+
     def __init__(self, **kwds):
         """
-        A class for streams where the coefficients of the stream are
-        given by a list.  Either the ``list`` keyword can be specified
-        in ``__init__``, or a subclass can define a ``list`` method to
-        determine the list of coefficients.   See
-        :class:`sage.combinat.species.new_stream.StreamFromList`.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList
             sage: f = SeriesStreamFromList(list=[0,0,0,3,2,1,0], base_ring=QQ)
@@ -378,6 +427,21 @@ class SeriesStreamFromList(SeriesStream, StreamFromList):
             [1, 2, 3, 3, 3]
             sage: parent(_[0])
             Rational Field
+
+        :meth`compute` does not need to be implemented for this kind of stream.
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(f).run()
+            Failure in _test_not_implemented_methods:
+            ...
+            AssertionError: Not implemented method: compute
+            ------------------------------------------------------------
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <class '__main__.MyStream'>: attribute lookup __main__.MyStream failed
+            ------------------------------------------------------------
+            The following tests failed: _test_not_implemented_methods, _test_pickling
+
         """
         super(SeriesStreamFromList, self).__init__(**kwds)
         self._cache = map(self._base_ring, self._cache)
@@ -385,9 +449,10 @@ class SeriesStreamFromList(SeriesStream, StreamFromList):
 
     def set_constant(self, n, value):
         """
-        Sets this stream to be constant at position $n$. We override
-        :func:`StreamFromList.set_constant` in order to make sure that
-        the constant is in the proper ring.
+        Set this stream to be constant at position $n$.
+        
+        We override :func:`StreamFromList.set_constant` in order to
+        make sure that the constant is in the proper ring.
 
 
         EXAMPLES::
@@ -404,9 +469,10 @@ class SeriesStreamFromList(SeriesStream, StreamFromList):
 
     def order_operation(self):
         """
-        Returns the order of this stream.  Since all of the
-        coefficients are known at creation time, we can go through
-        them to determine the order.
+        Return the order of this stream.
+
+        Since all of the coefficients are known at creation time,
+        we can go through to determine the order.
         
         EXAMPLES::
 
@@ -424,8 +490,9 @@ class SeriesStreamFromList(SeriesStream, StreamFromList):
 class SeriesStreamFromIterator(SeriesStream, StreamFromIterator):
     """
     A class for streams where the coefficients of the stream are
-    given by an iterator.  See
-    :class:`sage.combinat.species.new_stream.StreamFromIterator`.
+    given by an iterator.
+
+    See :`sage.combinat.species.new_stream.StreamFromIterator`.
 
     EXAMPLES::
 
@@ -439,7 +506,7 @@ class SeriesStreamFromIterator(SeriesStream, StreamFromIterator):
     """
     def compute_aorder(self):
         """
-        Computes the approximate order of this stream by examining the
+        Compute the approximate order of this stream by examining the
         coefficients already produced by the iterator.
 
         EXAMPLES::
@@ -465,17 +532,34 @@ class SeriesStreamFromIterator(SeriesStream, StreamFromIterator):
 
 
 class TermStream(SeriesStream):
+    """
+    A class for streams with at most one non-zero coefficient.
+
+    INPUT::
+
+    - ``n`` (int) the location of the nonzero coefficient.
+
+    - ``value`` - the value of the nonzero coefficient.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import TermStream
+        sage: t = TermStream(n=1, value=10, base_ring=QQ)
+        sage: t.order
+        1
+        sage: [t[i] for i in range(4)]
+        [0, 10, 0, 0]
+        sage: t = TermStream(n=1, value=0, base_ring=QQ)
+        sage: t.order
+        Infinite series order
+        sage: [t[i] for i in range(4)]
+        [0, 0, 0, 0]
+    """
+
+
     def __init__(self, n=None, value=None, **kwds):
         """
-        A class for streams with at most one non-zero coefficient.
-
-        INPUT::
-
-        - ``n`` (int) the location of the nonzero coefficient.
-
-        - ``value`` - the value of the nonzero coefficient.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import TermStream
             sage: t = TermStream(n=1, value=10, base_ring=QQ)
@@ -488,6 +572,16 @@ class TermStream(SeriesStream):
             Infinite series order
             sage: [t[i] for i in range(4)]
             [0, 0, 0, 0]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(t).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.TermStream'> != <class 'sage.combinat.species.series_stream.TermStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         kwds['order'] = kwds['aorder'] = n if value != 0 else inf
         kwds['aorder_changed'] = False
@@ -501,7 +595,7 @@ class TermStream(SeriesStream):
 
     def order_operation(self):
         """
-        Returns the order of this stream.
+        Return the order of this stream.
 
         EXAMPLES::
 
@@ -514,7 +608,7 @@ class TermStream(SeriesStream):
     
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
 
         EXAMPLES::
 
@@ -531,18 +625,39 @@ class TermStream(SeriesStream):
             return self._zero
 
 class ChangeRingStream(SeriesStream):
+    """
+    A class for streams which changes the base ring of another
+    stream.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import TermStream, ChangeRingStream
+        sage: t = TermStream(n=1, value=10, base_ring=QQ)
+        sage: s = ChangeRingStream(stream=t, new_ring=RR, base_ring=RR)
+        sage: [s[i] for i in range(4)]
+        [0.000000000000000, 10.0000000000000, 0.000000000000000, 0.000000000000000]
+
+    """
+
     def __init__(self, stream=None, new_ring=None, **kwds):
         """
-        A class for streams which changes the base ring of another
-        stream.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import TermStream, ChangeRingStream
             sage: t = TermStream(n=1, value=10, base_ring=QQ)
             sage: s = ChangeRingStream(stream=t, new_ring=RR, base_ring=RR)
             sage: [s[i] for i in range(4)]
             [0.000000000000000, 10.0000000000000, 0.000000000000000, 0.000000000000000]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.ChangeRingStream'> != <class 'sage.combinat.species.series_stream.ChangeRingStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         self._stream = stream
         self._new_ring = new_ring
@@ -550,7 +665,7 @@ class ChangeRingStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
         
         EXAMPLES::
 
@@ -564,7 +679,7 @@ class ChangeRingStream(SeriesStream):
 
     def order_operation(self, ao):
         """
-        Returns the approximate order of this stream, which is the
+        Return the approximate order of this stream, which is the
         approximate order of the underlying stream.
 
         EXAMPLES::
@@ -579,8 +694,9 @@ class ChangeRingStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.  It
-        is only eventually constant if the underlying stream is.
+        Return whether or not this stream is eventually constant. 
+
+        It is only eventually constant if the underlying stream is.
 
         EXAMPLES::
         
@@ -598,8 +714,9 @@ class ChangeRingStream(SeriesStream):
 
     def get_constant(self):
         """
-        If the stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -613,7 +730,11 @@ class ChangeRingStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
+        Return the position where this stream is eventually constant.
+
+        Precondition: 
+
+        If the stream is not eventually constant, ...returns the position
         where the stream becomes constant.
 
         EXAMPLES::
@@ -627,11 +748,24 @@ class ChangeRingStream(SeriesStream):
         return self._stream.get_constant_position()
 
 class SumStream(SeriesStream):
+    """
+    A class for a stream whose $n^{th}$ coefficient is the sum of
+    the $n^{th}$ coefficient of two other streams.
+
+    EXAMPLES::
+    
+        sage: from sage.combinat.species.series_stream import TermStream, SumStream
+        sage: t1 = TermStream(n=1, value=10, base_ring=QQ)
+        sage: t2 = TermStream(n=2, value=5, base_ring=QQ)
+        sage: s = SumStream(left_summand=t1, right_summand=t2, base_ring=QQ)
+        sage: [s[i] for i in range(6)]
+        [0, 10, 5, 0, 0, 0]
+
+
+    """
+
     def __init__(self, left_summand=None, right_summand=None, **kwds):
         """
-        A class for a stream whose $n^{th}$ coefficient is the sum of
-        the $n^{th}$ coefficient of two other streams.
-
         EXAMPLES::
 
             sage: from sage.combinat.species.series_stream import TermStream, SumStream
@@ -640,6 +774,16 @@ class SumStream(SeriesStream):
             sage: s = SumStream(left_summand=t1, right_summand=t2, base_ring=QQ)
             sage: [s[i] for i in range(6)]
             [0, 10, 5, 0, 0, 0]
+            
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.SumStream'> != <class 'sage.combinat.species.series_stream.SumStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         self._left = left_summand
         self._right = right_summand
@@ -649,7 +793,7 @@ class SumStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
 
         EXAMPLES::
         
@@ -664,7 +808,7 @@ class SumStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
         
@@ -684,8 +828,9 @@ class SumStream(SeriesStream):
 
     def get_constant(self):
         """
-        If the stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -700,9 +845,9 @@ class SumStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
 
+        Precondition: Assume that this stream is constant.
         
         EXAMPLES::
 
@@ -717,18 +862,40 @@ class SumStream(SeriesStream):
                    self._right.get_constant_position())
 
 class ProductStream(SeriesStream):
+    """
+    A class for a stream for the which represents the product of
+    two power series.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import ProductStream, SeriesStreamFromList
+        sage: t = SeriesStreamFromList(list=[1], base_ring=QQ)
+        sage: s = ProductStream(left_factor=t, right_factor=t, base_ring=QQ)
+        sage: [s[i] for i in range(6)]
+        [1, 2, 3, 4, 5, 6]
+
+    """
+
     def __init__(self, left_factor=None, right_factor=None, **kwds):
         """
-        A class for a stream for the which represents the product of
-        two power series.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import ProductStream, SeriesStreamFromList
             sage: t = SeriesStreamFromList(list=[1], base_ring=QQ)
             sage: s = ProductStream(left_factor=t, right_factor=t, base_ring=QQ)
             sage: [s[i] for i in range(6)]
             [1, 2, 3, 4, 5, 6]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.ProductStream'> != <class 'sage.combinat.species.series_stream.ProductStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
+
         """
         self._left = left_factor
         self._right = right_factor
@@ -737,7 +904,7 @@ class ProductStream(SeriesStream):
 
     def order_operation(self, a, b):
         """
-        Returns the approximate order of this stream, which is the sum
+        Return the approximate order of this stream, which is the sum
         of the approximate orders of the child streams.
 
         EXAMPLES::
@@ -753,7 +920,8 @@ class ProductStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this product stream.
+        Return the $n$-th coefficient of this product stream.
+        
         Currently, this just performs the naive O(n^2) multiplication.
 
         EXAMPLES::
@@ -780,7 +948,7 @@ class ProductStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         ..note ::
 
@@ -801,8 +969,9 @@ class ProductStream(SeriesStream):
 
     def get_constant(self):
         """
-        If the stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         ..note ::
 
@@ -823,8 +992,9 @@ class ProductStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 
@@ -840,11 +1010,24 @@ class ProductStream(SeriesStream):
                 
     
 class TailStream(SeriesStream):
+    """
+    A class for a stream which is the tail of another stream.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator, TailStream
+        sage: t = SeriesStreamFromIterator(iterator=NN, base_ring=QQ)
+        sage: s = TailStream(t, base_ring=QQ)
+        sage: [t[i] for i in range(7)]
+        [0, 1, 2, 3, 4, 5, 6]
+        sage: [s[i] for i in range(6)]
+        [1, 2, 3, 4, 5, 6]
+
+    """
+
     def __init__(self, stream, **kwds):
         """
-        A class for a stream which is the tail of another stream.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromIterator, TailStream
             sage: t = SeriesStreamFromIterator(iterator=NN, base_ring=QQ)
@@ -853,14 +1036,24 @@ class TailStream(SeriesStream):
             [0, 1, 2, 3, 4, 5, 6]
             sage: [s[i] for i in range(6)]
             [1, 2, 3, 4, 5, 6]
+
+        Pickling fails because we can not pickle a generator::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         self._stream = stream
         super(TailStream, self).__init__(children=[stream], **kwds)
         
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream which is the
-        $(n+1)^{th}$ coefficient of the underlying stream.
+        Returns the $n$-th coefficient of this stream which is the
+        $(n+1)$-th coefficient of the underlying stream.
 
         EXAMPLES::
 
@@ -876,7 +1069,7 @@ class TailStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
 
@@ -890,8 +1083,9 @@ class TailStream(SeriesStream):
 
     def get_constant(self):
         """
-        If the stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -905,8 +1099,9 @@ class TailStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 
@@ -919,18 +1114,39 @@ class TailStream(SeriesStream):
         return self._stream.get_constant_position() - 1
 
 class DerivativeStream(SeriesStream):
+    """
+    A class for a stream whose coefficients represent the
+    derivative of a power series.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList, DerivativeStream
+        sage: t = SeriesStreamFromList(list=[1], base_ring=ZZ)
+        sage: s = DerivativeStream(t, base_ring=ZZ)
+        sage: [s[i] for i in range(10)]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    """
+
     def __init__(self, stream, **kwds):
         """
-        A class for a stream whose coefficients represent the
-        derivative of a power series.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList, DerivativeStream
             sage: t = SeriesStreamFromList(list=[1], base_ring=ZZ)
             sage: s = DerivativeStream(t, base_ring=ZZ)
             sage: [s[i] for i in range(10)]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.DerivativeStream'> != <class 'sage.combinat.species.series_stream.DerivativeStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         self._stream = stream
         super(DerivativeStream, self).__init__(children=[stream], **kwds)
@@ -939,7 +1155,7 @@ class DerivativeStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns an iterator for the coefficients of the derivative of
+        Return an iterator for the coefficients of the derivative of
         self.
 
         EXAMPLES::
@@ -955,7 +1171,7 @@ class DerivativeStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
 
@@ -973,8 +1189,9 @@ class DerivativeStream(SeriesStream):
 
     def get_constant(self):
         """
-        If this stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -989,8 +1206,9 @@ class DerivativeStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 
@@ -1003,12 +1221,26 @@ class DerivativeStream(SeriesStream):
         return self._stream.get_constant_position() - 1
 
 class IntegralStream(SeriesStream):
+    """
+    A class for a stream whose coefficients represent the
+    integral of a power series.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList, IntegralStream
+        sage: t = SeriesStreamFromList(list=[1, 2, 3, 0], base_ring=ZZ)
+        sage: s = IntegralStream(t, base_ring=ZZ)
+        sage: [s[i] for i in range(10)]
+        [0, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+        sage: s = IntegralStream(t, integration_constant=3, base_ring=ZZ)
+        sage: [s[i] for i in range(10)]
+        [3, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+
+    """
+
     def __init__(self, stream, integration_constant=0, **kwds):
         """
-        A class for a stream whose coefficients represent the
-        integral of a power series.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList, IntegralStream
             sage: t = SeriesStreamFromList(list=[1, 2, 3, 0], base_ring=ZZ)
@@ -1018,6 +1250,16 @@ class IntegralStream(SeriesStream):
             sage: s = IntegralStream(t, integration_constant=3, base_ring=ZZ)
             sage: [s[i] for i in range(10)]
             [3, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.IntegralStream'> != <class 'sage.combinat.species.series_stream.IntegralStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         if integration_constant != 0:
             kwds['order'] = kwds['aorder'] = 0
@@ -1028,7 +1270,7 @@ class IntegralStream(SeriesStream):
 
     def order_operation(self, a):
         """
-        Returns the approximate order of this stream.
+        Return the approximate order of this stream.
 
         EXAMPLES::
 
@@ -1045,7 +1287,7 @@ class IntegralStream(SeriesStream):
         
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
         
         EXAMPLES::
 
@@ -1062,7 +1304,7 @@ class IntegralStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
 
@@ -1077,8 +1319,9 @@ class IntegralStream(SeriesStream):
 
     def get_constant(self):
         """
-        If this stream is evetnually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -1093,8 +1336,9 @@ class IntegralStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 
@@ -1107,12 +1351,26 @@ class IntegralStream(SeriesStream):
         return self._stream.get_constant_position() + 1
 
 class CompositionStream(SeriesStream):
+    """
+    A stream for coefficients of the composition of
+    ``outer_stream`` with ``inner_stream``.
+
+    EXAMPLES::
+
+        sage: L = LazyPowerSeriesRing(QQ)
+        sage: s = L([1])
+        sage: t = L([0,1])
+        sage: g = s(t)
+        sage: stream = g._stream; stream
+        <class 'sage.combinat.species.series_stream.CompositionStream'>
+        sage: [stream[i] for i in range(10)]
+        [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
+
+    """
+
     def __init__(self, outer_stream, inner_stream, **kwds):
         """
-        A stream for thethe coefficients of the composition of
-        ``outer_stream`` with ``inner_stream``.
-
-        EXAMPLES::
+        TESTS::
 
             sage: L = LazyPowerSeriesRing(QQ)
             sage: s = L([1])
@@ -1122,6 +1380,9 @@ class CompositionStream(SeriesStream):
             <class 'sage.combinat.species.series_stream.CompositionStream'>
             sage: [stream[i] for i in range(10)]
             [1, 1, 2, 4, 8, 16, 32, 64, 128, 256]
+
+            sage: TestSuite(s).run()
+
         """
 
         self._outer = outer_stream
@@ -1149,7 +1410,7 @@ class CompositionStream(SeriesStream):
 
     def tail_stream(self):
         """
-        Returns a stream whose tail is equal to the tail of this
+        Return a stream whose tail is equal to the tail of this
         composition stream.
 
         EXAMPLES::
@@ -1174,9 +1435,10 @@ class CompositionStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this composition stream.
-        If $n = 0$, then it will return the $0^{th}$ coefficient of
-        ``self._outer``; otherwise, it will return the $n^th$ coefficient
+        Return the $n$-th coefficient of this composition stream.
+        
+        If $n = 0$, then it will return the $0$-th coefficient of
+        ``self._outer``; otherwise, it will return the $n$-th coefficient
         of the stream defined by :meth:`tail_stream`.
 
         EXAMPLES::
@@ -1216,7 +1478,7 @@ class RecursiveStream(SeriesStream):
     """
     def define(self, stream):
         """
-        Defines this stream to be equal to ``stream``.  The stream
+        Define this stream to be equal to ``stream``.  The stream
         ``stream`` will be referred to as the definition stream.
 
         EXAMPLES::
@@ -1285,7 +1547,7 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def aorder(self):
         """
-        Returns the approximate order of the definition stream.
+        Return the approximate order of the definition stream.
 
         EXAMPLES::
 
@@ -1323,7 +1585,7 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def order(self):
         """
-        Returns the order of the definition stream.
+        Return the order of the definition stream.
 
         EXAMPLES::
 
@@ -1361,7 +1623,7 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def aorder_changed(self):
         """
-        Returns whether or not the approximate order on the definition
+        Return whether or not the approximate order on the definition
         stream has changed.
 
         EXAMPLES::
@@ -1399,7 +1661,7 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def refine_aorder(self):
         """
-        Refines the approximate order of the definition stream.
+        Refin the approximate order of the definition stream.
 
         EXAMPLES::
 
@@ -1418,7 +1680,7 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def compute_aorder(self):
         """
-        Computes the approximate order of the definition stream.
+        Compute the approximate order of the definition stream.
 
         EXAMPLES::
 
@@ -1435,8 +1697,8 @@ class RecursiveStream(SeriesStream):
     @not_defined_check
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream, which is the
-        same as the $n^{th}$ coefficient of the definition stream.
+        Return the $n$-th coefficient of this stream, which is the
+        same as the $n$-th coefficient of the definition stream.
 
         EXAMPLES::
 
@@ -1450,21 +1712,43 @@ class RecursiveStream(SeriesStream):
         return self._stream[n]
 
 class RestrictedStream(SeriesStream):
+    """
+    A stream whose $n$-th coefficient is the $n$-th
+    coefficient of ``stream`` unless ``n < min`` or ``n >= max``
+    in which case it is $0$.
+
+    If either ``min`` or ``max`` are ``None`` then
+    the previous corresponding conditions are considered ``False``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList, RestrictedStream
+        sage: t = SeriesStreamFromList(list=[1], base_ring=ZZ)
+        sage: s = RestrictedStream(t, min=2, max=6, base_ring=ZZ)
+        sage: [s[i] for i in range(10)]
+        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
+    """
+
     def __init__(self, stream, min=None, max=None, **kwds):
         """
-        Returns a stream whose $n^{th}$ coefficient is the $n^{th}$
-        coefficient of ``stream`` unless ``n < min`` or ``n >= max``
-        in which case it is $0$.  If either ``min`` or ``max`` are
-        ``None`` then the previous corresponding conditions are
-        considered ``False``.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList, RestrictedStream
             sage: t = SeriesStreamFromList(list=[1], base_ring=ZZ)
             sage: s = RestrictedStream(t, min=2, max=6, base_ring=ZZ)
             sage: [s[i] for i in range(10)]
             [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
+
+        Pickling fails because equality is not implemented::
+
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.RestrictedStream'> != <class 'sage.combinat.species.series_stream.RestrictedStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         self._min = min
         self._max = max
@@ -1492,7 +1776,7 @@ class RestrictedStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
         
         EXAMPLES::
 
@@ -1512,19 +1796,40 @@ class RestrictedStream(SeriesStream):
         return self._stream[n]
 
 class ListSumStream(SeriesStream):
+    """
+    A stream whose $n$-th coefficient is the sum of the
+    $n$-th coefficients of the streams in ``stream_list``.
+    These streams will be referred to as "child streams".
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList, ListSumStream
+        sage: t = [SeriesStreamFromList(list=[0]*i + [i], base_ring=ZZ) for i in range(4)]
+        sage: s = ListSumStream(t, base_ring=ZZ)
+        sage: [s[i] for i in range(10)]
+        [0, 1, 3, 6, 6, 6, 6, 6, 6, 6]
+    """
+
+
     def __init__(self, stream_list, **kwds):
         """
-        Returns a stream whose $n^{th}$ coefficient is the sum of the
-        $n^{th}$ coefficients of the streams in ``stream_list``.
-        These streams will be referred to as "child streams".
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList, ListSumStream
             sage: t = [SeriesStreamFromList(list=[0]*i + [i], base_ring=ZZ) for i in range(4)]
             sage: s = ListSumStream(t, base_ring=ZZ)
             sage: [s[i] for i in range(10)]
             [0, 1, 3, 6, 6, 6, 6, 6, 6, 6]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.ListSumStream'> != <class 'sage.combinat.species.series_stream.ListSumStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         assert stream_list != []
         self._stream_list = stream_list
@@ -1547,7 +1852,7 @@ class ListSumStream(SeriesStream):
     
     def compute(self, n):
         """
-        Computes the $n^{th}$ coefficient of this sum.
+        Compute the $n$-th coefficient of this sum.
 
         EXAMPLES::
 
@@ -1561,7 +1866,7 @@ class ListSumStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
 
@@ -1579,8 +1884,9 @@ class ListSumStream(SeriesStream):
 
     def get_constant(self):
         """
-        If the stream is eventually constant, returns the constant
-        value.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -1595,8 +1901,9 @@ class ListSumStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 
@@ -1609,11 +1916,10 @@ class ListSumStream(SeriesStream):
         return max(c.get_constant_position() for c in self.children())
 
 class SumGeneratorStream(SeriesStream):
-    def __init__(self, series_stream, **kwds):
-        """
-        A class for a stream whose $n^{th}$ coefficient is given by
-        the sum of $n^{th}$ coefficients for the first $n$ series in
-        ``series_stream``.
+    """
+    A class for a stream whose $n$-th coefficient is given by
+    the sum of $n$-th coefficients for the first $n$ series in
+    ``series_stream``.
 
         INPUT:
 
@@ -1629,13 +1935,37 @@ class SumGeneratorStream(SeriesStream):
             sage: s = SumGeneratorStream(t, base_ring=ZZ)
             sage: [s[i] for i in range(10)]
             [1, 2, 3, 4, 5, 6, 6, 6, 6, 6]
+
+    """
+
+    def __init__(self, series_stream, **kwds):
+        """
+        TESTS::
+
+            sage: from sage.combinat.species.series_stream import SeriesStreamFromList, StreamFromList, SumGeneratorStream
+            sage: one = SeriesStreamFromList(list=[1], base_ring=ZZ)
+            sage: zero = SeriesStreamFromList(list=[0], base_ring=ZZ)
+            sage: t = StreamFromList(list=[one]*6 + [zero])
+            sage: s = SumGeneratorStream(t, base_ring=ZZ)
+            sage: [s[i] for i in range(10)]
+            [1, 2, 3, 4, 5, 6, 6, 6, 6, 6]
+
+        Pickling fails because we can not pickle a generator::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         self._series_stream = SeriesStreamFromIterator(iterator=iter(series_stream), **kwds)
         super(SumGeneratorStream, self).__init__(**kwds)
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n^{th}$ coefficient of this stream.
 
         EXAMPLES::
 
@@ -1654,28 +1984,49 @@ class SumGeneratorStream(SeriesStream):
         return r
 
 class ProductGeneratorStream(SeriesStreamFromIterator):
+    """
+    A class for streams representing the product of a potentially
+    infinite number of power series.
+    Let $g_0, g_1, \ldots, g_n, \ldots$ represent the power series given by
+    ``series_iter``.  In order to do so, we place restrictions
+    on the input series.  We require that
+
+    .. math::
+
+    g_n = 1 + \sum_{i=n}^{\infty} a_{n,i} x^i.
+
+    With that restriction, we can compute the $n$-th coefficient
+    by multiplying the first $n$ series.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList, ProductGeneratorStream
+        sage: g = [SeriesStreamFromList(list=[1] + [0]*i + [1, 0], base_ring=ZZ) for i in range(6)]
+        sage: s = ProductGeneratorStream(g, base_ring=ZZ)
+        sage: [s[i] for i in range(26)]
+        [1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 5, 4, 4, 4, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0]
+
+    """
+
     def __init__(self, series_iter, **kwds):
         r"""
-        A class for streams representing the product of a potentially
-        infinite number of power series.  Let
-        $g_0, g_1, \ldots, g_n, \ldots$ represent the power series given by
-        ``series_iter``.  In order to do so, we place restrictions
-        on the input series.  We require that
-
-        .. math::
-
-           g_n = 1 + \sum_{i=n}^{\infty} a_{n,i} x^i.
-
-        With that restriction, we can compute the $n^{th}$ coefficient
-        by multiplying the first $n$ series.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList, ProductGeneratorStream
             sage: g = [SeriesStreamFromList(list=[1] + [0]*i + [1, 0], base_ring=ZZ) for i in range(6)]
             sage: s = ProductGeneratorStream(g, base_ring=ZZ)
             sage: [s[i] for i in range(26)]
             [1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 5, 4, 4, 4, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0]
+
+        Pickling fails because we can not pickle a generator::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
         """
         self._series_it = iter(series_iter)
         super(ProductGeneratorStream, self).__init__(iterator=self.compute_iterator(), **kwds)
@@ -1710,15 +2061,18 @@ class ProductGeneratorStream(SeriesStreamFromIterator):
             n += 1
 
 class PowerStream(StreamFromIterator):
+    """
+    A stream for the powers of a series stream ``stream`` starting
+    with ``stream^1``.
+
+    .. note::
+    
+        This is not a :class:`SeriesStream`.
+
+    """
+
     def __init__(self, stream, **kwds):
         """
-        A stream for the powers of a series stream ``stream`` starting
-        with ``stream^1``.
-
-        .. note::
-
-           This is not a :class:`SeriesStream`.
-
         EXAMPLES::
 
             sage: from sage.combinat.species.series_stream import PowerStream, SeriesStreamFromList
@@ -1760,20 +2114,44 @@ class PowerStream(StreamFromIterator):
             z = ProductStream(z, self._stream, base_ring=z._base_ring)
 
 class StretchedStream(SeriesStream):
+    """
+    A class for a stretched series stream.
+
+    The $n$-th coefficient of a stretched stream is $0$ 
+    if $n$ is not divisible by $k$; otherwise, it is the $(n/k)$-th
+    coefficient of the underlying stream.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.series_stream import SeriesStreamFromList
+        sage: t = SeriesStreamFromList(list=[1, 2, 3], base_ring=ZZ)
+        sage: s = t.stretch(2)
+        sage: [s[i] for i in range(10)]
+        [1, 0, 2, 0, 3, 0, 3, 0, 3, 0]
+
+
+    """
+
     def __init__(self, k, stream, **kwds):
         """
-        A class for a stretched series stream.  The $n^{th}$
-        coefficient of a stretched stream is $0$ if $n$ is not
-        divisible by $k$; otherwise, it is the $(n/k)^{th}$
-        coefficient of the underlying stream.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.series_stream import SeriesStreamFromList
             sage: t = SeriesStreamFromList(list=[1, 2, 3], base_ring=ZZ)
             sage: s = t.stretch(2)
             sage: [s[i] for i in range(10)]
             [1, 0, 2, 0, 3, 0, 3, 0, 3, 0]
+
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.series_stream.StretchedStream'> != <class 'sage.combinat.species.series_stream.StretchedStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling    
+
+
         """
         self._k = k
         self._stream = stream
@@ -1781,7 +2159,7 @@ class StretchedStream(SeriesStream):
 
     def order_operation(self, a):
         """
-        Returns the approximate order of a stretched stream, which is
+        Return the approximate order of a stretched stream, which is
         $k$ times the approximate order of the underlying stream.
 
         EXAMPLES::
@@ -1796,9 +2174,9 @@ class StretchedStream(SeriesStream):
 
     def compute(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream, which is $0$
+        Return the $n$-th coefficient of this stream, which is $0$
         if $n$ is not divisible by $k$; otherwise, it returns the
-        $(n/k)^{th}$ coefficient of the underlying stream.
+        $(n/k)$-th coefficient of the underlying stream.
 
         EXAMPLES::
 
@@ -1817,7 +2195,7 @@ class StretchedStream(SeriesStream):
 
     def is_constant(self):
         """
-        Returns whether or not this stream is eventually constant.
+        Return whether or not this stream is eventually constant.
 
         EXAMPLES::
 
@@ -1836,8 +2214,9 @@ class StretchedStream(SeriesStream):
 
     def get_constant(self):
         """
-        If this stream is eventually constant, returns the constant
-        value.  For stretched streams, this always has to be zero.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
 
@@ -1852,8 +2231,9 @@ class StretchedStream(SeriesStream):
 
     def get_constant_position(self):
         """
-        If the stream is eventually constant, returns the position
-        where the stream becomes constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
 

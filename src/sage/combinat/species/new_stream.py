@@ -20,11 +20,12 @@ This code provides a new implementation of the streams found at
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import is_iterator
+from sage.misc.abstract_method import abstract_method
 
 def check_constant_decorator(func):
     """
     A method decorator for ``__getitem__`` which checks is the stream
-    is (eventually) constant before computing the $n^{th}$
+    is (eventually) constant before computing the $n$-th
     coefficient.
 
     EXAMPLES::
@@ -39,7 +40,7 @@ def check_constant_decorator(func):
         sage: s.compute(5)
         Traceback (most recent call last):
         ...
-        NotImplementedError
+        NotImplementedError: <abstract method compute at ...>
         sage: s.foo(5)
         3
 
@@ -59,25 +60,53 @@ def check_constant_decorator(func):
 
 
 class Stream(SageObject):
+    """
+    A base class for streams.
+
+    This class is typically subclassed.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import Stream
+        sage: class NNStream(Stream):
+        ....:    def compute(self, n):
+        ....:        return n
+        sage: s = NNStream()
+        sage: [s[i] for i in range(10)]
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    """
+
     def __init__(self):
         """
-        A base class for streams.  This class is typically subclassed.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.new_stream import Stream
             sage: class NNStream(Stream):
             ....:    def compute(self, n):
-            ....:        return n
+            ....:        pass
+            ....:    def __setitem__(self, n, value):
+            ....:        pass
+            sage: import __main__; __main__.NNStream = NNStream # fakes NNStream being defined in a Python module
             sage: s = NNStream()
-            sage: [s[i] for i in range(10)]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: s.is_constant()
+            False
+       
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class '__main__.NNStream'> != <class '__main__.NNStream'>
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         self._constant = False
 
+    @abstract_method
     def compute(self, n):
         """
-        Computes the $n^{th}$ coefficient of this stream.  This should
+        Compute the $n$-th coefficient of this stream.  This should
         be overridden by subclasses.
 
         EXAMPLES::
@@ -87,13 +116,13 @@ class Stream(SageObject):
             sage: s.compute(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method compute at ...>
         """
-        raise NotImplementedError
-
+    
+    @abstract_method
     def __setitem__(self, n, value):
         """
-        Sets the $n^{th}$ coefficient of this stream to ``value``.
+        Sets the $n$-th coefficient of this stream to ``value``.
         This should be overridden by subclasses.
 
         EXAMPLES::
@@ -103,14 +132,13 @@ class Stream(SageObject):
             sage: s[0] = 2
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method __setitem__ at ...>
         """
-        raise NotImplementedError
 
     @check_constant_decorator
     def __getitem__(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream.
+        Return the $n$-th coefficient of this stream.
 
         EXAMPLES::
 
@@ -126,7 +154,7 @@ class Stream(SageObject):
 
     def is_constant(self):
         """
-        Returns True if this stream is eventually constant.
+        Return True if this stream is eventually constant.
 
         EXAMPLES::
 
@@ -142,7 +170,7 @@ class Stream(SageObject):
 
     def set_constant(self, n, value):
         """
-        Sets this stream to be eventually constant at coefficient
+        Set this stream to be eventually constant at coefficient
         ``n`` with value ``value``.
 
         EXAMPLES::
@@ -161,8 +189,9 @@ class Stream(SageObject):
 
     def get_constant(self):
         """
-        Returns the constant value if this stream is eventually
-        constant.
+        Return the constant value if this stream is constant.
+
+        Precondition: Assume that the stream is constant.
 
         EXAMPLES::
         
@@ -177,7 +206,9 @@ class Stream(SageObject):
 
     def get_constant_position(self):
         """
-        Returns the position where this stream is eventually constant.
+        Return the position where this stream is constant.
+
+        Precondition: Assume that this stream is constant.
 
         EXAMPLES::
         
@@ -192,7 +223,7 @@ class Stream(SageObject):
 
     def __iter__(self):
         """
-        Returns an iterator for this stream.
+        Return an iterator for this stream.
 
         EXAMPLES::
         
@@ -214,14 +245,30 @@ class Stream(SageObject):
         raise StopIteration
 
 class ListCachedStream(Stream):
+    """
+    A stream whose computed values are cached in a list.
+
+    Additionally, when the $n$-th coefficient is requested, it guarantees that
+    all the coefficients up to $n$ have been computed.
+
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
+        sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+        sage: s = StreamFromFunction(h)
+        sage: isinstance(s, ListCachedStream)
+        True
+        sage: s[5]
+        8
+        sage: s._cache
+        [1, 1, 2, 3, 5, 8]
+
+    """
+
     def __init__(self, **kwds):
         """
-        Returns a stream whose computed values are cached in a list.
-        Additionally, when the $n^{th}$ coefficient is requested, it
-        guarantees that all of the coefficients up to $n$ have been
-        computed.
-
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.new_stream import StreamFromFunction, ListCachedStream
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
@@ -232,6 +279,15 @@ class ListCachedStream(Stream):
             8
             sage: s._cache
             [1, 1, 2, 3, 5, 8]
+
+        Pickling fails because we can not pickle a lambda::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
 
         """
         self._cache = []
@@ -265,7 +321,7 @@ class ListCachedStream(Stream):
 
     def length_of_cache(self):
         """
-        Returns the number of coefficients that have been computed so
+        Return the number of coefficients that have been computed so
         far.
 
         EXAMPLES::
@@ -287,10 +343,11 @@ class ListCachedStream(Stream):
     @check_constant_decorator
     def __getitem__(self, n):
         """
-        Returns the $n^{th}$ coefficient of this stream, checking the
-        cache before trying to compute the value.  This method
-        guarantees that all of the coefficients up to $n$ have been
-        computed first.
+        Return the $n$-th coefficient of this stream, checking the
+        cache before trying to compute the value.
+
+        This method guarantees that all of the coefficients up to $n$
+        have been computed first.
 
         EXAMPLES::
 
@@ -321,9 +378,23 @@ class ListCachedStream(Stream):
         return self._cache[n]
 
 class StreamFromIterator(ListCachedStream):
+    """
+    A `ListCachedStream` initialized by an iterator
+
+    EXAMPLES::
+    
+        sage: from sage.combinat.species.new_stream import StreamFromIterator
+        sage: s = StreamFromIterator(iterator=NN)
+        sage: s[0]
+        0
+        sage: s[10]
+        10
+
+    """
+
     def __init__(self, iterator=None, **kwds):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.new_stream import StreamFromIterator
             sage: s = StreamFromIterator(iterator=NN)
@@ -331,6 +402,16 @@ class StreamFromIterator(ListCachedStream):
             0
             sage: s[10]
             10
+
+        Pickling fails because we can not pickle a generator::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         self._it = iterator if is_iterator(iterator) else iter(iterator)
         super(StreamFromIterator, self).__init__(**kwds)            
@@ -340,7 +421,7 @@ class StreamFromIterator(ListCachedStream):
         EXAMPLES:
 
         We test to make sure that iterator which finish iterating are
-        constnat for the rest of the values::
+        constant for the rest of the values::
 
             sage: from sage.combinat.species.new_stream import StreamFromIterator
             sage: s = StreamFromIterator(iter([1,2,3]))
@@ -365,9 +446,29 @@ class StreamFromIterator(ListCachedStream):
             
 
 class StreamFromFunction(ListCachedStream):
+    """
+    A `ListCachedStream` initialized by a function of $n$ which
+    return the $n$-th coefficient.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import StreamFromFunction
+        sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
+        sage: s = StreamFromFunction(h)
+        sage: s[0]
+        1
+        sage: s[1]
+        1
+        sage: s[2]
+        2
+        sage: s[10]
+        89
+
+    """
+
     def __init__(self, func=None, **kwds):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.new_stream import StreamFromFunction
             sage: h = lambda l: 1 if len(l) < 2 else l[-1] + l[-2]
@@ -380,6 +481,16 @@ class StreamFromFunction(ListCachedStream):
             2
             sage: s[10]
             89
+
+        Pickling fails because we can not pickle a lambda::
+
+            sage: TestSuite(s).run()
+            Failure in _test_pickling:
+            ...
+            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            ------------------------------------------------------------
+            The following tests failed: _test_pickling
+
         """
         self._func = func
         super(StreamFromFunction, self).__init__(**kwds)
@@ -409,9 +520,23 @@ class StreamFromFunction(ListCachedStream):
         
 
 class StreamFromList(ListCachedStream):
+    """
+    A `ListCachedStream` initialized by a list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.species.new_stream import StreamFromList
+        sage: s = StreamFromList([1,2,3])
+        sage: s[0]
+        1
+        sage: s[5]
+        3
+
+    """
+
     def __init__(self, list=None, **kwds):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.combinat.species.new_stream import StreamFromList
             sage: s = StreamFromList([1,2,3])
@@ -419,6 +544,20 @@ class StreamFromList(ListCachedStream):
             1
             sage: s[5]
             3
+
+        :meth`compute` does not need to be implemented for this kind of stream.
+        Pickling fails because equality is not implemented::
+
+            sage: TestSuite(s).run()
+            Failure in _test_not_implemented_methods:
+            ...
+            AssertionError: Not implemented method: compute
+            ------------------------------------------------------------
+            Failure in _test_pickling:
+            ...
+            AssertionError: <class 'sage.combinat.species.new_stream.StreamFromList'> != <class 'sage.combinat.species.new_stream.StreamFromList'>
+            ------------------------------------------------------------
+            The following tests failed: _test_not_implemented_methods, _test_pickling
 
         """
         super(StreamFromList, self).__init__(**kwds)
