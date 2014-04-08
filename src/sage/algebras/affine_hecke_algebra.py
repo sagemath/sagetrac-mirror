@@ -77,19 +77,42 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: TX(TY_Y(m))
         TX[0,1,2]
 
+    Here is an example with a nonreduced root system and unequal parameters.
+
+        sage: K = QQ['v,vl,v0'].fraction_field()
+        sage: v,vl,v0=K.gens()
+        sage: H = AffineHeckeAlgebra(['D',3,2], q1=Family(dict([[0,v0],[1,vl],[2,v]])), doubled_parameters=Family(dict([[2,v0-1/v0]])))
+        sage: TX = H.TX()
+        sage: TY_Y = H.TY_Y()
+        sage: Y_TY = H.Y_TY()
+        sage: TX.an_element()
+        TX[0,1,2] + 3*TX[0,1] + 2*TX[0] + 1
+        sage: TY_Y(TX.an_element())
+        2*Ty[1,2,1] # Y[(-1, 0)] + 3*Ty[1,2] # Y[(0, -1)] + ((3*v0^2-3)/v0)*Ty[1] # Y[(0, 0)] + Ty[1] # Y[(0, 1)] + ((2*v0^2+v0-2)/v0)*1 # Y[(0, 0)]        
+        sage: Y_TY(TX.an_element())
+        Y[(0, 0)] # 1 + 2*Y[(1, 0)] # Ty[1,2,1] + ((-2*vl^2+3*vl+2)/vl)*Y[(1, 0)] # Ty[1,2] + ((-2*vl^2+2)/vl)*Y[(1, 0)] # Ty[2,1] + ((2*v^2*vl^2-3*v^2*vl-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl))*Y[(1, 0)] # Ty[1] + ((2*vl^4-3*vl^3-4*vl^2+3*vl+2)/vl^2)*Y[(1, 0)] # Ty[2] + ((-2*v^2*vl^4+3*v^2*vl^3+2*v^2*vl^2-v*vl^3+2*vl^4-3*v^2*vl-3*vl^3-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl^2))*Y[(1, 0)] # 1
+        sage: TY_Y(TX.an_element()) == TY_Y(Y_TY(TX.an_element()))
+        True
+        sage: TX[1,0,1,0] == TX[0,1,0,1]
+        True
+        sage: TY_Y(TX[1,0,1,0]) == TY_Y(TX[0,1,0,1])
+        True
+        sage: Y_TY(TX[1,2,1,2]) == Y_TY(TX[2,1,2,1])
+        True
+
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type, q1=None, q2=None):
+    def __classcall_private__(cls, cartan_type, q1=None, q2=None, doubled_parameters=None):
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
         if isinstance(q1, dict):
             q1 = Family(q1)
         if isinstance(q2, dict):
             q2 = Family(q2)
-        return super(AffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2)
+        return super(AffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2, doubled_parameters)
 
-    def __init__(self, cartan_type, q1, q2):
+    def __init__(self, cartan_type, q1, q2, doubled_parameters):
         if cartan_type.is_reducible():
             raise ValueError, "Cartan type should be irreducible"
         if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
@@ -113,6 +136,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
 
         I = cartan_type.index_set()
         self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
+        self._doubled_parameters = doubled_parameters
 
         Parent.__init__(self, category = AlgebrasWithBasis(self._base_ring).WithRealizations())
 
@@ -421,6 +445,11 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
                     sage: H.TY_Y().algebra_generators()
                     Finite family {0: Ty[1,2,1] # Y[(-1, 0, 1)] + ((v^2-1)/v)*1 # Y[(0, 0, 0)], 1: Ty[1] # Y[(0, 0, 0)], 2: Ty[2] # Y[(0, 0, 0)]}
+                    sage: K = QQ['v,vl'].fraction_field(); v,vl=K.gens()
+                    sage: H = AffineHeckeAlgebra(['C',3,1],q1=Family(dict([[0,vl],[1,v],[2,v],[3,vl]])))
+                    sage: H.TY_Y().algebra_generators()
+                    Finite family {0: Ty[1,2,3,2,1] # Y[(-1, 0, 0)] + ((vl^2-1)/vl)*1 # Y[(0, 0, 0)], 1: Ty[1] # Y[(0, 0, 0)], 2: Ty[2] # Y[(0, 0, 0)], 3: Ty[3] # Y[(0, 0, 0)]}
+
                 """
                 pass
 
@@ -444,7 +473,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     sage: TY_Y(z) == TY_Y.Y_morphism(y)
                     True
                 """
-
+                pass
 
             @abstract_method(optional=False)
             def classical_hecke_morphism(self, a):
@@ -476,7 +505,6 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     Ty[2] # Y[(1, -1, 0)]
 
                 """
-
                 return self(self.realization_of().TX().from_reduced_word(word))
 
     class _Bases(UniqueRepresentation, BindableClass):
@@ -583,7 +611,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             module_category = ModulesWithBasis(E.base_ring())
             self._YoTY = tensor([KY,H],category=module_category)
             self._TYoY = tensor([H,KY],category=module_category)
-            self._YM = KY.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention="antidominant", doubled_parameters=None, side="right")
+            self._YM = KY.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention="antidominant", doubled_parameters=E._doubled_parameters, side="right")
             def right_action_on_TY_Y((w,mu), i):
                 smu = mu.simple_reflection(i)
                 return tensor([H.monomial(w), self._YM[i](KY.monomial(mu)) - E.q1()[i]*KY.monomial(smu)]) + tensor([H.product_by_generator_on_basis(w,i), KY.monomial(smu)])
@@ -678,7 +706,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             module_category = ModulesWithBasis(E.base_ring())
             self._YoTY = tensor([KY,H],category=module_category)
             self._TYoY = tensor([H,KY],category=module_category)
-            self._YM = KY.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention="antidominant", doubled_parameters=None, side="left")
+            self._YM = KY.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention="antidominant", doubled_parameters=E._doubled_parameters, side="left")
 
             def left_action_on_Y_TY((mu,w), i):
                 smu = mu.simple_reflection(i)
