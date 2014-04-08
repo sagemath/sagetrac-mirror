@@ -25,8 +25,13 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from series_order import  inf, unk
+
+from stream import Stream, Stream_class
+from series_order import  bounded_decrement, increment, inf, unk
 from sage.rings.all import Integer
+from sage.misc.misc import prod
+from functools import partial
+
 from sage.misc.misc import repr_lincomb, is_iterator
 from sage.misc.cachefunc import cached_method
 import sage.structure.parent_base
@@ -104,7 +109,7 @@ class LazyPowerSeriesRing(UniqueRepresentation, Algebra):
             raise TypeError, "Argument R must be a ring."
         try:
             R(Integer(1))
-        except StandardError:
+        except Exception:
             raise ValueError, "R must have a unit element"
 
         if category is None:

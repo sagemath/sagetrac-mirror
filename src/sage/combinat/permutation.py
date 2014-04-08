@@ -21,7 +21,7 @@ The main part of this file consists in the definition of permutation objects,
 i.e. the :meth:`Permutation` method and the
 :class:`~sage.combinat.permutation.Permutation` class. Global options for
 elements of the permutation class can be set through the
-:meth:`PermutationOptions` method.
+``PermutationOptions`` object.
 
 Below are listed all methods and classes defined in this file.
 
@@ -227,7 +227,8 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, Integer, PolynomialRing, factorial
+from sage.rings.all import ZZ, Integer, PolynomialRing
+from sage.rings.arith import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
@@ -240,7 +241,6 @@ from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
 from combinat import CombinatorialObject, catalan_number
-from necklace import Necklaces
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
@@ -471,6 +471,9 @@ class Permutation(CombinatorialObject, Element):
         []
         sage: Permutation( [[], []] )
         []
+
+    .. automethod:: _left_to_right_multiply_on_right
+    .. automethod:: _left_to_right_multiply_on_left
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -490,7 +493,6 @@ class Permutation(CombinatorialObject, Element):
             return l
         elif isinstance(l, PermutationGroupElement):
             l = l.domain()
-
         #if l is a string, then assume it is in cycle notation
         elif isinstance(l, str):
             if l == "()" or l == "":
@@ -506,10 +508,10 @@ class Permutation(CombinatorialObject, Element):
 
         #if l is a pair of standard tableaux or a pair of lists
         elif isinstance(l, (tuple, list)) and len(l) == 2 and \
-            all(map(lambda x: isinstance(x, tableau.Tableau), l)):
+            all(isinstance(x, tableau.Tableau) for x in l):
             return RSK_inverse(*l, output='permutation')
         elif isinstance(l, (tuple, list)) and len(l) == 2 and \
-            all(map(lambda x: isinstance(x, list), l)):
+            all(isinstance(x, list) for x in l):
             P,Q = map(tableau.Tableau, l)
             return RSK_inverse(P, Q, 'permutation')
 
@@ -517,7 +519,7 @@ class Permutation(CombinatorialObject, Element):
         # notation
         elif isinstance(l, tuple) or \
              (isinstance(l, list) and len(l) > 0 and
-             all(map(lambda x: isinstance(x, tuple), l))):
+             all(isinstance(x, tuple) for x in l)):
             if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
                     n = max( map(max, l) )
@@ -1001,7 +1003,7 @@ class Permutation(CombinatorialObject, Element):
 
     def _to_cycles_orig(self, singletons=True):
         r"""
-        Returns the permutation p as a list of disjoint cycles.
+        Returns the permutation ``self`` as a list of disjoint cycles.
 
         EXAMPLES::
 
@@ -4947,9 +4949,9 @@ class Permutations_setk(Permutations_set):
 
 class Arrangements(Permutations):
     r"""
-    An arrangement of ``mset`` is an ordered selection without repetitions
-    and is represented by a list that contains only elements from ``mset``,
-    but maybe in a different order.
+    An arrangement of a multiset ``mset`` is an ordered selection
+    without repetitions. It is represented by a list that contains
+    only elements from ``mset``, but maybe in a different order.
 
     ``Arrangements`` returns the combinatorial class of
     arrangements of the multiset ``mset`` that contain ``k`` elements.
@@ -5489,6 +5491,9 @@ def from_reduced_word(rw):
     return Permutation(p)
 
 from sage.misc.superseded import deprecated_function_alias
+
+# Don't forget to remove the robinson_schensted_inverse entry in the index at
+# the top of the file when this line will be removed
 robinson_schensted_inverse = deprecated_function_alias(8392, RSK_inverse)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
@@ -6398,6 +6403,7 @@ class CyclicPermutations(Permutations_mset):
             for i in index_list:
                 content[i] += 1
 
+        from necklace import Necklaces
         for necklace in Necklaces(content):
             yield [self.mset[x-1] for x in necklace]
 
