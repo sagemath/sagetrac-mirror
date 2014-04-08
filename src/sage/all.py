@@ -104,6 +104,7 @@ import sage.symbolic.pynac
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
+from sage.operads.all    import *
 from sage.modular.all    import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
