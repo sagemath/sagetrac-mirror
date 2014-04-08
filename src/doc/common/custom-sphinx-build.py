@@ -104,7 +104,7 @@ class SageSphinxLogger(object):
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
-        if self._warnings(line):
+        if self._warnings(line) and ABORT_ON_ERROR:
             raise OSError(line)
 
     _line_buffer = ''
