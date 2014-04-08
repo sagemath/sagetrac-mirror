@@ -143,7 +143,6 @@ from cluster_algebra_quiver.all import *
 
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
-from integer_vectors_mod_permgroup import IntegerVectorsModPermutationGroup
 
 from finite_class import FiniteCombinatorialClass
 
@@ -177,3 +176,4 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+lazy_import('sage.combinat.integer_vectors_mod_permgroup', 'IntegerVectorsModPermutationGroup')
