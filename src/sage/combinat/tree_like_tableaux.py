@@ -7,7 +7,7 @@ tree-like tableaux.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr), 
-#                     Patxi Laborde-Zubieta (patxi.laborde.zubieta@gmail.com)
+#                     Patxi Laborde Zubieta (patxi.laborde.zubieta@gmail.com)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -16,16 +16,53 @@ tree-like tableaux.
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.set_factories import SetFactory, SetFactoryParent, TopMostParentPolicy
+from sage.structure.set_factories import (
+    SetFactory, SetFactoryParent, TopMostParentPolicy)
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 class TreeLikeTableau( ClonableList ):
     r"""
     The class of Tree-Like tableaux.
     
-    Ref: J.C. Aval, A. Boussicault, P. Nadeau, Tree-like tabelau, arXiv:1109.0371v2
+    Ref: J.C. Aval, A. Boussicault, P. Nadeau, Tree-like tabelau, 
+    arXiv:1109.0371v2
     """
+    __metaclass__ = ClasscallMetaclass
 
-    def check():
+    @staticmethod
+    def __classcall_private__(cls, *args, **opts):
+        r"""
+        """
+        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
+
+    @lazy_class_attribute
+    def _auto_parent(cls):
+        """
+        """
+        return TreeLikeTableaux()
+
+    def height( self ):
+        return ClonableList.__len__( self )
+
+    def width( self ):
+        return len( ClonableList.__getitem__( self, 0 ) )
+
+    def _check_there_is_a_root( self ):
+        pass
+
+    def _check_column_have_a_point( self, h ):
+        pass
+
+    def _check_row_have_a_point( self, w ):
+        pass
+
+    def _check_there_is_a_root( self ):
+        pass
+
+    def _check_there_is_no_forbidden_pattern( self ):
+        pass
+
+    def check( self ):
         r"""
         Check if the internal data contain valid information for a tree-like 
         tableaux.
@@ -36,7 +73,13 @@ class TreeLikeTableau( ClonableList ):
         TESTS::
             sage: NotImplemented
         """
-        NotImplemented
+        
+        self._check_there_is_a_root()
+        for h in range( self.height() ):
+            self._check_column_have_a_point( h )
+        for w in range( self.height() ):
+            self._check_row_have_a_point( w )
+        self._check_there_is_no_forbidden_pattern()
 
     def __init__(self, parent, value, check=True):
         r"""
@@ -44,20 +87,38 @@ class TreeLikeTableau( ClonableList ):
         
         EXAMPLES::
             sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
-            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]] )
+            sage: tlt = TreeLikeTableau( [[1,1,0,1],[1,0,1,0],[0,1],[0,1],[1,0]]
+             )
             sage: tlt
             [[1, 1, 0, 1], [1, 0, 1, 0], [0, 1], [0, 1], [1, 0]]
             sage: tlt = TreeLikeTableau( [] )
             sage: tlt
             []
         """
+        ClonableList.__init__(self, parent, value )
         if check:
             if not isinstance( value, (list, tuple) ) :
                 raise ValueError, "Value %s must be a list or a tuple.i"%(value)
             self.check()
-        ClonableList.__init__(self, parent, value )
 
-    def __getitem__(self):
+    class _row:
+        def __init__(self, tlt, row ):
+            self.tlt = tlt
+            self.row = row
+        def __getitem__( self, col ):
+            if( row < 0 or row >= self.tlt.height() ):
+                return -1
+            elif( col< 0 or col >= ClonableArray.__len__(ClonableArray.__getitem__(self.tlt,row)) ):
+                return -1
+            else:
+                return ClonableArray.__getitem__(ClonableArray.__getitem__(self.tlt,row),col)
+        def _repr_(self):
+            if( row < 0 or row >= self.tlt.height() ):
+                return -1
+            else:
+                return ClonableArray.__getitem__(self.tlt,row)
+
+    def __getitem__(self, row):
         r"""
         Get the entry of a tree-like-tableau.
         
@@ -83,7 +144,7 @@ class TreeLikeTableau( ClonableList ):
             sage: tlt[2][2]
             -1
         """
-        NotImplemented
+        return self._row( self, row )
 
     def __setitem__(self):
         r"""
@@ -154,7 +215,7 @@ class TreeLikeTableau( ClonableList ):
             sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
             sage: tlt
         """
-        NotImplemented
+        return ClonableList.__repr__(self)
 
     def size( self ):
         r"""
@@ -271,4 +332,3 @@ class TreeLikeTableaux_all( SetFactoryParent, DisjointUnionEnumeratedSets ):
             sage: TLTS.check_element(TLTS.an_element(), True)
         """
         pass
-
