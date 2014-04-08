@@ -476,7 +476,7 @@ class Algebras(AlgebrasCategory):
             One can obtain iterated operators by passing a reduced
             word or an element of the Weyl group::
 
-                sage: T[1,2](x)
+                sage: T[2,1](x)
                 (q1^2+2*q1*q2+q2^2)*B[e[0] + e[1] + e[2]] +
                 (q1^2+2*q1*q2+q2^2)*B[e[0] + 2*e[1]] +
                 (q1^2+q1*q2)*B[e[0] + 2*e[2]] + (q1^2+2*q1*q2+q2^2)*B[2*e[0] + e[1]] +
@@ -841,11 +841,16 @@ class Algebras(AlgebrasCategory):
 
             j, v = phi.to_simple_root(reduced_word=True)
             translation = A0.monomial(-L0.simple_root(j)/a0)
-            Tv = T[v]
-            Tinv = T.Tw_inverse(v+(j,))
-            def T0_check(weight):
-                return -q1*q2*Tinv( translation * Tv(A0.monomial(weight)))
+            #Tv = T[v]
+            #Tinv = T.Tw_inverse(v+(j,))
+            #def T0_check(weight):
+            #    return -q1*q2*Tinv( translation * Tv(A0.monomial(weight)))
             # For debugging purposes
+            vinv = tuple([i for i in reversed(v)])
+            Tvinv = T[vinv]
+            Tinvvj = T.Tw(v+(j,),tuple([-1 for i in range(len(v)+1)]))
+            def T0_check(weight):
+                return -q1*q2*Tinvvj(translation*Tvinv(A0.monomial(weight)))
             T0_check.phi = phi
             T0_check.j = j
             T0_check.v = v
@@ -1401,7 +1406,7 @@ class Algebras(AlgebrasCategory):
 
             funcs = dict()
             for i in I:
-                if i in doubled_parameters.keys():
+                if doubled_parameters is not None and i in doubled_parameters.keys():
                     funcs[i] = functools.partial(self.nonreduced_demazure_lusztig_operator_on_classical_on_basis, i=i, q1=q1[i], q2=q2[i], p=doubled_parameters[i], convention=convention)
                 else:
                     funcs[i] = functools.partial(self.demazure_lusztig_operator_on_basis, i=i, q1=q1[i], q2=q2[i], convention=convention)

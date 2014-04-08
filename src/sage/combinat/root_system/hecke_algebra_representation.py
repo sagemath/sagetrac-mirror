@@ -398,6 +398,14 @@ class HeckeAlgebraRepresentation(SageObject):
 
             c T_{i_k}^{\epsilon_k} \circ \cdots \circ T_{i_1}^{\epsilon_k}
 
+        If the representation was constructed with side="left" then instead we have
+
+        .. MATH::
+
+            T_w = T_{i_1} \circ \cdots \circ T_{i_k}
+
+        in left action notation.
+
         EXAMPLES::
 
             sage: W = WeylGroup("A3")
@@ -440,6 +448,10 @@ class HeckeAlgebraRepresentation(SageObject):
             3
         """
         word = self.straighten_word(word)
+        if self._side == "left":
+            word = tuple([x for x in reversed(word)])
+            if signs is not None:
+                signs= tuple([x for x in reversed(signs)])
         result = self._domain.module_morphism(functools.partial(self.on_basis, word=word, signs=signs, scalar=scalar),
                                             codomain = self._domain)
         # For debugging purpose, make the parameters easily accessible:
@@ -719,9 +731,12 @@ class HeckeAlgebraRepresentation(SageObject):
         # At this point, this is more or less of a guess, but that
         # works for our two main examples (action of affine W on W,
         # and Macdonald polynomials)
-        if self._side == "left":
-            word = tuple([x for x in reversed(word)])
-            signs= tuple([x for x in reversed(signs)])
+
+        # Mark commented this out and moved the reversal to :meth:`Tw`.
+        #if self._side == "left":
+        #    word = tuple([x for x in reversed(word)])
+        #    signs= tuple([x for x in reversed(signs)])
+
         # The power of q implements the fact that Y^\deltacheck = 1/q.
         # The classical simple coroots have no \deltacheck term.
         # alpha[0] has a \deltacheck with coefficient one

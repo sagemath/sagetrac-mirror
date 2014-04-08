@@ -47,3 +47,4 @@ from smash_product_algebra import SmashProductAlgebra
 from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 
 from double_affine_hecke_algebra import DoubleAffineHeckeAlgebra
+from affine_hecke_algebra import AffineHeckeAlgebra
