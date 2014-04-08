@@ -17,13 +17,12 @@ Functorial composition species
 #*****************************************************************************
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
-from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
 class FunctorialCompositionStructure(GenericSpeciesStructure):
     pass
 
-class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
+class FunctorialCompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
         Returns the functorial composition of two species.
