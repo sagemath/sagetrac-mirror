@@ -2,7 +2,7 @@ r"""
 Integer vectors modulo the action of a permutation group
 """
 #*****************************************************************************
-#    Copyright (C) 2010-12 Nicolas Borie <nicolas.borie at math dot u-psud.fr>
+#    Copyright (C) 2010-14 Nicolas Borie <nicolas.borie at upem dot fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -72,9 +72,10 @@ class IntegerVectorsModPermutationGroup_Factory(SetFactory):
       set of all integer vectors (list of integers) maximal in their orbit for
       the lexicographic order.
 
-    - If ``sum`` is an integer, it returns a finite enumerated set containing
-      all integer vectors maximal in their orbit for the lexicographic order
-      and whose entries sum to ``sum``.
+    - If ``sum`` or ``max_part`` is an integer (or both), it returns a
+      finite enumerated set containing all integer vectors maximal in
+      their orbit for the lexicographic order and whose entries sum to
+      ``sum`` or having entries bounded by ``max_part`` (or both).
 
     EXAMPLES:
 
@@ -115,9 +116,7 @@ class IntegerVectorsModPermutationGroup_Factory(SetFactory):
         False
         sage: I.is_canonical([1,1,1,1])
         True
-        sage: [2,3,1,0] in I
-        False
-        sage: [5,0,5,0] in I
+        sage: I([5,0,5,0]) in I
         True
         sage: 'Bla' in I
         False
@@ -137,7 +136,7 @@ class IntegerVectorsModPermutationGroup_Factory(SetFactory):
         [[6, 0, 0], [5, 1, 0], [5, 0, 1], [4, 2, 0], [4, 1, 1],
          [4, 0, 2], [3, 3, 0], [3, 2, 1], [3, 1, 2], [2, 2, 2]]
         sage: I.category()
-        Join of Category of finite enumerated sets and Category of quotients of sets
+        Join of Category of finite enumerated sets and Category of facade sets and Category of quotients of sets
 
     To get the orbit of any integer vector `v` under the action of the group,
     use the method :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_All.orbit`;
@@ -235,10 +234,27 @@ class IntegerVectorsModPermutationGroup_Factory(SetFactory):
 
     def add_constraints(self, cons, (cons2, kwargs)):
         r"""
-
+        Returns the set of constraints which will define a parent
+        merging the constraints comming from ``cons`` and ``(cons2,
+        kwargs)``.
 
         EXAMPLES::
 
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: t1 = (G, None, None, None)
+            sage: t2 = (G, 2, 5, None)
+            sage: IntegerVectorsModPermutationGroup.add_constraints(t1, ((), {'sum':2}))
+            (Permutation Group with generators [(1,2,3,4)], 2, None, None)
+            sage: IntegerVectorsModPermutationGroup.add_constraints(t2, ((), {'sum':2}))
+            (Permutation Group with generators [(1,2,3,4)], 2, 5, None)
+            sage: IntegerVectorsModPermutationGroup.add_constraints(t2, ((), {'sum':3}))
+            Traceback (most recent call last):
+            ...
+            AssertionError: Arguments are not compatibles
+            sage: IntegerVectorsModPermutationGroup.add_constraints(t1, ((), {'max_part':1}))
+            (Permutation Group with generators [(1,2,3,4)], None, 1, None)
+            sage: IntegerVectorsModPermutationGroup.add_constraints(t2, ((), {'max_part':1}))
+            (Permutation Group with generators [(1,2,3,4)], 2, 1, None)
         """
         G = cons[0]
         sum = cons[1]
@@ -274,12 +290,111 @@ class IntegerVectorsModPermutationGroup_Factory(SetFactory):
         r"""
         TESTS::
 
-
-
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: IntegerVectorsModPermutationGroup._default_policy(G)
+            Set factory policy for <class 'sage.combinat.integer_vectors_mod_permgroup.IntVectModPermGroup'> with parent Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)][=<class 'sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_Factory'>((Permutation Group with generators [(1,2,3,4)], None, None, None))]
         """
-        return TopMostParentPolicy(self, (G, None, None, None), ClonableIntArray)
+        return TopMostParentPolicy(self, (G, None, None, None), IntVectModPermGroup)
 
 IntegerVectorsModPermutationGroup = IntegerVectorsModPermutationGroup_Factory()
+
+class IntVectModPermGroup(ClonableIntArray):
+    r"""
+    An empty python class wrapping
+    :class:`~sage.structure.list_clone.ClonableIntArray` for integer
+    vectors representing an equivalent class under the action of a
+    permutation group.
+
+    TESTS::
+
+        sage: from sage.combinat.integer_vectors_mod_permgroup import IntVectModPermGroup
+        sage: v = IntVectModPermGroup(Parent(), [1,2,3,4,5])
+    """
+    def check(self):
+        r"""
+        This method overloads the corresponding abstract method from
+        :class:`~sage.structure.list_clone.ClonableIntArray`.
+             
+        TESTS::
+
+            sage: from sage.combinat.integer_vectors_mod_permgroup import IntVectModPermGroup
+            sage: v = IntVectModPermGroup(Parent(), [1,2,3,4,5])
+            sage: v.check()
+        """
+        pass
+
+class IntVectModPermGroup_TEST(ClonableIntArray):
+    r"""
+    This class is just here for testing the technical possibilities of
+    the Set Factory feature. This class is a clone of the natural one
+    but implement a method orbit which is normally available only on
+    the parent.
+
+    TESTS:
+
+    This first test changes the policy for another one asking to
+    produce elements is a test element class which is a copy of the
+    natural one with another name and also implemented a new method
+    `orbit` on element::
+
+        sage: G = PermutationGroup([[(1,2,3,4)]])
+        sage: from sage.structure.set_factories import *
+        sage: from sage.combinat.integer_vectors_mod_permgroup import IntVectModPermGroup_TEST
+        sage: P = TopMostParentPolicy(IntegerVectorsModPermutationGroup, (G, None, None, None), IntVectModPermGroup_TEST)
+        sage: P
+        Set factory policy for <class 'sage.combinat.integer_vectors_mod_permgroup.IntVectModPermGroup_TEST'> with parent Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)][=<class 'sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_Factory'>((Permutation Group with generators [(1,2,3,4)], None, None, None))]
+        sage: I = IntegerVectorsModPermutationGroup(G, sum=4, policy=P)
+        sage: p = I.an_element(); p
+        [4, 0, 0, 0]
+        sage: sorted(list(p.orbit()))
+        [[0, 0, 0, 4], [0, 0, 4, 0], [0, 4, 0, 0], [4, 0, 0, 0]]
+        sage: U = IntegerVectorsModPermutationGroup(G, sum=4)
+        sage: p = U.an_element()
+        sage: p.orbit()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'IntegerVectorsModPermutationGroup_All_with_category.element_class' object has no attribute 'orbit'
+
+    The following test checks that a self parent policy make parents
+    with set factory which produce element locally::
+
+        sage: P = SelfParentPolicy(IntegerVectorsModPermutationGroup, IntVectModPermGroup_TEST)
+        sage: I = IntegerVectorsModPermutationGroup(G, sum=4, policy=P)
+        sage: p = I.an_element()
+        sage: sorted(list(p.orbit()))
+        [[0, 0, 0, 4], [0, 0, 4, 0], [0, 4, 0, 0], [4, 0, 0, 0]]
+        sage: p.parent() is I
+        True
+    """
+    def check(self):
+        r"""
+        This method overload the corresponding abstract method from :class:`ClonableIntArray`.
+             
+        TESTS::
+
+            sage: from sage.combinat.integer_vectors_mod_permgroup import IntVectModPermGroup_TEST
+            sage: v = IntVectModPermGroup_TEST(Parent(), [1,2,3,4,5])
+            sage: v.check()        
+        """
+        pass
+
+    def orbit(self):
+        r"""
+        Returns the orbit of ``self`` by asking its parent algorithm.
+
+        TESTS::
+
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: from sage.structure.set_factories import *
+            sage: from sage.combinat.integer_vectors_mod_permgroup import IntVectModPermGroup_TEST
+            sage: P = TopMostParentPolicy(IntegerVectorsModPermutationGroup, (G, None, None, None), IntVectModPermGroup_TEST)
+            sage: I = IntegerVectorsModPermutationGroup(G, sum=4, policy=P)
+            sage: p = I.an_element()
+            sage: sorted(list(p.orbit()))
+            [[0, 0, 0, 4], [0, 0, 4, 0], [0, 4, 0, 0], [4, 0, 0, 0]]
+        """
+        return self.parent().orbit(self)
+
 
 class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetFactory, SearchForest):
     r"""
@@ -419,8 +534,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetF
         # TODO: Once Sage integer vector will have a data structure
         # based on ClonableIntArray, remove the conversion intarray
         assert len(elt) == self.n, "%s is a quotient set of %s"%(self, self.ambient())
-        intarray = self.element_class(self, elt, check=False)
-        return self.element_class(self, canonical_representative_of_orbit_of(self._sgs, intarray), check=False)
+        intarray = self._element_constructor_(elt, check=False)
+        return self._element_constructor_(canonical_representative_of_orbit_of(self._sgs, intarray), check=False)
 
     def roots(self):
         r"""
@@ -434,7 +549,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetF
             sage: I.roots()
             [[0, 0, 0, 0]]
         """
-        return [self.element_class(self, self.n*[0,], check=False)]
+        return [self._element_constructor_(self.n*[0,], check=False)]
 
     def children(self, x):
         r"""
@@ -490,7 +605,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetF
             assert (self.n == len(v)), '%s should be of length %s'%(v, self.n)
             for p in v:
                 assert (p == NN(p)), 'Elements of %s should be integers'%s
-        return is_canonical(self._sgs, self.element_class(self, list(v), check=False))
+        return is_canonical(self._sgs, self._element_constructor_(list(v), check=False))
 
     def orbit(self, v):
         r"""
@@ -521,7 +636,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetF
                 return orbit(self._sgs, v)
             raise TypeError
         except Exception:
-            return orbit(self._sgs, self.element_class(self, v, check=False))
+            return orbit(self._sgs, self._element_constructor_(v, check=False))
 
     def check_element(self, elem, check=True):
         r"""
@@ -536,9 +651,6 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, ParentWithSetF
             sage: w = I([0,4,0,0], check=False); w
             [0, 4, 0, 0]
             sage: w.check()
-            Traceback (most recent call last):
-            ...
-            AssertionError
         """
         if check:
             assert self.is_canonical(elem, check=check)
@@ -576,7 +688,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
 
     TESTS::
 
-        sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
+        sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=4)
         sage: TestSuite(I).run()
     """
     def __init__(self, G, d, max_part, sgs=None, policy=None):
@@ -585,11 +697,11 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
 
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 6, max_part=4)
         """
-        SearchForest.__init__(self, algorithm = 'breadth', 
-                              category = (FiniteEnumeratedSets(), 
-                                          FiniteEnumeratedSets().Quotients()))
         ParentWithSetFactory.__init__(self, (G, d, max_part, sgs), 
-                                  policy, category = self.category())
+                                      policy, 
+                                      category = (FiniteEnumeratedSets().Quotients()))
+        SearchForest.__init__(self, algorithm = 'breadth', 
+                              category = self.category())
         self._permgroup = G
         self.n = G.degree()
         self._sum = d
@@ -638,7 +750,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
             sage: I.roots()
             [[0, 0, 0, 0]]
         """
-        return [self.element_class(self, self.n*[0,], check=False)]
+        return [self._element_constructor_(self.n*[0,], check=False)]
 
     def children(self, x):
         r"""
@@ -733,7 +845,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
             assert (self.n == len(v)), '%s should be of length %s'%(v, self.n)
             for p in v:
                 assert (p == NN(p)), 'Elements of %s should be integers'%s
-        return is_canonical(self._sgs, self.element_class(self, list(v), check=False))
+        return is_canonical(self._sgs, self._element_constructor_(list(v), check=False))
 
     def ambient(self):
         r"""
@@ -819,8 +931,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
             assert sum(elt) == self._sum, "%s is a quotient set of %s"%(self, self.ambient())
         if self._max_part >= 0:
             assert max(elt) <= self._max_part, "%s is a quotient set of %s"%(self, self.ambient())
-        intarray = self.element_class(self, elt, check=False)
-        return self.element_class(self, canonical_representative_of_orbit_of(self._sgs, intarray), check=False)
+        intarray = self._element_constructor_(elt, check=False)
+        return self._element_constructor_(canonical_representative_of_orbit_of(self._sgs, intarray), check=False)
 
     def an_element(self):
         r"""
@@ -870,7 +982,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
         order, to get a reproducible doctest::
 
             sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
-            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
+            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=4)
             sage: I.orbit([1,1,1,1])
             set([[1, 1, 1, 1]])
             sage: sorted(I.orbit([3,0,0,1]), cmp=lex_cmp)
@@ -881,7 +993,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
             if v.parent() is self:
                 return orbit(self._sgs, v)
         except Exception:
-            return orbit(self._sgs, self.element_class(self, v, check=False))
+            return orbit(self._sgs, self._element_constructor_(v, check=False))
 
     def check_element(self, elem, check=True):
         r"""
@@ -889,8 +1001,9 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, P
         
         EXAMPLES::
         
-            sage: 
-
+            sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=4)
+            sage: p = I.an_element()
+            sage: I.check_element(p)
         """
         if check:
             if self._sum is not None:
