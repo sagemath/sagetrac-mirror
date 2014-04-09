@@ -1,0 +1,15 @@
+diff -ru Cython-0.20.1-orig/Cython/Build/Dependencies.py Cython-0.20.1/Cython/Build/Dependencies.py
+--- Cython-0.20.1-orig/Cython/Build/Dependencies.py	 2014-02-08 07:07:30.000000000 +0100
++++ Cython-0.20.1/Cython/Build/Dependencies.py		 2014-04-09 19:50:46.431227026 +0200
+@@ -779,7 +779,10 @@
+             print("multiprocessing required for parallel cythonization")
+             nthreads = 0
+         else:
+-            pool.map(cythonize_one_helper, to_compile)
++            # map_async is the only one to handle KeyboardInterrupt correctly
++            pool.map_async(cythonize_one_helper, to_compile, 1).get(99999)
++            pool.close()
++            pool.join()
+     if not nthreads:
+         for args in to_compile:
+             cythonize_one(*args[1:])
