@@ -314,7 +314,7 @@ def configure(arch=None, isa_ext=None):
             atlas_osnam = 'OSX'
         elif conf['CYGWIN?']:
             if conf['64bit?']:
-                atlas_osnam = 'Win64'
+                atlas_osnam = 'WinNT'
             else:
                 atlas_osnam = 'WinNT'
         else:
