@@ -183,31 +183,35 @@ class TreeLikeTableau( ClonableList ):
         r"""
         Class used for the funcioning of __getitem__ and __setitem__
         """
-        def __init__(self, tlt, row ):
+        def __init__(self, tlt, h ):
             self.tlt = tlt
-            self.row = row
+            self.height = h
+            if( self.height < 0 or self.height >= self.tlt.height() ):
+                self.lst = None
+            else:
+                self.lst = ClonableList.__getitem__(self.tlt,self.height)
 
-        def __getitem__( self, col ):
-            if( self.row < 0 or self.row >= self.tlt.height() ):
+        def __getitem__( self, w ):
+            if not self.lst:
                 return -1
-            elif col< 0 or col >= len( ClonableList.__getitem__(self.tlt,self.row)):
+            elif w < 0 or w >= len( self.lst ):
                 return -1
             else:
-                return ClonableList.__getitem__(self.tlt,self.row)[col]
+                return self.lst[w]
         
-        def __setitem__( self, col , value):
-            if self[col]==-1:
-                raise ValueError, "The cell at the intersection of the row %s and the column %s is outside the tree-like tableau"%(self.row,col)
+        def __setitem__( self, w , value):
+            if self[w]==-1:
+                raise ValueError, "The cell at the intersection of the row %s and the column %s is outside the tree-like tableau"%(self.height,w)
             else:
-                ClonableList.__setitem__(self, col, value)
+                self.lst[w] = value
 
         def __repr__(self):
-            if( self.row < 0 or self.row >= self.tlt.height() ):
-                return "Row outside the tree-like tableau"
+            if self.lst:
+                return str(self.lst)
             else:
-                return str(ClonableList.__getitem__(self.tlt,self.row))
+                return "Row outside the tree-like tableau"
 
-    def __getitem__(self, row):
+    def __getitem__(self, h):
         r"""
         Get the entry of a tree-like-tableau.
         
@@ -233,7 +237,7 @@ class TreeLikeTableau( ClonableList ):
             sage: tlt[2][2]
             -1
         """
-        return self._row( self, row )
+        return self._row( self, h )
 
     def __setitem__(self):
         r"""
