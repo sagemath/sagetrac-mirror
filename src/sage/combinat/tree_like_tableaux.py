@@ -17,7 +17,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
-    SetFactory, SetFactoryParent, TopMostParentPolicy
+    SetFactory, ParentWithSetFactory, TopMostParentPolicy
 )
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
@@ -94,9 +94,35 @@ class TreeLikeTableau( ClonableList ):
         return TreeLikeTableaux()
 
     def height( self ):
+        r"""
+        Give the number of rows of the tree-like tableau.
+
+        EXAMPLES::
+            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt.height()
+            3
+            sage: tlt = TreeLiketableau( [[1]] )
+            1
+            sage: tlt = TreeLikeTableau( [[]] )
+            1
+        """
         return ClonableList.__len__( self )
 
     def width( self ):
+        r"""
+        Give the number of columns of the tree-like tableau.
+
+        EXAMPLES::
+            sage: from sage.combinat.tree_like_tableaux import TreeLikeTableau
+            sage: tlt = TreeLikeTableau( [[1,0,1,1],[1,1],[0,1]] )
+            sage: tlt.height()
+            4
+            sage: tlt = TreeLiketableau( [[1]] )
+            1
+            sage: tlt = TreeLikeTableau( [[]] )
+            0
+        """
         return len( ClonableList.__getitem__( self, 0 ) )
 
     def _check_there_is_a_root( self ):
@@ -154,21 +180,32 @@ class TreeLikeTableau( ClonableList ):
             self.check()
 
     class _row:
+        r"""
+        Class used for the funcioning of __getitem__ and __setitem__
+        """
         def __init__(self, tlt, row ):
             self.tlt = tlt
             self.row = row
+
         def __getitem__( self, col ):
-            if( row < 0 or row >= self.tlt.height() ):
+            if( self.row < 0 or self.row >= self.tlt.height() ):
                 return -1
-            elif( col< 0 or col >= ClonableArray.__len__(ClonableArray.__getitem__(self.tlt,row)) ):
-                return -1
-            else:
-                return ClonableArray.__getitem__(ClonableArray.__getitem__(self.tlt,row),col)
-        def _repr_(self):
-            if( row < 0 or row >= self.tlt.height() ):
+            elif col< 0 or col >= len( ClonableList.__getitem__(self.tlt,self.row)):
                 return -1
             else:
-                return ClonableArray.__getitem__(self.tlt,row)
+                return ClonableList.__getitem__(self.tlt,self.row)[col]
+        
+        def __setitem__( self, col , value):
+            if self[col]==-1:
+                raise ValueError, "The cell at the intersection of the row %s and the column %s is outside the tree-like tableau"%(self.row,col)
+            else:
+                ClonableList.__setitem__(self, col, value)
+
+        def __repr__(self):
+            if( self.row < 0 or self.row >= self.tlt.height() ):
+                return "Row outside the tree-like tableau"
+            else:
+                return str(ClonableList.__getitem__(self.tlt,self.row))
 
     def __getitem__(self, row):
         r"""
@@ -216,7 +253,7 @@ class TreeLikeTableau( ClonableList ):
             [[1, 0, 1, 0], [1, 1, 0, 1], [0, 1, 0]]
         """
         self.check_mutable()
-        NotImplemented
+        return self._row
 
     def insert_point( self, position ):
         r"""
@@ -297,8 +334,12 @@ class TreeLikeTableau( ClonableList ):
             sage: tlt = TreeLikeTableau( [[1,0,1,0],[1,1,0,1],[0,1],[0,1],[1,0]] )
             sage: tlt.size()
             8
+            sage: tlt = TreeLikeTableau( [[1]] )
+            1
+            sage: tlt = TreeLikeTableau( [ ] )
+            0
         """
-        NotImplemented
+        return self.height().__add__(self.width()) -1
 
     def _latex_(self):
         r"""
@@ -355,7 +396,7 @@ TreeLikeTableaux = TreeLikeTableauxFactory()
 TreeLikeTableaux.__doc__ = TreeLikeTableauxFactory.__call__.__doc__
 
 
-class TreeLikeTableaux_size(SetFactoryParent, UniqueRepresentation):
+class TreeLikeTableaux_size(ParentWithSetFactory, UniqueRepresentation):
     r"""
     The tree-like tableaux of size `n`.
     """
@@ -363,7 +404,7 @@ class TreeLikeTableaux_size(SetFactoryParent, UniqueRepresentation):
         r"""
         """
         self._size = size
-        SetFactoryParent.__init__(
+        ParentWithSetFactory.__init__(
             self, (size,), policy, category = FiniteEnumeratedSets()
         )
 
@@ -395,14 +436,14 @@ class TreeLikeTableaux_size(SetFactoryParent, UniqueRepresentation):
 
 
 
-class TreeLikeTableaux_all( SetFactoryParent, DisjointUnionEnumeratedSets ):
+class TreeLikeTableaux_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     r"""
     This class enumerate all the tree-like tableaux.
     """
     def __init__(self, policy):
         r"""
         """
-        SetFactoryParent.__init__(
+        ParentWithSetFactory.__init__(
             self, (), policy, category = FiniteEnumeratedSets()
         )
         DisjointUnionEnumeratedSets.__init__(
