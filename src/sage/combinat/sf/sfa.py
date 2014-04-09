@@ -2964,6 +2964,73 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
         return parent(Ht(self).nabla(power=power))
 
+    def delta_expr(self, expr, q=None, t=None):
+        r"""
+        Returns the value of the `\Delta_f` operator applied to ``self``. The
+        eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
+        the `Ht` basis.  For more information see: [BGHT1999]_.
+
+        The operator `\Delta_f` acts on symmetric functions and has the
+        Macdonald `Ht` basis as eigenfunctions and the eigenvalues
+        are `f[B_\mu]` where `B_\mu = \sum_c t^{c_0} q^{c_1}` and the sum is over
+        all cells `c = (c_0, c_1)` in the partition `\mu`.
+
+        The operator `\nabla` is a special case of this operator since
+        `\Delta_{e_n} = \nabla` when both operators act on a symmetric function
+        of homogeneous degree `n`.
+
+        INPUT:
+
+        - ``self`` -- an element of a Macdonald basis
+        - ``expr`` -- a symmetric function
+        - ``q``, ``t`` -- optional parameters to specialize
+
+        OUTPUT:
+
+        - returns the symmetric function of `\Delta_f` acting on ``self``
+            where `f` is the symmetric function ``expr``
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            sage: p = Sym.power()
+            sage: p([1,1]).nabla()
+            (-1/2*q*t+1/2*q+1/2*t+1/2)*p[1, 1] + (1/2*q*t-1/2*q-1/2*t+1/2)*p[2]
+            sage: p([2,1]).nabla(q=1)
+            (-t-1)*p[1, 1, 1] + t*p[2, 1]
+            sage: p([2]).nabla(q=1)*p([1]).nabla(q=1)
+            (-t-1)*p[1, 1, 1] + t*p[2, 1]
+            sage: s = Sym.schur()
+            sage: s([2,1]).nabla()
+            (-q^3*t-q^2*t^2-q*t^3)*s[1, 1, 1] + (-q^2*t-q*t^2)*s[2, 1]
+            sage: s([1,1,1]).nabla()
+            (q^3+q^2*t+q*t^2+t^3+q*t)*s[1, 1, 1] + (q^2+q*t+t^2+q+t)*s[2, 1] + s[3]
+            sage: s([1,1,1]).nabla(t=1)
+            (q^3+q^2+2*q+1)*s[1, 1, 1] + (q^2+2*q+2)*s[2, 1] + s[3]
+            sage: s(0).nabla()
+            0
+            sage: s(1).nabla()
+            s[]
+            sage: s([2,1]).nabla(power=-1)
+            ((-q-t)/(q^2*t^2))*s[2, 1] + ((-q^2-q*t-t^2)/(q^3*t^3))*s[3]
+            sage: (s([2])+s([3])).nabla()
+            (-q*t)*s[1, 1] + (q^3*t^2+q^2*t^3)*s[1, 1, 1] + q^2*t^2*s[2, 1]
+        """
+        parent = self.parent()
+        BR = parent.base_ring()
+        if q is None:
+            if hasattr(parent,"q"):
+                q = parent.q
+            else:
+                q = BR(QQ['q'].gen())
+        if t is None:
+            if hasattr(parent,"t"):
+                t = parent.t
+            else:
+                t = BR(QQ['t'].gen())
+        Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
+        return parent(Ht(self).delta_expr(expr))
+
     def scalar(self, x, zee=None):
         r"""
         Return standard scalar product between ``self`` and ``x``.

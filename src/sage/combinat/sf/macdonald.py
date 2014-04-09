@@ -876,6 +876,47 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
                 Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
             return parent(Ht(self).nabla(power=power))
 
+        def delta_expr(self, expr, q=None, t=None):
+            r"""
+            Returns the value of the `\Delta_f` operator applied to ``self``. The
+            eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
+            the `Ht` basis.  For more information see: [BGHT1999]_.
+
+            The operator `\Delta_f` acts on symmetric functions and has the
+            Macdonald `Ht` basis as eigenfunctions and the eigenvalues
+            are `f[B_\mu]` where `B_\mu = \sum_c t^{c_0} q^{c_1}` and the sum is over
+            all cells `c = (c_0, c_1)` in the partition `\mu`.
+
+            The operator `\nabla` is a special case of this operator since
+            `\Delta_{e_n} = \nabla` when both operators act on a symmetric function
+            of homogeneous degree `n`.
+
+            INPUT:
+
+            - ``self`` -- an element of a Macdonald basis
+            - ``expr`` -- a symmetric function
+            - ``q``, ``t`` -- optional parameters to specialize
+
+            OUTPUT:
+
+            - returns the symmetric function of `\Delta_f` acting on ``self``
+                where `f` is the symmetric function ``expr``
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+            """
+            parent = self.parent()
+            if (q is None and t is None):
+                Ht = parent._macdonald.Ht()
+            else:
+                if q is None:
+                    q = parent.q
+                if t is None:
+                    t = parent.t
+                Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
+            return parent(Ht(self).delta_expr(expr))
+
 #P basis
 class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
@@ -1318,6 +1359,53 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             if t is None:
                 t = Ht.t
             f = lambda part: t**(part.weighted_size()*power)*q**(part.conjugate().weighted_size()*power)*Ht(part)
+            return P(Ht._apply_module_morphism(selfHt, f))
+
+        def delta_expr(self, expr, q=None, t=None):
+            r"""
+            Returns the value of the `\Delta_f` operator applied to ``self``. The
+            eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
+            the `Ht` basis.  For more information see: [BGHT1999]_.
+
+            The operator `\Delta_f` acts on symmetric functions and has the
+            Macdonald `Ht` basis as eigenfunctions and the eigenvalues
+            are `f[B_\mu]` where `B_\mu = \sum_c t^{c_0} q^{c_1}` and the sum is over
+            all cells `c = (c_0, c_1)` in the partition `\mu`.
+
+            The operator `\nabla` is a special case of this operator since
+            `\Delta_{e_n} = \nabla` when both operators act on a symmetric function
+            of homogeneous degree `n`.
+
+            INPUT:
+
+            - ``self`` -- an element of a Macdonald basis
+            - ``expr`` -- a symmetric function
+            - ``q``, ``t`` -- optional parameters to specialize
+
+            OUTPUT:
+
+            - returns the symmetric function of `\Delta_f` acting on ``self``
+                where `f` is the symmetric function ``expr``
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: Ht = Sym.macdonald().Ht()
+                sage: t = Ht.t; q = Ht.q;
+                sage: s = Sym.schur()
+                sage: e = Sym.elementary()
+                sage: Ht(e[3]).delta_expr(e[3])
+            """
+            P = self.parent()
+            Ht = P._macdonald.Ht()
+            selfHt = Ht(self)
+            if self == Ht.zero():
+                return Ht.zero()
+            if q is None:
+                q = Ht.q
+            if t is None:
+                t = Ht.t
+            f = lambda part: Ht(part)*expr(sum(t**c[0]*q**c[1] for c in part.cells())*Ht[[]])
             return P(Ht._apply_module_morphism(selfHt, f))
 
 class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
