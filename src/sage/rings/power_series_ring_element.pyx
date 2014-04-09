@@ -114,6 +114,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -313,6 +314,8 @@ cdef class PowerSeries(AlgebraElement):
         if PY_TYPE_CHECK(right, int):
             return self.is_zero()
 
+        from sage.misc.stopgap import stopgap 
+        stopgap("Warning: Comparison of power series may be wrong if certain coefficients are zero. The padded_list method can be used to give correct comparisons.", 9457)
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -454,6 +457,47 @@ cdef class PowerSeries(AlgebraElement):
             100
         """
         return self._prec
+
+    def precision_absolute(self):
+        """
+        Return the absolute precision of this series.
+
+        By definition, the absolute precision of 
+        `...+O(x^r)` is `r`.
+        
+        EXAMPLES::
+        
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_absolute()
+            3
+            sage: (1 - t^2 + O(t^100)).precision_absolute()
+            100
+        """
+        return self.prec()
+
+    def precision_relative(self):
+        """
+        Return the relative precision of this series, that
+        is the difference between its absolute precision 
+        and its valuation.
+
+        By convension, the relative precision of `0` (or
+        `O(x^r)` for any `r`) is `0`.
+        
+        EXAMPLES::
+        
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).precision_relative()
+            1
+            sage: (1 - t^2 + O(t^100)).precision_relative()
+            100
+            sage: O(t^4).precision_relative()
+            0
+        """
+        if self.is_zero():
+            return 0
+        else:
+            return self.prec() - self.valuation()
 
     def _repr_(self):
         """
@@ -1717,9 +1761,10 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self._parent.laurent_series_ring()(self)
 
-    def ogf(self):
+    def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function associated to self.
+        Returns the ordinary generating function power series,
+        assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
 
@@ -1727,14 +1772,15 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
-            sage: f.ogf()
+            sage: f.egf_to_ogf()
             t + t^2 + 2*t^3
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
 
-    def egf(self):
+    def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function associated to self.
+        Returns the exponential generating function power series,
+        assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.
 
@@ -1742,10 +1788,13 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 + 2*t^3
-            sage: f.egf()
+            sage: f.ogf_to_egf()
             t + 1/2*t^2 + 1/3*t^3
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+
+    ogf = deprecated_function_alias(15705, egf_to_ogf)
+    egf = deprecated_function_alias(15705, ogf_to_egf)
 
     def _pari_(self):
         """

@@ -14,9 +14,9 @@ TESTS:
 
 Check the fix from trac #8323::
 
-    sage: globals().has_key('name')
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """
@@ -652,8 +652,7 @@ def uniq(x):
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
     """
-    v = list(set(x))
-    v.sort()
+    v = sorted(set(x))
     return v
 
 
@@ -910,7 +909,7 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
-    if x.__dict__.has_key(attr): return
+    if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
         if len(z) > 1:
@@ -1633,7 +1632,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except StandardError:
+    except Exception:
         return False
 
 
@@ -1797,7 +1796,7 @@ class lazy_prop(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        setattr(obj, self._calculate.__name__, value)
         return value
 
 def prop(f):
@@ -1935,6 +1934,8 @@ def alarm(seconds):
     seconds. This is useful for automatically interrupting long
     computations and can be trapped using exception handling.
 
+    Use :func:`cancel_alarm` to cancel a previously scheduled alarm.
+
     INPUT:
 
     -  ``seconds`` -- positive number, may be floating point
@@ -1956,7 +1957,7 @@ def alarm(seconds):
 
 def cancel_alarm():
     """
-    Cancel a previously scheduled alarm (if any).
+    Cancel a previously scheduled alarm (if any) set by :func:`alarm`.
 
     EXAMPLES::
 
@@ -2350,7 +2351,7 @@ def inject_variable(name, value):
 
     Use with care!
     """
-    assert type(name) is str
+    assert isinstance(name, str)
     # Using globals() does not work, even in Cython, because
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
