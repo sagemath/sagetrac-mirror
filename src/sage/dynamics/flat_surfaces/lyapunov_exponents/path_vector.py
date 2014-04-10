@@ -62,7 +62,7 @@ class VectPaths(object):
 
     def var(self,n_var,a_var):
         r"""
-        Put variables in (n,a) coordinate of the vector and zeros elsewhere. 
+        Put variables in (n,a) coordinate of the vector and zeros elsewhere.
         """
         for n, a in self._iter:
             self._vect[n][a] = 0
@@ -70,7 +70,7 @@ class VectPaths(object):
 
     def id(self,n_id,a_id):
         r"""
-        Put 1 in (n,a) coordinate of the vector and zeros elsewhere. 
+        Put 1 in (n,a) coordinate of the vector and zeros elsewhere.
         """
         for n, a in self._iter:
             self._vect[n][a] = 0
@@ -117,7 +117,7 @@ class VectPaths(object):
             sage: v.copy_vector([1, 2, 3, 4, 5, 6])
             1 2 3  | 4 5 6  |
             <BLANKLINE>
-        """    
+        """
         d = len(self._labels)
         for i in range(len(self._labels)):
             for n in self._degrees:
@@ -127,11 +127,11 @@ class VectPaths(object):
     def to_list(self):
         r"""
         Convert PathVector to vector
-        
+
         EXAMPLES::
             sage: v = VectPaths(['a','c','b'], range(1, 3)).random()
             sage: v
-            0.111439293741 0.514347513419 0.0446896852482  | 0.332490606442 0.520600243542 0.182713505069  | 
+            0.111439293741 0.514347513419 0.0446896852482  | 0.332490606442 0.520600243542 0.182713505069  |
             <BLANKLINE>
 
             sage: v.to_list()
@@ -161,14 +161,14 @@ class VectPaths(object):
         for n, a in res._iter:
             res._vect[n][a] = projection(chi, degree, g, perm, self, n, a)
         return(res)
-        
-        
+
+
 def vect_paths_ortho(v) :
     N = len(v)
     aux = deepcopy(v)
     for i in range(N):
         for j in range(i):
-            v_j = v[j] 
+            v_j = v[j]
             u_ij = aux[i]
             v_squared_norm = v_j.dot_product(v_j)
             proj = u_ij.dot_product(v_j)/v_squared_norm
@@ -186,8 +186,8 @@ def vect_paths_ortho_householder(v):
         sage: v = [v_1, v_2]
         sage: vp = deepcopy(v)
         sage: v
-        [0.111439293741  | 0.514347513419  | 0.0446896852482  | 
-        , 0.332490606442  | 0.520600243542  | 0.182713505069  | 
+        [0.111439293741  | 0.514347513419  | 0.0446896852482  |
+        , 0.332490606442  | 0.520600243542  | 0.182713505069  |
         ]
 
         sage: vect_paths_ortho_householder(v)
@@ -197,8 +197,8 @@ def vect_paths_ortho_householder(v):
         [0.5281753957896576, 0.25259673502417185]
 
         sage: v
-        [-0.210989180165  | -0.973819525709  | -0.0846114484022  | 
-        , 0.821317669973  | -0.22354971821  | 0.524845509154  | 
+        [-0.210989180165  | -0.973819525709  | -0.0846114484022  |
+        , 0.821317669973  | -0.22354971821  | 0.524845509154  |
         ]
 
         sage: v[0].dot_product(v[1])

@@ -111,7 +111,7 @@ int check_quad_cyclic_cover(quad_cyclic_cover * qcc)
       fprintf(stderr, "The length of the top and bottom intervals do not match (get %lf and %lf)\n",(double) l_top, (double) l_bot);
       return 1;
     }
-  
+
   return 0;
 }
 
@@ -127,17 +127,17 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
 
   size_t i;
   quad_cyclic_cover * qcc;
-  
+
   qcc = (quad_cyclic_cover *) malloc(sizeof(quad_cyclic_cover));
   if(qcc == NULL) return NULL;
-  
+
   qcc->intervals = (interval *) malloc(2 * gp->n * sizeof(interval));
   if(qcc->intervals == NULL)
     {
       free(qcc);
       return NULL;
     }
-  
+
   qcc->labels = (label *) malloc(gp->n * sizeof(label));
   if(qcc->labels == NULL)
     {
@@ -149,9 +149,9 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
   qcc->nb_labels = gp->n;
   qcc->degree = degree;
   qcc->nb_vectors = nb_vectors;
-  
+
   for(i=0; i < gp->n; ++i) (qcc->labels)[i].v = NULL;
-  
+
   for(i=0; i < gp->n; ++i)
     {
       (qcc->labels)[i].sigma = sigma[i];
@@ -162,7 +162,7 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
 	  return NULL;
 	}
     }
-  
+
   qcc->buffer = (double *) malloc(degree * nb_vectors * sizeof(double));
   if(qcc->buffer == NULL)
     {
@@ -175,7 +175,7 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
       free_quad_cyclic_cover(&qcc);
       return NULL;
     }
-  
+
   for(i=0; i < 2*gp->n; ++i)
     {
       (qcc->labels)[(gp->perm)[i]].same_interval = ((i < gp->k) == ((gp->twin)[i] < gp->k));
@@ -184,12 +184,12 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
 	(qcc->intervals)[i].prev = NULL;
       else
 	(qcc->intervals)[i].prev = qcc->intervals + i - 1;
-      
+
       if((i == gp->k-1) || (i == 2*gp->n-1))
 	(qcc->intervals)[i].next = NULL;
       else
 	(qcc->intervals)[i].next = qcc->intervals + i + 1;
-      
+
       (qcc->intervals)[i].orientation = 1;
       if(i < gp->k)
 	{
@@ -198,21 +198,21 @@ quad_cyclic_cover * new_quad_cyclic_cover(generalized_permutation *gp, size_t **
 	}
       else
 	{
-	  if(((gp->twin)[i] < gp->k) || ((gp->twin)[i] > i))                      
+	  if(((gp->twin)[i] < gp->k) || ((gp->twin)[i] > i))
 	    (qcc->intervals)[i].orientation = -1;
 	}
-      
+
       (qcc->intervals)[i].twin = (qcc->intervals) + (gp->twin)[i];
       (qcc->intervals)[i].is_top = i < gp->k;
       (qcc->intervals)[i].give_name = ((qcc->intervals)[i].orientation == 1 && i < gp->k) || ((qcc->intervals)[i].orientation == -1 && i >= gp->k);
     }
   qcc->top = qcc->intervals + gp->k - 1;
   qcc->bot = qcc->intervals + 2*gp->n - 1;
-  
+
   qcc->perm_one = (size_t *) malloc(degree * sizeof(size_t));
   qcc->perm_two = (size_t *) malloc(degree * sizeof(size_t));
   qcc->perm_buffer = (size_t *) malloc(degree * sizeof(size_t));
-  
+
   return qcc;
 }
 
@@ -226,69 +226,69 @@ void renormalize_length_quad_cyclic_cover(quad_cyclic_cover * qcc)
 /* reset the length in the good subspace if needed */
 /* warning: qcc->length should be 1                */
 {
-	long double ltop=0.,lbot=0.,lltop=0.,llbot=0.,length;
-	interval * i;
-	size_t j;
-
-	i = qcc->top;
-	while(i != NULL)
+  long double ltop=0.,lbot=0.,lltop=0.,llbot=0.,length;
+  interval * i;
+  size_t j;
+  
+  i = qcc->top;
+  while(i != NULL)
+    {
+      if(i->lab->same_interval) lltop += i->lab->length;
+      ltop += i->lab->length;
+      i = i->prev;
+    }
+  i = qcc->bot;
+  while(i != NULL)
+    {
+      if(i->lab->same_interval) llbot += i->lab->length;
+      lbot += i->lab->length;
+      i = i->prev;
+    }
+  length = (lbot + ltop) / 2;
+  
+  /* rescale in order to have length 1 */
+  for(j=0; j < qcc->nb_labels; ++j)
+    (qcc->labels)[j].length /= length;
+  qcc->length = 1;
+  
+  /* now if ltop and lbot are two far appart we project */
+  if(((lbot - ltop)/(lbot + ltop) > EPSILON_LENGTH_PROJECTION) || ((ltop - lbot) / (ltop+lbot) > EPSILON_LENGTH_PROJECTION))
+    {
+      ltop /= length;
+      lbot /= length;
+      lltop /= length;
+      llbot /= length;
+      /* we modify the length */
+      length = 1 + (1 - ltop) / lltop;
+      if(length < 0)
 	{
-		if(i->lab->same_interval) lltop += i->lab->length;
-		ltop += i->lab->length;
-		i = i->prev;
+	  fprintf(stderr,"length error, can not renormalize\n");
+	  exit(EXIT_FAILURE);
 	}
-	i = qcc->bot;
-	while(i != NULL)
+      i = qcc->top;
+      while(i != NULL)
 	{
-		if(i->lab->same_interval) llbot += i->lab->length;
-		lbot += i->lab->length;
-		i = i->prev;
+	  if((i->orientation == -1) && (i->lab->same_interval)) i->lab->length *= length;
+	  i = i->prev;
 	}
-	length = (lbot + ltop) / 2;
-
-	/* rescale in order to have length 1 */
-	for(j=0; j < qcc->nb_labels; ++j)
-		(qcc->labels)[j].length /= length;
-	qcc->length = 1;
-
-	/* now if ltop and lbot are two far appart we project */
-	if(((lbot - ltop)/(lbot + ltop) > EPSILON_LENGTH_PROJECTION) || ((ltop - lbot) / (ltop+lbot) > EPSILON_LENGTH_PROJECTION))
+      length = 1 + (1 - lbot) / llbot;
+      if(length < 0)
 	{
-		ltop /= length;
-		lbot /= length;
-		lltop /= length;
-		llbot /= length;
-		/* we modify the length */
-		length = 1 + (1 - ltop) / lltop;
-		if(length < 0)
-		{
-			fprintf(stderr,"length error, can not renormalize\n");
-			exit(EXIT_FAILURE);
-		}
-		i = qcc->top;
-		while(i != NULL)
-		{
-			if((i->orientation == -1) && (i->lab->same_interval)) i->lab->length *= length;
-			i = i->prev;
-		}
-		length = 1 + (1 - lbot) / llbot;
-		if(length < 0)
-		{
-			fprintf(stderr, "length error, can not renormalize\n");
-			exit(EXIT_FAILURE);
-		}
-		i = qcc->bot;
-		while(i != NULL)
-		{
-			if((i->orientation == -1) && (i->lab->same_interval)) i->lab->length *= length;
-			i = i->prev;
-		}
+	  fprintf(stderr, "length error, can not renormalize\n");
+	  exit(EXIT_FAILURE);
 	}
+      i = qcc->bot;
+      while(i != NULL)
+	{
+	  if((i->orientation == -1) && (i->lab->same_interval)) i->lab->length *= length;
+	  i = i->prev;
+	}
+    }
 }
 
 void set_lengths(quad_cyclic_cover *qcc, long double *lengths){
   size_t i;
-
+  
   for (i=0; i< qcc->nb_labels; ++i)
     (qcc->labels)[i].length = (long double) lengths[i];
   qcc->length = 0;
@@ -299,189 +299,188 @@ void set_lengths(quad_cyclic_cover *qcc, long double *lengths){
 
 void set_random_lengths_quad_cyclic_cover(quad_cyclic_cover * qcc)
 {
-	interval * i;
-	size_t j,nb_odd_top=0,nb_odd_bot=0;
-
-	qcc->length = 0.;
-	for(j=0; j < qcc->nb_labels; j++)
-		(qcc->labels)[j].length = 0;
-
-	i = qcc->top;
-	while(i != NULL)
-	{
-		nb_odd_top += i->lab->same_interval;
-		i = i->prev;
-	}
-	i = qcc->bot;
-	while(i != NULL)
-	{
-		nb_odd_bot += i->lab->same_interval;
-		i = i->prev;
-	}
-
-	i = qcc->top;
-	while(i != NULL)
-	{
-		if(i->lab->same_interval) i->lab->length += ((nb_odd_top + nb_odd_bot) * ldrand()) / (2 * nb_odd_top);
-		else i->lab->length = ldrand();
-		qcc->length += i->lab->length;
-		i = i->prev;
-	}
-
-	i = qcc->bot;
-	while(i != NULL)
-	{
-		if(i->lab->same_interval) i->lab->length += ((nb_odd_top + nb_odd_bot) * ldrand()) / (2 * nb_odd_bot);
-		else i->lab->length = ldrand();
-		qcc->length += i->lab->length;
-		i = i->prev;
-	}
-	renormalize_length_quad_cyclic_cover(qcc);
+  interval * i;
+  size_t j,nb_odd_top=0,nb_odd_bot=0;
+  
+  qcc->length = 0.;
+  for(j=0; j < qcc->nb_labels; j++)
+    (qcc->labels)[j].length = 0;
+  
+  i = qcc->top;
+  while(i != NULL)
+    {
+      nb_odd_top += i->lab->same_interval;
+      i = i->prev;
+    }
+  i = qcc->bot;
+  while(i != NULL)
+    {
+      nb_odd_bot += i->lab->same_interval;
+      i = i->prev;
+    }
+  
+  i = qcc->top;
+  while(i != NULL)
+    {
+      if(i->lab->same_interval) i->lab->length += ((nb_odd_top + nb_odd_bot) * ldrand()) / (2 * nb_odd_top);
+      else i->lab->length = ldrand();
+      qcc->length += i->lab->length;
+      i = i->prev;
+    }
+  
+  i = qcc->bot;
+  while(i != NULL)
+    {
+      if(i->lab->same_interval) i->lab->length += ((nb_odd_top + nb_odd_bot) * ldrand()) / (2 * nb_odd_bot);
+      else i->lab->length = ldrand();
+      qcc->length += i->lab->length;
+      i = i->prev;
+    }
+  renormalize_length_quad_cyclic_cover(qcc);
 }
 
 void randomize_length_quad_cyclic_cover(quad_cyclic_cover * qcc)
 {
-	qcc->top->lab->length += ((long double) (.5 - drand())) / 0x4000000000000; // we divide by 2^50 ~ 10^16
-	qcc->bot->lab->length += ((long double) (.5 - drand())) / 0x4000000000000;
-	renormalize_length_quad_cyclic_cover(qcc);
+  qcc->top->lab->length += ((long double) (.5 - drand())) / 0x4000000000000; // we divide by 2^50 ~ 10^16
+  qcc->bot->lab->length += ((long double) (.5 - drand())) / 0x4000000000000;
+  renormalize_length_quad_cyclic_cover(qcc);
 }
 
 void free_quad_cyclic_cover(quad_cyclic_cover ** qcc)
 /* the value of *qcc is modified in order to prevent double free */
 {
-	size_t i;
-	
-	if(*qcc != NULL)
+  size_t i;
+  
+  if(*qcc != NULL)
+    {
+      if((*qcc)->intervals != NULL)
 	{
-		if((*qcc)->intervals != NULL)
-		{
-			free((*qcc)->intervals);
+	  free((*qcc)->intervals);
 			(*qcc)->intervals = NULL;
-		}
-		
-		if((*qcc)->v_buffer != NULL)
-		{
-			free((*qcc)->v_buffer);
-			(*qcc)->v_buffer = NULL;
-		}
-		
-		if((*qcc)->buffer != NULL)
-		{
-			free((*qcc)->buffer);
-			(*qcc)->buffer = NULL;
-		}
-		
-		for(i=0; i< (*qcc)->nb_labels; ++i)
-		{
-			if(((*qcc)->labels)[i].v != NULL)
-			{
-				free(((*qcc)->labels)[i].v);
-				((*qcc)->labels)[i].v = NULL;
-			}
-		}
-		
-		if((*qcc)->labels != NULL)
-		{
-			free((*qcc)->labels);
-			(*qcc)->labels = NULL;
-		}
-
-		if((*qcc)->labels != NULL)
-		  {
-		    free((*qcc)->perm_one);
-		    (*qcc)->perm_one = NULL;
-		  }
-
-		if((*qcc)->labels != NULL)
-		  {
-		    free((*qcc)->perm_two);
-		    (*qcc)->perm_two = NULL;
-		  }
-		
-
-		if((*qcc)->labels != NULL)
-		  {
-		    free((*qcc)->perm_buffer);
-		    (*qcc)->perm_buffer = NULL;
-		  }
-		
-		free(*qcc);
-		*qcc = NULL;	
 	}
-	
+		
+      if((*qcc)->v_buffer != NULL)
+	{
+	  free((*qcc)->v_buffer);
+	  (*qcc)->v_buffer = NULL;
+	}
+      
+      if((*qcc)->buffer != NULL)
+	{
+	  free((*qcc)->buffer);
+	  (*qcc)->buffer = NULL;
+	}
+      
+      for(i=0; i< (*qcc)->nb_labels; ++i)
+	{
+	  if(((*qcc)->labels)[i].v != NULL)
+	    {
+	      free(((*qcc)->labels)[i].v);
+	      ((*qcc)->labels)[i].v = NULL;
+	    }
+	}
+      
+      if((*qcc)->labels != NULL)
+	{
+	  free((*qcc)->labels);
+	  (*qcc)->labels = NULL;
+	}
+      
+      if((*qcc)->labels != NULL)
+	{
+	  free((*qcc)->perm_one);
+	  (*qcc)->perm_one = NULL;
+	}
+      
+      if((*qcc)->labels != NULL)
+	{
+	  free((*qcc)->perm_two);
+	  (*qcc)->perm_two = NULL;
+	}
+      
+      
+      if((*qcc)->labels != NULL)
+	{
+	  free((*qcc)->perm_buffer);
+	  (*qcc)->perm_buffer = NULL;
+	}
+      
+      free(*qcc);
+      *qcc = NULL;	
+    } 
 }
 
 void print_quad_cyclic_cover(quad_cyclic_cover * qcc)
 {
-	interval * i;
-	size_t j, n, d, k;
-	int verbose = 0;
-
-	i = qcc->top;
-	while(i->prev != NULL)
-	  i = i->prev;
-	while(i != NULL)
-	{
-		if(i->orientation == 1)
-			printf(" ");
-		else
-			printf("-");
-		printf("%zu ", i->lab - qcc->labels);
-		i = i->next;
-	}
+  interval * i;
+  size_t j, n, d, k;
+  int verbose = 0;
+  
+  i = qcc->top;
+  while(i->prev != NULL)
+    i = i->prev;
+  while(i != NULL)
+    {
+      if(i->orientation == 1)
+	printf(" ");
+      else
+	printf("-");
+      printf("%zu ", i->lab - qcc->labels);
+      i = i->next;
+    }
+  printf("\n");
+  
+  i = qcc->bot;
+  while(i->prev != NULL)
+    i = i->prev;
+  while(i != NULL)
+    {
+      if(i->orientation == 1)
+	printf(" ");
+      else
+	printf("-");
+      printf("%zu ", i->lab - qcc->labels);
+      i = i->next;
+    }
+  printf("v :\n");
+  for(j=0; j < qcc->nb_labels; ++j)
+    for (d=0; d<qcc->degree; ++d){
+      for(k=0; k<qcc->nb_vectors; ++k){
+	printf(" %f", (double) (qcc->labels)[j].v[k + qcc->nb_vectors*d]);
+	printf(" | ");
+      }
+      printf("\n");
+    }
+  printf("\n");
+  if (verbose){
+    printf("v_buffer :\n");
+    for(j=0; j < qcc->nb_labels; ++j)
+      for (d=0; d < qcc->degree; ++d){
+	printf(" %f", (double) (qcc->v_buffer)[j + qcc->nb_labels * d]);
+	printf(" %i < %i,   %i", j + qcc->nb_labels * d, qcc->nb_labels * qcc->degree, j + qcc->nb_labels * d < qcc->nb_labels * qcc->degree);
+	printf(" | ");
 	printf("\n");
-
-	i = qcc->bot;
-	while(i->prev != NULL)
-	  i = i->prev;
-	while(i != NULL)
-	{
-		if(i->orientation == 1)
-			printf(" ");
-		else
-			printf("-");
-		printf("%zu ", i->lab - qcc->labels);
-		i = i->next;
-	}
-	printf("v :\n");
-	for(j=0; j < qcc->nb_labels; ++j)
-	  for (d=0; d<qcc->degree; ++d){
-	    for(k=0; k<qcc->nb_vectors; ++k){
-	      printf(" %f", (double) (qcc->labels)[j].v[k + qcc->nb_vectors*d]);
-	      printf(" | ");
-	    }
-	    printf("\n");
-	  }
-	printf("\n");
-	if (verbose){
-	printf("v_buffer :\n");
-	for(j=0; j < qcc->nb_labels; ++j)
-	  for (d=0; d < qcc->degree; ++d){
-	    printf(" %f", (double) (qcc->v_buffer)[j + qcc->nb_labels * d]);
-	    printf(" %i < %i,   %i", j + qcc->nb_labels * d, qcc->nb_labels * qcc->degree, j + qcc->nb_labels * d < qcc->nb_labels * qcc->degree);
-	    printf(" | ");
-	    printf("\n");
-	  }
-	  for(j=0; j< qcc->nb_labels; ++j)
-	    print_permutation((qcc->labels)[j].sigma, qcc->degree);
-	  printf("\n  total: %f", (double) qcc->length);
-	  printf("\n");
-	  printf("same interval:");
-	  for(j=0; j < qcc->nb_labels; ++j)
-	    printf(" %d", (qcc->labels)[j].same_interval);
-	  printf("\n");
-	  printf("\ngive name:");
-	  for(j=0; j < 2*qcc->nb_labels; ++j)
-	    printf(" %d", (give_name(qcc->intervals + j)));
-	  printf("\nlengths:");
-	  printf("\nZZ/%zuZZ \n cover:\n", qcc->degree);
-	  for(j=0; j < qcc->nb_labels; ++j){
-	    for(n=0; n < qcc->degree; ++n)
-	      printf(" %d", (qcc->labels)[j].sigma[n]);
-	    printf("\n");
-	  };
-	}
-	printf("\n");
+      }
+    for(j=0; j< qcc->nb_labels; ++j)
+      print_permutation((qcc->labels)[j].sigma, qcc->degree);
+    printf("\n  total: %f", (double) qcc->length);
+    printf("\n");
+    printf("same interval:");
+    for(j=0; j < qcc->nb_labels; ++j)
+      printf(" %d", (qcc->labels)[j].same_interval);
+    printf("\n");
+    printf("\ngive name:");
+    for(j=0; j < 2*qcc->nb_labels; ++j)
+      printf(" %d", (give_name(qcc->intervals + j)));
+    printf("\nlengths:");
+    printf("\nZZ/%zuZZ \n cover:\n", qcc->degree);
+    for(j=0; j < qcc->nb_labels; ++j){
+      for(n=0; n < qcc->degree; ++n)
+	printf(" %d", (qcc->labels)[j].sigma[n]);
+      printf("\n");
+    };
+  }
+  printf("\n");
 }
 
 
@@ -541,25 +540,25 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
   /* modify the length */
   win->lab->length -= los->lab->length;
   qcc->length -= los->lab->length;
-  
+
   if(win->lab->same_interval)   /* win and its twin are on the same interval */
     {
-      /* move los after win_twin */		  
+      /* move los after win_twin */
       *los_ptr = los->prev;
       los->prev->next = NULL;
       los->prev = win_twin->prev;
       los->next = win_twin;
       if(win_twin->prev != NULL) win_twin->prev->next = los;
       win_twin->prev = los;
-      
+
       /* modify the position */
       los->lab->same_interval = 1 - los->lab->same_interval;
     }
   else
-    {	      
+    {
       /* move los before win_twin */
-    if(win->twin != los->next)
-      {		  
+      if(win->twin != los->next)
+      {
       *los_ptr = los->prev;
       los->prev->next = NULL;
       los->next = win_twin->next;
@@ -568,7 +567,7 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
       win_twin->next = los;
       }
     }
-
+  
   /* apply KZ to the vectors */
   /* we put the result of KZ in qcc->buffer and then we switch the pointers */
   for(i=0; i<qcc->nb_vectors; ++i)
@@ -577,27 +576,27 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
 	/* recall: 0 <= i < nb_vectors, 0 <= j < nb_labels, 0 <= k < degree */
 	/* elt at pos (i,j,k) is (qcc->labels)[j].v[i + nb_vectors * k]     */
 	{
-	  (qcc->buffer)[i + qcc->nb_vectors * k] = 
+	  (qcc->buffer)[i + qcc->nb_vectors * k] =
 	    (qcc->labels)[jwin].v[i + qcc->nb_vectors * k]
 	    + los->orientation * win->orientation * (qcc->labels)[jlos].v[i + qcc->nb_vectors * (qcc->perm_one[k])];
 	}
       // switch qcc->labels[jlos] and qcc->buffer
     }
   tmp = qcc->buffer; qcc->buffer = (qcc->labels)[jwin].v; (qcc->labels)[jwin].v = tmp;
-		  
+
   for(i=0; i<qcc->nb_vectors; ++i)
     {
       for(k=0; k<qcc->degree; ++k)
 	/* recall: 0 <= i < nb_vectors, 0 <= j < nb_labels, 0 <= k < degree */
 	/* elt at pos (i,j,k) is (qcc->labels)[j].v[i + nb_vectors * k]     */
 	{
-	  (qcc->buffer)[i + qcc->nb_vectors * k] = 
+	  (qcc->buffer)[i + qcc->nb_vectors * k] =
 	    (qcc->labels)[jlos].v[i + qcc->nb_vectors * (qcc->perm_two[k])];
 	}
     }
   // switch qcc->labels[jlos] and qcc->buffer
   tmp = qcc->buffer; qcc->buffer = (qcc->labels)[jlos].v; (qcc->labels)[jlos].v = tmp;
-		  
+
 
   /* modify the cover data                     */
   if (los->orientation == 1 && win->orientation == 1){
@@ -606,13 +605,13 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
     perm_product(qcc->perm_one, qcc->perm_two, los->lab->sigma, qcc->degree);
   }
   if (los->orientation == 1 && win->orientation == -1){
-    memcpy(qcc->perm_two, los->lab->sigma, qcc->degree * sizeof(size_t)); 
+    memcpy(qcc->perm_two, los->lab->sigma, qcc->degree * sizeof(size_t));
     perm_product(win->lab->sigma, qcc->perm_two, los->lab->sigma, qcc->degree);
   }
-  if (los->orientation == -1 && win->orientation == 1){ 
+  if (los->orientation == -1 && win->orientation == 1){
     perm_product(los->lab->sigma, win->lab->sigma, los->lab->sigma, qcc->degree);
   }
-  if (los->orientation == -1 && win->orientation == -1){ 
+  if (los->orientation == -1 && win->orientation == -1){
     inverse_permutation(win->lab->sigma, qcc->perm_two, qcc->degree);
     perm_product(los->lab->sigma, qcc->perm_two, los->lab->sigma, qcc->degree);
   }
@@ -624,139 +623,138 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
 
 void top_lyapunov_exponents_H_plus(quad_cyclic_cover *qcc, double *theta, size_t nb_iterations)
 {
-	size_t i,j,k,nb_ren=0;
-	double norm;
+  size_t i,j,k,nb_ren=0;
+  double norm;
 #ifdef USE_KAHAN_SUMMATION
-	double c0=0,c1=0;
-	double y,t;
+  double c0=0,c1=0;
+  double y,t;
 #endif
 
-	set_random_lengths_quad_cyclic_cover(qcc);
-	set_random_vectors(qcc);
-
-	theta[0] = theta[1] = 0;
-
-	for(i=0; i < nb_iterations; ++i)
+  set_random_lengths_quad_cyclic_cover(qcc);
+  set_random_vectors(qcc);
+  
+  theta[0] = theta[1] = 0;
+  
+  for(i=0; i < nb_iterations; ++i)
+    {
+      rauzy_induction_H_plus_quad_cyclic_cover(qcc);
+      
+      if(qcc->length < 0.00001)
 	{
-		rauzy_induction_H_plus_quad_cyclic_cover(qcc);
-
-		if(qcc->length < 0.00001)
-		{
 #ifdef USE_KAHAN_SUMMATION
-		        y = -logl(qcc->length) - c0;
-			t = theta[0] + y;
-			c0 = (t - theta[0]) - y;
-			theta[0] = t;
+	  y = -logl(qcc->length) - c0;
+	  t = theta[0] + y;
+	  c0 = (t - theta[0]) - y;
+	  theta[0] = t;
 #else
-			theta[0] -= logl(qcc->length);
+	  theta[0] -= logl(qcc->length);
 #endif
-			renormalize_length_quad_cyclic_cover(qcc);
-
-			norm = 0;
-			for(j=0; j<qcc->nb_labels; ++j)
-				for(k=0; k<qcc->degree; ++k)
-				{
-					if((qcc->labels)[j].v[k] > 0)
-						norm += (qcc->labels)[j].v[k];
-					else
-						norm -= (qcc->labels)[j].v[k];
-				}
-			for(j=0; j<qcc->nb_labels; ++j)
-				for(k=0; k<qcc->degree; ++k)
-					(qcc->labels)[j].v[k] /= norm;
+	  renormalize_length_quad_cyclic_cover(qcc);
+	  
+	  norm = 0;
+	  for(j=0; j<qcc->nb_labels; ++j)
+	    for(k=0; k<qcc->degree; ++k)
+	      {
+		if((qcc->labels)[j].v[k] > 0)
+		  norm += (qcc->labels)[j].v[k];
+		else
+		  norm -= (qcc->labels)[j].v[k];
+	      }
+	  for(j=0; j<qcc->nb_labels; ++j)
+	    for(k=0; k<qcc->degree; ++k)
+	      (qcc->labels)[j].v[k] /= norm;
 #ifdef USE_KAHAN_SUMMATION
-			y = log(norm) - c1;
-			t = theta[1] + y;
-			c1 = (t - theta[1]) - y;
-			theta[1] = t;
+	  y = log(norm) - c1;
+	  t = theta[1] + y;
+	  c1 = (t - theta[1]) - y;
+	  theta[1] = t;
 #else
-			theta[1] += log(norm);
+	  theta[1] += log(norm);
 #endif
-			if((nb_ren+1) % 500 == 0)  // a bit of salt
-			{
-				qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-				qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-			}
-
-			nb_ren += 1;
-		}
+	  if((nb_ren+1) % 500 == 0)  // a bit of salt
+	    {
+	      qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	      qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	    }
+	  
+	  nb_ren += 1;
 	}
-
-	theta[1] /= theta[0];
-	theta[0] /= nb_iterations;
+    }
+  
+  theta[1] /= theta[0];
+  theta[0] /= nb_iterations;
 }
 
 
 void lyapunov_exponents_H_plus(quad_cyclic_cover *qcc, double *theta, size_t nb_iterations)
 {
-	size_t i,nb_ren=0;
-
-	set_random_lengths_quad_cyclic_cover(qcc);
-	set_random_vectors(qcc);
-
-	for(i=0; i < qcc->nb_vectors+1; ++i) theta[i] = 0.;
-
-	for(i=0; i < nb_iterations; ++i)
+  size_t i,nb_ren=0;
+  
+  set_random_lengths_quad_cyclic_cover(qcc);
+  set_random_vectors(qcc);
+  
+  for(i=0; i < qcc->nb_vectors+1; ++i) theta[i] = 0.;
+  
+  for(i=0; i < nb_iterations; ++i)
+    {
+      rauzy_induction_H_plus_quad_cyclic_cover(qcc);
+      if(qcc->length < 0.001)
 	{
-	        rauzy_induction_H_plus_quad_cyclic_cover(qcc);   
-	        
-		if(qcc->length < 0.001)
-		{
-		        theta[0] -= logl(qcc->length);
-			renormalize_length_quad_cyclic_cover(qcc);
-		  	orthogonalize_GS(qcc, theta);
-		  
-			if((nb_ren+1) % 500 == 0)  // a bit of salt
-			{
-				qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-				qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-			}
-
-			nb_ren += 1;
-		}        
+	  theta[0] -= logl(qcc->length);
+	  renormalize_length_quad_cyclic_cover(qcc);
+	  orthogonalize_GS(qcc, theta);
+	  
+	  if((nb_ren+1) % 500 == 0)  // a bit of salt
+	    {
+	      qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	      qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	    }
+	  
+	  nb_ren += 1;
 	}
-
-	for(i=1; i<qcc->nb_vectors+1; i++) theta[i] /= (2*theta[0]);
-	theta[0] /= nb_iterations;
+    }
+  
+  for(i=1; i<qcc->nb_vectors+1; i++) theta[i] /= (2*theta[0]);
+  theta[0] /= nb_iterations;
 }
 
 
 void lyapunov_exponents_isotopic(quad_cyclic_cover *qcc, double *theta, size_t nb_iterations, size_t nb_char, size_t* dimensions, double *proj)
 {
-	size_t i,nb_ren=0;
-
-	set_random_lengths_quad_cyclic_cover(qcc);
-	set_random_vectors(qcc);
-
-
-	project_isotopic(qcc, nb_char, dimensions, proj);
-	orthogonalize_iso(qcc, theta, nb_char, dimensions);		
-	check_orthogonality_iso(qcc, nb_char, dimensions);
-
-	for(i=0; i < qcc->nb_vectors+1; ++i) theta[i] = 0.;
-
-	for(i=0; i < nb_iterations; ++i)
+  size_t i,nb_ren=0;
+  
+  set_random_lengths_quad_cyclic_cover(qcc);
+  set_random_vectors(qcc);
+  
+  
+  project_isotopic(qcc, nb_char, dimensions, proj);
+  orthogonalize_iso(qcc, theta, nb_char, dimensions);		
+  check_orthogonality_iso(qcc, nb_char, dimensions);
+  
+  for(i=0; i < qcc->nb_vectors+1; ++i) theta[i] = 0.;
+  
+  for(i=0; i < nb_iterations; ++i)
+    {
+      rauzy_induction_H_plus_quad_cyclic_cover(qcc);
+      
+      if(qcc->length < 0.001)
 	{
-        	rauzy_induction_H_plus_quad_cyclic_cover(qcc);   
-	        
-		if(qcc->length < 0.001)
-		{
-		        theta[0] -= logl(qcc->length);
-			renormalize_length_quad_cyclic_cover(qcc);
-
-		  	orthogonalize_iso(qcc, theta, nb_char, dimensions);
-			project_isotopic(qcc, nb_char, dimensions, proj);
-		  
-			if((nb_ren+1) % 500 == 0)  // a bit of salt
-			{
-				qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-				qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
-			}
-
-			nb_ren += 1;
-		}
+	  theta[0] -= logl(qcc->length);
+	  renormalize_length_quad_cyclic_cover(qcc);
+	  
+	  orthogonalize_iso(qcc, theta, nb_char, dimensions);
+	  project_isotopic(qcc, nb_char, dimensions, proj);
+	  
+	  if((nb_ren+1) % 500 == 0)  // a bit of salt
+	    {
+	      qcc->top->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	      qcc->bot->lab->length += ((long double) (.5-drand())) / 0x40000000000;
+	    }
+	  
+	  nb_ren += 1;
 	}
+    }
 
-	for(i=1; i<qcc->nb_vectors+1; i++) theta[i] /= (2*theta[0]);
-	theta[0] /= nb_iterations;
+  for(i=1; i<qcc->nb_vectors+1; i++) theta[i] /= (2*theta[0]);
+  theta[0] /= nb_iterations;
 }

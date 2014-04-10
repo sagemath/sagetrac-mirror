@@ -50,7 +50,7 @@ def lyapunov_exponents_H_plus_cyclic_cover(
     covering locii.
 
     We assume that all the inputs are clean. If not, it may cause some SEGFAULT
-    which would interrupt python! 
+    which would interrupt python!
 
     INPUT:
 
@@ -83,7 +83,6 @@ def lyapunov_exponents_H_plus_cyclic_cover(
     cdef quad_cyclic_cover *qcc
     cdef double * theta
     cdef double *proj
-    
 
 
     # convert the data of into C values
@@ -109,7 +108,7 @@ def lyapunov_exponents_H_plus_cyclic_cover(
 
     gp_c = new_generalized_permutation(p, t, k, n)
     qcc = <quad_cyclic_cover *> new_quad_cyclic_cover(gp_c, s, degree, nb_vectors)
-    
+
     if lengths == None:
        set_random_lengths_quad_cyclic_cover(qcc)
     else:
@@ -159,5 +158,5 @@ def lyapunov_exponents_H_plus_cyclic_cover(
     free_quad_cyclic_cover(&qcc)
     free_GS()
     free(theta)
-    
+
     return res

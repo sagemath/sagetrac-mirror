@@ -71,7 +71,7 @@ int check_generalized_permutation(generalized_permutation * gp)
 		if((i == (gp->twin)[i]) || ((gp->twin)[(gp->twin)[i]] != i))
 		{
 			fprintf(stderr,"Error: t is not an involution without fixed point i=%d -> t[i]=%d -> t[t[i]]=%d \n",
-							i,(gp->twin)[i],(gp->twin)[(gp->twin)[i]]); 
+							i,(gp->twin)[i],(gp->twin)[(gp->twin)[i]]);
 			return 1;
 		}
 		if((gp->perm)[i] != (gp->perm)[(gp->twin)[i]])

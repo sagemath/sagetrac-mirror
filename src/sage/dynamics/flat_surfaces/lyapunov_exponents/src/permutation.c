@@ -3,7 +3,7 @@
 void print_permutation(size_t *sigma, size_t degree)
 {
   size_t i;
-  for(i=0; i < degree; ++i) 
+  for(i=0; i < degree; ++i)
     printf(" %i", sigma[i] + 1);
   printf("\n");
 }
@@ -20,7 +20,7 @@ int check_permutation(size_t *sigma, size_t degree)
 	{
 	  if(sigma[j] == i)
 	    {
-	      if(seen) 
+	      if(seen)
 		{
 		  fprintf(stderr, "%i appears twice in the permutation", i);
 		  return 1;
@@ -48,7 +48,7 @@ int check_permutation(size_t *sigma, size_t degree)
 	
 
 inline void inverse_permutation(size_t *sigma, size_t *perm_buffer, size_t degree)
-{ 
+{
   size_t i;
   for(i=0; i < degree; ++i)
     perm_buffer[sigma[i]] = i;
@@ -62,7 +62,7 @@ inline void cyclic_permutation(int n, size_t *perm_buffer, size_t degree)
 }
 
 inline void perm_name(interval *inter, size_t *perm_buffer, size_t degree)
-{ 
+{
   if(inter->orientation == 1)
     cyclic_permutation(0, perm_buffer, degree);        //return identity
   else

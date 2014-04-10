@@ -16,14 +16,9 @@ AUTHORS:
 
 
 #Here we give one function to get a random length vector for the IE
-from sage.all import gap, I, CC
-
 from sage.misc.cachefunc import cached_method
-
 from path_vector import *
 
-precision = 128
-diff_sum_seuil = 2**(-precision+20)
 def UCF_mat_to_cyclotomic_field(M):
     from sage.rings.number_field.number_field import CyclotomicField
     from sage.rings.arith import lcm
@@ -46,7 +41,6 @@ class Interval(object) :
         else:
             self.orientation = 1
 
-
 def index_cycle(i, cycles):
     """
     return index of the cycle in the array cycles where i appears
@@ -59,8 +53,27 @@ def index_cycle(i, cycles):
         raise NameError('Index not in the cycle')
     return cursor
 
+class CoveringStratum(FlippedLabelledPermutationLI):
+    r"""
+    Test
+    """
+    def __init__(self, intervals=None, alphabet=None, flips=None, permutations=None, lengths=None):
+        if intervals is None:
+            intervals = [[], []]
+        if flips is None: flips = []
 
-    
+        super(FlippedLabelledPermutationLI, self).__init__(intervals, alphabet)
+        self._init_flips(intervals, flips)
+
+        self._permutations= deepcopy(permutations)
+        self.degree = len(permutations[permutations.keys()[0]])
+        self.number_of_intervals = [len(intervals[0]), len(intervals[1])]
+        self._lengths = deepcopy(lengths)
+
+        self.total_number_of_intervals_base = len(intervals[0]) + len(intervals[1])
+        self.nb_labels = self.total_number_of_intervals_base / 2
+        self.total_number_of_intervals_cover = (len(intervals[0]) + len(intervals[1]))*self.degree
+
 class IntExchange(object):
     r"""
     Create an interval exchange with possibility of considering a finite cover by giving
@@ -72,11 +85,11 @@ class IntExchange(object):
     to the orientation is positive (egal to 1).
     The label bearing the number of the copy of the cover will be the one to which the path arrives.
 
-    
+
     INPUT:
 
     - ``intervals`` -- a list of two lists of Interval class elements
-    
+
     - ``lengths`` -- a dictionnary of positive floats for each label appearing in the intervals;
     the length of intervals of the corresponding label
 
@@ -119,7 +132,7 @@ class IntExchange(object):
         self.total_number_of_intervals_base = len(intervals[0]) + len(intervals[1])
         self.nb_labels = self.total_number_of_intervals_base / 2
         self.total_number_of_intervals_cover = (len(intervals[0]) + len(intervals[1]))*self.degree
-        self.cycles = self.edge_cover_permutation().to_cycles()
+        self.cycles = self._edge_cover_permutation().to_cycles()
         self.n_cycles = len(self.cycles)
         #self.signature_intersection = self.signature(self.intersection_matrix())
 
@@ -130,6 +143,9 @@ class IntExchange(object):
     def twin(self, i, j):
         r"""
         Give the position of the twin interval associated to the one in line i and place j
+        
+        EXAMPLES::
+        
         """
         for n in range(self.number_of_intervals[i]):
             if n <> j and self._intervals[i][n].label == self._intervals[i][j].label:
@@ -142,6 +158,8 @@ class IntExchange(object):
         r"""
         Give the list of numbers given to each copy of the suface in the cover.
         It goes from 1 to the degree of the cover.
+
+        
         """
         return(range(1, self.degree + 1))
 
@@ -173,7 +191,7 @@ class IntExchange(object):
         for d in self.degrees():
             for i in xrange(2):
                 for j in xrange(self.number_of_intervals[i]):
-                    bound_equation[d]._vect[self.name(i,j)(d)][self.label(i,j)] += self._intervals[i][j].orientation 
+                    bound_equation[d]._vect[self.name(i,j)(d)][self.label(i,j)] += self._intervals[i][j].orientation
         s = []
         def bind(ind,deg,lab):
             from copy import deepcopy
@@ -205,12 +223,12 @@ class IntExchange(object):
             return vect.val(d,a)
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
-        return matrix(ZZ, [vect_paths_id(s[i]) for i in xrange(len(s))]), matrix(ZZ, [[eval(projections[d][a],s[i]) for i in xrange(len(s))]    
+        return matrix(ZZ, [vect_paths_id(s[i]) for i in xrange(len(s))]), matrix(ZZ, [[eval(projections[d][a],s[i]) for i in xrange(len(s))]
                                                                              for d, a in self.cover_generators()])
     @cached_method
     def galois_group(self):
         r"""
-        Return the galois group of the cover 
+        Return the galois group of the cover
         """
         n = self.degree
         gap_list = ""
@@ -219,15 +237,16 @@ class IntExchange(object):
             perm_str = perm.cycle_string()
             gap_list += perm_str + ", "
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        G = gap("Centralizer(SymmetricGroup(%s), "%n + "Group([" + gap_list + "]))") 
+        from sage.interfaces.gap import gap
+        G = gap("Centralizer(SymmetricGroup(%s), "%n + "Group([" + gap_list + "]))")
         return G
 
     @cached_method
     def _characters(self):
         r"""
         We want to decompose homology space with the observation that it gives a representation of the galois group.
-        
-        RETURN
+
+        OUTPUT:
             - character: table of character, character[i][g] give the value of the i-th character on g
             g is given by a number
             - character_degree: list of degree of every character
@@ -235,6 +254,7 @@ class IntExchange(object):
             - perm : table s.t. perm[g] give the permutation associated to the group element g on the cover
             - n_cha : number of characters
         """
+        from sage.interfaces.gap import gap
         G = self.galois_group()
         G_order, T = gap.Order(G)._sage_(), gap.CharacterTable(G)
         irr_characters = gap.Irr(T)
@@ -252,7 +272,7 @@ class IntExchange(object):
             return cursor
         elements_group = gap.Elements(G)
         from sage.combinat.permutation import Permutation, Permutations
-        perm = [Permutation(str(elements_group[i]))*Permutations(self.degree).identity() for i in range(1, G_order + 1)] 
+        perm = [Permutation(str(elements_group[i]))*Permutations(self.degree).identity() for i in range(1, G_order + 1)]
         #identity assures that the permutation has the right size
         return(character, character_degree, G_order, perm, n_cha)
 
@@ -317,11 +337,11 @@ class IntExchange(object):
             projected_vectors.val(d,a)[i_arrive_cycle] += 1
             projected_vectors.val(d,a)[i_depart_cycle] -= 1
         from sage.matrix.constructor import matrix
-        return self.h_one_rel_to_generator()*matrix(ZZ, [projected_vectors.val(d,a) for d, a in self.cover_generators()]) 
+        return self.h_one_rel_to_generator()*matrix(ZZ, [projected_vectors.val(d,a) for d, a in self.cover_generators()])
 
     @cached_method
     def h_one_projection(self):               #projection in h_one_rel on the kernel of the border application
-        ker = self._h_zero_sigma().kernel() 
+        ker = self._h_zero_sigma().kernel()
         d = ker.degree()
         r = ker.rank()
         from sage.matrix.constructor import matrix
@@ -330,13 +350,13 @@ class IntExchange(object):
             from sage.modules.free_module_element import vector
             from sage.rings.integer_ring import ZZ
             B = copy(basis)
-            k = len(B) 
+            k = len(B)
             c = 0
             def id(i):
                 res = vector(ZZ, d)
                 res[i] = 1
                 return res
-            while k < d:            
+            while k < d:
                 if matrix(B + [id(c)]).rank() == k + 1:
                     B += [id(c)]
                     k += 1
@@ -350,7 +370,7 @@ class IntExchange(object):
 
     @cached_method
     def h_one_rel_to_h_one(self):
-        ker = self._h_zero_sigma().kernel() 
+        ker = self._h_zero_sigma().kernel()
         d = ker.degree()
         r = ker.rank()
         from sage.matrix.constructor import matrix
@@ -359,13 +379,13 @@ class IntExchange(object):
             from sage.modules.free_module_element import vector
             from sage.rings.integer_ring import ZZ
             B = copy(basis)
-            k = len(B) 
+            k = len(B)
             c = 0
             def id(i):
                 res = vector(ZZ, d)
                 res[i] = 1
                 return res
-            while k < d:            
+            while k < d:
                 if matrix(B + [id(c)]).rank() == k + 1:
                     B += [id(c)]
                     k += 1
@@ -409,8 +429,8 @@ class IntExchange(object):
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         from sage.rings.integer import Integer
-        return self.h_one_to_generator()*matrix(ZZ, [[Integer(self.galois_group_permutation()[t](n) == m and a == b) for n in self.degrees() 
-                                                      for a in self.labels()] 
+        return self.h_one_to_generator()*matrix(ZZ, [[Integer(self.galois_group_permutation()[t](n) == m and a == b) for n in self.degrees()
+                                                      for a in self.labels()]
                             for m in self.degrees() for b in self.labels()])*self.generator_to_h_one()
 
     @cached_method
@@ -487,7 +507,7 @@ class IntExchange(object):
     def _sum(self,i,label):                                       #return(sum of lengths of intervals on a line, number of times label appears)
         lg = self._lengths
         line = self._intervals[i]
-        n = len(line) 
+        n = len(line)
         s, compt = 0, 0
         for k in range(n) :
             if line[k].label == label :
@@ -544,7 +564,7 @@ class IntExchange(object):
         s1 = sum([lg[l_1[i].label] for i in range(len(l_1))])
         for a in lg.iterkeys():
             lg[a] = 2*lg[a]/(s0+s1)
-        if abs(s0 - s1) > diff_sum_seuil:
+        if abs(s0 - s1) > 2**(-50):
             (i,j) = self._double()
             label = self._intervals[i][j].label
             (s_0, l_0) = self._sum(0,label)
@@ -570,7 +590,7 @@ class IntExchange(object):
             sage: lengths = {'a': 2, 'b': 3, 'c': 2}
 
             sage: permutations = {lab: Permutations(1).identity() for lab in lengths.iterkeys()}
-        
+
             sage: IntExchange(intervals, lengths, permutations).rauzy_type()
             (1, 0)
 
@@ -604,7 +624,7 @@ class IntExchange(object):
             sage: lengths = {'a': 2, 'b': 3, 'c': 2}
 
             sage: permutations = {lab: Permutations(1).identity() for lab in lengths.iterkeys()}
-        
+
             sage: ie = IntExchange(intervals, lengths, permutations)
             sage: ie
             Intervals    : [ a, -a,  b]
@@ -643,12 +663,12 @@ class IntExchange(object):
         from sage.combinat.permutation import Permutations
         if self.give_name(i,j) :
             return Permutations(self.degree).identity()
-        else : 
+        else :
             return self.permutation(i,j).inverse()
 
     def ident_rev(self,i,j):
         r"""
-        Return the permutation for the given saddle connection of identifiction according to the level of the cover. 
+        Return the permutation for the given saddle connection of identifiction according to the level of the cover.
         """
         if self.give_name(i,j):
             return self.permutation(i,j)
@@ -657,19 +677,19 @@ class IntExchange(object):
 
 
     def rauzy(self, debug = 0):
-        
+
         r"""
         Apply the rauzy transform to the interval exchange.
 
         EXAMPLES::
-        
+
             sage: intervals = [[Interval('a',1), Interval('a',-1), Interval('b',1)],
             ...   [Interval('b',1), Interval('c', 1), Interval('c',-1)]]
 
             sage: lengths = {'a': 2, 'b': 3, 'c': 2}
 
             sage: permutations = {lab: Permutations(1).identity() for lab in lengths.iterkeys()}
-        
+
             sage: ie = IntExchange(intervals, lengths, permutations)
             sage: ie
             Intervals    : [ a, -a,  b]
@@ -697,7 +717,7 @@ class IntExchange(object):
             Permutations : {'a': [1], 'c': [1], 'b': [1]}
             <BLANKLINE>
 
-        
+
         Non trivial cover case
         ::
 
@@ -710,7 +730,7 @@ class IntExchange(object):
 
             sage: ie.rauzy_rev()
             (-1, 'c', 'b', [1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1], True, [3, 4, 1, 2, 5, 6])
-        
+
             sage: ie
             Intervals    : [ a, -a,  b]
                            [ b, -c,  c]
@@ -724,7 +744,7 @@ class IntExchange(object):
         A, B = self._intervals[i_0][d_0], self._intervals[i_1][d_1]        #A is the shortest of both final intervals B the longest
         self._lengths[B.label] = self._lengths[B.label] - self._lengths[A.label]                       #CHANGE LENGTH
         (i_1_twin, d_1_twin) = self._twins[i_1][d_1]                        #CHANGE PERMUTATION #compute image of the long interval to see first return
-        (i_0_twin, d_0_twin) = self._twins[i_0][d_0]                        #compute image of the short interval 
+        (i_0_twin, d_0_twin) = self._twins[i_0][d_0]                        #compute image of the short interval
         if debug :
             print self
             print "win :  ",
@@ -857,7 +877,7 @@ class IntExchange(object):
             i_aux, j_aux, d_aux, side_aux = self._next_path(i_aux, j_aux, d_aux, side_aux)
         return d_aux, self.label(i_aux, j_aux), side_aux
 
-    def edge_cover_permutation(self):
+    def _edge_cover_permutation(self):
         from sage.combinat.permutation import Permutation
         perm = range(self.total_number_of_intervals_cover)
         for c in self.degrees():
@@ -872,13 +892,22 @@ class IntExchange(object):
         n = l[0] + l[1]
         j_base = (i-1) % n
         return( j_base == 0 or j_base == l[0] )
- 
+
     def singularities_order(self):
         r"""
+        ..NOTE::
         To compute the angle around a singularity, we use the following simple argument.
         If you apply the Teichmueller flow, the singularity order won't change, and the angle betwin two intervals
-        will tend to \pi except at extremal point where it tends to 0.
+        will tend to ``\pi`` except at extremal point where it tends to 0.
         We first count the angle and then substract it by 2 to get the quadratic singularity order.
+ 
+        EXAMPLES::
+        
+        Quadratic[{-1, -1, -1, -1}] ::
+            sage: intervals = [[Interval('a',1), Interval('a',-1), Interval('b',1)], [Interval('b',-1), Interval('c', 1), Interval('c',-1)]]
+            sage: R = orientable_double_cover_IntExchange(intervals)
+            sage: R.singularities_order()
+            [-1, -1, -1, -1]
         """
         singularities = [0 for k in range(self.n_cycles)]
         for k in range(self.n_cycles):
@@ -889,7 +918,7 @@ class IntExchange(object):
             singularities[k] -= 2
         return(singularities)
 
-    def occurences(self, l):
+    def _occurences(self, l):
         l.sort()
         elements = []
         nb_of_occurence = []
@@ -903,7 +932,23 @@ class IntExchange(object):
         return(elements, nb_of_occurence)
 
     def stratum(self):
-        order_of_singularity, nb_of_occurence = self.occurences(self.singularities_order())
+        r"""
+        EXAMPLES::
+        
+        Quadratic[{-1, -1, -1, -1}] ::
+            sage: intervals = [[Interval('a',1), Interval('a',-1), Interval('b',1)], [Interval('b',-1), Interval('c', 1), Interval('c',-1)]]
+            sage: R = orientable_double_cover_IntExchange(intervals)
+            sage: R.stratum()
+            'Q(-1^4)'
+
+        Quadratic[{5, -1}] ::
+            sage: intervals = [[Interval('a',1), Interval('b',1), Interval('c',1), Interval('b',-1), Interval('d',1)], 
+            ....:              [Interval('d',1), Interval('e',1), Interval('e',-1), Interval('c',1), Interval('a',1)]]
+            sage: R = trivial_IntExchange(intervals)
+            sage: R.stratum()
+            'Q(-1^1, 5^1)'
+        """
+        order_of_singularity, nb_of_occurence = self._occurences(self.singularities_order())
         n = len(order_of_singularity)
         if n == 1:
             return "Q(" + str(order_of_singularity[0]) + "^" + str(nb_of_occurence[0]) + ")"
@@ -915,6 +960,22 @@ class IntExchange(object):
         return(s)
 
     def genus(self):
+        r"""
+        EXAMPLES::
+        
+        Quadratic[{-1, -1, -1, -1}] ::
+            sage: intervals = [[Interval('a',1), Interval('a',-1), Interval('b',1)], [Interval('b',-1), Interval('c', 1), Interval('c',-1)]]
+            sage: R = orientable_double_cover_IntExchange(intervals)
+            sage: R.genus()
+            0
+
+        Quadratic[{5, -1}] ::
+            sage: intervals = [[Interval('a',1), Interval('b',1), Interval('c',1), Interval('b',-1), Interval('d',1)], 
+            ....:              [Interval('d',1), Interval('e',1), Interval('e',-1), Interval('c',1), Interval('a',1)]]
+            sage: R = trivial_IntExchange(intervals)
+            sage: R.genus()
+            2
+        """
         sum_d = sum(self.singularities_order())
         return((sum_d + 4)/4)
 
@@ -925,10 +986,10 @@ class IntExchange(object):
             if v.val(d,a) <> 0:
                 i_left_cycle, i_right_cycle = self._index_edge_cycle_non_orientated(d, a)
                 i_depart_cycle, i_arrive_cycle = self._index_edge_cycle_orientated(d, a)
-                
+
                 if v.val(d,a) < 0:
                     i_depart_cycle, i_arrive_cycle = i_arrive_cycle, i_depart_cycle
-                
+
                 if i_depart_cycle == i_edge_cycle_ref:
                     if i_left_cycle == i_right_cycle:
                         depart += [(d, a, "Left")]*Integer(abs(v.val(d,a)))
@@ -937,7 +998,7 @@ class IntExchange(object):
                             depart += [(d, a, "Left")]*Integer(abs(v.val(d,a)))
                         if i_right_cycle == i_edge_cycle_ref:
                             depart += [(d, a, "Right")]*Integer(abs(v.val(d,a)))
-                
+
                 if i_arrive_cycle == i_edge_cycle_ref:
                     if i_left_cycle == i_right_cycle:
                         arrive += [(d, a, "Right")]*Integer(abs(v.val(d,a)))
@@ -946,7 +1007,7 @@ class IntExchange(object):
                             arrive += [(d, a, "Left")]*Integer(abs(v.val(d,a)))
                         if i_right_cycle == i_edge_cycle_ref:
                             arrive += [(d, a, "Right")]*Integer(abs(v.val(d,a)))
-                            
+
         return arrive, depart
 
     def interval_to_name(self, i, j, d):
@@ -978,7 +1039,8 @@ class IntExchange(object):
             sage: v = ie.canonical_VectPaths()
             sage: v._vect[1]['a'] = 1
             sage: v._vect[2]['a'] = -1
-            sage: ie.intersection((1, 'b'), (2, 'b'), v)
+            sage: ie.intersection((1, 'b', 'Right'), (2, 'b', 'Right'), v)
+            0
         """
         d_aux, a_aux, side_aux = self._next_path_generator(d_arr, a_arr, side_arr)
         c = 0
@@ -990,12 +1052,13 @@ class IntExchange(object):
                 c -= v.val(d_aux, a_aux)*self.label_orientation(a_aux)
             d_aux, a_aux, side_aux = self._next_path_generator(d_aux, a_aux, side_aux)
             s += 1
-            if s > 100 :
+            if s > 2^15 :
                 print self
                 print a_arr, a_dep, a_aux
                 print "d_arr :  " + str(d_arr) + "  a_arr :  " + str(a_arr) + "side_arr :  " + str(side_arr)
                 print "d_dep :  " + str(d_dep) + "  a_dep :  " + str(a_dep) + "side_dep :  " + str(side_dep)
                 print "d_aux :  " + str(d_aux) + "  a_aux :  " + str(a_aux) + "side_aux :  " + str(side_aux) +"\n"
+                raise NameError('Problem with intersection : not finite')
         return c
 
     def global_intersection(self, v, w):
@@ -1029,7 +1092,6 @@ class IntExchange(object):
         return UCF(E(4))*matrix(dim, inter)
 
 
-
     def isotopic_projection(self, i_character, (d_j, a_j)):
         r"""
         Return a new VectPaths corresponding to the projection of self to the isotropic space of the \chi_i character
@@ -1052,6 +1114,7 @@ class IntExchange(object):
         r"""
         Return a new VectPaths corresponding to the projection of self to the isotopic space of the \chi_i character
         """
+        from sage.rings.all import CC
         res = self.canonical_VectPaths()
         coeff = CC(self.character_degree()[i_character]/self.galois_group_order())
         for d, a in self.cover_generators():
@@ -1088,6 +1151,7 @@ class IntExchange(object):
         return M*self.intersection_matrix()*M.transpose().conjugate()
 
     def signature(self, M):
+        from sage.rings.all import CC
         P = UCF_mat_to_cyclotomic_field(M).characteristic_polynomial()
         roots = P.change_ring(CC).roots(CC)
         p, q = 0, 0
@@ -1107,7 +1171,7 @@ class IntExchange(object):
     def signatures_isotopic(self, i):
         r"""
         Returns the signature of the intersection form on the isotropic subspace for the ``i``-th character.
-        
+
         EXAMPLES::
 
             sage: R = cyclic_cover_iet(6, [1, 1, 1, 3])
@@ -1155,12 +1219,18 @@ class IntExchange(object):
         - ``output_file`` -- if provided (as a file object or a string) output
           the additional information in the given file rather than on the
           standard output.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
         """
         import time
         import sage.dynamics.flat_surfaces.lekz as lekz   # the cython bindings
         if nb_vectors is None:
             nb_vectors = self.genus()
-            
+
         if output_file is None:
             from sys import stdout
             output_file = stdout
@@ -1200,17 +1270,17 @@ class IntExchange(object):
             for j in range(self.number_of_intervals[0]):
                 gp[j + i*k] = associate[self._intervals[i][j].label]
         n = self.total_number_of_intervals_base // 2
-        for i in range(2): 
+        for i in range(2):
             for j in range(self.number_of_intervals[i]):
                 i_twin, j_twin = self._twins[i][j]
                 twin[i * k + j] = int(i_twin * k + j_twin)
-                
+
         sigma = range(n)
         for lab in self.iter_lab():
             sigma[associate[lab]] = map(int,list(self._permutations[lab]))
         sigma = reduce(lambda x, y: x+y, sigma)
         sigma = map(lambda x : x-1, sigma)
-        
+
         if self._lengths <> None :
             lengths = range(n)
             for lab in self.iter_lab():
@@ -1253,7 +1323,7 @@ class IntExchange(object):
         And make the isotopic decomposition for the Hodge bundle.
 
         We use an isotopic decomposition since the galois group of the cover acts on the homology group.
-        The finite representation of group theory gives a decomposition by characters of the Hodge bundle, 
+        The finite representation of group theory gives a decomposition by characters of the Hodge bundle,
         invariant by Teichm\"uller flow.
 
         It calls the C-library lyap_exp interfaced with Cython. The computation
@@ -1294,7 +1364,7 @@ class IntExchange(object):
         nb_vectors = sum([d//2 for d in self.dimensions()])
         if self.genus() <> nb_vectors:
             print "Warning: Sum of dimensions of isotopic subspaces are not equal to the genus"
-            
+
         if output_file is None:
             from sys import stdout
             output_file = stdout
@@ -1334,7 +1404,7 @@ class IntExchange(object):
             for j in xrange(self.number_of_intervals[0]):
                 gp[j + i*k] = associate[self._intervals[i][j].label]
         n = self.total_number_of_intervals_base // 2
-        for i in xrange(2): 
+        for i in xrange(2):
             for j in xrange(self.number_of_intervals[i]):
                 i_twin, j_twin = self._twins[i][j]
                 twin[i * k + j] = int(i_twin * k + j_twin)
@@ -1342,17 +1412,18 @@ class IntExchange(object):
         size_of_matrix = self.nb_labels * self.degree
         projections = range(size_of_matrix**2 * self.n_characters())
         from sage.functions.other import real_part
+        from sage.rings.all import CC
         for i_char in xrange(self.n_characters()):
             for i in xrange(size_of_matrix):
                 for j in xrange(size_of_matrix):
                     projections [i_char * (size_of_matrix**2) + i * size_of_matrix + j] = float(real_part(CC(self.isotopic_projection_matrix(i_char)[j][i])))
-        
+
         sigma = range(n)
         for lab in self.iter_lab():
             sigma[associate[lab]] = map(int,list(self._permutations[lab]))
         sigma = reduce(lambda x, y: x+y, sigma)
         sigma = map(lambda x : x-1, sigma)
-        
+
         if self._lengths <> None :
             lengths = range(n)
             for lab in self.iter_lab():
@@ -1362,13 +1433,13 @@ class IntExchange(object):
 
         #Launch the computation
         t0 = time.time()
-        from sage.misc.prandom import random    
+        from sage.misc.prandom import random
         from sage.rings.integer import Integer
         v = VectPaths(self.labels(), self.degrees()).random()
         res = lekz.lyapunov_exponents_H_plus_cyclic_cover(
                    gp, twin, int(k), int(n), sigma, self.degree,
-                   nb_vectors, nb_experiments, nb_iterations, lengths, 
-                   self.n_characters(), 
+                   nb_vectors, nb_experiments, nb_iterations, lengths,
+                   self.n_characters(),
                    [Integer(d//2) for d in self.dimensions()],
                    projections)
         t1 = time.time()
@@ -1385,8 +1456,8 @@ class IntExchange(object):
             output_file.write("ellapsed time %s\n"%time.strftime("%H:%M:%S",time.gmtime(t1-t0)))
             output_file.write("Lexp Rauzy-Zorich: %f (std. dev. = %f, conf. rad. 0.01 = %f)\n"%(
                     m,d, 2.576*d/sqrt(nb_experiments)))
-        
-        i_0 = 1  
+
+        i_0 = 1
         from sage.rings.integer import Integer
         for i_char in xrange(self.n_characters()):
             res_rel = []
@@ -1403,43 +1474,6 @@ class IntExchange(object):
         return res_final
 
 
-
-def trivial_IntExchange(intervals):
-    from sage.combinat.permutation import Permutations
-    return IntExchange(intervals, permutations = {intervals[i][j].label: Permutations(1).identity() for i in range(2) for j in range(len(intervals[i])) })
-
-def orientable_double_cover_IntExchange(intervals):
-    r"""
-    Return the interval exchange of the orientated cover
-    EXEMPLES ::
-        sage: permutations = {'a': sigma_a, 'b': sigma_b, 'c': sigma_c}
-        sage: orientable_double_cover_IntExchange(intervals)
-        Intervals    : [ a, -a,  b]
-                       [ b,  c, -c]
-        Lengths      : None
-        Permutations : {'a': [2, 1], 'c': [2, 1], 'b': [1, 2]}
-        <BLANKLINE>
-
-    """
-    def twin(intervals, i, j):
-        for n in range(len(intervals[i])):
-            if n <> j and intervals[i][n].label == intervals[i][j].label:
-                return(i,n)
-        for n in range(len(intervals[(i+1)%2])):
-            if intervals[(i+1)%2][n].label == intervals[i][j].label:
-                return((i+1)%2,n)
-
-    def orientable_double_cover_permutation(i, j):
-        from sage.combinat.permutation import Permutation, Permutations
-        (i_twin, j_twin) = twin(intervals, i, j)
-        if i_twin <> i :
-            return Permutations(2).identity()
-        else :
-            return Permutation('(1,2)')
-    return IntExchange(intervals, {intervals[i][j].label: orientable_double_cover_permutation(i, j) for i in range(2) for j in range(len(intervals[i])) })
-
-
-
 def mean_and_std_dev(l):
     r"""
     Return the mean and standard deviation of the floatting point numbers in
@@ -1449,7 +1483,6 @@ def mean_and_std_dev(l):
     (>1000) of numbers.
 
     .. NOTE::
-
     mean and std are implemented in Sage but are quite buggy!
     """
     from math import sqrt
@@ -1459,97 +1492,3 @@ def mean_and_std_dev(l):
     else:
         d = sum((x-m)**2 for x in l) / (len(l)-1)
     return m,sqrt(d)
-
-
-def square_tiled_surface(horizontal_permutation, vertical_permutation):
-    return IntExchange([[Interval('a', 1), Interval('b', 1)], [Interval('b', 1), Interval('a', 1)]], 
-                       {'a' : horizontal_permutation, 'b' : vertical_permutation})
-
-def square_tiled_surface_pillow_case(perm_a, perm_b, perm_c):
-    return IntExchange([[Interval('a', 1), Interval('a', -1), Interval('b', 1)], [Interval('b', -1), Interval('c', -1), Interval('c', 1)]], 
-                       {'a' : perm_a, 'b' : perm_b, 'c' : perm_c})
-
-def EKZ_example(n):
-    from sage.combinat.permutation import Permutation
-    horizontal_permutation = Permutation ([ (k + 1) % n + 1 for k in range(n) ])
-    vertical_permutation = Permutation ([ n - k for k in range(n) ])
-    return square_tiled_surface(horizontal_permutation, vertical_permutation)
-
-def pillow_case_iet(N):
-    from sage.combinat.permutation import Permutation
-    perm_a = Permutation ([ (k + N - 2) % (2*N) + 1 for k in range(2*N) ])
-    perm_b = Permutation ([ (k + 0) % (2*N) + 1 for k in range(2*N) ])
-    perm_c = Permutation ([ (k + N) % (2*N) + 1 for k in range(2*N) ])
-    return square_tiled_surface_pillow_case(perm_a, perm_b, perm_c)
-
-def pillow_case_exact(N):
-    a = range(4)
-    if N % 2 == 1:
-        a[0] = N + 2
-        a[1] = N - 2
-        a[2] = N
-        a[3] = N
-    if N % 2 == 0:
-        a[0] = N-1
-        a[1] = 1
-        a[2] = N-1
-        a[3] = 1
-    return cyclic_cover(2*N, a)
-
-
-def cyclic_cover_iet(N, a):
-    from sage.combinat.permutation import Permutation
-    if (a[0] + a[1] + a[2] + a[3]) % N <> 0 :
-        raise NameError('Not square-tiled cyclic cover')
-    n_a = a[1]
-    n_b = -a[0] - a[1]
-    n_c = a[2]
-    perm_a = Permutation ([ (k + n_a) % N + 1 for k in range(N) ])
-    perm_b = Permutation ([ (k + n_b) % N + 1 for k in range(N) ])
-    perm_c = Permutation ([ (k + n_c) % N + 1 for k in range(N) ])
-    return square_tiled_surface_pillow_case(perm_a, perm_b, perm_c)
-
-
-def cyclic_cover_exact(N, a):
-    from sage.rings.integer import Integer
-    res = range(N-1)
-    for k in range(1, N):
-        t = range(4)
-        for i in range(4):
-            t[i] = RR(a[i]/(N+ 0.)*k).frac()
-        res[k-1] = Integer(round(sum(t)))
-    results = [(0,0)]
-    for k in range(1, N):
-        dim = res[k-1] + res[N - k - 1] - 2
-        results += [(res[N - k - 1] - 1 , res[k - 1] - 1)]
-    singularities_order = []
-    from math import gcd
-    for i in range(4):
-        singularities_order += [N / gcd(a[i], N) - 2 for k in range(gcd(a[i], N))]
-    return results
-
-
-
-def occurences(l):
-        l.sort()
-        elements = []
-        nb_of_occurence = []
-        i = 0
-        while i < len(l):
-            if i == 0 or l[i] <> l[i-1]:
-                elements.append(l[i])
-                nb_of_occurence.append(0)
-            nb_of_occurence[len(elements) - 1] += 1
-            i += 1
-        return(elements, nb_of_occurence)
-
-def stratum((order_of_singularity, nb_of_occurence)):
-        n = len(order_of_singularity)
-        if n == 1:
-            return "Q(" + str(order_of_singularity[0]) + "^" + str(nb_of_occurence[0]) + ")"
-        s = "Q("
-        s += str(order_of_singularity[0]) + "^" + str(nb_of_occurence[0]) + ","
-        for i in range(1, n - 1):
-            s += " " + str(order_of_singularity[i]) + "^" + str(nb_of_occurence[i]) + ","
-        s += " " + str(order_of_singularity[n-1]) + "^" + str(nb_of_occurence[n-1]) + ")"
-        return(s)

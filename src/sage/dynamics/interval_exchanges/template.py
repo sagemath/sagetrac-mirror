@@ -87,7 +87,7 @@ def interval_conversion(interval=None):
             raise ValueError("interval must be 0 or 1")
         return interval
 
-    if isinstance(interval,str):
+    if isinstance(interval, str):
         if interval == '':
             raise ValueError("the interval can not be the empty string")
         if 'top'.startswith(interval): return 0

@@ -252,7 +252,7 @@ void orthogonalize_iso(quad_cyclic_cover *qcc, double *theta, size_t nb_char, si
 	  for(k=0; k<qcc->degree; ++k)
 	    sqnorm  += vv[sum_dimensions + qcc->nb_vectors*k] * vv[sum_dimensions + qcc->nb_vectors*k];
 	}
-      
+
       /* we renormalize v*/
       if(theta != NULL) theta[sum_dimensions + 1] += log(sqnorm);
       norm = sqrt(sqnorm);
@@ -322,10 +322,10 @@ void orthogonalize_iso(quad_cyclic_cover *qcc, double *theta, size_t nb_char, si
 
 		    /* subtract the part of the span of v_(i-1) */
 		    vv[sum_dimensions + i + qcc->nb_vectors * k] -= c * vv[sum_dimensions + ii + qcc->nb_vectors*k];
-		    
+
 		    /* normalize v_(i-1) */
 		    vv[sum_dimensions + (i-1) + qcc->nb_vectors*k] /= norm;
-		    
+
 		    /* compute scalar products and norms for next loop */
 		    /* sqnorm = <v_i, v_i> */
 		    /* scal_new[ii] = <v_(i+1), v_ii>*/
@@ -351,11 +351,11 @@ void orthogonalize_iso(quad_cyclic_cover *qcc, double *theta, size_t nb_char, si
 	      {
 		for(ii=0; ii<i-1; ++ii)
 		  vv[sum_dimensions + i + qcc->nb_vectors*k] -= scal_new[ii] * vv[sum_dimensions + ii + qcc->nb_vectors*k];
-		    
+
 		vv[sum_dimensions + i + qcc->nb_vectors*k] -= c * vv[sum_dimensions + i-1 + qcc->nb_vectors*k];
 		
 		vv[sum_dimensions + i-1 + qcc->nb_vectors * k] /= norm;
-		    
+
 		sqnorm += vv[sum_dimensions + i + qcc->nb_vectors * k] * vv[sum_dimensions + i + qcc->nb_vectors * k];
 	      }
 	  }
@@ -408,7 +408,7 @@ void check_orthogonality_iso(quad_cyclic_cover *qcc, size_t nb_char, size_t* dim
 	  sum_dimensions += dimensions[i_char];
 
 	if (sum_dimensions != qcc->nb_vectors) {
-	  fprintf(stderr, "Wrong isotopic decomposition : dimensions doesn't match\nSum of isotopic dimensions : %i,   nb_vectors : %i", 
+	  fprintf(stderr, "Wrong isotopic decomposition : dimensions doesn't match\nSum of isotopic dimensions : %i,   nb_vectors : %i",
 		  sum_dimensions, qcc->nb_vectors);
 	  exit(EXIT_FAILURE);
 	}
@@ -427,12 +427,12 @@ void check_orthogonality_iso(quad_cyclic_cover *qcc, size_t nb_char, size_t* dim
 		      for(k=0; k < qcc->degree; ++k)
 			s += vv[i1 + qcc->nb_vectors*k] * vv[i2 + qcc->nb_vectors*k];
 		    }
-		  
+
 		  if (i1==i2 && (s - 1) > 0x40000000000){
 		    fprintf(stderr, "Wrong normalisation\nNorm : %lf\n", s);
 		    exit(EXIT_FAILURE);
 		  }
-		  
+
 		  if (i1!=i2 && s > 0x40000000000) {
 		    fprintf(stderr, "Wrong orthogonalisation\nScalar product : %lf\n", s);
 		    exit(EXIT_FAILURE);
@@ -463,12 +463,12 @@ inline void project_isotopic(quad_cyclic_cover *qcc, size_t nb_char, size_t* dim
                                                   * labels[lab_j].v[ l + nb_vector * deg_j]
    */
   size_t i_char, i_vec, lab_i, lab_j, deg_i, deg_j, sum_dimensions;
-  
+
   size_t size_of_matrix = qcc->degree * qcc->nb_labels;
   size_t sq_size = size_of_matrix * size_of_matrix;
-  
+
   double res;
-  
+
   sum_dimensions = 0;
 
   for(i_char=0; i_char<nb_char; ++i_char){
@@ -479,9 +479,9 @@ inline void project_isotopic(quad_cyclic_cover *qcc, size_t nb_char, size_t* dim
 	    res = 0.;
 	    for(lab_j=0; lab_j<qcc->nb_labels; ++lab_j)
 	      for (deg_j=0; deg_j<qcc->degree; ++deg_j)
-		res += (double) projections[ i_char * (sq_size) + 
-					     (deg_i * qcc->nb_labels + lab_i) * size_of_matrix + 
-					     (deg_j * qcc->nb_labels + lab_j)] 
+		res += (double) projections[ i_char * (sq_size) +
+					     (deg_i * qcc->nb_labels + lab_i) * size_of_matrix +
+					     (deg_j * qcc->nb_labels + lab_j)]
 		  * (qcc->labels)[lab_j].v[sum_dimensions + i_vec + qcc->nb_vectors * deg_j];
 	    (qcc->v_buffer)[lab_i + qcc->nb_labels * deg_i] = res;
 	    if (lab_i + qcc->nb_labels * deg_i >= qcc->nb_labels * qcc->degree || lab_i + qcc->nb_labels * deg_i < 0)
@@ -493,7 +493,7 @@ inline void project_isotopic(quad_cyclic_cover *qcc, size_t nb_char, size_t* dim
 	  (qcc->labels)[lab_i].v[sum_dimensions + i_vec + qcc->nb_vectors * deg_i] = (qcc->v_buffer)[lab_i + qcc->nb_labels * deg_i];
     }
     sum_dimensions += dimensions[i_char];
-  } 
+  }
 }
 
 
@@ -502,7 +502,7 @@ void check_projection(quad_cyclic_cover *qcc, size_t nb_char, size_t* dimensions
 
   size_t i_vec, lab, deg;
   double buffer[qcc->nb_vectors * qcc->nb_labels * qcc->degree];
-  
+
   project_isotopic(qcc, nb_char, dimensions, projections);
 
   for(i_vec=0; i_vec<qcc->nb_vectors; ++i_vec)
@@ -526,7 +526,7 @@ inline double max_norm(quad_cyclic_cover *qcc)
 {
   double sqnorm = 0., max = 0.;
   size_t i_vec, lab, deg;
-  
+
   for(i_vec=0; i_vec<qcc->nb_vectors; ++i_vec) {
     for(lab=0; lab < qcc->nb_labels; ++lab)
       for(deg=0; deg < qcc->degree; ++deg)
