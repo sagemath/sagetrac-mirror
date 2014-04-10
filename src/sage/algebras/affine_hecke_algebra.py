@@ -72,19 +72,19 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         TX[0,1,2] + 3*TX[0,1] + 2*TX[0] + 1
         sage: HY_KY = H.HY_KY()
         sage: HY_KY.an_element()
-        Ty[1,2,1] # Y[(2, 2, 3)] + 3*Ty[1,2] # Y[(2, 2, 3)] + 3*Ty[2,1] # Y[(2, 2, 3)]
+        Ty[1,2,1] Y[(2, 2, 3)] + 3*Ty[1,2] Y[(2, 2, 3)] + 3*Ty[2,1] Y[(2, 2, 3)]
         sage: KY_HY = H.KY_HY()
         sage: KY_HY.an_element()
-        Y[(2, 2, 3)] # Ty[1,2,1] + 3*Y[(2, 2, 3)] # Ty[1,2] + 3*Y[(2, 2, 3)] # Ty[2,1]
+        Y[(2, 2, 3)] Ty[1,2,1] + 3*Y[(2, 2, 3)] Ty[1,2] + 3*Y[(2, 2, 3)] Ty[2,1]
 
     There are built-in coercions between the bases::
 
         sage: m = AX.monomial(AX.basis().keys().an_element()); m
         TX[0,1,2]
         sage: KY_HY(m)
-        Y[(1, 0, -1)] # Ty[1] + ((-v^2+1)/v)*Y[(1, 0, -1)] # 1
+        Y[(1, 0, -1)] Ty[1] + ((-v^2+1)/v)*Y[(1, 0, -1)]
         sage: HY_KY(m)
-        Ty[1] # Y[(0, 1, -1)]
+        Ty[1] Y[(0, 1, -1)]
         sage: AX(HY_KY(m))
         TX[0,1,2]
 
@@ -99,9 +99,9 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: AX.an_element()
         TX[0,1,2] + 3*TX[0,1] + 2*TX[0] + 1
         sage: HY_KY(AX.an_element())
-        2*Ty[1,2,1] # Y[(-1, 0)] + 3*Ty[1,2] # Y[(0, -1)] + ((3*v0^2-3)/v0)*Ty[1] # Y[(0, 0)] + Ty[1] # Y[(0, 1)] + ((2*v0^2+v0-2)/v0)*1 # Y[(0, 0)]        
+        2*Ty[1,2,1] Y[(-1, 0)] + 3*Ty[1,2] Y[(0, -1)] + ((3*v0^2-3)/v0)*Ty[1] + Ty[1] Y[(0, 1)] + ((2*v0^2+v0-2)/v0)
         sage: KY_HY(AX.an_element())
-        Y[(0, 0)] # 1 + 2*Y[(1, 0)] # Ty[1,2,1] + ((-2*vl^2+3*vl+2)/vl)*Y[(1, 0)] # Ty[1,2] + ((-2*vl^2+2)/vl)*Y[(1, 0)] # Ty[2,1] + ((2*v^2*vl^2-3*v^2*vl-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl))*Y[(1, 0)] # Ty[1] + ((2*vl^4-3*vl^3-4*vl^2+3*vl+2)/vl^2)*Y[(1, 0)] # Ty[2] + ((-2*v^2*vl^4+3*v^2*vl^3+2*v^2*vl^2-v*vl^3+2*vl^4-3*v^2*vl-3*vl^3-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl^2))*Y[(1, 0)] # 1
+        1 + 2*Y[(1, 0)] Ty[1,2,1] + ((-2*vl^2+3*vl+2)/vl)*Y[(1, 0)] Ty[1,2] + ((-2*vl^2+2)/vl)*Y[(1, 0)] Ty[2,1] + ((2*v^2*vl^2-3*v^2*vl-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl))*Y[(1, 0)] Ty[1] + ((2*vl^4-3*vl^3-4*vl^2+3*vl+2)/vl^2)*Y[(1, 0)] Ty[2] + ((-2*v^2*vl^4+3*v^2*vl^3+2*v^2*vl^2-v*vl^3+2*vl^4-3*v^2*vl-3*vl^3-2*v^2+v*vl-2*vl^2+3*vl+2)/(v*vl^2))*Y[(1, 0)]
         sage: HY_KY(AX.an_element()) == HY_KY(KY_HY(AX.an_element()))
         True
         sage: AX[1,0,1,0] == AX[0,1,0,1]
@@ -455,12 +455,11 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     sage: H.AX().algebra_generators()
                     Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
                     sage: H.HY_KY().algebra_generators()
-                    Finite family {0: Ty[1,2,1] # Y[(-1, 0, 1)] + ((v^2-1)/v)*1 # Y[(0, 0, 0)], 1: Ty[1] # Y[(0, 0, 0)], 2: Ty[2] # Y[(0, 0, 0)]}
+                    Finite family {0: Ty[1,2,1] Y[(-1, 0, 1)] + ((v^2-1)/v), 1: Ty[1], 2: Ty[2]}
                     sage: K = QQ['v,vl'].fraction_field(); v,vl=K.gens()
                     sage: H = AffineHeckeAlgebra(['C',3,1],q1=Family(dict([[0,vl],[1,v],[2,v],[3,vl]])))
                     sage: H.HY_KY().algebra_generators()
-                    Finite family {0: Ty[1,2,3,2,1] # Y[(-1, 0, 0)] + ((vl^2-1)/vl)*1 # Y[(0, 0, 0)], 1: Ty[1] # Y[(0, 0, 0)], 2: Ty[2] # Y[(0, 0, 0)], 3: Ty[3] # Y[(0, 0, 0)]}
-
+                    Finite family {0: Ty[1,2,3,2,1] Y[(-1, 0, 0)] + ((vl^2-1)/vl), 1: Ty[1], 2: Ty[2], 3: Ty[3]}
                 """
                 pass
 
@@ -480,7 +479,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     TX[0,2,0,1] + ((-v^2+1)/v)*TX[0,2,1]                   
                     sage: HY_KY = H.HY_KY()
                     sage: HY_KY(z)
-                    1 # Y[(1, -1, 0)]
+                    Y[(1, -1, 0)]
                     sage: HY_KY(z) == HY_KY.Y_morphism(y)
                     True
                 """
@@ -513,7 +512,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 EXAMPLES::
 
                     sage: AffineHeckeAlgebra("A2").HY_KY().from_reduced_word([0,2,1])
-                    Ty[2] # Y[(1, -1, 0)]
+                    Ty[2] Y[(1, -1, 0)]
 
                 """
                 return self(self.realization_of().AX().from_reduced_word(word))
@@ -593,11 +592,11 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: z = H.AX().Y_morphism(KY.monomial(KY.basis().keys().simple_root(2))); z
                 TX[0,1,0,2] + ((-v^2+1)/v)*TX[0,1,2]
                 sage: H.KY_HY()(z)
-                Y[(0, 1, -1)] # 1
+                Y[(0, 1, -1)]
                 sage: H.HY_KY()(z)
-                1 # Y[(0, 1, -1)]
+                Y[(0, 1, -1)]
                 sage: H.KY_HY()(H.HY_KY()(z))
-                Y[(0, 1, -1)] # 1
+                Y[(0, 1, -1)]
 
             """
             return self(self.realization_of().HY_KY()(y))
@@ -652,7 +651,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: y = KY.an_element(); y
                 Y[(2, 2, 3)]
                 sage: H.HY_KY().Y_morphism(y)
-                1 # Y[(2, 2, 3)]
+                Y[(2, 2, 3)]
 
             """
             return self.factor_embedding(1)(y)
@@ -668,7 +667,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: h = HY.an_element(); h
                 Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
                 sage: H.HY_KY().classical_hecke_morphism(h)
-                Ty[1,2,1] # Y[(0, 0, 0)] + 3*Ty[1,2] # Y[(0, 0, 0)] + 3*Ty[2,1] # Y[(0, 0, 0)]
+                Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
             """
             return self.factor_embedding(0)(a)
 
@@ -679,7 +678,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: AffineHeckeAlgebra("A2").HY_KY().T0()
-                Ty[1,2,1] # Y[(-1, 0, 1)] + ((v^2-1)/v)*1 # Y[(0, 0, 0)]
+                Ty[1,2,1] Y[(-1, 0, 1)] + ((v^2-1)/v)
             """
             return self.realization_of().KY_HY().T0().to_opposite()
 
@@ -691,11 +690,10 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: AffineHeckeAlgebra("A2").HY_KY().algebra_generators()
-                Finite family {0: Ty[1,2,1] # Y[(-1, 0, 1)] + ((v^2-1)/v)*1 # Y[(0, 0, 0)], 1: Ty[1] # Y[(0, 0, 0)], 2: Ty[2] # Y[(0, 0, 0)]}
+                Finite family {0: Ty[1,2,1] Y[(-1, 0, 1)] + ((v^2-1)/v), 1: Ty[1], 2: Ty[2]}
 
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(0)(self.factors()[0].algebra_generators()[i])] for i in self.realization_of().index_set()]))
-
 
     class AffineHeckeAlgebraKY_HY(SmashProductAlgebra, _Bases):
         r"""
@@ -749,7 +747,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: y = KY.an_element(); y
                 Y[(2, 2, 3)]
                 sage: H.KY_HY().Y_morphism(y)
-                Y[(2, 2, 3)] # 1
+                Y[(2, 2, 3)]
             """
             return self.factor_embedding(0)(y)
 
@@ -764,7 +762,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: h = HY.an_element(); h
                 Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
                 sage: H.KY_HY().classical_hecke_morphism(h)
-                Y[(0, 0, 0)] # Ty[1,2,1] + 3*Y[(0, 0, 0)] # Ty[1,2] + 3*Y[(0, 0, 0)] # Ty[2,1]
+                Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
             """
             return self.factor_embedding(1)(a)
 
@@ -793,7 +791,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: AffineHeckeAlgebra("A2").KY_HY().algebra_generators()
-                Finite family {0: Y[(1, 0, -1)] # Ty[1,2,1] + ((-v^2+1)/v)*Y[(1, 0, -1)] # Ty[1,2] + ((-v^2+1)/v)*Y[(1, 0, -1)] # Ty[2,1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] # Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] # Ty[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*Y[(1, 0, -1)] # 1, 1: Y[(0, 0, 0)] # Ty[1], 2: Y[(0, 0, 0)] # Ty[2]}
+                Finite family {0: Y[(1, 0, -1)] Ty[1,2,1] + ((-v^2+1)/v)*Y[(1, 0, -1)] Ty[1,2] + ((-v^2+1)/v)*Y[(1, 0, -1)] Ty[2,1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] Ty[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*Y[(1, 0, -1)], 1: Ty[1], 2: Ty[2]}
 
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(1)(self.factors()[1].algebra_generators()[i])] for i in self.realization_of().index_set()]))
