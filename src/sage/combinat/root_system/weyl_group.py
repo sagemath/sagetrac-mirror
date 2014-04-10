@@ -37,8 +37,8 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
-from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
+from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
@@ -198,7 +198,7 @@ def WeylGroup(x, prefix=None):
 
 
 class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
-                     FinitelyGeneratedMatrixGroup_gap):
+                     FinitelyGeneratedMatrixGroup_generic):
 
     @staticmethod
     def __classcall__(cls, domain, prefix=None):
@@ -215,12 +215,12 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: TestSuite(W).run() # long time
         """
         self._domain = domain
-        if self.cartan_type().is_affine():
-            category = AffineWeylGroups()
-        elif self.cartan_type().is_finite():
-            category = FiniteWeylGroups()
-        else:
-            category = WeylGroups()
+        #if self.cartan_type().is_affine():
+        #    category = AffineWeylGroups()
+        #if self.cartan_type().is_finite():
+        #    category = FiniteWeylGroups()
+        #else:
+        category = WeylGroups()
         self.n = domain.dimension() # Really needed?
         self._prefix = prefix
 
@@ -231,8 +231,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         libgap_group = libgap.Group(gens_matrix)
         degree = ZZ(self.domain().dimension())
         ring = self.domain().base_ring()
-        FinitelyGeneratedMatrixGroup_gap.__init__(
-            self, degree, ring, libgap_group, category=category)
+        FinitelyGeneratedMatrixGroup_generic.__init__(
+            self, degree, ring, gens_matrix, category=category)
 
     @cached_method
     def cartan_type(self):
@@ -695,11 +695,11 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         assert(not self.weyl_group(self._prefix).is_finite())
         assert(self.is_finite())
 
-class WeylGroupElement(MatrixGroupElement_gap):
+class WeylGroupElement(MatrixGroupElement_generic):
     """
     Class for a Weyl Group elements
     """
-    def __init__(self, parent, g, check=False):
+    def __init__(self, parent, g, check=False, convert=False):
         """
         EXAMPLES::
 
@@ -707,7 +707,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s1 = G.simple_reflection(1)
             sage: TestSuite(s1).run()
         """
-        MatrixGroupElement_gap.__init__(self, parent, g, check=check)
+        MatrixGroupElement_generic.__init__(self, parent, g, check=check, convert=convert)
         self.__matrix = self.matrix()
         self._parent = parent
 
@@ -743,7 +743,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             [ 0  0  1]
         """
         if self._parent._prefix is None:
-            return MatrixGroupElement_gap._repr_(self)
+            return MatrixGroupElement_generic._repr_(self)
         else:
             redword = self.reduced_word()
             if len(redword) == 0:

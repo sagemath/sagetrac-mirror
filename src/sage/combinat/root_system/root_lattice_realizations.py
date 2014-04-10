@@ -191,8 +191,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 domain.module_morphism(self.simple_root,
                                        codomain = self
                                        ).register_as_coercion()
-            if self.cartan_type().is_affine():
-                self._to_classical.register_as_conversion()
+           # if self.cartan_type().is_affine():
+           #    self._to_classical.register_as_conversion()
 
         def cartan_type(self):
             """
@@ -455,7 +455,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 -alpha[1] - alpha[2]
 
             """
-            if self.root_system.is_finite() and self.root_system.is_irreducible():
+            if False :#self.root_system.is_finite() and self.root_system.is_irreducible():
                 return Family(self.index_set(), self.simple_root, \
                               hidden_keys = [0], hidden_function = lambda i: - self.highest_root())
             else:
@@ -786,7 +786,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(['A',2]).root_lattice().simple_coroot(1)
                 alphacheck[1]
             """
-            return self.coroot_lattice().simple_root(i)
+            return self.coroot_space(self.base_ring()).simple_root(i)
 
         @cached_method
         def simple_coroots(self):
@@ -836,7 +836,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1)}
 
             """
-            if self.root_system.is_finite() and self.root_system.is_irreducible():
+            if False:#self.root_system.is_finite() and self.root_system.is_irreducible():
                 return Family(self.index_set(), self.simple_coroot, \
                               hidden_keys = [0], hidden_function = lambda i: - self.cohighest_root())
             else:

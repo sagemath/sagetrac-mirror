@@ -243,8 +243,8 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             [ 0  0 -2  2]
         """
         # Find some better test
-        if not (lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()):
-            raise TypeError, "%s is not in a coroot lattice/space"%(lambdacheck)
+        #if not (lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()):
+        #    raise TypeError, "%s is not in a coroot lattice/space"%(lambdacheck)
         zero = self.parent().base_ring().zero()
         cartan_matrix = self.parent().dynkin_diagram()
         return sum( (sum( (lambdacheck[i]*s for i,s in cartan_matrix.column(j)), zero) * c for j,c in self), zero)

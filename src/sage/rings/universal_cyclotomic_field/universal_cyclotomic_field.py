@@ -1267,7 +1267,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 P = self.parent().coerce_embedding().codomain()
                 return AA(P(self))
             raise TypeError("No conversion of %s to the real algebraic field AA."%str(self))
-
+      
         def _rational_(self):
             r"""
             Returns ``self`` in the Rationals, if possible. Raises an error otherwise.

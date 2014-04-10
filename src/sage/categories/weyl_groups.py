@@ -407,8 +407,12 @@ class WeylGroups(Category_singleton):
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
+
+
+                from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+
                 from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_root(i)
+                return self.domain().simple_root(i)
                 #return self.parent().domain().simple_root(i)
             if not self.has_descent(i, side='left'):
                 raise ValueError("{} is not a reflection".format(self))
