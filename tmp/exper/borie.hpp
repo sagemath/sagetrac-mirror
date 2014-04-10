@@ -142,7 +142,6 @@ bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
   std::set<SGroup::type> to_analyse({v}), new_to_analyse;
   // std::unordered_set<SGroup::type> to_analyse({v}), new_to_analyse;
   SGroup::type child;
-  // for (SGroup::type x : sgs[0]) std::cout << "x=" << x << std::endl;
   for (unsigned int i=0; i < SGroup::N-1; i++) {
     new_to_analyse.clear();
     auto &transversal = sgs[i];
@@ -150,10 +149,7 @@ bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
       for (SGroup::type x : transversal) {
 	SGroup::mult(child, list_test, x);
 	int diff = v.first_diff(child, i+1);
-	// std::cout << "x=" << x << ", v=" << v << ", child=" << child <<
-	//  ", diff=" << diff << std::endl;
 	if (diff == 16) new_to_analyse.insert(child);
-	// std::cout << v.less_partial(child, diff) << std::endl;
 	if (v.less_partial(child, diff)) return false;
       }
     }
