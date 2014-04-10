@@ -35,7 +35,7 @@ from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
 
 default_tikz_options = dict(
-    scale=1, line_size=1, point_size=3
+    scale=1, line_size=1, point_size=3.5
     , color_line='black', color_point='black'
     , color_bounce_0='red', color_bounce_1='blue'
     , translation=[0,0], rotation=0
@@ -113,34 +113,42 @@ class ParallelogramPolyomino( ClonableList ):
             ....: )
             sage: pp = ParallelogramPolyomino( [[0,1],[1,0]] )
             sage: pp = ParallelogramPolyomino( [[1],[1]] )
+
             sage: pp = ParallelogramPolyomino( [[1,0],[0,1]] )
             Traceback (most recent call last):
             ...
             ValueError: Lower and upper path are crossing.
+
             sage: pp = ParallelogramPolyomino( [[1],[0,1]] )
             Traceback (most recent call last):
             ...
             ValueError: Lower upper paht have different size ( 2 != 1 ).
+
             sage: pp = ParallelogramPolyomino( [[1],[0]] )
             Traceback (most recent call last):
             ...
             ValueError: The two paths don't join together at the end.
+
             sage: pp = ParallelogramPolyomino( [[0],[1]] )
             Traceback (most recent call last):
             ...
             ValueError: The two paths don't join together at the end.
+
             sage: pp = ParallelogramPolyomino( [[0],[0]] )
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have the path [[0],[0]].
+
             sage: pp = ParallelogramPolyomino( [[],[0]] )
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
+
             sage: pp = ParallelogramPolyomino( [[0],[]] )
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
+
             sage: pp = ParallelogramPolyomino( [[],[]] )
             Traceback (most recent call last):
             ...
@@ -184,9 +192,11 @@ class ParallelogramPolyomino( ClonableList ):
             sage: pp = ParallelogramPolyomino( [ lower_path, upper_path] )
             sage: pp
             [[0, 0, 1, 0, 1, 1], [1, 1, 0, 1, 0, 0]]
+
             sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0]] )
             sage: pp
             [[0, 1], [1, 0]]
+
             sage: pp = ParallelogramPolyomino( [ [1], [1]] )
             sage: pp
             [[1], [1]]
@@ -301,9 +311,11 @@ class ParallelogramPolyomino( ClonableList ):
             ....: )
             sage: pp.widths()
             [1, 3, 3, 3, 2]
+
             sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
             sage: pp.widths()
             [1]
+
             sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
             sage: pp.widths()
             []
@@ -328,9 +340,11 @@ class ParallelogramPolyomino( ClonableList ):
             ....: )
             sage: pp.heights()
             [3, 3, 4, 2]
+
             sage: pp = ParallelogramPolyomino( [ [0, 1], [1, 0] ] )
             sage: pp.heights()
             [1]
+
             sage: pp = ParallelogramPolyomino( [ [1], [1] ] )
             sage: pp.heights()
             [0]
@@ -353,11 +367,13 @@ class ParallelogramPolyomino( ClonableList ):
             ....: )
             sage: pp.width()
             6
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,1], [1,0] ]
             ....: )
             sage: pp.width()
             1
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [1], [1] ]
             ....: )
@@ -379,11 +395,13 @@ class ParallelogramPolyomino( ClonableList ):
             ....: )
             sage: pp.height()
             4
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,1], [1,0] ]
             ....: )
             sage: pp.height()
             1
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [1], [1] ]
             ....: )
@@ -412,11 +430,13 @@ class ParallelogramPolyomino( ClonableList ):
             [1 1 1]
             [0 1 1]
             [0 0 1]
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,1], [1,0] ]
             ....: )
             sage: pp.get_array()
             [[1]]
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [1], [1] ]
             ....: )
@@ -551,6 +571,16 @@ class ParallelogramPolyomino( ClonableList ):
             []
             sage: PP.bounce_path( direction=0)
             []
+
+        TESTS::
+
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: )
+            sage: PP.bounce_path( direction=1 )
+            [2, 2, 1]
+            sage: PP.bounce_path( direction=0 )
+            [2, 1, 1, 1]
         """
         result = []
         pos = [0,0]
@@ -623,21 +653,25 @@ class ParallelogramPolyomino( ClonableList ):
         r"""
         Returns the are of the parallelogram polyomino.
         
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,0,1,0,1,1,1,0,0,1,1], [1,1,0,1,0,1,1,0,1,0,0] ]
-        ....: )
-        sage: pp.area()
-        13
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,1], [1,0] ]
-        ....: )
-        sage: pp.area()
-        1
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [1], [1] ]
-        ....: )
-        sage: pp.area()
-        0
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1,1,0,0,1,1], [1,1,0,1,0,1,1,0,1,0,0] ]
+            ....: )
+            sage: pp.area()
+            13
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,1], [1,0] ]
+            ....: )
+            sage: pp.area()
+            1
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: pp.area()
+            0
         """
         res = 0
         for h in self.heights():
@@ -744,6 +778,197 @@ class ParallelogramPolyomino( ClonableList ):
             )
         return res
 
+
+    def _to_tikz_tree_with_bounce( self, directions=[0,1] ):
+        res = ""
+        tikz_options = self.get_tikz_options()
+        if self.size() == 0:
+            return res 
+        grid_width = self.width() + 1
+        grid_height = self.height() + 1
+        def X( x ):
+            return x + .5
+        def Y( y ):
+            return grid_height-1-y - .5
+        if 0 in directions :
+            for node in self.get_right_nodes():
+                res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+                    tikz_options['color_bounce_0'],
+                    X( node[1] ), Y( node[0] ),
+                    tikz_options['point_size']
+                )
+        if 1 in directions :
+            for node in self.get_left_nodes():
+                res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+                    tikz_options['color_bounce_1'],
+                    X( node[1] ), Y( node[0] ),
+                    tikz_options['point_size']
+                )
+        res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+            tikz_options['color_point'],
+            X(0), Y(0),
+            tikz_options['point_size']
+        )
+        return res
+
+    def _to_tikz_bounce( self, directions=[0,1] ):
+        res = ""
+        tikz_options = self.get_tikz_options()
+        grid_width = self.width() + 1
+        grid_height = self.height() + 1
+        def X( x ):
+            return x
+        def Y( y ):
+            return grid_height-1-y
+        def draw_bounce( direction, color ):
+            if(
+                len( self.bounce_path( direction ) )  
+                > len( self.bounce_path( 1-direction ) ) 
+            ):
+                increase_size_line = 1
+            else:
+                increase_size_line = 0
+            res = ""
+            bp = self.bounce_path( direction )
+            pos = [0,0]
+            pos[ 1-direction ] += 1
+            old = list( pos )
+            for e in bp:
+                pos[direction] += e
+                res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
+                    color, 2*tikz_options['line_size'] + increase_size_line,
+                    X(old[1]),Y(old[0]),
+                    X(pos[1]),Y(pos[0])
+                )
+                old[0], old[1] = pos
+                direction = 1-direction
+            return res
+        if( len( self.bounce_path(0) )  > len( self.bounce_path(1) ) ):
+            if 0 in directions:
+                res += draw_bounce( 0, tikz_options['color_bounce_0'] )
+            if 1 in directions:
+                res += draw_bounce( 1, tikz_options['color_bounce_1'] )
+        else:
+            if 1 in directions:
+                res += draw_bounce( 1, tikz_options['color_bounce_1'] )
+            if 0 in directions:
+                res += draw_bounce( 0, tikz_options['color_bounce_0'] )
+        return res
+
+    def _to_tikz_tree( self ):
+        res = ""
+        tikz_options = self.get_tikz_options()
+        if self.size() == 0:
+            return res 
+        grid_width = self.width() + 1
+        grid_height = self.height() + 1
+        def X( x ):
+            return x + .5
+        def Y( y ):
+            return grid_height-1-y - .5
+        for node in self.get_nodes():
+            res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+                tikz_options['color_point'],
+                X( node[1] ), Y( node[0] ),
+                tikz_options['point_size']
+            )
+        res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+            tikz_options['color_point'],
+            X(0), Y(0),
+            tikz_options['point_size']
+        )
+        return res
+
+    def get_node_position_at_row( self, row ):
+        h = row
+        for w in range( self.width() ):
+            if self[h][w] == 1:
+                return [h,w]
+        return None
+
+    def get_node_position_at_line( self, line ):
+        w = line
+        for h in range( self.height() ):
+            if self[h][w] == 1:
+                return [h,w]
+        return None
+
+    def get_node_position_from_box(
+        self, box_position, direction, nb_crossed_nodes=[0]
+    ):
+        pos = list(box_position)
+        if self[ pos[0] ][ pos[1] ] == 0:
+            return None
+        while self[ pos[0] ][ pos[1] ] != 0:
+            pos[direction] -= 1
+            if self.box_is_node( pos ):
+                nb_crossed_nodes[0] += 1
+        pos[direction] += 1
+        return pos
+
+    def box_is_node( self, pos ):
+        if self[pos[0]][pos[1]] == 0:
+            return False
+        if self[pos[0]-1][pos[1]] == 0:
+            return True
+        if self[pos[0]][pos[1]-1] == 0:
+            return True
+
+    def box_is_root( self, box ):
+        return box[0] == 0 and box[1] == 0
+
+    def get_path_in_pair_of_tree_from_box( self, box, direction ):
+        path = []
+        while( not self.box_is_root( box ) ):
+            nb_sons = [0]
+            box = self.get_node_position_from_box( box, direction, nb_sons )
+            direction = 1 - direction
+            path.append( nb_sons[0]-1 )
+        path.reverse()
+        return path
+
+    def get_path_in_pair_of_tree_from_row( self, line ):
+        pos = self.get_node_position_at_row( line )
+        return self.get_path_in_pair_of_tree_from_box( pos, 0 )
+
+    def get_path_in_pair_of_tree_from_line( self, line ):
+        pos = self.get_node_position_at_line( line )
+        return self.get_path_in_pair_of_tree_from_box( pos, 1 )
+
+
+    def get_nodes( self ):
+        result = []
+        for h in range( self.height() ):
+            result.append( self.get_node_position_at_row( h ) )
+        for w in range( self.width() ):
+            result.append( self.get_node_position_at_line( w ) )
+        return result
+
+    def get_right_nodes( self ):
+        result = []
+        for h in range( self.height() ):
+            path2 = self.get_path_in_pair_of_tree_from_row( h )
+            if len(path2)%2 == 1 :
+                result.append( self.get_node_position_at_row( h ) )
+        for w in range( self.width() ):
+            path2 = self.get_path_in_pair_of_tree_from_line( w )
+            if len(path2)%2 == 0 :
+                result.append( self.get_node_position_at_line( w ) )
+        return result
+
+    def get_left_nodes( self ):
+        result = []
+        for h in range( self.height() ):
+            path2 = self.get_path_in_pair_of_tree_from_row( h )
+            if len(path2)%2 == 0 :
+                result.append( self.get_node_position_at_row( h ) )
+        for w in range( self.width() ):
+            path2 = self.get_path_in_pair_of_tree_from_line( w )
+            if len(path2) % 2 == 1 :
+                result.append( self.get_node_position_at_line( w ) )
+        return result
+
+
     def to_tikz( self ):
         r"""
         Return the tikz code of the parallelogram polyomino.
@@ -752,9 +977,19 @@ class ParallelogramPolyomino( ClonableList ):
         """
         res = ""
         drawing_components = self.get_options()['drawing_components']
-        print drawing_components
         if 'diagram' in  drawing_components :
             res += self._to_tikz_diagram()
+        directions = []
+        if 'bounce_0' in  drawing_components :
+            directions.append(0)
+        if 'bounce_1' in  drawing_components :
+            directions.append(1)
+        if len( directions ) != 0 :
+            res += self._to_tikz_bounce( directions )
+        if 'tree' in  drawing_components :
+            res += self._to_tikz_tree()
+            if len(directions)!=0:
+                res += self._to_tikz_tree_with_bounce( directions )
         return res
 
     def geometry(self):
@@ -762,21 +997,25 @@ class ParallelogramPolyomino( ClonableList ):
         Returns a pair [h,w] containing the height and the width of the 
         parallelogram polyomino
 
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,1,1,1,1], [1,1,1,1,0] ] 
-        ....: )
-        sage: pp.geometry()
-        [1, 4]
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,1], [1,0] ] 
-        ....: )
-        sage: pp.geometry()
-        [1, 1]
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [1], [1] ] 
-        ....: )
-        sage: pp.geometry()
-        [0, 1]
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,1,1,1,1], [1,1,1,1,0] ] 
+            ....: )
+            sage: pp.geometry()
+            [1, 4]
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,1], [1,0] ] 
+            ....: )
+            sage: pp.geometry()
+            [1, 1]
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [1], [1] ] 
+            ....: )
+            sage: pp.geometry()
+            [0, 1]
         """
         return [ self.height(), self.width() ]
 
@@ -784,21 +1023,25 @@ class ParallelogramPolyomino( ClonableList ):
         r"""
         Returns the size of the parallelogram polyomino.
         
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,0,0,0,1,0,1,1], [1,0,0,0,1,1,0,0] ] 
-        ....: )
-        sage: pp.size()
-        7
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [0,1], [1,0] ] 
-        ....: )
-        sage: pp.size()
-        1
-        sage: pp = ParallelogramPolyomino(
-        ....:     [ [1], [1] ] 
-        ....: )
-        sage: pp.size()
-        0
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,0,1,0,1,1], [1,0,0,0,1,1,0,0] ] 
+            ....: )
+            sage: pp.size()
+            7
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,1], [1,0] ] 
+            ....: )
+            sage: pp.size()
+            1
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [1], [1] ] 
+            ....: )
+            sage: pp.size()
+            0
         """
         return len( self.upper_path() )-1
 
@@ -903,24 +1146,28 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
         r"""
         Return the number of parallelogram polyomino.
 
-        sage: ParallelogramPolyominoes(1).cardinality()
-        1
-        sage: ParallelogramPolyominoes(2).cardinality()
-        2
-        sage: ParallelogramPolyominoes(3).cardinality()
-        5
-        sage: all( [
-        ....:     ParallelogramPolyominoes(i).cardinality() 
-        ....:     == catalan_number(i)
-        ....:     for i in range( 6 )
-        ....: ] )
-        True
-        sage: all( [
-        ....:     ParallelogramPolyominoes(i).cardinality() 
-        ....:     == len( list( ParallelogramPolyominoes(i) ) )
-        ....:     for i in range( 6 )
-        ....: ] )
-        True
+        EXAMPLES::
+
+            sage: ParallelogramPolyominoes(1).cardinality()
+            1
+            sage: ParallelogramPolyominoes(2).cardinality()
+            2
+            sage: ParallelogramPolyominoes(3).cardinality()
+            5
+
+            sage: all( [
+            ....:     ParallelogramPolyominoes(i).cardinality() 
+            ....:     == catalan_number(i)
+            ....:     for i in range( 6 )
+            ....: ] )
+            True
+
+            sage: all( [
+            ....:     ParallelogramPolyominoes(i).cardinality() 
+            ....:     == len( list( ParallelogramPolyominoes(i) ) )
+            ....:     for i in range( 6 )
+            ....: ] )
+            True
         """
         return catalan_number( self.size() )
 
@@ -962,6 +1209,9 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
         """
         return self._size
 
+    def set_options( self, *get_value, **set_value ):
+        self.global_options( *get_value, **set_value )
+
     global_options = ParallelogramPolyominoesOptions
 
 class bijections_parallelogram_polyominoes:
@@ -986,6 +1236,17 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
     """
     def __init__(self, policy):
         r"""
+        Construct the set af all the parallelogram polyominoes.
+
+        EXAMPLES::
+        
+            sage: PPS = ParallelogramPolyominoes()
+            sage: PPS
+            parallelogram polyominoes
+        
+            sage: ParallelogramPolyomino( [[0,1,1],[1,1,0]] )  in PPS
+            True
+
         """
         ParentWithSetFactory.__init__(
             self, (), policy, category = FiniteEnumeratedSets()
@@ -998,15 +1259,46 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
 
     def _repr_(self):
         r"""
+        Returns a string representation of the set of parallelogram polyominoes.
+
+        EXAMPLES::
+        
+            sage: PPS = ParallelogramPolyominoes()
+            sage: PPS
+            parallelogram polyominoes
         """
-        return "ParallelogramPolyominoes_all"
+        return "parallelogram polyominoes"
 
     def check_element(self, el, check):
         r"""
+        Check is a given element `el` is in the set of parallelogram polyominoes.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes()
+            sage: ParallelogramPolyomino( [[0,1,1],[1,1,0]] )  in PPS
+            True
         """
         pass
 
     def get_options( self ):
+        r"""
+        Returns all the aptions associated with the set of parallelogram polyominoes.
+        
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes()
+            sage: options = PPS.get_options()
+            sage: options
+            options for Parallelogram Polyominoes
+            sage: options()
+            Current options for Parallelogram Polyominoes
+              - display:            list
+            ...
+        """
         return self.global_options
+
+    def set_options( self, *get_value, **set_value ):
+        self.global_options( *get_value, **set_value )
 
     global_options = ParallelogramPolyominoesOptions
