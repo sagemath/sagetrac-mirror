@@ -32,6 +32,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from copy import deepcopy
 from sage.matrix.constructor import matrix
+from sage.combinat.combinat import catalan_number
 
 default_tikz_options = dict(
     scale=1, line_size=1, point_size=3
@@ -196,6 +197,36 @@ class ParallelogramPolyomino( ClonableList ):
                 raise ValueError, "Value %s must be a list or a tuple."%(value)
             self.check()
         self._options = None
+
+    def _to_dyck_delest_viennot( self ):
+        from sage.combinat.dyck_word import DyckWord
+        size = self.size()
+        dyck = []
+        upper_path = self.upper_path()
+        lower_path = self.lower_path()
+        dyck.append( 1 - lower_path[0] )
+        for i in range( 1, size ):
+            dyck.append( upper_path[i] )
+            dyck.append( 1 - lower_path[i] )
+        dyck.append( upper_path[ size ] )
+        return DyckWord( dyck )
+
+    def to_dyck_word( self, bijection=None):
+        r"""
+        Convert to a Dyck word.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1,0,0,1,1], [1,1,1,0,0,0]]
+            ....: )
+            sage: pp.to_dyck_word()
+            [1, 1, 0, 1, 1, 0, 1, 0, 0, 0]
+            sage: pp.to_dyck_word( bijection='Delest-Viennot' )
+            [1, 1, 0, 1, 1, 0, 1, 0, 0, 0]
+        """
+        if bijection is None or bijection == 'Delest-Viennot':
+            return self._to_dyck_delest_viennot( )
 
     def get_options( self ):
         if self._options is None:
@@ -366,9 +397,11 @@ class ParallelogramPolyomino( ClonableList ):
     @cached_method
     def get_array( self ):
         r"""
-            Return an array of 0 and 1 such that the represent the boxes of
-            the parallelogram polyomino
-            
+        Return an array of 0 and 1 such that the represent the boxes of
+        the parallelogram polyomino
+        
+        EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,0,0,1,0,1,0,1], [1,0,0,0,1,1,0,0,0] ]
             ....: )
@@ -425,32 +458,32 @@ class ParallelogramPolyomino( ClonableList ):
 
     def __getitem__(self, row):
         r"""
-            Return the row of the parallelogram polyomino.
-            The index of the tow can be out of range of the height of 
-            the parallelogram polyomino.
-            In that case, the row returned is outside the parallelogram
-            polyomino.
+        Return the row of the parallelogram polyomino.
+        The index of the tow can be out of range of the height of 
+        the parallelogram polyomino.
+        In that case, the row returned is outside the parallelogram
+        polyomino.
 
-            EXAMPLES::
-                sage: pp = ParallelogramPolyomino(
-                ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
-                ....: )
-                sage: pp[0].is_inside()
-                True
-                sage: pp[3].is_outside()
-                True
-                sage: pp[-1].is_outside()
-                True
-                sage: pp[0][0]
-                1
-                sage: pp[ [0,1] ]
-                1
-                sage: pp[2][0]
-                0
-                sage: pp[-1][0]
-                0
-                sage: pp[ [4,4] ]
-                0
+        EXAMPLES::
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: )
+            sage: pp[0].is_inside()
+            True
+            sage: pp[3].is_outside()
+            True
+            sage: pp[-1].is_outside()
+            True
+            sage: pp[0][0]
+            1
+            sage: pp[ [0,1] ]
+            1
+            sage: pp[2][0]
+            0
+            sage: pp[-1][0]
+            0
+            sage: pp[ [4,4] ]
+            0
         """
         if isinstance( row, list ):
             return self._polyomino_row( self, row[0] )[ row[1] ]
@@ -458,67 +491,66 @@ class ParallelogramPolyomino( ClonableList ):
 
     def bounce_path(self, direction = 1 ):
         r"""
-            Return the bounce path of the parallelogram polyomino.
+        Return the bounce path of the parallelogram polyomino.
 
-            The bounce is a path with two steps (1,0) and (0,1).
+        The bounce is a path with two steps (1,0) and (0,1).
 
-            If 'direction' is 1 (resp. 0), the bounce path is the path
-            starting at position position (h=1,w=0) (resp. (h=0,w=1)) with 
-            initial direction, the vector (0,1) (resp. (1,0)), and turning 
-            each time the path crosses the permiter of the parallelogram
-            polyomino.
+        If 'direction' is 1 (resp. 0), the bounce path is the path
+        starting at position position (h=1,w=0) (resp. (h=0,w=1)) with 
+        initial direction, the vector (0,1) (resp. (1,0)), and turning 
+        each time the path crosses the permiter of the parallelogram
+        polyomino.
 
-            The path is coded by a list of integer. Each integer represent
-            the size of the path beetween two turnings.
+        The path is coded by a list of integer. Each integer represent
+        the size of the path beetween two turnings.
 
-            You can visualize the two bounce paths by using the following 
-            commands :
-            
-            EXAMPLES::
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
-                ....: )
-                sage: PP.bounce_path( direction=1)
-                [2, 2, 1]
-                sage: PP.bounce_path( direction=0)
-                [2, 1, 1, 1]
+        You can visualize the two bounce paths by using the following 
+        commands :
+        
+        EXAMPLES::
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: )
+            sage: PP.bounce_path( direction=1)
+            [2, 2, 1]
+            sage: PP.bounce_path( direction=0)
+            [2, 1, 1, 1]
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,0,1,1,1,0,0,1,1], [1,1,1,0,1,1,0,0,0] ]
-                ....: )
-                sage: PP.bounce_path( direction=1)
-                [3, 1, 2, 2]
-                sage: PP.bounce_path( direction=0)
-                [2, 4, 2]
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,1,1,0,0,1,1], [1,1,1,0,1,1,0,0,0] ]
+            ....: )
+            sage: PP.bounce_path( direction=1)
+            [3, 1, 2, 2]
+            sage: PP.bounce_path( direction=0)
+            [2, 4, 2]
 
-                sage: #PP = ParallelogramPolyomino(
-                ....: #    [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
-                ....: #)
-                sage: #PP.set_options(
-                ....: #    drawing_components=dict(
-                ....: #        diagram = True
-                ....: #        ,bounce_0 = True
-                ....: #        , bounce_1 = True
-                ....: #    )
-                ....: #)
-                sage: #view( PP )
+            sage: #PP = ParallelogramPolyomino(
+            ....: #    [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: #)
+            sage: #PP.set_options(
+            ....: #    drawing_components=dict(
+            ....: #        diagram = True
+            ....: #        ,bounce_0 = True
+            ....: #        , bounce_1 = True
+            ....: #    )
+            ....: #)
+            sage: #view( PP )
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,1], [1,0] ]
-                ....: )
-                sage: PP.bounce_path( direction=1)
-                [1]
-                sage: PP.bounce_path( direction=0)
-                [1]
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,1], [1,0] ]
+            ....: )
+            sage: PP.bounce_path( direction=1)
+            [1]
+            sage: PP.bounce_path( direction=0)
+            [1]
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [1], [1] ]
-                ....: )
-                sage: PP.bounce_path( direction=1)
-                []
-                sage: PP.bounce_path( direction=0)
-                []
-
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: PP.bounce_path( direction=1)
+            []
+            sage: PP.bounce_path( direction=0)
+            []
         """
         result = []
         pos = [0,0]
@@ -540,46 +572,46 @@ class ParallelogramPolyomino( ClonableList ):
 
     def bounce( self, direction = 1 ):
         r"""
-            Return the bounce of the parallelogram polyomino.
+        Return the bounce of the parallelogram polyomino.
 
-            Les p be the bounce path of the parallelogram 
-            polyomino. ( p=self.bounce_path() )
-            The bounce is defined by :
-            sum( [ (1+ floor(i/2))*p[i] for i in range(len(p)) ] )
+        Les p be the bounce path of the parallelogram 
+        polyomino. ( p=self.bounce_path() )
+        The bounce is defined by :
+        sum( [ (1+ floor(i/2))*p[i] for i in range(len(p)) ] )
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
-                ....: )
-                sage: PP.bounce( direction=1 )
-                6
-                sage: PP.bounce( direction=0)
-                7
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: )
+            sage: PP.bounce( direction=1 )
+            6
+            sage: PP.bounce( direction=0)
+            7
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,0,1,1,1,0,0,1,1], [1,1,1,0,1,1,0,0,0] ]
-                ....: )
-                sage: PP.bounce( direction=1)
-                12
-                sage: PP.bounce( direction=0)
-                10
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,1,1,0,0,1,1], [1,1,1,0,1,1,0,0,0] ]
+            ....: )
+            sage: PP.bounce( direction=1)
+            12
+            sage: PP.bounce( direction=0)
+            10
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [0,1], [1,0] ]
-                ....: )
-                sage: PP.bounce( direction=1)
-                1
-                sage: PP.bounce( direction=0)
-                1
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,1], [1,0] ]
+            ....: )
+            sage: PP.bounce( direction=1)
+            1
+            sage: PP.bounce( direction=0)
+            1
 
-                sage: PP = ParallelogramPolyomino(
-                ....:     [ [1], [1] ]
-                ....: )
-                sage: PP.bounce( direction=1)
-                0
-                sage: PP.bounce( direction=0)
-                0
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [1], [1] ]
+            ....: )
+            sage: PP.bounce( direction=1)
+            0
+            sage: PP.bounce( direction=0)
+            0
         """
         result = 0
         path = self.bounce_path( direction )
@@ -589,23 +621,23 @@ class ParallelogramPolyomino( ClonableList ):
 
     def area( self ):
         r"""
-            Returns the are of the parallelogram polyomino.
-            
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [0,0,1,0,1,1,1,0,0,1,1], [1,1,0,1,0,1,1,0,1,0,0] ]
-            ....: )
-            sage: pp.area()
-            13
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [0,1], [1,0] ]
-            ....: )
-            sage: pp.area()
-            1
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [1], [1] ]
-            ....: )
-            sage: pp.area()
-            0
+        Returns the are of the parallelogram polyomino.
+        
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [0,0,1,0,1,1,1,0,0,1,1], [1,1,0,1,0,1,1,0,1,0,0] ]
+        ....: )
+        sage: pp.area()
+        13
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [0,1], [1,0] ]
+        ....: )
+        sage: pp.area()
+        1
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [1], [1] ]
+        ....: )
+        sage: pp.area()
+        0
         """
         res = 0
         for h in self.heights():
@@ -727,24 +759,24 @@ class ParallelogramPolyomino( ClonableList ):
 
     def geometry(self):
         r"""
-            Returns a pair [h,w] containing the height and the width of the 
-            parallelogram polyomino
+        Returns a pair [h,w] containing the height and the width of the 
+        parallelogram polyomino
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [0,1,1,1,1], [1,1,1,1,0] ] 
-            ....: )
-            sage: pp.geometry()
-            [1, 4]
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [0,1], [1,0] ] 
-            ....: )
-            sage: pp.geometry()
-            [1, 1]
-            sage: pp = ParallelogramPolyomino(
-            ....:     [ [1], [1] ] 
-            ....: )
-            sage: pp.geometry()
-            [0, 1]
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [0,1,1,1,1], [1,1,1,1,0] ] 
+        ....: )
+        sage: pp.geometry()
+        [1, 4]
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [0,1], [1,0] ] 
+        ....: )
+        sage: pp.geometry()
+        [1, 1]
+        sage: pp = ParallelogramPolyomino(
+        ....:     [ [1], [1] ] 
+        ....: )
+        sage: pp.geometry()
+        [0, 1]
         """
         return [ self.height(), self.width() ]
 
@@ -838,6 +870,7 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
     """
     def __init__(self, size, policy):
         r"""
+        Construct a set of Parallelogram Polyominoes of a given size.
         """
         self._size = size
         ParentWithSetFactory.__init__(
@@ -846,34 +879,106 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
 
     def _repr_(self):
         r"""
+        Return the string representation of the set of parallelogram polyominoes
+
+        EXAMPLES::
+        
+            sage: ParallelogramPolyominoes( 3 )
+            parallelogram polyominoes of size 3
         """
         return "parallelogram polyominoes of size %s"%(self._size)
 
     def an_element(self):
         r"""
         """
-        return self.first()
-
-    def first( self ):
         return next( self.__iter__() )
 
     def check_element(self, el, check):
         r"""
         """
-        if el.size() != self._size:
+        if el.size() != self.size():
             raise ValueError, "The parallelogram polyomino have a Wrong size : %s"%(el.size())
+
+    def cardinality( self ):
+        r"""
+        Return the number of parallelogram polyomino.
+
+        sage: ParallelogramPolyominoes(1).cardinality()
+        1
+        sage: ParallelogramPolyominoes(2).cardinality()
+        2
+        sage: ParallelogramPolyominoes(3).cardinality()
+        5
+        sage: all( [
+        ....:     ParallelogramPolyominoes(i).cardinality() 
+        ....:     == catalan_number(i)
+        ....:     for i in range( 6 )
+        ....: ] )
+        True
+        sage: all( [
+        ....:     ParallelogramPolyominoes(i).cardinality() 
+        ....:     == len( list( ParallelogramPolyominoes(i) ) )
+        ....:     for i in range( 6 )
+        ....: ] )
+        True
+        """
+        return catalan_number( self.size() )
 
     def __iter__(self):
         r"""
+        Rerturn a parallelogram polyomino generator.
+        
+        EXAMPLES::
+            sage: len( list( ParallelogramPolyominoes(3) ) ) == 5
+            True
+            sage: all( [ 
+            ....:     pp in ParallelogramPolyominoes()
+            ....:     for pp in ParallelogramPolyominoes(3)
+            ....: ] )
+            True
         """
-        NotImplemented
+        from sage.combinat.dyck_word import DyckWords
+        for dyck in DyckWords( self.size() ):
+            yield bijections_parallelogram_polyominoes.dyck_to_parallelogram_polyomino(
+                dyck
+            )
 
     def get_options( self ):
         return self.global_options
 
+    def size( self ):
+        r"""
+        Return the size of the parallelogram polyominoes generated by this
+        parent.
+        
+        EXAMPLES::
+
+            sage: ParallelogramPolyominoes(0).size()
+            0
+            sage: ParallelogramPolyominoes(1).size()
+            1
+            sage: ParallelogramPolyominoes(5).size()
+            5
+        """
+        return self._size
+
     global_options = ParallelogramPolyominoesOptions
 
+class bijections_parallelogram_polyominoes:
+    @staticmethod
+    def _dyck_to_pp_delest_viennot( dyck ):
+        l = [1] + list(dyck) + [0]
+        word_up = []
+        word_down = []
+        for i in range( 0, len(l), 2 ):
+            word_up.append( l[i] )
+            word_down.append( 1 - l[i+1] )
+        return ParallelogramPolyomino( [ word_down, word_up ] )
 
+    @staticmethod
+    def dyck_to_parallelogram_polyomino( dyck, bijection=None ):
+        if bijection is None or bijection == 'Delest-Viennot':
+            return bijections_parallelogram_polyominoes._dyck_to_pp_delest_viennot( dyck )
 
 class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     r"""
