@@ -445,6 +445,27 @@ cdef class lazy_list(object):
         print "stop        ", self.stop
         print "step        ", self.step
 
+    def __len__(self):
+        r"""
+        Give the length of current cache
+        
+        TESTS::
+        
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: l = lazy_list(NN)
+            sage: len(l)
+            0
+            sage: l[42]
+            42
+            sage: len(l)
+            43
+            sage: l[36]
+            36
+            sage: len(l)
+            43            
+        """
+        return len(self.cache)
+
     def __add__(self, other):
         r"""
         If ``self`` is a list then return the lazy_list that consists of the
