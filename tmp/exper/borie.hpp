@@ -95,7 +95,7 @@ namespace std {
   struct hash< std::array<C, s> > {
     size_t operator () (const std::array<C, s> &ar) const {
       size_t h = 0;
-      for (auto e : ar) h = hash<C>()(e) + (h << 6) + (h << 16) - h;
+      for (int i=0; i<s; i++) h = hash<C>()(ar[i]) + (h << 6) + (h << 16) - h;
       return h;
     }
   };
