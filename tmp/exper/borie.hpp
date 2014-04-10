@@ -198,7 +198,20 @@ public:
 //       if (is_canonical(sgs, child)) walk_tree(child, res, remaining_depth-1, sgs);
 //     }
 // }
+//
+// std::list<SGroup::type> elements_of_depth(int depth, StrongGeneratingSet & sgs) {
+//   SGroup::type zero_vect;
+//   list_vect list_res;
+//   zero_vect.v = zero;
+//   walk_tree(zero_vect, list_res, depth, sgs);
+//   return list_res;
+// }
 
+#include <cilk/cilk_api.h>
+
+bool cilk_start(char *nproc) {
+  return (__cilkrts_set_param("nworkers", nproc) == __CILKRTS_SET_PARAM_SUCCESS);
+}
 
 #include <cilk/reducer_list.h>
 using list_vect = cilk::reducer_list_append<SGroup::type>;
@@ -212,7 +225,6 @@ void walk_tree(const SGroup::type v, list_vect &res, int remaining_depth,
 	cilk_spawn walk_tree(child, res, remaining_depth-1, sgs);
     }
 }
-
 
 std::list<SGroup::type> elements_of_depth(int depth, StrongGeneratingSet & sgs) {
   SGroup::type zero_vect;

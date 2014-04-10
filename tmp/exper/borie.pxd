@@ -20,3 +20,5 @@ cdef extern from "borie.hpp":
                       const SGroup_type v)
 
     stl_list[SGroup_type] elements_of_depth(int depth, const vector[vector[SGroup_type]] sgs)
+
+    bint cilk_start(char *)

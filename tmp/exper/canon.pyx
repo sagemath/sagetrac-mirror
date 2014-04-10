@@ -4,7 +4,6 @@ from sage.structure.sage_object cimport SageObject
 
 include 'sage/ext/interrupt.pxi'
 
-
 cimport borie
 
 N = borie.N
@@ -89,3 +88,11 @@ cpdef PermList elements_of_depth(int depth, PermListList sgs):
 
 cpdef int elements_of_depth_number(int depth, PermListList sgs):
     return borie.elements_of_depth(depth, sgs._v).size()
+
+class CilkError(Exception):
+    pass
+
+def cilk_start(int nproc):
+    np = bytes(str(nproc))
+    if not borie.cilk_start(np):
+        raise CilkError, "Unable to set the number of Cilk workers"
