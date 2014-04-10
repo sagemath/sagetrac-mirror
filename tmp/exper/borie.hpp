@@ -58,18 +58,10 @@ struct VectPerm
     #endif
     return (diffs >> diff) & 0x1;;
   }
-  int first_diff(const VectPerm &b, int k) const {
+  int less_partial(const VectPerm &b, int k) const {
     const char mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY;
-    return _mm_cmpestri (v, k, b.v, k, mode);
-  }
-
-  bool less_partial(const VectPerm &b, int diff) const {
-    #ifdef GCC_VECT_CMP
-    int diffs = _mm_movemask_epi8(v8 < b.v8);
-    #else
-    int diffs = _mm_movemask_epi8(_mm_cmplt_epi8(__m128i(v8),__m128i(b.v8)));
-    #endif
-    return (diffs >> diff) & 0x1;
+    int diff = _mm_cmpestri (v, k, b.v, k, mode);
+    return (diff == 16) ? 0 : char(p[diff]) - char(b.p[diff]);
   }
 } __attribute__ ((aligned (16)));
 
@@ -148,9 +140,9 @@ bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
     for (SGroup::type list_test : to_analyse) {
       for (SGroup::type x : transversal) {
 	SGroup::mult(child, list_test, x);
-	int diff = v.first_diff(child, i+1);
-	if (diff == 16) new_to_analyse.insert(child);
-	if (v.less_partial(child, diff)) return false;
+	int comp = v.less_partial(child, i+1);
+	if (comp == 0) new_to_analyse.insert(child);
+	else if (comp < 0) return false;
       }
     }
     to_analyse.swap(new_to_analyse);
