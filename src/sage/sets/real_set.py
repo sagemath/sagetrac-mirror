@@ -582,8 +582,8 @@ class RealInterval(UniqueRepresentation, Parent):
             sage: i.contains(2)
             True
         """
-        cmp_lower = cmp(self._lower, x)
-        cmp_upper = cmp(x, self._upper)
+        cmp_lower = cmp(self._lower._value, x)
+        cmp_upper = cmp(x, self._upper._value)
         if cmp_lower == cmp_upper == -1:
             return True
         if cmp_lower == 0:
