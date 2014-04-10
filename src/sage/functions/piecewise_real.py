@@ -119,18 +119,16 @@ class PiecewiseRealFunction(BuiltinFunction):
             sage: piecewise_real([([-1, 0], -x), ([0, 1], x)], var=x)
             Traceback (most recent call last):
             ...
-            ValueError: domains must be pairwise disjoint
+            ValueError: domains must be pairwise disjoint: [[-1, 0], [0, 1]]
 
             sage: step = piecewise_real([((-1, 0), -1), ([0, 0], 0), ((0, 1), 1)], var=x);  step
             piecewise_real(x|-->-1 on (-1, 0), x|-->0 on {0}, x|-->1 on (0, 1); x)
             sage: step(-1/2), step(0), step(1/2)
             (-1, 0, 1)
         """
-        #print 'pf_call', function_pieces, kwds
         var = kwds.pop('var', None)
         parameters = []
         domain_list = []
-        print function_pieces
         for piece in function_pieces:
             domain, function = piece
             if not isinstance(domain, RealSet):
@@ -143,7 +141,7 @@ class PiecewiseRealFunction(BuiltinFunction):
             parameters.append((domain, function))
             domain_list.append(domain)
         if not RealSet.are_pairwise_disjoint(*domain_list):
-            raise ValueError('domains must be pairwise disjoint:' + domain_list)
+            raise ValueError('domains must be pairwise disjoint: ' + str(domain_list))
         if var is None:
             var = self.default_variable()
         parameters = SR._force_pyobject(tuple(parameters), recursive=False)
@@ -194,7 +192,6 @@ class PiecewiseRealFunction(BuiltinFunction):
             piecewise_real(x|-->-x^sin(y) on (-2, 0), x|-->x - sin(y) on [0, 2]; x)
         """
         point = subs_map.apply_to(x, 0)
-        # print 'point =', point
         if point == x:
             # substitution only in auxiliary variables
             new_params = []
@@ -435,7 +432,6 @@ class PiecewiseRealFunction(BuiltinFunction):
                 sage: p._fast_callable_(etb)
                 {CommutativeRings.element_class}(v_0)
             """
-            # print 'ev_fast_cal', parameters, variable, etb
             self = piecewise_real(parameters, var=variable)
             return etb.call(self, variable)
 
