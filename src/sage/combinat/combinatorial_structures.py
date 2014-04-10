@@ -73,6 +73,7 @@ class PlaneBinaryTrees(CombinatorialStructure):
         T = CSConstructionUnlabelled()
         Z = CSAtomUnlabelled()
         T.assign(disjoint_union(Z, cartesian_product(Z, T, T)))
+        #T.assign(Z + Z * T * T)
 
         self.structure = T
 
@@ -266,7 +267,7 @@ def _process_flavor_(kwargs):
 # Data Structures -- Construction
 #*****************************************************************************
 
-# TODO maybe change the word "consruction" to something else
+# TODO maybe change the word "construction" to something else
 
 def construction(*args, **kwargs):
     return CSConstructionUnlabelled(*args, **kwargs)  # TODO
