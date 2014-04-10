@@ -876,7 +876,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
                 Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
             return parent(Ht(self).nabla(power=power))
 
-        def delta_expr(self, expr, q=None, t=None):
+        def Delta(self, expr, q=None, t=None):
             r"""
             Returns the value of the `\Delta_f` operator applied to ``self``. The
             eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
@@ -905,6 +905,18 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             EXAMPLES::
 
                 sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: P[2,2].nabla() - P[2,2].Delta(P[1,1,1,1])
+                0
+                sage: P[2,2].nabla(q=2) - P[2,2].Delta(P[1,1,1,1],q=2)
+                0
+                sage: P[2,2].nabla(t=2) - P[2,2].Delta(P[1,1,1,1],t=2)
+                0
+                sage: H = Sym.macdonald().H()
+                sage: H[3,2].Delta(P[1],t=1/H.t)
+                ((q^2*t+q*t+q+t+1)/t)*McdH[3, 2]
+                sage: H[3,2].Delta(P[1,1,1,1,1],t=1/H.t)
+                q^4/t^2*McdH[3, 2]
             """
             parent = self.parent()
             if (q is None and t is None):
@@ -915,7 +927,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
                 if t is None:
                     t = parent.t
                 Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
-            return parent(Ht(self).delta_expr(expr))
+            return parent(Ht(self).Delta(expr))
 
 #P basis
 class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
@@ -1349,9 +1361,10 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
                 sage: s(a.nabla())
                 (t^6+9*t^2+729)*s[1, 1, 1] + (t^5+t^4+3*t^2+9*t+324)*s[2, 1] + (t^3+3*t+27)*s[3]
             """
-            P = self.parent()
-            Ht = P._macdonald.Ht()
-            selfHt = Ht(self)
+            #P = self.parent()
+            #Ht = P._macdonald.Ht()
+            #selfHt = Ht(self)
+            Ht = self.parent()
             if self == Ht.zero():
                 return Ht.zero()
             if q is None:
@@ -1359,9 +1372,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             if t is None:
                 t = Ht.t
             f = lambda part: t**(part.weighted_size()*power)*q**(part.conjugate().weighted_size()*power)*Ht(part)
-            return P(Ht._apply_module_morphism(selfHt, f))
+            return Ht._apply_module_morphism(self, f)
 
-        def delta_expr(self, expr, q=None, t=None):
+        def Delta(self, expr, q=None, t=None):
             r"""
             Returns the value of the `\Delta_f` operator applied to ``self``. The
             eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
@@ -1394,19 +1407,25 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
                 sage: t = Ht.t; q = Ht.q;
                 sage: s = Sym.schur()
                 sage: e = Sym.elementary()
-                sage: Ht(e[3]).delta_expr(e[3])
+                sage: Ht(e[2]).Delta(e[2])
+                (t/(-q+t))*McdHt[1, 1] + ((-q)/(-q+t))*McdHt[2]
+                sage: Ht(e[2]).Delta(e[1])
+                ((t+1)/(-q+t))*McdHt[1, 1] + ((-q-1)/(-q+t))*McdHt[2]
+                sage: Ht(e[2]).Delta(e[1],q=1)
+                ((t+1)/(-q+t))*McdHt[1, 1] - (2/(-q+t))*McdHt[2]
+                sage: Ht(e[2]).Delta(e[1],t=1)
+                (2/(-q+t))*McdHt[1, 1] + ((-q-1)/(-q+t))*McdHt[2]
             """
-            P = self.parent()
-            Ht = P._macdonald.Ht()
-            selfHt = Ht(self)
+            Ht = self.parent()
+            pexpr = Ht.symmetric_function_ring().p()(expr)
             if self == Ht.zero():
                 return Ht.zero()
             if q is None:
                 q = Ht.q
             if t is None:
                 t = Ht.t
-            f = lambda part: Ht(part)*expr(sum(t**c[0]*q**c[1] for c in part.cells())*Ht[[]])
-            return P(Ht._apply_module_morphism(selfHt, f))
+            f = lambda part: Ht(part)*p_pleth_Bmu( pexpr, part, q, t )
+            return Ht._apply_module_morphism(self, f)
 
 class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
@@ -1669,6 +1688,58 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
             f = lambda part: S._s(part.conjugate())
             return S._s._apply_module_morphism(self, f)
 
+def p_pleth_Bmu( pexpr, mu, q, t ):
+    r"""
+    Plethystically evaluates a symmetric function at the `q`, `t` biexponent generator.
+
+    If ``pexpr`` is a symmetric function in the power sum basis then the
+    result is a polynomial in `q` and `t` where each power sum generator `p_r` is
+    replaced with `p_r[B_\mu] = \sum_{c} t^{r c_0} q^{r c_1}` where the sum is
+    over all cells `c` in the partition `\mu`.
+
+    Usually, it would be possible to compute this expression using the plethysm
+    operation.  If ``Bmu`` is equal to `\sum_{c} t^{c_0} q^{c_1}`, then
+    ``f(Bmu*s[[]]).coefficient([])`` will generally compute the same thing, but the
+    plethysm operation assumes that ``q`` and ``t`` are degree 1 elements while
+    ``p_pleth_Bmu`` allows the possibility that ``q`` and ``t`` are values.
+
+    This is a helper function that is used in :meth:`~sage.combinat.sf.macdonald.MacdonaldPolynomials_ht.Element.Delta`
+
+    INPUT:
+
+    - ``pexpr`` - a symmetric function in the power sum basis
+    - ``mu`` - a partition
+    - ``q``, ``t`` - parameters to specialize
+
+    OUTPUT:
+
+    - a polynomial in ``q`` and ``t``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.sf.macdonald import p_pleth_Bmu
+        sage: Sym = SymmetricFunctions(QQ['q','t'].fraction_field())
+        sage: p = Sym.power()
+        sage: e = Sym.elementary()
+        sage: (q,t) = Sym.base_ring().gens()
+        sage: p_pleth_Bmu( p[1], Partition([3,2]), q, t )
+        q^2 + q*t + q + t + 1
+        sage: p_pleth_Bmu( p[2], Partition([3,2]), q, t )
+        q^4 + q^2*t^2 + q^2 + t^2 + 1
+        sage: p_pleth_Bmu( p(e[5]), Partition([3,2]), q, t )
+        q^4*t^2
+        sage: p_pleth_Bmu( p[2], Partition([3,2]), 2, t )
+        5*t^2 + 21
+        sage: p_pleth_Bmu( p(e[2,1]), Partition([2,1]), q, t )
+        q^2*t + q*t^2 + q^2 + 3*q*t + t^2 + q + t
+        sage: e[2,1](sum( t^c[0]*q^c[1] for c in [(0,0),(1,0),(0,1)])*e[[]]).coefficient([])
+        q^2*t + q*t^2 + q^2 + 3*q*t + t^2 + q + t
+        sage: e[2,1].plethysm(sum( t^c[0]*q^c[1] for c in [(0,0),(1,0),(0,1)])*e[[]]).coefficient([])
+        q^2*t + q*t^2 + q^2 + 3*q*t + t^2 + q + t
+    """
+    pr = lambda r: sum(t**(r*c[0])*q**(r*c[1]) for c in mu.cells())
+    pla = lambda la: prod(pr(a) for a in la)
+    return sum(c*pla(la) for (la, c) in pexpr.monomial_coefficients().iteritems())
 
 def qt_kostka(lam, mu):
     r"""

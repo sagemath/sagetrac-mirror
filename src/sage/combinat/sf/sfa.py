@@ -3597,7 +3597,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
         return parent(Ht(self).nabla(power=power))
 
-    def delta_expr(self, expr, q=None, t=None):
+    def Delta(self, expr, q=None, t=None):
         r"""
         Returns the value of the `\Delta_f` operator applied to ``self``. The
         eigenvectors of the `\Delta_f` operator are the Macdonald polynomials in
@@ -3626,28 +3626,26 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
-            sage: p = Sym.power()
-            sage: p([1,1]).nabla()
-            (-1/2*q*t+1/2*q+1/2*t+1/2)*p[1, 1] + (1/2*q*t-1/2*q-1/2*t+1/2)*p[2]
-            sage: p([2,1]).nabla(q=1)
-            (-t-1)*p[1, 1, 1] + t*p[2, 1]
-            sage: p([2]).nabla(q=1)*p([1]).nabla(q=1)
-            (-t-1)*p[1, 1, 1] + t*p[2, 1]
-            sage: s = Sym.schur()
-            sage: s([2,1]).nabla()
-            (-q^3*t-q^2*t^2-q*t^3)*s[1, 1, 1] + (-q^2*t-q*t^2)*s[2, 1]
-            sage: s([1,1,1]).nabla()
+            sage: e = Sym.e()
+            sage: e[3].Delta(e[3])
+            e[1, 1, 1] + (q^2+q*t+t^2+q+t-2)*e[2, 1] + (q^3+q^2*t+q*t^2+t^3-q^2-t^2-q-t+1)*e[3]
+            sage: s = Sym.s()
+            sage: s(e[3].Delta(e[3]))
             (q^3+q^2*t+q*t^2+t^3+q*t)*s[1, 1, 1] + (q^2+q*t+t^2+q+t)*s[2, 1] + s[3]
-            sage: s([1,1,1]).nabla(t=1)
-            (q^3+q^2+2*q+1)*s[1, 1, 1] + (q^2+2*q+2)*s[2, 1] + s[3]
-            sage: s(0).nabla()
+            sage: s(e[3].Delta(e[2]))
+            (q^3+q^2*t+q*t^2+t^3+q^2+2*q*t+t^2+q+t)*s[1, 1, 1] + (q^2+q*t+t^2+2*q+2*t+1)*s[2, 1] + s[3]
+            sage: s(e[3].Delta(e[1]))
+            (q^2+q*t+t^2+q+t+1)*s[1, 1, 1] + (q+t+1)*s[2, 1]
+            sage: e[2,2].nabla() - e[2,2].Delta(e[4])
             0
-            sage: s(1).nabla()
-            s[]
-            sage: s([2,1]).nabla(power=-1)
-            ((-q-t)/(q^2*t^2))*s[2, 1] + ((-q^2-q*t-t^2)/(q^3*t^3))*s[3]
-            sage: (s([2])+s([3])).nabla()
-            (-q*t)*s[1, 1] + (q^3*t^2+q^2*t^3)*s[1, 1, 1] + q^2*t^2*s[2, 1]
+            sage: s(e[2].Delta(e[2,1]))
+            (q^2+q*t+t^2+q+t)*s[1, 1] + (q+t+1)*s[2]
+            sage: s(e[2].Delta(e[2,1],q=13,t=17))
+            709*s[1, 1] + 31*s[2]
+            sage: s(e[2].Delta(e[2,1],q=13))
+            (t^2+14*t+182)*s[1, 1] + (t+14)*s[2]
+            sage: s(e[2].Delta(e[2,1],t=17))
+            (q^2+18*q+306)*s[1, 1] + (q+18)*s[2]
         """
         parent = self.parent()
         BR = parent.base_ring()
@@ -3662,7 +3660,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             else:
                 t = BR(QQ['t'].gen())
         Ht = parent.realization_of().macdonald(q=q,t=t).Ht()
-        return parent(Ht(self).delta_expr(expr))
+        return parent(Ht(self).Delta(expr))
 
     def scalar(self, x, zee=None):
         r"""
