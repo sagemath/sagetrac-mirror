@@ -62,10 +62,10 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
             sage: BSA = SmashProductAlgebra(B, A, untwist)
             sage: ASB.register_opposite(BSA)
             sage: ab = ASB.an_element(); ab
-            2*A[a]B[s1] + 2*A[a]
+            2*A[a] B[s1] + 2*A[a]
             sage: BSA = ASB.opposite()
             sage: ba = BSA(ab); ba
-            -2*B[s1]A[a] + 2*A[a]
+            -2*B[s1] A[a] + 2*A[a]
             sage: ASB(ba) == ab
             True
             sage: ASB == BSA.opposite()
@@ -248,7 +248,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
                 return self.factors()[1]._repr_term(term[1])
             if term[1] == self.factors()[1].one_basis():
                 return self.factors()[0]._repr_term(term[0])
-            symb = ""
+            symb = " "
         else:
             from sage.categories.tensor import tensor
             symb = self._print_options['tensor_symbol']
