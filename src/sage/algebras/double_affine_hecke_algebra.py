@@ -553,11 +553,11 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
                     if param_dict[orbit] not in K:
                         raise ValueError, "The parameter %s supplied for the orbit %s is not in the parent of %s"%(param_dict[orbit],orbit,q)
                         
-            self._parameters = Family(param_dict)
+            self._parameters = Family(dict([[key, param_dict[key]] for key in param_dict.keys()]))
         else:
             K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
             param_dict = dict({'null_root':K.gen(0),'short':K.gen(1),'long':K.gen(2),'zero':K.gen(3),'doubled':K.gen(4),'zero_doubled':K.gen(5)})
-            self._parameters = Family(Set(['null_root'])+self._orbits, lambda x: param_dict[x])
+            self._parameters = Family(dict([[root_type, param_dict[root_type]] for root_type in Set(['null_root'])+self._orbits]))
         self._base_ring = K
         self._prefix=prefix
         
@@ -729,6 +729,24 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         return len(self._special_nodes) >= 2
 
     def parameter(self, param):
+        r"""
+        A parameter.
+
+        EXAMPLES::
+
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('zero')
+            v0
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('short')
+            v
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('long')
+            vl
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('zero_doubled')
+            vz
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('doubled')
+            v2
+            sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameter('null_root')
+            q
+        """
         try:
             return self._parameters[param]
         except KeyError:
@@ -738,8 +756,10 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         r"""
         The parameters of ``self``.
 
+        EXAMPLES::
+
             sage: DoubleAffineHeckeAlgebra("B2",False,False,False).parameters()
-            Lazy family (<lambda>(i))_{i in {'zero', 'short', 'long', 'zero_doubled', 'doubled', 'null_root'}}
+            Finite family {'zero_doubled': vz, 'short': v, 'doubled': v2, 'zero': v0, 'long': vl, 'null_root': q}
 
         """
         return self._parameters
@@ -750,10 +770,16 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
 
     @cached_method
     def v(self, i):
+        r"""
+        Family of parameters for nondoubled simple roots.
+        """
         return self.parameters()[self._vi[i]]
 
     @cached_method
     def v2(self, i):
+        r"""
+        Family of parameters for doubled simple roots.
+        """
         return self.parameters()[self._v2i[i]]
 
     @cached_method
