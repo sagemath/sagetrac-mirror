@@ -39,6 +39,7 @@ struct VectPerm
 
 
 int main() {
+  VectPerm zero {0,0,0,0,0,0,0,0 ,0,0,0,0,0,0,0,0};
   VectPerm x {0,1,1,3,3,2,0,0 ,0,0,0,0,0,0,0,0};
   VectPerm y {0,3,1,3,5,2,0,0 ,0,0,0,0,0,0,0,1};
   VectPerm z {0,1,0,3,5,2,0,0 ,0,0,0,0,0,0,0,1};
@@ -47,4 +48,12 @@ int main() {
   std::cout << y.less_partial(x, 2) << std::endl; // 1
   std::cout << x.less_partial(z, 2) << std::endl; // 0
   std::cout << x.less_partial(z, 4) << std::endl; // 1
+
+  VectPerm a {0,1,1,0,3,1,0,0 ,0,0,0,0,0,0,0,0};
+
+  const char mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY |
+    _SIDD_MASKED_NEGATIVE_POLARITY | _SIDD_MOST_SIGNIFICANT;
+  uint64_t res = _mm_cmpestri (zero.v, 1, a.v, 8, mode);
+  std::cout << "res: " << res << std::endl;
+
 }

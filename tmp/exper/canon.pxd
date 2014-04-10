@@ -21,4 +21,8 @@ cdef class PermListList(object):
     cdef vector[vector[borie.SGroup_type]] _v
     cpdef append(self, PermList p)
 
-cpdef bint is_canonical(PermListList a, Perm v)
+cpdef bint is_canonical(PermListList sgs, Perm v)
+
+cpdef PermList elements_of_depth(int depth, PermListList sgs)
+
+cpdef int elements_of_depth_number(int depth, PermListList sgs)

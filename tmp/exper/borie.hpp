@@ -3,6 +3,8 @@
 #include <array>
 #include "config.h"
 
+#include <iostream>
+
 #ifdef GCC_VECT_CMP
 #warning "Using GCC vectors extension syntax"
 #else
@@ -56,7 +58,7 @@ struct VectPerm
     #endif
     return (diffs >> diff) & 0x1;;
   }
-  bool first_diff(const VectPerm &b, int k) const {
+  int first_diff(const VectPerm &b, int k) const {
     const char mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY;
     return _mm_cmpestri (v, k, b.v, k, mode);
   }
@@ -70,6 +72,13 @@ struct VectPerm
     return (diffs >> diff) & 0x1;
   }
 } __attribute__ ((aligned (16)));
+
+static std::ostream & operator<<(std::ostream & stream, const VectPerm &term) {
+  stream << "[" << unsigned(term[0]);
+  for (unsigned i=1; i < 16; i++) stream << "," << unsigned(term[i]);
+  stream << "]";
+  return stream;
+};
 
 
 template < unsigned _N >
@@ -123,16 +132,17 @@ namespace std {
 #include <set>
 #include <unordered_set>
 
-const unsigned N = 8;
+const unsigned N = 16;
 // using SGroup = SymGroup<N>;
-using SGroup = SymGroupVect<N>;
 
-bool is_canonical(const std::vector< std::vector<SGroup::type> > & sgs,
-		  const SGroup::type &v) {
+using SGroup = SymGroupVect<N>;
+using StrongGeneratingSet = const std::vector< std::vector<SGroup::type> >;
+
+bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
   std::set<SGroup::type> to_analyse({v}), new_to_analyse;
   // std::unordered_set<SGroup::type> to_analyse({v}), new_to_analyse;
   SGroup::type child;
-
+  // for (SGroup::type x : sgs[0]) std::cout << "x=" << x << std::endl;
   for (unsigned int i=0; i < SGroup::N-1; i++) {
     new_to_analyse.clear();
     auto &transversal = sgs[i];
@@ -140,12 +150,75 @@ bool is_canonical(const std::vector< std::vector<SGroup::type> > & sgs,
       for (SGroup::type x : transversal) {
 	SGroup::mult(child, list_test, x);
 	int diff = v.first_diff(child, i+1);
+	// std::cout << "x=" << x << ", v=" << v << ", child=" << child <<
+	//  ", diff=" << diff << std::endl;
 	if (diff == 16) new_to_analyse.insert(child);
+	// std::cout << v.less_partial(child, diff) << std::endl;
 	if (v.less_partial(child, diff)) return false;
       }
     }
     to_analyse.swap(new_to_analyse);
   }
   return true;
+}
+
+
+const char LastNonZeroIndex = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY |
+  _SIDD_MASKED_NEGATIVE_POLARITY | _SIDD_MOST_SIGNIFICANT;
+
+__m128i zero {0,0};
+
+class children_iterator {
+
+  const SGroup::type &v;
+  uint64_t ind;
+public:
+  children_iterator(const SGroup::type &_v) : v(_v) {
+    ind = _mm_cmpestri (zero, 1, _v.v, SGroup::N, LastNonZeroIndex);
+    if (ind == 16) ind = 0;
+  };
+
+  void operator++() {  ind++;}
+  bool is_not_end() { return ind < SGroup::N; }
+  SGroup::type operator *() {
+    SGroup::type res = v;
+    res.p[ind]++;
+    return res;
+  }
+};
+
+
+// #include <list>
+// using list_vect = std::list<SGroup::type>;
+// void walk_tree(const SGroup::type &v, list_vect &res, int remaining_depth,
+// 	       StrongGeneratingSet & sgs) {
+//   if (remaining_depth == 0) res.push_back(v);
+//   else for (children_iterator ch(v); ch.is_not_end(); ++ch) {
+//       SGroup::type child = *ch;
+//       if (is_canonical(sgs, child)) walk_tree(child, res, remaining_depth-1, sgs);
+//     }
+// }
+
+
+#include <cilk/reducer_list.h>
+using list_vect = cilk::reducer_list_append<SGroup::type>;
+
+void walk_tree(const SGroup::type v, list_vect &res, int remaining_depth,
+	       StrongGeneratingSet & sgs) {
+  if (remaining_depth == 0) res.push_back(v);
+  else for (children_iterator ch(v); ch.is_not_end(); ++ch) {
+      SGroup::type child = *ch;
+      if (is_canonical(sgs, child))
+	cilk_spawn walk_tree(child, res, remaining_depth-1, sgs);
+    }
+}
+
+
+std::list<SGroup::type> elements_of_depth(int depth, StrongGeneratingSet & sgs) {
+  SGroup::type zero_vect;
+  list_vect list_res;
+  zero_vect.v = zero;
+  walk_tree(zero_vect, list_res, depth, sgs);
+  return list_res.get_value();
 }
 

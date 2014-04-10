@@ -4,6 +4,7 @@ from sage.structure.sage_object cimport SageObject
 
 include 'sage/ext/interrupt.pxi'
 
+
 cimport borie
 
 N = borie.N
@@ -47,8 +48,10 @@ cdef class PermList(object):
         self._v.push_back(p._p)
     def __len__(self):
         return self._v.size()
-    def __getitem__(self, int i):
+    def __getitem__(self, unsigned int i):
         cdef Perm res
+        if i >= self._v.size():
+            raise IndexError
         res = Perm.__new__(Perm)
         res._p = self._v.at(i)
         return res
@@ -61,11 +64,28 @@ cdef class PermListList(object):
     def __len__(self):
         return self._v.size()
     def __getitem__(self, int i):
-        cdef PermList res
-        res = PermList.__new__(PermList)
+        cdef PermList res = PermList.__new__(PermList)
         res._v = self._v.at(i)
         return res
 
 
-cpdef bint is_canonical(PermListList a, Perm v):
-    return borie.is_canonical(a._v, v._p)
+cpdef bint is_canonical(PermListList sgs, Perm v):
+    return borie.is_canonical(sgs._v, v._p)
+
+from libcpp.list cimport list as stl_list
+
+cpdef PermList elements_of_depth(int depth, PermListList sgs):
+    cdef stl_list[borie.SGroup_type] cppres
+    sig_on()
+    cppres = borie.elements_of_depth(depth, sgs._v)
+    sig_off()
+    cdef PermList res = PermList.__new__(PermList)
+    cdef vector[borie.SGroup_type] resvect
+    cdef borie.SGroup_type tmp
+    for tmp in cppres:
+        resvect.push_back(tmp)
+    res._v = resvect
+    return res
+
+cpdef int elements_of_depth_number(int depth, PermListList sgs):
+    return borie.elements_of_depth(depth, sgs._v).size()

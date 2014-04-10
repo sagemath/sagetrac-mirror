@@ -1,6 +1,7 @@
 from libc.stdint cimport uint8_t, uint_fast64_t
 
 from libcpp.vector cimport vector
+from libcpp.list cimport list as stl_list
 
 cdef extern from "borie.hpp":
     const unsigned N
@@ -15,5 +16,7 @@ cdef extern from "borie.hpp":
     SGroup_type SGroup_one "SGroup::one" ()
     void SGroup_mult "SGroup::mult" (SGroup_type &a, SGroup_type &a, SGroup_type &b)
 
-    bint is_canonical(const vector[vector[SGroup_type] ] sgs,
+    bint is_canonical(const vector[vector[SGroup_type]] sgs,
                       const SGroup_type v)
+
+    stl_list[SGroup_type] elements_of_depth(int depth, const vector[vector[SGroup_type]] sgs)

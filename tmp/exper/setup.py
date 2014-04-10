@@ -3,12 +3,12 @@
 
 import os, sys, platform
 
-#try:
-#    CILK_ROOT = os.environ['CILK_ROOT']
-#except KeyError:
-#    raise EnvironmentError, "Please define the CILK_ROOT environment variable !"
+try:
+   CILK_ROOT = os.environ['CILK_ROOT']
+except KeyError:
+   raise EnvironmentError, "Please define the CILK_ROOT environment variable !"
 # setup the gcc/cilk compiler
-# os.environ['CC'] = os.path.join(CILK_ROOT, 'bin', 'g++')
+os.environ['CC'] = os.path.join(CILK_ROOT, 'bin', 'g++')
 
 
 from distutils.core import setup
@@ -25,11 +25,11 @@ SAGE_DEV = os.path.join(SAGE_ROOT, 'src')
 if platform.system()=="Darwin":
     MARCH='-march=corei7'
     MTUNE='-march=corei7'
-#    CILK_LIB = os.path.join(CILK_ROOT, 'lib')
+    CILK_LIB = os.path.join(CILK_ROOT, 'lib')
 else:
     MARCH='-march=corei7-avx'
     MTUNE='-mtune=corei7-avx'
-#    CILK_LIB = os.path.join(CILK_ROOT, 'lib64')
+    CILK_LIB = os.path.join(CILK_ROOT, 'lib64')
 
 
 import Cython.Compiler.Options
@@ -44,13 +44,13 @@ setup(
                   language="c++",
                   extra_compile_args = ['-std=c++11', '-O3',
                                         MARCH, MTUNE,
-                                        #'-fcilkplus'
+                                        '-fcilkplus'
                                     ],
                   define_macros = [],
                   include_dirs = [SAGE_C,SAGE_DEV],
-#                  library_dirs = [CILK_LIB],
-#                  runtime_library_dirs = [CILK_LIB],
-                  libraries = ['csage'] #, 'cilkrts'],
+                  library_dirs = [CILK_LIB],
+                  runtime_library_dirs = [CILK_LIB],
+                  libraries = ['csage', 'cilkrts'],
                   ),
         ])
 
