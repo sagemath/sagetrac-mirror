@@ -32,6 +32,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef list _get_list(self)
     cpdef _set_list(self, list lst)
+    cpdef set_list(self, list lst)
     cpdef ClonableArray __copy__(self)
     cpdef check(self)
     cpdef object _getitem(self, int key)

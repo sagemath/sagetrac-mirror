@@ -612,6 +612,34 @@ cdef class ClonableArray(ClonableElement):
         """
         self._list = lst
 
+    cpdef set_list(self, list lst):
+        """
+        Set the list embedded in ``self``.
+        The list given in parameter is copied.
+
+        EXAMPLES::
+
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
+            sage: el = IncreasingArrays()([1,2,3])
+            sage: l = [1,4,5]
+            sage: with el.clone() as el1 :
+            ....:     el1.set_list( l )
+            sage: el1
+            [1, 4, 5]
+
+        TESTS::
+
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
+            sage: el = IncreasingArrays()([1,2,3])
+            sage: l = [1,4,5]
+            sage: with el.clone() as el1 :
+            ....:     el1.set_list( l )
+            sage: el1._get_list() is l
+            False
+        """
+        self._require_mutable()
+        self._list = list(lst)
+
     def __len__(self):
         """
         Returns the len of ``self``
