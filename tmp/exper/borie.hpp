@@ -3,6 +3,11 @@
 #include <array>
 #include "config.h"
 
+#ifdef GCC_VECT_CMP
+#warning "Using GCC vectors extension syntax"
+#else
+#warning "Using GCC intrinsics syntax"
+#endif
 
 template < unsigned _N, typename Vals=uint8_t >
 struct SymGroup {
