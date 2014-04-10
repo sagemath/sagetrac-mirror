@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <x86intrin.h>
 #include <array>
+#include "config.h"
 
 
 template < unsigned _N, typename Vals=uint8_t >
@@ -33,13 +34,21 @@ struct VectPerm
     __m128i v;
     epi8 v8;
   };
+  #ifdef GCC_VECT_CMP
   bool operator==(const VectPerm &vp) const { return _mm_movemask_epi8(v==vp.v)==0xffff; }
+  #else
+  bool operator==(const VectPerm &vp) const { return _mm_movemask_epi8(_mm_cmpeq_epi8(v,vp.v))==0xffff; }
+  #endif
   uint8_t operator[](unsigned long i) const { return p[i]; }
   uint8_t &operator[](unsigned long i) { return p[i]; }
   bool operator<(const VectPerm &b) const {
     const char mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY;
     uint64_t diff = _mm_cmpestri (v, 16, b.v, 16, mode);
+    #ifdef GCC_VECT_CMP
     int diffs = _mm_movemask_epi8(v < b.v);
+    #else
+    int diffs = _mm_movemask_epi8(_mm_cmplt_epi8(v,b.v));
+    #endif
     return (diffs >> diff) & 0x1;;
   }
   bool first_diff(const VectPerm &b, int k) const {
@@ -48,7 +57,11 @@ struct VectPerm
   }
 
   bool less_partial(const VectPerm &b, int diff) const {
+    #ifdef GCC_VECT_CMP
     int diffs = _mm_movemask_epi8(v8 < b.v8);
+    #else
+    int diffs = _mm_movemask_epi8(_mm_cmplt_epi8(__m128i(v8),__m128i(b.v8)));
+    #endif
     return (diffs >> diff) & 0x1;
   }
 } __attribute__ ((aligned (16)));
@@ -60,7 +73,11 @@ struct SymGroupVect {
   static const constexpr unsigned N = _N;
   static const constexpr unsigned vect_len = 16;
   using type = VectPerm;
-  static type one() { return {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}; }
+    #ifdef GCC_VECT_CMP
+    static type one() { return {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}; }
+    #else
+    static type one() { type res; for (int i=0; i<16; i++) res.p[i]=i; return res; }
+    #endif
   static void mult(type &res, const type &a, const type &b) {
     res.v = _mm_shuffle_epi8(a.v, b.v);
   };
@@ -81,7 +98,11 @@ namespace std {
   template<>
   struct hash<VectPerm> {
     size_t operator () (const VectPerm &ar) const {
-      return ar.v[1] ^ ar.v[0]; // hash<vect16>()(ar.p);
+    #ifdef GCC_VECT_CMP
+    return ar.v[1] ^ ar.v[0]; // hash<vect16>()(ar.p);
+    #else
+    return hash<vect16>()(ar.p);
+    #endif
     }
   };
 

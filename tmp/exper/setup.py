@@ -27,8 +27,8 @@ if platform.system()=="Darwin":
     MTUNE='-march=corei7'
 #    CILK_LIB = os.path.join(CILK_ROOT, 'lib')
 else:
-    MARCH='-march=native'
-    MTUNE='-march=native'
+    MARCH='-march=corei7-avx'
+    MTUNE='-mtune=corei7-avx'
 #    CILK_LIB = os.path.join(CILK_ROOT, 'lib64')
 
 
