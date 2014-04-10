@@ -176,6 +176,48 @@ class ParallelogramPolyomino( ClonableList ):
         if( p_up[0] != p_down[0] or p_up[1] != p_down[1] ):
             raise ValueError, "The two paths don't join together at the end."
 
+    def __hash__(self):
+        r"""
+        Return the hash code of the parallelogram polyomino
+            
+        EXAMPLES::
+            
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
+            ....: )
+            sage: hash( pp ) == hash(( (0,0,0,1,0,1,0,1,1), (1,0,1,1,0,0,1,0,0) ) )
+            True
+
+            sage: PPS = ParallelogramPolyominoes( 7 )
+            sage: D = { PPS[0] : True, PPS[1]: True }
+            sage: D[ PPS[0] ] = False
+            sage: import pprint
+            sage: pp = pprint.PrettyPrinter()
+            sage: pp.pprint( D )
+            {[[0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0]]: False,
+            [[0, 0, 0, 0, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 1, 0]]: True}
+        """
+        return hash( tuple( map( tuple, list(self) ) ) )
+
+    def __copy__( self ):
+        r"""
+        Copy a parallelogram Polyomino
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
+            ....: )
+            sage: pp1 = copy( pp )
+            sage: pp1 is pp
+            False
+            sage: pp1 == pp
+            True
+            sage: pp1
+            [[0, 0, 0, 1, 0, 1, 0, 1, 1], [1, 0, 1, 1, 0, 0, 1, 0, 0]]
+        """
+        return ParallelogramPolyomino( [ self.lower_path(), self.upper_path() ] )
+
     def __init__(self, parent, value, check=True):
         r"""
         Construct a parallelogram polyomino.
@@ -544,17 +586,17 @@ class ParallelogramPolyomino( ClonableList ):
             sage: PP.bounce_path( direction=0)
             [2, 4, 2]
 
-            sage: #PP = ParallelogramPolyomino(
-            ....: #    [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
-            ....: #)
-            sage: #PP.set_options(
-            ....: #    drawing_components=dict(
-            ....: #        diagram = True
-            ....: #        ,bounce_0 = True
-            ....: #        , bounce_1 = True
-            ....: #    )
-            ....: #)
-            sage: #view( PP )
+            sage: PP = ParallelogramPolyomino(
+            ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
+            ....: )
+            sage: PP.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram = True
+            ....:         , bounce_0 = True
+            ....:         , bounce_1 = True
+            ....:     )
+            ....: )
+            sage: view( PP ) # not tested
 
             sage: PP = ParallelogramPolyomino(
             ....:     [ [0,1], [1,0] ]
@@ -1247,15 +1289,23 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
             sage: ParallelogramPolyomino( [[0,1,1],[1,1,0]] )  in PPS
             True
 
+            sage: PPS = ParallelogramPolyominoes()
+            sage: next( PPS.__iter__() ) in PPS
+            True
         """
         ParentWithSetFactory.__init__(
             self, (), policy, category = FiniteEnumeratedSets()
         )
         DisjointUnionEnumeratedSets.__init__(
-            self, Family(NonNegativeIntegers(), ParallelogramPolyominoes_size),
+            self, Family(
+                NonNegativeIntegers(), self._parallelogram_polyominoes_size
+            ),
             facade=True, keepkey = False,
             category = self.category()
         )
+
+    def _parallelogram_polyominoes_size( self, n ):
+        return ParallelogramPolyominoes_size( n, policy=self.facade_policy() )
 
     def _repr_(self):
         r"""
