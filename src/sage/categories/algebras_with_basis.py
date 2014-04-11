@@ -621,6 +621,23 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 pass
 
             @abstract_method
+            def factor(self, i):
+                r"""
+                The `i`-th tensor factor algebra of `self`.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ); A.rename("A")
+                    sage: A2 = tensor([A,A])
+                    sage: A22 = tensor([A2,A2])
+                    sage: A22.factor(1)
+                    A # A
+
+                """
+                pass
+
+            @abstract_method
             def index_to_indices(self):
                 r"""
                 The function which maps a basis index of ``self`` to a tuple of basis indices for ``self.factors()``.

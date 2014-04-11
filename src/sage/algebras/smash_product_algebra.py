@@ -235,19 +235,19 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             Question: Should this name include twist?
 
         """
-        return "Smash product of %s and %s"%(self.factors()[0], self.factors()[1])
+        return "Smash product of %s and %s"%(self.factor(0), self.factor(1))
 
     def _repr_term(self, term):
         r"""
         A string for a term.
         """
         if self._suppress_ones:
-            if term[0] == self.factors()[0].one_basis():
-                if term[1] == self.factors()[1].one_basis():
+            if term[0] == self.factor(0).one_basis():
+                if term[1] == self.factor(1).one_basis():
                     return "1"
-                return self.factors()[1]._repr_term(term[1])
-            if term[1] == self.factors()[1].one_basis():
-                return self.factors()[0]._repr_term(term[0])
+                return self.factor(1)._repr_term(term[1])
+            if term[1] == self.factor(1).one_basis():
+                return self.factor(0)._repr_term(term[0])
             symb = " "
         else:
             from sage.categories.tensor import tensor
@@ -297,7 +297,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             Smash product of A and A
 
         """
-        return self(tensor([self.factors()[0](a),self.factors()[1](b)],category=ModulesWithBasis(self.base_ring())))
+        return self(tensor([self.factor(0)(a),self.factor(1)(b)],category=ModulesWithBasis(self.base_ring())))
 
     def an_element(self):
         r"""
@@ -315,7 +315,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             B[s1*s2*s1] # B[s1*s2*s1] + 3*B[s1*s2*s1] # B[s1*s2] + 3*B[s1*s2*s1] # B[s2*s1] + 3*B[s1*s2] # B[s1*s2*s1] + 9*B[s1*s2] # B[s1*s2] + 9*B[s1*s2] # B[s2*s1] + 3*B[s2*s1] # B[s1*s2*s1] + 9*B[s2*s1] # B[s1*s2] + 9*B[s2*s1] # B[s2*s1]
 
         """
-        return self.from_direct_product(self.factors()[0].an_element(),self.factors()[1].an_element())
+        return self.from_direct_product(self.factor(0).an_element(),self.factor(1).an_element())
 
     def _product_morphism(self):
         r"""
@@ -357,7 +357,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
     def register_opposite(self, other_algebra):
         if not isinstance(other_algebra, SmashProductAlgebra):
             raise TypeError, "%s is not a smash product"
-        if not other_algebra.factors()[0] == self.factors()[1] or not other_algebra.factors()[1] == self.factors()[0]:
+        if not other_algebra.factor(0) == self.factor(1) or not other_algebra.factor(1) == self.factor(0):
             raise TypeError, "Factors are not opposite"
         twist = self.twist()
         untwist = other_algebra.twist()
