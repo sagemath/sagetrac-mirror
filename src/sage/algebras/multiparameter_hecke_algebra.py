@@ -260,37 +260,7 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
             raise TypeError, "%s is not a Weyl group"%weyl_group
         self._weyl_group = weyl_group
         I = self._weyl_group.index_set()
-        if q1 and isinstance(q1, FiniteFamily):
-            self._q1 = q1
-            try:
-                # the 0 is sleazy
-                F = q1[I[0]].parent()
-            except AttributeError:
-                raise TypeError, "Values in %s should be ring elements"%q1
-        else:
-            if q1:
-                try:
-                    F = q1.parent()
-                except AttributeError:
-                    raise TypeError, "%s does not have a parent"%q1
-            else:
-                F = QQ['v'].fraction_field()
-                q1 = F.gen(0)
-            self._q1 = Family(dict([[i,q1] for i in I]))
-        self._base_ring = F
-        if q2 and isinstance(q2, FiniteFamily):
-            self._q2 = q2
-        else:
-            if q2:
-                try:
-                    F = q2.parent()
-                except AttributeError:
-                    raise TypeError, "%s should be a ring element"%q2
-                if F != self._base_ring:
-                    raise TypeError, "%s should have parent"%(q1,self._base_ring)
-                self._q2 = Family(dict([[i,q2] for i in I]))
-            else:
-                self._q2 = Family(dict([[i,-1/self._q1[i]] for i in I]))
+        self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
 
         # Used when multiplying generators: minor speed-up as it avoids the
         # need to constantly add and multiply the parameters when applying the
@@ -302,9 +272,9 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         if not prefix:
             prefix = "T"
         if not category:
-            category=AlgebrasWithBasis(F)
+            category=AlgebrasWithBasis(self._base_ring)
         from sage.algebras.iwahori_hecke_algebra import index_cmp
-        CombinatorialFreeModule.__init__(self, F, weyl_group, category=category, monomial_cmp = index_cmp, prefix=prefix)
+        CombinatorialFreeModule.__init__(self, self._base_ring, weyl_group, category=category, monomial_cmp = index_cmp, prefix=prefix)
 
     def _repr_(self):
         r"""
@@ -581,12 +551,13 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         return self.linear_combination((self.product_by_inverse_generator_on_basis(w, i, side), c)
                                        for (w,c) in x)
 
-    def product_by_signed_generator_sequence(self, x, word, signs, side="right"):
+    def product_by_signed_generator_sequence(self, x, word, signs=None, side="right"):
         r"""
         Returns `x T_{i_1}^{e_1} T_{i_2}^{e_2} \dotsm T_{i_l}^{e_l}` where the indices `i_k`
         are given by `word` and the signs `e_k = \pm 1` are given by `signs`.
 
         If ``side`` is "left", returns the product `T_{i_1}^{e_1}\dotsm T_{i_l}^{e_l} x`.
+        If ``signs`` is None, all signs are assumed to be positive.
 
         EXAMPLES::
 
@@ -606,6 +577,8 @@ class MultiParameterHeckeAlgebra(CombinatorialFreeModule):
         seq = range(len(word))
         if side == "left":
             seq.reverse()
+        if signs is None:
+            signs = tuple([1 for i in range(len(word))])
 
         for i in seq:
             if signs[i] == 1:
