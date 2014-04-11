@@ -45,7 +45,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         - ``q1, q2`` -- parameters (default: None)
         - ``extended`` -- (default None, which is interpreted as True) whether to use the extended affine Hecke algebra
 
-    All notation is borrowed from :class:`DoubleAffineHeckeAlgebra`.
+    A lot of notation is borrowed from :class:`DoubleAffineHeckeAlgebra`.
 
     The parameters `q1` and `q2` represent the pair of eigenvalues `q1[i]` and `q2[i]` of the algebra generator `T_i`
     for `i` in the affine Dynkin node set `I^X` of type `\tilde{X}`.
@@ -64,7 +64,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
 
     ..warning:: The implementation of "AX" is always the extended algebra, but if the input ``extended`` is False,
     then only the nonextended subalgebra is used. "KY" is implemented with the ambient space of type `Y`,
-    which is defined over the rationals. Membership in the correct lattice is usually not checked.
+    which is defined over the rationals. Membership is only checked at certain points.
 
     Supported bases:
 
@@ -80,7 +80,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: AX = H.AX(); AX
         AX basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: a = AX.an_element(); a
-        2*[pi[2]] TX[0] + 3*[pi[2]] TX[0,1] + [pi[2]] + [pi[2]] TX[0,1,2]
+        2*[piX[2]] TX[0] + 3*[piX[2]] TX[0,1] + [piX[2]] + [piX[2]] TX[0,1,2]
         sage: HY_KY = H.HY_KY(); HY_KY
         HY_KY basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: HY_KY.an_element()
@@ -93,7 +93,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
     There are built-in coercions between the bases::
 
         sage: b = AX.monomial((H.fundamental_group()(1),H.affine_weyl().one())); b
-        [pi[1]]
+        [piX[1]]
         sage: KY_HY(b)
         Y[(1, 0, 0)] Ty[1,2] + ((-v^2+1)/v)*Y[(1, 0, 0)] Ty[1] + ((-v^2+1)/v)*Y[(1, 0, 0)] Ty[2] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, 0)]
         sage: HY_KY(b)
@@ -115,7 +115,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: HY_KY = H.HY_KY()
         sage: KY_HY = H.KY_HY()
         sage: a = AX.factor_embedding(0)(AX.factors()[0].monomial(H.fundamental_group()(2))); a
-        [pi[2]]
+        [piX[2]]
         sage: HY_KY(a)
         Ty[2,1,2] Y[(-1/2, -1/2)]
         sage: KY_HY(a)
@@ -150,7 +150,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         ...
         ValueError: (1/2, 1/2) should be in the root lattice
         sage: a = AX.factor_embedding(0)(AX.factors()[0].monomial(H.fundamental_group()(2))); a
-        [pi[2]]
+        [piX[2]]
         sage: HY_KY(a)
         Traceback (most recent call last):
         ...
@@ -177,16 +177,16 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None):
+    def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None, prefix=None):
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
         if isinstance(q1, dict):
             q1 = Family(q1)
         if isinstance(q2, dict):
             q2 = Family(q2)
-        return super(AffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2, extended)
+        return super(AffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2, extended, prefix)
 
-    def __init__(self, cartan_type, q1, q2, extended):
+    def __init__(self, cartan_type, q1, q2, extended, prefix):
         if cartan_type.is_reducible():
             raise ValueError, "Cartan type should be irreducible"
         if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
@@ -200,25 +200,24 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             self._extended = extended
         else:
             raise ValueError, "%s should be a boolean"%extended
+        if prefix is None:
+            prefix = "piX"
         from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
-        self._PvW0 = ExtendedAffineWeylGroup(cartan_type, style="PvW0")
-        self._E = self._PvW0.realization_of()
-        self._W0Pv = self._E.W0Pv()
-        self._FW = self._E.FW()
-        self._WX = self._E.affine_weyl()
+        self._WeX = ExtendedAffineWeylGroup(cartan_type, style="PvW0", fundamental = prefix)
+        self._FW = self._WeX.realization_of().FW()
+        self._FX = self._WeX.realization_of().fundamental_group()
+        self._WaX = self._WeX.realization_of().affine_weyl()
         if cartan_type.is_untwisted_affine():
             self._cartan_type_Y = cartan_type.classical().dual()
             self._cartan_type_Yt = self._cartan_type_Y.affine()
         else:
             self._cartan_type_Y = cartan_type.classical()
             self._cartan_type_Yt = self._cartan_type
-        self._Y = self._cartan_type_Y.root_system().ambient_space()
-        self._W0 = self._Y.weyl_group()
+        self._LY = self._cartan_type_Y.root_system().ambient_space()
+        self._WY = self._LY.weyl_group()
 
         I = cartan_type.index_set()
         self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
-
-        self._IXspecial = self._E.special_nodes()
 
         if self._extended:
             self._doubled_parameters = Family(dict([]))
@@ -383,10 +382,10 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             Ambient space of the Root system of type ['B', 2]
 
         """
-        return self._Y
+        return self._LY
 
     @cached_method
-    def KY(self):
+    def KY(self, prefix=None):
         r"""
         The group algebra of the `Y` lattice.
 
@@ -395,7 +394,9 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             sage: AffineHeckeAlgebra("A2").KY()
             Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Univariate Polynomial Ring in v over Rational Field
         """
-        return self.Y_lattice().algebra(self.base_ring(), prefix="Y")
+        if prefix is None:
+            prefix = "Y"
+        return self.Y_lattice().algebra(self.base_ring(), prefix=prefix)
 
     def classical_weyl(self):
         r"""
@@ -413,10 +414,10 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             Weyl Group of type ['B', 2] (as a matrix group acting on the ambient space)
 
         """
-        return self._W0
+        return self._WY
 
     @cached_method
-    def HY(self):
+    def HY(self, prefix=None):
         r"""
         The finite Hecke algebra of type `Y`.
 
@@ -426,10 +427,13 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             Hecke algebra of type ['A', 2]
 
         """
+        if prefix is None:
+            prefix = "Ty"
         I0 = self._cartan_type_Y.index_set()
-        return MultiParameterHeckeAlgebra(self._W0, self._q1, self._q2, prefix="Ty")
+        return MultiParameterHeckeAlgebra(self._WY, self._q1, self._q2, prefix=prefix)
 
-    def extended_affine_weyl(self):
+    @cached_method
+    def extended_affine_weyl(self, prefix=None):
         r"""
         Returns the extended affine Weyl group of ``self``.
 
@@ -442,7 +446,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             sage: AffineHeckeAlgebra(['D',3,2]).extended_affine_weyl()
             Extended affine Weyl group of type ['C', 2, 1]^* realized by Semidirect product of Multiplicative form of Weight lattice of the Root system of type ['B', 2] acted upon by Weyl Group of type ['B', 2] (as a matrix group acting on the weight lattice)
         """
-        return self._PvW0
+        return self._WeX
 
     def affine_weyl(self):
         r"""
@@ -458,7 +462,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             Weyl Group of type ['C', 2, 1] (as a matrix group acting on the root lattice)
 
         """
-        return self._WX
+        return self._WaX
 
     def fundamental_group(self):
         r"""
@@ -468,7 +472,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             Fundamental group of type ['A', 2, 1]
 
         """
-        return self._E.fundamental_group()
+        return self._FX
 
     def classical_weyl_to_affine_morphism(self, w):
         r"""
@@ -570,8 +574,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             return self.HY_KY().one()
         if not self._dual_reduced:
             raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
-        # express pi as w t_mu with w in W(Y) and mu in Y.
-        x = self._W0Pv(pi)
+        # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
+        x = self.extended_affine_weyl().realization_of().W0Pv()(pi)
         w = x.to_dual_classical_weyl().reduced_word()
         mu = x.to_dual_translation_right().to_ambient()
         HY_KY = self.HY_KY()
@@ -598,8 +602,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             return self.KY_HY().one()
         if not self._dual_reduced:
             raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
-        # express pi as  t_mu  w with w in W(Y) and mu in Y.
-        x = self._PvW0(pi)
+        # express pi as t_mu w with w in W(Y) and mu in Y.
+        x = self._WeX(pi)
         w = x.to_dual_classical_weyl().reduced_word()
         mu = x.to_dual_translation_left().to_ambient()
         signs = tuple([-1 for i in range(len(w))])
@@ -764,16 +768,15 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             # the nonextended Hecke algebra of type `\tilde{X}`
             E._HXa = MultiParameterHeckeAlgebra(E.affine_weyl(), E.q1(), E.q2(), prefix="TX", category=AlgebrasWithBasis(E.base_ring()))
             # the group algebra of the fundamental group of type `\tilde{X}`
-            from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            E._FX = FundamentalGroupOfExtendedAffineWeylGroup(E.cartan_type()).algebra(E.base_ring())
-            E._FX._print_options['prefix'] = ""
+            E._KFX = E.fundamental_group().algebra(E.base_ring())
+            E._KFX._print_options['prefix'] = ""
             mcat = ModulesWithBasis(E.base_ring()).TensorProducts()
-            E._HXaoFX = tensor([E._HXa, E._FX], category = mcat)
-            E._FXoHXa = tensor([E._FX, E._HXa], category = mcat)
+            E._HXaoKFX = tensor([E._HXa, E._KFX], category = mcat)
+            E._KFXoHXa = tensor([E._KFX, E._HXa], category = mcat)
             def ext_twist_func((w, f)):
                 return (f, f.inverse().act_on_affine_weyl(w))
-            E._ext_twist = E._HXaoFX.module_morphism(on_basis=E._HXaoFX.monomial*ext_twist_func, codomain=E._FXoHXa, category=mcat)
-            SmashProductAlgebra.__init__(self, E._FX, E._HXa, E._ext_twist, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
+            E._ext_twist = E._HXaoKFX.module_morphism(on_basis=E._HXaoKFX.monomial*ext_twist_func, codomain=E._KFXoHXa, category=mcat)
+            SmashProductAlgebra.__init__(self, E._KFX, E._HXa, E._ext_twist, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "AX"
 
         def _repr_(self):
@@ -811,7 +814,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: H = AffineHeckeAlgebra("A2")
                 sage: AX = H.AX()
                 sage: AX.from_fundamental(H.fundamental_group()(2))
-                [pi[2]]
+                [piX[2]]
             """
             return self.factor_embedding(0)(self.factors()[0].monomial(f))
 

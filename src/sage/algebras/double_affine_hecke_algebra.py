@@ -10,18 +10,28 @@
 ################################
 
 import functools
+
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.abstract_method import abstract_method
+from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import is_even
-from sage.sets.set import Set
-from sage.sets.family import Family
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.tensor import tensor
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
+from sage.categories.category import Category
+from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
-from sage.rings.all import QQ
-from sage.algebras.multiparameter_hecke_algebra import MultiParameterHeckeAlgebra
+from sage.categories.morphism import SetMorphism
+from sage.categories.realizations import Category_realization_of_parent, Realizations
+from sage.categories.tensor import tensor
+from sage.sets.family import Family, FiniteFamily
+from sage.sets.set import Set
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.algebras.multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 from sage.algebras.smash_product_algebra import SmashProductAlgebra
 
-class DoubleAffineHeckeAlgebra(UniqueRepresentation):
+class DoubleAffineHeckeAlgebra(UniqueRepresentation,Parent):
     r"""
     Class which specifies a double affine Hecke algebra
     of not-necessarily-reduced possibly-extended affine type.
@@ -560,6 +570,9 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
             self._parameters = Family(dict([[root_type, param_dict[root_type]] for root_type in Set(['null_root'])+self._orbits]))
         self._base_ring = K
         self._prefix=prefix
+
+        self._q1 = Family(dict([[i, self._parameters[self._vi[i]]] for i in I]))
+        self._q2 = Family(dict([[i, -1/self._q1[i]] for i in I]))
         
     def __repr__(self):
         def non_string(str, bool):
@@ -619,55 +632,17 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         """
         return self._doubled_nodes
 
-    def extended_affine_weyl_group(self):
+    def WeX(self):
         r"""
         The extended affine Weyl group.
 
         EXAMPLES::
 
-            sage: DoubleAffineHeckeAlgebra(['C',2], untwisted=True, reduced=True, dual_reduced=False).extended_affine_weyl_group()
+            sage: DoubleAffineHeckeAlgebra(['C',2], untwisted=True, reduced=True, dual_reduced=False).WeX()
             Extended affine Weyl group of type ['C', 2, 1] realized by Semidirect product of Multiplicative form of Weight lattice of the Root system of type ['B', 2] acted upon by Weyl Group of type ['B', 2] (as a matrix group acting on the weight lattice)
 
         """
         return self._W
-
-    @cached_method
-    def affine_weyl_group(self):
-        r"""
-        The affine Weyl group `W_a(\tilde{X})`.
-
-        EXAMPLES::
-
-            sage: DoubleAffineHeckeAlgebra(['C',2], untwisted=True, reduced=True, dual_reduced=False).affine_weyl_group()
-            Weyl Group of type ['C', 2, 1] (as a matrix group acting on the root lattice)
-        """
-        return self.extended_affine_weyl_group().realization_of().affine_weyl()
-
-    @cached_method
-    def classical_weyl_group(self):
-        r"""
-        The classical Weyl group `W(X)`.
-
-        EXAMPLES::
-
-            sage: DoubleAffineHeckeAlgebra(['C',2], untwisted=True, reduced=True, dual_reduced=False).classical_weyl_group()
-            Weyl Group of type ['B', 2] (as a matrix group acting on the coweight lattice)
-            
-        """
-        return self.extended_affine_weyl_group().realization_of().classical_weyl()
-
-    @cached_method
-    def dual_classical_weyl_group(self):
-        r"""
-        The classical Weyl group `W(Y)`.
-
-        EXAMPLES::
-
-            sage: DoubleAffineHeckeAlgebra(['C',2], untwisted=True, reduced=True, dual_reduced=False).dual_classical_weyl_group()
-            Weyl Group of type ['B', 2] (as a matrix group acting on the weight lattice)
-
-        """
-        return self.extended_affine_weyl_group().realization_of().dual_classical_weyl()
 
     def cartan_type(self):
         r"""
@@ -709,7 +684,6 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
             (0, 3)
 
         """
-
         return self._special_nodes
 
     def properly_extended(self):
@@ -782,6 +756,12 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         """
         return self.parameters()[self._v2i[i]]
 
+    def q1(self, i):
+        return self._q1[i]
+
+    def q2(self, i):
+        return self._q2[i]
+
     @cached_method
     def dual(self, prefix=None):
         r"""
@@ -813,161 +793,16 @@ class DoubleAffineHeckeAlgebra(UniqueRepresentation):
         return DoubleAffineHeckeAlgebra(dual_classical_type, self._untwisted, self._dual_reduced, self._reduced, prefix, **dual_parameters)
 
     @cached_method
-    def classical_hecke_algebra(self, prefix=None):
+    def AX(self, prefix=None):
         r"""
-        The Hecke algebra of `W(X)`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="x")
-            sage: HX = dat.classical_hecke_algebra(); HX
-            Hecke algebra of type ['C', 2]
-            sage: HX.an_element()
-            3*tx[2,1,2,1] + tx[1,2,1] + 3*tx[1,2]
-
-        """
-        ctc = self.cartan_type_classical()
-        I0 = ctc.index_set()
-        q1 = Family(dict([[i,self.v(i)] for i in I0]))
-        q2 = Family(dict([[i,-1/self.v(i)] for i in I0]))
-        if prefix is None:
-            prefix = "t"+self._prefix
-        return MultiParameterHeckeAlgebra(self.classical_weyl_group(), q1=q1, q2=q2, prefix=prefix)
-
-    @cached_method
-    def dual_classical_hecke_algebra(self, prefix=None):
-        r"""
-        The Hecke algebra of `W(Y)`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="x")
-            sage: HY = dat.dual_classical_hecke_algebra(prefix="ty"); HY
-            Hecke algebra of type ['C', 2]
-            sage: HY.an_element()
-            3*ty[2,1,2,1] + ty[1,2,1] + 3*ty[1,2]
-
-        """
-        ctc = self.cartan_type_classical()
-        I0 = ctc.index_set()
-        q1 = Family(dict([[i,self.v(i)] for i in I0]))
-        q2 = Family(dict([[i,-1/self.v(i)] for i in I0]))
-        if prefix is None:
-            prefix = "t"+self._prefix
-        return MultiParameterHeckeAlgebra(self.dual_classical_weyl_group(), q1=q1, q2=q2, prefix=prefix)
-
-    @cached_method
-    def affine_hecke_algebra(self, prefix=None):
-        r"""
-        The Hecke algebra of `W_a(\tilde{X})`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="X")
-            sage: HaX = dat.affine_hecke_algebra(prefix="TX"); HaX
-            Hecke algebra of type ['B', 2, 1]
-            sage: HaX.an_element()
-            TX[1,0,2] + 3*TX[0,2] + 2*TX[0] + 1
-
-        """
-        I = self.cartan_type().index_set()
-        q1 = Family(dict([[i,self.v(i)] for i in I]))
-        q2 = Family(dict([[i,-1/self.v(i)] for i in I]))
-        if prefix is None:
-            prefix = "T"+self._prefix
-        return MultiParameterHeckeAlgebra(self.affine_weyl_group(), q1=q1, q2=q2, prefix=prefix)
-
-    @cached_method
-    def fundamental_group_algebra(self, prefix=None):
-        r"""
-        The group algebra of `\Pi^X`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="x")
-            sage: FX = dat.fundamental_group_algebra("FX"); FX
-            Group algebra of Fundamental group of type ['B', 2, 1] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-            sage: FX.an_element()
-            FX[pix[1]]
-
-        """
-        if prefix is None:
-            prefix = "F"+self._prefix
-        return self._W.realization_of().fundamental_group().algebra(self._base_ring, prefix=prefix)
-
-    @cached_method
-    def representation_ring(self, prefix=None):
-        r"""
-        The group algebra of `P^X`. We will only use the group algebra of the subgroup `X`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="x")
-            sage: KX = dat.representation_ring("X"); KX
-            Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-            sage: KX.an_element()
-            X[(2, 2)]
-
-        """
-        if not prefix:
-            prefix = self._prefix
-        X = self.cartan_type().classical().root_system().ambient_space()
-        return X.algebra(self._base_ring, prefix = prefix)
-
-    @cached_method
-    def dual_representation_ring(self, prefix=None):
-        r"""
-        The group algebra of `P^Y`. We will only use the group algebra of the subgroup `Y`.
-
-            sage: dat = DoubleAffineHeckeAlgebra(['B',2], untwisted=True, reduced=False, dual_reduced=True, prefix="x")
-            sage: KY = dat.dual_representation_ring("Y"); KY
-            Group algebra of the Ambient space of the Root system of type ['C', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-            sage: KY.an_element()
-            Y[(2, 2)]
-        """
-        if not prefix:
-            prefix = "Y"
-        Y = self.cartan_type().classical().dual().root_system().ambient_space()
-        return Y.algebra(self._base_ring, prefix = prefix)
-
-    @cached_method
-    def extended_affine_hecke_algebra_F_TX(self):
-        r"""
-        The Hecke algebra of the extended affine Weyl group `W_e(\tilde{X})`,
-        realized as the smash product `K F^X \otimes H` of the group algebra
-        `K F^X` of the fundamental group `F^X` of `\tilde{X}`, with the
-        Hecke algebra `H` of `W_a(\tilde{X})`, where `K` is the base ring.
-
-        EXAMPLES::
-
-            sage: dat = DoubleAffineHeckeAlgebra("A2")
-            sage: E = dat.extended_affine_hecke_algebra_F_TX(); E
-            Smash product of Group algebra of Fundamental group of type ['A', 2, 1] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field and Hecke algebra of type ['A', 2, 1]
-            sage: x = E.an_element(); x
-            2*F[pi[2]] # T[0] + 3*F[pi[2]] # T[0,1] + F[pi[2]] # 1 + F[pi[2]] # T[0,1,2]
-        """
-        H = self.affine_hecke_algebra()
-        KF = self.fundamental_group_algebra()
-        HF = tensor([H,KF],category=ModulesWithBasis(self.base_ring()))
-        FH = tensor([KF,H],category=ModulesWithBasis(self.base_ring()))
-        twist = HF.module_morphism(on_basis = lambda (w,pi): FH.monomial((pi,pi.inverse().act_on_affine_weyl(w))), codomain=FH, category=ModulesWithBasis(self.base_ring()))
-        FSH = SmashProductAlgebra(KF, H, twist)
-        untwist = FH.module_morphism(on_basis = lambda (pi,w): HF.monomial((pi.act_on_affine_weyl(w),pi)), codomain=HF, category=ModulesWithBasis(self.base_ring()))
-        HSF = SmashProductAlgebra(H, KF, untwist)
-        FSH.register_opposite(HSF)
-        return FSH
-
-    @cached_method
-    def extended_affine_hecke_algebra_TX_F(self):
-        r"""
-        The algebra `H \otimes K F^X`; see :meth:`.extended_affine_hecke_algebra_F_TX`.
-        """
-        return self.extended_affine_hecke_algebra_F_TX().opposite()
-
-    @cached_method
-    def extended_affine_hecke_algebra_TY_Y(self):
-        r"""
-        The algebra `K[Y] \otimes H(W(Y))`. 
-
-        The Hecke algebra of the finite Weyl group acts on `K[Y]` by the Demazure-Lusztig
-        operators.
+        The extended affine Hecke algebra of `W_e(\tilde{X})`.
         """
         pass
 
     @cached_method
-    def extended_affine_hecke_algebra_Y_TY(self):
+    def KX(self, prefix=None):
         r"""
-        The algebra `H(W(Y)) \otimes K[Y]`.
-
+        The group algebra of `X`.
         """
         pass
+
