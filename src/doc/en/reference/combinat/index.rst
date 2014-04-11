@@ -166,6 +166,7 @@ Combinatorics
    sage/combinat/subword
    sage/combinat/lyndon_word
    sage/combinat/dyck_word
+   sage/combinat/parallelogram_polyomino
 
 **Unsorted**
 
