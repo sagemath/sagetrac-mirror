@@ -251,6 +251,17 @@ class ParallelogramPolyomino( ClonableList ):
         self._options = None
 
     def _to_dyck_delest_viennot( self ):
+        r"""
+        Convert to a Dyck word using the Delest-Viennot bijection.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1,0,0,1,1], [1,1,1,0,0,0]]
+            ....: )
+            sage: pp._to_dyck_delest_viennot()
+            [1, 1, 0, 1, 1, 0, 1, 0, 0, 0]
+        """
         from sage.combinat.dyck_word import DyckWord
         size = self.size()
         dyck = []
@@ -266,6 +277,11 @@ class ParallelogramPolyomino( ClonableList ):
     def to_dyck_word( self, bijection=None):
         r"""
         Convert to a Dyck word.
+ 
+        TODO : verifier :
+        ref. Delest, M.-P. and Viennot, G. 
+        "Algebraic Languages and Polyominoes [sic] Enumeration." 
+        Theoret. Comput. Sci. 34, 169-206, 1984. 
 
         EXAMPLES::
         
@@ -280,12 +296,231 @@ class ParallelogramPolyomino( ClonableList ):
         if bijection is None or bijection == 'Delest-Viennot':
             return self._to_dyck_delest_viennot( )
 
+
+    def _to_binary_tree_Aval_Boussicault( self, position=[0,0] ):
+        r"""
+        Convert to a binary tree using the Aval-Boussicault algorithm.
+
+        Ref. : 
+        J.C Aval, A. Boussicault, M. Bouvel, M. Silimbani, 
+        "Combinatorics of non-ambiguous trees", 
+        arXiv:1305.3716
+
+        INPUT:
+        
+        - ``bijection`` -- ``None`` (default) The name of bijection to use for 
+          the convertion. The possible value are, 'Aval-Boussicault'.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,0,1,0,1,0,1,0,1,1], [1,1,0,1,1,0,0,0,1,0]]
+            ....: )
+            sage: pp._to_binary_tree_Aval_Boussicault()
+            [[., [[., .], [[., [., .]], .]]], [[., .], .]]
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1], [1,0]]
+            ....: )
+            sage: pp._to_binary_tree_Aval_Boussicault()
+            [., .]
+           
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[1], [1]]
+            ....: )
+            sage: pp._to_binary_tree_Aval_Boussicault()
+            .
+        """
+        from sage.combinat.binary_tree import BinaryTree
+        if self.size() == 0:
+            return BinaryTree()
+        result = [ BinaryTree(), BinaryTree()  ]
+        right_son = list(position)
+        left_son = list(position)
+        w = right_son[1] + 1
+        h = left_son[0] + 1
+        while( w < self.width() ):
+            if( self[ right_son[0] ][ w ] == 1 ):
+                if( self[ right_son[0]-1 ][ w ] == 0  ):
+                    right_son[1] = w
+                    result[1] = self._to_binary_tree_Aval_Boussicault( right_son )
+                    break
+            w += 1
+        while( h < self.height() ):
+            if( self[ h ][ left_son[1] ] == 1 ):
+                if( self[ h ][ left_son[1]-1 ] == 0  ):
+                    left_son[0] = h
+                    result[0] = self._to_binary_tree_Aval_Boussicault( left_son )
+                    break
+            h += 1
+        return BinaryTree( result )
+
+    def get_sub_binary_tree( self, position ):
+        r"""
+        TODO
+        """
+        from sage.combinat.binary_tree import BinaryTree
+        if( self[position[0]][position[1]] == 0 ):
+            return BinaryTree()
+        return self._to_tree_Aval_Boussicault( position )
+
+    def to_binary_tree( self, bijection=None ):
+        r"""
+        Convert to a binary tree
+
+        INPUT:
+        
+        - ``bijection`` -- ``None`` (default) The name of bijection to use for 
+          the convertion. The possible value are, 'Aval-Boussicault'.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,0,1,0,1,0,1,0,1,1], [1,1,0,1,1,0,0,0,1,0]]
+            ....: )
+            sage: pp.to_binary_tree() 
+            [[., [[., .], [[., [., .]], .]]], [[., .], .]]
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1], [1,0]]
+            ....: )
+            sage: pp.to_binary_tree() 
+            [., .]
+           
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[1], [1]]
+            ....: )
+            sage: pp.to_binary_tree() 
+            .
+        """
+        if bijection is None or bijection == 'Aval-Boussicault':
+            return self._to_binary_tree_Aval_Boussicault( [0,0] )
+
+    def _to_ordered_tree_via_dyck( self ):
+        return self._to_dyck_delest_viennot( ).to_ordered_tree()
+
+    def _to_ordered_tree_Bou_Socci( self ):
+        r"""
+        Return the ordered tree using the Boussicault-Socci bijection.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,0,1,0,1,0,1,0,1,1], [1,1,0,1,1,0,0,0,1,0]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            [[[[[]], [[[]]]]], [[]]]
+            sage: pp.to_ordered_tree( bijection='Boussicault-Socci' )
+            [[[[[]], [[[]]]]], [[]]]
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1], [1,0]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            [[]]
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[1], [1]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            []
+        """
+        from sage.combinat.ordered_tree import OrderedTree
+        from sage.combinat.binary_tree import BinaryTree
+        def make_tree( b_tree, d ):
+            if( b_tree == BinaryTree() ):
+                return OrderedTree( [] )
+            res = []
+            res.append( make_tree( b_tree[1-d], 1-d ) )
+            res += make_tree( b_tree[d], d )
+            return OrderedTree( res )
+        return make_tree(
+            self.to_binary_tree( bijection='Aval-Boussicault' ), 1
+        )
+
+    def to_ordered_tree( self, bijection=None):
+        r"""
+        Return an ordered tree from the parallelogram polyomino
+
+        INPUT:
+
+        - ``bijection`` -- ``None`` (default) The name of bijection to use for 
+          the convertion. The possible value are, 'Boussicault-Socci', 'via dyck'
+          'via dyck and Delest-Viennot'. The default bijection is 
+          'Boussicault-Socci'.
+
+          TODO : Faire de la biblio.
+
+        EXAMPLES::
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,0,1,0,1,0,1,0,1,1], [1,1,0,1,1,0,0,0,1,0]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            [[[[[]], [[[]]]]], [[]]]
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,1], [1,0]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            [[]]
+        
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[1], [1]]
+            ....: )
+            sage: pp.to_ordered_tree()
+            []
+        """
+        if bijection is None or bijection == 'Boussicault-Socci':
+            return self._to_ordered_tree_Bou_Socci( )
+        if bijection == 'via dyck and Delest-Viennot':
+            return self._to_ordered_tree_via_dyck( )
+
     def get_options( self ):
+        r"""
+        Return all the opitons of the object.
+
+        sage: pp = ParallelogramPolyomino( [[0,1], [1,0]] )
+        sage: pp.get_options()
+        options for Parallelogram Polyominoes
+        """
         if self._options is None:
             return self.parent().get_options()
         return self._options
 
     def set_options( self, *get_value, **set_value ):
+        r"""
+        Set new options to the object.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [ [0,0,0,0,1,0,1,0,1], [1,0,0,0,1,1,0,0,0] ]
+            ....: )
+            sage: pp
+            [[0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0, 0, 0] ]
+            sage: pp.set_options()
+            ....:     display='drawing'
+            ....: )
+            sage: pp
+            [1 0 0]
+            [1 0 0]
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 0 1]
+
+            sage: pp = ParallelogramPolyomino( [[0,1], [1,0]] )
+            sage: view( PP ) # not tested
+            sage: pp.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram = True
+            ....:         , bounce_0 = True
+            ....:         , bounce_1 = True
+            ....:     )
+            ....: )
+            sage: view( PP ) # not tested
+        """
         if self._options is None:
             self._options = deepcopy( self.get_options() )
         self._options( *get_value, **set_value )
@@ -570,6 +805,7 @@ class ParallelogramPolyomino( ClonableList ):
         commands :
         
         EXAMPLES::
+
             sage: PP = ParallelogramPolyomino(
             ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
             ....: )

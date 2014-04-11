@@ -148,6 +148,13 @@ Combinatorics
    tableaux
    sage/combinat/rsk
 
+**Polyominoes**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/parallelogram_polyomino
+
 **Trees**
 
 .. toctree::
