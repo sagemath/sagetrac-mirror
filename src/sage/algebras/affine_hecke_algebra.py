@@ -155,6 +155,17 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced
+        sage: mu = 4 * H.Y_lattice().fundamental_weight(2); mu
+        (2, 2)
+        sage: w = H.classical_weyl().from_reduced_word([2,1,2])
+        sage: b = HY_KY.monomial((w,mu)); b
+        Ty[2,1,2] Y[(2, 2)]
+        sage: KY_HY(b)
+        ((v^4-2*v^2+1)/v^2)*Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Ty[2] + ((vl^2*v0^4-vl^2*v0^2-v0^4+vl^2+v0^2-1)/(vl*v0^2)) + ((v^2-1)/v)*Y[(-2, 0)] Ty[1,2] + Y[(-2, -2)] Ty[2,1,2] + ((v0^2-1)/v0)*Y[(-2, -1)] Ty[1,2] + ((v0^2-1)/v0)*Y[(-2, 1)] Ty[1,2] + ((v^2-1)/v)*Y[(-2, 2)] Ty[1,2] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(-1, 0)] Ty[1] + ((vl^2*v0^2-vl^2-v0^2+1)/(vl*v0))*Y[(-1, 0)] Ty[2] + ((v0^2-1)/v0)*Y[(-1, -2)] Ty[2,1] + ((v0^4-2*v0^2+1)/v0^2)*Y[(-1, -1)] Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Y[(-1, -1)] Ty[2] + ((vl^2-1)/vl)*Y[(-1, -1)] + ((v0^4-2*v0^2+1)/v0^2)*Y[(-1, 1)] Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Y[(-1, 1)] Ty[2] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(-1, 2)] Ty[1] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(1, 0)] Ty[1] + ((v^2*vl^2*v0^2-v^2*vl^2-v^2*v0^2-vl^2*v0^2+v^2+vl^2+v0^2-1)/(v*vl*v0))*Y[(1, 0)] + ((v0^2-1)/v0)*Y[(1, -2)] Ty[2,1] + ((v0^4-2*v0^2+1)/v0^2)*Y[(1, -1)] Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Y[(1, -1)] Ty[2] + ((v0^4-2*v0^2+1)/v0^2)*Y[(1, 1)] Ty[1] + ((v^4*vl^2-v^4-v^2*vl^2+v^2+vl^2-1)/(v^2*vl))*Y[(1, 1)] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(1, 2)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(2, 0)] Ty[1] + ((v^2-1)/v)*Y[(2, -2)] Ty[2,1] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(2, -1)] Ty[1] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(2, 1)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(2, 2)] Ty[1] + ((vl^2-1)/vl)*Y[(2, 2)] + ((v^2-1)/v)*Y[(0, -2)] Ty[2,1] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(0, -1)] Ty[1] + ((vl^2*v0^2-vl^2-v0^2+1)/(vl*v0))*Y[(0, -1)] Ty[2] + ((v^2*v0^2-v^2-v0^2+1)/(v*v0))*Y[(0, 1)] Ty[1] + ((v^2*vl^2*v0^2-v^2*vl^2-v^2*v0^2-vl^2*v0^2+v^2+vl^2+v0^2-1)/(v*vl*v0))*Y[(0, 1)] + ((v^4-2*v^2+1)/v^2)*Y[(0, 2)] Ty[1]
+        sage: AX(b)
+        TX[2,1,2,0,1,2,0,1,2,0,1,2,0,1,2]
+        sage: KY_HY(AX(b)) == KY_HY(b)
+        True
         sage: AXa = AX.factors()[1]
         sage: AXa[1,0,1,0] == AXa[0,1,0,1]
         True
