@@ -130,9 +130,10 @@ const unsigned N = 16;
 using SGroup = SymGroupVect<N>;
 using StrongGeneratingSet = const std::vector< std::vector<SGroup::type> >;
 
+using set = std::set<SGroup::type>;
+
 bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
-  std::set<SGroup::type> to_analyse({v}), new_to_analyse;
-  // std::unordered_set<SGroup::type> to_analyse({v}), new_to_analyse;
+  set to_analyse({v}), new_to_analyse;
   SGroup::type child;
   for (unsigned int i=0; i < SGroup::N-1; i++) {
     new_to_analyse.clear();
