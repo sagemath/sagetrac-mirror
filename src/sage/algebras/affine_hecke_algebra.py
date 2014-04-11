@@ -114,7 +114,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: AX = H.AX()
         sage: HY_KY = H.HY_KY()
         sage: KY_HY = H.KY_HY()
-        sage: a = AX.factor_embedding(0)(AX.factors()[0].monomial(H.fundamental_group()(2))); a
+        sage: a = AX.factor_embedding(0)(AX.factor(0).monomial(H.fundamental_group()(2))); a
         [piX[2]]
         sage: HY_KY(a)
         Ty[2,1,2] Y[(-1/2, -1/2)]
@@ -122,7 +122,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         Y[(1/2, 1/2)] Ty[2,1,2] + ((-vl^2+1)/vl)*Y[(1/2, 1/2)] Ty[1,2] + ((-vl^2+1)/vl)*Y[(1/2, 1/2)] Ty[2,1] + ((vl^4-2*vl^2+1)/vl^2)*Y[(1/2, 1/2)] Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Y[(1/2, 1/2)] Ty[2] + ((-v^2*vl^4+v^2*vl^2+vl^4-v^2-vl^2+1)/(v*vl^2))*Y[(1/2, 1/2)]
         sage: HY_KY(a) == HY_KY(KY_HY(a))
         True
-        sage: AXa = AX.factors()[1]
+        sage: AXa = AX.factor(1)
         sage: AXa[1,0,1,0] == AXa[0,1,0,1]
         True
         sage: HY_KY(AX.factor_embedding(1)(AXa[1,0,1,0])) == HY_KY(AX.factor_embedding(1)(AXa[0,1,0,1]))
@@ -149,7 +149,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: (1/2, 1/2) should be in the root lattice
-        sage: a = AX.factor_embedding(0)(AX.factors()[0].monomial(H.fundamental_group()(2))); a
+        sage: a = AX.factor_embedding(0)(AX.factor(0).monomial(H.fundamental_group()(2))); a
         [piX[2]]
         sage: HY_KY(a)
         Traceback (most recent call last):
@@ -166,7 +166,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         TX[2,1,2,0,1,2,0,1,2,0,1,2,0,1,2]
         sage: KY_HY(AX(b)) == KY_HY(b)
         True
-        sage: AXa = AX.factors()[1]
+        sage: AXa = AX.factor(1)
         sage: AXa[1,0,1,0] == AXa[0,1,0,1]
         True
         sage: HY_KY(AX.factor_embedding(1)(AXa[1,0,1,0])) == HY_KY(AX.factor_embedding(1)(AXa[0,1,0,1]))
@@ -247,21 +247,21 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         HY_KY.register_opposite(KY_HY)
 
         # coercion of HY into the affine Hecke algebra
-        HY = HY_KY.factors()[0]
+        HY = HY_KY.factor(0)
         def HY_to_AX_func(w):
             return AX.factor_embedding(1)(AX.factors()[1].monomial(self.classical_weyl_to_affine_morphism(w)))
         HY_to_AX = HY.module_morphism(on_basis=HY_to_AX_func, category=ModulesWithBasis(self._base_ring), codomain=AX)
         HY_to_AX.register_as_coercion()
 
         # coercion of group algebra of Y into affine Hecke algebra
-        KY = HY_KY.factors()[1]
+        KY = HY_KY.factor(1)
 
         def T_signs(mu):
             pi, word, signs = self._FW(mu.to_weight_space(ZZ)).alcove_walk_signs()
             if not self._dual_reduced and pi != pi.parent().one():
                 raise ValueError, "%s should be in the root lattice"%mu
-            AXa = AX.factors()[1]
-            return AX.from_direct_product(AX.factors()[0].monomial(pi), AXa.product_by_signed_generator_sequence(AXa.one(), word, tuple([-x for x in signs])))
+            AXa = AX.factor(1)
+            return AX.from_direct_product(AX.factor(0).monomial(pi), AXa.product_by_signed_generator_sequence(AXa.one(), word, tuple([-x for x in signs])))
 
         KY_to_AX = KY.module_morphism(on_basis=T_signs, category=ModulesWithBasis(self._base_ring), codomain=AX)
         KY_to_AX.register_as_coercion()
@@ -579,8 +579,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         w = x.to_dual_classical_weyl().reduced_word()
         mu = x.to_dual_translation_right().to_ambient()
         HY_KY = self.HY_KY()
-        HY = HY_KY.factors()[0]
-        return HY_KY.from_direct_product(HY.product_by_signed_generator_sequence(HY.one(), w), HY_KY.factors()[1].monomial(mu))
+        HY = HY_KY.factor(0)
+        return HY_KY.from_direct_product(HY.product_by_signed_generator_sequence(HY.one(), w), HY_KY.factor(1).monomial(mu))
 
     @cached_method
     def FX_to_KY_HY_func(self, pi):
@@ -608,8 +608,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         mu = x.to_dual_translation_left().to_ambient()
         signs = tuple([-1 for i in range(len(w))])
         KY_HY = self.KY_HY()
-        HY = KY_HY.factors()[1]
-        return KY_HY.from_direct_product(KY_HY.factors()[0].monomial(mu),HY.product_by_signed_generator_sequence(HY.one(), w, signs))
+        HY = KY_HY.factor(1)
+        return KY_HY.from_direct_product(KY_HY.factor(0).monomial(mu),HY.product_by_signed_generator_sequence(HY.one(), w, signs))
 
     class _BasesCategory(Category_realization_of_parent):
         r"""
@@ -789,7 +789,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             The generators `T_i` of the affine Hecke algebra.
             """
             I = self.realization_of().cartan_type().index_set()
-            AXa = self.factors()[1]
+            AXa = self.factor(1)
             return Family(dict([[i, self.factor_embedding(1)(AXa.algebra_generators()[i])] for i in I]))
 
         def from_reduced_word(self, word):
@@ -803,7 +803,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
 
             """
             H = self.realization_of()
-            return self.factor_embedding(1)(self.factors()[1].monomial(H.affine_weyl().from_reduced_word(word)))
+            return self.factor_embedding(1)(self.factor(1).monomial(H.affine_weyl().from_reduced_word(word)))
 
         def from_fundamental(self, f):
             r"""
@@ -816,7 +816,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: AX.from_fundamental(H.fundamental_group()(2))
                 [piX[2]]
             """
-            return self.factor_embedding(0)(self.factors()[0].monomial(f))
+            return self.factor_embedding(0)(self.factor(0).monomial(f))
 
         def classical_hecke_morphism(self, a):
             r"""
@@ -947,7 +947,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 Finite family {0: Ty[1,2,1] Y[(-1, 0, 1)] + ((v^2-1)/v), 1: Ty[1], 2: Ty[2]}
 
             """
-            return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(0)(self.factors()[0].algebra_generators()[i])] for i in self.realization_of().index_set()]))
+            return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(0)(self.factor(0).algebra_generators()[i])] for i in self.realization_of().index_set()]))
 
 
     class AffineHeckeAlgebraKY_HY(SmashProductAlgebra, _Bases):
@@ -1035,8 +1035,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             E = self.realization_of()
             phi = E._cartan_type_Y.root_system().coroot_lattice().highest_root().associated_coroot()
             s_phi = phi.associated_reflection()
-            HY = self.factors()[1]
-            return self.from_direct_product(self.factors()[0].monomial(phi.to_ambient()), HY.product_by_signed_generator_sequence(HY.one(), s_phi, [-1 for i in range(len(s_phi))]))
+            HY = self.factor(1)
+            return self.from_direct_product(self.factor(0).monomial(phi.to_ambient()), HY.product_by_signed_generator_sequence(HY.one(), s_phi, [-1 for i in range(len(s_phi))]))
 
         @cached_method
         def algebra_generators(self):
@@ -1049,4 +1049,4 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 Finite family {0: Y[(1, 0, -1)] Ty[1,2,1] + ((-v^2+1)/v)*Y[(1, 0, -1)] Ty[1,2] + ((-v^2+1)/v)*Y[(1, 0, -1)] Ty[2,1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(1, 0, -1)] Ty[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*Y[(1, 0, -1)], 1: Ty[1], 2: Ty[2]}
 
             """
-            return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(1)(self.factors()[1].algebra_generators()[i])] for i in self.realization_of().index_set()]))
+            return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(1)(self.factor(1).algebra_generators()[i])] for i in self.realization_of().index_set()]))
