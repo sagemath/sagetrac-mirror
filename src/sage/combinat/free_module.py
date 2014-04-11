@@ -3028,7 +3028,7 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
                 symb = tensor.symbol
         else:
             symb = tensor.symbol
-        return symb.join(["(%s)"%self.factors()[i] if self._n_factors[i] > 1 else "%s"%self.factors()[i] for i in range(len(self.factors()))])
+        return symb.join(["(%s)"%self.factor(i) if self._n_factors[i] > 1 else "%s"%self.factor(i) for i in range(len(self.factors()))])
 
     def factors(self):
         r"""
@@ -3045,6 +3045,21 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
 
         """
         return self._factors
+
+    def factor(self, i):
+        r"""
+        The `i`-th factor of ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: A4.factor(1)
+            A # A
+        """
+        return self._factors[i]
 
     def indices_to_index(self):
         r"""
