@@ -1,15 +1,17 @@
 #include <cstdint>
 #include <x86intrin.h>
-#include <array>
-#include "config.h"
-
 #include <iostream>
 
-#ifdef GCC_VECT_CMP
-#warning "Using GCC vectors extension syntax"
-#else
-#warning "Using GCC intrinsics syntax"
-#endif
+#include <cilk/cilk_api.h>
+
+#include <array>
+#include <vector>
+#include <set>
+#include <unordered_set>
+#include <utility>
+
+#include "config.h"
+
 
 template < unsigned _N, typename Vals=uint8_t >
 struct SymGroup {
@@ -120,17 +122,20 @@ namespace std {
   };
 }
 
-#include <vector>
-#include <set>
-#include <unordered_set>
 
 const unsigned N = 16;
-// using SGroup = SymGroup<N>;
 
+// using SGroup = SymGroup<N>;
 using SGroup = SymGroupVect<N>;
 using StrongGeneratingSet = const std::vector< std::vector<SGroup::type> >;
 
+#ifdef USE_TBB
+#include "tbb/scalable_allocator.h"
+using allocator = tbb::scalable_allocator< SGroup::type >;
+using set = std::set<SGroup::type, std::less<SGroup::type>, allocator>;
+#else
 using set = std::set<SGroup::type>;
+#endif
 
 bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
   set to_analyse({v}), new_to_analyse;
@@ -195,8 +200,6 @@ public:
 //   walk_tree(zero_vect, list_res, depth, sgs);
 //   return list_res;
 // }
-
-#include <cilk/cilk_api.h>
 
 bool cilk_start(char *nproc) {
   return (__cilkrts_set_param("nworkers", nproc) == __CILKRTS_SET_PARAM_SUCCESS);
