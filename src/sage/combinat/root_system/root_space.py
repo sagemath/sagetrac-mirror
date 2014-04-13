@@ -265,7 +265,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             sage: w.is_positive_root()
             False
         """
-        return all( c>= 0 for c in self.coefficients() )
+        return all( c.is_real_positive() for c in self.coefficients() ) # TODO: make it so that it is generic wrt the base_ring
 
     @cached_in_parent_method
     def associated_coroot(self):

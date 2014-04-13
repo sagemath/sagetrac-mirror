@@ -33,6 +33,9 @@ from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.superseded import deprecated_function_alias
+from sage.rings.rational import Rational as QQ
+from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import CyclotomicField
+
 
 def DynkinDiagram(*args, **kwds):
     r"""
@@ -261,6 +264,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
                 self._cartan_type = None
             DiGraph.__init__(self, data=t, **options)
             return
+
+        self.base_ring=CyclotomicField(2*5*6) #Hack that works only for the labels 5 and 6.
 
         DiGraph.__init__(self, **options)
         self._cartan_type = t
@@ -633,7 +638,15 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: [ (i,a) for (i,a) in g.column(3) ]
             [(3, 2), (2, -1), (4, -2)]
         """
-        return [(j,2)] + [(i,-m) for (j1, i, m) in self.outgoing_edges(j)]
+
+        col=[(j,2)]
+        for (j1, i, m) in self.outgoing_edges(j): # to enable the initiation of the weyl group of a root space. This should be asserted earlier in the process of creating a weyl group.
+            if -m in self.base_ring:
+               col+=[(i,-m)]
+            else:
+               col+=[(i,self.base_ring(QQ(-m)))]
+               
+        return col 
 
     def row(self, i):
         """

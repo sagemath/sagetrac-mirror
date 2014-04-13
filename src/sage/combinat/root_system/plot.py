@@ -537,6 +537,7 @@ from sage.structure.element import parent
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, QQ
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.plot.point import point
 lazy_import("sage.combinat.root_system.root_lattice_realizations", "RootLatticeRealizations")
 
 class PlotOptions:
@@ -624,17 +625,25 @@ class PlotOptions:
 
         if projection is True:
             projections.append(projection_space._plot_projection)
+            self._transversal=False
         elif projection == "barycentric":
             projections.append(projection_space._plot_projection_barycentric)
+            self._transversal=False
+        elif projection == "transversal":
+            projections.append(projection_space._plot_projection_transversal)
+            self._transversal=True
         elif projection is not False:
             # assert projection is a callable
             projections.append(projection)
-
+            self._transversal=True
+  
         self._projections = projections
 
-        self.origin_projected = self.projection(space.zero())
-
-        self.dimension = len(self.origin_projected)
+        if projection != "transversal":
+            self.origin_projected = self.projection(space.zero())
+            self.dimension = len(self.origin_projected)
+        else:
+            self.dimension = space.dimension()
 
         # Bounding box
         from sage.rings.real_mpfr import RR
@@ -1028,6 +1037,13 @@ class PlotOptions:
                 G += arrow(tail, head, rgbcolor=self.color(i), arrowsize=self._arrowsize)
             G += self.text(i, 1.05*head)
         return self.finalize(G)
+
+    def family_of_points(self,vectors):
+        
+        l_pts=[point(self.projection(v),rgbcolor=(0,0,1)) for v in vectors]
+        proj_points=sum(l_pts)
+
+        return self.finalize(proj_points)
 
     def cone(self, rays=[], lines=[], color="black", thickness=1, alpha=1, wireframe=False,
              label=None, draw_degenerate=True, as_polyhedron=False):

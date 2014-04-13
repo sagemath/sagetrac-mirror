@@ -22,10 +22,12 @@ from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, CDF, RDF
+from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
+from sage.functions.other import sqrt
 
 class RootLatticeRealizations(Category_over_base_ring):
     r"""
@@ -1788,6 +1790,49 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self._plot_projection_barycentric_matrix()*vector(x)
 
+        def _plot_projection_transversal(self, x, base=None):
+            r"""
+            Implement the barycentric projection to be used for plots.
+
+            It is in fact a rational approximation thereof, but the
+            sum of the basis vectors is guaranteed to be mapped to
+            zero.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(["A",2]).ambient_space()
+                sage: e = L.basis()
+                sage: L._plot_projection_barycentric(e[0])
+                (1/2, 989/1142)
+                sage: L._plot_projection_barycentric(e[1])
+                (-1, 0)
+                sage: L._plot_projection_barycentric(e[2])
+                (1/2, -989/1142)
+
+            .. SEEALSO::
+
+                - :meth:`_plot_projection`, :meth:`plot`
+                - :ref:`sage.combinat.root_system.plot` for a tutorial
+                  on root system plotting
+            """
+            amb_space=x.parent()
+            dim=amb_space.dimension()-1
+            proj_space=FreeModule(RDF, dim)
+            if base==None:
+                if dim==2:
+                    base = map(proj_space, [[0,0],[2,0],[1,sqrt(3)]])
+                elif dim==3:
+                    base = map(proj_space, [[0,0,0],[2,0,0],[1,sqrt(3),0],[1,1/sqrt(3),2*sqrt(2)/sqrt(3)]])
+                else:
+                    P = polytopes.n_simplex(dim)
+                    base = map(proj_space, P.vertices())
+                    base.sort()
+            float_vector=vector([float(CDF(c).real_part()) for c in x.to_vector()])
+            height=sum(float_vector)
+            nx=vector([c/RDF(height) for c in float_vector])
+            
+            return proj_space(sum(nx[j]*base[j] for j in range(dim+1)))
+            
         def plot_roots(self, collection="simple", **options):
             r"""
             Plot the (simple/classical) roots of this root lattice.
@@ -1868,7 +1913,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             else:
                 raise ValueError("Unknown value: %s"%collection)
             roots = Family(roots, self)
-            return plot_options.family_of_vectors(roots)
+            if plot_options._transversal:
+                return plot_options.family_of_points(roots)
+            else:
+                return plot_options.family_of_vectors(roots)
 
         def plot_coroots(self, collection="simple", **options):
             r"""
