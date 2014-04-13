@@ -400,7 +400,7 @@ from sage.misc.interpreter import sage_prompt
                                  sage_prompt_transformer,
                                  magic_transformer)
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            s.physical_line_transforms.extend([sage_prompt_transformer()])
+            s.physical_line_transforms.insert(0, sage_prompt_transformer())
             s.logical_line_transforms.insert(0, magic_transformer())
             s.python_line_transforms.extend([SagePreparseTransformer()])
         preparser(True)
