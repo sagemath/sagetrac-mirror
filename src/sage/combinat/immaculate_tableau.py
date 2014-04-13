@@ -44,11 +44,9 @@ Parent classes:
 #*****************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.flatten import flatten
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.misc import uniq, prod
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -62,11 +60,10 @@ from sage.rings.integer import Integer
 
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.composition import Composition, Compositions
-from sage.combinat.tableaux import TableauOptions
+from sage.combinat.tableau import TableauOptions
 from sage.combinat.combinatorial_map import combinatorial_map
 
-from sage.combniat.integer_vector import IntegerVectors
-import sage.libs.symmetrica.all as symmetrica
+from sage.combinat.integer_vector import IntegerVectors
 import sage.misc.prandom as random
 import copy
 import permutation
