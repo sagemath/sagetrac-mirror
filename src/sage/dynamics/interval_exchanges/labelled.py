@@ -160,9 +160,12 @@ class LabelledPermutation(SageObject):
             self._init_twin(intervals)
 
             if alphabet is not None:
-                self._set_alphabet(alphabet)
+                alphabet = Alphabet(alphabet)
+                if alphabet.cardinality() < (len(intervals[0])+len(intervals[1]))/2 :
+                    raise ValueError("the alphabet is too short")
+                self._alphabet = alphabet
             else:
-                self._init_alphabet(intervals)
+                self._alphabet = Alphabet(intervals[0] + intervals[1])
 
             self._labels = [
                 map(self._alphabet.rank, intervals[0]),

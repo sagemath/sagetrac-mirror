@@ -2081,3 +2081,6 @@ def get_parent_of_embedding(embedding):
         return P
     else:
         raise TypeError("Embedding (type %s) must be an element." % type(embedding))
+
+UCF = UniversalCyclotomicField()
+E = UCF.gen

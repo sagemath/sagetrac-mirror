@@ -268,6 +268,21 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.dynamics
+    ##
+    ################################
+
+    Extension('sage.dynamics.flat_surfaces.lekz',
+              sources = ['sage/dynamics/flat_surfaces/lyapunov_exponents/lekz.pyx', 
+                         'sage/dynamics/flat_surfaces/lyapunov_exponents/src/generalized_permutation.c',
+                         'sage/dynamics/flat_surfaces/lyapunov_exponents/src/lin_alg.c',
+                         'sage/dynamics/flat_surfaces/lyapunov_exponents/src/quad_cyclic_cover.c',
+                         'sage/dynamics/flat_surfaces/lyapunov_exponents/src/random.c',
+                         'sage/dynamics/flat_surfaces/lyapunov_exponents/src/permutation.c',],
+              depends = ['sage/dynamics/flat_surfaces/lyapunov_exponents/src/lyapunov_exponents.h']),
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################
