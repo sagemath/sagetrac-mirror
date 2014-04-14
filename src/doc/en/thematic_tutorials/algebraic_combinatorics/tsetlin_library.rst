@@ -43,8 +43,8 @@ This type of organization has the advantage of being self-adaptive:
 In fact, this type of strategy is used not only in everyday life, but also
 in computer science. The natural questions that arise are:
 
-- *Stationary distribution*: To which state(s) does the system converge to? This,
-  among other things, is used to evaluate the average access time to
+- *Stationary distribution*: To which state(s) does the system converge to?
+  This, among other things, is used to evaluate the average access time to
   a book.
 - *The rate of convergence*: How fast does the system adapt to a changing
   environment .
@@ -54,10 +54,10 @@ chain (discrete time, discrete state space) described by:
 
 - The state space `\Omega_n` is given by the set of all permutations of the
   `n` books.
-- The transition operators are denoted by `\partial_i \colon \Omega_n \to \Omega_n`.
-  When `\partial_i` is applied to a permutation `\sigma`, the number `i` is moved
-  to the end of the permutation.
-- We assign parameters `x_i \ge 0` for all `1\le i\le n` with
+- The transition operators are denoted by `\partial_i \colon \Omega_n \to
+  \Omega_n`. When `\partial_i` is applied to a permutation `\sigma`, the
+  number `i` is moved to the end of the permutation.
+- We assign parameters `x_i \ge 0` for all `1 \le i \le n` with
   `\sum_{i=1}^n x_i = 1`. The parameter `x_i` indicates the probability of
   choosing the operator `\partial_i`.
 
@@ -76,7 +76,8 @@ The above picture can be reproduced in Sage as follows::
 
     sage: P = Poset(([1,2,3],[]))
 
-This is the antichain poset. Its linear extensions are all permutations of `\{1,2,3\}`::
+This is the antichain poset. Its linear extensions are all permutations
+of `\{1,2,3\}`::
 
     sage: L = P.linear_extensions()
     sage: L
@@ -88,10 +89,10 @@ The graph is produced via::
 
     sage: G = L.markov_chain_digraph(labeling='source'); G
     Looped multi-digraph on 6 vertices
-    sage: view(G)  # optional, requires dot2tex
+    sage: view(G)  # optional - dot2tex
 
-We can now look at the transition matrix and see whether we notice anything about
-its eigenvalue and eigenvectors::
+We can now look at the transition matrix and see whether we notice anything
+about its eigenvalue and eigenvectors::
 
     sage: M = L.markov_chain_transition_matrix(labeling='source')
     sage: M
@@ -103,7 +104,7 @@ its eigenvalue and eigenvectors::
     [       0       x2        0        0       x2 -x0 - x1]
 
 This matrix is normalized so that all columns add to 0. So we need to
-add `(x_0+x_1+x_2)` times the `6\times 6` identity matrix to get the
+add `(x_0 + x_1 + x_2)` times the `6\times 6` identity matrix to get the
 probability matrix::
 
     sage: x = M.base_ring().gens()
@@ -122,19 +123,20 @@ eigenvectors in the symbolic ring ``SR``::
     sage: Mt.change_ring(SR).eigenvalues()
     [x2, x1, x0, x0 + x1 + x2, 0, 0]
 
-Do you see any pattern? In fact, if you start playing with bigger values of `n` (the size
-of the underlying permutations), you might observe that there is an eigenvalue for
-every subset `S` of `\{1,2,\ldots,n\}` and the multiplicity is given by a derangement
-number `d_{n-|S|}`. Derangment numbers count permutations without fixed point.
-For the eigenvectors we obtain::
+Do you see any pattern? In fact, if you start playing with bigger values
+of `n` (the size of the underlying permutations), you might observe that
+there is an eigenvalue for every subset `S` of `\{1,2,\ldots,n\}` and the
+multiplicity is given by a derangement number `d_{n-|S|}`. Derangment numbers
+count permutations without fixed point. For the eigenvectors we obtain::
 
     sage: Mt.change_ring(SR).eigenvectors_right()
     [(x2, [(0, 0, 0, 1, 0, -1)], 1),
      (x1, [(0, 1, 0, 0, -1, 0)], 1),
      (x0, [(1, 0, -1, 0, 0, 0)], 1),
      (x0 + x1 + x2,
-     [(1, (x1 + x2)/(x0 + x2), x2/x1, (x1*x2 + x2^2)/(x0*x1 + x1^2), (x1*x2 + x2^2)/(x0^2 + x0*x2), (x1*x2 + x2^2)/(x0^2 + x0*x1))],
-     1),
+      [(1, (x1 + x2)/(x0 + x2), x2/x1, (x1*x2 + x2^2)/(x0*x1 + x1^2),
+       (x1*x2 + x2^2)/(x0^2 + x0*x2), (x1*x2 + x2^2)/(x0^2 + x0*x1))],
+      1),
      (0, [(1, 0, -1, 0, -1, 1), (0, 1, -1, 1, -1, 0)], 2)]
 
 The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. Do you see a pattern?
@@ -144,44 +146,46 @@ The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. D
     Instead of using the methods that are already in Sage, try to build the
     state space `\Omega_n` and the transition operators `\partial_i` yourself as follows.
 
-    #.  For technical reasons, it is most practical in Sage to label the `n` books in the library by
-        `0,1,\cdots,n-1`, and to represent each state in the Markov chain by a permutation
-	of the set `\{0,\dots,n-1\}` as a tuple. Construct the state space `\Omega_n` as::
+    #.  For technical reasons, it is more practical in Sage to label the `n`
+        books in the library by `0, 1, \ldots, n-1`, and to represent
+        each state in the Markov chain by a permutation of the set `\{0,
+        \ldots, n-1\}` as a tuple. Construct the state space `\Omega_n` as::
 
             sage: map(tuple, Permutations(range(3)))
-	    [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+            [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
 
-    #.  Write a function ``transition_operator(sigma, i)`` which implements the operator
-        `\partial_i` which takes as input a tuple ``sigma`` and integer `i \in \{1,2,\ldots,n\}`
-	and outputs a new tuple. It might be useful to extract subtuples
-        (``sigma[i:j]``) and concatentation.
+    #.  Write a function ``transition_operator(sigma, i)`` which implements
+        the operator `\partial_i` which takes as input a tuple ``sigma`` and
+        integer `i \in \{1, 2, \ldots, n\}` and outputs a new tuple. It might
+        be useful to extract subtuples (``sigma[i:j]``) and concatentation.
 
     #.  Write a function ``tsetlin_digraph(n)`` which constructs the
-        (multi digraph) as described as shown above. This can be achieved using
-        :class:`DiGraph`.
+        (multi digraph) as described as shown above. This can be achieved
+        using :class:`DiGraph`.
 
     #.  Verify for which values of `n` the digraph is strongly connected
-        (i.e., you can go from any vertex to any other vertex by going in the direction of the
-        arrow). This indicates whether the Markov chain is irreducible.
+        (i.e., you can go from any vertex to any other vertex by going in the
+        direction of the arrow). This indicates whether the Markov chain
+        is irreducible.
 
 Conclusion
 ----------
 
-The Tsetlin library was studied from the viewpoint of monoids in [Bidigare_1997]_
-and [Brown_2000]_. Precise statements of the eigenvalues and the stationary distribution
-of the probability matrix as well as proofs of the statements are given in these papers.
-Generalizations of the Tsetlin library from the antichain to
-arbitrary posets was given in [AKS_2013]_.
+The Tsetlin library was studied from the viewpoint of monoids in
+[Bidigare_1997]_ and [Brown_2000]_. Precise statements of the eigenvalues
+and the stationary distribution of the probability matrix as well as proofs
+of the statements are given in these papers. Generalizations of the Tsetlin
+library from the antichain to arbitrary posets was given in [AKS_2013]_.
 
-.. [Bidigare_1997] Thomas Patrick Bidigare. Hyperplane arrangement
-    face algebras and their associated Markov chains. ProQuest LLC,
-    Ann Arbor, MI, 1997.  Thesis (Ph.D.) University of Michigan.
+.. [Bidigare_1997] Thomas Patrick Bidigare. *Hyperplane arrangement
+   face algebras and their associated Markov chains*. ProQuest LLC,
+   Ann Arbor, MI, 1997. Thesis (Ph.D.) University of Michigan.
 
-.. [Brown_2000] Kenneth S. Brown. Semigroups, rings, and Markov
-   chains. J. Theoret.  Probab., 13(3):871-938, 2000.
+.. [Brown_2000] Kenneth S. Brown. *Semigroups, rings, and Markov
+   chains*. J. Theoret. Probab., 13(3):871-938, 2000.
 
 .. [AKS_2013] Arvind Ayyer, Steven Klee, Anne Schilling.
-    Combinatorial Markov chains on linear extensions
-    J. Algebraic Combinatorics,
-    `doi:10.1007/s10801-013-0470-9 <http://link.springer.com/article/10.1007%2Fs10801-013-0470-9>`_,
-    ( :arXiv:`1205.7074` )
+   *Combinatorial Markov chains on linear extensions*.
+   J. Algebraic Combinatorics,
+   :doi:`10.1007/s10801-013-0470-9`, :arXiv:`1205.7074`.
+

@@ -4,9 +4,9 @@
 `n`-Cube
 ========
 
-This section provides some examples on Chapter 2 of Stanley's book,
-which deals with `n`-cubes, the Radon transform, and combinatorial
-formulas for walks on the `n`-cube.
+This section provides some examples on Chapter 2 of Stanley's book
+[Stanley2013]_, which deals with `n`-cubes, the Radon transform, and
+combinatorial formulas for walks on the `n`-cube.
 
 The vertices of the `n`-cube can be described by vectors in
 `\mathbb{Z}_2^n`. First we define the addition of two vectors
@@ -98,3 +98,4 @@ Note that the graph is in fact disconnected. Do you understand why?
 .. image:: ../media/cube-dist.png
    :scale: 75
    :align: center
+

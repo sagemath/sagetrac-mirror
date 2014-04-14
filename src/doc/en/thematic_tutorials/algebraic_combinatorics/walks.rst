@@ -4,7 +4,8 @@
 Walks in graphs
 ===============
 
-This section provides some examples on Chapter 1 of Stanley's book.
+This section provides some examples on Chapter 1 of Stanley's book
+[Stanley2013]_.
 
 We begin by creating a graph with 4 vertices::
 
@@ -20,14 +21,15 @@ This graph has no edges yet::
     []
 
 Before we can add edges, we need to tell Sage that our graph can
-have loops and multiple edges.::
+have loops and multiple edges::
 
     sage: G.allow_loops(True)
     sage: G.allow_multiple_edges(True)
 
 Now we are ready to add our edges by specifying a tuple of vertices that
 are connected by an edge. If there are multiple edges, we need to add
-the tuple with multiplicity.::
+the tuple with multiplicity.
+::
 
     sage: G.add_edges([(0,0),(0,0),(0,1),(0,3),(1,3),(1,3)])
 
@@ -50,7 +52,8 @@ We can construct the adjacency matrix::
     [1 2 0 0]
 
 The entry in row `i` and column `j` of the `\ell`-th power of `A` gives
-us the number of paths from vertex `i` to vertex `j`. Let us verify this::
+us the number of paths of length `\ell` from vertex `i` to vertex `j`.
+Let us verify this::
 
     sage: A**2
     [6 4 0 4]
@@ -58,9 +61,9 @@ us the number of paths from vertex `i` to vertex `j`. Let us verify this::
     [0 0 0 0]
     [4 1 0 5]
 
-There are 4 paths of length 2 from vertex 0 to vertex 1: take either loop
-at 0 and then the edge 01 (2 choices) or take the edge 03 and then either
-of the two edges 31 (two choices)::
+There are 4 paths of length 2 from vertex `0` to vertex `1`: take either loop
+at `0` and then the edge `(0, 1)` (2 choices) or take the edge `(0, 3)` and
+then either of the two edges `(3, 1)` (two choices)::
 
     sage: (A**2)[0,1]
     4
