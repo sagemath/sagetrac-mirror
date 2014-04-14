@@ -30,9 +30,9 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 
-class LieGenerator(SageObject):
+class LieGenerator(SageObject): # Does this need to be SageObject?
     """
-    A wrapper around a string so it can compare with :class:`LieBracket`.
+    A wrapper around an object so it can compare with :class:`LieBracket`.
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -109,7 +109,7 @@ class LieGenerator(SageObject):
         """
         return [self._name]
 
-class LieBracket(SageObject):
+class LieBracket(SageObject): # Does this need to be SageObject?
     """
     A Lie bracket. This is the building blocks for Lie algebra elements.
     """
@@ -283,6 +283,8 @@ class GradedLieBracket(LieBracket):
         """
         return hash((self._grade, self._left, self._right))
 
+# TODO: Have the other classes inherit from this?
+# TODO: Should this be a mixin class (or moved to the category)?
 class LieAlgebraElement_generic(ModuleElement):
     """
     Generic methods for all Lie algebra elements.
@@ -310,7 +312,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
         """
-        if len(self._monomial_coefficients) == 0:
+        if not self._monomial_coefficients:
             return '0'
         return repr_lincomb(self.list())
 
@@ -330,7 +332,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
         """
-        if len(self._monomial_coefficients) == 0:
+        if not self._monomial_coefficients:
             return '0'
         return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
 
@@ -386,7 +388,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
         """
-        return len(self._monomial_coefficients) == 0
+        return notself._monomial_coefficients
 
     def dict(self):
         """
@@ -403,9 +405,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
 
         EXAMPLES::
         """
-        L = self._monomial_coefficients.items()
-        L.sort()
-        return L
+        return sorted(self._monomial_coefficients.items())
 
 class LieAlgebraElementWrapper(ElementWrapper):
     """

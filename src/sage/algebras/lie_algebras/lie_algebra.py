@@ -667,7 +667,7 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
         """
         raise NotImplementedError("infinite list")
 
-class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
+class LieAlgebraFromAssociative(LieAlgebra):
     """
     A Lie algebra whose elements are from an associative algebra and whose
     bracket is the commutator.
@@ -675,6 +675,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
     .. WARNING::
 
         The returned universal enveloping algebra is too large in general.
+        To fix this, we need subalgebras implemented.
 
     .. TODO::
 
@@ -771,14 +772,17 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L is L2
             True
         """
-        gens = tuple(A(x) for x in gens)
-        if isinstance(A, MatrixSpace):
-            # Make matrices immutable (since we need to hash them)
-            map(lambda x: x.set_immutable(), gens)
-        return super(LieAlgebraFromAssociative, cls).__classcall__(cls,
-                    R, A, gens, tuple(names), index_set)
+        gens = map(A, gens)
+        try:
+            # Try to make things, such as matrices, immutable (since we need to hash them)
+            gens = map(lambda x: x.set_immutable(), gens)
+        except AttributeError:
+            pass
 
-    def __init__(self, R, UEA, gens, names=None, index_set=None, category=None):
+        return super(LieAlgebraFromAssociative, cls).__classcall__(cls,
+                    R, A, tuple(gens), tuple(names), index_set)
+
+    def __init__(self, R, assoc, gens, names=None, index_set=None, category=None):
         """
         Initialize ``self``.
 
@@ -789,14 +793,13 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L.<x,y> = LieAlgebra(QQ, S)
             sage: TestSuite(L).run()
         """
-        self._UEA = UEA
+        self._assoc = assoc
         # TODO: We should strip axioms from the category of the base ring,
         #   such as FiniteDimensional, WithBasis
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, category)
         # We register the coercion here since the UEA already exists
         self.lift.register_as_coercion()
-        # Convert them to elements
-        self.__gens = tuple(self.element_class(self, x) for x in gens)
+        self.__gens = Family(self._indices, lambda i: gens[i])
 
     def _repr_option(self, key):
         """
@@ -811,7 +814,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L._repr_option('element_ascii_art')
             True
         """
-        return self._UEA._repr_option(key)
+        return self._assoc._repr_option(key)
 
     def _element_constructor_(self, x):
         """
@@ -829,7 +832,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         """
         if isinstance(x, LieAlgebraElement) and x.parent() is self:
             return x
-        return self.element_class(self, self._UEA(x))
+        return self.element_class(self, self._assoc(x))
 
     def _construct_UEA(self):
         """
@@ -843,7 +846,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L._construct_UEA() is S
             True
         """
-        return self._UEA
+        return self._assoc
 
     universal_enveloping_algebra = _construct_UEA
 
@@ -859,7 +862,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L.gen(0)
             (1,2,3)
         """
-        return self.__gens[i]
+        return self.element_class(self, self.__gens[i])
 
     def gens(self):
         """
@@ -875,18 +878,25 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         """
         return self.__gens
 
-    def lie_algebra_generators(self):
+    def monomial(self, i):
         """
-        Return the Lie algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(3)
-            sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(QQ, S)
-            sage: L.lie_algebra_generators()
+        Return the monomial indexed by ``i``.
         """
-        return Family({k: self.gen(i) for i,k in enumerate(self._indices)})
+        if i in self._indices:
+            i = self.__gens[i]
+        else:
+            raise ValueError("not an index")
+        return LieAlgebra.monomial(self, i)
+
+    def term(self, i, c=None):
+        """
+        Return the term indexed by ``i`` with coefficient ``c``.
+        """
+        if i in self._indices:
+            i = self.__gens[i]
+        else:
+            raise ValueError("not an index")
+        return LieAlgebra.term(self, i, c)
 
     @cached_method
     def zero_element(self):
@@ -901,7 +911,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L.zero_element()
             0
         """
-        return self.element_class(self, self._UEA.zero())
+        return self.element_class(self, self._assoc.zero())
 
     zero = zero_element
 
@@ -938,7 +948,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: L.is_abelian()
             True
         """
-        if self._UEA.is_commutative():
+        if self._assoc.is_commutative():
             return True
         return super(LieAlgebraFromAssociative, self).is_abelian()
 
