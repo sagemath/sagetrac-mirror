@@ -139,12 +139,14 @@ count permutations without fixed point. For the eigenvectors we obtain::
       1),
      (0, [(1, 0, -1, 0, -1, 1), (0, 1, -1, 1, -1, 0)], 2)]
 
-The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. Do you see a pattern?
+The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`.
+Do you see a pattern?
 
 .. TOPIC:: Optional exercices: Study of the transition operators and graph
 
     Instead of using the methods that are already in Sage, try to build the
-    state space `\Omega_n` and the transition operators `\partial_i` yourself as follows.
+    state space `\Omega_n` and the transition operators `\partial_i`
+    yourself as follows.
 
     #.  For technical reasons, it is more practical in Sage to label the `n`
         books in the library by `0, 1, \ldots, n-1`, and to represent
