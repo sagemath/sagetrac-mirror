@@ -9041,6 +9041,63 @@ class NumberField_cyclotomic(NumberField_absolute):
             v += [-x for x in v]
         return v
 
+    def norm_symbol_prime(self, a, P):
+        r"""
+        Return the cyclotomic norm symbol at a given prime ?
+
+        INPUT:
+
+        - a -- an element
+        - P -- a prime ideal
+
+        EXAMPLES::
+
+            sage: K.<zeta> = CyclotomicField(7)
+            sage: P = K.fractional_ideal([23]).factor()[0][0]; P
+            Fractional ideal (-2*zeta^5 - 2*zeta^3 - 2*zeta^2 + 3*zeta)
+            sage: K.norm_symbol_prime(zeta^3, P)
+            zeta^3
+        """
+        zeta = self.gen()
+        n = self.zeta_order()
+        exponent = (P.norm() - QQ.one()) / n
+        exponent = ZZ(exponent)
+        FF = self.residue_field(P)
+        b = FF(a) ** exponent
+        zeta_mod = FF(self.gen())
+        # Find power m of zeta_mod that is equal to b,
+        # then return zeta^m
+        m = 0
+        w = FF.one()
+        while w != b and m < n:
+            w *= zeta_mod
+            m += 1
+        if m == n:
+            raise AssertionError("bug in norm_symbol_prime")
+        return zeta ** m
+
+    def norm_symbol(self, a, b):
+        r"""
+        Return the cyclotomic norm symbol ?
+
+        INPUT:
+
+        - a, b -- elements
+
+        EXAMPLES::
+
+            sage: K.<zeta> = CyclotomicField(7)
+            sage: K.norm_symbol(zeta^3, 13*zeta)
+            -zeta^5 - zeta^4 - zeta^3 - zeta^2 - zeta - 1 ?
+            sage: K.norm_symbol(zeta^7, K(11))
+            1
+            sage: K.norm_symbol((1+zeta)^2, 23*zeta)
+            zeta^4 ?
+        """
+        F = self.fractional_ideal([b]).factor()
+        return prod([self.norm_symbol_prime(a, P) ** e for P, e in F],
+                    self.one())
+
 
 class NumberField_quadratic(NumberField_absolute):
     r"""
