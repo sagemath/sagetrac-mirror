@@ -7,10 +7,6 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 
-# Exit on error
-set -e
-
-
 # Apply patches
 cd src/
 
@@ -25,6 +21,10 @@ for patch in ../patches/*.patch; do
 done
 
 cd ..
+
+
+# Exit on error
+set -e
 
 
 # Build in a separate directory, not in src/ (a.k.a. a VPATH build).
@@ -116,22 +116,10 @@ fi
     --disable-multilib \
     --disable-nls \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring GCC."
-    exit 1
-fi
 
 $MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building GCC."
-    exit 1
-fi
 
 $MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing GCC."
-    exit 1
-fi
 
 
 # Force re-installation of mpir, mpfr and mpc with the GCC we just built.
