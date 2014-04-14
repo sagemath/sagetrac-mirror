@@ -41,7 +41,8 @@ This type of organization has the advantage of being self-adaptive:
 - If the use changes over time, the system adapts.
 
 In fact, this type of strategy is used not only in everyday life, but also
-in computer science. The natural questions that arise are:
+in computer science (for example, in Splay trees: :wikipedia:`Splay_tree`).
+The natural questions that arise are:
 
 - *Stationary distribution*: To which state(s) does the system converge to?
   This, among other things, is used to evaluate the average access time to
