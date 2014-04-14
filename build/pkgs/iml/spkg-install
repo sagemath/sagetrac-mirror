@@ -33,6 +33,11 @@ fi
 
 # Currently config.[guess|sub] scripts are too old
 cp "$SAGE_ROOT"/config/config.* config/
+if [ $? -ne 0 ]; then
+    echo >&2 "Failed to copy up-to-date FSF config.* scripts from"
+    echo >&2 "\$SAGE_ROOT/config directory ... exiting"
+    exit 1
+fi
 
 if [ -d "$SAGE_LOCAL/include/atlas" ]; then
     # We actually installed ATLAS
