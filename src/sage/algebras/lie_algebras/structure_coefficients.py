@@ -213,6 +213,45 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return LieSubalgebraWithStructureCoefficients(self, gens, names)
 
+    # TODO:
+    # - Move to FiniteDimensionalLieAlgebrasWithBasis once implemented
+    # - Return a subalgebra
+    @cached_method
+    def center_basis(self):
+        """
+        Return a list of elements which correspond to a basis for the center
+        of ``self``.
+        """
+        R = self.base_ring()
+        B = self.basis()
+        K = list(B.keys())
+        k = len(K)
+        d = {}
+        for a,i in enumerate(K):
+            Bi = B[i]
+            for b,j in enumerate(K):
+                Bj = B[j]
+                for m,c in Bi.bracket(Bj):
+                    d[(a, K.index(m)+k*b)] = c
+        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
+        from_vector = lambda x: self.sum_of_terms( ((K[i], c) for i,c in x.iteritems()),
+                                                   distinct=True)
+        return tuple(map( from_vector, m.kernel().basis() ))
+
+        # Dense version
+        # R = self.base_ring()
+        # B = self.basis()
+        # K = list(B.keys())
+        # eqns = [[] for dummy in range(k)]
+        # for a,i in enumerate(K):
+        #     for b,j in enumerate(K):
+        #         v = B[i]*B[j] - B[j]*B[i]
+        #         eqns[a].extend([v[k] for k in K])
+        # m = Matrix(R, eqns)
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        #                                           distinct=True)
+        # return tuple(map( from_vector, m.kernel().basis() ))
+
     class Element(LieAlgebraElement):
         """
         An element of a Lie algebra given by structure coefficients.

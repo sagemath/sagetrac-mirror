@@ -106,7 +106,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
                                            category=LieAlgebras(R))#.FiniteDimensional().WithBasis())
         self._cartan_type = ct
 
-        gens = self.gens()
+        gens = tuple(self.gens())
         i_set = ct.index_set()
         self._e = Family(dict( (i, gens[c]) for c,i in enumerate(i_set) ))
         self._f = Family(dict( (i, gens[n+c]) for c,i in enumerate(i_set) ))
@@ -266,7 +266,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
     def affine(self, kac_moody=False):
         """
-        Return the (untwisted) affine Lie algebra of ``self``.
+        Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
         """
         return AffineLieAlgebra(self, kac_moody)
 

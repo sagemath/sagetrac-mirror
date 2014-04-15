@@ -28,6 +28,7 @@ from sage.algebras.lie_algebras.lie_algebra import LieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 from sage.rings.all import ZZ
 
+# TODO: A class for finite dimensional subalgebras so we can give an echonized basis
 class LieSubalgebra(LieAlgebra):
     r"""
     The Lie subalgebra `\mathfrak{h}` of a Lie algebra `\mathfrak{g}`.
@@ -78,11 +79,12 @@ class LieSubalgebra(LieAlgebra):
 
     def product_space(self, Y):
         """
-        Return the product space ``[self, Y]`` in the ambient space of ``self``.
+        Return the product space ``[self, Y]`` in the ambient space
+        of ``self``.
 
         INPUT:
 
-        - ``Y`` -- the other subspace of ``ambient``
+        - ``Y`` -- another subspace of the ambient space of ``self``
         """
         X_gens = map(self._ambient, self.gens())
         Y_gens = map(self._ambient, Y.gens())
@@ -90,9 +92,9 @@ class LieSubalgebra(LieAlgebra):
 
     def free_module(self):
         """
-        Return ``self`` as a free module.
+        Return ``self`` as (a subspace of) a free module.
         """
-        return self._ambient.free_module()
+        return self._ambient.free_module().subspace(map(lambda x: x.to_vector(), self.gens))
 
     class Element(LieAlgebraElementWrapper):
         """
@@ -105,7 +107,6 @@ class LieSubalgebra(LieAlgebra):
             EXAMPLES::
             """
             return self.__class__(self.parent(), self.value.bracket(rhs.value))
-
 
         def _acted_upon_(self, scalar, self_on_left=False):
             """
