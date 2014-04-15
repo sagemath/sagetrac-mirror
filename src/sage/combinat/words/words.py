@@ -909,6 +909,9 @@ class Words_over_Alphabet(Words_all):
         from sage.combinat.words.morphism import WordMorphism
         return WordMorphism(dict((a,a) for a in self.alphabet()))
 
+    def algebra(self, base_ring=ZZ):
+        from sage.combinat.words.words_algebra import WordsAlgebra
+        return WordsAlgebra(self, base_ring)
 class Words_n(Words_all):
     def __init__(self, n):
         """
