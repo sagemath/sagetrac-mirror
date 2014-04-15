@@ -129,16 +129,26 @@ const unsigned N = 16;
 using SGroup = SymGroupVect<N>;
 using StrongGeneratingSet = const std::vector< std::vector<SGroup::type> >;
 
+#include <boost/container/flat_set.hpp>
+
 #ifdef USE_TBB
 #include "tbb/scalable_allocator.h"
 using allocator = tbb::scalable_allocator< SGroup::type >;
-using set = std::set<SGroup::type, std::less<SGroup::type>, allocator>;
 #else
-using set = std::set<SGroup::type>;
+using allocator = std::allocator< SGroup::type >;
 #endif
 
+//using set = std::set<SGroup::type, std::less<SGroup::type>, allocator>;
+
+//using set = std::unordered_set<SGroup::type,
+//			       std::hash<SGroup::type>,
+//			       std::equal_to<SGroup::type>, allocator>;
+
+using set = boost::container::flat_set< SGroup::type, std::less<SGroup::type>, allocator >;
+
 bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
-  set to_analyse({v}), new_to_analyse;
+  set to_analyse, new_to_analyse;
+  to_analyse.insert(v);
   SGroup::type child;
   for (unsigned int i=0; i < SGroup::N-1; i++) {
     new_to_analyse.clear();
