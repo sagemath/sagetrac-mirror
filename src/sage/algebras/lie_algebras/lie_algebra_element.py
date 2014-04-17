@@ -25,11 +25,13 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.misc import repr_lincomb
 from copy import copy
+from functools import total_ordering
 from sage.structure.element import ModuleElement, RingElement, coerce_binop
 from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element_wrapper import ElementWrapper
 
+@total_ordering
 class LieGenerator(SageObject): # Does this need to be SageObject?
     """
     A wrapper around an object so it can compare with :class:`LieBracket`.
@@ -84,14 +86,6 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
             return not rhs.__lt__(self) # Clearly self != rhs
         return False
 
-    def __le__(self, rhs):
-        """
-        Compare less than or equals.
-
-        EXAMPLES::
-        """
-        return self.__lt__(rhs) or self.__eq__(rhs)
-
     def _im_gens_(self, codomain, im_gens, names):
         """
         Return the image of ``self``.
@@ -109,6 +103,7 @@ class LieGenerator(SageObject): # Does this need to be SageObject?
         """
         return [self._name]
 
+@total_ordering
 class LieBracket(SageObject): # Does this need to be SageObject?
     """
     A Lie bracket. This is the building blocks for Lie algebra elements.
@@ -128,7 +123,7 @@ class LieBracket(SageObject): # Does this need to be SageObject?
 
         EXAMPLES::
         """
-        return "[{}, {}]".format(self._left, self._right)
+        return "[{!s}, {!s}]".format(self._left, self._right)
 
     def _latex_(self):
         r"""
@@ -161,14 +156,6 @@ class LieBracket(SageObject): # Does this need to be SageObject?
             return False
         return self._left == rhs._left and self._right == rhs._right
 
-    def __ne__(self, rhs):
-        """
-        Check inequality.
-
-        EXAMPLES::
-        """
-        return not self.__eq__(rhs)
-
     def __lt__(self, rhs):
         """
         Check less than.
@@ -182,30 +169,6 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         elif self._left == rhs._left:
             return self._right < rhs._right
         return False
-
-    def __le__(self, rhs):
-        """
-        Check less than or equal.
-
-        EXAMPLES::
-        """
-        return self.__lt__(rhs) or self.__eq__(rhs)
-
-    def __gt__(self, rhs):
-        """
-        Check greater than.
-
-        EXAMPLES::
-        """
-        return rhs.__lt__(self)
-
-    def __ge__(self, rhs):
-        """
-        Check greater than or equal.
-
-        EXAMPLES::
-        """
-        return self.__gt__(rhs) or self.__eq__(rhs)
 
     def __hash__(self):
         """
@@ -226,7 +189,7 @@ class LieBracket(SageObject): # Does this need to be SageObject?
 
     def lift(self, UEA_gens_dict):
         """
-        Lift ``self`` to the UEA.
+        Lift ``self`` to the universal enveloping algebra.
 
         EXAMPLES::
         """
@@ -504,6 +467,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
         """
+        # This was copied and IDK if it still applies:
         # With the current design, the coercion model does not have
         # enough information to detect apriori that this method only
         # accepts scalars; so it tries on some elements(), and we need

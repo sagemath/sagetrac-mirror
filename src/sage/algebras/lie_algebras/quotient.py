@@ -22,10 +22,10 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 from sage.structure.category_object import check_default_category
 from sage.categories.lie_algebras import LieAlgebras
+from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 
 class QuotientLieAlgebraElement(LieAlgebraElementWrapper):
     r"""
