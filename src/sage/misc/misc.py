@@ -2311,7 +2311,7 @@ def get_main_globals():
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G["__package__"] is None:
+        if G["__name__"] == "__main__" and G.get("__package__", None) is None:
             break
         depth += 1
     return G
