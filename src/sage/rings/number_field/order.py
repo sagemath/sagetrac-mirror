@@ -169,6 +169,29 @@ class Order(IntegralDomain):
         IntegralDomain.__init__(self, ZZ, names = K.variable_names(), normalize = False)
         self._populate_coercion_lists_(embedding=self.number_field())
 
+    def base_ring(self):
+        """
+        Return the base ring of this order.
+
+        EXAMPLES::
+
+            sage: k = CyclotomicField(5)
+            sage: O = k.maximal_order()
+            sage: O.base_ring()
+            Integer Ring
+        
+        For a relative number field (showing that #4738 is fixed)::
+
+            sage: k = NumberField([x^2+2, x^2+3], 'a')
+            sage: k.base_ring()
+            Number Field in a1 with defining polynomial x^2 + 3
+            sage: k.maximal_order()
+            Maximal Relative Order in Number Field in a0 with defining polynomial x^2 + 2 over its base field
+            sage: k.maximal_order().base_ring()
+            Maximal Order in Number Field in a1 with defining polynomial x^2 + 3
+        """
+        return self.number_field().base_ring().ring_of_integers()
+
     def fractional_ideal(self, *args, **kwds):
         """
         Return the fractional ideal of the maximal order with given
