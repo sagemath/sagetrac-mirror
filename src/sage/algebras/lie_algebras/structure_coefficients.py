@@ -23,6 +23,7 @@ AUTHORS:
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.indexed_generators import IndexedGenerators
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -32,9 +33,12 @@ from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
 
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, \
-    LieBracket, LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import (LieGenerator,
+    LieBracket, LieAlgebraElement)
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
+from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
+from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
 from sage.rings.integer import Integer
@@ -46,6 +50,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule, span
 from sage.sets.family import Family, AbstractFamily
 
+# TODO: Much of this could be moved to (FiniteDimensional)LieAlgebrasWithBasis
 class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     A Lie algebra with a set of specified structure coefficients.
@@ -101,16 +106,19 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         This does not check the Jacobi relation (nor antisymmetry if the
         cardinality is infinite).
         """
-        if isinstance(sc, AbstractFamily) and sc.cardinality() == infinity:
-            return sc
+        # Try to handle infinite basis (once/if supported)
+        if isinstance(s_coeff, AbstractFamily) and s_coeff.cardinality() == infinity:
+            return s_coeff
+
         sc = {}
-        if isinstance(s_coeff, dict):
-            s_coeff = s_coeff.iteritems()
         # Make sure the first gen is smaller than the second in each key
-        for k,v in s_coeff:
+        for k in s_coeff.keys():
+            v = s_coeff[k]
             if isinstance(v, dict):
                 v = v.items()
+
             if k[0] > k[1]:
+                key = LieBracket(k[1], k[0])
                 vals = tuple((g, -val) for g, val in v if val != 0)
             else:
                 key = LieBracket(*k)
@@ -134,7 +142,9 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         cat = LieAlgebras(R)#.FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
-        self.__s_coeff = s_coeff
+
+        # Transform the values in the structure coefficients to elements
+        self.__s_coeff = Family({k: self._from_dict(dict(s_coeff[k])) for k in s_coeff.keys()})
 
     def basis(self):
         """
@@ -144,15 +154,16 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: L.basis()
-            (x, y)
+            Finite family {'y': y, 'x': x}
         """
         return Family({i: self.monomial(i) for i in self._indices})
 
-    def get_order(self):
+    @lazy_attribute
+    def _ordered_indices(self):
         """
-        Return the order of the elements in the basis.
+        Return the order of the index set of the basis.
         """
-        return sorted(map(lambda x: x.support()[0], self.basis()))
+        return sorted(self._indices)
 
     def structure_coefficients(self):
         """
@@ -162,7 +173,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: L.structure_coefficients()
-            Finite family {[x, y]: ((x, 1),)}
+            Finite family {[x, y]: x}
         """
         return self.__s_coeff
 
@@ -193,48 +204,81 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L.bracket(x + y - z, x - y + z)
             -2*y - 2*z
         """
+        ordered = True
+        if x > y:
+            x,y = y,x
+            ordered = False
         b = LieBracket(x, y)
-        if b not in self.__s_coeff:
+        try:
+            val = self.__s_coeff[b]
+        except KeyError:
             return self.zero()
-        return self.element_class(self, dict(self.__s_coeff[b]))
+        if ordered:
+            return val
+        return -val
 
     def free_module(self, sparse=True):
         """
-        Return the ``self`` as a free module.
+        Return ``self`` as a free module.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
+            sage: L.free_module()
+            Sparse vector space of dimension 3 over Rational Field
         """
         return FreeModule(self.base_ring(), self.dimension(), sparse=sparse)
 
-    def subalgebra(self, gens, names=None):
+    def subalgebra(self, gens, names=None, index_set=None, category=None):
         """
         Return the subalgebra of ``self`` generated by ``gens``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
+            sage: L.subalgebra([x+y])
+            Subalgebra generated of Lie algebra on 3 generators (x, y, z) over Rational Field with basis:
+            (x + y,)
+            sage: L.subalgebra([x+y, y+z])
+            Lie algebra on 3 generators (x, y, z) over Rational Field
+
+        TESTS::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
+            sage: L.subalgebra([x+y, x+y])
+            Subalgebra generated of Lie algebra on 3 generators (x, y, z) over Rational Field with basis:
+            (x + y,)
         """
-        return LieSubalgebraWithStructureCoefficients(self, gens, names)
+        B, s_coeff = LieSubalgebraWithStructureCoefficients._compute_basis_structure_coeff(self, gens)
+        if len(B) == self.dimension():
+            return self
+        return LieSubalgebraWithStructureCoefficients(self, B, s_coeff, names, index_set, category)
 
     # TODO:
+    # - Make a centralizer of a set version
     # - Move to FiniteDimensionalLieAlgebrasWithBasis once implemented
     # - Return a subalgebra
-    @cached_method
-    def center_basis(self):
-        """
-        Return a list of elements which correspond to a basis for the center
-        of ``self``.
-        """
-        R = self.base_ring()
-        B = self.basis()
-        K = list(B.keys())
-        k = len(K)
-        d = {}
-        for a,i in enumerate(K):
-            Bi = B[i]
-            for b,j in enumerate(K):
-                Bj = B[j]
-                for m,c in Bi.bracket(Bj):
-                    d[(a, K.index(m)+k*b)] = c
-        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms( ((K[i], c) for i,c in x.iteritems()),
-                                                   distinct=True)
-        return tuple(map( from_vector, m.kernel().basis() ))
-
+    #@cached_method
+    #def center(self):
+    #    """
+    #    Return a list of elements which correspond to a basis for the center
+    #    of ``self``.
+    #    """
+    #    R = self.base_ring()
+    #    B = self.basis()
+    #    K = list(B.keys())
+    #    k = len(K)
+    #    d = {}
+    #    for a,i in enumerate(K):
+    #        Bi = B[i]
+    #        for b,j in enumerate(K):
+    #            Bj = B[j]
+    #            for m,c in Bi.bracket(Bj):
+    #                d[(a, K.index(m)+k*b)] = c
+    #    m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
+    #    from_vector = lambda x: self.sum_of_terms( ((K[i], c) for i,c in x.iteritems()),
+    #                                               distinct=True)
+    #    return tuple(map( from_vector, m.kernel().basis() ))
         # Dense version
         # R = self.base_ring()
         # B = self.basis()
@@ -253,23 +297,121 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         An element of a Lie algebra given by structure coefficients.
         """
+        def _bracket_(self, y):
+            """
+            Return the Lie bracket ``[self, y]``.
+            """
+            P = self.parent()
+            return P.sum(cx * cy * P.bracket_on_basis(mx, my) for mx,cx in self for my,cy in y)
+
         def to_vector(self):
             """
             Return ``self`` as a vector.
             """
             V = self.parent().free_module()
+            return V([self[k] for k in self.parent()._ordered_indices])
+
+            # This is a very generic implementation, should be moved somewhere higher up
+            V = self.parent().free_module()
             B = V.basis()
-            return V.sum(B[k]*c for k,c in self)
+            return V.sum(B[k]*self[k] for k in self.parent()._ordered_indices)
 
 class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
     """
     A Lie subalgebra of a Lie algebra given by structure coefficients.
     """
-    def subalgebra(self, gens, names=None):
+    @staticmethod
+    def _compute_basis_structure_coeff(A, gens):
+        """
+        Compute an echonalized basis of ``self`` and the corresponding
+        structure coefficients.
+
+        INPUT:
+
+        - ``A`` -- the ambient Lie algebra
+        - ``gens`` -- a set of generators as elements in ``A``
+        """
+        I = A._ordered_indices
+        R = A.base_ring()
+        M = A.free_module()
+        zero = A.zero()
+        cur = matrix(R, map(lambda x: x.to_vector(), gens), sparse=M.is_sparse())
+        cur.echelonize()
+        # Remove all zero rows from cur
+        n = cur.nrows() - 1
+        for i,row in enumerate(reversed(cur.rows())):
+            if row.is_zero():
+                cur.delete_row(n-i)
+        added = True
+        while added:
+            added = False
+            cur.echelonize()
+            basis = tuple(A._from_dict({I[i]: c for i,c in row.iteritems()}) for row in cur)
+            s_coeff = {}
+
+            for i in range(len(basis)):
+                for j in range(i+1, len(basis)):
+                    b = basis[i].bracket(basis[j])
+                    if b == zero:
+                        # There is a dependence and no resulting structure
+                        #   coefficients, so we don't have to do anything more
+                        continue
+
+                    bv = b.to_vector()
+                    dep = M.linear_dependence(cur.rows() + [bv])
+                    if dep:
+                        dep = dep[0] # The dependency is the first in the sequence (there's only one)
+                        # Rewrite as a linear combination of the current basis
+                        s = -dep[-1] # Guaranteed to be non-zero
+                        d = {k: R(c*~s) for k,c in enumerate(dep[:-1]) if c != 0}
+                        s_coeff[LieBracket(i,j)] = d
+                    else:
+                        added = True
+                        cur = cur.stack(bv)
+        return (basis, Family(s_coeff))
+
+    def __init__(self, ambient, basis, s_coeff, names=None, index_set=None, category=None):
+        r"""
+        Initialize ``self``.
+        """
+        self.__s_coeff = s_coeff # TODO: convert the values to elements of ``self``
+        LieSubalgebra.__init__(self, ambient, basis, names, index_set, category)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
+        return "Subalgebra generated of {} with basis:\n{}".format(self._ambient, self.gens())
+
+    def basis(self):
+        """
+        Return a basis of ``self``.
+        """
+        I = self._indices
+        B = self._gens
+        return Family({ I[i]: b for i,b in enumerate(B) })
+
+    def subalgebra(self, gens, names=None, index_set=None, category=None):
         """
         Return the subalgebra of ``self`` generated by ``gens``.
         """
-        return LieSubalgebraWithStructureCoefficients(self._ambient, map(lambda x: x.value, gens), names)
+        gens = map(lambda x: x.value, gens)
+        B, s_coeff = LieSubalgebraWithStructureCoefficients._compute_basis_structure_coeff(self._ambient, gens)
+        assert len(B) != self._ambient.dimension()
+        return LieSubalgebraWithStructureCoefficients(self._ambient, B, s_coeff,
+                                                      names, index_set, category)
+
+    def product_space(self, Y):
+        """
+        Return the product space ``[self, Y]`` in the ambient space
+        of ``self``.
+
+        INPUT:
+
+        - ``Y`` -- another subspace of the ambient space of ``self``
+        """
+        gens = [x.value.bracket(y.value) for x in self.basis() for y in Y.basis()]
+        return self._ambient.subalgebra(gens)
 
 class LieAlgebraIdealWithStructureCoefficients(LieAlgebraIdeal,
                         LieSubalgebraWithStructureCoefficients):
@@ -354,8 +496,10 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
             Abelian Lie algebra on 3 generators (x0, x1, x2) over Rational Field
         """
         gens = self.lie_algebra_generators()
+        if gens.cardinality() == 1:
+            return "Abelian Lie algebra on generator {} over {}".format(tuple(gens)[0], self.base_ring())
         return "Abelian Lie algebra on {} generators {} over {}".format(
-            gens.cardinality(), gens.values(), self.base_ring())
+            gens.cardinality(), tuple(gens), self.base_ring())
 
     def _construct_UEA(self):
         """

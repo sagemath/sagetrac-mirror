@@ -28,10 +28,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.categories.monoids import Monoids
-from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
+#from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
-from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
+#from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
 from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
 from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 
@@ -63,7 +63,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
             sage: sage.algebras.lie_algebras.ideal.LieIdealMonoid(R)
             Monoid of ideals of Lie algebra
         """
-        return "Monoid of ideals of %s"%self.__lie
+        return "Monoid of ideals of {}".format(self.__lie)
 
     def lie_algebra(self):
         r"""
@@ -91,8 +91,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
         """
         if isinstance(x, LieIdealMonoid):
             return self.lie_algebra().has_coerce_map_from(x.ring())
-        else:
-            return self.lie_algebra().has_coerce_map_from(x)
+        return self.lie_algebra().has_coerce_map_from(x)
 
     def __cmp__(self, other):
         r"""
@@ -102,8 +101,7 @@ class LieIdealMonoid(Parent, UniqueRepresentation):
         """
         if not isinstance(other, LieIdealMonoid):
             return cmp(type(self), type(other))
-        else:
-            return cmp(self.lie_algebra(), other.lie_algebra())
+        return cmp(self.lie_algebra(), other.lie_algebra())
 
 class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflict
     r"""
@@ -169,7 +167,6 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
         if has_return:
             return '\n(\n  {}\n)\n',format(',\n\n  '.join(L))
         return '({})'.format(', '.join(L))
-
 
 LieIdealMonoid.Element = LieAlgebraIdeal
 
