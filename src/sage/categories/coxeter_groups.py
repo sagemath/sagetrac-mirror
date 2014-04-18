@@ -109,7 +109,7 @@ class CoxeterGroups(Category_singleton):
         """
         return [Groups(), EnumeratedSets()]
 
-    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups', 'Finite')
+    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
 
     class ParentMethods:
 

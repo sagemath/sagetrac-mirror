@@ -51,7 +51,7 @@ class LatticePosets(Category):
         """
         return [Posets()]
 
-    Finite = LazyImport('sage.categories.finite_lattice_posets', 'FiniteLatticePosets', 'Finite')
+    Finite = LazyImport('sage.categories.finite_lattice_posets', 'FiniteLatticePosets')
 
     class ParentMethods:
 

@@ -1201,5 +1201,5 @@ class Crystals(Category_singleton):
             return self.parent().subcrystal(generators=[self], index_set=index_set,
                                             max_depth=max_depth, direction=direction)
 
-    Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals', 'Finite')
+    Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
 

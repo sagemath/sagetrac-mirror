@@ -178,8 +178,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         """
         return self.base_ring().is_field()
 
-    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis', 'FiniteDimensional')
-    Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis', 'Graded')
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
 
     class ParentMethods:
         @cached_method
@@ -1487,7 +1487,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: I = range(1,200)
         sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
         sage: Y = CombinatorialFreeModule(QQ, I); Y.rename("Y"); y = Y.basis()
-        sage: f = Y.sum_of_monomials * divisors
+        sage: f = Y.sum_of_monomials * divisors   # This * is map composition.
         sage: phi = X.module_morphism(f, triangular="upper", unitriangular = True, codomain = Y)
         sage: phi(x[2])
         B[1] + B[2]
@@ -1895,7 +1895,6 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi.co_reduced(y[1] + y[2])
             0
         """
-        F = self.domain()
         G = self.codomain()
         basis_map = self._on_basis
         assert y in G
@@ -2146,3 +2145,4 @@ class PointwiseInverseFunction(SageObject):
             True
         """
         return self._pointwise_inverse
+

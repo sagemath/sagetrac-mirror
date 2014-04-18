@@ -59,7 +59,7 @@ class DivisionRings(CategoryWithAxiom):
         """
         return (Rings().NoZeroDivisors(),)
 
-    Commutative = LazyImport('sage.categories.fields', 'Fields', 'Commutative', at_startup=True)
+    Commutative = LazyImport('sage.categories.fields', 'Fields', at_startup=True)
 
     def Finite_extra_super_categories(self):
         r"""

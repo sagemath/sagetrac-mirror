@@ -58,7 +58,7 @@ class HopfAlgebras(Category_over_base_ring):
         """
         return self
 
-    WithBasis = LazyImport('sage.categories.hopf_algebras_with_basis',  'HopfAlgebrasWithBasis', 'WithBasis')
+    WithBasis = LazyImport('sage.categories.hopf_algebras_with_basis',  'HopfAlgebrasWithBasis')
 
     class ElementMethods:
         def antipode(self):

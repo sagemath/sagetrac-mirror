@@ -58,7 +58,7 @@ class WeylGroups(Category_singleton):
         """
         return [CoxeterGroups()]
 
-    Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups', 'Finite')
+    Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:
 

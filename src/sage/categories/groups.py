@@ -361,8 +361,8 @@ class Groups(CategoryWithAxiom):
         ## inv(x), x/y
         pass
 
-    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups', 'Finite')
-    #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras', 'Algebras')
+    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Algebras(AlgebrasCategory):
         """
