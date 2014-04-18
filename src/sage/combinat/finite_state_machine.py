@@ -134,7 +134,7 @@ We can look at the states and transitions::
     sage: inverter.states()
     ['A']
     sage: for t in inverter.transitions():
-    ....:     print t
+    ....:     print(t)
     Transition from 'A' to 'A': 0|1
     Transition from 'A' to 'A': 1|0
 
@@ -193,14 +193,14 @@ just saying in which state we are and which transition we take
 ::
 
     sage: def state_hook(state, process):
-    ....:     print "We are now in State %s." % (state.label(),)
+    ....:     print("We are now in State %s." % (state.label(),))
     sage: from sage.combinat.finite_state_machine import FSMWordSymbol
     sage: def transition_hook(transition, process):
-    ....:     print ("Currently we go from %s to %s, "
-    ....:            "reading %s and writing %s." % (
-    ....:                transition.from_state, transition.to_state,
-    ....:                FSMWordSymbol(transition.word_in),
-    ....:                FSMWordSymbol(transition.word_out)))
+    ....:     print("Currently we go from %s to %s, "
+    ....:           "reading %s and writing %s." % (
+    ....:               transition.from_state, transition.to_state,
+    ....:               FSMWordSymbol(transition.word_in),
+    ....:               FSMWordSymbol(transition.word_out)))
 
 Now, let's add these hook-functions to the existing transducer::
 
@@ -374,10 +374,10 @@ def full_group_by(l, key=lambda x: x):
         sage: for k, elements in groupby(sorted([0,1,2],
         ....:                            key=lambda i:t[i]),
         ....:                            key=lambda i:t[i]):
-        ....:     print k, list(elements)
-        2/x [0]
-        1/x [1]
-        2/x [2]
+        ....:     print(k, list(elements))
+        (2/x, [0])
+        (1/x, [1])
+        (2/x, [2])
 
     Note that the behavior is different from ``itertools.groupby``
     because neither `1/x<2/x` nor `2/x<1/x` does hold.
@@ -4396,10 +4396,14 @@ class FiniteStateMachine(SageObject):
                             transition.word_out = transition.word_out + [common_output[0]]
                             found_inbound_transition = True
                     if not found_inbound_transition:
-                        print "prepone_output: All transitions leaving state %s have an output label with prefix %s. "\
-                            "However, there is no inbound transition and it is not an initial state. "\
-                            "This routine (possibly called by simplification) therefore erased this prefix from all "\
-                            "outbound transitions." % (state, common_output[0])
+                        print("prepone_output: All transitions leaving "
+                              "state %s have an output label with prefix %s. "
+                              "However, there is no inbound transition and "
+                              "it is not an initial state. "
+                              "This routine (possibly called by "
+                              "simplification) therefore erased this prefix "
+                              "from all outbound transitions." 
+                              % (state, common_output[0]))
 
 
 
@@ -5839,7 +5843,7 @@ class FSMProcessIterator:
         sage: from sage.combinat.finite_state_machine import FSMProcessIterator
         sage: it = FSMProcessIterator(T, input_tape=input)
         sage: for _ in it:
-        ....:     print (it.current_state, it.output_tape)
+        ....:     print(it.current_state, it.output_tape)
         ('B', [])
         ('B', [])
         ('A', [1, 0])
