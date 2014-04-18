@@ -6269,21 +6269,22 @@ class NumberField_absolute(NumberField_generic):
         if possible, along with field isomorphisms from the new field to
         self and from self to the new field.
 
-        EXAMPLES: We construct a compositum of 3 quadratic fields, then
-        find an optimized representation and transform elements back and
-        forth.
+        EXAMPLES: 
+        
+        We construct a compositum of 3 quadratic fields, then find an
+        optimized representation and transform elements back and forth.
 
         ::
 
             sage: K = NumberField([x^2 + p for p in [5, 3, 2]],'a').absolute_field('b'); K
             Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
-            sage: L, from_L, to_L = K.optimized_representation()
-            sage: L    # your answer may different, since algorithm is random
-            Number Field in a14 with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
+            sage: L, from_L, to_L = K.optimized_representation('c')
+            sage: L    # your answer may be different, since algorithm is random
+            Number Field in c with defining polynomial x^8 + 4*x^6 + 7*x^4 + 36*x^2 + 81
             sage: to_L(K.0)   # random
-            4/189*a14^7 - 1/63*a14^6 + 1/27*a14^5 + 2/9*a14^4 - 5/27*a14^3 + 8/9*a14^2 + 3/7*a14 + 3/7
+            4/189*c^7 - 1/63*c^6 + 1/27*c^5 + 2/9*c^4 - 5/27*c^3 + 8/9*c^2 + 3/7*c + 3/7
             sage: from_L(L.0)   # random
-            1/1152*a1^7 + 1/192*a1^6 + 23/576*a1^5 + 17/96*a1^4 + 37/72*a1^3 + 5/6*a1^2 + 55/24*a1 + 3/4
+            1/1152*b^7 + 1/192*b^6 + 23/576*b^5 + 17/96*b^4 + 37/72*b^3 + 5/6*b^2 + 55/24*b + 3/4
 
         The transformation maps are mutually inverse isomorphisms.
 
@@ -6291,10 +6292,31 @@ class NumberField_absolute(NumberField_generic):
 
             sage: from_L(to_L(K.0))
             b
-            sage: to_L(from_L(L.0))     # random
-            a14
+            sage: to_L(from_L(L.0))
+            c
+
+        TESTS:
+
+        We check that trac::`8252` is fixed::
+
+            sage: K.<a> = NumberField(x^2+1)
+            sage: L.<b> = K.extension(x^2+5)
+            sage: Labs.<tau> = L.absolute_field()
+            sage: Lnice = Labs.optimized_representation(names='t')
+            sage: Lnice[0].gen()
+            t
+
         """
-        return self.optimized_subfields(degree=self.degree(), name=names, both_maps=both_maps)[0]
+        if names is None:
+            raise TypeError, "You must specify the name of the generator."
+        L, mor, inv = self.optimized_subfields(degree=self.degree(), name=names, both_maps=both_maps)[0]
+        oldvar = L.gen()
+        Ln = L.change_names(names)
+        newvar = Ln.gen()
+        mor = mor.pre_compose(Ln.hom(oldvar, L))
+        inv = inv.post_compose(L.hom(newvar, Ln))
+        return (Ln, mor, inv)
+
 
     def optimized_subfields(self, degree=0, name=None, both_maps=True):
         """
