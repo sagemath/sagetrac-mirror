@@ -40,7 +40,7 @@ from sage.rings.finite_rings.all import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
 from sage.rings.arith import gcd, lcm
-from sage.structure.sequence import Sequence
+from sage.structure.sequence import Sequence, Sequence_generic
 
 import sage.plot.all as plot
 
@@ -51,10 +51,33 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     """
     Elliptic curve over a finite field.
     """
-    def __init__(self, x, y=None):
+    @staticmethod
+    def __classcall__(cls, x, y=None):
+        """
+        Preprocess arguments such as to obtain a unique descriptor.
+
+        TESTS::
+
+            sage: E = EllipticCurve(GF(101),[2,3])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field'>
+            sage: E is EllipticCurve(E.base_ring(), E.a_invariants())  # indirect doctest
+            True
+
+        """
+        if y is None:
+            if isinstance(x, Sequence_generic) and x.is_immutable():
+                ainvs = x
+            else:
+                ainvs = Sequence(x, immutable=True)
+        else:
+            ainvs = Sequence(y, universe=x, immutable=True)
+        return super(EllipticCurve_finite_field, cls).__classcall__(cls, ainvs.universe(), ainvs)
+        
+    def __init__(self, field, ainvs):
         """
         Special constructor for elliptic curves over a finite field
-
+        
         EXAMPLES::
 
             sage: EllipticCurve(GF(101),[2,3])
@@ -91,16 +114,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Category of schemes over Ring of integers modulo 95
             sage: TestSuite(E).run(skip=["_test_elements"])
         """
-        if isinstance(x, list):
-            seq = Sequence(x)
-        else:
-            seq = Sequence(y, universe=x)
-        ainvs = list(seq)
-        field = seq.universe()
         if not isinstance(field, ring.Ring):
             raise TypeError
 
-        EllipticCurve_field.__init__(self, ainvs)
+        EllipticCurve_field.__init__(self, field, ainvs)
 
         self._point = ell_point.EllipticCurvePoint_finite_field
 

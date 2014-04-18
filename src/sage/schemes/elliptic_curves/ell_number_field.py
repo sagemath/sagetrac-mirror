@@ -106,8 +106,8 @@ import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
 from sage.rings.arith import valuation
-
 import gal_reps_number_field
+from sage.structure.sequence import Sequence
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -119,7 +119,36 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
         Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
     """
-    def __init__(self, x, y=None):
+    @staticmethod
+    def __classcall__(cls, x, y=None):
+        """
+        Preprocess arguments such as to obtain a unique descriptor.
+
+        TESTS::
+
+            sage: K.<i>=NumberField(x^2+1)
+            sage: E = EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
+            sage: E is EllipticCurve(E.base_ring(),E.a_invariants()) # indirect doctest
+            True
+
+        """
+        if y is None:
+            if isinstance(x, (list,tuple)):
+                field = x[0].parent()
+                ainvs = Sequence(x, universe=field, immutable=True)
+        else:
+            if isinstance(y, str):
+                field = x
+                X = sage.databases.cremona.CremonaDatabase()[y]
+                ainvs = Sequence(X.a_invariants(), universe=field, immutable=True)
+            else:
+                field = x
+                ainvs = Sequence(y, universe=field, immutable=True)
+        if not (isinstance(field, Ring)):
+            raise TypeError, "Can not determine the ring for that elliptic curve"
+        return super(EllipticCurve_number_field,cls).__classcall__(cls, field, ainvs)
+
+    def __init__(self, K, ainvs):
         r"""
         Allow some ways to create an elliptic curve over a number
         field in addition to the generic ones.
@@ -142,23 +171,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
 
         """
-        if y is None:
-            if isinstance(x, list):
-                ainvs = x
-                field = ainvs[0].parent()
-        else:
-            if isinstance(y, str):
-                from sage.databases.cremona import CremonaDatabase
-                field = x
-                X = CremonaDatabase()[y]
-                ainvs = list(X.a_invariants())
-            else:
-                field = x
-                ainvs = y
-        if not (isinstance(field, Ring) and isinstance(ainvs,list)):
-            raise TypeError
-
-        EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
+        EllipticCurve_field.__init__(self, K, ainvs)
         self._point = ell_point.EllipticCurvePoint_number_field
 
     def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):

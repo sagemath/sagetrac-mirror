@@ -70,6 +70,8 @@ import constructor
 import formal_group
 import weierstrass_morphism as wm
 
+from sage.structure.sequence import Sequence, Sequence_generic
+from sage.structure.unique_representation import UniqueRepresentation
 
 factor = arith.factor
 sqrt = math.sqrt
@@ -97,7 +99,7 @@ def is_EllipticCurve(x):
     """
     return isinstance(x, EllipticCurve_generic)
 
-class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class EllipticCurve_generic(UniqueRepresentation, plane_curve.ProjectiveCurve_generic):
     r"""
     Elliptic curve over a generic base ring.
 
@@ -112,14 +114,38 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         sage: -5*P
         (179051/80089 : -91814227/22665187 : 1)
     """
-    def __init__(self, ainvs, extra=None):
+    @staticmethod
+    def __classcall__(cls, ainvs, extra=None):
+        """
+        Preprocess arguments such as to obtain a unique descriptor.
+
+        TESTS::
+
+            sage: E = EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
+            sage: type(E)
+            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic'>
+            sage: E is EllipticCurve(E.base_ring(), E.a_invariants())  # indirect doctest
+            True
+
+        """
+        if extra != None:   # possibility of two arguments
+            K, ainvs = ainvs, extra
+        else:
+            K = ainvs[0].parent()
+        assert len(ainvs) == 2 or len(ainvs) == 5
+        if len(ainvs) == 2:
+            ainvs = [K(0),K(0),K(0)] + ainvs
+        if not (isinstance(ainvs,Sequence_generic) and ainvs.is_immutable()):
+            ainvs = Sequence(ainvs, universe=K, immutable=True)
+        return super(EllipticCurve_generic,cls).__classcall__(cls, K, ainvs)
+
+    def __init__(self, K, ainvs):
         r"""
         Constructor from `a`-invariants (long or short Weierstrass coefficients).
 
         INPUT:
 
-        - ``ainvs`` (list) -- either `[a_1,a_2,a_3,a_4,a_6]` or
-          `[a_4,a_6]` (with `a_1=a_2=a_3=0` in the second case).
+        - ``ainvs`` (immutable Sequence) -- `[a_1,a_2,a_3,a_4,a_6]`
 
         .. note::
 
@@ -142,15 +168,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
         """
-        if extra != None:   # possibility of two arguments
-            K, ainvs = ainvs, extra
-        else:
-            K = ainvs[0].parent()
-        assert len(ainvs) == 2 or len(ainvs) == 5
         self.__base_ring = K
-        ainvs = [K(x) for x in ainvs]
-        if len(ainvs) == 2:
-            ainvs = [K(0),K(0),K(0)] + ainvs
         self.__ainvs = tuple(ainvs)
         if self.discriminant() == 0:
             raise ArithmeticError, \

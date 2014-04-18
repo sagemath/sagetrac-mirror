@@ -30,13 +30,48 @@ from sage.rings.all import PolynomialRing
 from sage.schemes.hyperelliptic_curves.hyperelliptic_padic_field import HyperellipticCurve_padic_field
 
 import sage.databases.cremona
-
+from sage.structure.sequence import Sequence, Sequence_generic
 
 class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_field):
     """
     Elliptic curve over a padic field.
     """
-    def __init__(self, x, y=None):
+    @staticmethod
+    def __classcall__(cls, x, y=None):
+        """
+        Preprocess arguments such as to obtain a unique descriptor.
+
+        TESTS:::
+
+            sage: Qp=pAdicField(17)
+            sage: E=EllipticCurve(Qp,[2,3]); E
+            Elliptic Curve defined by y^2 = x^3 + (2+O(17^20))*x + (3+O(17^20)) over 17-adic Field with capped relative precision 20
+            sage: E is EllipticCurve(E.base_ring(), E.a_invariants())  # indirect doctest
+            True
+
+        """
+        if y is None:
+            if isinstance(x, Sequence_generic) and x.is_immutable():
+                ainvs = x
+                field = ainvs.universe()
+            elif isinstance(x, (list,tuple)):  # that covers sequences as well
+                field = x[0].parent()
+                ainvs = Sequence(x, universe=field, immutable=True)
+            else:
+                raise TypeError, "Since the second argument is not provided, the first must be a list or tuple"
+        else:
+            if isinstance(y, str):
+                field = x
+                X = sage.databases.cremona.CremonaDatabase()[y]
+                ainvs = Sequence(X.a_invariants(), universe=field, immutable=True)
+            else:
+                field = x
+                ainvs = Sequence(y, universe=field, immutable=True)
+        if not (isinstance(field, ring.Ring)):
+            raise TypeError, "Can not determine the ring for that elliptic curve"
+        return super(EllipticCurve_padic_field,cls).__classcall__(cls, field, ainvs)
+        
+    def __init__(self, field, ainvs):
         """
         Constructor from [a1,a2,a3,a4,a6] or [a4,a6].
 
@@ -45,25 +80,11 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             sage: Qp=pAdicField(17)
             sage: E=EllipticCurve(Qp,[2,3]); E
             Elliptic Curve defined by y^2  = x^3 + (2+O(17^20))*x + (3+O(17^20)) over 17-adic Field with capped relative precision 20
-            sage: E == loads(dumps(E))
+            sage: E is loads(dumps(E))
             True
-        """
-        if y is None:
-            if isinstance(x, list):
-                ainvs = x
-                field = ainvs[0].parent()
-        else:
-            if isinstance(y, str):
-                field = x
-                X = sage.databases.cremona.CremonaDatabase()[y]
-                ainvs = [field(a) for a in X.a_invariants()]
-            else:
-                field = x
-                ainvs = y
-        if not (isinstance(field, ring.Ring) and isinstance(ainvs,list)):
-            raise TypeError
 
-        EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
+"""
+        EllipticCurve_field.__init__(self, field, ainvs)
 
         self._point = ell_point.EllipticCurvePoint_field
         self._genus = 1

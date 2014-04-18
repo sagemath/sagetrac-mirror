@@ -866,7 +866,13 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "USING(class) WHERE curve=?",(label,))
         try:
             c = q.next()
-            F = elliptic.EllipticCurve(eval(c[0]))
+            from sage.all import QQ
+            from sage.structure.sequence import Sequence
+            from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
+            #F = elliptic.EllipticCurve(eval(c[0]))
+            F = EllipticCurve_rational_field.__new__(EllipticCurve_rational_field)
+            EllipticCurve_rational_field.__init__(F, QQ,
+                                                  Sequence(eval(c[0]),universe=QQ,immutable=True))
             F._set_cremona_label(label)
             F._set_rank(c[1])
             F._set_torsion_order(c[2])

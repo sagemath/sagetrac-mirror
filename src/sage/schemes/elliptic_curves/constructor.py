@@ -6,6 +6,8 @@ AUTHORS:
 - William Stein (2005): Initial version
 
 - John Cremona (2008-01): EllipticCurve(j) fixed for all cases
+
+- Simon King (2011-06): Make elliptic curves unique parents (trac ticket #11474)
 """
 
 #*****************************************************************************
@@ -90,15 +92,49 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
 
         sage: EllipticCurve([0,0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-
+        sage: EllipticCurve([0,0,1,-1,0]) is EllipticCurve([0,0,1,-1,0])
+        True
+    
     We create a curve from a Cremona label::
-
+    
         sage: EllipticCurve('37b2')
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field
-        sage: EllipticCurve('5077a')
+        sage: E = EllipticCurve('5077a'); E
         Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
-        sage: EllipticCurve('389a')
-        Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+
+    Note that elliptic curves almost are unique parent structures, by trac
+    ticket #11461: Two elliptic curves have equal `a`-invariants and are defined
+    over the same field then they are not only equal but identical::
+
+        sage: E is EllipticCurve('5077a') is EllipticCurve(QQ, E.a_invariants()) is EllipticCurve(j = E.j_invariant())
+        True
+
+    The only exception can occur if an elliptic curve is equal to a
+    curve from the database: If an elliptic curve found in the cache
+    has data that are different from the data provided by the
+    database, then the two elliptic curves are equal but distinct::
+
+        sage: E = EllipticCurve([0, 1, 1, -2, 0])
+        sage: E is EllipticCurve('389a')
+        True
+        sage: E._EllipticCurve_rational_field__cremona_label = 'bogus'
+        sage: E is EllipticCurve('389a')
+        False
+        sage: E.label()
+        'bogus'
+        sage: EllipticCurve('389a').label()
+        '389a1'
+
+    However, attributes that are provided by the database are
+    automatically added to the curve found in the cache, if these
+    attributes have not been previously assigned.
+    ::
+
+        sage: del E._EllipticCurve_rational_field__cremona_label
+        sage: E is EllipticCurve('389a')
+        True
+        sage: E._EllipticCurve_rational_field__cremona_label
+        '389 a 1'
 
     Old Cremona labels are allowed::
 
@@ -114,16 +150,20 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
 
         sage: EllipticCurve([GF(5)(0),0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
-        sage: EllipticCurve(GF(5), [0, 0,1,-1,0])
-        Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
+
+    The same object can be obtained by providing the data in a slightly
+    different way::
+
+        sage: EllipticCurve([GF(5)(0),0,1,-1,0]) is EllipticCurve(GF(5), [0, 0,1,-1,0])
+        True
 
     Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
     "elliptic curve over a finite field"::
 
         sage: F = Zmod(101)
-        sage: EllipticCurve(F, [2, 3])
+        sage: E = EllipticCurve(F, [2, 3]); E
         Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
-        sage: E = EllipticCurve([F(2), F(3)])
+        sage: E is EllipticCurve([F(2), F(3)])
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field_with_category'>
         sage: E.category()
@@ -133,9 +173,10 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
     are of type "generic elliptic curve"::
 
         sage: F = Zmod(95)
-        sage: EllipticCurve(F, [2, 3])
+        sage: E = EllipticCurve(F, [2, 3]); E
         Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
-        sage: E = EllipticCurve([F(2), F(3)])
+        sage: E is EllipticCurve([F(2), F(3)])
+        True
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
         sage: E.category()
@@ -149,26 +190,41 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
         sage: E.j_invariant()
         2988.97297297297
 
-    We can also create elliptic curves by giving the Weierstrass equation::
+    We can also create elliptic curves by giving the Weierstrass equation, and again
+    we find that elliptic curves are unique::
 
         sage: x, y = var('x,y')
-        sage: EllipticCurve(y^2 + y ==  x^3 + x - 9)
+        sage: E = EllipticCurve(y^2 + y ==  x^3 + x - 9); E
         Elliptic Curve defined by y^2 + y = x^3 + x - 9 over Rational Field
-
+        sage: E is EllipticCurve(E.base_ring(), E.a_invariants())
+        True
         sage: R.<x,y> = GF(5)[]
-        sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
+        sage: E = EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x); E
         Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
+        sage: E is EllipticCurve(E.base_ring(), E.a_invariants())
+        True
 
-    We can explicitly specify the `j`-invariant::
+    We can explicitly specify the `j`-invariant, again in a unique way::
 
-        sage: E = EllipticCurve(j=1728); E; E.j_invariant(); E.label()
+        sage: E = EllipticCurve(j=1728); E; E.j_invariant(); E.a_invariants(); E.label()
         Elliptic Curve defined by y^2 = x^3 - x over Rational Field
         1728
+        (0, 0, 0, -1, 0)
         '32a2'
+        sage: E is EllipticCurve(E.base_ring(), E.a_invariants())
+        True
+        sage: E is EllipticCurve(E.label())
+        True
+        sage: E is EllipticCurve(j = E.j_invariant())
+        True
+
+    ::
 
         sage: E = EllipticCurve(j=GF(5)(2)); E; E.j_invariant()
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
         2
+        sage: E is EllipticCurve(E.base_ring(), E.a_invariants())
+        True
 
     See :trac:`6657` ::
 

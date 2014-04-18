@@ -93,6 +93,7 @@ from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
 from copy import copy
+from sage.structure.sequence import Sequence, Sequence_generic
 
 Q = RationalField()
 C = ComplexField()
@@ -144,19 +145,78 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
 
     """
-    def __init__(self, ainvs, extra=None):
+    @staticmethod
+    def __classcall__(cls, ainvs, extra=None):
+        """
+        Preprocess arguments such as to obtain a unique descriptor.
+
+        TESTS::
+
+            sage: E = EllipticCurve(j = 2019487744/1012581)
+            sage: E
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 26*x - 28 over Rational Field
+            sage: E.label()
+            '1389a1'
+            sage: E is EllipticCurve(E.label())  # indirect doctest
+            True
+            sage: E is EllipticCurve(E.base_ring(), E.a_invariants()) # indirect doctest
+            True
+
+        """
+        if extra != None:   # possibility of two arguments (the first would be the field)
+            field = ainvs
+            if field != Q:
+                raise ValueError, "The given field must be the rational field"
+            if isinstance(extra,Sequence_generic) and extra.is_immutable():
+                AINVS = extra
+            else:
+                AINVS = Sequence(extra, universe=field, immutable=True)
+            return super(EllipticCurve_rational_field, cls).__classcall__(cls, AINVS)
+        if isinstance(ainvs, str):
+            #label = ainvs
+            X = sage.databases.cremona.CremonaDatabase()[ainvs]
+            AINVS = Sequence(X.a_invariants(), universe=Q, immutable=True)
+            out = super(EllipticCurve_rational_field, cls).__classcall__(cls, Q, AINVS)
+            for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
+                         'modular_degree', 'gens', 'regulator']:
+                s = "_EllipticCurve_rational_field__"+attr
+                if hasattr(X,s):
+                    if hasattr(out,s):
+                        attr = getattr(out,s)
+                        if attr and getattr(X, s) != getattr(out,s):
+                            return X  # breaking the unique parent condition
+                    else:
+                        if attr == 'gens': # see #10999
+                            gens_dict = getattr(X, s)
+                            for boo in gens_dict.keys():
+                                gens_dict[boo] = [out(P) for P in gens_dict[boo]]
+                                setattr(out, s, gens_dict)
+                        else:
+                            setattr(out, s, getattr(X, s))
+            if hasattr(X,'_lmfdb_label'):
+                out._lmfdb_label = X._lmfdb_label
+            return out
+        if isinstance(ainvs, Sequence_generic) and ainvs.is_immutable():
+            AINVS = ainvs
+        else:
+            field = Q
+            AINVS = Sequence(ainvs, universe=Q, immutable=True)
+        return super(EllipticCurve_rational_field, cls).__classcall__(cls, Q, AINVS)
+
+    def __init__(self, field, ainvs):
         r"""
         Constructor for the EllipticCurve_rational_field class.
 
         INPUT:
 
-        - ``ainvs`` (list or string) -- either `[a_1,a_2,a_3,a_4,a_6]`
-          or `[a_4,a_6]` (with `a_1=a_2=a_3=0`) or a valid label from
-          the database.
+        - ``ainvs`` (list or string) -- `[a_1,a_2,a_3,a_4,a_6]`
 
         .. note::
 
-           See constructor.py for more variants.
+           See constructor.py for more variants. There is a __classcall__
+           method that will, in particular, take getting an elliptic curve
+           out of the database, given its label.
+
 
         EXAMPLES::
 
@@ -190,8 +250,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [True, True]
 
         """
-        if extra != None:   # possibility of two arguments (the first would be the field)
-            ainvs = extra
+        if field != Q:
+            raise ValueError, "The given field must be the rational field"
+        EllipticCurve_number_field.__init__(self, field, ainvs)
         self.__np = {}
         self.__gens = {}
         self.__rank = {}
@@ -199,24 +260,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__generalized_modular_degree = {}
         self.__generalized_congruence_number = {}
         self._isoclass = {}
-        if isinstance(ainvs, str):
-            label = ainvs
-            X = sage.databases.cremona.CremonaDatabase()[label]
-            EllipticCurve_number_field.__init__(self, Q, list(X.a_invariants()))
-            for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
-                         'modular_degree', 'gens', 'regulator']:
-                s = "_EllipticCurve_rational_field__"+attr
-                if hasattr(X,s):
-                    if attr == 'gens': # see #10999
-                        gens_dict = getattr(X, s)
-                        for boo in gens_dict.keys():
-                            gens_dict[boo] = [self(P) for P in gens_dict[boo]]
-                            setattr(self, s, gens_dict)
-                    else:
-                        setattr(self, s, getattr(X, s))
-            if hasattr(X,'_lmfdb_label'):
-                self._lmfdb_label = X._lmfdb_label
-            return
         EllipticCurve_number_field.__init__(self, Q, ainvs)
         if self.base_ring() != Q:
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
@@ -349,11 +392,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.gens() # random
             [(-2 : 3 : 1), (-7/4 : 25/8 : 1), (1 : -1 : 1)]
             sage: E._set_gens([]) # bogus list
-            sage: E.rank()        # unchanged
-            3
-            sage: E._set_gens([E(-2,3), E(-1,3), E(0,2)])
             sage: E.gens()
-            [(-2 : 3 : 1), (-1 : 3 : 1), (0 : 2 : 1)]
+            []
+            sage: E.rank()        # unchanged 
+            3
         """
         self.__gens = {}
         self.__gens[True] = [self.point(x, check=True) for x in gens]
