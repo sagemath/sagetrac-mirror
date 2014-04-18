@@ -111,7 +111,7 @@ class LieAlgebras(Category_over_base_ring):
         Return an example of algebra with basis as per
         :meth:`Category.example <sage.categories.category.Category.example>`.
 
-        ::
+        EXAMPLES::
 
             sage: LieAlgebras(QQ).example()
             An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
@@ -130,11 +130,8 @@ class LieAlgebras(Category_over_base_ring):
             Return the Lie bracket ``[lhs, rhs]`` after coercing ``lhs`` and
             ``rhs`` into elements of ``self``.
             """
-            if not have_same_parent(lhs, rhs):
-                lhs, rhs = get_coercion_model().canonical_coercion(lhs, rhs)
-            return lhs._bracket_(rhs)
+            return self(lhs)._bracket_(self(rhs))
 
-        # TODO: All UEA stuff should be moved into the Lie algebras with basis
         def universal_enveloping_algebra(self):
             """
             Return the universal enveloping algebra of ``self``.
@@ -334,7 +331,8 @@ class LieAlgebras(Category_over_base_ring):
             """
             return self._bracket_(rhs)
 
-        @abstract_method
+        # Implement this in order to avoid having to deal with the coercions
+        @abstract_method(optional=True)
         def _bracket_(self, y):
             """
             Return the Lie bracket ``[self, y]``.

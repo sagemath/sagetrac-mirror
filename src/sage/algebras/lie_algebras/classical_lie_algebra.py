@@ -34,6 +34,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import RingElement
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import FreeAlgebra
@@ -103,7 +104,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         names += ['h%s'%i for i in range(1, n+1)]
         LieAlgebraFromAssociative.__init__(self, R, e[0].parent(),
                                            tuple(e + f + h), tuple(names),
-                                           category=LieAlgebras(R))#.FiniteDimensional().WithBasis())
+                                           category=FiniteDimensionalLieAlgebrasWithBasis(R))
         self._cartan_type = ct
 
         gens = tuple(self.gens())
@@ -296,7 +297,7 @@ class gl(LieAlgebraFromAssociative):
                 gens.append(mat)
         self._n = n
         LieAlgebraFromAssociative.__init__(self, R, MS, tuple(gens), tuple(names),
-                                           category=LieAlgebras(R))#.FiniteDimensional().WithBasis())
+                                           category=FiniteDimensionalLieAlgebrasWithBasis(R))
 
     def _repr_(self):
         """
@@ -824,7 +825,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         self._s_coeff = coeffs
 
         names = e_names + f_names + names
-        category = LieAlgebras(R)#.FiniteDimensional().WithBasis()
+        category = FiniteDimensionalLieAlgebrasWithBasis(R)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
         IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
                                    prefix='E', monomial_cmp=self._basis_cmp)
