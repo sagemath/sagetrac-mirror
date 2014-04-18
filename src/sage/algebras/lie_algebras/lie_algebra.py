@@ -23,6 +23,7 @@ AUTHORS:
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.indexed_generators import IndexedGenerators
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -448,17 +449,35 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         TESTS::
         """
-        # Lie algebras in the same variable over any base that coerces in
         if not isinstance(R, LieAlgebra):
-            # Should be moved to LieAlgebrasWithBasis somehow (once created)
+            # Should be moved to LieAlgebrasWithBasis somehow since it is a generic coercion
             if self.free_module() is not NotImplemented:
                 return self.free_module().has_coerce_map_from(R)
             return False
 
-        if R.variable_names() != self.variable_names():
+        # We check if it is a subalgebra of something that can coerce into ``self``
+        from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
+        if isinstance(R, LieSubalgebra) and self.has_coerce_map_from(R._ambient):
+            return R.ambient_lift
+
+        # Lie algebras in the same indices over any base that coerces in
+        if R._indices != self._indices:
             return False
 
         return self.base_ring().has_coerce_map_from(R.base_ring())
+
+    @lazy_attribute
+    def _ordered_indices(self):
+        """
+        Return the index set of ``self`` in order.
+        """
+        return tuple(sorted(self._indices))
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+        """
+        return self.sum(self.lie_algebra_generators())
 
     @cached_method
     def zero(self):
@@ -622,6 +641,12 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
     r"""
     An infinitely generated Lie algebra.
     """
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+        """
+        return self.lie_algebra_generators()[self._indices.an_element()]
+
     def dimension(self):
         r"""
         Return the dimension of ``self``, which is `\infty`.

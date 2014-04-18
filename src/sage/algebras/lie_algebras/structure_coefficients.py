@@ -31,6 +31,7 @@ from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieGenerator,
@@ -140,7 +141,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: TestSuite(L).run()
         """
-        cat = LieAlgebras(R)#.FiniteDimensional().WithBasis()
+        cat = FiniteDimensionalLieAlgebrasWithBasis(R)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
 
         # Transform the values in the structure coefficients to elements
@@ -157,13 +158,6 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             Finite family {'y': y, 'x': x}
         """
         return Family({i: self.monomial(i) for i in self._indices})
-
-    @lazy_attribute
-    def _ordered_indices(self):
-        """
-        Return the order of the index set of the basis.
-        """
-        return sorted(self._indices)
 
     def structure_coefficients(self):
         """
@@ -189,7 +183,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return self.basis().cardinality()
 
-    # Move to FiniteDimensionalLieAlgebrasWithBasis category
+    # Move to FiniteDimensionalLieAlgebrasWithBasis category?
     def bracket_on_basis(self, x, y):
         """
         Return the Lie bracket of ``[self, y]``.
@@ -311,11 +305,6 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             V = self.parent().free_module()
             return V([self[k] for k in self.parent()._ordered_indices])
 
-            # This is a very generic implementation, should be moved somewhere higher up
-            V = self.parent().free_module()
-            B = V.basis()
-            return V.sum(B[k]*self[k] for k in self.parent()._ordered_indices)
-
 class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
     """
     A Lie subalgebra of a Lie algebra given by structure coefficients.
@@ -335,13 +324,13 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         R = A.base_ring()
         M = A.free_module()
         zero = A.zero()
+
+        # Setup the current basis matrix
         cur = matrix(R, map(lambda x: x.to_vector(), gens), sparse=M.is_sparse())
         cur.echelonize()
         # Remove all zero rows from cur
-        n = cur.nrows() - 1
-        for i,row in enumerate(reversed(cur.rows())):
-            if row.is_zero():
-                cur.delete_row(n-i)
+        cur = cur.delete_rows([i for i,row in enumerate(cur.rows()) if row.is_zero()])
+
         added = True
         while added:
             added = False
@@ -401,18 +390,6 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         return LieSubalgebraWithStructureCoefficients(self._ambient, B, s_coeff,
                                                       names, index_set, category)
 
-    def product_space(self, Y):
-        """
-        Return the product space ``[self, Y]`` in the ambient space
-        of ``self``.
-
-        INPUT:
-
-        - ``Y`` -- another subspace of the ambient space of ``self``
-        """
-        gens = [x.value.bracket(y.value) for x in self.basis() for y in Y.basis()]
-        return self._ambient.subalgebra(gens)
-
 class LieAlgebraIdealWithStructureCoefficients(LieAlgebraIdeal,
                         LieSubalgebraWithStructureCoefficients):
     """
@@ -442,7 +419,8 @@ class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
         Initialize ``self``.
         """
         R = lie.base_ring()
-        cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        #cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        cat = FiniteDimensionalLieAlgebrasWithBasis(R)
         QuotientLieAlgebra.__init__(self, lie, I, names, index_set, cat)
 
         # Construct the structure coefficients

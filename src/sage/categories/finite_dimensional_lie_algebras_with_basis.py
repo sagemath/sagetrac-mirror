@@ -36,21 +36,24 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: L = LieAlgebra(QQ, 3, 'x', abelian=True)
+                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
                 sage: L._construct_UEA()
-                Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators
-            names = self.variable_names()
-            F = FreeAlgebra(self.base_ring(), len(names), names)
+            try:
+                names = self.variable_names()
+            except ValueError:
+                names = tuple('b{}'.format(i) for i in range(self.dimension()))
+            I = self._indices
+            F = FreeAlgebra(self.base_ring(), names)
             gens = F.gens()
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients()
             for k in S.keys():
-                g0 = d[k._left._name]
-                g1 = d[k._right._name]
+                g0 = d[names[I.index(k._left)]]
+                g1 = d[names[I.index(k._right)]]
                 if g0 < g1:
                     rels[g1*g0] = g0*g1 - sum(val*d[g._name] for g, val in S[k])
                 else:
@@ -105,15 +108,17 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             output.
             """
             d = {}
-            B = list(self.basis())
+            B = self.basis()
+            K = self.basis().keys()
             one = self.base_ring().one()
-            by_basis = lambda a: (self._from_dict({a[0]: one}, remove_zeros=False), a[1])
-            for i,x in enumerate(B):
-                for y in B[i+1:]:
+            for i,x in enumerate(K):
+                for y in K[i+1:]:
+                    bx = B[x]
+                    by = B[x]
                     if self._basis_cmp(x, y) > 0:
-                        d[LieBracket(y, x)] = map(by_basis, self.bracket(y, x))
+                        d[LieBracket(y, x)] = self.bracket(by, bx)
                     else:
-                        d[LieBracket(x, y)] = map(by_basis, self.bracket(x, y))
+                        d[LieBracket(x, y)] = self.bracket(bx, by)
             return Family(d)
 
         def centralizer(self, S):
@@ -127,7 +132,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 K = self.subalgebra(S)
 
             m = K.basis_matrix()
-            sc = {k: v.to_vector() for k,v in self.structure_coefficients().items()}
+            S = self.structure_coefficients()
+            sc = {k: S[k].to_vector() for k in S}
             X = self.basis()
             d = self.dimension()
             c_mat = matrix([[sum(r[j]*sc[x,X[j]][k] for j in range(d)) for x in X]
@@ -150,7 +156,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 V = self.subalgebra(V)
 
             m = V.basis_matrix()
-            sc = {k: v.to_vector() for k,v in self.structure_coefficients().items()}
+            S = self.structure_coefficients()
+            sc = {k: S[k].to_vector() for k in S}
             X = self.basis()
             d = self.dimension()
             t = m.nrows()
@@ -161,6 +168,51 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             # TODO: convert N back to elements of ``self`` by taking the first ``n`` coefficients
             return self.subalgebra(N)
 
+        def product_space(self, L):
+            r"""
+            Return the product space ``[self, L]``.
+
+            EXAMPLES::
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: Lp = L.product_space(L)
+                sage: Lp
+                Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                (x,)
+                sage: Lp.product_space(L)
+                Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                (x,)
+                sage: L.product_space(Lp)
+                Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                (x,)
+                sage: Lp.product_space(Lp)
+                Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                ()
+            """
+            # Make sure we lift everything to the ambient space
+            try:
+                A = self._ambient
+            except AttributeError:
+                try:
+                    A = L._ambient
+                except AttributeError:
+                    A = self
+
+            B = self.basis()
+            LB = L.basis()
+            K = B.keys()
+            LK = LB.keys()
+            # We echelonize the matrix here
+            b_mat = matrix(A.base_ring(), [A.bracket(B[a], LB[b]).to_vector()
+                                           for a in K for b in LK])
+            b_mat.echelonize()
+            r = b_mat.rank()
+            I = A._ordered_indices
+            gens = [A.element_class(A, {I[i]: v for i,v in row.iteritems()})
+                    for row in b_mat.rows()[:r]]
+            return A.subalgebra(gens)
+
+        @cached_method
         def derived_subalgebra(self):
             """
             Return the derived subalgebra of ``self``.
@@ -168,25 +220,45 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
             """
             return self.product_space(self)
-            #basis = self.basis()
-            # We only need to do [a, b] when a < b (on some total order of the basis elements)
-            # We echelonize the matrix here
-            #b_mat = matrix(self.base_ring(), [self.bracket(a, b).to_vector()
-            #                 for i,a in enumerate(basis) for b in basis[i+1:]])
-            #b_mat.echelonize()
-            #r = b_mat.rank()
-            #names = self.variable_names()
-            #elt = lambda row: {names[i]: v for i, v in enumerate(row) if v != 0}
-            #gens = [self.element_class(self, elt(row)) for row in b_mat.rows()[:r]]
-            #return self.subalgebra(gens)
 
         @cached_method
         def derived_series(self):
-            """
-            Return the derived series `(\mathfrak{g}_i)_i` of ``self`` where
-            the rightmost `\mathfrak{g}_k = \mathfrak{g}_{k+1} = \cdots`.
+            r"""
+            Return the derived series `(\mathfrak{g}^{(i)})_i` of ``self``
+            where the rightmost
+            `\mathfrak{g}^{(k)} = \mathfrak{g}^{(k+1)} = \cdots`.
+
+            We define the derived series of a Lie algebra `\mathfrak{g}`
+            recursively by `\mathfrak{g}^{(0)} := \mathfrak{g}` and
+
+            .. MATH::
+
+                \mathfrak{g}^{(k+1)} =
+                [\mathfrak{g}^{(k)}, \mathfrak{g}^{(k)}]
+
+            and recall that
+            `\mathfrak{g}^{(k)} \subseteq \mathfrak{g}^{(k+1)}`.
+            Alternatively we canexpress this as
+
+            .. MATH::
+
+                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
+                \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
+                \mathfrak{g}] \bigr] \subseteq
+                \biggl[ \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
+                \mathfrak{g}] \bigr], \bigl[ [\mathfrak{g}, \mathfrak{g}],
+                [\mathfrak{g}, \mathfrak{g}] \bigr] \biggr] \subseteq \cdots.
+
 
             EXAMPLES::
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.derived_series()
+                (Lie algebra on 2 generators (x, y) over Rational Field,
+                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                (x,),
+                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                ())
             """
             L = [self]
             while L[-1].dimension() > 0:
@@ -198,15 +270,39 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         @cached_method
         def lower_central_series(self):
-            """
-            Return the lower central series `(\mathfrak{g}_i)_i` of ``self``
-            where the rightmost `\mathfrak{g}_k = \mathfrak{g}_{k+1} = \cdots`.
+            r"""
+            Return the lower central series `(\mathfrak{g}_{i})_i`
+            of ``self`` where the rightmost
+            `\mathfrak{g}_k = \mathfrak{g}_{k+1} = \cdots`.
+
+            We define the lower central series of a Lie algebra `\mathfrak{g}`
+            recursively by `\mathfrak{g}_0 := \mathfrak{g}` and
+
+            .. MATH::
+
+                \mathfrak{g}_{k+1} = [\mathfrak{g}, \mathfrak{g}_{k}]
+
+            and recall that `\mathfrak{g}_k} \subseteq \mathfrak{g}_{k+1}`.
+            Alternatively we can express this as
+
+            .. MATH::
+
+                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
+                \bigl[ [\mathfrak{g}, \mathfrak{g}], \mathfrak{g} \bigr]
+                \subseteq\biggl[\bigl[ [\mathfrak{g}, \mathfrak{g}],
+                \mathfrak{g} \bigr], \mathfrak{g}\biggr] \subseteq \cdots.
 
             EXAMPLES::
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.derived_series()
+                (Lie algebra on 2 generators (x, y) over Rational Field,
+                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
+                (x,))
             """
             L = [self]
             while L[-1].dimension() > 0:
-                s = L[-1].product_space(L[-1], self)
+                s = self.product_space(L[-1])
                 if L[-1].dimension() == s.dimension():
                     break
                 L.append(s)
@@ -241,43 +337,36 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return if ``self`` is an abelian Lie algebra.
 
             EXAMPLES::
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.is_abelian()
+                False
             """
-            return len(self.structure_coefficients()) == 0
+            return not self.structure_coefficients()
 
         def is_solvable(self):
             r"""
-            A Lie algebra `\mathfrak{g}` is solvable if the derived series
+            Return if ``self`` is a solvable Lie algebra.
 
-            .. MATH::
+            A Lie algebra is solvable if the derived series eventually
+            becomes `0`.
 
-                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
-                \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
-                \mathfrak{g}] \bigr] \subseteq
-                \biggl[ \bigl[ [\mathfrak{g}, \mathfrak{g}], [\mathfrak{g},
-                \mathfrak{g}] \bigr], \bigl[ [\mathfrak{g}, \mathfrak{g}],
-                [\mathfrak{g}, \mathfrak{g}] \bigr] \biggr] \subseteq \cdots
+            EXAMPLES::
 
-            eventually becomes 0.
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.is_abelian()
+                False
             """
-            return self.derived_series()[-1].dimension() == 0
+            return not self.derived_series()[-1].dimension()
 
         def is_nilpotent(self):
             r"""
             Return if ``self`` is a nilpotent Lie algebra.
 
-            A Lie algebra `\mathfrak{g}` is nilpotent if the lower central
-            series
-
-            .. MATH::
-
-                \mathfrak{g} \subseteq [\mathfrak{g}, \mathfrak{g}] \subseteq
-                \bigl[ [\mathfrak{g}, \mathfrak{g}], \mathfrak{g} \bigr]
-                \subseteq\biggl[\bigl[ [\mathfrak{g}, \mathfrak{g}],
-                \mathfrak{g} \bigr], \mathfrak{g}\biggr] \subseteq \cdots
-
-            eventually becomes 0.
+            A Lie algebra is nilpotent if the lower central series eventually
+            becomes `0`.
             """
-            return g.lower_central_series()[-1].dimension() != 0
+            return not self.lower_central_series()[-1].dimension()
 
         def is_semisimple(self):
             """
@@ -289,21 +378,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return not self.killing_form_matrix().is_singular()
 
-        def is_isomorphic(self, g):
-            """
-            Check to see if ``self`` is isomorphic to ``g`` (as Lie algebras).
-            """
-            # This is not sufficient...
-            return self.dimension() == g.dimension() \
-                and self.structure_graph().is_isomorphic(g.structure_graph(), edge_labels=True)
-
         def dimension(self):
             """
             Return the dimension of ``self``.
 
             EXAMPLES::
 
-                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
+                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'): {'x':1}})
                 sage: L.dimension()
                 2
             """
@@ -314,7 +395,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return ``self`` as a vector.
             """
-            M = self.parent().vector_space()
+            M = self.parent().free_module()
+            if not self:
+                return M.zero()
+            B = M.basis()
+            return M.sum(B[k]*self[k] for k in self.parent()._ordered_indices)
+
+            # I wonder if this is more generic than the above and would
+            #   work with combinatorial free modules?
+            M = self.parent().free_module()
             if not self:
                 return M.zero()
             gd = self.parent().gens_dict()
@@ -334,11 +423,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
                 sage: x.adjoint_matrix()
-                [0 0]
                 [1 0]
+                [0 0]
                 sage: y.adjoint_matrix()
-                [-1  0]
                 [ 0  0]
+                [-1  0]
             """
             P = self.parent()
             basis = P.basis()
