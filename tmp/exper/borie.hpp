@@ -44,7 +44,7 @@ struct VectPerm
     epi8 v8;
   };
   #ifdef GCC_VECT_CMP
-  bool operator==(const VectPerm &vp) const { return _mm_movemask_epi8(v==vp.v)==0xffff; }
+  bool operator==(const VectPerm &vp) const { return _mm_movemask_epi8(v8==vp.v8)==0xffff; }
   #else
   bool operator==(const VectPerm &vp) const { return _mm_movemask_epi8(_mm_cmpeq_epi8(v,vp.v))==0xffff; }
   #endif
@@ -54,7 +54,7 @@ struct VectPerm
     const char mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY;
     uint64_t diff = _mm_cmpestri (v, 16, b.v, 16, mode);
     #ifdef GCC_VECT_CMP
-    int diffs = _mm_movemask_epi8(v < b.v);
+    int diffs = _mm_movemask_epi8(v8 < b.v8);
     #else
     int diffs = _mm_movemask_epi8(_mm_cmplt_epi8(v,b.v));
     #endif
@@ -65,6 +65,13 @@ struct VectPerm
     int diff = _mm_cmpestri (v, k, b.v, k, mode);
     return (diff == 16) ? 0 : char(p[diff]) - char(b.p[diff]);
   }
+
+  VectPerm operator*(const VectPerm &other) const {
+    VectPerm res;
+    res.v = _mm_shuffle_epi8(v, other.v);
+    return res;
+  };
+
 } __attribute__ ((aligned (16)));
 
 static std::ostream & operator<<(std::ostream & stream, const VectPerm &term) {
@@ -155,7 +162,7 @@ bool is_canonical(const StrongGeneratingSet & sgs, const SGroup::type &v) {
     auto &transversal = sgs[i];
     for (SGroup::type list_test : to_analyse) {
       for (SGroup::type x : transversal) {
-	SGroup::mult(child, list_test, x);
+	child = list_test * x;
 	int comp = v.less_partial(child, i+1);
 	if (comp == 0) new_to_analyse.insert(child);
 	else if (comp < 0) return false;
