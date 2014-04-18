@@ -498,10 +498,8 @@ class ParallelogramPolyomino( ClonableList ):
             ....:     [ [0,0,0,0,1,0,1,0,1], [1,0,0,0,1,1,0,0,0] ]
             ....: )
             sage: pp
-            [[0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0, 0, 0] ]
-            sage: pp.set_options()
-            ....:     display='drawing'
-            ....: )
+            [[0, 0, 0, 0, 1, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0, 0, 0]]
+            sage: pp.set_options( display='drawing' )
             sage: pp
             [1 0 0]
             [1 0 0]

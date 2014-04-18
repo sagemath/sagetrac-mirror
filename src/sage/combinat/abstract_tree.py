@@ -735,6 +735,114 @@ class AbstractTree(object):
                 if not subtree.is_empty():
                     queue.insert(0, subtree)
 
+    def node_paths_generator(self, path=[]):
+        r"""
+        Return a generator of all node path of the tree.
+        
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[]], []]
+            ....: )
+            sage: list( T.node_paths_generator() )
+            [(), (0,), (0, 0), (0, 1), (0, 1, 0), (0, 1, 1), (0, 1, 1, 0), (1,), (2,), (2, 0), (3,)]
+            sage: T = OrderedTree( [[]] )
+            sage: list( T.node_paths_generator() )
+            [(), (0,)]
+            sage: T = OrderedTree( [[],[]] )
+            sage: list( T.node_paths_generator() )
+            [(), (0,), (1,)]
+            sage: T = OrderedTree( [] )
+            sage: list( T.node_paths_generator() )
+            [()]
+        """
+        yield tuple(path)
+        for i in range( len(self) ):
+            for p in self[i].node_paths_generator( path+[i] ):
+                yield p
+
+    def node_paths( self ):
+        r"""
+        Return a list of node paths.
+        
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[]], []]
+            ....: )
+            sage: T.node_paths()
+            [(), (0,), (0, 0), (0, 1), (0, 1, 0), (0, 1, 1), (0, 1, 1, 0), (1,), (2,), (2, 0), (3,)]
+            sage: T = OrderedTree( [[]] )
+            sage: T.node_paths()
+            [(), (0,)]
+            sage: T = OrderedTree( [[],[]] )
+            sage: T.node_paths()
+            [(), (0,), (1,)]
+            sage: T = OrderedTree( [] )
+            sage: T.node_paths()
+            [()]
+        """
+        return list( self.node_paths_generator() )
+
+    def get_node( self, path ):
+        r"""
+        Return the node associated with the path given in parameter.
+        In a tree T, A path [p1,p2,p3,p4, ...] represent the node 
+        T[p1][p2][p3][p4]... .
+
+        If the path is not associated to any node in the tree, thenv the 
+        function returns None.
+
+        EXAMPLES::
+        
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[], []]], [], []]
+            ....: )
+            sage: T.get_node( tuple() )
+            [[[], [[], [[]]]], [], [[[], []]], [], []]
+            sage: T.get_node( (0,1) )
+            [[], [[]]]
+        """
+        if len(path) == 0:
+            return self
+        return self[ path[0] ].get_node( path[1:] )
+
+    def breadth_node_paths_generator(self, depth, path=[]):
+        r"""
+        Return a generator listing all node paths with a fixed depth.
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
+            ....: )
+            sage: list( T.breadth_node_paths_generator( 1 ) )
+            [()]
+            sage: list( T.breadth_node_paths_generator( 3 ) )
+            [(0, 0), (0, 1), (2, 0)]
+            sage: list( T.breadth_node_paths_generator( 5 ) )
+            [(0, 1, 1, 0)]
+            sage: list( T.breadth_node_paths_generator( 6 ) )
+            []
+            sage: T = OrderedTree( [] )
+            sage: list( T.breadth_node_paths_generator( 1 ) )
+            [()]
+        """
+        if( depth == 1 ):
+            yield tuple(path)
+        else:
+            for i in range( len(self) ):
+                for p in self[i].breadth_node_paths_generator(
+                    depth-1, path+[i]
+                ):
+                    yield p
+
     def subtrees(self):
         """
         Return a generator for all nonempty subtrees of ``self``.
