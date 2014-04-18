@@ -180,7 +180,7 @@ class Order(IntegralDomain):
             sage: O.base_ring()
             Integer Ring
         
-        For a relative number field (showing that #4738 is fixed)::
+        For a relative number field (showing that trac::`4738` is fixed)::
 
             sage: k = NumberField([x^2+2, x^2+3], 'a')
             sage: k.base_ring()

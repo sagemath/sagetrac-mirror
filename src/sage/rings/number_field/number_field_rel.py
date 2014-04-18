@@ -2216,10 +2216,11 @@ class NumberField_relative(NumberField_generic):
             sage: R = P.order([a,b,c]); R
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
-        The base ring of an order in a relative extension is still `\ZZ`.::
+        The base ring of an order in a relative extension is the ring of
+        integers of the base field of the extension (see trac::`4738`)::
 
             sage: R.base_ring()
-            Integer Ring
+            Maximal Relative Order in Number Field in a with defining polynomial x^3 - 2 over its base field
 
         One must give enough generators to generate a ring of finite index
         in the maximal order::
