@@ -82,7 +82,6 @@ We do some arithmetic in a tower of relative number fields::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
 import sage.libs.ntl.all as ntl
@@ -99,7 +98,6 @@ import sage.rings.real_lazy
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.functional import is_odd
 from sage.misc.misc_c import prod
-from sage.categories.homset import End
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -210,7 +208,6 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-import weakref
 _nf_cache = weakref.WeakValueDictionary()
 def NumberField(polynomial, name=None, check=True, names=None, cache=True,
                 embedding=None, latex_name=None,
@@ -605,7 +602,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
     f = R(f)
     i = 0
 
-    sep = chr(ord(name[0]) + 1)
+    #sep = chr(ord(name[0]) + 1)
     #if all:
     #    z = []
     #    for k in w:
@@ -4802,7 +4799,7 @@ class NumberField_generic(number_field_base.NumberField):
         if not self.is_totally_real():
             raise NotImplementedError, "exact computation of LLL reduction only implemented in the totally real case"
 
-        Z_F = self.maximal_order()
+        # Z_F = self.maximal_order()
         B = self.reduced_basis()
         T = self.reduced_gram_matrix()
         P = pari(T).qfminim((C[1]**2)*(1./2), 10**6)[2]
@@ -5119,7 +5116,6 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             ValueError: Fractional ideal (5) is not a prime ideal
         """
-        from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if is_NumberFieldIdeal(prime) and prime.number_field() is not self:
             raise ValueError, "%s is not an ideal of %s"%(prime,self)
         # This allows principal ideals to be specified using a generator:
@@ -7739,7 +7735,6 @@ class NumberField_absolute(NumberField_generic):
             from sage.rings.complex_field import is_ComplexField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
             from sage.rings.real_mpfr import is_RealField
-            from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
             if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
                                          codom is CDF or codom is QQbar:
@@ -8691,8 +8686,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             pass
         n = self._n()
         z = CC.zeta(n)
-        X = [m for m in range(n) if sage.rings.arith.gcd(m,n) == 1]
-        v = [self.hom([z**n], check=False) for n in X]
+        X = [m for m in range(n) if sage.rings.arith.gcd(m, n) == 1]
+        v = [self.hom([z**k], check=False) for k in X]
         self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
                                          check=False, universe=self.Hom(CC))
         return self.__embeddings[CC]
@@ -9088,11 +9083,11 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: K.<zeta> = CyclotomicField(7)
             sage: K.norm_symbol(zeta^3, 13*zeta)
-            -zeta^5 - zeta^4 - zeta^3 - zeta^2 - zeta - 1 ?
+            -zeta^5 - zeta^4 - zeta^3 - zeta^2 - zeta - 1 ? zeta^3 ?
             sage: K.norm_symbol(zeta^7, K(11))
             1
             sage: K.norm_symbol((1+zeta)^2, 23*zeta)
-            zeta^4 ?
+            zeta^4 ? zeta^2 ?
         """
         F = self.fractional_ideal([b]).factor()
         return prod([self.norm_symbol_prime(a, P) ** e for P, e in F],
