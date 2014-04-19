@@ -9,6 +9,8 @@ parallelogram polyominoes.
 #  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr), 
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -33,6 +35,7 @@ from sage.misc.latex import latex
 from copy import deepcopy
 from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
+from sage.combinat.combinatorial_map import combinatorial_map
 
 default_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
@@ -274,6 +277,7 @@ class ParallelogramPolyomino( ClonableList ):
         dyck.append( upper_path[ size ] )
         return DyckWord( dyck )
 
+    @combinatorial_map(name = "To Dyck word")
     def to_dyck_word( self, bijection=None):
         r"""
         Convert to a Dyck word.
@@ -364,6 +368,7 @@ class ParallelogramPolyomino( ClonableList ):
             return BinaryTree()
         return self._to_tree_Aval_Boussicault( position )
 
+    @combinatorial_map(name = "To binary tree")
     def to_binary_tree( self, bijection=None ):
         r"""
         Convert to a binary tree
@@ -438,6 +443,7 @@ class ParallelogramPolyomino( ClonableList ):
             self.to_binary_tree( bijection='Aval-Boussicault' ), 1
         )
 
+    @combinatorial_map(name = "To ordered tree")
     def to_ordered_tree( self, bijection=None):
         r"""
         Return an ordered tree from the parallelogram polyomino
