@@ -21,6 +21,7 @@ Combinatorics
    sage/combinat/dlx
    sage/combinat/matrices/dlxcpp
    sage/combinat/dyck_word
+   sage/combinat/parallelogram_polyomino
    sage/combinat/tamari_lattices
    sage/combinat/e_one_star
    sage/combinat/finite_class
