@@ -210,7 +210,7 @@ def sl2z_rep_in_fundom(z, eps=None):
         sage: sl2z_rep_in_fundom(CC(1+I), eps=1)   # must be small
         Traceback (most recent call last):
         ...
-        ValueError: prec (=0) must be >= 2 and <= 9223372036854775807.
+        ValueError: prec (=0) must be >= 2 and <= -1.
 
     TESTS:
 
@@ -237,8 +237,10 @@ def sl2z_rep_in_fundom(z, eps=None):
     The Python complex type is allowed::
 
         sage: sl2z_rep_in_fundom(complex(2.17,.19))
-        (0.384615384615 + 2.92307692308*I, [-3  7]
-        [-1  2])
+        (
+                                          [-3  7]
+        0.384615384615 + 2.92307692308*I, [-1  2]
+        )
     """
     if isinstance(z, complex):
         z = CDF(z)
@@ -305,8 +307,10 @@ def canonicalize_sl2z(a, g=None, eps_ratio=2):
         sage: from sage.schemes.elliptic_curves.chow_heegner import canonicalize_sl2z
         sage: g = SL2Z([1,0,0,1])
         sage: canonicalize_sl2z(CDF(1/2, 1), g)
-        (-0.5 + 1.0*I, [ 1 -1]
-        [ 0  1])
+        (
+                      [ 1 -1]
+        -0.5 + 1.0*I, [ 0  1]
+        )
 
     Don't bother to compute the matrix g::
 
@@ -321,14 +325,18 @@ def canonicalize_sl2z(a, g=None, eps_ratio=2):
     When a is on the right side of the unit circle::
 
         sage: canonicalize_sl2z(CDF(1/sqrt(2),1/sqrt(2)), SL2Z([1,0,0,1]))
-        (-0.707106781187 + 0.707106781187*I, [ 0 -1]
-        [ 1  0])
+        (
+                                            [ 0 -1]
+        -0.707106781187 + 0.707106781187*I, [ 1  0]
+        )
 
     When a is in the middle (so a does not change)::
 
         sage: canonicalize_sl2z(CDF(0,1), SL2Z([1,0,0,1]))
-        (1.0*I, [1 0]
-        [0 1])
+        (
+               [1 0]
+        1.0*I, [0 1]
+        )
 
     Using a bigger eps_ratio makes it so comparison of floating point
     numbers is less sensitive::
@@ -940,7 +948,7 @@ def newton(f, x, max_iter=1000, max_err=1e-14):
         sage: t = newton(f, [1]); t
         [(1.2134117, 6, 0.0)]
         sage: f(t[0][0])
-        0
+        0.00000000
 
     An example in which f has complex coefficients but precision 53 bits::
 
@@ -1467,7 +1475,7 @@ def check_optimal(E):
 
         sage: E = EllipticCurve([0,-10001,0,10000,0]); E.conductor()
         266640
-        sage: C = E.isogeny_class()[0]
+        sage: C = E.isogeny_class()
         sage: len(C)
         8
         sage: [check_optimal(X) for X in C]
@@ -1915,7 +1923,7 @@ class ModularParametrization(object):
             sage: v = phi.points_in_h(RealField(100)(1), min_imag=1e-3); v
             [[-0.35115510977014 + 0.0018701266234958*I], [-0.045882897517034 + 0.019362756466571*I]]
             sage: phi(v[0])
-            1.0000000000000000000000000000 + 1.9721522630525295135293214132e-29*I
+            1.0000000000000000000000000000 + 3.3526588471893001729998464025e-29*I
             sage: phi(v[1])
             1.0000000000000000000000000000 + 2.7610131682735413189410499785e-30*I
 
@@ -1946,7 +1954,7 @@ class ModularParametrization(object):
         inequivalent::
 
             sage: len(phi.points_in_h(RDF(1), equiv_prec=50, min_imag=1e-3))
-            9
+            7
             sage: len(phi.points_in_h(RDF(1), equiv_prec=40, min_imag=1e-3))  # correct, since moddeg=2
             2
         """
