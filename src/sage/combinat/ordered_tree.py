@@ -331,6 +331,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         return self._to_binary_tree_rec()
 
+    @combinatorial_map(name="To parallelogram polyomino")
     def to_parallelogram_polyomino(self, bijection=None):
         r"""
         Return a polyominao parallelogram.
