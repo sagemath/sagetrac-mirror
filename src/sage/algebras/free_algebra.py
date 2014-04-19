@@ -894,12 +894,12 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         l = {}
         while elt: # != 0
             lst = list(elt)
-            coeff, min_elt = lst[0]
+            min_elt, coeff = lst[0]
             min_word = min_elt.to_word()
             for item in lst[1:-1]:
-                word = item[1].to_word()
+                word = item[0].to_word()
                 if min_word.lex_less(word):
-                    coeff, min_elt = item
+                    min_elt, coeff = item
                     min_word = word
             l[min_elt] = l.get(min_elt, 0) + coeff
             elt = elt - coeff * self.lie_polynomial(min_elt)

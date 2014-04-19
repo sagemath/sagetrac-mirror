@@ -129,7 +129,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: FreeAlgebra(QQ, 2, 'x,y').pbw_basis()
             The Poincare-Birkhoff-Witt basis of Free Algebra on 2 generators (x, y) over Rational Field
         """
-        return "The Poincare-Birkhoff-Witt basis of %s"%(self._alg)
+        return "The Poincare-Birkhoff-Witt basis of {}".format(self._alg)
 
     def _repr_term(self, w):
         """
@@ -417,7 +417,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
                 sage: f = x^2*y + y*x; f
                 PBW[y]*PBW[x] + PBW[x^2*y] + PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
                 sage: f.leading_exponent()
-                {x: 2, y: 1}
+                {y: 1, x: 2}
             """
             lf = self.leading_support(mcmp).to_word().lyndon_factorization()
             exp = {}
