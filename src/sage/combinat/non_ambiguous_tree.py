@@ -43,7 +43,8 @@ from sage.combinat.posets.posets import Poset
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
-    , color_line='black', color_point='black'
+    , color_line='red', color_point='black'
+    , color_diagram='black'
     , translation=[0,0], rotation=0
 )
 
@@ -59,8 +60,9 @@ NonAmbiguousTreesOptions=GlobalOptions(
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
                 'scale', 'line_size', 'point_size'
-                , 'color_line', 'color_point', 'translation',
-                'rotation'
+                , 'color_line', 'color_point', 'translation'
+                , 'color_diagram'
+                , 'rotation'
             ] )
         )
     ),
@@ -515,13 +517,95 @@ class NonAmbiguousTree( ClonableList ):
         return self.get_options()['tikz_options']
 
     def _to_tikz_diagram( self ):
+        res = ""
         tikz_options = self.get_tikz_options()
-        NotImplemented
+
+        array = self.get_array()
+        height = len( array )
+        width = len( array[0] )
+        def X( x ):
+            return x - .5
+        def Y( y ):
+            return height-y + .5
+
+        for h in range( height+1 ):
+            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
+                tikz_options['color_diagram'], tikz_options['line_size'],
+                X(0),Y(h), X(width),Y(h)
+            )
+        for w in range( width+1 ):
+            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
+                tikz_options['color_diagram'], tikz_options['line_size'],
+                X(w),Y(0), X(w),Y(height)
+            )
+        res += self._to_tikz_points();
+        return res
+
+    def _to_tikz_points( self ):
+        res = ""
+        tikz_options = self.get_tikz_options()
+
+        array = self.get_array()
+        height = len( array )
+        width = len( array[0] )
+        def X( x ):
+            return x
+        def Y( y ):
+            return height-y
+
+        for h in range( height ):
+            for w in range( width ):
+                if array[h][w]:
+                    res += "\n  \\filldraw[color=%s] (%s, %s) circle (%spt);"%(
+                        tikz_options['color_point'],
+                        X( w ), Y( h ),
+                        tikz_options['point_size']
+                    )
+        return res
+
 
     def _to_tikz_tree( self ):
         res = ""
         tikz_options = self.get_tikz_options()
-        NotImplemented
+
+        array = self.get_array()
+        height = len( array )
+        width = len( array[0] )
+        def X( x ):
+            return x
+        def Y( y ):
+            return height-y
+
+        for h in range( height ):
+            min_w = None
+            max_w = None
+            for w in range( width ):
+                if array[h][w] == 1:
+                    if min_w == None:
+                        min_w = w
+                        max_w = w
+                    else:
+                        max_w = w
+            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
+                tikz_options['color_line'], tikz_options['line_size'],
+                X( min_w ), Y( h ), X( max_w ), Y( h )
+            )
+        for w in range( width ):
+            min_h = None
+            max_h = None
+            for h in range( height ):
+                if array[h][w] == 1:
+                    if min_h == None:
+                        min_h = h
+                        max_h = h
+                    else:
+                        max_h = h
+            res += "\n  \\draw[color=%s, line width=%s] (%s, %s) -- (%s,%s);"%(
+                tikz_options['color_line'], tikz_options['line_size'],
+                X( w ), Y( min_h ), X( w ), Y( max_h )
+            )
+        res += self._to_tikz_points()
+        return res
 
     def to_tikz( self ):
         r"""
