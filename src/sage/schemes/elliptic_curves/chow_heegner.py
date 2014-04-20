@@ -1973,6 +1973,8 @@ class ModularParametrization(object):
         if len(v) == 0:
             return []
 
+        m_E = self.degree()
+
         prec = z.prec()
         if equiv_prec is None:
             equiv_prec = prec//3
@@ -1980,9 +1982,10 @@ class ModularParametrization(object):
             # double precision already enough
             ans = list(set([X0NPoint(C(x),N,prec=equiv_prec) for x in v]))
             ans.sort()
+            if len(ans) < m_E:
+                raise RuntimeError, "did not find enough points in the preimage. "
             return ans
 
-        m_E = self.degree()
 
         # refine to higher precision, and keep only good roots
         verbose("Number of double precision roots to refine via Newton iteration: %s"%len(v))
@@ -1991,7 +1994,9 @@ class ModularParametrization(object):
 
         # We try m_E points at a time, since the newton step below is expensive.
         w0 = []; w = []
-        while len(w) < m_E:
+        #while len(w) < m_E:
+        while len(v) > 0:
+        # changed so that it always terminates
             for b,i,err in newton(f, [h_to_disk(C(a)) for a in v[:m_E]],
                                             max_iter, max_err=C(2)**(2-prec)):
                 if abs(b) < 1 and i < max_iter:
@@ -2007,6 +2012,8 @@ class ModularParametrization(object):
 
         verbose("found %s roots to prec %s that refined in %s seconds"%(len(w), prec, cputime(t)))
         w.sort()
+        if len(w) < m_E:
+            raise RuntimeError, "did not find enough points in the preimage, try changing parameters"
         return w
 
 
