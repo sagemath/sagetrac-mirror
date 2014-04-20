@@ -40,6 +40,7 @@ from sage.combinat.binary_tree import BinaryTrees, BinaryTree
 from sage.combinat.binary_tree import LabelledBinaryTree, LabelledBinaryTrees
 from sage.functions.other import factorial
 from sage.combinat.posets.posets import Poset
+from sage.combinat.combinatorial_map import combinatorial_map
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
@@ -201,6 +202,10 @@ class NonAmbiguousTree( ClonableList ):
 
     def get_tree( self ):
         return self[0]
+
+    @combinatorial_map(name = "To binary tree")
+    def to_binary_tree( self ):
+        return BinaryTree( self.get_tree() )
 
     def _recursive_check(
         self, tree, llabels, rlabels, lfather=None, rfather=None

@@ -401,6 +401,55 @@ class ParallelogramPolyomino( ClonableList ):
         if bijection is None or bijection == 'Aval-Boussicault':
             return self._to_binary_tree_Aval_Boussicault( [0,0] )
 
+    @combinatorial_map(name = "To non ambiguous tree")
+    def to_non_ambiguous_tree( self ):
+        r"""
+        Return the non ambiguous tree assoicated with the polyomino 
+        parallelogram.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0,0,1,0,1,0,1,0,1,1], [1,1,0,1,1,0,0,0,1,0]]
+            ....: )
+            sage: nat = pp.to_non_ambiguous_tree()
+            sage: nat.get_array()
+            [[1, 1, 0, 0, 0], [1, 0, 1, 1, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 1]]
+
+            sage: pp = ParallelogramPolyomino( [[0,1], [1,0]] )
+            sage: nat = pp.to_non_ambiguous_tree()
+            sage: nat.get_array()
+            [[1]]
+
+            sage: pp = ParallelogramPolyomino( [[1], [1]] )
+            sage: nat = pp.to_non_ambiguous_tree()
+            sage: nat.get_array()
+            [[]]
+
+            sage: pps = ParallelogramPolyominoes( 6 )
+            sage: all( [ 
+            ....:     pp.to_non_ambiguous_tree().to_binary_tree() == 
+            ....:     pp.to_binary_tree( bijection='Aval-Boussicault' ) 
+            ....:     for pp in pps
+            ....: ] )
+            True
+        """
+        from sage.combinat.non_ambiguous_tree import NonAmbiguousTree
+        height = self.height()
+        width = self.width()
+        if self.size() == 0:
+            return NonAmbiguousTree( [[]] )
+        res = [ [ 0 for w in range( width ) ] for h in range( height ) ]
+        res[0][0] = 1
+        for h in range( height ):
+            for w in range( width ):
+                if self[h][w] == 1:
+                    if self[h-1][w] == 0 and self[h][w-1] == 1 :
+                        res[h][w] = 1
+                    if self[h-1][w] == 1 and self[h][w-1] == 0 :
+                        res[h][w] = 1
+        return NonAmbiguousTree( res )
+
     def _to_ordered_tree_via_dyck( self ):
         return self._to_dyck_delest_viennot( ).to_ordered_tree()
 
