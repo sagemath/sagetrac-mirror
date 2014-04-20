@@ -74,3 +74,54 @@ def convex_generators(S):
     """
     raise NotImplementedError
 
+
+
+
+def min_gen_set(S):
+    """
+    Return the minimial generating set of a subset of a root system ``S``.
+    """
+    if not S:
+        return []
+    P = S[0].parent()
+    B = list(P.basis())
+    G = list(Cone(map(lambda x: x.to_vector(), S)).rays().set())
+    return [P.sum(B[i]*c for i,c in v.iteritems()) for v in G]
+
+def generating_sets(ct, indep=True):
+    """
+    Iterate over all inversion sets of the positive roots of the root system
+    associated to the Cartan type ``ct`` such that it has a linearly
+    (in)dependent minimal generating set.
+
+    INPUT:
+
+    - ``ct`` -- a Cartan type
+    - ``indep`` -- to return the independent minimal generating sets
+    """
+    ct = CartanType(ct)
+    Q = RootSystem(ct).root_lattice()
+    M = QQ**ct.rank()
+    ret = []
+    count = 0
+    for w in Q.weyl_group():
+        count += 1
+        if count % 100 == 0:
+            print "cur count:", count
+        inv = w.inversions('right', 'roots')
+        m = min_gen_set(inv)
+        v = map(lambda x: x.to_vector(), m)
+        lin_dep = bool(M.linear_dependence(v))
+        if indep == lin_dep:
+            yield (w, inv, m)
+
+def big_count(ct):
+    return sum(1 for dummy in generating_sets(ct))
+
+def print_check(ct):
+    for (w,i,v) in generating_sets(ct):
+        print "red expression:", w.reduced_word()
+        print "inversions:\n", repr(inv)
+        print "minimal generating set:\n", repr(m)
+        print "\n"
+
