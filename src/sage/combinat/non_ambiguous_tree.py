@@ -15,6 +15,7 @@ non-ambiguous trees.
 #*****************************************************************************
 
 from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
     SetFactory, ParentWithSetFactory, TopMostParentPolicy
@@ -35,8 +36,10 @@ from copy import deepcopy
 from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.binary_tree import BinaryTree
+from sage.combinat.binary_tree import BinaryTrees, BinaryTree
 from sage.combinat.binary_tree import LabelledBinaryTree, LabelledBinaryTrees
+from sage.functions.other import factorial
+from sage.combinat.posets.posets import Poset
 
 default_non_ambiguous_tikz_options = dict(
     scale=1, line_size=1, point_size=3.5
@@ -91,9 +94,9 @@ class _poset_s:
         self.vertices = []
         self.edges = []
     def to_poset( self ):
-        return Poset( [ self.vertices, self.edges ], cover_relation=True )
+        return Poset( [ self.vertices, self.edges ], cover_relations=True )
 
-def _posets_of_nodes(
+def _rec_posets_of_nodes(
     tree, left_poset, right_poset, path=(), lfather=None, rfather=None
 ):
     r"""
@@ -105,11 +108,11 @@ def _posets_of_nodes(
 
     EXAMPLES::
         sage: from sage.combinat.non_ambiguous_tree import _poset_s 
-        sage: from sage.combinat.non_ambiguous_tree import _posets_of_nodes 
+        sage: from sage.combinat.non_ambiguous_tree import _rec_posets_of_nodes 
         sage: left_poset = _poset_s()
         sage: right_poset = _poset_s()
         sage: T = BinaryTree( [ [None,[[],None]],[[None,[]],None] ] )
-        sage: _posets_of_nodes( T, left_poset, right_poset )
+        sage: _rec_posets_of_nodes( T, left_poset, right_poset )
         sage: left_poset.vertices
         [(0,), (0, 1, 0), (1, 0)]
         sage: left_poset.edges
@@ -125,7 +128,7 @@ def _posets_of_nodes(
         sage: left_poset = _poset_s()
         sage: right_poset = _poset_s()
         sage: T = BinaryTree( [ [None,[[],[]]],[[[],[]],None] ] )
-        sage: _posets_of_nodes( T, left_poset, right_poset )
+        sage: _rec_posets_of_nodes( T, left_poset, right_poset )
         sage: left_poset.vertices
         [(0,), (0, 1, 0), (1, 0), (1, 0, 0)]
         sage: left_poset.edges
@@ -143,7 +146,7 @@ def _posets_of_nodes(
         left_poset.vertices.append( son_path )
         if not lfather is None:
             left_poset.edges.append( [lfather, son_path] )
-        _posets_of_nodes(
+        _rec_posets_of_nodes(
             son, left_poset, right_poset, son_path, son_path, rfather
         )
     if tree[1] != BinaryTree():
@@ -152,11 +155,18 @@ def _posets_of_nodes(
         right_poset.vertices.append( son_path )
         if not rfather is None:
             right_poset.edges.append( [rfather, son_path] )
-        _posets_of_nodes(
+        _rec_posets_of_nodes(
             son, left_poset, right_poset, son_path, lfather, son_path
         )
 
-class NonAmbiguousTree( LabelledBinaryTree ):
+
+def _posets_of_nodes( tree ):
+    left_poset = _poset_s()
+    right_poset = _poset_s()
+    _rec_posets_of_nodes( tree, left_poset, right_poset )
+    return [ left_poset.to_poset(), right_poset.to_poset() ]
+
+class NonAmbiguousTree( ClonableList ):
     r"""
     The class of Non-ambiguous Trees.
     """
@@ -184,27 +194,26 @@ class NonAmbiguousTree( LabelledBinaryTree ):
 
         EXAMPLES::
         
-            sage:  NotImplemented
         """
-        left_poset = _poset_s()
-        right_poset = _poset_s()
-        _posets_of_nodes( self, left_poset, right_poset )
-        return [ left_poset.to_poset(), right_poset.to_poset() ]
+        return _posets_of_nodes( self.get_tree() )
 
-    def _recursive_check( tree, llabels, rlabels, lfather=None, rfather=None ):
-        print "######"
-        print tree
+    def get_tree( self ):
+        return self[0]
+
+    def _recursive_check(
+        self, tree, llabels, rlabels, lfather=None, rfather=None
+    ):
         if tree == LabelledBinaryTree( None ):
             return
         if tree[0] != LabelledBinaryTree( None ):
             if not lfather is None:
-                if tree[0].label() >= lfather.label():
+                if tree[0].label() <= lfather.label():
                     raise ValueError, "This is not a valid Non-ambiguous Tree." 
                 llabels.append( tree[0].label() )
             self._recursive_check( tree[0], llabels, rlabels, tree[0], rfather )
         if tree[1] != LabelledBinaryTree( None ):
             if not rfather is None:
-                if tree[1].label() >= rfather.label():
+                if tree[1].label() <= rfather.label():
                     raise ValueError, "This is not a valid Non-ambiguous Tree." 
                 rlabels.append( tree[1].label() )
             self._recursive_check( tree[1], llabels, rlabels, lfather, tree[1] )
@@ -233,7 +242,7 @@ class NonAmbiguousTree( LabelledBinaryTree ):
         """
         llabels = []
         rlabels = []
-        self._recursive_check( self, llabels, rlabels )
+        self._recursive_check( self.get_tree(), llabels, rlabels )
         if len(llabels) != len( Set(llabels) ):
             raise ValueError, "This is not a valid Non-ambiguous Tree." 
         if len(rlabels) != len( Set(rlabels) ):
@@ -298,7 +307,7 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
             ....: )
             sage: nat
-            None[1[., 2[., 4[., .]]], 1[ 2[., .], 3[., .] ]]
+            None[1[., 2[., 4[., .]]], 1[2[., .], 3[., .]]]
 
             sage: LB = LabelledBinaryTree
             sage: nat = NonAmbiguousTree(
@@ -308,7 +317,7 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....:     ] )
             ....: )
             sage: nat
-            None[1[., 2[., 4[., .]]], 1[ 2[., .], 3[., .] ]]
+            None[1[., 2[., 4[., .]]], 1[2[., .], 3[., .]]]
         """
         def _recursive_binary_tree( array, position=[0,0], node_type=None ):
             height = len( array )
@@ -318,21 +327,21 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             lposition = [ position[0]+1, position[1] ]
             while(
                 lposition[0] < height
-                and array[ lposition[0], lposition[1] ] != 0
+                and array[ lposition[0] ][ lposition[1] ] == 0
             ):
                 lposition[0] += 1
             if lposition[0] < height:
-                ltree = _recursive_binary_tree( array, lposition,  )
+                ltree = _recursive_binary_tree( array, lposition, 0 )
             else:
                 ltree = None
             rposition = [ position[0], position[1]+1 ]
             while(
                 rposition[1] < width
-                and array[ rposition[0], rposition[1] ] != 0
+                and array[ rposition[0] ][ rposition[1] ] == 0
             ):
                 rposition[1] += 1
-            if rposition[0] < width:
-                rtree = _recursive_binary_tree( array, rposition )
+            if rposition[1] < width:
+                rtree = _recursive_binary_tree( array, rposition, 1 )
             else:
                 rtree = None
             if node_type is None:
@@ -341,23 +350,64 @@ class NonAmbiguousTree( LabelledBinaryTree ):
 
         if check:
             if value in LabelledBinaryTrees():
-                print "@@@@111"
-                print value
-                print "@@@@222"
-                super(NonAmbiguousTree, self).__init__(self, parent, value, check=check )
-                #LabelledBinaryTree.__init__(self, parent, value, check=check)
-                print "@@@@333"
-                print( self )
-                print "@@@@444"
+                tree = value
             elif isinstance( value, (list, tuple) ) :
-                LabelledBinaryTree.__init__(
-                    self, parent, self._recursive_binary_tree( value )
-                ) 
+                tree = _recursive_binary_tree( value )
             else:
                 raise ValueError, "Value %s must be a list or a tuple."%(value)
+            ClonableList.__init__(self, parent, [tree] )
             self.check()
         self._options = None
 
+    def left_node_number( self ):
+        return self.get_tree().left_node_number()
+
+    def right_node_number( self ):
+        return self.get_tree().right_node_number()
+
+    def width( self ):
+        r"""
+        Return the width of the non-ambiguous tree.
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
+            ....: )
+            sage: nat.width()
+            5
+            sage: nat = NonAmbiguousTree( [[1]] )
+            sage: nat.width()
+            1
+            sage: nat = NonAmbiguousTree( [[]] )
+            sage: nat.width()
+            0
+        """
+        if self.get_tree().is_empty():
+            return 0
+        return 1 + self.right_node_number()
+
+    def height( self ):
+        r"""
+        Return the height of the non-ambiguous tree.
+
+        EXAMPLES::
+
+            sage: nat = NonAmbiguousTree(
+            ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
+            ....: )
+            sage: nat.height()
+            3
+            sage: nat = NonAmbiguousTree( [[1]] )
+            sage: nat.height()
+            1
+            sage: nat = NonAmbiguousTree( [[]] )
+            sage: nat.height()
+            0
+        """
+        if self.get_tree().is_empty():
+            return 0
+        return 1 + self.left_node_number()
 
     @cached_method
     def get_array( self ):
@@ -381,8 +431,33 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....: )
             sage: nat.get_array()
             [[1, 1, 0, 1, 0], [1, 0, 1, 0, 1], [0, 1, 0, 0, 0]]
+            
+            sage: nat = NonAmbiguousTree( [[1]] )
+            sage: nat.get_array()
+            [[1]]
+            
+            sage: nat = NonAmbiguousTree( [[]] )
+            sage: nat.get_array()
+            [[]]
         """
-        NotImplemented
+        if self.get_tree().is_empty():
+            return [[]]
+        res = [
+            [ 0 for w in range(self.width()) ]
+            for h in range(self.height())
+        ]
+        res[0][0] = 1
+        def init_array( array, tree, lfather=0, rfather=0 ):
+            if tree.is_empty():
+                return
+            if not tree[0].is_empty():
+                array[ tree[0].label() ][ lfather ] = 1
+                init_array( array, tree[0], lfather, tree[0].label() )
+            if not tree[1].is_empty():
+                array[ rfather ][ tree[1].label() ] = 1
+                init_array( array, tree[1], tree[1].label(), rfather )
+        init_array( res, self.get_tree() )
+        return res
 
     def _repr_(self):
         r"""
@@ -393,7 +468,7 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
             ....: )
             sage: nat
-            None[1[., 2[., 4[., .]]], 1[ 2[., .], 3[., .] ]]
+            None[1[., 2[., 4[., .]]], 1[2[., .], 3[., .]]]
             sage: nat.set_options( display='drawing' )
             sage: nat
             [1 1 0 1 0]
@@ -411,9 +486,9 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
             ....: )
             sage: nat._repr_list()
-            'None[1[., 2[., 4[., .]]], 1[ 2[., .], 3[., .] ]]'
+            'None[1[., 2[., 4[., .]]], 1[2[., .], 3[., .]]]'
         """
-        return LabelledBinaryTree._repr_(self)
+        return self.get_tree()._repr_()
 
     def _repr_drawing( self ):
         r"""
@@ -424,7 +499,7 @@ class NonAmbiguousTree( LabelledBinaryTree ):
             ....:     [ [1,1,0,1,0], [1,0,1,0,1], [0,1,0,0,0] ]
             ....: )
             sage: nat._repr_drawing()
-            '[0 0 1 0 1 1]\n[1 1 0 0 1 0]'
+            '[1 1 0 1 0]\n[1 0 1 0 1]\n[0 1 0 0 0]'
         """
         return str( matrix( self.get_array() ) )
 
@@ -481,17 +556,35 @@ class NonAmbiguousTree( LabelledBinaryTree ):
         return "\\[%s\\]"%(self._repr_list())
         NotImplemented
 
+    def get_options( self ):
+        r"""
+        Return all the opitons of the object.
+        """
+        if self._options is None:
+            return self.parent().get_options()
+        return self._options
+
+    def set_options( self, *get_value, **set_value ):
+        r"""
+        Set new options to the object.
+        """
+        if self._options is None:
+            self._options = deepcopy( self.get_options() )
+        self._options( *get_value, **set_value )
+
 
 class NonAmbiguousTreesFactory(SetFactory):
     r"""
     The non-ambiguous trees factory.
     """
-    def __call__(self, size=None, policy=None):
+    def __call__(self, size=None, tree=None, policy=None):
         r"""
         """
         if policy is None:
             policy = self._default_policy
 
+        if not tree is None:
+            return NonAmbiguousTrees_binarytree(tree, policy)
         if isinstance(size, (Integer, int)):
             return NonAmbiguousTrees_size(size, policy)
         if size is None:
@@ -516,7 +609,174 @@ NonAmbiguousTrees = NonAmbiguousTreesFactory()
 NonAmbiguousTrees.__doc__ = NonAmbiguousTreesFactory.__call__.__doc__
 
 
-class NonAmbiguousTrees_size(ParentWithSetFactory, UniqueRepresentation):
+class NonAmbiguousTrees_binarytree(ParentWithSetFactory, UniqueRepresentation):
+    r"""
+    The non-ambiguous tree of a given binary tree.
+    """
+    def __init__(self, btree, policy):
+        r"""
+        Construct a set of non-ambiguous trees of a given binary tree.
+        """
+        self._btree = btree
+        ParentWithSetFactory.__init__(
+            self, (btree,), policy, category = FiniteEnumeratedSets()
+        )
+
+    def _repr_(self):
+        r"""
+        Return the string representation of the set of non-ambiguous trees.
+
+        EXAMPLES::
+        
+            sage: NonAmbiguousTrees( tree = BinaryTree([[],[]]) )
+            non-ambiguous trees of binary tree [[., .], [., .]]
+        """
+        return "non-ambiguous trees of binary tree %s"%(self.tree())
+
+    def an_element(self):
+        r"""
+        """
+        return next( self.__iter__() )
+
+    def check_element(self, el, check):
+        r"""
+        """
+        if BinaryTree( el.get_tree() ) == self.tree():
+            raise ValueError, "The non-ambiguous trees have a Wrong binary tree : %s"%(BinaryTree(el.get_tree()))
+
+    def cardinality( self ):
+        r"""
+        Return the number of non-ambiguous trees.
+
+        EXAMPLES::
+
+            sage: NonAmbiguousTrees( 
+            ....:     tree = BinaryTree( [[[], []], [[None, []], None]] ) 
+            ....: ).cardinality()
+            9
+            sage: NonAmbiguousTrees( tree = BinaryTree( [] ) ).cardinality()
+            1
+            sage: NonAmbiguousTrees( tree = BinaryTree() ).cardinality()
+            1
+
+        TESTS::
+            sage: NonAmbiguousTrees(0).cardinality()
+            1
+            sage: NonAmbiguousTrees(1).cardinality()
+            1
+            sage: NonAmbiguousTrees(2).cardinality()
+            2
+            sage: NonAmbiguousTrees(3).cardinality()
+            5
+            sage: NonAmbiguousTrees(4).cardinality()
+            16
+            sage: NonAmbiguousTrees(5).cardinality()
+            63
+            sage: NonAmbiguousTrees(6).cardinality()
+            294
+            sage: NonAmbiguousTrees(7).cardinality()
+            1585
+            sage: NonAmbiguousTrees(8).cardinality()
+            9692
+        """
+        def rec_cardinality( tree ):
+            res = [ 0, 0, 1, 1 ]
+            if tree.is_empty():
+                return res
+            if not tree[0].is_empty() :
+                lres = rec_cardinality( tree[0] )
+                res[0] += ( 1 + lres[0] )
+                res[1] += lres[1]
+                res[2] *= ( lres[2] * ( 1 + lres[0] ) )
+                res[3] *= lres[3]
+            if not tree[1].is_empty() :
+                rres = rec_cardinality( tree[1] )
+                res[0] += rres[0]
+                res[1] += ( 1 + rres[1] )
+                res[2] *= rres[2]
+                res[3] *= ( rres[3] * ( 1 + rres[1] ) )
+            return res
+        lnode_nb, rnode_nb, prod_lnode_nb, prod_rnode_nb = rec_cardinality( 
+            self.tree()
+        )
+        return (
+            ( factorial( lnode_nb )/prod_lnode_nb ) 
+            * ( factorial( rnode_nb )/prod_rnode_nb )
+        )
+
+    def __iter__(self):
+        r"""
+        Rerturn a non-ambiguous trees generator.
+        
+        EXAMPLES::
+            sage: btree = BinaryTree( [[[], []], [[None, []], None]] ) 
+            sage: NAS = NonAmbiguousTrees( tree = btree )
+            sage: generator = iter( NAS )
+            sage: Set( generator) == Set( [
+            ....:     NonAmbiguousTree( [[1,0,1,0], [0,0,1,1], [1,1,0,0], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [0,1,0,1], [1,0,1,0], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [0,1,1,0], [1,0,0,1], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,0,1,0], [1,1,0,0], [0,0,1,1], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [1,0,1,0], [0,1,0,1], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [1,0,0,1], [0,1,1,0], [1,0,0,0]] ),
+            ....:     NonAmbiguousTree( [[1,0,1,0], [1,1,0,0], [1,0,0,0], [0,0,1,1]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [1,0,1,0], [1,0,0,0], [0,1,0,1]] ),
+            ....:     NonAmbiguousTree( [[1,1,0,0], [1,0,0,1], [1,0,0,0], [0,1,1,0]] ),
+            ....: ] )
+            True
+ 
+            sage: btree = BinaryTree( [[], None] ) 
+            sage: NAS = NonAmbiguousTrees( tree = btree )
+            sage: generator = iter( NAS )
+            sage: generator.next()
+            None[1[., .], .]
+
+            sage: btree = BinaryTree( [None, []] ) 
+            sage: NAS = NonAmbiguousTrees( tree = btree )
+            sage: generator = iter( NAS )
+            sage: generator.next()
+            None[., 1[., .]]
+
+            sage: btree = BinaryTree( [] ) 
+            sage: NAS = NonAmbiguousTrees( tree = btree )
+            sage: generator = iter( NAS )
+            sage: generator.next()
+            None[., .]
+            
+            sage: btree = BinaryTree( ) 
+            sage: NAS = NonAmbiguousTrees( tree = btree )
+            sage: generator = iter( NAS )
+            sage: generator.next()
+            .
+        """
+        if self.tree().is_empty() :
+            yield NonAmbiguousTree( LabelledBinaryTree( None ) )
+        else:
+            lposet, rposet =  _posets_of_nodes( self.tree() )
+            for lw in lposet.linear_extensions():
+                for rw in rposet.linear_extensions():
+                    lbtree = LabelledBinaryTree( self.tree() )
+                    lbtree._set_mutable()
+                    for h in range( len(lw) ):
+                        lbtree.set_label( lw[h], h+1 )
+                    for w in range( len(rw) ):
+                        lbtree.set_label( rw[w], w+1 )
+                    lbtree.set_immutable()
+                    yield NonAmbiguousTree( lbtree )
+
+    def get_options( self ):
+        return self.global_options
+
+    def set_options( self, *get_value, **set_value ):
+        self.global_options( *get_value, **set_value )
+
+    def tree( self ):
+        return self._btree
+
+    global_options = NonAmbiguousTreesOptions
+
+
+class NonAmbiguousTrees_size(ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     r"""
     The non-ambiguous tree of size `n`.
     """
@@ -527,6 +787,18 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, UniqueRepresentation):
         self._size = size
         ParentWithSetFactory.__init__(
             self, (size,), policy, category = FiniteEnumeratedSets()
+        )
+        DisjointUnionEnumeratedSets.__init__(
+            self, Family(
+                BinaryTrees(size), self._non_ambiguous_trees_tree
+            ),
+            facade=True, keepkey = False,
+            category = self.category()
+        )
+
+    def _non_ambiguous_trees_tree( self, btree ):
+        return NonAmbiguousTrees_binarytree(
+            btree, policy = self.facade_policy()
         )
 
     def _repr_(self):
@@ -550,50 +822,6 @@ class NonAmbiguousTrees_size(ParentWithSetFactory, UniqueRepresentation):
         """
         if el.size() != self.size():
             raise ValueError, "The non-ambiguous trees have a Wrong size : %s"%(el.size())
-
-    def cardinality( self ):
-        r"""
-        Return the number of non-ambiguous trees.
-
-        EXAMPLES::
-
-            sage: NonAmbiguousTrees(1).cardinality()
-            1
-            sage: NonAmbiguousTrees(2).cardinality()
-            2
-            sage: NonAmbiguousTrees(3).cardinality()
-            5
-
-            sage: all( [
-            ....:     NonAmbiguousTrees(i).cardinality() 
-            ....:     == catalan_number(i)
-            ....:     for i in range( 6 )
-            ....: ] )
-            True
-
-            sage: all( [
-            ....:     NonAmbiguousTrees(i).cardinality() 
-            ....:     == len( list( NonAmbiguousTrees(i) ) )
-            ....:     for i in range( 6 )
-            ....: ] )
-            True
-        """
-        NotImplemented
-
-    def __iter__(self):
-        r"""
-        Rerturn a non-ambiguous trees generator.
-        
-        EXAMPLES::
-            sage: len( list( NonAmbiguousTrees(3) ) ) == 5
-            True
-            sage: all( [ 
-            ....:     nat in NonAmbiguousTrees()
-            ....:     for nat in NonAmbiguousTrees(3)
-            ....: ] )
-            True
-        """
-        NotImplemented
 
     def get_options( self ):
         return self.global_options
@@ -632,7 +860,7 @@ class NonAmbiguousTrees_all( ParentWithSetFactory, DisjointUnionEnumeratedSets )
             sage: NATS
             non-ambiguous trees
         
-            sage: NonAmbiguousTree( [[0,1,1],[1,1,0]] )  in NATSS
+            sage: NonAmbiguousTree( [[0,1,1],[1,1,0]] )  in NATS
             True
 
             sage: NATS = NonAmbiguousTrees()
