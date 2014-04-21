@@ -166,7 +166,9 @@ To actually see this, use the live documentation in the Sage notebook
 and execute the cells in this and the previous section.
 
 Several options can be set to customize the output, see
-:meth:`~FiniteStateMachine.latex_options` for details.
+:meth:`~FiniteStateMachine.latex_options` for details. In particular,
+we use :meth:`~FiniteStateMachine.format_letter_negative` to format
+`-1` as `\overline{-1}`.
 
 ::
 
@@ -174,6 +176,7 @@ Several options can be set to customize the output, see
     ....:     coordinates={'A': (0, 0),
     ....:                  'B': (6, 0)},
     ....:     initial_where={'A': 'below'},
+    ....:     format_letter=NAF.format_letter_negative,
     ....:     format_state_label=lambda x:
     ....:         r'\mathcal{%s}' % x.label()
     ....: )
@@ -182,7 +185,7 @@ Several options can be set to customize the output, see
     \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
     \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
     \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
-    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, -1$} (v1.175.00);
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
     \end{tikzpicture}
     sage: view(NAF) # not tested
@@ -2342,7 +2345,7 @@ class FiniteStateMachine(SageObject):
             sage: A = Automaton([(0, 0, -1)])
             sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
              ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
-            sage: A.format_letter = A.format_letter_negative
+            sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
@@ -2382,7 +2385,7 @@ class FiniteStateMachine(SageObject):
             sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
             sage: T.format_transition_label_reversed([1, 2, 3])
             '3 2 1'
-            sage: T.format_transition_label = T.format_transition_label_reversed
+            sage: T.latex_options(format_transition_label=T.format_transition_label_reversed)
             sage: print latex(T)
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
@@ -2454,7 +2457,7 @@ class FiniteStateMachine(SageObject):
                 sage: A = Automaton([(0, 1, 0)])
                 sage: def custom_format_transition_label(word):
                 ....:     return "t"
-                sage: A.format_transition_label = custom_format_transition_label
+                sage: A.latex_options(format_transition_label=custom_format_transition_label)
                 sage: print latex(A)
                 \begin{tikzpicture}[auto, initial text=]
                 \node[state] (v0) at (3.000000, 0.000000) {$0$};
