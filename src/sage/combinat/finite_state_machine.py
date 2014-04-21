@@ -2269,33 +2269,111 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: F = FiniteStateMachine([('A', 'B', 1, 2)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$ $} (v1);\n\\end{tikzpicture}'
+            sage: F = FiniteStateMachine([('A', 'B', 1, 2)],
+            ....:                        initial_states=['A'],
+            ....:                        final_states=['B'])
+            sage: F.state('A').initial_where='below'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
+            \node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state, accepting] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
+            \end{tikzpicture}
         """
-        result = "\\begin{tikzpicture}[auto]\n"
+        def label_rotation(angle, both_directions):
+            """
+            Given an angle of a transition, compute the TikZ string to
+            rotate the label.
+            """
+            angle_label = angle
+            anchor_label = "south"
+            if angle > 90 or angle <= -90:
+                angle_label = angle + 180
+                if both_directions:
+                    # if transitions in both directions, the transition to the
+                    # left has its label below the transition, otherwise above
+                    anchor_label = "north"
+            return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
+        #### compatibility code, delete when .is_final/.final_word_out consistency is guaranteed
+        for state in self.iter_final_states():
+            if not hasattr(state, "final_word_out"):
+                state.final_word_out = []
+        #### end compatibility code
+
+        if hasattr(self, "format_transition_label"):
+            format_transition_label = self.format_transition_label
+        else:
+            format_transition_label = latex
+
+        options = ["auto", "initial text=", "accepting text="]
+
+        nonempty_final_word_out = False
+        for state in self.iter_final_states():
+            if state.final_word_out:
+                nonempty_final_word_out = True
+                break
+
+        if hasattr(self, "accepting_style"):
+            accepting_style = self.accepting_style
+        elif nonempty_final_word_out:
+            accepting_style = "accepting by arrow"
+        else:
+            accepting_style = "accepting by double"
+        options.append("accepting/.style=%s" % accepting_style)
+
+        accepting_distance = None
+        if accepting_style == "accepting by arrow":
+            if hasattr(self, "accepting_distance"):
+                accepting_distance = self.accepting_distance
+            elif nonempty_final_word_out:
+                accepting_distance = "5ex"
+        if accepting_distance:
+            options.append("accepting distance=%s"
+                               % accepting_distance)
+        accepting_where = {"right": 0,
+                           "above": 90,
+                           "left": 180,
+                           "below": 270}
+
+        result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
-        for vertex in self.states():
+        for vertex in self.iter_states():
             if not hasattr(vertex, "coordinates"):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
-            if vertex in self.final_states():
-                options += ",accepting"
+            if vertex.is_final and (not vertex.final_word_out or accepting_style == "accepting by double"):
+                options += ", accepting"
+            if vertex.is_initial:
+                options += ", initial"
+            if hasattr(vertex, "initial_where"):
+                options += ", initial where=%s" % vertex.initial_where
             if hasattr(vertex, "format_label"):
                 label = vertex.format_label()
             elif hasattr(self, "format_state_label"):
                 label = self.format_state_label(vertex)
             else:
                 label = latex(vertex.label())
-            result += "\\node[state%s] (v%d) at (%f,%f) {%s}\n;" % (
+            result += "\\node[state%s] (v%d) at (%f,%f) {%s};\n" % (
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
+            if vertex.is_final and vertex.final_word_out:
+                angle = 0
+                if hasattr(vertex, "accepting_where"):
+                    angle = accepting_where.get(vertex.accepting_where,
+                                                vertex.accepting_where)
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
+                    j, angle,
+                    label_rotation(angle, False),
+                    format_transition_label(vertex.final_word_out),
+                    angle, accepting_distance)
+
             j += 1
         adjacent = {}
-        for source in self.states():
-            for target in self.states():
+        for source in self.iter_states():
+            for target in self.iter_states():
                 transitions = filter(lambda transition: \
                                          transition.to_state == target,
                                      source.transitions)
@@ -2307,26 +2385,25 @@ class FiniteStateMachine(SageObject):
                 for transition in transitions:
                     if hasattr(transition, "format_label"):
                         labels.append(transition.format_label())
-                        continue
-                    elif hasattr(self, "format_transition_label"):
-                        format_transition_label = self.format_transition_label
                     else:
-                        format_transition_label = latex
-                    labels.append(self._latex_transition_label_(
-                            transition, format_transition_label))
+                        labels.append(self._latex_transition_label_(
+                                transition, format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
-                    if len(adjacent[target, source]) > 0:
-                        angle = atan2(
-                            target.coordinates[1] - source.coordinates[1],
-                            target.coordinates[0]-source.coordinates[0])*180/pi
-                        angle_source = ".%.2f" % ((angle+5).n(),)
-                        angle_target = ".%.2f" % ((angle+175).n(),)
+                    angle = atan2(
+                        target.coordinates[1] - source.coordinates[1],
+                        target.coordinates[0] - source.coordinates[0])*180/pi
+                    both_directions = len(adjacent[target, source]) > 0
+                    if both_directions:
+                        angle_source = ".%.2f" % ((angle + 5).n(),)
+                        angle_target = ".%.2f" % ((angle + 175).n(),)
                     else:
                         angle_source = ""
                         angle_target = ""
-                    result += "\\path[->] (v%d%s) edge node {$%s$} (v%d%s);\n" % (
-                        source._number_, angle_source, label,
+                    result += "\\path[->] (v%d%s) edge node[%s] {$%s$} (v%d%s);\n" % (
+                        source._number_, angle_source,
+                        label_rotation(angle, both_directions),
+                        label,
                         target._number_, angle_target)
                 else:
                     result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
@@ -5019,8 +5096,12 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Automaton([('A', 'B', 1)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
+            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 
@@ -5573,8 +5654,12 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
+            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 
