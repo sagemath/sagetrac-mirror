@@ -145,7 +145,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         B[s1*s2]
         sage: d = A.an_element(); d
         B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
-        sage: cd = C.from_direct_product(c,d); cd
+        sage: cd = C.from_direct_product((c,d)); cd
         B[s1*s2] # B[s1*s2*s1] + 3*B[s1*s2] # B[s1*s2] + 3*B[s1*s2] # B[s2*s1]
         sage: cd * cd
         9*B[s2*s1] # B[s1*s2] + 9*B[s2*s1] # B[s2*s1] + 3*B[s2*s1] # B[s1] + 3*B[s2*s1] # B[s2] + 18*B[s2*s1] # B[1] + 3*B[1] # B[s1] + 3*B[1] # B[s2] + B[1] # B[1]
@@ -274,48 +274,6 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
         """
         return self._twist
-
-    def from_direct_product(self, a, b):
-        r"""
-        Map the pair of elements into ``self``.
-
-        EXAMPLES::
-
-            sage: W=WeylGroup("A2",prefix="s")
-            sage: A = W.algebra(ZZ)
-            sage: AA = tensor([A,A],category=ModulesWithBasis(ZZ))
-            sage: def t_map(x):
-            ...       return AA.monomial((x[1],x[0]))
-            sage: twist = AA.module_morphism(on_basis=t_map,category=ModulesWithBasis(ZZ),codomain=AA)
-            sage: A2 = SmashProductAlgebra(A,A,twist,suppress_ones=False)
-            sage: a = A.an_element(); a
-            B[s1*s2*s1] + 3*B[s1*s2] + 3*B[s2*s1]
-            sage: b = A.monomial(W.from_reduced_word([1]))
-            sage: ab = A2.from_direct_product(a,b); ab
-            B[s1*s2*s1] # B[s1] + 3*B[s1*s2] # B[s1] + 3*B[s2*s1] # B[s1]
-            sage: ab.parent()
-            Smash product of A and A
-
-        """
-        return self(tensor([self.factor(0)(a),self.factor(1)(b)],category=ModulesWithBasis(self.base_ring())))
-
-    def an_element(self):
-        r"""
-        Make an element of ``self``.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup(CartanType(['A',2]),prefix="s")
-            sage: r = W.from_reduced_word
-            sage: A = W.algebra(ZZ); A.rename("A")
-            sage: AA = tensor([A,A], category=ModulesWithBasis(ZZ))
-            sage: twist = AA.module_morphism(on_basis=lambda x: AA.monomial((x[0]*x[1]*x[0]**(-1),x[0])),codomain=AA)
-            sage: C = SmashProductAlgebra(A, A, twist,suppress_ones=False)
-            sage: C.an_element()
-            B[s1*s2*s1] # B[s1*s2*s1] + 3*B[s1*s2*s1] # B[s1*s2] + 3*B[s1*s2*s1] # B[s2*s1] + 3*B[s1*s2] # B[s1*s2*s1] + 9*B[s1*s2] # B[s1*s2] + 9*B[s1*s2] # B[s2*s1] + 3*B[s2*s1] # B[s1*s2*s1] + 9*B[s2*s1] # B[s1*s2] + 9*B[s2*s1] # B[s2*s1]
-
-        """
-        return self.from_direct_product(self.factor(0).an_element(),self.factor(1).an_element())
 
     def _product_morphism(self):
         r"""
