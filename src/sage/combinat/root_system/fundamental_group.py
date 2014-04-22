@@ -187,9 +187,9 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
             sage: x = F.an_element(); x
-            f[2]
+            f[0]
             sage: x.value()
-            2
+            0
 
         """
         return self._value
@@ -458,3 +458,20 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         """
         return self._finite_action
 
+    def gens(self):
+        r"""
+        Generators for the group.
+
+        We return the entire group.
+
+        EXAMPLES::
+
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: F.gens()
+            (pi[0], pi[1], pi[2], pi[3])
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1])
+            sage: F.gens()
+            (pi[0], pi[1], pi[6])
+
+        """
+        return tuple([self(i) for i in self.special_nodes()])
