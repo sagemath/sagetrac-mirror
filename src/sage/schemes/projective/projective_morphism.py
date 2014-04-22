@@ -62,8 +62,9 @@ from sage.symbolic.constants       import e
 from copy import copy
 from sage.parallel.multiprocessing_sage import parallel_iter
 from sage.ext.fast_callable        import fast_callable
-from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods 
+from sage.misc.lazy_attribute      import lazy_attribute
+
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -160,28 +161,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             degs = [f.degree() for f in polys]
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
-
-        # The remaining code is used to instantiate the _fastpolys
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
-        prime = polys[0].base_ring().characteristic()
-        degree = polys[0].degree()
-        self._fastpolys = []
-        for poly in polys:
-            # These tests are in place because the float and integer domain evaluate
-            # faster than using the base_ring
-            if self._is_prime_finite_field:
-                coefficients = poly.coefficients()
-                height = max(coefficients).lift()
-                num_terms = len(coefficients)
-                largest_value = num_terms * height * (prime - 1) ** degree
-                # If the calculations will not overflow the float data type use domain float
-                # Else use domain integer
-                if largest_value < (2 ** 27):
-                    self._fastpolys.append(fast_callable(poly, domain=float))
-                else:
-                    self._fastpolys.append(fast_callable(poly, domain=ZZ))
-            else:
-                self._fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
 
     def __call__(self, x, check=True):
         """
@@ -198,13 +178,41 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
             if not isinstance(x, SchemeMorphism_point_projective_ring):
-                x = self.domain()(x)
-            elif x.codomain() != self.domain():
-                raise TypeError, "Point must be in the domain of the function"
+                try:
+                    x = self.domain()(x)
+                except (TypeError, NotImplementedError):
+                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+            elif self.domain()!=x.codomain():
+                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords, check)
         return self.codomain().point(P, check)
+
+    @lazy_attribute
+    def _fastpolys(self):
+        polys = self._polys
+        prime = polys[0].base_ring().characteristic()
+        degree = polys[0].degree()
+
+        fastpolys = []
+        for poly in polys:
+            # These tests are in place because the float and integer domain evaluate
+            # faster than using the base_ring
+            if self._is_prime_finite_field:
+                coefficients = poly.coefficients()
+                height = max(coefficients).lift()
+                num_terms = len(coefficients)
+                largest_value = num_terms * height * (prime - 1) ** degree
+                # If the calculations will not overflow the float data type use domain float
+                # Else use domain integer
+                if largest_value < (2 ** 27):
+                    fastpolys.append(fast_callable(poly, domain=float))
+                else:
+                    fastpolys.append(fast_callable(poly, domain=ZZ))
+            else:
+                fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
+        return fastpolys
 
     def _fast_eval(self, x, check=True):
         """
@@ -2372,33 +2380,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             p = next_prime(p + 1)
         B = e ** self.height_difference_bound()
 
-        f = self.change_ring(GF(p))
-        all_points = f.possible_periods(True) #return the list of points and their periods.
-        pos_points = []
+        f=self.change_ring(GF(p))
+        all_points=f.possible_periods(True) #return the list of points and their periods.
+        pos_points=[]
         for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
+            if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-
-        # Finding the rational lift for each point in parallel
-        parallel_data = []
-        for P in pos_points:
-            parallel_data.append(((self, [P], B,), {}))
-
-        pos_points = []
-
-        parallel_results = list(parallel_iter(len(parallel_data), self.lift_to_rational_periodic, parallel_data))
-
-        periodic_points = []
-        for result in parallel_results:
-            point = result[1]
-            if len(point) > 0:
-                periodic_points.append(point[0])
-
-        for P, n in periodic_points:
+        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        for p,n in periodic_points:
             for k in range(n):
-                  P.normalize_coordinates()
-                  periodic.add(P)
-                  P = self(P)
+                p.normalize_coordinates()
+                periodic.add(p)
+                p=self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):
@@ -2576,29 +2569,17 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS = self.domain()
-        RPS = PS.base_ring()
-        all_preimages = set()
-
-        while points != []:
-
-            # Finding the preimage of each point in parallel
-            parallel_data = []
-            for P in points:
-                parallel_data.append(((self, P,), {}))
-
-            points = []
-
-            parallel_results = list(parallel_iter(len(parallel_data), self.rational_preimages, parallel_data))
-
-            for result in parallel_results:
-                preimages = result[1]
-                for p in preimages:
-                    if not p in all_preimages:
-                        points.append(p)
-                        all_preimages.add(p)
-
-        return(list(all_preimages))
+        PS=self.domain()
+        RPS=PS.base_ring()
+        preperiodic=set()
+        while points!=[]:
+            P=points.pop()
+            preimages=self.rational_preimages(P)
+            for i in range(len(preimages)):
+                if not preimages[i] in preperiodic:
+                    points.append(preimages[i])
+                    preperiodic.add(preimages[i])
+        return(list(preperiodic))
 
     def rational_preperiodic_points(self, **kwds):
         r"""
