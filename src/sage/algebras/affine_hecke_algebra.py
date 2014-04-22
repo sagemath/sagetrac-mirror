@@ -97,7 +97,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: T = H.T(); T
         T basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: a = T.an_element(); a
-        2*piX[2] TX[0] + 3*piX[2] TX[0,1] + piX[2] + piX[2] TX[0,1,2]
+        2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 8*piX[2] TX[0] + 12*piX[2] TX[0,1] + 4*piX[2] + 4*piX[2] TX[0,1,2]
         sage: Ty_Y = H.tv_Lv(); Ty_Y
         tv_Lv basis of The affine Hecke algebra of type ['A', 2, 1]
         sage: Ty_Y.an_element()
@@ -119,9 +119,10 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         True
 
         sage: Y_Ty(a)
-        ((2*v^2+v-2)/v)*Y[(1, 1, 0)] Ty[2,1] + ((-2*v^4-v^3+4*v^2+v-2)/v^2)*Y[(1, 1, 0)] Ty[1] + ((-2*v^4+2*v^3+4*v^2-2*v-2)/v^2)*Y[(1, 1, 0)] Ty[2] + ((2*v^6-2*v^5-5*v^4+4*v^3+5*v^2-2*v-2)/v^3)*Y[(1, 1, 0)] + 2*Y[(1, 0, 1)] Ty[1] + Y[(1, 0, 1)] Ty[2] + ((-2*v^2+3*v+2)/v)*Y[(1, 0, 1)]
+        1 + ((6*v^2-6)/v)*Y[(1, 0, 0)] Ty[1,2,1] + ((4*v^2+2*v-4)/v)*Y[(1, 0, 0)] Ty[1,2] + ((-6*v^4+2*v^3+12*v^2-2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2,1] + ((-4*v^4-2*v^3+8*v^2+2*v-4)/v^2)*Y[(1, 0, 0)] Ty[1] + ((-6*v^4-2*v^3+12*v^2+2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2] + ((4*v^6-4*v^5-12*v^4+8*v^3+12*v^2-4*v-4)/v^3)*Y[(1, 0, 0)] + ((8*v^2+4*v-8)/v)*Y[(1, 1, 0)] Ty[2,1] + ((-8*v^4-4*v^3+16*v^2+4*v-8)/v^2)*Y[(1, 1, 0)] Ty[1] + ((-8*v^4+8*v^3+16*v^2-8*v-8)/v^2)*Y[(1, 1, 0)] Ty[2] + ((8*v^6-8*v^5-20*v^4+16*v^3+20*v^2-8*v-8)/v^3)*Y[(1, 1, 0)] + 2*Y[(1, 0, -1)] Ty[1,2,1] + ((-2*v^2+3*v+2)/v)*Y[(1, 0, -1)] Ty[1,2] + ((-2*v^2+2)/v)*Y[(1, 0, -1)] Ty[2,1] + ((2*v^4-3*v^3-3*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[1] + ((2*v^4-3*v^3-4*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[2] + ((-2*v^6+3*v^5+3*v^4-6*v^3-3*v^2+3*v+2)/v^3)*Y[(1, 0, -1)] + 8*Y[(1, 0, 1)] Ty[1] + 4*Y[(1, 0, 1)] Ty[2] + ((-8*v^2+12*v+8)/v)*Y[(1, 0, 1)] + 2*Y[(0, 1, 0)] Ty[1,2,1] + ((-2*v^2+2)/v)*Y[(0, 1, 0)] Ty[1,2] + 6*Y[(0, 1, 0)] Ty[2,1] + ((-6*v^2+6)/v)*Y[(0, 1, 0)] Ty[1] + 4*Y[(0, 1, 0)] Ty[2] + ((-4*v^2+4)/v)*Y[(0, 1, 0)]
+
         sage: Ty_Y(a)
-        ((2*v^2+v-2)/v)*Ty[2,1] Y[(-1, 0, 0)] + 2*Ty[1] Y[(-1, 0, 0)] + ((3*v^2-3)/v)*Ty[2] Y[(0, -1, 0)] + Ty[2] Y[(0, 0, -1)] + 3*Y[(0, -1, 0)]
+        ((6*v^2-6)/v)*Ty[1,2,1] Y[(-1, -1, 0)] + 2*Ty[1,2,1] Y[(-1, 0, -1)] + 2*Ty[1,2,1] Y[(-1, 0, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(-1, -1, 0)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((8*v^2+4*v-8)/v)*Ty[2,1] Y[(-1, 0, 0)] + 6*Ty[2,1] Y[(-1, -1, 0)] + ((3*v^2-3)/v)*Ty[1] + 8*Ty[1] Y[(-1, 0, 0)] + Ty[1] Y[(0, 1, -1)] + 4*Ty[2] Y[(-1, -1, 0)] + ((12*v^2-12)/v)*Ty[2] Y[(0, -1, 0)] + 4*Ty[2] Y[(0, 0, -1)] + ((2*v^2+v-2)/v) + 12*Y[(0, -1, 0)]
         sage: T(Ty_Y(a))==a
         True
 
@@ -216,7 +217,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: TY = Ht.T(); TY
         T basis of The affine Hecke algebra of type ['A', 2, 1] dual side
         sage: a = TY.an_element(); a
-        2*piY[2] TY[0] + 3*piY[2] TY[0,1] + piY[2] + piY[2] TY[0,1,2]
+        6*TY[0] + 9*TY[0,1] + 3 + 3*TY[0,1,2] + 2*piY[1] TY[0] + 3*piY[1] TY[0,1] + piY[1] + piY[1] TY[0,1,2] + 6*piY[2] TY[0] + 9*piY[2] TY[0,1] + 3*piY[2] + 3*piY[2] TY[0,1,2]
         sage: Tx_X = Ht.tv_Lv()
         sage: TYa = TY.factor(1)
         sage: Tx_X(TY.factor_embedding(1)(TYa[0,1,2]))
@@ -350,7 +351,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             else:
                 signs = tuple([-x for x in signs])
             Ta = T.factor(1)
-            return T.from_direct_product(T.factor(0).monomial(pi), Ta.product_by_signed_generator_sequence(Ta.one(), word, signs))
+            return T.from_direct_product((T.factor(0).monomial(pi), Ta.product_by_signed_generator_sequence(Ta.one(), word, signs)))
 
         Lv_to_T = Lv.module_morphism(on_basis=T_signs, category=ModulesWithBasis(self._base_ring), codomain=T)
         Lv_to_T.register_as_coercion()
@@ -677,7 +678,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             signs = tuple([-1 for i in range(len(rw))])
         else:
             signs = tuple([1 for i in range(len(rw))])
-        return tv_Lv.from_direct_product(HY.product_by_signed_generator_sequence(HY.one(), rw, signs), tv_Lv.factor(1).monomial(mu))
+        return tv_Lv.from_direct_product((HY.product_by_signed_generator_sequence(HY.one(), rw, signs), tv_Lv.factor(1).monomial(mu)))
 
     @cached_method
     def F_to_Lv_tv_func(self, pi):
@@ -709,7 +710,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             signs = tuple([1 for i in range(len(rw))])
         else:
             signs = tuple([-1 for i in range(len(rw))])
-        return Lv_tv.from_direct_product(Lv_tv.factor(0).monomial(mu),tv.product_by_signed_generator_sequence(tv.one(), rw, signs))
+        return Lv_tv.from_direct_product((Lv_tv.factor(0).monomial(mu),tv.product_by_signed_generator_sequence(tv.one(), rw, signs)))
 
     class _BasesCategory(Category_realization_of_parent):
         r"""
@@ -1152,7 +1153,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             phi = E._cartan_type_v.root_system().coroot_lattice().highest_root().associated_coroot()
             s_phi = phi.associated_reflection()
             tv = self.factor(1)
-            return self.from_direct_product(self.factor(0).monomial(phi.to_ambient()), tv.product_by_signed_generator_sequence(tv.one(), s_phi, [-1 for i in range(len(s_phi))]))
+            return self.from_direct_product((self.factor(0).monomial(phi.to_ambient()), tv.product_by_signed_generator_sequence(tv.one(), s_phi, [-1 for i in range(len(s_phi))])))
 
         @cached_method
         def algebra_generators(self):
