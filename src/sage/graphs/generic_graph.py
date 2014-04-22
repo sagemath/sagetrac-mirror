@@ -8930,8 +8930,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         Add edges from an iterable container.
 
-        All elements of ``edges`` must follow the same format, i.e. have the
-        same length.
+        Each element of ``edges`` must be a pair ``(v1,v2)`` or a triple
+        ``(v1,v2,label)``.
 
         EXAMPLES::
 
@@ -8950,21 +8950,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.edges()
             [(0, 1, None), (0, 2, None)]
         """
-        it = iter(edges)
-
-        try:
-            e0 = it.next()
-        except StopIteration:
-            return
-
-        if len(e0) == 3:
-            self._backend.add_edge(e0[0], e0[1], e0[2], self._directed)
-            for u,v,label in it:
-                self._backend.add_edge(u, v, label, self._directed)
-        else:
-            self._backend.add_edge(e0[0], e0[1], None, self._directed)
-            for u,v in it:
-                self._backend.add_edge(u, v, None, self._directed)
+        for e in edges:
+            if len(e) == 2:
+                self._backend.add_edge(e[0], e[1], None, self._directed)
+            elif len(e) == 3:
+                self._backend.add_edge(e[0], e[1], e[2], self._directed)
+            else:
+                raise ValueError("all elements of ``edges`` must be pairs or triples, got %s"%(e,))
 
     def subdivide_edge(self, *args):
         """
@@ -9276,7 +9268,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(multiedges=True,sparse=True)
-            sage: D.add_edges([(0,1,1), (0,1,2), (0,1,3), (1,0,None), (1,2,None), (2,3,None)])
+            sage: D.add_edges([(0,1,1), (0,1,2), (0,1,3), (1,0), (1,2), (2,3)])
             sage: D.edges()
             [(0, 1, 1), (0, 1, 2), (0, 1, 3), (1, 0, None), (1, 2, None), (2, 3, None)]
             sage: D.delete_multiedge( 0, 1 )
@@ -9756,7 +9748,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
-            sage: D.add_edges( [ (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,2,None) ] )
+            sage: D.add_edges( [ (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,2) ] )
             sage: D.edges(labels=False)
             [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
             sage: D.remove_multiple_edges()
@@ -13756,7 +13748,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = DiGraph(loops=True,multiedges=True,sparse=True)
-            sage: G.add_edges( [ (0,0,None), (1,1,None), (2,2,None), (2,3,1), (2,3,2), (3,2,None) ] )
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (2,3,1), (2,3,2), (3,2) ] )
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
             sage: H=G.to_simple()
