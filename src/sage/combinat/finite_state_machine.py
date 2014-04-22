@@ -168,7 +168,7 @@ and execute the cells in this and the previous section.
 Several options can be set to customize the output, see
 :meth:`~FiniteStateMachine.latex_options` for details. In particular,
 we use :meth:`~FiniteStateMachine.format_letter_negative` to format
-`-1` as `\overline{-1}`.
+`-1` as `\overline{1}`.
 
 ::
 
@@ -485,6 +485,10 @@ FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
 FSMOldCodeTransducerCartesianProduct = True
 FSMOldProcessOutput = True  # See trac #16132 (deprecation).
+tikz_automata_where = {"right": 0,
+                       "above": 90,
+                       "left": 180,
+                       "below": 270}
 
 def FSMLetterSymbol(letter):
     """
@@ -2580,7 +2584,7 @@ class FiniteStateMachine(SageObject):
             sage: latex.mathjax_avoid_list('tikzpicture')
             sage: T = Transducer(initial_states=['I'],
             ....:     final_states=[0, 3])
-            sage: for j in range(4):
+            sage: for j in srange(4):
             ....:     T.add_transition('I', j, 0, [0, j])
             ....:     T.add_transition(j, 'I', 0, [0, -j])
             Transition from 'I' to 0: 0|0,0
@@ -2652,8 +2656,8 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(initial_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: initial_where for I must be in ['above',
-            'left', 'below', 'right'].
+            ValueError: initial_where for I must be in ['below',
+            'right', 'above', 'left'].
             sage: T.latex_options(accepting_style='fancy')
             Traceback (most recent call last):
             ...
@@ -2667,13 +2671,13 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(accepting_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: accepting_where for 0 must be in ['above',
-            'left', 'below', 'right'].
+            ValueError: accepting_where for 0 must be in ['below',
+            'right', 'above', 'left'].
             sage: T.latex_options(accepting_where={0: 'above', 3: 'top'})
             Traceback (most recent call last):
             ...
             ValueError: accepting_where for 3 must be a real number or
-            be in ['above', 'left', 'below', 'right'].
+            be in ['below', 'right', 'above', 'left'].
         """
         if coordinates is not None:
             self.set_coordinates(coordinates)
@@ -2694,7 +2698,7 @@ class FiniteStateMachine(SageObject):
             self.format_transition_label = format_transition_label
 
         if initial_where is not None:
-            permissible = ['above', 'left', 'below', 'right']
+            permissible = list(tikz_automata_where.iterkeys())
             for state in self.iter_initial_states():
                 if hasattr(initial_where, '__call__'):
                     where = initial_where(state.label())
@@ -2725,7 +2729,7 @@ class FiniteStateMachine(SageObject):
             self.accepting_distance = accepting_distance
 
         if accepting_where is not None:
-            permissible = ['above', 'left', 'below', 'right']
+            permissible = list(tikz_automata_where.iterkeys())
             for state in self.iter_final_states():
                 if hasattr(accepting_where, '__call__'):
                     where = accepting_where(state.label())
@@ -2828,11 +2832,6 @@ class FiniteStateMachine(SageObject):
             options.append("accepting distance=%s"
                            % accepting_distance)
 
-        accepting_where = {"right": 0,
-                           "above": 90,
-                           "left": 180,
-                           "below": 270}
-
         result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
         for vertex in self.iter_states():
@@ -2866,8 +2865,8 @@ class FiniteStateMachine(SageObject):
             if vertex.is_final and vertex.final_word_out:
                 angle = 0
                 if hasattr(vertex, "accepting_where"):
-                    angle = accepting_where.get(vertex.accepting_where,
-                                                vertex.accepting_where)
+                    angle = tikz_automata_where.get(vertex.accepting_where,
+                                                    vertex.accepting_where)
                 result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
