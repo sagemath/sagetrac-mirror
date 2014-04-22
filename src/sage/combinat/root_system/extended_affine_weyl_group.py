@@ -1235,14 +1235,14 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                     sage: WF = ExtendedAffineWeylGroup(['A',3,1],style="WF")
                     sage: x = WF.an_element(); x
-                    S0*S1*S2*S3 * pi[2]
+                    S0*S1*S2*S3 * pi[3]
                     sage: I = WF.realization_of().index_set()
                     sage: [(i, x.has_descent(i)) for i in I]
-                    [(0, False), (1, True), (2, False), (3, False)]
+                    [(0, True), (1, False), (2, False), (3, False)]
                     sage: [(i, x.has_descent(i,side='left')) for i in I]
                     [(0, True), (1, False), (2, False), (3, False)]
                     sage: [(i, x.has_descent(i,positive=True)) for i in I]
-                    [(0, True), (1, False), (2, True), (3, True)]
+                    [(0, False), (1, True), (2, True), (3, True)]
 
                 .. warning::
 
@@ -1267,13 +1267,13 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                     sage: WF = ExtendedAffineWeylGroup(['A',3,1],style="WF")
                     sage: x = WF.an_element(); x
-                    S0*S1*S2*S3 * pi[2]
+                    S0*S1*S2*S3 * pi[3]
                     sage: x.first_descent()
-                    1
+                    0
                     sage: x.first_descent(side='left')
                     0
                     sage: x.first_descent(positive=True)
-                    0
+                    1
                     sage: x.first_descent(side='left',positive=True)
                     1
 
@@ -1293,11 +1293,11 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                     sage: WF = ExtendedAffineWeylGroup(['A',3,1],style="WF")
                     sage: x = WF.an_element(); x
-                    S0*S1*S2*S3 * pi[2]
+                    S0*S1*S2*S3 * pi[3]
                     sage: x.apply_simple_reflection(1)
-                    S0*S1*S2 * pi[2]
+                    S0*S1*S2*S3*S0 * pi[3]
                     sage: x.apply_simple_reflection(1, side='left')
-                    S0*S1*S2*S0*S3 * pi[2]
+                    S0*S1*S2*S0*S3 * pi[3]
 
                 """
                 s = self.parent().simple_reflection(i)
@@ -1318,11 +1318,12 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                     sage: WF = ExtendedAffineWeylGroup(['A',3,1],style="WF")
                     sage: x = WF.an_element(); x
-                    S0*S1*S2*S3 * pi[2]
-                    sage: x.apply_simple_projection(1)
-                    S0*S1*S2*S3 * pi[2]
-                    sage: x.apply_simple_projection(1, length_increasing=False)
-                    S0*S1*S2 * pi[2]
+                    S0*S1*S2*S3 * pi[3]
+                    sage: x.apply_simple_projection(3)
+                    S0*S1*S2*S3*S2 * pi[3]
+                    sage: x.apply_simple_projection(3, length_increasing=False)
+                    S0*S1*S2*S3 * pi[3]
+
 
                 """
                 if self.has_descent(i, side=side, positive=length_increasing):
