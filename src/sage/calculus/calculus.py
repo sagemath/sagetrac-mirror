@@ -768,9 +768,11 @@ nintegrate = nintegral
 
 def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     r"""
-    Return the minimal polynomial of self, if possible.
+    Return the minimal polynomial of ``ex``, if possible.
 
     INPUT:
+
+    - ``ex`` - the expression for which to compute the minpoly
 
     - ``var`` - polynomial variable name (default 'x')
 
