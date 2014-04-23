@@ -627,7 +627,9 @@ cdef class SparseGraph(CGraph):
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared, left_len, right_len
-        cdef SparseGraphBTNode *temp, **left_child, **right_child
+        cdef SparseGraphBTNode *temp
+        cdef SparseGraphBTNode **left_child
+        cdef SparseGraphBTNode **right_child
         cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode *labels
 
@@ -751,20 +753,21 @@ cdef class SparseGraph(CGraph):
 
     cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
         """
-        Gives all v such that (u, v) is an arc of the graph.
+        Fill ``neighbors`` with the vertices ``v`` such that ``(u, v)`` is an
+        arc of the graph and return their number.
 
         INPUT:
 
-        - ``u`` -- non-negative integer, must be in self neighbors -- must be a
-            pointer to an (allocated) integer array size -- the length of the
-            array
+        - ``u`` - non-negative integer, must be a vertex of ``self``
+
+        - ``neighbors`` - a pointer to an *allocated* integer array
+
+        - ``size`` - the length of the array ``neighbors``
 
         OUTPUT:
 
-            nonnegative integer -- the number of v such that (u, v) is an arc -1
-            -- indicates that the array has been filled with neighbors, but
-            there were more
-
+        The number of ``v`` such that ``(u, v)`` is an arc or ``-1`` if the
+        array has been filled with neighbors but there were more.
         """
         cdef int i, num_nbrs = 0, current_nbr = 0
         if self.out_degrees[u] == 0:
@@ -786,24 +789,30 @@ cdef class SparseGraph(CGraph):
 
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers):
         """
-        Lists the out-neighbors of a vertex as BTNodes
+        List out-neighbors of a vertex as BTNodes and return their number.
 
         Technically, this function transforms a binary tree into a list. The
         information it returns is a list of pointers toward a
         ``SparseGraphBTNode``, thus a ``SparseGraphBTNode **``.
 
+        The function make ``p_pointers[0]`` point toward a filled
+        ``SparseGraphBTNode **`` (so do not forget to free ``p_pointers[0]``).
+        It returns the length of this array.
+
         INPUT:
 
-        - ``u`` -- the vertex to consider
+        - ``u`` - the vertex to consider
 
-        - ``p_pointers`` -- a pointer toward a ``SparseGraphBTNode **``, i.e. a
-          ``SparseGraphBTNode ***``. When the function terminates,
-          ``p_pointers[0]`` points toward a filled ``SparseGraphBTNode **``. It
-          returns the length of this array.
+        - ``p_pointers`` - a pointer toward a ``SparseGraphBTNode **``, i.e. a
+          ``SparseGraphBTNode ***`` (not allocated).
 
-        .. NOTE::
+        .. TODO::
 
-            Don't forget to free ``p_pointers[0]``  !
+            The allocation in that function slows the iteration over edges. More
+            precisely, there is a call to this function for every vertex and
+            each call cost a malloc. One can use a better strategy: allocate an
+            array once for all and then call this function only to ``fill`` the
+            array.
         """
         cdef int i, num_nbrs = 0, current_nbr = 0
         cdef int degree = self.out_degrees[u]
@@ -822,7 +831,7 @@ cdef class SparseGraph(CGraph):
 
             # While all the neighbors have not been added to the list, explore
             # element pointers[current_nbr] and append its children to the end
-            # of pointers if necessary, the increment current_nbr.
+            # of pointers if necessary, then increment current_nbr.
             while current_nbr < num_nbrs:
                 if pointers[current_nbr].left != NULL:
                     pointers[num_nbrs] = pointers[current_nbr].left
@@ -835,10 +844,11 @@ cdef class SparseGraph(CGraph):
 
     cpdef list out_neighbors(self, int u):
         """
-        Gives all ``v`` such that ``(u, v)`` is an arc of the graph.
+        Return a list ``v`` such that ``(u, v)`` is an arc of ``self``.
 
         INPUT:
-         - ``u`` - integer
+
+         - ``u`` - a vertex in ``self`` (non-negative integer)
 
         EXAMPLES::
 
@@ -872,7 +882,7 @@ cdef class SparseGraph(CGraph):
 
         INPUT:
 
-         - ``u`` - integer
+         - ``u`` - a vertex in ``self`` (integer)
 
         EXAMPLES::
 
@@ -890,7 +900,7 @@ cdef class SparseGraph(CGraph):
 
     cdef list out_arcs_unsafe(self, int u, bint labels):
         r"""
-        Builds the list of arcs leaving a vertex.
+        Return the list of arcs leaving a vertex.
 
         Note that the source of each edge is *NOT* returned.
 
@@ -938,21 +948,26 @@ cdef class SparseGraph(CGraph):
 
     cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size):
         """
-        Gives all u such that (u, v) is an arc of the graph.
+        Fill ``neighbors`` with all ``u`` such that ``(u, v)`` is an arc of the
+        graph and return their number.
 
         INPUT:
-            v -- non-negative integer, must be in self
-            neighbors -- must be a pointer to an (allocated) integer array
-            size -- the length of the array
+
+        ``v`` - a vertex in self (non-negative integer)
+
+        ``neighbors`` - a pointer to an *allocated* integer array
+
+        ``size`` - the length of the array ``neighbors``
 
         OUTPUT:
-            nonnegative integer -- the number of u such that (u, v) is an arc
-            -1 -- indicates that the array has been filled with neighbors, but
-        there were more
 
-        NOTE: Due to the implementation of SparseGraph, this method is much more
-        expensive than out_neighbors_unsafe.
+        The number of ``u`` such that ``(u, v)`` is an arc or ``-1`` if the
+        array has been filled with neighbors, but there were more
 
+        .. NOTE::
+
+            Due to the implementation of SparseGraph, this method is much more
+            expensive than out_neighbors_unsafe.
         """
         cdef int i, num_nbrs = 0
         if self.in_degrees[v] == 0:
@@ -1283,7 +1298,8 @@ cdef class SparseGraph(CGraph):
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared
         cdef SparseGraphBTNode **parent = &self.vertices[i]
-        cdef SparseGraphLLNode **labels, *label
+        cdef SparseGraphLLNode **labels
+        cdef SparseGraphLLNode *label
         while parent[0] != NULL:
             compared = compare(parent[0].vertex, v)
             if compared > 0:
@@ -1906,6 +1922,7 @@ class SparseGraphBackend(CGraphBackend):
         INPUT:
 
         - ``vertices`` - a list of vertex labels
+
         - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLE::
@@ -1930,68 +1947,74 @@ class SparseGraphBackend(CGraphBackend):
              (2, 7, None)]
         """
         cdef object u, v, l
-        cdef int u_int, v_int, l_int
+        cdef int n_vertices, u_int, v_int, l_int
+        cdef int * c_vertices
+        cdef SparseGraph cg = <SparseGraph> self._cg
         cdef FrozenBitset b_vertices
 
         # ALL edges
         if not isinstance(vertices, list):
             if labels:
                 for v in self.iterator_verts():
-                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                       self._cg)
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, cg)
                     for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
                         if u_int >= v_int:
-                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                             l = self.edge_labels[l_int] if l_int else None
                             yield (v, u, l) if v<=u else (u, v, l)
 
             else:
                 for v in self.iterator_verts():
-                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                       self._cg)
-                    for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, cg)
+                    for u_int in cg.out_arcs_unsafe(v_int, False):
                         if u_int >= v_int:
-                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                             yield (v, u) if v <= u else (u, v)
 
         # One vertex
         elif len(vertices) == 1:
             v = vertices[0]
-            v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                               self._cg)
+            v_int = get_vertex(v, self.vertex_ints, self.vertex_labels, cg)
 
             if labels:
-                for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
-                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for u_int, l_int in cg.out_arcs_unsafe(v_int, True):
+                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                     l = self.edge_labels[l_int] if l_int else None
                     yield (v, u, l) if v<=u else (u, v, l)
             else:
-                for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
-                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for u_int in cg.out_arcs_unsafe(v_int, False):
+                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                     yield (v, u) if v <= u else (u, v)
 
         # Several vertices (nonempty list)
         elif vertices:
-            b_vertices = FrozenBitset([get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                                  self._cg) for v in vertices])
-            if labels:
-                for v in vertices:
-                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                       self._cg)
+            c_vertices = <int *> sage_malloc(len(vertices) * sizeof(int))
+            n_vertices = 0
+            for v in vertices:
+                if self.has_vertex(v):
+                    c_vertices[n_vertices] = get_vertex(v, self.vertex_ints, self.vertex_labels, cg)
+                    n_vertices += 1
+            b_vertices = FrozenBitset([c_vertices[iv] for iv from 0 <= iv < n_vertices])
 
-                    for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
+            if labels:
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+                    for u_int, l_int in cg.out_arcs_unsafe(v_int, True):
                         if u_int >= v_int or u_int not in b_vertices:
-                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                             l = self.edge_labels[l_int] if l_int else None
                             yield (v, u, l) if v<=u else (u, v, l)
             else:
-                for v in vertices:
-                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                       self._cg)
-                    for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+                    for u_int in cg.out_arcs_unsafe(v_int, False):
                         if u_int >= v_int or u_int not in b_vertices:
-                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                             yield (v, u) if v <= u else (u, v)
+
+            sage_free(c_vertices)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """
@@ -2000,107 +2023,202 @@ class SparseGraphBackend(CGraphBackend):
         INPUT:
 
         - ``vertices`` - a list of vertex labels
+
         - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLE::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
-            sage: list(G.iterator_in_edges([1], False))
-            []
-            sage: list(G.iterator_in_edges([2], False))
-            [(1, 2)]
-            sage: list(G.iterator_in_edges([2], True))
-            [(1, 2, 3)]
+            sage: G.add_edge(1,3,4,True)
+            sage: G.add_edge(3,1,5,True)
+            sage: G.add_edge(2,5,6,True)
+            sage: G.add_edge(5,2,7,True)
+            sage: sorted(G.iterator_in_edges([1,2], False))
+            [(1, 2), (3, 1), (5, 2)]
+            sage: sorted(G.iterator_in_edges([1,2], True))
+            [(1, 2, 3), (3, 1, 5), (5, 2, 7)]
 
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.multiple_edges(True)
+            sage: G.add_edge(1,2,3,True)
+            sage: G.add_edge(1,2,4,True)
+            sage: G.add_edge(2,1,5,True)
+            sage: G.add_edge(1,6,6,True)
+            sage: G.add_edge(7,2,7,True)
+            sage: sorted(G.iterator_in_edges([1,2], False))
+            [(1, 2), (1, 2), (2, 1), (7, 2)]
+            sage: sorted(G.iterator_in_edges([1,2], True))
+            [(1, 2, 3), (1, 2, 4), (2, 1, 5), (7, 2, 7)]
         """
         cdef object u, v, L, l
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
-        cdef int u_int, v_int, l_int
+        cdef SparseGraph cg_rev = <SparseGraph> self._cg_rev
+        cdef int n_vertices, n_neighbors, iu, iv, u_int, v_int, l_int, max_degree
+        cdef int * c_vertices = <int *> sage_malloc(len(vertices) * sizeof(int))
+        cdef int * out_neighbors
+
+        # fill the array c_vertices
+        n_vertices = 0
+        for v in vertices:
+            if self.has_vertex(v):
+                c_vertices[n_vertices] = get_vertex(v, self.vertex_ints, self.vertex_labels, cg_rev)
+                n_vertices += 1
+
         if self.multiple_edges(None):
             if labels:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int, l_int in (<SparseGraph> self._cg_rev).out_arcs_unsafe(v_int, True):
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg_rev)
+                    for u_int, l_int in cg_rev.out_arcs_unsafe(v_int, True):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg_rev)
                         l = self.edge_labels[l_int] if l_int else None
                         yield (u, v, l)
             else:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in (<SparseGraph> self._cg_rev).out_arcs_unsafe(v_int, False):
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg_rev)
+                    for u_int in cg_rev.out_arcs_unsafe(v_int, False):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg_rev)
                         yield (u, v)
         else:
+            # compute the maximum degree of the vertices
+            # and allocate out_neighbors to that maximum
+            # in order to use cg_rev.out_neighbors_unsage
+            max_degree = 0
+            for iv from 0 <= iv < n_vertices:
+                v_int = c_vertices[iv]
+                if cg_rev.out_degrees[v_int] > max_degree:
+                    max_degree = cg_rev.out_degrees[v_int]
+
+            out_neighbors = <int *> sage_malloc(max_degree * sizeof(int))
+
             if labels:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in self._cg_rev.out_neighbors(v_int):
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg_rev)
+                    n_neighbors = cg_rev.out_neighbors_unsafe(v_int, out_neighbors, max_degree)
+                    for iu from 0 <= iu < n_neighbors:
+                        u_int = out_neighbors[iu]
                         l_int = self._cg.arc_label(u_int, v_int)
-                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg_rev),
                                v,
                                None if l_int == 0 else self.edge_labels[l_int])
             else:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in self._cg_rev.out_neighbors(v_int):
-                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg_rev)
+                    n_neighbors = cg_rev.out_neighbors_unsafe(v_int, out_neighbors, max_degree)
+                    for iu from 0 <= iu < n_neighbors:
+                        u_int = out_neighbors[iu]
+                        yield (vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg_rev),
                                v)
+
+            sage_free(out_neighbors)
+
+        sage_free(c_vertices)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
         Iterate over the outbound edges incident to a sequence of vertices.
 
         INPUT:
+
          - ``vertices`` - a list of vertex labels
+
          - ``labels`` - boolean, whether to return labels as well
 
         EXAMPLE::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
-            sage: list(G.iterator_out_edges([2], False))
+            sage: G.add_edge(2,3,5,True)
+            sage: G.add_edge(1,3,6,True)
+            sage: sorted(G.iterator_out_edges([1,2,3], True))
+            [(1, 2, 3), (1, 3, 6), (2, 3, 5)]
+            sage: sorted(G.iterator_out_edges([1], False))
+            [(1, 2), (1, 3)]
+            sage: sorted(G.iterator_out_edges([2], False))
+            [(2, 3)]
+            sage: sorted(G.iterator_out_edges([3], False))
             []
-            sage: list(G.iterator_out_edges([1], False))
-            [(1, 2)]
-            sage: list(G.iterator_out_edges([1], True))
-            [(1, 2, 3)]
 
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.multiple_edges(True)
+            sage: G.add_edge(1,2,3,True)
+            sage: G.add_edge(1,2,4,True)
+            sage: G.add_edge(1,2,5,True)
+            sage: G.add_edge(2,1,6,True)
+            sage: G.add_edge(4,1,7,True)
+            sage: G.add_edge(5,2,8,True)
+            sage: sorted(G.iterator_out_edges([1,2], True))
+            [(1, 2, 3), (1, 2, 4), (1, 2, 5), (2, 1, 6)]
+            sage: sorted(G.iterator_out_edges([1,2], False))
+            [(1, 2), (1, 2), (1, 2), (2, 1)]
         """
         cdef object u, v, L, l
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
-        cdef int u_int, v_int, l_int
+        cdef int * c_vertices = <int *> sage_malloc(len(vertices) * sizeof(int))
+        cdef int * out_neighbors
+        cdef int n_vertices, n_neighbors, iu, iv, u_int, v_int, l_int, max_degree
+        cdef SparseGraph cg = <SparseGraph> self._cg
+
+        # fill the array c_vertices
+        n_vertices = 0
+        for v in vertices:
+            if self.has_vertex(v):
+                c_vertices[n_vertices] = get_vertex(v, self.vertex_ints, self.vertex_labels, cg)
+                n_vertices += 1
+
         if self.multiple_edges(None):
             if labels:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
                     for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                         l = self.edge_labels[l_int] if l_int else None
                         yield (v, u, l)
             else:
-                for v_int in vertices:
-                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
+                    v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+                    for u_int in cg.out_arcs_unsafe(v_int, False):
+                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, cg)
                         yield (v, u)
         else:
+            # compute the maximum degree of the vertices
+            # and allocate out_neighbors to that maximum
+            # in order to use cg_rev.out_neighbors_unsafe
+            max_degree = 0
+            for iv from 0 <= iv < n_vertices:
+                v_int = c_vertices[iv]
+                if cg.out_degrees[v_int] > max_degree:
+                    max_degree = cg.out_degrees[v_int]
+
+            out_neighbors = <int *> sage_malloc(max_degree * sizeof(int))
+
             if labels:
-                for v_int in vertices:
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in self._cg.out_neighbors(v_int):
+                    n_neighbors = cg.out_neighbors_unsafe(v_int, out_neighbors, max_degree)
+                    for iu from 0 <= iu < n_neighbors:
+                        u_int = out_neighbors[iu]
                         l_int = self._cg.arc_label(v_int, u_int)
                         yield (v,
                                vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
                                None if l_int == 0 else self.edge_labels[l_int])
             else:
-                for v_int in vertices:
+                for iv from 0 <= iv < n_vertices:
+                    v_int = c_vertices[iv]
                     v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-                    for u_int in self._cg.out_neighbors(v_int):
+                    n_neighbors = cg.out_neighbors_unsafe(v_int, out_neighbors, max_degree)
+                    for iu from 0 <= iu < n_neighbors:
+                        u_int = out_neighbors[iu]
                         yield (v,
                                vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg))
+            sage_free(out_neighbors)
+
+        sage_free(c_vertices)
 
     def multiple_edges(self, new):
         """
