@@ -539,7 +539,7 @@ cdef class Element(sage_object.SageObject):
             sage: CCls(Parent())._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken equality: Generic element of a structure == None
+            AssertionError: broken equality: Generic element of a structure is None
 
         Let us now break inequality::
 
@@ -557,12 +557,12 @@ cdef class Element(sage_object.SageObject):
         # the version of Python is (see #11236)
         tester.assertTrue(self == self,
                    LazyFormat("broken equality: %s == itself is False")%self)
-        tester.assertFalse(self == None,
-                   LazyFormat("broken equality: %s == None")%self)
+        tester.assertFalse(self is None,
+                   LazyFormat("broken equality: %s is None")%self)
         tester.assertFalse(self != self,
                            LazyFormat("broken non-equality: %s != itself")%self)
-        tester.assertTrue(self != None,
-                          LazyFormat("broken non-equality: %s is not != None")%self)
+        tester.assertTrue(self is not None,
+                          LazyFormat("broken non-equality: %s is not is not None")%self)
 
     def parent(self, x=None):
         """
@@ -2265,7 +2265,7 @@ cdef class CommutativeRingElement(RingElement):
                 return []
             raise ValueError, 'trying to take square root of non-square %s with extend = False' % self
 
-        if name == None:
+        if name is None:
             raise TypeError ("Polynomial is not a square. You must specify the name of the square root when using the default extend = True")
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         PY = PolynomialRing(P,'y')

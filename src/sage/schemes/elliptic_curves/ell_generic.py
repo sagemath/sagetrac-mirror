@@ -142,7 +142,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
         """
-        if extra != None:   # possibility of two arguments
+        if extra is not None:   # possibility of two arguments
             K, ainvs = ainvs, extra
         else:
             K = ainvs[0].parent()
@@ -2379,14 +2379,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             elif self.j_invariant() != other.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(self,other,True) != None
+                return wm.isomorphisms(self,other,True) is not None
         else:
             E=self.base_extend(field)
             F=other.base_extend(field)
             if E.j_invariant() != F.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(E,other,F) != None
+                return wm.isomorphisms(E,other,F) is not None
 
     def change_weierstrass_model(self, *urst):
         r"""

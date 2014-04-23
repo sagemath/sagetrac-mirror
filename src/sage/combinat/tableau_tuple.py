@@ -920,7 +920,7 @@ class TableauTuple(CombinatorialObject,Element):
 
         addable_cells = self.shape().addable_cells()
 
-        if n == None:
+        if n is None:
             n = self.size()
 
         # Go through and add n+1 to the end of each of the rows

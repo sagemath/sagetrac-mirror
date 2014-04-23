@@ -705,7 +705,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken equality: <class '__main__.CCls'> == None
+            AssertionError: broken equality: <class '__main__.CCls'> is None
 
         Let us now break inequality::
 
@@ -724,12 +724,12 @@ cdef class Parent(category_object.CategoryObject):
         # the version of Python is (see #11236)
         tester.assertTrue(self == self,
                    LazyFormat("broken equality: %s == itself is False")%self)
-        tester.assertFalse(self == None,
-                   LazyFormat("broken equality: %s == None")%self)
+        tester.assertFalse(self is None,
+                   LazyFormat("broken equality: %s is None")%self)
         tester.assertFalse(self != self,
                    LazyFormat("broken non-equality: %s != itself")%self)
-        tester.assertTrue(self != None,
-                   LazyFormat("broken non-equality: %s != None is False")%self)
+        tester.assertTrue(self is not None,
+                   LazyFormat("broken non-equality: %s is not None is False")%self)
 
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:

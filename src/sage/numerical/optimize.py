@@ -662,7 +662,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
        variables is None or len(variables) == 0:
         raise ValueError("no variables given")
 
-    if initial_guess == None:
+    if initial_guess is None:
         initial_guess = len(parameters) * [1]
 
     if not isinstance(initial_guess, numpy.ndarray):

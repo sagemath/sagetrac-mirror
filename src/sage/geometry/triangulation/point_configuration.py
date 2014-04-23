@@ -263,7 +263,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: PointConfiguration._have_TOPCOM()    # optional - TOPCOM
             True
         """
-        if PointConfiguration._have_TOPCOM_cached != None:
+        if PointConfiguration._have_TOPCOM_cached is not None:
             return PointConfiguration._have_TOPCOM_cached
 
         try:

@@ -1489,7 +1489,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         break
                     except ValueError:
                         pass
-                assert a != None
+                assert a is not None
                 a *= (m*n1a)
                 if debug: print "linear relation gives m=",m,", a=",a
                 if debug: assert m*Q==a*P1
