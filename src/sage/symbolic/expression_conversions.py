@@ -941,7 +941,9 @@ def algebraic(ex, field):
         sage: QQbar(x*sin(0))
         0
     """
-    return AlgebraicConverter(field)(ex)
+    res = AlgebraicConverter(field)(ex)
+    res._symbolic_expression = ex
+    return res
 
 ##############
 # Polynomial #

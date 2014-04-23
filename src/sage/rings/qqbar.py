@@ -3651,6 +3651,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         od = self._descr
         if od.is_exact(): return
+        if self._symbolic_expression is not None:
+            self._exact_symbolic()
         self._set_descr(self._descr.exactify())
 
     def _set_descr(self, new_descr):
@@ -3676,6 +3678,41 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             self._value = self._value.intersection(new_val.real())
         else:
             self._value = self._value.intersection(new_val)
+
+    _symbolic_expression = None
+
+    def _exact_symbolic(self):
+        r"""
+        Compute an exact representation of self using a known symbolic expression.
+
+        This makes use of the fact that numerically computing the
+        minimal polynomial of a complete symbolic expression can be a
+        lot faster than recursively combining the exact algebraic
+        representations of its components.
+
+        EXAMPLES::
+
+            sage: a = (443/96*I*sqrt(443)*sqrt(3) + 833939/1728)^(1/3)
+            sage: b = sqrt(144*a + 9205/a + 1176)/12
+            sage: c = QQbar(b)
+            sage: c.minpoly() # indirect doctest
+            x^6 - 49/2*x^4 + 133/16*x^2 + 225/4
+        """
+
+        try:
+            # Only numeric conversion is faster; algebraic would cause infinite recursion.
+            p = self._symbolic_expression.minpoly(algorithm='numeric')
+        except (NotImplementedError, ValueError):
+            return
+        r = p.roots(self.parent(), False)
+        r = [z for z in r if z._value.overlaps(self._value)]
+        while len(r) > 1:
+            # TODO: find input which actually tests this code path!
+            self._more_precision()
+            for z in r:
+                z._more_precision()
+            r = [z for z in r if z._value.overlaps(self._value)]
+        self._set_descr(r[0]._descr)
 
     def simplify(self):
         """
