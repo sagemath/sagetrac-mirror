@@ -833,6 +833,7 @@ class DiGraph(GenericGraph):
                 verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
+                        from sage.misc.prandom import choice
                         raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
