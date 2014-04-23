@@ -345,9 +345,9 @@ def _init():
 
     Then after using one of these functions, it changes::
 
-        sage: from sage.functions.orthogonal_polys import legendre_P
-        sage: legendre_P(2,x)
-        3/2*(x - 1)^2 + 3*x - 2
+        sage: from sage.functions.orthogonal_polys import laguerre
+        sage: laguerre(2,x)
+        1/2*x^2 - 2*x + 1
         sage: sage.functions.orthogonal_polys._done
         True
 
@@ -1334,32 +1334,256 @@ def laguerre(n,x):
     _init()
     return sage_eval(maxima.eval('laguerre(%s,x)'%ZZ(n)), locals={'x':x})
 
-def legendre_P(n,x):
-    """
-    Returns the Legendre polynomial of the first kind for integers
-    `n > -1`.
+def legendre_P(n, x, a=-1, b=1):
+    r"""
+    Returns the nth Legendre polynomial of the first kind over the
+    interval `[a, b]` with respect to ``x``.
 
-    REFERENCE:
+    When `[a,b]` is not `[-1,1]`, we scale the standard Legendre
+    polynomial (which is defined over `[-1,1]`) via an affine map. The
+    resulting polynomials are still orthogonal and possess the
+    property that `|P(a)| = |P(b)| = 1`.
 
-    - [ASHandbook]_ 22.5.35 page 779.
+    INPUT:
 
-    EXAMPLES::
+     - ``n`` - The index of the polynomial.
+
+     - ``x`` - Either the variable to use as the independent variable
+        in the polynomial, or a point at which to evaluate the
+        polynomial.
+
+     - ``a`` - The "left" endpoint of the interval. Can be concrete
+       (e.g. a real number) or symbolic.
+
+     - ``b`` - The "right" endpoint of the interval. Can be concrete
+       (e.g. a real number) or symbolic.
+
+
+    OUTPUT:
+
+    If ``x`` is a variable, a polynomial (symbolic expression) will be
+    returned. Otherwise, the value of the nth polynomial at ``x``
+    will be returned.
+
+    REFERENCES:
+
+     - Abramowitz, Milton and Stegun, Irene A. Handbook of
+       Mathematical Functions with Formulas, Graphs, and Mathematical
+       Tables. Tenth Printing, New York: Dover, 1972.
+
+    EXAMPLES:
+
+    Create the standard Legendre polynomials in ``x``::
+
+        sage: legendre_P(0,x)
+        1
+        sage: legendre_P(1,x)
+        x
+
+    Reuse the variable from a polynomial ring::
 
         sage: P.<t> = QQ[]
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
+
+    If ``x`` is a real number, the result should be as well::
+
         sage: legendre_P(3, 1.1)
         1.67750000000000
+
+    Similarly for complex numbers::
+
         sage: legendre_P(3, 1 + I)
         7/2*I - 13/2
+
+    Even matrices work::
+
         sage: legendre_P(3, MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
         [-179  242]
         [-484  547]
+
+    And finite field elements::
+
         sage: legendre_P(3, GF(11)(5))
         8
+
+    Solve a simple least squares problem over `[-\pi, \pi]`::
+
+        sage: a = -pi
+        sage: b = pi
+        sage: def inner_product(v1, v2):
+        ....:     return integrate(v1*v2, x, a, b)
+        ...
+        sage: def norm(v):
+        ....:     return sqrt(inner_product(v,v))
+        ...
+        sage: def project(basis, v):
+        ....:     return sum([ inner_product(v, b)*b/norm(b)**2
+        ....:                  for b in basis])
+        ...
+        sage: f = sin(x)
+        sage: legendre_basis = [ legendre_P(k, x, a, b) for k in range(0,4) ]
+        sage: proj = project(legendre_basis, f)
+        sage: proj.simplify_trig()
+        5/2*(7*(pi^2 - 15)*x^3 - 3*(pi^4 - 21*pi^2)*x)/pi^6
+
+    We can plot a few polynomials to confirm that they are orthogonal
+    on `[-1, 1]`::
+
+        sage: colors = [ 'blue', 'red', 'green', 'purple', 'orange' ]
+        sage: p = Graphics()
+        sage: for j in range(0, len(colors)):
+        ....:     p += plot(legendre_P(j,x), x, -1, 1, color=colors[j])
+        sage: p.save(tmp_filename(ext='.png'))
+
+    TESTS:
+
+    We should agree with Maxima for all ``n``::
+
+        sage: def _maxima_p(n, x):
+        ....:     from sage.functions.orthogonal_polys import _init
+        ....:     _init()
+        ....:     return sage_eval(maxima.eval('legendre_p(%s,x)'%ZZ(n)),
+        ....:                      locals={'x':x})
+        sage: eq = lambda k: bool(legendre_P(k,x) == _maxima_p(k,x))
+        sage: all([eq(k) for k in range(0,20) ]) # long time
+        True
+
+    We can evaluate the result of the zeroth polynomial::
+
+        sage: f = legendre_P(0,x)
+        sage: f(x=10)
+        1
+
+    We should have `|P(a)| = |P(b)| = 1` for all `a,b`::
+
+        sage: a = RR.random_element()
+        sage: b = RR.random_element()
+        sage: k = ZZ.random_element(20)
+        sage: P = legendre_P(k, x, a, b)
+        sage: abs(P(x=a)) # abs tol 1e-12
+        1
+        sage: abs(P(x=b)) # abs tol 1e-12
+        1
+
+    Two different polynomials should be orthogonal with respect to the
+    inner product over `[a,b]`. Note that this test can fail if ``QQ`` is
+    replaced with ``RR``, since ``integrate()`` can return ``NaN``::
+
+        sage: a = QQ.random_element()
+        sage: b = QQ.random_element()
+        sage: j = ZZ.random_element(20)
+        sage: k = j + 1
+        sage: Pj = legendre_P(j, x, a, b)
+        sage: Pk = legendre_P(k, x, a, b)
+        sage: integrate(Pj*Pk, x, a, b) # abs tol 1e-12
+        0
+
+    The first few polynomials shifted to `[0,1]` are known to be::
+
+        sage: p0 = 1
+        sage: p1 = 2*x - 1
+        sage: p2 = 6*x^2 - 6*x + 1
+        sage: p3 = 20*x^3 - 30*x^2 + 12*x - 1
+        sage: bool(legendre_P(0, x, 0, 1) == p0)
+        True
+        sage: bool(legendre_P(1, x, 0, 1) == p1)
+        True
+        sage: bool(legendre_P(2, x, 0, 1) == p2)
+        True
+        sage: bool(legendre_P(3, x, 0, 1) == p3)
+        True
+
+    The zeroth polynomial is an element of the ring that we are working
+    in::
+
+        sage: legendre_P(0, MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
+        [1 0]
+        [0 1]
+
+    We can accept Python integers for ``x`` as well::
+
+        sage: legendre_P(0, int(1))
+        1
+
+    If we pass ``a`` and ``b`` in as symbols, we should get the
+    standard Legendre polynomials after substituting `a=-1`, `b=1`::
+
+        sage: a = SR.symbol('a')
+        sage: b = SR.symbol('b')
+        sage: bool(legendre_P(5, x, a, b)(a=-1,b=1) == legendre_P(5, x))
+        True
+
+    If ``n`` cannot be coerced into ``ZZ``, a ``TypeError`` is thrown::
+
+        sage: legendre_P(1.5, x)
+        Traceback (most recent call last):
+        ...
+        TypeError: The index 'n' must be a natural number
+
+    Given that ``n`` is in ``ZZ``, it must be nonnegative as well::
+
+        sage: legendre_P(-1, x)
+        Traceback (most recent call last):
+        ...
+        ValueError: The index 'n' must be nonnegative
+
+    When given an empty interval `a=b`, we should display a sensible
+    error message::
+
+        sage: legendre_P(1, x, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The endpoints 'a' and 'b' cannot be equal.
+
+    We get a sage type back even if ``x`` has no parent::
+
+        sage: p = legendre_P(0, int(1))
+        sage: isinstance(p, SageObject)
+        True
+        sage: p = legendre_P(1, int(1))
+        sage: isinstance(p, SageObject)
+        True
+
     """
-    _init()
-    return sage_eval(maxima.eval('legendre_p(%s,x)'%ZZ(n)), locals={'x':x})
+    from sage.rings.all import binomial, ZZ
+
+    if not n in ZZ:
+        raise TypeError("The index 'n' must be a natural number")
+
+    if n < 0:
+        raise ValueError("The index 'n' must be nonnegative")
+
+    if a == b:
+        raise ValueError("The endpoints 'a' and 'b' cannot be equal.")
+
+    if n == 0:
+        # Easy base case, save time. Attempt to return a value in the
+        # same field/ring as x.
+        try:
+            return x.parent()(1)
+        except AttributeError:
+            # In case something without a parent was given for x.
+            return ZZ(1)
+
+
+    def phi(t):
+        # This is an affine map from [a,b] into [-1,1] and so
+        # preserves orthogonality.
+        return (a + b - 2*t)/(a - b)
+
+    def c(m):
+        return binomial(n,m)*binomial(n, n-m)
+
+    def g(m):
+        # As given in A&S, but with x replaced by phi(x).
+        return ( ((phi(x) - 1)**(n-m)) * (phi(x) + 1)**m )
+
+    # From Abramowitz & Stegun, (22.3.1) with alpha = beta = 0.
+    # Also massaged to support finite field elements.
+    P = sum([ c(m)*g(m) for m in range(0,n+1) ])/(2**n)
+
+    return P
 
 def legendre_Q(n,x):
     """
