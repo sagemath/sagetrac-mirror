@@ -180,8 +180,8 @@ class QuadraticFormLocalRepresentationConditions():
                 k = 0
                 repn_flag = False
 
-                while ((repn_flag == False) and (m < 4 * N * p * p)):
-                    if (local_normal_forms[i].local_density(p, m) > 0):
+                while repn_flag == False and m < 4 * N * p * p:
+                    if local_normal_forms[i].local_density(p, m) > 0:
                         tmp_local_repn_vec[j+1] = k
                         repn_flag = True
                     k = k + 1
@@ -189,7 +189,7 @@ class QuadraticFormLocalRepresentationConditions():
 
                 ## If we're not represented, write "infinity" to signify
                 ## that this squareclass is fully obstructed
-                if (repn_flag == False):
+                if repn_flag == False:
                     tmp_local_repn_vec[j+1] = infinity
 
             ## Test if the conditions at p give exactly Z_p when dim >=3, or
@@ -198,7 +198,7 @@ class QuadraticFormLocalRepresentationConditions():
             if self.dim >= 2:
                 ## Check that all entries are zero or 'None'
                 for x in tmp_local_repn_vec[1:]:
-                    if not ((x == 0) or (x is None)):
+                    if not (x == 0 or x is None):
                         omit_flag = False
 
             ## Add the results for this prime if there is a congruence obstruction
@@ -285,7 +285,7 @@ class QuadraticFormLocalRepresentationConditions():
             return False
 
         ## Check the dimensions agree when they affect the kind of representation conditions.
-        if ((self.dim <= 2) or (right.dim <= 2)) and self.dim != right.dim:
+        if (self.dim <= 2 or right.dim <= 2) and self.dim != right.dim:
             return False
 
         ## Check equality by dimension
@@ -411,11 +411,11 @@ class QuadraticFormLocalRepresentationConditions():
 
         """
         ## Check if the prime behaves generically for n >= 3.
-        if (self.dim >= 3) and not (p in self.exceptional_primes):
+        if self.dim >= 3 and p not in self.exceptional_primes:
             return True
 
         ## Check if the prime behaves generically for n <= 2.
-        if (self.dim <= 2) and not (p in self.exceptional_primes):
+        if self.dim <= 2 and p not in self.exceptional_primes:
             return False
 
         ## Check if the prime is "infinity" (for the reals)
@@ -429,7 +429,7 @@ class QuadraticFormLocalRepresentationConditions():
         v = self.local_conditions_vector_for_prime(p)
         Zp_univ_flag = True
         for nu in v[1:]:
-            if (nu is not None) and ((nu != 0) or (nu == infinity)):
+            if nu is not None and (nu != 0 or nu == infinity):
                 Zp_univ_flag = False
         return Zp_univ_flag
 
@@ -571,7 +571,7 @@ class QuadraticFormLocalRepresentationConditions():
             if p == infinity:
                 return (m1 > 0)
             else:
-                return (valuation(m1, p) >= 0) and m1.is_padic_square(p)
+                return valuation(m1, p) >= 0 and m1.is_padic_square(p)
 
         ## >= 2-dim'l forms
         local_vec = self.local_conditions_vector_for_prime(p)
@@ -641,7 +641,7 @@ class QuadraticFormLocalRepresentationConditions():
         for p in m_primes:
             if not p in self.exceptional_primes:
                val = valuation(m, p)
-               if (val < 0):
+               if val < 0:
                    return False
 
         ## Check the non-generic primes (when n = 2 or n >= 3)
@@ -766,7 +766,7 @@ def local_representation_conditions(self, recompute_flag=False, silent_flag=Fals
 
     """
     ## Recompute the local conditions if they don't exist or the recompute_flag is set.
-    if (not hasattr(self, "__local_representability_conditions")) or (recompute_flag == True):
+    if not hasattr(self, "__local_representability_conditions") or recompute_flag == True:
         self.__local_representability_conditions = QuadraticFormLocalRepresentationConditions(self)
 
     ## Return the local conditions if the silent_flag is not set.

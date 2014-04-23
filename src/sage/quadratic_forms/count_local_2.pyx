@@ -140,13 +140,13 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
 
     ## Compute the Gauss sum
     neg1 = -1
-    if (m % p == 0):
-        if (n % 2 != 0):
+    if m % p == 0:
+        if n % 2 != 0:
             count = (p**(n-1))
         else:
             count = (p**(n-1)) + (p-1) * (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)
     else:
-        if (n % 2 != 0):
+        if n % 2 != 0:
             count = (p**(n-1)) + (p**((n-1)/2)) * kronecker_symbol(((neg1**((n-1)/2)) * Qdet * m) % p, p)
         else:
             count = (p**(n-1)) - (p**((n-2)/2)) * kronecker_symbol(((neg1**(n/2)) * Qdet) % p, p)
@@ -199,12 +199,12 @@ cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
 
         ## Perform a carry (when value = R-1) until we can increment freely
         ptr = len(v)
-        while ((ptr > 0) and (v[ptr-1] == R-1)):
+        while ptr > 0 and v[ptr-1] == R-1:
             v[ptr-1] += 1
             ptr += -1
 
         ## Only increment if we're not already at the zero vector =)
-        if (ptr > 0):
+        if ptr > 0:
             v[ptr-1] += 1
 
 
@@ -216,9 +216,9 @@ cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
 
         ## Sort the solution by it's type
         #if (Q1(v) == m1):
-        if (tmp_val == m1):
+        if tmp_val == m1:
             solntype = local_solution_type_cdef(Q1, p, v, zvec, nzvec)
-            if (solntype != 0):
+            if solntype != 0:
                 count_vector[solntype] += 1
 
 
@@ -290,12 +290,12 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     ## Check if the solution satisfies the zvec "zero" congruence conditions
     ## (either zvec is empty or its components index the zero vector mod p)
-    if (zvec is None) or (len(zvec) == 0):
+    if zvec is None or len(zvec) == 0:
         zero_flag = True
     else:
         zero_flag = False
         i = 0
-        while ( (i < len(zvec)) and ((w[zvec[i]] % p) == 0) ):  ## Increment so long as our entry is zero (mod p)
+        while i < len(zvec) and (w[zvec[i]] % p) == 0:  ## Increment so long as our entry is zero (mod p)
             i += 1
         if (i == len(zvec)):      ## If we make it through all entries then the solution is zero (mod p)
             zero_flag = True
@@ -304,7 +304,7 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
     ## DIAGNOSTIC
     #print "IsLocalSolutionType: Finished the Zero congruence condition test \n"
 
-    if (zero_flag == False):
+    if zero_flag == False:
         return <long> 0
 
     ## DIAGNOSTIC
@@ -313,19 +313,19 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     ## Check if the solution satisfies the nzvec "nonzero" congruence conditions
     ## (nzvec is non-empty and its components index a non-zero vector mod p)
-    if (nzvec is None):
+    if nzvec is None:
         nonzero_flag = True
-    elif (len(nzvec) == 0):
+    elif len(nzvec) == 0:
         nonzero_flag = False           ## Trivially no solutions in this case!
     else:
         nonzero_flag = False
         i = 0
-        while ((nonzero_flag == False) and (i < len(nzvec))):
-            if ((w[nzvec[i]] % p) != 0):
+        while nonzero_flag == False and i < len(nzvec):
+            if (w[nzvec[i]] % p) != 0:
                 nonzero_flag = True           ## The non-zero condition is satisfied when we find one non-zero entry
             i += 1
 
-    if (nonzero_flag == False):
+    if nonzero_flag == False:
         return <long> 0
 
 
@@ -334,20 +334,20 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
 
     ## 1: Check Good-type
     for i from 0 <= i < n:
-        if (((w[i] % p) != 0)  and ((Q[i,i] % p) != 0)):
+        if (w[i] % p) != 0  and (Q[i,i] % p) != 0:
             return <long> 1
-    if (p == 2):
+    if p == 2:
         for i from 0 <= i < (n - 1):
-            if (((Q[i,i+1] % p) != 0) and (((w[i] % p) != 0) or ((w[i+1] % p) != 0))):
+            if (Q[i,i+1] % p) != 0 and ((w[i] % p) != 0 or (w[i+1] % p) != 0):
                 return <long> 1
 
 
     ## 2: Check Zero-type
     Zero_flag = True
     for i from 0 <= i < n:
-        if ((w[i] % p) != 0):
+        if (w[i] % p) != 0:
             Zero_flag = False
-    if (Zero_flag == True):
+    if Zero_flag == True:
         return <long> 2
 
 
@@ -356,10 +356,10 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
     for i from 0 <= i < n:
 
         ## Compute the valuation of each index, allowing for off-diagonal terms
-        if (Q[i,i] == 0):
-            if (i == 0):
+        if Q[i,i] == 0:
+            if i == 0:
                 val = valuation(Q[i,i+1], p)    ## Look at the term to the right
-            elif (i == n - 1):
+            elif i == n - 1:
                 val = valuation(Q[i-1,i], p)    ## Look at the term above
             else:
                 val = valuation(Q[i,i+1] + Q[i-1,i], p)    ## Finds the valuation of the off-diagonal term since only one isn't zero
@@ -367,18 +367,18 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
             val = valuation(Q[i,i], p)
 
         ## Test each index
-        if ((val == 1) and ((w[i] % p) != 0)):
+        if val == 1 and (w[i] % p) != 0:
             wS1_nonzero_flag = True
 
 
     ## 4: Check Bad-type I
-    if (wS1_nonzero_flag == True):
+    if wS1_nonzero_flag == True:
         #print " Bad I Soln :  " + str(w)
         return <long> 4
 
 
     ## 5: Check Bad-type II
-    if (wS1_nonzero_flag == False):
+    if wS1_nonzero_flag == False:
         #print " Bad II Soln :  " + str(w)
         return <long> 5
 
@@ -386,5 +386,5 @@ cdef local_solution_type_cdef(Q, p, w, zvec, nzvec):
     ## Error if we get here! =o
     print "   Solution vector is " + str(w)
     print "   and Q is \n" + str(Q) + "\n"
-    raise RuntimeError, "Error in IsLocalSolutionType: Should not execute this line... =( \n"
+    raise RuntimeError("Error in IsLocalSolutionType: Should not execute this line... =( \n")
 

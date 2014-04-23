@@ -114,9 +114,9 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -131,7 +131,7 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
     NonUnitVec_minus_Zvec = list(Set(NonUnitVec) - Set(Zvec))
     Q_Unit_minus_Zvec = self.extract_variables(UnitVec_minus_Zvec)
 
-    if (NZvec is None):
+    if NZvec is None:
         if m % p != 0:
             total = Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_Zvec)          ## m != 0 (mod p)
         else:
@@ -249,9 +249,9 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -269,27 +269,27 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
         nz_flag = False
 
         ## Check if the diagonal entry isn't divisible 8
-        if  ((self[i,i] % 8) != 0):
+        if  (self[i,i] % 8) != 0:
             nz_flag = True
 
         ## Check appropriate off-diagonal entries aren't divisible by 8
         else:
 
             ## Special check for first off-diagonal entry
-            if ((i == 0) and ((self[i,i+1] % 8) != 0)):
+            if i == 0 and (self[i,i+1] % 8) != 0:
                 nz_flag = True
 
             ## Special check for last off-diagonal entry
-            elif ((i == n-1) and ((self[i-1,i] % 8) != 0)):
+            elif i == n-1 and (self[i-1,i] % 8) != 0:
                 nz_flag = True
 
             ## Check for the middle off-diagonal entries
             else:
-                if ( (i > 0)  and  (i < n-1)  and  (((self[i,i+1] % 8) != 0) or ((self[i-1,i] % 8) != 0)) ):
+                if i > 0 and i < n-1 and  ((self[i,i+1] % 8) != 0 or (self[i-1,i] % 8) != 0):
                     nz_flag = True
 
         ## Remember the (vector) index if it's not part of a Jordan block of norm divisible by 8
-        if (nz_flag == True):
+        if nz_flag == True:
             Not8vec += [i]
 
 
@@ -409,9 +409,9 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -427,10 +427,10 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
 
     ## Decide which routine to use to compute the Good-type density
-    if (p > 2):
+    if p > 2:
         return self.local_good_density_congruence_odd(p, m, Zvec, NZvec)
 
-    if (p == 2):
+    if p == 2:
         #print "\n Using the (p=2) Local_Good_Density_Even routine! \n"
         return self.local_good_density_congruence_even(m, Zvec, NZvec)
 
@@ -503,16 +503,16 @@ def local_zero_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
     p2 = p * p
 
     ## Check some conditions for no zero-type solutions to exist
-    if ((m % (p2) != 0) or (NZvec is not None)):
+    if m % p2 != 0 or NZvec is not None:
         return 0
 
     ## Use the reduction procedure to return the result
@@ -610,9 +610,9 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -628,20 +628,20 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     for i in range(n):
 
         ## Compute the valuation of each index, allowing for off-diagonal terms
-        if (self[i,i] == 0):
-            if (i == 0):
+        if self[i,i] == 0:
+            if i == 0:
                 val = valuation(self[i,i+1], p)    ## Look at the term to the right
             else:
-                if (i == n-1):
+                if i == n-1:
                     val = valuation(self[i-1,i], p)    ## Look at the term above
                 else:
                     val = valuation(self[i,i+1] + self[i-1,i], p)    ## Finds the valuation of the off-diagonal term since only one isn't zero
         else:
             val = valuation(self[i,i], p)
 
-        if (val == 0):
+        if val == 0:
             S0 += [i]
-        elif (val == 1):
+        elif val == 1:
             S1_empty_flag = False    ## Need to have a non-empty S1 set to proceed with Bad-type I reduction...
 
 
@@ -649,17 +649,17 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
 
     ## Check that S1 is non-empty and p|m to proceed, otherwise return no solutions.
-    if (S1_empty_flag == True) or (m % p != 0):
+    if S1_empty_flag == True or m % p != 0:
         return 0
 
     ## Check some conditions for no bad-type I solutions to exist
-    if (NZvec is not None) and (len(Set(S0).intersection(Set(NZvec))) != 0):
+    if NZvec is not None and len(Set(S0).intersection(Set(NZvec))) != 0:
         return 0
 
 
 
     ## Check that the form is primitive...                     WHY DO WE NEED TO DO THIS?!?
-    if (S0 == []):
+    if S0 == []:
         print " Using Q = " + str(self)
         print " and p = " + str(p)
         raise RuntimeError("Oops! The form is not primitive!")
@@ -679,11 +679,11 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     for i in range(n):
         if i in S0:
             Qnew[i,i] = p * Qnew[i,i]
-            if ((p == 2) and (i < n-1)):
+            if p == 2 and i < n-1:
                 Qnew[i,i+1] = p * Qnew[i,i+1]
         else:
             Qnew[i,i] = Qnew[i,i] / p
-            if ((p == 2) and (i < n-1)):
+            if p == 2 and i < n-1:
                 Qnew[i,i+1] = Qnew[i,i+1] / p
 
 
@@ -783,9 +783,9 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
+    if Zvec is not None and len(Set(Zvec) + Sn) > n:
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
+    if NZvec is not None and len(Set(NZvec) + Sn) > n:
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -798,10 +798,10 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     for i in range(n):
 
         ## Compute the valuation of each index, allowing for off-diagonal terms
-        if (self[i,i] == 0):
-            if (i == 0):
+        if self[i,i] == 0:
+            if i == 0:
                 val = valuation(self[i,i+1], p)    ## Look at the term to the right
-            elif (i == n-1):
+            elif i == n-1:
                 val = valuation(self[i-1,i], p)    ## Look at the term above
             else:
                 val = valuation(self[i,i+1] + self[i-1,i], p)    ## Finds the valuation of the off-diagonal term since only one isn't zero
@@ -809,31 +809,31 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
             val = valuation(self[i,i], p)
 
         ## Sort the indices into disjoint sets by their valuation
-        if (val == 0):
+        if val == 0:
             S0 += [i]
-        elif (val == 1):
+        elif val == 1:
             S1 += [i]
-        elif (val >= 2):
+        elif val >= 2:
             S2plus += [i]
 
 
 
     ## Check that S2 is non-empty and p^2 divides m to proceed, otherwise return no solutions.
     p2 = p * p
-    if (S2plus == []) or (m % p2 != 0):
+    if S2plus == [] or m % p2 != 0:
         return 0
 
 
 
 
     ## Check some conditions for no bad-type II solutions to exist
-    if (NZvec is not None) and (len(Set(S2plus).intersection(Set(NZvec))) == 0):
+    if NZvec is not None and len(Set(S2plus).intersection(Set(NZvec))) == 0:
         return 0
 
 
 
     ## Check that the form is primitive...                     WHY IS THIS NECESSARY?
-    if (S0 == []):
+    if S0 == []:
         print " Using Q = " + str(self)
         print " and p = " + str(p)
         raise RuntimeError("Oops! The form is not primitive!")
@@ -858,7 +858,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     for i in range(n):
         if i in S2plus:
             Qnew[i,i] = Qnew[i,i] / p2
-            if (p == 2) and (i < n-1):
+            if p == 2 and i < n-1:
                 Qnew[i,i+1] = Qnew[i,i+1] / p2
 
     ## DIAGNOSTIC

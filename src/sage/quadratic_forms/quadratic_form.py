@@ -395,7 +395,7 @@ class QuadraticForm(SageObject):
 
 
         ## Deal with:  QuadraticForm(matrix)
-        if is_Matrix(R) and (n is None):
+        if is_Matrix(R) and n is None:
 
             ## Test if R is symmetric and has even diagonal
             if not self._is_even_symmetric_matrix_(R):
@@ -413,7 +413,7 @@ class QuadraticForm(SageObject):
             self.__coeffs = []
             for i in range(M.nrows()):
                 for j in range(i, M.nrows()):
-                    if (i == j):
+                    if i == j:
                         self.__coeffs += [ M_ring(M[i,j] / 2) ]
                     else:
                         self.__coeffs += [ M_ring(M[i,j]) ]
@@ -442,7 +442,7 @@ class QuadraticForm(SageObject):
         if isinstance(entries, list) and (len(entries) == N):
             for i in range(N):
                 self.__coeffs[i] = self.__base_ring(entries[i])
-        elif (entries is not None):
+        elif entries is not None:
             raise TypeError("Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2.")
 
         ## -----------------------------------------------------------
@@ -566,7 +566,7 @@ class QuadraticForm(SageObject):
         out_str += "\\left[ \\begin{array}{" + n * "c" + "}"
         for i in range(n):
             for j in range(n):
-                if (i > j):
+                if i > j:
                     out_str += " * & "
                 else:
                     out_str += str(self[i,j]) + " & "
@@ -742,9 +742,9 @@ class QuadraticForm(SageObject):
           """
           if not isinstance(right, QuadraticForm):
               raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
-          elif (self.__n != right.__n):
+          elif self.__n != right.__n:
               raise TypeError("Oops!  Can't add these since the quadratic forms don't have the same sizes... =(")
-          elif (self.__base_ring != right.__base_ring):
+          elif self.__base_ring != right.__base_ring:
               raise TypeError("Oops!  Can't add these since the quadratic forms don't have the same base rings... =(")
           else:
               return QuadraticForm(self.__base_ring, self.__n, [self.__coeffs[i] + right.__coeffs[i]  for i in range(len(self.__coeffs))])
@@ -875,9 +875,9 @@ class QuadraticForm(SageObject):
             Q2 = QuadraticForm(self.base_ring(), m)
             return QFEvaluateMatrix(self, v, Q2)
 
-        elif (is_Vector(v) or isinstance(v, (list, tuple))):
+        elif is_Vector(v) or isinstance(v, (list, tuple)):
             ## Check the vector/tuple/list has the correct length
-            if not (len(v) == n):
+            if  len(v) != n:
                 raise TypeError("Oops!  Your vector needs to have length " + str(n) + " .")
 
             ## TO DO:  Check that the elements can be coerced into the base ring of Q -- on first elt.
@@ -943,7 +943,7 @@ class QuadraticForm(SageObject):
                     return False
 
         ## Test that all entries coerce to R
-        if not ((A.base_ring() == R) or (ring_coerce_test == True)):
+        if not (A.base_ring() == R or ring_coerce_test == True):
             try:
                 for i in range(n):
                     for j in range(i, n):
@@ -1552,7 +1552,7 @@ class QuadraticForm(SageObject):
             raise TypeError("vectors must have length " + str(self.dim()))
         if self.base_ring().characteristic() == 2:
             raise TypeError("not defined for rings of characteristic 2")
-        return (self(v+w) - self(v) - self(w))/2
+        return (self(v+w) - self(v) - self(w)) / 2
 
 
 ## =====================================================================================================

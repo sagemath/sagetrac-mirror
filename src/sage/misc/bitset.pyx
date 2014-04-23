@@ -608,11 +608,11 @@ cdef class FrozenBitset:
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
-            sage: F is None
+            sage: F == None
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
-            sage: F is not None
+            sage: F != None
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
@@ -1350,11 +1350,11 @@ cdef class Bitset(FrozenBitset):
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
-            sage: Bitset('11') is None
+            sage: Bitset('11') == None
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
-            sage: Bitset('11') is not None
+            sage: Bitset('11') != None
             Traceback (most recent call last):
             ...
             TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
