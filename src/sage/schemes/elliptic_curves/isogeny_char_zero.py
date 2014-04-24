@@ -106,7 +106,7 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
 
     We can compute isogenies over the rationals::
 
-        sage: from sage.schemes.elliptic_curves.ell_isogeny_char_zero import isogeny_kernel
+        sage: from sage.schemes.elliptic_curves.isogeny_char_zero import isogeny_kernel
 
         sage: E = EllipticCurve(QQ, [0,0,0,1,0])
         sage: R.<x> = QQ[]
@@ -237,7 +237,7 @@ def isogeny_Stark(E1, E2, degree):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.ell_isogeny_char_zero import isogeny_Stark
+        sage: from sage.schemes.elliptic_curves.isogeny_char_zero import isogeny_Stark
 
         sage: E1 = EllipticCurve(GF(97), [52, 31])
         sage: R.<x> = GF(97)[]; f = x^5 + 67*x^4 + 13*x^3 + 35*x^2 + 77*x + 69
@@ -445,7 +445,7 @@ def isogeny_BMSS(E1, E2, degree):
 
     ::
 
-        sage: from sage.schemes.elliptic_curves.ell_isogeny_char_zero import isogeny_BMSS, isogeny_kernel
+        sage: from sage.schemes.elliptic_curves.isogeny_char_zero import isogeny_BMSS, isogeny_kernel
 
     Here we don't know the degree of the isogeny, so we give an upper bound of
     8; the algorithm correctly finds the degree 5 normalized isogeny::
@@ -496,7 +496,7 @@ def isogeny_BMSS(E1, E2, degree):
 
     Test for :trac:`11095`::
 
-        sage: from sage.schemes.elliptic_curves.ell_isogeny_char_zero import *
+        sage: from sage.schemes.elliptic_curves.isogeny_char_zero import *
         sage: E = EllipticCurve([-1,0])
         sage: E2 = EllipticCurve([-3^4,0])
         sage: E.isogeny(kernel=None, codomain=E2, degree=9)
@@ -576,7 +576,7 @@ def _BMSS_diffeq(G, H, prec=None):
 
     EXAMPLES::
 
-       sage: from sage.schemes.elliptic_curves.ell_isogeny_char_zero import _BMSS_diffeq
+       sage: from sage.schemes.elliptic_curves.isogeny_char_zero import _BMSS_diffeq
 
        sage: P.<x> = PowerSeriesRing(QQ, 'x', 20)
        sage: G = H = 0

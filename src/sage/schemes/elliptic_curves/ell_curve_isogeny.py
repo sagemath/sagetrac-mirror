@@ -81,7 +81,7 @@ from sage.sets.set import Set
 
 from sage.misc.cachefunc import cached_function
 
-from sage.schemes.elliptic_curves import ell_isogeny_char_zero
+from sage.schemes.elliptic_curves import isogeny_char_zero
 
 #
 # Private function for parsing input to determine the type of
@@ -3489,10 +3489,10 @@ class EllipticCurveIsogeny(Morphism):
         raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogenies"
 
 
-# these functions have been moved to ell_isogeny_char_zero.py
+# these functions have been moved to isogeny_char_zero.py
 from sage.misc.superseded import deprecated_function_alias
-compute_isogeny_starks = deprecated_function_alias(11095, ell_isogeny_char_zero.isogeny_Stark)
-compute_isogeny_kernel_polynomial = deprecated_function_alias(11095, ell_isogeny_char_zero.isogeny_kernel)
+compute_isogeny_starks = deprecated_function_alias(11095, isogeny_char_zero.isogeny_Stark)
+compute_isogeny_kernel_polynomial = deprecated_function_alias(11095, isogeny_char_zero.isogeny_kernel)
 
 
 def compute_intermediate_curves(E1, E2):
@@ -3608,7 +3608,7 @@ def compute_sequence_of_maps(E1, E2, ell, algorithm=None):
     - ``ell`` - the degree of the isogeny from ``E1`` to ``E2``.
     - ``algorithm`` - the algorithm to use. Current available choices are ``BMSS``
       and ``Stark``
-      (see :py:mod:`sage.schemes.elliptic_curves.ell_isogeny_char_zero`).
+      (see :py:mod:`sage.schemes.elliptic_curves.isogeny_char_zero`).
       If ``None`` is given, the best algorithm is figured out automatically. 
 
     OUTPUT:
@@ -3673,9 +3673,9 @@ def compute_sequence_of_maps(E1, E2, ell, algorithm=None):
 
     (E1pr, E2pr, pre_isom, post_isom) = compute_intermediate_curves(E1, E2)
 
-    if algorithm is None or algorithm in ell_isogeny_char_zero.algorithm_names:
+    if algorithm is None or algorithm in isogeny_char_zero.algorithm_names:
         try:
-            ker_poly = ell_isogeny_char_zero.isogeny_kernel(E1pr, E2pr, ell, algorithm)
+            ker_poly = isogeny_char_zero.isogeny_kernel(E1pr, E2pr, ell, algorithm)
         except ZeroDivisionError as e:
             if not algorithm is None: raise e
             else: raise NotImplementedError, "No algorithm working on fields of small characteristic is currently implemented."
