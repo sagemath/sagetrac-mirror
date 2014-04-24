@@ -144,7 +144,7 @@ TikZ is used for typesetting the graphics, see the
 ::
 
     sage: print latex(NAF)
-    \begin{tikzpicture}[auto, initial text=]
+    \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
     \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
     \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
@@ -182,7 +182,7 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     ....:         r'\mathcal{%s}' % x.label()
     ....: )
     sage: print latex(NAF)
-    \begin{tikzpicture}[auto, initial text=]
+    \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
     \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
     \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
@@ -2572,7 +2572,7 @@ class FiniteStateMachine(SageObject):
              ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
             sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
             \path[->] (v0) edge[loop above] node {$\overline{1}$} ();
             \end{tikzpicture}
@@ -2612,7 +2612,7 @@ class FiniteStateMachine(SageObject):
             '3 2 1'
             sage: T.latex_options(format_transition_label=T.format_transition_label_reversed)
             sage: print latex(T)
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
@@ -2684,7 +2684,7 @@ class FiniteStateMachine(SageObject):
                 ....:     return "t"
                 sage: A.latex_options(format_transition_label=custom_format_transition_label)
                 sage: print latex(A)
-                \begin{tikzpicture}[auto, initial text=]
+                \begin{tikzpicture}[auto, initial text=, >=latex]
                 \node[state] (v0) at (3.000000, 0.000000) {$0$};
                 \node[state] (v1) at (-3.000000, 0.000000) {$1$};
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
@@ -2834,11 +2834,11 @@ class FiniteStateMachine(SageObject):
             ....:     )
             sage: T.state('I').format_label=lambda: r'\mathcal{I}'
             sage: latex(T)
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
-            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {${\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$\mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
@@ -2997,7 +2997,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=below] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
@@ -3024,7 +3024,7 @@ class FiniteStateMachine(SageObject):
                 state.final_word_out = []
         #### end compatibility code
 
-        options = ["auto", "initial text="]
+        options = ["auto", "initial text=", ">=latex"]
 
         nonempty_final_word_out = False
         for state in self.iter_final_states():
@@ -3088,7 +3088,7 @@ class FiniteStateMachine(SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$\$\mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
                     self.format_transition_label(vertex.final_word_out),
@@ -6428,7 +6428,7 @@ class Automaton(FiniteStateMachine):
 
             sage: F = Automaton([('A', 'B', 1)])
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1$} (v1);
@@ -6986,7 +6986,7 @@ class Transducer(FiniteStateMachine):
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1\mid 2$} (v1);
