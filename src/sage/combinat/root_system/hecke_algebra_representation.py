@@ -521,7 +521,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: p = Family(dict([[0,vz-1/vz],[2,v2-1/v2]]))
             sage: KL = L.algebra(K)
             sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
-            sage: T._test_relations()
+            sage: T._test_relations(root_lattice_weights=True)
 
             sage: L = CartanType(['B',3,1]).root_system().ambient_space()
             sage: K = QQ['q,v,vl,v2'].fraction_field()
@@ -531,7 +531,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: p = Family(dict([[3,v2-1/v2]]))
             sage: KL = L.algebra(K)
             sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
-            sage: T._test_relations()
+            sage: T._test_relations(root_lattice_weights=True)
 
             sage: L = CartanType(['A',1,1]).root_system().ambient_space()
             sage: K = QQ['q,v,v0,v2,vz'].fraction_field()
@@ -541,7 +541,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: p = Family(dict([[0,vz-1/vz],[1,v2-1/v2]]))
             sage: KL = L.algebra(K)
             sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant",doubled_parameters=p)
-            sage: T._test_relations()
+            sage: T._test_relations(root_lattice_weights=True)
 
             sage: L = CartanType(['C',2,1]).root_system().ambient_space()
             sage: K = QQ['q,v,vl,v2'].fraction_field()
@@ -551,7 +551,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: p = Family(dict([[1,v2-1/v2]]))
             sage: KL = L.algebra(K)
             sage: T = KL.nonreduced_demazure_lusztig_operators_on_classical(q, q1, q2, convention="dominant", doubled_parameters=p)
-            sage: T._test_relations()
+            sage: T._test_relations(root_lattice_weights=True)
 
         """
         tester = self._tester(**options)
@@ -564,9 +564,9 @@ class HeckeAlgebraRepresentation(SageObject):
         # method indirectly via TestSuite though.
         elements = options.get('elements', self.domain().some_elements())
         if self._doubled_parameters:
-            # only test elements whose support is in the root lattice
-            # In type A_1^{(1)} the general check is incorrect
-            elements = [elt for elt in elements if all(v.in_root_lattice() for v in elt.support())]
+            if 'root_lattice_weights' in options.keys() and options['root_lattice_weights'] == True:
+                # only test elements whose support is in the root lattice
+                elements = [elt for elt in elements if all(v.in_root_lattice() for v in elt.support())]
         T = self
         def Ti(x,i,c):
             return T[i](x)+c*x

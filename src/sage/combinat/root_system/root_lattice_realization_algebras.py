@@ -1321,7 +1321,7 @@ class Algebras(AlgebrasCategory):
                 return result
 
 
-        def nonreduced_demazure_lusztig_operators_on_classical(self, q, q1, q2=None, convention="antidominant", doubled_parameters=None,side="right"):
+        def nonreduced_demazure_lusztig_operators_on_classical(self, q, q1, q2=None, convention="antidominant", doubled_parameters=None,side="right", domain=None):
             r"""
             Given a lattice realization algebra of affine type, return the representation
             of the not-necessarily reduced affine Hecke algebra with possibly unequal parameters, on the lattice realization
@@ -1341,6 +1341,7 @@ class Algebras(AlgebrasCategory):
             - ``doubled_parameters`` -- (default: None) If not None, a Family whose key set is the set of doubled nodes `i` in a nonreduced
             affine root system, and whose values are associated with the doubled simple roots.
             - ``side`` -- (default: "right") Define a left or right action
+            - ``domain`` -- (default: None) optional domain of action
 
             Our example gives the Koornwinder affine Hecke representation.
 
@@ -1377,7 +1378,9 @@ class Algebras(AlgebrasCategory):
             def on_basis(l,i):
                 return funcs[i](l)
 
-            return HeckeAlgebraRepresentation(KL0, on_basis, self.cartan_type(), q1, q2, q, side=side, doubled_parameters=doubled_parameters)
+            if domain is None:
+                domain = KL0
+            return HeckeAlgebraRepresentation(domain, on_basis, self.cartan_type(), q1, q2, q, side=side, doubled_parameters=doubled_parameters)
 
         def nonreduced_demazure_lusztig_operators(self, q1=None, q2=None, convention="antidominant", doubled_parameters=None,side="right"):
             r"""

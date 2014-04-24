@@ -38,6 +38,8 @@ def DoubledNodes(self):
     Given an irreducible affine Cartan type, return the set of doubleable nodes,
     that is, those `i` such that `\alpha_i^\vee(\alpha_j)` is even for all affine Dynkin nodes `j`.
     """
+    from sage.combinat.root_system.cartan_type import CartanType
+    self = CartanType(self)
     I = self.index_set()
     M = self.cartan_matrix()
     return tuple([i for i in I if all(is_even(M[i,j]) for j in I)])
@@ -123,6 +125,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
 
         sage: Ty_Y(a)
         ((6*v^2-6)/v)*Ty[1,2,1] Y[(-1, -1, 0)] + 2*Ty[1,2,1] Y[(-1, 0, -1)] + 2*Ty[1,2,1] Y[(-1, 0, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(-1, -1, 0)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((8*v^2+4*v-8)/v)*Ty[2,1] Y[(-1, 0, 0)] + 6*Ty[2,1] Y[(-1, -1, 0)] + ((3*v^2-3)/v)*Ty[1] + 8*Ty[1] Y[(-1, 0, 0)] + Ty[1] Y[(0, 1, -1)] + 4*Ty[2] Y[(-1, -1, 0)] + ((12*v^2-12)/v)*Ty[2] Y[(0, -1, 0)] + 4*Ty[2] Y[(0, 0, -1)] + ((2*v^2+v-2)/v) + 12*Y[(0, -1, 0)]
+
         sage: T(Ty_Y(a))==a
         True
 
@@ -817,6 +820,50 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 """
                 pass
 
+            def product_by_generator_on_basis(self, b, i, side = 'right'):
+                r"""
+                Returns the product of the basis element indexed by `b`, by the generator `T_i`.
+
+                Override if there is a more efficient method for the given basis.
+
+                EXAMPLES::
+
+                    sage: H = AffineHeckeAlgebra("A2")
+                    sage: T = H.T()
+                    sage: pi = T.factor(0).basis().keys().an_element(); pi
+                    piX[2]
+                    sage: w = T.factor(1).basis().keys().an_element(); w
+                    S0*S1*S2
+                    sage: [(i, T.product_by_generator_on_basis((pi,w), i)) for i in H.cartan_type().index_set()]
+                    [(0, piX[2] TX[0,1,2,0]), (1, piX[2] TX[0,1,2,1]), (2, piX[2] TX[0,1] + ((v^2-1)/v)*piX[2] TX[0,1,2])]
+
+                """
+                if side == 'right':
+                    return self.monomial(b) * self.algebra_generators()[i]
+                else:
+                    return self.algebra_generators()[i] * self.monomial(b)
+
+            @abstract_method(optional=False)
+            def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
+                r"""
+                Returns the product of the basis element indexed by `b`, by the fundamental group element `pi`.
+
+                Override if there is a more efficient method for the given basis.
+
+                EXAMPLES::
+
+                    sage: H = AffineHeckeAlgebra("A2")
+                    sage: T = H.T()
+                    sage: pi0 = T.factor(0).basis().keys().an_element(); pi0
+                    piX[2]
+                    sage: w = T.factor(1).basis().keys().an_element(); w
+                    S0*S1*S2
+                    sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi)) for pi in H.fundamental_group()]
+                    [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[2,0,1]), (piX[2], piX[1] TX[1,2,0])]
+
+                """
+                pass
+
             def from_reduced_word(self, word):
                 r"""
                 Converts an affine or finite reduced word into a group element.
@@ -961,6 +1008,50 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             """
             return self(self.realization_of().tv_Lv()(y))
 
+        def product_by_generator_on_basis(self, b, i, side = 'right'):
+            r"""
+            The product of the basis element indexed by `b`, by the generator `T_i`.
+
+            EXAMPLES::
+
+                sage: H = AffineHeckeAlgebra("A2")
+                sage: T = H.T()
+                sage: pi = T.factor(0).basis().keys().an_element(); pi
+                piX[2]
+                sage: w = T.factor(1).basis().keys().an_element(); w
+                S0*S1*S2
+                sage: [(i, T.product_by_generator_on_basis((pi,w), i)) for i in H.cartan_type().index_set()]
+                [(0, piX[2] TX[0,1,2,0]), (1, piX[2] TX[0,1,2,1]), (2, piX[2] TX[0,1] + ((v^2-1)/v)*piX[2] TX[0,1,2])]
+
+            """
+            if side == 'right':
+                return self.from_direct_product((self.factor(0).monomial(b[0]), self.factor(1).product_by_generator_on_basis(b[1], i)))
+            else:
+                return self.algebra_generators()[i] * self.monomial(b)
+
+        def product_by_fundamental_group_element_on_basis(self, b, pi, side = 'right'):
+            r"""
+            The product of the basis element indexed by `b`, with the fundamental group element `pi`.
+
+            EXAMPLES::
+
+                sage: H = AffineHeckeAlgebra("A2")
+                sage: T = H.T()
+                sage: pi0 = T.factor(0).basis().keys().an_element(); pi0
+                piX[2]
+                sage: w = T.factor(1).basis().keys().an_element(); w
+                S0*S1*S2
+                sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi, side='left')) for pi in H.fundamental_group()]
+                [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[0,1,2]), (piX[2], piX[1] TX[0,1,2])]
+                sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi, side='right')) for pi in H.fundamental_group()]
+                [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[2,0,1]), (piX[2], piX[1] TX[1,2,0])]
+
+            """
+            if side == 'right':
+                return self.monomial(b) * self.factor_embedding(0)(self.factor(0).monomial(pi))
+            else:
+                return self.monomial((pi*b[0],b[1]))
+
     class AffineHeckeAlgebratv_Lv(SmashProductAlgebra, _Bases):
         r"""
         Affine Hecke algebra in "tv_Lv" style.
@@ -1061,6 +1152,26 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(0)(self.factor(0).algebra_generators()[i])] for i in self.realization_of().index_set()]))
 
+        def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
+            r"""
+            The product of the basis element indexed by `b`, with the fundamental group element `pi`.
+
+            EXAMPLES::
+
+                sage: H = AffineHeckeAlgebra("A2")
+                sage: tv_Lv = H.tv_Lv()
+                sage: v = tv_Lv.factor(0).basis().keys().an_element(); v.reduced_word()
+                [1, 2]
+                sage: mu = tv_Lv.factor(1).basis().keys().an_element(); mu
+                (2, 2, 3)
+                sage: [(pi, tv_Lv.product_by_fundamental_group_element_on_basis((v,mu), pi)) for pi in H.fundamental_group()]
+                [(piX[0], Ty[1,2] Y[(2, 2, 3)]), (piX[1], Ty[2,1] Y[(1, 2, 2)]), (piX[2], Y[(2, 2, 2)])]
+
+            """
+            if side == 'right':
+                return self.monomial(b) * self.realization_of().F_to_tv_Lv_func(pi)
+            else:
+                return self.realization_of().F_to_tv_Lv_func(pi) * self.monomial(b)
 
     class AffineHeckeAlgebraLv_tv(SmashProductAlgebra, _Bases):
         r"""
@@ -1167,3 +1278,23 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
 
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(1)(self.factor(1).algebra_generators()[i])] for i in self.realization_of().index_set()]))
+
+        def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
+            r"""
+            The product of the basis element indexed by `b`, with the fundamental group element `pi`.
+
+            EXAMPLES::
+
+                sage: H = AffineHeckeAlgebra("A2")
+                sage: Lv_tv = H.Lv_tv()
+                sage: mu = Lv_tv.factor(0).basis().keys().an_element(); mu
+                (2, 2, 3)
+                sage: v = Lv_tv.factor(1).basis().keys().an_element(); v.reduced_word()
+                [1, 2]
+                sage: [(pi, Lv_tv.product_by_fundamental_group_element_on_basis((mu,v), pi)) for pi in H.fundamental_group()]
+                [(piX[0], Y[(2, 2, 3)] Ty[1,2]), (piX[1], Y[(2, 3, 3)] Ty[2,1] + ((-v^2+1)/v)*Y[(2, 3, 3)] Ty[1] + ((v^2-1)/v)*Y[(3, 2, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)] Ty[2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)]), (piX[2], Y[(2, 3, 4)] + ((v^2-1)/v)*Y[(3, 2, 4)] Ty[1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 4)] + ((v^2-1)/v)*Y[(3, 3, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)] Ty[1,2] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)])]
+            """
+            if side == 'right':
+                return self.monomial(b) * self.realization_of().F_to_Lv_tv_func(pi)
+            else:
+                return self.realization_of().F_to_Lv_tv_func(pi) * self.monomial(b)
