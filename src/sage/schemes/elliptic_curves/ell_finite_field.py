@@ -1675,7 +1675,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return True
         elif self.base_field().characteristic() != other.base_field().characteristic():
             raise ValueError("The base fields must have the same characteristic.")
-        elif field==None:
+        elif field is None:
             if self.base_field().degree() == other.base_field().degree():
                 if self.cardinality() == other.cardinality():
                     return True

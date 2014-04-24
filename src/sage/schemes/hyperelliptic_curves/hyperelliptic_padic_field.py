@@ -577,12 +577,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         if TP is None:
             P_to_TP = V(0)
         else:
-            if TP!=None:
+            if TP is not None:
                 TPv = (TP[0]**g/TP[1]).valuation()
                 xTPv = TP[0].valuation()
             else:
                 xTPv = TPv = +Infinity
-            if TQ!=None:
+            if TQ is not None:
                 TQv = (TQ[0]**g/TQ[1]).valuation()
                 xTQv = TQ[0].valuation()
             else:

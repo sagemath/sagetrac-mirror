@@ -1668,10 +1668,10 @@ class TableauTuples(UniqueRepresentation, Parent):
             Tableau tuples of level 4 and size 3
         """
         # sanity testing
-        if not (level==None or level in PositiveIntegers()):
+        if not (level is None or level in PositiveIntegers()):
             raise ValueError( 'the level must be a positive integer' )
 
-        if not (size==None or size in NN):
+        if not (size is None or size in NN):
             raise ValueError( 'the size must be a non-negative integer' )
 
         # now that the inputs appear to make sense, return the appropriate class

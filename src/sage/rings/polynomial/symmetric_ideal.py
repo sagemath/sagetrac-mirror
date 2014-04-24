@@ -636,7 +636,7 @@ class SymmetricIdeal( Ideal_generic ):
             N = Integer(N)
         if hasattr(R,'_max') and R._max<N:
             R.gen()[N]
-        if report!=None:
+        if report is not None:
             print "Symmetrise %d polynomials at level %d"%(len(newOUT.gens()),N)
         if use_full_group:
             from sage.combinat.permutation import Permutations

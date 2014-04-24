@@ -1040,7 +1040,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 first = False
 
             # Upper bound
-            print ("<= "+str(ub) if ub!=None else "")
+            print ("<= "+str(ub) if ub is not None else "")
 
 
         ##### Variables

@@ -6297,7 +6297,7 @@ class GenericGraph(GenericGraph_pyx):
                     # The weight of an edge is the minimum over
                     # the weights of the parallel edges
 
-                    #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
+                    #  new value *if* ( none other        *or*   new is None and last > 1     *else*  change nothing
                     e[(u,v)] = l if ((u,v) not in e or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])

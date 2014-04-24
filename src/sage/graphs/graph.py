@@ -4409,7 +4409,7 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        if v==None:
+        if v is None:
             return networkx.degree_centrality(self.networkx_graph(copy=False))
         else:
             return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
@@ -5580,7 +5580,7 @@ class Graph(GenericGraph):
 
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number
-            if vertices==None:
+            if vertices is None:
                 vertices=self
             value={}
             for v in vertices:
