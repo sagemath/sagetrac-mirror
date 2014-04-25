@@ -368,6 +368,51 @@ class Automaton (DiGraph):
             #            res.F.add(v)
         return res
     
+    def determinize2 (self, I=None, A=None, nof=set(), noempty=True, verb=False):
+        if I is None:
+            if hasattr(self, 'I'):
+                I = self.I
+            if I is None:
+                raise ValueError("The set I of initial states must be defined !")
+        if A is None:
+            if hasattr(self, 'A'):
+                A = self.A
+            if A is None:
+                A = set(self.edge_labels())
+                #raise ValueError("The alphabet A must be defined !")
+        #from sage.sets.set import set
+        
+        nof = set(nof)
+        
+        c = 0
+        a = Automaton(loops=True, multiedges=True)
+        SS = set([Set(I)])
+        a.I = set([Set(I)])
+        a.A = A
+        a.add_vertex(Set(I))
+        while len(SS) != 0:
+            S = SS.pop()
+            o = dict([])
+            for l in A:
+                o[l] = set([])
+            for s in S:
+                for f, d, l in self.outgoing_edges(s):
+                    o[l].add(d)
+            for l in A:
+                if o[l] != set([]) or not noempty:
+                    if nof.isdisjoint(o[l]):
+                        o[l] = Set(o[l])
+                        if not a.has_vertex(o[l]):
+                            a.add_vertex(o[l])
+                            SS.add(o[l])
+                            c+=1
+                            if c%1000 == 0 and verb:
+                                print c
+                        a.add_edge(S, o[l], l)
+        if hasattr(self, 'F'):
+            a.F = set([v for v in a.vertices() for f in self.F if f in v])
+        return a
+    
     def complete (self, name=None, verb=False):
         r"""
         Complete the given automaton.

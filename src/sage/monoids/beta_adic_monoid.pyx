@@ -296,14 +296,21 @@ class BetaAdicMonoid(Monoid_class):
             from sage.functions.log import log
             n = int(5.2/-log(abs(self.b.N(prec=prec))))
         
-        if place is None: 
-            #choisis une place
-            places = K.places()
-            place = places[0]
-            for p in places:
-                if abs(p(b)) < 1:
-                    place = p
-                    #break
+        from sage.rings.complex_field import ComplexField
+        CC = ComplexField(prec)
+        if place is None:
+            if abs(b) < 1:
+                #garde la place courante
+                #place = lambda x: CC(x.n())
+                return [CC(c).conjugate().N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+            else:
+                #choisis une place
+                places = K.places()
+                place = places[0]
+                for p in places:
+                    if abs(p(b)) < 1:
+                        place = p
+                        #break
         
        #from sage.rings.qqbar import QQbar
         #from sage.rings.qqbar import QQbar, AA
@@ -1266,7 +1273,8 @@ class BetaAdicMonoid(Monoid_class):
         
         if verb: print "Determinization..."
         #determinize
-        ad = a.determinize(nof=a.F, verb=False)
+        ad = a.determinize2(nof=a.F)
+        #ad = a.determinize(nof=a.F, verb=False)
         #ad = a.determinize(I, self.C, nof, verb=verb)
         
         if verb: print " -> %s"%ad
