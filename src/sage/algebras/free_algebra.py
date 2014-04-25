@@ -134,13 +134,13 @@ from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
 from sage.algebras.free_algebra_element import FreeAlgebraElement
-from sage.algebras.pbw_algebra import PBWBasisOfFreeAlgebra
 
 import sage.structure.parent_gens
 
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.all import PolynomialRing
+from sage.rings.ring import Algebra
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
@@ -352,7 +352,7 @@ def is_FreeAlgebra(x):
     return isinstance(x, (FreeAlgebra_generic,FreeAlgebra_letterplace))
 
 
-class FreeAlgebra_generic(CombinatorialFreeModule):
+class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
     """
     The free algebra on `n` generators over a base ring.
 
@@ -558,6 +558,22 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             sage: A.<x> = FreeAlgebra(CC)
             sage: A(2)
             2.00000000000000
+
+        We check that the string coercions work correctly over
+        inexact fields::
+
+            sage: F.<x,y> = FreeAlgebra(CC)
+            sage: F('2')
+            2.00000000000000
+            sage: F('x')
+            1.00000000000000*x
+
+        Check that it also converts factorizations::
+
+            sage: f = Factorization([(x,2),(y,3)]); f
+            1.00000000000000*x^2 * 1.00000000000000*y^3
+            sage: F(f)
+            1.00000000000000*x^2*y^3
         """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
@@ -580,7 +596,9 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, basestring):
             from sage.all import sage_eval
-            return sage_eval(x, locals=self.gens_dict())
+            G = self.gens()
+            d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
+            return self(sage_eval(x, locals=d))
         R = self.base_ring()
         # coercion from free monoid
         if isinstance(x, FreeMonoidElement) and x.parent() is self._basis_keys:
@@ -589,6 +607,12 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         if isinstance(x, PBWBasisOfFreeAlgebra.Element) \
                 and self.has_coerce_map_from(x.parent()._alg):
             return self(x.parent().expansion(x))
+
+        # Check if it's a factorization
+        from sage.structure.factorization import Factorization
+        if isinstance(x, Factorization):
+            return self.prod(f**i for f,i in x)
+
         # coercion via base ring
         x = R(x)
         if x == 0:
@@ -758,6 +782,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         if mats is not None:
             import free_algebra_quotient
             return free_algebra_quotient.FreeAlgebraQuotient(self, I, mats, names)
+        #return super(FreeAlgebra_generic, self).quotient(mons, names)
         from sage.algebras.finitely_presented_algebra import FinitelyPresentedAlgebra, TwoSidedAlgebraIdeal
         if not isinstance(I, TwoSidedAlgebraIdeal):
             raise TypeError("must be a two sided algebra ideal")
