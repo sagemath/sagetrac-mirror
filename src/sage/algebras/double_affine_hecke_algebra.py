@@ -879,8 +879,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
     def __classcall_private__(cls, cartan_type, untwisted=True, reduced=True, dual_reduced=True, dual_side=False, **parameters):
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
-        if prefix is None:
-            prefix = ''
         return super(DoubleAffineHeckeAlgebraSansDuality, cls).__classcall__(cls, cartan_type, untwisted, reduced, dual_reduced, dual_side, **parameters)
 
     def __init__(self, cartan_type, untwisted, reduced, dual_reduced, dual_side, **parameters):
@@ -897,12 +895,14 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             prefixL = "Y"
             prefixLv = "X"
             self._convention = "antidominant"
-            self._the_q = dat.q() ** (HH._m)
+            self._the_q_unscaled = self._dat.q()**(-1)
+            self._the_q = self._dat.q() ** (-self._m)
         else:
             prefixL = "X"
             prefixLv = "Y"
             self._convention = "dominant"
-            self._the_q = dat.q() ** (-HH._m)
+            self._the_q_unscaled = self._dat.q()
+            self._the_q = self._dat.q() ** self._m
 
         self._L = self._dat.cartan_type_classical().root_system().ambient_space()
         self._KL = self._L.algebra(self._base_ring, prefix=prefixL)
@@ -919,33 +919,38 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         self._KLv = self._A.Lv_algebra() # group algebra of "dual" lattice
         self._Wv = self._Lv.weyl_group() # Finite Weyl group of dual lattice
 
-        cat = ModulesWithBasis(self._base_ring).TensorProducts()
-
-        self._LoT = tensor([self._KL, self._T], category = cat)
-        self._ToL= tensor([self._T, self._KL], category = cat)
+        cat = ModulesWithBasis(self._base_ring)
+        tcat = cat.TensorProducts()
+        self._LoT = tensor([self._KL, self._T], category = tcat)
+        self._ToL= tensor([self._T, self._KL], category = tcat)
 
         L_T = self.L_T()
         T_L = self.T_L()
         L_T.register_opposite(T_L)
 
-        L_T.factor_embedding(0).register_as_coercion()
-        L_T.factor_embedding(1).register_as_coercion()
-        T_L.factor_embedding(0).register_as_coercion()
-        T_L.factor_embedding(1).register_as_coercion()
+        SetMorphism(Hom(L_T.factor(0),L_T,category=cat),L_T.factor_embedding(0)).register_as_coercion()
+        SetMorphism(Hom(L_T.factor(1),L_T,category=cat),L_T.factor_embedding(1)).register_as_coercion()
+        SetMorphism(Hom(T_L.factor(0),T_L,category=cat),T_L.factor_embedding(0)).register_as_coercion()
+        SetMorphism(Hom(T_L.factor(1),T_L,category=cat),T_L.factor_embedding(1)).register_as_coercion()
+
+        self._LotvLv = tensor([self._KL, self._tv_Lv], category = tcat)
+        self._tvLvoL= tensor([self._tv_Lv, self._KL], category = tcat)
 
         L_tv_Lv = self.L_tv_Lv()
 
-        L_tv_Lv.factor_embedding(0).register_as_coercion()
-        L_tv_Lv.factor_embedding(1).register_as_coercion()
+        SetMorphism(Hom(L_tv_Lv.factor(0),L_tv_Lv,category=cat),L_tv_Lv.factor_embedding(0)).register_as_coercion()
+        SetMorphism(Hom(L_tv_Lv.factor(1),L_tv_Lv,category=cat),L_tv_Lv.factor_embedding(1)).register_as_coercion()
 
         def L_tv_Lv_to_L_T_func((mu, b)):
             return L_T.from_direct_product((self._KL.monomial(mu),self._T(self._tv_Lv.monomial(b))))
+
         L_tv_Lv_to_L_T = L_tv_Lv.module_morphism(on_basis=L_tv_Lv_to_L_T_func, codomain=L_T)
         L_tv_Lv_to_L_T.register_as_coercion()
 
         def L_T_to_L_tv_Lv_func((mu, b)):
             return L_tv_Lv.from_direct_product((self._KL.monomial(mu),self._tv_Lv(self._T.monomial(b))))
-        L_T_to_L_tv_Lv = L_tv_Lv.module_morphism(on_basis=L_T_to_L_tv_Lv_func, codomain=L_T)
+
+        L_T_to_L_tv_Lv = L_T.module_morphism(on_basis=L_T_to_L_tv_Lv_func, codomain=L_tv_Lv)
         L_T_to_L_tv_Lv.register_as_coercion()
 
     def double_affine_type(self):
@@ -988,33 +993,33 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("B3")
             sage: dct = HH.cartan_type().classical().dual()
             sage: I0 = dct.index_set()
-            sage: [(i, HH._Y.fundamental_weight(i)) for i in I0]
+            sage: [(i, HH._Lv.fundamental_weight(i)) for i in I0]
             [(1, (1, 0, 0)), (2, (1, 1, 0)), (3, (1, 1, 1))]
-            sage: [(i, HH.Y_to_X()(HH._Y.fundamental_weight(i))) for i in I0]
+            sage: [(i, HH.Y_to_X()(HH._Lv.fundamental_weight(i))) for i in I0]
             [(1, (1, 0, 0)), (2, (1, 1, 0)), (3, (1, 1, 1))]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("C3")
             sage: dct = HH.cartan_type().classical().dual()
             sage: I0 = dct.index_set()
-            sage: [(i, HH._Y.fundamental_weight(i)) for i in I0]
+            sage: [(i, HH._Lv.fundamental_weight(i)) for i in I0]
             [(1, (1, 0, 0)), (2, (1, 1, 0)), (3, (1/2, 1/2, 1/2))]
-            sage: [(i, HH.Y_to_X()(HH._Y.fundamental_weight(i))) for i in I0]
+            sage: [(i, HH.Y_to_X()(HH._Lv.fundamental_weight(i))) for i in I0]
             [(1, (1, 0, 0)), (2, (1, 1, 0)), (3, (1/2, 1/2, 1/2))]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("F4")
             sage: dct = HH.cartan_type().classical().dual()
             sage: I0 = dct.index_set()
-            sage: [(i, HH._Y.fundamental_weight(i)) for i in I0]
+            sage: [(i, HH._Lv.fundamental_weight(i)) for i in I0]
             [(1, (1, 0, 0, 0)), (2, (3/2, 1/2, 1/2, 1/2)), (3, (2, 1, 1, 0)), (4, (1, 1, 0, 0))]
-            sage: [(i, HH.Y_to_X()(HH._Y.fundamental_weight(i))) for i in I0]
+            sage: [(i, HH.Y_to_X()(HH._Lv.fundamental_weight(i))) for i in I0]
             [(1, (1, 1, 0, 0)), (2, (2, 1, 1, 0)), (3, (3, 1, 1, 1)), (4, (2, 0, 0, 0))]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("G2")
             sage: dct = HH.cartan_type().classical().dual()
             sage: I0 = dct.index_set()
-            sage: [(i, HH._Y.fundamental_weight(i)) for i in I0]
+            sage: [(i, HH._Lv.fundamental_weight(i)) for i in I0]
             [(1, (2, -1, -1)), (2, (1, 0, -1))]
-            sage: [(i, HH.Y_to_X()(HH._Y.fundamental_weight(i))) for i in I0]
+            sage: [(i, HH.Y_to_X()(HH._Lv.fundamental_weight(i))) for i in I0]
             [(1, (1, 0, -1)), (2, (2/3, -1/3, -1/3))]
 
         TODO: Move to ambient space code?
@@ -1027,16 +1032,16 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             return lambda x: x
         typ = cartan_type.type()
         if typ in ('B','C'):
-            return lambda v: self._X.from_vector(v.to_vector())
+            return lambda v: self._L.from_vector(v.to_vector())
         dual_weight_space = cartan_type.dual().root_system().weight_space()
         if typ == 'F':
             # F4 and G2 have dual implemented as Dynkin reversals of themselves
             def YXF(mu):
-                return self._X.from_vector(vector((mu[0]+mu[1],mu[0]-mu[1],mu[2]+mu[3],mu[2]-mu[3]),QQ))
+                return self._L.from_vector(vector((mu[0]+mu[1],mu[0]-mu[1],mu[2]+mu[3],mu[2]-mu[3]),QQ))
             return YXF
         if typ == 'G':
             def YXG(mu):
-                return self._X.from_vector(vector(((2*mu[0]+mu[1])/3,(mu[0]+2*mu[2])/3,(2*mu[1]+mu[2])/3),QQ))
+                return self._L.from_vector(vector(((2*mu[0]+mu[1])/3,(mu[0]+2*mu[2])/3,(2*mu[1]+mu[2])/3),QQ))
             return YXG
         raise TypeError, "%s should be an irreducible finite Cartan type"%self.cartan_type()
 
@@ -1058,13 +1063,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("A1")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [2]
             sage: E.cartan_type().classical().cartan_matrix()
             [2]
             sage: E = DoubleAffineHeckeAlgebraSansDuality("A2")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -1]
             [-1  2]
             sage: E.cartan_type().classical().cartan_matrix()
@@ -1072,7 +1077,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             [-1  2]
             sage: E = DoubleAffineHeckeAlgebraSansDuality("B2")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -1]
             [-2  2]
             sage: E.cartan_type().classical().cartan_matrix()
@@ -1081,7 +1086,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("C2")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -2]
             [-1  2]
             sage: E.cartan_type().classical().cartan_matrix()
@@ -1090,7 +1095,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("F4")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -1  0  0]
             [-1  2 -1  0]
             [ 0 -2  2 -1]
@@ -1103,7 +1108,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("G2")
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -3]
             [-1  2]            
             sage: E.cartan_type().classical().cartan_matrix()
@@ -1112,19 +1117,19 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("B2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -1]
             [-1  1]
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("C2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -2]
             [-2  4]
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("F4", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [   2   -1    0    0]
             [  -1    2   -1    0]
             [   0   -1    1 -1/2]
@@ -1132,7 +1137,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("G2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
-            sage: Matrix([[E.Y_pair_X()(E._Y.simple_root(i), E._X.simple_root(j)) for j in I0] for i in I0])
+            sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
             [ 2 -3]
             [-3  6]
 
@@ -1163,6 +1168,12 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         """
         return self._L
 
+    def Lv(self):
+        r"""
+        The dual lattice.
+        """
+        return self._Lv
+
     def L_algebra(self):
         r"""
         The group algebra of the lattice `L`
@@ -1171,10 +1182,31 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2")
             sage: KL = HH.L_algebra(); KL
+            Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
             sage: KL.an_element()
+            X[(2, 2)]
 
+            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2",dual_side=True)
+            sage: KL = HH.L_algebra(); KL
+            Group algebra of the Ambient space of the Root system of type ['B', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+            sage: KL.an_element()
+            Y[(2, 2)]
         """
         return self._KL
+
+    def Lv_algebra(self):
+        r"""
+        The group algebra of the dual lattice `Lv`
+
+        EXAMPLES::
+
+            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2")
+            sage: KLv = HH.Lv_algebra(); KLv
+            Group algebra of the Ambient space of the Root system of type ['C', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+            sage: KLv.an_element()
+            Y[(2, 2)]
+        """
+        return self._KLv
 
     def F(self):
         r"""
@@ -1219,6 +1251,12 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: for i in F.special_nodes():
             ...       for j in HH.cartan_type().classical().index_set():
             ...           print i, j, HH.F_on_L(F(i))(HH._L.fundamental_weight(j))
+            0 1 Y[(1, 0, 0)]
+            0 2 Y[(1, 1, 0)]
+            1 1 1/q*Y[(0, 1, 0)]
+            1 2 1/q^2*Y[(0, 1, 1)]
+            2 1 1/q^2*Y[(0, 0, 1)]
+            2 2 1/q*Y[(1, 0, 1)]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("B4",dual_side=True)
             sage: F = HH.double_affine_type().fundamental_group()
@@ -1227,6 +1265,14 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: for i in F.special_nodes():
             ...       for j in HH.cartan_type().classical().index_set():
             ...           print i, j, HH.F_on_L(F(i))(HH._L.fundamental_weight(j))
+            0 1 Y[(1, 0, 0, 0)]
+            0 2 Y[(1, 1, 0, 0)]
+            0 3 Y[(1, 1, 1, 0)]
+            0 4 Y[(1/2, 1/2, 1/2, 1/2)]
+            1 1 1/q^2*Y[(-1, 0, 0, 0)]
+            1 2 1/q^2*Y[(-1, 1, 0, 0)]
+            1 3 1/q^2*Y[(-1, 1, 1, 0)]
+            1 4 1/q*Y[(-1/2, 1/2, 1/2, 1/2)]
 
             TODO: Fix the powers of q.
 
@@ -1238,12 +1284,14 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         omi = self._Lv.fundamental_weight(i)
         rwuii = omi.reduced_word(positive=False)
         uii = self._W.from_reduced_word(rwuii)
-        return lambda mu: self.L_algebra().term(uii.action(mu), self.double_affine_type().q()**(self.Y_pair_X_m(self._Lv.fundamental_weight(istar),mu)))
+        return lambda mu: self.L_algebra().term(uii.action(mu), self._the_q_unscaled**(self.Y_pair_X_m(self._Lv.fundamental_weight(istar),mu)))
 
     @cached_method
     def s0_on_L(self, mu):
         r"""
         Act on the element `\mu` of `L` by `s_0`.
+
+        TODO:: CHECK!!!!
 
         EXAMPLES::
 
@@ -1263,11 +1311,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: print "q should be replaced by q**(1/%s)"%HH._m
             q should be replaced by q**(1/2)
             sage: [(i, HH.s0_on_L(HH._L.fundamental_weight(i))) for i in HH.cartan_type().classical().index_set()]
+            [(1, 1/q^2*Y[(0, -1)]), (2, 1/q^2*Y[(-1/2, -1/2)])]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("C2", dual_side=True)
             sage: print "q should be replaced by q**(1/%s)"%HH._m
             q should be replaced by q**(1/2)
             sage: [(i, HH.s0_on_L(HH._L.fundamental_weight(i))) for i in HH.cartan_type().classical().index_set()]
+            [(1, 1/q^2*Y[(-1, 0)]), (2, 1/q^2*Y[(-1, 1)])]
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2",untwisted=False)
             sage: print "q should be replaced by q**(1/%s)"%HH._m
@@ -1279,6 +1329,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: print "q should be replaced by q**(1/%s)"%HH._m
             q should be replaced by q**(1/2)
             sage: [(i, HH.s0_on_L(HH._L.fundamental_weight(i))) for i in HH.cartan_type().classical().index_set()]
+            [(1, 1/q^4*Y[(-1, 0)]), (2, 1/q^2*Y[(-1/2, 1/2)])]
 
         """
         dat = self.double_affine_type()
@@ -1289,43 +1340,34 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             phiv = dat.cartan_type().classical().root_system().coroot_space().highest_root().to_ambient()
             phi = phiv.associated_coroot()
         sp = mu.scalar(phiv)
-        return dat.q()**(self._m * sp) * self.L_algebra().monomial(mu - sp * phi)
+        return self._the_q_unscaled**(self._m * sp) * self._KL.monomial(mu - sp * phi)
 
     @cached_method
     def s0_on_L_algebra(self):
         r"""
         The operator that acts on the group algebra of `L` by `s_0`.
 
+        TODO:: FIX!!!!!!!!!!!!
+
         EXAMPLES::
 
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
             sage: print "q should be replaced by q**(1/%s)"%HH._m
             q should be replaced by q**(1/3)
+            sage: [(i, HH.s0_on_L_algebra()(HH._KL.monomial(HH._L.fundamental_weight(i)))) for i in HH.cartan_type().classical().index_set()]
+            [(1, q^3*X[(0, 0, 1)]), (2, q^3*X[(0, 1, 1)])]
             sage: [(i, HH.s0_on_L_algebra()(HH.s0_on_L(HH._L.fundamental_weight(i)))) for i in HH.cartan_type().classical().index_set()]
             [(1, X[(1, 0, 0)]), (2, X[(1, 1, 0)])]
-
             sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True)
             sage: print "q should be replaced by q**(1/%s)"%HH._m
-            q should be replaced by q**(1/3)
+            q should be replaced by q**(1/2)
+            sage: [(i, HH.s0_on_L_algebra()(HH._KL.monomial(HH._L.fundamental_weight(i)))) for i in HH.cartan_type().classical().index_set()]
+            [(1, 1/q^2*Y[(0, -1)]), (2, 1/q^2*Y[(-1/2, -1/2)])]
             sage: [(i, HH.s0_on_L_algebra()(HH.s0_on_L(HH._L.fundamental_weight(i)))) for i in HH.cartan_type().classical().index_set()]
-
+            [(1, Y[(1, 0)]), (2, Y[(1/2, 1/2)])]
         """
-        KL = self.L_algebra()
+        KL = self._KL
         return KL.module_morphism(on_basis=self.s0_on_L, codomain=KL, category=ModulesWithBasis(self.base_ring()))
-
-    def Lv_algebra(self):
-        r"""
-        The group algebra of the dual lattice `Lv`
-
-        EXAMPLES::
-
-            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2")
-            sage: KLv = HH.Lv_algebra(); KLv
-            Group algebra of the Ambient space of the Root system of type ['C', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-            sage: KLv.an_element()
-
-        """
-        return self._KLv
 
     def T(self):
         r"""
@@ -1376,6 +1418,12 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         """
         return self.DoubleAffineHeckeAlgebraSansDualityL_tv_Lv()
+
+    def tv_Lv(self):
+        return self._tv_Lv
+
+    def tv(self):
+        return self._tv
 
     def a_realization(self):
         r"""
@@ -1445,8 +1493,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         class ParentMethods:
 
-            @cached_method
-            def T_generators():
+            def T_generators(self):
                 r"""
                 The family of elements `T_i` in the given realization.
 
@@ -1462,6 +1509,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: HH.T_L().T_generators()
                     Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
                     sage: HH.L_tv_Lv().T_generators()
+                    Finite family {0: Ty[1,2,1] Y[(-1, 0, 1)] + ((v^2-1)/v), 1: Ty[1], 2: Ty[2]}
 
                 TODO:: other realizations
 
@@ -1469,7 +1517,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 HH = self.realization_of()
                 return Family(dict([[i, self(HH.L_T().T_generators()[i])] for i in HH.double_affine_type().cartan_type().index_set()]))
 
-            @cached_method
             def from_F(self):
                 r"""
                 The family of elements for the fundamental group in ``self``.
@@ -1525,25 +1572,29 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: L_tv_Lv = HH.L_tv_Lv()
                     sage: KLv = HH.Lv_algebra()
                     sage: Lv = HH.Lv()
-                    sage: b = KLv.monomial(Lv.simple_root(1))
+                    sage: b = KLv.monomial(Lv.simple_root(1)); b
                     Y[(1, -1, 0)]
                     sage: b.parent()
                     Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
-                    sage: bb = L_tv_Lv.Lv_morphism(b)
+                    sage: bb = L_tv_Lv.Lv_morphism(b); bb
                     Y[(1, -1, 0)]
                     sage: bb.parent()
-                    Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                    L_tv_Lv basis of The double affine Hecke algebra of type ['A', 2, 1]
                     sage: c = HH.L_T().Lv_morphism(b); c
+                    TX[0,2,0,1] + ((-v^2+1)/v)*TX[0,2,1]
                     sage: L_tv_Lv(c) == b
-
+                    True
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2", dual_side=True)
                     sage: L_tv_Lv = HH.L_tv_Lv()
                     sage: KLv = HH.Lv_algebra()
                     sage: Lv = HH.Lv()
                     sage: b = KLv.monomial(Lv.simple_root(1)); b
+                    X[(1, -1, 0)]
                     sage: b.parent()
+                    Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
                     sage: c = HH.T_L()(b); c
                     sage: c.parent()
+                    L_T basis of The double affine Hecke algebra of type ['A', 2, 1]
 
                 """
                 HH = self.realization_of()
@@ -1564,7 +1615,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: b = L_T.T_morphism(a); b
                     2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 8*piX[2] TX[0] + 12*piX[2] TX[0,1] + 4*piX[2] + 4*piX[2] TX[0,1,2]
                     sage: b == L_T(a)
-
+                    True
                 """
                 return self(self.realization_of().L_T().T_morphism(a))
 
@@ -1581,7 +1632,9 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: tv_Lv = HH.tv_Lv()
                     sage: tv = HH.tv()
                     sage: a = tv.an_element(); a
+                    Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
                     sage: b = L_T.tv_morphism(a); b
+                    3*TX[2,1] + 3*TX[1,2] + TX[1,2,1]                    
                     sage: b == L_T(a)
 
                 """
@@ -1602,9 +1655,9 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     TX[0,2,1]
 
                     sage: DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True).L_T().from_reduced_word([0,2,1])
-
+                    TY[0,2,1]
                 """
-                return self(self.realization_of().X_TX().from_reduced_word(word))
+                return self(self.realization_of().L_T().from_reduced_word(word))
 
             def from_reduced_word_dual(self, word):
                 r"""
@@ -1619,15 +1672,20 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2")
                     sage: a = HH.L_tv_Lv().from_reduced_word_dual([2,1]); a
+                    Ty[2,1]
                     sage: L_T = HH.L_T()
                     sage: b = L_T.from_reduced_word_dual([2,1]); b
+                    TX[2,1]
                     sage: b == L_T(a)
-
+                    True
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", dual_side=True)
                     sage: a = HH.L_tv_Lv().from_reduced_word_dual([2,1]); a
+                    Tx[2,1]
                     sage: L_T = HH.L_T()
                     sage: b = L_T.from_reduced_word_dual([2,1]); b
+                    TY[2,1]
                     sage: b == L_T(a)
+                    True
 
                 """
                 return self(self.realization_of().L_tv_Lv().from_reduced_word(word))
@@ -1672,8 +1730,9 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             # on the group algebra KL.
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
             HH._KLaf = dat.cartan_type().root_system().ambient_space().algebra(HH.base_ring())
-            HH._ML = HH._KLaf.nonreduced_demazure_lusztig_operators_on_classical(self._the_q, dat._q1, dat._q2, convention=self._convention, doubled_parameters=dat.doubled_parameters(),domain=HH.L_algebra())
-            cat = ModulesWithBasis(HH.base_ring()).TensorProducts()
+            HH._ML = HH._KLaf.nonreduced_demazure_lusztig_operators_on_classical(HH._the_q, dat._q1, dat._q2, convention=HH._convention, doubled_parameters=dat.doubled_parameters(),domain=HH.L_algebra())
+            mcat = ModulesWithBasis(HH.base_ring())
+            tmcat = mcat.TensorProducts()
             # Now we define the action of the above nonextended affine Hecke algebra on KL # T
             # This is done by first giving the action of the generators `T_i` for `i \in I`:
             # T_i * (e^\mu # pi T_w) = (T_i(e^\mu) - q1[i] e^{s_i(\mu)}) # pi T_w + e^{s_i(\mu)} # T_i pi T_w
@@ -1685,7 +1744,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 return tensor([HH._ML[i](HH._KL.monomial(mu)) - dat._q1[i] * smupoly, HH._T.monomial((pi,w))],category=tmcat) + tensor([smupoly, HH._T.product_by_generator_on_basis((pi,w), i, side='left')],category=tmcat)
             # Use the HeckeAlgebraRepresentation tool to obtain a left action of the nonextended affine Hecke on KL # T.
 
-            HH._MLoT = HeckeAlgebraRepresentation(HH._LoT, Ti_on_LoT_left, dat.cartan_type(), dat._q1, dat._q2, HH._use_q, side='left', doubled_parameters=dat.doubled_parameters)
+            HH._MLoT = HeckeAlgebraRepresentation(HH._LoT, Ti_on_LoT_left, dat.cartan_type(), dat._q1, dat._q2, HH._the_q, side='left', doubled_parameters=dat.doubled_parameters)
 
             # Now define the left action of the fundamental group elements on KL # T.
             def pi_on_LoT_left(pi, (mu,pi0,w)):
@@ -1693,7 +1752,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             F = HH._F
             HH._F_on_LoT_left_morphisms = Family(dict([[F(i), HH._LoT.module_morphism(on_basis=functools.partial(pi_on_LoT_left, F(i)),category=mcat,codomain=HH._LoT)] for i in F.special_nodes()]))
-            # twist X_TX_func takes (pi,w,mu) and outputs an element of KL # T.
+            # twist L_T_func takes (pi,w,mu) and outputs an element of KL # T.
             def twist_LoT_func((pi,w,mu)):
                 assert pi in F, "%s should be in the fundamental group %s"%(pi, F)
                 assert w in HH._A.affine_weyl(), "%s should be in the affine Weyl group %s"%(w, HH._Wa)
@@ -1702,7 +1761,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             HH._twist_LoT = HH._ToL.module_morphism(on_basis=twist_LoT_func, codomain = HH._LoT, category = tmcat)
             SmashProductAlgebra.__init__(self, HH._KL, HH._T, HH._twist_LoT, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
-            self._style = "LoT"
+            self._style = "L_T"
 
         def _repr_(self):
             HH = self.realization_of()
@@ -1832,7 +1891,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 return tensor([HH._T.product_by_fundamental_group_element_on_basis((pi0,w),pi,side='right'),HH.F_on_L(pi)(mu)],category=tmcat)
 
             F = HH._T.factor(0).basis().keys()
-            HH._F_on_ToL_right_morphisms = Family(dict([[F(i), HH._ToL.module_morphism(on_basis=functools.partial(piX_on_ToL_right, F(i)),category=mcat,codomain=HH._ToL)] for i in F.special_nodes()]))
+            HH._F_on_ToL_right_morphisms = Family(dict([[F(i), HH._ToL.module_morphism(on_basis=functools.partial(pi_on_ToL_right, F(i)),category=mcat,codomain=HH._ToL)] for i in F.special_nodes()]))
             # twist T_L_func takes (mu,pi,w) and outputs an element of T # L.
             def twist_ToL_func((mu,pi,w)):
                 assert mu in HH._L, "%s should be in the ambient space %s"%(mu,HH._L)
@@ -1952,54 +2011,18 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             # That is, we define the twist for L_tv_Lv in terms of the twist for L_T.
             mcat = ModulesWithBasis(HH.base_ring())
             tmcat = mcat.TensorProducts()
-            coerceoid = tensor([HH.T().coerce_map_from(HH.tv_Lv()), KL.identity_map()], category=tmcat)
-            idocoerce = tensor([KL.identity_map(), HH.tv_Lv().coerce_map_from(HH.T())], category=tmcat)
+            KL = HH._KL
+            coerceoid = tensor([HH.T().coerce_map_from(HH.tv_Lv()), KL._identity_map()], category=tmcat)
+            idocoerce = tensor([KL._identity_map(), HH.tv_Lv().coerce_map_from(HH.T())], category=tmcat)
 
-            L_tv_Lv_twist = idocoerce * HH.T_L().twist() * coerceoid
+            HH._twist_L_tv_Lv = SetMorphism(Hom(HH._tvLvoL,HH._LotvLv,mcat),idocoerce * HH.L_T().twist() * coerceoid)
 
-            # twist T_L_func takes (mu,pi,w) and outputs an element of T # L.
-            def twist_ToL_func((mu,pi,w)):
-                assert mu in HH._L, "%s should be in the ambient space %s"%(mu,HH._L)
-                assert pi in F, "%s should be in the fundamental group %s"%(pi, F)
-                assert w in HH._A.affine_weyl(), "%s should be in the fundamental group %s"%(w, HH._A.affine_weyl())
-                return HH._ToLM.Tw(w)(HH._F_on_ToL_right_morphisms[pi.inverse()](HH._ToL.monomial(HH._T.one_basis()+(mu,))))
-
-            HH._twist_ToL = HH._LoT.module_morphism(on_basis=twist_ToL_func, codomain = HH._ToL, category = tmcat)
-            SmashProductAlgebra.__init__(self, HH._T, HH._KL, HH._twist_ToL, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
-            self._style = "T_L"
+            SmashProductAlgebra.__init__(self, HH._KL, HH.tv_Lv(), HH._twist_L_tv_Lv, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+            self._style = "L_tv_Lv"
 
         def _repr_(self):
             HH = self.realization_of()
             return "%s basis of %s"%(self._style, HH._repr_())
-
-        @cached_method
-        def T_generators(self):
-            r"""
-            A family on the affine Dynkin node set with values given by `T_i`.
-
-            EXAMPLES::
-
-                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2")
-                sage: T_L = HH.T_L()
-                sage: T_L.T_generators()
-                Finite family {0: TX[0], 1: TX[1], 2: TX[2]}
-
-            """
-            return Family(dict([[i, self.factor_embedding(0)(self.factor(0).from_reduced_word([i]))] for i in self.realization_of().double_affine_type().cartan_type().index_set()]))
-
-        @cached_method
-        def from_F(self):
-            r"""
-            Family on the special nodes of the affine Dynkin diagram of `L`, with values in ``self``.
-
-            EXAMPLES::
-
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").T_L().from_F()
-                Finite family {0: pi[0], 1: pi[1], 2: pi[2]}
-
-            """
-            F = self.realization_of().double_affine_type().fundamental_group()
-            return Family(dict([[i, self.factor_embedding(0)(self.factor(0).from_fundamental(F(i)))] for i in F.special_nodes()]))
 
         def L_morphism(self, a):
             r"""
@@ -2008,47 +2031,66 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
-                sage: T_L = HH.T_L()
-                sage: KL = T_L.factor(1)
+                sage: L_tv_Lv = HH.L_tv_Lv()
+                sage: KL = HH.L_algebra()
                 sage: a = KL.an_element(); a
                 X[(2, 2, 3)]
-                sage: b = T_L.L_morphism(a); b
+                sage: b = L_tv_Lv.L_morphism(a); b
                 X[(2, 2, 3)]
                 sage: b.parent()
-                T_L basis of The double affine Hecke algebra of type ['A', 2, 1]
+                L_tv_Lv basis of The double affine Hecke algebra of type ['A', 2, 1]
+            """
+            return self.factor_embedding(0)(a)
+
+
+        def Lv_morphism(self, a):
+            r"""
+            The embedding of the group algebra of `Lv` into ``self``.
+
+            EXAMPLES::
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2")
+                sage: KLv = HH.Lv_algebra()
+                sage: a = KLv.an_element(); a
+                Y[(2, 2, 3)]
+                sage: a.parent()
+                Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
+                sage: L_tv_Lv = HH.L_tv_Lv()
+                sage: b = L_tv_Lv.Lv_morphism(a); b
+                Y[(2, 2, 3)]
+                sage: b.parent()
+                L_tv_Lv basis of The double affine Hecke algebra of type ['A', 2, 1]
 
             """
-            return self.factor_embedding(1)(a)
+            return self.factor_embedding(1)(self.factor(1).factor_embedding(1)(a))
 
-        def T_morphism(self, a):
+        def tv_morphism(self, a):
             r"""
-            The image of the element `a` of `T` in ``self``.
+            Returns the image of `a` from the finite Hecke algebra "tv" of dual type, to ``self``.
 
             EXAMPLES::
 
                 sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
-                sage: T_L = HH.T_L()
-                sage: T = T_L.factor(0)
-                sage: a = T.an_element(); a
-                2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 8*piX[2] TX[0] + 12*piX[2] TX[0,1] + 4*piX[2] + 4*piX[2] TX[0,1,2]
-                sage: b = T_L.T_morphism(a); b
-                2*TX[0] + 3*TX[0,1] + 1 + TX[0,1,2] + 4*piX[1] TX[0] + 6*piX[1] TX[0,1] + 2*piX[1] + 2*piX[1] TX[0,1,2] + 8*piX[2] TX[0] + 12*piX[2] TX[0,1] + 4*piX[2] + 4*piX[2] TX[0,1,2]
-                sage: b.parent()
-                T_L basis of The double affine Hecke algebra of type ['A', 2, 1]                
+                sage: tv_Lv = HH.tv_Lv()
+                sage: tv = HH.tv()
+                sage: a = tv.an_element(); a
+                Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
+                sage: b = HH.L_tv_Lv().tv_morphism(a); b
+                Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
+                sage: b == L_tv_Lv(a)
 
             """
-            return self.factor_embedding(0)(a)
+            return self.factor_embedding(1)(self.factor(1).factor_embedding(0)(a))
 
-        def from_reduced_word(self, word):
+        def from_reduced_word_dual(self, word):
             r"""
-            Given a reduced word for an element `w` in the affine Weyl group of `L`, return the image of the basis element `T_w`
+            Given a reduced word for an element `w` in the classical Weyl group of `Lv`, return the image of the basis element `T_w`
             in ``self``.
 
             EXAMPLES::
 
-                sage: DoubleAffineHeckeAlgebraSansDuality("A2").T_L().from_reduced_word([0,2,1])
-                TX[0,2,1]
+                sage: DoubleAffineHeckeAlgebraSansDuality("A2").T_L().from_reduced_word_dual([2,1])
 
             """
-            return self.T_morphism(self.factor(0).from_reduced_word(word))
+            return self.factor_embedding(1)(self.factor(1).from_reduced_word(word))
 

@@ -923,7 +923,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             E._KF = E._F.algebra(E.base_ring())
             E._KF._print_options['prefix'] = ""
             E._KF._print_options['bracket'] = ""
-            mcat = ModulesWithBasis(E.base_ring()).TensorProducts()
+            cat = ModulesWithBasis(E.base_ring())
+            mcat = cat.TensorProducts()
             E._TaoKF = tensor([E._Ta, E._KF], category = mcat)
             E._KFoTa = tensor([E._KF, E._Ta], category = mcat)
             def ext_twist_func((w, f)):
@@ -931,6 +932,9 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             E._ext_twist = E._TaoKF.module_morphism(on_basis=E._TaoKF.monomial*ext_twist_func, codomain=E._KFoTa, category=mcat)
             SmashProductAlgebra.__init__(self, E._KF, E._Ta, E._ext_twist, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "T"
+
+            SetMorphism(Hom(E._KF,self, cat),self.factor_embedding(0)).register_as_coercion()
+            SetMorphism(Hom(E._Ta,self, cat),self.factor_embedding(1)).register_as_coercion()
 
         def _repr_(self):
             E = self.realization_of()

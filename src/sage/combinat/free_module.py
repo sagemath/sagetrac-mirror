@@ -3114,6 +3114,54 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
         """
         return tensor(self.factors(), category=ModulesWithBasis(self.base_ring()).TensorProducts())
 
+    @cached_method
+    def _from_flat_tensor(self):
+        r"""
+        The linear morphism from the flattened tensor product to ``self``.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: AAAA = A4._flat_tensor()
+            sage: key = (r([1,2]), r([1]), r([2]), r([2,1]))
+            sage: m = AAAA.monomial(key); m
+            B[s1*s2] # B[s1] # B[s2] # B[s2*s1]
+            sage: mm = A4._from_flat_tensor()(m); mm
+            B[(s1*s2, s1)] # B[(s2, s2*s1)]
+            sage: mm.parent()
+            (A # A) # (A # A)
+            sage: A.rename()
+
+        """
+        return self._flat_tensor().module_morphism(on_basis = self.monomial * self.index_to_indices(), codomain=self)
+
+    @cached_method
+    def _to_flat_tensor(self):
+        r"""
+        The linear morphism from ``self`` to the flattened tensor product.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: a = A4.monomial((r([1]),r([2]),r([1,2]),r([1])))
+            sage: a.parent()
+            (A # A) # (A # A)
+            sage: b = A4._to_flat_tensor()(a); b
+            B[s1] # B[s2] # B[s1*s2] # B[s1]
+            sage: b.parent()
+            A # A # A # A
+
+        """
+        return self.module_morphism(on_basis = self._flat_tensor().monomial * self.indices_to_index(), codomain = self._flat_tensor())
+
     def from_direct_product(self, tup):
         r"""
         Given a tuple of elements of the factors of ``self``, return the corresponding element of ``self``.
@@ -3128,12 +3176,12 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
             sage: a = A2.monomial((r([1]),r([2])))
             sage: b = A2.monomial((r([2,1]),r([1,2])))
             sage: A4.from_direct_product((a,b))
-            B[s1] # B[s2] # B[s2*s1] # B[s1*s2]
+            B[(s1, s2)] # B[(s2*s1, s1*s2)]
         """
         if len(tup) != len(self.factors()):
             raise ValueError, "Number of components of tuple is incorrect"
         try:
-            return self(tensor([the_factor(element) for the_factor, element in zip(self.factors(), tup)], category=ModulesWithBasis(self.base_ring())))
+            return self._from_flat_tensor()(tensor([the_factor(element) for the_factor, element in zip(self.factors(), tup)], category=ModulesWithBasis(self.base_ring())))
         except:
             raise ValueError, "A component element cannot be coerced into its tensor factor"
 
@@ -3149,7 +3197,8 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
             sage: A2 = tensor([A,A])
             sage: A4 = tensor([A2,A2])
             sage: A4.an_element()
-            16*B[s1] # B[s1] # B[s1] # B[s1] + 16*B[s1] # B[s1] # B[s1] # B[1] + 16*B[s1] # B[s1] # B[1] # B[s1] + 16*B[s1] # B[s1] # B[1] # B[1] + 16*B[s1] # B[1] # B[s1] # B[s1] + 16*B[s1] # B[1] # B[s1] # B[1] + 16*B[s1] # B[1] # B[1] # B[s1] + 16*B[s1] # B[1] # B[1] # B[1] + 16*B[1] # B[s1] # B[s1] # B[s1] + 16*B[1] # B[s1] # B[s1] # B[1] + 16*B[1] # B[s1] # B[1] # B[s1] + 16*B[1] # B[s1] # B[1] # B[1] + 16*B[1] # B[1] # B[s1] # B[s1] + 16*B[1] # B[1] # B[s1] # B[1] + 16*B[1] # B[1] # B[1] # B[s1] + 16*B[1] # B[1] # B[1] # B[1]
+            16*B[(s1, s1)] # B[(s1, s1)] + 16*B[(s1, s1)] # B[(s1, 1)] + 16*B[(s1, s1)] # B[(1, s1)] + 16*B[(s1, s1)] # B[(1, 1)] + 16*B[(s1, 1)] # B[(s1, s1)] + 16*B[(s1, 1)] # B[(s1, 1)] + 16*B[(s1, 1)] # B[(1, s1)] + 16*B[(s1, 1)] # B[(1, 1)] + 16*B[(1, s1)] # B[(s1, s1)] + 16*B[(1, s1)] # B[(s1, 1)] + 16*B[(1, s1)] # B[(1, s1)] + 16*B[(1, s1)] # B[(1, 1)] + 16*B[(1, 1)] # B[(s1, s1)] + 16*B[(1, 1)] # B[(s1, 1)] + 16*B[(1, 1)] # B[(1, s1)] + 16*B[(1, 1)] # B[(1, 1)]
+
         """
         return self.from_direct_product(tuple([the_factor.an_element() for the_factor in self.factors()]))
 

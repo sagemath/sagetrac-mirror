@@ -307,7 +307,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
         """
         mult = self._product_morphism()
-        return self(mult(mult.domain().monomial(self.indices_to_index()(*p1)+self.indices_to_index()(*p2))))
+        return self._from_flat_tensor()(mult(mult.domain().monomial(self.indices_to_index()(*p1)+self.indices_to_index()(*p2))))
 
     def _the_coercion_map(self, other_algebra_module, twist, x):
         return self(twist(other_algebra_module(x)))
