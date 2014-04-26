@@ -1,10 +1,10 @@
 r"""
 Normalized isogenies in characteristic 0 or large
 
-This modules contains algorithms to compute normalized isogenies between
-elliptic curves that only work when the characteristic of the base field is `0`
-or large enough. Recall that an isogeny `\phi:E_1\to E_2` is said to be
-normalized if
+This modules contains algorithms to compute normalized isogenies
+between elliptic curves that only work when the characteristic of the
+base field is `0` or large enough. An isogeny `\phi:E_1\to E_2` is
+said to be normalized if
 
 .. math::
 
@@ -60,23 +60,24 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
     Assuming a rational normalized isogeny of degree ``degree`` exists between
     ``E1`` and
     ``E2``, this function returns the squarefree polynomial vanishing on the
-    abscissae of its kernel. If no such isogeny exists, the outcome depends on
-    the algorithm:
+    abscissae of its kernel. 
+    
+    If no such isogeny exists, the outcome is undetermined. Some
+    inexpensive checks are executed, and a ``ValueError`` raised if it
+    can be concluded that no isogeny of degree ``degree``
+    exists. Otherwise a random looking polynomial of degree ``degree``
+    is returned.
 
-        - If the BMSS algorithm is used, its output is tested for correctness:
-          if the test succeeds an exception is returned, if it fails a random
-          polynomial is returned. The test has heuristic failure probability
-          exponentially small in ``degree``, see :py:func:`isogeny_BMSS`
-          for details.
-
-        - If Stark's algorithm is used, an exception is returned. (This is
-          most probably not true. Luca De Feo, Jul 29, 2011)
-
-    Better checks are implemented by
-    :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
-    and by
-    :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`,
-    which are the preferred ways to create isogenies at the sage command line.
+    .. note:: 
+       
+       The error probability of the checks decreases exponentially
+       with the degree. It is slightly lower for Stark's algorithm
+       than for BMSS.
+       :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
+       and
+       :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`
+       implement some slightly more expensive tests that never fail.
+       These are the preferred methods to construct an isogeny.
 
     :param E1: an elliptic curve in short Weierstrass form.
     :param E2: an elliptic curve in short Weierstrass form.
@@ -127,8 +128,7 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
         ...
         ValueError: Codomain parameter must be isomorphic to computed codomain isogeny
 
-    While Stark's algorithm is somewhat safer (but see the documentation of
-    :py:func:`isogeny_BMSS` for another way of avoiding wrong answers)::
+    Stark's algorithm doesn't lie on this one::
 
         sage: isogeny_kernel(E, E2, 2, "Stark")
         Traceback (most recent call last):
@@ -155,6 +155,22 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
         sage: E2 = EllipticCurve(K, [0,0,0,16,0])
         sage: isogeny_kernel(E, E2, 4, algorithm="stark")
         x^3 + x
+
+    TESTS:
+
+    This is detected by :py:func:`isogeny_kernel`, but not by
+    :py:func:`isogeny_Stark`::
+
+        sage: E = EllipticCurve(GF(17), [15, 10])
+        sage: F = EllipticCurve(GF(17), [10, 3])
+        sage: isogeny_kernel(E,F,2, algorithm='stark')
+        Traceback (most recent call last):
+        ...
+        ValueError: The two curves are not linked by a rational normalized isogeny of degree 2
+
+        sage: from sage.schemes.elliptic_curves.isogeny_char_zero import isogeny_Stark
+        sage: isogeny_Stark(E,F,2)
+        x + 16
 
     """
 
@@ -196,7 +212,8 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
         odd_part, _ = ker_poly.quo_rem(even_part)
         check, sqodd_part = is_square(odd_part, root=True)
         if not check:
-            raise RuntimeError("Stark's algorithm returned an unexpected result. Please report this bug.")
+            raise ValueError("The two curves are not linked by a rational "
+                             "normalized isogeny of degree %s" % degree)
         return even_part * sqodd_part
 
     else:
@@ -358,25 +375,16 @@ def isogeny_BMSS(E1, E2, degree):
     .. WARNING::
 
         If no rational normalized isogeny of degree at most ``degree``
-        exists between ``E1`` and ``E2``, this function silently fails by
-        returning a somewhat random polynomial of degree ``degree - 1``.
-        A check on this result must be performed in order to tell it apart
-        from the successfull case.
-
-        One easy test is to check that the result is the product of a square
-        polynomial and of a factor of the 2-division polynomial. Obviously the
-        probability that a random polynomial satisfies this condition depends
-        upon what one means by "random", not to mention that the result of this
-        algorithm is obviously not random. However it is fair to say that the
-        failure probability of this test decreases exponentially with
-        ``degree``.
-
-        Other, more constraining, test are implemented by
+        exists between ``E1`` and ``E2``, this function silently fails
+        by returning a random looking polynomial of degree ``degree -
+        1``.  A check on this result must be performed in order to
+        tell it apart from the successfull case.
+        
+        Non exhaustive tests are implemented in
+        :py:func:`isogeny_kernel`. Exhaustive test are implemented by
         :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`,
         and by
-        :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`,
-        which are the preferred ways to create isogenies at the sage command
-        line.
+        :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`.
 
     .. note::
 
@@ -493,6 +501,9 @@ def isogeny_BMSS(E1, E2, degree):
         True
         sage: isogeny_BMSS(E, E2, 3)
         x^2 + 4/3
+
+
+    TESTS:
 
     Test for :trac:`11095`::
 
