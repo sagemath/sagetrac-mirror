@@ -36,7 +36,7 @@ from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgrou
 from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
                                         divisors, Integer, prime_range)
 from sage.rings.ring import is_Ring
-from sage.modules.all           import is_FreeModule
+from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
@@ -602,7 +602,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 raise ValueError("please specify a category")
             cat = ModularAbelianVarieties(F)
         if self is B:
-            return self.endomorphism_ring()
+            return self.endomorphism_ring(cat)
         else:
             return homspace.Homspace(self, B, cat)
 
@@ -1114,8 +1114,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 raise ValueError("one level must divide the other in %s-th component" % i)
             if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
                 raise ValueError("each t must divide the quotient of the levels")
-        ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
 
+        ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
 
         new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
                               for i in range(length) ])
@@ -1561,7 +1561,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         return self._ambient_dimension()
 
-    def endomorphism_ring(self):
+    def endomorphism_ring(self, category=None):
         """
         Return the endomorphism ring of self.
 
@@ -1586,7 +1586,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             pass
 
-        self.__endomorphism_ring = homspace.EndomorphismSubring(self)
+        self.__endomorphism_ring = homspace.EndomorphismSubring(self, category=category)
         return self.__endomorphism_ring
 
     def sturm_bound(self):
@@ -1768,8 +1768,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 return None
             N = [A.newform_level() for A in self.decomposition()]
             level = LCM([z[0] for z in N])
-            groups = list(set([z[1] for z in N]))
-            groups.sort()
+            groups = sorted(set([z[1] for z in N]))
             if len(groups) == 1:
                 groups = groups[0]
             self.__newform_level = level, groups
