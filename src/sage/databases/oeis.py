@@ -13,6 +13,7 @@ AUTHORS:
 - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
 
 - Vincent Delecroix (2014): modifies continued fractions because of trac:`14567`
+  and doctest corrections trac:`16252`
 
 EXAMPLES::
 
@@ -49,15 +50,15 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
 ::
 
-    sage: x = c.natural_object() ; x.parent()           # optional -- internet
-    Field of all continued fractions
-
+    sage: x = c.natural_object()                        # optional -- internet
     sage: x.convergents()[:7]                           # optional -- internet
     [3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215, 208341/66317]
 
-    sage: RR(x.value())                                 # optional -- internet
+    sage: x.numerical_approx()                          # optional -- internet
     3.14159265358979
-    sage: RR(x.value()) == RR(pi)                       # optional -- internet
+
+    sage: y = continued_fraction(pi)
+    sage: x[:30] == y[:30]                              # optional -- internet
     True
 
 What about posets ? Are they hard to count ? To which other structures are they
@@ -86,10 +87,9 @@ related ?
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.
-    3: A006057: Number of labeled topologies with n points.
+    3: A006057: Number of topologies on n labeled points satisfying axioms T_0-T_4.
     4: A079263: Number of constrained mixed models with n factors.
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
-
 
 What does the Taylor expansion of the `e^(e^x-1)`` function have to do with
 primes ?
@@ -103,15 +103,15 @@ primes ?
     5832742205057, 51724158235372]
 
     sage: oeis(L)                                       # optional -- internet
-    0: A000110: Bell or exponential numbers: ways of placing n labeled balls into n indistinguishable boxes.
+    0: A000110: Bell or exponential numbers: number of ways to partition a set of n labeled elements.
 
     sage: b = _[0]                                      # optional -- internet
 
     sage: b.formulas()[0]                               # optional -- internet
-    'E.g.f.: exp( exp(x) - 1).'
+    'E.g.f.: exp(exp(x) - 1).'
 
     sage: b.comments()[89]                              # optional -- internet
-    'Number n is prime if mod(a(n)-2,n) = 0. [From _Dmitry Kruchinin_, Feb 14 2012]'
+    'Number n is prime if mod(a(n)-2,n) = 0. -_Dmitry Kruchinin_, Feb 14 2012'
 
     sage: [n for n in range(2, 20) if (b(n)-2) % n == 0]    # optional -- internet
     [2, 3, 5, 7, 11, 13, 17, 19]
@@ -144,13 +144,7 @@ Classes and methods
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.sequence import Sequence
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.contfrac import ContinuedFractionField
-from sage.rings.real_lazy import RealLazyField
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -280,8 +274,8 @@ class OEIS:
 
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
-        2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+        1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+        2: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; T(n,1)=1 for n >= 1; T(n,k)=T(n-1,k-2)+T(n-1,k-1) for k=2,3,...,2n-1, n >= 2.
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -310,7 +304,7 @@ class OEIS:
         sage: sfibo.first_terms(absolute_value=True)[2:20] == fibo.first_terms()[:18]   # optional -- internet
         True
 
-        sage: fibo.formulas()[3]                        # optional -- internet
+        sage: fibo.formulas()[4]                        # optional -- internet
         'F(n) = F(n-1) + F(n-2) = -(-1)^n F(-n).'
 
         sage: fibo.comments()[1]                        # optional -- internet
@@ -335,8 +329,8 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; T(n,1)=1 for n >= 1; T(n,k)=T(n-1,k-2)+T(n-1,k-1) for k=2,3,...,2n-1, n >= 2.
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -346,8 +340,9 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
+            2: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; T(n,1)=1 for n >= 1; T(n,k)=T(n-1,k-2)+T(n-1,k-1) for k=2,3,...,2n-1, n >= 2.
+
 
             sage: fibo = _[0]                           # optional -- internet
     """
@@ -814,7 +809,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.author()                            # optional -- internet
-            '_N. J. A. Sloane_.'
+            '_N. J. A. Sloane_'
 
         TESTS::
 
@@ -838,7 +833,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'easy', 'nice', 'changed')
+            ('core', 'nonn', 'easy', 'nice', 'hear')
 
         TESTS::
 
@@ -864,7 +859,7 @@ class OEISSequence(SageObject):
 
         - If the sequence ``self`` corresponds to the convergents of a
               continued fraction, returns the associated continued
-              fraction (as an element of ContinuedFractionField()).
+              fraction (as a continued fraction)
 
         .. WARNING::
 
@@ -882,10 +877,9 @@ class OEISSequence(SageObject):
             sage: g = oeis("A002852") ; g               # optional -- internet
             A002852: Continued fraction for Euler's constant (or Euler-Mascheroni constant) gamma.
 
-            sage: x = g.natural_object() ; x.parent()   # optional -- internet
-            Field of all continued fractions
-
-            sage: x[:20] == continued_fraction(euler_gamma, nterms=20)  # optional -- internet
+            sage: x = g.natural_object()                # optional -- internet
+            sage: cf = continued_fraction(euler_gamma)
+            sage: x[:20] == cf[:20]                     # optional -- internet
             True
 
         ::
@@ -929,8 +923,8 @@ class OEISSequence(SageObject):
         TESTS::
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
-            sage: s.natural_object().parent()
-            QQ as continued fractions
+            sage: type(s.natural_object())
+            <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
             sage: s = oeis._imaginary_sequence('nonn')
             sage: s.natural_object().parent()
@@ -941,15 +935,21 @@ class OEISSequence(SageObject):
             Category of sequences in Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
-            return ContinuedFractionField()(self.first_terms())
+            from sage.rings.continued_fraction import continued_fraction
+            return continued_fraction(self.first_terms())
         elif 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))
+            from sage.rings.real_lazy import RealLazyField
             return RealLazyField()('0' + ''.join(map(str, terms[:offset])) + '.' + ''.join(map(str, terms[offset:])))
         elif 'nonn' in self.keywords():
+            from sage.structure.sequence import Sequence
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return Sequence(self.first_terms(), NN)
         else:
-            return Sequence(self.first_terms(),IntegerRing())
+            from sage.structure.sequence import Sequence
+            from sage.rings.integer_ring import ZZ
+            return Sequence(self.first_terms(), ZZ)
 
     def is_finite(self):
         r"""
@@ -1373,7 +1373,7 @@ class OEISSequence(SageObject):
             sage: w.references()                        # optional -- internet
             0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
             1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: Edgar Costa, Robert Gerbicz, and David Harvey, <a href="http://arxiv.org/abs/1209.3436">A search for Wilson primes</a>, 2012
+            2: R. Crandall and C. Pomerance, Prime Numbers: A Computational Perspective, Springer, NY, 2001; see p. 29.
             ...
 
             sage: _[0]                                  # optional -- internet
@@ -1474,7 +1474,7 @@ class OEISSequence(SageObject):
             sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.formulas()[1]                       # optional -- internet
+            sage: f.formulas()[2]                       # optional -- internet
             'F(n) = ((1+sqrt(5))^n-(1-sqrt(5))^n)/(2^n*sqrt(5)).'
 
         TESTS::
@@ -1594,7 +1594,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.comments()[:3]                      # optional -- internet
-            ("Also called Lam{\\'e}'s sequence.",
+            ("Also called Lam\xc3\xa9's sequence.",
              "F(n+2) = number of binary sequences of length n that have no consecutive 0's.",
              'F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.')
 
@@ -1731,7 +1731,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } [From Harry J. Smith, Apr 15 2009]'
+            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 
