@@ -88,6 +88,53 @@ def unrank_from_list(l):
     unrank = lambda j: l[j]
     return unrank
 
+def unrank_from_iterable(iterable):
+    """
+    Return a (bruteforce) unrank function from an iterable.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable
+
+    OUTPUT:
+
+    - a function ``unrank(i)``, where `i` is a non negative integer,
+      returning the `i`-th element of the iterable or raising an
+      "index out of range" exception.
+
+    The ``unrank`` function iterates through ``iterable`` until the
+    `i`-th element is reached. It caches the intermediate results.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ranker import unrank_from_iterable
+        sage: unrank = unrank_from_iterable(['a','b','c'])
+        sage: unrank(2)
+        'c'
+        sage: unrank(0)
+        'a'
+        sage: unrank(5)
+        'a'
+        sage: unrank(4)
+        'a'
+    """
+    finished = False
+    cache = []
+    it = iter(iterable)
+    def unrank(i):
+        if i < len(cache):
+            return cache[i]
+        if finished:
+            raise IndexError("index out of range")
+        for j in range(len(cache), i+1):
+            try:
+                cache.append(it.next())
+            except StopIteration as e:
+                finished = True
+                raise IndexError("index out of range")
+        return cache[i]
+    return unrank
+
 def on_fly():
     """
     Returns a pair of enumeration functions rank / unrank.
@@ -138,33 +185,32 @@ def on_fly():
 
     return [rank, unrank]
 
-def unrank(L, i):
+def unrank_from(L):
     r"""
-
-    Return the `i`-th element of `L`.
+    Return an unrank function from `L`.
 
     INPUT:
 
     - ``L`` -- a list, tuple, finite enumerated set, ...
-    - ``i`` -- an int or :class:`Integer`
 
-    The purpose of this utility is to give a uniform idiom to recover
-    the `i`-th element of an object ``L``, whether ``L`` is a list,
-    tuple (or more generally a :class:`collections.Sequence`), an
-    enumerated set, some old parent of Sage still implementing
-    unranking in the method ``__getitem__``, or an iterable (see
+    The purpose of this utility is to give a uniform idiom for
+    unranking, that is recovering the `i`-th element of an object
+    ``L``, whether ``L`` is a list, tuple (or more generally a
+    :class:`collections.Sequence`), an enumerated set, some old parent
+    of Sage still implementing unranking in the method
+    ``__getitem__``, or an iterable (see
     :class:`collections.Iterable`). See :trac:`15919`.
 
     EXAMPLES:
 
     list, tuples, and other :class:`sequences <collections.Sequence>`::
 
-        sage: from sage.combinat.ranker import unrank
-        sage: unrank(['a','b','c'], 2)
+        sage: from sage.combinat.ranker import unrank_from
+        sage: unrank_from(['a','b','c'])(2)
         'c'
-        sage: unrank(('a','b','c'), 1)
+        sage: unrank(('a','b','c'))(1)
         'b'
-        sage: unrank(xrange(3,13,2), 1)
+        sage: unrank((xrange(3,13,2))(1)
         5
 
     Enumerated sets::
@@ -229,9 +275,9 @@ def unrank(L, i):
         IndexError: list index out of range
     """
     if L in EnumeratedSets:
-        return L.unrank(i)
+        return L.unrank
     if isinstance(L, Sequence):
-        return L[i]
+        return L.__getitem__
     if isinstance(L, Parent):
         # handle parents still implementing unranking in __getitem__
         try:
@@ -239,12 +285,6 @@ def unrank(L, i):
         except (AttributeError, TypeError, ValueError):
             pass
     if isinstance(L, Iterable):
-        try:
-            it = iter(L)
-            for _ in range(i):
-                it.next()
-            return it.next()
-        except StopIteration as e:
-            raise IndexError("index out of range")
+        return unrank_from_iterable(L)
     raise ValueError("Don't know how to unrank on {}".format(L))
 
