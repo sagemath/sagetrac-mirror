@@ -134,6 +134,7 @@ from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
 from sage.algebras.free_algebra_element import FreeAlgebraElement
+from sage.algebras.pbw_algebra import PBWBasisOfFreeAlgebra
 
 import sage.structure.parent_gens
 
@@ -142,6 +143,8 @@ from sage.misc.cachefunc import cached_method
 from sage.all import PolynomialRing
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+from sage.rings.noncommutative_ideals import Ideal_nc
+from sage.rings.infinity import infinity
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
@@ -751,6 +754,18 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.monomial(x * y)
 
+    def _ideal_class_(self, n=0):
+        r"""
+        Return the class for the ideals of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAlgebra(ZZ, 3, 'x,y,z')
+            sage: F._ideal_class_()
+            <class 'sage.algebras.free_algebra.FreeAlgebraIdeal'>
+        """
+        return FreeAlgebraIdeal
+
     def quotient(self, I, mats=None, names=None, category=None):
         """
         Return a quotient algebra.
@@ -993,4 +1008,235 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
 from sage.misc.cache import Cache
 cache = Cache(FreeAlgebra_generic)
+
+###################
+## Ideals
+
+class FreeAlgebraIdeal(Ideal_nc):
+    """
+    An ideal of a free algebra.
+    """
+    def __init__(self, F, gens, coerce=True, side="twosided"):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - y, x*y - y*z)
+
+        Skip the category test because ideals aren't currently
+        proper category objects::
+
+            sage: TestSuite(I).run(skip="_test_category")
+        """
+        Ideal_nc.__init__(self, F, gens, coerce, side)
+
+        gens = self.gens()
+        if F.zero() in gens:
+            self._gb = (F.zero(),)
+            self._gb_todo = []
+            return
+        if F.one() in gens:
+            self._gb = tuple(F.gens())
+            self._gb_todo = []
+            return
+
+        gb = map(lambda x: x / x.leading_coefficient(FreeAlgebraIdeal._lead_cmp), gens)
+        self._gb = gb
+        self._gb_todo = [(g, h) for g in gb for h in gb]
+
+    def free_algebra(self):
+        r"""
+        Return the ambient free algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - y, x*y - y*z)
+            sage: I.free_algebra() is F
+            True
+        """
+        return self.ring()
+
+    @staticmethod
+    def _lead_cmp(x, y):
+        r"""
+        Compare ``x`` and ``y`` by degree then reverse lex so
+        :meth:`leading_item()` returns the largest degree and smallest lex.
+        """
+        x = x.to_word()
+        y = y.to_word()
+        c = cmp(len(x), len(y))
+        if c != 0:
+            return c
+        return cmp(y, x)
+
+    def groebner_basis(self, max_steps=infinity):
+        """
+        Return a Groebner basis of ``self``.
+
+        INPUT:
+
+        - ``max_steps`` -- (default: infinity) the maximum number of steps to
+          do before terminating
+
+        .. WARNING::
+
+            This will run forever if the Groebner basis is infinite and
+            ``max_steps`` is not specified.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - x*y)
+            sage: I.groebner_basis(5)
+            WARNING: returning an incomplete Groebner basis
+            (x^2 - x*y,
+             x*y*x - x*y^2,
+             x*y^2*x - x*y^3,
+             x*y^3*x - x*y^4,
+             x*y^4*x - x*y^5)
+            sage: I = F.ideal(z^2 - z*y)
+            sage: I.groebner_basis()
+            (z*y - z^2,)
+            sage: I = F.ideal(x^2 - x*y, x*y*x - y*x*y)
+            sage: I.groebner_basis()
+            (x^2 - x*y, x*y*x - y*x*y, x*y^2 - y*x*y)
+            sage: I = F.ideal(z^2 - z*y, z*y*z - y*z*y)
+            sage: I.groebner_basis()
+            (z*y - z^2, y*z*y - z*y*z, y*z^4 - z^5)
+        """
+        side = self.side()
+        if side != "twosided":
+            raise NotImplementedError
+
+        # Setup variables and functions
+        l_cmp = FreeAlgebraIdeal._lead_cmp
+        F = self.ring()
+
+        n = len(F.gens())
+        FM = F._basis_keys
+
+        # Run Groebner basis algorithm
+
+        zero = F.zero()
+        from sage.combinat.words.word import Word
+        while len(self._gb_todo) > 0 and len(self._gb) < max_steps:
+            p = self._gb_todo.pop(0)
+
+            # Compute the essential common multiples of the leading terms
+            f = map(lambda x: list(x.leading_support(l_cmp).to_word()), p)
+            ell = min(len(f[0]), len(f[1]))
+            for k in range(1, ell):
+                if f[0][:k] == f[1][-k:]:
+                    w0 = Word(f[1][:-k])
+                    w1 = Word(f[0][k:])
+
+                    # Compute the S-polynomial
+                    h = F(FM(w0)) * p[0] - p[1] * F(FM(w1))
+                    h = self._normal_form(h, self._gb)
+
+                    if h != zero:
+                        h = h / h.leading_coefficient(l_cmp)
+                        self._gb_todo.extend([(g, h) for g in self._gb])
+                        self._gb.append(h)
+
+        if len(self._gb_todo) != 0:
+            print("WARNING: returning an incomplete Groebner basis")
+
+        return tuple(self._gb)
+
+    def _normal_form(self, x, G):
+        """
+        Return ``x`` modulo ``G`` (i.e. the normal form with respect
+        to ``G``).
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - x*y)
+            sage: GB = I.groebner_basis(5)
+            WARNING: returning an incomplete Groebner basis
+            sage: I._normal_form(x*y^4*x + x^2, GB)
+            x*y + x*y^5
+
+        The following reduces to ``x*y^6`` with a larger Groebner
+        basis. However, since we've truncated it, we don't have any
+        reduction steps::
+
+            sage: I._normal_form(x*y^5*x, GB)
+            x*y^5*x
+        """
+        F = self.ring()
+        ret = F.zero()
+        FM = F._basis_keys
+        l_cmp = FreeAlgebraIdeal._lead_cmp
+        side = self.side()
+
+        while x != 0:
+            u, la = x.leading_item(l_cmp)
+            found = False
+            for g in G:
+                LM, mu = g.leading_item(l_cmp)
+
+                # Factor u by LM if possible
+                w = u.to_word()
+                lmw = LM.to_word()
+                if side == 'twosided':
+                    f = lmw.first_pos_in(w)
+                    if f is not None:
+                        found = True
+                        x -= la / mu * F(FM(w[:f])) * g * F(FM(w[f+len(LM):]))
+                        break
+                elif side == 'left':
+                    if lmw.is_proper_suffix(w):
+                        x -= la / mu * F(FM(w[len(lmw):])) * g
+                        break
+                elif side == 'right':
+                    if lmw.is_proper_prefix(w):
+                        x -= la / mu * g * F(FM(w[:-len(lmw)]))
+                        break
+            if not found:
+                ret += la * F(u)
+                x -= la * F(u)
+        return ret
+
+    def reduce(self, x, max_steps=infinity):
+        """
+        Return ``x`` modulo ``self``.
+
+        INPUT:
+
+        - ``max_steps`` -- (default: infinity) the maximum number of steps to
+          compute in the Groebner basis before terminating
+
+        .. WARNING::
+
+            If this terminates after ``max_steps``, the resulting reduction
+            may not fully reduce the element.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: I = F.ideal(x^2 - x*y, x*y*x - y*x*y)
+            sage: I.reduce(x^2 + x*y + x*y*x + z^2)
+            2*x*y + z^2 + y*x*y
+
+        The following is with an infinite Groebner basis. The element
+        `x y^5 x` reduces to `x y^6` with a large enough Groebner basis,
+        but there are no reduction steps when our Groebner basis is too small.
+
+            sage: I = F.ideal(x^2 - x*y)
+            sage: I.reduce(x*y^5*x, 5)
+            WARNING: returning an incomplete Groebner basis
+            x*y^5*x
+            sage: I.reduce(x*y^5*x, 6)
+            WARNING: returning an incomplete Groebner basis
+            x*y^6
+        """
+        if x == self.ring().zero():
+            return x
+        G = self.groebner_basis(max_steps)
+        return self._normal_form(x, G)
 
