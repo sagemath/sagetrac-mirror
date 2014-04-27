@@ -92,6 +92,11 @@ def unrank_from_iterable(iterable):
     """
     Return a (bruteforce) unrank function from an iterable.
 
+    .. TODO::
+
+        This is really just reimplementing a stream ...; one should
+        use instead a stream class.
+
     INPUT:
 
     - ``iterable`` -- an iterable
