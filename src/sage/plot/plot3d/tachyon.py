@@ -428,9 +428,12 @@ class Tachyon(SageObject):
             '\n'.join([x.str() for x in self._objects])
             )
 
-    def light(self, center, radius, color):
+    def light(self, center, radius, color, type='point'):
         r"""
-        Creates a light source of the given center, radius, and color.
+        When ``type`` is "point", creates a point light source of the given
+        center, radius, and color.  If ``type`` is "directional", then a
+        directional light is created.  In this case, radius is ignored and
+        direction is the negative of the given center.
 
         EXAMPLES::
 
@@ -439,7 +442,7 @@ class Tachyon(SageObject):
             sage: q.str().split('\n')[17]
             '        light center  1.0 1.0 1.0 '
         """
-        self._objects.append(Light(center, radius, color))
+        self._objects.append(Light(center, radius, color, type))
 
     def texfunc(self, type=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
         r"""
@@ -801,6 +804,16 @@ class Light:
     r"""
     Represents lighting objects.
 
+    INPUT::
+
+        - ``center``, ``radius``, ``color`` - data for the light source.
+          The ``radius`` is used only for point light sources, and can be
+          zero (invisible) without affecting the light.
+        - ``type`` - The type of light source; possible values are ``point``
+          (default) and ``directional``.  For directional lights, ``radius``
+          is ignored and direction is negative of ``center``.
+
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.tachyon import Light
@@ -808,7 +821,7 @@ class Light:
         sage: q._center
         (1, 1, 1)
     """
-    def __init__(self, center, radius, color):
+    def __init__(self, center, radius, color, type='point'):
         r"""
         Stores the center, radius and color.
 
@@ -822,6 +835,7 @@ class Light:
         self._center = center
         self._radius = radius
         self._color = color
+        self._type = type
 
     def str(self):
         r"""
@@ -834,12 +848,21 @@ class Light:
             sage: q._radius
             1
         """
-        return r"""
+        if self._type == 'point':
+            return r"""
         light center %s
               rad %s
               color %s
         """%(tostr(self._center), float(self._radius),
              tostr(self._color))
+        elif self._type == 'directional':
+            return r"""
+        directional_light
+          direction %s
+          color %s
+        """%(tostr((-1*j for j in self._center)), tostr(self._color))
+        else:
+            raise ValueError("Light type not recognized.")
 
 class Texfunc:
     def __init__(self, type=0,center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
