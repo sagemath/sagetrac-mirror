@@ -823,7 +823,7 @@ class Light:
     """
     def __init__(self, center, radius, color, type='point'):
         r"""
-        Stores the center, radius and color.
+        Stores the center, radius, color and type.
 
         EXAMPLES::
 
