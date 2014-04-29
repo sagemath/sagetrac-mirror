@@ -192,35 +192,52 @@ class GraphicTableau:
             TODO
 
             EXAMPLES::
-            sage: from sage.misc.graphic_tableau import GraphicTableau
-            sage: g = GraphicTableau( [
-            ....:     [ None, None, 'S', 'A', 'G',  'E' ],
-            ....:     [ 'C', 'O', 'M', 'B', 'I', 'N', 'A', 'T'],
-            ....:     [], 
-            ....:     [ None, Partitions(4)[0], Partitions(4)[1], Partitions(4)[2],  Partitions(4)[3], Partitions(4)[4]  ] 
-            ....: ] )
-            sage: ascii_art( g )
-                          +------+------+------+------+              
-                          |      |      |      |      |              
-                          |      |      |      |      |              
-                          |   S  |   A  |   G  |   E  |              
-                          |      |      |      |      |              
-            +------+------+------+------+------+------+------+------+
-            |      |      |      |      |      |      |      |      |
-            |      |      |      |      |      |      |      |      |
-            |   C  |   O  |   M  |   B  |   I  |   N  |   A  |   T  |
-            |      |      |      |      |      |      |      |      |
-            +------+------+------+------+------+------+------+------+
-            <BLANKLINE>
-            <BLANKLINE>
-            <BLANKLINE>
-            <BLANKLINE>
-                   +------+------+------+------+------+              
-                   |      |      |      |      |   *  |              
-                   |      |  *** |  **  |  **  |   *  |              
-                   | **** |  *   |  **  |  *   |   *  |              
-                   |      |      |      |  *   |   *  |              
-                   +------+------+------+------+------+              
+
+                sage: from sage.misc.graphic_tableau import GraphicTableau
+                sage: g = GraphicTableau( [
+                ....:     [ None, None, 'S', 'A', 'G',  'E' ],
+                ....:     [ 'C', 'O', 'M', 'B', 'I', 'N', 'A', 'T'],
+                ....:     [ ], 
+                ....:     [ None, Partitions(4)[0], Partitions(4)[1], Partitions(4)[2],  Partitions(4)[3], Partitions(4)[4]  ] 
+                ....: ] )
+                sage: ascii_art( g )
+                              +------+------+------+------+              
+                              |      |      |      |      |              
+                              |      |      |      |      |              
+                              |   S  |   A  |   G  |   E  |              
+                              |      |      |      |      |              
+                +------+------+------+------+------+------+------+------+
+                |      |      |      |      |      |      |      |      |
+                |      |      |      |      |      |      |      |      |
+                |   C  |   O  |   M  |   B  |   I  |   N  |   A  |   T  |
+                |      |      |      |      |      |      |      |      |
+                +------+------+------+------+------+------+------+------+
+                <BLANKLINE>
+                <BLANKLINE>
+                <BLANKLINE>
+                <BLANKLINE>
+                       +------+------+------+------+------+              
+                       |      |      |      |      |   *  |              
+                       |      |  *** |  **  |  **  |   *  |              
+                       | **** |  *   |  **  |  *   |   *  |              
+                       |      |      |      |  *   |   *  |              
+                       +------+------+------+------+------+              
+
+                sage: g = GraphicTableau( [
+                ....:     [], 
+                ....:     [None, 'B'],
+                ....:     [None], 
+                ....: ] )
+                sage: ascii_art( g )
+                <BLANKLINE>
+                <BLANKLINE>
+                   +---+
+                   | B |
+                   +---+
+                <BLANKLINE>
+                <BLANKLINE>
+                sage: ascii_art( g )._repr_()
+                '        \n        \n   +---+\n   | B |\n   +---+\n        \n        '
         """
         self._array = array
         self._separators = separators
