@@ -2984,7 +2984,8 @@ class FiniteStateMachine(SageObject):
                       initial_where=None,
                       accepting_style=None,
                       accepting_distance=None,
-                      accepting_where=None):
+                      accepting_where=None,
+                      accepting_show_empty=None):
         r"""
         Set options for LaTeX output via
         :func:`~sage.misc.latex.latex` and therefore
@@ -3040,6 +3041,10 @@ class FiniteStateMachine(SageObject):
           final output word, it is also possible to give an angle
           in degrees.
 
+        - ``accepting_show_empty`` -- if ``True`` the arrow of an
+          empty final output word is labeled as well. Note that this
+          implicitly implies ``accepting_style='accepting by
+          arrow'``. If not given, the default ``False`` is used.
 
         OUTPUT:
 
@@ -3061,8 +3066,9 @@ class FiniteStateMachine(SageObject):
           is a callable without arguments);
 
         - ``format_state_label``, ``format_letter``,
-          ``format_transition_label``, ``accepting_style``, and
-          ``accepting_distance`` of :class:`FiniteStateMachine`.
+          ``format_transition_label``, ``accepting_style``,
+          ``accepting_distance``, and ``accepting_show_empty``
+          of :class:`FiniteStateMachine`.
 
         This function, however, also (somewhat) checks its input and
         serves to collect documentation on all these options.
@@ -3302,6 +3308,9 @@ class FiniteStateMachine(SageObject):
                     raise ValueError('accepting_where for %s must be in %s.' %
                                      (state.label(), permissible))
 
+        if accepting_show_empty is not None:
+            self.accepting_show_empty = accepting_show_empty
+
 
     def _latex_(self):
         r"""
@@ -3372,6 +3381,11 @@ class FiniteStateMachine(SageObject):
             options.append("accepting distance=%s"
                            % accepting_distance)
 
+        if hasattr(self, "accepting_show_empty"):
+            accepting_show_empty = self.accepting_show_empty
+        else:
+            accepting_show_empty = False
+
         result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
         for vertex in self.iter_states():
@@ -3381,7 +3395,8 @@ class FiniteStateMachine(SageObject):
             options = ""
             if vertex.is_final:
                 if not (vertex.final_word_out
-                        and accepting_style == "accepting by arrow"):
+                        and accepting_style == "accepting by arrow") \
+                        and not accepting_show_empty:
                     # otherwise, we draw a custom made accepting path
                     # with label below
                     options += ", accepting"
@@ -3402,7 +3417,7 @@ class FiniteStateMachine(SageObject):
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
-            if vertex.is_final and vertex.final_word_out:
+            if vertex.is_final and (vertex.final_word_out or accepting_show_empty):
                 angle = 0
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
