@@ -2888,7 +2888,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 keys = key_splitter(long_key)
                 monomials = [domains[i].monomial(keys[i]) if domain_n_tensor[i] != 0 else () for i in range(len(maps))]
                 return R.prod([f(monomials[i]) for (i,f) in scalar_part]) * tensor([f(monomials[i]) if d!=0 else f for (i,d,f) in vector_part])
-            return self.module_morphism(on_basis=on_basis, codomain=tensor(codomains), category=tensor_category)
+            return self.module_morphism(on_basis=on_basis, codomain=tensor(codomains), category=module_tensor_category)
 
 class CartesianProductWithFlattening(object):
     """
