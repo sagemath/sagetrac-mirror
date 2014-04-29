@@ -47,19 +47,16 @@ class SmashProductAlgebraElement(CombinatorialFreeModule.Element):
             sage: cat = ModulesWithBasis(ZZ)
             sage: AB = tensor([A,B],category=cat)
             sage: BA = tensor([B,A],category=cat)
-            sage: def twist_func(x):
-            ...       if x[0] != x[0].parent().one() and mod(x[1].to_word().length(),2) == 1:
-            ...           return -AB.monomial((x[1],x[0]))
-            ...       return AB.monomial((x[1],x[0]))
-            sage: twist = BA.module_morphism(on_basis=twist_func, codomain=AB, category=cat)
-            sage: def untwist_func(x):
-            ...       if x[1] != x[1].parent().one() and mod(x[0].to_word().length(),2) == 1:
-            ...           return -BA.monomial((x[1],x[0]))
-            ...       return BA.monomial((x[1],x[0]))
-            sage: untwist = AB.module_morphism(on_basis=untwist_func, codomain=BA, category=cat)
-
-            sage: ASB = SmashProductAlgebra(A, B, twist)
-            sage: BSA = SmashProductAlgebra(B, A, untwist)
+            sage: def twist_func((b,a)):
+            ...       if b != b.parent().one() and mod(a.to_word().length(),2) == 1:
+            ...           return -AB.monomial((a,b))
+            ...       return AB.monomial((a,b))
+            sage: def untwist_func((b,a)):
+            ...       if a != a.parent().one() and mod(b.to_word().length(),2) == 1:
+            ...           return -BA.monomial((a,b))
+            ...       return BA.monomial((a,b))
+            sage: ASB = SmashProductAlgebra(A, B, twist_on_basis=twist_func)
+            sage: BSA = SmashProductAlgebra(B, A, untwist_func)
             sage: ASB.register_opposite(BSA)
             sage: ab = ASB.an_element(); ab
             2*A[a] B[s1] + 2*A[a]
@@ -83,8 +80,8 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
     INPUT:
 
-        - ``A`` and ``B`` -- algebras with basis over the same commutative ring
-        - ``twist`` -- a module homomorphism from `B` tensor `A` to `A` tensor `B`
+        - `A` and `B` -- algebras with basis over the same commutative ring
+        - A specification of the product. There are several options for this; see below
         - ``category`` -- optional (default: None) category for resulting algebra. This should be a subcategory of
           :class:`AlgebrasWithBasis(R).TensorProducts()` where `R` is the base ring.
         - ``suppress_ones`` -- optional (default: None) The default printing of tensor monomials
@@ -115,15 +112,64 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
     The reference [CIMZ]_ gives necessary and sufficient conditions on ``twist`` for `m` to
     define an `R`-algebra structure on `A` tensor `B`.
 
+    The homomorphism ``twist`` can be specified in several ways. The first way is to provide
+    a function ``twist_on_basis`` which has as input an ordered pair `(b,a)` from the index sets of `B` and `A`,
+    with values in `A \otimes B`.
+
+        sage: W = WeylGroup(['A',2],prefix="s")
+        sage: A = W.algebra(ZZ)
+        sage: AA = tensor([A,A],category=ModulesWithBasis(ZZ).TensorProducts())
+        sage: twist_func = lambda (b,a): AA.monomial((b*a*b.inverse(),b))
+        sage: B = SmashProductAlgebra(A,A,twist_on_basis=twist_func, suppress_ones=False)
+        sage: b = B.from_direct_product((A.an_element(), A.one())); b
+        B[s1*s2*s1] # B[1] + 3*B[s1*s2] # B[1] + 3*B[s2*s1] # B[1]
+        sage: b*b
+        9*B[s1*s2] # B[1] + 9*B[s2*s1] # B[1] + 6*B[s1] # B[1] + 6*B[s2] # B[1] + 19*B[1] # B[1]
+
+    The second method is to provide the actual morphism ``twist_morphism``::
+
+        sage: twist = AA.module_morphism(on_basis=twist_func, codomain=AA)
+        sage: C = SmashProductAlgebra(A,A,twist_morphism=twist, suppress_ones=False)
+        sage: c = C.from_direct_product((A.an_element(), A.one())); c
+        B[s1*s2*s1] # B[1] + 3*B[s1*s2] # B[1] + 3*B[s2*s1] # B[1]
+        sage: c*c
+        9*B[s1*s2] # B[1] + 9*B[s2*s1] # B[1] + 6*B[s1] # B[1] + 6*B[s2] # B[1] + 19*B[1] # B[1]
+
+    The third method is to give (on the bases) a left action of `B` on `A \otimes B`.
+    This function takes three arguments `bb, a, b`::
+
+        sage: left_action_func = lambda bb,a,b: AA.monomial((bb*a*bb.inverse(), bb*b))
+        sage: D = SmashProductAlgebra(A,A,left_action=left_action_func, suppress_ones=False)
+        sage: d = D.from_direct_product((A.an_element(), A.one())); d
+        B[s1*s2*s1] # B[1] + 3*B[s1*s2] # B[1] + 3*B[s2*s1] # B[1]
+        sage: d*d
+        9*B[s1*s2] # B[1] + 9*B[s2*s1] # B[1] + 6*B[s1] # B[1] + 6*B[s2] # B[1] + 19*B[1] # B[1]
+
+    The product is then determined by letting `A` act on the left factor by left multiplication.
+
+    The final method is to give (on the bases) a right action of `A` on `A \otimes B`::
+    This function takes three arguments `aa, a, b`::
+
+        sage: right_action_func = lambda aa, a, b: AA.monomial((a*aa, aa.inverse()*b*aa))
+        sage: E = SmashProductAlgebra(A,A,right_action=right_action_func, suppress_ones=False)
+        sage: e = E.from_direct_product((A.an_element(), A.one())); d
+        B[s1*s2*s1] # B[1] + 3*B[s1*s2] # B[1] + 3*B[s2*s1] # B[1]
+        sage: e*e
+         9*B[s1*s2] # B[1] + 9*B[s2*s1] # B[1] + 6*B[s1] # B[1] + 6*B[s2] # B[1] + 19*B[1] # B[1]
+
+    The product is then determined by letting `B` act on the right factor by right multiplication.
+
     REFERENCE:
 
         .. [CIMZ] Caenepeel, S.; Ion, Bogdan; Militaru, G.; Zhu, Shenglin. The factorization problem
           and the smash biproduct of algebras and coalgebras. Algebr. Represent. Theory 3 (2000),
           no. 1, 19--42. 
 
-    If `B` has a left action on `A` by algebra endomorphisms, defining `twist(b tensor a) = (b . a) tensor b`
-    makes `m` into an algebra multiplication map. Similarly if `A` has a right action on `B` by algebra
-    endomorphisms, then one may use `twist(b tensor a) = a tensor (b . a)`.
+    The tensor product of algebras is implemented as a grouped tensor product via the concrete class
+    :class:`sage.combinat.free_module.CombinatorialFreeModule_TensorGrouped` while tensor products of modules
+    are automatically flattened using :class:`sage.combinat.free_module.CombinatorialFreeModule_Tensor`.
+    In reality the tensor product of algebras is also a flat tensor product but the class remembers the grouping
+    information. The index set of the basis is given by the "flattened" tuples. 
 
     In the following example both `A` and `B` are the group algebra of the symmetric group `S_3` over the integers,
     and `B` has a left action on `A` induced by conjugation of symmetric group elements.
@@ -134,12 +180,12 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         sage: r = W.from_reduced_word
         sage: A = W.algebra(ZZ); A.rename("A")
         sage: AA = tensor([A,A], category=ModulesWithBasis(ZZ))
-        sage: twist = AA.module_morphism(on_basis=lambda x: AA.monomial((x[0]*x[1]*x[0]**(-1),x[0])),codomain=AA)
+        sage: twist = AA.module_morphism(on_basis=lambda (b,a): AA.monomial((b*a*b.inverse(),b)),codomain=AA)
         sage: ba = AA.monomial((r([1]),r([2]))); ba
         B[s1] # B[s2]
         sage: ab = twist(ba); ab
         B[s1*s2*s1] # B[s1]
-        sage: C = SmashProductAlgebra(A, A, twist, suppress_ones=False); C
+        sage: C = SmashProductAlgebra(A, A, twist_morphism=twist, suppress_ones=False); C
         Smash product of A and A
         sage: c = A.monomial(A.basis().keys().an_element()); c
         B[s1*s2]
@@ -164,7 +210,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
     """
 
-    def __init__(self, A, B, twist, category=None, suppress_ones=None):
+    def __init__(self, A, B, twist_on_basis=None, twist_morphism=None, left_action=None, right_action=None, category=None, suppress_ones=None):
         """
         EXAMPLES::
 
@@ -173,10 +219,9 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             sage: B = A
             sage: BA = tensor([B,A],category=ModulesWithBasis(ZZ))
             sage: AB = BA
-            sage: def t_map(x):
-            ...       return AB.monomial((x[1],x[0]))
-            sage: twist = BA.module_morphism(on_basis=t_map, codomain=AB, category=ModulesWithBasis(ZZ))
-            sage: C = SmashProductAlgebra(A,B,twist); C # indirect doctest
+            sage: def t_map((b,a)):
+            ...       return AB.monomial((a,b))
+            sage: C = SmashProductAlgebra(A,B,twist_on_basis=t_map); C # indirect doctest
             Smash product of A and A
 
         """
@@ -188,19 +233,6 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             raise TypeError, "%s and %s must have the same base ring"%(A,B)
         if A not in algebra_category or B not in algebra_category:
             raise TypeError, "Tensor factors should be AlgebrasWithBasis over %s"%(R)
-        if not twist.category().is_subcategory(module_category.hom_category()):
-            raise TypeError, "twist should be a module morphism"
-        AB = tensor([A,B], category=module_category)
-        BA = tensor([B,A], category=module_category)
-        if twist.codomain() != AB or twist.domain() != BA:
-            raise TypeError, "Domain or codomain of twist is incorrect"
-
-        default_category = AlgebrasWithBasis(R).TensorProducts()
-        if not category:
-            category = default_category
-        elif not category.is_subcategory(default_category):
-            raise TypeError, "Category %s is not a subcategory of %s"%(category, default_category)
-        self._category = category
 
         if suppress_ones is None:
             self._suppress_ones = True
@@ -209,11 +241,39 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         else:
             self._suppress_ones = suppress_ones
 
+        default_category = AlgebrasWithBasis(R).TensorProducts()
+        if not category:
+            category = default_category
+        elif not category.is_subcategory(default_category):
+            raise TypeError, "Category %s is not a subcategory of %s"%(category, default_category)
+        self._category = category
+
+        AB = tensor([A,B], category=tensor_category)
+        BA = tensor([B,A], category=tensor_category)
+
         CombinatorialFreeModule_TensorGrouped.__init__(self, (A,B), category=category)
-        self._twist = twist
+
+        if left_action is not None:
+            twist_on_basis = lambda (c,a): left_action(c, a, B.one_basis())
+        elif right_action is not None:
+            twist_on_basis = lambda (b,d): right_action(d, A.one_basis(), b)
+        if twist_on_basis is not None:
+            twist_on_basis_func = lambda x: twist_on_basis(self.index_to_indices()(x))
+            self._twist = BA.module_morphism(on_basis=twist_on_basis_func, codomain=AB, category=module_category)
+        elif twist_morphism is not None:
+            if twist_morphism.domain() != BA:
+                raise TypeError, "Codomain of twist (%s) should be %s"%(twist.codomain(), BA)
+            if twist_morphism.codomain() != AB:
+                raise TypeError, "Codomain of twist (%s) should be %s"%(twist.codomain(), AB)             
+            if not twist_morphism.category().is_subcategory(module_category.hom_category()):
+                raise TypeError, "twist should be a module morphism"
+            self._twist = twist_morphism
+        else:
+            raise TypeError, "Twist is improperly specified"
+
         self._has_opposite = False # default: no "opposite" smash product has been registered
         # Define the product morphism using twist
-        ItwistI = tensor([A._identity_map(), twist, B._identity_map()], category=module_category)
+        ItwistI = tensor([A._identity_map(), self._twist, B._identity_map()], category=module_category)
         mAmB = tensor([A._product_morphism(),B._product_morphism()], category=module_category)
         self._product_morphism_map = SetMorphism(Hom(ItwistI.domain(), mAmB.codomain(), category=module_category), mAmB * ItwistI)
 
@@ -226,10 +286,9 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             sage: B = A
             sage: BA = tensor([B,A],category=ModulesWithBasis(ZZ))
             sage: AB = BA
-            sage: def t_map(x):
-            ...       return AB.monomial((x[1],x[0]))
-            sage: twist = BA.module_morphism(on_basis=t_map, codomain=AB, category=ModulesWithBasis(ZZ))
-            sage: C = SmashProductAlgebra(A,B,twist); C
+            sage: def t_map((b,a)):
+            ...       return AB.monomial((a,b))
+            sage: C = SmashProductAlgebra(A,B,twist_on_basis=t_map); C
             Smash product of A and A
 
             Question: Should this name include twist?
@@ -265,10 +324,9 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             sage: W = WeylGroup("A2",prefix="s")
             sage: A = W.algebra(ZZ); A.rename("A")
             sage: AA = tensor([A,A],category=ModulesWithBasis(ZZ))
-            sage: def t_map(x):
-            ...       return AA.monomial((x[1],x[0]))
-            sage: twist = AA.module_morphism(on_basis=t_map, codomain=AA, category=ModulesWithBasis(ZZ))
-            sage: C = SmashProductAlgebra(A,A,twist)
+            sage: def t_map((b,a)):
+            ...       return AA.monomial((a,b))
+            sage: C = SmashProductAlgebra(A,A,twist_on_basis=t_map)
             sage: C.twist()
             Generic endomorphism of A # A
 
@@ -285,7 +343,13 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
     def product_on_basis(self, p1, p2):
         r"""
-        The product of basis elements indexed by `p1` and `p2`.
+        The product of basis elements indexed by the grouped tuples `p1` and `p2`.
+
+        ..IMPLEMENTATION::
+
+        The tensor map form of multiplication takes the flattened tuples as input and output.
+        In the following example, `C` is a smash product and `C2` is the direct product of `C` with itself
+        with componentwise product defined in :meth:`sage.categories.algebras_with_basis.AlgebrasWithBasis.TensorProducts`.
 
         EXAMPLES::
 
@@ -293,21 +357,19 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             sage: r = W.from_reduced_word
             sage: A = W.algebra(ZZ); A.rename("A")
             sage: AA = tensor([A,A], category=ModulesWithBasis(ZZ))
-            sage: twist = AA.module_morphism(on_basis=lambda x: AA.monomial((x[0]*x[1]*x[0]**(-1),x[0])),codomain=AA)
-            sage: C = SmashProductAlgebra(A, A, twist,suppress_ones=False)
+            sage: twist = AA.module_morphism(on_basis=lambda (b,a): AA.monomial((b*a*b.inverse(),b)),codomain=AA)
+            sage: C = SmashProductAlgebra(A, A, twist_morphism=twist,suppress_ones=False)
             sage: p1 = (r([1]),r([1,2]))
             sage: p2 = (r([1,2,1]),r([2]))
             sage: C.product_on_basis(p1,p2)
             B[1] # B[s1]
             sage: C2 = tensor([C,C])
-            sage: p = C2.indices_to_index()(p1,p2); p
-            (s1, s1*s2, s1*s2*s1, s2)
-            sage: C2.product_on_basis(p,p)
-            B[s1*s2] # B[s2*s1] # B[s1*s2] # B[1]
-
+            sage: C2.product_on_basis(C2.indices_to_index()(p1,p1), C2.indices_to_index()(p2,p2))
+            B[1] # B[s1] # B[1] # B[s1]
         """
         mult = self._product_morphism()
-        return self(mult(mult.domain().monomial(p1+p2)))
+        return self(mult(mult.domain().monomial(self.indices_to_index()(*p1)+self.indices_to_index()(*p2))))
+
 
     def _the_coercion_map(self, other_algebra_module, twist, x):
         return self(twist(other_algebra_module(x)))
