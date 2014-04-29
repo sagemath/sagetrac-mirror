@@ -2989,6 +2989,11 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
     Implementation: This class remembers the tensor factors used in its creation.
     The actual object is the flattened tensor product provided by
     :class:`CombinatorialFreeModule_Tensor`.
+
+    The methods :meth:`.indices_to_index` and :meth:`.index_to_indices` provide bijections between
+    the grouped tuples that naturally index the grouped tensor product, and the flattened indices used in the
+    implementation.
+
     """
 
     def __init__(self, modules, category, **keywords):
@@ -3094,6 +3099,47 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
         """
         return self._unflattening_function
 
+    def monomial_grouped(self, tup):
+        r"""
+        The monomial indexed by a grouped tuple.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup("A2",prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A4 = tensor([A2,A2])
+            sage: m = A4.monomial_grouped(((r([1]),r([2])),(r([1,2]),r([2,1])))); m
+            B[s1] # B[s2] # B[s1*s2] # B[s2*s1]
+
+        """
+        return self.monomial(self.indices_to_index()(*tup))
+
+    def tensor_module_morphism(self, on_basis, codomain, category=None, **keywords):
+        r"""
+        Returns a module morphism whose domain is a tensor product.
+
+        This is analogous to :meth:`.module_morphism` except that only the ``on_basis`` option is
+        implemented and the inputs for the ``on_basis`` function are grouped tuples instead of the
+        flattened tuples secretly used in the implementation of tensor products.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',2],prefix="s")
+            sage: r = W.from_reduced_word
+            sage: A = W.algebra(ZZ); A.rename("A")
+            sage: A2 = tensor([A,A])
+            sage: A3 = tensor([A2,A])
+            sage: R = lambda (a,b): (b,a)
+            sage: RI = A3.tensor_module_morphism(on_basis = lambda (ab, c): A3.monomial_grouped((R(ab),c)), codomain=A3)
+            sage: pair = (r([1,2]), r([2]))
+            sage: RI(A3.monomial_grouped((pair,r([1]))))
+            B[s2] # B[s1*s2] # B[s1]
+
+        """
+        return self.module_morphism(on_basis = lambda x: on_basis(self.index_to_indices()(x)), category=category, codomain=codomain, **keywords)
+
     @cached_method
     def _flat_tensor(self):
         r"""
@@ -3183,7 +3229,7 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
         try:
             return self._from_flat_tensor()(tensor([the_factor(element) for the_factor, element in zip(self.factors(), tup)], category=ModulesWithBasis(self.base_ring())))
         except:
-            raise ValueError, "A component element cannot be coerced into its tensor factor"
+            raise ValueError, "Cannot coerce tuple (%s) into tensor product %s"%(tup, self)
 
     def an_element(self):
         r"""

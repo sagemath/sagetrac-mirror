@@ -928,9 +928,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             E._TaoKF = tensor([E._Ta, E._KF], category = mcat)
             E._KFoTa = tensor([E._KF, E._Ta], category = mcat)
             def ext_twist_func((w, f)):
-                return (f, f.inverse().act_on_affine_weyl(w))
-            E._ext_twist = E._TaoKF.module_morphism(on_basis=E._TaoKF.monomial*ext_twist_func, codomain=E._KFoTa, category=mcat)
-            SmashProductAlgebra.__init__(self, E._KF, E._Ta, E._ext_twist, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
+                return E._TaoKF.monomial((f, f.inverse().act_on_affine_weyl(w)))
+            SmashProductAlgebra.__init__(self, E._KF, E._Ta, twist_on_basis=ext_twist_func, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "T"
 
             SetMorphism(Hom(E._KF,self, cat),self.factor_embedding(0)).register_as_coercion()
@@ -1081,18 +1080,17 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             else:
                 convention = "antidominant"
             self._HM = Lv.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention=convention, doubled_parameters=E._doubled_parameters, side="right")
-            def right_action_on_tv_Lv((w,mu), i):
+            def right_action_of_Ti_on_tv_Lv((w,mu), i):
                 smu = mu.simple_reflection(i)
                 return tensor([tv.monomial(w), self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu)]) + tensor([tv.product_by_generator_on_basis(w,i), Lv.monomial(smu)])
 
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-            self._tvoHM = HeckeAlgebraRepresentation(self._tvoLv, right_action_on_tv_Lv, E.cartan_type(), E.q1(), E.q2())
+            self._tvoHM = HeckeAlgebraRepresentation(self._tvoLv, right_action_of_Ti_on_tv_Lv, E.cartan_type(), E.q1(), E.q2())
 
-            def twist_func((mu,w)):
-                return self._tvoHM.Tw(w)(self._tvoLv.monomial((tv.one_basis(), mu)))
+            def right_action_on_tv_Lv(ww, w, mu):
+                return self._tvoHM.Tw(ww)(self._tvoLv.monomial((w, mu)))
 
-            twist = self._Lvotv.module_morphism(on_basis=twist_func,codomain=self._tvoLv,category=module_category)
-            SmashProductAlgebra.__init__(self, tv, Lv, twist, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
+            SmashProductAlgebra.__init__(self, tv, Lv, right_action=right_action_on_tv_Lv, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "tv_Lv"
 
         def _repr_(self):
@@ -1203,18 +1201,17 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 convention = "antidominant"
             self._HM = Lv.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention=convention, doubled_parameters=E._doubled_parameters, side="left")
 
-            def left_action_on_Lv_tv((mu,w), i):
+            def left_action_of_Ti_on_Lv_tv((mu,w), i):
                 smu = mu.simple_reflection(i)
                 return tensor([self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu), tv.monomial(w)]) + tensor([Lv.monomial(smu),tv.product_by_generator_on_basis(w,i,side="left")])
 
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-            self._LvotvHM = HeckeAlgebraRepresentation(self._Lvotv, left_action_on_Lv_tv, E.cartan_type(), E.q1(), E.q2(), side="left")
+            self._LvotvHM = HeckeAlgebraRepresentation(self._Lvotv, left_action_of_Ti_on_Lv_tv, E.cartan_type(), E.q1(), E.q2(), side="left")
 
-            def untwist_func((w,mu)):
-                return self._LvotvHM.Tw(w)(self._Lvotv.monomial((mu, tv.one_basis())))
+            def left_action_on_Lv_tv(ww, mu, w):
+                return self._LvotvHM.Tw(ww)(self._Lvotv.monomial((mu, w)))
 
-            untwist = self._tvoLv.module_morphism(on_basis=untwist_func,codomain=self._Lvotv,category=module_category)
-            SmashProductAlgebra.__init__(self, Lv, tv, untwist, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
+            SmashProductAlgebra.__init__(self, Lv, tv, left_action=left_action_on_Lv_tv, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
 
             self._style = "Lv_tv"
 
