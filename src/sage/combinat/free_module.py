@@ -2518,8 +2518,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 if len(modules) == 0:
                     return tensor_unit
                 # flatten the tensor product
-                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else module.factors() if isinstance(module, CombinatorialFreeModule_TensorGrouped) else (module,) for module in modules],())
-            return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, category, **options)
+                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
+            return super(CombinatorialFreeModule_Tensor, cls).__classcall__(cls, modules, category, **options)
 
         def __init__(self, modules, category, **options):
             """
@@ -2995,6 +2995,12 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
     implementation.
 
     """
+
+    @staticmethod
+    def __classcall_private__(cls, modules, category, **keywords):
+
+        return super(CombinatorialFreeModule_TensorGrouped, cls).__classcall__(cls, flattened_modules, category, **keywords)
+
 
     def __init__(self, modules, category, **keywords):
         # save the tensor factors

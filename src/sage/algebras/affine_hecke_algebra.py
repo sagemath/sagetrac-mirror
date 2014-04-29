@@ -662,8 +662,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             sage: H.F_to_tv_Lv_func(F(1)) * H.F_to_tv_Lv_func(F(2))
             Y[(-1, -1, -1)]
 
-        Note that in the crappy ambient space of type "A2", (-1, -1, -1) and (0, 0, 0) both represent
-        the zero element.
+        ..warning:: In the crappy ambient space of type "A2", (-1, -1, -1) and (0, 0, 0) both represent
+        the zero weight.
 
         """
         i = pi.value()

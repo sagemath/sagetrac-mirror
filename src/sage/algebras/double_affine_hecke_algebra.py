@@ -1534,6 +1534,10 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
                 """
                 HH = self.realization_of()
+                fam = HH.L_T().from_F()
+                print "L_T fam: ", fam
+                L_tv_Lv = HH.L_tv_Lv()
+                print [L_tv_Lv(x) for x in fam]
                 return Family(dict([[i, self(HH.L_T().from_F()[i])] for i in HH.double_affine_type().special_nodes()]))
 
             def L_morphism(self, a):
@@ -1752,15 +1756,11 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             F = HH._F
             HH._F_on_LoT_left_morphisms = Family(dict([[F(i), HH._LoT.module_morphism(on_basis=functools.partial(pi_on_LoT_left, F(i)),category=mcat,codomain=HH._LoT)] for i in F.special_nodes()]))
-            # twist L_T_func takes (pi,w,mu) and outputs an element of KL # T.
-            def twist_LoT_func((pi,w,mu)):
-                assert pi in F, "%s should be in the fundamental group %s"%(pi, F)
-                assert w in HH._A.affine_weyl(), "%s should be in the affine Weyl group %s"%(w, HH._Wa)
-                assert mu in HH._L, "%s should be in the ambient space %s"%(mu,HH._L)
-                return HH._F_on_LoT_left_morphisms[pi](HH._MLoT.Tw(w)(HH._LoT.monomial((mu,)+HH._T.one_basis())))
+            # the left action of the extended affine Hecke algebra on the module LoT.
+            def left_LoT_func((ppi,ww),mu,(pi,w)):
+                return HH._F_on_LoT_left_morphisms[ppi](HH._MLoT.Tw(ww)(HH._LoT.monomial((mu,pi,w))))
 
-            HH._twist_LoT = HH._ToL.module_morphism(on_basis=twist_LoT_func, codomain = HH._LoT, category = tmcat)
-            SmashProductAlgebra.__init__(self, HH._KL, HH._T, HH._twist_LoT, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+            SmashProductAlgebra.__init__(self, HH._KL, HH._T, left_action=left_LoT_func, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
             self._style = "L_T"
 
         def _repr_(self):
@@ -1892,15 +1892,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             F = HH._T.factor(0).basis().keys()
             HH._F_on_ToL_right_morphisms = Family(dict([[F(i), HH._ToL.module_morphism(on_basis=functools.partial(pi_on_ToL_right, F(i)),category=mcat,codomain=HH._ToL)] for i in F.special_nodes()]))
-            # twist T_L_func takes (mu,pi,w) and outputs an element of T # L.
-            def twist_ToL_func((mu,pi,w)):
-                assert mu in HH._L, "%s should be in the ambient space %s"%(mu,HH._L)
-                assert pi in F, "%s should be in the fundamental group %s"%(pi, F)
-                assert w in HH._A.affine_weyl(), "%s should be in the fundamental group %s"%(w, HH._A.affine_weyl())
-                return HH._ToLM.Tw(w)(HH._F_on_ToL_right_morphisms[pi.inverse()](HH._ToL.monomial(HH._T.one_basis()+(mu,))))
 
-            HH._twist_ToL = HH._LoT.module_morphism(on_basis=twist_ToL_func, codomain = HH._ToL, category = tmcat)
-            SmashProductAlgebra.__init__(self, HH._T, HH._KL, HH._twist_ToL, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+            # the right action of the extended affine Hecke algebra on the module ToL.
+            def right_ToL_func((ppi,ww),(pi,w),mu):
+                return HH._ToLM.Tw(ww)(HH._F_on_ToL_right_morphisms[ppi.inverse()](HH._ToL.monomial((pi,w,mu))))
+
+            SmashProductAlgebra.__init__(self, HH._T, HH._KL, right_action=right_ToL_func, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+
             self._style = "T_L"
 
         def _repr_(self):
@@ -2017,7 +2015,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
             HH._twist_L_tv_Lv = SetMorphism(Hom(HH._tvLvoL,HH._LotvLv,mcat),idocoerce * HH.L_T().twist() * coerceoid)
 
-            SmashProductAlgebra.__init__(self, HH._KL, HH.tv_Lv(), HH._twist_L_tv_Lv, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
+            SmashProductAlgebra.__init__(self, HH._KL, HH.tv_Lv(), twist_morphism=HH._twist_L_tv_Lv, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
             self._style = "L_tv_Lv"
 
         def _repr_(self):
