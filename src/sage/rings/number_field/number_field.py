@@ -4320,8 +4320,9 @@ class NumberField_generic(number_field_base.NumberField):
            can't be made to act on self).  If type = 'gap', the database_gap
            package should be installed.
 
-        -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
-           when the degree is >= 12 when 'kash' is tried.)
+        -  ``algorithm`` - 'pari', 'gap', 'kash', 'magma'. (default: 'pari'; 
+           for degrees between 12 and 15 default is 'gap', and 
+           when the degree is >= 16 it is 'kash'.)
 
         -  ``name`` - a string giving a name for the generator of the Galois
            closure of self, when self is not Galois. This is ignored if type is
@@ -4374,7 +4375,7 @@ class NumberField_generic(number_field_base.NumberField):
         ::
 
             sage: x = polygen(QQ)
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(pari_group=False)    # optional - database_gap
+            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type="gap")    # optional - database_gap
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
             sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma, , database_gap
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
@@ -4399,6 +4400,11 @@ class NumberField_generic(number_field_base.NumberField):
             ]
             sage: G[2](b1)
             1/12*b1^4 + 1/2*b1
+
+        many examples for higher degrees may be found in the online database 
+        http://galoisdb.math.upb.de/ by  Jürgen Klüners and Gunter Malle, 
+        although these might need a lot of computing time.
+
         """
         from galois_group import GaloisGroup_v1, GaloisGroup_v2
 

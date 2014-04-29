@@ -25,6 +25,7 @@ include "sage/libs/flint/fmpz_poly.pxi"
 include "sage/libs/flint/fmpq_poly.pxd"
 
 from sage.interfaces.all import singular as singular_default
+from sage.interfaces.all import gap
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.flint.ntl_interface cimport *
@@ -1382,9 +1383,10 @@ cdef class Polynomial_rational_flint(Polynomial):
            up a group in Gap.  To get a permutation group from a PARI
            group ``P``, type ``PermutationGroup(P)``.
 
-        -  ``algorithm`` - ``'pari'``, ``'kash'``, ``'magma'`` (default:
-           ``'pari'``, except when the degree is at least 12 in which case
-           ``'kash'`` is tried).
+        -  ``algorithm`` - ``'pari'``, ``'gap'``, ``'kash'``, ``'magma'`` (default:
+           ``'pari'``, for degrees is at most 11;
+           ``'gap'``, for degrees from 12 to 15;
+           ``'kash'``, for degrees from 16 or more). 
 
         OUTPUT:
 
@@ -1393,7 +1395,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         ALGORITHM:
 
         The Galois group is computed using PARI in C library mode, or possibly
-        KASH or MAGMA.
+        GAP, or KASH, or MAGMA.
 
         .. note::
 
@@ -1402,6 +1404,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             current precision. The precision is updated internally but, in very
             rare cases, a wrong result may be returned if the initial precision
             was not sufficient.
+
+            GAP needs an optional transitive group library installed, 
+            from database_gap spkg.
 
             MAGMA does not return a provably correct result.  Please see the
             MAGMA documentation for how to obtain a provably correct result.
@@ -1412,8 +1417,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = x^4 - 17*x^3 - 2*x + 1
             sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
-            sage: G.gens()                           # optional - database_gap
-            [(1,2,3,4), (1,2)]
+            sage: Set(G.gens())                      # optional - database_gap
+            {(1,2), (1,2,3,4)}
             sage: G.order()                          # optional - database_gap
             24
 
@@ -1430,10 +1435,10 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: PermutationGroup(G)                # optional - database_gap
             Transitive group number 5 of degree 4
 
-        You can use KASH to compute Galois groups as well.  The advantage is
-        that KASH can compute Galois groups of fields up to degree 23, whereas
-        PARI only goes to degree 11.  (In my not-so-thorough experiments PARI
-        is faster than KASH.)
+        You can use KASH or GAP to compute Galois groups as well.  The advantage is
+        that KASH (resp. GAP) can compute Galois groups of fields up to 
+        degree 23 (resp. 15), whereas PARI only goes to degree 11.  
+        (In my not-so-thorough experiments PARI is faster than KASH.)
 
         ::
 
@@ -1442,6 +1447,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
+            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            Transitive group number 5 of degree 4
+            sage: f = x^13 - 17*x^3 - 2*x + 1
+            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            Transitive group number 9 of degree 13
+            sage: f = x^12 - 2*x^8 - x^7 + 2*x^6 + 4*x^4 - 2*x^3 - x^2 - x + 1
+            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            Transitive group number 183 of degree 12
             sage: f.galois_group(algorithm='magma')  # optional - magma, database_gap
             Transitive group number 5 of degree 4
 
@@ -1462,7 +1475,10 @@ cdef class Polynomial_rational_flint(Polynomial):
             raise ValueError, "The polynomial must be irreducible"
 
         if self.degree() > 11 and algorithm == 'pari':
-            algorithm = 'kash'
+            if self.degree() < 16:
+                algorithm = 'gap'
+            else:
+                algorithm = 'kash'
 
         if self.degree() > 23 and algorithm == 'kash':
             raise NotImplementedError, "Galois group computation is " + \
@@ -1477,6 +1493,18 @@ cdef class Polynomial_rational_flint(Polynomial):
                 return H
             else:
                 return PermutationGroup(H)
+
+        elif algorithm == 'gap':
+            if self.degree() > 15:
+                raise NotImplementedError, "Galois group computation is " + \
+                    "supported for degrees up to 15 using GAP. Try " + \
+                    "algorithm='kash'."
+            if not gap('"trans" in RecNames(GAPInfo.LoadedComponents)'):
+                raise ValueError, "Need to install database_gap spkg " + \
+                    "(which contains a library of transitive groups needed here)."
+            R = gap.PolynomialRing('Rationals', 1)
+            fgap = gap(self)
+            return TransitiveGroup(self.degree(), fgap.GaloisType())
 
         elif algorithm == 'kash':
             try:
