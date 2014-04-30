@@ -19,14 +19,6 @@ from sage.misc.ascii_art import ascii_art
 from sage.all import Reals
 from sage.all import Integers
 
-class TextAlignement:
-    H_CENTER = 1
-    H_LEFT = 2
-    H_RIGHT = 3
-    V_TOP = 4
-    V_BOTTOM = 5
-    V_CENTER = 6
-
 class Ascii_array:
     def __init__( self, ascii_art ):
         if isinstance( ascii_art, list ):
@@ -71,7 +63,7 @@ class Ascii_array:
 
     def clip(
         self, array, pos_no, pos_se, 
-        h_align = TextAlignement.H_CENTER, v_align = TextAlignement.V_CENTER 
+        h_align = 'center', v_align = 'center'
     ):
         clip_width = pos_se[1] - pos_no[1]
         clip_height = pos_se[0] - pos_no[0]
@@ -81,23 +73,23 @@ class Ascii_array:
         array_width = array.width()
         array_height = array.height()
 
-        if (v_align == TextAlignement.V_CENTER) :
+        if (v_align == 'center') :
             def H( h ):
                 return int(array_height/2) - int(clip_height/2) + (h - pos_no[0])
-        elif v_align == TextAlignement.V_TOP :
+        elif v_align == 'top' :
             def H( h ):
                 return h - pos_no[0]
-        elif v_align == TextAlignement.V_BOTTOM :
+        elif v_align == 'bottom' :
             def H( h ):
                 return array_height - clip_height + (h - pos_no[0])
 
-        if h_align == TextAlignement.H_CENTER :
+        if h_align == 'center' :
             def W( w ):
                 return int(array_width/2) - int(clip_width/2) + (w - pos_no[1])
-        elif h_align == TextAlignement.H_LEFT :
+        elif h_align == 'left' :
             def W( w ):
                 return w - pos_no[1]
-        elif h_align == TextAlignement.H_RIGHT :
+        elif h_align == 'right' :
             def W( w ):
                 return array_width - clip_width + (w - pos_no[1])
 
@@ -110,7 +102,7 @@ class Ascii_array:
 
     def get_new_geometry(
         self, height, width,
-        h_align = TextAlignement.H_CENTER, v_align = TextAlignement.V_CENTER 
+        h_align = 'center', v_align = 'center' 
     ):
         res = Ascii_array( [ [ ' ' for w in range(width) ] for h in range(height)] )
         res.clip(
@@ -121,7 +113,7 @@ class Ascii_array:
 
     def change_geometry(
         self, height, width, 
-        h_align = TextAlignement.H_CENTER, v_align = TextAlignement.V_CENTER 
+        h_align = 'center', v_align = 'center' 
     ):
         res = self.get_new_geometry( 
             height, width, h_align = h_align, v_align = v_align
@@ -170,6 +162,8 @@ def _default_ascii_options( ):
         packed=dict(default=False, description='If set to True, the tableau is packed.', checker=lambda v: isinstance(v, bool )),
         compact=dict(default=False, description='If set to True, the tableau is compacted.', checker=lambda v: isinstance(v, bool )),
         draw_separator=dict(default=True, description='Seprarators is draw.', checker=lambda v: isinstance(v, bool )),
+        horizontal_alignement=dict(default='center', values=dict( center='aligned to center', left='aligned to left', right='aligned to right'  )),
+        vertical_alignement=dict(default='center', values=dict( center='aligned to center', top='aligned to top', bottom='aligned to bottom'  )),
     )
 
 class GraphicTableau:
@@ -238,12 +232,100 @@ class GraphicTableau:
                 <BLANKLINE>
                 sage: ascii_art( g )._repr_()
                 '        \n        \n   +---+\n   | B |\n   +---+\n        \n        '
+
+                sage: options = GraphicTableau.default_ascii_options()
+                sage: options( compact=True )
+                sage: g = GraphicTableau(
+                ....:     [[tree for tree in BinaryTrees(i)] for i in range(4)],
+                ....:     ascii_options = options
+                ....: )
+                sage: ascii_art( g )
+                +-----+                        
+                |     |                        
+                |     |                        
+                |     |                        
+                |     |                        
+                |     |                        
+                +-----+                        
+                |     |                        
+                |     |                        
+                |  o  |                        
+                |     |                        
+                |     |                        
+                +-----+-----+                  
+                |     |     |                  
+                | o   |   o |                  
+                |  \  |  /  |                  
+                |   o | o   |                  
+                |     |     |                  
+                +-----+-----+-----+-----+-----+
+                |o    | o   |     |   o |    o|
+                | \   |  \  |  o  |  /  |   / |
+                |  o  |   o | / \ | o   |  o  |
+                |   \ |  /  |o   o|  \  | /   |
+                |    o| o   |     |   o |o    |
+                +-----+-----+-----+-----+-----+
         """
-        self._array = array
-        self._separators = separators
-        self._entry_map = entry_map
+
+        def maximal_dimension( array ):
+            if array is None:
+                return [0,0]
+            width = 0
+            for line in array :
+                if len(line) > width:
+                    width = len(line)
+            return [ len(array), width ]
+
+        def normalized_array( array, height, width, fct=None ):
+            def get_entry( array, h , w, fct ):
+                if h < len( array ) and w < len( array[h] ):
+                    if fct is None:
+                        return array[h][w]
+                    else:
+                        return fct( array[h][w] )
+                else:
+                    return None
+            return [
+                [ get_entry( array, h, w, entry_map ) for w in range( width) ]
+                for h in range( height )
+            ]
+
+        height_array, width_array = maximal_dimension( array )
+        height_separators, width_separators = maximal_dimension( separators )
+        height = max( height_array, height_separators )
+        width = max( width_array, width_separators )
+
+        self._array = normalized_array( array, height, width, entry_map )
+
+        def normalized_separators( separators, array, height, width ):
+            def get_entry( h , w ):
+                if separators is None:
+                    if not array[h][w] is None:
+                        return [True, True, True, True]
+                else:
+                    if h < len( separators ) and w < len( separators[h] ):
+                        return separators[h][w]
+                return [False, False, False, False]
+            return [
+                [ get_entry( h, w ) for w in range( width) ]
+                for h in range( height )
+            ]
+        self._separators = normalized_separators(
+            separators, self._array, height, width
+        )
         self.graphic_options = graphic_options
         self.ascii_options = ascii_options
+
+    def __getitem__( self, h ):
+        class Line :
+            def __init__( self, array, h ):
+                self._array = array
+                self._h = h
+            def __getitem__( self, w ):
+                return self._array[self._h][w]
+            def __repr__( self ):
+                return str( self._array[h] )
+        return Line( self._array, h )
 
     def _repr_(self):
         return str( self._ascii_art_() )
@@ -251,73 +333,103 @@ class GraphicTableau:
     def __repr__(self):
         return self._repr_()
 
-    def _ascii_art_( self ):
-        height_array = len( self._array )
-        def to_ascii_array( h, w ):
-            if self._entry_map( self._array[h][w] ) is None:
-                return None
-            else:
-                return Ascii_array( 
-                    ascii_art( self._entry_map( self._array[h][w] ) ) 
-                )
-        lines_ascii = [
-            [ to_ascii_array(h,w) for w in range( len(self._array[h]) ) ]
-            for h in range(height_array)
-        ]
-        max_width = 0
-        max_height = 0
-        width_array = 0
-        for line in lines_ascii :
-            if len(line) > width_array:
-                width_array = len(line)
-            for e in line:
-                if not e is None :
-                    if max_width < e.width():
-                        max_width = e.width()
-                    if max_height < e.height():
-                        max_height = e.height()
+    def array( self ):
+        return self._array
+
+    def separators( self ):
+        return self._separators
+
+    def height( self ):
+        return len( self._array )
+
+    def width( self ):
+        return len( self._array[0] )
+
+    def get_ascii_entry( self, h, w ):
+        return Ascii_array( ascii_art( self[h][w] ) )
+
+    def dimensions( self ):
+        heights = [ 0 for h in range( self.height() ) ]
+        widths = [ 0 for w in range( self.width() ) ]
+
+        w_offset = 0
+        h_offset = 0
         if not self.ascii_options['compact']:
-            max_width += 2
-            max_height += 0
-        res_height = height_array * ( max_height + 1 ) + 1
-        res_width = width_array * ( max_width + 1 ) + 1
-        res = Ascii_array( 
-            [ [ ' ' for w in range(res_width) ] for h in range(res_height) ]
-        )
-        for h in range(height_array):
-            for w in range( len(self._array[h]) ):
-                if not self._separators is None:
-                    sep = self._separators[h][w]
-                else:
-                    sep = [ False, False, False, False ]
-                if not lines_ascii[h][w] is None :
-                    pos_no = [1+h*(1+max_height), 1+w*(1+max_width)]
-                    pos_se = [(h+1)*(1+max_height), (w+1)*(1+max_width)]
-                    res.clip( lines_ascii[h][w], pos_no, pos_se )
-                    if self._separators is None:
-                        sep = [ True, True, True, True ]
-                if sep[0]:
-                    for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
-                        res[ pos_no[0]-1 ][ w1 ] = '-'
-                    res[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
-                    res[ pos_no[0]-1 ][ pos_se[1] ] = '+'
-                if sep[1]:
-                    for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
-                        res[ h1 ][ pos_se[1] ] = '|'
-                    res[ pos_se[0] ][ pos_se[1] ] = '+'
-                    res[ pos_no[0]-1 ][ pos_se[1] ] = '+'
-                if sep[2]:
-                    for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
-                        res[ pos_se[0] ][ w1 ] = '-'
-                    res[ pos_se[0] ][ pos_no[1]-1 ] = '+'
-                    res[ pos_se[0] ][ pos_se[1] ] = '+'
-                if sep[3]:
-                    for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
-                        res[ h1 ][ pos_no[1]-1 ] = '|'
-                    res[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
-                    res[ pos_se[0] ][ pos_no[1]-1 ] = '+'
+            w_offset += 2
+            h_offset += 0
 
-        return res._ascii_art_()
+        for h in range( self.height() ):
+            for w in range( self.width() ):
+                if not self[h][w] is None:
+                    figure = self.get_ascii_entry( h, w )
+                    heights[h] = max( figure.height() + h_offset, heights[h] )
+                    widths[w] = max( figure.width() + w_offset, widths[w] )
+        return [heights, widths]
 
-        def _latex_(self):
-            pass
+    def max_of_dimensions( self ):
+        heights, widths = self.dimensions()
+        return [ max(heights), max(widths) ]
+
+    def picture_dimension( self ):
+        max_height, max_width = self.max_of_dimensions()
+        height_picture = self.height() * ( max_height + 1 ) + 1
+        width_picture = self.width() * ( max_width + 1 ) + 1
+        return [ height_picture, width_picture ]
+
+    def horizontal_alignement( self ):
+        return self.ascii_options['horizontal_alignement']
+
+    def vertical_alignement( self ):
+        return self.ascii_options['vertical_alignement']
+
+    def _ascii_art_( self ):
+        height_picture, width_picture = self.picture_dimension()
+
+        picture = Ascii_array( [
+            [ ' ' for w in range(width_picture) ] for h in range(height_picture)
+        ] )
+
+        max_height, max_width = self.max_of_dimensions()
+
+        def draw_a_box( h, w ):
+            # we draw inside the box
+            if not self[h][w] is None :
+                pos_no = [1+h*(1+max_height), 1+w*(1+max_width)]
+                pos_se = [(h+1)*(1+max_height), (w+1)*(1+max_width)]
+                picture.clip(
+                    self.get_ascii_entry( h, w ), pos_no, pos_se,
+                    self.horizontal_alignement(), self.vertical_alignement()
+                )
+
+            #we draw the borders
+            if self.separators()[h][w][0]:
+                for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
+                    picture[ pos_no[0]-1 ][ w1 ] = '-'
+                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
+                picture[ pos_no[0]-1 ][ pos_se[1] ] = '+'
+            if self.separators()[h][w][1]:
+                for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
+                    picture[ h1 ][ pos_se[1] ] = '|'
+                picture[ pos_se[0] ][ pos_se[1] ] = '+'
+                picture[ pos_no[0]-1 ][ pos_se[1] ] = '+'
+            if self.separators()[h][w][2]:
+                for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
+                    picture[ pos_se[0] ][ w1 ] = '-'
+                picture[ pos_se[0] ][ pos_no[1]-1 ] = '+'
+                picture[ pos_se[0] ][ pos_se[1] ] = '+'
+            if self.separators()[h][w][3]:
+                for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
+                    picture[ h1 ][ pos_no[1]-1 ] = '|'
+                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
+                picture[ pos_se[0] ][ pos_no[1]-1 ] = '+'
+
+        # We draw all the boxes
+        for h in range( self.height() ):
+            for w in range( self.width() ):
+                draw_a_box( h, w )
+
+
+        return picture._ascii_art_()
+
+    def _latex_(self):
+        pass
