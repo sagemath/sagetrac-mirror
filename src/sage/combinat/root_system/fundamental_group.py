@@ -174,6 +174,11 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
         r"""
         This should not be called directly
         """
+        try:
+            if x.parent() == parent:
+                return x
+        except AttributeError:
+            pass
         if x not in parent.special_nodes():
             raise ValueError, "%s is not a special node"%x
         self._value = x

@@ -486,7 +486,7 @@ class DoubleAffineType(SageObject):
 
         # Make the extended affine Weyl group W_e(\tilde{X})
         from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
-        self._We = ExtendedAffineWeylGroup(self._cartan_type, style="PvW0", affine="S"+prefix,classical="s"+prefix,translation="t"+prefix,fundamental="pi"+prefix)
+        self._We = ExtendedAffineWeylGroup(self._cartan_type, style="PvW0", fundamental="")
         self._F = self._We.realization_of().fundamental_group()
         # Compute whether \tilde{Y} is reduced.
         if dual_reduced:
@@ -941,14 +941,14 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         SetMorphism(Hom(L_tv_Lv.factor(0),L_tv_Lv,category=cat),L_tv_Lv.factor_embedding(0)).register_as_coercion()
         SetMorphism(Hom(L_tv_Lv.factor(1),L_tv_Lv,category=cat),L_tv_Lv.factor_embedding(1)).register_as_coercion()
 
-        def L_tv_Lv_to_L_T_func((mu, b)):
-            return L_T.from_direct_product((self._KL.monomial(mu),self._T(self._tv_Lv.monomial(b))))
+        def L_tv_Lv_to_L_T_func((mu, w, nu)):
+            return L_T.from_direct_product((self._KL.monomial(mu),self._T(self._tv_Lv.monomial((w,nu)))))
 
         L_tv_Lv_to_L_T = L_tv_Lv.module_morphism(on_basis=L_tv_Lv_to_L_T_func, codomain=L_T)
         L_tv_Lv_to_L_T.register_as_coercion()
 
-        def L_T_to_L_tv_Lv_func((mu, b)):
-            return L_tv_Lv.from_direct_product((self._KL.monomial(mu),self._tv_Lv(self._T.monomial(b))))
+        def L_T_to_L_tv_Lv_func((mu, pi, w)):
+            return L_tv_Lv.from_direct_product((self._KL.monomial(mu),self._tv_Lv(self._T.monomial((pi,w)))))
 
         L_T_to_L_tv_Lv = L_T.module_morphism(on_basis=L_T_to_L_tv_Lv_func, codomain=L_tv_Lv)
         L_T_to_L_tv_Lv.register_as_coercion()
@@ -1527,17 +1527,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
                     sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
                     sage: pis = HH.L_T().from_F(); pis
-                    Finite family {0: pi[0], 1: pi[1], 2: pi[2]}
+                    Finite family {0: 1, 1: piX[1], 2: piX[2]}
                     sage: pis[0].parent()
                     L_T basis of The double affine Hecke algebra of type ['A', 2, 1]
                     sage: HH.L_tv_Lv().from_F()
-
+                    Finite family {0: 1, 1: Ty[1,2] Y[(-1, -1, 0)], 2: Ty[2,1] Y[(-1, 0, 0)]}
                 """
                 HH = self.realization_of()
-                fam = HH.L_T().from_F()
-                print "L_T fam: ", fam
-                L_tv_Lv = HH.L_tv_Lv()
-                print [L_tv_Lv(x) for x in fam]
                 return Family(dict([[i, self(HH.L_T().from_F()[i])] for i in HH.double_affine_type().special_nodes()]))
 
             def L_morphism(self, a):
@@ -1597,8 +1593,9 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: b.parent()
                     Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Multivariate Polynomial Ring in q, v, vl, v0, v2, vz over Rational Field
                     sage: c = HH.T_L()(b); c
+                    ((v^4-2*v^2+1)/v^2)*TY[2,0] + ((-v^2+1)/v)*TY[2,0,1] + ((-v^2+1)/v)*TY[0,2,0] + ((v^4-2*v^2+1)/v^2) + ((-v^2+1)/v)*TY[1] + TY[0,2,0,1]
                     sage: c.parent()
-                    L_T basis of The double affine Hecke algebra of type ['A', 2, 1]
+                    T_L basis of The double affine Hecke algebra of type ['A', 2, 1]
 
                 """
                 HH = self.realization_of()
@@ -1640,7 +1637,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                     sage: b = L_T.tv_morphism(a); b
                     3*TX[2,1] + 3*TX[1,2] + TX[1,2,1]                    
                     sage: b == L_T(a)
-
+                    True
                 """
                 return self(self.realization_of().L_tv_Lv().tv_morphism(a))
 
@@ -1790,7 +1787,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: DoubleAffineHeckeAlgebraSansDuality("A2").L_T().from_F()
-                Finite family {0: pi[0], 1: pi[1], 2: pi[2]}
+                Finite family {0: 1, 1: piX[1], 2: piX[2]}
 
             """
             F = self.realization_of().double_affine_type().fundamental_group()
@@ -1868,34 +1865,34 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         def __init__(self, HH):
             dat = HH.double_affine_type()
-            # To define the product on T_L we need the left action of left multiplication by T on T # KL.
-            # We start with the left action of the Hecke algebra of the affine Weyl group of `L` on the group algebra KL.
+            # Define the left action of the Hecke algebra of the affine Weyl group of `L` on the group algebra KL.
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
             HH._LM = HH._KLaf.nonreduced_demazure_lusztig_operators_on_classical(HH._the_q, dat._q1, dat._q2, convention=HH._convention,side='right', doubled_parameters=dat.doubled_parameters(),domain=HH._KL)
             mcat = ModulesWithBasis(HH.base_ring())
             tmcat = mcat.TensorProducts()
-            # Now we define the right action of the above nonextended affine Hecke algebra on T # KL
-            # This is done by first giving the action of the generators `T_i` for `i \in I`:
+            # The above nonextended affine Hecke algebra has a right action on T # KL
+            # via the action of the generators `T_i` for `i \in I`:
             # (pi T_w # e^\mu) # T_i = pi T_w # (T_i(e^\mu) - q1[i] e^{s_i(\mu)}) + pi T_w T_i # e^{s_i(\mu)}
-            def Ti_on_ToL_right((mu,pi,w), i):
+            def Ti_on_ToL_right((pi,w,mu), i):
                 if i == 0:
                     smupoly = HH.s0_on_L(mu)
                 else:
                     smupoly = HH._KL.monomial(mu.simple_reflection(i))
                 return tensor([HH._T.monomial((pi,w)), HH._LM[i](HH._KL.monomial(mu)) - dat._q1[i] * smupoly],category=tmcat) + tensor([HH._T.product_by_generator_on_basis((pi,w), i, side='right'),smupoly],category=tmcat)
-            # Use the HeckeAlgebraRepresentation tool to obtain a right action of the nonextended affine Hecke on T # L.
+
+            # Use the HeckeAlgebraRepresentation tool to obtain a right action of the nonextended affine Hecke on T # KL.
             HH._ToLM = HeckeAlgebraRepresentation(HH._ToL, Ti_on_ToL_right, dat.cartan_type(), dat._q1, dat._q2, HH._the_q, side='right', doubled_parameters=dat.doubled_parameters)
 
-            # Now define the right action of the fundamental group elements on T # L.
+            # Now define the right action of the fundamental group elements on T # KL.
             def pi_on_ToL_right(pi, (pi0,w,mu)):
-                return tensor([HH._T.product_by_fundamental_group_element_on_basis((pi0,w),pi,side='right'),HH.F_on_L(pi)(mu)],category=tmcat)
+                return tensor([HH._T.product_by_fundamental_group_element_on_basis((pi0,w),pi,side='right'),HH.F_on_L(pi.inverse())(mu)],category=tmcat)
 
-            F = HH._T.factor(0).basis().keys()
+            F = HH._F
             HH._F_on_ToL_right_morphisms = Family(dict([[F(i), HH._ToL.module_morphism(on_basis=functools.partial(pi_on_ToL_right, F(i)),category=mcat,codomain=HH._ToL)] for i in F.special_nodes()]))
 
-            # the right action of the extended affine Hecke algebra on the module ToL.
+            # Finally we obtain the right action of the extended affine Hecke algebra on the module ToL.
             def right_ToL_func((ppi,ww),(pi,w),mu):
-                return HH._ToLM.Tw(ww)(HH._F_on_ToL_right_morphisms[ppi.inverse()](HH._ToL.monomial((pi,w,mu))))
+                return HH._ToLM.Tw(ww)(HH._F_on_ToL_right_morphisms[ppi](HH._ToL.monomial((pi,w,mu))))
 
             SmashProductAlgebra.__init__(self, HH._T, HH._KL, right_action=right_ToL_func, category=Category.join((HH._BasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
 
@@ -1928,7 +1925,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: DoubleAffineHeckeAlgebraSansDuality("A2").T_L().from_F()
-                Finite family {0: pi[0], 1: pi[1], 2: pi[2]}
+                Finite family {0: 1, 1: piX[1], 2: piX[2]}
 
             """
             F = self.realization_of().double_affine_type().fundamental_group()
@@ -2073,10 +2070,11 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 sage: tv = HH.tv()
                 sage: a = tv.an_element(); a
                 Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
-                sage: b = HH.L_tv_Lv().tv_morphism(a); b
+                sage: L_tv_Lv = HH.L_tv_Lv()
+                sage: b = L_tv_Lv.tv_morphism(a); b
                 Ty[1,2,1] + 3*Ty[1,2] + 3*Ty[2,1]
                 sage: b == L_tv_Lv(a)
-
+                True
             """
             return self.factor_embedding(1)(self.factor(1).factor_embedding(0)(a))
 
@@ -2088,7 +2086,7 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: DoubleAffineHeckeAlgebraSansDuality("A2").T_L().from_reduced_word_dual([2,1])
-
+                TX[2,1]
             """
             return self.factor_embedding(1)(self.factor(1).from_reduced_word(word))
 

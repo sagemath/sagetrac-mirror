@@ -220,7 +220,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: TY = Ht.T(); TY
         T basis of The affine Hecke algebra of type ['A', 2, 1] dual side
         sage: a = TY.an_element(); a
-        6*TY[0] + 9*TY[0,1] + 3 + 3*TY[0,1,2] + 2*piY[1] TY[0] + 3*piY[1] TY[0,1] + piY[1] + piY[1] TY[0,1,2] + 6*piY[2] TY[0] + 9*piY[2] TY[0,1] + 3*piY[2] + 3*piY[2] TY[0,1,2]
+        2*TY[0] + 3*TY[0,1] + 1 + TY[0,1,2] + 4*piY[1] TY[0] + 6*piY[1] TY[0,1] + 2*piY[1] + 2*piY[1] TY[0,1,2] + 8*piY[2] TY[0] + 12*piY[2] TY[0,1] + 4*piY[2] + 4*piY[2] TY[0,1,2]
         sage: Tx_X = Ht.tv_Lv()
         sage: TYa = TY.factor(1)
         sage: Tx_X(TY.factor_embedding(1)(TYa[0,1,2]))
@@ -295,7 +295,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         else:
             self._dual_side = dual_side
         from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
-        self._We = ExtendedAffineWeylGroup(cartan_type, style="PvW0", fundamental = "piX" if not self._dual_side else "piY")
+        self._We = ExtendedAffineWeylGroup(cartan_type, style="PvW0",fundamental="")
         self._FW = self._We.realization_of().FW()
         self._F = self._We.realization_of().fundamental_group()
         self._Wa = self._We.realization_of().affine_weyl()
@@ -672,7 +672,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
         if not self._dual_reduced:
             raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
         # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
-        x = self.extended_affine_weyl().realization_of().W0Pv()(pi)
+        E = self.extended_affine_weyl()
+        x = E.fundamental_group_morphism(pi)
         rw = x.to_dual_classical_weyl().reduced_word()
         mu = x.to_dual_translation_right().to_ambient()
         tv_Lv = self.tv_Lv()
@@ -698,13 +699,12 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
             1
 
         """
-        i = pi.value()
-        if i == 0:
+        if pi == pi.parent().one():
             return self.Lv_tv().one()
         if not self._dual_reduced:
             raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
         # express pi as t_mu w with w in W(Y) and mu in Y.
-        x = self._We(pi)
+        x = self._We.fundamental_group_morphism(pi)
         rw = x.to_dual_classical_weyl().reduced_word()
         mu = x.to_dual_translation_left().to_ambient()
         Lv_tv = self.Lv_tv()
@@ -831,7 +831,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     sage: H = AffineHeckeAlgebra("A2")
                     sage: T = H.T()
                     sage: pi = T.factor(0).basis().keys().an_element(); pi
-                    piX[2]
+                    [2]
                     sage: w = T.factor(1).basis().keys().an_element(); w
                     S0*S1*S2
                     sage: [(i, T.product_by_generator_on_basis((pi,w), i)) for i in H.cartan_type().index_set()]
@@ -855,11 +855,11 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                     sage: H = AffineHeckeAlgebra("A2")
                     sage: T = H.T()
                     sage: pi0 = T.factor(0).basis().keys().an_element(); pi0
-                    piX[2]
+                    [2]
                     sage: w = T.factor(1).basis().keys().an_element(); w
                     S0*S1*S2
                     sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi)) for pi in H.fundamental_group()]
-                    [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[2,0,1]), (piX[2], piX[1] TX[1,2,0])]
+                    [([0], piX[2] TX[0,1,2]), ([1], TX[2,0,1]), ([2], piX[1] TX[1,2,0])]
 
                 """
                 pass
@@ -920,8 +920,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 prefix = "TX"
             E._Ta = MultiParameterHeckeAlgebra(E.affine_weyl(), E.q1(), E.q2(), prefix=prefix, category=AlgebrasWithBasis(E.base_ring()))
             # the group algebra of the fundamental group
-            E._KF = E._F.algebra(E.base_ring())
-            E._KF._print_options['prefix'] = ""
+            E._KF = E._F.algebra(E.base_ring(), prefix="piY" if E._dual_side else "piX")
             E._KF._print_options['bracket'] = ""
             cat = ModulesWithBasis(E.base_ring())
             mcat = cat.TensorProducts()
@@ -1020,7 +1019,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: H = AffineHeckeAlgebra("A2")
                 sage: T = H.T()
                 sage: pi = T.factor(0).basis().keys().an_element(); pi
-                piX[2]
+                [2]
                 sage: w = T.factor(1).basis().keys().an_element(); w
                 S0*S1*S2
                 sage: [(i, T.product_by_generator_on_basis((pi,w), i)) for i in H.cartan_type().index_set()]
@@ -1041,13 +1040,13 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: H = AffineHeckeAlgebra("A2")
                 sage: T = H.T()
                 sage: pi0 = T.factor(0).basis().keys().an_element(); pi0
-                piX[2]
+                [2]
                 sage: w = T.factor(1).basis().keys().an_element(); w
                 S0*S1*S2
                 sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi, side='left')) for pi in H.fundamental_group()]
-                [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[0,1,2]), (piX[2], piX[1] TX[0,1,2])]
+                [([0], piX[2] TX[0,1,2]), ([1], TX[0,1,2]), ([2], piX[1] TX[0,1,2])]
                 sage: [(pi, T.product_by_fundamental_group_element_on_basis((pi0,w), pi, side='right')) for pi in H.fundamental_group()]
-                [(piX[0], piX[2] TX[0,1,2]), (piX[1], TX[2,0,1]), (piX[2], piX[1] TX[1,2,0])]
+                [([0], piX[2] TX[0,1,2]), ([1], TX[2,0,1]), ([2], piX[1] TX[1,2,0])]
 
             """
             if side == 'right':
@@ -1167,7 +1166,7 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: mu = tv_Lv.factor(1).basis().keys().an_element(); mu
                 (2, 2, 3)
                 sage: [(pi, tv_Lv.product_by_fundamental_group_element_on_basis((v,mu), pi)) for pi in H.fundamental_group()]
-                [(piX[0], Ty[1,2] Y[(2, 2, 3)]), (piX[1], Ty[2,1] Y[(1, 2, 2)]), (piX[2], Y[(2, 2, 2)])]
+                [([0], Ty[1,2] Y[(2, 2, 3)]), ([1], Ty[2,1] Y[(1, 2, 2)]), ([2], Y[(2, 2, 2)])]
 
             """
             if side == 'right':
@@ -1293,7 +1292,8 @@ class AffineHeckeAlgebra(UniqueRepresentation, Parent):
                 sage: v = Lv_tv.factor(1).basis().keys().an_element(); v.reduced_word()
                 [1, 2]
                 sage: [(pi, Lv_tv.product_by_fundamental_group_element_on_basis((mu,v), pi)) for pi in H.fundamental_group()]
-                [(piX[0], Y[(2, 2, 3)] Ty[1,2]), (piX[1], Y[(2, 3, 3)] Ty[2,1] + ((-v^2+1)/v)*Y[(2, 3, 3)] Ty[1] + ((v^2-1)/v)*Y[(3, 2, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)] Ty[2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)]), (piX[2], Y[(2, 3, 4)] + ((v^2-1)/v)*Y[(3, 2, 4)] Ty[1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 4)] + ((v^2-1)/v)*Y[(3, 3, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)] Ty[1,2] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)])]
+                [([0], Y[(2, 2, 3)] Ty[1,2]), ([1], Y[(2, 3, 3)] Ty[2,1] + ((-v^2+1)/v)*Y[(2, 3, 3)] Ty[1] + ((v^2-1)/v)*Y[(3, 2, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)] Ty[2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)]), ([2], Y[(2, 3, 4)] + ((v^2-1)/v)*Y[(3, 2, 4)] Ty[1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 4)] + ((v^2-1)/v)*Y[(3, 3, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)] Ty[1,2] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)])]
+
             """
             if side == 'right':
                 return self.monomial(b) * self.realization_of().F_to_Lv_tv_func(pi)

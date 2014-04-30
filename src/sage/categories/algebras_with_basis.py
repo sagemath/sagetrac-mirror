@@ -544,7 +544,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             def _monomial_almost_one(self, i, x):
                 ids = [algebra.one_basis() for algebra in self.factors()]
                 ids[i] = x
-                return self.monomial(tuple(ids))
+                return self.monomial(self.indices_to_index()(*tuple(ids)))
 
             @cached_method
             def factor_embedding(self, i):
