@@ -542,6 +542,18 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2))))
 
             def _monomial_almost_one(self, i, x):
+                r"""
+                The monomial with identities in every factor except the `i`-th, which contains `x`.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup(['A',2],prefix="s")
+                    sage: w = W.from_reduced_word([2,1])
+                    sage: A = W.algebra(ZZ)
+                    sage: A3 = tensor([A,A,A])
+                    sage: A3._monomial_almost_one(1, w)
+                    B[1] # B[s2*s1] # B[1]
+                """
                 ids = [algebra.one_basis() for algebra in self.factors()]
                 ids[i] = x
                 return self.monomial(self.indices_to_index()(*tuple(ids)))

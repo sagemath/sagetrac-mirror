@@ -3452,7 +3452,7 @@ class TensorUnit(CombinatorialFreeModule.Tensor):
 
         """
         self._one_key = tuple([])
-        CombinatorialFreeModule.Tensor.__init__(self, tuple([]), category, **keywords)
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([]), category, **keywords)
         assert self._one_key == self.basis().keys().an_element()
 
     def _repr_(self):
