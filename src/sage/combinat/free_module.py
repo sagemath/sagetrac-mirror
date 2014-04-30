@@ -32,7 +32,7 @@ from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.misc.misc import repr_lincomb
-from sage.categories.category import JoinCategory
+from sage.categories.category import Category, JoinCategory
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 
 class CombinatorialFreeModuleElement(Element):
@@ -2365,7 +2365,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
     def tensor_unit(self, category = None, **keywords):
         if not category:
             category = self.category()
-        return TensorUnit(category=category, **keywords)
+        return TensorUnit(category=category.TensorProducts(), **keywords)
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
@@ -2517,8 +2517,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 if len(modules) == 0:
                     return tensor_unit
                 # flatten the tensor product
-                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else module.factors() if isinstance(module, CombinatorialFreeModule_TensorGrouped) else (module,) for module in modules],())
-            return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, category, **options)
+                modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules],())
+            return super(CombinatorialFreeModule_Tensor, cls).__classcall__(cls, modules, category, **options)
 
         def __init__(self, modules, category, **options):
             """
@@ -2533,6 +2533,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             from sage.categories.tensor import tensor
             # save the flattened tensor factors
             self._sets = modules
+            base_category = None
             if isinstance(category, JoinCategory):
                 for supercategory in category.super_categories():
                     if isinstance(supercategory, TensorProductsCategory):
@@ -2540,9 +2541,11 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                         break
             elif isinstance(category, TensorProductsCategory):
                 base_category = category.base_category()
-            else:
-                raise TypeError, "Category should be a subcategory of tensor products of modules"
-            CombinatorialFreeModule.__init__(self, base_category.base_ring(), CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), category=category, **options)
+            if base_category is None:
+                raise TypeError, "Category (%s) should be a subcategory of tensor products of modules"%category
+            R = base_category.base_ring()
+            category = Category.join((category,ModulesWithBasis(R)))
+            CombinatorialFreeModule.__init__(self, R, CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), category=category, **options)
 
             # the following is not the best option, but it's better than nothing.
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
@@ -2734,6 +2737,34 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
             """
             return self.tensor_constructor(tuple(element.parent() for element in elements), **keywords)(*elements)
+
+        def _a_basis_key(self):
+            r"""
+            A basis key.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3,4,5])
+                sage: FG = tensor([F,G])
+                sage: FG._a_basis_key()
+                (1, 3)
+            """
+            return tuple([x.an_element() for x in self.basis().keys().cc.iters])
+
+        def a_monomial(self):
+            r"""
+            A monomial of ``self``.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ,[1,2])
+                sage: G = CombinatorialFreeModule(ZZ,[3,4,5])
+                sage: FG = tensor([F,G])
+                sage: FG.a_monomial()
+                B[1] # B[3]
+            """
+            return self.monomial(self._a_basis_key())
 
         def an_element(self):
             r"""
@@ -3411,8 +3442,7 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
 
         """
         self._one_key = tuple([])
-        # tricky: call with empty list of modules, bypassing the usual calling mechanism
-        CombinatorialFreeModule_Tensor.__init__(self, tuple([]), category = category, **keywords)
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([]), category, **keywords)
         assert self._one_key == self.basis().keys().an_element()
 
     def _repr_(self):

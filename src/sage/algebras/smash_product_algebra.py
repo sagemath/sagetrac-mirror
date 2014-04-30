@@ -258,7 +258,8 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         elif right_action is not None:
             twist_on_basis = lambda (b,d): right_action(d, A.one_basis(), b)
         if twist_on_basis is not None:
-            twist_on_basis_func = lambda x: twist_on_basis(self.index_to_indices()(x))
+            key_splitter = tensor([B,A]).index_to_indices()
+            twist_on_basis_func = lambda x: twist_on_basis(key_splitter(x))
             self._twist = BA.module_morphism(on_basis=twist_on_basis_func, codomain=AB, category=module_category)
         elif twist_morphism is not None:
             if twist_morphism.domain() != BA:
@@ -273,9 +274,9 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
 
         self._has_opposite = False # default: no "opposite" smash product has been registered
         # Define the product morphism using twist
-        ItwistI = tensor([A._identity_map(), self._twist, B._identity_map()], category=module_category)
-        mAmB = tensor([A._product_morphism(),B._product_morphism()], category=module_category)
-        self._product_morphism_map = SetMorphism(Hom(ItwistI.domain(), mAmB.codomain(), category=module_category), mAmB * ItwistI)
+        self._ItwistI = tensor([A._identity_map(), self._twist, B._identity_map()], category=tensor_category)
+        self._mAmB = tensor([A._product_morphism(),B._product_morphism()], category=tensor_category)
+        self._product_morphism_map = SetMorphism(Hom(self._ItwistI.domain(), self._mAmB.codomain(), category=tensor_category), self._mAmB * self._ItwistI)
 
     def _repr_(self):
         r"""
@@ -300,6 +301,8 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
         r"""
         A string for a term.
         """
+        # remember the grouping on the tuple for printing
+        term = self.index_to_indices()(term)
         if self._suppress_ones:
             if term[0] == self.factor(0).one_basis():
                 if term[1] == self.factor(1).one_basis():
@@ -368,8 +371,7 @@ class SmashProductAlgebra(CombinatorialFreeModule_TensorGrouped):
             B[1] # B[s1] # B[1] # B[s1]
         """
         mult = self._product_morphism()
-        return self(mult(mult.domain().monomial(self.indices_to_index()(*p1)+self.indices_to_index()(*p2))))
-
+        return self(mult(mult.domain().monomial(p1+p2)))
 
     def _the_coercion_map(self, other_algebra_module, twist, x):
         return self(twist(other_algebra_module(x)))
