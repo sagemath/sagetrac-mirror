@@ -137,4 +137,4 @@ lazy_import('sage.categories.polyhedra', 'PolyhedralSets')
 
 #Technical categories
 from object_with_options import ObjectsWithOptions
-from graphic_outputs_for_tableaux import GraphicOutputsFor2DTableaux;
+from graphic_outputs_for_tableaux import GraphicOutputsFor2DTableaux

@@ -122,7 +122,7 @@ class TableauExamples_size(ParentWithSetFactory, UniqueRepresentation):
         self._size = size
         ParentWithSetFactory.__init__(
             self, (size,), policy, category = [ 
-                FiniteEnumeratedSets(), GraphicOutputsFor2DTableaux()
+                GraphicOutputsFor2DTableaux(), FiniteEnumeratedSets()
             ]
         )
 
@@ -157,7 +157,7 @@ class TableauExamples_size(ParentWithSetFactory, UniqueRepresentation):
         r"""
         """
         for i in range( self.size() ):
-             yield TableauExample( [ i for j in range(self.size()) ] )
+             yield TableauExample( [ [i for k in range(j) ] for j in range(self.size()) ] )
 
     def size( self ):
         r"""
@@ -173,7 +173,7 @@ class TableauExamples_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
         """
         ParentWithSetFactory.__init__(
             self, (), policy, category = [ 
-                FiniteEnumeratedSets(), GraphicOutputsFor2DTableaux()
+                GraphicOutputsFor2DTableaux(), FiniteEnumeratedSets()
             ]
         )
         DisjointUnionEnumeratedSets.__init__(

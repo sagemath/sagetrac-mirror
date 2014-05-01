@@ -139,7 +139,7 @@ class Ascii_array:
 
 def _default_graphic_options( ):
     return GlobalOptions(
-        'Graphic Option for tableau',
+        'grahic representation of tableau',
         doc='', end_doc='',
         scale=dict(default=10, description='The scale of the figure', checker=lambda sc: sc in Reals() and sc>0 ),
         line_size=dict(default=1, description='The size of the lines of th tableau', checker=lambda sc: sc in Reals() and sc>0),
@@ -152,7 +152,7 @@ def _default_graphic_options( ):
 
 def _default_ascii_options( ):
     return GlobalOptions(
-        'Ascii Option for tableau',
+        'ascii representation of tableau',
         doc='', end_doc='',
         row_separator=dict(default='-', description='A character for the row separators', checker=lambda v: isinstance( v, str ) and len(v)==1 ),
         column_separator=dict(default='|', description='A character for the column separators', checker=lambda v: isinstance( v, str ) and len(v)==1 ),
