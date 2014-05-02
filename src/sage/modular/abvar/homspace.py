@@ -788,13 +788,6 @@ class EndomorphismSubring(Homspace, Ring):
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
         self._is_full_ring = gens is None
 
-    def __reduce__disabled(self):
-        """
-        Used in pickling.
-
-        """
-        return End, (self.domain(),self.domain().category())
-
     def _repr_(self):
         """
         Return the string representation of self.
