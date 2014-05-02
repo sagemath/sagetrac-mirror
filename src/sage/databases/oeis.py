@@ -832,8 +832,13 @@ class OEISSequence(SageObject):
             sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'easy', 'nice', 'hear')
+            sage: kwds = f.keywords()                   # optional -- internet
+            sage: 'core' in kwds                        # optional -- internet
+            True
+            sage: 'nonn' in kwds                        # optional -- internet
+            True
+            sage: 'easy' in kwds                        # optional -- internet
+            True
 
         TESTS::
 
