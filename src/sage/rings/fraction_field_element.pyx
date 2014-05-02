@@ -208,7 +208,7 @@ cdef class FractionFieldElement(FieldElement):
 
     cpdef normalize(self):
         """
-        Returns a normalized representation of self.
+        Picks a normalized representation of self.
 
         In particular, for any a == b, after normalization they will have the
         same numerator and denominator.
@@ -1052,7 +1052,7 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
 
     cpdef normalize(self):
         """
-        Returns a normalized representation of self.
+        Picks a normalized representation of self.
 
         In particular, for any a == b, after normalization they will have the
         same numerator and denominator.
