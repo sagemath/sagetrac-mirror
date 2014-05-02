@@ -311,8 +311,8 @@ class Crystals(Category_singleton):
                        virtualization=None, scaling_factors=None,
                        cartan_type=None, category=None):
             r"""
-            Construct the subcrystal from ``generators`` using `e_i` and `f_i`
-            for all `i` in ``index_set``.
+            Construct the subcrystal from ``generators`` using `e_i` and/or
+            `f_i` for all `i` in ``index_set``.
 
             INPUT:
 
