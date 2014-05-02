@@ -2,7 +2,7 @@
 This file define some tools to obtain ascii and latex outputs for any tableaux.
 """
 #*****************************************************************************
-#       Copyright (C) 2014 Adrien Boussicault <bousica@labri.fr>
+#       Copyright (C) 2014 Adrien Boussicault <boussica@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -402,26 +402,30 @@ class GraphicTableau:
                 )
 
             #we draw the borders
+
+            row_sep = self.ascii_options['row_separator']
+            col_sep = self.ascii_options['column_separator']
+            corner_sep = self.ascii_options['corner_separator']
             if self.separators()[h][w][0]:
                 for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
-                    picture[ pos_no[0]-1 ][ w1 ] = '-'
-                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
-                picture[ pos_no[0]-1 ][ pos_se[1] ] = '+'
+                    picture[ pos_no[0]-1 ][ w1 ] = row_sep
+                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = corner_sep
+                picture[ pos_no[0]-1 ][ pos_se[1] ] = corner_sep
             if self.separators()[h][w][1]:
                 for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
-                    picture[ h1 ][ pos_se[1] ] = '|'
-                picture[ pos_se[0] ][ pos_se[1] ] = '+'
-                picture[ pos_no[0]-1 ][ pos_se[1] ] = '+'
+                    picture[ h1 ][ pos_se[1] ] = col_sep
+                picture[ pos_se[0] ][ pos_se[1] ] = corner_sep
+                picture[ pos_no[0]-1 ][ pos_se[1] ] = corner_sep
             if self.separators()[h][w][2]:
                 for w1 in range( pos_no[1]-1, pos_se[1]+1 ):
-                    picture[ pos_se[0] ][ w1 ] = '-'
-                picture[ pos_se[0] ][ pos_no[1]-1 ] = '+'
-                picture[ pos_se[0] ][ pos_se[1] ] = '+'
+                    picture[ pos_se[0] ][ w1 ] = row_sep
+                picture[ pos_se[0] ][ pos_no[1]-1 ] = corner_sep
+                picture[ pos_se[0] ][ pos_se[1] ] = corner_sep
             if self.separators()[h][w][3]:
                 for h1 in range( pos_no[0]-1, pos_se[0]+1 ):
-                    picture[ h1 ][ pos_no[1]-1 ] = '|'
-                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = '+'
-                picture[ pos_se[0] ][ pos_no[1]-1 ] = '+'
+                    picture[ h1 ][ pos_no[1]-1 ] = col_sep
+                picture[ pos_no[0]-1 ][ pos_no[1]-1 ] = corner_sep
+                picture[ pos_se[0] ][ pos_no[1]-1 ] = corner_sep
 
         # We draw all the boxes
         for h in range( self.height() ):

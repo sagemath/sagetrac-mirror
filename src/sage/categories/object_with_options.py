@@ -2,7 +2,7 @@
 This file define the categorie of Objects with options.
 """
 #*****************************************************************************
-#       Copyright (C) 2014 Adrien Boussicault <bousica@labri.fr>
+#       Copyright (C) 2014 Adrien Boussicault <boussica@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
