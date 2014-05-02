@@ -9,9 +9,7 @@ wasteful and breaks the general assumption in Sage that parents are unique).
 There is also a function :func:`BooleanPolynomialRing_constructor`, used for
 constructing Boolean polynomial rings, which are not technically polynomial
 rings but rather quotients of them (see module
-:mod:`sage.rings.polynomial.pbori` for more details); and a deprecated
-constructor :func:`MPolynomialRing` (now subsumed by the generic
-:meth:`PolynomialRing`.
+:mod:`sage.rings.polynomial.pbori` for more details).
 """
 
 #################################################################
@@ -66,7 +64,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
 
-    There are four ways to call the polynomial ring constructor:
+    There are five ways to call the polynomial ring constructor:
 
     1. ``PolynomialRing(base_ring, name,    sparse=False)``
     2. ``PolynomialRing(base_ring, names,   order='degrevlex')``
@@ -79,7 +77,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     INPUT:
 
-    - ``base_ring`` -- a commutative ring
+    - ``base_ring`` -- a ring
     - ``name`` -- a string
     - ``names`` -- a list or tuple of names, or a comma separated string
     - ``var_array`` -- a list or tuple of names, or a comma separated string
@@ -488,18 +486,6 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     return R
 
-def MPolynomialRing(*args, **kwds):
-    r"""
-    This function is deprecated and will be removed in a future version of
-    Sage. Please use PolynomialRing instead.
-
-    If you have questions regarding this function and its replacement,
-    please send your comments to sage-support@googlegroups.com.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6500, "MPolynomialRing is deprecated, use PolynomialRing instead!")
-    return PolynomialRing(*args, **kwds)
-
 def _get_from_cache(key):
     try:
         return _cache[key] #()
@@ -734,4 +720,3 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 #########################################################################################
 # END (Factory function for making polynomial rings)
 #########################################################################################
-

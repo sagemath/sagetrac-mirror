@@ -50,6 +50,7 @@ Combinatorics
    sage/combinat/q_bernoulli
    sage/combinat/rsk
    sage/combinat/sidon_sets
+   sage/combinat/six_vertex_model
    sage/combinat/set_partition_ordered
    sage/combinat/set_partition
    sage/combinat/abstract_tree
@@ -84,6 +85,7 @@ Combinatorics
    species
    developer
    sage/combinat/finite_state_machine
+   sage/combinat/finite_state_machine_generators
    words
 
    sage/combinat/dict_addition
