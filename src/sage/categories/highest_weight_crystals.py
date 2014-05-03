@@ -374,5 +374,46 @@ class HighestWeightCrystals(Category_singleton):
 
     class ElementMethods:
 
-        pass
+        def paths_to_highest_weight(self, index_set=None):
+            """
+            Return a list of all paths to a highest weight element
+            from ``self``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: hw = C.highest_weight_vector()
+                [()]
+                sage: lw = hw.f_string([1,2,2,1])
+                sage: lw.paths_to_highest_weight()
+                [(2, 1, 1, 2), (1, 2, 2, 1)]
+
+                sage: C = crystals.Tableaux(['D',4], shape=[1])
+                sage: lw = C.lowest_weight_vectors()[0]
+                sage: lw.paths_to_highest_weight()
+                [(1, 2, 3, 4, 2, 1), (1, 2, 4, 3, 2, 1)]
+
+                sage: C = crystals.Tableaux(['D',4], shape=[1,1])
+                sage: lw = C.lowest_weight_vectors()[0]
+                sage: len(lw.paths_to_highest_weight())
+                48
+            """
+            heads = {self: [()]}
+            paths = []
+            if index_set is None:
+                index_set = self.parent().index_set()
+
+            while heads:
+                next = {}
+                for x in heads:
+                    is_hw = True
+                    for i in index_set:
+                        y = x.e(i)
+                        if y is not None:
+                            is_hw = False
+                            next[y] = next.get(y, []) + [p + (i,) for p in heads[x]]
+                    if is_hw:
+                        paths += heads[x]
+                heads = next
+            return paths
 
