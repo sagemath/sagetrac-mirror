@@ -296,7 +296,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             Return the Lie bracket ``[self, y]``.
             """
             P = self.parent()
-            return P.sum(cx * cy * P.bracket_on_basis(mx, my) for mx,cx in self for my,cy in y)
+            return P.sum(cx * cy * P.bracket_on_basis(mx, my)
+                         for mx,cx in self for my,cy in y)
 
         def to_vector(self):
             """
@@ -349,7 +350,9 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
                     bv = b.to_vector()
                     dep = M.linear_dependence(cur.rows() + [bv])
                     if dep:
-                        dep = dep[0] # The dependency is the first in the sequence (there's only one)
+                        # The dependency is the first in the sequence, there's only
+                        #   one because the original set is linearly independent
+                        dep = dep[0]
                         # Rewrite as a linear combination of the current basis
                         s = -dep[-1] # Guaranteed to be non-zero
                         d = {k: R(c*~s) for k,c in enumerate(dep[:-1]) if c != 0}
@@ -364,6 +367,7 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         Initialize ``self``.
         """
         self.__s_coeff = s_coeff # TODO: convert the values to elements of ``self``
+        # TODO: make sure the category is in subobjects?
         LieSubalgebra.__init__(self, ambient, basis, names, index_set, category)
 
     def _repr_(self):
@@ -413,6 +417,13 @@ class LieAlgebraIdealWithStructureCoefficients(LieAlgebraIdeal,
 class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
     """
     A quotient Lie algebra of a Lie algebra given by structure coefficients.
+
+    INPUT:
+
+    - ``I`` -- an ideal of a Lie algebra given by structure coefficients
+    - ``names`` -- the names of the generators
+    - ``index_set`` -- the indexing set for the generators
+    - ``category`` -- the category of the quotient Lie algebra
     """
     def __init__(self, lie, I, names=None, index_set=None, category=None):
         """
@@ -420,7 +431,7 @@ class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
         """
         R = lie.base_ring()
         #cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        cat = FiniteDimensionalLieAlgebrasWithBasis(R)
+        cat = FiniteDimensionalLieAlgebrasWithBasis(R)#.Quotients()
         QuotientLieAlgebra.__init__(self, lie, I, names, index_set, cat)
 
         # Construct the structure coefficients

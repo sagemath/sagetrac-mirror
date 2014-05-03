@@ -152,6 +152,11 @@ class LieBracket(SageObject): # Does this need to be SageObject?
 
         EXAMPLES::
         """
+        if isinstance(rhs, list):
+            if len(rhs) != 2:
+                return False
+            return self._left == rhs[0] and self._right == rhs[1]
+
         if not isinstance(rhs, LieBracket):
             return False
         return self._left == rhs._left and self._right == rhs._right
