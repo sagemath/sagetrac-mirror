@@ -468,7 +468,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         c = c.add_bigoh(prec)
         for _ in range(1 + log(prec, 2)):
             c -= (pol(c) - t2)/pol_prime(c)
-        return (c, t.add_bigoh(prec))
+        return (c.power_series(), t.add_bigoh(prec))
 
     def local_coordinates_at_infinity(self, prec = 20, name = 't'):
         """

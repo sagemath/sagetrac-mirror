@@ -896,7 +896,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f = (1-I)/(1+I+O(I^8)); f
             1 - 2*I + 2*I^2 - 2*I^3 + 2*I^4 - 2*I^5 + 2*I^6 - 2*I^7 + O(I^8)
             sage: f.truncate(5)
-            1 - 2*I + 2*I^2 - 2*I^3 + 2*I^4 + O(I^5)
+            1 - 2*I + 2*I^2 - 2*I^3 + 2*I^4
 
         """
         if n <= self.__n:

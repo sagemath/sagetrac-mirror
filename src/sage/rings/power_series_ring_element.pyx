@@ -682,7 +682,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = 1/(1+I+O(I^8)); f
             1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
             sage: f.truncate(5)
-            1 + I + I^2 + I^3 + I^4 + O(I^5)
+            1 + I + I^2 + I^3 + I^4
         """
         if prec is infinity:
             prec = self._prec
@@ -1072,7 +1072,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: t/(3+t)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: leading coefficient must be a unit
 
         """
         denom = <PowerSeries>denom_r

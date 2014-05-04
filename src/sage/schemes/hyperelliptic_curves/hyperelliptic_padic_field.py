@@ -783,7 +783,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: (2*y*w).coleman_integral(P,Q)
             5 + O(5^9)
             sage: xloc,yloc,zloc = HK.local_analytic_interpolation(P,Q)
-            sage: I2 = (xloc.derivative()/(2*yloc)).integral()
+            sage: I2 = (xloc.derivative()/(2*yloc)).power_series().integral()
             sage: I2.polynomial()(1) - I2(0)
             3*5 + 2*5^2 + 2*5^3 + 5^4 + 4*5^6 + 5^7 + O(5^9)
             sage: HK.coleman_integral(w,P,Q)
@@ -1232,7 +1232,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         else:
             P = self(ZZ(FS[0][0]),ZZ(FS[1][0]))
             x,y = self.local_coord(P,prec2)
-            integrals = [(x**i*x.derivative()/(2*y)).integral() for i in range(dim)]
+            integrals = [(x**i*x.derivative()/(2*y)).power_series().integral() for i in range(dim)]
             S_to_FS = vector([I.polynomial()(FS[1]) - I.polynomial()(S[1]) for I in integrals])
         if HJ(Q[0],Q[1]) == HJ(FQ):
             FQ_to_Q = V(dim*[0])
