@@ -28,7 +28,7 @@ from sage.misc.misc import repr_lincomb
 from sage.structure.element import RingElement
 from sage.categories.lie_algebras import LieAlgebras
 
-from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
@@ -108,7 +108,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
         if not cartan_type.is_untwisted_affine():
             raise NotImplementedError("only currently implemented for untwisted affine types")
-        return super(AffineLieAlgebra, self).__classcall__(self, g, cartan_type, kac_moody)
+        return super(AffineLieAlgebra, cls).__classcall__(cls, g, cartan_type, kac_moody)
 
     def __init__(self, g, cartan_type, kac_moody):
         """
@@ -121,7 +121,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         if kac_moody:
             names += ['d']
         self._kac_moody = kac_moody
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names, LieAlgebras(R))#.WithBasis())
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=LieAlgebras(R).WithBasis())
 
     def _repr_(self):
         """

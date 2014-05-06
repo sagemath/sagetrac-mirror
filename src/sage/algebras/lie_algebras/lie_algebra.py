@@ -290,7 +290,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
                 from sage.algebras.lie_algebras.kac_moody import LieAlgebraChevalleyBasis
                 ret = LieAlgebraChevalleyBasis(R, arg0)
             if kwds.get("affine", False):
-                from sage.algebras.lie_algebras.classical_lie_algebra import AffineLieAlgebra
+                from sage.algebras.lie_algebras.affine_lie_algebras import AffineLieAlgebra
                 ret = AffineLieAlgebra(ret, kwds.get("kac_moody", False))
             return ret
 

@@ -539,7 +539,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
         IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
-                                   prefix='E', monomial_cmp=self._basis_cmp)
+                                   prefix='E', generator_cmp=self._basis_cmp)
 
     def _repr_(self):
         """
