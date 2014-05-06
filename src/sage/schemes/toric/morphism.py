@@ -523,7 +523,7 @@ class ToricEmbedding_Mixin(SageObject):
         if self.is_toric_embedding():
             return ToricVariety_field.__cmp__(self.domain(), right.domain())
         else:
-            return cmp(self.domain(),right.domain())
+            return cmp(self.domain(), right.domain())
     
 
 
@@ -659,7 +659,8 @@ class SchemeMorphism_polynomial_toric_variety(ToricEmbedding_Mixin,
 
 ############################################################################
 # The embedding morphism of an orbit closure
-class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
+class SchemeMorphism_orbit_closure_toric_variety(ToricEmbedding_Mixin,
+                                                 SchemeMorphism, Morphism):
     """
     The embedding of an orbit closure.
 
