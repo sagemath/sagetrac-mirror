@@ -468,8 +468,8 @@ class ToricEmbedding_Mixin(SageObject):
     """
     def is_toric_embedding(self):
         """
-        Check whether `self` is an embedding morphism of `self.domain()`
-        into `self.codomain().
+        Check whether ``self`` is an embedding morphism of ``self.domain()``
+        into ``self.codomain()``.
 
         OUTPUT:
 
@@ -722,6 +722,26 @@ class SchemeMorphism_orbit_closure_toric_variety(ToricEmbedding_Mixin,
 
     def __cmp__(self, right):
         r"""
+        Compare ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``right`` is also a toric morphism between the same domain and
+          codomain according to the criteria of
+          :class:`ToricEmbedding<ToricEmbedding_Mixin>` with the same
+          defining cone and ray map. 1 or -1 otherwise.
+
+        TESTS::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P1 = P2.orbit_closure(P2.fan(1)[0])
+            sage: P1p = P2.orbit_closure(P2.fan(1)[1])
+            sage: P1p.embedding_morphism() == P1.embedding_morphism()
+            False
         """
         c = super(SchemeMorphism_orbit_closure_toric_variety, self).__cmp__(right)
         if c:
@@ -1861,6 +1881,35 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
 
     def __cmp__(self, right):
         r"""
+        Compare ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``right`` is also a toric morphism between the same domain and
+          codomain according to the criteria of
+          :class:`ToricEmbedding<ToricEmbedding_Mixin>` with the same
+          defining cone and ray map. 1 or -1 otherwise.
+
+        TESTS::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
+            sage: P2 = toric_varieties.P2()
+            sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+            sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+            sage: cone1 = Cone([(0, 2, -1, -1)])
+            sage: cone2 = Cone([(-1, 2, -1, -1)])
+            sage: m1 = fibration.fiber_component(cone1).embedding_morphism()
+            sage: m2 = fibration.fiber_component(cone2).embedding_morphism()
+            sage: m1 == m2
+            False
         """
         c = super(SchemeMorphism_fan_fiber_toric_variety, self).__cmp__(right)
         if c:

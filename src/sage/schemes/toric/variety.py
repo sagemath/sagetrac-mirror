@@ -707,12 +707,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P1xP1._check_satisfies_equations([0,1,0,1])
             True
             sage: P1xP1._check_satisfies_equations([0,0,1,1])
-            True
-            sage: P1xP1._check_satisfies_equations([0,0,1,1])
             Traceback (most recent call last):
             ...
-            TypeError: coordinates (0, 0, 1, 1)
-            are in the exceptional set!
+            TypeError: coordinates (0, 0, 1, 1) are in the exceptional set!
             sage: P1xP1._check_satisfies_equations([1,1,1])
             Traceback (most recent call last):
             ...
@@ -3142,20 +3139,25 @@ class EmbeddedToricVariety_Mixin(SageObject):
             self._embedding_morphism = embedding
         else:
             if embedding_codomain is None:
-                raise ValueError('The codomain must be specified when defining an embedding.')
+                raise ValueError('The codomain must be specified ' + \
+                                 'when defining an embedding.')
             if not embedding_morphism is None:
-                self._embedding_morphism = self.hom(embedding_morphism, embedding_codomain)
+                self._embedding_morphism = self.hom(embedding_morphism,
+                                                    embedding_codomain)
             elif not embedding_coordinates is None:
                 R = self.coordinate_ring()
                 coordinates = [R.gen(i) if not i is None else R.one() \
                                for i in embedding_coordinates]
-                self._embedding_morphism = self.hom(coordinates, embedding_codomain)
-            elif embedding_ray_map != None and embedding_defining_cone != None:
-                from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
+                self._embedding_morphism = self.hom(coordinates,
+                                                    embedding_codomain)
+            elif not embedding_ray_map is None and \
+                not embedding_defining_cone is None:
+                from sage.schemes.toric.morphism import \
+                SchemeMorphism_orbit_closure_toric_variety
                 self._embedding_morphism = \
-                SchemeMorphism_orbit_closure_toric_variety(self.Hom(embedding_codomain),
-                                                           embedding_defining_cone,
-                                                           embedding_ray_map)
+                SchemeMorphism_orbit_closure_toric_variety(
+                    self.Hom(embedding_codomain), embedding_defining_cone,
+                    embedding_ray_map)
 
     def embedding_morphism(self):
         r"""
