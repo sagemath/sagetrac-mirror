@@ -350,14 +350,13 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             F = FreeAlgebra(R, names, len(names))
             return LieAlgebraFromAssociative(R, F, F.gens(), names, index_set)
 
-        raise NotImplementedError("free Lie algebra not yet implemented")
-        #from sage.algebras.lie_algebras.free_lie_algebra import FreeLieAlgebra
-        #ret = FreeLieAlgebra(R, names, index_set)
-        #if rep == "Hall":
-        #    return ret.Hall()
-        #if rep == "Lyndon":
-        #    return ret.Lyndon()
-        #return ret
+        from sage.algebras.lie_algebras.free_lie_algebra import FreeLieAlgebra
+        ret = FreeLieAlgebra(R, names, index_set)
+        if rep == "Hall":
+            return ret.Hall()
+        if rep == "Lyndon":
+            return ret.Lyndon()
+        return ret
 
     def __init__(self, R, names=None, index_set=None, category=None):
         """
