@@ -64,7 +64,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
                 im_gens = [im_gens]
             im_gens = Sequence(im_gens, parent.codomain(), immutable=True)
         if check:
-            if len(im_gens) != parent.domain().ngens():
+            if len(im_gens) != len(parent.domain().lie_algebra_generators()):
                 raise ValueError("number of images must equal number of generators")
             # TODO: Implement a (meaningful) _is_valid_homomorphism_()
             #if not parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens):
