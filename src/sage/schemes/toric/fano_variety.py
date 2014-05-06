@@ -223,7 +223,7 @@ def CPRFanoToricVariety(Delta=None,
                         names=None,
                         coordinate_name_indices=None,
                         make_simplicial=False,
-                        base_ring=None,
+                        base_ring=QQ,
                         base_field=None,
                         check=True,
                         **kwds):
@@ -661,11 +661,9 @@ def CPRFanoToricVariety(Delta=None,
     # Check/normalize base_field
     if base_field is not None:
         base_ring = base_field
-    if base_ring is None:
-        base_ring = QQ
     elif base_ring not in _Fields:
         raise TypeError("need a field to construct a Fano toric variety!"
-                        "\n Got %s" % base_field)
+                        "\n Got %s" % base_ring)
     fan._is_complete = True     # At this point it must be for sure
     if len(kwds):
         return CPRFanoToricVarietyWithEmbedding_field(Delta_polar, fan,

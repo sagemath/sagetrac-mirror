@@ -1986,13 +1986,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: X.cohomology_basis(dimension(X))[0] == X.volume_class()
             True
         """
-        if d!=None:
+        if not d is None:
             return self.cohomology_basis()[d]
-
-        try:
-            return self._cohomology_basis
-        except AttributeError:
-            pass
         H = self.cohomology_ring()
         # Make an empty list for each d-piece
         basis = [[] for d in range(self.dimension() + 1)]
