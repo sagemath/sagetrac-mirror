@@ -9291,8 +9291,12 @@ class A111775(SloaneSequence):
 
             sage: a(1)
             0
-            sage: a(0)
+            sage: a(2)
             0
+            sage: a(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: input n (=0) must be a positive integer
 
         We have a(15)=2 because 15 = 4+5+6 and 15 = 1+2+3+4+5. The number
         of odd divisors of 15 is 4.
@@ -9311,7 +9315,7 @@ class A111775(SloaneSequence):
             sage: a(29)
             0
             sage: a.list(20)
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0]
+            [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0, 1]
             sage: a(1/3)
             Traceback (most recent call last):
             ...
@@ -9321,7 +9325,7 @@ class A111775(SloaneSequence):
 
         - Jaap Spies (2006-12-09)
         """
-        SloaneSequence.__init__(self, offset=0)
+        SloaneSequence.__init__(self, offset=1)
 
     def _repr_(self):
         """
