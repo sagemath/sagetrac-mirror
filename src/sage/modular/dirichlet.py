@@ -48,7 +48,8 @@ AUTHORS:
 -  Craig Citro (2008-02-16): speed up __call__ method for
    Dirichlet characters, miscellaneous fixes
 
--  Julian Rueth (2014-03-06): use UniqueFactory to cache DirichletGroups
+-  Julian Rueth (2014-03-06, 2014-04-28): use UniqueFactory to cache
+   DirichletGroups; fixed Dirichlet groups over rings with unhashable elements
 
 """
 
@@ -1562,14 +1563,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def element(self):
         r"""
-        Return the underlying `\ZZ/n\ZZ`-module
-        vector of exponents.
-
-        .. warning::
-
-           Please do not change the entries of the returned vector;
-           this vector is mutable *only* because immutable vectors are
-           implemented yet.
+        Return the underlying `\ZZ/n\ZZ`-module vector of exponents.
 
         EXAMPLE::
 
@@ -1578,17 +1572,34 @@ class DirichletCharacter(MultiplicativeGroupElement):
             (2, 0)
             sage: b.element()
             (0, 1)
+
+        TESTS:
+
+        Verify that :trac:`16258` has been resolved, i.e., Dirichlet groups
+        work over rings whose elements are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: G = DirichletGroup(2,base_ring=K,zeta=K(-1),zeta_order=2)
+
         """
         try:
             return self.__element
         except AttributeError:
-            P    = self.parent()
-            M    = P._module
-            dlog = P._zeta_dlog
-            v = M([dlog[x] for x in self.values_on_gens()])
-            self.__element = v
-            return v
+            dlog = self.parent()._zeta_dlog
 
+            if dlog:
+                ret = [dlog[x] for x in self.values_on_gens()]
+            else:
+                # if the elements of the base ring are unhashable, dlog is None and we
+                # have to step through the powers of zeta manually
+                powers = P._zeta_powers
+                ret = [powers.index(x) for x in self.values_on_gens()]
+
+            ret = self.parent()._module(ret)
+            ret.set_immutable()
+            self.__element = ret
+
+        return self.__element
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
@@ -1845,21 +1856,36 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: G = DirichletGroup(7, base_ring = Integers(9), zeta = Integers(9)(2)) # indirect doctest
             sage: G.base() # check that ParentWithBase.__init__ has been called
             Ring of integers modulo 9
+
+        TESTS:
+
+        Verify that :trac:`16258` has been resolved, i.e., Dirichlet groups
+        work over rings whose elements are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: DirichletGroup(2,base_ring=K,zeta=K(-1),zeta_order=2)
+
         """
         parent_gens.ParentWithMultiplicativeAbelianGens.__init__(self, zeta.parent())
         self._zeta = zeta
         self._zeta_order = int(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
+
+        # precompute the powers of zeta and store them in _zeta_powers
         a = zeta.parent()(1)
-        v = {a:0}
         w = [a]
         for i in range(1, self._zeta_order):
             a = a * zeta
-            v[a] = i
             w.append(a)
-        self._zeta_powers = w  # gives quickly the ith power of zeta
-        self._zeta_dlog = v    # dictionary that computes log_{zeta}(power of zeta).
+        self._zeta_powers = w
+
+        # from _zeta_powers, create a dictionary zeta^i -> i to quickly compute discrete logarithms
+        try:
+            self._zeta_dlog = { v:i for (i,v) in enumerate(self._zeta_powers) }
+        except TypeError: # this is not possible if the powers of zeta are unhashable (e.g. for p-adics)
+            self._zeta_dlog = None
+
         self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
                                               len(self._integers.unit_gens()))
 
