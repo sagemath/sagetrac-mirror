@@ -408,36 +408,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
         x = self.element() + other.element()
         return DirichletCharacter(self.parent(), x, check=False)
 
-    #values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
-    #for i in range(len(self.__values_on_gens))]
-    #    return DirichletCharacter(self.parent(), values_on_gens)
-
-##     def x_mul_(self,  other):
-##         """
-##         Return the product of self and other.
-
-##         EXAMPLES:
-##             sage: G.<a,b> = DirichletGroup(20)
-##             sage: a
-##             [-1, 1]
-##             sage: b
-##             [1, zeta4]
-##             sage: a*b
-##             [-1, zeta4]
-##         """
-##         values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
-##                           for i in range(len(self.__values_on_gens))]
-##         return DirichletCharacter(self.parent(), values_on_gens)
-##         P = self.parent()
-##         dlog = P._zeta_dlog
-##         pows = P._zeta_powers
-##         n = len(pows)
-##         values_on_gens = [None]*len(self.__values_on_gens)
-##         for i in range(len(self.__values_on_gens)):
-##             k = (dlog[self.__values_on_gens[i]] + dlog[other.__values_on_gens[i]]) % n
-##             values_on_gens[i] = pows[k]
-##         return DirichletCharacter(self.parent(), values_on_gens)
-
     def __copy__(self):
         """
         Return a (shallow) copy of this Dirichlet character.
