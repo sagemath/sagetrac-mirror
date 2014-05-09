@@ -330,6 +330,8 @@ from sage.functions.other import factorial, binomial
 from sage.structure.coerce import parent
 
 _done = False
+
+
 def _init():
     """
     Internal function which checks if Maxima has loaded the
@@ -396,8 +398,9 @@ class OrthogonalPolynomial(BuiltinFunction):
         except KeyError:
             self._maxima_name = None
 
-        super(OrthogonalPolynomial,self).__init__(name=name, nargs=nargs,
-                                 latex_name=latex_name, conversions=conversions)
+        super(OrthogonalPolynomial, self).__init__(name=name, nargs=nargs,
+                                                   latex_name=latex_name,
+                                                   conversions=conversions)
 
     def _maxima_init_evaled_(self, *args):
         r"""
@@ -469,7 +472,8 @@ class OrthogonalPolynomial(BuiltinFunction):
             sage: chebyshev_T(5, a)
             16*a^2 + a - 4
         """
-        return super(OrthogonalPolynomial,self).__call__(n, *args, **kwds)
+        return super(OrthogonalPolynomial, self).__call__(n, *args, **kwds)
+
 
 class ChebyshevPolynomial(OrthogonalPolynomial):
     """
@@ -513,7 +517,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             except Exception:
                 pass
 
-        return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
+        return super(ChebyshevPolynomial, self).__call__(n, *args, **kwds)
 
     def _eval_(self, n, x):
         """
@@ -581,7 +585,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             # Numerical evaluation failed => keep symbolic
             return None
 
-    
+
 class Func_chebyshev_T(ChebyshevPolynomial):
     """
     Chebyshev polynomials of the first kind.
@@ -643,10 +647,10 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             return x
 
         if x == -1:
-            return x**n
+            return x ** n
 
         if x == 0:
-            return (1+(-1)**n)*(-1)**(n/2)/2
+            return (1 + (-1) ** n) * (-1) ** (n / 2) / 2
 
         raise ValueError("no special value found")
 
@@ -761,10 +765,10 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             return parent(x).one()
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
-            f = factorial(n-1-j) / factorial(j) / factorial(n-2*j)
-            res += (-1)**j * (2*x)**(n-2*j) * f
-        res *= n/2
+        for j in xrange(0, n // 2 + 1):
+            f = factorial(n - 1 - j) / factorial(j) / factorial(n - 2 * j)
+            res += (-1) ** j * (2 * x) ** (n - 2 * j) * f
+        res *= n / 2
         return res
 
     def eval_algebraic(self, n, x):
@@ -826,12 +830,11 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             return x, parent(x).one()
 
         assert n >= 2
-        a, b = self._eval_recursive_((n+1)//2, x, both or n % 2)
+        a, b = self._eval_recursive_((n + 1) // 2, x, both or n % 2)
         if n % 2 == 0:
-            return 2*a*a - 1, both and 2*a*b - x
+            return 2 * a * a - 1, both and 2 * a * b - x
         else:
-            return 2*a*b - x, both and 2*b*b - 1
-
+            return 2 * a * b - x, both and 2 * b * b - 1
 
     def _eval_numpy_(self, n, x):
         """
@@ -875,12 +878,14 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             NotImplementedError: derivative w.r.t. to the index is not supported yet
         """
         if diff_param == 0:
-            raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
+            raise NotImplementedError("derivative w.r.t. to the index is "
+                                      "not supported yet")
         elif diff_param == 1:
-            return n*chebyshev_U(n-1, x)
+            return n * chebyshev_U(n - 1, x)
         raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 chebyshev_T = Func_chebyshev_T()
+
 
 class Func_chebyshev_U(ChebyshevPolynomial):
     """
@@ -942,12 +947,12 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             True
         """
         if n < -1:
-            return -self.eval_formula(-n-2, x)
+            return -self.eval_formula(-n - 2, x)
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
-            f = binomial(n-j, j)
-            res += (-1)**j * (2*x)**(n-2*j) * f
+        for j in xrange(0, n // 2 + 1):
+            f = binomial(n - j, j)
+            res += (-1) ** j * (2 * x) ** (n - 2 * j) * f
         return res
 
     def eval_algebraic(self, n, x):
@@ -995,7 +1000,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         if n == -1:
             return parent(x).zero()
         if n < 0:
-            return -self._eval_recursive_(-n-2, x)[0]
+            return -self._eval_recursive_(-n - 2, x)[0]
         return self._eval_recursive_(n, x)[0]
 
     def _eval_recursive_(self, n, x, both=False):
@@ -1012,14 +1017,14 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             (4*((2*x + 1)*(2*x - 1) - 2*x^2)*x, ((2*x + 1)*(2*x - 1) + 2*x)*((2*x + 1)*(2*x - 1) - 2*x))
         """
         if n == 0:
-            return parent(x).one(), 2*x
+            return parent(x).one(), 2 * x
 
         assert n >= 1
-        a, b = self._eval_recursive_((n-1)//2, x, True)
+        a, b = self._eval_recursive_((n - 1) // 2, x, True)
         if n % 2 == 0:
-            return (b+a)*(b-a), both and 2*b*(x*b-a)
+            return (b + a) * (b - a), both and 2 * b * (x * b - a)
         else:
-            return 2*a*(b-x*a), both and (b+a)*(b-a)
+            return 2 * a * (b - x * a), both and (b + a) * (b - a)
 
     def _maxima_init_evaled_(self, n, x):
         """
@@ -1058,8 +1063,9 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         except KeyError:
             real_parent = parent(x)
 
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
-                # parent is not a real or complex field: figure out a good parent
+            if not(is_RealField(real_parent) or is_ComplexField(real_parent)):
+                # parent is not a real or complex field: figure out a
+                # good parent
                 if x in RR:
                     x = RR(x)
                     real_parent = RR
@@ -1067,7 +1073,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
                     x = CC(x)
                     real_parent = CC
 
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+        if not(is_RealField(real_parent) or is_ComplexField(real_parent)):
             raise TypeError("cannot evaluate chebyshev_U with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1096,13 +1102,13 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             ValueError: no special value found
         """
         if x == 1:
-            return x*(n+1)
+            return x * (n + 1)
 
         if x == -1:
-            return x**n*(n+1)
+            return x ** n * (n + 1)
 
         if x == 0:
-            return (1+(-1)**n)*(-1)**(n/2)/2
+            return (1 + (-1) ** n) * (-1) ** (n / 2) / 2
 
         raise ValueError("no special value found")
 
@@ -1148,15 +1154,16 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             NotImplementedError: derivative w.r.t. to the index is not supported yet
         """
         if diff_param == 0:
-            raise NotImplementedError("derivative w.r.t. to the index is not supported yet")
+            raise NotImplementedError("derivative w.r.t. to the index is "
+                                      "not supported yet")
         elif diff_param == 1:
-            return ((n+1)*chebyshev_T(n+1, x) - x*chebyshev_U(n,x)) / (x*x-1)
+            return ((n + 1) * chebyshev_T(n + 1, x) - x * chebyshev_U(n, x)) / (x * x - 1)
         raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 chebyshev_U = Func_chebyshev_U()
 
 
-def gen_laguerre(n,a,x):
+def gen_laguerre(n, a, x):
     """
     Returns the generalized Laguerre polynomial for integers `n > -1`.
     Typically, `a = 1/2` or `a = -1/2`.
@@ -1180,9 +1187,11 @@ def gen_laguerre(n,a,x):
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
     """
     _init()
-    return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
+    return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)' % (ZZ(n), a)),
+                     locals={'x': x})
 
-def gen_legendre_P(n,m,x):
+
+def gen_legendre_P(n, m, x):
     r"""
     Returns the generalized (or associated) Legendre function of the
     first kind for integers `n > -1, m > -1`.
@@ -1216,11 +1225,13 @@ def gen_legendre_P(n,m,x):
     from sage.functions.all import sqrt
     _init()
     if m.mod(2).is_zero() or m.is_one():
-        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
-    else:
-        return sqrt(1-x**2)*(((n-m+1)*x*gen_legendre_P(n,m-1,x)-(n+m-1)*gen_legendre_P(n-1,m-1,x))/(1-x**2))
+        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)' % (ZZ(n), ZZ(m))), locals={'x': x})
 
-def gen_legendre_Q(n,m,x):
+    return sqrt(1 - x ** 2) * (((n - m + 1) * x * gen_legendre_P(n, m - 1, x)
+                                - (n + m - 1) * gen_legendre_P(n - 1, m - 1, x)) / (1 - x ** 2))
+
+
+def gen_legendre_Q(n, m, x):
     """
     Returns the generalized (or associated) Legendre function of the
     second kind for integers `n>-1`, `m>-1`.
@@ -1246,20 +1257,22 @@ def gen_legendre_Q(n,m,x):
     from sage.functions.all import sqrt
     if m <= n:
         _init()
-        return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
+        return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)' % (ZZ(n), ZZ(m))), locals={'x': x})
     if m == n + 1 or n == 0:
         if m.mod(2).is_zero():
-            denom = (1 - x**2)**(m/2)
+            denom = (1 - x ** 2) ** (m / 2)
         else:
-            denom = sqrt(1 - x**2)*(1 - x**2)**((m-1)/2)
+            denom = sqrt(1 - x ** 2) * (1 - x ** 2) ** ((m - 1) / 2)
         if m == n + 1:
-            return (-1)**m*(m-1).factorial()*2**n/denom
+            return (-1) ** m * (m - 1).factorial() * 2 ** n / denom
         else:
-            return (-1)**m*(m-1).factorial()*((x+1)**m - (x-1)**m)/(2*denom)
-    else:
-        return ((n-m+1)*x*gen_legendre_Q(n,m-1,x)-(n+m-1)*gen_legendre_Q(n-1,m-1,x))/sqrt(1-x**2)
+            return (-1) ** m * (m - 1).factorial() * ((x + 1) ** m - (x - 1) ** m) / (2 * denom)
 
-def hermite(n,x):
+    return ((n - m + 1) * x * gen_legendre_Q(n, m - 1, x)
+            - (n + m - 1) * gen_legendre_Q(n - 1, m - 1, x)) / sqrt(1 - x ** 2)
+
+
+def hermite(n, x):
     """
     Returns the Hermite polynomial for integers `n > -1`.
 
@@ -1287,9 +1300,10 @@ def hermite(n,x):
         8*(8*w^2 - 3)*w
     """
     _init()
-    return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
+    return sage_eval(maxima.eval('hermite(%s,x)' % ZZ(n)), locals={'x': x})
 
-def jacobi_P(n,a,b,x):
+
+def jacobi_P(n, a, b, x):
     r"""
     Returns the Jacobi polynomial `P_n^{(a,b)}(x)` for
     integers `n > -1` and a and b symbolic or `a > -1`
@@ -1311,9 +1325,11 @@ def jacobi_P(n,a,b,x):
         5.009999999999998
     """
     _init()
-    return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)'%(ZZ(n),a,b)), locals={'x':x})
+    return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)' % (ZZ(n), a, b)),
+                     locals={'x': x})
 
-def laguerre(n,x):
+
+def laguerre(n, x):
     """
     Return the Laguerre polynomial for integers `n > -1`.
 
@@ -1332,7 +1348,8 @@ def laguerre(n,x):
         -1
     """
     _init()
-    return sage_eval(maxima.eval('laguerre(%s,x)'%ZZ(n)), locals={'x':x})
+    return sage_eval(maxima.eval('laguerre(%s,x)' % ZZ(n)), locals={'x': x})
+
 
 def legendre_P(n, x, a=-1, b=1):
     r"""
@@ -1443,8 +1460,8 @@ def legendre_P(n, x, a=-1, b=1):
         sage: def _maxima_p(n, x):
         ....:     from sage.functions.orthogonal_polys import _init
         ....:     _init()
-        ....:     return sage_eval(maxima.eval('legendre_p(%s,x)'%ZZ(n)),
-        ....:                      locals={'x':x})
+        ....:     return sage_eval(maxima.eval('legendre_p(%s,x)' % ZZ(n)),
+        ....:                      locals={'x': x})
         sage: eq = lambda k: bool(legendre_P(k,x) == _maxima_p(k,x))
         sage: all([eq(k) for k in range(0,20) ]) # long time
         True
@@ -1546,8 +1563,6 @@ def legendre_P(n, x, a=-1, b=1):
         True
 
     """
-    from sage.rings.all import binomial, ZZ
-
     if not n in ZZ:
         raise TypeError("The index 'n' must be a natural number")
 
@@ -1561,31 +1576,31 @@ def legendre_P(n, x, a=-1, b=1):
         # Easy base case, save time. Attempt to return a value in the
         # same field/ring as x.
         try:
-            return x.parent()(1)
+            return x.parent().one()
         except AttributeError:
             # In case something without a parent was given for x.
-            return ZZ(1)
-
+            return ZZ.one()
 
     def phi(t):
         # This is an affine map from [a,b] into [-1,1] and so
         # preserves orthogonality.
-        return (a + b - 2*t)/(a - b)
+        return (a + b - 2 * t) / (a - b)
 
     def c(m):
-        return binomial(n,m)*binomial(n, n-m)
+        return binomial(n, m) * binomial(n, n - m)
 
     def g(m):
         # As given in A&S, but with x replaced by phi(x).
-        return ( ((phi(x) - 1)**(n-m)) * (phi(x) + 1)**m )
+        return (((phi(x) - 1) ** (n - m)) * (phi(x) + 1) ** m)
 
     # From Abramowitz & Stegun, (22.3.1) with alpha = beta = 0.
     # Also massaged to support finite field elements.
-    P = sum([ c(m)*g(m) for m in range(0,n+1) ])/(2**n)
+    P = sum([c(m) * g(m) for m in range(0, n + 1)]) / (2 ** n)
 
     return P
 
-def legendre_Q(n,x):
+
+def legendre_Q(n, x):
     """
     Returns the Legendre function of the second kind for integers
     `n > -1`.
@@ -1605,9 +1620,10 @@ def legendre_Q(n,x):
         0.00116107583162324 + 86.9828465962674*I
     """
     _init()
-    return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
+    return sage_eval(maxima.eval('legendre_q(%s,x)' % ZZ(n)), locals={'x': x})
 
-def ultraspherical(n,a,x):
+
+def ultraspherical(n, a, x):
     """
     Returns the ultraspherical (or Gegenbauer) polynomial for integers
     `n > -1`.
@@ -1632,6 +1648,7 @@ def ultraspherical(n,a,x):
         32*t^3 - 12*t
     """
     _init()
-    return sage_eval(maxima.eval('ultraspherical(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
+    return sage_eval(maxima.eval('ultraspherical(%s,%s,x)' % (ZZ(n), a)),
+                     locals={'x': x})
 
 gegenbauer = ultraspherical
