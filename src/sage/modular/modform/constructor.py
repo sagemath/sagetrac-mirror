@@ -132,53 +132,29 @@ def canonical_parameters(group, level, weight, base_ring):
     # forms spaces.
     return level, group, weight, base_ring
 
-_cache = {}
-
-def ModularForms_clear_cache():
-    """
-    Clear the cache of modular forms.
-
-    EXAMPLES::
-
-        sage: M = ModularForms(37,2)
-        sage: sage.modular.modform.constructor._cache == {}
-        False
-
-    ::
-
-        sage: sage.modular.modform.constructor.ModularForms_clear_cache()
-        sage: sage.modular.modform.constructor._cache
-        {}
-    """
-    global _cache
-    _cache = {}
-
 def ModularForms(group  = 1,
                  weight = 2,
                  base_ring = None,
-                 use_cache = True,
                  prec = defaults.DEFAULT_PRECISION):
     r"""
     Create an ambient space of modular forms.
 
     INPUT:
 
+    - ``group`` -- a congruence subgroup, or a Dirichlet character, or the
+      level as an integer (default: 1)
 
-    -  ``group`` - A congruence subgroup or a Dirichlet
-       character eps.
+    - ``weight`` -- an integer (default: 2), the weight
 
-    -  ``weight`` - int, the weight, which must be an
-       integer = 1.
+    - ``base_ring`` -- a ring (default: the base ring of ``group`` if group is
+      a character otherwise the rationals)
 
-    -  ``base_ring`` - the base ring (ignored if group is
-       a Dirichlet character)
+    - ``prec`` -- an integer (optional), the default precision for printing
+      elements of this space
 
+    EXAMPLES:
 
-    Create using the command ModularForms(group, weight, base_ring)
-    where group could be either a congruence subgroup or a Dirichlet
-    character.
-
-    EXAMPLES: First we create some spaces with trivial character::
+    First we create some spaces with trivial character::
 
         sage: ModularForms(Gamma0(11),2).dimension()
         2
@@ -193,9 +169,7 @@ def ModularForms(group  = 1,
         sage: ModularForms(11,4)
         Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
 
-    We create some spaces for `\Gamma_1(N)`.
-
-    ::
+    We create some spaces for `\Gamma_1(N)`::
 
         sage: ModularForms(Gamma1(13),2)
         Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
@@ -291,12 +265,42 @@ def ModularForms(group  = 1,
         sage: (E.0 + E.2).q_expansion(40)
         1 + q^2 + 1473/2*q^36 - 1101/2*q^37 + q^38 - 373/2*q^39 + O(q^40)
 
+    TESTS:
+
+    Verify that the result is cached::
+
+        sage: ModularForms() is ModularForms()
+        True
+
+    The precision is not part of the key used for caching. Calling this
+    function with different precision affects modular form spaces returned
+    earlier::
+
+        sage: M = ModularForms(prec=1)
+        sage: M.prec()
+        1
+        sage: N = ModularForms(prec=2)
+        sage: N.prec()
+        2
+        sage: M.prec()
+        2
+        sage: M is N
+        True
+
+    .. NOTE::
+
+        This function does not do any caching itself. The returned spaces
+        inherit from
+        :class:`sage.structure.unique_representation.UniqueRepresentation` and
+        therefore are cached automatically. This should not be a problem, since the
+        computations done in this function are very fast or cached themselves.
+
     """
-    if isinstance(group, dirichlet.DirichletCharacter):
-        if base_ring is None:
-            base_ring = group.minimize_base_ring().base_ring()
     if base_ring is None:
-        base_ring = rings.QQ
+        if isinstance(group, dirichlet.DirichletCharacter):
+            base_ring = group.minimize_base_ring().base_ring()
+        else:
+            base_ring = rings.QQ
 
     if isinstance(group, dirichlet.DirichletCharacter) \
            or arithgroup.is_CongruenceSubgroup(group):
@@ -306,28 +310,22 @@ def ModularForms(group  = 1,
 
     key = canonical_parameters(group, level, weight, base_ring)
 
-    if use_cache and key in _cache:
-         M = _cache[key]()
-         if not (M is None):
-             M.set_precision(prec)
-             return M
-
     (level, group, weight, base_ring) = key
 
     M = None
     if arithgroup.is_Gamma0(group):
         M = ambient_g0.ModularFormsAmbient_g0_Q(group.level(), weight)
-        if base_ring != rings.QQ:
+        if base_ring is not rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_Gamma1(group):
         M = ambient_g1.ModularFormsAmbient_g1_Q(group.level(), weight)
-        if base_ring != rings.QQ:
+        if base_ring is not rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif arithgroup.is_GammaH(group):
         M = ambient_g1.ModularFormsAmbient_gH_Q(group, weight)
-        if base_ring != rings.QQ:
+        if base_ring is not rings.QQ:
             M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
@@ -339,25 +337,21 @@ def ModularForms(group  = 1,
             raise NotImplementedError("currently the character must be over a ring of characteristic 0.")
         eps = eps.minimize_base_ring()
         if eps.is_trivial():
-            return ModularForms(eps.modulus(), weight, base_ring,
-                                use_cache = use_cache,
-                                prec = prec)
+            return ModularForms(eps.modulus(), weight, base_ring, prec = prec)
         M = ambient_eps.ModularFormsAmbient_eps(eps, weight)
-        if base_ring != eps.base_ring():
-            M = M.base_extend(base_ring) # ambient_R.ModularFormsAmbient_R(M, base_ring)
+        if base_ring is not eps.base_ring():
+            M = M.base_extend(base_ring)
 
     if M is None:
         raise NotImplementedError("computation of requested space of modular forms not defined or implemented")
 
     M.set_precision(prec)
-    _cache[key] = weakref.ref(M)
     return M
 
 
 def CuspForms(group  = 1,
               weight = 2,
               base_ring = None,
-              use_cache = True,
               prec = defaults.DEFAULT_PRECISION):
     """
     Create a space of cuspidal modular forms.
@@ -370,14 +364,12 @@ def CuspForms(group  = 1,
         sage: CuspForms(11,2)
         Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
-    return ModularForms(group, weight, base_ring,
-                        use_cache=use_cache, prec=prec).cuspidal_submodule()
+    return ModularForms(group, weight, base_ring, prec=prec).cuspidal_submodule()
 
 
 def EisensteinForms(group  = 1,
               weight = 2,
               base_ring = None,
-              use_cache = True,
               prec = defaults.DEFAULT_PRECISION):
     """
     Create a space of eisenstein modular forms.
@@ -390,8 +382,7 @@ def EisensteinForms(group  = 1,
         sage: EisensteinForms(11,2)
         Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
-    return ModularForms(group, weight, base_ring,
-                        use_cache=use_cache, prec=prec).eisenstein_submodule()
+    return ModularForms(group, weight, base_ring, prec=prec).eisenstein_submodule()
 
 
 
