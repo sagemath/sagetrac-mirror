@@ -20,10 +20,10 @@ from sage.categories.magmatic_algebras import MagmaticAlgebras
 
 class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
     """
-    The category of non associative algebras over a given base ring.
+    The category of non-associative algebras over a given base ring.
 
-    A non associative algebra over a ring `R` is a module over `R`
-    which is also a unital magma.
+    A non-associative algebra over a ring `R` is a module over `R`
+    which s also a unital magma.
 
     .. WARNING::
 
@@ -51,13 +51,11 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
     class ParentMethods:
         def from_base_ring(self, r):
             """
-            Canonical embedding from base ring
+            Return the canonical embedding of ``r`` into ``self``.
 
             INPUT:
 
-             - ``r`` -- an element of ``self.base_ring()``
-
-            Returns the canonical embedding of `r` into self.
+            - ``r`` -- an element of ``self.base_ring()``
 
             EXAMPLES::
 
@@ -70,8 +68,8 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
         def __init_extra__(self):
             """
-            Declares the canonical coercion from ``self.base_ring()`` to ``self``,
-            if there has been none before.
+            Declare the canonical coercion from ``self.base_ring()``
+            to ``self``, if there has been none before.
 
             EXAMPLES::
 
@@ -93,7 +91,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             # sage.rings.polynomial.polynomial_ring.
             # It will hopefully be refactored into something more
             # conceptual later on.
-            if getattr(self,'_no_generic_basering_coercion',False):
+            if getattr(self, '_no_generic_basering_coercion', False):
                 return
 
             base_ring = self.base_ring()
@@ -119,7 +117,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 # Sometimes from_base_ring is a lazy attribute
                 has_custom_conversion = True
             if has_custom_conversion:
-                mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
                 try:
                     self.register_coercion(mor)
                 except AssertionError:
@@ -131,7 +129,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             except (NotImplementedError, AttributeError, TypeError):
                 # The unit is not available, yet. But there are cases
                 # in which it will be available later. Hence:
-                mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
             # try sanity of one._lmul_
             if mor is None:
                 try:
@@ -140,12 +138,12 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                         # One example: Hecke algebras.
                         # In that case, the generic implementation of from_base_ring would
                         # fail as well. Hence, unless it is overruled, we will not use it.
-                        #mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                        #mor = SetMorphism(function = self.from_base_ring, parent = H)
                         return
                 except (NotImplementedError, AttributeError, TypeError):
                     # it is possible that an_element or lmul are not implemented.
                     return
-                    #mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                    #mor = SetMorphism(function = self.from_base_ring, parent = H)
                 mor = SetMorphism(function = one._lmul_, parent = H)
             try:
                 self.register_coercion(mor)
@@ -153,9 +151,8 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 pass
 
     class ElementMethods:
-
         """
-        Magmas.Element.__mul__ is preferable to Modules.Element.__mul__
+        ``Magmas.Element.__mul__`` is preferable to ``Modules.Element.__mul__``
         since the later does not handle products of two elements of ``self``.
 
         TESTS::
@@ -163,9 +160,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             sage: A = AlgebrasWithBasis(QQ).example()
             sage: a = A.an_element()
             sage: a
-            B[word: ] + 2*B[word: a] + 3*B[word: b]
+            2*B[word: ] + 2*B[word: a] + 3*B[word: b]
             sage: a.__mul__(a)
-            B[word: ] + 4*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 6*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
+            4*B[word: ] + 8*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 12*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
         """
         __mul__ = Magmas.ElementMethods.__mul__.im_func
 
@@ -198,7 +195,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_from_one_basis(self):
                 """
-                Returns the one of the algebra, as per
+                Return the one of the algebra, as per
                 :meth:`Monoids.ParentMethods.one()
                 <sage.categories.monoids.Monoids.ParentMethods.one>`
 
@@ -217,7 +214,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
                 TESTS:
 
-                Try to check that #5843 Heisenbug is fixed::
+                Try to check that :trac:`5843` Heisenbug is fixed::
 
                     sage: A = AlgebrasWithBasis(QQ).example()
                     sage: B = AlgebrasWithBasis(QQ).example(('a', 'c'))
@@ -241,6 +238,8 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             @lazy_attribute
             def one(self):
                 r"""
+                Return the multiplicative unit element.
+
                 EXAMPLES::
 
                     sage: A = AlgebrasWithBasis(QQ).example()
@@ -249,10 +248,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     sage: A.one()
                     B[word: ]
                 """
-                if self.one_basis is not NotImplemented:
-                    return self.one_from_one_basis
-                else:
+                if self.one_basis is NotImplemented:
                     return NotImplemented
+                return self.one_from_one_basis
 
             @lazy_attribute
             def from_base_ring(self):
@@ -263,18 +261,17 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     sage: A.from_base_ring(3)
                     3*B[word: ]
                 """
-                if self.one_basis is not NotImplemented:
-                    return self.from_base_ring_from_one_basis
-                else:
+                if self.one_basis is NotImplemented:
                     return NotImplemented
+                return self.from_base_ring_from_one_basis
 
             def from_base_ring_from_one_basis(self, r):
                 """
-                INPUTS:
+                Implement the canonical embeding from the ground ring.
 
-                 - `r`: an element of the coefficient ring
+                INPUT:
 
-                Implements the canonical embeding from the ground ring.
+                - ``r`` -- an element of the coefficient ring
 
                 EXAMPLES::
 
@@ -285,6 +282,6 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     3*B[word: ]
                     sage: A(3)
                     3*B[word: ]
-
                 """
                 return self.term(self.one_basis(), r) #.
+

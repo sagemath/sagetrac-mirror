@@ -80,9 +80,9 @@ class EmptySetError(ValueError):
 
 class Sets(Category_singleton):
     r"""
-    The category of sets
+    The category of sets.
 
-    The base category for collections of elements with = (equality)
+    The base category for collections of elements with = (equality).
 
     This is also the category whose objects are all parents.
 
@@ -283,7 +283,8 @@ class Sets(Category_singleton):
         @cached_method
         def CartesianProducts(self):
             r"""
-            Return the full subcategory of the objects of ``self`` constructed as cartesian products.
+            Return the full subcategory of the objects of ``self``
+            constructed as cartesian products.
 
             .. SEEALSO::
 
@@ -297,76 +298,122 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Category of Cartesian products of monoids
+                Join of Category of Cartesian products of monoids
+                    and Category of Cartesian products of commutative additive groups
             """
             return CartesianProductsCategory.category_of(self)
 
         @cached_method
         def Subquotients(self):
             r"""
-            Return the full subcategory of the objects of ``self`` constructed as subquotients.
+            Return the full subcategory of the objects of ``self``
+            constructed as subquotients.
 
-            Given a concrete category ``self == As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Subquotients()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as
-            subquotient of some other object of ``As()``.
+            Given a concrete category ``self == As()`` (i.e. a subcategory
+            of ``Sets()``), ``As().Subquotients()`` returns the category
+            of objects of ``As()`` endowed with a distinguished
+            description as subquotient of some other object of ``As()``.
 
             EXAMPLES::
 
                 sage: Monoids().Subquotients()
                 Category of subquotients of monoids
 
-            A parent `A` in ``As()`` is further in ``As().Subquotients()`` if
-            there is a distinguished parent `B` in ``As()``, called the
-            *ambient space*, a subspace `B'` of `B` and a pair of *structure
-            preserving* maps:
+            A parent `A` in ``As()`` is further in
+            ``As().Subquotients()`` if there is a distinguished parent
+            `B` in ``As()``, called the *ambient set*, a subobject
+            `B'` of `B`, and a pair of maps:
 
-            .. math::
+            .. MATH::
 
-                l: A \mapsto B'  \text{ and }  r: B' \mapsto A
+                l: A \to B'  \text{ and }  r: B' \to A
 
-            called respectively the *lifting map* and *retract map* such that
-            `r \circ l` is the identity of `A`. What exactly *structure
-            preserving* means is explicited in each category; this typically
-            states that, for each operation `op` of the category, there is a
-            commutative diagram such that:
+            called respectively the *lifting map* and *retract map*
+            such that `r \circ l` is the identity of `A` and `r` is a
+            morphism in ``As()``.
 
-                for all `e\in A`, one has `op_A(e) = r(op_B(l(e)))`
+            .. TODO:: Draw the typical commutative diagram.
 
-            This allows for deriving the operations on `A` from those on `B`.
+            It follows that, for each operation `op` of the category,
+            we have some property like:
 
-            Note: this is a slightly weaker definition than that found on
-            http://en.wikipedia.org/wiki/Subquotient: B' is not necessarily
-            required to be a subobject of B.
+            .. MATH::
+
+                op_A(e) = r(op_B(l(e))), \text{ for all `e\in A`}
+
+            This allows for implementing the operations on `A` from
+            those on `B`.
+
+            The two most common use cases are:
+
+             - *homomorphic images* (or *quotients*), when `B'=B`,
+               `r` is an homomorphism from `B` to `A` (typically a
+               canonical quotient map), and `l` a section of it (not
+               necessarily a homomorphism); see :meth:`Quotients`;
+
+             - *subobjects* (up to an isomorphism), when `l` is an
+               embedding from `A` into `B`; in this case, `B'` is
+               typically isomorphic to `A` through the inverse
+               isomorphisms `r` and `l`; see :meth:`Subobjects`;
+
+            .. NOTE::
+
+                - The usual definition of "subquotient"
+                  (:wikipedia:`Subquotient`) does not involve the
+                  lifting map `l`. This map is required in Sage's
+                  context to make the definition constructive. It is
+                  only used in computations and does not affect their
+                  results. This is relatively harmless since the
+                  category is a concrete category (i.e., its objects
+                  are sets and its morphisms are set maps).
+
+                - In mathematics, especially in the context of
+                  quotients, the retract map `r` is often referred to
+                  as a *projection map* instead.
+
+                - Since `B'` is not specified explicitly, it is
+                  possible to abuse the framework with situations
+                  where `B'` is not quite a subobject and `r` not
+                  quite a morphism, as long as the lifting and retract
+                  maps can be used as above to compute all the
+                  operations in `A`. Use at your own risk!
 
             Assumptions:
 
             - For any category ``As()``, ``As().Subquotients()`` is a
               subcategory of ``As()``.
 
-              Example: a subquotient of a group is a group (e.g. a left or right
-              quotients of a group by a non normal subgroup is not in this category).
+              Example: a subquotient of a group is a group (e.g., a left
+              or right quotient of a group by a non-normal subgroup is
+              not in this category).
 
-            - This construction is covariant: if ``As()`` is a subcategory of
-              ``Bs()``, then ``As().Subquotients()`` is a subcategory of
-              ``Bs().Subquotients()``
+            - This construction is covariant: if ``As()`` is a
+              subcategory of ``Bs()``, then ``As().Subquotients()`` is a
+              subcategory of ``Bs().Subquotients()``.
 
-              Example: if `A` is a distinguished subquotient of `B` in the category of
-              groups, then is is also a subquotient of `B` in the category of monoids.
+              Example: if `A` is a subquotient of `B` in the category of
+              groups, then it is also a subquotient of `B` in the category
+              of monoids.
 
-            - If the user (or a program) calls ``As().Subquotients()``, then it is
-              assumed that subquotients are well defined in this category. This is not
-              checked, and probably never will. Note that, if a category `As()` does
-              not specify anything about its subquotients, then it's subquotient
+            - If the user (or a program) calls ``As().Subquotients()``,
+              then it is assumed that subquotients are well defined in
+              this category. This is not checked, and probably never will
+              be. Note that, if a category ``As()`` does not specify
+              anything about its subquotients, then its subquotient
               category looks like this::
 
                  sage: EuclideanDomains().Subquotients()
-                 Join of Category of euclidean domains and Category of subquotients of monoids
+                 Join of Category of euclidean domains
+                     and Category of subquotients of monoids
 
-            Interface: the ambient space of `B` is given by ``B.ambient()``. The
-            lifting and retract map are implemented respectively as methods
-            ``B.lift(b)`` and ``B.retract(a)``. As a shorthand, one can use
-            alternatively ``b.lift()``::
+            Interface: the ambient set `B` of `A` is given by
+            ``A.ambient()``. The subset `B'` needs not be specified, so
+            the retract map is handled as a partial map from `B` to `A`.
+
+            The lifting and retract map are implemented
+            respectively as methods ``A.lift(a)`` and ``A.retract(b)``.
+            As a shorthand for the former, one can use alternatively
+            ``a.lift()``::
 
                 sage: S = Semigroups().Subquotients().example(); S
                 An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
@@ -380,12 +427,6 @@ class Sets(Category_singleton):
             See ``S?`` for more.
 
             .. TODO:: use a more interesting example, like `\ZZ/n\ZZ`.
-
-            The two most common use cases are:
-
-             - *quotients*, when `A'=A` and `r` is a morphism; then `r` is a
-               canonical quotient map from `A` to `B`.
-             - *subobjects*, when `l` is an embedding from `B` into `A`.
 
             .. SEEALSO::
 
@@ -402,18 +443,25 @@ class Sets(Category_singleton):
         @cached_method
         def Quotients(self):
             r"""
-            Return the full subcategory of the objects of ``self`` constructed as quotients.
+            Return the full subcategory of the objects of ``self``
+            constructed as quotients.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Quotients()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as
-            quotient of some other object of ``As()``.
+            ``Sets()``), ``As().Quotients()`` returns the category of
+            objects of ``As()`` endowed with a distinguished
+            description as quotient (in fact homomorphic image) of
+            some other object of ``As()``.
+
+            Implementing an object of ``As().Quotients()`` is done in
+            the same way as for ``As().Subquotients()``; namely by
+            providing an ambient space and a lift and a retract
+            map. See :meth:`Subquotients` for detailed instructions.
 
             .. SEEALSO::
 
                 - :meth:`Subquotients` for background
                 - :class:`.quotients.QuotientsCategory`
-                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`
 
             EXAMPLES::
 
@@ -437,7 +485,9 @@ class Sets(Category_singleton):
             admits a well defined category of quotients::
 
                 sage: EuclideanDomains().Quotients()
-                Join of Category of euclidean domains and Category of subquotients of monoids and Category of quotients of semigroups
+                Join of Category of euclidean domains
+                    and Category of subquotients of monoids
+                    and Category of quotients of semigroups
 
             TESTS::
 
@@ -447,19 +497,28 @@ class Sets(Category_singleton):
 
         @cached_method
         def Subobjects(self):
-            """
-            Return the full subcategory of the objects of ``self`` constructed as subobjects.
+            r"""
+            Return the full subcategory of the objects of ``self``
+            constructed as subobjects.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Subobjects()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as subobject
-            of some other object of ``As()``.
+            ``Sets()``), ``As().Subobjects()`` returns the category of
+            objects of ``As()`` endowed with a distinguished embedding
+            into some other object of ``As()``.
+
+            Implementing an object of ``As().Subobjects()`` is done in
+            the same way as for ``As().Subquotients()``; namely by
+            providing an ambient space and a lift and a retract
+            map. In the case of a trivial embedding, the two maps will
+            typically be identity maps that just change the parent of
+            their argument. See :meth:`Subquotients` for detailed
+            instructions.
 
             .. SEEALSO::
 
                 - :meth:`Subquotients` for background
                 - :class:`.subobjects.SubobjectsCategory`
-                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`
 
             EXAMPLES::
 
@@ -477,10 +536,11 @@ class Sets(Category_singleton):
                  Category of objects]
 
             Unless something specific about subobjects is implemented for this
-            category, one actually get an optimized super category::
+            category, one actually gets an optimized super category::
 
                 sage: C = Semigroups().Subobjects(); C
-                Join of Category of subquotients of semigroups and Category of subobjects of sets
+                Join of Category of subquotients of semigroups
+                    and Category of subobjects of sets
 
             The caller is responsible for checking that the given category
             admits a well defined category of subobjects.
@@ -490,13 +550,15 @@ class Sets(Category_singleton):
                 sage: Semigroups().Subobjects().is_subcategory(Semigroups().Subquotients())
                 True
                 sage: TestSuite(C).run()
+
             """
             return SubobjectsCategory.category_of(self)
 
         @cached_method
         def IsomorphicObjects(self):
-            """
-            Return the full subcategory of the objects of ``self`` constructed by isomorphism.
+            r"""
+            Return the full subcategory of the objects of ``self``
+            constructed by isomorphism.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
             ``Sets()``), ``As().IsomorphicObjects()`` returns the category of
@@ -544,7 +606,7 @@ class Sets(Category_singleton):
             can construct `A` as isomorphic to `B` as an infinite enumerated
             set. However `A` is *not* isomorphic to `B` as a ring; for
             example, for `a\in A` and `a\in B`, the expressions `a+A(b)` and
-            `B(a)+b` give completly different results; hence we would not want
+            `B(a)+b` give completely different results; hence we would not want
             the expression `a+b` to be implicitly resolved to any one of above
             two, as the coercion mechanism would do.
 
@@ -573,13 +635,14 @@ class Sets(Category_singleton):
             for this category, one actually get an optimized super category::
 
                 sage: C = Semigroups().IsomorphicObjects(); C
-                Join of Category of quotients of semigroups and Category of isomorphic objects of sets
+                Join of Category of quotients of semigroups
+                    and Category of isomorphic objects of sets
 
             .. SEEALSO::
 
                 - :meth:`Subquotients` for background
                 - :class:`.isomorphic_objects.IsomorphicObjectsCategory`
-                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`
 
             TESTS::
 
@@ -590,11 +653,12 @@ class Sets(Category_singleton):
         @cached_method
         def Algebras(self, base_ring):
             """
-            Return the category of objects constructed as algebras of objects of ``self`` over ``base_ring``.
+            Return the category of objects constructed as algebras of
+            objects of ``self`` over ``base_ring``.
 
             INPUT:
 
-             - ``base_ring`` -- a ring
+            - ``base_ring`` -- a ring
 
             See :meth:`Sets.ParentMethods.algebra` for the precise
             meaning in Sage of the *algebra of an object*.
@@ -613,7 +677,7 @@ class Sets(Category_singleton):
             .. SEEALSO::
 
                 - :class:`.algebra_functor.AlgebrasCategory`
-                - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`.
+                - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`
 
             TESTS::
 
@@ -699,8 +763,8 @@ class Sets(Category_singleton):
             set `P` of positive integers w.r.t. divisibility order. There are two
             options for representing its elements:
 
-             1. as plain integers
-             2. as integers, modified to be aware that their parent is `P`
+            1. as plain integers
+            2. as integers, modified to be aware that their parent is `P`
 
             The advantage of 1. is that one needs not to do conversions back and
             forth between `P` and `\ZZ`. The disadvantage is that this
@@ -709,16 +773,18 @@ class Sets(Category_singleton):
                 sage: 2 < 3
                 True
 
-            To raise this ambiguity, one needs to explicitely specify the order
+            To raise this ambiguity, one needs to explicitly specify the order
             as in `2 <_P 3`::
-
 
                 sage: P = Posets().example("facade")
                 sage: P.lt(2,3)
                 False
 
+            Beware that ``P(2)`` is still the integer `2`. Therefore
+            ``P(2) < P(3)`` still compares `2` and `3` as integers!
+
             In short `P` being a facade parent is one of the programmatic
-            counterpart (with e.g. coercions) of the usual mathematical idiom:
+            counterparts (with e.g. coercions) of the usual mathematical idiom:
             "for ease of notation, we identify an element of `P` with the
             corresponding integer". Too many identifications lead to
             confusion; the lack thereof leads to heavy, if not obfuscated,
@@ -726,16 +792,16 @@ class Sets(Category_singleton):
             there are common guidelines, it is ultimately up to the writer to
             choose which identifications to do. This is no different in code.
 
-            .. seealso::
+            .. SEEALSO::
 
                ::
 
-                sage: Sets().example("facade")
-                Set of prime numbers (facade implementation)
-                sage: Sets().example("inherits")
-                Set of prime numbers
-                sage: Sets().example("wrapper")
-                Set of prime numbers (wrapper implementation)
+                   sage: Sets().example("facade")
+                   Set of prime numbers (facade implementation)
+                   sage: Sets().example("inherits")
+                   Set of prime numbers
+                   sage: Sets().example("wrapper")
+                   Set of prime numbers (wrapper implementation)
 
             .. rubric:: Specifications
 
@@ -745,12 +811,15 @@ class Sets(Category_singleton):
               specify a parent, or tuple thereof.
             - overload the method :meth:`~Sets.Facade.ParentMethods.facade_for`.
 
-            .. note:: the concept of facade parents was originally introduced
-               in the computer algebra system MuPAD.
+            .. NOTE::
+
+                The concept of facade parents was originally introduced
+                in the computer algebra system MuPAD.
 
             TESTS:
 
-            Check that multiple categories initialisation works (:trac:`13801`)::
+            Check that multiple categories initialisation
+            works (:trac:`13801`)::
 
                 sage: class A(Parent):
                 ....:   def __init__(self):
@@ -786,9 +855,9 @@ class Sets(Category_singleton):
                 sage: S(17) # indirect doctest
                 17
 
-            Caveat: For some parents, element_class is a method, and
+            Caveat: For some parents, ``element_class`` is a method, and
             not an attribute. We do not provide a default
-            implementation of _element_constructor for those.
+            implementation of ``_element_constructor`` for those.
 
                 sage: FreeModule(QQ,3).element_class
                 <bound method FreeModule_ambient_field_with_category.element_class of Vector space of dimension 3 over Rational Field>
@@ -801,41 +870,33 @@ class Sets(Category_singleton):
 
         def _element_constructor_from_element_class(self, *args, **keywords):
             """
-            The default constructor for elements of this parent
+            The default constructor for elements of this parent ``self``.
 
-            Among other things, it is called upon my_parent(data) when
-            the coercion model did not find a way to coerce data into
+            Among other things, it is called upon ``self(data)`` when
+            the coercion model did not find a way to coerce ``data`` into
             this parent.
 
             This default implementation for
             :meth:`_element_constructor_` calls the constructor of the
-            element class.
-
-            Caveat: ``self`` is passed to the constructor of the
-            element class as a keyword argument ``parent``. Many
-            element classes in Sage, in particular those implemented
-            by mean of extension types, take ``parent`` as first
-            mandatory argument instead.
-
-            This incompatibility will be fixed soon (Fall 2009?) by
-            having all element classes take ``parent`` as first
-            mandatory argument, and updating this default
-            implementation of :meth:`_element_constructor_`.
+            element class, passing ``self`` as first argument.
 
             EXAMPLES::
 
                 sage: S = Sets().example("inherits")
-                sage: S._element_constructor_from_element_class(17)
+                sage: s = S._element_constructor_from_element_class(17); s
                 17
+                sage: type(s)
+                <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits_with_category.element_class'>
             """
             return self.element_class(self, *args, **keywords)
 
         def is_parent_of(self, element):
             """
-            Returns whether ``self`` is the parent of ``element``
+            Return whether ``self`` is the parent of ``element``.
 
             INPUT:
-             - ``element`` -- any object
+
+            - ``element`` -- any object
 
             EXAMPLES::
 
@@ -859,7 +920,7 @@ class Sets(Category_singleton):
         @abstract_method
         def __contains__(self, x):
             """
-            Tests whether the set contains the object ``x``.
+            Test whether the set ``self`` contains the object ``x``.
 
             All parents in the category ``Sets()`` should implement this method.
 
@@ -876,14 +937,14 @@ class Sets(Category_singleton):
         @cached_method
         def an_element(self):
             r"""
-            Returns a (preferably typical) element of this parent.
+            Return a (preferably typical) element of this parent.
 
             This is used both for illustration and testing purposes. If the
             set ``self`` is empty, :meth:`an_element` should raise the exception
             :class:`EmptySetError`.
 
             This default implementation calls :meth:`_an_element_` and
-            cache the result. Any parent should implement either
+            caches the result. Any parent should implement either
             :meth:`an_element` or :meth:`_an_element_`.
 
             EXAMPLES::
@@ -1176,9 +1237,10 @@ class Sets(Category_singleton):
 
         def some_elements(self):
             """
-            Returns a list (or iterable) of elements of self.
+            Return a list (or iterable) of elements of ``self``.
 
-            This is typically used for running generic tests (see :class:`TestSuite`).
+            This is typically used for running generic tests
+            (see :class:`TestSuite`).
 
             This default implementation calls :meth:`.an_element`.
 
@@ -1205,7 +1267,7 @@ class Sets(Category_singleton):
             """
             Run generic tests on the method :meth:`.some_elements`.
 
-            See also: :class:`TestSuite`.
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 
@@ -1254,7 +1316,7 @@ class Sets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
             """
-            raise NotImplementedError, "unknown cardinality"
+            raise NotImplementedError("unknown cardinality")
 
         # Functorial constructions
 
@@ -1269,8 +1331,22 @@ class Sets(Category_singleton):
                 sage: A = C.example(); A.rename("A")
                 sage: A.cartesian_product(A,A)
                 A (+) A (+) A
+                sage: ZZ.cartesian_product(GF(2), FiniteEnumeratedSet([1,2,3]))
+                The cartesian product of (Integer Ring, Finite Field of size 2, {1, 2, 3})
+
+                sage: C = ZZ.cartesian_product(A); C
+                The cartesian product of (Integer Ring, A)
+
+            TESTS::
+
+                sage: type(C)
+                <class 'sage.sets.cartesian_product.CartesianProduct_with_category'>
+                sage: C.category()
+                Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
             """
-            return parents[0].__class__.CartesianProduct(parents, category = cartesian_product.category_from_parents(parents))
+            return parents[0].CartesianProduct(
+                parents,
+                category = cartesian_product.category_from_parents(parents))
 
         def algebra(self, base_ring, category = None):
             """
@@ -1280,7 +1356,8 @@ class Sets(Category_singleton):
 
             - ``self`` -- a parent `S`
             - ``base_ring`` -- a ring `K`
-            - ``category`` -- a super category of the category of `S`, or ``None``
+            - ``category`` -- a super category of the category
+              of `S`, or ``None``
 
             This returns the `K`-free module with basis indexed by
             `S`, endowed with whatever structure can be induced from
@@ -1379,18 +1456,16 @@ class Sets(Category_singleton):
 
                 Suggestions for a uniform, meaningful, and non
                 misleading name are welcome!
-
-
-
             """
             if category is None:
                 category = self.category()
             from sage.categories.semigroups import Semigroups
             from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
             if category.is_subcategory(Semigroups()) and category.is_subcategory(CommutativeAdditiveSemigroups()):
-                raise TypeError, """ `S = %s` is both an additive and a multiplicative semigroup.
+                raise TypeError(
+""" `S = {}` is both an additive and a multiplicative semigroup.
 Constructing its algebra is ambiguous.
-Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
+Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
             from sage.combinat.free_module import CombinatorialFreeModule
             return CombinatorialFreeModule(base_ring, self, category = category.Algebras(base_ring))
 
@@ -1404,7 +1479,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         def cartesian_product(*elements):
             """
-            Returns the cartesian product of its arguments, as an element of
+            Return the cartesian product of its arguments, as an element of
             the cartesian product of the parents of those elements.
 
             EXAMPLES::
@@ -1418,7 +1493,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             FIXME: is this a policy that we want to enforce on all parents?
             """
             from sage.structure.element import parent, Element
-            assert(all(isinstance(element, Element) for element in elements))
+            assert all(isinstance(element, Element) for element in elements)
             parents = [parent(element) for element in elements]
             return cartesian_product(parents)._cartesian_product_of_elements(elements) # good name???
 
@@ -1435,7 +1510,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def is_finite(self):
                 """
-                Returns ``False`` since ``self`` is not finite.
+                Return ``False`` since ``self`` is not finite.
 
                 EXAMPLES::
 
@@ -1452,7 +1527,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def cardinality(self):
                 """
-                Counts the elements of the enumerated set.
+                Count the elements of the enumerated set.
 
                 EXAMPLES::
 
@@ -1465,9 +1540,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Subquotients(SubquotientsCategory):
         """
-        A category for subquotients of sets
+        A category for subquotients of sets.
 
-        .. seealso: :meth:`Sets().Subquotients`
+        .. SEEALSO:: :meth:`Sets().Subquotients`
 
         EXAMPLES::
 
@@ -1495,7 +1570,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def ambient(self):
                 """
-                Returns the ambient space for `self`.
+                Return the ambient space for ``self``.
 
                 EXAMPLES::
 
@@ -1521,10 +1596,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def lift(self, x):
                 """
-                INPUT:
-                 - ``x`` -- an element of ``self``
+                Lift `x` to the ambient space for ``self``.
 
-                Lifts `x` to the ambient space for ``self``.
+                INPUT:
+
+                - ``x`` -- an element of ``self``
 
                 EXAMPLES::
 
@@ -1547,10 +1623,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @abstract_method
             def retract(self, x):
                 """
-                INPUT:
-                 - ``x`` -- an element of the ambient space for ``self``
+                Retract ``x`` to ``self``.
 
-                Retracts ``x`` to ``self``.
+                INPUT:
+
+                - ``x`` -- an element of the ambient space for ``self``
 
                 .. SEEALSO::
 
@@ -1572,7 +1649,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def lift(self):
                 """
-                Lifts ``self`` to the ambient space for its parent
+                Lift ``self`` to the ambient space for its parent.
 
                 EXAMPLES::
 
@@ -1589,17 +1666,20 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Quotients(QuotientsCategory):
         """
-        A category for quotients of sets
+        A category for quotients of sets.
 
-        .. seealso: :meth:`Sets().Quotients`
+        .. SEEALSO:: :meth:`Sets().Quotients`
 
         EXAMPLES::
 
             sage: Sets().Quotients()
             Category of quotients of sets
             sage: Sets().Quotients().all_super_categories()
-            [Category of quotients of sets, Category of subquotients of sets, Category of sets,
-             Category of sets with partial maps, Category of objects]
+            [Category of quotients of sets,
+             Category of subquotients of sets,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
         """
 
         class ParentMethods:
@@ -1613,11 +1693,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: S._repr_()
                     'A quotient of An example of a semigroup: the left zero semigroup'
                 """
-                return "A quotient of %s"%(self.ambient())
+                return "A quotient of {}".format(self.ambient())
 
             def _an_element_(self):
                 """
-                Returns an element of ``self``, as per
+                Return an element of ``self``, as per
                 :meth:`Sets.ParentMethods.an_element`
 
                 EXAMPLES::
@@ -1630,17 +1710,20 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Subobjects(SubobjectsCategory):
         """
-        A category for subobjects of sets
+        A category for subobjects of sets.
 
-        .. seealso: :meth:`Sets().Subobjects`
+        .. SEEALSO:: :meth:`Sets().Subobjects`
 
         EXAMPLES::
 
             sage: Sets().Subobjects()
             Category of subobjects of sets
             sage: Sets().Subobjects().all_super_categories()
-            [Category of subobjects of sets, Category of subquotients of sets, Category of sets,
-             Category of sets with partial maps, Category of objects]
+            [Category of subobjects of sets,
+             Category of subquotients of sets,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
         """
 
         class ParentMethods:
@@ -1654,11 +1737,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: S._repr_()
                     'A subobject of An example of a semigroup: the left zero semigroup'
                 """
-                return "A subobject of %s"%(self.ambient())
+                return "A subobject of {}".format(self.ambient())
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
         """
-        A category for isomorphic objects of sets
+        A category for isomorphic objects of sets.
 
         EXAMPLES::
 
@@ -1691,7 +1774,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             sage: C = Sets().CartesianProducts().example()
             sage: C
-            The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
+            The cartesian product of (Set of prime numbers (basic implementation),
+             An example of an infinite enumerated set: the non negative integers,
+             An example of a finite enumerated set: {1,2,3})
             sage: C.category()
             Category of Cartesian products of sets
             sage: C.categories()
@@ -1703,7 +1788,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         def extra_super_categories(self):
             """
-            A cartesian product of sets is a set
+            A cartesian product of sets is a set.
 
             EXAMPLES::
 
@@ -1719,7 +1804,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             EXAMPLES::
 
                 sage: Sets().CartesianProducts().example()
-                The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
+                The cartesian product of (Set of prime numbers (basic implementation),
+                 An example of an infinite enumerated set: the non negative integers,
+                 An example of a finite enumerated set: {1,2,3})
             """
             from finite_enumerated_sets import FiniteEnumeratedSets
             from infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -1738,11 +1825,27 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 EXAMPLES::
 
                     sage: C = Sets().CartesianProducts().example(); C
-                    The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
+                    The cartesian product of (Set of prime numbers (basic implementation),
+                     An example of an infinite enumerated set: the non negative integers,
+                     An example of a finite enumerated set: {1,2,3})
                     sage: C.an_element()
                     (47, 42, 1)
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
+
+            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
+            def cardinality(self):
+                """
+                Return the cardinality of ``self``
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
+                    sage: C.cardinality()
+                    30
+                """
+                from sage.misc.misc_c import prod
+                return prod(x.cardinality() for x in self._sets)
 
             @abstract_method
             def _sets_keys(self):
@@ -1772,14 +1875,16 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 Return the natural projection onto the `i`-th
                 cartesian factor of ``self``.
 
-                INPUTS:
+                INPUT:
 
-                 - ``i`` -- the index of a cartesian factor of ``self``
+                - ``i`` -- the index of a cartesian factor of ``self``
 
                 EXAMPLES::
 
                     sage: C = Sets().CartesianProducts().example(); C
-                    The cartesian product of (Set of prime numbers (basic implementation), An example of an infinite enumerated set: the non negative integers, An example of a finite enumerated set: {1,2,3})
+                    The cartesian product of (Set of prime numbers (basic implementation),
+                     An example of an infinite enumerated set: the non negative integers,
+                     An example of a finite enumerated set: {1,2,3})
                     sage: x = C.an_element(); x
                     (47, 42, 1)
                     sage: pi = C.cartesian_projection(1)
@@ -1794,8 +1899,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
                 INPUT:
 
-                 - ``elements`` -- a tuple with one element of each
-                   cartesian factor of ``self``
+                - ``elements`` -- a tuple with one element of each
+                  cartesian factor of ``self``
 
                 EXAMPLES::
 
@@ -1815,7 +1920,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
                 INPUTS:
 
-                 - ``i`` -- the index of a factor of the cartesian product
+                - ``i`` -- the index of a factor of the cartesian product
 
                 EXAMPLES::
 
@@ -1853,7 +1958,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     [F, G, H]
                 """
                 # TODO: optimize
-                return tuple(self.cartesian_projection(i) for i in self.parent()._sets_keys())
+                return tuple(self.cartesian_projection(i)
+                             for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
 
             summand_split = deprecated_function_alias(10963, cartesian_factors)
@@ -1884,7 +1990,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         def extra_super_categories(self):
             """
-            A set with multiple realizations is a facade parent
+            A set with multiple realizations is a facade parent.
 
             EXAMPLES::
 
@@ -1897,7 +2003,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         def example(self, base_ring = None, set = None):
             r"""
-            Returns an example of set with multiple realizations, as
+            Return an example of set with multiple realizations, as
             per :meth:`Category.example`.
 
             EXAMPLES::
@@ -1922,18 +2028,21 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def _test_with_realizations(self, **options):
                 r"""
-                Test that this parent with realizations is properly implemented
+                Test that this parent with realizations is
+                properly implemented.
 
                 INPUT::
 
-                 - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+                - ``options`` -- any keyword arguments accepted
+                  by :meth:`_tester`
 
                 EXAMPLES::
 
                     sage: A = Sets().WithRealizations().example()
                     sage: A._test_with_realizations()
 
-                See the documentation for :class:`TestSuite` for more information.
+                See the documentation for :class:`TestSuite`
+                for more information.
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
@@ -1968,7 +2077,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: R in A.realizations()  # indirect doctest
                     True
 
-                Note: the test above uses ``QQ[x]`` to not interfer with other tests
+                Note: the test above uses ``QQ[x]`` to not interfer
+                with other tests.
                 """
                 assert realization.realization_of() is self
                 self._realizations.append(realization)
@@ -1986,11 +2096,11 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):
-                    raise NotImplementedError("no shorthands defined for %s" % self)
+                    raise NotImplementedError("no shorthands defined for {}".format(self))
                 for shorthand in self._shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:
-                        print 'Injecting %s as shorthand for %s'%(shorthand, realization)
+                        print 'Injecting {} as shorthand for {}'.format(shorthand, realization)
                     inject_variable(shorthand, realization)
 
             @abstract_method(optional=True)
@@ -2008,7 +2118,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def realizations(self):
                 """
-                Returns all the realizations of ``self`` that ``self`` is aware of.
+                Return all the realizations of ``self`` that ``self``
+                is aware of.
 
                 EXAMPLES::
 
@@ -2017,7 +2128,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: A.realizations()
                     [The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis, The subset algebra of {1, 2, 3} over Rational Field in the In basis, The subset algebra of {1, 2, 3} over Rational Field in the Out basis]
 
-                .. note::
+                .. NOTE::
 
                     Constructing a parent ``P`` in the category
                     ``A.Realizations()`` automatically adds ``P`` to
@@ -2027,7 +2138,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def facade_for(self):
                 """
-                Returns the parents ``self`` is a facade for, that is
+                Return the parents ``self`` is a facade for, that is
                 the realizations of ``self``
 
                 EXAMPLES::
@@ -2066,7 +2177,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def _an_element_(self):
                 """
-                Returns an element of some realization of ``self``
+                Return an element of some realization of ``self``.
 
                 EXAMPLES::
 
@@ -2108,7 +2219,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def __init_extra__(self):
                 """
-                Registers ``self`` as a realization of ``self.realization_of``
+                Register ``self`` as a realization of ``self.realization_of``.
 
                 TESTS::
 
@@ -2123,7 +2234,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             @cached_method
             def realization_of(self):
                 """
-                Returns the parent this is a realization of
+                Return the parent this is a realization of.
 
                 EXAMPLES::
 
@@ -2140,7 +2251,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def _realization_name(self):
                 """
-                Returns the name of this realization
+                Return the name of this realization.
 
                 In this default implementation, this is guessed from
                 the name of its class.
@@ -2180,4 +2291,4 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
                     sage: P     # indirect doctest
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah
                 """
-                return "%s in the realization %s"%(self.realization_of(), self._realization_name())
+                return "{} in the realization {}".format(self.realization_of(), self._realization_name())

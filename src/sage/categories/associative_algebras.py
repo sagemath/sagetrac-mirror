@@ -14,7 +14,7 @@ from sage.categories.magmas import Magmas
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 
 class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
-    """
+    r"""
     The category of associative algebras over a given base ring.
 
     An associative algebra over a ring `R` is a module over `R` which
@@ -27,7 +27,6 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
         suggests, :class:`AssociativeAlgebras` is not a subcategory of
         :class:`Algebras` but of
         :class:`~.magmatic_algebras.MagmaticAlgebras`.
-
 
     EXAMPLES::
 
@@ -45,19 +44,23 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
     _base_category_class_and_axiom = (MagmaticAlgebras, "Associative")
 
     class ElementMethods:
-
         """
-        Magmas.Element.__mul__ is preferable to Modules.Element.__mul__
-        since the later does not handle products of two elements of ``self``.
+        An abstract class for elements of an associative algebra.
+
+        .. NOTE::
+
+            ``Magmas.Element.__mul__`` is preferable to
+            ``Modules.Element.__mul__`` since the later does not
+            handle products of two elements of ``self``.
 
         TESTS::
 
             sage: A = AlgebrasWithBasis(QQ).example()
             sage: a = A.an_element()
             sage: a
-            B[word: ] + 2*B[word: a] + 3*B[word: b]
+            2*B[word: ] + 2*B[word: a] + 3*B[word: b]
             sage: a.__mul__(a)
-            B[word: ] + 4*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 6*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
+            4*B[word: ] + 8*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 12*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
         """
         __mul__ = Magmas.ElementMethods.__mul__.im_func
 

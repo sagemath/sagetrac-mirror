@@ -16,7 +16,8 @@ from sage.categories.magmas import Magmas
 
 class MagmasAndAdditiveMagmas(Category_singleton):
     """
-    The category of sets `(S,+,*)` with an additive operation '+' and a multiplicative operation `*`
+    The category of sets `(S,+,*)` with an additive operation '+' and
+    a multiplicative operation `*`
 
     EXAMPLES::
 
@@ -54,14 +55,17 @@ class MagmasAndAdditiveMagmas(Category_singleton):
 
         @cached_method
         def Distributive(self):
-            """
-            Return the full subcategory of the objects of ``self`` where `*` is distributive on `+`.
+            r"""
+            Return the full subcategory of the objects of ``self``
+            where `*` is distributive on `+`.
 
-            A :class:`magma Magmas` and :class:`additive magma
-            AdditiveMagmas` `M` is *distributive* if, for all
-            `x,y,z\in M`,
+            A :class:`magma <Magmas>` and :class:`additive magma
+            <AdditiveMagmas>` `M` is *distributive* if, for all
+            `x,y,z \in M`,
 
-            .. MATH:: x * (y+z) = x*y + x*z \text{ and } (x+y) * z = x*z + y*z
+            .. MATH::
+
+                x * (y+z) = x*y + x*z \text{ and } (x+y) * z = x*z + y*z
 
             EXAMPLES::
 
@@ -71,7 +75,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
 
             .. NOTE::
 
-                Given that `Sage` does not know that
+                Given that Sage does not know that
                 :class:`MagmasAndAdditiveMagmas` is the intersection
                 of :class:`Magmas` and :class:`AdditiveMagmas`, this
                 method is not available for::
@@ -109,3 +113,4 @@ class MagmasAndAdditiveMagmas(Category_singleton):
         return [Magmas(), AdditiveMagmas()]
 
     Distributive = LazyImport('sage.categories.distributive_magmas_and_additive_magmas', 'DistributiveMagmasAndAdditiveMagmas', at_startup=True)
+
