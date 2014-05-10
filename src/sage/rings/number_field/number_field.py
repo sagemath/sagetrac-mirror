@@ -8880,7 +8880,6 @@ class NumberField_cyclotomic(NumberField_absolute):
             self._integral_basis_dict[tuple()] = pari(B)
             return B
 
-
     def zeta_order(self):
         """
         Return the order of the maximal root of unity contained in this
@@ -8943,7 +8942,6 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         -  ``all`` - bool (default: False) - whether to return
            a list of all n-th roots.
-
 
         OUTPUT: root of unity or list
 
@@ -9052,7 +9050,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def norm_symbol_prime(self, a, P):
         r"""
-        Return the cyclotomic norm symbol at a given prime ?
+        Return the cyclotomic norm symbol at a given prime `P`
 
         INPUT:
 
@@ -9067,13 +9065,12 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.norm_symbol_prime(zeta^3, P)
             zeta^3
         """
-        zeta = self.gen()
         n = self.zeta_order()
-        exponent = (P.norm() - QQ.one()) / n
-        exponent = ZZ(exponent)
+        zeta = self.zeta(n)
+        exponent = ZZ((P.norm() - QQ.one()) / n)
         FF = self.residue_field(P)
         b = FF(a) ** exponent
-        zeta_mod = FF(self.gen())
+        zeta_mod = FF(zeta)
         # Find power m of zeta_mod that is equal to b,
         # then return zeta^m
         m = 0
@@ -9087,7 +9084,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def norm_symbol(self, a, b):
         r"""
-        Return the cyclotomic norm symbol ?
+        Return the cyclotomic norm symbol
 
         INPUT:
 
@@ -9097,11 +9094,11 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: K.<zeta> = CyclotomicField(7)
             sage: K.norm_symbol(zeta^3, 13*zeta)
-            -zeta^5 - zeta^4 - zeta^3 - zeta^2 - zeta - 1 ? zeta^3 ?
+            zeta^3
             sage: K.norm_symbol(zeta^7, K(11))
             1
             sage: K.norm_symbol((1+zeta)^2, 23*zeta)
-            zeta^4 ? zeta^2 ?
+            zeta^2
         """
         F = self.fractional_ideal([b]).factor()
         return prod([self.norm_symbol_prime(a, P) ** e for P, e in F],
