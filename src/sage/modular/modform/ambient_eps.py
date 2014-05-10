@@ -98,6 +98,27 @@ import eisenstein_submodule
 class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
     """
     A space of modular forms with character.
+
+    EXAMPLES:
+
+    This class should not be called directly. Instances should be created
+    through :meth:`sage.modular.modforms.constructor.ModularForms`::
+
+        sage: M = ModularForms(DirichletGroup(11).0, 3); M
+        Modular Forms space of dimension 3, character [zeta10] and weight 3 over Cyclotomic Field of order 10 and degree 4
+
+    TESTS:
+
+    Verify that caching works::
+
+        sage: from sage.modular.modform.ambient_eps import ModularFormsAmbient_eps
+        sage: ModularFormsAmbient_eps(DirichletGroup(11).0) is ModularFormsAmbient_eps(DirichletGroup(11).0)
+        True
+
+    Run the tests of the category framework::
+
+        sage: TestSuite(M).run()
+
     """
     def __init__(self, character, weight=2, base_ring=None):
         """

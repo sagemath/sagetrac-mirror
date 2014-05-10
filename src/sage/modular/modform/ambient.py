@@ -83,6 +83,7 @@ import sage.modules.free_module as free_module
 import sage.rings.all as rings
 
 from sage.structure.sequence import Sequence
+from sage.structure.unique_representation import CachedRepresentation
 from sage.misc.cachefunc import cached_method
 
 
@@ -94,7 +95,8 @@ import space
 import submodule
 
 
-class ModularFormsAmbient(space.ModularFormsSpace,
+class ModularFormsAmbient(CachedRepresentation,
+                          space.ModularFormsSpace,
                           hecke.AmbientHeckeModule):
     """
     An ambient space of modular forms.

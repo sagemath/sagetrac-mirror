@@ -25,9 +25,39 @@ from cuspidal_submodule import CuspidalSubmodule_R
 from sage.misc.cachefunc import cached_method
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
+    r"""
+    Ambient space of modular forms over a ring other than `\QQ`.
+
+    EXAMPLES:
+
+    This class should not be called directly. Instances should be created
+    through :meth:`sage.modular.modforms.constructor.ModularForms`::
+
+        sage: M = ModularForms(23, 2, base_ring = GF(7)); M
+        Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(23) of weight 2 over Finite Field of size 7
+
+    TESTS:
+
+    Verify that caching works::
+
+        sage: from sage.modular.modform.ambient_R import ModularFormsAmbient_R
+        sage: ModularFormsAmbient_R(ModularForms(13, 2), GF(7)) is ModularFormsAmbient_R(ModularForms(13, 2), GF(7))
+        True
+
+    Run the tests of the category framework::
+
+        sage: TestSuite(M).run()
+
+    Verify that a problem from :trac:`16321` has been resolved::
+
+        sage: M = ModularForms(23,2,base_ring=GF(7))
+        sage: M.change_ring(QQ) is M.change_ring(QQ)
+        True
+
+    """
     def __init__(self, M, base_ring):
         """
-        Ambient space of modular forms over a ring other than QQ.
+        Ambient space of modular forms over a ring other than `\QQ`.
 
         EXAMPLES::
 

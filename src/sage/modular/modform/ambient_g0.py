@@ -36,6 +36,27 @@ import eisenstein_submodule
 class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
     """
     A space of modular forms for `\Gamma_0(N)` over `\QQ`.
+
+    EXAMPLES:
+
+    This class should not be called directly. Instances should be created
+    through :meth:`sage.modular.modforms.constructor.ModularForms`::
+
+        sage: M = ModularForms(Gamma0(11), 4); M
+        Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
+
+    TESTS:
+
+    Verify that caching works::
+
+        sage: from sage.modular.modform.ambient_g0 import ModularFormsAmbient_g0_Q
+        sage: ModularFormsAmbient_g0_Q(11, 4) is ModularFormsAmbient_g0_Q(11, 4)
+        True
+
+    Run the tests of the category framework::
+
+        sage: TestSuite(M).run()
+
     """
     def __init__(self, level, weight):
         r"""

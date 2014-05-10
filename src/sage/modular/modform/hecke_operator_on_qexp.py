@@ -171,8 +171,8 @@ def hecke_operator_on_basis(B, n, k, eps=None,
 
     EXAMPLES::
 
-        sage: sage.modular.modform.constructor.ModularForms_clear_cache()
-        sage: ModularForms(1,12).q_expansion_basis()
+        sage: sage.modular.modform.ambient_g0.ModularFormsAmbient_g0_Q._clear_cache_() # the precision problem below may not show if a higher precision is already present in the cache
+        sage: ModularForms(1,12).q_expansion_basis(6)
         [
         q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6),
         1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + 3199218815520/691*q^5 + O(q^6)
