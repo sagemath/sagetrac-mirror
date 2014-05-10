@@ -1,18 +1,28 @@
-"""
+r"""
 Modular Forms over a Non-minimal Base Ring
+
+AUTHORS:
+
+- William Stein: initial version
+
+- Julian Rueth (2014-05-10): improved caching
+
 """
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
+import sage.rings.all as rings
+
 import ambient
 from cuspidal_submodule import CuspidalSubmodule_R
-from sage.rings.all import ZZ
+from sage.misc.cachefunc import cached_method
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
     def __init__(self, M, base_ring):
@@ -34,6 +44,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             self.__R_character = None
         ambient.ModularFormsAmbient.__init__(self, M.group(), M.weight(), base_ring, M.character())
 
+    @cached_method(key=lambda self,sign: (self,rings.Integer(sign))) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self,sign=0):
         r"""
         Return the space of modular symbols attached to this space, with the given sign (default 0).
@@ -50,16 +61,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             sage: symbs.base_ring() == L
             True
         """
-        sign = ZZ(sign)
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
-        M = self.__M.modular_symbols(sign).change_ring(self.base_ring())
-        self.__modular_symbols[sign] = M
-        return M
+        return self.__M.modular_symbols(sign).change_ring(self.base_ring())
 
     def _repr_(self):
         """
@@ -112,7 +114,6 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_R_with_category'>
         """
         return CuspidalSubmodule_R(self)
-
 
     def change_ring(self, R):
         r"""

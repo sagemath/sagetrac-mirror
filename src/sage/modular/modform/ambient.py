@@ -56,19 +56,24 @@ TESTS::
     <class 'sage.modular.modform.ambient_g1.ModularFormsAmbient_gH_Q_with_category'>
     sage: m == loads(dumps(m))
     True
+
+AUTHORS:
+
+- William Stein: initial version
+
+- Julian Rueth (2014-05-10): improved caching
+
 """
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-# system packages
-
-# Sage packages
 import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
@@ -78,6 +83,7 @@ import sage.modules.free_module as free_module
 import sage.rings.all as rings
 
 from sage.structure.sequence import Sequence
+from sage.misc.cachefunc import cached_method
 
 
 import cuspidal_submodule
@@ -191,6 +197,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
         return M
 
+    @cached_method
     def dimension(self):
         """
         Return the dimension of this ambient space of modular forms,
@@ -203,11 +210,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m.dimension()
             238
         """
-        try:
-            return self.__dimension
-        except AttributeError:
-            self.__dimension = self._dim_eisenstein() + self._dim_cuspidal()
-            return self.__dimension
+        return self._dim_eisenstein() + self._dim_cuspidal()
 
     def hecke_module_of_level(self, N):
         r"""
@@ -305,6 +308,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         """
         return True
 
+    @cached_method(key=lambda self, sign: (self,rings.Integer(sign))) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return the corresponding space of modular symbols with the given
@@ -325,20 +329,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: ModularForms(1,12).modular_symbols()
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
-        sign = rings.Integer(sign)
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
-        M = modsym.ModularSymbols(group = self.group(),
-                                  weight = self.weight(),
-                                  sign = sign,
-                                  base_ring = self.base_ring())
-        self.__modular_symbols[sign] = M
-        return M
+        return modsym.ModularSymbols(group = self.group(), weight = self.weight(), sign = sign, base_ring = self.base_ring())
 
+    @cached_method
     def module(self):
         """
         Return the underlying free module corresponding to this space
@@ -373,7 +366,6 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
-        if hasattr(self, "__module"): return self.__module
         try:
             d = self.dimension()
         except NotImplementedError:
@@ -387,8 +379,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             # exist but we don't know how to compute them.
 
             d = self._dim_eisenstein()
-        self.__module = free_module.VectorSpace(self.base_ring(), d)
-        return self.__module
+        return free_module.VectorSpace(self.base_ring(), d)
 
     # free_module -- stupid thing: there are functions in classes
     # ModularFormsSpace and HeckeModule that both do much the same
@@ -477,6 +468,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
     ####################################################################
     # Computation of Special Submodules
     ####################################################################
+    @cached_method
     def cuspidal_submodule(self):
         """
         Return the cuspidal submodule of this ambient module.
@@ -487,12 +479,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for
             Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         """
-        try:
-            return self.__cuspidal_submodule
-        except AttributeError:
-            self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule(self)
-        return self.__cuspidal_submodule
+        return cuspidal_submodule.CuspidalSubmodule(self)
 
+    @cached_method
     def eisenstein_submodule(self):
         """
         Return the Eisenstein submodule of this ambient module.
@@ -504,12 +493,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m.eisenstein_submodule()
             Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         """
-        try:
-            return self.__eisenstein_submodule
-        except AttributeError:
-            self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule(self)
-        return self.__eisenstein_submodule
+        return eisenstein_submodule.EisensteinSubmodule(self)
 
+    @cached_method(key=lambda self, p: (self, rings.Integer(p) if p is not None else p)) # convert p to an Integer before looking this up in the cache
     def new_submodule(self, p=None):
         """
         Return the new or `p`-new submodule of this ambient
@@ -559,19 +545,10 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ...
             NotImplementedError
         """
-        try:
-            return self.__new_submodule[p]
-        except AttributeError:
-           self.__new_submodule = {}
-        except KeyError:
-           pass
-        if not p is None:
-            p = rings.Integer(p)
+        if p is not None:
             if not p.is_prime():
                raise ValueError("p (=%s) must be a prime or None."%p)
-        M = self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
-        self.__new_submodule[p] = M
-        return M
+        return self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
 
     def _q_expansion(self, element, prec):
         r"""
@@ -613,6 +590,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
     ####################################################################
     # Computations of Dimensions
     ####################################################################
+    @cached_method
     def _dim_cuspidal(self):
         """
         Return the dimension of the cuspidal subspace of this ambient
@@ -625,15 +603,12 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m._dim_cuspidal()
             1
         """
-        try:
-            return self.__the_dim_cuspidal
-        except AttributeError:
-            if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
-               self.__the_dim_cuspidal = self.group().dimension_cusp_forms(self.weight(), self.character())
-            else:
-               self.__the_dim_cuspidal = self.group().dimension_cusp_forms(self.weight())
-        return self.__the_dim_cuspidal
+        if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
+           return self.group().dimension_cusp_forms(self.weight(), self.character())
+        else:
+           return self.group().dimension_cusp_forms(self.weight())
 
+    @cached_method
     def _dim_eisenstein(self):
         """
         Return the dimension of the Eisenstein subspace of this modular
@@ -646,18 +621,15 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m._dim_eisenstein()
             3
         """
-        try:
-            return self.__the_dim_eisenstein
-        except AttributeError:
-            if self.weight() == 1:
-                self.__the_dim_eisenstein = len(self.eisenstein_params())
+        if self.weight() == 1:
+            return len(self.eisenstein_params())
+        else:
+            if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
+                return self.group().dimension_eis(self.weight(), self.character())
             else:
-                if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
-                    self.__the_dim_eisenstein = self.group().dimension_eis(self.weight(), self.character())
-                else:
-                    self.__the_dim_eisenstein = self.group().dimension_eis(self.weight())
-        return self.__the_dim_eisenstein
+                return self.group().dimension_eis(self.weight())
 
+    @cached_method
     def _dim_new_cuspidal(self):
         """
         Return the dimension of the new cuspidal subspace, computed using
@@ -668,15 +640,12 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m = ModularForms(GammaH(11,[2]), 2); m._dim_new_cuspidal()
             1
         """
-        try:
-            return self.__the_dim_new_cuspidal
-        except AttributeError:
-            if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
-                self.__the_dim_new_cuspidal = self.group().dimension_new_cusp_forms(self.weight(), self.character())
-            else:
-                self.__the_dim_new_cuspidal = self.group().dimension_new_cusp_forms(self.weight())
-        return self.__the_dim_new_cuspidal
+        if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
+            return self.group().dimension_new_cusp_forms(self.weight(), self.character())
+        else:
+            return self.group().dimension_new_cusp_forms(self.weight())
 
+    @cached_method
     def _dim_new_eisenstein(self):
         """
         Compute the dimension of the Eisenstein submodule.
@@ -690,25 +659,21 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: m._dim_new_eisenstein()
             1
         """
-        try:
-            return self.__the_dim_new_eisenstein
-        except AttributeError:
-            if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
-                if rings.is_prime(self.level()):
-                    d = 1
-                else:
-                    d = 0
+        if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
+            if rings.is_prime(self.level()):
+                return 1
             else:
-                E = self.eisenstein_series()
-                d = len([g for g in E if g.new_level() == self.level()])
-            self.__the_dim_new_eisenstein = d
-        return self.__the_dim_new_eisenstein
+                return 0
+        else:
+            E = self.eisenstein_series()
+            return len([g for g in E if g.new_level() == self.level()])
 
 
     ####################################################################
     # Computations of all Eisenstein series in self
     ####################################################################
 
+    @cached_method
     def eisenstein_params(self):
         """
         Return parameters that define all Eisenstein series in self.
@@ -723,18 +688,14 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: type(v)
             <class 'sage.structure.sequence.Sequence_generic'>
         """
-        try:
-            return self.__eisenstein_params
-        except AttributeError:
-            eps = self.character()
-            if eps == None:
-                if arithgroup.is_Gamma1(self.group()):
-                    eps = self.level()
-                else:
-                    raise NotImplementedError
-            params = eis_series.compute_eisenstein_params(eps, self.weight())
-            self.__eisenstein_params = Sequence(params, immutable=True)
-        return self.__eisenstein_params
+        eps = self.character()
+        if eps == None:
+            if arithgroup.is_Gamma1(self.group()):
+                eps = self.level()
+            else:
+                raise NotImplementedError
+        params = eis_series.compute_eisenstein_params(eps, self.weight())
+        return Sequence(params, immutable=True)
 
     def eisenstein_series(self):
         """

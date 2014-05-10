@@ -65,10 +65,18 @@ TESTS::
     True
     sage: type(m)
     <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps_with_category'>
+
+AUTHORS:
+
+- William Stein: initial version
+
+- Julian Rueth (2014-05-10): improved caching
+
 """
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -80,6 +88,7 @@ import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
+from sage.misc.cachefunc import cached_method
 
 import ambient
 import ambient_R
@@ -151,6 +160,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
         return "Modular Forms space of dimension %s, character %s and weight %s over %s"%(
             d, self.character()._repr_short_(), self.weight(), self.base_ring())
 
+    @cached_method
     def cuspidal_submodule(self):
         """
         Return the cuspidal submodule of this ambient space of modular forms.
@@ -163,11 +173,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: M.cuspidal_submodule()
             Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3, character [-1] and weight 5 over Rational Field
         """
-        try:
-            return self.__cuspidal_submodule
-        except AttributeError:
-            self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule_eps(self)
-        return self.__cuspidal_submodule
+        return cuspidal_submodule.CuspidalSubmodule_eps(self)
 
     def change_ring(self, base_ring):
         """
@@ -193,6 +199,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             return self
         return ambient_R.ModularFormsAmbient_R(self, base_ring = base_ring)
 
+    @cached_method(key=lambda self,sign: (self, rings.Integer(sign))) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return corresponding space of modular symbols with given sign.
@@ -212,20 +219,13 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             ...
             ValueError: sign must be -1, 0, or 1
         """
-        sign = rings.Integer(sign)
-        try:
-            return self.__modsym[sign]
-        except AttributeError:
-            self.__modsym = {}
-        except KeyError:
-            pass
-        self.__modsym[sign] = modsym.ModularSymbols(\
+        return modsym.ModularSymbols(\
             self.character(),
             weight = self.weight(),
             sign = sign,
             base_ring = self.base_ring())
-        return self.__modsym[sign]
 
+    @cached_method
     def eisenstein_submodule(self):
         """
         Return the submodule of this ambient module with character that is
@@ -239,11 +239,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m.eisenstein_submodule()
             Eisenstein subspace of dimension 2 of Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
         """
-        try:
-            return self.__eisenstein_submodule
-        except AttributeError:
-            self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule_eps(self)
-        return self.__eisenstein_submodule
+        return eisenstein_submodule.EisensteinSubmodule_eps(self)
 
     def hecke_module_of_level(self, N):
         r"""
@@ -276,6 +272,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
     ####################################################################
     # Computations of Dimensions
     ####################################################################
+    @cached_method
     def _dim_cuspidal(self):
         """
         Return the dimension of the cuspidal subspace, computed using a dimension formula.
@@ -285,13 +282,9 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m = ModularForms(DirichletGroup(389,CyclotomicField(4)).0,3); m._dim_cuspidal()
             64
         """
-        try:
-            return self.__the_dim_cuspidal
-        except AttributeError:
-            self.__the_dim_cuspidal = self.group().dimension_cusp_forms(
-                self.weight(), eps=self.character())
-        return self.__the_dim_cuspidal
+        return self.group().dimension_cusp_forms(self.weight(), eps=self.character())
 
+    @cached_method
     def _dim_eisenstein(self):
         """
         Return the dimension of the Eisenstein subspace of this space, computed
@@ -306,12 +299,9 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m._dim_cuspidal()
             6
         """
-        try:
-            return self.__the_dim_eisenstein
-        except AttributeError:
-            self.__the_dim_eisenstein = self.group().dimension_eis(self.weight(), eps=self.character())
-        return self.__the_dim_eisenstein
+        return self.group().dimension_eis(self.weight(), eps=self.character())
 
+    @cached_method
     def _dim_new_cuspidal(self):
         """
         Return the dimension of the new cuspidal subspace, computed
@@ -326,12 +316,9 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m._dim_cuspidal()
             22
         """
-        try:
-            return self.__the_dim_new_cuspidal
-        except AttributeError:
-            self.__the_dim_new_cuspidal = self.group().dimension_new_cusp_forms(self.weight(), eps=self.character())
-        return self.__the_dim_new_cuspidal
+        return self.group().dimension_new_cusp_forms(self.weight(), eps=self.character())
 
+    @cached_method
     def _dim_new_eisenstein(self):
         """
         Return the dimension of the new Eisenstein subspace, computed
@@ -346,18 +333,11 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: m._dim_eisenstein()
             8
         """
-        try:
-            return self.__the_dim_new_eisenstein
-        except AttributeError:
-            if self.character().is_trivial() and self.weight() == 2:
-                if rings.is_prime(self.level()):
-                    d = 1
-                else:
-                    d = 0
+        if self.character().is_trivial() and self.weight() == 2:
+            if rings.is_prime(self.level()):
+                return 1
             else:
-                E = self.eisenstein_series()
-                d = len([g for g in E if g.new_level() == self.level()])
-            self.__the_dim_new_eisenstein = d
-        return self.__the_dim_new_eisenstein
-
-
+                return 0
+        else:
+            E = self.eisenstein_series()
+            return len([g for g in E if g.new_level() == self.level()])
