@@ -1158,7 +1158,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
-                    return element.ModularFormElement(self, self.free_module().zero_element())
+                    return self.element_class(self, self.free_module().zero_element())
                 else:
                     raise TypeError("unable to create modular form from exact non-zero polynomial")
             W = self._q_expansion_module()
@@ -1168,14 +1168,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 except ArithmeticError:
                     raise ValueError("q-expansion does not correspond to a form in self")
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
-                x_potential = element.ModularFormElement(self, x_potential)
+                x_potential = self.element_class(self, x_potential)
                 for i in range(int(W.degree()), x.prec()):
                     if x_potential[i] != x[i]:
                         raise ValueError("q-expansion does not correspond to a form in self")
                 return x_potential
             else:
                 raise TypeError("q-expansion needed to at least precision %s"%W.degree())
-        return element.ModularFormElement(self, self.free_module()(x,check))
+        return self.element_class(self, self.free_module()(x,check))
+
+    Element = element.ModularFormElement
 
     def __cmp__(self, x):
         """
@@ -1384,7 +1386,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             return self.__basis
         except AttributeError:
-            self.__basis = Sequence([element.ModularFormElement(self, x) for \
+            self.__basis = Sequence([self.element_class(self, x) for \
                                   x in self.free_module().basis()], immutable=True,
                                     cr = True)
         return self.__basis
