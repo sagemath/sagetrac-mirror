@@ -137,9 +137,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         M = self.free_module() + other.free_module()
         return self.ambient().submodule(M, check=False)
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
-        Coerce x into the ambient module and checks that x is in this
+        Bring ``x`` into the ambient module and check that ``x`` is in this
         submodule.
 
         EXAMPLES::

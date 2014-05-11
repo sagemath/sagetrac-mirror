@@ -1006,14 +1006,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f.parent()(e) == f
         raise NotImplementedError
 
-    def has_coerce_map_from_impl(self, from_par):
+    def _coerce_map_from_(self, from_par):
         """
         Code to make ModularFormsSpace work well with coercion framework.
 
         EXAMPLES::
 
             sage: M = ModularForms(22,2)
-            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            sage: M.has_coerce_map_from(M.cuspidal_subspace()) # indirect doctest
             True
             sage: M.has_coerce_map_from(ModularForms(22,4))
             False
@@ -1058,13 +1058,15 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         raise TypeError("no known coercion to modular form")
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
-        Try to coerce x into self. If x is a vector of length
-        self.dimension(), interpret it as a list of coefficients for
-        self.basis() and return that linear combination. If x is a power
-        series, it tries to determine whether or not x lives in self. If
-        so, it returns x as an element of M, and throws an error if not.
+        Bring ``x`` into this space.
+
+        If ``x`` is a vector whose length is the :meth:`dimension` of this
+        space, interpret it as a list of coefficients for :meth:`basis` and
+        return the corresponding linear combination. If ``x`` is a power
+        series, try to determine whether or not ``x`` lives in this space. If
+        so, return ``x`` as an element of this space.
 
         EXAMPLES::
 
