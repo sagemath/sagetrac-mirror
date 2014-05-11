@@ -19,7 +19,6 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.rings import Rings
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.arith import binomial
-from sage.categories.tensor import tensor
 from sage.rings.integer import Integer
 
 
@@ -28,12 +27,15 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
     An example of a graded Hopf algebra with basis: the divided power algebra
     in one variable.
 
-    This class illustrates a minimal implementation of the divided power algebra.
+    This class illustrates a minimal implementation of the divided
+    power algebra.
     """
     def __init__(self, R):
         if not R in Rings():
             raise ValueError('R is not a ring')
-        CombinatorialFreeModule.__init__(self, R, NonNegativeIntegers(), category = GradedHopfAlgebrasWithBasis(R))
+        GHWBR = GradedHopfAlgebrasWithBasis(R)
+        CombinatorialFreeModule.__init__(self, R, NonNegativeIntegers(),
+                                         category=GHWBR)
 
     def _repr_(self):
         return "The divided power algebra over %s" % (self.base_ring())
@@ -56,15 +58,20 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, left, right):
         r"""
-        Product, on basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+        Product, on basis elements
+
+        As per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
 
         INPUT:
 
-        - ``left``, ``right`` - non-negative integers determining monomials (as the
-          exponents of the generators) in this algebra
+        - ``left``, ``right`` - non-negative integers determining
+          monomials (as the exponents of the generators) in this
+          algebra
 
-        OUTPUT: the product of the two corresponding monomials, as an
-        element of ``self``.
+        OUTPUT:
+
+        the product of the two corresponding monomials, as an element
+        of ``self``.
 
         EXAMPLES::
 
@@ -88,11 +95,10 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
             B[0] # B[4] + B[1] # B[3] + B[2] # B[2] + B[3] # B[1] + B[4] # B[0]
             sage: A.coproduct(B[0])
             B[0] # B[0]
-
         """
         AA = self.tensor(self)
-        return AA.sum_of_monomials( ( (k, t - k)
-                                      for k in range(t + 1) ) )
+        return AA.sum_of_monomials(((k, t - k)
+                                    for k in range(t + 1)))
 
     def counit_on_basis(self, t):
         """
@@ -106,7 +112,7 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
             sage: A.counit(B[3])
             0
             sage: A.counit(B[0])
-            B[0]
+            1
         """
         if t == 0:
             return self.base_ring().one()
@@ -140,7 +146,9 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
         - ``t`` -- the index of an element of the basis of this module,
           i.e. a non-negative integer
 
-        OUTPUT: an integer, the degree of the corresponding basis element
+        OUTPUT:
+
+        an integer, the degree of the corresponding basis element
 
         EXAMPLES::
 
@@ -156,7 +164,9 @@ class DividedPowerAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        The generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+        The generators of this algebra
+
+        As per :meth:`Algebras.ParentMethods.algebra_generators`.
 
         EXAMPLES::
 
