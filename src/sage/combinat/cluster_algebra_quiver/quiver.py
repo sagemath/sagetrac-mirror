@@ -600,10 +600,10 @@ class ClusterQuiver(SageObject):
 
         Make sure we can save quivers with `m != n` frozen variables, see :trac:`14851`::
 
-            sage: S=ClusterSeed(['A',3])
-            sage: T1=S.principal_extension()
-            sage: T2=T1.principal_extension(ignore_coefficients=True)
-            sage: Q=T2.quiver()
+            sage: S = ClusterSeed(['A',3])
+            sage: T1 = S.principal_extension()
+            sage: T2 = T1.principal_extension(ignore_coefficients=True)
+            sage: Q = T2.quiver()
             sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
         """
         M = self.b_matrix()
@@ -679,28 +679,28 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: ClusterQuiver(['A',4]).b_matrix()
-            [0  1  0  0]
+            [ 0  1  0  0]
             [-1  0 -1  0]
-            [0  1  0  1]
-            [0  0 -1  0]
+            [ 0  1  0  1]
+            [ 0  0 -1  0]
 
             sage: ClusterQuiver(['B',4]).b_matrix()
-            [0  1  0  0]
+            [ 0  1  0  0]
             [-1  0 -1  0]
-            [0  1  0  1]
-            [0  0 -2  0]
+            [ 0  1  0  1]
+            [ 0  0 -2  0]
 
             sage: ClusterQuiver(['D',4]).b_matrix()
-            [0  1  0  0]
+            [ 0  1  0  0]
             [-1  0 -1 -1]
-            [0  1  0  0]
-            [0  1  0  0]
+            [ 0  1  0  0]
+            [ 0  1  0  0]
 
             sage: ClusterQuiver(QuiverMutationType([['A',2],['B',2]])).b_matrix()
-            [0  1  0  0]
+            [ 0  1  0  0]
             [-1  0  0  0]
-            [0  0  0  1]
-            [0  0 -2  0]
+            [ 0  0  0  1]
+            [ 0  0 -2  0]
         """
         return copy(self._M)
 
@@ -826,7 +826,7 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver([['A', 3], ['B', 3]])
             sage: Q._mutation_type = None
             sage: Q.mutation_type()
-            [['A', 3], ['B', 3]]
+            [ ['A', 3], ['B', 3] ]
 
             sage: Q = ClusterQuiver([['A', 3], ['T', [4,4,4]]])
             sage: Q._mutation_type = None
@@ -962,13 +962,13 @@ class ClusterQuiver(SageObject):
             {0: 0, 1: 3, 2: 1, 3: 2}
 
             sage: Q = ClusterQuiver(QuiverMutationType([['B',2],['A',1]])); Q
-            Quiver on 3 vertices of type [['B', 2], ['A', 1]]
+            Quiver on 3 vertices of type [ ['B', 2], ['A', 1] ]
 
             sage: Q.canonical_label()
-            Quiver on 3 vertices of type [['A', 1], ['B', 2]]
+            Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ]
 
             sage: Q.canonical_label(certify=True)
-            (Quiver on 3 vertices of type [['A', 1], ['B', 2]], {0: 1, 1: 2, 2: 0})
+            (Quiver on 3 vertices of type [ ['A', 1], ['B', 2] ], {0: 1, 1: 2, 2: 0})
         """
         n = self._n
         m = self._m
@@ -1105,16 +1105,16 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',4]); Q.b_matrix()
-            [0  1  0  0]
+            [ 0  1  0  0]
             [-1  0 -1  0]
-            [0  1  0  1]
-            [0  0 -1  0]
+            [ 0  1  0  1]
+            [ 0  0 -1  0]
 
             sage: Q.mutate(0); Q.b_matrix()
-            [0 -1  0  0]
-            [1  0 -1  0]
-            [0  1  0  1]
-            [0  0 -1  0]
+            [ 0 -1  0  0]
+            [ 1  0 -1  0]
+            [ 0  1  0  1]
+            [ 0  0 -1  0]
 
             sage: T = Q.mutate(0, inplace=False); T
             Quiver on 4 vertices of type ['A', 4]
@@ -1125,17 +1125,17 @@ class ClusterQuiver(SageObject):
 
             sage: Q.mutate([0,1,0])
             sage: Q.b_matrix()
-            [0 -1  1  0]
-            [1  0  0  0]
+            [ 0 -1  1  0]
+            [ 1  0  0  0]
             [-1  0  0  1]
-            [0  0 -1  0]
+            [ 0  0 -1  0]
 
             sage: Q = ClusterQuiver(QuiverMutationType([['A',1],['A',3]]))
             sage: Q.b_matrix()
-            [0  0  0  0]
-            [0  0  1  0]
-            [0 -1  0 -1]
-            [0  0  1  0]
+            [ 0  0  0  0]
+            [ 0  0  1  0]
+            [ 0 -1  0 -1]
+            [ 0  0  1  0]
 
             sage: T = Q.mutate(0,inplace=False)
             sage: Q == T
@@ -1202,11 +1202,11 @@ class ClusterQuiver(SageObject):
             [Quiver on 4 vertices of type ['A', 4], Quiver on 4 vertices of type ['A', 4], Quiver on 4 vertices of type ['A', 4]]
             sage: [T.b_matrix() for T in seq]
             [
-            [0  1  0  0]  [0 -1  0  0]  [0  1 -1  0]
-            [-1  0 -1  0]  [1  0 -1  0]  [-1  0  1  0]
-            [0  1  0  1]  [0  1  0  1]  [1 -1  0  1]
-            [0  0 -1  0], [0  0 -1  0], [0  0 -1  0]
-           ]
+            [ 0  1  0  0]  [ 0 -1  0  0]  [ 0  1 -1  0]
+            [-1  0 -1  0]  [ 1  0 -1  0]  [-1  0  1  0]
+            [ 0  1  0  1]  [ 0  1  0  1]  [ 1 -1  0  1]
+            [ 0  0 -1  0], [ 0  0 -1  0], [ 0  0 -1  0]
+            ]
         """
         from sage.plot.plot import Graphics
         from sage.plot.text import text
@@ -1400,11 +1400,10 @@ class ClusterQuiver(SageObject):
             sage: it = Q.mutation_class_iter(return_paths=True,data_type='matrix')
             sage: it.next()
             (
-            [0  0  1]
-            [0  0  1]
+            [ 0  0  1]
+            [ 0  0  1]
             [-1 -1  0], []
-           )
-
+            )
         """
         if data_type == 'path':
             return_paths = False
