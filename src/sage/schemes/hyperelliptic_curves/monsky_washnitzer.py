@@ -34,12 +34,16 @@ AUTHORS:
   algorithms
 
 - Robert Bradshaw (2007-04): generalization to hyperelliptic curves
+
+- Julian Rueth (2014-05-09): improved caching
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 Robert Bradshaw <robertwb@math.washington.edu>
 #                     2006 David Harvey <dmharvey@math.harvard.edu>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -56,14 +60,16 @@ from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 from sage.rings.arith import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
-from ell_generic import is_EllipticCurve
-from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -342,7 +348,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
             sage: SpecialCubicQuotientRingElement(R, 2, 3, 4)
             (2) + (3)*x + (4)*x^2
         """
@@ -629,7 +635,7 @@ def transpose_list(input):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import transpose_list
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import transpose_list
         sage: L = [[1, 2], [3, 4], [5, 6]]
         sage: transpose_list(L)
         [[1, 3, 5], [2, 4, 6]]
@@ -660,7 +666,7 @@ def helper_matrix(Q):
     EXAMPLES::
 
         sage: t = polygen(QQ,'t')
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import helper_matrix
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import helper_matrix
         sage: helper_matrix(t**3-4*t-691)
         [     64/12891731  -16584/12891731 4297329/12891731]
         [   6219/12891731     -32/12891731    8292/12891731]
@@ -696,7 +702,7 @@ def lift(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import lift
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import lift
         sage: l = lift(Qp(13)(131)); l
         131
         sage: l.parent()
@@ -1072,7 +1078,7 @@ def frobenius_expansion_by_newton(Q, p, M):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_newton
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import frobenius_expansion_by_newton
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: frobenius_expansion_by_newton(Q,5,3)
@@ -1260,7 +1266,7 @@ def frobenius_expansion_by_series(Q, p, M):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_series
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import frobenius_expansion_by_series
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: frobenius_expansion_by_series(Q,5,3)
@@ -1828,44 +1834,30 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     return M.transpose(), [f for f, a in reduced]
 
 
-# For uniqueness (as many of the non-trivial calculations are cached along the way).
-
-_special_ring_cache = {}
-_mw_cache = {}
-
-
-def SpecialHyperellipticQuotientRing(*args):
-    if args in _special_ring_cache:
-        R = _special_ring_cache[args]()
-        if R is not None:
-            return R
-    R = SpecialHyperellipticQuotientRing_class(*args)
-    _special_ring_cache[args] = weakref.ref(R)
-    return R
-
-
-def MonskyWashnitzerDifferentialRing(base_ring):
-    if base_ring in _mw_cache:
-        R = _mw_cache[base_ring]()
-        if R is not None:
-            return R
-
-    R = MonskyWashnitzerDifferentialRing_class(base_ring)
-    _mw_cache[base_ring] = weakref.ref(R)
-    return R
-
-
-class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
-
+class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra):
     _p = None
 
     def __init__(self, Q, R=None, invert_y=True):
+        r"""
+        Initialization.
+
+        TESTS:
+
+        Check that caching works::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing
+            sage: SpecialHyperellipticQuotientRing(E) is SpecialHyperellipticQuotientRing(E)
+            True
+
+        """
         if R is None:
             R = Q.base_ring()
 
         # Trac ticket #9138: CommutativeAlgebra.__init__ must not be
         # done so early.  It tries to register a coercion, but that
-        # requires the hash bein available.  But the hash, in its
+        # requires the hash being available.  But the hash, in its
         # default implementation, relies on the string representation,
         # which is not available at this point.
         #CommutativeAlgebra.__init__(self, R)  # moved to below.
@@ -2169,7 +2161,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             False
         """
         return False
-
+SpecialHyperellipticQuotientRing_class = SpecialHyperellipticQuotientRing
 
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
@@ -2599,16 +2591,27 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         coeffs = transpose_list(coeffs)
         return [V(a) for a in coeffs], y_offset
 
-
-class MonskyWashnitzerDifferentialRing_class(Module):
-
+class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
+    r"""
+    A ring of Monsky--Washnitzer differentials over ``base_ring``.
+    """
     def __init__(self, base_ring):
         r"""
-        Class for the ring of Monsky--Washnitzer differentials over a given
-        base ring.
+        Initialization.
+
+        TESTS:
+
+        Check that caching works::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing, MonskyWashnitzerDifferentialRing
+            sage: S = SpecialHyperellipticQuotientRing(E)
+            sage: MonskyWashnitzerDifferentialRing(S) is MonskyWashnitzerDifferentialRing(S)
+            True
+
         """
         Module.__init__(self, base_ring)
-        self._cache = {}
 
     def invariant_differential(self):
         """
@@ -2724,6 +2727,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         """
         return self.base_ring().Q()
 
+    @cached_method
     def x_to_p(self, p):
         """
         Returns and caches `x^p`, reduced via the relations coming from the
@@ -2741,13 +2745,9 @@ class MonskyWashnitzerDifferentialRing_class(Module):
             sage: MW.x_to_p(101) is MW.x_to_p(101)
             True
         """
-        try:
-            return self._cache["x_to_p", p]
-        except KeyError:
-            x_to_p = self.base_ring().x() ** p
-            self._cache["x_to_p", p] = x_to_p
-            return x_to_p
+        return self.base_ring().x() ** p
 
+    @cached_method
     def frob_Q(self, p):
         """
         Returns and caches `Q(x^p)`, which is used in computing the image of
@@ -2765,13 +2765,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
             sage: MW.frob_Q(11) is MW.frob_Q(11)
             True
         """
-        try:
-            return self._cache["frobQ", p]
-        except KeyError:
-            x_to_p = self.x_to_p(p)
-            frobQ = self.base_ring()._Q.change_ring(self.base_ring())(x_to_p)
-            self._cache["frobQ", p] = frobQ
-            return frobQ
+        return self.base_ring()._Q.change_ring(self.base_ring())(self.x_to_p(p))
 
     def frob_invariant_differential(self, prec, p):
         r"""
@@ -2813,7 +2807,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         x_to_p = x*x_to_p_less_1
 
         # cache for future use
-        self._cache["x_to_p", p] = x_to_p
+        self.x_to_p.set_cache(p, x_to_p)
 
         prof("frob_Q")
         a = self.frob_Q(p) >> 2*p  # frobQ * y^{-2p}
@@ -2921,7 +2915,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         else:
             self._helper_matrix = ~A
         return self._helper_matrix
-
+MonskyWashnitzerDifferentialRing_class = MonskyWashnitzerDifferentialRing
 
 class MonskyWashnitzerDifferential(ModuleElement):
 
@@ -2933,7 +2927,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         INPUT:
 
         - ``parent`` -- Monsky-Washnitzer differential ring (instance of class
-          :class:`~MonskyWashnitzerDifferentialRing_class`
+          :class:`~MonskyWashnitzerDifferentialRing`
 
         - ``val`` -- element of the base ring, or list of coefficients
 
@@ -2945,11 +2939,11 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: C = HyperellipticCurve(x^5 - 4*x + 4)
             sage: x,y = C.monsky_washnitzer_gens()
             sage: MW = C.invariant_differential().parent()
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x)
             x dx/2y
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, y)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, y)
             y*1 dx/2y
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x, 10)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x, 10)
             y^10*x dx/2y
         """
         ModuleElement.__init__(self, parent)
