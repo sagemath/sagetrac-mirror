@@ -56,7 +56,7 @@ AUTHORS:
 """
 
 import sys, __builtin__
-from sage.matrix.matrix import is_Matrix
+#from sage.matrix.matrix import is_Matrix
 
 class ListFormatter(object):
 
@@ -277,6 +277,7 @@ class DisplayHookBase(object):
         # to do in a general setting. On top level (such as here, in printing
         # for top level) it is a little more useful and less time-critical, so
         # we do it here instead.
+        from sage.matrix.matrix import is_Matrix
         if is_Matrix(obj):
             from sage.matrix.matrix0 import max_rows,max_cols
             if obj.nrows() >= max_rows or obj.ncols() >= max_cols:
