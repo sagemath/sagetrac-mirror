@@ -176,7 +176,7 @@ from sage.categories.enumerated_sets import EnumeratedSets
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from collections import deque
 
-def RecursivelyEnumeratedSet(seeds, successors, structure=None,
+def RecursivelyEnumeratedSet_factory(seeds, successors, structure=None,
             enumeration=None, max_depth=float("inf"), post_process=None,
             facade=None, category=None):
     r"""
@@ -296,7 +296,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
     """
     if structure is None:
         if enumeration is None: enumeration = 'breadth'
-        return RecursivelyEnumeratedSet_generic(seeds, successors,
+        return RecursivelyEnumeratedSet(seeds, successors,
                 enumeration, max_depth, facade=facade, category=category)
     if structure == 'symmetric':
         if enumeration is None: enumeration = 'breadth'
@@ -315,7 +315,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
 
     raise ValueError("Unknown value for structure (={})".format(structure))
 
-cdef class RecursivelyEnumeratedSet_generic(Parent):
+cdef class RecursivelyEnumeratedSet(Parent):
     r"""
     A generic recursively enumerated set.
 
@@ -396,12 +396,12 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             struct = 'symmetric'
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             struct = 'forest'
-        elif classname.startswith('RecursivelyEnumeratedSet_generic'):
+        elif classname.startswith('RecursivelyEnumeratedSet'):
             struct = None
 
         args = (self._seeds, self.successors, struct,
                 self._enumeration, self._max_depth, pp)
-        return (RecursivelyEnumeratedSet, args, self.__getstate__())
+        return (RecursivelyEnumeratedSet_factory, args, self.__getstate__())
 
     def __getstate__(self):
         r"""
@@ -537,7 +537,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             L.append("with a symmetric structure")
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             L.append("with a forest structure")
-        #elif classname.startswith('RecursivelyEnumeratedSet_generic'):
+        #elif classname.startswith('RecursivelyEnumeratedSet'):
         #    pass
         #else:
         #    pass
@@ -843,7 +843,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             for y in self.successors(x):
                 stack.append(y)
 
-cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
     r"""
     Generic tool for constructing ideals of a symmetric relation.
 
@@ -884,7 +884,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         ...
         PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
     """
-    breadth_first_search_iterator = RecursivelyEnumeratedSet_generic._breadth_first_search_iterator_from_graded_component_iterator
+    breadth_first_search_iterator = RecursivelyEnumeratedSet._breadth_first_search_iterator_from_graded_component_iterator
 
     def graded_component_iterator(self):
         r"""
@@ -971,7 +971,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
                 C.add(y)
         return C
 
-cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
     r"""
     Generic tool for constructing ideals of a graded relation.
 

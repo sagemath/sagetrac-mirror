@@ -9,7 +9,7 @@
 
 cimport sage.structure.parent
 
-cdef class RecursivelyEnumeratedSet_generic(sage.structure.parent.Parent):
+cdef class RecursivelyEnumeratedSet(sage.structure.parent.Parent):
     cdef readonly _seeds
     cdef public successors
     cdef readonly str _enumeration
@@ -20,9 +20,9 @@ cdef class RecursivelyEnumeratedSet_generic(sage.structure.parent.Parent):
     cpdef seeds(self)
     cpdef graded_component(self, depth)
 
-cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
     cdef set _get_next_graded_component(self, set A, set B)
 
-cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
     cdef set _get_next_graded_component(self, set B)
 
