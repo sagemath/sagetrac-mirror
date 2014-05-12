@@ -173,12 +173,23 @@ Depth first search::
 #*****************************************************************************
 from sage.structure.parent cimport Parent
 from sage.categories.enumerated_sets import EnumeratedSets
-#from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from collections import deque
 
-def RecursivelyEnumeratedSet(seeds, successors, structure=None,
-            enumeration=None, max_depth=float("inf"), post_process=None,
-            facade=None, category=None):
+def RecursivelyEnumeratedSet_FACTORY(*args,**kwds):
+    r"""
+    Since ``__classcall_private__`` do not work with cdef classes, this
+    factory function outside of the class calls the
+    ``__classcall_private__``.
+
+    It works, but if the classcall do not work, maybe it is better do code
+    a real factory.
+    """
+    # the next line that tries to copy the doc does not work.
+    __doc__ = RecursivelyEnumeratedSet.__doc__
+    return RecursivelyEnumeratedSet.__classcall_private__(None,*args,**kwds)
+
+cdef class RecursivelyEnumeratedSet(Parent):
     r"""
     Return a recursively enumerated set.
 
@@ -294,57 +305,61 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         sage: C._seeds
         (1, 2, 3)
     """
-    if structure is None:
-        if enumeration is None: enumeration = 'breadth'
-        return RecursivelyEnumeratedSet_generic(seeds, successors,
-                enumeration, max_depth, facade=facade, category=category)
-    if structure == 'symmetric':
-        if enumeration is None: enumeration = 'breadth'
-        return RecursivelyEnumeratedSet_symmetric(seeds, successors,
-                enumeration, max_depth, facade=facade, category=category)
-    if structure == 'forest':
-        if enumeration is None: enumeration = 'depth'
-        from sage.combinat.backtrack import SearchForest
-        return SearchForest(roots=seeds, children=successors,
-                algorithm=enumeration, post_process=post_process,
-                facade=facade, category=category)
-    if structure == 'graded':
-        if enumeration is None: enumeration = 'breadth'
-        return RecursivelyEnumeratedSet_graded(seeds, successors, enumeration,
-                max_depth, facade=facade, category=category)
+    __metaclass__ = ClasscallMetaclass
+    @staticmethod
+    def __classcall_private__(cls, seeds, successors, structure=None,
+                enumeration=None, max_depth=float("inf"), post_process=None,
+                facade=None, category=None):
+        r"""
+        A generic recursively enumerated set.
 
-    raise ValueError("Unknown value for structure (={})".format(structure))
+        For more information, see :func:`RecursivelyEnumeratedSet`.
 
-cdef class RecursivelyEnumeratedSet_generic(Parent):
-    r"""
-    A generic recursively enumerated set.
+        EXAMPLES::
 
-    For more information, see :func:`RecursivelyEnumeratedSet`.
+            sage: f = lambda a:[a+1]
 
-    EXAMPLES::
+        Different structure for the sets::
 
-        sage: f = lambda a:[a+1]
+            sage: RecursivelyEnumeratedSet([0], f, structure=None)
+            A recursively enumerated set (breadth first search)
+            sage: RecursivelyEnumeratedSet([0], f, structure='graded')
+            A recursively enumerated set with a graded structure (breadth first search)
+            sage: RecursivelyEnumeratedSet([0], f, structure='symmetric')
+            A recursively enumerated set with a symmetric structure (breadth first search)
+            sage: RecursivelyEnumeratedSet([0], f, structure='forest')
+            An enumerated set with a forest structure
 
-    Different structure for the sets::
+        Different default enumeration algorithms::
 
-        sage: RecursivelyEnumeratedSet([0], f, structure=None)
-        A recursively enumerated set (breadth first search)
-        sage: RecursivelyEnumeratedSet([0], f, structure='graded')
-        A recursively enumerated set with a graded structure (breadth first search)
-        sage: RecursivelyEnumeratedSet([0], f, structure='symmetric')
-        A recursively enumerated set with a symmetric structure (breadth first search)
-        sage: RecursivelyEnumeratedSet([0], f, structure='forest')
-        An enumerated set with a forest structure
+            sage: RecursivelyEnumeratedSet([0], f, enumeration='breadth')
+            A recursively enumerated set (breadth first search)
+            sage: RecursivelyEnumeratedSet([0], f, enumeration='naive')
+            A recursively enumerated set (naive search)
+            sage: RecursivelyEnumeratedSet([0], f, enumeration='depth')
+            A recursively enumerated set (depth first search)
+        """
+        if structure is None:
+            if enumeration is None: enumeration = 'breadth'
+            return typecall(RecursivelyEnumeratedSet, seeds, successors,
+                    enumeration, max_depth, facade=facade, category=category)
+        if structure == 'symmetric':
+            if enumeration is None: enumeration = 'breadth'
+            return RecursivelyEnumeratedSet_symmetric(seeds, successors,
+                    enumeration, max_depth, facade=facade, category=category)
+        if structure == 'forest':
+            if enumeration is None: enumeration = 'depth'
+            from sage.combinat.backtrack import SearchForest
+            return SearchForest(roots=seeds, children=successors,
+                    algorithm=enumeration, post_process=post_process,
+                    facade=facade, category=category)
+        if structure == 'graded':
+            if enumeration is None: enumeration = 'breadth'
+            return RecursivelyEnumeratedSet_graded(seeds, successors, enumeration,
+                    max_depth, facade=facade, category=category)
 
-    Different default enumeration algorithms::
+        raise ValueError("Unknown value for structure (={})".format(structure))
 
-        sage: RecursivelyEnumeratedSet([0], f, enumeration='breadth')
-        A recursively enumerated set (breadth first search)
-        sage: RecursivelyEnumeratedSet([0], f, enumeration='naive')
-        A recursively enumerated set (naive search)
-        sage: RecursivelyEnumeratedSet([0], f, enumeration='depth')
-        A recursively enumerated set (depth first search)
-    """
     def __init__(self, seeds, successors,
                  enumeration='depth', max_depth=float("inf"),
                  post_process=None, facade=None, category=None):
@@ -396,12 +411,12 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             struct = 'symmetric'
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             struct = 'forest'
-        elif classname.startswith('RecursivelyEnumeratedSet_generic'):
+        elif classname.startswith('RecursivelyEnumeratedSet'):
             struct = None
-
+            
         args = (self._seeds, self.successors, struct,
                 self._enumeration, self._max_depth, pp)
-        return (RecursivelyEnumeratedSet, args, self.__getstate__())
+        return (RecursivelyEnumeratedSet_FACTORY, args, self.__getstate__())
 
     def __getstate__(self):
         r"""
@@ -537,7 +552,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             L.append("with a symmetric structure")
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             L.append("with a forest structure")
-        #elif classname.startswith('RecursivelyEnumeratedSet_generic'):
+        #elif classname.startswith('RecursivelyEnumeratedSet'):
         #    pass
         #else:
         #    pass
@@ -843,7 +858,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             for y in self.successors(x):
                 stack.append(y)
 
-cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
     r"""
     Generic tool for constructing ideals of a symmetric relation.
 
@@ -884,7 +899,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         ...
         PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
     """
-    breadth_first_search_iterator = RecursivelyEnumeratedSet_generic._breadth_first_search_iterator_from_graded_component_iterator
+    breadth_first_search_iterator = RecursivelyEnumeratedSet._breadth_first_search_iterator_from_graded_component_iterator
 
     def graded_component_iterator(self):
         r"""
@@ -971,7 +986,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
                 C.add(y)
         return C
 
-cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
+cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
     r"""
     Generic tool for constructing ideals of a graded relation.
 
