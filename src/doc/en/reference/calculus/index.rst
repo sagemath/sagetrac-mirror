@@ -24,6 +24,7 @@ Symbolic Calculus
    sage/gsl/fft
    sage/gsl/ode
    sage/gsl/integration
+   sage/libs/cuba/cuba
    sage/calculus/riemann
    sage/gsl/interpolation
    sage/calculus/interpolators

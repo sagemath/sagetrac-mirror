@@ -655,6 +655,18 @@ ext_modules = [
     ## sage.libs
     ##
     ################################
+    Extension('sage.libs.cuba.cuba',
+              sources = [
+                        'sage/libs/cuba/cuba.pyx', 
+              ],
+              libraries=['vegas','cuhre','suave','divonne'],
+              include_dirs = [SAGE_INC + '/cuba.h']),
+
+    Extension('sage.libs.cuba.cython_compilation',
+              sources = ['sage/libs/cuba/cython_compilation.pyx']),
+
+    Extension('sage.libs.cuba.symbolic_preprocessing',
+              sources = ['sage/libs/cuba/symbolic_preprocessing.pyx']),
 
     Extension('sage.libs.ecl',
               sources = ["sage/libs/ecl.pyx"],
