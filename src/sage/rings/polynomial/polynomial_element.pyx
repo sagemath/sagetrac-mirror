@@ -13,8 +13,9 @@ AUTHORS:
 
 -  Simon King: Use a faster way of conversion from the base ring.
 
--  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
-                              Fixed division without remainder over QQbar.
+-  Julian Rueth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
+   fields, fixed division without remainder over QQbar, added ``_cache_key``
+   for polynomials with unhashable coefficients
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
@@ -829,13 +830,46 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __iter__(self):
         return iter(self.list())
 
+    def _cache_key(self):
+        """
+        Return a key which uniquely identifies this element among all elements
+        in the parent.
+
+        .. SEEALSO::
+
+            :meth:`sage.structure.sage_object.SageObject._cache_key`
+
+        EXAMPLES:
+
+        This enables caching for polynomials with unhashable coefficients such
+        as `p`-adics::
+
+            sage: K.<u> = Qq(4)
+            sage: R.<x> = K[]
+            sage: f = x
+            sage: hash(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            sage: f._cache_key()
+            (0, 1 + O(2^20))
+
+            sage: @cached_function
+            ....: def foo(t): return t
+            ....:
+            sage: foo(x)
+            (1 + O(2^20))*x
+
+        """
+        return tuple(self)
+
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
     # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         This hash incorporates the variable name in an effort to respect
         the obvious inclusions into multi-variable polynomial rings.
@@ -858,6 +892,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x>=IntegerModRing(11)[]
             sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
             True
+
+        TESTS:
+
+        Verify that :trac:`16251` has been resolved, i.e., polynomials with
+        unhashable coefficients are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: R.<t> = K[]
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon
@@ -866,9 +913,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:
-                # we delay the hashing until now to not waste it one a constant poly
+                # we delay the hashing until now to not waste it on a constant poly
                 var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
-            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
             # important if we want to maintain the '==' relationship with sparse polys.
