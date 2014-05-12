@@ -310,7 +310,7 @@ class ModularFormsAmbient(CachedRepresentation,
         """
         return True
 
-    @cached_method(key=lambda self, sign: (self,rings.Integer(sign))) # convert sign to an Integer before looking this up in the cache
+    @cached_method(key=lambda self, sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return the corresponding space of modular symbols with the given
@@ -497,7 +497,7 @@ class ModularFormsAmbient(CachedRepresentation,
         """
         return eisenstein_submodule.EisensteinSubmodule(self)
 
-    @cached_method(key=lambda self, p: (self, rings.Integer(p) if p is not None else p)) # convert p to an Integer before looking this up in the cache
+    @cached_method(key=lambda self, p: (rings.Integer(p) if p is not None else p)) # convert p to an Integer before looking this up in the cache
     def new_submodule(self, p=None):
         """
         Return the new or `p`-new submodule of this ambient
