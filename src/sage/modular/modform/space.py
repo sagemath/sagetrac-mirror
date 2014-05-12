@@ -1006,14 +1006,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f.parent()(e) == f
         raise NotImplementedError
 
-    def has_coerce_map_from_impl(self, from_par):
+    def _coerce_map_from_(self, from_par):
         """
         Code to make ModularFormsSpace work well with coercion framework.
 
         EXAMPLES::
 
             sage: M = ModularForms(22,2)
-            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            sage: M.has_coerce_map_from(M.cuspidal_subspace()) # indirect doctest
             True
             sage: M.has_coerce_map_from(ModularForms(22,4))
             False
@@ -1058,13 +1058,15 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         raise TypeError("no known coercion to modular form")
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
-        Try to coerce x into self. If x is a vector of length
-        self.dimension(), interpret it as a list of coefficients for
-        self.basis() and return that linear combination. If x is a power
-        series, it tries to determine whether or not x lives in self. If
-        so, it returns x as an element of M, and throws an error if not.
+        Bring ``x`` into this space.
+
+        If ``x`` is a vector whose length is the :meth:`dimension` of this
+        space, interpret it as a list of coefficients for :meth:`basis` and
+        return the corresponding linear combination. If ``x`` is a power
+        series, try to determine whether or not ``x`` lives in this space. If
+        so, return ``x`` as an element of this space.
 
         EXAMPLES::
 
@@ -1158,7 +1160,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
-                    return element.ModularFormElement(self, self.free_module().zero_element())
+                    return self.element_class(self, self.free_module().zero_element())
                 else:
                     raise TypeError("unable to create modular form from exact non-zero polynomial")
             W = self._q_expansion_module()
@@ -1168,14 +1170,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 except ArithmeticError:
                     raise ValueError("q-expansion does not correspond to a form in self")
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
-                x_potential = element.ModularFormElement(self, x_potential)
+                x_potential = self.element_class(self, x_potential)
                 for i in range(int(W.degree()), x.prec()):
                     if x_potential[i] != x[i]:
                         raise ValueError("q-expansion does not correspond to a form in self")
                 return x_potential
             else:
                 raise TypeError("q-expansion needed to at least precision %s"%W.degree())
-        return element.ModularFormElement(self, self.free_module()(x,check))
+        return self.element_class(self, self.free_module()(x,check))
+
+    Element = element.ModularFormElement
 
     def __cmp__(self, x):
         """
@@ -1384,7 +1388,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             return self.__basis
         except AttributeError:
-            self.__basis = Sequence([element.ModularFormElement(self, x) for \
+            self.__basis = Sequence([self.element_class(self, x) for \
                                   x in self.free_module().basis()], immutable=True,
                                     cr = True)
         return self.__basis

@@ -21,7 +21,7 @@ import sage.rings.all
 from sage.rings.commutative_ring import is_CommutativeRing
 import sage.rings.arith as arith
 import sage.misc.misc as misc
-import sage.modules.module
+from sage.modules.module import Module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.parent_gens import ParentWithGens
@@ -51,7 +51,7 @@ def is_HeckeModule(x):
     """
     return isinstance(x, HeckeModule_generic)
 
-class HeckeModule_generic(sage.modules.module.Module_old):
+class HeckeModule_generic(sage.modules.module.Module):
     r"""
     A very general base class for Hecke modules.
 
@@ -87,7 +87,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         else:
             assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
 
-        ParentWithGens.__init__(self, base_ring, category = category)
+        Module.__init__(self, base_ring, category=category)
 
         level = sage.rings.all.ZZ(level)
         if level <= 0:
@@ -95,20 +95,6 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         self.__level = level
         self._hecke_matrices = {}
         self._diamond_matrices = {}
-
-    def __setstate__(self, state):
-        r"""
-        Ensure that the category is initialized correctly on unpickling.
-
-        EXAMPLE::
-
-            sage: loads(dumps(ModularSymbols(11))).category() # indirect doctest
-            Category of Hecke modules over Rational Field
-        """
-        if not self._is_category_initialized():
-            from sage.categories.hecke_modules import HeckeModules
-            self._init_category_(HeckeModules(state['_base']))
-        sage.modules.module.Module_old.__setstate__(self, state)
 
     def __hash__(self):
         r"""
@@ -503,6 +489,17 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         """
         raise NotImplementedError("Derived subclasses should implement submodule")
 
+    def gens(self):
+        r"""
+        Return the generators of this module.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(20).gens()
+            ((1,0), (4,7), (5,1), (5,2), (5,3), (5,4), (10,1))
+
+        """
+        return tuple(self.gen(i) for i in range(self.ngens()))
 
 class HeckeModule_free_module(HeckeModule_generic):
     """
@@ -530,25 +527,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         HeckeModule_generic.__init__(self, base_ring, level)
         self.__weight = weight
-
-#    def __cmp__(self, other):
-#        if not isinstance(other, HeckeModule_free_module):
-#            return -1
-#        c = HeckeModule_generic.__cmp__(self, other)
-#        if c: return c
-#        return cmp(self.__weight, other.__weight)
-
-#    def __contains__(self, x):
-#        r"""
-#        Return True if x is an element of self.
-#
-#        This shouldn't be getting called, ever (?)
-#        """
-#        if not element.is_HeckeModuleElement(x):
-#            return False
-#        if x.parent() == self:  # easy case
-#            return True
-#        return x.element() in self.free_module()
 
     def __getitem__(self, n):
         r"""

@@ -354,59 +354,53 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     #####################################################################
     # Coercion
     #####################################################################
-    def __call__(self, x, computed_with_hecke=False):
+    def _element_constructor_(self, x, computed_with_hecke=False):
         r"""
-        Coerce `x` into this modular symbols space. The result is
-        either an element of self or a subspace of self.
+        Bring ``x`` into this modular symbols space. The result is either an
+        element or a subspace of this space.
 
         INPUTS:
 
-        The allowed input types for `x` are as follows:
+        The input may be one of the following:
 
+        - a vector of the same degree; this defines the corresponding linear
+          combination of the :meth:`basis`.
 
-        -  ``Vector`` - a vector of the same degree. This
-           defines the corresponding linear combination of the basis of self.
+        - a :class:`ManinSymbol` of the same weight as the space
 
-        -  ``ManinSymbol`` - a Manin symbol of the same weight
-           as the space
+        - a :class:`ModularSymbolsElement` whose ambient parent is this space
+          (TODO: make more sophisticated)
 
-        -  ``ModularSymbolsElement`` - a modular symbol whose
-           ambient parent is this space of modular symbols. (TODO: make more
-           sophisticated)
+        - the integer 0; results in the 0 modular symbol.
 
-        -  0 - the integer 0; results in the 0 modular symbol.
+        - a 3-tuple `(i,u,v)`; results in the modular symbol element defined
+          by the Manin symbol `[X^{i}\cdot Y^{k-2-i}, (u,v)]`, where `k` is the
+          weight. Note that we must have `0\leq i \leq k-2`.
 
-        -  3-tuple - Given a 3-tuple (i,u,v), returns the modular symbol
-           element defined by the Manin symbol
-           `[X^{i}\cdot Y^{k-2-i}, (u,v)]`, where k is the weight.
-           Note that we must have `0\leq i \leq k-2`.
+        - a 2-tuple `(u,v)`; results in the element defined by the Manin
+          symbol `[X^0 \cdot Y^{2-k}, (u,v)]`.
 
-        -  2-tuple - Given a 2-tuple (u,v), returns the element defined by
-           the Manin symbol `[X^0 \cdot Y^{2-k}, (u,v)]`.
+        - a 2-element list `[\alpha, \beta]`, where `\alpha` and `\beta` are
+          (coercible to) cusps; results in the modular symbol `\{\alpha,
+          \beta\}`. If the weight `k > 2`, then this yields `Y^{k-2} \{\alpha,
+          \beta\}`.
 
-        -  2-elements list - Given a list ``[alpha, beta]``,
-           where `\alpha` and `\beta` are (coercible to)
-           cusps, return the modular symbol `\{\alpha, \beta\}`. When
-           the the weight `k > 2` return
-           `Y^{k-2} \{\alpha, \beta\}`.
+        - a 3-element list `[i, \alpha, \beta]`, where `i` is an integer, and
+          `\alpha`, `\beta` are (coercible to) cusps; results in the modular
+          symbol `X^i Y^{k-2-i} \{\alpha, \beta\}`.
 
-        -  3-element list - Given a list ``[i, alpha, beta]``,
-           where `i` is an integer, and `\alpha`,
-           `\beta` are (coercible to) cusps, return the modular symbol
-           `X^i Y^{k-2-i} \{\alpha, \beta\}`.
-
-           If our list is ``[f, alpha, beta]``, where `f`
-           is a homogeneous polynomial in two variables of degree k-2 with
-           integer coefficients, and alpha and beta are cusps, return the
-           corresponding sum of modular symbols as an element of self. So if
-           `f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}`, return
-           `\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]`.
+        - a 3-element list `[f, \alpha, \beta]`, where `f` is a homogeneous
+          polynomial in two variables of degree `k-2` with integer
+          coefficients, and `\alpha` and `\beta` are cusps; results in the
+          corresponding sum of modular symbols as an element this space. So if
+          `f = \sum_{i=0}^{k-2} a_i X^i Y^{k-2-i}`, this yields
+          `\sum_{i=0}^{k-2} a_i * [ i, alpha, beta ]`.
 
         EXAMPLES::
 
             sage: M = ModularSymbols(37,2)
 
-        M(0) is the 0 element of the space::
+        ``M(0)`` is the zero element of the space::
 
             sage: M(0)
             0
@@ -443,14 +437,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             (1,34) - (1,35)
 
         Or a 3-list `[i,\alpha,\beta]` where `i` is the degree and
-        `\alpha` and `beta` are cusps, or a 2-tuple `[\alpha,\beta]`
+        `\alpha` and `\beta` are cusps, or a 2-tuple `[\alpha,\beta]`
         with `i=0` assumed::
 
             sage: M([0,Cusp(1/2),Cusp(0)])
             (1,35)
             sage: M([Cusp(1/2),Cusp(0)])
             (1,35)
-
 
         """
         if isinstance(x, free_module_element.FreeModuleElement):
