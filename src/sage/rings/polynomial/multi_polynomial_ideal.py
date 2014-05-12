@@ -3503,7 +3503,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    @cached_method
+    @cached_method(pickle=True)
     def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, *args, **kwds):
         """
         Return the reduced Groebner basis of this ideal.
