@@ -173,7 +173,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
-from sage.misc.all import latex, flatten, prod
+from sage.misc.all import latex, flatten, prod, cached_method
 from sage.modules.all import vector
 from sage.modules.free_module import (FreeModule_ambient_field,
                                       FreeModule_ambient_pid)
@@ -1264,6 +1264,7 @@ class ToricDivisor_generic(Divisor_generic):
         self._is_nef = self.divisor_class() in self.parent().scheme().Kaehler_cone()
         return self._is_nef
 
+    @cached_method
     def polyhedron(self):
         r"""
         Return the polyhedron `P_D\subset M` associated to a toric
@@ -1337,17 +1338,25 @@ class ToricDivisor_generic(Divisor_generic):
              (-5, 0, 1), (-4, 0, 1), (-3, 0, 1), (-2, 0, 1), (-1, 0, 1),
              (0, 0, 1), (1, 0, 1), (-5, 1, 1), (-4, 1, 1), (-3, 1, 1),
              (-2, 1, 1), (-1, 1, 1), (0, 1, 1), (1, 1, 1))
-        """
-        try:
-            return self._polyhedron
-        except AttributeError:
-            pass
 
+        Lastly, check that divisors of varieties with fans in sublattices are
+        treated correctly, see :trac:`16334`::
+
+            sage: N = ToricLattice(3)
+            sage: S = N.submodule([(1,0,0), (0, 1, 0)])
+            sage: B = S.basis()
+            sage: cones = [Cone([B[0], B[1]]), Cone([B[1], -B[0]-B[1]]), Cone([-B[0]-B[1], B[0]])]
+            sage: X = ToricVariety(Fan(cones))
+            sage: (-X.K()).polyhedron()
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices
+        """
         fan = self.parent().scheme().fan()
         divisor = vector(self)
-        ieqs = [ [divisor[i]] + list(fan.ray(i)) for i in range(fan.nrays()) ]
-        self._polyhedron = Polyhedron(ieqs=ieqs)
-        return self._polyhedron
+        ieqs = [[divisor[i]] + list(fan.ray(i)) for i in range(fan.nrays())]
+        p = Polyhedron(ieqs=ieqs)
+        if fan.lattice() is not fan.lattice().ambient_module():
+            p = p.intersection(Polyhedron(lines=fan.lattice().gens()))
+        return p
 
     def sections(self):
         """
