@@ -1343,19 +1343,22 @@ class ToricDivisor_generic(Divisor_generic):
         treated correctly, see :trac:`16334`::
 
             sage: N = ToricLattice(3)
-            sage: S = N.submodule([(1,0,0), (0, 1, 0)])
+            sage: S = N.submodule([(1, 1, 0), (0, 1, 1)])
             sage: B = S.basis()
             sage: cones = [Cone([B[0], B[1]]), Cone([B[1], -B[0]-B[1]]), Cone([-B[0]-B[1], B[0]])]
             sage: X = ToricVariety(Fan(cones))
-            sage: (-X.K()).polyhedron()
+            sage: p = (-X.K()).polyhedron(); p
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices
+            sage: len(p.integral_points())
+            10
         """
         fan = self.parent().scheme().fan()
         divisor = vector(self)
         ieqs = [[divisor[i]] + list(fan.ray(i)) for i in range(fan.nrays())]
         p = Polyhedron(ieqs=ieqs)
         if fan.lattice() is not fan.lattice().ambient_module():
-            p = p.intersection(Polyhedron(lines=fan.lattice().gens()))
+            gens = [i.lift() for i in fan.dual_lattice().gens()]
+            p = p.intersection(Polyhedron(lines=gens))
         return p
 
     def sections(self):
