@@ -239,7 +239,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         return self(self.ground_ring().uniformizer())
 
-    def _uniformizer_print(self):
+    def _uniformizer_print(self, do_latex=False):
         """
         Returns how the uniformizer is supposed to print.
 
@@ -248,7 +248,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<a> = Zq(125); R._uniformizer_print()
             '5'
         """
-        return self.ground_ring()._uniformizer_print()
+        return self.ground_ring()._uniformizer_print(do_latex=do_latex)
 
     def _unram_print(self):
         """

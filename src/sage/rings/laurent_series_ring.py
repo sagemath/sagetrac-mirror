@@ -584,6 +584,55 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         else:
             raise TypeError("The base ring is not a field")
 
+    def uniformizer_name(self):
+        """
+        Returns how the uniformizer is supposed to print.
+
+        Raises an error if the base ring is not a field (that is
+        if this Laurent series ring has not a discrete valuation).
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: R.uniformizer_name()
+            't'
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: R.uniformizer_name()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring is not a field
+        """
+        if self.base_ring().is_field():
+            return self.variable_name()
+        else:
+            raise TypeError("The base ring is not a field")
+
+
+    def latex_uniformizer_name(self):
+        """
+        Returns a latex representation of the uniformizer.
+
+        Raises an error if the base ring is not a field (that is
+        if this Laurent series ring has not a discrete valuation).
+
+        EXAMPLES::
+           
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: R.latex_uniformizer_name()
+            't'
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: R.latex_uniformizer_name()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring is not a field
+        """
+        if self.base_ring().is_field():
+            return self.latex_variable_names()[0]
+        else:
+            raise TypeError("The base ring is not a field")
+
     def ngens(self):
         """
         Laurent series rings are univariate.

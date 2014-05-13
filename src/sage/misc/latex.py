@@ -2631,6 +2631,8 @@ def latex_variable_name(x, is_fname=False):
     else:
         prefix = x[:underscore]
         suffix = x[underscore+1:]
+    if len(prefix) == 0:
+        prefix, suffix = suffix, prefix
     if suffix and len(suffix) > 0:
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)

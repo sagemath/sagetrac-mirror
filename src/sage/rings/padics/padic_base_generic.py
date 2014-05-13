@@ -226,7 +226,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         """
         return self(self.prime_pow(n))
 
-    def _uniformizer_print(self):
+    def _uniformizer_print(self, do_latex=False):
         """
         Returns how the uniformizer is supposed to print.
 
@@ -235,7 +235,10 @@ class pAdicBaseGeneric(pAdicGeneric):
             sage: R = Zp(5, names='pi'); R._uniformizer_print()
             'pi'
         """
-        return self.variable_name()
+        if do_latex:
+            return self.latex_variable_names()[0]
+        else:
+            return self.variable_name()
 
     def has_pth_root(self):
         r"""

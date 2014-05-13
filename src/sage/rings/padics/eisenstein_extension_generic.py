@@ -235,7 +235,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         """
         return self.gen()
 
-    def _uniformizer_print(self):
+    def _uniformizer_print(self, do_latex=False):
         """
         Returns a string representation of how the uniformizer of self
         prints.  Mainly for internal use.
@@ -248,7 +248,10 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: B._uniformizer_print()
             't'
         """
-        return self.variable_name()
+        if do_latex:
+            return self.latex_variable_names()[0]
+        else:
+            return self.variable_name()
 
 #     def has_pth_root(self):
 #         raise NotImplementedError

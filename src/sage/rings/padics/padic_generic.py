@@ -268,6 +268,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return None
 
+    def uniformizer_name(self):
+        """
+        Returns how the uniformizer is supposed to print.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, names='pi'); R.uniformizer_name()
+            'pi'
+        """
+        return self._uniformizer_print()
+
+    def latex_uniformizer_name(self):
+        """
+        Returns a latex representation of the uniformizer.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, names='pi'); R.latex_uniformizer_name()
+            '\\pi'
+        """
+        return self._uniformizer_print(do_latex=True)
+
     def residue_characteristic(self):
         """
         Returns the prime, i.e., the characteristic of the residue field.
