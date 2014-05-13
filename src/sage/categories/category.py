@@ -87,9 +87,9 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
-#                     William Stein <wstein@math.ucsd.edu>
-#                     Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
+#                          William Stein <wstein@math.ucsd.edu>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -161,15 +161,14 @@ class Category(UniqueRepresentation, SageObject):
         ....:              # Euclid algorithms
         ....:              pass
 
-    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class 
+    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class
     above do not inherit from anything. They are merely containers of
-    operations. The hierarchy between the different categories is
-    defined once at the level of the categories. Behind the scene, a
-    parallel hierarchy of classes is built automatically from all the
-    ``.ParentMethods`` classes. Then, a parent in a category receives
-    the appropriate operations from all the super categories by usual
-    class inheritance. Similarly, a third hierarchy of classes is
-    built for elements from the ``.Elements``.
+    operations. The hierarchy between the different categories is defined once
+    at the level of the categories. Behind the scene, a parallel hierarchy of
+    classes is built automatically from all the ``.ParentMethods``
+    classes. Then, a parent in a category receives the appropriate operations
+    from all the super categories by usual class inheritance. Similarly, a
+    third hierarchy of classes is built for elements from the ``.Elements``.
 
     EXAMPLES:
 
@@ -379,6 +378,22 @@ class Category(UniqueRepresentation, SageObject):
         sage: loads(dumps(Ds().element_class)) is Ds().element_class
         True
 
+    .. automethod:: _super_categories
+    .. automethod:: _super_categories_for_classes
+    .. automethod:: _all_super_categories
+    .. automethod:: _all_super_categories_proper
+    .. automethod:: _set_of_super_categories
+    .. automethod:: _make_named_class
+    .. automethod:: _repr_
+    .. automethod:: _repr_object_names
+    .. automethod:: _test_category
+    .. automethod:: _with_axiom
+    .. automethod:: _with_axiom_as_tuple
+    .. automethod:: _without_axioms
+    .. automethod:: _sort
+    .. automethod:: _sort_uniq
+    .. automethod:: __classcall__
+    .. automethod:: __init__
     """
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -551,7 +566,7 @@ class Category(UniqueRepresentation, SageObject):
     def __call__(self, x, *args, **opts):
         """
         Construct an object in this category from the data in ``x``,
-        or throws ``TypeError`` or ``NotImplementedError``.
+        or throw ``TypeError`` or ``NotImplementedError``.
 
         If ``x`` is readily in ``self`` it is returned unchanged.
         Categories wishing to extend this minimal behavior should
@@ -569,7 +584,7 @@ class Category(UniqueRepresentation, SageObject):
     def _call_(self, x):
         """
         Construct an object in this category from the data in ``x``,
-        or throws ``NotImplementedError``.
+        or throw ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -737,10 +752,15 @@ class Category(UniqueRepresentation, SageObject):
 
         Equivalently, one can define an increasing sequence of conditions:
 
-        - A category is pre-additive if it is enriched over abelian groups (all homsets are abelian groups and composition is bilinear);
-        - A pre-additive category is additive if every finite set of objects has a biproduct (we can form direct sums and direct products);
-        - An additive category is pre-abelian if every morphism has both a kernel and a cokernel;
-        - A pre-abelian category is abelian if every monomorphism is the kernel of some morphism and every epimorphism is the cokernel of some morphism.
+        - A category is pre-additive if it is enriched over abelian groups
+          (all homsets are abelian groups and composition is bilinear);
+        - A pre-additive category is additive if every finite set of objects
+          has a biproduct (we can form direct sums and direct products);
+        - An additive category is pre-abelian if every morphism has both a
+          kernel and a cokernel;
+        - A pre-abelian category is abelian if every monomorphism is the
+          kernel of some morphism and every epimorphism is the cokernel of
+          some morphism.
 
         EXAMPLES::
 
@@ -776,7 +796,11 @@ class Category(UniqueRepresentation, SageObject):
     @abstract_method
     def super_categories(self):
         """
-        Returns the *immediate* super categories of ``self``
+        Return the *immediate* super categories of ``self``.
+
+        OUTPUT:
+
+        - a duplicate-free list of categories.
 
         Every category should implement this method.
 
@@ -787,18 +811,13 @@ class Category(UniqueRepresentation, SageObject):
             sage: Objects().super_categories()
             []
 
-        .. note::
+        .. NOTE::
 
-            Mathematically speaking, the order of the super categories
-            should be irrelevant. However, in practice, this order
-            influences the result of :meth:`all_super_categories`, and
-            accordingly of the method resolution order for parent and
-            element classes. Namely, since ticket 11943, Sage uses the
-            same `C3` algorithm for determining the order on the list
-            of *all* super categories as Python is using for the
-            method resolution order of new style classes.
+            Since :trac:`10963`, the order of the categories in the
+            result is irrelevant. For details, see
+            :ref:`category-primer-category-order`.
 
-        .. note::
+        .. NOTE::
 
             Whenever speed matters, developers are advised to use the
             lazy attribute :meth:`_super_categories` instead of
@@ -906,7 +925,7 @@ class Category(UniqueRepresentation, SageObject):
             Whenever speed matters, the developers are advised to use
             instead the lazy attributes :meth:`_all_super_categories`,
             :meth:`_all_super_categories_proper`, or
-            :meth:`_set_of_all_super_categories`, as
+            :meth:`_set_of_super_categories`, as
             appropriate. Simply because lazy attributes are much
             faster than any method.
 
@@ -947,7 +966,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         The immediate super categories of this category.
 
-        This lazy attributes caches the result of the mandatory method
+        This lazy attribute caches the result of the mandatory method
         :meth:`super_categories` for speed. It also does some mangling
         (flattening join categories, sorting, ...).
 
@@ -958,7 +977,7 @@ class Category(UniqueRepresentation, SageObject):
 
             This attribute is likely to eventually become a tuple.
             When this happens, we might as well use :meth:`Category._sort`,
-            if not :meth:`Category_sort_uniq`.
+            if not :meth:`Category._sort_uniq`.
 
         EXAMPLES::
 
@@ -1534,12 +1553,11 @@ class Category(UniqueRepresentation, SageObject):
         """
         Return the axioms known to be satisfied by all the objects of ``self``.
 
-        Technically, this the set of all the axioms ``A`` such that,
-        if ``Cs`` is the category defining ``A``, then ``self`` is a
-        subcategory of ``Cs().A()``. Any additional axiom ``A`` would
-        yield a strict subcategory of ``self``, at the very least
-        ``self & Cs().A()`` where ``Cs`` is the category defining
-        ``A``.
+        Technically, this is the set of all the axioms ``A`` such that, if
+        ``Cs`` is the category defining ``A``, then ``self`` is a subcategory
+        of ``Cs().A()``. Any additional axiom ``A`` would yield a strict
+        subcategory of ``self``, at the very least ``self & Cs().A()`` where
+        ``Cs`` is the category defining ``A``.
 
         EXAMPLES::
 
@@ -1748,8 +1766,8 @@ class Category(UniqueRepresentation, SageObject):
         .. TODO:: Improve this explanation.
 
         If ``named`` is ``True``, then this stops at the first
-        category that has a explicit name of its own. See
-        :meth:`CategoryWithAxiom._without_axioms`
+        category that has an explicit name of its own. See
+        :meth:`.category_with_axiom.CategoryWithAxiom._without_axioms`
 
         EXAMPLES::
 
@@ -1828,7 +1846,10 @@ class Category(UniqueRepresentation, SageObject):
     @staticmethod
     def _sort_uniq(categories):
         """
-        Return the categories after sorting them and removing duplicates.
+        Return the categories after sorting them and removing redundant categories.
+
+        Redundant categories include duplicates and categories which
+        are super categories of other categories in the input.
 
         INPUT:
 
@@ -2041,7 +2062,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite dimensional commutative test objects]
         """
         categories = list(categories)
-        if len(categories) == 0:
+        if not categories:
             if as_list:
                 return []
             else:
@@ -2165,7 +2186,7 @@ class Category(UniqueRepresentation, SageObject):
             Category of hom sets in Category of sets
 
         """
-        try: #if hasattr(self, "HomCategory"):
+        try:
             return self.HomCategory(self)
         except AttributeError:
             return Category.join((category.hom_category() for category in self._super_categories))
@@ -2219,12 +2240,11 @@ class Category(UniqueRepresentation, SageObject):
         except AttributeError:
             return NotImplemented
         # Add the base ring as optional argument if this is a category over base ring
-        # This really should be in Category_over_base_ring.example,
-        # but that would mean duplicating the documentation above.
-        from category_types import Category_over_base_ring
-        if isinstance(self, Category_over_base_ring): # Huh, smelly Run Time Type Checking, isn't it?
-            if "base_ring" not in keywords:
-                keywords["base_ring"]=self.base_ring()
+        if "base_ring" not in keywords:
+            try:
+                keywords["base_ring"] = self.base_ring()
+            except AttributeError:
+                pass
         return cls(*args, **keywords)
 
 
@@ -2442,6 +2462,8 @@ class CategoryWithParameters(Category):
         True
         sage: C1.parent_class is C3.parent_class
         False
+
+    .. automethod:: _make_named_class
     """
 
     def _make_named_class(self, name, method_provider, cache = False, **options):
@@ -2650,6 +2672,10 @@ class JoinCategory(CategoryWithParameters):
         Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 3
         sage: type(GF(3)['x']) is type(GF(5)['z'])
         True
+
+    .. automethod:: _repr_object_names
+    .. automethod:: _repr_
+    .. automethod:: _without_axioms
     """
 
     def __init__(self, super_categories, **kwds):
@@ -2876,8 +2902,8 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLES:
 
-        This raises an error since _cmp_key should not be called on
-        join categories::
+        This raises an error since ``_cmp_key`` should not be called
+        on join categories::
 
             sage: (Magmas() & CommutativeAdditiveSemigroups())._cmp_key()
             Traceback (most recent call last):
@@ -2890,7 +2916,7 @@ class JoinCategory(CategoryWithParameters):
         """
         Return the name of the objects of this category.
 
-        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`_without_axioms`
+        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`._without_axioms`
 
         EXAMPLES::
 

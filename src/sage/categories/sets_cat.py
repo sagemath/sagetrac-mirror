@@ -298,7 +298,8 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Category of Cartesian products of monoids
+                Join of Category of Cartesian products of monoids
+                    and Category of Cartesian products of commutative additive groups
             """
             return CartesianProductsCategory.category_of(self)
 
@@ -338,7 +339,7 @@ class Sets(Category_singleton):
 
             .. MATH::
 
-                op_A(e) = r(op_B(l(e))), \text{ for all `e\in A`}
+                op_A(e) = r(op_B(l(e))), \text{ for all } e\in A
 
             This allows for implementing the operations on `A` from
             those on `B`.
@@ -1330,8 +1331,22 @@ class Sets(Category_singleton):
                 sage: A = C.example(); A.rename("A")
                 sage: A.cartesian_product(A,A)
                 A (+) A (+) A
+                sage: ZZ.cartesian_product(GF(2), FiniteEnumeratedSet([1,2,3]))
+                The cartesian product of (Integer Ring, Finite Field of size 2, {1, 2, 3})
+
+                sage: C = ZZ.cartesian_product(A); C
+                The cartesian product of (Integer Ring, A)
+
+            TESTS::
+
+                sage: type(C)
+                <class 'sage.sets.cartesian_product.CartesianProduct_with_category'>
+                sage: C.category()
+                Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
             """
-            return parents[0].__class__.CartesianProduct(parents, category = cartesian_product.category_from_parents(parents))
+            return parents[0].CartesianProduct(
+                parents,
+                category = cartesian_product.category_from_parents(parents))
 
         def algebra(self, base_ring, category = None):
             """
@@ -1817,6 +1832,20 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                     (47, 42, 1)
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
+
+            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
+            def cardinality(self):
+                """
+                Return the cardinality of ``self``
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
+                    sage: C.cardinality()
+                    30
+                """
+                from sage.misc.misc_c import prod
+                return prod(x.cardinality() for x in self._sets)
 
             @abstract_method
             def _sets_keys(self):
