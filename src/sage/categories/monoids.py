@@ -103,11 +103,12 @@ class Monoids(CategoryWithAxiom):
         @cached_method
         def one(self):
             r"""
-            Returns the one of the monoid, that is the unique neutral element for `*`.
+            Return the unit of the monoid, that is the unique neutral
+            element for `*`.
 
-            .. note::
+            .. NOTE::
 
-               The default implementation is to coerce `1` into self.
+               The default implementation is to coerce `1` into ``self``.
                It is recommended to override this method because the
                coercion from the integers:
 
@@ -138,11 +139,12 @@ class Monoids(CategoryWithAxiom):
 
         def _test_one(self, **options):
             r"""
-            Test that ``self.one()`` is an element of self and is neutral for the addition
+            Test that ``self.one()`` is an element of ``self`` and is
+            neutral for the operation ``*``.
 
-            INPUT::
+            INPUT:
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -171,10 +173,11 @@ class Monoids(CategoryWithAxiom):
 
         def prod(self, args):
             r"""
-            n-ary product
+            n-ary product of elements of ``self``.
 
             INPUT:
-             - ``args`` -- a list (or iterable) of elements of ``self``
+
+            - ``args`` -- a list (or iterable) of elements of ``self``
 
             Returns the product of the elements in ``args``, as an element of
             ``self``.
@@ -194,11 +197,11 @@ class Monoids(CategoryWithAxiom):
             See the documentation for :class:`TestSuite` for information on
             further options.
 
-            INPUT::
+            INPUT:
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES::
+            EXAMPLES:
 
             By default, this method tests only the elements returned by
             ``self.some_elements()``::
@@ -210,7 +213,6 @@ class Monoids(CategoryWithAxiom):
             ``elements`` keyword argument::
 
                 sage: S._test_prod(elements = (S('a'), S('b')))
-
             """
             tester = self._tester(**options)
             tester.assert_(self.prod([]) == self.one())
@@ -223,9 +225,9 @@ class Monoids(CategoryWithAxiom):
 
         def is_one(self):
             r"""
-            Returns whether ``self`` is the one of the monoid
+            Return whether ``self`` is the one of the monoid.
 
-            The default implementation, is to compare with ``self.one()``.
+            The default implementation is to compare with ``self.one()``.
 
             TESTS::
 
@@ -239,10 +241,11 @@ class Monoids(CategoryWithAxiom):
 
         def __pow__(self, n):
             r"""
-            INPUTS:
-             - ``n``: a non negative integer
+            Return ``self`` to the `n^{th}` power.
 
-            Returns ``self`` to the `n^{th}` power.
+            INPUT:
+
+            - ``n`` -- a nonnegative integer
 
             EXAMPLES::
 
@@ -258,14 +261,15 @@ class Monoids(CategoryWithAxiom):
 
         def _pow_naive(self, n):
             r"""
-            A naive implementation of ``__pow__``
+            Return ``self`` to the `n^{th}` power (naive implementation).
 
-            INPUTS:
-             - ``n``: a non negative integer
+            INPUT:
 
-            Returns self to the `n^{th}` power, without using binary
-            exponentiation (there are cases where this can actually be
-            faster due to size explosion).
+            - ``n`` -- a nonnegative integer
+
+            This naive implementation does not use binary
+            exponentiation; there are cases where this is actually
+            faster due to size explosion.
 
             EXAMPLES::
 
@@ -287,7 +291,7 @@ class Monoids(CategoryWithAxiom):
 
             def one(self):
                 r"""
-                Returns the unit of this monoid
+                Return the unit of this monoid.
 
                 This default implementation returns the unit of the
                 realization of ``self`` given by
@@ -376,8 +380,8 @@ class Monoids(CategoryWithAxiom):
             @cached_method
             def one_basis(self):
                 """
-                Returns the one of the group, which index the one of this algebra,
-                as per
+                Return the unit of the monoid, which indexes the unit of
+                this algebra, as per
                 :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
                 <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.
 
@@ -393,20 +397,11 @@ class Monoids(CategoryWithAxiom):
                 """
                 return self.basis().keys().one()
 
-            def an_element(self):
-                r"""
-                Returns an element of `self`. For the moment, this function is not
-                used because it is defined in a higher category
-                """
-                return (2*self(self.basis().keys().an_element())+
-                        self.base_ring().an_element * self.one())
-
-
         class ElementMethods:
 
             def is_central(self):
                 r"""
-                Return whether the element is central.
+                Return whether the element ``self`` is central.
 
                 EXAMPLES::
 
@@ -416,7 +411,7 @@ class Monoids(CategoryWithAxiom):
                     sage: SG4(Permutation([1,3,2,4])).is_central()
                     False
                     sage: A=GroupAlgebras(QQ).example(); A
-                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
+                    Group algebra of Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """

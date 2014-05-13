@@ -25,31 +25,34 @@ class Rings(CategoryWithAxiom):
 
     EXAMPLES::
 
-      sage: Rings()
-      Category of rings
-      sage: sorted(Rings().super_categories(), key=str)
-      [Category of rngs, Category of semirings]
+        sage: Rings()
+        Category of rings
+        sage: sorted(Rings().super_categories(), key=str)
+        [Category of rngs, Category of semirings]
 
-      sage: sorted(Rings().axioms())
-      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+        sage: sorted(Rings().axioms())
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+         'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
-      sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
-      True
-      sage: Rings() is Rngs().Unital()
-      True
-      sage: Rings() is Semirings().AdditiveInverse()
-      True
+        sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+        True
+        sage: Rings() is Rngs().Unital()
+        True
+        sage: Rings() is Semirings().AdditiveInverse()
+        True
 
     TESTS::
 
         sage: TestSuite(Rings()).run()
 
-    TODO (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
+    .. TODO::
 
-     - Make Rings() into a subcategory or alias of Algebras(ZZ);
+        (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
 
-     - A parent P in the category ``Rings()`` should automatically be
-       in the category ``Algebras(P)``.
+        - Make Rings() into a subcategory or alias of Algebras(ZZ);
+
+        - A parent P in the category ``Rings()`` should automatically be
+          in the category ``Algebras(P)``.
     """
 
     _base_category_class_and_axiom = (Rngs, "Unital")
@@ -57,11 +60,14 @@ class Rings(CategoryWithAxiom):
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
+            """
+            Return the full subcategory of the objects of ``self`` having
+            no nonzero zero divisors.
 
-            A *zero divisor* in a ring `R` is an element `x\in R` such
-            that there exists a nonzero element `y\in R` such that
-            `x*y=0` or `y*x=0` (see :wikipedia:`Zero_divisor`).
+            A *zero divisor* in a ring `R` is an element `x \in R` such
+            that there exists a nonzero element `y \in R` such that
+            `x \cdot y = 0` or `y \cdot x = 0`
+            (see :wikipedia:`Zero_divisor`).
 
             EXAMPLES::
 
@@ -78,7 +84,6 @@ class Rings(CategoryWithAxiom):
                 sage: TestSuite(Rings().NoZeroDivisors()).run()
                 sage: Algebras(QQ).NoZeroDivisors.__module__
                 'sage.categories.rings'
-
             """
             return self._with_axiom('NoZeroDivisors')
 
@@ -921,7 +926,7 @@ def _gen_names(elts):
     import re
     from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
     for x in elts:
         name = str(x)

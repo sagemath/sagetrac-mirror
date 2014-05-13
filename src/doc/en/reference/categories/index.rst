@@ -118,6 +118,7 @@ Categories
    sage/categories/left_modules
    sage/categories/lie_algebras
    sage/categories/magmas
+   sage/categories/magmas_and_additive_magmas
    sage/categories/magmatic_algebras
    sage/categories/matrix_algebras
    sage/categories/modular_abelian_varieties
@@ -175,7 +176,6 @@ Examples of parents using categories
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
-   sage/categories/examples/group_algebras
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/lie_algebras
