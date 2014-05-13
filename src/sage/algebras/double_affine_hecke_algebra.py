@@ -573,24 +573,7 @@ class DoubleAffineType(SageObject):
 
         self._q1 = Family(dict([[i, self._parameters[self._vi[i]]] for i in I]))
         self._q2 = Family(dict([[i, -1/self._q1[i]] for i in I]))
-        self._m = len(self.fundamental_group().special_nodes())
-        ctc = self._cartan_type_classical
-        if ctc.type() == 'C':
-            self._m = 1
-        elif self._cartan_type.is_untwisted_affine():
-            if not self.reduced() or not self.dual_reduced():
-                self._m = 1
-            elif ctc.type() in ('B','D') and not is_even(ctc.n):
-                self._m = 4
-        else:
-            if self._cartan_type_classical.type() == 'B':
-                if self.reduced():
-                    if self.dual_reduced() and not is_even(ctc.n):
-                        self._m = 4
-                elif self.dual_reduced() or is_even(ctc.n):
-                    self._m = 1
-            elif self._cartan_type_classical.type() == 'F' and self.reduced() and self.dual_reduced():
-                self._m = 2
+        self._m = len(self._special_nodes)
 
     def __repr__(self):
         def non_string(str, bool):
@@ -852,6 +835,22 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
     - "T_L" -- `\pi^X T_w X^\mu` 
     - "L_tv_Lv" -- `X^\mu T_w Y^\nu` where `\mu \in X`, `w` is in the finite Weyl group `W(Y)`, and `\nu \in Y`.
 
+    EXAMPLES::
+
+        sage: HH = DoubleAffineHeckeAlgebraSansDuality(['A',2])
+        sage: L_T = HH.L_T(); L_T
+        L_T basis of The double affine Hecke algebra of type ['A', 2, 1]
+        sage: m = L_T.a_monomial(); m
+        X[(2, 2, 3)] piX[2] TX[0,1,2]
+        sage: T_L = HH.T_L(); T_L
+        T_L basis of The double affine Hecke algebra of type ['A', 2, 1]
+        sage: T_L(m)
+        ((q*v^2-q)/v)*piX[2] TX[0,1] X[(2, 2, 3)] + ((v^6-3*v^4+3*v^2-1)/(q^2*v^3))*piX[2] X[(2, 2, 3)] + ((-v^4+2*v^2-1)/(q^2*v^2))*piX[2] TX[2] X[(2, 2, 3)] + ((-v^4+2*v^2-1)/(q^2*v^2))*piX[2] TX[1] X[(2, 2, 3)] + ((v^2-1)/(q^2*v))*piX[2] TX[1,2] X[(2, 2, 3)] + q*piX[2] TX[0,1,2] X[(2, 3, 2)]
+        sage: L_tv_Lv = HH.L_tv_Lv(); L_tv_Lv
+        L_tv_Lv basis of The double affine Hecke algebra of type ['A', 2, 1]
+        sage: L_tv_Lv(m)
+        X[(2, 2, 3)] Ty[2] Y[(0, 0, -1)]
+
     The first two are supported "natively" and the third by coercion with "L_T".
 
     There is an input option ``dual_side`` which, if True, essentially applies a form of Macdonald duality:
@@ -1033,7 +1032,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         typ = cartan_type.type()
         if typ in ('B','C'):
             return lambda v: self._L.from_vector(v.to_vector())
-        dual_weight_space = cartan_type.dual().root_system().weight_space()
         if typ == 'F':
             # F4 and G2 have dual implemented as Dynkin reversals of themselves
             def YXF(mu):
@@ -1050,14 +1048,13 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         r"""
         Return the pairing between `Y` and `X`.
 
-        If `Y` equals `X` (dual untwisted case) then the pairing in [Haiman] is the unique Weyl-invariant pairing
-        with short roots of square length two. The ambient space pairing agrees with this except in
-        types `B_n` and `F_4`, which use half the above pairing.
+        This computes the pairing in [Haiman_ICM]_.
+
+        If `Y` equals `X` (dual untwisted case), the pairing is the unique Weyl-invariant one
+        with short roots of square length two. This is given by the ambient space pairing except in
+        types `B_n` and `F_4`, in which case the ambient space pairing must be doubled.
         If `Y` is the dual of `X` (untwisted case) then the weight lattice of `Y` is identified with the coweight
         lattice of `X` which is then paired with the weight lattice of `X`.
-
-        The ambient lattices for `B_n` and `F_4` have pairing that is one-half times the
-        invariant pairing on which the short root roots have square length 2.
 
         EXAMPLES::
 
@@ -1118,8 +1115,8 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: E = DoubleAffineHeckeAlgebraSansDuality("B2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
             sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
-            [ 2 -1]
-            [-1  1]
+            [ 4 -2]
+            [-2  2]
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("C2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
@@ -1130,10 +1127,10 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             sage: E = DoubleAffineHeckeAlgebraSansDuality("F4", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
             sage: Matrix([[E.Y_pair_X()(E._Lv.simple_root(i), E._L.simple_root(j)) for j in I0] for i in I0])
-            [   2   -1    0    0]
-            [  -1    2   -1    0]
-            [   0   -1    1 -1/2]
-            [   0    0 -1/2    1]
+            [ 4 -2  0  0]
+            [-2  4 -2  0]
+            [ 0 -2  2 -1]
+            [ 0  0 -1  2]
 
             sage: E = DoubleAffineHeckeAlgebraSansDuality("G2", untwisted=False)
             sage: I0 = E.cartan_type().classical().index_set()
@@ -1142,8 +1139,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             [-3  6]
 
         """
-        if not self.cartan_type().is_untwisted_affine():
-            return lambda y, x: y.scalar(x)
         cartan_type = self.cartan_type().classical()
         typ = cartan_type.type()
         if typ == 'A':
@@ -1154,7 +1149,11 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             return type_a_pairing
         if cartan_type.is_simply_laced():
             return lambda y,x: y.scalar(x)
-        return lambda y, x: x.scalar(self.Y_to_X()(y))
+        if self.cartan_type().is_untwisted_affine():
+            return lambda y, x: x.scalar(self.Y_to_X()(y))
+        if typ in ('B','F'):
+            return lambda y, x: 2 * y.scalar(x)
+        return lambda y, x: y.scalar(x)
 
     def Y_pair_X_m(self, y, x):
         r"""

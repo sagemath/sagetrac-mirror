@@ -630,7 +630,7 @@ class Algebras(AlgebrasCategory):
             weight = L.embed_at_level(weight, 0)
             return self.q_project(self.demazure_lusztig_operator_on_basis(weight, i, q1, q2, convention=convention), q)
 
-        def demazure_lusztig_operators_on_classical(self, q, q1, q2, convention="antidominant"):
+        def demazure_lusztig_operators_on_classical(self, q, q1, q2, convention="antidominant", side="left"):
             r"""
             Return the Demazure-Lusztig operators acting at level 1 on ``self.classical()``.
 
@@ -738,7 +738,7 @@ class Algebras(AlgebrasCategory):
             a0check = ct.acheck()[ct.special_node()]
             T_on_basis = functools.partial(self.demazure_lusztig_operator_on_classical_on_basis,
                                            q1=q1, q2=q2, q=q**a0check, convention=convention)
-            return HeckeAlgebraRepresentation(self.classical(), T_on_basis, self.cartan_type(), q1=q1, q2=q2, q=q, side="left")
+            return HeckeAlgebraRepresentation(self.classical(), T_on_basis, self.cartan_type(), q1=q1, q2=q2, q=q, side=side)
 
         @cached_method
         def T0_check_on_basis(self, q1, q2, convention="antidominant"):
