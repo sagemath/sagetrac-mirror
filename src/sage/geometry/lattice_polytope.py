@@ -2452,7 +2452,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return map2*map1
 
     @cached_method
-    def affine_normal_form(self, transformation=False,
+    def affine_normal_form_pc(self, transformation=False,
                            permutation=False, **kwds):
         r"""
         Return the affine normal form of vertices of the polytope.
@@ -2530,7 +2530,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             LatticeEuclideanGroupElement)
 
         def translated_polytopes(return_b=False):
-            for v in self.vertices().columns():
+            for v in self.vertices_pc():
                 lp = self.affine_transform(b = -v)
                 if return_b:
                     yield (lp, -v)
@@ -2554,7 +2554,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             base_ring=QQ)
             return tuple(result)
         else:
-            return min(p.normal_form(**kwds) for p in translated_polytopes())
+            return min(p.normal_form_pc(**kwds) for p in translated_polytopes())
 
     def dimensionally_reduced_polytope(self, add_origin=False,
                                        embedding=False):
@@ -2608,10 +2608,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [1 0 0]
             [0 1 0]
         """
-        if self.vertices().is_zero():
+        if self.vertices_pc().column_matrix().is_zero():
             raise ValueError('The polytope consisting of the origin can ' +
             'not be completed to have positive dimension.')
-        vertices = matrix(QQ, self.vertices().transpose())
+        vertices = matrix(QQ, self.vertices_pc().column_matrix().transpose())
         projection = vertices.image().basis_matrix()
         codim_embedding = projection.ncols() - projection.nrows()
         contains_origin = self.origin() is not None
@@ -2651,7 +2651,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return self.normal_form_pc().column_matrix()
 
     @cached_method
-    def normal_form_pc(self, algorithm="palp", permutation=False):
+    def normal_form_pc(self, algorithm="palp", transformation=False,
+                       permutation=False, ignore_embedding=False):
         r"""
         Return the normal form of vertices of ``self``.
 
@@ -2842,7 +2843,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         codim = self.ambient_dim() - self.dim()
         contains_origin = self.origin() is not None
         compute_p = transformation or permutation
-        if self.vertices().is_zero():
+        if self.vertices_pc().column_matrix().is_zero():
             d = self.ambient_dim()
             p = PermutationGroupElement(tuple())
             if ignore_embedding:
@@ -2855,7 +2856,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         elif codim > 0:
             reduction, embedding = self.dimensionally_reduced_polytope(
                                     add_origin=True, embedding=True)
-            tmp = reduction.normal_form(algorithm=algorithm,
+            tmp = reduction.normal_form_pc(algorithm=algorithm,
                     transformation=transformation,
                     permutation=compute_p)
             if compute_p:
@@ -2873,8 +2874,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 P = P*embedding.transpose()
                 # Apply to the transformation matrix
                 t = t*P
-            cols = [i for i in n.columns()
-                    if contains_origin or not i.is_zero()]
+            cols = [i for i in n if contains_origin or not i.is_zero()]
             if not ignore_embedding:                
                 codim_e = self.ambient_dim() - reduction.ambient_dim()
                 n = matrix([[0]*codim_e + list(col) for col in cols]
@@ -2890,6 +2890,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 n = matrix(cols).transpose()
             n.set_immutable()
         if codim > 0:
+            vertices = n.columns()
+            if ignore_embedding:
+                M = ToricLattice(n.nrows()) # TODO: Do properly
+            else:
+                M = self.lattice()
+            vertices = map(M, vertices)
+            for v in vertices:
+                v.set_immutable()
+            n = PointCollection(vertices, M)
             if compute_p:
                 result = [n]
                 if transformation:
@@ -2947,9 +2956,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             raise ValueError("normal form is not defined for %s" % self)
         compute_p = transformation or permutation
         if algorithm == "palp":
-            tmp = read_palp_matrix(self.poly_x("N"),
-                                   permutation=permutation)
-            tmp[0].set_immutable()
+            tmp = read_palp_matrix(self.poly_x("N"), permutation=compute_p)
+            if compute_p:
+                vertices, p = tmp
+            else:
+                vertices = tmp
+            vertices = vertices.columns()
+            M = self.lattice()
+            vertices = map(M, vertices)
+            for v in vertices:
+                v.set_immutable()
+            vertices = PointCollection(vertices, M)
+            tmp = (vertices, p) if compute_p else vertices
         elif algorithm == "palp_native":
             tmp = self._palp_native_normal_form(permutation=compute_p)
         elif algorithm == "palp_modified":
@@ -2959,34 +2977,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                              'palp_native, or palp_modified.')
         if not compute_p:
             return tmp
-        else:
-            result = [tmp[0]]
+        result = [tmp[0]]
         if transformation:
             n, p = tmp
-            v_permuted = self.vertices().with_permuted_columns(p)
+            vertices = self.vertices_pc().column_matrix()
+            v_permuted = vertices.with_permuted_columns(p)
             nf2, phi = v_permuted.hermite_form(transformation=True)
-            if nf2 != n:
+            if nf2 != n.column_matrix():
                 raise ValueError('The permutation does ' + 
                                  'not give the correct hermite form.')
-            result += [phi, phi.inverse()]
+            result.extend([phi, phi.inverse()])
         if permutation:
             result.append(tmp[1])
         return tuple(result)
-
-		'''
-		if permutation:
-            vertices, perm = result
-        else:
-            vertices = result
-        if algorithm == "palp":
-            vertices = vertices.columns()
-        M = self.lattice()
-        vertices = map(M, vertices)
-        for v in vertices:
-            v.set_immutable()
-        vertices = PointCollection(vertices, M)
-        return (vertices, perm) if permutation else vertices
-		'''
 
     def _palp_modified_normal_form(self, permutation=False):
         r"""
@@ -6114,39 +6117,6 @@ def minkowski_sum(points1, points2):
             points.append(p1+p2)
     return convex_hull(points)
 
-
-def octahedron(dim):
-    r"""
-    Return an octahedron of the given dimension.
-
-    EXAMPLES: Here are 3- and 4-dimensional octahedrons::
-
-        sage: o = lattice_polytope.octahedron(3)
-        sage: o
-        An octahedron: 3-dimensional, 6 vertices.
-        sage: o.vertices()
-        [ 1  0  0 -1  0  0]
-        [ 0  1  0  0 -1  0]
-        [ 0  0  1  0  0 -1]
-        sage: o = lattice_polytope.octahedron(4)
-        sage: o
-        An octahedron: 4-dimensional, 8 vertices.
-        sage: o.vertices()
-        [ 1  0  0  0 -1  0  0  0]
-        [ 0  1  0  0  0 -1  0  0]
-        [ 0  0  1  0  0  0 -1  0]
-        [ 0  0  0  1  0  0  0 -1]
-
-    There exists only one octahedron of each dimension::
-
-        sage: o is lattice_polytope.octahedron(4)
-        True
-    """
-    if _octahedrons.has_key(dim):
-        return _octahedrons[dim]
-    else:
-        _octahedrons[dim] = _create_octahedron(dim)
-        return _octahedrons[dim]
 
 def positive_integer_relations(points):
     r"""
