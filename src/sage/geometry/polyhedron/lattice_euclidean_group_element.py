@@ -118,10 +118,10 @@ class LatticeEuclideanGroupElement(SageObject):
             return LatticePolytope_PPL(*[self(v) for v in x.vertices()])
         if isinstance(x, LatticePolytopeClass):
             from sage.geometry.lattice_polytope import LatticePolytope
-            vs = [self(i) for i in x.vertices().columns()]
+            vs = [self(i) for i in x.vertices_pc()]
             return LatticePolytope(vs)
         if is_Matrix(x):
-            return matrix([self(i) for i in x.columns()]).transpose()            
+            return matrix([self(i) for i in x.columns()]).transpose()
 
         v = self._A*x+self._b
         v.set_immutable()

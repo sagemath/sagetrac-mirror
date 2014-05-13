@@ -2403,7 +2403,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         INPUT:
 
-        - ``other`` -- the lattice polytope to which we are trying to find 
+        - ``other`` -- the lattice polytope to which we are trying to find
             an isomorphism.
 
         OUTPUT:
@@ -2412,7 +2412,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         such an isomorphism exists and ``None`` otherwise.
 
         EXAMPLES::
-        
+
             sage: P2 = ReflexivePolytope(2, 0)
             sage: P1xP1 = ReflexivePolytope(2, 3)
             sage: P2.find_isomorphism(P1xP1)
@@ -2422,14 +2422,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 0]
             [1 0]
             [0 1]
-            b = 
+            b =
             (1, 0, 0)
             sage: P1xP1_2 = LatticePolytope([(2, 3), (2, 2), (0, 2), (0, 1)])
             sage: P1xP1_2.find_isomorphism(P1xP1)
             The map A*x+b with A=
             [ 0  1]
             [-1  1]
-            b = 
+            b =
             (-2, -1)
 
         Some trivial cases::
@@ -2440,14 +2440,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: iso(zero1).vertices() == zero2.vertices()
             True
         """
-        anf1, map1, dummy = self.affine_normal_form(transformation=True,
+        anf1, map1, dummy = self.affine_normal_form_pc(transformation=True,
                                              ignore_embedding=True)
         try:
-            anf2, dummy, map2 = other.affine_normal_form(transformation=True,
+            anf2, dummy, map2 = other.affine_normal_form_pc(transformation=True,
                                                   ignore_embedding=True)
         except AttributeError:
             raise ValueError('Other must be a LatticePolytope.')
-        if anf1 <> anf2:
+        if anf1 != anf2:
             return None
         return map2*map1
 
@@ -2471,14 +2471,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         of the normal forms of `P_j` `\forall j`.
 
         INPUT:
-        
-        Passes all optional keywords to 
+
+        Passes all optional keywords to
         :meth:`LatticePolytopeClass.affine_normal_form`.
 
         OUTPUT:
 
         The affine normal form of ``self``, a matrix.
-        
+
         EXAMPLES:
 
         Note that our affine normal form does not always
@@ -2524,7 +2524,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: a1 = p1.affine_normal_form()
             sage: a2 = p2.affine_normal_form(ignore_embedding=True)
             sage: a1 == a2
-            True            
+            True
         """
         from sage.geometry.polyhedron.lattice_euclidean_group_element import (
             LatticeEuclideanGroupElement)
@@ -2540,9 +2540,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         kwds['transformation'] = transformation
         kwds['permutation'] = permutation
         if permutation or transformation:
-            tmp = min(((p[0].normal_form(**kwds), p[1]) 
+            tmp = min(((p[0].normal_form_pc(**kwds), p[1])
                       for p in translated_polytopes(return_b=True)),
-                      key=lambda x: x[0][0])
+                      key=lambda x: x[0][0].column_matrix())
             b = tmp[1]
             result = list(tmp[0])
             if transformation:
@@ -2595,7 +2595,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Some polytopes cannot be embedded into an ambient space of the same
         dimension using only a linear map::
- 
+
             sage: lp = LatticePolytope([(1, 0), (0, 1)])
             sage: lp.dimensionally_reduced_polytope()
             Traceback (most recent call last):
@@ -2675,7 +2675,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
           * "palp_native" -- The original PALP algorithm implemented
             in sage. Currently considerably slower than PALP.
 
-            * "palp_modified" -- A modified version of the PALP
+          * "palp_modified" -- A modified version of the PALP
             algorithm which determines the maximal vertex-facet
             pairing matrix first and then computes its
             automorphisms, while the PALP algorithm does both things
@@ -2695,16 +2695,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        A matrix or a tuple containing in addition another matrix and/or
+        A class:`point collection <PointCollection>` in the :meth:`lattice`
+        of ``self`` or a tuple containing it and a matrix and/or
         a permutation. The tuple is ordered as
-        (normal_form, transformation_to_normal_form,
-         transformation_from_normal_form, permutation)
+        ``(normal_form, transformation_to_normal_form,
+         transformation_from_normal_form, permutation)``
         where some entries might be missing.
-
-		'''
-		- a :class:`point collection <PointCollection>` in the :meth:`lattice`
-          of ``self`` or a tuple of it and a permutation.
-		'''
 
         REFERENCES:
 
@@ -2713,14 +2709,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             
         .. [GK13] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, arXiv:1301.6641
-
-        EXAMPLES:
         
         EXAMPLES:
 
         We compute the normal form of the "diamond"::
 
-            sage: o = lattice_polytope.octahedron(2)
+            sage: o = lattice_polytope.cross_polytope(2)
             sage: o.vertices()
             [ 1  0 -1  0]
             [ 0  1  0 -1]
@@ -2785,13 +2779,13 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 0  1 -1  0]
 
         Let us vary the optional parameters in order to see in which order
-        the results are returned::        
+        the results are returned::
 
             sage: p.normal_form(permutation=True)
             (
-            [0 0 0]         
-            [1 0 1]         
-            [0 1 1]         
+            [0 0 0]
+            [1 0 1]
+            [0 1 1]
             [0 0 2], (1,4,2)
             )
             sage: p.normal_form(transformation=True, ignore_embedding=True)
@@ -2803,9 +2797,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             )
             sage: p.normal_form(transformation=True, permutation=True)
             (
-            [0 0 0]  [  0   0   0   0]  [ 0 -1  0  1]         
-            [1 0 1]  [  0 1/2 1/2   0]  [ 0  1  0  0]         
-            [0 1 1]  [  1 1/2 1/2  -1]  [ 0  1  0  0]         
+            [0 0 0]  [  0   0   0   0]  [ 0 -1  0  1]
+            [1 0 1]  [  0 1/2 1/2   0]  [ 0  1  0  0]
+            [0 1 1]  [  1 1/2 1/2  -1]  [ 0  1  0  0]
             [0 0 2], [  1 1/2 1/2   0], [ 0  0 -1  1], (1,4,2)
             )
             sage: p.normal_form(ignore_embedding = True)
@@ -2820,7 +2814,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.normal_form(algorithm="palp_modified",\
             ....: transformation=True, permutation=True)
             (
-            [ 1  0  0 -1]  [ 0  1]  [ 0 -1]         
+            [ 1  0  0 -1]  [ 0  1]  [ 0 -1]
             [ 0  1 -1  0], [-1  0], [ 1  0], (1,2,3)
             )
             sage: n, t, tinv, p = _
@@ -2831,7 +2825,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.normal_form(algorithm="palp_native",\
             ....: transformation=True, permutation=True)
             (
-            [ 1  0  0 -1]  [ 0 -1]  [ 0 -1]           
+            [ 1  0  0 -1]  [ 0 -1]  [ 0 -1]
             [ 0  1 -1  0], [-1  0], [-1  0], (1,4,2,3)
             )
             sage: n, t, tinv, p = _
@@ -2875,7 +2869,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 # Apply to the transformation matrix
                 t = t*P
             cols = [i for i in n if contains_origin or not i.is_zero()]
-            if not ignore_embedding:                
+            if not ignore_embedding:
                 codim_e = self.ambient_dim() - reduction.ambient_dim()
                 n = matrix([[0]*codim_e + list(col) for col in cols]
                            ).transpose()
@@ -2892,7 +2886,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if codim > 0:
             vertices = n.columns()
             if ignore_embedding:
-                M = ToricLattice(n.nrows()) # TODO: Do properly
+                M = ToricLattice(n.nrows(), self.lattice()._name, self.lattice()._dual_name) # TODO: Do properly
             else:
                 M = self.lattice()
             vertices = map(M, vertices)
@@ -2942,8 +2936,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o3.normal_form(algorithm='palp_modified',\
             ....: permutation=True, transformation=True)
             (
-            [ 1  0  0  0  0 -1]  [ 1  0  0]  [ 1  0  0]             
-            [ 0  1  0  0 -1  0]  [ 0  0  1]  [ 0  0 -1]             
+            [ 1  0  0  0  0 -1]  [ 1  0  0]  [ 1  0  0]
+            [ 0  1  0  0 -1  0]  [ 0  0  1]  [ 0  0 -1]
             [ 0  0  1 -1  0  0], [ 0 -1  0], [ 0  1  0], (2,3,5,6,4)
             )
             sage: p = LatticePolytope([[1]])
@@ -2973,7 +2967,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         elif algorithm == "palp_modified":
             tmp = self._palp_modified_normal_form(permutation=compute_p)
         else:
-            raise ValueError('Algorithm must be palp, ' + 
+            raise ValueError('Algorithm must be palp, ' +
                              'palp_native, or palp_modified.')
         if not compute_p:
             return tmp
@@ -2984,7 +2978,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             v_permuted = vertices.with_permuted_columns(p)
             nf2, phi = v_permuted.hermite_form(transformation=True)
             if nf2 != n.column_matrix():
-                raise ValueError('The permutation does ' + 
+                raise ValueError('The permutation does ' +
                                  'not give the correct hermite form.')
             result.extend([phi, phi.inverse()])
         if permutation:
@@ -5324,29 +5318,6 @@ class _PolytopeFace(SageObject):
         return self._vertices
 
 
-def _create_octahedron(dim):
-    r"""
-    Create an octahedron of the given dimension.
-
-    Since we know that we are passing vertices, we suppress their
-    computation.
-
-    TESTS::
-
-        sage: o = lattice_polytope._create_octahedron(3)
-        sage: o.vertices()
-        [ 1  0  0 -1  0  0]
-        [ 0  1  0  0 -1  0]
-        [ 0  0  1  0  0 -1]
-    """
-    m = matrix(ZZ, dim, 2*dim)
-    for i in range(dim):
-        m[i,i] = 1
-        m[i,dim+i] = -1
-    return LatticePolytope(m, "An octahedron", compute_vertices=False, copy_vertices=False)
-
-_octahedrons = dict()       # Dictionary for storing created octahedrons
-
 _palp_dimension = None
 
 def _palp(command, polytopes, reduce_dimension=False):
@@ -6357,7 +6328,7 @@ def read_palp_matrix(data, permutation=False):
     if permutation:
         last_piece = first_line[-1]
         last_piece = last_piece.split('=')
-        if last_piece[0] <> 'perm':
+        if last_piece[0] != 'perm':
             raise ValueError('PALP did not return a permutation.')
         p = _palp_convert_permutation(last_piece[1])
         return (mat, p)
@@ -6495,8 +6466,6 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
     - ``comment`` -- a string (default: empty) see output description
 
     - ``format`` -- a format string used to print matrix entries.
-
-    -  ``format`` - a format string used to print matrix entries.
 
     OUTPUT:
 
