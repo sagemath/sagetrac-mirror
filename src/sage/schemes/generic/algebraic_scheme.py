@@ -420,20 +420,20 @@ class AlgebraicScheme(scheme.Scheme):
 
             sage: patch1 = P1xP1.affine_patch(1)
             sage: patch1
-            2-d affine toric variety
+            2-d affine toric variety with embedding
             sage: patch1.embedding_morphism()
               Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [y : u] to
                     [1 : y : u : 1]
             sage: subpatch = P1.affine_patch(1)
             sage: subpatch
-            Closed subscheme of 2-d affine toric variety defined by:
+            Closed subscheme of 2-d affine toric variety with embedding defined by:
               -y + 1
             sage: subpatch.embedding_morphism()
             Scheme morphism:
-              From: Closed subscheme of 2-d affine toric variety defined by:
+              From: Closed subscheme of 2-d affine toric variety with embedding defined by:
               -y + 1
               To:   Closed subscheme of 2-d CPR-Fano toric variety covered
                     by 4 affine patches defined by:
@@ -2257,7 +2257,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: patch1 = P1xP1.affine_patch(1)
             sage: patch1.embedding_morphism()
             Scheme morphism:
-              From: 2-d affine toric variety
+              From: 2-d affine toric variety with embedding
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [t : x] to
                     [1 : t : x : 1]
@@ -2266,7 +2266,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: P1 = P1xP1.subscheme(x-y)
             sage: subpatch = P1.affine_patch(1)
             sage: subpatch
-            Closed subscheme of 2-d affine toric variety defined by:
+            Closed subscheme of 2-d affine toric variety with embedding defined by:
               x - 1
         """
         i = int(i)   # implicit type checking
@@ -2481,11 +2481,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: s = S.point([0,-3,2]); s
             [0 : -3 : 2]
             sage: patch = S.neighborhood(s); patch
-            Closed subscheme of 2-d affine toric variety defined by:
+            Closed subscheme of 2-d affine toric variety with embedding defined by:
               x + 2*y + 6
             sage: patch.embedding_morphism()
             Scheme morphism:
-              From: Closed subscheme of 2-d affine toric variety defined by:
+              From: Closed subscheme of 2-d affine toric variety with embedding defined by:
               x + 2*y + 6
               To:   Closed subscheme of 2-d CPR-Fano toric variety covered by 3 affine patches defined by:
               x + 2*y + 3*z
@@ -2501,11 +2501,11 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: dP6.<x0,x1,x2,x3,x4,x5> = toric_varieties.dP6()
             sage: twoP1 = dP6.subscheme(x0*x3)
             sage: patch = twoP1.neighborhood([0,1,2, 3,4,5]); patch
-            Closed subscheme of 2-d affine toric variety defined by:
+            Closed subscheme of 2-d affine toric variety with embedding defined by:
               3*x0
             sage: patch.embedding_morphism()
             Scheme morphism:
-              From: Closed subscheme of 2-d affine toric variety defined by:
+              From: Closed subscheme of 2-d affine toric variety with embedding defined by:
               3*x0
               To:   Closed subscheme of 2-d CPR-Fano toric variety covered by 6 affine patches defined by:
               x0*x3
