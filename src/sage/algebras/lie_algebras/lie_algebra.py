@@ -287,7 +287,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
                 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
                 ret = ClassicalMatrixLieAlgebra(R, arg0)
             elif rep == "basis":
-                from sage.algebras.lie_algebras.kac_moody import LieAlgebraChevalleyBasis
+                from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
                 ret = LieAlgebraChevalleyBasis(R, arg0)
             if kwds.get("affine", False):
                 from sage.algebras.lie_algebras.classical_lie_algebra import AffineLieAlgebra
@@ -358,6 +358,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             return ret.Lyndon()
         return ret
 
+    # TODO: Should this inherit from IndexedGenerators?
     def __init__(self, R, names=None, index_set=None, category=None):
         """
         The Lie algebra.

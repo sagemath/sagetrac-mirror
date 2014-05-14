@@ -60,7 +60,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         monoid_cmp = lambda x,y: basis_cmp(x[0],y[0])
         self._basis_cmp = basis_cmp
         monomials = IndexedFreeAbelianMonoid(basis_indices, prefix,
-                                             monomial_cmp=monoid_cmp, **kwds)
+                                             generator_cmp=monoid_cmp, **kwds)
         self._basis_map = {x: monomials.gen(basis_indices[i])
                            for i,x in enumerate(g.basis().keys())}
         self._basis_map_inv = {basis_indices[i]: x for i,x in enumerate(g.basis())}
