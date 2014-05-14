@@ -16,6 +16,7 @@ from sage.misc.latex import latex
 from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.integer import Integer
+from sage.categories.algebra_functor import AlgebrasCategory
 
 class Crystals(Category_singleton):
     r"""
@@ -1200,3 +1201,55 @@ class Crystals(Category_singleton):
             return self.parent().subcrystal(generators=[self], index_set=index_set,
                                             max_depth=max_depth, direction=direction)
 
+    class Algebras(AlgebrasCategory):
+
+        class ParentMethods:
+
+            @cached_method
+            def e(self, i):
+                """
+                Obtained by linearity
+                """
+                return self.module_morphism( lambda x:
+                        self.monomial_or_zero_if_none(x.e(i)),
+                        codomain=self.base_ring())
+
+            @cached_method
+            def f(self, i):
+                """
+                Obtained by linearity
+                """
+                return self.module_morphism( lambda x:
+                        self.monomial_or_zero_if_none(x.f(i)),
+                        codomain=self.base_ring())
+
+        class ElementMethods:
+
+            def e(self, i):
+                """
+                EXAMPLES::
+
+                    sage: from sage.combinat.words.crystal_of_words import *
+                    sage: W = CrystalOfWords([1,2,3])
+                    sage: A = W.algebra(QQ)
+                    sage: a = A.an_element() + A(W([3,1,1,1,2]))
+                    sage: a.e(1)
+                    B[word: 31111] + B[word: 113]
+                    sage: a.e(2)
+                    B[word: 122]
+                """
+                return self.parent().e(i)(self)
+
+            def f(self, i):
+                """
+                EXAMPLES::
+
+                    sage: W = CrystalOfWords([1,2,3])
+                    sage: A = W.algebra(QQ)
+                    sage: a = A.an_element() + A(W([3,1,1,1,2]))
+                    sage: a.f(1)
+                    B[word: 31122] + B[word: 223]
+                    sage: a.f(2)
+                    B[word: 31132] + B[word: 133]
+                """
+                return self.parent().f(i)(self)
