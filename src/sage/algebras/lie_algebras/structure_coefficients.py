@@ -25,6 +25,7 @@ from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.indexed_generators import IndexedGenerators
+from sage.misc.misc import repr_lincomb
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -73,7 +74,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         -z
     """
     @staticmethod
-    def __classcall_private__(cls, R, s_coeff, names=None, index_set=None):
+    def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):
         """
         Normalize input to ensure a unique representation.
 
@@ -86,18 +87,18 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
         if len(s_coeff) == 0:
-            return AbelianLieAlgebra(R, names, index_set)
+            return AbelianLieAlgebra(R, names, index_set, **kwds)
 
         if names is None:
             if index_set is None:
                 raise ValueError("either the names or the index set must be specified")
             if len(index_set) <= 1:
-                return AbelianLieAlgebra(R, names, index_set)
+                return AbelianLieAlgebra(R, names, index_set, **kwds)
         elif len(names) <= 1:
-            return AbelianLieAlgebra(R, names, index_set)
+            return AbelianLieAlgebra(R, names, index_set, **kwds)
 
         return super(LieAlgebraWithStructureCoefficients, cls).__classcall__(
-            cls, R, s_coeff, tuple(names), index_set)
+            cls, R, s_coeff, tuple(names), index_set, **kwds)
 
     @staticmethod
     def _standardize_s_coeff(s_coeff):
@@ -132,7 +133,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 sc[key] = vals
         return Family(sc)
 
-    def __init__(self, R, s_coeff, names, index_set):
+    def __init__(self, R, s_coeff, names, index_set, prefix='',
+                 bracket=False, latex_bracket=False, **kwds):
         """
         Initialize ``self``.
 
@@ -143,9 +145,11 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         cat = FiniteDimensionalLieAlgebrasWithBasis(R)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
+        IndexedGenerators.__init__(self, self._indices, prefix=prefix, bracket=bracket,
+                                   latex_bracket=latex_bracket, **kwds)
 
         # Transform the values in the structure coefficients to elements
-        self.__s_coeff = Family({k: self._from_dict(dict(s_coeff[k])) for k in s_coeff.keys()})
+        self._s_coeff = Family({k: self._from_dict(dict(s_coeff[k])) for k in s_coeff.keys()})
 
     def basis(self):
         """
@@ -169,7 +173,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L.structure_coefficients()
             Finite family {[x, y]: x}
         """
-        return self.__s_coeff
+        return self._s_coeff
 
     def dimension(self):
         """
@@ -204,7 +208,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             ordered = False
         b = LieBracket(x, y)
         try:
-            val = self.__s_coeff[b]
+            val = self._s_coeff[b]
         except KeyError:
             return self.zero()
         if ordered:
@@ -291,6 +295,31 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         An element of a Lie algebra given by structure coefficients.
         """
+        def _repr_(self):
+            r"""
+            Return a string representation of ``self``.
+            """
+            prefix = self.parent()._print_options['prefix']
+            if self.parent()._names is not None and not prefix:
+                return LieAlgebraElement._repr_(self)
+            return repr_lincomb(self._sorted_items_for_printing(),
+                                scalar_mult=self.parent()._print_options['scalar_mult'],
+                                repr_monomial = self.parent()._repr_generator,
+                                strip_one = True)
+
+        def _latex_(self):
+            r"""
+            Return a `\LaTeX` representation of ``self``.
+            """
+            prefix = self.parent()._print_options['prefix']
+            if self.parent()._names is not None and not prefix:
+                return LieAlgebraElement._latex_(self)
+            return repr_lincomb(self._sorted_items_for_printing(),
+                                scalar_mult       = self.parent()._print_options['scalar_mult'],
+                                latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
+                                repr_monomial = self.parent()._latex_generator,
+                                is_latex=True, strip_one = True)
+
         def _bracket_(self, y):
             """
             Return the Lie bracket ``[self, y]``.
@@ -363,7 +392,7 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         r"""
         Initialize ``self``.
         """
-        self.__s_coeff = s_coeff # TODO: convert the values to elements of ``self``
+        self._s_coeff = s_coeff # TODO: convert the values to elements of ``self``
         LieSubalgebra.__init__(self, ambient, basis, names, index_set, category)
 
     def _repr_(self):
@@ -429,13 +458,13 @@ class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
         RM = IM.complement()
         B = RM.basis() + IM.basis()
         dim = len(RM)
-        self.__s_coeff = {}
+        self._s_coeff = {}
         for i,kl,zl in enumerate(gens):
             for kr,zr in gens[i+1:]:
                 b = LieBracket(zl, zr)
                 ld = M.linear_dependence(B + [y.to_vector()])[0]
                 normalizer = -ld[-1]
-                self.__s_coeffs[b] = {indices[j]: val / normalizer
+                self._s_coeffs[b] = {indices[j]: val / normalizer
                                       for j,val in enumerate(ld[:dim])}
 
     Element = LieAlgebraElement
