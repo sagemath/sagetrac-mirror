@@ -12341,7 +12341,7 @@ class GenericGraph(GenericGraph_pyx):
         This method is valid for Graph and DiGraph with multiple edges and
         loops.
 
-        For more information on the Bellman-Ford algorith, see the
+        For more information on the Bellman-Ford algorithm, see the
         :wikipedia:`Bellman-Ford_algorithm`.
 
         INPUT:
@@ -12642,7 +12642,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``by_weight`` - if ``False``, uses a breadth first search. If
-          ``True``, uses Dijkstra's algorithm to find find the shortest paths by
+          ``True``, uses Dijkstra's algorithm to find the shortest paths by
           weight or Bellman-Ford's when negative edge weigths are detected.
 
         -  ``cutoff`` - integer depth to stop search.
@@ -12784,7 +12784,7 @@ class GenericGraph(GenericGraph_pyx):
                 * Floyd-Warshall (Python)
                 * Bellman-Ford (Python)
 
-            The BFS algorithm is the fastest of the three, then comes the Cython
+            The BFS algorithm is the fastest of the four, then comes the Cython
             implementation of Floyd-Warshall, and last the Python
             implementation. The first two implementations, however, only compute
             distances based on the topological distance (each edge is of weight
@@ -12793,7 +12793,7 @@ class GenericGraph(GenericGraph_pyx):
             vertices (which already represents 16GB of ram).
 
             The Bellman-Ford algorithm is the only one among the four
-            implementation able to handle negative edge weights.
+            implementations able to handle negative edge weights.
 
         .. NOTE::
 
