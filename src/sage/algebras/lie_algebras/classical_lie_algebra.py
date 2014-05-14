@@ -270,7 +270,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         """
         Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
         """
-        from sage.algebras.lie_algebras.affine_lie_algebras import AffineLieAlgebra
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
 
 class gl(LieAlgebraFromAssociative):

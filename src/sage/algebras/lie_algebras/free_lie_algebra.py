@@ -253,7 +253,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, BindableClass):
                         if d[b_elt] == 0:
                             del d[b_elt]
 
-            if len(d) == 0:
+            if not d:
                 return self.parent().zero()
             return self.__class__(self.parent(), d)
 
