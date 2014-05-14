@@ -133,7 +133,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 sc[key] = vals
         return Family(sc)
 
-    def __init__(self, R, s_coeff, names, index_set, category=None, **kwds):
+    def __init__(self, R, s_coeff, names, index_set, prefix='',
+                 bracket=False, latex_bracket=False, **kwds):
         """
         Initialize ``self``.
 
@@ -144,7 +145,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         cat = LieAlgebras(R).WithBasis().or_subcategory(category)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
-        IndexedGenerators.__init__(self, self._indices, **kwds)
+        IndexedGenerators.__init__(self, self._indices, prefix=prefix, bracket=bracket,
+                                   latex_bracket=latex_bracket, **kwds)
 
         # Transform the values in the structure coefficients to elements
         self._s_coeff = Family({k: self._from_dict(dict(s_coeff[k])) for k in s_coeff.keys()})
@@ -298,6 +300,9 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             r"""
             Return a string representation of ``self``.
             """
+            prefix = self.parent()._print_options['prefix']
+            if self.parent()._names is not None and not prefix:
+                return LieAlgebraElement._repr_(self)
             return repr_lincomb(self._sorted_items_for_printing(),
                                 scalar_mult=self.parent()._print_options['scalar_mult'],
                                 repr_monomial = self.parent()._repr_generator,
@@ -307,11 +312,15 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             r"""
             Return a `\LaTeX` representation of ``self``.
             """
+            prefix = self.parent()._print_options['prefix']
+            if self.parent()._names is not None and not prefix:
+                return LieAlgebraElement._latex_(self)
             return repr_lincomb(self._sorted_items_for_printing(),
                                 scalar_mult       = self.parent()._print_options['scalar_mult'],
                                 latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
                                 repr_monomial = self.parent()._latex_generator,
                                 is_latex=True, strip_one = True)
+
         def _bracket_(self, y):
             """
             Return the Lie bracket ``[self, y]``.
