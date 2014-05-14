@@ -12431,7 +12431,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.__bellman_ford__(0)
             Traceback (most recent call last):
             ...
-            TypeError: Edge label of unknown type
+            TypeError: Edge label of unknown type (1)
         """
         from sage.rings.infinity import Infinity
         from sage.rings.real_mpfr import RR
