@@ -17,6 +17,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.modules.all import vector
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix import is_Matrix
 
 
 ########################################################################
@@ -109,7 +110,6 @@ class LatticeEuclideanGroupElement(SageObject):
         from sage.geometry.polyhedron.ppl_lattice_polytope import (
             LatticePolytope_PPL, LatticePolytope_PPL_class)
         from sage.geometry.lattice_polytope import LatticePolytopeClass
-        from sage.matrix.all import is_Matrix, matrix
         if isinstance(x, LatticePolytope_PPL_class):
             if x.is_empty():
                 from sage.libs.ppl import C_Polyhedron

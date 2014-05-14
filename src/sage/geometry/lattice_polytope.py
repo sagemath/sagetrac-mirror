@@ -166,9 +166,6 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
     r"""
     Construct a lattice polytope.
 
-    LatticePolytope(data, [desc], [compute_vertices],
-    [copy_vertices], [n])
-
     INPUT:
 
     - ``data`` -- points spanning the lattice polytope, specified as one of:
@@ -332,8 +329,6 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         p.set_immutable()
     data = PointCollection(data, lattice)
     return LatticePolytopeClass(data, compute_vertices)
-
-    return LatticePolytopeClass(data, desc, compute_vertices, copy_vertices, n)
 
 copy_reg.constructor(LatticePolytope)   # "safe for unpickling"
 
@@ -610,7 +605,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         state = self.__dict__.copy()
         state.pop('_vertices')
-        state.pop('_desc')
         state.pop('_distances', None)
         state.pop('_skeleton', None)
         try:
@@ -2382,16 +2376,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.nfacets()
             4
         """
-        if not hasattr(self, "_nfacets"):
-            if self.is_reflexive():
-                self._nfacets = self.polar().nvertices()
-            elif self.dim() == self.ambient_dim():
-                self._nfacets = self._facet_normals.nrows()
-            elif self.dim() <= 0:
-                self._nfacets = 0
-            else:
-                self._nfacets = self._sublattice_polytope.nfacets()
-        return self._nfacets
+        return len(self.facet_normals()) if self.dim() > 0 else 0
 
     def find_isomorphism(self, other):
         r"""
@@ -2437,25 +2422,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: zero1 = LatticePolytope([(0,)])
             sage: zero2 = LatticePolytope([(0, 0, 0)])
             sage: iso = zero1.find_isomorphism(zero2)
-            sage: iso(zero1).vertices() == zero2.vertices()
+            sage: iso(zero1).vertices_pc() == zero2.vertices_pc()
             True
         """
         anf1, map1, dummy = self.affine_normal_form_pc(transformation=True,
-                                             ignore_embedding=True)
+                                                       ignore_embedding=True)
         try:
-            anf2, dummy, map2 = other.affine_normal_form_pc(transformation=True,
-                                                  ignore_embedding=True)
+            tmp = other.affine_normal_form_pc(transformation=True,
+                                              ignore_embedding=True)
         except AttributeError:
             raise ValueError('Other must be a LatticePolytope.')
-        if anf1 != anf2:
-            return None
-        return map2*map1
+        anf2, dummy, map2 = tmp
+        if anf1 == anf2:
+            return map2*map1
 
     @cached_method
     def affine_normal_form_pc(self, transformation=False,
-                           permutation=False, **kwds):
+                              permutation=False, **kwds):
         r"""
-        Return the affine normal form of vertices of the polytope.
+        Return the affine normal form of the vertices of the polytope.
 
         Two full-dimensional lattice polytopes are in the same
         `Aff(\mathbb{Z})`-orbit if and only if their affine normal
@@ -2485,14 +2470,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         agree with PALP's output, which appears to add an
         additional permutation::
 
-            sage: vertices = [( 1, 0,  0), (0, 1,  0), (0,  0, 1),\
-                              (-1, 0,  1), (0, 1, -1), (0, -1, 0),\
-                              ( 0, 0, -1)]
+            sage: vertices = [( 1, 0,  0), (0, 1,  0), (0,  0, 1),
+            ....:             (-1, 0,  1), (0, 1, -1), (0, -1, 0),
+            ....:             ( 0, 0, -1)]
             sage: lp = LatticePolytope(vertices)
-            sage: lp.affine_normal_form(algorithm='palp_modified') # long time
-            [ 0  1  1  2  0  0  2]
-            [ 0  0  2  2  0 -1  3]
-            [ 0  0  0  0  1  0 -1]
+            sage: lp.affine_normal_form_pc(algorithm='palp_modified') # long time
+            M(0,  0,  0),
+            M(1,  0,  0),
+            M(1,  2,  0),
+            M(2,  2,  0),
+            M(0,  0,  1),
+            M(0, -1,  0),
+            M(2,  3, -1)
+            in 3-d lattice M
             sage: from sage.geometry.lattice_polytope import read_palp_matrix
             sage: read_palp_matrix(lp.poly_x('A'))
             [ 1  1  2  0  2  0  0]
@@ -2502,27 +2492,26 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         On the other hand, we can compute affine normal forms of
         polytopes with non-zero codimension::
 
-            sage: m = matrix(ZZ, [[-1, 1,  0],
-            ...                   [ 1, 1,  0],
-            ...                   [ 1, 1,  0],
-            ...                   [ 0, 1, -1]])
-            sage: p = LatticePolytope(m)
-            sage: p.affine_normal_form()
-            [0 0 0]
-            [0 0 0]
-            [0 1 1]
-            [0 0 2]
-            sage: p.affine_normal_form(ignore_embedding = True)
-            [0 1 1]
-            [0 0 2]
+            sage: vertices = [(-1, 1, 1, 0), (1, 1, 1, 1), (0, 0, 0, -1)]
+            sage: p = LatticePolytope(vertices)
+            sage: p.affine_normal_form_pc()
+            M(0, 0, 0, 0),
+            M(0, 0, 1, 0),
+            M(0, 0, 1, 2)
+            in 4-d lattice M
+            sage: p.affine_normal_form_pc(ignore_embedding = True)
+            M(0, 0),
+            M(1, 0),
+            M(1, 2)
+            in 2-d lattice M
 
         If one ignores the embedding, the affine normal forms of two polytopes
         are equal if and if the polytopes are isomorphic::
 
             sage: p1 = ReflexivePolytope(2,0)
             sage: p2 = LatticePolytope([(1, 1, 0), (1, 0, 1), (1, -1, -1)])
-            sage: a1 = p1.affine_normal_form()
-            sage: a2 = p2.affine_normal_form(ignore_embedding=True)
+            sage: a1 = p1.affine_normal_form_pc()
+            sage: a2 = p2.affine_normal_form_pc(ignore_embedding=True)
             sage: a1 == a2
             True
         """
@@ -2560,7 +2549,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                                        embedding=False):
         r"""
         Return a polytope isomorphic to ``self``,
-        but projection to a space where it is full-dimensional.
+        but projected to a space in which it is full-dimensional.
 
         TODO: Problem with adding origin.
 
@@ -2569,7 +2558,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         - ``add_origin`` -- (default: ``False``) If ``True`` and the polytope
             does not contain the origin, it is added in order to produce
             a full-dimensional polytope.
-            If ``False`` and the origin is not contained, an exception
+            If ``False`` and the origin is not contained, a ValueError
             is raised.
 
         - ``embedding`` -- (default: ``False``) If ``True``, then the
@@ -2590,7 +2579,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             (
                                                             [0 0]
                                                             [1 0]
-            A lattice polytope: 2-dimensional, 3 vertices., [0 1]
+            2-d reflexive polytope #0 in 2-d lattice M, [0 1]
             )
 
         Some polytopes cannot be embedded into an ambient space of the same
@@ -2604,14 +2593,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         However, it can always be achieved by adding the origin::
             sage: p = lp.dimensionally_reduced_polytope(add_origin=True)
-            sage: p.vertices()
-            [1 0 0]
-            [0 1 0]
+            sage: p.vertices_pc()
+            M(1, 0),
+            M(0, 1),
+            M(0, 0)
+            in 2-d lattice M
         """
-        if self.vertices_pc().column_matrix().is_zero():
+        if self.vertices_pc().matrix().is_zero():
             raise ValueError('The polytope consisting of the origin can ' +
             'not be completed to have positive dimension.')
-        vertices = matrix(QQ, self.vertices_pc().column_matrix().transpose())
+        vertices = matrix(QQ, self.vertices_pc().matrix())
         projection = vertices.image().basis_matrix()
         codim_embedding = projection.ncols() - projection.nrows()
         contains_origin = self.origin() is not None
@@ -2622,12 +2613,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                     'full-dimensional polytope.')
             preimages += [vector(projection.nrows()*[0])]
         lp = LatticePolytope(preimages)
-        if embedding:
-            return (lp, projection.transpose())
-        else:
-            return lp
+        return (lp, projection.transpose()) if embedding else lp
 
-    def normal_form(self):
+    def normal_form(self, *args, **kwds):
         r"""
         Return the normal form of ``self`` as a matrix.
 
@@ -2648,7 +2636,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         deprecation(15240, "normal_form() output will change, "
             "please use normal_form_pc().column_matrix() instead "
             "or consider using normal_form_pc() directly!")
-        return self.normal_form_pc().column_matrix()
+        tmp = self.normal_form_pc(*args, **kwds)
+        if isinstance(tmp, tuple):
+            return tuple([tmp[0].column_matrix()]) + tmp[1:]
+        else:
+            return tmp.column_matrix()
 
     @cached_method
     def normal_form_pc(self, algorithm="palp", transformation=False,
@@ -2714,130 +2706,156 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         We compute the normal form of the "diamond"::
 
-            sage: o = lattice_polytope.cross_polytope(2)
-            sage: o.vertices()
-            [ 1  0 -1  0]
-            [ 0  1  0 -1]
-            sage: o.normal_form()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: d = LatticePolytope([(1,0), (0,1), (-1,0), (0,-1)])
+            sage: d.vertices_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M(-1,  0),
+            M( 0, -1)
+            in 2-d lattice M
+            sage: d.normal_form_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
 
         The diamond is the 3rd polytope in the internal database::
 
-            sage: o.index()
+            sage: d.index()
             3
-            sage: lattice_polytope.ReflexivePolytope(2,3).vertices()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: d
+            2-d reflexive polytope #3 in 2-d lattice M
+
+        You can get it in its normal form (in the default lattice) as ::
+        
+            sage: lattice_polytope.ReflexivePolytope(2, 3).vertices_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
 
         There are some cases in which PALP does not compute the permutation::
-            sage: o6 = lattice_polytope.octahedron(6)
-            sage: o6.normal_form() # long time
-            [ 1  0  0  0  0  0  0  0  0  0  0 -1]
-            [ 0  1  0  0  0  0  0  0  0  0 -1  0]
-            [ 0  0  1  0  0  0  0  0  0 -1  0  0]
-            [ 0  0  0  1  0  0  0  0 -1  0  0  0]
-            [ 0  0  0  0  1  0  0 -1  0  0  0  0]
-            [ 0  0  0  0  0  1 -1  0  0  0  0  0]
-            sage: o6.normal_form(permutation=True) # long time
+            sage: o6 = lattice_polytope.cross_polytope(6)
+            sage: o6.normal_form_pc() # long time
+            M( 1,  0,  0,  0,  0,  0),
+            M( 0,  1,  0,  0,  0,  0),
+            M( 0,  0,  1,  0,  0,  0),
+            M( 0,  0,  0,  1,  0,  0),
+            M( 0,  0,  0,  0,  1,  0),
+            M( 0,  0,  0,  0,  0,  1),
+            M( 0,  0,  0,  0,  0, -1),
+            M( 0,  0,  0,  0, -1,  0),
+            M( 0,  0,  0, -1,  0,  0),
+            M( 0,  0, -1,  0,  0,  0),
+            M( 0, -1,  0,  0,  0,  0),
+            M(-1,  0,  0,  0,  0,  0)
+            in 6-d lattice M
+            sage: o6.normal_form_pc(permutation=True) # long time
             Traceback (most recent call last):
             ...
             ValueError: PALP did not return a permutation.
-            
 
         It is possible to compute normal forms for polytopes which do not
         span the whole space::
 
-            sage: m = matrix(ZZ, [[1, 0, -1,  0],
-            ...                   [0, 1,  0, -1],
-            ...                   [0, 0,  0,  0]])
-            ...
-            sage: p = LatticePolytope(m)
-            sage: p.normal_form()
-            [ 0  0  0  0]
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
-            sage: m = matrix(ZZ, [[-1, 1,  0],
-            ...                   [ 1, 1,  0],
-            ...                   [ 1, 1,  0],
-            ...                   [ 0, 1, -1]])
-            sage: p = LatticePolytope(m)
-            sage: p.normal_form()
-            [0 0 0]
-            [1 0 1]
-            [0 1 1]
-            [0 0 2]
+            sage: vertices = [(1, 0, -1, 0), (0, 1, 0, -1), (0, 0, 0, 0)]
+            sage: p = LatticePolytope(vertices)
+            sage: p.normal_form_pc()
+            M(0, 0, 0, 0),
+            M(0, 0, 1, 0),
+            M(0, 0, 0, 1)
+            in 4-d lattice M
+            sage: vertices = [(-1, 1, 1, 0), (1, 1, 1, 1), (0, 0, 0, -1)]
+            sage: p = LatticePolytope(vertices)
+            sage: p.normal_form_pc()
+            M(0, 1, 0, 0),
+            M(0, 0, 1, 0),
+            M(0, 1, 1, 2)
+            in 4-d lattice M
 
         We can perform the same examples using other algorithms::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.vertices()
-            [ 1  0 -1  0]
-            [ 0  1  0 -1]
-            sage: o.normal_form()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: o = lattice_polytope.cross_polytope(2)
+            sage: o.vertices_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M(-1,  0),
+            M( 0, -1)
+            in 2-d lattice M
+            sage: o.normal_form_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
 
         Let us vary the optional parameters in order to see in which order
         the results are returned::
 
-            sage: p.normal_form(permutation=True)
+            sage: p.normal_form_pc(permutation=True)
+            (M(0, 1, 0, 0),
+            M(0, 0, 1, 0),
+            M(0, 1, 1, 2)
+            in 4-d lattice M, (1,4,2))
+            sage: p.normal_form_pc(transformation=True, ignore_embedding=True)
             (
-            [0 0 0]
-            [1 0 1]
-            [0 1 1]
-            [0 0 2], (1,4,2)
+            M(1, 0, 0),                          [-1  0  1]
+            M(0, 1, 0),       [  0 1/2 1/2   0]  [ 1  0  0]
+            M(1, 1, 2)        [  1 1/2 1/2  -1]  [ 1  0  0]
+            in 3-d lattice M, [  1 1/2 1/2   0], [ 0 -1  1]
             )
-            sage: p.normal_form(transformation=True, ignore_embedding=True)
+            sage: p.normal_form_pc(transformation=True, permutation=True)
             (
-                                        [-1  0  1]
-            [1 0 1]  [  0 1/2 1/2   0]  [ 1  0  0]
-            [0 1 1]  [  1 1/2 1/2  -1]  [ 1  0  0]
-            [0 0 2], [  1 1/2 1/2   0], [ 0 -1  1]
+            M(0, 1, 0, 0),    [  0   0   0   0]  [ 0 -1  0  1]
+            M(0, 0, 1, 0),    [  0 1/2 1/2   0]  [ 0  1  0  0]
+            M(0, 1, 1, 2)     [  1 1/2 1/2  -1]  [ 0  1  0  0]
+            in 4-d lattice M, [  1 1/2 1/2   0], [ 0  0 -1  1], (1,4,2)
             )
-            sage: p.normal_form(transformation=True, permutation=True)
-            (
-            [0 0 0]  [  0   0   0   0]  [ 0 -1  0  1]
-            [1 0 1]  [  0 1/2 1/2   0]  [ 0  1  0  0]
-            [0 1 1]  [  1 1/2 1/2  -1]  [ 0  1  0  0]
-            [0 0 2], [  1 1/2 1/2   0], [ 0  0 -1  1], (1,4,2)
-            )
-            sage: p.normal_form(ignore_embedding = True)
-            [1 0 1]
-            [0 1 1]
-            [0 0 2]
+            sage: p.normal_form_pc(ignore_embedding = True)
+            M(1, 0, 0),
+            M(0, 1, 0),
+            M(1, 1, 2)
+            in 3-d lattice M
 
         The results for the permutation and the linear transformations can
         differ between the different algorithms. However, they are both
         consistent::
 
-            sage: o.normal_form(algorithm="palp_modified",\
+            sage: o.normal_form_pc(algorithm="palp_modified",\
             ....: transformation=True, permutation=True)
             (
-            [ 1  0  0 -1]  [ 0  1]  [ 0 -1]
-            [ 0  1 -1  0], [-1  0], [ 1  0], (1,2,3)
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)         [ 0  1]  [ 0 -1]
+            in 2-d lattice M, [-1  0], [ 1  0], (1,2,3)
             )
             sage: n, t, tinv, p = _
-            sage: t*o.vertices().with_permuted_columns(p) == n
+            sage: t*o.vertices_pc().column_matrix().with_permuted_columns(p) == n.column_matrix()
             True
-            sage: tinv*n == o.vertices().with_permuted_columns(p)
+            sage: tinv*n.column_matrix() == o.vertices_pc().column_matrix().with_permuted_columns(p)
             True
-            sage: o.normal_form(algorithm="palp_native",\
+            sage: o.normal_form_pc(algorithm="palp_native",\
             ....: transformation=True, permutation=True)
             (
-            [ 1  0  0 -1]  [ 0 -1]  [ 0 -1]
-            [ 0  1 -1  0], [-1  0], [-1  0], (1,4,2,3)
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)         [ 0 -1]  [ 0 -1]
+            in 2-d lattice M, [-1  0], [-1  0], (1,4,2,3)
             )
             sage: n, t, tinv, p = _
-            sage: t*o.vertices().with_permuted_columns(p) == n
+            sage: t*o.vertices_pc().column_matrix().with_permuted_columns(p) == n.column_matrix()
             True
-            sage: tinv*n == o.vertices().with_permuted_columns(p)
+            sage: tinv*n == o.vertices_pc().column_matrix().with_permuted_columns(p)
             True
         """
         codim = self.ambient_dim() - self.dim()
         contains_origin = self.origin() is not None
         compute_p = transformation or permutation
-        if self.vertices_pc().column_matrix().is_zero():
+        if self.vertices_pc().matrix().is_zero():
             d = self.ambient_dim()
             p = PermutationGroupElement(tuple())
             if ignore_embedding:
@@ -2851,8 +2869,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             reduction, embedding = self.dimensionally_reduced_polytope(
                                     add_origin=True, embedding=True)
             tmp = reduction.normal_form_pc(algorithm=algorithm,
-                    transformation=transformation,
-                    permutation=compute_p)
+                                           transformation=transformation,
+                                           permutation=compute_p)
             if compute_p:
                 tmp = list(tmp)
                 p = tmp.pop()
@@ -2886,7 +2904,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if codim > 0:
             vertices = n.columns()
             if ignore_embedding:
-                M = ToricLattice(n.nrows(), self.lattice()._name, self.lattice()._dual_name) # TODO: Do properly
+                M = ToricLattice(n.nrows(), self.lattice()._name,
+                                 self.lattice()._dual_name) # TODO: Do properly
             else:
                 M = self.lattice()
             vertices = map(M, vertices)
@@ -2904,8 +2923,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 return n
         else:
             return self._normal_form_full_dimensional(algorithm=algorithm,
-                transformation=transformation,
-                permutation=permutation)
+                transformation=transformation, permutation=permutation)
 
     def _normal_form_full_dimensional(self, algorithm="palp",
                                       transformation=False,
@@ -2928,23 +2946,31 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o3 = lattice_polytope.octahedron(3)
+            sage: o3 = lattice_polytope.cross_polytope(3)
             sage: o3._normal_form_full_dimensional()
-            [ 1  0  0  0  0 -1]
-            [ 0  1  0  0 -1  0]
-            [ 0  0  1 -1  0  0]
-            sage: o3.normal_form(algorithm='palp_modified',\
+            M( 1,  0,  0),
+            M( 0,  1,  0),
+            M( 0,  0,  1),
+            M( 0,  0, -1),
+            M( 0, -1,  0),
+            M(-1,  0,  0)
+            in 3-d lattice M
+            sage: o3.normal_form_pc(algorithm='palp_modified',\
             ....: permutation=True, transformation=True)
             (
-            [ 1  0  0  0  0 -1]  [ 1  0  0]  [ 1  0  0]
-            [ 0  1  0  0 -1  0]  [ 0  0  1]  [ 0  0 -1]
-            [ 0  0  1 -1  0  0], [ 0 -1  0], [ 0  1  0], (2,3,5,6,4)
+            M( 1,  0,  0),
+            M( 0,  1,  0),
+            M( 0,  0,  1),
+            M( 0,  0, -1),
+            M( 0, -1,  0),    [ 1  0  0]  [ 1  0  0]
+            M(-1,  0,  0)     [ 0  0  1]  [ 0  0 -1]
+            in 3-d lattice M, [ 0 -1  0], [ 0  1  0], (2,3,5,6,4)
             )
             sage: p = LatticePolytope([[1]])
             sage: p._normal_form_full_dimensional()
             Traceback (most recent call last):
             ...
-            ValueError: Normal form is not defined for a 0-dimensional polytope in a 1-dimensional space!
+            ValueError: normal form is not defined for 0-d lattice polytope in 1-d lattice M
         """
         if self.dim() < self.ambient_dim():
             raise ValueError("normal form is not defined for %s" % self)
