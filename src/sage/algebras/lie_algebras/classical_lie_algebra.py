@@ -826,8 +826,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
         index_set = p_roots + n_roots + list(alphacheck)
-        LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set, category,
-                                                     prefix='E', generator_cmp=self._basis_cmp)
+        LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set,
+                                                     category, prefix='E', bracket='[',
+                                                     generator_cmp=self._basis_cmp)
 
     def _repr_(self):
         """

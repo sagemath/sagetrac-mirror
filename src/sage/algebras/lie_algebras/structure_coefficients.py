@@ -133,7 +133,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 sc[key] = vals
         return Family(sc)
 
-    def __init__(self, R, s_coeff, names, index_set, prefix='',
+    def __init__(self, R, s_coeff, names, index_set, category=None, prefix='',
                  bracket=False, latex_bracket=False, **kwds):
         """
         Initialize ``self``.
