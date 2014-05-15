@@ -25,6 +25,18 @@ AUTHOR:
 #
 #===============================================================================
 
+from sage.combinat.all import number_of_partitions
+from sage.functions.all import binomial, factorial
+from sage.matrix.all import matrix
+from sage.misc.all import cached_function
+from sage.misc.all import prod, isqrt
+from sage.misc.weak_dict import WeakValueDictionary
+from sage.modular.all import ModularForms
+from sage.rings.all import (PowerSeriesRing, Integer, ZZ, QQ, GF)
+from sage.rings import big_oh
+import operator
+
+
 def reduce_classical_jacobi_fe_index((n, r), m):
     r"""
     Reduce an index `(n, r)` of the Fourier expansion of Jacobi forms
@@ -35,6 +47,10 @@ def reduce_classical_jacobi_fe_index((n, r), m):
     - `(n, r)` -- A pair of integers.
 
     - `m` -- A positive integer.
+
+    ..TODO:
+
+    insert tests.
     """
     rred = r % (2*m)
 
@@ -46,7 +62,7 @@ def reduce_classical_jacobi_fe_index((n, r), m):
     
     nred = n - (r**2 - rred**2)//(4*m)
     
-    return ((nred, rred), sign)
+    return ((nred, rred), sgn)
 
 def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
     r"""
@@ -61,9 +77,9 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
     - ``reduce`` -- A boolean (default: ``False``).  If ``True``
                     restrict to `0 \le r \le m`.
 
-    TESTS::
+    ..TODO:
 
-        sage: insert
+    insert tests.
     """
     fm = Integer(4*m)
 
@@ -75,14 +91,8 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
 
         # indefinite forms
         for n in xrange(0, prec) :
-            for r in xrange( isqrt(fm * n - 1) + 1 if n != 0 else 0, self.__m + 1 ) :
+            for r in xrange( isqrt(fm * n - 1) + 1 if n != 0 else 0, m + 1 ) :
                 yield (n, r)
-
-        # the case of true Jacobi forms
-        # for r in xrange(0, min(self.__m + 1,
-        #                        isqrt((self.__bound - 1) * fm) + 1) ) :
-        #     if fm.divides(r**2) :
-        #         yield (r**2 // fm, r)
     else :
         # positive definite forms
         for n in range(1, prec):
@@ -103,16 +113,6 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
                                 (- r + isqrt(r**2 - 4 * m * (n - (prec - 1)))) // (2 * m) + 1 ) :
                     yield (n + l * r + m * l**2, r + 2 * m * l)
 
-          # the case of true jacobi forms
-            # if self.__bound > 0 :
-            #     yield (0,0)
-
-            # for n in xrange(1, self.__bound) :
-            #     if (fm * n).is_square() :
-            #         rt_fmm = isqrt(fm * n)
-            #         yield(n, rt_fmm)
-            #         yield(n, -rt_fmm)
-        
     raise StopIteration
 
 @cached_function
@@ -120,12 +120,12 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     r"""
     INPUT:
     
-    - ``prec`` -- A non-negative integer that corresponds to a precision of
-                       the q-expansion.
-
     - `k -- An integer.
     
     - `m` -- A non-negative integer.
+
+    - ``prec`` -- A non-negative integer that corresponds to a precision of
+                       the q-expansion.
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
 
@@ -143,27 +143,27 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     
         sage: from sage.modular.jacobi.classical_weak import *                      
         sage: P.<q> = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta')); zeta = P.base_ring().gen(0)
-        sage: prec = 20; m = 2; k = 4
-        sage: f = classical_weak_jacobi_forms(prec, k, m)[0]
+        sage: prec = 2; m = 2; k = 4
+        sage: f = classical_weak_jacobi_forms(k, m, prec)[0]
         sage: f_poly = sum(f[reduce_classical_jacobi_fe_index((n,r),m)[0]] * q**n * zeta**r for (n,r) in classical_weak_jacobi_fe_indices(2, prec))
         sage: E4_poly = ModularForms(1, 4).gen(0).qexp(prec).polynomial()
         sage: h_poly = E4_poly * f_poly
 
     ::
 
-        sage: jacobi_wt8 = classical_weak_jacobi_forms(prec, 8, m)
-        [7/66, 0, 0, 4480]
-        sage: all(h[nr] == 7/66 * jacobi_wt8[0][nr] + 4480 * jacobi_wt8[3][nr] for nr in classical_weak_jacobi_fe_indices(2, prec, reduced=True) )
+        sage: jacobi_wt8 = classical_weak_jacobi_forms(8, m, prec)
+        sage: all(h_poly[nr[0]][nr[1]] == 7/66 * jacobi_wt8[0][nr] + 4480 * jacobi_wt8[3][nr] for nr in classical_weak_jacobi_fe_indices(m, prec, reduced=True) )
+        True
     """
     if algorithm != "skoruppa":
         raise NotImplementedError("Only algorithm \"skoruppa\" is implemented")
-    factory = ClassicalWeakJacobiFormsFactory(prec, m)
+    factory = ClassicalWeakJacobiFormsFactory(m, prec)
     
     return [ factory.from_taylor_expansion(fs, k, is_integral=True)
-             for fs in _all_weak_taylor_coefficients(k, m) ]
+             for fs in classical_weak_jacobi_taylor_coefficients(k, m) ]
 
 @cached_function
-def classical_weak_jacobi_taylor_coefficients(weight, index) :
+def classical_weak_jacobi_taylor_coefficients(k, m) :
     r"""
     A product basis of the echelon bases of 
     
@@ -173,9 +173,9 @@ def classical_weak_jacobi_taylor_coefficients(weight, index) :
     
     INPUT:
     
-    - ``weight`` -- An integer.
+    - `k -- An integer.
     
-    - ``index`` -- A non-negative integer.
+    - `m` -- A non-negative integer.
     
     TESTS::
     
@@ -185,12 +185,12 @@ def classical_weak_jacobi_taylor_coefficients(weight, index) :
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen()
     
-    if weight % 2 == 0 :
-        nmb_modular_forms = index + 1
-        start_weight = weight
+    if k % 2 == 0 :
+        nmb_modular_forms = m + 1
+        start_weight = k
     else :
-        nmb_modular_forms = index - 1
-        start_weight = weight + 1
+        nmb_modular_forms = m - 1
+        start_weight = k + 1
         
     modular_forms = list()
     for (i,k) in enumerate(range(start_weight, start_weight + 2 * nmb_modular_forms, 2)) :
@@ -199,9 +199,9 @@ def classical_weak_jacobi_taylor_coefficients(weight, index) :
         
     return modular_forms 
 
-_classical_weak_jacobi_forms_factory_cache = sage.misc.weak_dict.WeakValueDictionary()
+_classical_weak_jacobi_forms_factory_cache = WeakValueDictionary()
 
-class ClassicalWeakJacobiFormsFactory(m, prec):
+def ClassicalWeakJacobiFormsFactory(m, prec):
     r"""
     INPUT:
 
@@ -298,7 +298,7 @@ class ClassicalWeakJacobiForms_factory:
         
         INPUT:
         
-        - ``wronskian_adjoint`` -- A list of lists of power series over `\ZZ`.
+        - ``wronskian_adjoint`` -- A list of lists of power series over `\Z`.
         
         - ``weight_parity`` -- An integer (default: `0`).
         """
@@ -524,7 +524,7 @@ class ClassicalWeakJacobiForms_factory:
         TESTS::
             
             sage: from sage.modular.jacobi.classical_weak import *                      
-            sage: factory = ClassicalWeakJacobiFormsFactory(2, 4)
+            sage: factory = ClassicalWeakJacobiFormsFactory(3, 10)
             sage: R.<q> = ZZ[[]]
             sage: expansion = factory.from_taylor_expansion([lambda p: 0 + O(q^p), lambda p: CuspForms(1, 12).gen(0).qexp(p)], 9, True)
             sage: exp_gcd = gcd(expansion.values())
