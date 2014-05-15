@@ -131,31 +131,7 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
 
     EXAMPLES:
     
-    We compute the Fourier expansion of a Jacobi form of weight `4`
-    and index `2`.  This is denoted by ``d``.  Moreover, we span the
-    space of all Jacobi forms of weight `8` and index `2`.
-    Multiplying the weight `4` by the Eisenstein series of weight `4`
-    must yield an element of the weight `8` space.  Note that the
-    multiplication is done using a polynomial ring, since no native
-    multiplication for Jacobi forms is implemented.
-    
-    ::
-    
-        sage: from sage.modular.jacobi.classical_weak import *                      
-        sage: P.<q> = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta')); zeta = P.base_ring().gen(0)
-        sage: prec = 2; m = 2; k = 4
-        sage: f = classical_weak_jacobi_forms(k, m, prec)[0]
-        sage: f_poly = sum(f[reduce_classical_jacobi_fe_index((n,r),m)[0]] * q**n * zeta**r for (n,r) in classical_weak_jacobi_fe_indices(2, prec))
-        sage: E4_poly = ModularForms(1, 4).gen(0).qexp(prec).polynomial()
-        sage: h_poly = E4_poly * f_poly
-
-    ::
-
-        sage: _phi1, _, _, _phi2 = classical_weak_jacobi_forms(8, m, prec)
-        sage: phi1 = lambda nr: _phi1[nr] if nr in _phi1 else 0
-        sage: phi2 = lambda nr: _phi2[nr] if nr in _phi2 else 0
-        sage: all(h_poly[nr[0]][nr[1]] == 7/66 * phi1(nr) + 4480 * phi2(nr) for nr in classical_weak_jacobi_fe_indices(m, prec, reduced=True) )
-        True
+    See test_multiplication.
     """
     if algorithm != "skoruppa":
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))

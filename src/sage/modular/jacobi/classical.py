@@ -139,7 +139,7 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     weak_forms = classical_weak_jacobi_forms(k, m, prec, algorithm)
     indices = list(classical_weak_jacobi_fe_indices(m, prec, reduced=True))
     weak_index_matrix = \
-        matrix(ZZ, [ [ f[(n,r)] for (n,r) in indices
+        matrix(ZZ, [ [ (f[(n,r)] if (n,r) in f else 0) for (n,r) in indices
                        if 4*m*n - r**2 < 0 ] for f in weak_forms] )
         
     return weak_index_matrix.left_kernel().echelonized_basis()
