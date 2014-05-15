@@ -29,6 +29,7 @@ from sage.rings.real_mpfi import RealIntervalField
 import fast_arith
 
 from integer_ring import ZZ
+ZZ_0 = ZZ.zero()
 import integer
 
 ##################################################################
@@ -4945,14 +4946,20 @@ def two_squares(n):
 
     See http://www.schorn.ch/howto.html
     """
-    from sage.rings.all import Integer
-    n = pari(n)
+    n = ZZ(n)
 
-    if n <= 0:
-        if n == 0:
-            z = ZZ.zero()
-            return (z, z)
+    if n <= ZZ_0:
+        if n == ZZ_0:
+            return (ZZ_0, ZZ_0)
         raise ValueError("%s is not a sum of 2 squares"%n)
+
+    # for small values we use a naive direct method
+    if n <= 500:
+        from arith_pyx import two_squares_pyx
+        return two_squares_pyx(n)
+
+    # otherwise we use pari
+    n = pari(n)
 
     # Start by factoring n (which seems to be unavoidable)
     F = n.factor(proof=False)
@@ -4999,8 +5006,8 @@ def two_squares(n):
                 # Multiply (a + bI) by (r + sI)
                 a,b = a*r - b*s, b*r + a*s
 
-    a = Integer(a.abs())
-    b = Integer(b.abs())
+    a = ZZ(a.abs())
+    b = ZZ(b.abs())
     assert a*a + b*b == n
     if a <= b:
         return (a,b)
@@ -5046,20 +5053,24 @@ def three_squares(n):
 
     See http://www.schorn.ch/howto.html
     """
-    from sage.rings.all import Integer
-    n = pari(n)
+    n = ZZ(n)
 
-    if n <= 0:
-        if n == 0:
-            z = ZZ.zero()
-            return (z, z, z)
+    if n <= ZZ_0:
+        if n == ZZ_0:
+            return (ZZ_0, ZZ_0, ZZ_0)
         raise ValueError("%s is not a sum of 3 squares"%n)
 
+    # for small values of n we use a naive method
+    if n <= 500:
+        from arith_pyx import three_squares_pyx
+        return three_squares_pyx(n)
+
+    n = pari(n)
     # First, remove all factors 4 from n
     e = n.valuation(2)//2
     m = 2**e
     N = n/(m*m)
-    m = Integer(m)
+    m = ZZ(m)
 
     # Let x be the largest integer at most sqrt(N)
     x = N.sqrtint()
@@ -5121,7 +5132,7 @@ def three_squares(n):
             x -= 1
             assert x >= 0
 
-    x = Integer(x)
+    x = ZZ(x)
     if x >= b:
         return (a*m, b*m, x*m)
     elif x >= a:
@@ -5145,9 +5156,9 @@ def four_squares(n):
         sage: four_squares(3)
         (0, 1, 1, 1)
         sage: four_squares(13)
-        (0, 0, 2, 3)
+        (1, 2, 2, 2)
         sage: four_squares(130)
-        (0, 0, 3, 11)
+        (3, 6, 6, 7)
         sage: four_squares(1101011011004)
         (130, 348, 1170, 1049290)
         sage: four_squares(10^100-1)
@@ -5156,20 +5167,24 @@ def four_squares(n):
         ....:     S = four_squares(i)
         ....:     assert sum(x^2 for x in S) == i
     """
-    from sage.rings.all import Integer
-    n = pari(n)
-    
-    if n <= 0:
-        if n == 0:
-            z = ZZ.zero()
-            return (z, z, z, z)
+    n = ZZ(n)
+
+    if n <= ZZ_0:
+        if n == ZZ_0:
+            return (ZZ_0, ZZ_0, ZZ_0, ZZ_0)
         raise ValueError("%s is not a sum of 4 squares"%n)
 
+    # for small values of n we use a naive method
+    if n <= 500:
+        from sage.rings.arith_pyx import four_squares_pyx
+        return four_squares_pyx(n)
+
+    n = pari(n)
     # First, remove all factors 4 from n
     e = n.valuation(2)//2
     m = 2**e
     N = n/(m*m)
-    m = Integer(m)
+    m = ZZ(m)
 
     # Subtract a suitable x^2 such that N - x^2 is 1,2,3,5,6 mod 8,
     # which can then be written as a sum of 3 squares.
@@ -5182,7 +5197,7 @@ def four_squares(n):
     a,b,c = three_squares(y)
 
     # Correct sorting is guaranteed by construction
-    x = Integer(x)
+    x = ZZ(x)
     return (a*m, b*m, c*m, x*m)
 
 def sum_of_k_squares(k,n):
@@ -5204,11 +5219,11 @@ def sum_of_k_squares(k,n):
         sage: sum_of_k_squares(2, 9634)
         (15, 97)
         sage: sum_of_k_squares(3, 9634)
-        (0, 15, 97)
+        (9, 12, 97)
         sage: sum_of_k_squares(4, 9634)
         (1, 2, 5, 98)
         sage: sum_of_k_squares(5, 9634)
-        (0, 1, 2, 5, 98)
+        (1, 2, 3, 4, 98)
         sage: sum_of_k_squares(6, 11^1111-1)
         (19215400822645944253860920437586326284, 37204645194585992174252915693267578306, 3473654819477394665857484221256136567800161086815834297092488779216863122, 5860191799617673633547572610351797996721850737768032876360978911074629287841061578270832330322236796556721252602860754789786937515870682024273948, 20457423294558182494001919812379023992538802203730791019728543439765347851316366537094696896669915675685581905102118246887673397020172285247862426612188418787649371716686651256443143210952163970564228423098202682066311189439731080552623884051737264415984619097656479060977602722566383385989, 311628095411678159849237738619458396497534696043580912225334269371611836910345930320700816649653412141574887113710604828156159177769285115652741014638785285820578943010943846225597311231847997461959204894255074229895666356909071243390280307709880906261008237873840245959883405303580405277298513108957483306488193844321589356441983980532251051786704380984788999660195252373574924026139168936921591652831237741973242604363696352878914129671292072201700073286987126265965322808664802662993006926302359371379531571194266134916767573373504566621665949840469229781956838744551367172353)
         sage: sum_of_k_squares(7, 0)
@@ -5240,10 +5255,9 @@ def sum_of_k_squares(k,n):
         ...
         ValueError: k = -1 must be non-negative
     """
-    from sage.rings.all import Integer
     n = pari(n)
     k = int(k)
-    
+
     if k <= 4:
         if k == 4:
             return four_squares(n)
@@ -5255,7 +5269,7 @@ def sum_of_k_squares(k,n):
             if n >= 0:
                 x = n.sqrtint()
                 if n == x*x:
-                    return (Integer(x),)
+                    return (ZZ(x),)
             raise ValueError("%s is not a sum of 1 square"%n)
         if k == 0:
             if n == 0:
@@ -5270,7 +5284,7 @@ def sum_of_k_squares(k,n):
     t = []
     while k > 4:
         x = n.sqrtint()
-        t.insert(0,Integer(x))
+        t.insert(0,ZZ(x))
         n -= x*x
         k -= 1
 
