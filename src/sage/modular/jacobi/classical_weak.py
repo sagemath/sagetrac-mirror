@@ -151,12 +151,14 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
 
     ::
 
-        sage: jacobi_wt8 = classical_weak_jacobi_forms(8, m, prec)
-        sage: all(h_poly[nr[0]][nr[1]] == 7/66 * jacobi_wt8[0][nr] + 4480 * jacobi_wt8[3][nr] for nr in classical_weak_jacobi_fe_indices(m, prec, reduced=True) )
+        sage: _phi1, _, _, _phi2 = classical_weak_jacobi_forms(8, m, prec)
+        sage: phi1 = lambda nr: _phi1[nr] if nr in _phi1 else 0
+        sage: phi2 = lambda nr: _phi2[nr] if nr in _phi2 else 0
+        sage: all(h_poly[nr[0]][nr[1]] == 7/66 * phi1(nr) + 4480 * phi2(nr) for nr in classical_weak_jacobi_fe_indices(m, prec, reduced=True) )
         True
     """
     if algorithm != "skoruppa":
-        raise NotImplementedError("Only algorithm \"skoruppa\" is implemented")
+        raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
     factory = ClassicalWeakJacobiFormsFactory(m, prec)
     
     return [ factory.from_taylor_expansion(fs, k, is_integral=True)
