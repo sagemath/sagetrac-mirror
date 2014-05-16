@@ -12455,7 +12455,7 @@ class GenericGraph(GenericGraph_pyx):
             # set them to 1.
             weight = {}
             for u, v, wt in self.edge_iterator():
-                if wt:
+                if wt is not None:
                     if key and isinstance(wt, dict):
                         try:
                             wt = wt[key]
@@ -12712,6 +12712,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
+            sage: D = DiGraph({0: {1: -1}, 1: {2: 0}})
+            sage: D.shortest_path_lengths(0, by_weight=True)
+            {0: 0, 1: -1, 2: -1}
         """
         if by_weight and any(w<0 for _,_,w in self.edge_iterator()):
             dist,_ = self.__bellman_ford__(u)
