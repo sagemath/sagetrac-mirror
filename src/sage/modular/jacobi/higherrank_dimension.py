@@ -51,18 +51,49 @@ def jacobi_dimension(k, m):
     TESTS::
     
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
-        sage: from sage.modular.jacobi.higherrank_dimension import *
-        sage: assert all( len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, QuadraticForm(matrix(1, [2 * m]))) for k in range(8, 16) for m in range(1, 10) ) # long time
+        sage: from sage.modular.jacobi.higherrank_dimension import jacobi_dimension
+        sage: assert all( len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, matrix([[2 * m]])) for k in range(8, 16) for m in range(1, 10) ) # long time
     """
     from sage.matrix.matrix import is_Matrix
 
     ## TODO: Replace by discriminant forms code as soon as it is available in Sage
     if is_Matrix(m):
-        return _vector_valued_dimension(k - ZZ(m.ncols()) / 2, QuadraticForm(m))
+        return vector_valued_dimension(k - ZZ(m.ncols()) / 2, QuadraticForm(-m))
     else:
-        return _vector_valued_dimension(k - ZZ(m.dim()) / 2, m)
+        return vector_valued_dimension(k - ZZ(m.dim()) / 2, m.scale_by_factor(-1))
 
-def _vector_valued_dimension(k, L):
+def nmb_isotropic_vectors(k, L):
+    r"""
+    Compute the number of isotropic vectors, which generically give
+    rise to Eisenstein series of weight `k`.
+
+    INPUT:
+
+    - `k` -- A half-integer.
+
+    - `L` -- A quadratic form over `\Z`.
+
+    OUTPUT:
+
+    - An integer.
+
+    TESTS::
+
+        sage: from sage.modular.jacobi.higherrank_dimension import nmb_isotropic_vectors
+        sage: nmb_isotropic_vectors(1/2, QuadraticForm(matrix(1, [[2]])))
+        0
+        sage: nmb_isotropic_vectors(-1/2, QuadraticForm(matrix(1, [[2]])))
+        1
+    """
+    (discriminant_form_exponents, disc_quadratic, disc_bilinear) = _discriminant_form(L)
+    (singls, pairs) = _discriminant_form_basis(k, L, discriminant_form_exponents)
+
+    plus_basis = ZZ(L.dim() + 2*k) % 4 == 0
+
+    return len([a for a in (singls + pairs if plus_basis else pairs)
+                if disc_quadratic(*a) in ZZ])
+
+def vector_valued_dimension(k, L):
     r"""
     Compute the dimension of the space of weight `k` vector valued
     modular forms for the Weil representation attached to the lattice
@@ -100,15 +131,70 @@ def _vector_valued_dimension(k, L):
     if L.matrix().rank() != L.matrix().nrows() :
         raise ValueError( "The lattice (={0}) must be non-degenerate.".format(L) )
 
-    L_dimension = L.matrix().nrows()
-    if L_dimension % 2 != ZZ(2 * k) % 2 :
+    if L.dim() % 2 != ZZ(2 * k) % 2 :
         return 0
-    
-    plus_basis = ZZ(L_dimension + 2 * k) % 4 == 0 
+
+
+    (discriminant_form_exponents, disc_quadratic, disc_bilinear) = _discriminant_form(L)
+    (singls, pairs) = _discriminant_form_basis(k, L, discriminant_form_exponents)
+    plus_basis = ZZ(L.dim() + 2*k) % 4 == 0
+
+    if plus_basis :
+        subspace_dimension = len(singls + pairs)
+    else :
+        subspace_dimension = len(pairs)
+
+    CC_prec = 50 + subspace_dimension * 2
+    while True:
+        CC = ComplexIntervalField(CC_prec)
+
+        (Smat, Tmat) = _weil_representation(CC, L, singls, pairs, plus_basis,
+                                            discriminant_form_exponents, disc_quadratic, disc_bilinear)
+        STmat = Smat * Tmat
+
+
+        ## This function overestimates the number of eigenvalues, if it is not correct
+        def eigenvalue_multiplicity(mat, ev) :
+            mat = matrix(CC, mat - ev * identity_matrix(subspace_dimension))
+            return len(filter( lambda row: all( e.contains_zero() for e in row), _qr(mat).rows() ))
+
+        rti = CC(exp(2 * pi * I / 8))
+        S_ev_multiplicity = [eigenvalue_multiplicity(Smat, rti**n) for n in range(8)]
+        ## Together with the fact that eigenvalue_multiplicity overestimates the multiplicities
+        ## this asserts that the computed multiplicities are correct
+        assert sum(S_ev_multiplicity) == subspace_dimension
+
+        rho = CC(exp(2 * pi * I / 12))
+        ST_ev_multiplicity = [eigenvalue_multiplicity(STmat, rho**n) for n in range(12)]
+        ## Together with the fact that eigenvalue_multiplicity overestimates the multiplicities
+
+        if sum(ST_ev_multiplicity) == subspace_dimension:
+            break
+        else:
+            CC_prec += 100
+
+
+    normalize_QQ = lambda a: (a.numerator() % a.denominator()) / a.denominator()
+    T_evs = [ normalize_QQ(disc_quadratic(*a))
+              for a in (singls + pairs if plus_basis else pairs) ]
+
+
+    return (subspace_dimension * (1 + QQ(k) / 12)
+           - ZZ(sum( (ST_ev_multiplicity[n] * ((-2 * k - n) % 12)) for n in range(12) )) / 12
+           - ZZ(sum( (S_ev_multiplicity[n] * ((2 * k + n) % 8)) for n in range(8) )) / 8
+           - sum(T_evs))
+
+def _discriminant_form(L):
+    r"""
+    """
+    if L.matrix().rank() != L.matrix().nrows() :
+        raise ValueError( "The lattice (={0}) must be non-degenerate.".format(L) )
+
 
     ## The bilinear and the quadratic form attached to L
     quadratic = lambda x: L(x) // 2
     bilinear = lambda x,y: L(x + y) - L(x) - L(y)
+
 
     ## A dual basis for L
     (elementary_divisors, dual_basis_pre, _) = L.matrix().smith_form()
@@ -123,6 +209,7 @@ def _vector_valued_dimension(k, L):
     discriminant_basis = matrix(map( operator.mul,
                                      discriminant_basis_pre.inverse().rows()[:len(elementary_divisors)],
                                      elementary_divisors )).transpose()
+
     ## This is a form over QQ, so that we cannot use an instance of QuadraticForm
     discriminant_form = discriminant_basis.transpose() * L.matrix() * discriminant_basis
     if prod(elementary_divisors_inv) > 100 :
@@ -139,8 +226,11 @@ def _vector_valued_dimension(k, L):
 
     disc_quadratic = lambda *a: disc_bilinear(*(2 * a)) / 2
 
+    return (elementary_divisors_inv, disc_quadratic, disc_bilinear)
+
+def _discriminant_form_basis(k, L, discriminant_form_exponents):
     ## red gives a normal form for elements in the discriminant group
-    red = lambda x : map(operator.mod, x, elementary_divisors_inv)
+    red = lambda x : map(operator.mod, x, discriminant_form_exponents)
     def is_singl(x) :
         y = red(map(operator.neg, x))
         for (e, f) in zip(x, y) :
@@ -149,73 +239,53 @@ def _vector_valued_dimension(k, L):
             elif e > f :
                 return 1
         return 0
+
     ## singls and pairs are elements of the discriminant group that are, respectively,
     ## fixed and not fixed by negation.
     singls = list()
     pairs = list()
-    for x in mrange(elementary_divisors_inv) :
+    for x in mrange(discriminant_form_exponents) :
         si = is_singl(x)
         if si == 0 :
             singls.append(x)
         elif si == 1 :
             pairs.append(x)
 
-    if plus_basis :
-        subspace_dimension = len(singls + pairs)
-    else :
-        subspace_dimension = len(pairs)
+    return (singls, pairs)
 
-    ## 200 bits are, by far, sufficient to distinguish 12-th roots of unity
-    ## by increasing the precision by 4 for each additional dimension, we
-    ## compensate, by far, the errors introduced by the QR decomposition,
-    ## which are of the size of (absolute error) * dimension
-    CC = ComplexIntervalField(200 + subspace_dimension * 4)
-
-    zeta_order = ZZ(lcm([8, 12] + map(lambda ed: 2 * ed, elementary_divisors_inv)))
+def _weil_representation(CC, L, singls, pairs, plus_basis,
+                         discriminant_form_exponents, disc_quadratic, disc_bilinear):
+    r"""
+    Construct the Weil representation with values in a complex field
+    (or intervall field).
+    """
+    zeta_order = ZZ(lcm([8, 12] + map(lambda ex: 2*ex, discriminant_form_exponents)))
 
     zeta = CC(exp(2 * pi * I / zeta_order))
     sqrt2  = CC(sqrt(2))
     drt  = CC(sqrt(abs(L.det())))
 
-    Tmat  = diagonal_matrix(CC, [zeta**(zeta_order*disc_quadratic(*a)) for a in (singls + pairs if plus_basis else pairs)])
+    Tmat  = diagonal_matrix(CC, [zeta**(zeta_order*disc_quadratic(*a))
+                                 for a in (singls + pairs if plus_basis else pairs)])
+
+    neg = lambda v: map(operator.neg, v)
+
     if plus_basis :        
-        Smat = zeta**(zeta_order / 8 * L_dimension) / drt  \
+        Smat = zeta**(zeta_order / 8 * L.dim()) / drt  \
                * matrix( CC, [  [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in singls]
                               + [sqrt2 * zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in pairs]
                               for gamma in singls] \
                            + [  [sqrt2 * zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) for delta in singls]
-                              + [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) + zeta**(-zeta_order * disc_bilinear(*(gamma + map(operator.neg, delta)))) for delta in pairs]
+                              + [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) + zeta**(-zeta_order * disc_bilinear(*(gamma + neg(delta)))) for delta in pairs]
                               for gamma in pairs] )
     else :
-        Smat = zeta**(zeta_order / 8 * L_dimension) / drt  \
-               * matrix( CC, [  [zeta**(-zeta_order * disc_bilinear(*(gamma + delta))) - zeta**(-zeta_order * disc_bilinear(*(gamma + map(operator.neg,delta))))  for delta in pairs]
-                               for gamma in pairs ] )
-    STmat = Smat * Tmat
+        Smat = zeta**(zeta_order / 8 * L.dim()) / drt  \
+               * matrix( CC, [  [  zeta**(-zeta_order * disc_bilinear(*(gamma + delta)))
+                                 - zeta**(-zeta_order * disc_bilinear(*(gamma + neg(delta))))
+                                 for delta in pairs]
+                                for gamma in pairs ] )
 
-    ## This function overestimates the number of eigenvalues, if it is not correct
-    def eigenvalue_multiplicity(mat, ev) :
-        mat = matrix(CC, mat - ev * identity_matrix(subspace_dimension))
-        return len(filter( lambda row: all( e.contains_zero() for e in row), _qr(mat).rows() ))
-    
-    rti = CC(exp(2 * pi * I / 8))
-    S_ev_multiplicity = [eigenvalue_multiplicity(Smat, rti**n) for n in range(8)]
-    ## Together with the fact that eigenvalue_multiplicity overestimates the multiplicities
-    ## this asserts that the computed multiplicities are correct
-    assert sum(S_ev_multiplicity) == subspace_dimension
-
-    rho = CC(exp(2 * pi * I / 12))
-    ST_ev_multiplicity = [eigenvalue_multiplicity(STmat, rho**n) for n in range(12)]
-    ## Together with the fact that eigenvalue_multiplicity overestimates the multiplicities
-    ## this asserts that the computed multiplicities are correct
-    assert sum(ST_ev_multiplicity) == subspace_dimension
-
-    T_evs = [ ZZ((zeta_order * disc_quadratic(*a)) % zeta_order) / zeta_order
-              for a in (singls + pairs if plus_basis else pairs) ]
-
-    return (subspace_dimension * (1 + QQ(k) / 12)
-           - ZZ(sum( (ST_ev_multiplicity[n] * ((-2 * k - n) % 12)) for n in range(12) )) / 12
-           - ZZ(sum( (S_ev_multiplicity[n] * ((2 * k + n) % 8)) for n in range(8) )) / 8
-           - sum(T_evs))
+    return (Smat, Tmat)
 
 def _qr(mat) :
     r"""
@@ -237,11 +307,11 @@ def _qr(mat) :
 
         s = sum( (abs(mat[i,j]))**2 for i in xrange(cur_row, m) )
         if s.contains_zero() :
-            raise RuntimeError( "Cannot handle imprecise sums of elements that are too precise" )
+            raise RuntimeError( "Cannot handle sums of elements that are too imprecise" )
         
         p = sqrt(s)
         if (s - p * mat[cur_row,j]).contains_zero() :
-            raise RuntimeError( "Cannot handle imprecise sums of elements that are too precise" )
+            raise RuntimeError( "Cannot handle sums of elements that are too imprecise" )
         kappa = 1 / (s - p * mat[cur_row,j])
 
         mat[cur_row,j] -= p
