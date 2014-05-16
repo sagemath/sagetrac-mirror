@@ -115,7 +115,7 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
 
     raise StopIteration
 
-@cached_function
+## TODO: Implement caching by truncation.
 def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     r"""
     INPUT:
