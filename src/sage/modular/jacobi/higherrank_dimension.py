@@ -52,7 +52,7 @@ def jacobi_dimension(k, m):
     
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
         sage: from sage.modular.jacobi.higherrank_dimension import *
-        sage: assert all( len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) != jacobi_dimension(k, QuadraticForm(matrix(1, [2 * m]))) for k in range(8, 16) for m in range(1, 10) ) # long time
+        sage: assert all( len(_classical_jacobi_forms_as_weak_jacobi_forms(k, m)) == jacobi_dimension(k, QuadraticForm(matrix(1, [2 * m]))) for k in range(8, 16) for m in range(1, 10) ) # long time
     """
     from sage.matrix.matrix import is_Matrix
 
