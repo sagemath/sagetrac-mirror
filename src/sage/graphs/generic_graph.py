@@ -12668,6 +12668,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
+
+        ::
+
+            sage: D = DiGraph({0: {1: -1}, 1: {2: 0}})
+            sage: D.shortest_paths(0, by_weight=True)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2]}
         """
 
         if by_weight:
@@ -12678,7 +12684,7 @@ class GenericGraph(GenericGraph_pyx):
                     if v in path or pred[v] is v:
                         return
                     build_paths(pred[v])
-                    path[u] = path[pred[v]] + [u]
+                    path[v] = path[pred[v]] + [v]
                 for v in self:
                     build_paths(v)
                 return path
