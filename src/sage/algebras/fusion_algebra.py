@@ -334,12 +334,12 @@ class FusionAlgebra(CombinatorialFreeModule):
 
             sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
             sage: M = F.conjugation_matrices()
-            sage: list(M)
+            sage: sorted(M)
             [
-            [0 0 1 0]  [1 0 0 0]  [0 1 0 0]  [0 0 0 1]
-            [0 0 0 1]  [0 1 0 0]  [1 0 0 0]  [0 0 1 0]
-            [1 0 0 0]  [0 0 1 0]  [0 0 0 1]  [0 1 0 0]
-            [0 1 0 0], [0 0 0 1], [0 0 1 0], [1 0 0 0]
+            [0 0 0 1]  [0 0 1 0]  [0 1 0 0]  [1 0 0 0]
+            [0 0 1 0]  [0 0 0 1]  [1 0 0 0]  [0 1 0 0]
+            [0 1 0 0]  [1 0 0 0]  [0 0 0 1]  [0 0 1 0]
+            [1 0 0 0], [0 1 0 0], [0 0 1 0], [0 0 0 1]
             ]
         """
         from sage.matrix.constructor import matrix
@@ -367,8 +367,8 @@ class FusionAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: F = FusionAlgebra(QQ, ['D',4,1], 1)
-            sage: F.distinguished_indices()
-            [Lambda[4], 0, Lambda[3], Lambda[1]]
+            sage: sorted(F.distinguished_indices())
+            [0, Lambda[1], Lambda[3], Lambda[4]]
         """
         return self.conjugation_matrices().keys()
 
@@ -388,11 +388,11 @@ class FusionAlgebra(CombinatorialFreeModule):
             sage: conj = F.conjugation(omega); conj
             Generic endomorphism of The fusion algebra ['D', 4, 1] of level 1 over Rational Field
             sage: F.an_element()
-            2*F[0] + 2*F[Lambda[3]] + 3*F[Lambda[4]]
+            2*F[0] + 3*F[Lambda[3]] + 2*F[Lambda[4]]
             sage: conj(F.an_element())
-            3*F[0] + 2*F[Lambda[1]] + 2*F[Lambda[4]]
+            2*F[0] + 3*F[Lambda[1]] + 2*F[Lambda[4]]
             sage: conj(conj(F.an_element()))
-            2*F[0] + 2*F[Lambda[3]] + 3*F[Lambda[4]]
+            2*F[0] + 3*F[Lambda[3]] + 2*F[Lambda[4]]
         """
         C = self.conjugation_matrices()[omega]
         K = self.get_order()
