@@ -456,6 +456,32 @@ cdef class SageObject:
 
         SEE ALSO: :func:`dumps` :func:`loads`
 
+        .. note::
+
+            In some cases, if ``__reduce__()`` creates a circular reference, invalid
+            pickles are created by ``cPickle`` (see :trac:`15156`) but cPickle does not
+            raise an error. This is a known bug in Python:
+            http://bugs.python.org/issue1062277
+            In contrast, the module ``pickle`` raises an assertion, usually
+            ``assert id(obj) not in self.memo``. If this happens, then it is
+            almost always the case, that the tuple returned by some
+            ``__reduce__()`` method has a second entry which creates a circular
+            reference to ``self``.  Most likely ``__reduce__()`` does something
+            like::
+
+                return constructor, (self._parent, self.__dict__, ...)
+
+            To fix this, move the elements creating a circular reference to the
+            third parameter:
+
+                return constructor, (...), (self._parent, self.__dict__)
+
+            If ``self`` is an :class:`sage.structure.element.Element`, then
+            ``__setstate__`` probably already does the right thing. Otherwise,
+            add a method ``__setstate__(self, state)`` which initializes
+            ``self`` from ``state``; in the example, ``state`` would be the
+            tuple ``(self._parent, self.__dict__)``.
+
         TESTS::
 
             sage: class Bla(SageObject): pass
@@ -470,6 +496,13 @@ cdef class SageObject:
         tester = self._tester(**options)
         from sage.misc.all import loads, dumps
         tester.assertEqual(loads(dumps(self)), self)
+
+        import pickle
+        try:
+            pickle.dumps(self, protocol=2)
+        except AssertionError as e:
+            import sys
+            raise AssertionError, "An assertion was raised by pickle.dumps() but not by cPickle.dumps(). Most probably a __reduce__() method returned a tuple whose second entry contains a circular reference. Read the note in sage.structure.sage_object.SageObject._test_pickling for further information on how to resolve this issue.", sys.exc_info()[2]
 
     #############################################################################
     # Coercions to interface objects
