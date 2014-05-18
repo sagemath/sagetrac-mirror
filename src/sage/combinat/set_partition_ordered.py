@@ -145,6 +145,7 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition([])
             []
         """
+        from functools import reduce
         P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )
         return P.element_class(P, parts)
 

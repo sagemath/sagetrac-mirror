@@ -1520,6 +1520,7 @@ class Graphics3dGroup(Graphics3d):
             sage: len(G.texture_set())
             1
         """
+        from functools import reduce
         return reduce(set.union, [g.texture_set() for g in self.all])
 
     def flatten(self):

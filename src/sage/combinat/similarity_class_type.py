@@ -215,6 +215,7 @@ def fq(n, q = None):
         sage: fq(3)
         (q^6 - q^5 - q^4 + q^2 + q - 1)/q^6
     """
+    from functools import reduce
     if q == None:
         q = ZZ['q'].gen()
     return reduce(mul, [1-q**(-i-1) for i in range(n)], 1)
@@ -797,6 +798,7 @@ class SimilarityClassType(CombinatorialObject, Element):
             q = ZZ['q'].gen()
         if self.size() == 0:
             return q.parent().one()
+        from functools import reduce
         list_of_degrees = [PT.degree() for PT in self]
         maximum_degree = max(list_of_degrees)
         numerator = prod([prod([primitives(d+1, invertible=invertible, q = q)-i for i in range(list_of_degrees.count(d+1))]) for d in range(maximum_degree)])

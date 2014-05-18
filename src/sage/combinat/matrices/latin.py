@@ -2372,6 +2372,7 @@ def tau_to_bitrade(t1, t2, t3):
         [3 4 0 1 2]
     """
 
+    from functools import reduce 
     c1 = t1.to_cycles()
     c2 = t2.to_cycles()
     c3 = t3.to_cycles()

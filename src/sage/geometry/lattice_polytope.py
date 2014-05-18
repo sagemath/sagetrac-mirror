@@ -4250,6 +4250,7 @@ class NefPartition(SageObject,
             try:
                 return self._nabla
             except AttributeError:
+                from functools import reduce
                 vertices = reduce(minkowski_sum, (nabla._vertices
                                                   for nabla in self.nablas()))
                 self._nabla = LatticePolytope(vertices,

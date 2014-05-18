@@ -617,6 +617,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
             H[3, 1] + (q+1)*H[2, 2] + (2*q^2+2*q+1)*H[2, 1, 1]
              + (q^5+2*q^4+3*q^3+3*q^2+2*q+1)*H[1, 1, 1, 1]
         """
+        from functools import reduce
         H = HallAlgebra(self.base_ring(), self._q)
         return reduce(lambda cur,r: cur * H.monomial(Partition([1]*r)), a, H.one())
 

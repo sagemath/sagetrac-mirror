@@ -801,6 +801,7 @@ class Rings(Category_singleton):
                     return self.extension(minpolys, names)
                 except (TypeError, ValueError):
                     # ...but we can also construct it iteratively
+                    from functools import reduce
                     return reduce(lambda R, ext: R.extension(*ext), zip(minpolys, names), self)
 
             # 2. Otherwise, try to return a polynomial ring

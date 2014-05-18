@@ -644,6 +644,7 @@ class SetPartition(ClonableArray):
             sage: SetPartition([]).base_set()
             {}
         """
+        from functools import reduce
         return reduce(lambda x,y: x.union(y), self, Set([]))
 
     def base_set_cardinality(self):
@@ -1017,7 +1018,8 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
+        from functools import reduce
+        base_set = reduce(lambda x,y: x.union(y), map(Set, x), Set([]))
         if len(base_set) != sum(map(len, x)):
             return False
 
@@ -1298,6 +1300,7 @@ class SetPartitions_set(SetPartitions):
             return False
 
         # Make sure that the union of all the sets is the original set
+        from functools import reduce
         if reduce(lambda u, s: u.union(Set(s)), x, Set([])) != Set(self._set):
             return False
 

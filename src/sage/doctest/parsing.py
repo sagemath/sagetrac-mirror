@@ -214,6 +214,7 @@ def reduce_hex(fingerprints):
         sage: reduce_hex(["12399aedf","abc"])
         '0000000000000000000000012399a463'
     """
+    from functools import reduce
     from operator import xor
     res = reduce(xor, (int(x, 16) for x in fingerprints), 0)
     if res < 0:

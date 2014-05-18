@@ -1303,6 +1303,7 @@ def _plot(funcs, xrange, parametric=False,
                     pass
 
         if isinstance(exclude, (list, tuple)):
+            from functools import reduce
             exclude = sorted(exclude)
             # We make sure that points plot points close to the excluded points are computed
             epsilon = 0.001*(xmax - xmin)

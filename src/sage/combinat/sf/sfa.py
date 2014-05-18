@@ -1857,6 +1857,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         #To get the final answer, we compute the inner tensor product
         #of all the symmetric functions in res
+        from functools import reduce
         return self(reduce(lambda x, y: 0 if x==0 else x.itensor(y), res))
 
 

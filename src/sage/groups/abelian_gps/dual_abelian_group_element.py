@@ -89,6 +89,7 @@ def add_strings(x, z=0):
     """
     if len(x) == 0:
         return z
+    from functools import reduce
     if not isinstance(x, list):
         m = x.__iter__()
         y = m.next()

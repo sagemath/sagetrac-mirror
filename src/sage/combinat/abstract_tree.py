@@ -1162,6 +1162,7 @@ class AbstractTree(object):
                   . the matrix
                   . and the edges
                 """
+                from functools import reduce
                 name = reduce(
                     lambda x, y: x + y,
                     map(

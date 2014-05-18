@@ -822,6 +822,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
                     # Convert it into a list (in case it is an iterable)
                     maximal_faces = list(maximal_faces)
                 if len(maximal_faces) != 0:
+                    from functools import reduce
                     vertex_set = reduce(union, maximal_faces)
         if C is not None:
             self._vertex_set = copy(C.vertices())
@@ -2052,6 +2053,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
+            from functools import reduce
             from sage.misc.misc import union
 
             if self._sorted:
@@ -2146,6 +2148,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             self._facets.append(Simplex(-1))
 
         # Recreate the vertex set
+        from functools import reduce
         from sage.misc.misc import union
         if self._sorted:
             self._vertex_set = Simplex(sorted(reduce(union, self._facets)))

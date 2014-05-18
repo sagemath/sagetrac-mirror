@@ -500,6 +500,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             if len(B) == 0:
                 return self.monomial(A)
 
+            from functools import reduce
             P = SetPartitions()
             n = A.size()
             B = [Set([y+n for y in b]) for b in B] # Shift B by n

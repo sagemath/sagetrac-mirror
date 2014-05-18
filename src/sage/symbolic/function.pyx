@@ -256,6 +256,7 @@ cdef class Function(SageObject):
                 return self._evalf_(x, parent=parent(x))
             return
         else:
+            from functools import reduce 
             cc = get_coercion_model().canonical_coercion
             coerced = reduce(lambda x, y: cc(x, y)[0], args)
             if is_inexact(coerced) and not parent_c(coerced) is SR:

@@ -449,6 +449,7 @@ class FiniteDimensionalAlgebra(Algebra):
             then this is the unique left identity, and it is also a
             right identity.
         """
+        from functools import reduce
         k = self.base_ring()
         n = self.degree()
         # B is obtained by concatenating the elements of

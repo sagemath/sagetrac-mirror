@@ -56,6 +56,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
         elif gens is None:
             self._basis_matrix = Matrix(k, 0, n)
         elif isinstance(gens, (list, tuple)):
+            from functools import reduce
             B = [FiniteDimensionalAlgebraIdeal(A, x).basis_matrix() for x in gens]
             B = reduce(lambda x, y: x.stack(y), B, Matrix(k, 0, n))
             self._basis_matrix = B.echelon_form().image().basis_matrix()

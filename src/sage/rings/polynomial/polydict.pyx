@@ -757,7 +757,8 @@ cdef class PolyDict:
         - ``greater_etuple`` -- a term order
         """
         try:
-            return ETuple(reduce(greater_etuple,self.__repn.keys()))
+            from functools import reduce
+            return ETuple(reduce(greater_etuple, self.__repn.keys()))
         except KeyError:
             raise ArithmeticError("%s not supported",greater_etuple)
 

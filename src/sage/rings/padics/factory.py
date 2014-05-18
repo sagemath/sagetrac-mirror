@@ -2446,6 +2446,7 @@ def is_eisenstein(poly):
     """
     if poly[0].valuation() != 1:
         return False
+    from functools import reduce
     if reduce(lambda a, b: a or b, [(c.valuation() < 1) for c in poly.list()[1:poly.degree()]]):
         return False
     return True
@@ -2471,6 +2472,7 @@ def is_unramified(poly):
     """
     if poly[0].valuation() > 0:
         return False
+    from functools import reduce
     if reduce(lambda a, b: a or b, [(c.valuation() < 0) for c in poly.list()[1:poly.degree()]]):
         return False
     F = poly.parent().change_ring(poly.base_ring().residue_class_field())(poly).factor()

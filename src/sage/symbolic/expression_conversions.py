@@ -738,6 +738,7 @@ class AlgebraicConverter(Converter):
                 expt = Rational(expt)
                 return self.field(base**expt)
             else:
+                from functools import reduce
                 return reduce(operator, map(self, ex.operands()))
         except TypeError:
             pass
@@ -1014,6 +1015,7 @@ class PolynomialConverter(Converter):
             base, exp = ex.operands()
             return self(base)**Integer(exp)
         else:
+            from functools import reduce
             ops = [self(a) for a in ex.operands()]
             return reduce(operator, ops)
 
@@ -1224,6 +1226,7 @@ class FastFloatConverter(Converter):
         if operator is _operator.pow and operands[1] == Rational(((1,2))):
             from sage.functions.all import sqrt
             return sqrt(self(operands[0]))
+        from functools import reduce
         fops = map(self, operands)
         return reduce(operator, fops)
 
@@ -1378,6 +1381,7 @@ class FastCallableConverter(Converter):
                 return self.etb.call(_operator.div, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
+        from functools import reduce
         return reduce(lambda x,y: self.etb.call(operator, x,y), operands)
 
     def symbol(self, ex):
@@ -1525,6 +1529,7 @@ class RingConverter(Converter):
             base = self(base)
             return base ** expt
         else:
+            from functools import reduce
             return reduce(operator, map(self, operands))
 
     def composition(self, ex, operator):
@@ -1611,6 +1616,7 @@ class SubstituteFunction(Converter):
             sage: s.arithmetic(f, f.operator())
             x*bar(x) + pi/bar(x)
         """
+        from functools import reduce
         return reduce(operator, map(self, ex.operands()))
 
     def composition(self, ex, operator):

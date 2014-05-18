@@ -664,6 +664,7 @@ class FanMorphism(FreeModuleMorphism):
             Domain fan: Rational polyhedral fan in 2-d lattice N
             Codomain fan: Rational polyhedral fan in 2-d lattice N
         """
+        from functools import reduce
         domain_fan = self._domain_fan
         codomain_fan = self._codomain_fan
         lattice_dim = self.domain().dimension()
@@ -871,6 +872,8 @@ class FanMorphism(FreeModuleMorphism):
             raise ValueError("%s does not sit in %s!"
                              % (codomain_fan, self.codomain()))
         RISGIS = self._RISGIS()
+
+        from functools import reduce
         for n, domain_cone in enumerate(domain_fan):
             if not domain_cone.is_trivial() and \
                     not reduce(operator.and_,
@@ -987,6 +990,7 @@ class FanMorphism(FreeModuleMorphism):
             if cone.is_trivial():
                 self._image_cone[cone] = codomain_fan(0)[0]
             elif codomain_fan.is_complete():
+                from functools import reduce
                 # Optimization for a common case
                 RISGIS = self._RISGIS()
                 CSGIS = set(reduce(operator.and_,

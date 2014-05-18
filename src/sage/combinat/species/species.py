@@ -447,6 +447,7 @@ class GenericCombinatorialSpecies(SageObject):
         squares = [self]
         for i in range(len(digits) - 1):
             squares.append(squares[-1] * squares[-1])
+        from functools import reduce
         return reduce(operator.mul, (s for i, s in zip(digits, squares)
                                      if i != 0))
 

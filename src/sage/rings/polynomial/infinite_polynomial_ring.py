@@ -1433,6 +1433,7 @@ class InfinitePolynomialGen(SageObject):
                 names = [ [name+'_'+str(j) for name in P._names] for j in range(i+1)]
             except OverflowError:
                 raise IndexError("Variable index is too big - consider using the sparse implementation")
+            from functools import reduce
             names = reduce(operator.add, names)
             names.sort(cmp=P.varname_cmp,reverse=True)
             #Create the new polynomial ring

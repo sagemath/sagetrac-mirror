@@ -103,6 +103,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
             sage: a.automorphism_group()
             Permutation Group with generators [(1,2)]
         """
+        from functools import reduce
         from sage.groups.all import SymmetricGroup
         return reduce(lambda a,b: a.direct_product(b, maps=False),
                       [SymmetricGroup(block._list) for block in self._list])

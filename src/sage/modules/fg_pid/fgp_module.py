@@ -1572,6 +1572,7 @@ class FGP_Module_class(Module):
         if not self.is_finite():
             g = 0
         else:
+            from functools import reduce
             g = reduce(lcm, self.invariants())
         return self.base_ring().ideal(g)
 
