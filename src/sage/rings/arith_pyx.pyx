@@ -22,7 +22,7 @@ import integer
 
 zero = integer.smallInteger(0)
 
-cdef int two_squares_c(unsigned int n, unsigned int *res):
+cdef int two_squares_c(unsigned int n, unsigned int res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
@@ -53,7 +53,7 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
     # if n=2 mod 4 then i and j must be odd
     if n%4 == 1:
         i = ii = 0
-        j = <unsigned int> sqrt(n) + 1
+        j = <unsigned int> sqrt(n) + 1 # (rounding is toward zero)
         jj = j*j
         while ii <= n/2:
             nn = n - ii
@@ -70,7 +70,7 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
             ii = i*i
     else: # n mod 4 = 2
         i = ii = 1
-        j = <unsigned int> sqrt(n)
+        j = <unsigned int> sqrt(n) # (rounding is toward zero)
         j += 1 - j%2
         jj = j*j
         while ii <= n/2:
@@ -90,7 +90,7 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
     return 0
 
 
-cdef int three_squares_c(unsigned int n, unsigned int *res):
+cdef int three_squares_c(unsigned int n, unsigned int res[3]):
     r"""
     Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
 
@@ -158,6 +158,13 @@ def two_squares_pyx(unsigned int n):
         ValueError: 3 is not a sum of 2 squares
         sage: two_squares_pyx(106)
         (5, 9)
+
+    TESTS::
+
+        sage: s = lambda (x,y) : x**2+y**2
+        sage: for ij in Subsets(Subsets(10000,15).random_element(),2):
+        ....:     if s(two_squares_pyx(s(ij))) != s(ij):
+        ....:         print "hey"
     """
     cdef unsigned int i[2]
 
@@ -205,6 +212,14 @@ def three_squares_pyx(unsigned int n):
         ValueError: 7 is not a sum of 3 squares
         sage: three_squares_pyx(107)
         (1, 5, 9)
+
+    TESTS::
+
+        sage: s = lambda (x,y,z) : x**2+y**2+z**2
+        sage: for ijk in Subsets(Subsets(10000,15).random_element(),3):
+        ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
+        ....:         print "hey"
+
     """
     cdef unsigned int i[3]
 
@@ -254,7 +269,7 @@ def four_squares_pyx(unsigned int n):
         return (zero, zero, zero, zero)
 
     # we pick the largest square we can for j
-    j = (<unsigned int> sqrt(<double> n)) + 1
+    j = (<unsigned int> sqrt(<double> n)) + 1 # (rounding is toward zero)
     while j*j > n:
         j -= 1
 
