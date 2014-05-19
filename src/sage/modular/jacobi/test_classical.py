@@ -61,15 +61,18 @@ def test_multiplication(prec, k, m, k_mod):
     zeta = P.base_ring().gen(0)
 
     indices = list(classical_jacobi_fe_indices(m, prec, reduced=True))
+    indices_nonreduced = list(classical_jacobi_fe_indices(m, prec, reduced=False))
     red = lambda nr: reduce_classical_jacobi_fe_index(nr,m)
 
-    psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices]) for _psi in classical_jacobi_forms(k+k_mod, m, prec)]
-    psi_span = matrix([[psi[nr] for nr in indices] for psi in psis]).row_module()
+    psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices])
+            for _psi in classical_jacobi_forms(k+k_mod, m, prec)]
+    psi_span = matrix([[psi[nr] for nr in indices]
+                       for psi in psis]).row_module()
 
     for phi1 in classical_jacobi_forms(k, m, prec):
         phi1_poly = P.zero()
-        for nr in classical_jacobi_fe_indices(m, prec):
-            (s, nrred) = red(nr)
+        for nr in indices_nonreduced:
+            (nrred, s) = red(nr)
             if nrred in phi1:
                 phi1_poly += s**k * phi1[nrred] * q**n * zeta**r
 

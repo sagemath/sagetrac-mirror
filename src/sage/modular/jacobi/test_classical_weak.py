@@ -295,7 +295,7 @@ def test_multiplication(prec, k, m, k_mod):
     for phi1 in classical_weak_jacobi_forms(k, m, prec):
         phi1_poly = P.zero()
         for nr in classical_weak_jacobi_fe_indices(m, prec):
-            (s, nrred) = red(nr)
+            (nrred, s) = red(nr)
             if nrred in phi1:
                 phi1_poly += s**k * phi1[nrred] * q**n * zeta**r
 
