@@ -173,7 +173,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
-from sage.misc.all import latex, flatten, prod, cached_method
+from sage.misc.all import latex, flatten, prod, cached_method, uniq
 from sage.modules.all import vector
 from sage.modules.free_module import (FreeModule_ambient_field,
                                       FreeModule_ambient_pid)
@@ -1348,7 +1348,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: cones = [Cone([B[0], B[1]]), Cone([B[1], -B[0]-B[1]]), Cone([-B[0]-B[1], B[0]])]
             sage: X = ToricVariety(Fan(cones))
             sage: p = (-X.K()).polyhedron(); p
-            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
             sage: len(p.integral_points())
             10
         """
@@ -1356,10 +1356,16 @@ class ToricDivisor_generic(Divisor_generic):
         divisor = vector(self)
         ieqs = [[divisor[i]] + list(fan.ray(i)) for i in range(fan.nrays())]
         p = Polyhedron(ieqs=ieqs)
-        if fan.lattice() is not fan.lattice().ambient_module():
-            gens = [i.lift() for i in fan.dual_lattice().gens()]
-            p = p.intersection(Polyhedron(lines=gens))
-        return p
+        if fan.lattice() is fan.lattice().ambient_module():
+            return p
+        N = fan.dual_lattice()
+        Wp = N.W().change_ring(QQ)
+        Vp = N.V().change_ring(QQ)
+        Np = Vp.quotient(Wp)
+        vertices = uniq(tuple(Np(list(v))) for v in p.vertices())
+        lines = uniq(tuple(Np(list(l))) for l in p.lines()
+                     if not vector(l) in Wp)
+        return Polyhedron(vertices=vertices, lines=lines, base_ring=QQ)
 
     def sections(self):
         """
