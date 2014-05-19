@@ -32,6 +32,33 @@ REFERENCE:
 
 
 def vector_valued_modular_forms(k, L, prec):
+    r"""
+    A basis of the space of vector valued modular forms of weight `k`
+    and the conjugate of the Weil representation attached to the
+    quadratic form `L`.  Compute Fourier expansions up to precision ``prec``.
+
+    INPUT:
+
+    - `k` -- An integer.
+
+    - `L` -- A quadratic form over `\Z`.
+
+    - ``prec`` -- A nonnegative integer.
+
+    OUTPUT:
+
+    A list of dictionaries that encode the Fourier coefficients of
+    vector valued modular forms.  See `meth:theta_decomposition` for a
+    description of these expansions.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_vector_valued.py:test_vector_valued_modular_forms``.
+    """
     assert L.is_positive_definite()
 
     L_adj = QuadraticForm(2 * L.matrix().adjoint())
@@ -43,6 +70,29 @@ def vector_valued_modular_forms(k, L, prec):
             for phi in higher_rank_jacobi_forms(k, L, prec + ceil(max_n_shift))]
 
 def  weakly_holomorphic_vector_valued_modular_forms(k, L, order, prec):
+    r"""
+    A basis of weakly holomorphic vector valued modular forms of given
+    order, weight `k`, and for the Weil representation associated to
+    `L`.
+
+    INPUT:
+
+    - `k` -- An integer.
+
+    - `L` -- A quadratic form over `\Z`.
+
+    - ``order`` -- An integer (typically negative).
+
+    - ``prec`` -- A nonnegative integer.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_vector_valued.py:test_weakly_holomorphic_vector_valued_modular_forms``.
+    """
     if order not in ZZ:
         raise NotImplementedError("Only integral orders allowed.")
         
@@ -142,11 +192,24 @@ def theta_decomposition(phi, m, r_classes):
     r"""
     Apply the theta decomposition to a Fourier expansion `\phi`.
 
+    INPUT:
+
+    - ``phi`` -- A dictionary representing the Fourier expansion of a
+                 Jacobi form.
+
+    - `m` -- A quadratic form over `m`.
+
+    - ``r_classes`` -- A list of lists of tuples.
+
     OUTPUT:
 
     - A dictionary whose keys are lifts of elements of a discrimiant group, and whose
       values are dictionaries whose keys are rationals (the exponents of `q`) and whose
-      values are also rationals (the corresponding coefficients). 
+      values are also rationals (the corresponding coefficients).
+
+    ..TODO:
+
+    Insert examples.
     """
     L = m
     L_span = L.matrix().row_module()
@@ -171,6 +234,22 @@ def theta_decomposition(phi, m, r_classes):
     return f
 
 def _principle_part(f):
+    r"""
+    The principal part of a weakly holomorphic vector valued modular form.
+
+    INPUT:
+
+    - `f` -- A dictionary representing the Fourier expansion of a
+             weakly holomorphic modular forms.
+
+    OUTPUT:
+
+    A dictionary representing the principal part.
+
+    ..TODO:
+
+    Insert examples.
+    """
     res = {}
     for (mu,fe) in f.items():
         res[mu] = {}
@@ -179,12 +258,51 @@ def _principle_part(f):
     return res
 
 def _mul_scalar_vvform(c, f) :
+    r"""
+    Multiplication of a Fourier expansion by a constant.
+
+    INPUT:
+
+    - `c` -- A constant.
+
+    - `f` -- A dictionary representing the Fourier expansion of a
+             weakly holomorphic modular forms.
+
+    OUTPUT:
+
+    A dictionary representing a Fourier expansion.
+
+    ..TODO:
+
+    Insert examples.
+    """
     res = {}
     for (mu,fe) in f.items():
         res[mu] = dict((n,c*coeff) for (n,coeff) in fe.items())
     return res
 
 def _add_vvforms(f, g, L_span) :
+    r"""
+    Addition of two Fourier expansions.
+
+    INPUT:
+
+    - `f` -- A dictionary representing the Fourier expansion of a
+             weakly holomorphic modular forms.
+
+    - `g` -- A dictionary representing the Fourier expansion of a
+             weakly holomorphic modular forms.
+
+    - ``L_span`` -- A module over `\Z`.
+
+    OUTPUT:
+
+    A dictionary representing a Fourier expansion.
+
+    ..TODO:
+
+    Insert examples.
+    """
     res = copy(g)
     for (mu,fe) in f.items():
         for gmu in g.keys():
@@ -201,6 +319,26 @@ def _add_vvforms(f, g, L_span) :
     return res
 
 def _sum_mul_vvforms(coefficients, vvforms, L_span):
+    r"""
+    Linear combination of Fourier expansions.
+
+    INPUT:
+
+    - ``coefficients`` -- A list of constants.
+
+    - `vvforms` -- A list of dictionaries representing the Fourier expansion of a
+                   weakly holomorphic modular forms.
+
+    - ``L_span`` -- A module over `\Z`.
+
+    OUTPUT:
+
+    A dictionary representing a Fourier expansion.
+
+    ..TODO:
+
+    Insert examples.
+    """
     res = {}
     for (c,f) zip(coefficients, vvforms):
         res = _add_vvforms(res, _mul_scalar_vvform(c,f), L_span)
