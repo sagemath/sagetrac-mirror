@@ -234,6 +234,9 @@ usage_advanced() {
     exit 0
 }
 
+# Back up enironment
+/usr/bin/env >"$SAGE_ROOT"/.orig-env
+
 # Check for '--nodotsage' before sourcing sage-env; otherwise sage-env
 # will already have set some environment variables with the old
 # setting for DOT_SAGE.
