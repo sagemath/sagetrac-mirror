@@ -2,10 +2,17 @@ r"""
 A dimension formula for vector-valued modular forms, and functions
 that apply it to the case of Jacobi forms.
 
+..TODO:
+
+For Jacobi forms there is a much better way to implement this
+formula.  This is ongoing work by Ehlen et al.  Replace this code by
+his work as soon as possible.  However, for general vector valued
+modular forms with diagonizable representation matrix `\rho([1, 1; 0,
+1])`, it is necessary to keep this method.
+
 AUTHOR:
 
 - Martin Raum
-
 """
 
 #===============================================================================
@@ -56,7 +63,6 @@ def jacobi_dimension(k, m):
     """
     from sage.matrix.matrix import is_Matrix
 
-    ## TODO: Replace by discriminant forms code as soon as it is available in Sage
     if is_Matrix(m):
         return vector_valued_dimension(k - ZZ(m.ncols()) / 2, QuadraticForm(-m))
     else:
@@ -86,7 +92,7 @@ def nmb_isotropic_vectors(k, L):
         1
     """
     (discriminant_form_exponents, disc_quadratic, disc_bilinear) = _discriminant_form(L)
-    (singls, pairs) = _discriminant_form_basis(k, L, discriminant_form_exponents)
+    (singls, pairs) = _discriminant_form_pmone(L, discriminant_form_exponents)
 
     plus_basis = ZZ(L.dim() + 2*k) % 4 == 0
 
@@ -134,9 +140,8 @@ def vector_valued_dimension(k, L):
     if L.dim() % 2 != ZZ(2 * k) % 2 :
         return 0
 
-
     (discriminant_form_exponents, disc_quadratic, disc_bilinear) = _discriminant_form(L)
-    (singls, pairs) = _discriminant_form_basis(k, L, discriminant_form_exponents)
+    (singls, pairs) = _discriminant_form_pmone(L, discriminant_form_exponents)
     plus_basis = ZZ(L.dim() + 2*k) % 4 == 0
 
     if plus_basis :
@@ -186,6 +191,23 @@ def vector_valued_dimension(k, L):
 
 def _discriminant_form(L):
     r"""
+    Compute the discriminant form attached to a quadratic form `L`.
+
+    INPUT:
+
+    - `L` -- A quadratic form.
+
+    OUTPUT:
+
+    - A triple ``(elementary_divisors_inv, disc_quadratic,
+      disc_bilinear)``.  The first component is a list of positive
+      integers, say, length `l` that correspond to elementary divisors
+      of the discriminant form.  The second and third component are
+      functions on `l` and `2l` arguments, respectively.
+
+    TESTS:
+
+    See test_higherrank_dimension:test__discrimant_form.
     """
     if L.matrix().rank() != L.matrix().nrows() :
         raise ValueError( "The lattice (={0}) must be non-degenerate.".format(L) )
@@ -228,7 +250,30 @@ def _discriminant_form(L):
 
     return (elementary_divisors_inv, disc_quadratic, disc_bilinear)
 
-def _discriminant_form_basis(k, L, discriminant_form_exponents):
+def _discriminant_form_pmone(L, discriminant_form_exponents):
+    r"""
+    Partition the discriminant form into elements that are fixed by
+    multiplication by `-1` and those which are not.
+
+    INPUT:
+
+    - `L` -- A quadratic form over `\Z`.
+
+    - ``discriminant_form_exponents`` -- A list of positive integers
+                                         that correspond to the
+                                         exponents of the Jordan
+                                         components.
+
+    OUTPUT:
+
+    - A pair ``(singls, pairs)``, the first component of which
+      contains a list of elements that are fixed by `-1` and the
+      second component of which consists of elements which are not.
+
+    TESTS:
+
+    See test_higherrank_dimension:test__discrimant_form_pmone.
+    """
     ## red gives a normal form for elements in the discriminant group
     red = lambda x : map(operator.mod, x, discriminant_form_exponents)
     def is_singl(x) :
@@ -258,6 +303,39 @@ def _weil_representation(CC, L, singls, pairs, plus_basis,
     r"""
     Construct the Weil representation with values in a complex field
     (or intervall field).
+
+    INPUT:n
+
+    - ``CC`` -- A complex field, a complex interval field, or any
+                field that allows for conversion of symbolic
+                expressions.
+
+    - `L` -- A quadratic form over `\Z`.
+
+    - ``singls`` -- A list of tuples of integers.  See meth:`_discriminant_form_pmone`.
+
+    - ``pairs`` -- A list of tuples of integers.  See meth:`_discriminant_form_pmone`.
+
+    - ``plus_basis`` -- Boolean.  Compute the Weil representation on
+                        the span of `e_v + e_{-v}` or on the span of
+                        `e_v - e_{-v}`.
+
+    - ``discriminant_form_exponents`` -- A list of positive integers.
+                                         See `meth:_discriminant_form`.
+
+    - ``disc_quadratic`` -- A function.  See `meth:_discriminant_form`.
+
+    - ``disc_bilinear`` -- A function.  See `meth:_discriminant_form`.
+
+    OUTPUT:
+
+    - A pair of matrices `S` and `T` that corrspond to the image under
+      the Weil representation of `((0,-1; 1,0), \sqrt{\tau})` and
+      `((1,1; 0,1), 1)`.
+
+    TESTS:
+
+    See test_higherrank_dimension:test__weil_representation.
     """
     zeta_order = ZZ(lcm([8, 12] + map(lambda ex: 2*ex, discriminant_form_exponents)))
 
@@ -290,8 +368,27 @@ def _weil_representation(CC, L, singls, pairs, plus_basis,
 def _qr(mat) :
     r"""
     Compute the R matrix in QR decomposition using Housholder reflections.
-    
-    This is an adoption of the implementation in mpmath by Andreas Strombergson. 
+
+    INPUT:
+
+    - ``mat`` -- A matrix over a complex interval field.
+
+    OUTPUT:
+
+    - A matrix in row echelon form.  The algorithm raises an
+      ArithmeticError if the precision is insufficient to compute the
+      decomposition.
+
+    NOTE:
+
+    This is an adoption of the implementation in mpmath by Andreas Strombergson.
+
+    ..TODO:
+
+    Naturally, this is a stub implementation.  It belongs into the
+    corresponding matrix class, but for the infrastructure of the
+    matrix class seems a bit too obscrure to me.  Can an expert help?
+    Ask Rob Beezer?
     """
     CC = mat.base_ring()
     mat = copy(mat)
@@ -307,11 +404,11 @@ def _qr(mat) :
 
         s = sum( (abs(mat[i,j]))**2 for i in xrange(cur_row, m) )
         if s.contains_zero() :
-            raise RuntimeError( "Cannot handle sums of elements that are too imprecise" )
+            raise ArithmeticError( "Cannot handle sums of elements that are too imprecise" )
         
         p = sqrt(s)
         if (s - p * mat[cur_row,j]).contains_zero() :
-            raise RuntimeError( "Cannot handle sums of elements that are too imprecise" )
+            raise ArithmeticError( "Cannot handle sums of elements that are too imprecise" )
         kappa = 1 / (s - p * mat[cur_row,j])
 
         mat[cur_row,j] -= p
