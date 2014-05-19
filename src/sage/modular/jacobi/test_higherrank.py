@@ -29,9 +29,10 @@ from sage.modules.all import FreeModule
 from sage.quadratic_forms.all import QuadraticForm
 from sage.rings.all import ZZ
 
+from random import *
 
 from sage.modular.jacobi.higherrank import (
-    reduce_higher_rank_jacobi_fe_index
+    _higherrank_jacobi_r_classes
 )
 
 
@@ -43,25 +44,62 @@ def _test_set__jacobi_m():
 
 
 def test__reduce_higher_rank_jacobi_fe_index():
-    for m in _test_set__jacobi_m():
+     for m in _test_set__jacobi_m():
         r_classes = _higherrank_jacobi_r_classes(m)[0]
         m_span = m.matrix().row_module()
+        m_adj = QuadraticForm(2 * m.matrix().adjoint())
         fm = FreeModule(ZZ, m.dim())
 
         for _ in range(10):
             n = random_int()
             for _ in range(10):
                 r = fm.random_element()
-                yield (_test__reduce_higher_rank_jacobi_fe_index, ((n, r), m, r_classes, m_span))
+                yield (_test__reduce_higher_rank_jacobi_fe_index,
+                       ((n, r), m, m_adj, r_classes, m_span))
 
-def _test__reduce_higher_rank_jacobi_fe_index((n, r), m, r_classes, m_span):
-    return NotImplemented()
+def _test__reduce_higher_rank_jacobi_fe_index((n, r), m, m_adj, r_classes, m_span):
+    from sage.modular.jacobi.higherrank import reduce_higher_rank_jacobi_fe_index
+
+    ((nred, rred), s) = reduce_higherrank_jacobi_fe_index((n, r), m_adj, r_classes, m_span)
+
+    if s == 1:
+        assert any(vector(r_class[0]) - rred in m_span
+                   for r_class in r_classes)
+    else:
+        assert any(vector(r_class[0]) + rred in m_span
+                   for r_class in r_classes)
+
+    assert 2*m.det()*n - m_adj(r) == 2*m.det()*nred - m_adj(rred)
+
+def test__reduce_higher_rank_jacobi_fe_index__r():
+    for m in _test_set__jacobi_m():
+        r_classes = _higherrank_jacobi_r_classes(m)[0]
+        m_span = m.matrix().row_module()
+        fm = FreeModule(ZZ, m.dim())
+
+        r = fm.random_element()
+        yield (_test__reduce_higher_rank_jacobi_fe_index__r,
+               (r, r_classes, m_span))
+
+def test__reduce_higher_rank_jacobi_fe_index__r(r, r_classes, m_span):
+    from sage.modular.jacobi.higherrank import _reduce_higher_rank_jacobi_fe_index__r
+
+    (rred, s) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
+
+    if s == 1:
+        assert any(vector(r_class[0]) - rred in m_span
+                   for r_class in r_classes)
+    else:
+        assert any(vector(r_class[0]) + rred in m_span
+                   for r_class in r_classes)
 
 def test__higherrank_jacobi_r_classes():
     for m in _test_set__jacobi_m():
         yield (_test__higherrank_jacobi_r_classes, (m,))
 
 def _test__higherrank_jacobi_r_classes(m):
+    from sage.modular.jacobi.higherrank import _higherrank_jacobi_r_classes
+
     (r_classes, r_classes_reduction_signs) = _higherrank_jacobi_r_classes(m)
     m_span = m.matrix().span()
 
@@ -88,128 +126,85 @@ def _test__higherrank_jacobi_r_classes(m):
                     vector(r_classes[ix][0]) + vector(r_class[0]) not in m_span
             )
 
-# def _test__coefficient_by_restriction(precision, k, relation_precision = None, additional_lengths = 1 ) :
-#     r"""
-#     TESTS::
-    
-#         sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-#         sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _test__coefficient_by_restriction
+def test_higherrank_jacobi_forms():
+    for m in _test_set__jacobi_m():
+        for k in [8, 11, 19, 20]:
+            prec = 20
+            jforms = higherrank_jacobi_forms(k, m, prec)
+            yield (_test_higherrank_jacobi_forms__restriction,
+                   (k, m, prec, jforms))
+            yield (_test_higherrank_jacobi_forms__multiplication,
+                   (k, m, prec, jforms))
 
-#     ::
+def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
+    rand = Random()
+    indices_red = [(nr, reduce_higherrank_jacobi_fe_index(nr, m_adj, r_classes, m_span))
+                   for nr in higherrank_jacobi_fe_indices(m, prec, reduced=False)]
+    
 
-#         sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-#         sage: precision = indices.filter(10)
-#         sage: _test__coefficient_by_restriction(precision, 10, additional_lengths = 10)
-        
-#     ::
+    max_rst_index = 30
+    all_relation_rst_vectors = \
+        flatten( m.short_vector_list_up_to_length(max_rst_index+1), max_level = 1 )
 
-#         sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [4,1,1,2])))
-#         sage: precision = JacobiFormD1Filter(5, indices.jacobi_index())
-#         sage: _test__coefficient_by_restriction(precision, 40, additional_lengths = 4) # long test
-        
-#     We use different precisions for relations and restrictions::
+    relation_rst_vectors = []
+    while len(relation_rst_vectors) < 20
+        s = rand.choice(all_relation_rst_vectors)
+        if s not in relation_rst_vectors: relation_rst_vectors.append(s)
 
-#         sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-#         sage: precision = indices.filter(20)
-#         sage: relation_precision = indices.filter(2)
-#         sage: _test__coefficient_by_restriction(precision, 10, relation_precision, additional_lengths = 4)
-#     """
-#     from sage.misc.misc import verbose
-    
-#     L = precision.jacobi_index()
-    
-#     if relation_precision is not None and not relation_precision <= precision :
-#         raise ValueError( "Relation precision must be less than or equal to precision." )
+    for s in relation_rst_vectors:
+        jforms_restr = classical_jacobi_forms(k, m(s), prec)
+        indices_restr = list(classical_weak_jacobi_fe_indices(m(s), prec, reduced=True))
+        restr_span = matrix([[(phi[nr] if nr in phi else 0) for nr in indices_restr]
+                             for phi in jforms_restr]).row_module()
 
-#     expansions = _coefficient_by_restriction(precision, k, relation_precision)
-#     verbose( "Start testing restrictions of {2} Jacobi forms of weight {0} and index {1}".format(k, L, len(expansions)) )
-    
-#     ch1 = JacobiFormD1WeightCharacter(k)
-#     chL = JacobiFormD1WeightCharacter(k, L.matrix().nrows())
-    
-#     R = precision.monoid()._r_representatives
-#     S_extended = _find_complete_set_of_restriction_vectors(L, R)
+        for phi in jforms:
+            phi_rst = _restrict_jacobi_form(k, phi, s, indices_red, indices_restr)
+            assert (vector([phi_rst[nr] if nr in phi_rst else 0]
+                           for nr in indices_restr)
+                    in restr_span)
 
-#     S = list()
-#     for (s, _) in S_extended :
-#         if s not in S :
-#             S.append(s) 
-#     max_S_length = max([L(s) for s in S])
+def _restrict_jacobi_form(k, phi, s, indices_red, indices_rest):
+    phi_rst = dict()
 
-#     Snew = flatten( enumerate_short_vectors__python( map(list, L.matrix().rows()), 2 * max_S_length + 2, max_S_length + additional_length, True).values(), max_level = 1 )
-#     verbose( "Will use the following restriction vectors: {0}".format(Snew) )
-    
-#     jacobi_forms_dict = dict()
-#     non_zero_expansions = list()
-#     for s in Snew :
-#         m = L(s)
-#         verbose( "Restriction to index {0} via {1}".format(m, s) )
-        
-#         try :
-#             jacobi_forms = jacobi_forms_dict[m]
-#         except KeyError : 
-#             jacobi_forms = JacobiFormsD1NN(QQ, JacobiFormD1NNGamma(k, m), JacobiFormD1NNFilter(precision.index(), m))
-#             jacobi_forms_dict[m] = jacobi_forms
-#         jacobi_forms_module = span([ vector( b[(ch1, k)] for k in jacobi_forms.fourier_expansion_precision() )
-#                                      for b in map(lambda b: b.fourier_expansion(), jacobi_forms.graded_submodule(None).basis()) ])
-        
-#         fourier_expansion_module = jacobi_forms.fourier_expansion_ambient()
-        
-#         for (i, expansion) in enumerate(expansions) :
-#             verbose( "Testing restriction of {0}-th form".format(i) )
-#             restricted_expansion_dict = dict()
-#             for (n,r) in precision.monoid_filter() :
-#                 rres = s.dot_product(vector(r))
-#                 try :
-#                     restricted_expansion_dict[(n,rres)] += expansion[(chL,(n,r))]
-#                 except KeyError :
-#                     restricted_expansion_dict[(n,rres)] = expansion[(chL,(n,r))]
-            
-#             restricted_expansion = vector( restricted_expansion_dict.get(k, 0) for k in jacobi_forms.fourier_expansion_precision() )
-#             if restricted_expansion not in jacobi_forms_module :
-#                 raise RuntimeError( "{0}-th restricted via {1} is not a Jacobi form".format(i, s) )
-            
-#             if restricted_expansion != 0 :
-#                 non_zero_expansions.append(i)
-    
-#     assert Set(non_zero_expansions) == Set(range(len(expansions)))
- 
-# def _local_restriction_matrix(r_classes, r_classes_reduction_signs, rst_vectors) :
-#     r"""
-#     Return a matrix whose rows correspond to the evaluations of the restriction
-#     vectors (s, rst_r) in rst_vectors.
-    
-#     INPUT:
-    
-#     - ``r_classes`` -- A list of lists of tuples or vectors in L \otimes QQ (with
-#                        given coordinates).  
+    for ((n,r), ((nred, rred), s)) in indices_red:
+        r_rst = s.dot_product(vector(r))
+        if (n, r_rst) in indices_rest:
+            try:
+                phi_rst[(n, r_rst)] += s**k * phi[nrred]
+            except KeyError:
+                phi_rst[(n, r_rst)] = s**k * phi[nrred]
 
-#     - ``r_classes_reduction_signs`` -- A list of lists of `\pm 1`.
-    
-#     - ``rst_vectors`` -- A list of pairs `(s, r)`, where `s` is a vector,
-#                          and `r` is an integer.
-             
-#     OUTPUT:
-    
-#     - A matrix with integer entries.
-    
-#     TESTS::
+    return phi_rst
 
-#         sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-#         sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _find_complete_set_of_restriction_vectors
-#         sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _local_restriction_matrix                
-#         sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-#         sage: R = indices._r_representatives
-#         sage: S = _find_complete_set_of_restriction_vectors(indices.jacobi_index(), R, 4)        
-#         sage: _local_restriction_matrix(R, S)
-#         [1 1 1]
-#         [0 1 1]
-#         [0 1 1]
-#         [1 1 1]
-#         [0 1 1]
-#         [0 1 1]
-#         [0 0 2]
-#     """
-#     R = [map(vector, rs) for rs in R]
-    
-#     return matrix([ _eval_restriction_vector(R, vector(s), r, reduction_function) for (s, r) in S ])
+def _test_higherrank_jacobi_forms__multiplication(k, m, k_mod, prec, jforms):
+    l = m.dim()
+    (r_classes, _) = _higherrank_jacobi_r_classes(m)
+    m_span = m.matrix().row_module()
+
+    P = PolynomialRing(LaurentPolynomialRing(QQ, ['zeta{}'.format(ix) for ix in range(l)]), 'q')
+    q = P.gen(0)
+    zeta = lambda ix: P.base_ring().gen(ix - 1)
+
+    indices = list(higherrank_jacobi_fe_indices(m, prec, reduced=True))
+    indices_nonreduced = list(higherrank_jacobi_fe_indices(m, prec, reduced=False))
+    red = lambda nr: reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_span)
+
+    psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0))
+                   for nr in indices]) for _psi in higherrank_jacobi_forms(k+k_mod, m, prec)]
+    psi_span = matrix([[psi[nr] for nr in indices]
+                       for psi in psis]).row_module()
+
+    for phi1 in jforms:
+        phi1_poly = P.zero()
+        for nr in indices_nonreduced:
+            (nrred, s) = red(nr)
+            if nrred in phi1:
+                phi1_poly += s**k * phi1[nrred] * q**n * prod(zeta(ix)**r[ix] for ix in range(l)]
+
+        for f in ModularForms(1, k_mod).basis():
+            f_poly = f.qexp(prec).polynomial()
+
+            phi2_poly = f_poly * phi1_poly
+            phi2_vec = vector([phi2_poly[n][r] for (n,r) in indices])
+            assert not phi2_vec.is_zero()
+            assert phi2_vec in psi_span

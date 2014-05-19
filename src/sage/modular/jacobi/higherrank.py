@@ -44,7 +44,7 @@ import operator
 from random import Random
 
 
-def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_span):
+def reduce_higherrank_jacobi_fe_index((n, r), m_adj, r_classes, m_span):
     r"""
     Reduce a Fourier index `(n, r)`.
 
@@ -52,7 +52,7 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_span):
 
     - `(n, r)` -- A pair of an integer and a tuple of integers.
 
-    - `m` -- A quadratic form over `\Z`.
+    - `m_adj` -- A quadratic form over `\Z`.
 
     - ``r_classes`` -- A list of lists of vectors.
 
@@ -63,9 +63,17 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_span):
     - A pair `((n', r'), s)` where `(n', r')` is the reduced index and
       `s = \pm 1` tells whether r or -r is equivalent to r modulo `m
       \Z^l`.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_higherrank.py:test__reduce_higherrank_jacobi_fe_index``.
     """
     (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
-    nred = n - (m(r) - m(rred)) // (2*m.det())
+    nred = n - (m_adj(r) - m_adj(rred)) // (2*m.det())
 
     return ((nred, rred), sgn)
 
@@ -86,6 +94,14 @@ def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
 
     - A pair `(r', s)`, where `r'` is reduced and `s = \pm 1` tells
       whether r or -r is equivalent to r modulo `m \Z^l`.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_higherrank.py:test__reduce_higherrank_jacobi_fe_index__r``.
     """
     for r_class in r_classes:
         rred = r_class[0]
@@ -117,6 +133,14 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
     OUTPUT:
 
     - A generator of pairs `(n, r)`, where `n` is an integer and `r` is a tupel.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_higherrank.py:test__higherrank_jacobi_fe_indices``.
     """
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
@@ -148,6 +172,14 @@ def _higherrank_jacobi_r_classes(m):
     OUTPUT:
 
     - A list of lists of vectors.
+
+    ..TODO:
+
+    Insert examples.
+
+    TESTS:
+
+    See ``test_higherrank.py:test__higherrank_jacobi_r_classes``.
     """
     m_mat = m.matrix()
     m_span = m_man.row_module()
@@ -195,8 +227,9 @@ def _higherrank_jacobi_r_classes(m):
 
 def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
     r"""
-    Compute the Fourier expansions of Jacobi forms (over `\QQ`) of weight `k` and 
-    index `m` (an quadratic form over `\Z`) up to given precision.
+    Compute the Fourier expansions of a basis of Jacobi forms (over
+    `\QQ`) of weight `k` and index `m` (an quadratic form over `\Z`)
+    up to given precision.
     
     ALGORITHM:
     
@@ -216,17 +249,19 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
     OUTPUT:
     
-    - A list of dictionaries.
+    A list of dictionaries, which describes the Fourier expansion of
+    Jaocib forms.
     
-    TESTS::
+    EXAMPLES::
     
-        sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-        sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _coefficient_by_restriction
-        sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-        sage: precision = indices.filter(20)
-        sage: relation_precision = indices.filter(10)
-        sage: _coefficient_by_restriction(precision, 10) == _coefficient_by_restriction(precision, 10, relation_precision) 
-        True
+        sage: from sage.modform.jacobi.higherrank_jacobi_forms import higherrank_jacobi_forms
+        sage: k = 10, m = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: higherrank_jacobi_forms(k, m, 10)
+        ???
+
+    TESTS:
+
+    See ``test_higherrank.py:test_higherrank_jacobi_forms``.
     """
     if algorithm != "restriction":
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
@@ -295,25 +330,21 @@ def _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs
     OUTPUT:
     
     - A set of pairs, the first of which is a vector corresponding to
-      an element in `\ZZ^l`, and the second of which is an integer.
+      an element in `\Z^l`, and the second of which is an integer.
     
-    # TESTS::
+    EXAMPLES::
     
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _find_complete_set_of_restriction_vectors
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-    #     sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-    #     sage: _find_complete_set_of_restriction_vectors(indices.jacobi_index(), indices._r_representatives)
-    #     [((-1, 0), 0), ((-1, 0), 1), ((2, -1), 1)]
-    #     sage: _find_complete_set_of_restriction_vectors(indices.jacobi_index(), indices._r_representatives, reduction_function = indices.reduce_r)
-    #     [((-1, 0), 0), ((-1, 0), 1), ((2, -1), 1)]
-        
-    # ::
-     
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _local_restriction_matrix
-    #     sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(4, [2,0,0,1, 0,2,0,1, 0,0,2,1, 1,1,1,2])))
-    #     sage: S = _find_complete_set_of_restriction_vectors(indices.jacobi_index(), indices._r_representatives)
-    #     sage: _local_restriction_matrix(indices._r_representatives, S).rank()
-    #     4
+        sage: from sage.modular.jacobi.higherrank import _complete_set_of_restriction_vectors
+        sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
+        sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
+        sage: _complete_set_of_restriction_vectors(QuadraticForm(matrix(2, [2,1,1,2])), [[(0,0)]], [[1]])
+        ???
+        sage: _complete_set_of_restriction_vectors(QuadraticForm(matrix(2, [2,1,1,2])), *_higherrank_jacobi_r_classes(m))
+        [((-1, 0), 0), ((-1, 0), 1), ((2, -1), 1)]
+
+    TESTS:
+
+    Tested implicitely by higherrank_jacobi_forms:
     """
     r_classes = [map(vector, r_class) for r_class in r_classes]
     
@@ -371,9 +402,22 @@ def _restriction_relation_matrices(k, m, prec, relation_prec,
     - ``relation_rst_vectors`` -- Compute relations for a give set of
                                   restriciton vectors.
 
-    - ``r_classes`` -- INSERT
+    - ``r_classes`` -- A list of lists of vectors.
 
-    - ``m_span`` -- INSERT
+    - ``m_span`` -- The row (or column) span `m`.
+
+    OUTPUT:
+
+    - A quintuple.  See `meth:_restriction_matrix` and
+      `meth:_relation_matrix` for a more detailed description.
+
+    TESTS:
+
+    Tested implicitely by higherrank_jacobi_forms:
+
+    ..TODO:
+
+    Insert example.
     """
     (restriction_matrix__big, row_groups, row_labels, column_labels) = \
         _restriction_matrix(k, m, prec, rst_vectors, False, r_classes, m_span)
@@ -403,10 +447,46 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     - ``find_relation`` -- A boolean. If ``True``, then the restrictions to
                            nonreduced indices will also be computed.
 
-    - ``r_classes`` -- INSERT
+    - ``r_classes`` -- A list of lists of vectors.
 
-    - ``m_span`` -- INSERT
-                           
+    - ``m_span`` -- The row (or column) span `m`.
+
+    OUTPUT:
+    
+    A quadruple ``(restriction_matrix, row_groups, row_labels, column_labels)``.
+
+    - ``restriction_matrix`` -- A matrix that describes the
+      restriction of Fourier expansion of Jacobi forms of index `m` so
+      classical Jacobi forms.  It acts on column vectors.
+      ``row_groups``, ``row_labels``, ``column_labels`` describe which
+      entry corresponds to which Fourier index.
+
+    - ``row_groups`` -- A list of of quadruples ``(s, m_rst, start,
+      length)``.  This means that rows ``start`` to ``start + length``
+      contain the image of Fourier expansions to `s z`.  The index of
+      this image corresponds to classical Jacobi forms of index `m_rst`.
+
+    - ``row_labels`` -- A dictionary, which assignes to each index `m_rst`
+      of classical Jacobi forms that occur in ``row_groups`` a
+      labelling.  The values of this dictionary are dictionaries
+      themselves, which map pairs `(n,r)` of integers to integer
+      indices ``ix``.  This means that for every restriction whose
+      image has index `m` the row ``start + ix`` (``start`` was given
+      above) corresponds to the Fourier coefficients of index `(n,r)`.
+
+    - ``column_labels`` -- A dictionary that maps Fourier indices of
+      Jacobi forms of index `m` to integer indices `ix`.  This means
+      that that the `ix`-th column of the restrictio matrix
+      corresponds to Fourier coefficients of index `(n,r)`.
+
+    TESTS:
+
+    Tested implicitely by higherrank_jacobi_forms:
+
+    ..TODO:
+
+    Insert example.
+
     # TESTS::
     
     #     sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
@@ -427,6 +507,7 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     #     ([((1, 0), 1, 0, 9)], {1: {(0, 0): 0, (3, 0): 5, (3, 1): 6, (2, 1): 4, (2, 0): 3, (1, 0): 1, (4, 1): 8, (1, 1): 2, (4, 0): 7}}, [(0, (0, 0)), (1, (0, 0)), (1, (1, 1)), (2, (0, 0)), (2, (1, 1)), (3, (0, 0)), (3, (1, 1)), (4, (0, 0)), (4, (1, 1))])
     """
     k = k % 2
+    m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
     rst_jacobi_indices = [ m(s) for s in rst_vectors ]
     rst_indices = dict( (m_rst, classical_jacobi_fe_indices(m, prec,
@@ -437,7 +518,7 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     column_labels = higherrank_jacobi_fe_indices(m, prec, reduced=True)
     reductions = dict( (nr,[]) for nr in column_labels )
     for nr in higherrank_jacobi_fe_indices(m, prec, reduced=False):
-        (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_span)
+        (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m_adj, r_classes, m_span)
         reductions[nrred].append((nr, sgn))     
 
     row_groups = [ len(rst_indices[m_rst]) for m_rst in rst_jacobi_indices ]
@@ -481,11 +562,31 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
     
     - ``rst_vectors`` -- A list of vectors.
 
-    - ``r_classes`` -- INSERT
+    - ``r_classes`` -- A list of lists of vectors.
 
-    - ``m_span`` -- INSERT
+    - ``m_span`` -- The row (or column) span `m`.
+
+    OUTPUT:
+
+    A pair ``(relation_matrix, column_labels)``.
+
+    - ``relation_matrix`` -- A matrix whose row space corresponds to
+      relations of Fourier coefficients that are deduced from
+      restrictions.  That is, linear combinations of Fourier
+      coefficients described as the rows of this matrix must vanish.
+
+    - ``column_labels`` -- See `meth:_restriction_matrix`.
+
+    TESTS:
+
+    Tested implicitely by higherrank_jacobi_forms:
+
+    ..TODO:
+
+    Insert example.
     """
     k = k % 2
+    m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
     (mat, row_groups, row_labels, column_labels) = \
         _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_span)
@@ -494,7 +595,7 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
     for (s, m_rst, start, length) in row_groups :
         row_labels_dict = row_labels[m_rst]
         for (nr, i) in row_labels_dict.iteritems() :
-            (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_span)
+            (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m_adj, r_classes, m_span)
             if nrred == nr: continue
             
             relations.append(mat.row(start + row_labels_dict[nrred])
@@ -524,8 +625,15 @@ def _higherrank_jacobi_forms__restriction(
     
     OUTPUT:
     
-    - A list of dictionaries.
+    A list of dictionaries.
+
+    ..TODO:
+
+    Insert examples.
     
+    TESTS:
+
+    See test_higherrank:
     # TESTS::
     
     #     sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
@@ -604,7 +712,7 @@ def _higherrank_jacobi_forms__restriction(
     
 
     if jacobi_expansions_space.dimension() < dim:
-        raise RuntimeError( "There is a bug in the implementation of the restriction method. Dimensions: {}, {}".format(jacobi_expansions_space.dimension(), dim) )
+        raise RuntimeError( "There is a bug in the implementation of the restriction method. Dimensions: {} < {}!".format(jacobi_expansions_space.dimension(), dim) )
     if jacobi_expansions_space.dimension() > dim :
         raise ValueError( "Could not construct enough restrictions to determine Fourier expansions uniquely", "INSUFFICIENT RELATIONS" )
 
