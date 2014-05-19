@@ -57,7 +57,7 @@ We can also obtain the underlying directed graph by
 ::
 
     sage: fsm.graph()
-    Digraph on 2 vertices
+    Looped multi-digraph on 2 vertices
 
 To visualize a finite state machine, we can use
 :func:`~sage.misc.latex.latex` and run the result through LaTeX,
@@ -6297,15 +6297,15 @@ class FiniteStateMachine(SageObject):
             sage: A = FSMState('A')
             sage: T = Transducer()
             sage: T.graph()
-            Digraph on 0 vertices
+            Looped multi-digraph on 0 vertices
             sage: T.add_state(A)
             'A'
             sage: T.graph()
-            Digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
             sage: T.add_transition(('A', 'A', 0, 1))
             Transition from 'A' to 'A': 0|1
             sage: T.graph()
-            Looped digraph on 1 vertex
+            Looped multi-digraph on 1 vertex
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t:t._in_out_label_()
@@ -6324,7 +6324,7 @@ class FiniteStateMachine(SageObject):
                 graph_data.append((t.from_state.label(), t.to_state.label(),
                                    label_fct(t)))
 
-        G = DiGraph(graph_data)
+        G = DiGraph(graph_data, multiedges=True, loops=True)
         G.add_vertices(isolated_vertices)
         return G
 
