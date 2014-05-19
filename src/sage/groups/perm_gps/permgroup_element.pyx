@@ -9,6 +9,8 @@ AUTHORS:
 
 - Robert Bradshaw (2007-11): convert to Cython
 
+- Julian Rueth (2014-05-19): removed circular references in __reduce__()
+
 EXAMPLES: The Rubik's cube group::
 
     sage: f= [(17,19,24,22),(18,21,23,20),(6,25,43,16),(7,28,42,13),(8,30,41,11)]
@@ -47,7 +49,8 @@ degree.
 
 ###########################################################################
 #  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner
+#                2006 David Joyner
+#                2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -76,8 +79,6 @@ cdef arith_llong arith = arith_llong()
 cdef extern from *:
     long long LONG_LONG_MAX
 
-#import permgroup_named
-
 def make_permgroup_element(G, x):
     """
     Returns a PermutationGroupElement given the permutation group
@@ -86,7 +87,7 @@ def make_permgroup_element(G, x):
     This is function is used when unpickling old (pre-domain) versions
     of permutation groups and their elements.  This now does a bit of
     processing and calls :func:`make_permgroup_element_v2` which is
-    used in unpickling the current PermutationGroupElements.
+    used in unpickling not so old PermutationGroupElements.
 
     EXAMPLES::
 
@@ -104,8 +105,9 @@ def make_permgroup_element_v2(G, x, domain):
     ``G``, the permutation ``x`` in list notation, and the domain
     ``domain`` of the permutation group.
 
-    This is function is used when unpickling permutation groups and
-    their elements.
+    This function is used when unpickling not so old elements of permutation
+    groups. Have a look at :meth:`PermutationGroupElement.__reduce__` and
+    :meth:`make_permgroup_element_v3` for the current pickling scheme.
 
     EXAMPLES::
 
@@ -125,6 +127,33 @@ def make_permgroup_element_v2(G, x, domain):
     G._domain_from_gap = dict([(i+1, key) for i, key in enumerate(domain)])
     return G(x, check=False)
 
+def make_permgroup_element_v3(n, perm):
+    r"""
+    Restore a :class:`PermutationGroupElement` from the data produced by
+    :meth:`PermutationGroupElement.__reduce__`.
+
+    This method restores what is necessary for
+    :meth:`PermutationGroupElement.__hash__` and
+    :meth:`PermutationGroupElement.__cmp__` to function properly. The remaining
+    attributes are restored by :meth:`PermutationGroupElement.__setstate__`.
+
+    TESTS::
+
+        sage: from sage.groups.perm_gps.permgroup_element import make_permgroup_element_v3
+        sage: g = make_permgroup_element_v3(2, [1,2])
+        sage: hash(g) == hash(g)
+        True
+        sage: g == g
+        True
+
+    """
+    cdef PermutationGroupElement ret = PY_NEW(PermutationGroupElement)
+    ret.n = n
+    assert ret.perm is NULL
+    ret.perm = <int*>sage_malloc(sizeof(int) * ret.n)
+    for i from 0 <= i < len(perm):
+        ret.perm[i] = <int>(perm[i])
+    return ret
 
 def is_PermutationGroupElement(x):
     """
@@ -462,7 +491,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         else:
             self.perm = <int *>sage_realloc(self.perm, sizeof(int) * self.n)
 
-
         cdef int i, vn = len(v)
         assert(vn <= self.n)
         for i from 0 <= i < vn:
@@ -489,15 +517,39 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         Returns a function and its arguments needed to create this
         permutation group element.  This is used in pickling.
 
-        EXAMPLES::
+        TESTS:
+
+        Check that the attributes set by :meth:`__setstate__` are not necessary
+        to compare instances::
 
            sage: g = PermutationGroupElement([(1,2,3),(4,5)]); g
            (1,2,3)(4,5)
-           sage: func, args = g.__reduce__()
-           sage: func(*args)
-           (1,2,3)(4,5)
+           sage: func, args, state = g.__reduce__()
+           sage: func(*args) == g
+           True
+
         """
-        return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
+        import copy_reg
+        perm = []
+        for i from 0 <= i < self.n:
+            perm.append(self.perm[i])
+        return make_permgroup_element_v3, (self.n, perm), (self._parent, self.__gap)
+
+    def __setstate__(self, state):
+        r"""
+        Restore this element from the tuple ``state`` which is created by
+        :meth:`__reduce__`. This method is used in pickling.
+
+        TESTS::
+
+            sage: g = PermutationGroupElement([(1,2,3),(4,5)])
+            sage: loads(dumps(g)).parent() is g.parent()
+            True
+
+        """
+        parent, gap = state
+        self._set_parent(parent)
+        self.__gap = gap
 
     cdef PermutationGroupElement _new_c(self):
         cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
