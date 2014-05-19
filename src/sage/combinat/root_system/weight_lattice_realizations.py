@@ -714,7 +714,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         def signs_of_alcovewalk(self, walk):
             r"""
-            Let walk = `[i_1,\dots,i_n]` denote an alcove walk starting
+            Return the signs of the alcove walk ``walk``.
+
+            Let ``walk`` denote an alcove walk `[i_1, \ldots, i_n]` starting
             from the fundamental alcove `y_0`, crossing at step 1 the
             wall `i_1`, and so on.
 
@@ -723,28 +725,31 @@ class WeightLatticeRealizations(Category_over_base_ring):
             `y_k` is obtained recursively from `y_{k-1}` by applying the
             following reflection:
 
-            .. math::
+            .. MATH::
 
-                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}
+                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}.
 
             The step is said positive if `w_{k-1} \alpha_{i_k}` is a
             negative root (considering `w_{k-1}` as element of the
             classical Weyl group and `\alpha_{i_k}` as a classical
             root) and negative otherwise. The algorithm implemented
-            here use the equivalent property::
+            here use the equivalent property:
 
-                .. MATH:: \langle w_{k-1}^{-1} \rho_0, \alpha^\vee_{i_k}\rangle > 0
+            .. MATH::
 
-            Where `\rho_0` is the sum of the classical fundamental
+                \langle w_{k-1}^{-1} \rho_0, \alpha^{\vee}_{i_k} \rangle > 0,
+
+            where `\rho_0` is the sum of the classical fundamental
             weights embedded at level 0 in this space (see
-            :meth:`rho_classical`), and `\alpha^\vee_{i_k}` is the
+            :meth:`rho_classical`) and `\alpha^{\vee}_{i_k}` is the
             simple coroot associated to `\alpha_{i_k}`.
 
             This function returns a list of the form `[+1,+1,-1,...]`,
             where the `k^{th}` entry denotes whether the `k^{th}` step was
             positive or negative.
 
-            See equation 3.4, of Ram: Alcove walks ..., arxiv:math/0601343v1 [math.RT]
+            See equation 3.4, of Ram: Alcove walks ...,
+            :arxiv:`math/0601343v1`.
 
             EXAMPLES::
 
@@ -816,18 +821,18 @@ class WeightLatticeRealizations(Category_over_base_ring):
             Lambda = self.fundamental_weights()
             return rho - Lambda[0] * rho.level() / Lambda[0].level()
 
-        def embed_at_level(self, x, level = 1):
+        def embed_at_level(self, x, level=1):
             r"""
-            Embed the classical weight `x` in the level ``level`` hyperplane
+            Embed the classical weight `x` in the level ``level`` hyperplane.
 
-            This is achieved by translating the straightforward
-            embedding of `x` by `c\Lambda_0` for `c` some appropriate
-            scalar.
+            This is achieved by translating the straightforward embedding
+            of `x` by `c Lambda_0` for `c` some appropriate scalar.
 
             INPUT:
 
-            - ``x`` -- an element of the corresponding classical weight/ambient lattice
-            - ``level`` -- an integer or element of the base ring (default: 1)
+            - ``x`` -- an element of the corresponding classical
+              weight/ambient lattice
+            - ``level`` -- (default: 1) an integer or element of the base ring
 
             EXAMPLES::
 

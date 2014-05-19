@@ -3,19 +3,22 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.algebra_functor import AlgebrasCategory
 
 class CoxeterGroupAlgebras(AlgebrasCategory):
-
+    """
+    Coxeter group algebras.
+    """
     class ParentMethods:
 
         def demazure_lusztig_operator_on_basis(self, w, i, q1, q2, side="right"):
             r"""
-            Return the result of applying the `i`-th Demazure Lusztig operator on ``w``.
+            Return the result of applying the `i`-th Demazure Lusztig
+            operator on ``w``.
 
             INPUT:
 
             - ``w`` -- an element of the Coxeter group
             - ``i`` -- an element of the index set
-            - ``q1,q2`` -- two elements of the ground ring
-            - ``bar`` -- a boolean (default False)
+            - ``q1``, ``q2`` -- two elements of the ground ring
+            - ``bar`` -- a boolean (default: ``False``)
 
             See :meth:`demazure_lusztig_operators` for details.
 
@@ -36,7 +39,8 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
                 sage: KW.demazure_lusztig_operator_on_basis(w, 3, q1, q2)
                 (q1+q2)*B[123] + (-q2)*B[12]
 
-            At `q_1=1` and `q_2=0` we recover the action of the isobaric divided differences `\pi_i`::
+            At `q_1 = 1` and `q_2 = 0` we recover the action of the
+            isobaric divided differences `\pi_i`::
 
                 sage: KW.demazure_lusztig_operator_on_basis(w, 0, 1, 0)
                 B[123]
@@ -47,7 +51,8 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
                 sage: KW.demazure_lusztig_operator_on_basis(w, 3, 1, 0)
                 B[123]
 
-            At `q_1=1` and `q_2=-1` we recover the action of the simple reflection `s_i`::
+            At `q_1 = 1` and `q_2 = -1` we recover the action of
+            the simple reflection `s_i`::
 
                 sage: KW.demazure_lusztig_operator_on_basis(w, 0, 1, -1)
                 B[323123]
@@ -66,27 +71,28 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
 
             INPUT:
 
-            - ``q1,q2`` -- two elements of the ground ring `\KK`
-            - ``side`` -- "left" or "right" (default: "right"): which side to act upon
-            - ``affine`` -- a boolean (default: True)
+            - ``q1``, ``q2`` -- two elements of the ground ring
+            - ``side`` -- ``"left"`` or ``"right"`` (default: ``"right"``):
+              which side to act upon
+            - ``affine`` -- a boolean (default: ``True``)
 
             The Demazure-Lusztig operator `T_i` is the linear map
-            `R\rightarrow R` obtained by interpolating between the
+            `R \to R` obtained by interpolating between the
             simple projection `\pi_i` (see
             :meth:`CoxeterGroups.ElementMethods.simple_projection`)
             and the simple reflection `s_i` so that `T_i` has
-            eigenvalues `q_1` and `q_2`.
+            eigenvalues `q_1` and `q_2`:
 
             .. MATH::
 
-                (q_1+q_2) \pi_i -q_2 s_i
+                (q_1 + q_2) \pi_i -q_2 s_i.
 
             The Demazure-Lusztig operators give the usual
-            representation of the operators `T_i` of the `q_1,q_2`
+            representation of the operators `T_i` of the `q_1, q_2`
             Hecke algebra associated to the Coxeter group.
 
-            For a finite Coxeter group, and if ``affine=True``, the
-            Demazure-Lusztig operators `T_1,\dots,T_n` are completed
+            For a finite Coxeter group, and if ``affine`` is ``True``, the
+            Demazure-Lusztig operators `T_1, \ldots, T_n` are completed
             by `T_0` to implement the level `0` action of the affine
             Hecke algebra.
 
@@ -114,7 +120,7 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
             .. NOTE::
 
                 For a finite Weyl group `W`, the level 0 action of the
-                affine Weyl group `\tilde W` only depends on the
+                affine Weyl group `\tilde{W}` only depends on the
                 Coxeter diagram of the affinization, not its Dynkin
                 diagram. Hence it is possible to explore all cases
                 using only untwisted affinizations.
@@ -135,12 +141,12 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
             INPUT:
 
             - ``self`` -- a finite Coxeter group `W`
-            - ``q1,q2`` -- two elements of the ground ring `\KK`
+            - ``q1,q2`` -- two elements of the ground ring
 
-            The affine Hecke algebra `H_{q_1,q_2}(\tilde W)` acts on
+            The affine Hecke algebra `H_{q_1,q_2}(\tilde{W})` acts on
             the group algebra of `W` through the Demazure-Lusztig
-            operators `T_i`. Its Cherednik operators `Y^\lambda` can
-            be simultaneously diagonalized as long as `q_1/q_2` is not
+            operators `T_i`. Its Cherednik operators `Y^{\lambda}` can
+            be simultaneously diagonalized as long as `q_1 / q_2` is not
             a small root of unity [HST2008]_.
 
             This method returns the family of joint eigenvectors,
@@ -173,3 +179,4 @@ class CoxeterGroupAlgebras(AlgebrasCategory):
             result.affine_lift = w0._mul_
             result.affine_retract = w0._mul_
             return result
+
