@@ -92,6 +92,10 @@ cdef class _lazy_attribute(object):
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)
 
+    def _sage_src_file_(self):
+        from sage.misc.sageinspect import sage_getfile
+        return sage_getfile(self.f)
+    
 
     def __get__(self, a, cls):
         """

@@ -1147,6 +1147,16 @@ def sage_getfile(obj):
     - Nick Alexander
     - Simon King
     """
+    # If the object has a _sage_src_lines_ method, it is extremely unlikely that
+    # other heuristics will find the source file, so we insist on the presence of
+    # a _sage_src_file_ method to provide us with the correct file.
+    if hasattr(obj,"_sage_src_lines_"):
+        try:
+            return obj._sage_src_file_()
+        except TypeError:
+            # That happes for instances of dynamic classes
+            return sage_getfile(obj.__class__)
+
     # We try to extract from docstrings, but not using Python's inspect
     # because _sage_getdoc_unformatted is more robust.
     d = _sage_getdoc_unformatted(obj)

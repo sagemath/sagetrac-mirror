@@ -737,6 +737,11 @@ cdef class CachedFunction(object):
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)
 
+    def _sage_src_file_(self):
+        from sage.misc.sageinspect import sage_getfile
+        return sage_getfile(self.f)
+    
+
     def _sage_argspec_(self):
         """
         Return the argspec of the wrapped function or method.

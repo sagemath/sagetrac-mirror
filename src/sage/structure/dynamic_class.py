@@ -386,18 +386,20 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             doccls = bases[0]
     methods['_reduction'] = reduction
     if "_sage_src_lines_" not in methods:
-        from sage.misc.sageinspect import sage_getsourcelines
+        from sage.misc.sageinspect import sage_getsourcelines,sage_getfile
+        #we'd like the following methods to work both on instances and
+        #on the class, so we need to be prepared to accept 0 or 1 arguments.
         @staticmethod
         def _sage_src_lines():
             return sage_getsourcelines(doccls)
         methods['_sage_src_lines_'] = _sage_src_lines
+        @staticmethod
+        def _sage_src_file():
+            return sage_getfile(doccls)
+        methods['_sage_src_file_'] = _sage_src_file
+
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
-    #if "_sage_doc_" not in methods:
-    #    from sage.misc.sageinspect import sage_getdoc
-    #    def _sage_getdoc(obj):
-    #        return sage_getdoc(cls)
-    #    methods['_sage_src_lines_'] = _sage_getdoc
 
     metaclass = DynamicMetaclass
     # The metaclass of a class must derive from the metaclasses of its

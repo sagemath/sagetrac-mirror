@@ -29,7 +29,7 @@ from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
-                                   sage_getargspec)
+                                   sage_getargspec, sage_getfile)
 from inspect import ArgSpec
 
 
@@ -148,6 +148,7 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper._sage_src_ = lambda: sage_getsource(wrapped)
         wrapper._sage_src_lines_ = lambda: sage_getsourcelines(wrapped)
+        wrapper._sage_src_file_ = lambda: sage_getfile(wrapped)
         #Getting the signature right in documentation by Sphinx (Trac 9976)
         #The attribute _sage_argspec_() is read by Sphinx if present and used
         #as the argspec of the function instead of using reflection.

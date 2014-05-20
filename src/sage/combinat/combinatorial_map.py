@@ -172,6 +172,10 @@ class CombinatorialMap(object):
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self._f)
 
+    def _sage_src_file_(self):
+        from sage.misc.sageinspect import sage_getfile
+        return sage_getfile(self._f)
+
     def __get__(self, inst, cls=None):
         """
         Bounds the method of self to the given instance.
