@@ -2619,14 +2619,14 @@ class GenericGraph(GenericGraph_pyx):
             if self._directed:
                 return Rational(self.size())/Rational(n**2)
             else:
-                return Rational(self.size())/Rational((n**2 + n)/2)
+                return Rational(self.size())/Rational((n**2 + n)//2)
         else:
             if n < 2:
                 return Rational(0)
             if self._directed:
                 return Rational(self.size())/Rational((n**2 - n))
             else:
-                return Rational(self.size())/Rational((n**2 - n)/2)
+                return Rational(self.size())/Rational((n**2 - n)//2)
 
     def is_eulerian(self, path=False):
         r"""
@@ -11711,7 +11711,7 @@ class GenericGraph(GenericGraph_pyx):
                 subgraph = subgraph.to_simple()
 
             n=subgraph.order()
-            return subgraph.size()==n*(n-1)/2
+            return subgraph.size() == n*(n-1)//2
 
     def is_independent_set(self, vertices=None):
         """
@@ -13313,7 +13313,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() < 2:
             raise ValueError("The graph must have at least two vertices for this value to be defined")
 
-        return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
+        return Integer(self.wiener_index()) / Integer((self.order()*(self.order()-1))//2)
 
     def szeged_index(self):
         r"""

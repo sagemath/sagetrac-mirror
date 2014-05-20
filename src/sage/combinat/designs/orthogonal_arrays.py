@@ -369,7 +369,7 @@ def is_transversal_design(B,k,n, verbose=False):
                 print "A set has wrong size"
             return False
         g.add_edges(list(combinations(X,2)))
-        if g.size() != m+(len(X)*(len(X)-1))/2:
+        if g.size() != m + (len(X)*(len(X)-1)) // 2:
             if verbose:
                 print "A pair appears twice"
             return False
@@ -414,7 +414,7 @@ def find_wilson_decomposition(k,n):
         if u == 0 or k >= u+2:
             continue
 
-        m = n//t
+        m = n // t
         # If there exists a TD(k,m) then k<m+2
         if k >= m+2:
             break
@@ -492,7 +492,7 @@ def wilson_construction(k,m,t,u, check = True):
                     # x//m is the group of x in TDkm
                     # x%m is the element of x in its group
                     ai = A[x//m]
-                    i = ai//t
+                    i = ai // t
                     BB.append(i*(m*t+u)+(ai%t)*m+x%m)
                 TD.append(BB)
 
@@ -506,7 +506,7 @@ def wilson_construction(k,m,t,u, check = True):
                     # x//(m+1) is the group of x in TDkm1
                     # x%(m+1) is the element of x in its group
                     ai = A[x//(m+1)]
-                    i = ai//t
+                    i = ai // t
                     if (x+1)%(m+1) == 0:
                         BB.append(i*(m*t+u)+m*t+(a_k1%t))
                     else:
@@ -553,7 +553,7 @@ def TD_find_product_decomposition(k,n):
     """
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
-        n2 = n//n1
+        n2 = n // n1
         if transversal_design(k, n1, existence = True) and transversal_design(k, n2, existence = True):
             return n1,n2
     return None

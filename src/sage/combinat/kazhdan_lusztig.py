@@ -215,7 +215,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
             else:
                 return self._base_ring.zero()
         p = sum(-self.R(x,t)*self.P(t,y) for t in self._coxeter_group.bruhat_interval(x,y) if t != x)
-        tr = floor((y.length()-x.length()+1)/2)
+        tr = (y.length() - x.length() + 1) // 2
         ret = p.truncate(tr)
         if self._trace:
             print "    P({},{})={}".format(x, y, ret)

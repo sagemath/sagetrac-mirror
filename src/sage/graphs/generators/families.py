@@ -116,7 +116,7 @@ def KneserGraph(n,k):
     g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
     from sage.combinat.subset import Subsets
 
-    if k>n/2:
+    if k > n//2:
         g.add_vertices(Subsets(n,k).list())
 
     S = Subsets(n,k)
@@ -336,21 +336,21 @@ def BarbellGraph(n1, n2):
     pos_dict = {}
 
     for i in range(n1):
-        x = float(cos((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
-        y = float(sin((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
+        x = float(cos((pi / 4) - ((2 * pi) / n1) * i) - (n2 // 2) - 1)
+        y = float(sin((pi / 4) - ((2 * pi) / n1) * i) - (n2 // 2) - 1)
         j = n1 - 1 - i
         pos_dict[j] = (x, y)
     for i in range(n1, n1 + n2):
-        x = float(i - n1 - (n2 / 2) + 1)
-        y = float(i - n1 - (n2 / 2) + 1)
+        x = float(i - n1 - (n2 // 2) + 1)
+        y = float(i - n1 - (n2 // 2) + 1)
         pos_dict[i] = (x, y)
     for i in range(n1 + n2, (2 * n1) + n2):
         x = float(
             cos((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
+            + (n2 // 2) + 2)
         y = float(
             sin((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
+            + (n2 // 2) + 2)
         pos_dict[i] = (x, y)
 
     import networkx
@@ -971,7 +971,7 @@ def GeneralizedPetersenGraph(n,k):
     """
     if (n < 3):
             raise ValueError("n must be larger than 2")
-    if (k < 1 or k>((n-1)/2)):
+    if (k < 1 or k > (n-1)//2):
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
     G = Graph()

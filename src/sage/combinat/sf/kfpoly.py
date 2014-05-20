@@ -355,7 +355,7 @@ def weight(rg, t=None):
     nu = rg + [ [] ]
     l = 1 + max( map(len, nu) )
     nu = [ list(mu) + [0]*l for mu in nu ]
-    res = t**int(sum( [ i*(i-1)/2 for i in rg[-1] ] ))
+    res = t**int(sum( [ i*(i-1)//2 for i in rg[-1] ] ))
     for k in range(1, len(nu)-1):
         sa = 0
         for i in range( max( len(rg[k]), len(rg[k-1])) ):
@@ -363,7 +363,7 @@ def weight(rg, t=None):
             if nu[k][i]-nu[k][i+1]+sa >= 0:
                 res *= q_binomial(nu[k][i]-nu[k][i+1]+sa, sa, t)
             mu = nu[k-1][i]-nu[k][i]
-            res *= t**int((mu*(mu-1)/2))
+            res *= t**(mu*(mu-1)//2)
     return res
 
 def q_bin(a,b,t=None):

@@ -3195,7 +3195,7 @@ class StrongTableau(ClonableList):
             return 0
         T = self.to_standard_list()
         nocells = len([i for i in range(len(T)) for j in range(len(T[i])) if T[i][j]==v])+1
-        return ZZ(nocells/sz)
+        return ZZ(nocells // sz)
 
     def intermediate_shapes(self):
         r"""

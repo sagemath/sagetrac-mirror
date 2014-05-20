@@ -2354,7 +2354,7 @@ def _determine_block_matrix_rows(sub_matrices):
             elif total_width % len(R) != 0:
                 raise ValueError("incompatible submatrix widths")
             else:
-                height = int(total_width / len(R))
+                height = total_width // len(R)
                 row_heights[i] = height
 
     # If we got this far, then everything fits
@@ -2640,9 +2640,9 @@ def block_matrix(*args, **kwds):
                     # this form (ie just a flat list) could be allowed once deprecated invocation (above) goes away
                     raise ValueError("must specify nrows or ncols for non-square block matrix.")
             else:
-                nrows = int(n/ncols)
+                nrows = n // ncols
         elif ncols is None:
-            ncols = int(n/nrows)
+            ncols = n // nrows
         if nrows * ncols != n:
             raise ValueError("given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n))
         # Now create a list of lists from this

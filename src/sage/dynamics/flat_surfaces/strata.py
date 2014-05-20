@@ -795,7 +795,7 @@ class AbelianStratum(SageObject):
         else:
             self._zeroes.sort(reverse=True)
 
-        self._genus = sum(l)/2 + 1
+        self._genus = sum(l) // 2 + 1
 
         self._genus = Integer(self._genus)
 
@@ -1622,7 +1622,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
 
         k = 4
         for d in zeroes:
-            for i in range(d/2-1):
+            for i in range(d//2 - 1):
                 del l0[l0.index(k)]
                 del l1[l1.index(k)]
                 k += 3

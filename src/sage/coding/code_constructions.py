@@ -549,7 +549,7 @@ def BCHCode(n,delta,F,b=0):
     m = R(q).multiplicative_order()
     FF = GF(q**m,"z")
     z = FF.gen()
-    e = z.multiplicative_order()/n
+    e = z.multiplicative_order() / n
     a = z**e # order n
     P = PolynomialRing(F,"x")
     x = P.gen()
@@ -756,7 +756,7 @@ def DuadicCodeEvenPair(F,S1,S2):
     k = Mod(q,n).multiplicative_order()
     FF = GF(q**k,"z")
     z = FF.gen()
-    zeta = z**((q**k-1)/n)
+    zeta = z**((q**k-1) // n)
     P1 = PolynomialRing(FF,"x")
     x = P1.gen()
     g1 = prod([x-zeta**i for i in S1+[0]])
@@ -802,7 +802,7 @@ def DuadicCodeOddPair(F,S1,S2):
     k = Mod(q,n).multiplicative_order()
     FF = GF(q**k,"z")
     z = FF.gen()
-    zeta = z**((q**k-1)/n)
+    zeta = z**((q**k-1) // n)
     P1 = PolynomialRing(FF,"x")
     x = P1.gen()
     g1 = prod([x-zeta**i for i in S1+[0]])

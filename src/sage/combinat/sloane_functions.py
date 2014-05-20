@@ -600,7 +600,7 @@ class A000008(SloaneSequence):
         """
         from sage.rings.big_oh import O
         R, x = QQ[['x']].objgen()
-        p = 1/((1-x)*(1-x**2)*(1-x**5)*(1-x**10)+O(x**(n+4)))
+        p = 1 / ((1-x)*(1-x**2)*(1-x**5)*(1-x**10)+O(x**(n+4)))
         return ZZ(p.coefficients()[n])
 
 
@@ -2511,7 +2511,7 @@ class A000016(SloaneSequence):
         """
         if n == 0:
             return 1
-        return sum( (i%2)*arith.euler_phi(i)*2**(Integer(n/i))/(2*n) for i in arith.divisors(n) )
+        return sum( (i%2)*arith.euler_phi(i)*2**(Integer(n//i)) / (2*n) for i in arith.divisors(n) )
 
 class A000032(SloaneSequence):
     def __init__(self):
@@ -4715,7 +4715,7 @@ class A000085(SloaneSequence):
             sage: [sloane.A000085._eval(n) for n in range(10)]
             [1, 1, 2, 4, 10, 26, 76, 232, 764, 2620]
         """
-        return sum([arith.factorial(n)//(arith.factorial(n-2*k)*(2**k)*arith.factorial(k)) for k in range(n//2+1)])
+        return sum([arith.factorial(n) // (arith.factorial(n-2*k)*(2**k)*arith.factorial(k)) for k in range(n//2 + 1)])
 
 class A001189(SloaneSequence):
     def __init__(self):
@@ -5228,7 +5228,7 @@ class A001405(SloaneSequence):
             [1, 1, 2, 3, 6, 10, 20, 35, 70, 126]
         """
         from sage.functions.all import floor
-        return arith.binomial(n, int(floor(n//2)))
+        return arith.binomial(n, n//2)
 
 class A000292(SloaneSequence):
     def __init__(self):
@@ -6752,7 +6752,7 @@ class A002275(SloaneSequence):
             sage: [sloane.A002275._eval(n) for n in range(10)]
             [0, 1, 11, 111, 1111, 11111, 111111, 1111111, 11111111, 111111111]
         """
-        return Integer(10**n-1)//9
+        return Integer(10**n-1) // 9
 
 
 
@@ -9087,7 +9087,7 @@ class A109814(SloaneSequence):
             return 1
         m = 0
         for d in [i for i in arith.divisors(n) if i%2]: # d is odd divisor
-            k = min(d, 2*n/d)
+            k = min(d, 2*n//d)
             if k > m:
                 m = k
         return ZZ(m)

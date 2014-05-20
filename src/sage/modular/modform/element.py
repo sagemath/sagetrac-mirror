@@ -584,7 +584,7 @@ class ModularForm_abstract(ModuleElement):
         w = self.atkin_lehner_eigenvalue()
         if w is None:
             raise ValueError("Form is not an eigenform for Atkin-Lehner")
-        e = (-1)**(l//2)*w
+        e = (-1)**(l//2) * w
         L = Dokchitser(conductor = N,
                        gammaV = [0,1],
                        weight = l,
@@ -1378,7 +1378,7 @@ class EisensteinSeries(ModularFormElement):
             else:
                 an = rings.sigma(n,1)
                 if n%t==0:
-                    an -= t*rings.sigma(n/t,1)
+                    an -= t*rings.sigma(n//t,1)
                 v.append(an)
         return v
 

@@ -1241,7 +1241,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         d = self.dimension()
         h = self.h_vector()
         g = [1]
-        for i in range(1, floor((d+1)/2) + 1):
+        for i in range(1, (d+1)//2 + 1):
             g.append(h[i] - h[i-1])
         return g
 

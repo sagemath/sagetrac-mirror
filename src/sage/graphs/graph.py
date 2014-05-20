@@ -1274,7 +1274,7 @@ class Graph(GenericGraph):
             ss = data[:n]
             n, s = generic_graph_pyx.N_inverse(ss)
             m = generic_graph_pyx.R_inverse(s, n)
-            expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
+            expected = n*(n-1)//2 + (6 - n*(n-1)//2)%6
             if len(m) > expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:
@@ -1301,7 +1301,7 @@ class Graph(GenericGraph):
                 bits = ''.join([generic_graph_pyx.binary(o-63).zfill(6) for o in ords])
                 b = []
                 x = []
-                for i in xrange(int(floor(len(bits)/(k+1)))):
+                for i in xrange(len(bits) // (k+1)):
                     b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
                     x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
                 v = 0

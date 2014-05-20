@@ -1082,14 +1082,14 @@ class DiGraphGenerators():
         if loops:
             if m > n*n:
                 good_input = False
-            elif m > n*n/2:
+            elif m > n*n//2:
                 is_dense = True
                 m = n*n - m
 
         else:
             if m > n*(n-1):
                 good_input = False
-            elif m > n*(n-1)/2:
+            elif m > n*(n-1)//2:
                 is_dense = True
                 m = n*(n-1) - m
 

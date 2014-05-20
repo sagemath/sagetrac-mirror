@@ -1061,8 +1061,8 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
         x00 = x01
         t00 = t00 + h
         soln.append([t00,x00,y00])
-    Q1 = line([[x[0],x[1]] for x in soln], rgbcolor=(1/4,1/8,3/4))
-    Q2 = line([[x[0],x[2]] for x in soln], rgbcolor=(1/2,1/8,1/4))
+    Q1 = line([[x[0],x[1]] for x in soln], rgbcolor=(1//4, 1//8, 3//4))
+    Q2 = line([[x[0],x[2]] for x in soln], rgbcolor=(1//2, 1//8, 1//4))
     return [Q1,Q2]
 
 def desolve_rk4_determine_bounds(ics,end_points=None):

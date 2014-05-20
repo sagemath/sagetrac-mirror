@@ -135,7 +135,7 @@ class RibbonTableau(SkewTableau):
         if l == 0:
             return t
         else:
-            return t/l
+            return t // l
 
     def to_word(self):
         """

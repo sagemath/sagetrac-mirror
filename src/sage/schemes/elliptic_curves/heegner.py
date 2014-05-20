@@ -4821,7 +4821,7 @@ class HeegnerQuatAlg(SageObject):
                 reps = Q.representation_vector_list(n+1)[-1]
                 k = len([r for r in reps if arith.gcd(r) == 1])
                 assert k%2 == 0
-                v[i] += k/2
+                v[i] += k//2
         return B(v)
 
     @cached_method

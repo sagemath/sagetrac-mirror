@@ -1309,7 +1309,7 @@ class BooleanFormula:
                 b = False
             else:
                 b = True
-            x = int(x / 2)
+            x = x // 2
             bits.append(b)
         if c > len(bits) - 1:
             return False

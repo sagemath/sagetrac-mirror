@@ -390,7 +390,7 @@ def test_symbolic_expression_order(repetitions=100):
     nullary_frac = 0.05
 
     def coeff_generator():
-        return randint(-100,100)/randint(1,100)
+        return randint(-100,100) // randint(1,100)
 
     def make_random_expr():
         while True:

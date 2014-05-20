@@ -1546,7 +1546,7 @@ def tau1(T1, T2, cells_map):
     # The cells_map has both directions, i.e. integer to
     # cell and cell to integer, so the size of T1 is
     # just half of len(cells_map).
-    x = (int(len(cells_map)/2) + 1) * [-1]
+    x = (len(cells_map) // 2 + 1) * [-1]
 
     for r in range(T1.nrows()):
         for c in range(T1.ncols()):
@@ -1597,7 +1597,7 @@ def tau2(T1, T2, cells_map):
     # The cells_map has both directions, i.e. integer to
     # cell and cell to integer, so the size of T1 is
     # just half of len(cells_map).
-    x = (int(len(cells_map)/2) + 1) * [-1]
+    x = (len(cells_map) // 2 + 1) * [-1]
 
     for r in range(T1.nrows()):
         for c in range(T1.ncols()):
@@ -1648,7 +1648,7 @@ def tau3(T1, T2, cells_map):
     # The cells_map has both directions, i.e. integer to
     # cell and cell to integer, so the size of T1 is
     # just half of len(cells_map).
-    x = (int(len(cells_map)/2) + 1) * [-1]
+    x = (len(cells_map) // 2 + 1) * [-1]
 
     for r in range(T1.nrows()):
         for c in range(T1.ncols()):
@@ -2206,7 +2206,7 @@ def pq_group_bitrade_generators(p, q):
     # congruence x^p = 1 mod q
     F = FiniteField(q)
     fgen = F.multiplicative_generator()
-    beta = fgen**((q-1)/p)
+    beta = fgen**((q-1)//p)
 
     assert beta != 1
     assert (beta**p % q) == 1

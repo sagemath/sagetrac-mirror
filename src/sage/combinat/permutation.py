@@ -1631,7 +1631,7 @@ class Permutation(CombinatorialObject, Element):
         def sort_and_countv(L):
             if len(L)<250:
                 return base_case(L)
-            l = len(L)//2
+            l = len(L) // 2
             return merge_and_countv( sort_and_countv(L[:l]),
                                      sort_and_countv(L[l:]) )
 
@@ -4823,7 +4823,7 @@ class Permutations_mset(Permutations):
             mset_list[j] = t
 
             #Reverse the list between two and last
-            i = int((n - two)/2)-1
+            i = (n - two) // 2 - 1
             #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
             while i >= 0:
                 t = mset_list[ i + two ]
@@ -4992,7 +4992,7 @@ class Permutations_set(Permutations):
 
 
             #Reverse the list between two and last
-            i = int((n - two)/2)-1
+            i = (n - two) // 2 - 1
             #set_list = set_list[:two] + [x for x in reversed(set_list[two:])]
             while i >= 0:
                 t = set_list[ i + two ]

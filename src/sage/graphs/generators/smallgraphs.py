@@ -3167,7 +3167,7 @@ def HoltGraph():
             g.add_edge((x,y),((7*x-7)%9,(y+1)%3))
 
     for j in range(0,6,2):
-        _line_embedding(g, [(x,j/2) for x in range(9)],
+        _line_embedding(g, [(x,j//2) for x in range(9)],
                         first=(cos(2*j*pi/6),sin(2*j*pi/6)),
                         last=(cos(2*(j+1)*pi/6),sin(2*(j+1)*pi/6)))
 

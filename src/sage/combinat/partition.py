@@ -1970,7 +1970,7 @@ class Partition(CombinatorialObject, Element):
         """
         res = 1
         for (i,j) in self.cells():
-            res *= (a - (i-1)/alpha + j-1)
+            res *= (a - (i-1)//alpha + j - 1)
         return res
 
     def get_part(self, i, default=Integer(0)):
@@ -2221,7 +2221,7 @@ class Partition(CombinatorialObject, Element):
         ret = self
         # Arbitrary exp
         exp = exp % n # It is at most order n
-        if exp > n / 2:
+        if exp > n // 2:
             exp -= n
         while exp != 0:
             leng = len(ret)
@@ -2425,8 +2425,8 @@ class Partition(CombinatorialObject, Element):
 
         if e==0: return g             # no more dominant tableau of the same residue
 
-        a=e*int((self[row]-col)/e)    # number of cells in the e-bricks in row `row`
-        b=e*int((col+1)/e)            # number of cells in the e-bricks in row `row+1`
+        a = e * int((self[row]-col) / e)  # number of cells in the e-bricks in row `row`
+        b = e * int((col+1) / e)          # number of cells in the e-bricks in row `row+1`
 
         if a==0 or b==0: return g
 
@@ -3188,7 +3188,7 @@ class Partition(CombinatorialObject, Element):
         p = self
         a = p.to_exp()
         size = prod([(i+1)**a[i]*factorial(a[i]) for i in range(len(a))])
-        size *= prod( [ (1-q**j)/(1-t**j) for j in p ] )
+        size *= prod( [ (1-q**j) / (1-t**j) for j in p ] )
 
         return size
 
@@ -3672,7 +3672,7 @@ class Partition(CombinatorialObject, Element):
             tmp = []
             for i in reversed(range(len(part))):
                 if part[i] % length == e:
-                    tmp.append(ZZ((part[i]-k)//length))
+                    tmp.append(ZZ((part[i]-k) // length))
                     k += length
 
             a = [i for i in tmp if i != 0]

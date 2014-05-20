@@ -155,7 +155,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         B = best_known_covering_design_www(v,k,2)
 
         # Is it a BIBD or just a good covering ?
-        expected_n_of_blocks = binomial(v,2)/binomial(k,2)
+        expected_n_of_blocks = binomial(v,2) // binomial(k,2)
         if B.low_bd() > expected_n_of_blocks:
             if existence:
                 return False
@@ -338,15 +338,15 @@ def BIBD_from_TD(v,k,existence=False):
 
     # First construction
     if (v%k == 0 and
-        BalancedIncompleteBlockDesign(v//k,k,existence=True) and
-        transversal_design(k,v//k,existence=True)):
+        BalancedIncompleteBlockDesign(v//k, k, existence=True) and
+        transversal_design(k, v//k, existence=True)):
 
         if existence:
             return True
 
-        v = v//k
+        v = v // k
         BIBDvk = BalancedIncompleteBlockDesign(v,k)
-        TDkv = transversal_design(k,v,check=False)
+        TDkv = transversal_design(k, v, check=False)
 
         BIBD = TDkv
         for i in range(k):
@@ -354,15 +354,15 @@ def BIBD_from_TD(v,k,existence=False):
 
     # Second construction
     elif ((v-1)%k == 0 and
-        BalancedIncompleteBlockDesign((v-1)//k+1,k,existence=True) and
-        transversal_design(k,(v-1)//k,existence=True)):
+        BalancedIncompleteBlockDesign((v-1)//k+1, k, existence=True) and
+        transversal_design(k,(v-1)//k, existence=True)):
 
         if existence:
             return True
 
-        v = (v-1)//k
-        BIBDv1k = BalancedIncompleteBlockDesign(v+1,k)
-        TDkv = transversal_design(k,v,check=False)
+        v = (v-1) // k
+        BIBDv1k = BalancedIncompleteBlockDesign(v+1, k)
+        TDkv = transversal_design(k, v, check=False)
 
         inf = v*k
         BIBD = TDkv
@@ -371,20 +371,20 @@ def BIBD_from_TD(v,k,existence=False):
 
     # Third construction
     elif ((v-k)%k == 0 and
-        BalancedIncompleteBlockDesign((v-k)//k+k,k,existence=True) and
-        transversal_design(k,(v-k)//k,existence=True)):
+        BalancedIncompleteBlockDesign((v-k)//k+k, k, existence=True) and
+        transversal_design(k,(v-k)//k, existence=True)):
 
         if existence:
             return True
 
-        v = (v-k)//k
-        BIBDvpkk = BalancedIncompleteBlockDesign(v+k,k)
-        TDkv = transversal_design(k,v,check=False)
+        v = (v-k) // k
+        BIBDvpkk = BalancedIncompleteBlockDesign(v+k, k)
+        TDkv = transversal_design(k, v, check=False)
         inf = v*k
         BIBD = TDkv
 
         # makes sure that [v,...,v+k-1] is a block of BIBDvpkk. Then, we remove it.
-        BIBDvpkk = _relabel_bibd(BIBDvpkk,v+k)
+        BIBDvpkk = _relabel_bibd(BIBDvpkk, v+k)
         BIBDvpkk = [B for B in BIBDvpkk if min(B) < v]
 
         for i in range(k):
@@ -509,7 +509,7 @@ def v_4_1_BIBD(v, check=True):
                 [20, 26, 31, 35], [20, 33, 34, 36], [21, 27, 32, 36]]
 
     # Step 2 : this is function PBD_4_5_8_9_12
-    PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
+    PBD = PBD_4_5_8_9_12((v-1) // (k-1), check=False)
 
     # Step 3 : Theorem 7.20
     bibd = BIBD_from_PBD(PBD,v,k,check=False)
@@ -799,9 +799,9 @@ def _get_t_u(v):
     v = int(v)
     global table_7_1
     d = table_7_1[v%48]
-    s = v//48
+    s = v // 48
     if s < d['s']:
         raise RuntimeError("This should not have happened.")
-    t = 12*s+d['t']
+    t = 12*s + d['t']
     u = d['u']
     return t,u

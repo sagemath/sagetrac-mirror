@@ -574,7 +574,7 @@ def _semistable_reducible_primes(E):
             else:
                 phi2x *= maps[j](x)
                 phi2y *= maps[j](y)
-            i = int(i/2)
+            i = i // 2
 
         # Any prime with reducible image must divide both of:
         gx = phi1x**12 + phi2x**12 - tx

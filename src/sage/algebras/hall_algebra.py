@@ -377,7 +377,7 @@ class HallAlgebra(CombinatorialFreeModule):
         """
         if all(x == 1 for x in la):
             r = len(la)
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1)**r * self._q**(-r*(r-1)//2)
             return self._from_dict({p: q for p in Partitions(r)})
 
         I = HallAlgebraMonomials(self.base_ring(), self._q)
@@ -596,7 +596,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         # Coercions
         if hopf_structure:
             e = SymmetricFunctions(base_ring).e()
-            f = lambda la: q**sum(-(r*(r-1)/2) for r in la)
+            f = lambda la: q**sum(-(r*(r-1)//2) for r in la)
             M = self.module_morphism(diagonal=f, codomain=e)
             M.register_as_coercion()
             (~M).register_as_coercion()
@@ -711,7 +711,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         H = HallAlgebra(self.base_ring(), self._q)
         cur = self.one()
         for r in a:
-            q = (-1)**r * self._q**(-r*(r-1)/2)
+            q = (-1)**r * self._q**(-r*(r-1)//2)
             cur *= self(H._from_dict({p: q for p in Partitions(r)}))
         return cur
 

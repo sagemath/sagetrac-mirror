@@ -93,7 +93,7 @@ class QuiverMutationTypeFactory(SageObject):
                 else:
                     data = ('D',max(data[1]),None)
             elif data[0] == 'GR' and data[2] == None and isinstance(data[1], tuple) and len(data[1]) == 2 and data[1][1] > data[1][0]:
-                if min(data[1]) > max(data[1])/2 and max(data[1]) != min(data[1])+1:
+                if min(data[1]) > max(data[1])//2 and max(data[1]) != min(data[1])+1:
                     data = (data[0],(max(data[1])-min(data[1]),max(data[1])),data[2])
                 if min(data[1]) == 2 and max(data[1]) > 3:
                     data = ('A',max(data[1])-3,None)
@@ -135,9 +135,9 @@ class QuiverMutationTypeFactory(SageObject):
             elif data == ('A',2,2):
                 data = ('BC',1,1)
             elif data[0] == 'A' and data[1] in ZZ and data[1] > 1 and data[1]%2 == 0 and data[2] == 2:
-                data = ('BC',data[1]/2,1)
+                data = ('BC', data[1]//2, 1)
             elif data[0] == 'A' and data[1] in ZZ and data[1] > 3 and data[1]%2 == 1 and data[2] == 2:
-                data = ('CD',(data[1]+1)/2,1)
+                data = ('CD', (data[1]+1)//2, 1)
             # We think of ('A',3,2) as ('D',3,2)
             elif data == ('A',3,2):
                 data = ('BB',2,1)
@@ -1499,7 +1499,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             if twist == None and rank == 1:
                 self._graph.add_vertex( 0 )
             elif twist == None and rank > 1:
-                self._rank = rank*(rank+1)/2
+                self._rank = rank * (rank+1) // 2
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 level = 0
@@ -1612,12 +1612,12 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             # the formula is taken from Torkildsen - Counting cluster-tilted algebras of type A
             if self.is_finite():
                 n = self._rank
-                a = binomial( 2*(n+1), n+1 ) / (n+2)
+                a = binomial( 2*(n+1), n+1 ) // (n+2)
                 if n % 2 == 1:
                     a += binomial( n+1, (n+1)//2 )
                 if n % 3 == 0:
-                    a += 2 * binomial( 2*n/3, n/3 )
-                return a / (n+3)
+                    a += 2 * binomial( 2*n//3, n//3 )
+                return a // (n+3)
             # the formula is taken from Bastian, Prellberg, Rubey, Stump
             elif self.is_affine():
                 i,j = self._bi_rank
@@ -1626,9 +1626,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = i+j
                 f = Euler_Phi()
                 if i == j:
-                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i/k,i/k)**2 for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / n ) / 4
+                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i//k, i//k)**2 for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) // n ) // 4
                 else:
-                    return sum( f(k) * binomial(2*i/k,i/k) * binomial(2*j/k,j/k) for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / ( 2 * n )
+                    return sum( f(k) * binomial(2*i//k, i//k) * binomial(2*j//k, j//k) for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) // ( 2 * n )
 
         # types B and C (finite and affine)
         elif self._letter in ['B','C']:
@@ -1636,7 +1636,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             # correctness is clear enough that I don't think a warning is needed
             if self.is_finite():
                 n = self._rank
-                return binomial( 2*n, n ) / (n+1)
+                return binomial( 2*n, n ) // (n+1)
 
         elif self._letter in ['BB','CC']:
             # these two formulas are not yet proven
@@ -1647,7 +1647,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                     if n%2==1:
                         return binomial( 2*n-1, n-1 )
                     else:
-                        return binomial( 2*n-1, n-1 ) + binomial( n-1, n/2 -1 )
+                        return binomial( 2*n-1, n-1 ) + binomial( n-1, n//2 -1 )
 
         # type BC (affine)
         elif self._letter == 'BC':
@@ -1676,7 +1676,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 else:
                     f = Euler_Phi()
                     n = ZZ( self._rank )
-                    return sum( f( n/k ) * binomial( 2*k, k ) for k in n.divisors() ) / (2*n)
+                    return sum( f( n/k ) * binomial( 2*k, k ) for k in n.divisors() ) // (2*n)
             # this formula is not yet proven
             elif self.is_affine():
                 n = self._rank - 3
@@ -1687,7 +1687,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                     if n%2==1:
                         return 2*binomial(2*n,n)
                     else:
-                        return 2*binomial(2*n,n) + binomial(n,n/2)
+                        return 2*binomial(2*n,n) + binomial(n, n//2)
 
         # the exceptional types are hard-coded
         # type E (finite, affine and elliptic)

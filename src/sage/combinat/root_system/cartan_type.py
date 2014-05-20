@@ -658,9 +658,9 @@ class CartanTypeFactory(SageObject):
                             return type_BC_affine.CartanType(n)
                     if letter == "A" and t[2] == 2:
                         if n%2 == 0: # Kac' A_2n^(2)
-                            return CartanType(["BC", ZZ(n/2), 2])
+                            return CartanType(["BC", ZZ(n//2), 2])
                         else:        # Kac' A_2n-1^(2)
-                            return CartanType(["B", ZZ((n+1)/2), 1]).dual()
+                            return CartanType(["B", ZZ((n+1)//2), 1]).dual()
                     if letter == "D" and t[2] == 2:
                         return CartanType(["C", n-1, 1]).dual()
                     if letter == "D" and t[2] == 3 and n == 4:
@@ -2068,7 +2068,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         a = self.a()
         acheck = self.acheck()
-        if set([1/ZZ(2), 2]).issubset( set(a[i]/acheck[i] for i in self.index_set()) ):
+        if set([1/ZZ(2), 2]).issubset( set(a[i] / acheck[i] for i in self.index_set()) ):
             # The test above and the formula below are rather meaningless
             # But they detect properly type BC or dual and return the correct value
             return Family(dict((i, min(ZZ(1), a[i] / acheck[i]))

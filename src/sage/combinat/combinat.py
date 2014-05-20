@@ -363,7 +363,7 @@ def bell_number(n, algorithm='dobinski', **options):
         k += si
         if v == 0:
             break
-    return ZZ(ceil(N((b - n) / n2 * exp2(Integer(-1)) - 1 / 4, log(b, 2) + 3)))
+    return ZZ(ceil(N((b - n) // n2 * exp2(Integer(-1)) - 1 // 4, log(b, 2) + 3)))
 
 def catalan_number(n):
     r"""
@@ -2598,7 +2598,7 @@ def bell_polynomial(n, k):
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
 
-        coefficient = factorial(n) / (factorial_product * power_factorial_product)
+        coefficient = factorial(n) // (factorial_product * power_factorial_product)
         result += coefficient *  prod([vars[i-1] for i in p])
 
     return result
@@ -2779,7 +2779,7 @@ def bernoulli_polynomial(x, n):
     k = n.mod(2)
     coeffs = [0]*k + sum(([binomial(n, i)*bernoulli(n-i), 0]
                           for i in range(k, n+1, 2)), [])
-    coeffs[-3] = -n/2
+    coeffs[-3] = -n / 2
 
     if isinstance(x, Polynomial):
         try:

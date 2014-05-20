@@ -221,7 +221,7 @@ def show_pentaminos(box=(5,8,2)):
     G = Graphics()
     for i,p in enumerate(pentaminos):
         x = 3.5 * (i%4)
-        y = 3.5 * (i/4)
+        y = 3.5 * (i//4)
         q = p + (x, y, 0)
         G += q.show3d()
         G += text3d(str(i), (x,y,2))

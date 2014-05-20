@@ -367,7 +367,7 @@ class NewtonPolygon_element(Element):
             return vertices[-1][1] + lastslope * (x - vertices[-1][0])
         a = 0; b = len(vertices)
         while b - a > 1:
-            c = floor((a+b)/2)
+            c = (a+b) // 2
             if vertices[c][0] < x:
                 a = c
             else:

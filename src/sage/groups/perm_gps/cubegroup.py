@@ -455,7 +455,7 @@ def plot3d_cubie(cnt, clrs):
         sage: clrF = blue; clrU = red; clrR = green
         sage: P = plot3d_cubie([1/2,1/2,1/2],[clrF,clrU,clrR])
     """
-    x = cnt[0]-1/2; y = cnt[1]-1/2; z = cnt[2]-1/2
+    x = cnt[0]-1//2; y = cnt[1]-1//2; z = cnt[2]-1//2
     #ptsD = [[x+0,y+0,0+z],[x+1,y+0,0+z],[x+1,y+1,0+z],[x+0,y+1,0+z],[x+0,y+0,0+z]]
     ptsF = [[x+1,y+0,0+z],[x+1,y+1,0+z],[x+1,y+1,1+z],[x+1,y+0,1+z],[x+1,y+0,0+z]]
     #ptsB = [[x+0,y+0,0+z],[x+0,y+1,0+z],[x+0,y+1,1+z],[x+0,y+0,1+z],[x+0,y+0,0+z]]

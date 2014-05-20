@@ -2230,7 +2230,7 @@ class SR_gf2n(SR_generic):
         elif isinstance(l, tuple):
             return tuple(ret)
         elif is_Matrix(l):
-            return Matrix(self.base_ring(), l.ncols(), l.nrows()/self.e, ret).transpose()
+            return Matrix(self.base_ring(), l.ncols(), l.nrows()//self.e, ret).transpose()
         else:
             raise TypeError
 

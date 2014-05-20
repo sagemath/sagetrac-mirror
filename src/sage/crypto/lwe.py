@@ -648,14 +648,14 @@ class UniformNoiseLWE(LWE):
             raise TypeError("Parameter too small")
 
         n2 = n
-        C  = 4/sqrt(2*pi)
-        kk = floor((n2-2*log(n2, 2)**2)/5)
-        n1 = floor((3*n2-5*kk)/2)
-        ke = floor((n1-2*log(n1, 2)**2)/5)
-        l  = floor((3*n1-5*ke)/2)-n2
-        sk = ceil((C*(n1+n2))**(3/2))
-        se = ceil((C*(n1+n2+l))**(3/2))
-        q = next_prime(max(ceil((4*sk)**((n1+n2)/n1)), ceil((4*se)**((n1+n2+l)/(n2+l))), ceil(4*(n1+n2)*se*sk+4*se+1)))
+        C  = 4 / sqrt(2*pi)
+        kk = floor((n2-2*log(n2, 2)**2) / 5)
+        n1 = floor((3*n2-5*kk) / 2)
+        ke = floor((n1-2*log(n1, 2)**2) / 5)
+        l  = floor((3*n1-5*ke) / 2) - n2
+        sk = ceil((C*(n1+n2))**(3//2))
+        se = ceil((C*(n1+n2+l))**(3//2))
+        q = next_prime(max(ceil((4*sk)**((n1+n2)//n1)), ceil((4*se)**((n1+n2+l)//(n2+l))), ceil(4*(n1+n2)*se*sk+4*se+1)))
 
         if kk<=0:
             raise TypeError("Parameter too small")
@@ -802,7 +802,7 @@ class RingLindnerPeikert(RingLWE):
         # Interpretation of "choose q just large enough to allow for a Gaussian parameter s>=8" in [LP11]_
         q = next_prime(floor(2**round(log(256 / s_t_bound, 2))))
         # Gaussian parameter as defined in [LP11]_
-        s = sqrt(s_t_bound*floor(q/4))
+        s = sqrt(s_t_bound*floor(q//4))
         # Transform s into stddev
         stddev = s/sqrt(2*pi.n())
         D = DiscreteGaussianPolynomialSampler(n, stddev)

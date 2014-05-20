@@ -914,7 +914,7 @@ class WordMorphism(SageObject):
             return self
 
         else:
-            nexp = int(exp / 2)
+            nexp = exp // 2
             over = exp % 2
             res = (self * self) ** nexp
             if over == 1:

@@ -130,7 +130,7 @@ class ReducedPermutation(SageObject) :
             sage: len(p)
             3
         """
-        return (len(self._twin[0]) + len(self._twin[1])) / 2
+        return (len(self._twin[0]) + len(self._twin[1])) // 2
 
     def length_top(self):
         r"""

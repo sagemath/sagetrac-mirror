@@ -71,7 +71,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             4
         """
         d = self.defining_polynomial().total_degree()
-        return int((d-1)*(d-2)/2)
+        return (d-1) * (d-2) // 2
 
     def divisor_of_function(self, r):
         """

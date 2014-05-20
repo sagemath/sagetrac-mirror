@@ -1550,11 +1550,11 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                     widths.append(len(c))
             else:
                 if exp:
-                    if not len(c)/2 in widths:
-                        widths[len(c)/2] = 0
-                    widths[len(c)/2] += 1
+                    if not len(c)//2 in widths:
+                        widths[len(c)//2] = 0
+                    widths[len(c)//2] += 1
                 else:
-                    widths.append(len(c)/2)
+                    widths.append(len(c)//2)
 
         if exp:
             return widths

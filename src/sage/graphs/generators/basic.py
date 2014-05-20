@@ -500,14 +500,14 @@ def CompleteBipartiteGraph(n1, n2):
     c4 = 0 # pad to center if bottom row has 1 node
     if n1 > n2:
         if n2 == 1:
-            c4 = (n1-1)/2
+            c4 = (n1-1) // 2
         else:
-            c2 = ((n1-1)/(n2-1))
+            c2 = ((n1-1) // (n2-1))
     elif n2 > n1:
         if n1 == 1:
-            c3 = (n2-1)/2
+            c3 = (n2-1) // 2
         else:
-            c1 = ((n2-1)/(n1-1))
+            c1 = ((n2-1) // (n1-1))
     for i in range(n1):
         x = c1*i + c3
         y = 1
@@ -979,13 +979,13 @@ def LollipopGraph(n1, n2):
     pos_dict = {}
 
     for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2//2 - 1)
+        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2//2 - 1)
         j = n1-1-i
         pos_dict[j] = (x,y)
     for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
+        x = float(i - n1 - n2//2 + 1)
+        y = float(i - n1 - n2//2 + 1)
         pos_dict[i] = (x,y)
 
     import networkx

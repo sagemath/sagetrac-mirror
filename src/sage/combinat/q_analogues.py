@@ -278,7 +278,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     # heuristic choice of the fastest algorithm
     if algorithm == 'auto':
         if is_polynomial:
-            if n <= 70 or k <= n/4:
+            if n <= 70 or k <= n // 4:
                 algorithm = 'naive'
             else:
                 algorithm = 'cyclo_polynomial'
@@ -303,20 +303,20 @@ def q_binomial(n, k, q=None, algorithm='auto'):
             else:
                 numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
                 try:
-                    return numerat//denomin
+                    return numerat // denomin
                 except TypeError:
-                    return numerat/denomin
+                    return numerat / denomin
         from sage.functions.all import floor
         if algorithm == 'cyclo_generic':
             from sage.rings.polynomial.cyclotomic import cyclotomic_value
-            return prod(cyclotomic_value(d,q)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
+            return prod(cyclotomic_value(d, q)
+                        for d in range(2, n+1)
+                        if n//d != k//d + (n-k)//d)
         if algorithm == 'cyclo_polynomial':
             R = q.parent()
             return prod(R.cyclotomic_polynomial(d)
-                        for d in range(2,n+1)
-                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
+                        for d in range(2, n+1)
+                        if n//d != k//d + (n-k)//d)
     except (ZeroDivisionError, TypeError):
         # As a last attempt, do the computation formally and then substitute
         return q_binomial(n, k)(q)
@@ -420,7 +420,7 @@ def q_catalan_number(n, q=None):
         ValueError: Argument (-2) must be a nonnegative integer.
     """
     if n in ZZ and n >= 0:
-        return prod(q_int(j, q) for j in range(n+2, 2*n+1)) / prod(q_int(j, q) for j in range(2,n+1))
+        return prod(q_int(j, q) for j in range(n+2, 2*n+1)) // prod(q_int(j, q) for j in range(2,n+1))
     else:
         raise ValueError("Argument (%s) must be a nonnegative integer." %n)
 
@@ -671,7 +671,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
             F1 = prod(args[i]**mu_c[i+1] * prd(i) for i in range(k-1))
             return F1 * prod(args[k-1]-q**i for i in range(mu_c[k-1]))
 
-        return F([q**ss for ss in la_c[:k]])/F([q**rr for rr in mu_c])
+        return F([q**ss for ss in la_c[:k]]) // F([q**rr for rr in mu_c])
 
     if algorithm == 'birkhoff':
         fac1 = q**(sum(mu_c[i+1] * (la_c[i]-mu_c[i]) for i in range(k-1)))

@@ -1546,7 +1546,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
             edges = []
             if dig:
                 index = 0
-                while index < possibilities/2:
+                while index < possibilities//2:
                     if (1 << index)&i:
                         edges.append((index,n))
                     index += 1

@@ -245,7 +245,7 @@ class PseudolineArrangement:
             (encoding == "auto" and len(seq[0]) == 2 and len(seq) > 3)):
 
             self._n = max(map(max, seq)) + 1
-            if (self._n * (self._n-1))/2 != len(seq):
+            if (self._n * (self._n-1)) // 2 != len(seq):
                 raise ValueError(
                     "A line is numbered "+str(self._n-1)+" but the number"+
                     " of transpositions is different from binomial("+
@@ -278,7 +278,7 @@ class PseudolineArrangement:
 
             self._permutations = [[] for i in range(self._n)]
 
-            crossings = (self._n * (self._n-1))/2
+            crossings = (self._n * (self._n-1)) // 2
 
             i = 0
             while crossings > 0:
@@ -334,7 +334,7 @@ class PseudolineArrangement:
         t = []
         perm = deepcopy(self._permutations)
 
-        crossings = (self._n * (self._n-1))/2
+        crossings = (self._n * (self._n-1)) // 2
 
         while crossings > 0:
 

@@ -215,7 +215,7 @@ class LabelledPermutation(SageObject):
             sage: len(iet.Permutation('1 2 3 4 5 6','1 2 3 4 5 6'))
             6
         """
-        return (len(self._intervals[0]) + len(self._intervals[1])) / 2
+        return (len(self._intervals[0]) + len(self._intervals[1])) // 2
 
     def length_top(self):
         r"""
