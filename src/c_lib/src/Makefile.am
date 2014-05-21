@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libcsage.la
 
-libcsage_la_LIBADD = -lntl -lpari -lmpir $(PYTHON_LDFLAGS)
+libcsage_la_LIBADD = -lntl -lpari -lgmp $(PYTHON_LDFLAGS)
 libcsage_la_CPPFLAGS = -I$(top_srcdir)/include $(PYTHON_CPPFLAGS)
 
 libcsage_la_SOURCES = \
