@@ -16,6 +16,7 @@ from exceptions import Exception
 
 from sage.rings.all import ZZ
 from sage.matrix.constructor import column_matrix, matrix
+from sage.modules.all import vector
 from sage.geometry.cone import Cone
 
 
@@ -148,10 +149,14 @@ def fan_isomorphism_generator(fan1, fan2):
         return
     graph_iso = graph_iso[1]
 
+    l1 = fan1.lattice()
+    l2 = fan2.lattice()
+
     # Pick a basis of rays in fan1
     max_cone = fan1(fan1.dim())[0]
     fan1_pivot_rays = max_cone.rays()
     fan1_basis = fan1_pivot_rays + fan1.virtual_rays()   # A QQ-basis for N_1
+    fan1_basis = [l1.coordinates(i) for i in fan1_basis]
     fan1_pivot_cones = [ fan1.embed(Cone([r])) for r in fan1_pivot_rays ]
 
     # The fan2 cones as set(set(ray indices))
@@ -165,6 +170,8 @@ def fan_isomorphism_generator(fan1, fan2):
         fan2_pivot_cones = [ perm(graph_iso[c]) for c in fan1_pivot_cones ]
         fan2_pivot_rays = fan2.rays([ c.ambient_ray_indices()[0] for c in fan2_pivot_cones  ])
         fan2_basis = fan2_pivot_rays + fan2.virtual_rays()
+        if rewrite:
+            fan2_basis = [l2.coordinates(i) for i in fan2_basis]
         try:
             m = matrix(ZZ, fan1_basis).solve_right(matrix(ZZ, fan2_basis))
             m = m.change_ring(ZZ)
@@ -174,7 +181,9 @@ def fan_isomorphism_generator(fan1, fan2):
         # check that the candidate m lifts the vertex graph homomorphism
         graph_image_ray_indices = [ perm(graph_iso[c]).ambient_ray_indices()[0] for c in fan1(1) ]
         try:
-            matrix_image_ray_indices = [ fan2.rays().index(r*m) for r in fan1.rays() ]
+            matrix_image_ray_indices = [fan2.rays().index(
+                l2.linear_combination_of_basis(vector(l1.coordinates(r))*m))
+                for r in fan1.rays() ]
         except ValueError:
             continue
         if graph_image_ray_indices != matrix_image_ray_indices:
@@ -207,7 +216,7 @@ def find_isomorphism(fan1, fan2, check=False):
     A fan isomorphism. If the fans are not isomorphic, a
     :class:`FanNotIsomorphicError` is raised.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: rays = ((1, 1), (0, 1), (-1, -1), (3, 1))
         sage: cones = [(0,1), (1,2), (2,3), (3,0)]
@@ -237,13 +246,33 @@ def find_isomorphism(fan1, fan2, check=False):
         ...              rays=[(-1,-1,-1),(-1,-1,0),(-1,1,-1),(0,2,-1),(1,-1,1),(3,-1,-1)])
         sage: fan1.is_isomorphic(fan2)
         True
+
+    Finding isomorphisms also works for fans residing in sublattices::
+
+        sage: N = ToricLattice(3)
+        sage: S = N.submodule([(1,-1,0), (1,1,1)])
+        sage: B = S.basis()
+        sage: cones = [Cone([B[0], B[1]]), Cone([B[1], -B[0]-B[1]]), Cone([-B[0]-B[1], B[0]])]
+        sage: f = Fan(cones)
+        sage: f2 = toric_varieties.P(2).fan()
+        sage: find_isomorphism(f, f2)
+        Fan morphism defined by the matrix
+        [1 0]
+        [0 1]
+        Domain fan: Rational polyhedral fan in Sublattice <N(1, 1, 1), N(0, 2, 1)>
+        Codomain fan: Rational polyhedral fan in 2-d lattice N
+        sage: find_isomorphism(f2, f)
+        Fan morphism defined by the matrix
+        [1 0]
+        [0 1]
+        Domain fan: Rational polyhedral fan in 2-d lattice N
+        Codomain fan: Rational polyhedral fan in Sublattice <N(1, 1, 1), N(0, 2, 1)>
     """
     generator = fan_isomorphism_generator(fan1, fan2)
     try:
         m = generator.next()
     except StopIteration:
         raise FanNotIsomorphicError
-
     from sage.geometry.fan_morphism import FanMorphism
     return FanMorphism(m, domain_fan=fan1, codomain=fan2, check=check)
 
@@ -383,6 +412,9 @@ def fan_2d_echelon_form(fan):
         [ 1  0 -1]
         [ 0  1 -1]
     """
-    ray_matrix = fan_2d_cyclically_ordered_rays(fan).matrix()
-    return ray_matrix.transpose().echelon_form()
+    l = fan.lattice()
+    rays = fan_2d_cyclically_ordered_rays(fan)
+    if l is not l.ambient_module():
+        rays = [l.coordinates(r) for r in rays]
+    return matrix(rays).transpose().echelon_form()
 
