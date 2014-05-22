@@ -2,22 +2,24 @@
 Decoding methods for linear error-correcting codes.
 Methods implemented:
 
- * nearest neighbor
- * syndrome
- * Groebner basis
- * Groebner representation
+- nearest neighbor
+- syndrome
+- Groebner basis
+- Groebner representation
 
 AUTHOR:
-    -- David Joyner (2009-02-01): initial version
-    -- Veronica Suaste (2013-09-21): add new decoding methods from [Marquez2013]_.
+
+- David Joyner (2009-02-01): initial version
+- Veronica Suaste (2013-09-21): add new decoding methods from [Marquez2013]_.
 
 REFERENCES:
 
-    .. [Marquez2013] Irene Marquez-Corbella, "Combinatorial Commutative Algebra Approach to
-    Complete Decoding", PhD Thesis, University of Valladolid, 2013.
-    
+.. [Marquez2013] Irene Marquez-Corbella, "Combinatorial Commutative Algebra Approach to
+   Complete Decoding", PhD Thesis, University of Valladolid, 2013.
+
 TODO:
-  Add lots more methods!
+
+Add lots more methods!
 """
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>
@@ -40,7 +42,8 @@ def coset_leader(C, v):
     be in the same ambient space V as C. Returns an
     element of the syndrome of v of lowest weight.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: C = codes.HammingCode(2,GF(3)); C
         Linear code of length 4, dimension 2 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 4)
@@ -342,6 +345,7 @@ def groebner_basis_singular(C, order="degrevlex"):
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
     - ``order`` --string (default:``"degrevlex"``) -- a degree ordering
+
     See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     OUTPUT:
@@ -409,11 +413,11 @@ def groebner_representation(C, order="degrevlex"):
     ``C`` is a pair `(N,\Phi)` such that:
 
     #. `N` is a transversal of the cosets in `F_2^n/C`
-    (i.e one element of each coset) verifying that `0` belongs to `N` and for
-    each `n` in N`\`0` there exists `e_i`
-    with `i` in `\{1,...,n\}` such that `n = n' + e_i` with `n'` in  `N`
+       (i.e one element of each coset) verifying that `0` belongs to `N` and for
+       each `n` in N`\`0` there exists `e_i`
+       with `i` in `\{1,...,n\}` such that `n = n' + e_i` with `n'` in  `N`
     #. `\phi` is a function called ``Matphi function`` that maps each pair `(n,e_i)`
-    with `n` in `N` to the element of `N` representing the coset that contains `n+e_i`.
+       with `n` in `N` to the element of `N` representing the coset that contains `n+e_i`.
 
     The algorithm is described in Algorithm 6 in page 52 of [Marquez2013]_.
 
@@ -422,6 +426,7 @@ def groebner_representation(C, order="degrevlex"):
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
     - ``order`` -- String (default:``"degrevlex"``) -- a degree ordering
+
     See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     OUTPUT:
@@ -430,17 +435,17 @@ def groebner_representation(C, order="degrevlex"):
 
     - Dictionary representing the ``Matphi function``  `(\Phi)`
 
-    EXAMPLE::
-
-    sage: H = matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,1,0,1],[0,0,1,0,1,1]])
-    sage: C = codes.LinearCodeFromCheckMatrix(H)
-    sage: from sage.coding.decoder import groebner_representation
-    sage: GR = groebner_representation(C)
-    sage: dic = GR[1]
-    sage: dic[((0,1,0,0,0,0),1)]
-    (0, 0, 0, 0, 0, 0)
-    sage: dic[((0,1,0,0,0,0),2)]
-    (1, 0, 0, 0, 0, 1)
+    EXAMPLES::
+    
+        sage: H = matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,1,0,1],[0,0,1,0,1,1]])
+        sage: C = codes.LinearCodeFromCheckMatrix(H)
+        sage: from sage.coding.decoder import groebner_representation
+        sage: GR = groebner_representation(C)
+        sage: dic = GR[1]
+        sage: dic[((0,1,0,0,0,0),1)]
+        (0, 0, 0, 0, 0, 0)
+        sage: dic[((0,1,0,0,0,0),2)]
+        (1, 0, 0, 0, 0, 1)
     """
     if not C.base_ring().order() == 2:
         raise NotImplementedError("The 'groebner_representation' function is only implemented for binary codes")
@@ -484,6 +489,7 @@ def insert_nextnew(v, List, order):
     - ``v``--Vector
     - ``List``-- List which stores vectors. Not necessarily empty.
     - ``order``--string (default:``"degrevlex"``) -- a degree ordering
+
     See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     EXAMPLE::
@@ -531,6 +537,7 @@ def multiple_fq(w, groebner_basis):
 
     - ``w`` -- Vector representing the exponents of a polynomial term
     - ``groebner_basis`` -- List representing the groebner basis elements so far.
+
     The variables we are working with are in the form `x_{ij}`.
     So the first entry of each element in ``groebner_basis`` must be the support
     of a vector in which each entry indicate the index `i` of the variable
@@ -540,7 +547,7 @@ def multiple_fq(w, groebner_basis):
     OUTPUT:
 
     - ``True`` if polynomial term represented by ``w`` is multiple of
-    any leader term of the groebner representation. ``False`` otherwise.
+      any leader term of the groebner representation. ``False`` otherwise.
 
     EXAMPLES::
 

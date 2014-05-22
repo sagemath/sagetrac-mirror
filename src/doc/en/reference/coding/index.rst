@@ -6,6 +6,7 @@ Coding Theory
 
    sage/coding/codes_catalog
    sage/coding/linear_code
+   sage/coding/decoder
    sage/coding/code_constructions
    sage/coding/guava
    sage/coding/sd_codes
