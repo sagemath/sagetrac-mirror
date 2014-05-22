@@ -1413,7 +1413,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLES::
 
-            sage: C = HammingCode(2,GF(5))
+            sage: C = codes.HammingCode(2,GF(5))
             sage: C.coset_leaders()
             [[(0, 0, 0, 0, 0, 0)],
              [(1, 0, 0, 0, 0, 0)],
@@ -1533,13 +1533,13 @@ class LinearCode(module.Module_old):
             sage: C.covering_radius("guava")  # optional - gap_packages (Guava package)
             1
 
-            sage: C = BCHCode(4,2,GF(7))
+            sage: C = codes.BCHCode(4,2,GF(7))
             sage: C.covering_radius("coset_leader")
             1
 
         TESTS::
 
-            sage: C = BinaryGolayCode()
+            sage: C = codes.BinaryGolayCode()
             sage: C.covering_radius("singular")
             Traceback (most recent call last):
             ...
@@ -1638,14 +1638,14 @@ class LinearCode(module.Module_old):
             sage: C.decode(v,"groebner_representation")
             (0, 1, 1, 1, 1, 0)
 
-            sage: C = ReedSolomonCode(5,4,GF(5))
+            sage: C = codes.ReedSolomonCode(5,4,GF(5))
             sage: v = vector(GF(5),(4,0,3,3,4))
             sage: C.decode(v,"groebner_basis")
             (0, 0, 1, 2, 2)
 
         TESTS::
 
-            sage: C = ReedSolomonCode(4,3,GF(5)); C;
+            sage: C = codes.ReedSolomonCode(4,3,GF(5)); C;
             Linear code of length 4, dimension 3 over Finite Field of size 5
             sage: v = vector(GF(5),(3,4,2,2))
             sage: C.decode(v,"groebner_representation")
@@ -1659,7 +1659,7 @@ class LinearCode(module.Module_old):
         works for codes with large dimensions such as `n-k` is small enough, here `n` denotes the
         length of the code and `k` denotes the dismension of the code.::
 
-            sage: C = HammingCode(5,GF(2)); C;
+            sage: C = codes.HammingCode(5,GF(2)); C;
             Linear code of length 31, dimension 26 over Finite Field of size 2
             sage: v = vector(GF(2),(1,1,1,0,0,1,1,1,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1))
             sage: C.decode(v,"syndrome")  # not tested, MemoryError (sage.math, 2013)
@@ -1670,14 +1670,14 @@ class LinearCode(module.Module_old):
 
             sage: Fq = GF(4,'a')
             sage: a = Fq.primitive_element()
-            sage: C = HammingCode(3,Fq); C;
+            sage: C = codes.HammingCode(3,Fq); C;
             Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
             sage: v = vector(Fq,(a+1,1,a+1,a+1,a+1,a+1,1,a,a,1,a+1,1,a,0,1,a,a,1,a+1,1,1))
             sage: C.decode(v,"syndrome")  # not tested MemoryError  (sage.math, 2013)
             sage: C.decode(v,"groebner_basis")  # not tested  long time (70s 2013)
             (a + 1, 1, a + 1, a + 1, a + 1, a + 1, 1, a, a, a + 1, a + 1, 0, 0, 0, 1, a, a, 1, a + 1, 0, 1)
 
-            sage: C = BinaryGolayCode(); C;
+            sage: C = codes.BinaryGolayCode(); C;
             Linear code of length 23, dimension 12 over Finite Field of size 2
             sage: v=vector(GF(2),(1,0,0,1,1,1,1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,1))
             sage: C.decode(v,"syndrome")
@@ -1868,11 +1868,11 @@ class LinearCode(module.Module_old):
 
         EXAMPLES::
 
-            sage: C = ReedSolomonCode(7,3,GF(7))
+            sage: C = codes.ReedSolomonCode(7,3,GF(7))
             sage: C.error_correcting_capacity()
             2
 
-            sage: C = HammingCode(2,GF(5))
+            sage: C = codes.HammingCode(2,GF(5))
             sage: C.minimum_distance()
             3
             sage: C.error_correcting_capacity()
@@ -2137,7 +2137,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLE::
 
-            sage: C = HammingCode(3,GF(2))
+            sage: C = codes.HammingCode(3,GF(2))
             sage: ts =[(0, 0, 0, 0, 0, 0, 0),(1, 1, 1, 0, 0, 0, 0),(1, 0, 0, 1, 1, 0, 0),(0, 1, 0, 1, 0, 1, 0),(0, 0, 1, 1, 0, 0, 1),(0, 1, 0, 0, 1, 0, 1),(0, 0, 1, 0, 1, 1, 0),(1, 0, 0, 0, 0, 1, 1)]
             sage: C._set_groebner_test_set(ts)
             sage: C._get_groebner_test_set()
@@ -2185,7 +2185,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLE::
 
-            sage: C = HammingCode(2,GF(3))
+            sage: C = codes.HammingCode(2,GF(3))
             sage: v =vector(GF(3),C.length())
             sage: Fqstar= C.base_ring().list()[1:]
             sage: List=[]
@@ -2592,11 +2592,11 @@ class LinearCode(module.Module_old):
         EXAMPLE::
 
             sage: H = matrix(GF(2),[[1,0,0,0,1,0,0,0,0,0],[1,0,1,1,0,1,0,0,0,0],[1,1,0,1,0,0,1,0,0,0],[1,1,1,0,0,0,0,1,0,0],[1,1,1,1,0,0,0,0,1,0],[1,1,1,1,0,0,0,0,0,1]])
-            sage: C = LinearCodeFromCheckMatrix(H)
+            sage: C = codes.LinearCodeFromCheckMatrix(H)
             sage: C.newton_radius()
             3
 
-            sage: C = HammingCode(4,GF(2))
+            sage: C = codes.HammingCode(4,GF(2))
             sage: C.newton_radius()
             1
 
@@ -3100,7 +3100,7 @@ class LinearCode(module.Module_old):
 
         EXAMPLE::
 
-            sage: C = HammingCode(3,GF(2))
+            sage: C = codes.HammingCode(3,GF(2))
             sage: ts =[(0, 0, 0, 0, 0, 0, 0),(1, 1, 1, 0, 0, 0, 0),(1, 0, 0, 1, 1, 0, 0),(0, 1, 0, 1, 0, 1, 0),(0, 0, 1, 1, 0, 0, 1),(0, 1, 0, 0, 1, 0, 1),(0, 0, 1, 0, 1, 1, 0),(1, 0, 0, 0, 0, 1, 1)]
             sage: C._set_groebner_test_set(ts)
             sage: C._get_groebner_test_set()
@@ -3344,7 +3344,7 @@ class LinearCode(module.Module_old):
             sage: C.weight_distribution_coset()
             (1, 6, 1, 0, 0, 0)
 
-            sage: C = HammingCode(4,GF(2))
+            sage: C = codes.HammingCode(4,GF(2))
             sage: C.weight_distribution_coset()
             (1, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
@@ -3354,7 +3354,7 @@ class LinearCode(module.Module_old):
                                     [1,1,1,0,0,0,0,1,0,0],\
                                     [1,1,1,1,0,0,0,0,1,0],\
                                     [1,1,1,1,0,0,0,0,0,1]])
-            sage: C = LinearCodeFromCheckMatrix(H)
+            sage: C = codes.LinearCodeFromCheckMatrix(H)
             sage: C.weight_distribution_coset()
             (1, 10, 30, 23, 0, 0, 0, 0, 0, 0)
 

@@ -100,12 +100,12 @@ def decode(C, v, algorithm="syndrome"):
         sage: decode(C, v)  # long time (9s on sage.math, 2011)
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-        sage: C = HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(3,GF(2))
         sage: v = vector(GF(2),(0,0,1,1,0,1,0))
         sage: decode(C,v,"groebner_representation")
         (1, 0, 1, 1, 0, 1, 0)
 
-        sage: C = ReedSolomonCode(5,4,GF(5))
+        sage: C = codes.ReedSolomonCode(5,4,GF(5))
         sage: v = vector(GF(5),(4,0,3,3,4))
         sage: decode(C,v,"groebner_basis")
         (0, 0, 1, 2, 2)
@@ -144,7 +144,7 @@ def decode_groebner_basis(C, y):
 
     EXAMPLES::
 
-        sage: C = WalshCode(3)
+        sage: C = codes.WalshCode(3)
         sage: v = vector(GF(2),(0, 1, 0, 1, 1, 0, 0, 0))
         sage: from sage.coding.decoder import decode_groebner_basis
         sage: dec_word = decode_groebner_basis(C,v)
@@ -159,24 +159,24 @@ def decode_groebner_basis(C, y):
         sage: decode_groebner_basis(C,v)
         (0, 1, 0, 1, 0, 1, 0, 1, 0, 0)
 
-        sage: C = HammingCode(4,GF(2))
+        sage: C = codes.HammingCode(4,GF(2))
         sage: v = vector(GF(2),(0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0))
         sage: decode_groebner_basis(C,v)
         (0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0)
 
-        sage: C = BCHCode(8,3,GF(3))
+        sage: C = codes.BCHCode(8,3,GF(3))
         sage: v = vector(GF(3),(2, 2, 1, 2, 1, 2, 0, 0))
         sage: decode_groebner_basis(C,v)
         (1, 2, 1, 2, 2, 2, 2, 0)
 
         sage: F = GF(4,'a')
         sage: a = F.primitive_element()
-        sage: C = HammingCode(2,F)
+        sage: C = codes.HammingCode(2,F)
         sage: v = vector(F,(a, 0, a + 1, a + 1, a + 1))
         sage: decode_groebner_basis(C,v)
         (a + 1, 0, a + 1, a + 1, a + 1)
 
-        sage: C = ReedSolomonCode(6,4,GF(7))
+        sage: C = codes.ReedSolomonCode(6,4,GF(7))
         sage: v = vector(GF(7),(5, 5, 4, 3, 6, 2))
         sage: decode_groebner_basis(C,v)
         (0, 6, 3, 5, 5, 3)
@@ -209,7 +209,7 @@ def decode_groebner_representation(C, y):
 
     EXAMPLES::
 
-        sage: C = HammingCode(4,GF(2))
+        sage: C = codes.HammingCode(4,GF(2))
         sage: v = vector(GF(2),(0,1,1,1,0,1,1,1,0,1,0,1,0,1,0))
         sage: from sage.coding.decoder import decode_groebner_representation
         sage: decode_groebner_representation(C,v)
@@ -256,7 +256,7 @@ def groebner_basis_fglm(C):
 
     EXAMPLES::
 
-        sage: C = HammingCode(2,GF(3))
+        sage: C = codes.HammingCode(2,GF(3))
         sage: from sage.coding.decoder import groebner_basis_fglm
         sage: list(groebner_basis_fglm(C))
         [((0, 0, 2, 2), (1, 0, 0, 0)),
@@ -350,12 +350,12 @@ def groebner_basis_singular(C, order="degrevlex"):
 
     EXAMPLES::
 
-        sage: C = WalshCode(2)
+        sage: C = codes.WalshCode(2)
         sage: from sage.coding.decoder import groebner_basis_singular
         sage: list(groebner_basis_singular(C))
         [x0^2 + 1, x3^2 + 1, x1 + x3, x2 + x3]
 
-        sage: C = HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(3,GF(2))
         sage: list(groebner_basis_singular(C))
         [x0^2 + 1,
          x0*x1 + x2,
@@ -433,7 +433,7 @@ def groebner_representation(C, order="degrevlex"):
     EXAMPLE::
 
     sage: H = matrix(GF(2),[[1,0,0,1,1,1],[0,1,0,1,0,1],[0,0,1,0,1,1]])
-    sage: C = LinearCodeFromCheckMatrix(H)
+    sage: C = codes.LinearCodeFromCheckMatrix(H)
     sage: from sage.coding.decoder import groebner_representation
     sage: GR = groebner_representation(C)
     sage: dic = GR[1]
@@ -488,7 +488,7 @@ def insert_nextnew(v, List, order):
 
     EXAMPLE::
 
-        sage: C = HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(3,GF(2))
         sage: v = vector(GF(2),C.length())
         sage: List = []
         sage: t = TermOrder("degrevlex")
@@ -573,7 +573,7 @@ def syndrome(C, v):
 
     EXAMPLES::
 
-        sage: C = HammingCode(2,GF(3)); C
+        sage: C = codes.HammingCode(2,GF(3)); C
         Linear code of length 4, dimension 2 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 4)
         sage: v = V([0, 2, 0, 1])
@@ -612,7 +612,7 @@ def test_set_groebner(C):
 
     EXAMPLES::
 
-        sage: C = HammingCode(3,GF(2))
+        sage: C = codes.HammingCode(3,GF(2))
         sage: from sage.coding.decoder import groebner_basis_singular
         sage: len(groebner_basis_singular(C))
         28
@@ -627,7 +627,7 @@ def test_set_groebner(C):
          (0, 0, 1, 0, 1, 1, 0),
          (1, 0, 0, 0, 0, 1, 1)]
 
-        sage: C = BCHCode(8,3,GF(3))
+        sage: C = codes.BCHCode(8,3,GF(3))
         sage: test_set_groebner(C)
         [(0, 0, 0, 0, 2, 0, 2, 2),
          (0, 0, 0, 0, 1, 0, 1, 1),
