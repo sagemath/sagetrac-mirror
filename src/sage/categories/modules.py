@@ -410,42 +410,6 @@ class Modules(Category_module):
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
     WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
-
-        def __mul__(left, right):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: x * int(2)
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-        def __rmul__(right, left):
-            """
-            TESTS::
-
-                sage: F = CombinatorialFreeModule(QQ, ["a", "b"])
-                sage: x = F.monomial("a")
-                sage: int(2) * x
-                2*B['a']
-
-            TODO: make a better unit test once Modules().example() is implemented
-            """
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, right, operator.mul)
-
-
     class HomCategory(HomCategory):
         """
         The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules.
