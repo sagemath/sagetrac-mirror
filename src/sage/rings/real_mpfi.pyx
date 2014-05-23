@@ -184,7 +184,7 @@ EXAMPLES::
 
 Comparison with infinity is defined through coercion to the infinity
 ring where semi-infinite intervals are sent to their central value
-(plus or minus infinity); This implements the above convention for
+(plus or minus infinity).  This implements the above convention for
 inequalities::
 
     sage: InfinityRing.has_coerce_map_from(RIF)
