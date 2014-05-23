@@ -387,15 +387,25 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     methods['_reduction'] = reduction
     if "_sage_src_lines_" not in methods:
         from sage.misc.sageinspect import sage_getsourcelines,sage_getfile
-        #we'd like the following methods to work both on instances and
-        #on the class, so we need to be prepared to accept 0 or 1 arguments.
+        #some trickery is required here. On a dynamic class based on a cdef
+        #class, such what results from
+        #P.<x,y> = QQ[]
+        #these methods end up (bound!) in P.__dict__ itself. Furthermore,
+        #doccls has the wrong value there. So it's better to look up
+        #the source on self.__class__ in that case.
         @staticmethod
-        def _sage_src_lines():
-            return sage_getsourcelines(doccls)
+        def _sage_src_lines(*args):
+            if args:
+                return sage_getsourcelines(args[0].__class__)
+            else:
+                return sage_getsourcelines(doccls)
         methods['_sage_src_lines_'] = _sage_src_lines
         @staticmethod
-        def _sage_src_file():
-            return sage_getfile(doccls)
+        def _sage_src_file(*args):
+            if args:
+                return sage_getfile(args[0].__class__)
+            else:
+                return sage_getfile(doccls)
         methods['_sage_src_file_'] = _sage_src_file
 
     methods['__doc__'] = doccls.__doc__

@@ -1151,11 +1151,7 @@ def sage_getfile(obj):
     # other heuristics will find the source file, so we insist on the presence of
     # a _sage_src_file_ method to provide us with the correct file.
     if hasattr(obj,"_sage_src_lines_"):
-        try:
-            return obj._sage_src_file_()
-        except TypeError:
-            # That happes for instances of dynamic classes
-            return sage_getfile(obj.__class__)
+        return obj._sage_src_file_()
 
     # We try to extract from docstrings, but not using Python's inspect
     # because _sage_getdoc_unformatted is more robust.
@@ -1808,9 +1804,6 @@ def sage_getsourcelines(obj, is_binary=False):
         return obj._sage_src_lines_()
     except AttributeError:
         pass
-    except TypeError:
-        # That happes for instances of dynamic classes
-        return sage_getsourcelines(obj.__class__)
 
     # Check if we deal with instance
     if isclassinstance(obj):
