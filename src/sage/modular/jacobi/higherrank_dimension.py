@@ -119,12 +119,12 @@ def vector_valued_dimension(k, L):
 
     TESTS::
 
-        sage: from sage.modular.jacobi.higherrank_dimension import _vector_valued_dimension
-        sage: _vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 1, 1, 2])))
+        sage: from sage.modular.jacobi.higherrank_dimension import vector_valued_dimension
+        sage: vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 1, 1, 2])))
         1
-        sage: _vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 0, 0, 2])))
+        sage: vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 0, 0, 2])))
         1
-        sage: _vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 0, 0, 4])))
+        sage: vector_valued_dimension(3, QuadraticForm(-matrix(2, [2, 0, 0, 4])))
         1
     """
     if 2 * k not in ZZ :
@@ -268,7 +268,8 @@ def _discriminant_form_pmone(L, discriminant_form_exponents):
 
     - A pair ``(singls, pairs)``, the first component of which
       contains a list of elements that are fixed by `-1` and the
-      second component of which consists of elements which are not.
+      second component of which consists of repepresentatives of pairs
+      of elements which are not.
 
     TESTS:
 

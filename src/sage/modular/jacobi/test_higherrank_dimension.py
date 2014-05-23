@@ -25,6 +25,12 @@ AUTHOR:
 #
 #===============================================================================
 
+from sage.all import (prod, zero_vector, matrix,
+                      ZZ, ComplexField,
+                      gcd, lcm,
+                      QuadraticForm)
+import operator
+
 def _test_set__quadratic_forms():
     return [QuadraticForm(matrix([[14]])),
             QuadraticForm(-matrix(2, [2, 1, 1, 2])),
@@ -33,10 +39,10 @@ def _test_set__quadratic_forms():
             QuadraticForm(matrix(3, [2,1,1, 1,2,1, 1,1,2]))]
 def test__discrimant_form():
     for L in _test_set__quadratic_forms():
-        yield (_test__discriminant_form, (L,))
+        yield (_test__discriminant_form, L)
 
 def _test__discriminant_form(L):
-    from sage.modular.jacobi.higherrank_dimension _discriminant_form
+    from sage.modular.jacobi.higherrank_dimension import _discriminant_form
 
     (eds, quad, bil) = _discriminant_form(L)
 
@@ -44,64 +50,69 @@ def _test__discriminant_form(L):
 
     l = len(eds)
     for ix in range(l):
-        v = zero_vector(ZZ, l)
+        v = l*[0]
         for a in range(eds[ix]):
             v[ix] = a
 
             # the value of the quadratic form is compatible with the
             # element's order
-            assert quad(v) * (eds[ix] / gcd(a, eds[ix]))**2 in ZZ:
+            assert quad(*v) * (eds[ix] / gcd(a, eds[ix]))**2 in ZZ
 
             # discrimiant forms are non-degenerate
-            w = zero_vector(ZZ, l)
-            for b in range(eds[ix]):
-                w[ix] = b
-                if bil(v, w) not in ZZ: break
-            else:
-                raise AssertionError()
+            if not all(e==0 for e in v):
+                w = l*[0]
+                for b in range(eds[ix]):
+                    w[ix] = b
+                    print w
+                    if bil(*(v+w)) not in ZZ: break
+                else:
+                    raise AssertionError()
 
             # the descomposition into jordan components is orthogonal
             for ix2 in range(l):
                 if ix == ix2: continue
-                w = zero_vector(ZZ, l)
+                w = l*[0]
                 for b in range(eds[ix2]):
                     w[ix2] = b
-                    assert bil(v, w) in ZZ
+                    assert bil(*(v+w)) in ZZ
 
 def test__discriminant_form_pmone():
     for L in _test_set__quadratic_forms():
-        yield (_test__discriminant_form_pmone, (L,))
+        yield (_test__discriminant_form_pmone, L)
 
 def _test__discriminant_form_pmone(L):
-    from sage.modular.jacobi.higherrank_dimension _discriminant_form_pmone
+    from sage.modular.jacobi.higherrank_dimension import (_discriminant_form,
+                                                          _discriminant_form_pmone)
 
     (eds, quad, bil) = _discriminant_form(L)
     (singls, pairs) = _discriminant_form_pmone(L, eds)
 
     is_trivial = lambda x: all(x % e == 0 for (x, e) in zip(x, eds))
      
-     for x in singls:
-         assert is_trivial(map(operator.add, x, x))
-     for x in pairs:
-         assert any(is_trivial(map(operator.add, x, y))
-                    for y in pairs if y != x)
+    for x in singls:
+        assert is_trivial(map(operator.add, x, x))
+    for x in pairs:
+        assert all(not is_trivial(map(operator.add, x, y))
+                   for y in singls+pairs
+                   if y != x)
 
 def test__weil_representation():
     for L in _test_set__quadratic_forms():
-        yield (_test__weil_representation, (L,))
+        yield (_test__weil_representation, L)
 
 def _test__weil_representation(L):
-    from sage.modular.jacobi.higherrank_dimension _weil_representation
+    from sage.modular.jacobi.higherrank_dimension import (_discriminant_form,
+                                                          _discriminant_form_pmone,
+                                                          _weil_representation)
 
-    CC = ComplexField(100)
+    CC = ComplexField(200)
     (eds, quad, bil) = _discriminant_form(L)
     (singls, pairs) = _discriminant_form_pmone(L, eds)
     plus_basis = True
 
     for plus_basis in [True, False]:
         (S, T) = _weil_representation(CC, L, singls, pairs, plus_basis,
-                                      discriminant_form_exponents,
-                                      disc_quadratic, disc_bilinear)
+                                      eds, quad, bil)
 
         if plus_basis:
             assert S.nrows() == S.ncols() == len(singls) + len(pairs)
@@ -110,14 +121,16 @@ def _test__weil_representation(L):
             assert S.nrows() == S.ncols() == len(pairs)
             assert T.nrows() == T.ncols() == len(pairs)
 
-        assert (T**lcm(eds)).is_one()
+        
+        zero_test = lambda m: all(abs(e) < 10**-10 for e in m.list())
+
+        assert zero_test(T**(2*lcm(eds)) - 1)
+
         S4 = S**4
         ST3 = (S*T)**3
         if L.dim() % 2 == 0:
-            assert S4.is_one()
-            assert ST3.is_one()
+            assert zero_test(S**4 - 1)
+            assert zero_test((S*T)**6 - 1)
         else:
-            assert S4.is_one()
-            assert ST3.is_one()
-            assert (S4**2).is_one()
-            assert (ST3**2).is_one()
+            assert zero_test(S**8 - 1)
+            assert zero_test((S*T)**12 - 1)
