@@ -1636,7 +1636,7 @@ class LinearCode(module.Module_old):
             (0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1)
 
         Algorithms does not work for very long codes since the syndrome table grows too
-        large or groebner basis takes long time for computing.
+        large or Groebner basis takes long time for computing.
 
         """
         from decoder import decode

@@ -210,7 +210,7 @@ def decode_groebner_basis(C, y):
 def decode_groebner_representation(C, y):
     r"""
     Gradient descent decoding algorithm: decodes the received word ``y`` to an element
-    ``c`` in the code ``C`` using its groebner representation.
+    ``c`` in the code ``C`` using its Groebner representation.
 
     The algorithm is described in Algorithm 12 in page 72 of [Marquez2013]_.
 
@@ -253,7 +253,7 @@ def decode_groebner_representation(C, y):
 
 def groebner_basis_fglm(C):
     """
-    This function computes the groebner basis of the ideal associated to
+    This function computes the Groebner basis of the ideal associated to
     code ``C``, using an adapted fglm algorithm for this case, and
     a graduated order implicitly.
     In this algorithm we use vectors of length's code dimension, the value
@@ -269,7 +269,7 @@ def groebner_basis_fglm(C):
 
     OUTPUT:
 
-    - Generator iterable object with groebner basis elements as vectors.
+    - Generator iterable object with Groebner basis elements as vectors.
 
     EXAMPLES::
 
@@ -317,7 +317,7 @@ def groebner_basis_fglm(C):
     else:
         for g in C.gen_mat():
             genMat.extend([a*g for a in Fqstar])
-    #stores leader terms of groebner basis
+    #stores leader terms of Groebner basis
     #in a convenient way to check for multiples
     grob_bb=[]
     w2 = {}
@@ -363,7 +363,7 @@ def groebner_basis_singular(C, order="degrevlex"):
 
     OUTPUT:
 
-    - Generator iterable object of polynomials representing a reduced groebner basis.
+    - Generator iterable object of polynomials representing a reduced Groebner basis.
 
     EXAMPLES::
 
@@ -548,18 +548,18 @@ def multiple_fq(w, groebner_basis):
     INPUT:
 
     - ``w`` -- Vector representing the exponents of a polynomial term
-    - ``groebner_basis`` -- List representing the groebner basis elements so far.
+    - ``groebner_basis`` -- List representing the Groebner basis elements so far.
 
     The variables we are working with are in the form `x_{ij}`.
     So the first entry of each element in ``groebner_basis`` must be the support
     of a vector in which each entry indicate the index `i` of the variable
-    that is present in the leader term of the groebner basis element.
+    that is present in the leader term of the Groebner basis element.
     And the second entry are the values `j` for each entry `i` in the support.
 
     OUTPUT:
 
     - ``True`` if polynomial term represented by ``w`` is multiple of
-      any leader term of the groebner representation. ``False`` otherwise.
+      any leader term of the Groebner representation. ``False`` otherwise.
 
     EXAMPLES::
 
@@ -629,7 +629,7 @@ def test_set_groebner(C):
     .. Note::
 
         The test set doesn't contain duplicates, so cardinality of test-set is less equal
-        than groebner basis cardinality.
+        than Groebner basis cardinality.
 
     OUTPUT:
 
