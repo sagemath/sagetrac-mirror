@@ -1660,8 +1660,6 @@ class LinearCode(module.Module_old):
             from sage.interfaces.gap import gfq_gap_to_sage
             result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
             return self.ambient_space()(result)
-        else:
-            raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
 
     def divisor(self):
         r"""
