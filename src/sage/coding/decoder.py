@@ -38,9 +38,15 @@ from sage.misc.misc import prod
 
 def coset_leader(C, v):
     """
-    The vector v represents a received word, so should
-    be in the same ambient space V as C. Returns an
-    element of the syndrome of v of lowest weight.
+    The vector ``v`` represents a received word, so should
+    be in the same ambient space V as the linear code ``C``. Returns an
+    element of the syndrome of ``v`` of lowest weight.
+
+    INPUT:
+
+    - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
+
+    - ``v`` -- a vector that represents the received word
 
     EXAMPLES::
 
@@ -70,17 +76,26 @@ def coset_leader(C, v):
 @rename_keyword(deprecation=6094, method="algorithm")
 def decode(C, v, algorithm="syndrome"):
     """
-    The vector v represents a received word, so should
-    be in the same ambient space V as C. Returns an
-    element in C which is closest to v in the Hamming
-    metric.
+    The vector ``v`` represents a received word, so should be in the same
+    ambient space V as the linear code ``C``. Returns an element in ``C``
+    which is closest to ``v`` in the Hamming metric.
 
-    Methods implemented include "nearest neighbor" (essentially
-    a brute force search), "syndrome", "groebner_representation" and
+    Algorithms implemented include "nearest neighbor" (essentially a brute
+    force search), "syndrome", "groebner_representation" and
     "groebner_basis".
 
     Methods "groebner_representation" and "groebner_basis" were implemented
     following the work in [Marquez2013]_.
+
+    INPUT:
+
+    - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
+
+    - ``v`` -- a vector that represents the received word
+
+    - ``algorithm`` -- string (default ``"syndrome"``) The algorithm used.
+      It should be one of ``"groebner_basis"``, ``"groebner_representation"``,
+      "nearest neighbor"``, or ``"syndrome"``.
 
     EXAMPLES::
 
@@ -139,7 +154,7 @@ def decode_groebner_basis(C, y):
 
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
-    - ``y`` --Vector of the same length as a codeword
+    - ``y`` -- vector of the same length as a codeword
 
     OUTPUT:
 
@@ -344,8 +359,7 @@ def groebner_basis_singular(C, order="degrevlex"):
 
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
-    - ``order`` --string (default:``"degrevlex"``) -- a degree ordering
-
+    - ``order`` --string (default:``"degrevlex"``) -- a degree ordering.
     See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     OUTPUT:
@@ -486,10 +500,9 @@ def insert_nextnew(v, List, order):
 
     INPUT:
 
-    - ``v``--Vector
+    - ``v``-- Vector
     - ``List``-- List which stores vectors. Not necessarily empty.
-    - ``order``--string (default:``"degrevlex"``) -- a degree ordering
-
+    - ``order``-- string (default:``"degrevlex"``) -- a degree ordering.
     See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     EXAMPLE::
@@ -573,10 +586,16 @@ def multiple_fq(w, groebner_basis):
 
 def syndrome(C, v):
     """
-    The vector v represents a received word, so should
-    be in the same ambient space V as C. Returns the
-    elements in V (including v) which belong to the
-    syndrome of v (ie, the coset v+C, sorted by weight).
+    The vector ``v`` represents a received word, so should be in the same
+    ambient space V as the linear code ``C``. Returns the elements in
+    V (including ``v``) which belong to the syndrome of ``v`` (ie, the
+    coset ``v+C``, sorted by weight).
+
+    INPUT:
+
+    - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
+
+    - ``v`` -- a vector that represents the received word
 
     EXAMPLES::
 
