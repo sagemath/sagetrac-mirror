@@ -30,7 +30,6 @@ REFERENCES:
 .. [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
 .. [Sil86] Silverman, "The Arithmetic of Elliptic Curves"
 .. [S72] Stark, "Class-numbers of complex quadratic fields."
-
 """
 
 #*****************************************************************************
@@ -70,14 +69,14 @@ def isogeny_kernel(E1, E2, degree, algorithm="BMSS"):
 
     .. note:: 
        
-       The error probability of the checks decreases exponentially
-       with the degree. It is slightly lower for Stark's algorithm
-       than for BMSS.
-       :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
-       and
-       :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`
-       implement some slightly more expensive tests that never fail.
-       These are the preferred methods to construct an isogeny.
+        The error probability of the checks decreases exponentially
+        with the degree. It is slightly lower for Stark's algorithm
+        than for BMSS.
+        :py:class:`sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
+        and
+        :py:meth:`sage.schemes.elliptic_curves.ell_field.EllipticCurve_field.isogeny`
+        implement some slightly more expensive tests that never fail.
+        These are the preferred methods to construct an isogeny.
 
     :param E1: an elliptic curve in short Weierstrass form.
     :param E2: an elliptic curve in short Weierstrass form.
@@ -248,9 +247,9 @@ def isogeny_Stark(E1, E2, degree):
 
     .. note::
 
-       As published there, the algorithm is incorrect, and a correct
-       version (with slightly different notation) can be found in
-       [M09]_.  The algorithm originates in [S72]_
+        As published there, the algorithm is incorrect, and a correct
+        version (with slightly different notation) can be found in
+        [M09]_.  The algorithm originates in [S72]_
 
     EXAMPLES::
 
@@ -442,8 +441,8 @@ def isogeny_BMSS(E1, E2, degree):
 
     .. math::
 
-       (a_6 x^3 + a_4 x^2 + a_2 x + 1) {T'}^2 =
-       (T/x) (\tilde{a}_6 T^3 + \tilde{a}_4 T^2 + \tilde{a}_2 T + 1)
+        (a_6 x^3 + a_4 x^2 + a_2 x + 1) {T'}^2 =
+        (T/x) (\tilde{a}_6 T^3 + \tilde{a}_4 T^2 + \tilde{a}_2 T + 1)
 
     with initial conditions `T = x + O(x^2)`; then we reconstruct the rational
     fraction using the :py:func:`Berlekamp-Massey algorithm

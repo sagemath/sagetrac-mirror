@@ -38,9 +38,9 @@ The most useful functions that apply to isogenies are
 - ``rational_maps``
 - ``kernel_polynomial``
 
-.. Warning::
+.. WARNING::
 
-   Some algorithms may need the isogeny to be normalized.
+    Some algorithms may need the isogeny to be normalized.
 
 AUTHORS:
 
@@ -65,15 +65,14 @@ from sage.categories import homset
 from sage.categories.morphism import Morphism
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import Integer, ZZ
+from sage.rings.all import Integer
 from sage.rings.polynomial.all import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.all import is_EllipticCurve
 
 from sage.rings.number_field.number_field_base import is_NumberField
 
-from sage.rings.rational_field import is_RationalField, QQ
+from sage.rings.rational_field import is_RationalField
 
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
 
@@ -702,7 +701,7 @@ class EllipticCurveIsogeny(Morphism):
         True
 
     However only normalized isogenies can be constructed this
-    way. So it won't find the multiplication-by-3 endomorphism::
+    way. So it will not find the multiplication-by-3 endomorphism::
 
         sage: E.isogeny(None, codomain=E,degree=9)
         Traceback (most recent call last):
@@ -879,7 +878,7 @@ class EllipticCurveIsogeny(Morphism):
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
 
-        # if the kernel is None and the codomain isn't
+        # if the kernel is None and the codomain is not None
         # calculate the kernel polynomial
         pre_isom = None
         post_isom = None
@@ -1675,9 +1674,11 @@ class EllipticCurveIsogeny(Morphism):
         if self.__check :
             for P in kernel_gens:
                 if not P.has_finite_order():
-                    raise ValueError("The points in the kernel must be of finite order.")
-        # work around the current implementation of torsion points. When they are done better this could be
-        # reduced but it won't speed things up too much.
+                    raise ValueError("The points in the kernel must be "
+                                     "of finite order.")
+        # work around the current implementation of torsion
+        # points. When they are done better this could be reduced but
+        # it will not speed things up too much.
         kernel_list = Set([self.__E1(0)])
         for P in kernel_gens:
             points_to_add = []
@@ -3670,18 +3671,22 @@ def compute_sequence_of_maps(E1, E2, ell, algorithm=None):
          x^5 + 67*x^4 + 13*x^3 + 35*x^2 + 77*x + 69)
         
     """
-
     (E1pr, E2pr, pre_isom, post_isom) = compute_intermediate_curves(E1, E2)
 
     if algorithm is None or algorithm in isogeny_char_zero.algorithm_names:
         try:
-            ker_poly = isogeny_char_zero.isogeny_kernel(E1pr, E2pr, ell, algorithm)
+            ker_poly = isogeny_char_zero.isogeny_kernel(E1pr, E2pr,
+                                                        ell, algorithm)
         except ZeroDivisionError as e:
-            if not algorithm is None: raise e
-            else: raise NotImplementedError, "No algorithm working on fields of small characteristic is currently implemented."
+            if not algorithm is None:
+                raise e
+            else:
+                raise NotImplementedError("No algorithm working on fields"
+                                          " of small characteristic is "
+                                          "currently implemented.")
     else:
-        raise ValueError, "Unknown algorithm '%s'" %algorithm
-    
+        raise ValueError("Unknown algorithm '%s'" % algorithm)
+
     return (pre_isom, post_isom, E1pr, E2pr, ker_poly)
 
 
