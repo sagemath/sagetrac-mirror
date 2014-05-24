@@ -2556,7 +2556,6 @@ class LinearCode(module.Module_old):
             if len(v)==1:
                 return v[0].hamming_weight()
 
-    @rename_keyword(deprecation=11033, method="algorithm")
     def permutation_automorphism_group(self, algorithm="partition"):
         r"""
         If `C` is an `[n,k,d]` code over `F`, this function computes the
