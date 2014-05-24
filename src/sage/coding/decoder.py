@@ -1,21 +1,21 @@
-"""
+r"""
 Decoding methods for linear error-correcting codes.
 Methods implemented:
 
-- nearest neighbor
-- syndrome
-- Groebner basis
-- Groebner representation
+    - nearest neighbor
+    - syndrome
+    - Groebner basis
+    - Groebner representation
 
 AUTHOR:
 
-- David Joyner (2009-02-01): initial version
-- Veronica Suaste (2013-09-21): add new decoding methods from [Marquez2013]_.
+    - David Joyner (2009-02-01): initial version
+    - Veronica Suaste (2013-09-21): add new decoding methods from [Marquez2013]_.
 
 REFERENCES:
 
-.. [Marquez2013] Irene Marquez-Corbella, "Combinatorial Commutative Algebra Approach to
-   Complete Decoding", PhD Thesis, University of Valladolid, 2013.
+    .. [Marquez2013] Irene Marquez-Corbella, "Combinatorial Commutative Algebra
+       Approach to Complete Decoding", PhD Thesis, University of Valladolid, 2013.
 
 TODO:
 
@@ -359,7 +359,7 @@ def groebner_basis_singular(C, order="degrevlex"):
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
     - ``order`` --string (default:``"degrevlex"``) -- a degree ordering.
-    See :mod:`~sage.rings.polynomial.term_order` for the orderings.
+      See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     OUTPUT:
 
@@ -439,8 +439,7 @@ def groebner_representation(C, order="degrevlex"):
     - ``C`` -- a :class:`~sage.coding.linear_code.LinearCode` instance.
 
     - ``order`` -- String (default:``"degrevlex"``) -- a degree ordering
-
-    See :mod:`~sage.rings.polynomial.term_order` for the orderings.
+      See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     OUTPUT:
 
@@ -502,7 +501,7 @@ def insert_nextnew(v, List, order):
     - ``v``-- Vector
     - ``List``-- List which stores vectors. Not necessarily empty.
     - ``order``-- string (default:``"degrevlex"``) -- a degree ordering.
-    See :mod:`~sage.rings.polynomial.term_order` for the orderings.
+      See :mod:`~sage.rings.polynomial.term_order` for the orderings.
 
     EXAMPLE::
 
