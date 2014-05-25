@@ -659,7 +659,7 @@ class Gap_generic(Expect):
         """
         print "Interrupting %s..."%self
         self.quit()
-        raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+        raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
         """
@@ -741,7 +741,7 @@ class Gap_generic(Expect):
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
-                raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
+                raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
             if len(normal) == 0:
                 return ''
 
@@ -768,11 +768,11 @@ class Gap_generic(Expect):
                 else:
                     return ''
             else:
-                raise RuntimeError, message
+                raise RuntimeError(message)
 
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def unbind(self, var):
         """
@@ -966,7 +966,7 @@ class GapElement_generic(ExpectElement):
         """
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
-            raise RuntimeError, "An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s)
+            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
         return s
 
     def bool(self):
@@ -1080,7 +1080,7 @@ class Gap(Gap_generic):
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"
-        if max_workspace_size == None:
+        if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)
         cmd += ' -s ' + str(max_workspace_size)
@@ -1277,7 +1277,7 @@ class Gap(Gap_generic):
         line = Expect.eval(self, "? %s"%s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
-        if match == None:
+        if match is None:
             print line
         else:
             (sline,) = match.groups()
@@ -1760,7 +1760,7 @@ def intmod_gap_to_sage(x):
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
         return Mod(m.group(1), m.group(2))
-    raise ValueError, "Unable to convert Gap element '%s'" % s
+    raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############
 
@@ -1832,20 +1832,4 @@ def gap_console():
     cmd, _ = gap_command(use_workspace_cache=False)
     cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)
-
-def gap_version():
-    """
-    Returns the version of GAP being used.
-
-    EXAMPLES::
-
-        sage: print gap_version()
-        doctest:...: DeprecationWarning: use gap.version() instead
-        See http://trac.sagemath.org/13211 for details.
-        4.7...
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13211, 'use gap.version() instead')
-    return gap.eval('VERSION')[1:-1]
-
 

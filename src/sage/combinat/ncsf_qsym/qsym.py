@@ -154,12 +154,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: The implementation of the quasi-symmetric function Hopf algebra
 
     We realize the `R`-algebra of quasi-symmetric functions in Sage as
-    a graded Hopf algebra with basis elements indexed by compositions.
-    ::
+    a graded Hopf algebra with basis elements indexed by compositions::
 
         sage: QSym = QuasiSymmetricFunctions(QQ)
         sage: QSym.category()
-        Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
+        Join of Category of hopf algebras over Rational Field
+            and Category of graded algebras over Rational Field
+            and Category of monoids with realizations
+            and Category of coalgebras over Rational Field with realizations
 
     The most standard two bases for this `R`-algebra are the monomial and
     fundamental bases, and are accessible by the ``M()`` and ``F()`` methods::
@@ -688,9 +690,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
                 sage: QSym.Bases().super_categories()
-                [Category of bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the Rational Field, Category of commutative rings]
+                [Category of commutative bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the Rational Field]
             """
-            return [BasesOfQSymOrNCSF(self.base()), CommutativeRings()]
+            return [BasesOfQSymOrNCSF(self.base()).Commutative()]
 
         class ParentMethods:
             r"""
@@ -1451,7 +1453,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M = self.parent().realization_of().Monomial()
                     return M( self ).to_symmetric_function()
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1921,7 +1923,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     return m.sum_of_terms([(I, coeff) for (I, coeff) in self
                         if list(I) in _Partitions], distinct=True)
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     M = Monomial
 

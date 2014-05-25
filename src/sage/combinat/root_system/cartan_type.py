@@ -60,13 +60,13 @@ while the Lie algebra is `sl_{n+1}`, and the Lie group `SL_{n+1}`
 One may also construct crystals associated to various Dynkin diagrams.
 For example::
 
-    sage: C = CrystalOfLetters(T)
+    sage: C = crystals.Letters(T)
     sage: C
     The crystal of letters for type ['A', 4]
     sage: C.list()
     [1, 2, 3, 4, 5]
 
-    sage: C = CrystalOfTableaux(T, shape=[2])
+    sage: C = crystals.Tableaux(T, shape=[2])
     sage: C
     The crystal of tableaux of type ['A', 4] and shape(s) [[2]]
     sage: C.cardinality()
@@ -2090,6 +2090,31 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         tester = self._tester(**options)
         tester.assertTrue( self.classical().dual() == self.dual().classical() )
         tester.assertTrue( self.special_node() == self.dual().special_node() )
+
+    def other_affinization(self):
+        """
+        Return the other affinization of the same classical type.
+
+        EXAMPLES::
+
+            sage: CartanType(["A", 3, 1]).other_affinization()
+            ['A', 3, 1]
+            sage: CartanType(["B", 3, 1]).other_affinization()
+            ['C', 3, 1]^*
+            sage: CartanType(["C", 3, 1]).dual().other_affinization()
+            ['B', 3, 1]
+
+        Is this what we want?::
+
+            sage: CartanType(["BC", 3, 2]).dual().other_affinization()
+            ['B', 3, 1]
+        """
+        if self.is_untwisted_affine():
+            result = self.classical().dual().affine().dual()
+        else:
+            result = self.dual().classical().dual().affine()
+        assert result.classical() is self.classical()
+        return result
 
 ##############################################################################
 # Concrete base classes

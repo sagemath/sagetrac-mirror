@@ -302,7 +302,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
         if l==13:
             return isogenies_13_1728(E)
 
-    if l != None:
+    if l is not None:
         R = PolynomialRing(F,'t')
         t = R.gen()
         f = R(Fricke_polynomial(l))
@@ -328,7 +328,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
         [isog.set_pre_isomorphism(w) for isog in isogs]
         return isogs
 
-    if l == None:
+    if l is None:
         return sum([isogenies_prime_degree_genus_0(E, l) for l in [2,3,5,7,13]],[])
 
 
@@ -1656,7 +1656,7 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l):
         raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
     F = E.base_field()
     if E.j_invariant() != 0:
-        raise ValueError,("j-invariant must be 0.")
+        raise ValueError(("j-invariant must be 0."))
     if F.characteristic() in [2,3,l]:
         raise NotImplementedError("Not implemented in characteristic 2, 3 or l.")
 

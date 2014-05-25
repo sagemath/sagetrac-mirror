@@ -100,7 +100,7 @@ def Subsets(s, k=None, submultiset=False):
 
     if isinstance(s, (int, Integer)):
         if s < 0:
-            raise ValueError, "s must be non-negative"
+            raise ValueError("s must be non-negative")
         s = Set(range(1,s+1))
 
 #    if len(Set(s)) != len(s):
@@ -266,7 +266,7 @@ class Subsets_s(CombinatorialClass):
             4
             sage: Subsets(3).rank([1,2,3])
             7
-            sage: Subsets(3).rank([2,3,4]) == None
+            sage: Subsets(3).rank([2,3,4]) is None
             True
         """
         subset = Set(sub)

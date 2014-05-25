@@ -1875,11 +1875,15 @@ class Permutation(CombinatorialObject, Element):
             [8, 10, 1, 6, 3, 7, 9, 2, 5, 4]
             sage: Permutation([2, 4, 1, 5, 3]).inverse()
             [3, 1, 5, 2, 4]
+            sage: ~Permutation([2, 4, 1, 5, 3])
+            [3, 1, 5, 2, 4]
         """
         w = range(len(self))
         for i,j in enumerate(self):
             w[j-1] = i+1
         return Permutations()(w)
+
+    __invert__ = inverse
 
     def _icondition(self, i):
         """
@@ -4245,7 +4249,7 @@ class Permutation(CombinatorialObject, Element):
         elif side == "left" :
             return Permutations()([a + len(self) for a in other] + list(self))
         else :
-            raise ValueError, "%s must be \"left\" or \"right\"" %(side)
+            raise ValueError("%s must be \"left\" or \"right\"" %(side))
 
     def shifted_shuffle(self, other):
         r"""

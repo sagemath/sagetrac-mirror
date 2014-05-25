@@ -1917,6 +1917,36 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj)
 
+    cpdef bint is_positive_infinity(self):
+        """
+        Return True if self is a positive infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_positive_infinity()
+            True
+            sage: SR(-oo).is_positive_infinity()
+            False
+            sage: x.is_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_positive)
+
+    cpdef bint is_negative_infinity(self):
+        """
+        Return True if self is a negative infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_negative_infinity()
+            False
+            sage: SR(-oo).is_negative_infinity()
+            True
+            sage: x.is_negative_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side
@@ -4755,7 +4785,9 @@ cdef class Expression(CommutativeRingElement):
             sage: t = x - unsigned_infinity; t
             Infinity
             sage: t.n()
-            +infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert signed infinity to RR
 
         Some expressions cannot be evaluated numerically::
 
@@ -7337,7 +7369,7 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(10).gamma()
             362880
-            sage: SR(10.0r).gamma()
+            sage: SR(10.0r).gamma()  # For ARM: rel tol 2e-15
             362880.0
             sage: SR(CDF(1,1)).gamma()
             0.498015668118 - 0.154949828302*I
@@ -9800,7 +9832,7 @@ cdef class Expression(CommutativeRingElement):
                 A = self.variables()
                 if len(A) == 0:
                     #Here we handle the case where f is something
-                    #like 2*sin, which has takes arguments which
+                    #like ``sin``, which has takes arguments which
                     #aren't explicitly given
                     n = self.number_of_arguments()
                     f = self._plot_fast_callable()
@@ -9833,20 +9865,16 @@ cdef class Expression(CommutativeRingElement):
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
+
+        Check that :trac:`15030` is fixed::
+
+            sage: abs(log(x))._plot_fast_callable(x)(-0.2)
+            3.52985761682672
+            sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
+            sage: plot(abs(f(x)), 0,5)
         """
-        try:
-            # First we try fast float.  However, this doesn't work on some
-            # input where fast_callable works fine.
-            return self._fast_float_(*vars)
-        except (TypeError, NotImplementedError):
-            # Now we try fast_callable as a fallback, since it works in some
-            # cases when fast_float doesn't, e.g., when I is anywhere in the
-            # expression fast_float doesn't work but fast_callable does in some
-            # cases when the resulting expression is real.
-            from sage.ext.fast_callable import fast_callable
-            # I tried calling self._fast_callable_ but that's too complicated
-            # of an interface so we just use the fast_callable function.
-            return fast_callable(self, vars=vars)
+        from sage.ext.fast_callable import fast_callable
+        return fast_callable(self, vars=vars, expect_one_var=True)
 
     ############
     # Calculus #
