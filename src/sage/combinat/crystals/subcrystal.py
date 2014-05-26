@@ -32,6 +32,7 @@ from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.all import ZZ
+from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
 class Subcrystal(Parent, UniqueRepresentation):
@@ -67,7 +68,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S1 = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: S2 = B.subcrystal(generators=[B(2,1,1), B(5,2,4)], cartan_type=['A',4], index_set=(1,2))
             sage: S1 is S2
@@ -111,7 +112,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: TestSuite(S).run()
         """
@@ -124,7 +125,7 @@ class Subcrystal(Parent, UniqueRepresentation):
         self.module_generators = tuple(map(self, generators))
 
         if isinstance(contained, frozenset):
-            self._cardinality = ZZ(len(contained))
+            self._cardinality = Integer(len(contained))
             self._list = [self.element_class(self, x) for x in contained]
 
     def _repr_(self):
@@ -133,7 +134,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             Subcrystal of The crystal of tableaux of type ['A', 4] and shape(s) [[2, 1]]
         """
@@ -145,8 +146,12 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
+            sage: S._containing(B(5,2,4))
+            True
+            sage: S._containing(B(4,2,4))
+            True
         """
         if self._contained is None:
             return True
@@ -160,7 +165,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: B(5,2,4) in S
             True
@@ -183,7 +188,8 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         # TODO: make this work for infinite crystals
         import warnings
-        warnings.warn("Testing containment in an infinite virtual crystal defaults to returning True")
+        warnings.warn("Testing containment in an infinite crystal"
+                      " defaults to returning True")
         return True
 
     def cardinality(self):
@@ -192,11 +198,11 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=[B(2,1,1)], index_set=[1,2])
             sage: S.cardinality()
             8
-            sage: B = InfinityCrystalOfTableaux(['A',2])
+            sage: B = crystals.infinity.Tableaux(['A',2])
             sage: S = B.subcrystal(max_depth=4)
             sage: S.cardinality()
             22
@@ -205,17 +211,17 @@ class Subcrystal(Parent, UniqueRepresentation):
             return self._cardinality
 
         try:
-            card = ZZ(len(self._list))
+            card = Integer(len(self._list))
             self._cardinality = card
             return self._cardinality
         except AttributeError:
             if self in FiniteCrystals():
-                return ZZ(len(self.list()))
+                return Integer(len(self.list()))
             card = super(Subcrystal, self).cardinality()
             if card == infinity:
                 self._cardinality = card
                 return card
-            self._cardinality = len(self.list())
+            self._cardinality = Integer(len(self.list()))
             return self._cardinality
 
     def index_set(self):
@@ -224,7 +230,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: S.index_set()
             (1, 2)
@@ -241,7 +247,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',4], shape=[2,1])
                 sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
                 sage: mg = S.module_generators[1]
                 sage: mg.e(2)
@@ -259,7 +265,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',4], shape=[2,1])
                 sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
                 sage: mg = S.module_generators[1]
                 sage: mg.f(1)
@@ -277,7 +283,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',4], shape=[2,1])
                 sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
                 sage: mg = S.module_generators[1]
                 sage: mg.epsilon(1)
@@ -293,7 +299,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',4], shape=[2,1])
                 sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
                 sage: mg = S.module_generators[1]
                 sage: mg.phi(1)
@@ -309,7 +315,7 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',4], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',4], shape=[2,1])
                 sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
                 sage: mg = S.module_generators[1]
                 sage: mg.weight()

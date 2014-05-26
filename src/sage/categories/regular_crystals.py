@@ -131,7 +131,7 @@ class RegularCrystals(Category_singleton):
                     ['A', 2, 1] Crystal morphism:
                       From: The crystal of LS paths of type ['A', 2, 1] and weight Lambda[0]
                       To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1]
-                             and highest weight Lambda[0].
+                             and highest weight Lambda[0]
                       Defn: (Lambda[0],) |--> []
                     sage: psi.is_isomorphism()
                     True
@@ -535,6 +535,7 @@ class RegularCrystals(Category_singleton):
                 sage: t._test_stembridge_local_axioms(verbose=True)
                 True
             """
+            from sage.combinat.subset import Subsets
             tester = self._tester(**options)
             goodness=True
             if index_set is None: index_set=self.index_set()
