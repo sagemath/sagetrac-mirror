@@ -22,11 +22,12 @@ from sage.misc.misc import attrcall
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.abstract_method import abstract_method
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.categories.category import HomCategory, JoinCategory
+from sage.categories.category import HomCategory, JoinCategory, Category
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.category import Category
 from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.homset import Hom
 from sage.categories.sets_cat import Sets
@@ -463,10 +464,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: TA.category()
                 Category of tensor products of algebras with basis over Rational Field
-                sage: M = A.tensor(A, A, category = ModulesWithBasis(QQ)); M
+                sage: M = tensor([A,A,A], category=ModulesWithBasis(QQ)); M
                 A # A # A
                 sage: M.category()
-                Category of tensor products of modules with basis over Rational Field
+                Join of Category of tensor products of modules with basis over Rational Field and Category of vector spaces with basis over Rational Field and Category of tensor products of vector spaces over Rational Field
+
+                sage: A.rename()
 
             """
             if 'category' in keywords.keys():
@@ -479,15 +482,17 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if isinstance(category, JoinCategory):
                 for supercategory in category.super_categories():
                     if isinstance(supercategory, TensorProductsCategory):
-                        base_category = supercategory.base_category()
-                        break
+                        if base_category is None:
+                            base_category = supercategory.base_category()
+                        else:
+                            base_category = Category.join((base_category, supercategory.base_category()))
             elif isinstance(category, TensorProductsCategory):
                 base_category = category.base_category()
             if base_category is None:
                 raise TypeError, "Category should be a subcategory of a module tensor category"
             R = base_category.base_ring()
             from sage.categories.algebras_with_basis import AlgebrasWithBasis
-            if base_category.is_subcategory(AlgebrasWithBasis(R)):
+            if category.is_subcategory(AlgebrasWithBasis(R).TensorProducts()):
                 return parents[0].__class__.TensorGrouped(parents, category, **keywords)
             else:
                 return parents[0].__class__.Tensor(parents, category, **keywords)
@@ -1272,9 +1277,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of modules with basis over Rational Field, Category of vector spaces over Rational Field]
                 sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of tensor products of modules with basis over Rational Field, Category of vector spaces with basis over Rational Field, Category of tensor products of vector spaces over Rational Field]
+
             """
             if isinstance(self, JoinCategory):
                 categories = []

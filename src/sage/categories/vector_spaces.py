@@ -17,6 +17,7 @@ from sage.categories.dual import DualObjectsCategory
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.tensor import TensorProductsCategory
 _Fields = Fields()
 
 class VectorSpaces(Category_module):
@@ -163,5 +164,18 @@ class VectorSpaces(Category_module):
                 Category of duals of vector spaces over Rational Field
                 sage: C.dual().super_categories() # indirect doctest
                 [Category of vector spaces over Rational Field]
+            """
+            return [self.base_category()]
+
+    class TensorProducts(TensorProductsCategory):
+
+        def extra_super_categories(self):
+            r"""
+            EXAMPLES:
+
+                sage: C = VectorSpaces(QQ).TensorProducts()
+                sage: C.extra_super_categories()
+                [Category of vector spaces over Rational Field]
+
             """
             return [self.base_category()]

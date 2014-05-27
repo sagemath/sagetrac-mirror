@@ -45,3 +45,8 @@ lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
 from smash_product_algebra import SmashProductAlgebra
+
+from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
+
+from double_affine_hecke_algebra import DoubleAffineHeckeAlgebraSansDuality, DoubleAffineType
+from affine_hecke_algebra import AffineHeckeAlgebra, DoubledNodes

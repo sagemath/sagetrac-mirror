@@ -189,9 +189,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     EXAMPLES:
 
-    First we compute with integers modulo `29`.
-
-    ::
+    First we compute with integers modulo `29`::
 
         sage: FF = IntegerModRing(29)
         sage: FF
@@ -216,6 +214,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: def pow(i): return a**i
         sage: [pow(i) for i in range(16)]
         [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
+        sage: TestSuite(FF).run()
 
     We have seen above that an integer mod ring is, by default, not
     initialised as an object in the category of fields. However, one
@@ -233,10 +232,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: F23.category().is_subcategory(Fields())
         True
 
-
-    Next we compute with the integers modulo `16`.
-
-    ::
+    Next we compute with the integers modulo `16`::
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()

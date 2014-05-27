@@ -14,25 +14,27 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.sage_object import have_same_parent
 from sage.modules.free_module_element import vector
-from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
-from sage.rings.all import Integer
-import sage.structure.element
-from sage.combinat.family import Family
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.misc.misc import repr_lincomb
+from sage.misc.ascii_art import AsciiArt, empty_ascii_art
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
+from sage.rings.all import Integer
+import sage.structure.element
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.categories.poor_man_map import PoorManMap
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.category import Category, JoinCategory
+from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.realizations import Category_realization_of_parent
+from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
-from sage.categories.tensor import tensor, TensorProductsCategory
-from sage.misc.misc import repr_lincomb
-from sage.categories.category import Category, JoinCategory
+
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 
 class CombinatorialFreeModuleElement(Element):
@@ -2389,7 +2391,6 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
 
             sage: T.category()
             Category of tensor products of modules with basis over Integer Ring
-
             sage: T.construction() # todo: not implemented
             [tensor, ]
 
@@ -2541,8 +2542,10 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             if isinstance(category, JoinCategory):
                 for supercategory in category.super_categories():
                     if isinstance(supercategory, TensorProductsCategory):
-                        base_category = supercategory.base_category()
-                        break
+                        if base_category is None:
+                            base_category = supercategory.base_category()
+                        else:
+                            base_category = Category.join((base_category, supercategory.base_category()))
             elif isinstance(category, TensorProductsCategory):
                 base_category = category.base_category()
             if base_category is None:
@@ -2870,7 +2873,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 2*s[] + 2*s[1] + 3*s[2]
                 sage: (unit_map * counit_map)(b)
                 2*s[]
-                sage: (product_map * iS * coproduct_map)(b)
+                sage: (product_map*iS*coproduct_map)(b)
                 2*s[]
 
             """
@@ -2879,8 +2882,20 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             maps = [map for map in maps if map.domain() != tensor_unit or map.codomain() != tensor_unit]
             if len(maps) == 0:
                 return tensor_unit._identity_map()
-            tensor_category = self.category()
-            R = tensor_category.base_category().base_ring()
+            category = self.category()
+            base_category = None
+            if isinstance(category, JoinCategory):
+                for supercategory in category.super_categories():
+                    if isinstance(supercategory,TensorProductsCategory):
+                        if base_category is None:
+                            base_category = supercategory.base_category()
+                        else:
+                            base_category = Category.join((base_category, supercategory.base_category()))
+            elif isinstance(category, TensorProductsCategory):
+                base_category = category.base_category()
+            if base_category is None:
+                raise TypeError, "Should be a tensor category of modules"
+            R = base_category.base_ring()
             module_tensor_category = ModulesWithBasis(R).TensorProducts()
             codomains = [map.codomain() for map in maps]
             # flag which codomains are tensors
@@ -2905,7 +2920,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 keys = key_splitter(long_key)
                 monomials = [domains[i].monomial(keys[i]) if domain_n_tensor[i] != 0 else () for i in range(len(maps))]
                 return R.prod([f(monomials[i]) for (i,f) in scalar_part]) * tensor([f(monomials[i]) if d!=0 else f for (i,d,f) in vector_part])
-            return self.module_morphism(on_basis=on_basis, codomain=tensor(codomains), category=tensor_category)
+            return self.module_morphism(on_basis=on_basis, codomain=tensor(codomains, category=base_category.TensorProducts()))
 
 class CartesianProductWithFlattening(object):
     """
@@ -3212,7 +3227,7 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
             sage: A2 = tensor([A,A])
             sage: A4 = tensor([A2,A2])
             sage: A4.an_element()
-            81*B[s1] # B[s1] # B[s1] # B[s1] + 27*B[s1] # B[s1] # B[s1] # B[1] + 27*B[s1] # B[s1] # B[1] # B[s1] + 9*B[s1] # B[s1] # B[1] # B[1] + 27*B[s1] # B[1] # B[s1] # B[s1] + 9*B[s1] # B[1] # B[s1] # B[1] + 9*B[s1] # B[1] # B[1] # B[s1] + 3*B[s1] # B[1] # B[1] # B[1] + 27*B[1] # B[s1] # B[s1] # B[s1] + 9*B[1] # B[s1] # B[s1] # B[1] + 9*B[1] # B[s1] # B[1] # B[s1] + 3*B[1] # B[s1] # B[1] # B[1] + 9*B[1] # B[1] # B[s1] # B[s1] + 3*B[1] # B[1] # B[s1] # B[1] + 3*B[1] # B[1] # B[1] # B[s1] + B[1] # B[1] # B[1] # B[1]
+            16*B[s1] # B[s1] # B[s1] # B[s1] + 16*B[s1] # B[s1] # B[s1] # B[1] + 16*B[s1] # B[s1] # B[1] # B[s1] + 16*B[s1] # B[s1] # B[1] # B[1] + 16*B[s1] # B[1] # B[s1] # B[s1] + 16*B[s1] # B[1] # B[s1] # B[1] + 16*B[s1] # B[1] # B[1] # B[s1] + 16*B[s1] # B[1] # B[1] # B[1] + 16*B[1] # B[s1] # B[s1] # B[s1] + 16*B[1] # B[s1] # B[s1] # B[1] + 16*B[1] # B[s1] # B[1] # B[s1] + 16*B[1] # B[s1] # B[1] # B[1] + 16*B[1] # B[1] # B[s1] # B[s1] + 16*B[1] # B[1] # B[s1] # B[1] + 16*B[1] # B[1] # B[1] # B[s1] + 16*B[1] # B[1] # B[1] # B[1]
         """
         return self.from_direct_product(tuple([the_factor.an_element() for the_factor in self.factors()]))
 
@@ -3419,7 +3434,7 @@ class TensorUnitElement(CombinatorialFreeModuleElement):
         """
         return self[()]
 
-class TensorUnit(CombinatorialFreeModule_Tensor):
+class TensorUnit(CombinatorialFreeModule.Tensor):
     r"""
     The unit in the tensor category of ModulesWithBasis over a base ring, realized by
     a zerofold `class`:CombinatorialFreeModule_Tensor`.
@@ -3432,13 +3447,7 @@ class TensorUnit(CombinatorialFreeModule_Tensor):
 
     """
 
-    @staticmethod
-    def __classcall_private__(cls, category, **options):
-        """
-        """
-        return super(TensorUnit, cls).__classcall__(cls, category=category.TensorProducts(), **options)
-
-    def __init__(self, category, **keywords):
+    def __init__(self, category=None, **keywords):
         """
         INPUTS:
 
