@@ -1276,7 +1276,16 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
                 [Category of modules with basis over Rational Field]
             """
-            return [self.base_category()]
+            if isinstance(self, JoinCategory):
+                categories = []
+                for supercategory in self.super_categories():
+                    if isinstance(supercategory, TensorProductsCategory):
+                        categories = categories + [supercategory.base_category()]
+            elif isinstance(self, TensorProductsCategory):
+                categories = [self.base_category()]
+            else:
+                raise TypeError, "%s should be a JoinCategory or TensorProductsCategory"%self
+            return categories
 
         class ParentMethods:
             """

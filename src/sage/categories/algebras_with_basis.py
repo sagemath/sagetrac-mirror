@@ -9,6 +9,7 @@ Algebras With Basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from functools import partial
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -395,6 +396,19 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class TensorProducts(TensorProductsCategory):
         """
         The category of algebras with basis constructed by tensor product of algebras with basis
+
+        This category should be implemented by grouped tensor products, that is, some data structure
+        that remembers some nesting of tensor-of-tensors.
+
+        The natural indexing set of the basis of a tensor product of algebras with basis is the
+        Cartesian product of the indexing set of the bases of algebras which are the tensor factors.
+        These objects will be called "grouped tuples". 
+        There are two abstract methods which must be supplied. 
+
+        - .indices_to_index -- A bijection from grouped tuples, to the index set used by the implementation.
+        - .index_to_indices -- The inverse bijection.
+
+        The methods for this class use grouped tuples.
         """
 
         @cached_method
@@ -432,6 +446,23 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A4 = tensor([A,A,A,A])
                     sage: A4.factors()
                     (A, A, A, A)
+
+                """
+                pass
+
+            @abstract_method
+            def factor(self, i):
+                r"""
+                The `i`-th tensor factor algebra of `self`.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ); A.rename("A")
+                    sage: A2 = tensor([A,A])
+                    sage: A22 = tensor([A2,A2])
+                    sage: A22.factor(1)
+                    A # A
 
                 """
                 pass
@@ -484,8 +515,12 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             def product_on_basis(self, t1, t2):
                 """
-                The product of the algebra on the basis, as per
+                The componentwise product of the algebra on the basis, as per
                 ``AlgebrasWithBasis.ParentMethods.product_on_basis``.
+
+                INPUTS:
+
+                - t1, t2 -- indices for the basis of the tensor product
 
                 EXAMPLES::
 
@@ -509,10 +544,58 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 TODO: optimize this implementation!
 
-                FIX THIS EXAMPLE!!!
+                """
+                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2))))
+
+            def _monomial_almost_one(self, i, x):
+                r"""
+                The monomial with identities in every factor except the `i`-th, which contains `x`.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup(['A',2],prefix="s")
+                    sage: w = W.from_reduced_word([2,1])
+                    sage: A = W.algebra(ZZ)
+                    sage: A3 = tensor([A,A,A])
+                    sage: A3._monomial_almost_one(1, w)
+                    B[1] # B[s2*s1] # B[1]
+                """
+                ids = [algebra.one_basis() for algebra in self.factors()]
+                ids[i] = x
+                return self.monomial(self.indices_to_index()(*tuple(ids)))
+
+            @cached_method
+            def factor_embedding(self, i):
+                r"""
+                The algebra embedding from the `i`-th tensor factor of ``self`` to ``self``.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ)
+                    sage: A3 = tensor([A,A,A])
+                    sage: A3.factor_embedding(1)(A.monomial(W.from_reduced_word([2,1])))
+                    B[1] # B[s2*s1] # B[1]
 
                 """
-                return tensor( (module.monomial(x1)*module.monomial(x2) for (module, x1, x2) in zip(self.factors(), self.index_to_indices()(t1), self.index_to_indices()(t2)))) #.
+                if i not in range(len(self.factors())):
+                    raise ValueError, "index is out of range"
+                return self.factors()[i].module_morphism(on_basis=partial(self._monomial_almost_one,i),codomain=self)
+
+            def from_direct_product(self, tup):
+                r"""
+                The element of ``self`` given by the tensor of the elements in ``tup``.
+
+                EXAMPLES::
+
+                    sage: W = WeylGroup("A2",prefix="s")
+                    sage: A = W.algebra(ZZ)
+                    sage: A2 = tensor([A,A])
+                    sage: A2.from_direct_product((A.one(), A.one()+A.an_element()))
+                    B[1] # B[s1*s2*s1] + 3*B[1] # B[s1*s2] + 3*B[1] # B[s2*s1] + B[1] # B[1]
+
+                """
+                return self(tensor(tup, category=self.category()))
 
         class ElementMethods:
             """
