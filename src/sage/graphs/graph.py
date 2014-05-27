@@ -6050,7 +6050,7 @@ class Graph(GenericGraph):
         g1_v = Set(set2)
         g2_v = Set(set1)
         g1.add_vertex(g1_v)
-        g1.add_vertex(g2_v)
+        g2.add_vertex(g2_v)
 
         # Each part of the graph had many edges going to the other part
         # Now that we have a new fake vertex in each part
