@@ -20,7 +20,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.root_system import RootSystem
 from sage.categories.finite_sets import FiniteSets
-from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod import Mod
 
 def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_linear=None):
@@ -579,6 +578,10 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
     def family(self):
         return NotImplemented
 
+    def gens(self):
+        from sage.rings.integer_ring import ZZ
+        return [self(ZZ(1))]
+
     def an_element(self):
         r"""
         An element of ``self``.
@@ -588,7 +591,21 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).an_element()
             pi[5]
         """
+        from sage.rings.integer_ring import ZZ
         return self(ZZ(5))
+
+    def some_elements(self):
+        r"""
+        Some elements of ``self``.
+
+        EXAMPLES::
+
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).some_elements()
+            [pi[-2], pi[2], pi[5]]
+
+        """
+        from sage.rings.integer_ring import ZZ
+        return [self(ZZ(i)) for i in [-2, 2, 5]]
 
     def action(self, i):
         r"""
@@ -603,6 +620,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             1
 
         """
+        from sage.rings.integer_ring import ZZ
         return lambda j: ZZ(Mod(i + j, self._n))
 
     def dual_node(self, i):
@@ -634,6 +652,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             (1, 2)
 
         """
+        from sage.rings.integer_ring import ZZ
         i = ZZ(Mod(i, self._n))
         if i == 0:
             return tuple([])

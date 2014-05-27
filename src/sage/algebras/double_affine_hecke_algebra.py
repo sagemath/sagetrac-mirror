@@ -793,7 +793,6 @@ class DoubleAffineType(SageObject):
             return x - 1/x
         return Family(dict([[i, diff_reciprocal(self.parameters()[self._v2i[i]])] for i in self.doubled_nodes()]))
 
-    @cached_method
     def dual(self, prefix=None):
         r"""
         The DAHA dual affine type.
@@ -1410,7 +1409,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         """
         return self._T
 
-    @cached_method
     def LT(self):
         r"""
         The "LT" basis.
@@ -1423,7 +1421,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         """
         return self.DoubleAffineHeckeAlgebraSansDualityLT()
 
-    @cached_method
     def TL(self):
         r"""
         The "TL" basis.
@@ -1436,7 +1433,6 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         """
         return self.DoubleAffineHeckeAlgebraSansDualityTL()
 
-    @cached_method
     def LtvLv(self):
         r"""
         The LtvLv basis.

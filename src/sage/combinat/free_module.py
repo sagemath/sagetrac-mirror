@@ -3227,7 +3227,8 @@ class CombinatorialFreeModule_TensorGrouped(CombinatorialFreeModule_Tensor):
             sage: A2 = tensor([A,A])
             sage: A4 = tensor([A2,A2])
             sage: A4.an_element()
-            16*B[s1] # B[s1] # B[s1] # B[s1] + 16*B[s1] # B[s1] # B[s1] # B[1] + 16*B[s1] # B[s1] # B[1] # B[s1] + 16*B[s1] # B[s1] # B[1] # B[1] + 16*B[s1] # B[1] # B[s1] # B[s1] + 16*B[s1] # B[1] # B[s1] # B[1] + 16*B[s1] # B[1] # B[1] # B[s1] + 16*B[s1] # B[1] # B[1] # B[1] + 16*B[1] # B[s1] # B[s1] # B[s1] + 16*B[1] # B[s1] # B[s1] # B[1] + 16*B[1] # B[s1] # B[1] # B[s1] + 16*B[1] # B[s1] # B[1] # B[1] + 16*B[1] # B[1] # B[s1] # B[s1] + 16*B[1] # B[1] # B[s1] # B[1] + 16*B[1] # B[1] # B[1] # B[s1] + 16*B[1] # B[1] # B[1] # B[1]
+            81*B[s1] # B[s1] # B[s1] # B[s1] + 27*B[s1] # B[s1] # B[s1] # B[1] + 27*B[s1] # B[s1] # B[1] # B[s1] + 9*B[s1] # B[s1] # B[1] # B[1] + 27*B[s1] # B[1] # B[s1] # B[s1] + 9*B[s1] # B[1] # B[s1] # B[1] + 9*B[s1] # B[1] # B[1] # B[s1] + 3*B[s1] # B[1] # B[1] # B[1] + 27*B[1] # B[s1] # B[s1] # B[s1] + 9*B[1] # B[s1] # B[s1] # B[1] + 9*B[1] # B[s1] # B[1] # B[s1] + 3*B[1] # B[s1] # B[1] # B[1] + 9*B[1] # B[1] # B[s1] # B[s1] + 3*B[1] # B[1] # B[s1] # B[1] + 3*B[1] # B[1] # B[1] # B[s1] + B[1] # B[1] # B[1] # B[1]
+
         """
         return self.from_direct_product(tuple([the_factor.an_element() for the_factor in self.factors()]))
 
