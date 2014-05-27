@@ -53,7 +53,16 @@ def unpickle_map(_class, parent, _dict, _slots):
     # should we use slots?
     # from element.pyx
     cdef Map mor = _class.__new__(_class)
-    mor._set_parent(parent)
+
+    # The following is equivalent to mor._set_parent(parent), except
+    # we also catch an AttributeError; this can arise if the parent is
+    # not fully constructed at this stage in the unpickling process.
+    mor._parent = parent
+    try:
+        mor.category_for = ConstantFunction(parent.homset_category())
+    except AttributeError:
+        mor.category_for = parent.homset_category
+
     mor._update_slots(_slots)
     if HAS_DICTIONARY(mor):
         mor.__dict__ = _dict
@@ -98,6 +107,35 @@ cdef class Map(Element):
         sage: f = R.hom([x+y, x-y], R)
         sage: f(x^2+2*x-1)
         x^2 + 2*x*y + y^2 + 2*x + 2*y - 1
+
+    A ``Map`` object has a dynamical method ``category_for()``, which
+    returns the category in which the map is a morphism.
+
+    .. NOTE::
+
+        This is different from the category of maps to which this map
+        belongs *as an object*.
+
+    .. TODO::
+
+        Find a better name for the method ``category_for()``.
+
+    EXAMPLES::
+
+        sage: from sage.categories.morphism import SetMorphism
+        sage: X.<x> = ZZ[]
+        sage: Y = ZZ
+        sage: phi = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
+        sage: phi.category_for()
+        Category of rings
+        sage: phi.category()
+        Category of homsets of unital magmas and additive unital additive magmas
+        sage: R.<x,y> = QQ[]
+        sage: f = R.hom([x+y,x-y],R)
+        sage: f.category_for()
+        Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+        sage: f.category()
+        Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
     """
 
     def __init__(self, parent, codomain=None):
@@ -132,10 +170,9 @@ cdef class Map(Element):
             parent = homset.Hom(parent, codomain)
         elif not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
-        Element.__init__(self, parent)
+        self._set_parent(parent)
         D = parent.domain()
         C = parent.codomain()
-        self._category_for = parent.homset_category()
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
@@ -143,6 +180,23 @@ cdef class Map(Element):
             self._coerce_cost = 10 # default value.
         else:
             self._coerce_cost = 10000 # inexact morphisms are bad.
+
+    def _set_parent(self, parent):
+        """
+        Set the parent of ``self`` to ``parent``.
+
+        This also sets the ``category_for`` attribute.
+
+        TESTS::
+
+            sage: f = CC.coerce_map_from(RR)
+            sage: f.parent()
+            Set of Homomorphisms from Real Field with 53 bits of precision to Complex Field with 53 bits of precision
+            sage: f.category_for()
+            Category of fields
+        """
+        self._parent = parent
+        self.category_for = ConstantFunction(parent.homset_category())
 
     def __copy__(self):
         """
@@ -183,7 +237,7 @@ cdef class Map(Element):
         cdef Map out = Element.__copy__(self)
         # Element.__copy__ updates the __dict__, but not the slots.
         # Let's do this now, but with strong references.
-        out._parent = self.parent() # self._parent might be None
+        out._set_parent(self.parent())  # self._parent might be None
         out._update_slots(self._extra_slots({}))
         return out
 
@@ -236,7 +290,7 @@ cdef class Map(Element):
             C = self._codomain
             if C is None or D is None:
                 raise ValueError("This map is in an invalid state, the domain has been garbage collected")
-            return homset.Hom(D, C, self._category_for)
+            return homset.Hom(D, C, self.category_for())
         return self._parent
 
     def _make_weak_references(self):
@@ -296,8 +350,7 @@ cdef class Map(Element):
         if not isinstance(self.domain, ConstantFunction):
             return
         self.domain = weakref.ref(self.domain())
-        # Save the category before clearing the parent.
-        self._category_for = self._parent.homset_category()
+        self.category_for = weakref.ref(self.category_for())
         self._parent = None
 
     def _make_strong_references(self):
@@ -370,7 +423,10 @@ cdef class Map(Element):
         if D is None or C is None:
             raise RuntimeError("The domain of this map became garbage collected")
         self.domain = ConstantFunction(D)
-        self._parent = homset.Hom(D, C, self._category_for)
+        category = self.category_for()
+        if category is None:
+            raise RuntimeError("The category of this map became garbage collected")
+        self._set_parent(homset.Hom(D, C, category))
 
     cdef _update_slots(self, dict _slots):
         """
@@ -598,43 +654,6 @@ cdef class Map(Element):
         if d != '':
             s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
         return s
-
-    def category_for(self):
-        """
-        Returns the category self is a morphism for.
-
-        .. NOTE::
-
-            This is different from the category of maps to which this
-            map belongs *as an object*.
-
-        EXAMPLES::
-
-            sage: from sage.categories.morphism import SetMorphism
-            sage: X.<x> = ZZ[]
-            sage: Y = ZZ
-            sage: phi = SetMorphism(Hom(X, Y, Rings()), lambda p: p[0])
-            sage: phi.category_for()
-            Category of rings
-            sage: phi.category()
-            Category of homsets of unital magmas and additive unital additive magmas
-            sage: R.<x,y> = QQ[]
-            sage: f = R.hom([x+y, x-y], R)
-            sage: f.category_for()
-            Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
-            sage: f.category()
-            Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
-
-        FIXME: find a better name for this method
-        """
-        if self._category_for is None:
-            # This can happen if the map is the result of unpickling.
-            # We have initialised self._parent, but could not set
-            # self._category_for at that moment, because it could
-            # happen that the parent was not fully constructed and
-            # did not know its category yet.
-            self._category_for = self._parent.homset_category()
-        return self._category_for
 
     def __call__(self, x, *args, **kwds):
         """
