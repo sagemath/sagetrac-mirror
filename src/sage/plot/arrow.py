@@ -446,6 +446,12 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
         sage: arrow((0,0), (1,1))
         sage: arrow((0,0,1), (1,1,1))
     """
+    if headpoint is not None and tailpoint is not None:
+        if len(headpoint) !=  len(tailpoint):
+            raise TypeError('Arrow requires headpoint and tailpoint to be of the same dimension.')
+        elif len(headpoint) == 1 or len(tailpoint) ==1: #1-Dimensional Plotting not supported right now
+            raise TypeError('Arrow requires headpoint or tailpoint vectors of dimension 2 or 3.')
+            
     try:
         return arrow2d(tailpoint, headpoint, **kwds)
     except ValueError:
