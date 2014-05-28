@@ -30,7 +30,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.algebras.multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 from sage.algebras.smash_product_algebra import SmashProductAlgebra
-from sage.algebras.affine_hecke_algebra import AffineHeckeAlgebra, DoubledNodes
+from sage.algebras.affine_hecke_algebra import ExtendedAffineHeckeAlgebra
 from sage.modules.free_module_element import vector
 from sage.structure.sage_object import SageObject
 

@@ -76,7 +76,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
     Supported bases:
 
-    - "T" -- `pi_i T_w` for `w \in W_a(\tilde{X})` and `i \in I^X` a special node; the `\pi` term is suppressed in the nonextended case
+    - "T" -- `pi_i T_w` for `w \in W_a(\tilde{X})` and `i \in I^X` a special node
     - "tvLv" -- `T_w Y^\mu` for `w \in W(Y)` and `\mu \in Y`
     - "Lvtv" -- `Y^\mu T_w` for `w \in W(Y)` and `\mu \in Y`
 
@@ -110,23 +110,19 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         Ty[1,2] Y[(-1, -1, 0)]
         sage: T(Ty_Y(b)) == b
         True
-
         sage: Y_Ty(a)
         1 + ((6*v^2-6)/v)*Y[(1, 0, 0)] Ty[1,2,1] + ((4*v^2+2*v-4)/v)*Y[(1, 0, 0)] Ty[1,2] + ((-6*v^4+2*v^3+12*v^2-2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2,1] + ((-4*v^4-2*v^3+8*v^2+2*v-4)/v^2)*Y[(1, 0, 0)] Ty[1] + ((-6*v^4-2*v^3+12*v^2+2*v-6)/v^2)*Y[(1, 0, 0)] Ty[2] + ((4*v^6-4*v^5-12*v^4+8*v^3+12*v^2-4*v-4)/v^3)*Y[(1, 0, 0)] + ((8*v^2+4*v-8)/v)*Y[(1, 1, 0)] Ty[2,1] + ((-8*v^4-4*v^3+16*v^2+4*v-8)/v^2)*Y[(1, 1, 0)] Ty[1] + ((-8*v^4+8*v^3+16*v^2-8*v-8)/v^2)*Y[(1, 1, 0)] Ty[2] + ((8*v^6-8*v^5-20*v^4+16*v^3+20*v^2-8*v-8)/v^3)*Y[(1, 1, 0)] + 2*Y[(1, 0, -1)] Ty[1,2,1] + ((-2*v^2+3*v+2)/v)*Y[(1, 0, -1)] Ty[1,2] + ((-2*v^2+2)/v)*Y[(1, 0, -1)] Ty[2,1] + ((2*v^4-3*v^3-3*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[1] + ((2*v^4-3*v^3-4*v^2+3*v+2)/v^2)*Y[(1, 0, -1)] Ty[2] + ((-2*v^6+3*v^5+3*v^4-6*v^3-3*v^2+3*v+2)/v^3)*Y[(1, 0, -1)] + 8*Y[(1, 0, 1)] Ty[1] + 4*Y[(1, 0, 1)] Ty[2] + ((-8*v^2+12*v+8)/v)*Y[(1, 0, 1)] + 2*Y[(0, 1, 0)] Ty[1,2,1] + ((-2*v^2+2)/v)*Y[(0, 1, 0)] Ty[1,2] + 6*Y[(0, 1, 0)] Ty[2,1] + ((-6*v^2+6)/v)*Y[(0, 1, 0)] Ty[1] + 4*Y[(0, 1, 0)] Ty[2] + ((-4*v^2+4)/v)*Y[(0, 1, 0)]
-
         sage: Ty_Y(a)
         ((6*v^2-6)/v)*Ty[1,2,1] Y[(-1, -1, 0)] + 2*Ty[1,2,1] Y[(-1, 0, -1)] + 2*Ty[1,2,1] Y[(-1, 0, 1)] + ((4*v^2+2*v-4)/v)*Ty[1,2] Y[(-1, -1, 0)] + 3*Ty[1,2] Y[(0, -1, 1)] + ((8*v^2+4*v-8)/v)*Ty[2,1] Y[(-1, 0, 0)] + 6*Ty[2,1] Y[(-1, -1, 0)] + ((3*v^2-3)/v)*Ty[1] + 8*Ty[1] Y[(-1, 0, 0)] + Ty[1] Y[(0, 1, -1)] + 4*Ty[2] Y[(-1, -1, 0)] + ((12*v^2-12)/v)*Ty[2] Y[(0, -1, 0)] + 4*Ty[2] Y[(0, 0, -1)] + ((2*v^2+v-2)/v) + 12*Y[(0, -1, 0)]
-
         sage: T(Ty_Y(a))==a
         True
-
         sage: K = QQ['v,vl'].fraction_field()
         sage: v,vl=K.gens()
         sage: H = ExtendedAffineHeckeAlgebra(['C',2,1], q1=Family(dict([[0,vl],[1,v],[2,vl]])))
         sage: T = H.T()
         sage: Ty_Y = H.tvLv()
         sage: Y_Ty = H.Lvtv()
-        sage: a = T.factor_embedding(0)(T.factor(0).monomial(H.fundamental_group()(2))); a
+        sage: a = T.from_fundamental(H.fundamental_group()(2)); a
         piX[2]
         sage: Ty_Y(a)
         Ty[2,1,2] Y[(-1/2, -1/2)]
@@ -134,12 +130,12 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         Y[(1/2, 1/2)] Ty[2,1,2] + ((-vl^2+1)/vl)*Y[(1/2, 1/2)] Ty[1,2] + ((-vl^2+1)/vl)*Y[(1/2, 1/2)] Ty[2,1] + ((vl^4-2*vl^2+1)/vl^2)*Y[(1/2, 1/2)] Ty[1] + ((v^2*vl^2-v^2-vl^2+1)/(v*vl))*Y[(1/2, 1/2)] Ty[2] + ((-v^2*vl^4+v^2*vl^2+vl^4-v^2-vl^2+1)/(v*vl^2))*Y[(1/2, 1/2)]
         sage: Ty_Y(a) == Ty_Y(Y_Ty(a))
         True
-        sage: Ta = T.factor(1)
+        sage: Ta = H.affine_hecke_algebra()
         sage: Ta[1,0,1,0] == Ta[0,1,0,1]
         True
-        sage: Ty_Y(T.factor_embedding(1)(Ta[1,0,1,0])) == Ty_Y(T.factor_embedding(1)(Ta[0,1,0,1]))
+        sage: Ty_Y(Ta[1,0,1,0]) == Ty_Y(Ta[0,1,0,1])
         True
-        sage: Y_Ty(T.factor_embedding(1)(Ta[1,2,1,2])) == Y_Ty(T.factor_embedding(1)(Ta[2,1,2,1]))
+        sage: Y_Ty(Ta[1,2,1,2]) == Y_Ty(Ta[2,1,2,1])
         True
 
     Here is an example with a nonreduced root system and unequal parameters.
@@ -152,7 +148,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: T = H.T()
         sage: Ty_Y = H.tvLv()
         sage: Y_Ty = H.Lvtv()
-        sage: mu = H.Lv().fundamental_weight(2); mu
+        sage: mu = H.dual_lattice().fundamental_weight(2); mu
         (1/2, 1/2)
         sage: id = H.dual_classical_weyl().one()
         sage: a = Ty_Y.monomial((id,mu)); a
@@ -161,13 +157,13 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: (1/2, 1/2) should be in the root lattice
-        sage: a = T.factor_embedding(0)(T.factor(0).monomial(H.fundamental_group()(2))); a
+        sage: a = T.from_fundamental(H.fundamental_group()(2)); a
         piX[2]
         sage: Ty_Y(a)
         Traceback (most recent call last):
         ...
         ValueError: Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced
-        sage: mu = 4 * H.Lv().fundamental_weight(2); mu
+        sage: mu = 4 * H.dual_lattice().fundamental_weight(2); mu
         (2, 2)
         sage: w = H.dual_classical_weyl().from_reduced_word([2,1,2])
         sage: b = Ty_Y.monomial((w,mu)); b
@@ -178,12 +174,12 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         TX[2,1,2,0,1,2,0,1,2,0,1,2,0,1,2]
         sage: Y_Ty(T(b)) == Y_Ty(b)
         True
-        sage: Ta = T.factor(1)
+        sage: Ta = H.affine_hecke_algebra()
         sage: Ta[1,0,1,0] == Ta[0,1,0,1]
         True
-        sage: Ty_Y(T.factor_embedding(1)(Ta[1,0,1,0])) == Ty_Y(T.factor_embedding(1)(Ta[0,1,0,1]))
+        sage: Ty_Y(Ta[1,0,1,0]) == Ty_Y(Ta[0,1,0,1])
         True
-        sage: Y_Ty(T.factor_embedding(1)(Ta[1,2,1,2])) == Y_Ty(T.factor_embedding(1)(Ta[2,1,2,1]))
+        sage: Y_Ty(Ta[1,2,1,2]) == Y_Ty(Ta[2,1,2,1])
         True
 
     The notation for the code will always match the case that ``dual_side`` is False.
@@ -213,10 +209,10 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: a = TY.an_element(); a
         2*TY[0] + 3*TY[0,1] + 1 + TY[0,1,2] + 4*piY[1] TY[0] + 6*piY[1] TY[0,1] + 2*piY[1] + 2*piY[1] TY[0,1,2] + 8*piY[2] TY[0] + 12*piY[2] TY[0,1] + 4*piY[2] + 4*piY[2] TY[0,1,2]
         sage: Tx_X = Ht.tvLv()
-        sage: TYa = TY.factor(1)
-        sage: Tx_X(TY.factor_embedding(1)(TYa[0,1,2]))
+        sage: TYa = Ht.affine_hecke_algebra()
+        sage: Tx_X(TY(TYa[0,1,2]))
         Tx[1] X[(0, 1, -1)] + ((-v^2+1)/v)*X[(1, 0, -1)] + ((-v^2+1)/v)*X[(0, 1, -1)]
-        sage: Tx_X(TY.factor_embedding(1)(TYa[0])).to_opposite()
+        sage: Tx_X(TY(TYa[0])).to_opposite()
         X[(1, 0, -1)] Tx[1,2,1] + ((-v^2+1)/v)*X[(1, 0, -1)] Tx[1,2] + ((-v^2+1)/v)*X[(1, 0, -1)] Tx[2,1] + ((v^4-2*v^2+1)/v^2)*X[(1, 0, -1)] Tx[1] + ((v^4-2*v^2+1)/v^2)*X[(1, 0, -1)] Tx[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*X[(1, 0, -1)]
         sage: TYa[0,1,0] == TYa[1,0,1]
         True
@@ -225,74 +221,86 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         sage: FY = Ht.fundamental_group()
         sage: FY.special_nodes()
         (0, 1, 2)
-        sage: pi = Ht.F_to_tvLv_on_basis(FY(1)); pi
+        sage: pi = Ht.tvLv().from_fundamental(FY(1)); pi
         Tx[1,2] X[(-1, -1, 0)] + ((-v^2+1)/v)*Tx[1] X[(-1, -1, 0)] + ((-v^2+1)/v)*Tx[2] X[(-1, -1, 0)] + ((v^4-2*v^2+1)/v^2)*X[(-1, -1, 0)]
         sage: pi**3
         X[(-2, -2, -2)]
-        sage: pi * Ht.F_to_tvLv_on_basis(FY(2))
+        sage: pi * Ht.tvLv().from_fundamental(FY(2))
         X[(-1, -1, -1)]
 
     The "dominant" versus "antidominant" conventions can be seen by comparing the
     following::
 
         sage: Tx = Ht.dual_classical_hecke()
-        sage: KX = Ht.Lv_algebra()
-        sage: w = Tx.basis().keys().from_reduced_word([1])
-        sage: mu = KX.basis().keys().fundamental_weight(1)
-        sage: Tx_X.monomial((w,mu))
+        sage: KX = Ht.dual_lattice_algebra()
+        sage: u = Ht.dual_classical_weyl().from_reduced_word([1])
+        sage: mu = Ht.dual_lattice().fundamental_weight(1)
+        sage: Tx_X.monomial((u,mu))
         Tx[1] X[(1, 0, 0)]
-        sage: Tx_X.monomial((w,mu)).to_opposite()
+        sage: Tx_X.monomial((u,mu)).to_opposite()
         X[(0, 1, 0)] Tx[1] + ((-v^2+1)/v)*X[(0, 1, 0)]
 
         sage: H = ExtendedAffineHeckeAlgebra("A2")
-        sage: Ty=H.dual_classical_hecke(); KY=H.Lv_algebra(); Ty_Y=H.tvLv()
-        sage: w = Ty.basis().keys().from_reduced_word([1])
+        sage: Ty=H.dual_classical_hecke(); KY=H.dual_lattice_algebra(); Ty_Y=H.tvLv()
+        sage: u = H.dual_classical_weyl().from_reduced_word([1])
         sage: mu = -KY.basis().keys().fundamental_weight(1)
-        sage: Ty_Y.monomial((w,mu))
+        sage: Ty_Y.monomial((u,mu))
         Ty[1] Y[(-1, 0, 0)]
-        sage: Ty_Y.monomial((w,mu)).to_opposite()
+        sage: Ty_Y.monomial((u,mu)).to_opposite()
         Y[(0, -1, 0)] Ty[1] + ((-v^2+1)/v)*Y[(0, -1, 0)]
 
     If the input `general_linear` is True, the type is untwisted type A, and the root system is extended,
     then we use the general linear extended affine Hecke algebra.
 
+        sage: H = ExtendedAffineHeckeAlgebra(['A',2,1], general_linear = True)
+        sage: T = H.T()
+        sage: x = T.an_element(); x
+        2*piX[1] TX[0] + 3*piX[1] TX[0,1] + piX[1] + piX[1] TX[0,1,2] + 4*piX[2] TX[0] + 6*piX[2] TX[0,1] + 2*piX[2] + 2*piX[2] TX[0,1,2] + 6*piX[3] TX[0] + 9*piX[3] TX[0,1] + 3*piX[3] + 3*piX[3] TX[0,1,2] + 2*piX[5] TX[0] + 3*piX[5] TX[0,1] + piX[5] + piX[5] TX[0,1,2]
+        sage: z = H.tvLv()(x); z
+        Ty[1,2,1] Y[(0, 1, 0)] + 6*Ty[1,2,1] Y[(0, 1, 2)] + ((3*v^2-3)/v)*Ty[1,2,1] Y[(0, 0, 1)] + 9*Ty[1,2] Y[(1, 0, 2)] + ((2*v^2+v-2)/v)*Ty[1,2] Y[(0, 0, 1)] + ((2*v^2+v-2)/v)*Ty[2,1] Y[(1, 2, 2)] + ((4*v^2+2*v-4)/v)*Ty[2,1] Y[(0, 1, 1)] + 3*Ty[2,1] Y[(0, 0, 1)] + ((9*v^2-9)/v)*Ty[1] Y[(1, 1, 1)] + 3*Ty[1] Y[(1, 2, 0)] + 2*Ty[1] Y[(1, 2, 2)] + 4*Ty[1] Y[(0, 1, 1)] + 2*Ty[2] Y[(1, 1, 0)] + ((6*v^2-6)/v)*Ty[2] Y[(1, 0, 1)] + ((3*v^2-3)/v)*Ty[2] Y[(2, 1, 2)] + Ty[2] Y[(2, 2, 1)] + 2*Ty[2] Y[(0, 0, 1)] + ((6*v^2+3*v-6)/v)*Y[(1, 1, 1)] + 6*Y[(1, 0, 1)] + 3*Y[(2, 1, 2)]
+        sage: H.Lvtv()(x) == H.Lvtv()(z)
+        True
     """
 
     @staticmethod
     def __classcall_private__(cls, cartan_type, q1=None, q2=None, extended=None, dual_side=None, general_linear=None):
+        def boolean_input_handler(bool, default_value):
+            if bool is None:
+                return default_value
+            if bool not in (True,False):
+                raise ValueError, "%s should be True or False"%bool
+            return bool
         from sage.combinat.root_system.cartan_type import CartanType
         cartan_type = CartanType(cartan_type)
         if isinstance(q1, dict):
             q1 = Family(q1)
         if isinstance(q2, dict):
             q2 = Family(q2)
+        extended = boolean_input_handler(extended, True)
+        dual_side = boolean_input_handler(dual_side, False)
+        general_linear = boolean_input_handler(general_linear, False)
         return super(ExtendedAffineHeckeAlgebra, cls).__classcall__(cls, cartan_type, q1, q2, extended, dual_side, general_linear)
 
     def __init__(self, cartan_type, q1, q2, extended, dual_side, general_linear):
+        # set the root system and parameters
         if cartan_type.is_reducible():
             raise ValueError, "Cartan type should be irreducible"
         if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
             cartan_type = cartan_type.affine()
         elif not cartan_type.is_affine():
             raise ValueError, "Cartan type must be finite or affine"
+        self._base_ring, self._q1, self._q2 = ParameterFamilies(cartan_type.index_set(), q1, q2)
+        Parent.__init__(self, category = AlgebrasWithBasis(self._base_ring).WithRealizations())
+
         self._cartan_type = cartan_type
-        if extended is None:
-            self._extended = True
-        elif extended in [True,False]:
-            self._extended = extended
-        else:
-            raise ValueError, "%s should be a boolean"%extended
-        if dual_side is None:
-            self._dual_side = False
-        elif dual_side not in (True,False):
-            raise ValueError, "%s should be a boolean"%dual_side
-        else:
-            self._dual_side = dual_side
+        self._extended = extended
+        self._dual_side = dual_side
         if general_linear and self._extended and cartan_type.is_untwisted_affine() and cartan_type.type() == 'A':
             self._general_linear = True
             self._n = cartan_type.n + 1
         else:
             self._general_linear = False
+        # build the components of the various realizations
         from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
         self._E = ExtendedAffineWeylGroup(cartan_type, self._general_linear, fundamental="")
         self._PvW0 = self._E.PvW0()
@@ -308,11 +316,6 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         self._Lv = self._cartan_type_v.root_system().ambient_space()
         self._Wv = self._Lv.weyl_group(prefix="s")
 
-        I = cartan_type.index_set()
-        self._base_ring, self._q1, self._q2 = ParameterFamilies(I, q1, q2)
-
-        Parent.__init__(self, category = AlgebrasWithBasis(self._base_ring).WithRealizations())
-
         if self._extended:
             self._doubled_parameters = Family(dict([]))
         else:
@@ -327,6 +330,26 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 self._doubled_parameters = Family(dict([[di, self._q1[0] + self._q2[0]]]))
         self._dual_reduced = (len(self._doubled_parameters.keys()) == 0)
 
+        # create the tensor factors of the realizations
+        # the nonextended affine Hecke algebra with several parameters
+        self._Ta = MultiParameterHeckeAlgebra(self.affine_weyl(), self.q1(), self.q2(), prefix="TY" if self._dual_side else "TX", category=AlgebrasWithBasis(self.base_ring()))
+        # the group algebra of the fundamental group
+        self._KF = self._F.algebra(self.base_ring(), prefix="piY" if self._dual_side else "piX")
+        self._KF._print_options['bracket'] = ""
+        # The classical Hecke algebra of dual type
+        self._tv = MultiParameterHeckeAlgebra(self.dual_classical_weyl(), self._q1, self._q2, prefix="Tx" if self._dual_side else "Ty")
+        # The group algebra of the dual translation lattice
+        self._KLv = self.dual_lattice().algebra(self.base_ring(), prefix="X" if self._dual_side else "Y")
+
+        module_category = ModulesWithBasis(self._base_ring)
+        tensor_category = module_category.TensorProducts()
+        # the tensor modules underlying the "T" basis
+        self._TaKFmod = tensor([self._Ta, self._KF], category = tensor_category)
+        self._KFTamod = tensor([self._KF, self._Ta], category = tensor_category)
+        # the tensor modules underlying the "tvLv" and "Lvtv" bases
+        self._tvLvmod = tensor([self._tv, self._KLv], category = tensor_category)
+        self._Lvtvmod = tensor([self._KLv, self._tv], category = tensor_category)
+
         # create the realizations
         T = self.T()
         tvLv = self.tvLv()
@@ -334,45 +357,23 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         # register coercion between tvLv and Lvtv
         tvLv.register_opposite(Lvtv)
 
-        # coercion of tv into the affine Hecke algebra
-        tv = tvLv.factor(0)
-        tv_to_T = tv.module_morphism(on_basis=self.tv_to_T_on_basis, category=ModulesWithBasis(self._base_ring), codomain=T)
-        tv_to_T.register_as_coercion()
+        # coercion of tv into the various bases
+        tv = self.dual_classical_hecke()
+        tv.module_morphism(on_basis=T.from_dual_classical_hecke_on_basis, category=module_category, codomain=T).register_as_coercion()
+        tv.module_morphism(on_basis=tvLv.from_dual_classical_hecke_on_basis, category=module_category, codomain=tvLv).register_as_coercion()
+        tv.module_morphism(on_basis=Lvtv.from_dual_classical_hecke_on_basis, category=module_category, codomain=Lvtv).register_as_coercion()
+        
+        # coercion of the group algebra of Lv into the various bases
+        KLv = self.dual_lattice_algebra()
+        KLv.module_morphism(on_basis=T.from_dual_lattice_algebra_on_basis, category=module_category, codomain=T).register_as_coercion()
+        KLv.module_morphism(on_basis=tvLv.from_dual_lattice_algebra_on_basis, category=module_category, codomain=tvLv).register_as_coercion()
+        KLv.module_morphism(on_basis=Lvtv.from_dual_lattice_algebra_on_basis, category=module_category, codomain=Lvtv).register_as_coercion()
 
-        # coercion of group algebra of Lv into affine Hecke algebra
-        Lv = tvLv.factor(1)
-
-        Lv_to_T = Lv.module_morphism(on_basis=self.Lv_to_T_on_basis, category=ModulesWithBasis(self._base_ring), codomain=T)
-        Lv_to_T.register_as_coercion()
-
-        def tvLv_to_T_on_basis((w,mu)):
-            return self.tv_to_T_on_basis(w)*self.Lv_to_T_on_basis(mu)
-
-        tvLv_to_T = tvLv.module_morphism(on_basis = tvLv_to_T_on_basis, category=ModulesWithBasis(self._base_ring), codomain=T)
-        tvLv_to_T.register_as_coercion()
-
-        def Lvtv_to_T_on_basis((mu,w)):
-            return self.Lv_to_T_on_basis(mu)*self.tv_to_T_on_basis(w)
-
-        Lvtv_to_T = Lvtv.module_morphism(on_basis = Lvtv_to_T_on_basis, category=ModulesWithBasis(self._base_ring), codomain=T)
-        Lvtv_to_T.register_as_coercion()
-
-        def T_to_tvLv_on_basis((pi,w)):
-            return self.F_to_tvLv_on_basis(pi)*self.Ta_to_tvLv_on_basis(w)
-
-        T_to_tvLv = T.module_morphism(on_basis=T_to_tvLv_on_basis, category=ModulesWithBasis(self._base_ring),codomain=tvLv)
-        T_to_tvLv.register_as_coercion()
-
-        def T_to_Lvtv_on_basis((pi,w)):
-            return self.F_to_Lvtv_on_basis(pi)*self.Ta_to_Lvtv_on_basis(w)
-
-        T_to_Lvtv = T.module_morphism(on_basis=T_to_Lvtv_on_basis, category=ModulesWithBasis(self._base_ring),codomain=Lvtv)
-        T_to_Lvtv.register_as_coercion()
-
-        Lv_to_Lvtv = SetMorphism(Hom(Lv,Lvtv,ModulesWithBasis(self._base_ring)),lambda y: Lvtv.factor_embedding(0)(y))
-        Lv_to_Lvtv.register_as_coercion()
-        Lv_to_tvLv = SetMorphism(Hom(Lv,tvLv,ModulesWithBasis(self._base_ring)),lambda y: tvLv.factor_embedding(1)(y))
-        Lv_to_tvLv.register_as_coercion()
+        # coercions between T and the other two bases
+        tvLv.module_morphism(on_basis = T._from_tvLv_on_basis, category=module_category, codomain=T).register_as_coercion()
+        Lvtv.module_morphism(on_basis = T._from_Lvtv_on_basis, category=module_category, codomain=T).register_as_coercion()
+        T.module_morphism(on_basis = T._to_tvLv_on_basis, category=module_category, codomain=tvLv).register_as_coercion()
+        T.module_morphism(on_basis = T._to_Lvtv_on_basis, category=module_category, codomain=Lvtv).register_as_coercion()
 
     def T(self):
         r"""
@@ -450,72 +451,6 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         """
         return self.cartan_type().index_set()
 
-    def Lv(self):
-        r"""
-        Returns the "dual" lattice.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineHeckeAlgebra(['A',2,1]).Lv()
-            Ambient space of the Root system of type ['A', 2]
-            sage: ExtendedAffineHeckeAlgebra(['A',5,2]).Lv()
-            Ambient space of the Root system of type ['C', 3]
-            sage: ExtendedAffineHeckeAlgebra(['C',2,1]).Lv()
-            Ambient space of the Root system of type ['B', 2]
-
-        """
-        return self._Lv
-
-    def Lv_algebra(self):
-        r"""
-        The group algebra of the "dual" lattice.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineHeckeAlgebra("A2").Lv_algebra()
-            Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Univariate Polynomial Ring in v over Rational Field
-        """
-        if self._dual_side:
-            prefix = "X"
-        else:
-            prefix = "Y"
-        return self.Lv().algebra(self.base_ring(), prefix=prefix)
-
-    def dual_classical_weyl(self):
-        r"""
-        Returns the dual classical Weyl group of ``self``.
-
-        This returns the classical Weyl group of type `Y` if ``self`` is of type `\tilde{X}`.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineHeckeAlgebra(['A',2,1]).dual_classical_weyl()
-            Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
-            sage: ExtendedAffineHeckeAlgebra(['A',5,2]).dual_classical_weyl()
-            Weyl Group of type ['C', 3] (as a matrix group acting on the ambient space)
-            sage: ExtendedAffineHeckeAlgebra(['C',2,1]).dual_classical_weyl()
-            Weyl Group of type ['B', 2] (as a matrix group acting on the ambient space)
-
-        """
-        return self._Wv
-
-    def dual_classical_hecke(self):
-        r"""
-        The finite Hecke algebra of "dual" type.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineHeckeAlgebra("A2").dual_classical_hecke()
-            Hecke algebra of type ['A', 2]
-
-        """
-        if self._dual_side:
-            prefix = "Tx"
-        else:
-            prefix = "Ty"
-        I0 = self._cartan_type_v.index_set()
-        return MultiParameterHeckeAlgebra(self._Wv, self._q1, self._q2, prefix=prefix)
-
     def extended_affine_weyl(self):
         r"""
         Returns the extended affine Weyl group of ``self``.
@@ -557,6 +492,83 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         """
         return self._F
 
+    def affine_hecke_algebra(self):
+        r"""
+        Returns the nonextended affine Hecke algebra.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineHeckeAlgebra(['A',2,1]).affine_hecke_algebra()
+            Hecke algebra of type ['A', 2, 1]
+        """
+        return self._Ta
+
+    def dual_lattice(self):
+        r"""
+        Returns the "dual" lattice.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineHeckeAlgebra(['A',2,1]).dual_lattice()
+            Ambient space of the Root system of type ['A', 2]
+            sage: ExtendedAffineHeckeAlgebra(['A',5,2]).dual_lattice()
+            Ambient space of the Root system of type ['C', 3]
+            sage: ExtendedAffineHeckeAlgebra(['C',2,1]).dual_lattice()
+            Ambient space of the Root system of type ['B', 2]
+
+        """
+        return self._Lv
+
+    def dual_lattice_algebra(self):
+        r"""
+        The group algebra of the "dual" lattice.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineHeckeAlgebra("A2").dual_lattice_algebra()
+            Group algebra of the Ambient space of the Root system of type ['A', 2] over Fraction Field of Univariate Polynomial Ring in v over Rational Field
+        """
+        if self._dual_side:
+            prefix = "X"
+        else:
+            prefix = "Y"
+        return self.dual_lattice().algebra(self.base_ring(), prefix=prefix)
+
+    def dual_classical_weyl(self):
+        r"""
+        Returns the dual classical Weyl group of ``self``.
+
+        This returns the classical Weyl group of type `Y` if ``self`` is of type `\tilde{X}`.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineHeckeAlgebra(['A',2,1]).dual_classical_weyl()
+            Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
+            sage: ExtendedAffineHeckeAlgebra(['A',5,2]).dual_classical_weyl()
+            Weyl Group of type ['C', 3] (as a matrix group acting on the ambient space)
+            sage: ExtendedAffineHeckeAlgebra(['C',2,1]).dual_classical_weyl()
+            Weyl Group of type ['B', 2] (as a matrix group acting on the ambient space)
+
+        """
+        return self._Wv
+
+    def dual_classical_hecke(self):
+        r"""
+        The finite Hecke algebra of "dual" type.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineHeckeAlgebra("A2").dual_classical_hecke()
+            Hecke algebra of type ['A', 2]
+
+        """
+        if self._dual_side:
+            prefix = "Tx"
+        else:
+            prefix = "Ty"
+        I0 = self._cartan_type_v.index_set()
+        return MultiParameterHeckeAlgebra(self._Wv, self._q1, self._q2, prefix=prefix)
+
     def dual_classical_weyl_to_affine_morphism(self, w):
         r"""
         The image of `w` under the homomorphism from the dual classical Weyl group into the affine Weyl group.
@@ -593,157 +605,6 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
         """
         return self._q2
-
-    @cached_method
-    def Ta_to_tvLv_on_basis(self, w):
-        r"""
-        The function from the nonextended affine Hecke algebra "Ta" to tvLv.
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra("A2")
-            sage: w = H.affine_weyl().an_element(); w
-            S0*S1*S2
-            sage: H.Ta_to_tvLv_on_basis(w)
-            Ty[1] Y[(0, 1, -1)]
-
-        """
-        i = w.first_descent(side="left")
-        if i is None:
-            return self.tvLv().one()
-        return self.tvLv().algebra_generators()[i] * self.Ta_to_tvLv_on_basis(w.apply_simple_reflection(i, side="left"))
-
-    @cached_method
-    def Ta_to_Lvtv_on_basis(self, w):
-        r"""
-        The function from the nonextended affine Hecke algebra "Ta" to Lvtv.
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra("A2")
-            sage: w = H.affine_weyl().an_element(); w
-            S0*S1*S2
-            sage: H.Ta_to_Lvtv_on_basis(w)
-            Y[(1, 0, -1)] Ty[1] + ((-v^2+1)/v)*Y[(1, 0, -1)]            
-
-        """
-        i = w.first_descent(side="right")
-        if i is None:
-            return self.Lvtv().one()
-        return self.Ta_to_Lvtv_on_basis(w.apply_simple_reflection(i, side="right")) * self.Lvtv().algebra_generators()[i]
-
-    @cached_method
-    def F_to_tvLv_on_basis(self, pi):
-        r"""
-        The image of a fundamental group element in tvLv.
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra("A2")
-            sage: F = H.fundamental_group()
-            sage: H.F_to_tvLv_on_basis(F(1))
-            Ty[1,2] Y[(-1, -1, 0)]
-            sage: H.F_to_tvLv_on_basis(F(2))
-            Ty[2,1] Y[(-1, 0, 0)]
-            sage: H.F_to_tvLv_on_basis(F(1)) * H.F_to_tvLv_on_basis(F(2))
-            Y[(-1, -1, -1)]
-
-        ..warning:: In the crappy ambient space of type "A2", (-1, -1, -1) and (0, 0, 0) both represent
-        the zero weight.
-
-        """
-        i = pi.value()
-        if i == 0:
-            return self.tvLv().one()
-        if not self._dual_reduced:
-            raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
-        # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
-        E = self.extended_affine_weyl()
-        x = E.fundamental_group_morphism(pi)
-        rw = x.to_dual_classical_weyl().reduced_word()
-        mu = x.to_dual_translation_right().to_ambient()
-        tvLv = self.tvLv()
-        HY = tvLv.factor(0)
-        if self._dual_side:
-            signs = tuple([-1 for i in range(len(rw))])
-        else:
-            signs = tuple([1 for i in range(len(rw))])
-        return tvLv.from_direct_product((HY.product_by_signed_generator_sequence(HY.one(), rw, signs), tvLv.factor(1).monomial(mu)))
-
-    @cached_method
-    def F_to_Lvtv_on_basis(self, pi):
-        r"""
-        The image of a fundamental group element in tvLv.
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra("C2")
-            sage: F = H.fundamental_group()
-            sage: H.F_to_Lvtv_on_basis(F(2))
-            Y[(1/2, 1/2)] Ty[2,1,2] + ((-v^2+1)/v)*Y[(1/2, 1/2)] Ty[1,2] + ((-v^2+1)/v)*Y[(1/2, 1/2)] Ty[2,1] + ((v^4-2*v^2+1)/v^2)*Y[(1/2, 1/2)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(1/2, 1/2)] Ty[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*Y[(1/2, 1/2)]
-            sage: H.F_to_Lvtv_on_basis(F(2))**2
-            1
-
-        """
-        if pi == pi.parent().one():
-            return self.Lvtv().one()
-        if not self._dual_reduced:
-            raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
-        # express pi as t_mu w with w in W(Y) and mu in Y.
-        x = self._PvW0.fundamental_group_morphism(pi)
-        rw = x.to_dual_classical_weyl().reduced_word()
-        mu = x.to_dual_translation_left().to_ambient()
-        Lvtv = self.Lvtv()
-        tv = Lvtv.factor(1)
-        if self._dual_side:
-            signs = tuple([1 for i in range(len(rw))])
-        else:
-            signs = tuple([-1 for i in range(len(rw))])
-        return Lvtv.from_direct_product((Lvtv.factor(0).monomial(mu),tv.product_by_signed_generator_sequence(tv.one(), rw, signs)))
-
-    def tv_to_T_on_basis(self, w):
-        r"""
-        Send a basis element of "tv" into the algebra "T".
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra(['A', 2, 1])
-            sage: w = H.dual_classical_weyl().an_element(); w
-            s1*s2
-            sage: H.tv_to_T_on_basis(w)
-            TX[1,2]
-
-        """
-        T = self.T()
-        return T.factor_embedding(1)(T.factors()[1].monomial(self.dual_classical_weyl_to_affine_morphism(w)))
-
-    def Lv_to_T_on_basis(self, mu):
-        r"""
-        Send a basis element of "Lv" into "T".
-
-        EXAMPLES::
-
-            sage: H = ExtendedAffineHeckeAlgebra(['A', 2, 1], general_linear=True)
-            sage: mu = H.Lv().an_element(); mu
-            (2, 2, 3)
-            sage: H.Lv_to_T_on_basis(mu)
-            piX[7] TX[1,0] + ((-v^2+1)/v)*piX[7] TX[0] + ((v^4-2*v^2+1)/v^2)*piX[7] + ((-v^2+1)/v)*piX[7] TX[1]            
-
-        """
-        if self._general_linear:
-            mu_wt = mu
-        else:
-            mu_wt = mu.to_weight_space(ZZ)
-        pi, word, signs = self._FW(mu_wt).alcove_walk_signs()
-        if not self._dual_reduced and pi != pi.parent().one():
-            raise ValueError, "%s should be in the root lattice"%mu
-        if self._dual_side:
-            signs = tuple(signs)
-        else:
-            signs = tuple([-x for x in signs])
-        T = self.T()
-        Ta = T.factor(1)
-        return T.from_direct_product((T.factor(0).monomial(pi), Ta.product_by_signed_generator_sequence(Ta.one(), word, signs)))
 
     class _BasesCategory(Category_realization_of_parent):
         r"""
@@ -794,9 +655,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             @abstract_method(optional=False)
             def algebra_generators(self):
                 r"""
-                The family of generators `T_i` in the given realization.
-
-                It should be a Family with key set the Dynkin node set.
+                The family of generators `T_i` in the realization ``self``.
 
                 EXAMPLES::
 
@@ -813,40 +672,78 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 pass
 
             @abstract_method(optional=False)
-            def Lv_morphism(self, y):
+            def from_dual_lattice_algebra_on_basis(self, y):
                 r"""
-                The image of `y` under the morphism from the group algebra of the dual lattice into ``self``.
+                The image of a lattice element `y` under the morphism from the group algebra of the dual lattice into ``self``.
 
                 EXAMPLES::
 
                     sage: H = ExtendedAffineHeckeAlgebra("A2")
                     sage: T = H.T()
-                    sage: KY = H.Lv_algebra()
-                    sage: y = KY.monomial(KY.basis().keys().simple_root(1)); y
-                    Y[(1, -1, 0)]
-                    sage: z = T.Lv_morphism(y); z
+                    sage: KY = H.dual_lattice_algebra()
+                    sage: y = H.dual_lattice().simple_root(1); y
+                    (1, -1, 0)
+                    sage: z = T.from_dual_lattice_algebra_on_basis(y); z
                     TX[0,2,0,1] + ((-v^2+1)/v)*TX[0,2,1]                   
                     sage: Ty_Y = H.tvLv()
                     sage: Ty_Y(z)
                     Y[(1, -1, 0)]
-                    sage: Ty_Y(z) == Ty_Y.Lv_morphism(y)
+                    sage: Ty_Y(z) == Ty_Y.from_dual_lattice_algebra_on_basis(y)
                     True
                 """
                 pass
 
             @abstract_method(optional=False)
-            def dual_classical_hecke_morphism(self, a):
+            def from_dual_classical_hecke_on_basis(self, u):
                 r"""
-                Returns the image of `a` from the finite Hecke algebra into ``self``.
+                Returns the image of the basis element indexed by the classical Weyl group element `u`,
+                in ``self``.
 
                 EXAMPLES::
 
                     sage: H = ExtendedAffineHeckeAlgebra("A2")
-                    sage: Ty = H.dual_classical_hecke()
-                    sage: h = Ty.an_element(); h
-                    2*Ty[1,2,1] + 4*Ty[1,2] + 1
-                    sage: H.T().dual_classical_hecke_morphism(h)
-                    1 + 4*TX[1,2] + 2*TX[1,2,1]
+                    sage: u = H.dual_classical_weyl().an_element(); u
+                    s1*s2
+                    sage: x = H.T().from_dual_classical_hecke_on_basis(u); x
+                    TX[1,2]
+                    sage: x.parent()
+                    T basis of The affine Hecke algebra of type ['A', 2, 1]
+                """
+                pass
+
+            @abstract_method(optional=False)
+            def from_affine_hecke_on_basis(self, w):
+                r"""
+                Return the image in ``self``, of the affine Hecke algebra element indexed by `w`.
+
+                EXAMPLES::
+
+                    sage: H = ExtendedAffineHeckeAlgebra("A2")
+                    sage: w = H.affine_weyl().an_element(); w
+                    S0*S1*S2
+                    sage: H.T().from_affine_hecke_on_basis(w)
+                    TX[0,1,2]
+                    sage: H.Lvtv().from_affine_hecke_on_basis(w)
+                    Y[(1, 0, -1)] Ty[1] + ((-v^2+1)/v)*Y[(1, 0, -1)]
+
+                """
+                pass
+
+
+            @abstract_method(optional=False)
+            def from_fundamental(self, pi):
+                r"""
+                Return the image in ``self``, of the fundamental group element indexed by `pi`.
+
+                EXAMPLES::
+
+                    sage: H = ExtendedAffineHeckeAlgebra("A2")
+                    sage: pi = H.fundamental_group().an_element(); pi
+                    [2]
+                    sage: H.T().from_fundamental(pi)
+                    piX[2]
+                    sage: H.Lvtv().from_fundamental(pi)
+                    Y[(1, 1, 0)] Ty[2,1] + ((-v^2+1)/v)*Y[(1, 1, 0)] Ty[1] + ((-v^2+1)/v)*Y[(1, 1, 0)] Ty[2] + ((v^4-2*v^2+1)/v^2)*Y[(1, 1, 0)]                    
                 """
                 pass
 
@@ -862,7 +759,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                     sage: T = H.T()
                     sage: pi = T.factor(0).basis().keys().an_element(); pi
                     [2]
-                    sage: w = T.factor(1).basis().keys().an_element(); w
+                    sage: w = H.affine_hecke_algebra().basis().keys().an_element(); w
                     S0*S1*S2
                     sage: [(i, T.product_by_generator_on_basis((pi,w), i)) for i in H.cartan_type().index_set()]
                     [(0, piX[2] TX[0,1,2,0]), (1, piX[2] TX[0,1,2,1]), (2, piX[2] TX[0,1] + ((v^2-1)/v)*piX[2] TX[0,1,2])]
@@ -873,7 +770,6 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 else:
                     return self.algebra_generators()[i] * self.monomial(b)
 
-            @abstract_method(optional=False)
             def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
                 r"""
                 Returns the product of the basis element indexed by `b`, by the fundamental group element `pi`.
@@ -892,7 +788,9 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                     [([0], piX[2] TX[0,1,2]), ([1], TX[2,0,1]), ([2], piX[1] TX[1,2,0])]
 
                 """
-                pass
+                if side == 'right':
+                    return self.monomial(b) * self.from_fundamental(pi)
+                return self.from_fundamental(pi) * self.monomial(b)
 
             def from_reduced_word(self, word):
                 r"""
@@ -912,7 +810,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
     class _Bases(UniqueRepresentation, BindableClass):
         r"""
-        The class of realizations of an affine Hecke algebra.
+        The class of realizations of an extended affine Hecke algebra.
         """
 
         def _repr_(self):
@@ -943,24 +841,13 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
         """
         def __init__(self, E):
-            # the nonextended Hecke algebra of type `\tilde{X}`
-            if E._dual_side:
-                prefix = "TY"
-            else:
-                prefix = "TX"
-            E._Ta = MultiParameterHeckeAlgebra(E.affine_weyl(), E.q1(), E.q2(), prefix=prefix, category=AlgebrasWithBasis(E.base_ring()))
-            # the group algebra of the fundamental group
-            E._KF = E._F.algebra(E.base_ring(), prefix="piY" if E._dual_side else "piX")
-            E._KF._print_options['bracket'] = ""
-            cat = ModulesWithBasis(E.base_ring())
-            mcat = cat.TensorProducts()
-            E._TaoKF = tensor([E._Ta, E._KF], category = mcat)
-            E._KFoTa = tensor([E._KF, E._Ta], category = mcat)
+
             def ext_twist_on_basis((w, f)):
-                return E._TaoKF.monomial((f, f.inverse().act_on_affine_weyl(w)))
+                return E._TaKFmod.monomial((f, f.inverse().act_on_affine_weyl(w)))
             SmashProductAlgebra.__init__(self, E._KF, E._Ta, twist_on_basis=ext_twist_on_basis, category=Category.join((E._BasesCategory(),AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "T"
 
+            cat = ModulesWithBasis(E.base_ring())
             SetMorphism(Hom(E._KF,self, cat),self.factor_embedding(0)).register_as_coercion()
             SetMorphism(Hom(E._Ta,self, cat),self.factor_embedding(1)).register_as_coercion()
 
@@ -978,6 +865,19 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             Ta = self.factor(1)
             return Family(dict([[i, self.factor_embedding(1)(Ta.algebra_generators()[i])] for i in I]))
 
+        def from_affine_hecke_on_basis(self, w):
+            r"""
+            The basis element indexed by an element of the nonextended affine Weyl group.
+
+            EXAMPLES::
+
+                sage: ExtendedAffineHeckeAlgebra("A2").T().from_reduced_word([0,2,1]) # indirect doctest
+                TX[0,2,1]                
+
+            """
+            H = self.realization_of()
+            return self.factor_embedding(1)(self.factor(1).monomial(w))
+
         def from_reduced_word(self, word):
             r"""
             The basis element for a reduced word of affine type.
@@ -988,8 +888,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 TX[0,2,1]                
 
             """
-            H = self.realization_of()
-            return self.factor_embedding(1)(self.factor(1).monomial(H.affine_weyl().from_reduced_word(word)))
+            return self.from_affine_hecke_on_basis(self.realization_of().affine_weyl().from_reduced_word(word))
 
         def from_fundamental(self, f):
             r"""
@@ -1004,41 +903,48 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             """
             return self.factor_embedding(0)(self.factor(0).monomial(f))
 
-        def dual_classical_hecke_morphism(self, a):
+        def from_dual_classical_hecke_on_basis(self, u):
             r"""
-            Returns the image of `a` from the finite Hecke algebra into ``self``.
+            Returns the image of the classical Hecke basis element into ``self``.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: Ty = H.dual_classical_hecke()
-                sage: h = Ty.an_element(); h
-                2*Ty[1,2,1] + 4*Ty[1,2] + 1
-                sage: H.T().dual_classical_hecke_morphism(h)
-                1 + 4*TX[1,2] + 2*TX[1,2,1]
+                sage: u = H.dual_classical_weyl().an_element(); u
+                s1*s2
+                sage: H.T().from_dual_classical_hecke_on_basis(u)
+                TX[1,2]
 
             """
-            return self(a)
+            return self.from_reduced_word(u.reduced_word())
 
-        def Lv_morphism(self, y):
+        def from_dual_lattice_algebra_on_basis(self, mu):
             r"""
-            The image of the `Y`-lattice group algebra element `y` into ``self``.
+            The image of the `Y`-lattice group algebra element `mu` into T.
 
             EXAMPLES::
 
-                sage: H=ExtendedAffineHeckeAlgebra("A2")
-                sage: KY = H.Lv_algebra()
-                sage: z = H.T().Lv_morphism(KY.monomial(KY.basis().keys().simple_root(2))); z
-                TX[0,1,0,2] + ((-v^2+1)/v)*TX[0,1,2]
-                sage: H.Lvtv()(z)
-                Y[(0, 1, -1)]
-                sage: H.tvLv()(z)
-                Y[(0, 1, -1)]
-                sage: H.Lvtv()(H.tvLv()(z))
-                Y[(0, 1, -1)]
+                sage: H = ExtendedAffineHeckeAlgebra(['A', 2, 1], general_linear=True)
+                sage: mu = H.dual_lattice().an_element(); mu
+                (2, 2, 3)
+                sage: H.T().from_dual_lattice_algebra_on_basis(mu)
+                piX[7] TX[1,0] + ((-v^2+1)/v)*piX[7] TX[0] + ((v^4-2*v^2+1)/v^2)*piX[7] + ((-v^2+1)/v)*piX[7] TX[1]            
 
             """
-            return self(self.realization_of().tvLv()(y))
+            H = self.realization_of()
+            if H._general_linear:
+                mu_wt = mu
+            else:
+                mu_wt = mu.to_weight_space(ZZ)
+            pi, word, signs = H._FW(mu_wt).alcove_walk_signs()
+            if not H._dual_reduced and pi != pi.parent().one():
+                raise ValueError, "%s should be in the root lattice"%mu
+            if H._dual_side:
+                signs = tuple(signs)
+            else:
+                signs = tuple([-x for x in signs])
+            Ta = H.affine_hecke_algebra()
+            return self.from_direct_product((self.factor(0).monomial(pi), Ta.product_by_signed_generator_sequence(Ta.one(), word, signs)))
 
         def product_by_generator_on_basis(self, b, i, side = 'right'):
             r"""
@@ -1084,6 +990,83 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             else:
                 return self.monomial((pi*b[0],b[1]))
 
+        def _from_Lvtv_on_basis(self, (mu, u)):
+            r"""
+            The element of T corresponding to the given basis element of Lvtv.
+
+            EXAMPLES::
+
+                sage: H = ExtendedAffineHeckeAlgebra(['A',2,1])
+                sage: mu = H.dual_lattice().an_element()
+                sage: u = H.dual_classical_weyl().an_element()
+                sage: H.T()._from_Lvtv_on_basis((mu,u))
+                ((-v^2+1)/v)*piX[1] TX[2] + piX[1] TX[0,1,0,2] + ((-v^2+1)/v)*piX[1] TX[0,1,2]                
+
+            ..warning: Used to define coercion.
+
+            """
+            return self.from_dual_lattice_algebra_on_basis(mu) * self.from_dual_classical_hecke_on_basis(u)
+
+        def _from_tvLv_on_basis(self, (u, mu)):
+            r"""
+            The element of T corresponding to the given basis element of Lvtv.
+
+            EXAMPLES::
+
+
+                sage: H = ExtendedAffineHeckeAlgebra(['A',2,1])
+                sage: mu = H.dual_lattice().an_element()
+                sage: u = H.dual_classical_weyl().an_element()
+                sage: H.T()._from_tvLv_on_basis((u,mu))
+                piX[1]
+
+            ..warning: Used to define coercion.
+
+            """
+            return self.from_dual_classical_hecke_on_basis(u) * self.from_dual_lattice_algebra_on_basis(mu)
+
+        def _to_Lvtv_on_basis(self, (pi, w)):
+            r"""
+            The element of Lvtv corresponding to the given basis element.
+
+            EXAMPLES::
+
+                sage: H = ExtendedAffineHeckeAlgebra(['A',2,1])
+                sage: T = H.T()
+                sage: pi = H.fundamental_group().an_element(); pi
+                [2]
+                sage: w = H.affine_weyl().an_element(); w
+                S0*S1*S2
+                sage: T._to_Lvtv_on_basis((pi,w))
+                ((v^2-1)/v)*Y[(1, 1, 0)] + Y[(1, 0, 1)] Ty[2]
+
+            ..warning: Used to define coercion.
+
+            """
+            Lvtv = self.realization_of().Lvtv()
+            return Lvtv.from_fundamental(pi) * Lvtv.from_affine_hecke_on_basis(w)
+
+        def _to_tvLv_on_basis(self, (pi, w)):
+            r"""
+            The element of tvLv corresponding to the given basis element.
+
+            EXAMPLES::
+
+                sage: H = ExtendedAffineHeckeAlgebra(['A',2,1])
+                sage: T = H.T()
+                sage: pi = H.fundamental_group().an_element(); pi
+                [2]
+                sage: w = H.affine_weyl().an_element(); w
+                S0*S1*S2
+                sage: T._to_tvLv_on_basis((pi,w))
+                 Ty[2] Y[(0, 0, -1)]
+
+            ..warning: Used to define coercion.
+
+            """
+            tvLv = self.realization_of().tvLv()
+            return tvLv.from_fundamental(pi) * tvLv.from_affine_hecke_on_basis(w)
+
     class ExtendedAffineHeckeAlgebratvLv(SmashProductAlgebra, _Bases):
         r"""
         Affine Hecke algebra in "tvLv" style.
@@ -1099,11 +1082,10 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         """
 
         def __init__(self, E):
-            Lv = E.Lv_algebra()
+            Lv = E.dual_lattice_algebra()
             tv = E.dual_classical_hecke()
             module_category = ModulesWithBasis(E.base_ring())
-            self._Lvotv = tensor([Lv,tv],category=module_category)
-            self._tvoLv = tensor([tv,Lv],category=module_category)
+            tensor_category = module_category.TensorProducts()
             if E._dual_side:
                 convention = "dominant"
             else:
@@ -1111,13 +1093,13 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             self._HM = Lv.nonreduced_demazure_lusztig_operators(E.q1(), E.q2(), convention=convention, doubled_parameters=E._doubled_parameters, side="right")
             def right_action_of_Ti_on_tvLv((w,mu), i):
                 smu = mu.simple_reflection(i)
-                return tensor([tv.monomial(w), self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu)]) + tensor([tv.product_by_generator_on_basis(w,i), Lv.monomial(smu)])
+                return tensor([tv.monomial(w), self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu)]) + tensor([tv.product_by_generator_on_basis(w,i), Lv.monomial(smu)], category=tensor_category)
 
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-            self._tvoHM = HeckeAlgebraRepresentation(self._tvoLv, right_action_of_Ti_on_tvLv, E.cartan_type(), E.q1(), E.q2())
+            self._tvoHM = HeckeAlgebraRepresentation(E._tvLvmod, right_action_of_Ti_on_tvLv, E.cartan_type(), E.q1(), E.q2())
 
             def right_action_on_tvLv(ww, w, mu):
-                return self._tvoHM.Tw(ww)(self._tvoLv.monomial((w, mu)))
+                return self._tvoHM.Tw(ww)(E._tvLvmod.monomial((w, mu)))
 
             SmashProductAlgebra.__init__(self, tv, Lv, right_action=right_action_on_tvLv, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
             self._style = "tvLv"
@@ -1127,37 +1109,38 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             dual_side_string = " dual side" if E._dual_side else ""
             return "%s basis of %s"%(self._style, E._repr_()) + dual_side_string
 
-        def Lv_morphism(self, y):
+        def from_dual_lattice_algebra_on_basis(self, y):
             r"""
             The image of `y` under the morphism from the group algebra of `Y` into ``self``.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: KY = H.Lv_algebra()
-                sage: y = KY.an_element(); y
+                sage: Y = H.dual_lattice()
+                sage: y = Y.an_element(); y
+                (2, 2, 3)
+                sage: z = H.tvLv().from_dual_lattice_algebra_on_basis(y); z
                 Y[(2, 2, 3)]
-                sage: H.tvLv().Lv_morphism(y)
-                Y[(2, 2, 3)]
-
+                sage: z.parent()
+                tvLv basis of The affine Hecke algebra of type ['A', 2, 1]
             """
-            return self.factor_embedding(1)(y)
+            return self.factor_embedding(1)(self.factor(1).monomial(y))
 
-        def dual_classical_hecke_morphism(self, a):
+        def from_dual_classical_hecke_on_basis(self, u):
             r"""
-            Returns the image of `a` from the finite Hecke algebra into ``self``.
+            Returns the image of the basis element of `u` from the finite Hecke algebra into ``self``.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: Ty = H.dual_classical_hecke()
-                sage: h = Ty.an_element(); h
-                2*Ty[1,2,1] + 4*Ty[1,2] + 1
-                sage: H.tvLv().dual_classical_hecke_morphism(h)
-                2*Ty[1,2,1] + 4*Ty[1,2] + 1
+                sage: Wv = H.dual_classical_weyl()
+                sage: u = Wv.an_element(); u
+                s1*s2
+                sage: H.tvLv().from_dual_classical_hecke_on_basis(u)
+                Ty[1,2]                
 
             """
-            return self.factor_embedding(0)(a)
+            return self.factor_embedding(0)(self.factor(0).monomial(u))
 
         def T0(self):
             r"""
@@ -1183,26 +1166,63 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(0)(self.factor(0).algebra_generators()[i])] for i in self.realization_of().index_set()]))
 
-        def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
+        @cached_method
+        def from_affine_hecke_on_basis(self, w):
             r"""
-            The product of the basis element indexed by `b`, with the fundamental group element `pi`.
+            The image of the `w`-th affine Hecke algebra basis element in "tvLv".
+
+            EXAMPLES::
+
+                sage: H = ExtendedAffineHeckeAlgebra("A2")
+                sage: w = H.affine_weyl().an_element(); w
+                S0*S1*S2
+                sage: H.tvLv().from_affine_hecke_on_basis(w)
+                Ty[1] Y[(0, 1, -1)]
+
+            """
+            i = w.first_descent(side="left")
+            if i is None:
+                return self.one()
+            return self.algebra_generators()[i] * self.from_affine_hecke_on_basis(w.apply_simple_reflection(i, side="left"))
+
+        @cached_method
+        def from_fundamental(self, pi):
+            r"""
+            The image of the fundamental group element `pi` in "tvLv".
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
                 sage: tvLv = H.tvLv()
-                sage: v = tvLv.factor(0).basis().keys().an_element(); v.reduced_word()
-                [1, 2]
-                sage: mu = tvLv.factor(1).basis().keys().an_element(); mu
-                (2, 2, 3)
-                sage: [(pi, tvLv.product_by_fundamental_group_element_on_basis((v,mu), pi)) for pi in H.fundamental_group()]
-                [([0], Ty[1,2] Y[(2, 2, 3)]), ([1], Ty[2,1] Y[(1, 2, 2)]), ([2], Y[(2, 2, 2)])]
+                sage: F = H.fundamental_group()
+                sage: tvLv.from_fundamental(F(1))
+                Ty[1,2] Y[(-1, -1, 0)]
+                sage: tvLv.from_fundamental(F(2))
+                Ty[2,1] Y[(-1, 0, 0)]
+                sage: tvLv.from_fundamental(F(1)) * tvLv.from_fundamental(F(2))
+                Y[(-1, -1, -1)]
+
+            ..warning:: In the ambient space of type "A2", (-1, -1, -1) and (0, 0, 0) both represent
+            the zero weight.
 
             """
-            if side == 'right':
-                return self.monomial(b) * self.realization_of().F_to_tvLv_on_basis(pi)
+            i = pi.value()
+            if i == 0:
+                return self.one()
+            H = self.realization_of()
+            if not H._dual_reduced:
+                raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
+            # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
+            E = H.extended_affine_weyl()
+            x = E.fundamental_group_morphism(pi)
+            rw = x.to_dual_classical_weyl().reduced_word()
+            mu = x.to_dual_translation_right().to_ambient()
+            HY = H.dual_classical_hecke()
+            if H._dual_side:
+                signs = tuple([-1 for i in range(len(rw))])
             else:
-                return self.realization_of().F_to_tvLv_on_basis(pi) * self.monomial(b)
+                signs = tuple([1 for i in range(len(rw))])
+            return self.from_direct_product((HY.product_by_signed_generator_sequence(HY.one(), rw, signs), H.dual_lattice_algebra().monomial(mu)))
 
     class ExtendedAffineHeckeAlgebraLvtv(SmashProductAlgebra, _Bases):
         r"""
@@ -1219,11 +1239,10 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
         """
         def __init__(self, E):
-            Lv = E.Lv_algebra()
+            Lv = E.dual_lattice_algebra()
             tv = E.dual_classical_hecke()
             module_category = ModulesWithBasis(E.base_ring())
-            self._Lvotv = tensor([Lv,tv],category=module_category)
-            self._tvoLv = tensor([tv,Lv],category=module_category)
+            tensor_category = module_category.TensorProducts()
             if E._dual_side:
                 convention = "dominant"
             else:
@@ -1232,13 +1251,13 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
             def left_action_of_Ti_on_Lvtv((mu,w), i):
                 smu = mu.simple_reflection(i)
-                return tensor([self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu), tv.monomial(w)]) + tensor([Lv.monomial(smu),tv.product_by_generator_on_basis(w,i,side="left")])
+                return tensor([self._HM[i](Lv.monomial(mu)) - E.q1()[i]*Lv.monomial(smu), tv.monomial(w)]) + tensor([Lv.monomial(smu),tv.product_by_generator_on_basis(w,i,side="left")], category=tensor_category)
 
             from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-            self._LvotvHM = HeckeAlgebraRepresentation(self._Lvotv, left_action_of_Ti_on_Lvtv, E.cartan_type(), E.q1(), E.q2(), side="left")
+            self._LvotvHM = HeckeAlgebraRepresentation(E._Lvtvmod, left_action_of_Ti_on_Lvtv, E.cartan_type(), E.q1(), E.q2(), side="left")
 
             def left_action_on_Lvtv(ww, mu, w):
-                return self._LvotvHM.Tw(ww)(self._Lvotv.monomial((mu, w)))
+                return self._LvotvHM.Tw(ww)(E._Lvtvmod.monomial((mu, w)))
 
             SmashProductAlgebra.__init__(self, Lv, tv, left_action=left_action_on_Lvtv, category=Category.join((E._BasesCategory(), AlgebrasWithBasis(E.base_ring()).TensorProducts())))
 
@@ -1249,37 +1268,35 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             dual_side_string = " dual side" if E._dual_side else ""
             return "%s basis of %s"%(self._style, E._repr_()) + dual_side_string
 
-        def Lv_morphism(self, y):
+        def from_dual_lattice_algebra_on_basis(self, y):
             r"""
-            The image of `y` under the morphism from the group algebra of the dual lattice into ``self``.
+            The image of the lattice element `y` into ``self``.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: KY = H.Lv_algebra()
-                sage: y = KY.an_element(); y
+                sage: y = H.dual_lattice().an_element(); y
+                (2, 2, 3)
+                sage: z = H.Lvtv().from_dual_lattice_algebra_on_basis(y); z
                 Y[(2, 2, 3)]
-                sage: H.Lvtv().Lv_morphism(y)
-                Y[(2, 2, 3)]
+                sage: z.parent()
+                Lvtv basis of The affine Hecke algebra of type ['A', 2, 1]
             """
-            return self.factor_embedding(0)(y)
+            return self.factor_embedding(0)(self.factor(0).monomial(y))
 
-        def dual_classical_hecke_morphism(self, a):
+        def from_dual_classical_hecke_on_basis(self, u):
             r"""
-            Returns the image of `a` from the finite Hecke algebra into ``self``.
+            Returns the image of the `u`-th finite Hecke algebra basis element into ``self``.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: HY = H.dual_classical_hecke()
-                sage: h = HY.an_element(); h
-                2*Ty[1,2,1] + 4*Ty[1,2] + 1
-                sage: x = H.Lvtv().dual_classical_hecke_morphism(h); x
-                2*Ty[1,2,1] + 4*Ty[1,2] + 1
+                sage: x = H.Lvtv().from_dual_classical_hecke_on_basis(H.dual_classical_weyl().an_element()); x
+                Ty[1,2]
                 sage: x.parent()
                 Lvtv basis of The affine Hecke algebra of type ['A', 2, 1]
             """
-            return self.factor_embedding(1)(a)
+            return self.factor_embedding(1)(self.factor(1).monomial(u))
 
         def T0(self):
             r"""
@@ -1311,23 +1328,54 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             """
             return Family(dict([[i, self.T0() if i == 0 else self.factor_embedding(1)(self.factor(1).algebra_generators()[i])] for i in self.realization_of().index_set()]))
 
-        def product_by_fundamental_group_element_on_basis(self, b, pi, side='right'):
+        @cached_method
+        def from_affine_hecke_on_basis(self, w):
             r"""
-            The product of the basis element indexed by `b`, with the fundamental group element `pi`.
+            The image of the `w`-th basis element of the affine Hecke algebra in Lvtv.
 
             EXAMPLES::
 
                 sage: H = ExtendedAffineHeckeAlgebra("A2")
-                sage: Lvtv = H.Lvtv()
-                sage: mu = Lvtv.factor(0).basis().keys().an_element(); mu
-                (2, 2, 3)
-                sage: v = Lvtv.factor(1).basis().keys().an_element(); v.reduced_word()
-                [1, 2]
-                sage: [(pi, Lvtv.product_by_fundamental_group_element_on_basis((mu,v), pi)) for pi in H.fundamental_group()]
-                [([0], Y[(2, 2, 3)] Ty[1,2]), ([1], Y[(2, 3, 3)] Ty[2,1] + ((-v^2+1)/v)*Y[(2, 3, 3)] Ty[1] + ((v^2-1)/v)*Y[(3, 2, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)] Ty[2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 3)]), ([2], Y[(2, 3, 4)] + ((v^2-1)/v)*Y[(3, 2, 4)] Ty[1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 2, 4)] + ((v^2-1)/v)*Y[(3, 3, 3)] Ty[1,2,1] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)] Ty[1,2] + ((-v^4+2*v^2-1)/v^2)*Y[(3, 3, 3)])]
+                sage: w = H.affine_weyl().an_element(); w
+                S0*S1*S2
+                sage: H.Lvtv().from_affine_hecke_on_basis(w)
+                Y[(1, 0, -1)] Ty[1] + ((-v^2+1)/v)*Y[(1, 0, -1)]            
 
             """
-            if side == 'right':
-                return self.monomial(b) * self.realization_of().F_to_Lvtv_on_basis(pi)
+            i = w.first_descent(side="right")
+            if i is None:
+                return self.one()
+            return self.from_affine_hecke_on_basis(w.apply_simple_reflection(i, side="right")) * self.algebra_generators()[i]
+
+        @cached_method
+        def from_fundamental(self, pi):
+            r"""
+            The image of a fundamental group element in Lvtv.
+
+            EXAMPLES::
+
+                sage: H = ExtendedAffineHeckeAlgebra("C2")
+                sage: F = H.fundamental_group()
+                sage: Lvtv = H.Lvtv()
+                sage: Lvtv.from_fundamental(F(2))
+                Y[(1/2, 1/2)] Ty[2,1,2] + ((-v^2+1)/v)*Y[(1/2, 1/2)] Ty[1,2] + ((-v^2+1)/v)*Y[(1/2, 1/2)] Ty[2,1] + ((v^4-2*v^2+1)/v^2)*Y[(1/2, 1/2)] Ty[1] + ((v^4-2*v^2+1)/v^2)*Y[(1/2, 1/2)] Ty[2] + ((-v^6+2*v^4-2*v^2+1)/v^3)*Y[(1/2, 1/2)]
+                sage: Lvtv.from_fundamental(F(2))**2
+                1
+
+            """
+            if pi == pi.parent().one():
+                return self.one()
+            H = self.realization_of()
+            if not H._dual_reduced:
+                raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
+            # express pi as t_mu w with w in W(Y) and mu in Y.
+            x = H._PvW0.fundamental_group_morphism(pi)
+            rw = x.to_dual_classical_weyl().reduced_word()
+            mu = x.to_dual_translation_left().to_ambient()
+            tv = self.factor(1)
+            if H._dual_side:
+                signs = tuple([1 for i in range(len(rw))])
             else:
-                return self.realization_of().F_to_Lvtv_on_basis(pi) * self.monomial(b)
+                signs = tuple([-1 for i in range(len(rw))])
+            return self.from_direct_product((self.factor(0).monomial(mu),tv.product_by_signed_generator_sequence(tv.one(), rw, signs)))
+

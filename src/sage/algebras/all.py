@@ -49,4 +49,4 @@ from smash_product_algebra import SmashProductAlgebra
 from multiparameter_hecke_algebra import MultiParameterHeckeAlgebra, ParameterFamilies
 
 from double_affine_hecke_algebra import DoubleAffineHeckeAlgebraSansDuality, DoubleAffineType
-from affine_hecke_algebra import AffineHeckeAlgebra, DoubledNodes
+from affine_hecke_algebra import ExtendedAffineHeckeAlgebra
