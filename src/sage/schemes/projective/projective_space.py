@@ -514,7 +514,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             raise TypeError('Unable to find a common ring for all elements')
         try:
             i = pt.index(1)
-        except StandardError:
+        except Exception:
             raise TypeError('At least one component of pt=%s must be equal '
                             'to 1'%pt)
         pt = pt[:i] + pt[i+1:]
@@ -952,7 +952,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             sage: P.rational_points(GF(3^2, 'b'))
             [(0 : 1), (b : 1), (b + 1 : 1), (2*b + 1 : 1), (2 : 1), (2*b : 1), (2*b + 2 : 1), (b + 2 : 1), (1 : 1), (1 : 0)]
         """
-        if F == None:
+        if F is None:
             return [ P for P in self ]
         elif not is_FiniteField(F):
             raise TypeError("Second argument (= %s) must be a finite field."%F)
