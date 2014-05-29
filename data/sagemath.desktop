@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=Sagemath
+Comment=A free open-source mathematics software system
+Exec=sage
+Icon=sagemath
+Terminal=true
+StartupNotify=false
+Categories=Education;Science;Math;
