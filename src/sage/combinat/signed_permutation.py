@@ -33,6 +33,10 @@ class SignedPermutation(Element):
         
     def _repr_(self):
         return repr(self.w)
+
+    def abs(self):
+        """Returns a Permtuation object `w` such that `w(i)=|self(i)`"""
+        return Permutation([abs(i) for i in self.w])
         
 class SignedPermutations(Parent):
     r"""
