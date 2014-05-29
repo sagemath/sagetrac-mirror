@@ -196,7 +196,8 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     import time, math
     import timeit as timeit_
 
-    import preparser, sage.repl.interpreter as interpreter
+    import preparser
+    import sage.repl.interpreter as interpreter
 
     number=int(number)
     repeat=int(repeat)
