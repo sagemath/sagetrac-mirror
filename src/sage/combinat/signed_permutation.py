@@ -1,6 +1,7 @@
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.combinat.permutation import Permutation
+from sage.misc.lazy_attribute import lazy_attribute
 import itertools
 
 class SignedPermutation(Element):
