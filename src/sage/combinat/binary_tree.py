@@ -45,7 +45,7 @@ from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
@@ -690,7 +690,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return []
 
-    @combinatorial_map(name = "to the Tamari corresponding Dyck path")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = 'to the Tamari corresponding Dyck path')
     def to_dyck_word_tamari(self):
         r"""
         Return the Dyck word associated with ``self`` in consistency with
@@ -716,7 +719,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return self.to_dyck_word("L1R0")
 
-    @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = 'to Dyck paths: up step, left tree, down step, right tree')
     def to_dyck_word(self, usemap="1L0R"):
         r"""
         Return the Dyck word associated with ``self`` using the given map.
@@ -812,7 +818,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             root.set_immutable()
         return root
 
-    @combinatorial_map(name="To ordered tree, left child = left brother")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'To ordered tree, left child = left brother')
     def to_ordered_tree_left_branch(self):
         r"""
         Return an ordered tree of size `n+1` by the following recursive rule:
@@ -833,7 +842,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return self._to_ordered_tree()
 
-    @combinatorial_map(name="To ordered tree, right child = right brother")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'To ordered tree, right child = right brother')
     def to_ordered_tree_right_branch(self):
         r"""
         Return an ordered tree of size `n+1` by the following recursive rule:
@@ -886,7 +898,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.append(label)
             return right
 
-    @combinatorial_map(name="To 312 avoiding permutation")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = '312 avoiding permutation')
     def to_312_avoiding_permutation(self):
         r"""
         Return a 312-avoiding permutation corresponding to the binary tree.
@@ -916,7 +931,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.permutation import Permutation
         return Permutation(self._postfix_word())
 
-    @combinatorial_map(name="To complete tree")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'complete tree')
     def as_ordered_tree(self, with_leaves=True):
         r"""
         Return the same tree seen as an ordered tree. By default, leaves
@@ -951,7 +969,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             from sage.combinat.ordered_tree import OrderedTree
             return OrderedTree(children)
 
-    @combinatorial_map(name="To graph")
+    @register_method_as_map(
+            domain = 'sage.combinat.binary_tree.BinaryTrees',
+            # No parent Graphs() !!
+            name   = 'To graph')
     def to_undirected_graph(self, with_leaves=False):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
@@ -1004,7 +1025,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return Graph([])
         return self.as_ordered_tree(with_leaves).to_undirected_graph()
 
-    @combinatorial_map(name="To poset")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            # No parent Posets() !!
+            name     = 'To poset')
     def to_poset(self, with_leaves=False, root_to_leaf=False):
         r"""
         Return the poset obtained by interpreting the tree as a Hasse
@@ -1062,7 +1086,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return Poset({})
         return self.as_ordered_tree(with_leaves).to_poset(root_to_leaf)
 
-    @combinatorial_map(name="To 132 avoiding permutation")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'To 132 avoiding permutation')
     def to_132_avoiding_permutation(self):
         r"""
         Return a 132-avoiding permutation corresponding to the binary tree.
@@ -1092,7 +1119,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.permutation import Permutation
         return Permutation(self._postfix_word(left_first=False))
 
-    @combinatorial_map(order = 2, name="Left-right symmetry")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            order    = 2,
+            name     = 'Left-right symmetry')
     def left_right_symmetry(self):
         r"""
         Return the left-right symmetrized tree of ``self``.
@@ -1115,7 +1146,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return BinaryTree(tree)
         return LabelledBinaryTree(tree, label = self.label())
 
-    @combinatorial_map(order=2, name="Left border symmetry")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            order    = 2,
+            name     = 'Left border symmetry')
     def left_border_symmetry(self):
         r"""
         Return the tree where a symmetry has been applied recursively on
@@ -1843,7 +1878,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         return product_of_subtrees(self)
 
-    @combinatorial_map(name="Right rotate")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = 'Right rotate')
     def right_rotate(self):
         r"""
         Return the result of right rotation applied to the binary
@@ -1930,7 +1968,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         B = self.parent()._element_constructor_
         return B([self[0][0], B([self[0][1], self[1]])])
 
-    @combinatorial_map(name="Left rotate")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = 'Left rotate')
     def left_rotate(self):
         r"""
         Return the result of left rotation applied to the binary
@@ -2002,7 +2043,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         B = self.parent()._element_constructor_
         return B([B([self[0], self[1][0]]), self[1][1]])
 
-    @combinatorial_map(name="Over operation on Binary Trees")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees')
     def over(self, bt):
         r"""
         Return ``self`` over ``bt``, where "over" is the ``over``
@@ -2110,7 +2153,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     __div__ = over
 
-    @combinatorial_map(name="Under operation on Binary Trees")
+    @register_method_as_map(
+            domain   = 'sage.combinat.binary_tree.BinaryTrees',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees')
     def under(self, bt):
         r"""
         Return ``self`` under ``bt``, where "under" is the ``under``

@@ -247,7 +247,7 @@ from combinat import CombinatorialObject, catalan_number
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from backtrack import GenericBacktracker
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 from sage.combinat.rsk import RSK, RSK_inverse
 
 PermutationOptions = GlobalOptions(name='permutations',
@@ -1261,7 +1261,7 @@ class Permutation(CombinatorialObject, Element):
             entries[(p[i]-1,i)] = 1
         return matrix(n, entries, sparse = True)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             # TODO: Put alternating sign matrices as a parent
             #            codomain = 'sage.combinat.alternating_sign_matrix.AlternatingSignMatrices',
@@ -1868,7 +1868,7 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.number_of_inversions()
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.permutation.Permutations',
             order    = 2,
@@ -2179,7 +2179,7 @@ class Permutation(CombinatorialObject, Element):
         from sage.combinat.partition import Partition
         return Partition(cycle_type)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'foata_bijection')
@@ -2702,7 +2702,7 @@ class Permutation(CombinatorialObject, Element):
         """
         return len(self.idescents(final_descent))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.composition.Compositions',
             name     = 'descent composition')
@@ -3612,7 +3612,7 @@ class Permutation(CombinatorialObject, Element):
 
         return list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'Simion-Schmidt map')
@@ -3674,7 +3674,7 @@ class Permutation(CombinatorialObject, Element):
                 targetPermutation[i] = nonMinima.pop()
         return Permutations()(targetPermutation)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.permutation.Permutations',
             order    = 2,
@@ -3692,7 +3692,7 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.__class__(self.parent(), [i for i in reversed(self)] )
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.permutation.Permutations',
             codomain = 'sage.combinat.permutation.Permutations',
             order    = 2,
@@ -3714,7 +3714,7 @@ class Permutation(CombinatorialObject, Element):
         n = len(self)
         return self.__class__(self.parent(), map(lambda x: n - x + 1, self) )
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain = 'sage.combinat.permutation.Permutations',
             name   = 'permutation poset')
     def permutation_poset(self):
@@ -3836,7 +3836,10 @@ class Permutation(CombinatorialObject, Element):
         """
         return itertools.izip(xrange(1, len(self)+1), self)
 
-    @combinatorial_map(name='Robinson-Schensted insertion tableau')
+    @register_method_as_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.tableau.StandardTableaux',
+            name     = 'Robinson-Schensted insertion tableau')
     def left_tableau(self):
         """
         Return the left standard tableau after performing the RSK
@@ -3849,7 +3852,10 @@ class Permutation(CombinatorialObject, Element):
         """
         return RSK(self, check_standard=True)[0]
 
-    @combinatorial_map(name='Robinson-Schensted recording tableau')
+    @register_method_as_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.tableau.StandardTableaux',
+            name     = 'Robinson-Schensted recording tableau')
     def right_tableau(self):
         """
         Return the right standard tableau after performing the RSK
@@ -3889,7 +3895,10 @@ class Permutation(CombinatorialObject, Element):
             return LBT([rec(perm[:k]), rec(perm[k+1:])], label = mn)
         return rec(self)
 
-    @combinatorial_map(name="Increasing tree")
+    @register_method_as_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = 'Increasing tree')
     def increasing_tree_shape(self, compare=min):
         r"""
         Return the shape of the increasing tree associated with the
@@ -3946,7 +3955,10 @@ class Permutation(CombinatorialObject, Element):
             res = res.binary_search_insert(i)
         return res
 
-    @combinatorial_map(name = "Binary search tree (left to right)")
+    @register_method_as_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = 'Binary search tree (left to right)')
     def binary_search_tree_shape(self, left_to_right=True):
         r"""
         Return the shape of the binary search tree of the permutation
@@ -3969,7 +3981,10 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.binary_search_tree(left_to_right).shape()
 
-    @combinatorial_map(name='Robinson-Schensted tableau shape')
+    @register_method_as_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.partition.Partitions',
+            name     = 'Robinson-Schensted tableau shape')
     def RS_partition(self):
         """
         Return the shape of the tableaux obtained by applying the RSK

@@ -10,8 +10,6 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
         fibonacci_xrange, bernoulli_polynomial
 
-from combinatorial_map import CombinatorialMapDatabase
-
 from expnums import expnums
 
 from sage.combinat.crystals.all import *

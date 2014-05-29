@@ -34,7 +34,7 @@ from sage.misc.misc import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.words.word import Word
@@ -172,7 +172,10 @@ class OrderedSetPartition(ClonableArray):
         """
         assert self in self.parent()
 
-    @combinatorial_map(name='to composition')
+    @register_method_as_map(
+            #TODO: no parent OrderedSetPartitions() !
+            codomain = 'sage.combinat.composition.Compositions',
+            name     = 'to composition')
     def to_composition(self):
         r"""
         Return the integer composition whose parts are the sizes of the sets

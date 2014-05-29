@@ -46,7 +46,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ
 from sage.combinat.partition import Partitions
 from sage.combinat.tableau import Tableau, SemistandardTableaux
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 from sage.misc.misc import prod
 
 class GelfandTsetlinPattern(ClonableArray):
@@ -241,7 +241,10 @@ class GelfandTsetlinPattern(ClonableArray):
             ret += " &"*i
         return ret + "\n\\end{array}"
 
-    @combinatorial_map(name='to semistandard tableau')
+    @register_method_as_map(
+            domain   = 'sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPatterns',
+            codomain = 'sage.combinat.tableau.SemistandardTableaux',
+            name     = 'to semistandard tableau')
     def to_tableau(self):
         """
         Return ``self`` as a semistandard Young tableau.

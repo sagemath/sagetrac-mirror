@@ -44,7 +44,7 @@ from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 
 
 class Composition(CombinatorialObject, Element):
@@ -197,7 +197,7 @@ class Composition(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.composition.Compositions',
             codomain = 'sage.combinat.composition.Compositions',
             order    = 2,
@@ -250,7 +250,7 @@ class Composition(CombinatorialObject, Element):
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.composition.Compositions',
             codomain = 'sage.combinat.composition.Compositions',
             order    = 2,
@@ -269,7 +269,7 @@ class Composition(CombinatorialObject, Element):
         """
         return self.parent()(reversed(self))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.composition.Compositions',
             codomain = 'sage.combinat.composition.Compositions',
             order    = 2,
@@ -1137,7 +1137,7 @@ class Composition(CombinatorialObject, Element):
         return [i+1 for i in range(len(self))
                 if i not in descents and i+1 in descents]
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.composition.Compositions',
             codomain = 'sage.combinat.partition.Partitions',
             name     = 'to partition')

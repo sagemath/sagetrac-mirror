@@ -40,7 +40,7 @@ from sage.rings.integer import Integer
 
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 import sage.combinat.subset as subset
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
@@ -490,7 +490,10 @@ class SetPartition(ClonableArray):
             parts.append(raised_newpart)
         return SetPartition(parts)
 
-    @combinatorial_map(name='shape')
+    @register_method_as_map(
+            domain   = 'sage.combinat.set_partition.SetPartitions',
+            codomain = 'sage.combinat.partition.Partitions',
+            name     = 'shape')
     def shape(self):
         r"""
         Return the integer partition whose parts are the sizes of the sets
@@ -512,7 +515,10 @@ class SetPartition(ClonableArray):
     shape_partition = shape
     to_partition = shape
 
-    @combinatorial_map(name='to permutation')
+    @register_method_as_map(
+            domain   = 'sage.combinat.set_partition.SetPartitions',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'to permutation')
     def to_permutation(self):
         """
         Convert ``self`` to a permutation by considering the partitions as

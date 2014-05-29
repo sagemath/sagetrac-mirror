@@ -315,7 +315,8 @@ from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
-from sage.combinat.combinatorial_map import combinatorial_map
+
+from sage.databases.map_database import register_method_as_map
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -1993,7 +1994,10 @@ class Partition(CombinatorialObject, Element):
         else:
             return default
 
-    @combinatorial_map(name="partition to minimal Dyck word")
+    @register_method_as_map(
+            domain   = 'sage.combinat.partition.Partitions',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = 'partition to minimal Dyck word')
     def to_dyck_word(self, n=None):
         r"""
         Return the ``n``-Dyck word whose corresponding partition is
@@ -2062,7 +2066,11 @@ class Partition(CombinatorialObject, Element):
         list_of_word.extend([0]*(n-self[0]))
         return DyckWord(list_of_word)
 
-    @combinatorial_map(name="conjugate partition")
+    @register_method_as_map(
+            domain   = 'sage.combinat.partition.Partitions',
+            codomain = 'sage.combinat.partition.Partitions',
+            order    = 2,
+            name     = 'conjugate partition')
     def conjugate(self):
         """
         Return the conjugate partition of the partition ``self``. This
@@ -2247,7 +2255,9 @@ class Partition(CombinatorialObject, Element):
                 exp += 1
         return ret
 
-    @combinatorial_map(name="reading tableau")
+    @register_method_as_map(
+            domain   = 'sage.combinat.partition.Partitions',
+            codomain = 'sage.combinat.tableau.StandardTableaux')
     def reading_tableau(self):
         r"""
         Return the RSK recording tableau of the reading word of the
@@ -2271,7 +2281,10 @@ class Partition(CombinatorialObject, Element):
         st = tableau.StandardTableaux(self).first()
         return st.reading_word_permutation().right_tableau()
 
-    @combinatorial_map(name="initial tableau")
+    @register_method_as_map(
+            domain   = 'sage.combinat.partition.Partitions',
+            codomain = 'sage.combinat.tableau.StandardTableaux',
+            name     = 'initial tableau')
     def initial_tableau(self):
         r"""
         Return the :class:`standard tableau<StandardTableau>` which has the

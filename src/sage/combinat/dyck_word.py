@@ -54,7 +54,7 @@ REFERENCES:
 #*****************************************************************************
 
 from combinat import CombinatorialObject, catalan_number
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 from backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
@@ -1458,7 +1458,7 @@ class DyckWord(CombinatorialObject, Element):
                 rise_comp.append(i)
         return Composition(rise_comp)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.tableau.StandardTableaux',
             name     = 'to two-row standard tableau')
@@ -1494,7 +1494,7 @@ class DyckWord(CombinatorialObject, Element):
         return StandardTableau(filter(lambda x: x != [], [open_positions,
                                                           close_positions]))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.binary_tree.BinaryTrees',
             name     = 'to binary trees: up step, left tree, down step, right tree')
@@ -1567,7 +1567,7 @@ class DyckWord(CombinatorialObject, Element):
             trees.reverse()
         return BinaryTree(trees)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.binary_tree.BinaryTrees',
             name     = "to the Tamari corresponding Binary tree")
@@ -1676,7 +1676,7 @@ class DyckWord_complete(DyckWord):
         """
         return len(self) // 2
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.partition.Partitions',
             name     = 'to partition')
@@ -1875,7 +1875,7 @@ class DyckWord_complete(DyckWord):
                     right[1].append(pos+1)
             return (Tableau(left), Tableau(right))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'to 312 avoiding permutation')
@@ -1921,7 +1921,7 @@ class DyckWord_complete(DyckWord):
                 pi = pi.apply_simple_reflection(j-i)
         return Permutation(~pi)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'to non-crossing permutation')
@@ -1975,7 +1975,7 @@ class DyckWord_complete(DyckWord):
             D, touch_sequence = pealing(D, return_touches=True)
         return Permutation(pi)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'to 321 avoiding permutation')
@@ -2043,7 +2043,7 @@ class DyckWord_complete(DyckWord):
         A, B = self.to_pair_of_standard_tableaux()
         return RSK_inverse(A, B, output='permutation')
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.permutation.Permutations',
             name     = 'to 132 avoiding permutation')
@@ -2282,7 +2282,7 @@ class DyckWord_complete(DyckWord):
         deprecation(14875, 'this method is deprecated. Use DyckWords().from_area_sequence instead.')
         return CompleteDyckWords_all().from_area_sequence(code)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.ordered_tree.OrderedTrees',
             name     = 'To Ordered tree')
@@ -2521,7 +2521,7 @@ class DyckWord_complete(DyckWord):
         else:
             raise ValueError("The given tunnel_type is not valid.")
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.dyck_word.DyckWords',
             order    = 2,
@@ -2600,7 +2600,7 @@ class DyckWord_complete(DyckWord):
             return DyckWord([1] + list(D2.decomposition_reverse())
                             + [0] + list(D1.decomposition_reverse()))
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.dyck_word.DyckWords',
             name     = 'Area-dinv to bounce-area')
@@ -2649,7 +2649,7 @@ class DyckWord_complete(DyckWord):
                     image.append(0)
         return DyckWord(image)
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             codomain = 'sage.combinat.dyck_word.DyckWords',
             name     = "Bounce-area to area-dinv")
@@ -2949,7 +2949,7 @@ class DyckWord_complete(DyckWord):
                     cnt += 1
         return cnt
 
-    @combinatorial_map(
+    @register_method_as_map(
             domain   = 'sage.combinat.dyck_word.DyckWords',
             # TODO: no proper global parent for alternating sign matrices
             name     = 'to alternating sign matrix')

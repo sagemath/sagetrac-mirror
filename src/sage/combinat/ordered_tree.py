@@ -21,7 +21,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
-from sage.combinat.combinatorial_map import combinatorial_map
+from sage.databases.map_database import register_method_as_map
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -297,7 +297,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             raise ValueError("the bijection argument should be either left or right")
         return root
 
-    @combinatorial_map(name="To binary tree, left brother = left child")
+    @register_method_as_map(
+            domain   = 'sage.combinat.ordered_tree.OrderedTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'To binary tree, left brother = left child')
     def to_binary_tree_left_branch(self):
         r"""
         Return a binary tree of size `n-1` (where `n` is the size of `t`,
@@ -331,7 +334,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         return self._to_binary_tree_rec()
 
-    @combinatorial_map(name="To binary tree, right brother = right child")
+    @register_method_as_map(
+            domain   = 'sage.combinat.ordered_tree.OrderedTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'To binary tree, right brother = right child')
     def to_binary_tree_right_branch(self):
         r"""
         Return a binary tree of size `n-1` (where `n` is the size of `t`,
@@ -365,7 +371,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         return self._to_binary_tree_rec(bijection="right")
 
-    @combinatorial_map(name="To Dyck path")
+    @register_method_as_map(
+            domain   = 'sage.combinat.ordered_tree.OrderedTrees',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = 'Dyck path')
     def to_dyck_word(self):
         r"""
         Return the Dyck path corresponding to ``self`` where the maximal
@@ -391,7 +400,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         from sage.combinat.dyck_word import DyckWord
         return DyckWord(word)
 
-    @combinatorial_map(name="To graph")
+    @register_method_as_map(
+            domain   = 'sage.combinat.ordered_tree.OrderedTrees',
+            #TODO: no parent Graphs() !
+            name     = 'To graph')
     def to_undirected_graph(self):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
@@ -440,7 +452,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             g = g.canonical_label()
         return g
 
-    @combinatorial_map(name="To poset")
+    @register_method_as_map(
+            domain = 'sage.combinat.ordered_tree.OrderedTrees',
+            #TODO: no parent for Posets()
+            name   = 'To poset')
     def to_poset(self, root_to_leaf = False):
         r"""
         Return the poset obtained by interpreting the tree as a hasse
@@ -493,7 +508,11 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             p = p.canonical_label()
         return p
 
-    @combinatorial_map(order=2,name="Left-right symmetry")
+    @register_method_as_map(
+            domain   = 'sage.combinat.ordered_tree.OrderedTrees',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            order    = 2,
+            name     = 'Left-right symmetry')
     def left_right_symmetry(self):
         r"""
         Return the symmetric tree of ``self``
