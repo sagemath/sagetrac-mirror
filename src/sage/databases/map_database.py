@@ -1,5 +1,34 @@
 """
 Map database
+
+A database of maps. The main motivation for the construction of this database
+comes from finding relations between morphisms, concrete bijections between
+finite sets, etc. AS example, the project FindStat (CITATION) uses for
+"combinatorial maps".
+
+EXAMPLES:
+
+At construction time there are a lot of warnings due to some unexisting parents
+(see the precise list in the TODO section below)::
+
+    sage: M = MapDatabase()
+    Warning: ...
+    ...
+    Warning: ...
+    sage: M
+    Map database with 62 maps
+
+By default, the database only contains some relevant morphisms. But you can feed
+it with your own morphisms::
+
+    sage: ZZ_to_QQ = QQ.convert_map_from(ZZ)
+    sage: M.add_map(ZZ_to_QQ)
+    sage: M
+    Map database with 63 maps
+
+REFERENCES:
+
+.. [FindStat] the project
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix at gmail.com>
@@ -10,19 +39,8 @@ Map database
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
-from sage.categories.morphism import Morphism
 
-#TODO: to be moved in sage/categories/morphism.pyx
-class MorphismFromElementMethod(Morphism):
-    r"""
-    A morphism defined from a method to be applied to an element.
-    """
-    def __init__(self, parent, method_name):
-        Morphism.__init__(self, parent)
-        self._method_name = method_name
-
-    def _call_(self, elt):
-        return getattr(elt, self._method_name)()
+from sage.categories.morphism import Morphism, SetMorphism
 
 # the following list is built from the decorator. It will contain a list of
 # tuples of the form (domain, codomain, category, method, dict_of_extra_args)
@@ -39,7 +57,7 @@ def _unwrap(x, call=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.combinatorial_map import _unwrap
+        sage: from sage.databases.map_database import _unwrap
         sage: _unwrap('sage.combinat.partition.Partitions')
         Partitions
         sage: _unwrap(('sage.combinat.partition.Partitions', (5,)))
@@ -79,10 +97,6 @@ class RegisterMethodAsMapDecorator(object):
 
     Each method tagged with this decorator fills a list that can be subsequently
     used by :class:`MapDatabase`.
-
-    EXAMPLES::
-
-        sage: pass
     """
     def __init__(self, *args, **kwds):
         self._args = args
@@ -127,15 +141,29 @@ class MapDatabase(SageObject):
     the pickling)::
 
         sage: CMD = MapDatabase()
+        Warning: ...
+        ...
+        Warning: ...
         sage: for m in CMD.map_iterator():
         ....:     TestSuite(m).run()
     """
     def __init__(self, load_constructions=True):
-        self._maps_from = {}
-        self._maps_to = {}
+        self._maps = []
 
         if load_constructions:
             self._load_constructions()
+
+    def add_map(self, M):
+        r"""
+        Add the map ``M`` to the database.
+        """
+        self._maps.append(M)
+
+    def map_iterator(self):
+        r"""
+        Return an iterator over the set of maps.
+        """
+        return iter(self._maps)
 
     def __contains__(self, elt):
         r"""
@@ -150,7 +178,7 @@ class MapDatabase(SageObject):
         if not isinstance(elt, Morphism):
             return False
 
-        return elt in self._maps_from[elt.domain()]
+        return elt in self._maps
 
     def maps(self):
         r"""
@@ -158,26 +186,18 @@ class MapDatabase(SageObject):
         """
         return list(self.map_iterator())
 
-    def map_iterator(self):
-        r"""
-        Return an iterator over the set of maps.
-        """
-        for l in self._maps_from.itervalues():
-            for m in l:
-                yield m
-
     def num_maps(self):
         r"""
         Return the number of maps in the database.
         """
         from sage.rings.integer import Integer
-        return Integer(sum(len(x) for x in self._maps_from.itervalues()))
+        return Integer(len(self._maps))
 
     def __repr__(self):
         r"""
         String representations.
         """
-        return "Combinatorial map database with %d maps"%self.num_maps()
+        return "Map database with %d maps"%self.num_maps()
 
     def _load_constructions(self, modules=None):
         r"""
@@ -213,7 +233,7 @@ class MapDatabase(SageObject):
 
             try:
                 H = Hom(domain,codomain,category)
-                M = MorphismFromElementMethod(H, method.__name__)
+                M = SetMorphism(H, method)
             except (ImportError,TypeError,ValueError,AttributeError),msg:
                 raise ValueError("the following construction failed:\n domain=%s\n codomain=%s\n method_name=%s\nerror message: %s"%(domain,codomain,method.__name__))
 
@@ -223,20 +243,7 @@ class MapDatabase(SageObject):
                 else:
                     map_name = 'Morphism %s\n  From: %s\n  To:   %s'%(extra_kwds['name'],
                             domain, codomain)
-                M.rename(map_name)
+                # the cython stuff does not support renaming...
+                # M.rename(map_name)
 
             self.add_map(M)
-
-    def add_map(self, M):
-        r"""
-        Add the map ``M`` to the database.
-        """
-        if M.domain() not in self._maps_from:
-            self._maps_from[M.domain()] = []
-        self._maps_from[M.domain()].append(M)
-
-        if M.codomain() not in self._maps_to:
-            self._maps_to[M.codomain()] = []
-        self._maps_to[M.codomain()].append(M)
-
-
