@@ -8,289 +8,171 @@ Combinatorial maps
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-def combinatorial_map(f=None, order=None, name=None):
+
+from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.categories.homset import Hom
+
+_CMD_is_active = False
+_constructions = []
+
+def _unwrap(x, call=True):
     r"""
-    Combinatorial maps
+    if ``x`` is a tuple: then return _unwrap(x[0])(*x[1], **x[2])
 
-    We call a method a *combinatorial map* if it is a map between two
-    combinatorial sets.
+    if ``x`` is a string: then we assume that it is a path to a function (or a
+    class) and the value of the function is returned
 
-    INPUT:
-
-    - ``f`` -- (default: ``None``, if combinatorial_map is used as a decorator) a function
-    - ``name`` -- (default: ``None``) the name for nicer outputs on combinatorial maps
-    - ``order`` -- (default: ``None``) the order of the combinatorial map, if it is known. Is not used, but might be helpful later
-
-    OUTPUT:
-
-    - A combinatorial map. This is an instance of the :class:`CombinatorialMap`
-
-    The decorator :obj:`combinatorial_map` can be used to declare
-    methods as combinatorial maps.
+    otherwise return ``x`` itself.
 
     EXAMPLES::
 
-        sage: p = Permutation([1,3,2,4])
-        sage: p.left_tableau
-        Combinatorial map: Robinson-Schensted insertion tableau
-
-    We define a class illustrating the use of the decorator
-    :obj:`combinatorial_map` with the various arguments::
-
-        sage: from sage.combinat.combinatorial_map import combinatorial_map
-        sage: class MyPermutation(object):
-        ...
-        ...       @combinatorial_map()
-        ...       def reverse(self):
-        ...           '''
-        ...           Reverse the permutation
-        ...           '''
-        ...           pass
-        ...
-        ...       @combinatorial_map(order=2)
-        ...       def inverse(self):
-        ...           '''
-        ...           The inverse of the permutation
-        ...           '''
-        ...           pass
-        ...
-        ...       @combinatorial_map(name='descent set of permutation')
-        ...       def descent_set(self):
-        ...           '''
-        ...           The descent set of the permutation
-        ...           '''
-        ...           pass
-        ...
-        ...       def major_index(self):
-        ...           '''
-        ...           The major index of the permutation
-        ...           '''
-        ...           pass
-        sage: MyPermutation.reverse
-        Combinatorial map: reverse
-        sage: MyPermutation.descent_set
-        Combinatorial map: descent set of permutation
-        sage: MyPermutation.inverse
-        Combinatorial map: inverse
-
-    One can determine all the combinatorial maps associated with a given object
-    as follows::
-
-        sage: from sage.combinat.combinatorial_map import combinatorial_maps_in_class
-        sage: X = combinatorial_maps_in_class(MyPermutation); X # random
-        [Combinatorial map: reverse,
-         Combinatorial map: descent set of permutation,
-         Combinatorial map: inverse]
-
-    The method ``major_index`` defined about is not a combinatorial map::
-
-        sage: MyPermutation.major_index
-        <unbound method MyPermutation.major_index>
-
-    But one can define a function that turns ``major_index`` into a combinatorial map::
-
-        sage: def major_index(p):
-        ...       return p.major_index()
-        ...
-        sage: major_index
-        <function major_index at ...>
-        sage: combinatorial_map(major_index)
-        Combinatorial map: major_index
-
+        sage: from sage.combinat.combinatorial_map import _unwrap
+        sage: _unwrap('sage.combinat.partition.Partitions')
+        Partitions
+        sage: _unwrap(('sage.combinat.partition.Partitions', (5,)))
+        Partitions of the integer 5
+        sage: _unwrap(('sage.combinat.composition.Compositions', (19,), {'length':4}))
+        Compositions of the integer 19 satisfying constraints length=4
     """
-    if f is None:
-        return lambda f: CombinatorialMap(f, order=order, name=name)
-    else:
-        return CombinatorialMap(f, order=order, name=name)
+    if isinstance(x,tuple):
+        f = _unwrap(x[0], call=False)
+        args = ()
+        if len(x) >= 2:
+            args = x[1]
+        kwds = {}
+        if len(x) >= 3:
+            kwds = x[2]
 
-class CombinatorialMap(object):
-    r"""
-    This is a wrapper class for methods that are *combinatorial maps*.
-
-    For further details and doctests, see :func:`combinatorial_map`.
-    """
-    def __init__(self, f, order=None, name=None):
-        """
-        Constructor for combinatorial maps
-
-        EXAMPLES::
-
-            sage: from sage.combinat.combinatorial_map import combinatorial_map
-            sage: def f(x):
-            ...       "doc of f"
-            ...       return x
-            ...
-            sage: x = combinatorial_map(f); x
-            Combinatorial map: f
-            sage: x.__doc__
-            'doc of f'
-            sage: x.__name__
-            'f'
-            sage: x.__module__
-            '__main__'
-        """
-        import types
-        if not isinstance(f, types.FunctionType):
-            raise ValueError("Only plain functions are supported")
-        self._f = f
-        self._order = order
-        self._name = name
-        if hasattr(f, "__doc__"):
-            self.__doc__ = f.__doc__
-        if hasattr(f, "__name__"):
-            self.__name__ = f.__name__
+        if call:
+            return f(*args, **kwds)
         else:
-            self.__name__ = "..."
-        if hasattr(f, "__module__"):
-            self.__module__ = f.__module__
+            return f,args,kwds
+
+    elif isinstance(x,str):
+        i = x.rfind('.')
+        modname = x[:i]
+        objname = x[i+1:]
+        f = getattr(__import__(modname, {}, {}, [objname]), objname)
+        if call:
+            return f()
+        else:
+            return f
+
+    return x
+
+def build_map(f, domain, codomain, **kwds):
+    domain = _unwrap(domain)
+    codomain = _unwrap(codomain)
+
+    M = Hom(domain, codomain)(f)
+
+    # TODO: most of the time it is just impossible to rename the map
+    #if 'name' in kwds:
+    #    M.rename(kwds['name'])
+    return M
+
+class CombinatorialMapDecorator(object):
+    r"""
+    The decorator for combinatorial maps.
+    """
+    def __init__(self, *args, **kwds):
+        self._args = args
+        self._kwds = kwds
+
+    def __call__(self, f):
+        global _constructions, _CMD_is_active
+
+        if 'domain' in self._kwds and 'codomain' in self._kwds:
+            _constructions.append((build_map, (f,), self._kwds))
+            if _CMD_is_active:
+                M = build_map(f, **self._kwds)
+                CombinatorialMapDatabase().add_map(M)
+        else:
+            print "Warning: %s in %s still uses the old combinatorial_map framework"%(f.__name__, f.__module__)
+        return f
+
+# Do we change the name?
+combinatorial_map = CombinatorialMapDecorator
+
+class CombinatorialMapDatabase(UniqueRepresentation):
+    r"""
+    The database of combinatorial maps.
+
+    TODO::
+
+        We need to set ``_CMD_is_active`` to ``False`` when the object is
+        destroyed ! Is there a destructor in Python?
+
+    TESTS:
+
+    The following sanity check must pass (the only trouble right now seems to be
+    the pickling)::
+
+        sage: CMD = CombinatorialMapDatabase()
+        sage: for m in CMD.map_iterator():
+        ....:     TestSuite(m).run()
+        ...
+    """
+    def __init__(self):
+        self._maps_from = {}
+        self._maps_to = {}
+
+        global _CMD_is_active
+        _CMD_is_active = True
+
+        self._load_constructions()
+
+    def maps(self):
+        r"""
+        Return the set of maps.
+        """
+        return list(self.map_iterator())
+
+    def map_iterator(self):
+        r"""
+        Return an iterator over the set of maps.
+        """
+        for l in self._maps_from.itervalues():
+            for m in l:
+                yield m
+
+    def num_maps(self):
+        r"""
+        Return the number of maps in the database.
+        """
+        from sage.rings.integer import Integer
+        return Integer(sum(len(x) for x in self._maps_from.itervalues()))
 
     def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: p = Permutation([1,3,2,4])
-            sage: p.left_tableau.__repr__()
-            'Combinatorial map: Robinson-Schensted insertion tableau'
-        """
-        return "Combinatorial map: %s" %self.name()
-
-    def _sage_src_lines_(self):
-        """
-        Returns the source code location for the wrapped function.
-
-        EXAMPLES::
-
-            sage: p = Permutation([1,3,2,4])
-            sage: cm = p.left_tableau; cm
-            Combinatorial map: Robinson-Schensted insertion tableau
-            sage: (src, lines) = cm._sage_src_lines_()
-            sage: src[0]
-            "    @combinatorial_map(name='Robinson-Schensted insertion tableau')\n"
-            sage: lines # random
-            2653
-        """
-        from sage.misc.sageinspect import sage_getsourcelines
-        return sage_getsourcelines(self._f)
-
-    def __get__(self, inst, cls=None):
-        """
-        Bounds the method of self to the given instance.
-
-        EXAMPLES::
-
-            sage: p = Permutation([1,3,2,4])
-            sage: p.left_tableau #indirect doctest
-            Combinatorial map: Robinson-Schensted insertion tableau
-        """
-        self._inst = inst
-        return self
-
-    def __call__(self, *args, **kwds):
-        """
-        Calls the combinatorial map.
-
-        EXAMPLES::
-
-            sage: p = Permutation([1,3,2,4])
-            sage: cm = type(p).left_tableau; cm
-            Combinatorial map: Robinson-Schensted insertion tableau
-            sage: cm(p)
-            [[1, 2, 4], [3]]
-            sage: cm(Permutation([4,3,2,1]))
-            [[1], [2], [3], [4]]
-        """
-        if self._inst is not None:
-            return self._f(self._inst, *args, **kwds)
-        else:
-            return self._f(*args, **kwds)
-
-    def unbounded_map(self):
         r"""
-        Return the unbounded version of ``self``.
-
-        You can use this method to return a function which takes as input
-        an element in the domain of the combinatorial map.
-        See the example below.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.permutation import Permutation
-            sage: pi = Permutation([1,3,2])
-            sage: f = pi.reverse
-            sage: F = f.unbounded_map()
-            sage: F(pi)
-            [2, 3, 1]
+        String representations.
         """
-        return self._f
+        return "Combinatorial map database with %d maps"%self.num_maps()
 
-    def order(self):
+    def _load_constructions(self):
+        r"""
+        Load the maps stored in the global variable _constructions
         """
-        Returns the order of ``self``, or ``None`` if the order is not known.
+        global _constructions
+        for f,args,kwds in _constructions:
+            try:
+                M = f(*args, **kwds)
+            except (ImportError,TypeError,ValueError,AttributeError),msg:
+                raise ValueError("the following construction failed:\n f=%s\n args=%s\n kwds=%s\nerror message: %s"%(f,args,kwds,msg))
 
-        EXAMPLES::
+            self.add_map(M)
 
-            sage: from sage.combinat.combinatorial_map import combinatorial_map
-            sage: class CombinatorialClass:
-            ...       @combinatorial_map(order=2)
-            ...       def to_self_1(): pass
-            ...       @combinatorial_map()
-            ...       def to_self_2(): pass
-            sage: CombinatorialClass.to_self_1.order()
-            2
-            sage: CombinatorialClass.to_self_2.order() is None
-            True
+    def add_map(self, M):
+        r"""
+        Add the map ``M`` to the database.
         """
-        return self._order
+        if M.domain() not in self._maps_from:
+            self._maps_from[M.domain()] = []
+        self._maps_from[M.domain()].append(M)
 
-    def name(self):
-        """
-        Returns the name of a combinatorial map.
-        This is used for the string representation of ``self``.
+        if M.codomain() not in self._maps_to:
+            self._maps_to[M.codomain()] = []
+        self._maps_to[M.codomain()].append(M)
 
-        EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_map import combinatorial_map
-            sage: class CombinatorialClass:
-            ...       @combinatorial_map(name='map1')
-            ...       def to_self_1(): pass
-            ...       @combinatorial_map()
-            ...       def to_self_2(): pass
-            sage: CombinatorialClass.to_self_1.name()
-            'map1'
-            sage: CombinatorialClass.to_self_2.name()
-            'to_self_2'
-        """
-        if self._name is not None:
-            return self._name
-        else:
-            return self._f.__name__
-
-def combinatorial_maps_in_class(cls):
-    """
-    Returns the combinatorial maps of the class as a list of combinatorial maps.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.combinatorial_map import combinatorial_maps_in_class
-        sage: p = Permutation([1,3,2,4])
-        sage: cmaps = combinatorial_maps_in_class(p)
-        sage: cmaps # random
-        [Combinatorial map: Robinson-Schensted insertion tableau,
-         Combinatorial map: Robinson-Schensted recording tableau,
-         Combinatorial map: Robinson-Schensted tableau shape,
-         Combinatorial map: complement,
-         Combinatorial map: descent composition,
-         Combinatorial map: inverse, ...]
-        sage: p.left_tableau in cmaps
-        True
-        sage: p.right_tableau in cmaps
-        True
-        sage: p.complement in cmaps
-        True
-    """
-    result = set()
-    for method in dir(cls):
-        entry = getattr(cls, method)
-        if isinstance(entry, CombinatorialMap):
-            result.add(entry)
-    return list(result)

@@ -1261,7 +1261,11 @@ class Permutation(CombinatorialObject, Element):
             entries[(p[i]-1,i)] = 1
         return matrix(n, entries, sparse = True)
 
-    @combinatorial_map(name='to alternating sign matrix')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            # TODO: Put alternating sign matrices as a parent
+            #            codomain = 'sage.combinat.alternating_sign_matrix.AlternatingSignMatrices',
+            name     = 'to alternating sign matrix')
     def to_alternating_sign_matrix(self):
         r"""
         Return a matrix representing the permutation in the
@@ -1864,7 +1868,11 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.number_of_inversions()
 
-    @combinatorial_map(order=2,name='inverse')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.permutation.Permutations',
+            order    = 2,
+            name     = 'inverse')
     def inverse(self):
         r"""
         Return the inverse of ``self``.
@@ -2171,7 +2179,10 @@ class Permutation(CombinatorialObject, Element):
         from sage.combinat.partition import Partition
         return Partition(cycle_type)
 
-    @combinatorial_map(name='foata_bijection')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'foata_bijection')
     def foata_bijection(self):
         r"""
         Return the image of the permutation ``self`` under the Foata
@@ -2691,7 +2702,10 @@ class Permutation(CombinatorialObject, Element):
         """
         return len(self.idescents(final_descent))
 
-    @combinatorial_map(name='descent composition')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.composition.Compositions',
+            name     = 'descent composition')
     def descents_composition(self):
         r"""
         Return the descent composition of ``self``.
@@ -3598,7 +3612,10 @@ class Permutation(CombinatorialObject, Element):
 
         return list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
 
-    @combinatorial_map(name='Simion-Schmidt map')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'Simion-Schmidt map')
     def simion_schmidt(self, avoid=[1,2,3]):
         r"""
         Implements the Simion-Schmidt map which sends an arbitrary permutation
@@ -3657,7 +3674,11 @@ class Permutation(CombinatorialObject, Element):
                 targetPermutation[i] = nonMinima.pop()
         return Permutations()(targetPermutation)
 
-    @combinatorial_map(order=2,name='reverse')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.permutation.Permutations',
+            order    = 2,
+            name     = 'reverse')
     def reverse(self):
         """
         Returns the permutation obtained by reversing the list.
@@ -3671,7 +3692,11 @@ class Permutation(CombinatorialObject, Element):
         """
         return self.__class__(self.parent(), [i for i in reversed(self)] )
 
-    @combinatorial_map(order=2,name='complement')
+    @combinatorial_map(
+            domain   = 'sage.combinat.permutation.Permutations',
+            codomain = 'sage.combinat.permutation.Permutations',
+            order    = 2,
+            name     = 'complement')
     def complement(self):
         r"""
         Return the complement of the permutation ``self``.
@@ -3689,7 +3714,9 @@ class Permutation(CombinatorialObject, Element):
         n = len(self)
         return self.__class__(self.parent(), map(lambda x: n - x + 1, self) )
 
-    @combinatorial_map(name='permutation poset')
+    @combinatorial_map(
+            domain = 'sage.combinat.permutation.Permutations',
+            name   = 'permutation poset')
     def permutation_poset(self):
         r"""
         Return the permutation poset of ``self``.

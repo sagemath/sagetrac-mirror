@@ -1458,7 +1458,10 @@ class DyckWord(CombinatorialObject, Element):
                 rise_comp.append(i)
         return Composition(rise_comp)
 
-    @combinatorial_map(name='to two-row standard tableau')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.tableau.StandardTableaux',
+            name     = 'to two-row standard tableau')
     def to_standard_tableau(self):
         r"""
         Return a standard tableau of shape `(a,b)` where
@@ -1491,7 +1494,10 @@ class DyckWord(CombinatorialObject, Element):
         return StandardTableau(filter(lambda x: x != [], [open_positions,
                                                           close_positions]))
 
-    @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = 'to binary trees: up step, left tree, down step, right tree')
     def to_binary_tree(self, usemap="1L0R"):
         r"""
         Return a binary tree recursively constructed from the Dyck path
@@ -1561,7 +1567,10 @@ class DyckWord(CombinatorialObject, Element):
             trees.reverse()
         return BinaryTree(trees)
 
-    @combinatorial_map(name="to the Tamari corresponding Binary tree")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.binary_tree.BinaryTrees',
+            name     = "to the Tamari corresponding Binary tree")
     def to_binary_tree_tamari(self):
         r"""
         Return the binary tree with consistency with the Tamari order
@@ -1667,7 +1676,10 @@ class DyckWord_complete(DyckWord):
         """
         return len(self) // 2
 
-    @combinatorial_map(name='to partition')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.partition.Partitions',
+            name     = 'to partition')
     def to_partition(self):
         r"""
         Return the partition associated to ``self`` .
@@ -1863,7 +1875,10 @@ class DyckWord_complete(DyckWord):
                     right[1].append(pos+1)
             return (Tableau(left), Tableau(right))
 
-    @combinatorial_map(name='to 312 avoiding permutation')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'to 312 avoiding permutation')
     def to_312_avoiding_permutation(self):
         r"""
         Convert ``self`` to a `312`-avoiding permutation using the bijection by
@@ -1906,7 +1921,10 @@ class DyckWord_complete(DyckWord):
                 pi = pi.apply_simple_reflection(j-i)
         return Permutation(~pi)
 
-    @combinatorial_map(name='to non-crossing permutation')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'to non-crossing permutation')
     def to_noncrossing_permutation(self):
         r"""
         Use the bijection by C. Stump in [Stu2008]_ to send ``self`` to a
@@ -1957,7 +1975,10 @@ class DyckWord_complete(DyckWord):
             D, touch_sequence = pealing(D, return_touches=True)
         return Permutation(pi)
 
-    @combinatorial_map(name='to 321 avoiding permutation')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'to 321 avoiding permutation')
     def to_321_avoiding_permutation(self):
         r"""
         Use the bijection (pp. 60-61 of [Knu1973]_ or section 3.1 of [CK2008]_)
@@ -2022,7 +2043,10 @@ class DyckWord_complete(DyckWord):
         A, B = self.to_pair_of_standard_tableaux()
         return RSK_inverse(A, B, output='permutation')
 
-    @combinatorial_map(name='to 132 avoiding permutation')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'to 132 avoiding permutation')
     def to_132_avoiding_permutation(self):
         r"""
         Use the bijection by C. Krattenthaler in [Kra2001]_ to send ``self``
@@ -2258,7 +2282,10 @@ class DyckWord_complete(DyckWord):
         deprecation(14875, 'this method is deprecated. Use DyckWords().from_area_sequence instead.')
         return CompleteDyckWords_all().from_area_sequence(code)
 
-    @combinatorial_map(name="To Ordered tree")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.ordered_tree.OrderedTrees',
+            name     = 'To Ordered tree')
     def to_ordered_tree(self):
         r"""
         Return the ordered tree corresponding to ``self`` where the depth
@@ -2494,7 +2521,11 @@ class DyckWord_complete(DyckWord):
         else:
             raise ValueError("The given tunnel_type is not valid.")
 
-    @combinatorial_map(order=2, name="Reverse path")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            order    = 2,
+            name     = 'Reverse path')
     def reverse(self):
         r"""
         Return the reverse and complement of ``self``.
@@ -2569,7 +2600,10 @@ class DyckWord_complete(DyckWord):
             return DyckWord([1] + list(D2.decomposition_reverse())
                             + [0] + list(D1.decomposition_reverse()))
 
-    @combinatorial_map(name="Area-dinv to bounce-area")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = 'Area-dinv to bounce-area')
     def area_dinv_to_bounce_area_map(self):
         r"""
         Return the image of ``self`` under the map which sends a
@@ -2615,7 +2649,10 @@ class DyckWord_complete(DyckWord):
                     image.append(0)
         return DyckWord(image)
 
-    @combinatorial_map(name="Bounce-area to area-dinv")
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            codomain = 'sage.combinat.dyck_word.DyckWords',
+            name     = "Bounce-area to area-dinv")
     def bounce_area_to_area_dinv_map(D):
         r"""
         Return the image of the Dyck word under the map which sends a
@@ -2912,7 +2949,10 @@ class DyckWord_complete(DyckWord):
                     cnt += 1
         return cnt
 
-    @combinatorial_map(name='to alternating sign matrix')
+    @combinatorial_map(
+            domain   = 'sage.combinat.dyck_word.DyckWords',
+            # TODO: no proper global parent for alternating sign matrices
+            name     = 'to alternating sign matrix')
     def to_alternating_sign_matrix(self):
         r"""
         Return ``self`` as an alternating sign matrix.

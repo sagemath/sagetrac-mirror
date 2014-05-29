@@ -640,7 +640,10 @@ class Tableau(CombinatorialObject, Element):
         """
         return [self]
 
-    @combinatorial_map(name='shape')
+    @combinatorial_map(
+            domain   = 'sage.combinat.tableau.Tableaux',
+            codomain = 'sage.combinat.partition.Partitions',
+            name     = 'shape')
     def shape(self):
         r"""
         Return the shape of a tableau ``self``.
@@ -680,7 +683,11 @@ class Tableau(CombinatorialObject, Element):
         return self.shape().corners()
 
 
-    @combinatorial_map(order=2,name='conjugate')
+    @combinatorial_map(
+            domain   = 'sage.combinat.tableau.Tableaux',
+            codomain = 'sage.combinat.tableau.Tableaux',
+            order=2,
+            name='conjugate')
     def conjugate(self):
         """
         Return the conjugate of ``self``.
@@ -947,7 +954,11 @@ class Tableau(CombinatorialObject, Element):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
-    @combinatorial_map(order=2,name='Schuetzenberger involution')
+    @combinatorial_map(
+            domain   = 'sage.combinat.tableau.Tableaux',
+            codomain = 'sage.combinat.tableau.Tableaux',
+            order    = 2,
+            name     = 'Schuetzenberger involution')
     def schuetzenberger_involution(self, n = None):
         r"""
         Return the Schuetzenberger involution of the tableau ``self``.
@@ -1157,7 +1168,10 @@ class Tableau(CombinatorialObject, Element):
         sk = SkewTableau(self).bender_knuth_involution(k, rows, False)
         return SemistandardTableaux()(list(sk))
 
-    @combinatorial_map(name ='reading word permutation')
+    @combinatorial_map(
+            domain   = 'sage.combinat.tableau.SemistandardTableaux',
+            codomain = 'sage.combinat.permutation.Permutations',
+            name     = 'reading word permutation')
     def reading_word_permutation(self):
         """
         Return the permutation obtained by reading the entries of ``self``
@@ -1635,7 +1649,10 @@ class Tableau(CombinatorialObject, Element):
                 max_entry = max(max(row) for row in self)
         return [self.restriction_shape(k) for k in range(max_entry+1)]
 
-    @combinatorial_map(name='to Gelfand-Tsetlin pattern')
+    @combinatorial_map(
+            domain   = 'sage.combinat.tableau.Tableaux',
+            codomain = 'sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPatterns',
+            name     = 'to Gelfand-Tsetlin pattern')
     def to_Gelfand_Tsetlin_pattern(self):
         """
         Return the :class:`Gelfand-Tsetlin pattern <GelfandTsetlinPattern>`

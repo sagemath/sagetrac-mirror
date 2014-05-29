@@ -29,6 +29,8 @@ AUTHORS:
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.lazy_import import LazyImport
+
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
@@ -195,7 +197,11 @@ class Composition(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
-    @combinatorial_map(order=2, name='conjugate')
+    @combinatorial_map(
+            domain   = 'sage.combinat.composition.Compositions',
+            codomain = 'sage.combinat.composition.Compositions',
+            order    = 2,
+            name     = 'conjugate')
     def conjugate(self):
         r"""
         Return the conjugate of the composition ``self``.
@@ -244,7 +250,11 @@ class Composition(CombinatorialObject, Element):
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
 
-    @combinatorial_map(order=2, name='reversed')
+    @combinatorial_map(
+            domain   = 'sage.combinat.composition.Compositions',
+            codomain = 'sage.combinat.composition.Compositions',
+            order    = 2,
+            name     = 'reversed')
     def reversed(self):
         r"""
         Return the reverse composition of ``self``.
@@ -259,7 +269,11 @@ class Composition(CombinatorialObject, Element):
         """
         return self.parent()(reversed(self))
 
-    @combinatorial_map(order=2, name='complement')
+    @combinatorial_map(
+            domain   = 'sage.combinat.composition.Compositions',
+            codomain = 'sage.combinat.composition.Compositions',
+            order    = 2,
+            name     = 'complement')
     def complement(self):
         r"""
         Return the complement of the composition ``self``.
@@ -1123,7 +1137,10 @@ class Composition(CombinatorialObject, Element):
         return [i+1 for i in range(len(self))
                 if i not in descents and i+1 in descents]
 
-    @combinatorial_map(name='to partition')
+    @combinatorial_map(
+            domain   = 'sage.combinat.composition.Compositions',
+            codomain = 'sage.combinat.partition.Partitions',
+            name     = 'to partition')
     def to_partition(self):
         """
         Return the partition obtained by sorting ``self`` into decreasing
