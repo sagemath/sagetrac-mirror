@@ -51,14 +51,21 @@ def vector_valued_modular_forms(k, L, prec):
     vector valued modular forms.  See `meth:theta_decomposition` for a
     description of these expansions.
 
-    ..TODO:
+    EXAMPLES::
 
-    Insert examples.
+        sage: L = QuadraticForm(matrix([2]))
+        sage: vector_valued_modular_forms(5/2, L, 5)
+        ???
+        sage: L = QuadraticForm(matrix([-2]))
+        sage: vector_valued_modular_forms(5/2, L, 5)
+        ???
 
     TESTS:
 
     See ``test_vector_valued.py:test_vector_valued_modular_forms``.
     """
+    ## TODO: If L is negative definite find equivalent positive
+    ## definite quadratic form.
     assert L.is_positive_definite()
 
     L_adj = QuadraticForm(2 * L.matrix().adjoint())
@@ -99,7 +106,7 @@ def  weakly_holomorphic_vector_valued_modular_forms(k, L, order, prec):
     vvforms = vector_valued_modular_forms(k - 12*order, L, prec - order)
     if order == 0: return vvforms
 
-    delta = CuspForms(1,12).0.qexp(prec+1)
+    delta = CuspForms(1,12).gen(0).qexp(prec+1)
     delta_order = (delta.shift(-1)**order)
 
     wvvforms = []
@@ -207,9 +214,17 @@ def theta_decomposition(phi, m, r_classes):
       values are dictionaries whose keys are rationals (the exponents of `q`) and whose
       values are also rationals (the corresponding coefficients).
 
-    ..TODO:
 
-    Insert examples.
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.all import *
+        sage: k = 9
+        sage: L = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: prec = 10
+        sage: jforms = higher_rank_jacobi_forms(k, L, prec)
+        sage: r_classes = higherrank_jacobi_r_classes(L)
+        sage: theta_decomposition(jforms[0], m, r_classes)
+        ???
     """
     L = m
     L_span = L.matrix().row_module()
@@ -340,6 +355,6 @@ def _sum_mul_vvforms(coefficients, vvforms, L_span):
     Insert examples.
     """
     res = {}
-    for (c,f) zip(coefficients, vvforms):
+    for (c,f) in zip(coefficients, vvforms):
         res = _add_vvforms(res, _mul_scalar_vvform(c,f), L_span)
     return res
