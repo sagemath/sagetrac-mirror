@@ -66,9 +66,16 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
       `s = \pm 1` tells whether r or -r is equivalent to r modulo `m
       \Z^l`.
 
-    ..TODO:
+    EXAMPLES::
 
-    Insert examples.
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: from sage.modular.jacobi.higherrank import reduce_higherrank_jacobi_fe_index
+        sage: m = QuadraticForm(matrix([[2]]))
+        sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
+        sage: m_span = m.matrix().row_module()
+        sage: r_classes = higherrank_jacobi_r_classes(m)[0]
+        sage: reduce_higherrank_jacobi_fe_index((1,(2,)), m, r_classes, m_adj, m_span)
+        ((0, (0,)), 1)
 
     TESTS:
 
@@ -97,9 +104,15 @@ def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
     - A pair `(r', s)`, where `r'` is reduced and `s = \pm 1` tells
       whether r or -r is equivalent to r modulo `m \Z^l`.
 
-    ..TODO:
+    EXAMPLES::
 
-    Insert examples.
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: from sage.modular.jacobi.higherrank import _reduce_higherrank_jacobi_fe_index__r
+        sage: m = QuadraticForm(matrix([[2]]))
+        sage: m_span = m.matrix().row_module()
+        sage: r_classes = higherrank_jacobi_r_classes(m)[0]
+        sage: _reduce_higherrank_jacobi_fe_index__r((2,), r_classes, m_span)
+        ((0,), 1)
 
     TESTS:
 
@@ -134,13 +147,26 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
 
     - A generator of pairs `(n, r)`, where `n` is an integer and `r` is a tupel.
 
-    ..TODO:
+    EXAMPLES::
 
-    Insert examples.
+
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_fe_indices
+        sage: m = QuadraticForm(matrix([[2]]))
+        sage: r_classes = higherrank_jacobi_r_classes(m)[0]
+        sage: list(higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=True))
+        [(0, (0,)), (1, (0,)), (1, (1,))]
+        sage: list(higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=False))
+        [(0, (0)), (1, (0)), (1, (1)), (1, (-1)), (1, (2)), (1, (-2))]
 
     TESTS:
 
     See ``test_higherrank.py:test__higherrank_jacobi_fe_indices``.
+
+    ::
+
+        sage: higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=True)
+        <generator object ...
     """
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
@@ -173,9 +199,12 @@ def higherrank_jacobi_r_classes(m):
 
     - A list of lists of vectors.
 
-    ..TODO:
+    EXAMPLES::
 
-    Insert examples.
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: m = QuadraticForm(matrix([[2]]))
+        sage: higherrank_jacobi_r_classes(m)
+        ([[(0,)], [(1,), (-1,)]], [[1], [1, 1]])
 
     TESTS:
 
@@ -264,8 +293,13 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_forms
         sage: k = 10
         sage: m = QuadraticForm(matrix(2, [2,1,1,2]))
-        sage: jforms = higherrank_jacobi_forms(k, m, 10)
-        ???
+        sage: jforms = higherrank_jacobi_forms(k, m, 3)
+        sage: Sequence(jforms, cr=True)
+        [
+        {(1, (1, 1)): -45, (2, (1, 1)): -12672, (1, (0, 0)): 0, (2, (0, 0)): -59130, (0, (0, 0)): 1},
+        {(1, (1, 1)): -1/6, (2, (1, 1)): 5/3, (1, (0, 0)): 1, (2, (0, 0)): -15, (0, (0, 0)): 0}
+        ]
+
 
     We access these the Fourier coefficients by means of the indices
     `n` and `r`, typical for Jacaobi forms.
@@ -274,7 +308,7 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
         sage: n = 2; r = (1, 1)
         sage: jforms[0][(n,r)]
-        ???
+        -12672
 
     This works, since `r = (1,1)` is a reduced vector.  For general
     `r`, we have to invoke index reduction, to find a corresponding
@@ -282,12 +316,15 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
     ::
 
-        sage: n = 10; r = (3, 2)
-        sage: L_adj = QuadraticForm(2 * L.matrix().adjoint())
-        sage: r_classes = higherrank_jacobi_r_classes(L)
-        sage: L_span = L.matrix().row_module()
-        sage: (nred, rred) = reduce_higherrank_jacobi_fe_index((n,r), L_adj, r_classes, L_span)
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: from sage.modular.jacobi.higherrank import reduce_higherrank_jacobi_fe_index
+        sage: n = 2; r = (2, 2)
+        sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
+        sage: r_classes = higherrank_jacobi_r_classes(m)[0]
+        sage: m_span = m.matrix().row_module()
+        sage: ((nred, rred), _) = reduce_higherrank_jacobi_fe_index((n,r), m, r_classes, m_adj, m_span)
         sage: jforms[0][(nred, rred)]
+        -45
 
     TESTS:
 
@@ -313,12 +350,10 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
     max_rst_index = max([m(s) for s in rst_vectors])
     minimal_prec = 2 + (k + max_rst_index) // 12 + 5
-    prec = max(minimal_prec, prec)
     relation_prec = minimal_prec
 
-
     max_relation_rst_index = max_rst_index
-    relation_rst_vectors = rst_vectors
+    relation_rst_vectors = []
 
 
     while True:
@@ -332,7 +367,7 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
                                                 r_classes, m_span)
             )
 
-            if relation_prec <= prec:
+            if prec__max < prec:
                 return jforms
             else:
                 return [dict(((n,r), c) for ((n,r), c) in phi.items()
@@ -345,6 +380,9 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
             relation_prec += minimal_prec
             max_relation_rst_index += 2
+
+
+            if len(relation_rst_vectors): relation_rst_vectors = rst_vectors
 
             short_vectors = (
                 flatten( m.short_vector_list_up_to_length(max_relation_rst_index+1, True)[max_relation_rst_index-2:],
@@ -378,12 +416,12 @@ def _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs
     EXAMPLES::
     
         sage: from sage.modular.jacobi.higherrank import _complete_set_of_restriction_vectors
-        sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-        sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-        sage: _complete_set_of_restriction_vectors(QuadraticForm(matrix(2, [2,1,1,2])), [[(0,0)]], [[1]])
-        ???
-        sage: _complete_set_of_restriction_vectors(QuadraticForm(matrix(2, [2,1,1,2])), *_higherrank_jacobi_r_classes(m))
-        [((-1, 0), 0), ((-1, 0), 1), ((2, -1), 1)]
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: m = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: m_span = m.matrix().row_module()
+        sage: (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
+        sage: _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span)
+        [((1, 0), 0), ((-2, 1), 1)]
 
     TESTS:
 
@@ -493,13 +531,35 @@ def _restriction_relation_matrices(k, m, prec, relation_prec,
     - A quintuple.  See `meth:_restriction_matrix` and
       `meth:_relation_matrix` for a more detailed description.
 
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank import _restriction_relation_matrices
+        sage: from sage.modular.jacobi.higherrank import _complete_set_of_restriction_vectors
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: m = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: m_span = m.matrix().row_module()
+        sage: prec = 2; relation_prec = 1
+        sage: (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
+        sage: rst_vectors_with_image = _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span)
+        sage: rst_vectors = [vector(s) for s in Set(tuple(s) for (s, _) in rst_vectors_with_image)]
+        sage: relation_rst_vectors = rst_vectors + [vector(ZZ, [2,0])]
+        sage: Sequence(_restriction_relation_matrices(1, m, prec, relation_prec, rst_vectors, relation_rst_vectors, r_classes, m_span), cr=True)
+        [
+        [ 0  1  0]                                                                                                                                             
+        [ 2  0  0]                                                                                                                                             
+        [ 1  0  0]                                                                                                                                             
+        [ 2  1  0]                                                                                                                                             
+        [ 0  0 -2]                                                                                                                                             
+        [ 0  0  1]                                                                                                                                             
+        [ 2  0  0]                                                                                                                                             
+        [ 1  0  0], [((1, 0), 1, 0, 3), ((-2, 1), 3, 3, 5)], {1: {(1, 0): 0, (0, 0): 2, (1, 1): 1}, 3: {(1, 2): 2, (1, 0): 0, (1, 3): 3, (1, 1): 1, (0, 0): 4}},
+        <BLANKLINE>
+        [(0, (0, 0)), (1, (0, 0)), (1, (1, 1))], [1], [(0, (0, 0))]
+        ]
+
     TESTS:
 
-    Tested implicitely by higherrank_jacobi_forms:
-
-    ..TODO:
-
-    Insert example.
+    Tested implicitely by `meth:higherrank_jacobi_forms`.
     """
     (restriction_matrix__big, row_groups, row_labels, column_labels) = \
         _restriction_matrix(k, m, prec, rst_vectors, False, r_classes, m_span)
@@ -562,54 +622,62 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
       that that the `ix`-th column of the restrictio matrix
       corresponds to Fourier coefficients of index `(n,r)`.
 
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank import _restriction_matrix
+        sage: from sage.modular.jacobi.higherrank import _complete_set_of_restriction_vectors
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: m = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: m_span = m.matrix().row_module()
+        sage: prec = 2
+        sage: (r_classes, r_classes_reduction_signs) = higherrank_jacobi_r_classes(m)
+        sage: rst_vectors_with_image = _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs, m_span)
+        sage: rst_vectors = [vector(s) for s in Set(tuple(s) for (s, _) in rst_vectors_with_image)]
+        sage: Sequence(_restriction_matrix(0, m, prec, rst_vectors, False, r_classes, m_span), cr=True)
+        [
+        [0 1 2]
+        [2 0 2]
+        [1 0 0]
+        [2 1 0]
+        [0 0 2]
+        [0 0 1]
+        [2 0 0]
+        [1 0 0],
+        [((1, 0), 1, 0, 3), ((-2, 1), 3, 3, 5)], {1: {(1, 0): 0, (0, 0): 2, (1, 1): 1}, 3: {(1, 2): 2, (1, 0): 0, (1, 3): 3, (1, 1): 1, (0, 0): 4}},
+        [(0, (0, 0)), (1, (0, 0)), (1, (1, 1))]
+        ]
+
     TESTS:
 
-    Tested implicitely by higherrank_jacobi_forms:
-
-    ..TODO:
-
-    Insert example.
-
-    # TESTS::
-    
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _global_restriction_matrix
-    #     sage: precision = JacobiFormD1Filter(5, QuadraticForm(matrix(2, [2,1,1,2])))
-    #     sage: (global_restriction_matrix, row_groups, row_labels, column_labels) = _global_restriction_matrix(precision, [vector((1,0))], 12)
-    #     sage: global_restriction_matrix
-    #     [1 0 0 0 0 0 0 0 0]
-    #     [0 1 2 0 0 0 0 0 0]
-    #     [2 0 2 0 0 0 0 0 0]
-    #     [0 0 2 1 2 0 0 0 0]
-    #     [0 2 0 0 2 0 0 0 0]
-    #     [2 0 0 0 2 1 2 0 0]
-    #     [0 0 2 2 0 0 2 0 0]
-    #     [0 2 0 0 0 0 2 1 2]
-    #     [0 0 0 0 2 2 0 0 2]
-    #     sage: (row_groups, row_labels, column_labels)
-    #     ([((1, 0), 1, 0, 9)], {1: {(0, 0): 0, (3, 0): 5, (3, 1): 6, (2, 1): 4, (2, 0): 3, (1, 0): 1, (4, 1): 8, (1, 1): 2, (4, 0): 7}}, [(0, (0, 0)), (1, (0, 0)), (1, (1, 1)), (2, (0, 0)), (2, (1, 1)), (3, (0, 0)), (3, (1, 1)), (4, (0, 0)), (4, (1, 1))])
+    Tested implicitely by `meth:higherrank_jacobi_forms`.
     """
     k = k % 2
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
+
+    column_labels = list(higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=True))
+
+    if len(rst_vectors) == 0:
+        return (zero_matrix(ZZ, 0, len(column_labels)), [], {}, column_labels)
+
 
     rst_jacobi_indices = [ m(s) for s in rst_vectors ]
     rst_indices = dict( (m_rst,
                          list(classical_jacobi_fe_indices(
                             m_rst, prec, reduced = not find_relations)) )
                           for m_rst in Set(rst_jacobi_indices) )
-    
-
-    column_labels = list(higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=True))
-    reductions = dict( (nr,[]) for nr in column_labels )
-    for nr in higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
-        (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_adj, m_span)
-        reductions[nrred].append((nr, sgn))     
 
     row_groups = [ len(rst_indices[m_rst]) for m_rst in rst_jacobi_indices ]
     row_groups = [ (s, m_rst, sum(row_groups[:i]), row_groups[i])
                    for ((i, s), m_rst) in zip(enumerate(rst_vectors), rst_jacobi_indices) ]
     row_labels = dict( (m_rst, dict( (nr, i) for (i, nr) in enumerate(rst_indices[m_rst]) ))
                        for m_rst in Set(rst_jacobi_indices) )
+
+    
+    reductions = dict( (nr,[]) for nr in column_labels )
+    for nr in higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
+        (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_adj, m_span)
+        reductions[nrred].append((nr, sgn))     
+
     if sum(map(len, reductions.items())) > 10000:
         cython_dot_products = True
         dot_products = [ cython_lambda(
@@ -619,9 +687,9 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     else:
         cython_dot_products = False
 
+
     restriction_matrix = zero_matrix(ZZ, row_groups[-1][2] + row_groups[-1][3],
                                      len(column_labels))
-    
     for (col, nrred) in enumerate(column_labels):
         for ((n,r), sgn) in reductions[nrred]:
             for (ix, (s, m_rst, start, length)) in enumerate(row_groups):
@@ -668,13 +736,28 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
 
     - ``column_labels`` -- See `meth:_restriction_matrix`.
 
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank import _relation_matrix
+        sage: from sage.modular.jacobi.higherrank import _complete_set_of_restriction_vectors
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
+        sage: m = QuadraticForm(matrix(2, [2,0,0,4]))
+        sage: m_span = m.matrix().row_module()
+        sage: prec = 2
+        sage: (r_classes, _) = higherrank_jacobi_r_classes(m)
+        sage: Sequence(_relation_matrix(1, m, prec, [], r_classes, m_span), cr=True)
+        [
+        [1 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0]
+        [0 0 0 1 0 0 0]
+        [0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 1],
+        [(0, (0, 0)), (1, (0, 0)), (1, (0, 1)), (1, (0, 2)), (1, (1, 0)), (1, (1, 1)), (1, (1, 2))]
+        ]
+
     TESTS:
 
-    Tested implicitely by higherrank_jacobi_forms:
-
-    ..TODO:
-
-    Insert example.
+    Tested implicitely by higherrank_jacobi_forms.
     """
     k = k % 2
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
@@ -712,7 +795,7 @@ def _higherrank_jacobi_forms__restriction(
         restriction_matrix__big, row_groups, row_labels, column_labels,
         relation_matrix, column_labels_relations):
     r"""
-    Compute the Fourier expansions of Jacobi forms (over `\QQ`) of weight `k` and 
+    Compute the Fourier expansions of Jacobi forms (over `\Q`) of weight `k` and 
     index `m` up to given precision.
 
     ..TODO:
@@ -729,27 +812,32 @@ def _higherrank_jacobi_forms__restriction(
     - ``relation_prec`` -- A nonnegative integer.
 
     - ``dim`` -- The dimension of the space of Jacobi forms.
+
+    - ``restriction_matrix__big`` -- See output of
+                                     `meth:_restriction_relation_matrices`.
+
+    - ``row_groups`` -- See output of `meth:_restriction_relation_matrices`.
+
+    - ``row_labels`` -- See output of `meth:_restriction_relation_matrices`.
+
+    - ``column_labels`` -- See output of `meth:_restriction_relation_matrices`.
+
+    - ``relation_matrix`` -- See output of `meth:_restriction_relation_matrices`.
+
+    - ``column_labels_relations`` -- See output of
+                                     `meth:_restriction_relation_matrices`.
     
     OUTPUT:
     
     A list of dictionaries.
 
-    ..TODO:
+    EXAMPLES:
 
-    Insert examples.
-    
+    See usage in `meth:higherrank_jacobi_forms`.
+
     TESTS:
 
-    See test_higherrank:
-    # TESTS::
-    
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fourierexpansion import *
-    #     sage: from psage.modform.jacobiforms.jacobiformd1_fegenerators import _coefficient_by_restriction
-    #     sage: indices = JacobiFormD1Indices(QuadraticForm(matrix(2, [2,1,1,2])))
-    #     sage: precision = indices.filter(20)
-    #     sage: relation_precision = indices.filter(10)
-    #     sage: _coefficient_by_restriction(precision, 10) == _coefficient_by_restriction(precision, 10, relation_precision) 
-    #     True
+    See test_higherrank.py.
     """
     assert relation_prec <= prec
 
