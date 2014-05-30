@@ -37,7 +37,6 @@ include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 
 include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
 include "sage/libs/flint/ntl_interface.pxd"
 
 # variables for holding temporary values computed in

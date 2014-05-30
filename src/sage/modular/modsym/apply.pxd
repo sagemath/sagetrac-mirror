@@ -2,7 +2,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 from sage.libs.flint.flint cimport *
-include "sage/libs/flint/fmpz_poly.pxi"
+from sage.libs.flint.fmpz_poly cimport *
 
 
 cdef class Apply:

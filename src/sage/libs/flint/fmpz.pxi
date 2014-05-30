@@ -2,6 +2,12 @@ include "sage/libs/ntl/decl.pxi"
 
 cdef extern from "flint/fmpz.h":
 
+    ctypedef unsigned long int mp_limb_t
+    ctypedef long int mp_limb_signed_t
+
+    ctypedef mp_limb_t ulong
+    ctypedef mp_limb_signed_t slong
+
     ctypedef long fmpz
     ctypedef long * fmpz_t
     ctypedef void * mpz_t

@@ -6,14 +6,15 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/gmp.pxi'
-include 'sage/libs/flint/fmpz_poly.pxi'
 
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.integer cimport Integer
 from sage.rings.arith import primes, bernoulli
 from sage.rings.fast_arith cimport prime_range
-from sage.libs.flint.fmpz_poly cimport Fmpz_poly
+
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpz_poly_old cimport Fmpz_poly
 
 cpdef Ek_ZZ(int k, int prec=10):
     """
@@ -144,7 +145,7 @@ cpdef Ek_ZZ(int k, int prec=10):
 cpdef eisenstein_series_poly(int k, int prec = 10) :
     r"""
     Return the q-expansion up to precision ``prec`` of the weight `k`
-    Eisenstein series, as a FLINT :class:`~sage.libs.flint.fmpz_poly.Fmpz_poly`
+    Eisenstein series, as a FLINT :class:`~sage.libs.flint.fmpz_poly_old.Fmpz_poly`
     object, normalised so the coefficients are integers with no common factor.
 
     Used internally by the functions

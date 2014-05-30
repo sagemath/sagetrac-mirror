@@ -20,6 +20,8 @@ cdef extern from "flint/fmpq.h":
 cdef extern from "flint/fmpz_vec.h":
     long _fmpz_vec_max_limbs(void * c, long n)
 
+from fmpz_poly cimport *
+
 cdef extern from "flint/fmpq_poly.h":
     ctypedef void * fmpz_t
     ctypedef void * fmpq_poly_t
