@@ -445,8 +445,7 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
     EXAMPLES::
 
         sage: arrow((0), (1))
-        sage: arrow((0,1), (1))
-        sage: arrow((0), (1,0))
+        sage: arrow([0], [1])
         sage: arrow((0,0), (1,1))
         sage: arrow((0,0,1), (1,1,1))
     """
