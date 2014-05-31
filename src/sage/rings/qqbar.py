@@ -6308,7 +6308,7 @@ class ANRoot(ANDescr):
 
         p = self._poly.poly()
         dp = p.derivative()
-        for i in xrange(0, self._multiplicity - 1):
+        for i in range(0, self._multiplicity - 1):
             p = dp
             dp = p.derivative()
 
@@ -6490,7 +6490,7 @@ class ANRoot(ANDescr):
 
         p = self._poly.poly()
         dp = p.derivative()
-        for i in xrange(0, self._multiplicity - 1):
+        for i in range(0, self._multiplicity - 1):
             p = dp
             dp = p.derivative()
 

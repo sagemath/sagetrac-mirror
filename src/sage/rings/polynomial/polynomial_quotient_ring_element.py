@@ -630,7 +630,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for _ in xrange(d):
+            for _ in range(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()

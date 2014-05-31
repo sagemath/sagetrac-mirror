@@ -1065,7 +1065,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if self.__nrows != self.__ncols:
             raise TypeError("self must be a space of square matrices")
         A = self.zero_matrix().__copy__()
-        for i in xrange(self.__nrows):
+        for i in range(self.__nrows):
             A[i,i] = 1
         A.set_immutable()
         return A

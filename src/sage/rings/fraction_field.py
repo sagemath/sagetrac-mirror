@@ -566,7 +566,7 @@ class FractionField_generic(field.Field):
                         # and the x[i] are rational functions in the
                         # remaining variables.
                         v = self(x.variable())
-                        return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
+                        return sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
             raise
 
     def construction(self):

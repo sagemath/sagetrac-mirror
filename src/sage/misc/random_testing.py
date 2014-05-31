@@ -55,7 +55,7 @@ def random_testing(fn):
     If you want a very long-running test using this setup, you should do
     something like::
 
-        for _ in xrange(10^10): test_foo(100)
+        for _ in range(10^10): test_foo(100)
 
     instead of::
 
@@ -176,7 +176,7 @@ def test_add_commutes(trials, verbose=False):
         sage: test_add_commutes(1000) # long time
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
@@ -249,7 +249,7 @@ def test_add_is_mul(trials, verbose=False):
         AssertionError()
     """
     from sage.rings.all import QQ
-    for _ in xrange(trials):
+    for _ in range(trials):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:

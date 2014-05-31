@@ -380,7 +380,7 @@ def matrix_plot(mat, **options):
 
     Here we plot a random sparse matrix::
 
-        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
+        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in range(100)]))
         sage: matrix_plot(sparse)
 
     ::

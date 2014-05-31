@@ -339,7 +339,7 @@ def OA_to_projective_plane(OA, check=True):
         blcks.append([i+(n+1)*j for i,j in enumerate(l)])
 
     # add the n+1 lines that correspond to transversals
-    for i in xrange(n+1):
+    for i in range(n+1):
         blcks.append(range(i*n, (i+1)*n))
         blcks[-1].append(n2+n)
 

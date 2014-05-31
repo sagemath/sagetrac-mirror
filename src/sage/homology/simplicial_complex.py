@@ -1106,7 +1106,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
         """
         Fs = self.faces()
-        dim_index = xrange(-1,self.dimension()+1)
+        dim_index = range(-1,self.dimension()+1)
         if not increasing:
             dim_index = reversed(dim_index)
         for i in dim_index:
@@ -2314,7 +2314,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         def all_homologies_vanish(F):
             S = self.link(F)
             H = S.homology(base_ring=QQ)
-            return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+            return all( H[j].dimension() == 0 for j in range(S.dimension()) )
 
         @parallel(ncpus=ncpus)
         def all_homologies_in_list_vanish(Fs):

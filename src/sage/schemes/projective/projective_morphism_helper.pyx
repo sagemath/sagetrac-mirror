@@ -82,7 +82,7 @@ def _fast_possible_periods(self,return_points=False):
     p = PS.base_ring().order()
     N = PS.dimension_relative()
 
-    point_table = [[0,0] for i in xrange(p**(N + 1))]
+    point_table = [[0,0] for i in range(p**(N + 1))]
     index = 1
     periods = set()
     points_periods = []
@@ -125,7 +125,7 @@ def _fast_possible_periods(self,return_points=False):
                     rvalues.add(lcm(s))
                 rvalues=list(rvalues)
                 if N==1:
-                    for k in xrange(len(rvalues)):
+                    for k in range(len(rvalues)):
                         r=rvalues[k]
                         periods.add(period*r)
                         points_periods.append([P_proj,period*r])
@@ -133,7 +133,7 @@ def _fast_possible_periods(self,return_points=False):
                             periods.add(period*r*p)
                             points_periods.append([P_proj,period*r*p])
                 else:
-                    for k in xrange(len(rvalues)):
+                    for k in range(len(rvalues)):
                         r=rvalues[k]
                         periods.add(period*r)
                         periods.add(period*r*p)
@@ -168,7 +168,7 @@ def _enum_points(int prime,int dimension):
     highest_range = prime**dimension
 
     while current_range <= highest_range:
-        for value in xrange(current_range, 2*current_range):
+        for value in range(current_range, 2*current_range):
             yield _get_point_from_hash(value,prime,dimension)
         current_range = current_range*prime
 
@@ -211,7 +211,7 @@ def _get_point_from_hash(int value,int prime,int dimension):
     cdef int i
     P=[]
 
-    for i in xrange(dimension + 1):
+    for i in range(dimension + 1):
         P.append(value % prime)
         value = value / prime
 
@@ -259,14 +259,14 @@ def _normalize_coordinates(list point, int prime, int len_points):
     """
     cdef int last_coefficient, coefficient, mod_inverse
 
-    for coefficient in xrange(len_points):
+    for coefficient in range(len_points):
         point[coefficient] = (point[coefficient]+prime)%prime
         if point[coefficient] != 0:
             last_coefficient = point[coefficient]
 
     mod_inverse = _mod_inv(last_coefficient,prime)
 
-    for coefficient in xrange(len_points):
+    for coefficient in range(len_points):
         point[coefficient] = (point[coefficient]*mod_inverse)%prime
 
     return point

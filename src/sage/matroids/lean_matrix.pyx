@@ -327,7 +327,7 @@ cdef class LeanMatrix:
         """
         Get coordinates of nonzero entries of row ``r``.
         """
-        return [i for i in xrange(self._ncols) if self.is_nonzero(r, i)]
+        return [i for i in range(self._ncols) if self.is_nonzero(r, i)]
 
     cdef LeanMatrix transpose(self):
         """

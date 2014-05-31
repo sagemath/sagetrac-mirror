@@ -172,7 +172,7 @@ def _heckebasis(M):
     MM = MatrixSpace(QQ,d)
     MMZ = MatrixSpace(ZZ,d)
     S = []; Denom = []; B = []; B1 = []
-    for i in xrange(1, M.hecke_bound() + 1):
+    for i in range(1, M.hecke_bound() + 1):
         v = M.hecke_operator(i).matrix()
         den = v.denominator()
         Denom.append(den)
@@ -310,7 +310,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
                         return hecke_operator.HeckeAlgebraElement_matrix(self, x.matrix())
                     else:
                         A = matrix([self.module().coordinate_vector(x.parent().module().gen(i)) \
-                            for i in xrange(x.parent().module().rank())])
+                            for i in range(x.parent().module().rank())])
                         return hecke_operator.HeckeAlgebraElement_matrix(self, ~A * x.matrix() * A)
                 elif x.parent() == self.anemic_subalgebra():
                     pass

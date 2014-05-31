@@ -2152,13 +2152,13 @@ cdef class Matroid(SageObject):
             False
         """
         E = list(self.groundset())
-        for i in xrange(0, len(E) + 1):
+        for i in range(0, len(E) + 1):
             for X in combinations(E, i):
                 XX = frozenset(X)
                 rX = self._rank(XX)
                 if rX > i:
                     return False
-                for j in xrange(i, len(E) + 1):
+                for j in range(i, len(E) + 1):
                     for Y in combinations(E, j):
                         YY = frozenset(Y)
                         rY = self._rank(YY)
@@ -2311,10 +2311,10 @@ cdef class Matroid(SageObject):
             sage: [sorted(X) for X in CC[3]]
             [['a', 'b', 'c', 'd', 'e', 'f', 'g']]
         """
-        CC = [set([]) for r in xrange(self.rank() + 1)]
+        CC = [set([]) for r in range(self.rank() + 1)]
         for C in self.circuits():
             CC[len(C) - 1].add(self.closure(C))
-        CC = dict([(r, CC[r]) for r in xrange(self.rank() + 1)
+        CC = dict([(r, CC[r]) for r in range(self.rank() + 1)
                   if len(CC[r]) > 0])
         return CC
 
@@ -2346,10 +2346,10 @@ cdef class Matroid(SageObject):
             ...
             KeyError: 3
         """
-        CC = [set([]) for r in xrange(self.rank() + 1)]
+        CC = [set([]) for r in range(self.rank() + 1)]
         for C in self.nonspanning_circuits():
             CC[len(C) - 1].add(self.closure(C))
-        CC = dict([(r, CC[r]) for r in xrange(self.rank() + 1)
+        CC = dict([(r, CC[r]) for r in range(self.rank() + 1)
                    if len(CC[r]) > 0])
         return CC
 
@@ -2540,7 +2540,7 @@ cdef class Matroid(SageObject):
             return []
         loops = self._closure(set())
         flags = [[loops, set(), self.groundset() - loops]]
-        for r in xrange(r):
+        for r in range(r):
             flags = self._extend_flags(flags)
         return flags
 
@@ -2646,7 +2646,7 @@ cdef class Matroid(SageObject):
         loops = self._closure(set())
         flags = [[loops, set(), self.groundset() - loops]]
         f_vec = [1]
-        for r in xrange(self.full_rank()):
+        for r in range(self.full_rank()):
             flags = self._extend_flags(flags)
             f_vec.append(len(flags))
         return f_vec
@@ -4209,7 +4209,7 @@ cdef class Matroid(SageObject):
         if (size < 4):
             return True  # vacuously true
         r = self.full_rank()
-        part_sizes = xrange(2, (size / 2) + 1)  # all possible partition sizes
+        part_sizes = range(2, (size / 2) + 1)  # all possible partition sizes
         for part in part_sizes:
             subs = Subsets(groundset, part)
             for X in subs:

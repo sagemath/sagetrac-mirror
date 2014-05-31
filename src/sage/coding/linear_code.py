@@ -671,7 +671,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     if BC is None:
         BC = BinaryCodeClassifier()
     if parent is None:
-        for j in xrange(d, n+1, d):
+        for j in range(d, n+1, d):
             M = Matrix(GF(2), [[1]*j])
             if in_test(M):
                 for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
@@ -681,7 +681,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
         if out_test(C): yield C
         if k == parent.nrows():
             return
-        for nn in xrange(parent.ncols()+1, n+1):
+        for nn in range(parent.ncols()+1, n+1):
             if in_test(parent):
                 for child in BC.generate_children(BinaryCode(parent), nn, d):
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
@@ -1694,7 +1694,7 @@ class LinearCode(module.Module_old):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in xrange(len(C))])
+            sage: all([C[i]==Clist[i] for i in range(len(C))])
             True
 
         Check that only the indices less than the size of the code are
@@ -1729,7 +1729,7 @@ class LinearCode(module.Module_old):
         a = F.primitive_element()
         m = F.degree()
         p = F.prime_subfield().order()
-        A = [a**k for k in xrange(m)]
+        A = [a**k for k in range(m)]
         G = self.gen_mat()
         N = self.dimension()*F.degree() # the total length of p-adic vector
         Z = Zp(p, N)
@@ -1738,7 +1738,7 @@ class LinearCode(module.Module_old):
         codeword = 0
         row = 0
         for g in G:
-            codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
+            codeword += sum([ivec[j+row*m]*A[j] for j in range(m)])*g
             row += 1
 
         # The codewords for a specific code can not change. So, we set them

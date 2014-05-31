@@ -1785,7 +1785,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         S = [repr(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])
         s = "("
-        for i in xrange(d):
+        for i in range(d):
             if i == d-1:
                 sep = ""
             else:
@@ -1943,7 +1943,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (18, 0, 3/7)
         """
         e = {}
-        for i in xrange(self.degree()):
+        for i in range(self.degree()):
             c = self[i]
             if c:
                 e[i] = c
@@ -4069,7 +4069,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     raise TypeError("entries has the wrong length")
                 x = entries
                 entries = {}
-                for i in xrange(self.degree()):
+                for i in range(self.degree()):
                     if x[i] != 0:
                         entries[i] = x[i]
                 copy = False

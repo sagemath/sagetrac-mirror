@@ -1823,7 +1823,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         p = self
 
         while p != 0:
-            for i in xrange(lI):
+            for i in range(lI):
                 gi = I[i]
                 plm = p.lm()
                 gilm = gi.lm()

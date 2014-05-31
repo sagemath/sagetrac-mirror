@@ -86,7 +86,7 @@ class Polynomial_generic_sparse(Polynomial):
                 x = w
         elif isinstance(x, list):
             y = {}
-            for i in xrange(len(x)):
+            for i in range(len(x)):
                 if x[i] != 0:
                     y[i] = x[i]
             x = y

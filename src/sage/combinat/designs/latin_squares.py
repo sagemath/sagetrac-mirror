@@ -117,11 +117,11 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
             return False
 
     # check orthogonality of each pair
-    for k1 in xrange(len(l)):
+    for k1 in range(len(l)):
         M1 = l[k1]
-        for k2 in xrange(k1):
+        for k2 in range(k1):
             M2 = l[k2]
-            L = [(M1[i,j],M2[i,j]) for i in xrange(n) for j in xrange(n)]
+            L = [(M1[i,j],M2[i,j]) for i in range(n) for j in range(n)]
             if len(set(L)) != len(L):
                 if verbose:
                     print "matrices %d and %d are not orthogonal"%(k2,k1)

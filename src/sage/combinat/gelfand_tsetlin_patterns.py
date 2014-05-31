@@ -780,7 +780,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
                             yield self.element_class(self, list(x))
                     n += 1
                 return
-            for x in xrange(self._k+1):
+            for x in range(self._k+1):
                 yield self.element_class(self, [[x]])
             n = 2
             while not self._strict or n <= self._k+1:
@@ -795,7 +795,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             return
         if self._n == 1:
             if self._k is not None:
-                for x in xrange(self._k+1):
+                for x in range(self._k+1):
                     yield self.element_class(self, [[x]])
             else:
                 k = 1

@@ -387,7 +387,7 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         x0 = power_mod(s, 2, n)
     # start generating pseudorandom bits
     z = []
-    for i in xrange(length):
+    for i in range(length):
         x1 = power_mod(x0, 2, n)
         z.append(x1 % 2)
         x0 = x1

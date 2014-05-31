@@ -59,7 +59,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
         """
         n = len(invfac)
         A = ZZ**n
-        B = A.span([A.gen(i) * invfac[i] for i in xrange(n)])
+        B = A.span([A.gen(i) * invfac[i] for i in range(n)])
 
         AdditiveAbelianGroup_fixed_gens.__init__(self, A, B, A.gens())
         self._original_invts = invfac

@@ -1960,7 +1960,7 @@ def supersingular_j_polynomial(p):
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()
-    H = sum([binomial(m,i)**2 * T**i for i in xrange(m+1)])
+    H = sum([binomial(m,i)**2 * T**i for i in range(m+1)])
     F = T**2 * (T-1)**2 * X - 256*(T**2-T+1)**3
     R = F.resultant(H,T)
     R =  prod([fi for fi,e in R([J,0]).factor()])

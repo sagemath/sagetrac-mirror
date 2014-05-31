@@ -831,7 +831,7 @@ def prepare_dict(w):
     Z = w.items()
     X = [x for _, x in Z]
     entries, ring = prepare(X)
-    return dict([(Z[i][0],entries[i]) for i in xrange(len(entries))]), ring
+    return dict([(Z[i][0],entries[i]) for i in range(len(entries))]), ring
 
 def nrows_from_dict(d):
     """
@@ -2812,7 +2812,7 @@ def jordan_block(eigenvalue, size, sparse=False):
         msg = "size of Jordan block must be non-negative, not {0}"
         raise ValueError(msg.format(size))
     block = diagonal_matrix([eigenvalue]*size, sparse=sparse)
-    for i in xrange(size-1):
+    for i in range(size-1):
         block[i,i+1]=1
     return block
 

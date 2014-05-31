@@ -300,8 +300,8 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, *args, **kwds)
             ncols = data.ncols()
             nrows = data.nrows()
-            self.left = set(xrange(ncols))
-            self.right = set(xrange(ncols, nrows + ncols))
+            self.left = set(range(ncols))
+            self.right = set(range(ncols, nrows + ncols))
 
             # ensure that the vertices exist even if there
             # are no associated edges (trac #10356)
@@ -975,8 +975,8 @@ class BipartiteGraph(Graph):
 
         # now we have all the edges in our graph, just fill in the
         # bipartite partitioning
-        self.left = set(xrange(num_cols))
-        self.right = set(xrange(num_cols, num_cols + num_rows))
+        self.left = set(range(num_cols))
+        self.right = set(range(num_cols, num_cols + num_rows))
 
         # return self for chaining calls if desired
         return self

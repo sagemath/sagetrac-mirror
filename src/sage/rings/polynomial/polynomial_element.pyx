@@ -802,7 +802,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         d1 = self.degree(); d2 = other.degree()
         c = cmp(d1, d2)
         if c: return c
-        for i in reversed(xrange(d1+1)):
+        for i in reversed(range(d1+1)):
             c = cmp(self[i], other[i])
             if c: return c
         return 0
@@ -1850,7 +1850,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
         coeffs = self.list()
-        for n in reversed(xrange(m)):
+        for n in reversed(range(m)):
             x = coeffs[n]
             if x:
                 if n != m-1:
@@ -1928,7 +1928,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if name is None:
             name = self.parent().latex_variable_names()[0]
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        for n in reversed(xrange(m)):
+        for n in reversed(range(m)):
             x = coeffs[n]
             x = y = latex(x)
             if x != '0':
@@ -2979,7 +2979,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         X = {}
         Y = self.list()
-        for i in xrange(len(Y)):
+        for i in range(len(Y)):
             c = Y[i]
             if c:
                 X[i] = c
@@ -6616,7 +6616,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Test first 100 cyclotomic polynomials::
 
-            sage: all(cyclotomic_polynomial(i).is_cyclotomic() for i in xrange(1,101))
+            sage: all(cyclotomic_polynomial(i).is_cyclotomic() for i in range(1,101))
             True
 
         Some more tests::
@@ -6670,8 +6670,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return False
 
         # construct the odd and even part of self
-        po_odd = sum(coefs[i]*(gen**((i-1)/2)) for i in xrange(1,len(coefs),2))
-        po_even = sum(coefs[i]*(gen**(i/2)) for i in xrange(0,len(coefs),2))
+        po_odd = sum(coefs[i]*(gen**((i-1)/2)) for i in range(1,len(coefs),2))
+        po_even = sum(coefs[i]*(gen**(i/2)) for i in range(0,len(coefs),2))
 
         # f1 = graeffe(self)
         f1  = po_even**2 - gen*(po_odd**2)
@@ -7120,7 +7120,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             raise IndexError("polynomial coefficient index must be nonnegative")
         elif value != 0:
             zero = self.base_ring().zero_element()
-            for _ in xrange(len(self.__coeffs), n):
+            for _ in range(len(self.__coeffs), n):
                 self.__coeffs.append(zero)
             self.__coeffs.append(value)
 

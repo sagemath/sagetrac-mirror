@@ -1774,7 +1774,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: list(TransitiveGroups(5)) # indirect doctest # optional - database_gap
             [Transitive group number 1 of degree 5, Transitive group number 2 of degree 5, Transitive group number 3 of degree 5, Transitive group number 4 of degree 5, Transitive group number 5 of degree 5]
         """
-        for n in xrange(1, self.cardinality() + 1):
+        for n in range(1, self.cardinality() + 1):
             yield self[n]
 
     @cached_method
@@ -2186,7 +2186,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: list(PrimitiveGroups(5)) # indirect doctest # optional - database_gap
             [C(5), D(2*5), AGL(1, 5), A(5), S(5)]
         """
-        for n in xrange(1, self.cardinality() + 1):
+        for n in range(1, self.cardinality() + 1):
             yield self[n]
 
     @cached_method

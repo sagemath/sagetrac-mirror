@@ -638,7 +638,7 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
             return [(n, 1)]
         else:
             return True
-    for i in xrange(2, bound + 1):
+    for i in range(2, bound + 1):
         p, boo = n.nth_root(i, truncate_mode=True)
         if boo:
             if p.is_pseudoprime():
@@ -927,7 +927,7 @@ def primes(start, stop=None, proof=None):
     argument proof controls whether the numbers returned are
     guaranteed to be prime or not.
 
-    This command is like the xrange command, except it only iterates
+    This command is like the range command, except it only iterates
     over primes. In some cases it is better to use primes than
     ``prime_range``, because primes does not build a list of all primes in
     the range in memory all at once. However, it is potentially much
@@ -973,7 +973,7 @@ def primes(start, stop=None, proof=None):
 
         sage: for a in range(-10, 50):
         ...    for b in range(-10, 50):
-        ...        assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ...        assert list(primes(a,b)) == list(filter(is_prime, range(a,b)))
         ...
         sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
         True
@@ -3271,7 +3271,7 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)])/factorial(m)
+    return misc.prod([x-i for i in range(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""
@@ -3351,7 +3351,7 @@ def binomial_coefficients(n):
     """
     d = {(0, n):1, (n, 0):1}
     a = 1
-    for k in xrange(1, n//2+1):
+    for k in range(1, n//2+1):
         a = (a * (n-k+1))//k
         d[k, n-k] = d[n-k, k] = a
     return d
@@ -3447,7 +3447,7 @@ def multinomial_coefficients(m, n):
             t[j] += 1
         # compute the value
         # NB: the initialization of v was done above
-        for k in xrange(start, m):
+        for k in range(start, m):
             if t[k]:
                 t[k] -= 1
                 v += r[tuple(t)]
@@ -4646,7 +4646,7 @@ def hilbert_conductor_inverse(d):
 
     TESTS::
 
-        sage: for i in xrange(100):
+        sage: for i in range(100):
         ...     d = ZZ.random_element(2**32).squarefree_part()
         ...     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
         ...         print "hilbert_conductor_inverse failed for d =", d

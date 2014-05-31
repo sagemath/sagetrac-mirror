@@ -2090,7 +2090,7 @@ def reshape(v, n, m):
 
     # Now v should be a single list.
     # First, make it have the right length.
-    for i in xrange(n*m - len(v)):
+    for i in range(n*m - len(v)):
         v.append(G)
 
     # Next, create a list of lists out of it.
@@ -2226,7 +2226,7 @@ def var_and_list_of_values(v, plot_points):
         return var, [a, b]
     else:
         step = (b-a)/float(plot_points-1)
-        values = [a + step*i for i in xrange(plot_points)]
+        values = [a + step*i for i in range(plot_points)]
         return var, values
 
 

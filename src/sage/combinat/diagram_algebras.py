@@ -737,7 +737,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
         monomial_indices = x.support()
         monomial_coefficients = x.coefficients()
         result = 0
-        for i in xrange(len(monomial_coefficients)):
+        for i in range(len(monomial_coefficients)):
             result += monomial_coefficients[i]*self.ambient().monomial(monomial_indices[i])
         return result
 
@@ -761,7 +761,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
         monomial_indices = x.support()
         monomial_coefficients = x.coefficients()
         result = self.zero()
-        for i in xrange(len(monomial_coefficients)):
+        for i in range(len(monomial_coefficients)):
             result += monomial_coefficients[i]*self.monomial(monomial_indices[i])
         return result
 

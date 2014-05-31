@@ -540,7 +540,7 @@ class ClusterQuiver(SageObject):
                 sss.append(show_seq)
                 ssm.append(show_matrix)
                 ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$" )
+                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$" )
                 if show_matrix:
                     html( "B-Matrix:" )
                     m = self._M
@@ -1204,7 +1204,7 @@ class ClusterQuiver(SageObject):
             plot_sequence = [ quiver_sequence[i].plot( circular=True, center=(i*width_factor,0) ) for i in range(len(quiver_sequence)) ]
             arrow_sequence = [ _plot_arrow( sequence[i],i+1,center=((i+0.5)*width_factor,0) ) for i in range(len(sequence)) ]
             sequence = []
-            for i in xrange( len( plot_sequence ) ):
+            for i in range( len( plot_sequence ) ):
                 if i < len( arrow_sequence ):
                     sequence.append( plot_sequence[i] + arrow_sequence[i] )
                 else:

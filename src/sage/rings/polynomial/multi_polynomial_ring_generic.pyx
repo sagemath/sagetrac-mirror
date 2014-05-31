@@ -607,7 +607,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         from sage.rings.arith import binomial
         C = [1]  #d = 0
-        for dbar in xrange(1, d+1):
+        for dbar in range(1, d+1):
             C.append(binomial(n+dbar-1, dbar))
         t = sum(C)
         return C, t
@@ -827,14 +827,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         elif terms <= total:
             # generate a list of all monomials and choose among them
             if not choose_degree:
-                M = sum([list(IntegerVectors(_d,n)) for _d in xrange(degree+1)],[])
-                for mi in xrange(total - terms): # we throw away those we don't need
+                M = sum([list(IntegerVectors(_d,n)) for _d in range(degree+1)],[])
+                for mi in range(total - terms): # we throw away those we don't need
                     M.pop( ZZ.random_element(0,len(M)-1) )
                 M = map(tuple, M)
             else:
-                M = [list(IntegerVectors(_d,n)) for _d in xrange(degree+1)]
+                M = [list(IntegerVectors(_d,n)) for _d in range(degree+1)]
                 Mbar = []
-                for mi in xrange(terms):
+                for mi in range(terms):
                     d = ZZ.random_element(0,len(M)) #choose degree at random
                     m = ZZ.random_element(0,len(M[d])) # choose monomial at random
                     Mbar.append( M[degree].pop(m) ) # remove and insert

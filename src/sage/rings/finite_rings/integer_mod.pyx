@@ -989,7 +989,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             if all and e > 1 and not self.is_unit():
                 if self.is_zero():
                     # All multiples of p^ciel(e/2) vanish
-                    return [self._parent(x) for x in xrange(0, self.__modulus.sageInteger, p**((e+1)/2))]
+                    return [self._parent(x) for x in range(0, self.__modulus.sageInteger, p**((e+1)/2))]
                 else:
                     z = self.lift()
                     val = z.valuation(p)/2  # square => valuation is even
@@ -1011,7 +1011,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     p_exp = p**exp
                     w = [self._parent(a.lift() * p_val + b)
                             for a in u.sqrt(all=True)
-                            for b in xrange(0, self.__modulus.sageInteger, p_exp)]
+                            for b in range(0, self.__modulus.sageInteger, p_exp)]
                     if p == 2:
                         w = list(set(w))
                     w.sort()
@@ -1172,7 +1172,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...           if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
             ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
 
-            sage: for t in xrange(200):
+            sage: for t in range(200):
             ...       n = randint(1,2^63)
             ...       K = Integers(n)
             ...       b = K.random_element()

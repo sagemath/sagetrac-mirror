@@ -902,7 +902,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         m_rows = M1.rows()
         m_cols = M2.columns()
         rows,cols = [],[]
-        for i in xrange(dim):
+        for i in range(dim):
             rows.append(tuple(x.value._monomial_coefficients for x in m_rows[i]))
             cols.append(tuple(x.value._monomial_coefficients for x in m_cols[i]))
 
@@ -912,8 +912,8 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         else:
             LCM = [ x.field_order() for x in set(M1.list()).union(M2.list()) ]
             n = LCM_list(LCM)
-        for i in xrange(dim1):
-            for j in xrange(dim2):
+        for i in range(dim1):
+            for j in range(dim2):
                 M_new[i,j] = self._from_dict(push_down_cython(n,dict_vector_multiplication(n,rows[i],cols[j])))
         return M_new
 

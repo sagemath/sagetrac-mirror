@@ -127,7 +127,7 @@ cdef class simple_connected_genus_backtracker:
             sage: gc.collect()   # random
             54
             sage: t = get_memory_usage()
-            sage: for i in xrange(1000):
+            sage: for i in range(1000):
             ...     gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend._cg)
             ...     gb = None  #indirect doctest
             ...

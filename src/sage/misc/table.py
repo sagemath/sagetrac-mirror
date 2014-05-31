@@ -763,7 +763,7 @@ class table(SageObject):
             print(first_column_tag % ('<script type="math/tex">%s</script>' % latex(entry)))
 
         # Other entries:
-        for column in xrange(1,len(row)):
+        for column in range(1,len(row)):
             if isinstance(row[column], Graphics):
                 print(column_tag % row[column].show(linkmode = True))
             elif isinstance(row[column], str):

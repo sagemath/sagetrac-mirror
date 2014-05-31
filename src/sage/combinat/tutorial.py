@@ -1061,7 +1061,7 @@ then it is passed as an argument to ``sum`` to add them up. If, on the
 other hand, the iterator is passed directly to ``sum`` (note the absence
 of square brackets)::
 
-    sage: sum( binomial(8, i) for i in xrange(9) )
+    sage: sum( binomial(8, i) for i in range(9) )
     256
 
 the function ``sum`` receives the iterator directly, and can
@@ -1073,9 +1073,9 @@ Most functions that take a list of elements as input will also accept
 an iterator (or an iterable) instead. To begin with, one can obtain the
 list (or the tuple) of elements of an iterator as follows::
 
-    sage: list(binomial(8, i) for i in xrange(9))
+    sage: list(binomial(8, i) for i in range(9))
     [1, 8, 28, 56, 70, 56, 28, 8, 1]
-    sage: tuple(binomial(8, i) for i in xrange(9))
+    sage: tuple(binomial(8, i) for i in range(9))
     (1, 8, 28, 56, 70, 56, 28, 8, 1)
 
 We now consider the functions ``all`` and ``any`` which denote

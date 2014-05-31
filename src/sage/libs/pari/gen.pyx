@@ -745,7 +745,7 @@ cdef class gen(sage.structure.element.RingElement):
             TypeError: unindexable object
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
-            sage: v = pari(xrange(20))
+            sage: v = pari(range(20))
             sage: v[2:5]
             [2, 3, 4]
             sage: v[:]
@@ -803,7 +803,7 @@ cdef class gen(sage.structure.element.RingElement):
         elif isinstance(n, slice):
             l = glength(self.g)
             start,stop,step = n.indices(l)
-            inds = xrange(start,stop,step)
+            inds = range(start,stop,step)
             k = len(inds)
             # fast exit
             if k==0:
@@ -977,7 +977,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         TESTS::
 
-            sage: v = pari(xrange(10)) ; v
+            sage: v = pari(range(10)) ; v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: v[:] = [20..29]
             sage: v
@@ -1017,7 +1017,7 @@ cdef class gen(sage.structure.element.RingElement):
 
             elif isinstance(n, slice):
                 l = glength(self.g)
-                inds = xrange(*n.indices(l))
+                inds = range(*n.indices(l))
                 k = len(inds)
                 if k > len(y):
                     raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)

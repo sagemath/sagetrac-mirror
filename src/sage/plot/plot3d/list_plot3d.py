@@ -168,8 +168,8 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
             return list_plot3d_matrix(v, texture=texture,  **kwds)
         else:
             l=[]
-            for i in xrange(v.nrows()):
-                for j in xrange(v.ncols()):
+            for i in range(v.nrows()):
+                for j in range(v.ncols()):
                     l.append((i,j,v[i,j]))
             return list_plot3d_tuples(l,interpolation_type,texture,**kwds)
 

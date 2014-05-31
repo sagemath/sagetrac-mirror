@@ -161,7 +161,7 @@ user too::
 
 ::
 
-    sage: [Variable(i, r) for i in xrange(r.ngens())]
+    sage: [Variable(i, r) for i in range(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
@@ -1512,14 +1512,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if PY_TYPE_CHECK(zeros, BooleSet):
             z = zeros
         else:
-            z = sum([prod([x[i] for i in xrange(n) if v[i]],
+            z = sum([prod([x[i] for i in range(n) if v[i]],
                           self.one_element()) for v in zeros],
                     self.zero_element())
             z = z.set()
         if PY_TYPE_CHECK(ones, BooleSet):
             o = ones
         else:
-            o = sum([prod([x[i] for i in xrange(n) if v[i]],
+            o = sum([prod([x[i] for i in range(n) if v[i]],
                           self.one_element()) for v in ones],
                     self.zero_element())
             o = o.set()
@@ -1959,7 +1959,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             sage: M.gens()
             (x, y, z)
         """
-        return tuple([self.gen(i) for i in xrange(self.ngens())])
+        return tuple([self.gen(i) for i in range(self.ngens())])
 
     def _get_action_(self, S, op, bint self_on_left):
         """
@@ -4620,7 +4620,7 @@ cdef class BooleanPolynomial(MPolynomial):
             r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
-                l = [0 for _ in xrange(n)]
+                l = [0 for _ in range(n)]
                 for i in e.iterindex():
                     l[i] = 1
                 L.append(tuple(l))

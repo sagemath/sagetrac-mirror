@@ -263,11 +263,11 @@ class ClusterSeed(SageObject):
                 ssv.append(show_vars)
                 ssm.append(show_matrix)
                 ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$" )
+                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$" )
                 if show_vars:
                     html( "Cluster variables:" )
                     table = "$\\begin{align*}\n"
-                    for i in xrange(self._n):
+                    for i in range(self._n):
                         v = var('v%s'%i)
                         table += "\t" + latex( v ) + " &= " + latex( self._cluster[i] ) + "\\\\ \\\\\n"
                     table += "\\end{align*}$"
@@ -684,7 +684,7 @@ class ClusterSeed(SageObject):
         #### Note: this special case m = 0 no longer needed except if we want type(answer) to be a cluster variable rather than an integer.
         else:
             exp = self.c_vector(k,ignore_coefficients=True)
-            return prod( self.y(i)**exp[i] for i in xrange(self._m) )
+            return prod( self.y(i)**exp[i] for i in range(self._m) )
 
     def coefficients(self):
         r"""
@@ -912,9 +912,9 @@ class ClusterSeed(SageObject):
             True
         """
         from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part
-        eval_dict = dict( [ ( self.y(i), 1 ) for i in xrange(self._m) ] )
+        eval_dict = dict( [ ( self.y(i), 1 ) for i in range(self._m) ] )
         seed = ClusterSeed( _principal_part( self._M ) )
-        seed._cluster = [ self._cluster[k].subs(eval_dict) for k in xrange(self._n) ]
+        seed._cluster = [ self._cluster[k].subs(eval_dict) for k in range(self._n) ]
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -1188,8 +1188,8 @@ class ClusterSeed(SageObject):
         n,m = self._n, self._m
         if not n == m:
             raise ValueError("The numbers of cluster variables and of frozen variables do not coincide.")
-        for i in xrange(m):
-            for j in xrange(n):
+        for i in range(m):
+            for j in range(n):
                 if i == j:
                     self._M[i+n,j] = 1
                 else:
@@ -1359,7 +1359,7 @@ class ClusterSeed(SageObject):
                             if only_sink_source:
                                 orbits = range(n)
                             else:
-                                orbits = [ index for index in xrange(n) if index > i or sd2._M[index,i] != 0 ]
+                                orbits = [ index for index in range(n) if index > i or sd2._M[index,i] != 0 ]
 
                             clusters[ cl2 ] = [ sd2, orbits, clusters[key][2]+[i] ]
                             if return_paths:

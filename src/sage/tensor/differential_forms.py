@@ -227,7 +227,7 @@ class DifferentialForms(Algebra):
 
         """
 
-        return tuple(self.gen(n) for n in xrange(0, self._patch.dim()))
+        return tuple(self.gen(n) for n in range(0, self._patch.dim()))
 
 
     def base_space(self):

@@ -1677,8 +1677,8 @@ class Tableau(CombinatorialObject, Element):
         """
         t = list(copy.deepcopy(self))
 
-        for row in xrange(len(t)):
-            for col in xrange(len(t[row])):
+        for row in range(len(t)):
+            for col in range(len(t[row])):
                 if t[row][col] <= n:
                     t[row][col] = None
         from sage.combinat.skew_tableau import SkewTableau
@@ -3285,11 +3285,11 @@ class SemistandardTableau(Tableau):
             raise ValueError("the entries of a semistandard tableau must be non-negative integers")
 
         # which are weakly increasing along rows
-        if any(row[c]>row[c+1] for row in t for c in xrange(len(row)-1)):
+        if any(row[c]>row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
+        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in range(len(t[0])) for r in range(len(t)-1) if len(t[r+1])>c):
             raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
@@ -3389,7 +3389,7 @@ class StandardTableau(SemistandardTableau):
         super(StandardTableau, self).__init__(parent, t)
 
         # t is semistandard so we only need to check that it is standard
-        if any(row[c]==row[c+1] for row in self for c in xrange(len(row)-1)):
+        if any(row[c]==row[c+1] for row in self for c in range(len(row)-1)):
             raise ValueError("the entries in each row of a standard tableau must be strictly increasing")
 
         # and that the entries are in bijection with {1,2,...,n}
@@ -3454,7 +3454,7 @@ class StandardTableau(SemistandardTableau):
         """
         t=StandardTableau(t)
         return all(self.restriction_shape(m).dominates(t.restriction_shape(m))
-                        for m in xrange(1,1+self.size()))
+                        for m in range(1,1+self.size()))
 
     def is_standard(self):
         """
@@ -5540,7 +5540,7 @@ class StandardTableaux_size(StandardTableaux):
             True
         """
         tableaux_number = self.size % 2  # identity involution
-        fixed_point_numbers = xrange(tableaux_number, self.size + 1 - tableaux_number, 2)
+        fixed_point_numbers = range(tableaux_number, self.size + 1 - tableaux_number, 2)
 
         # number of involutions of size "size" (number of ways to
         # choose "fixed_point_number" out of "size" elements *

@@ -323,13 +323,13 @@ class Derangements(Parent, UniqueRepresentation):
             yield [3,1,2]
         elif n >= 4:
             for d in self._iter_der(n-1):
-                for i in xrange(1, n):
+                for i in range(1, n):
                     s = d[:]
                     ii = d.index(i)
                     s[ii] = n
                     yield s + [i]
             for d in self._iter_der(n-2):
-                for i in xrange(1, n):
+                for i in range(1, n):
                     s = d[:]
                     s = map(lambda x: x >= i and x+1 or x,s)
                     s.insert(i-1, n)

@@ -442,10 +442,10 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(13,1,-1)
             sage: l = I.list()
-            sage: [I[i] for i in xrange(I.cardinality())] == l
+            sage: [I[i] for i in range(I.cardinality())] == l
             True
             sage: l.reverse()
-            sage: [I[i] for i in xrange(-1,-I.cardinality()-1,-1)] == l
+            sage: [I[i] for i in range(-1,-I.cardinality()-1,-1)] == l
             True
         """
         if isinstance(i,slice):

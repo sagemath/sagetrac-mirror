@@ -470,7 +470,7 @@ class Gamma0_class(GammaH_class):
                 else:
                     s.append(Cusp(1,d))
             else:
-                for a in xrange(1, w):
+                for a in range(1, w):
                     if arith.gcd(a, w) == 1:
                         while arith.gcd(a, d//w) != 1:
                             a += w

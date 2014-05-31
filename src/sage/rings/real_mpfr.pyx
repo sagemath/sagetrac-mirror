@@ -1403,7 +1403,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             128                                        # 64-bit
             sage: pari(rt2.python()) == rt2
             True
-            sage: for i in xrange(1, 1000):
+            sage: for i in range(1, 1000):
             ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
             sage: (-3.1415)._pari_().python()
             -3.14150000000000000
@@ -3030,7 +3030,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(70)(pi)._pari_().python().prec()
             96                                         # 32-bit
             128                                        # 64-bit
-            sage: for i in xrange(1, 1000):
+            sage: for i in range(1, 1000):
             ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
 
         TESTS:

@@ -139,11 +139,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         order = TermOrder(order,n)
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         # Construct the generators
-        v = [0 for _ in xrange(n)]
+        v = [0 for _ in range(n)]
         one = base_ring(1);
         self._gens = []
         C = self._poly_class()
-        for i in xrange(n):
+        for i in range(n):
             v[i] = 1  # int's!
             self._gens.append(C(self, {tuple(v):one}))
             v[i] = 0

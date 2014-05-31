@@ -1243,7 +1243,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([1,1,0,1,0,1,0,0]).valleys()
             [2, 4]
         """
-        return [i for i in xrange(len(self)-1)
+        return [i for i in range(len(self)-1)
                 if self[i] == close_symbol and self[i+1] == open_symbol]
 
     def number_of_valleys(self):
@@ -1308,7 +1308,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([1, 0, 1, 0]).positions_of_double_rises()
             []
         """
-        return [i for i in xrange(len(self)-1)
+        return [i for i in range(len(self)-1)
                 if self[i] == self[i+1] == open_symbol]
 
     def number_of_double_rises(self):
@@ -1344,7 +1344,7 @@ class DyckWord(CombinatorialObject, Element):
             [4]
         """
         h = self.heights()
-        return [i for i in xrange(2, len(h), 2) if h[i] == 0]
+        return [i for i in range(2, len(h), 2) if h[i] == 0]
 
     return_to_zero = deprecated_function_alias(13550, returns_to_zero)
 
@@ -3617,7 +3617,7 @@ class CompleteDyckWords(DyckWords):
                              "the number of cells between the Dyck path "
                              "and the diagonal.")
         dyck_word = []
-        for i in xrange(len(code)):
+        for i in range(len(code)):
             if i > 0:
                 dyck_word.extend([close_symbol]*(code[i-1]-code[i]+1))
             dyck_word.append(open_symbol)
@@ -3910,7 +3910,7 @@ def is_area_sequence(seq):
     if seq == []:
         return True
     return seq[0] == 0 and all(0 <= seq[i+1] and seq[i+1] <= seq[i]+1
-                               for i in xrange(len(seq)-1))
+                               for i in range(len(seq)-1))
 
 
 def is_a(obj, k1=None, k2=None):

@@ -1868,29 +1868,29 @@ cdef class Matrix(matrix1.Matrix):
         #
         from sage.matrix.constructor import matrix
 
-        F = [R(0) for i in xrange(n)]
+        F = [R(0) for i in range(n)]
         cdef Matrix a = <Matrix> matrix(R, n-1, n)
-        A = [R(0) for i in xrange(n)]
+        A = [R(0) for i in range(n)]
 
         F[0] = - M.get_unsafe(0, 0)
-        for t in xrange(1,n):
+        for t in range(1,n):
 
             # Set a(1, t) to be M(<=t, t)
             #
-            for i in xrange(t+1):
+            for i in range(t+1):
                 a.set_unsafe(0, i, M.get_unsafe(i, t))
 
             # Set A[1, t] to be the (t)th entry in a[1, t]
             #
             A[0] = M.get_unsafe(t, t)
 
-            for p in xrange(1, t):
+            for p in range(1, t):
 
                 # Set a(p, t) to the product of M[<=t, <=t] * a(p-1, t)
                 #
-                for i in xrange(t+1):
+                for i in range(t+1):
                     s = R(0)
-                    for j in xrange(t+1):
+                    for j in range(t+1):
                         s = s + M.get_unsafe(i, j) * a.get_unsafe(p-1, j)
                     a.set_unsafe(p, i, s)
 
@@ -1901,19 +1901,19 @@ cdef class Matrix(matrix1.Matrix):
             # Set A[t, t] to be M[t, <=t] * a(p-1, t)
             #
             s = R(0)
-            for j in xrange(t+1):
+            for j in range(t+1):
                 s = s + M.get_unsafe(t, j) * a.get_unsafe(t-1, j)
             A[t] = s
 
-            for p in xrange(t+1):
+            for p in range(t+1):
                 s = F[p]
-                for k in xrange(p):
+                for k in range(p):
                     s = s - A[k] * F[p-k-1]
                 F[p] = s - A[p]
 
         X = S.gen(0)
         f = X ** n
-        for p in xrange(n):
+        for p in range(n):
             f = f + F[p] * X ** (n-1-p)
 
         return f
@@ -2551,7 +2551,7 @@ cdef class Matrix(matrix1.Matrix):
         zero = R(0)
         one = R(1)
         basis = []
-        for i in xrange(self._ncols):
+        for i in range(self._ncols):
             if not (i in pivots_set):
                 v = [zero]*self._ncols
                 v[i] = one
@@ -2618,7 +2618,7 @@ cdef class Matrix(matrix1.Matrix):
         tm = verbose("computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
         d, u, v = self.smith_form()
         basis = []
-        for i in xrange(self.ncols()):
+        for i in range(self.ncols()):
             if (i >= self.nrows()) or d[i][i] == 0:
                 basis.append( v.column(i).list() )
         verbose("done computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
@@ -9467,7 +9467,7 @@ cdef class Matrix(matrix1.Matrix):
                     C = B*C
                     ranks.append(C.rank())
                     i = i+1
-                diagram = [ranks[i]-ranks[i+1] for i in xrange(len(ranks)-1)]
+                diagram = [ranks[i]-ranks[i+1] for i in range(len(ranks)-1)]
                 blocks.extend([(eval, i) \
                     for i in Partition(diagram).conjugate()])
 
@@ -12434,7 +12434,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         d, u, v = self.smith_form()
         r = min(self.nrows(), self.ncols())
-        return [d[i,i] for i in xrange(r)]
+        return [d[i,i] for i in range(r)]
 
     def smith_form(self):
         r"""
@@ -12744,7 +12744,7 @@ cdef class Matrix(matrix1.Matrix):
 
 
         try:
-            for i in xrange(1, len(pivs)):
+            for i in range(1, len(pivs)):
                 y = a[i][pivs[i]]
                 I = R.ideal(y)
                 s = a[0][pivs[i]]
@@ -13845,7 +13845,7 @@ def _smith_diag(d):
     R = d.base_ring()
     left = d.new_matrix(d.nrows(), d.nrows(), 1)
     right = d.new_matrix(d.ncols(), d.ncols(), 1)
-    for i in xrange(n):
+    for i in range(n):
         I = R.ideal(dp[i,i])
 
         if I == R.unit_ideal():
@@ -13854,7 +13854,7 @@ def _smith_diag(d):
                 dp[i,i] = R(1)
             continue
 
-        for j in xrange(i+1,n):
+        for j in range(i+1,n):
             if dp[j,j] not in I:
                 t = R.ideal([dp[i,i], dp[j,j]]).gens_reduced()
                 if len(t) > 1: raise ArithmeticError
@@ -13938,7 +13938,7 @@ def _generic_clear_column(m):
         I = R.ideal(a[0, 0]) # need to make sure we change this when a[0,0] changes
     else:
         I = R.zero_ideal()
-    for k in xrange(1, a.nrows()):
+    for k in range(1, a.nrows()):
         if a[k,0] not in I:
             try:
                 v = R.ideal(a[0,0], a[k,0]).gens_reduced()
@@ -13985,7 +13985,7 @@ def _generic_clear_column(m):
                 raise ArithmeticError
 
     # now everything in column 0 is divisible by the pivot
-    for i in xrange(1,a.nrows()):
+    for i in range(1,a.nrows()):
         s = R( a[i, 0]/a[0, 0])
         a.add_multiple_of_row(i, 0, -s )
         left_mat.add_multiple_of_row(i, 0, -s)
@@ -14038,7 +14038,7 @@ def _smith_onestep(m):
 
     # test if everything to the right of the pivot in row 0 is good as well
     isdone = True
-    for jj in xrange(j+1, a.ncols()):
+    for jj in range(j+1, a.ncols()):
         if a[0,jj] != 0:
             isdone = False
 

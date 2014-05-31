@@ -264,7 +264,7 @@ class DiGraphGenerators():
                 raise NotImplementedError("vertices='strings' is only valid for n<=30.")
             from sage.graphs.generic_graph_pyx import binary
             butterfly = {}
-            for v in xrange(2**n):
+            for v in range(2**n):
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
@@ -280,7 +280,7 @@ class DiGraphGenerators():
             from copy import copy
             butterfly = {}
             for v in VectorSpace(FiniteField(2),n):
-                for i in xrange(n):
+                for i in range(n):
                     w=copy(v)
                     w[i] += 1 # Flip the ith bit
                     # We must call tuple since vectors are mutable.  To obtain
@@ -519,7 +519,7 @@ class DiGraphGenerators():
             g.add_edge(0,0)
             return g
         else:
-            g.add_edges([(i,i+1) for i in xrange(n-1)])
+            g.add_edges([(i,i+1) for i in range(n-1)])
             g.add_edge(n-1,0)
             return g
 
@@ -703,8 +703,8 @@ class DiGraphGenerators():
 
         GB = DiGraph(loops = True)
         GB.allow_multiple_edges(True)
-        for u in xrange(n):
-            for a in xrange(u*d, u*d+d):
+        for u in range(n):
+            for a in range(u*d, u*d+d):
                 GB.add_edge(u, a%n)
 
         GB.name( "Generalized de Bruijn digraph (n=%s, d=%s)"%(n,d) )
@@ -771,8 +771,8 @@ class DiGraphGenerators():
 
         II = DiGraph(loops = True)
         II.allow_multiple_edges(True)
-        for u in xrange(n):
-            for a in xrange(-u*d-d, -u*d):
+        for u in range(n):
+            for a in range(-u*d-d, -u*d):
                 II.add_edge(u, a % n)
 
         II.name( "Imase and Itoh digraph (n=%s, d=%s)"%(n,d) )

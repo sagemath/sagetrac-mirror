@@ -1773,7 +1773,7 @@ class SR_generic(MPolynomialSystemGenerator):
             names = self.varstrs("k", 0, r*c, e)
 
 
-        for _n in process(xrange(n)):
+        for _n in process(range(n)):
             names += self.varstrs("k", _n+1, r*c, e)
             names += self.varstrs("x", _n+1, r*c, e)
             names += self.varstrs("w", _n+1, r*c, e)

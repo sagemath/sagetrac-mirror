@@ -73,12 +73,12 @@ def chromatic_polynomial(G, return_tree_basis = False):
 
         sage: G = graphs.PetersenGraph()
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min((i for i in range(11) if P(i) > 0)) == G.chromatic_number()
         True
 
         sage: G = graphs.RandomGNP(10,0.7)
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min((i for i in range(11) if P(i) > 0)) == G.chromatic_number()
         True
     """
     if not G.is_connected():

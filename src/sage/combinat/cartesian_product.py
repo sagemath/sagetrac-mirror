@@ -115,9 +115,9 @@ class CartesianProduct_iters(CombinatorialClass):
 
             sage: CartesianProduct(range(2), range(3)).cardinality()
             6
-            sage: CartesianProduct(range(2), xrange(3)).cardinality()
+            sage: CartesianProduct(range(2), range(3)).cardinality()
             6
-            sage: CartesianProduct(range(2), xrange(3), xrange(4)).cardinality()
+            sage: CartesianProduct(range(2), range(3), range(4)).cardinality()
             24
 
         This works correctly for infinite objects::
@@ -145,7 +145,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
         EXAMPLES::
 
-            sage: C = CartesianProduct(xrange(3), xrange(4))
+            sage: C = CartesianProduct(range(3), range(4))
             sage: len(C)
             12
             sage: C = CartesianProduct(ZZ, QQ)
@@ -237,7 +237,7 @@ class CartesianProduct_iters(CombinatorialClass):
 
         EXAMPLES::
 
-            sage: C = CartesianProduct(xrange(1000), xrange(1000), xrange(1000))
+            sage: C = CartesianProduct(range(1000), range(1000), range(1000))
             sage: C[238792368]
             [238, 792, 368]
 

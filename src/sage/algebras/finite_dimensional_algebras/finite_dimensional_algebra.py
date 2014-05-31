@@ -202,7 +202,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A.gen(0)
             e0
         """
-        return self.element_class(self, [j == i for j in xrange(self.ngens())])
+        return self.element_class(self, [j == i for j in range(self.ngens())])
 
     def basis(self):
         """
@@ -280,7 +280,7 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         B = self.table()
         n = self.degree()
-        return [Matrix([B[j][i] for j in xrange(n)]) for i in xrange(n)]
+        return [Matrix([B[j][i] for j in range(n)]) for i in range(n)]
 
     def __cmp__(self, other):
         """
@@ -389,10 +389,10 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         B = self.table()
         n = self.degree()
-        for i in xrange(n):
-            for j in xrange(n):
+        for i in range(n):
+            for j in range(n):
                 eiej = B[j][i]
-                if B[i]*B[j] != sum(eiej[k] * B[k] for k in xrange(n)):
+                if B[i]*B[j] != sum(eiej[k] * B[k] for k in range(n)):
                     return False
         return True
 
@@ -413,8 +413,8 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         # Equivalent to self.table() == self.left_table()
         B = self.table()
-        for i in xrange(self.degree()):
-            for j in xrange(i):
+        for i in range(self.degree()):
+            for j in range(i):
                 if B[j][i] != B[i][j]:
                     return False
         return True

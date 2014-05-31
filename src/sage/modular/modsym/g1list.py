@@ -41,7 +41,7 @@ class G1list:
             List of coset representatives for Gamma_1(6) in SL_2(Z)
         """
         self.__N = N
-        self.__list = [(u,v) for u in xrange(N) for v in xrange(N) \
+        self.__list = [(u,v) for u in range(N) for v in range(N) \
                              if arith.GCD(arith.GCD(u,v),N) == 1]
 
     def __cmp__(self, other):

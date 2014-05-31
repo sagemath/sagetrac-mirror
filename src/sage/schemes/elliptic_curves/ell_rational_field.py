@@ -3041,7 +3041,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         sqrtN = float(N.sqrt())
         def _F(n, t):
             return gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in xrange(1,prec+1)])
+        return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in range(1,prec+1)])
 
     def is_local_integral_model(self,*p):
         r"""
@@ -5025,7 +5025,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
             [0, 0, 0]
         """
-        if not isinstance(points, (list,xrange)):
+        if not isinstance(points, (list,range)):
             try:
                 points = list(points)
             except TypeError:
@@ -5038,7 +5038,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             s = pari(0)
             r0 = (c*z).exp()
             r = r0
-            for n in xrange(1,prec):
+            for n in range(1,prec):
                 s += an[n-1]*r
                 r *= r0
             ans.append(s.python())

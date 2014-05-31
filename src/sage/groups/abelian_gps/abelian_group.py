@@ -1314,11 +1314,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             verbose("invariants are:", [t.order() for t in G.gens()])
             for H in divisors(x):
                 # H = the subgroup of *index* H.
-                its = [xrange(0, H, H/gcd(H, G.gen(i).order())) for i in xrange(len(G.gens()))]
+                its = [range(0, H, H/gcd(H, G.gen(i).order())) for i in range(len(G.gens()))]
                 for f in cartesian_product_iterator(its):
                     verbose("using hom from G to C_%s sending gens to %s" % (H,f))
                     new_sub = []
-                    for a in xrange(len(G.gens())):
+                    for a in range(len(G.gens())):
                         new_sub.append(G.gen(a).list() + [f[a]])
                     if H != x:
                         new_sub.append([0]*A.ngens() + [H])
@@ -1364,13 +1364,13 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             # can't happen?
             print "Vectors not LI: ", elts
             raise e
-        rel_lattice = X.span([X.gen(i) * self.gens_orders()[i] for i in xrange(d)])
+        rel_lattice = X.span([X.gen(i) * self.gens_orders()[i] for i in range(d)])
         isect = elt_lattice.intersection(rel_lattice)
         mat = matrix([elt_lattice.coordinate_vector(x) for x in isect.gens()]).change_ring(ZZ)
         D,U,V = mat.smith_form()
-        new_basis = [(elt_lattice.linear_combination_of_basis((~V).row(i)).list(), D[i,i]) for i in xrange(U.ncols())]
+        new_basis = [(elt_lattice.linear_combination_of_basis((~V).row(i)).list(), D[i,i]) for i in range(U.ncols())]
         return self.subgroup([self([x[0][i] % self.gens_orders()[i]
-                                    for i in xrange(d)]) for x in new_basis if x[1] != 1])
+                                    for i in range(d)]) for x in new_basis if x[1] != 1])
 
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
@@ -1528,7 +1528,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             return True
         elif x in self.ambient_group():
             amb_inv = self.ambient_group().gens_orders()
-            for a in xrange(len(amb_inv)):
+            for a in range(len(amb_inv)):
                 if amb_inv[a] == 0 and x.list()[a] != 0:
                     for g in self._gens:
                         if g.list()[a] == 0:

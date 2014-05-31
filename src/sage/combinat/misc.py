@@ -50,13 +50,13 @@ class DoublyLinkedList():
         self.next_value = {}
         self.next_value['begin'] = l[0]
         self.next_value[l[n-1]] = 'end'
-        for i in xrange(n-1):
+        for i in range(n-1):
             self.next_value[l[i]] = l[i+1]
 
         self.prev_value = {}
         self.prev_value['end'] = l[-1]
         self.prev_value[l[0]] = 'begin'
-        for i in xrange(1,n):
+        for i in range(1,n):
             self.prev_value[l[i]] = l[i-1]
 
     def __cmp__(self, x):

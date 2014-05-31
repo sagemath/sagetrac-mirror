@@ -342,9 +342,9 @@ cpdef factor_using_pari(n, int_=False, debug_level=0, proof=None):
     F = pari(n).factor(proof=proof)
     B, e = F
     if int_:
-        v = [(int(B[i]), int(e[i])) for i in xrange(len(B))]
+        v = [(int(B[i]), int(e[i])) for i in range(len(B))]
     else:
-        v = [(Integer(B[i]), int(e[i])) for i in xrange(len(B))]
+        v = [(Integer(B[i]), int(e[i])) for i in range(len(B))]
 
     if prev != debug_level:
         pari.set_debug_level(prev)

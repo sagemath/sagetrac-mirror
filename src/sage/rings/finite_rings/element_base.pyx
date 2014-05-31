@@ -255,7 +255,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         columns = []
 
         if not reverse:
-            l = xrange(d)
+            l = range(d)
         else:
             l = reversed(range(d))
 

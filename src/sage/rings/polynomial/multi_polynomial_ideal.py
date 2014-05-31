@@ -1449,8 +1449,8 @@ class MPolynomialIdeal_singular_repr(
                         lms = [each.lm() for each in gb]
                         # compute M_j, denoted by var_lms
                         var_lms = [Set([]) for each in lms]
-                        for j in xrange(len(ring_vars)):
-                            for i in xrange(len(lms)):
+                        for j in range(len(ring_vars)):
+                            for i in range(len(lms)):
                                 if lms[i].degree(ring_vars[j]) > 0:
                                     var_lms[i] += Set([j+1])
                         # compute intersections of M_j and J
@@ -2682,7 +2682,7 @@ class MPolynomialIdeal_singular_repr(
         hp = hilbPoly(self)
         t = ZZ['t'].gen()
         fp = ZZ(len(hp)-1).factorial()
-        return sum([ZZ(hp[i])*t**i for i in xrange(len(hp))])/fp
+        return sum([ZZ(hp[i])*t**i for i in range(len(hp))])/fp
 
     @require_field
     def hilbert_series(self, singular=singular_default):
@@ -2720,7 +2720,7 @@ class MPolynomialIdeal_singular_repr(
         n = self.ring().ngens()
         gb = MPolynomialIdeal(self.ring(),gb)
         hs = hilb(gb,1, attributes={gb:{'isSB':1}})
-        return sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])/(1-t)**n
+        return sum([ZZ(hs[i])*t**i for i in range(len(hs)-1)])/(1-t)**n
 
     @require_field
     def _normal_basis_libsingular(self):
@@ -4252,7 +4252,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
-        for dreg in xrange(0,sum(degs)):
+        for dreg in range(0,sum(degs)):
             if s[dreg] < 0:
                 return ZZ(dreg)
         else:
@@ -4524,7 +4524,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         map_ideal = [a]
 
         variables = iter(intermediate_ring.gens()[1:])
-        for _ in xrange(nvars):
+        for _ in range(nvars):
            map_ideal.append(sum([a**i * variables.next() for i in range(r)]))
 
         myminpoly = myminpoly(*map_ideal)

@@ -2670,7 +2670,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             result = 0
             while p:
-                result = max(result, sum([p_GetExp(p,i,r) for i in xrange(1,r.N+1)]))
+                result = max(result, sum([p_GetExp(p,i,r) for i in range(1,r.N+1)]))
                 p = pNext(p)
             return result
 

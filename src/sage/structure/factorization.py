@@ -291,7 +291,7 @@ class Factorization(SageObject):
         """
         if not isinstance(x, list):
             raise TypeError("x must be a list")
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             t=x[i]
             if not (isinstance(t, tuple) and len(t) == 2):
                 raise TypeError("x must be a list of pairs (p, e) with e an integer")

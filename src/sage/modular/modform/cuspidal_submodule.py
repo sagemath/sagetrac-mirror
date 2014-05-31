@@ -404,12 +404,12 @@ def _convert_matrix_from_modsyms(symbs, T):
 
     # compute the q-expansions of some cusp forms and their
     # images under T_n
-    for i in xrange(d**2):
-        v = X([ hecke_matrix_ls[m][i] for m in xrange(r) ])
+    for i in range(d**2):
+        v = X([ hecke_matrix_ls[m][i] for m in range(r) ])
         Ynew = Y.span(Y.basis() + [v])
         if Ynew.rank() > Y.rank():
             basis.append(v)
-            basis_images.append(X([ hecke_image_ls[m][i] for m in xrange(r) ]))
+            basis_images.append(X([ hecke_image_ls[m][i] for m in range(r) ]))
             Y = Ynew
             if len(basis) == d: break
 

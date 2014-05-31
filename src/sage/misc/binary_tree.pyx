@@ -482,7 +482,7 @@ class Test:
         """
         from sage.misc.prandom import randint
         t = BinaryTree()
-        for i in xrange(cycles):
+        for i in range(cycles):
             r = randint(0,8)
             s = randint(0,values)
             if r==1:

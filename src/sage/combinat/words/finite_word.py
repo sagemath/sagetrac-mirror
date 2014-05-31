@@ -823,7 +823,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         k = 0
         res = [0]*self.length()
-        for q in xrange(1, self.length()):
+        for q in range(1, self.length()):
             while k > 0 and self[k] != self[q]:
                 k = res[k-1]
             if self[k] == self[q]:
@@ -854,7 +854,7 @@ exponent %s: the length of the word (%s) times the exponent \
         l = self.length()
         p = self.reversal().prefix_function_table()
         res = [l - p[-1]]*(l+1)
-        for i in xrange(1, l+1):
+        for i in range(1, l+1):
             j = l - p[i - 1]
             if res[j] > (i - p[i-1]):
                 res[j] = i - p[i-1]
@@ -1906,9 +1906,9 @@ exponent %s: the length of the word (%s) times the exponent \
         try:
             it = iter(self)
             s = islice(it, seq[0], None).next()
-            for i in xrange(1, len(seq)):
+            for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): it.next()
+                for n in range(steps-1): it.next()
                 if it.next() != s:
                     return False
         except StopIteration:
@@ -2279,7 +2279,7 @@ exponent %s: the length of the word (%s) times the exponent \
         palindromes.add(pal)
 
         #For all the non-empty prefixes of self,
-        for i in xrange(self.length()):
+        for i in range(self.length()):
 
             #Compute its longest `f`-palindromic suffix using the preceding lps (pal)
             pal = self[:i+1].lps(l=pal.length(),f=f)
@@ -3134,9 +3134,9 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         n = len(self)
         if divide_length:
-            possible = (i for i in xrange(1,n) if n % i == 0)
+            possible = (i for i in range(1,n) if n % i == 0)
         else:
-            possible = xrange(1, n)
+            possible = range(1, n)
         return filter(self.has_period, possible)
 
     def longest_common_subword(self,other):
@@ -3624,7 +3624,7 @@ exponent %s: the length of the word (%s) times the exponent \
         suff = self.good_suffix_table()
         s = p
         while s <= lm - lf:
-            for j in xrange(lf-1, -1, -1):
+            for j in range(lf-1, -1, -1):
                 a = other[s+j]
                 if self[j] != a :
                     s += max(suff[j + 1], j - occ.get(a,-1))
@@ -4907,7 +4907,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
         alphabet = set(self)
-        for i in xrange(2, self.length()):
+        for i in range(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
             for fact in self.factor_iterator(i):
@@ -5114,7 +5114,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: s4 = WordMorphism('a->a,b->ab')
             sage: W = Words('ab')
             sage: w = W('ab')
-            sage: for i in xrange(8): w = choice([s1,s2,s3,s4])(w)
+            sage: for i in range(8): w = choice([s1,s2,s3,s4])(w)
             sage: w
             word: abaaabaaabaabaaabaaabaabaaabaabaaabaaaba...
             sage: w.is_sturmian_factor()
@@ -5379,7 +5379,7 @@ exponent %s: the length of the word (%s) times the exponent \
             (7, 1)
         """
         from itertools import izip
-        return izip(xrange(1, len(self)+1), self)
+        return izip(range(1, len(self)+1), self)
 
     def shuffle(self, other, overlap=0):
         r"""
@@ -5723,7 +5723,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
             return W()
         v = self.parent()((self[-1],))
-        for i in xrange(self.length()-2, -1, -1):
+        for i in range(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
 
@@ -5738,7 +5738,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         res = self.delta_inv(s=tab[0])
         res = res[1:]
-        for i in xrange(1, len(tab)):
+        for i in range(1, len(tab)):
             res = res.delta_inv(s=tab[i])
         return res
 
@@ -5877,7 +5877,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.length() < 2:
             raise ValueError("Standard factorization not defined on"
                              " words of length less than 2")
-        for l in xrange(1, self.length()):
+        for l in range(1, self.length()):
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
@@ -6119,8 +6119,8 @@ exponent %s: the length of the word (%s) times the exponent \
         L = self.length()
         if L < 2:
             return True
-        for start in xrange(0, L-1):
-            for end in xrange(start+2, L+1, 2):
+        for start in range(0, L-1):
+            for end in range(start+2, L+1, 2):
                 if self[start:end].is_square():
                     return False
         return True
@@ -6172,8 +6172,8 @@ exponent %s: the length of the word (%s) times the exponent \
         L = self.length()
         if L < 3:
             return True
-        for start in xrange(0, L - 2):
-            for end in xrange(start+3, L+1, 3):
+        for start in range(0, L - 2):
+            for end in range(start+3, L+1, 3):
                 if self[start:end].is_cube():
                     return False
         return True

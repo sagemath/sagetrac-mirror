@@ -1092,7 +1092,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         clgp_gens = []
         clgp_gens_orders = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1262,7 +1262,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         units = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1389,7 +1389,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         gens = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 

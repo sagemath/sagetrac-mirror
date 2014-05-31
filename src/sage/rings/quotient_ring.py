@@ -568,9 +568,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         from sage.all import Infinity
         if self.ngens() == Infinity:
             raise NotImplementedError("This quotient ring has an infinite number of generators.")
-        for i in xrange(self.ngens()):
+        for i in range(self.ngens()):
             gi = self.gen(i)
-            for j in xrange(i+1,self.ngens()):
+            for j in range(i+1,self.ngens()):
                 gj = self.gen(j)
                 if gi*gj!=gj*gi:
                     return False

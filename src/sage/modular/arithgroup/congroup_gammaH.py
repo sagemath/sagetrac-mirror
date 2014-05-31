@@ -873,10 +873,10 @@ class GammaH_class(CongruenceSubgroup):
         hashes = []
         N = self.level()
 
-        for d in xrange(1, 1+N):
+        for d in range(1, 1+N):
             w = N.gcd(d)
             M = int(w) if w > 1 else 2
-            for a in xrange(1,M):
+            for a in range(1,M):
                 if gcd(a, w) != 1:
                     continue
                 while gcd(a, d) != 1:
@@ -1247,7 +1247,7 @@ def _GammaH_coset_helper(N, H):
     HH = [Zmod(N)(h) for h in H]
     k = euler_phi(N)
 
-    for i in xrange(1, N):
+    for i in range(1, N):
         if gcd(i, N) != 1: continue
         if not i in W:
             t.append(t[0]*i)

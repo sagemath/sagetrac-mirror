@@ -382,8 +382,8 @@ cdef class ntl_mat_ZZ:
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = ntl.mat_ZZ(200,200)
-            sage: for i in xrange(a.nrows()):
-            ...     for j in xrange(a.ncols()):
+            sage: for i in range(a.nrows()):
+            ...     for j in range(a.ncols()):
             ...         A[i,j] = a[i,j]
             ...
             sage: t = cputime(); d = A.determinant()

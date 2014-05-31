@@ -94,7 +94,7 @@ def _build_tab(sym, tab, W):
     w = W([sym]).delta_inv(W, tab[0])
     w = w[1:]
     res.append((w[-1] % W.size_of_alphabet()) + 1)
-    for i in xrange(1, len(tab)):
+    for i in range(1, len(tab)):
         w = w.delta_inv(W, tab[i])
         res.append((w[-1] % W.size_of_alphabet()) + 1)
     return res
@@ -1335,7 +1335,7 @@ class WordGenerator(object):
         suff2 = W([2, 2]).phi_inv()
         w = [1]
         tab = _build_tab(1, tab, W)
-        for k in xrange(1, n):
+        for k in range(1, n):
             if suff1._phi_inv_tab(tab) < suff2._phi_inv_tab(tab):
                 w.append(1)
                 tab = _build_tab(1, tab, W)
@@ -1383,7 +1383,7 @@ class WordGenerator(object):
             alphabet = range(m)
         if len(set(alphabet)) != m:
             raise TypeError("alphabet does not contain %s distinct elements" % m)
-        return Words(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
+        return Words(alphabet)([alphabet[randint(0,m-1)] for i in range(n)])
 
     LowerChristoffelWord = LowerChristoffelWord
 

@@ -22,7 +22,7 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 
 def row_iterator(A):
-    for i in xrange(A.nrows()):
+    for i in range(A.nrows()):
         yield A.row(i)
 
 def weak_popov_form(M,ascend=True):

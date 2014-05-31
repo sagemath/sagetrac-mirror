@@ -1148,7 +1148,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise ValueError("minimum degree must be less or equal than maximum degree")
             degree = randint(*degree)
         R = self.base_ring()
-        return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
+        return self([R.random_element(*args, **kwds) for _ in range(degree+1)])
 
     def _monics_degree( self, of_degree ):
         """
@@ -1165,7 +1165,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         Refer to monics() for full documentation.
         """
-        for degree in xrange(max_degree + 1):
+        for degree in range(max_degree + 1):
             for m in self._monics_degree( degree ):
                 yield m
 
@@ -1614,16 +1614,16 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
           3rd edition, Prentice-Hall, 1999.
         """
         n = len(points)
-        F = [[points[i][1]] for i in xrange(n)]
-        for i in xrange(1, n):
-            for j in xrange(1, i+1):
+        F = [[points[i][1]] for i in range(n)]
+        for i in range(1, n):
+            for j in range(1, i+1):
                 numer = F[i][j-1] - F[i-1][j-1]
                 denom = points[i][0] - points[i-j][0]
                 F[i].append(numer / denom)
         if full_table:
             return F
         else:
-            return [F[i][i] for i in xrange(n)]
+            return [F[i][i] for i in range(n)]
 
     def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=None):
         """
@@ -1774,7 +1774,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
             F = self.divided_difference(points)
             P = self(F[n-1])
-            for i in xrange(n-2, -1, -1):
+            for i in range(n-2, -1, -1):
                 P *= (var - points[i][0])
                 P += F[i]
             return P
@@ -1783,9 +1783,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             # polynomial by means of divided difference. This is slow
             # compared to that above, which is in nested form.
 #             P = 0
-#             for i in xrange(n):
+#             for i in range(n):
 #                 prod = 1
-#                 for j in xrange(i):
+#                 for j in range(i):
 #                     prod *= (var - points[j][0])
 #                 P += (F[i] * prod)
 #             return P
@@ -1801,9 +1801,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             # and Q keeps track of the current row
             P = previous_row + [None] * (N - M) # use results of previous computation if available
             Q = [None] * N
-            for i in xrange(M, N):
+            for i in range(M, N):
                 Q[0] = self(points[i][1]) # start populating the current row
-                for j in xrange(1, 1 + i):
+                for j in range(1, 1 + i):
                     numer = (var - points[i - j][0]) * Q[j - 1] - (var - points[i][0]) * P[j - 1]
                     denom = points[i][0] - points[i - j][0]
                     Q[j] = numer / denom

@@ -1031,7 +1031,7 @@ class InfinitePolynomial_sparse(RingElement):
         Lbig   = Fbig.keys()
         Lbig.sort()
         P = range(Lbig[-1]+1)
-        gens = xrange(PARENT.ngens())
+        gens = range(PARENT.ngens())
         if Lsmall[0]==0:
             if 0 not in Fbig:
                 return (None,1,1)

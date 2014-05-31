@@ -99,7 +99,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         elif isinstance(x, dict):
             zero = parentbr.zero_element()
             n = max(x.keys())
-            v = [zero for _ in xrange(n + 1)]
+            v = [zero for _ in range(n + 1)]
             for i, z in x.iteritems():
                 v[i] = z
             x = v

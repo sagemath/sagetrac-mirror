@@ -1429,7 +1429,7 @@ def random_stress():
     DOCTEST (No output indicates that no errors were found)::
 
         sage: from sage.graphs.base.sparse_graph import random_stress
-        sage: for _ in xrange(20):
+        sage: for _ in range(20):
         ...    random_stress()
 
     """
@@ -1445,7 +1445,7 @@ def random_stress():
     from sage.graphs.all import DiGraph
     from sage.misc.misc import uniq
     Gold = DiGraph(multiedges=True, loops=True, implementation='networkx')
-    Gold.add_vertices(xrange(num_verts))
+    Gold.add_vertices(range(num_verts))
     for n from 0 <= n < 10:
         i = randint(0,num_verts-1)
         j = randint(0,num_verts-1)
@@ -1512,7 +1512,7 @@ def random_stress():
                     raise RuntimeError("NO:edges")
     Gnew = SparseGraph(num_verts)
     Gold = DiGraph(loops=True, multiedges=True, implementation='networkx')
-    Gold.add_vertices(xrange(num_verts))
+    Gold.add_vertices(range(num_verts))
     for n from 0 <= n < 100:
         i = randint(0,num_verts-1)
         j = randint(0,num_verts-1)

@@ -785,7 +785,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             (1, z2, z3)
 
         """
-        return tuple([self.gen(i + 1) for i in xrange(n)])
+        return tuple([self.gen(i + 1) for i in range(n)])
 
     def algebraic_closure(self):
         """

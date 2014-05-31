@@ -685,8 +685,8 @@ cdef class Converter(SageObject):
         ncols = mat.ncols
         nrows = mat.nrows
         result = Matrix(self._sage_ring, nrows, ncols)
-        for i in xrange(nrows):
-            for j in xrange(ncols):
+        for i in range(nrows):
+            for j in range(ncols):
                 p = new_sage_polynomial(self._sage_ring, mat.m[i*ncols+j])
                 mat.m[i*ncols+j]=NULL
                 result[i,j] = p
@@ -769,8 +769,8 @@ cdef class Converter(SageObject):
         nrows = mat.rows()
 
         result = Matrix(ZZ, nrows, ncols)
-        for i in xrange(nrows):
-            for j in xrange(ncols):
+        for i in range(nrows):
+            for j in range(ncols):
                 result[i,j] = mat.get(i*ncols+j)
         return result
 
@@ -834,8 +834,8 @@ cdef class Converter(SageObject):
         ncols = mat.ncols()
         nrows = mat.nrows()
         cdef matrix* _m=mpNew(nrows,ncols)
-        for i in xrange(nrows):
-            for j in xrange(ncols):
+        for i in range(nrows):
+            for j in range(ncols):
                 #FIXME
                 p = copy_sage_polynomial_into_singular_poly(mat[i,j])
                 _m.m[ncols*i+j]=p
@@ -861,7 +861,7 @@ cdef class Converter(SageObject):
         cdef lists *singular_list=<lists*>omAlloc0Bin(slists_bin)
         singular_list.Init(n)
         cdef leftv* iv
-        for i in xrange(n):
+        for i in range(n):
           iv=c.pop_front()
           memcpy(&singular_list.m[i],iv,sizeof(leftv))
           omFreeBin(iv, sleftv_bin)
@@ -877,7 +877,7 @@ cdef class Converter(SageObject):
         iv.resize(s)
         #new intvec(s);
 
-        for i in xrange(s):
+        for i in range(s):
             iv.ivGetVec()[i]=<int>a[i]
         return self._append(<void*>iv, INTVEC_CMD)
 
@@ -906,8 +906,8 @@ cdef class Converter(SageObject):
         cdef intvec *iv=intvec_new_int3(nrows, ncols, 0)
         #new intvec(s);
 
-        for i in xrange(nrows):
-            for j in xrange(ncols):
+        for i in range(nrows):
+            for j in range(ncols):
                 iv.ivGetVec()[i*ncols+j]=<int>a[i,j]
         return self._append(<void*>iv, INTMAT_CMD)
 
@@ -970,7 +970,7 @@ cdef class Converter(SageObject):
         elif rtyp == LIST_CMD:
             singular_list = <lists*> to_convert.data
             ret = []
-            for i in xrange(singular_list.nr+1):
+            for i in range(singular_list.nr+1):
                 ret.append(
                     self.to_python(
                         &(singular_list.m[i])))

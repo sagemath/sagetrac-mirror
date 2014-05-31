@@ -324,7 +324,7 @@ def _find_pow_of_frobenius(p, n, x, y):
 
     """
     from integer_mod import mod
-    for i in xrange(n):
+    for i in range(n):
         if x == y: break
         y = y**p
     else:

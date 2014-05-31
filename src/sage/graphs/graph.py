@@ -1299,16 +1299,16 @@ class Graph(GenericGraph):
                 k = int(ceil(log(n,2)))
                 ords = [ord(i) for i in s]
                 if any(o > 126 or o < 63 for o in ords):
-                    raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+                    raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in range(63,127)]))
                 bits = ''.join([generic_graph_pyx.binary(o-63).zfill(6) for o in ords])
                 b = []
                 x = []
-                for i in xrange(int(floor(len(bits)/(k+1)))):
+                for i in range(int(floor(len(bits)/(k+1)))):
                     b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
                     x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
                 v = 0
                 edges = []
-                for i in xrange(len(b)):
+                for i in range(len(b)):
                     if b[i] == 1:
                         v += 1
                     if x[i] > v:
@@ -1346,7 +1346,7 @@ class Graph(GenericGraph):
             if multiedges is None:
                 multiedges = ((not weighted) and sorted(entries) != [0,1])
 
-            for i in xrange(data.nrows()):
+            for i in range(data.nrows()):
                 if data[i,i] != 0:
                     if loops is None: loops = True
                     elif not loops:
@@ -1557,8 +1557,8 @@ class Graph(GenericGraph):
 
         if format == 'graph6':
             k = 0
-            for i in xrange(n):
-                for j in xrange(i):
+            for i in range(n):
+                for j in range(i):
                     if m[k] == '1':
                         self._backend.add_edge(i, j, None, False)
                     k += 1
@@ -1590,8 +1590,8 @@ class Graph(GenericGraph):
 
         elif format == 'rule':
             verts = list(verts)
-            for u in xrange(num_verts):
-                for v in xrange(u+1):
+            for u in range(num_verts):
+                for v in range(u+1):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
                         self._backend.add_edge(uu,vv,None,False)
@@ -1627,8 +1627,8 @@ class Graph(GenericGraph):
             from sage.rings.arith import lcm, prime_divisors
             from sage.rings.fast_arith import prime_range
             from sage.misc.misc import prod
-            for i in xrange(self.order()):
-                for j in xrange(i):
+            for i in range(self.order()):
+                for j in range(i):
                     E = curves[i]
                     F = curves[j]
                     M = E.conductor()
@@ -1715,7 +1715,7 @@ class Graph(GenericGraph):
             vertices = self.vertices()
             n = len(vertices)
             edges = self.edges(labels=False)
-            for i in xrange(len(edges)): # replace edge labels with natural numbers (by index in vertices)
+            for i in range(len(edges)): # replace edge labels with natural numbers (by index in vertices)
                 edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
             # order edges 'reverse lexicographically', that is, for
             # edge (a,b) and edge (c,d) first compare b and d, then a and c;
@@ -2485,7 +2485,7 @@ class Graph(GenericGraph):
 
         Comparison of algorithms::
 
-            sage: for i in xrange(10): # long test
+            sage: for i in range(10): # long test
             ...       G = graphs.RandomBarabasiAlbert(50,2)
             ...       bm = G.is_triangle_free(algorithm='matrix')
             ...       bb = G.is_triangle_free(algorithm='bitset')
@@ -2790,7 +2790,7 @@ class Graph(GenericGraph):
         ch = ((self.am()).charpoly()).coeffs()
         n = self.order()
 
-        for i in xrange(n-1,-1,-2):
+        for i in range(n-1,-1,-2):
             if ch[i] != 0:
                 return n-i
 
@@ -3110,7 +3110,7 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-            sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
+            sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in range(2,6))
             True
 
         A multigraph also has a strong orientation ::
@@ -3363,7 +3363,7 @@ class Graph(GenericGraph):
 
         As previously for random graphs, but more intensively::
 
-            sage: for i in xrange(30):      # long time (up to 6s on sage.math, 2012)
+            sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
             ...       g = graphs.RandomGNP(40, .4)
             ...       b = lambda v : ceil(g.degree(v)/2)
             ...       D = g.bounded_outdegree_orientation(b)
@@ -3538,18 +3538,18 @@ class Graph(GenericGraph):
 
         A complete multipartite graph with k parts has chromatic number k::
 
-            sage: all(graphs.CompleteMultipartiteGraph([5]*i).chromatic_number() == i for i in xrange(2,5))
+            sage: all(graphs.CompleteMultipartiteGraph([5]*i).chromatic_number() == i for i in range(2,5))
             True
 
         The complete graph has the largest chromatic number from all the graphs
         of order n. Namely its chromatic number is n::
 
-            sage: all(graphs.CompleteGraph(i).chromatic_number() == i for i in xrange(10))
+            sage: all(graphs.CompleteGraph(i).chromatic_number() == i for i in range(10))
             True
 
         The Kneser graph with parameters (n,2) for n > 3 has chromatic number n-2::
 
-            sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in xrange(4,6))
+            sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in range(4,6))
             True
 
         A snark has chromatic index 4 hence its line graph has chromatic number 4::
@@ -4156,7 +4156,7 @@ class Graph(GenericGraph):
 
             sage: g = 3 * graphs.PetersenGraph()
             sage: n = g.order()/3
-            sage: f = [[i,i+n,i+2*n] for i in xrange(n)]
+            sage: f = [[i,i+n,i+2*n] for i in range(n)]
             sage: isr = g.independent_set_of_representatives(f)
             sage: c = [floor(i/n) for i in isr]
             sage: color_classes = [[],[],[]]
@@ -5172,17 +5172,17 @@ class Graph(GenericGraph):
 
         By definition the clique number of a complete graph is its order::
 
-            sage: all(graphs.CompleteGraph(i).clique_number() == i for i in xrange(1,15))
+            sage: all(graphs.CompleteGraph(i).clique_number() == i for i in range(1,15))
             True
 
         A non-empty graph without edges has a clique number of 1::
 
-            sage: all((i*graphs.CompleteGraph(1)).clique_number() == 1 for i in xrange(1,15))
+            sage: all((i*graphs.CompleteGraph(1)).clique_number() == 1 for i in range(1,15))
             True
 
         A complete multipartite graph with k parts has clique number k::
 
-            sage: all((i*graphs.CompleteMultipartiteGraph(i*[5])).clique_number() == i for i in xrange(1,6))
+            sage: all((i*graphs.CompleteMultipartiteGraph(i*[5])).clique_number() == i for i in range(1,6))
             True
 
         TESTS::

@@ -555,7 +555,7 @@ def _semistable_reducible_primes(E):
     Kgal = K.galois_closure('b')
     maps = K.embeddings(Kgal)
 
-    for i in xrange(2 ** (K.degree() - 1)):
+    for i in range(2 ** (K.degree() - 1)):
         ## We iterate through all possible characters. ##
 
         # Here, if i = i_{l-1} i_{l-2} cdots i_1 i_0 in binary, then i
@@ -567,7 +567,7 @@ def _semistable_reducible_primes(E):
         phi2y = 1
 
         # We compute the two algebraic characters at x and y:
-        for j in xrange(K.degree()):
+        for j in range(K.degree()):
             if i % 2 == 1:
                 phi1x *= maps[j](x)
                 phi1y *= maps[j](y)
@@ -751,7 +751,7 @@ def _possible_normalizers(E, SA):
 
     # We find the element a of the selmer group corresponding to v:
     a = 1
-    for i in xrange(len(selmer_group)):
+    for i in range(len(selmer_group)):
         if v[i] == 1:
             a *= selmer_group[i]
 

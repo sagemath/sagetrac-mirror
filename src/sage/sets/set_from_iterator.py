@@ -222,7 +222,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         l = []
         i = iter(self)
-        for _ in xrange(6):
+        for _ in range(6):
             try:
                 l.append(i.next())
             except StopIteration:
@@ -378,7 +378,7 @@ class EnumeratedSetFromIterator(Parent):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
-            sage: S = EnumeratedSetFromIterator(xrange, args=(1,4))
+            sage: S = EnumeratedSetFromIterator(range, args=(1,4))
             sage: S(1)  # indirect doctest
             1
             sage: S(0)  # indirect doctest
@@ -549,7 +549,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         sage: from sage.sets.set_from_iterator import set_from_function
         sage: @set_from_function
         ... def f(n):
-        ...    for i in xrange(n):
+        ...    for i in range(n):
         ...        yield i**2 + i + 1
         sage: f(3)
         {1, 3, 7}

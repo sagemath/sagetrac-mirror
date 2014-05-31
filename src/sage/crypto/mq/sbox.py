@@ -376,7 +376,7 @@ class SBox(SageObject):
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
-        for i in xrange(2**self.m):
+        for i in range(2**self.m):
             yield self(i)
 
     def difference_distribution_matrix(self):
@@ -507,8 +507,8 @@ class SBox(SageObject):
 
         B = BooleanFunction(self.m)
         L = []
-        for j in xrange(ncols):
-            for i in xrange(nrows):
+        for j in range(ncols):
+            for i in range(nrows):
                 B[i] = (self(i)&j).popcount()
             L.append(B.walsh_hadamard_transform())
 
@@ -688,7 +688,7 @@ class SBox(SageObject):
             divisor = 1
             var_choices = 1
 
-            for d in xrange(1, deg+1):
+            for d in range(1, deg+1):
                 var_choices *= (nvars - d + 1)
                 divisor *= d
                 total += var_choices/divisor
@@ -784,7 +784,7 @@ class SBox(SageObject):
         if k is None:
             k = GF(2**self.m,'a')
         l = []
-        for i in xrange(2**self.m):
+        for i in range(2**self.m):
             i = self.to_bits(i, self.m)
             o = self(i)
             if self._big_endian:
@@ -957,7 +957,7 @@ class SBox(SageObject):
             output_bits = list(reversed(output_bits))
 
         C = [] # the set of clauses
-        for e in xrange(2**m):
+        for e in range(2**m):
             x = self.to_bits(e, m)
             y = self(x) # evaluate at x
             for output_bit in output_bits: # consider each bit

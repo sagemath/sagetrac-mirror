@@ -1109,7 +1109,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         self._twin = [self._twin[1], self._twin[0]]
 
         for interval in (0,1):
-            for j in xrange(self.length(interval)):
+            for j in range(self.length(interval)):
                 self._twin[interval][j] = (1-self._twin[interval][j][0],
                     self._twin[interval][j][1])
 

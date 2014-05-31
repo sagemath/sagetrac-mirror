@@ -225,7 +225,7 @@ class EtaGroup_class(AbelianGroup):
         primedivs = prime_divisors(N)
 
         rows = []
-        for i in xrange(s):
+        for i in range(s):
             # generate a row of relation matrix
             row = [ Mod(divs[i], 24) - Mod(N, 24), Mod(N/divs[i], 24) - Mod(1, 24)]
             for p in primedivs:
@@ -236,7 +236,7 @@ class EtaGroup_class(AbelianGroup):
         # now we compute elementary factors of Mlift
         S,U,V = Mlift.smith_form()
         good_vects = []
-        for i in xrange(U.nrows()):
+        for i in range(U.nrows()):
             vect = U.row(i)
             nf = (i < S.ncols() and S[i,i]) or 0
             good_vects.append((vect * 24/gcd(nf, 24)).list())
@@ -245,7 +245,7 @@ class EtaGroup_class(AbelianGroup):
         dicts = []
         for v in good_vects:
             dicts.append({})
-            for i in xrange(s):
+            for i in range(s):
                 dicts[-1][divs[i]] = v[i]
             dicts[-1][N] = v[-1]
         if reduce:
@@ -297,7 +297,7 @@ class EtaGroup_class(AbelianGroup):
             bv = A.coordinates(shortvect)
             dict = {}
             for d in divisors(N):
-                dict[d] = sum( [bv[i]*long_etas[i].r(d) for i in xrange(r.nrows())])
+                dict[d] = sum( [bv[i]*long_etas[i].r(d) for i in range(r.nrows())])
             short_etas.append(self(dict))
         return short_etas
 
@@ -707,7 +707,7 @@ def AllCusps(N):
         if n == 1:
             c.append(CuspFamily(N, d))
         elif n > 1:
-            for i in xrange(n):
+            for i in range(n):
                 c.append(CuspFamily(N, d, label=str(i+1)))
     return c
 
@@ -977,11 +977,11 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     if verbose: print "Trying all coefficients from q^%s to q^%s inclusive" % (-pole_at_infinity, -pole_at_infinity + qexp_terms - 1)
 
     rows = []
-    for j in xrange(qexp_terms):
+    for j in range(qexp_terms):
         rows.append([])
     for i in indices:
         func = (eta1**i[0]*eta2**i[1]).qexp(qexp_terms)
-        for j in xrange(qexp_terms):
+        for j in range(qexp_terms):
             rows[j].append(func[j - pole_at_infinity])
     M = matrix(rows)
     V = M.right_kernel()
@@ -994,7 +994,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
         x,y = R.gens()
         relations = []
         for c in V.basis():
-            relations.append(sum( [ c[v] * x**indices[v][0] * y**indices[v][1] for v in xrange(len(indices))]))
+            relations.append(sum( [ c[v] * x**indices[v][0] * y**indices[v][1] for v in range(len(indices))]))
             #print relations[-1], " = 0"
         id = R.ideal(relations)
         return id.groebner_basis()

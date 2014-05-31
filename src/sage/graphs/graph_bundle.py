@@ -85,12 +85,12 @@ class GraphBundle(Graph):
                     Graph.__init__(self, G, sparse=True)
                     self.base = Graph(sparse=True)
                     base_size = len(partition)
-                    self.base.add_vertices(xrange(base_size))
+                    self.base.add_vertices(range(base_size))
                     edge_list = []
-                    for j in xrange(base_size):
+                    for j in range(base_size):
                         par_j = partition[j]
                         self.fiber[j] = copy(par_j)
-                        for i in xrange(j):
+                        for i in range(j):
                             par_i = partition[i]
                             if len(par_i) < len(par_j):
                                 if len( set(self.vertex_boundary(par_i)) & set(par_j) ) > 0:

@@ -485,7 +485,7 @@ class TableauTuple(CombinatorialObject,Element):
         # There should be a fancier list compression for this but I couldn't get
         # one to work in the cases where a component was the empty partition
         diag = []
-        for row in xrange(row_max):
+        for row in range(row_max):
             line=''
             for c in range(len(self)):
                 if row == 0 and self[c] == []:
@@ -925,8 +925,8 @@ class TableauTuple(CombinatorialObject,Element):
 
         # Go through and add n+1 to the end of each of the rows
         # (We could call shape().addable_cells() but this seems more efficient)
-        for k in xrange(len(self)):
-            for row in xrange(len(self[k])):
+        for k in range(len(self)):
+            for row in range(len(self[k])):
                 if row==0 or self.shape()[k][row]<self.shape()[k][row-1]:
                     new_t=self.to_list()  # a copy
                     new_t[k][row].append(n+1)
@@ -960,8 +960,8 @@ class TableauTuple(CombinatorialObject,Element):
         n = max(self.entries())
         gens = [range(1,n+1)]
         for t in self:
-            for i in xrange(len(t)):
-                for j in xrange(0, len(t[i])-1):
+            for i in range(len(t)):
+                for j in range(0, len(t[i])-1):
                     gens.append( (t[i][j], t[i][j+1]) )
         return PermutationGroup( gens )
 
@@ -1447,7 +1447,7 @@ class StandardTableauTuple(TableauTuple):
             sage: t.dominates(s)
             False
         """
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in xrange(1,1+self.size()))
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in range(1,1+self.size()))
 
     def to_chain(self):
         """

@@ -179,7 +179,7 @@ cdef class BasisExchangeMatroid(Matroid):
             self._E = groundset
         self._idx = {}
         cdef long i
-        for i in xrange(self._groundset_size):
+        for i in range(self._groundset_size):
             self._idx[self._E[i]] = i
 
         if basis is not None:
@@ -222,7 +222,7 @@ cdef class BasisExchangeMatroid(Matroid):
         self._groundset = frozenset(E)
 
         self._idx = {}
-        for i in xrange(self._groundset_size):
+        for i in range(self._groundset_size):
             self._idx[self._E[i]] = i
 
         if self._weak_partition_var:
@@ -1038,16 +1038,16 @@ cdef class BasisExchangeMatroid(Matroid):
         flats = <bitset_t*>sage_malloc((self.full_rank() + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((self.full_rank() + 1) * sizeof(bitset_t))
 
-        for i in xrange(self.full_rank() + 1):
+        for i in range(self.full_rank() + 1):
             bitset_init(flats[i], self._bitset_size)
             bitset_init(todo[i], self._bitset_size)
-        f_vec = [0 for i in xrange(self.full_rank() + 1)]
+        f_vec = [0 for i in range(self.full_rank() + 1)]
         i = 0
         bitset_clear(todo[0])
         self.__closure(flats[0], todo[0])
         bitset_complement(todo[0], flats[0])
         self._f_vector_rec(f_vec, flats, todo, 0, 0)
-        for i in xrange(self.full_rank() + 1):
+        for i in range(self.full_rank() + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
         sage_free(flats)
@@ -1110,7 +1110,7 @@ cdef class BasisExchangeMatroid(Matroid):
         flats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_init(flats[i], self._bitset_size)
             bitset_init(todo[i], self._bitset_size)
         Rflats = SetSystem(self._E)
@@ -1119,7 +1119,7 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__closure(flats[0], todo[0])
         bitset_complement(todo[0], flats[0])
         self._flats_rec(Rflats, r, flats, todo, 0, 0)
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
         sage_free(flats)
@@ -1184,7 +1184,7 @@ cdef class BasisExchangeMatroid(Matroid):
         coflats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_init(coflats[i], self._bitset_size)
             bitset_init(todo[i], self._bitset_size)
         Rcoflats = SetSystem(self._E)
@@ -1193,7 +1193,7 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__coclosure(coflats[0], todo[0])
         bitset_complement(todo[0], coflats[0])
         self._coflats_rec(Rcoflats, r, coflats, todo, 0, 0)
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_free(coflats[i])
             bitset_free(todo[i])
         sage_free(coflats)
@@ -1230,28 +1230,28 @@ cdef class BasisExchangeMatroid(Matroid):
         flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
 
-        for i in xrange(k + 1):
+        for i in range(k + 1):
             bitset_init(flats[i], self._bitset_size)
             bitset_init(todo[i], self._bitset_size)
-        f_inc = [[0 for e in range(self._groundset_size + 1)] for i in xrange(k + 1)]
+        f_inc = [[0 for e in range(self._groundset_size + 1)] for i in range(k + 1)]
         i = 0
         bitset_clear(todo[0])
         self.__closure(flats[0], todo[0])
         bitset_complement(todo[0], flats[0])
         self._flat_element_inv_rec(f_inc, k, flats, todo, 0, 0)
-        for i in xrange(k + 1):
+        for i in range(k + 1):
             bitset_free(flats[i])
             bitset_free(todo[i])
         sage_free(flats)
         sage_free(todo)
         fie = {}
         for e in range(self._groundset_size):
-            t = tuple([f_inc[i][e] for i in xrange(k + 1)])
+            t = tuple([f_inc[i][e] for i in range(k + 1)])
             if t in fie:
                 fie[t].add(self._E[e])
             else:
                 fie[t] = set([self._E[e]])
-        f_vec = tuple([f_inc[i][self._groundset_size] for i in xrange(k + 1)])
+        f_vec = tuple([f_inc[i][self._groundset_size] for i in range(k + 1)])
         return fie, f_vec
 
     cdef _flat_element_inv_rec(self, object f_inc, long R, bitset_t* flats, bitset_t* todo, long elt, long i):
@@ -1518,7 +1518,7 @@ cdef class BasisExchangeMatroid(Matroid):
             if self.__is_independent(self._input):
                 bitset_copy(self._input2, self._current_basis)
                 e = bitset_first(self._current_basis)
-                for e in xrange(self._groundset_size):
+                for e in range(self._groundset_size):
                     if not bitset_in(self._current_basis, e):
                         self.__fundamental_circuit(self._output, e)
                         if e > bitset_first(self._output):
@@ -1568,7 +1568,7 @@ cdef class BasisExchangeMatroid(Matroid):
             if self.__is_independent(self._input):
                 bitset_copy(self._input2, self._current_basis)
                 e = bitset_first(self._current_basis)
-                for e in xrange(self._groundset_size):
+                for e in range(self._groundset_size):
                     if not bitset_in(self._current_basis, e):
                         self.__fundamental_circuit(self._output, e)
                         if e > bitset_first(self._output):
@@ -1778,7 +1778,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: PM = M._heuristic_partition()
             sage: PN = N._heuristic_partition()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])]=min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """
@@ -1864,7 +1864,7 @@ cdef class BasisExchangeMatroid(Matroid):
         Bitpacked version of ``is_isomorphism``.
         """
         cdef long i
-        morph = [other._idx[morphism[self._E[i]]] for i in xrange(len(self))]
+        morph = [other._idx[morphism[self._E[i]]] for i in range(len(self))]
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         repeat = True
@@ -1929,7 +1929,7 @@ cdef class BasisExchangeMatroid(Matroid):
         PO = other._weak_partition()
         if len(PS) == len(self) and len(PO) == len(other):
             morphism = {}
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 morphism[min(PS[i])] = min(PO[i])
             return self.__is_isomorphism(other, morphism)
 
@@ -1939,7 +1939,7 @@ cdef class BasisExchangeMatroid(Matroid):
         PO = other._strong_partition()
         if len(PS) == len(self) and len(PO) == len(other):
             morphism = {}
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 morphism[min(PS[i])] = min(PO[i])
             return self.__is_isomorphism(other, morphism)
 
@@ -1947,7 +1947,7 @@ cdef class BasisExchangeMatroid(Matroid):
             PHS = self._heuristic_partition()
             PHO = other._heuristic_partition()
             morphism = {}
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 morphism[min(PHS[i])] = min(PHO[i])
             if self._is_isomorphism(other, morphism):
                 return True

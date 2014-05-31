@@ -1028,15 +1028,15 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     mrunning = 1
     ans = []
-    for mi in xrange(m):
+    for mi in range(m):
         mrunning *= p
         R = Integers(mrunning)
         S = PolynomialRing(R, len(vars), vars)
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
-            possibles = cartesian_product_iterator([xrange(len(R)) for _ in xrange(len(vars))])
+            possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
         else:
-            shifts = cartesian_product_iterator([xrange(p) for _ in xrange(len(vars))])
+            shifts = cartesian_product_iterator([range(p) for _ in range(len(vars))])
             pairs = cartesian_product_iterator([shifts, ans])
             possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))

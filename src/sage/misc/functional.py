@@ -799,7 +799,7 @@ def interval(a, b):
         sage: 4 in I
         False
     """
-    return range(a,b+1)
+    return list(range(a,b+1))
 
 def xinterval(a, b):
     r"""

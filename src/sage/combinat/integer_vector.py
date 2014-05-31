@@ -414,15 +414,15 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
           p = MixedIntegerLinearProgram()
           b = p.new_variable(binary = True)
           for (i,c) in enumerate(p1):
-              p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
+              p.add_constraint(p.sum([b[i,j] for j in range(k2)]) ==c)
           for (i,c) in enumerate(p2):
-              p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
+              p.add_constraint(p.sum([b[j,i] for j in range(k1)]) ==c)
           p.set_objective(None)
           p.solve()
           b = p.get_values(b)
-          M = [[0]*k2 for i in xrange(k1)]
-          for i in xrange(k1):
-              for j in xrange(k2):
+          M = [[0]*k2 for i in range(k1)]
+          for i in range(k1):
+              for j in range(k2):
                   M[i][j] = int(b[i,j])
           return matrix(M)
 

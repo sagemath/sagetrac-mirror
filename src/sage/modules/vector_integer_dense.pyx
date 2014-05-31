@@ -258,7 +258,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         """
         cdef int i
         return [_Integer_from_mpz(self._entries[i]) for i in
-                                  xrange(self._degree)]
+                                  range(self._degree)]
 
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))

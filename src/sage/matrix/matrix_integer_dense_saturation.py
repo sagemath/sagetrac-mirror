@@ -87,7 +87,7 @@ def random_sublist_of_size(k, n):
         # use complement
         w = random_sublist_of_size(k, k-n)
         m = set(w)
-        w = [z for z in xrange(k) if z not in m]
+        w = [z for z in range(k) if z not in m]
         assert(len(w)) == n
         return w
 

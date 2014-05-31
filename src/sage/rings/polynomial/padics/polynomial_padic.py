@@ -58,7 +58,7 @@ class Polynomial_padic(Polynomial):
         coeffs = self.list()
         if name is None:
             name = self.parent().variable_name()
-        for n in reversed(xrange(len(coeffs))):
+        for n in reversed(range(len(coeffs))):
             x = coeffs[n]
             if x.valuation() != infinity:
                 if s:
@@ -197,7 +197,7 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
         # When the base ring is a field, we normalize
         # the irreducible factors so they have leading
         # coefficient 1.
-        for i in xrange(len(pols)):
+        for i in range(len(pols)):
             lc = pols[i].leading_coefficient()
             lc = lc.lift_to_precision()  # Ensure we don't lose precision
             pols[i] *= ~lc
@@ -206,7 +206,7 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
         # the irreducible factors so that the leading term
         # is a power of p.
         c, leading_coeff = leading_coeff.val_unit()
-        for i in xrange(len(pols)):
+        for i in range(len(pols)):
             v, upart = pols[i].leading_coefficient().val_unit()
             upart = upart.lift_to_precision()  # Ensure we don't lose precision
             pols[i] *= ~upart

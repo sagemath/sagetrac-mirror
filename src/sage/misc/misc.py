@@ -595,8 +595,8 @@ add = sum
 ##         sage: add([1,2,3])
 ##         6
 
-##     In the following example, xrange is an iterator:
-##         sage: add(xrange(101))
+##     In the following example, range is an iterator:
+##         sage: add(range(101))
 ##         5050
 
 ##     Append two sequences.
@@ -1051,7 +1051,7 @@ def nest(f, n, x):
     if n < 0:
         raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
-    for i in xrange(n):
+    for i in range(n):
         x = f(x)
     return x
 
@@ -1207,7 +1207,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         if universe is ZZ:
             return ZZ.range(start, end, step)
         else: # universe is int or universe is long:
-            return range(start, end, step)
+            return list(range(start, end, step))
 
     L = list(xsrange(start,end,step,universe,check,include_endpoint,endpoint_tolerance))
     return L
@@ -1261,7 +1261,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
 
     Negative ranges are also allowed::
 
-        sage: list(xrange(4,1,-1))
+        sage: list(range(4,1,-1))
         [4, 3, 2]
         sage: list(sxrange(4,1,-1))
         [4, 3, 2]
@@ -1316,7 +1316,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
     def generic_xsrange():
         if icount >=0:
             cur = start
-            for k in xrange(icount):
+            for k in range(icount):
                 yield cur
                 cur += step
             if include_endpoint:
@@ -1749,7 +1749,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs),x))
-        for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 subsets = powerset

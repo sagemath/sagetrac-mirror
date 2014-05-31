@@ -1195,7 +1195,7 @@ class EnumeratedFamily(LazyFamily):
         if enumset.cardinality() == Infinity:
             baseset=NonNegativeIntegers()
         else:
-            baseset=xrange(enumset.cardinality())
+            baseset=range(enumset.cardinality())
         LazyFamily.__init__(self, baseset, enumset.unrank)
         self.enumset = enumset
 

@@ -100,7 +100,7 @@ cdef class PythonPartitionStack:
             sage: P = PythonPartitionStack(7)
             sage: P.is_discrete()
             False
-            sage: [P.set_level(i,0) for i in xrange(7)]
+            sage: [P.set_level(i,0) for i in range(7)]
             [None, None, None, None, None, None, None]
             sage: P.is_discrete()
             True
@@ -531,7 +531,7 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
         [1, 2, 3, 5, 0, 4]
 
         sage: def compare_lists(p1,p2,l1,l2,deg):
-        ...    for i in xrange(len(l1)):
+        ...    for i in range(len(l1)):
         ...        j = cmp(l1[p1[i]], l2[p2[i]])
         ...        if j != 0: return j
         ...    return 0

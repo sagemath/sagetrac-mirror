@@ -971,7 +971,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                 return [X]
             else:
                 # X is a list of elements of a poly quotient ring
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
+                return [[X[i][j] for i in range(prec)] for j in range(d)]
 
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
@@ -1034,12 +1034,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             X = f.padded_list(prec)
             d = A.dimension()
             if d == 1:
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(n)]
+                return [[X[i][j] for i in range(prec)] for j in range(n)]
             else:
                 # This looks like it might be really slow -- though
                 # perhaps it's nothing compared to the time taken by
                 # whatever computed this in the first place.
-                return [[(X[i].list())[j][k] for i in xrange(prec)] for j in xrange(d) for k in range(n)]
+                return [[(X[i].list())[j][k] for i in range(prec)] for j in range(d) for k in range(n)]
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
         else:
@@ -1247,7 +1247,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             # should we perhaps check at this point if self is new?
             f = self.q_eigenform(prec, names)
             R = PowerSeriesRing(self.base_ring(), 'q')
-            B = [R([f[i][j] for i in xrange(prec)],prec) for j in range(self.rank())]
+            B = [R([f[i][j] for i in range(prec)],prec) for j in range(self.rank())]
             return B
         else:
             raise NotImplementedError

@@ -581,14 +581,14 @@ def RandomTree(n):
     g = Graph()
 
     # create random Prufer code
-    code = [ randint(0,n-1) for i in xrange(n-2) ]
+    code = [ randint(0,n-1) for i in range(n-2) ]
 
     # We count the number of symbols of each type.
     # count[k] is the no. of times k appears in code
     #
     # (count[k] is set to -1 when the corresponding vertex is not
     # available anymore)
-    count = [ 0 for i in xrange(n) ]
+    count = [ 0 for i in range(n) ]
     for k in code:
         count[k] += 1
 

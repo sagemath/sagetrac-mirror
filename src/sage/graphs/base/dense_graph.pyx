@@ -610,7 +610,7 @@ def random_stress():
     DOCTEST (No output indicates that no errors were found)::
 
         sage: from sage.graphs.base.dense_graph import random_stress
-        sage: for _ in xrange(400):
+        sage: for _ in range(400):
         ...    random_stress()
 
     """

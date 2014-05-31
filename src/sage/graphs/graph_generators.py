@@ -1516,9 +1516,9 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
 
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
-            for i in xrange(len(children)):
+            for i in range(len(children)):
                 k = 0
-                for j in xrange(possibilities):
+                for j in range(possibilities):
                     if (1 << j)&i:
                         if dig and j >= n:
                             k += (1 << (gen[j-n]+n))
@@ -1619,7 +1619,7 @@ def check_aut(aut_gens, cut_vert, n):
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for i in xrange(len(perm)):
+            for i in range(len(perm)):
                 new_perm[i] = gen[perm[i]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)
@@ -1694,22 +1694,22 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices
         if dig:
-            children = [[(j,i) for i in xrange(n)] for j in xrange(n)]
+            children = [[(j,i) for i in range(n)] for j in range(n)]
         else:
-            children = [[(j,i) for i in xrange(j)] for j in xrange(n)]
+            children = [[(j,i) for i in range(j)] for j in range(n)]
         # union-find C(g) under Aut(g)
         orbits = range(n)
         for gen in aut_gens:
-            for iii in xrange(n):
+            for iii in range(n):
                 if orbits[gen[iii]] != orbits[iii]:
                     temp = orbits[gen[iii]]
-                    for jjj in xrange(n):
+                    for jjj in range(n):
                         if orbits[jjj] == temp:
                             orbits[jjj] = orbits[iii]
                 if dig:
                     jjj_range = range(iii) + range(iii+1, n)
                 else:
-                    jjj_range = xrange(iii) # iii > jjj
+                    jjj_range = range(iii) # iii > jjj
                 for jjj in jjj_range:
                     i, j = iii, jjj
                     if dig:
@@ -1759,7 +1759,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
                     roots.append((i,j))
         if loops:
             seen = []
-            for i in xrange(n):
+            for i in range(n):
                 if orbits[i] not in seen:
                     roots.append((i,i))
                     seen.append(orbits[i])
@@ -1773,7 +1773,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
                 continue
             z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
             relabel_inverse = [0]*n
-            for ii in xrange(n):
+            for ii in range(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
             cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
@@ -1825,7 +1825,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for ii in xrange(n):
+            for ii in range(n):
                 new_perm[ii] = gen[perm[ii]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)

@@ -74,7 +74,7 @@ class Debug:
             tb=sys.last_traceback
             #we strip off the 5 outermost frames, since those relate only to
             #the notebook, not user code
-            for i in xrange(5):
+            for i in range(5):
                 tb=tb.tb_next
             self._stack = inspect.getinnerframes(tb)
         except AttributeError:

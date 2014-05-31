@@ -13,7 +13,7 @@ class GenIter(SageObject):
     """
     def __init__(self, Generators gens):
         if gens._index_set is None:
-            self._index_iter = iter(xrange(gens.count()))
+            self._index_iter = iter(range(gens.count()))
         else:
             self._index_iter = iter(gens._index_set)
         self._gens = gens

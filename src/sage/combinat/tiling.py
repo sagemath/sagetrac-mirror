@@ -1300,7 +1300,7 @@ class TilingSolver(SageObject):
         if self._starting_rows is None:
             self.rows()
         L = self._starting_rows
-        return [L[i+1] - L[i] for i in xrange(len(L)-1)]
+        return [L[i+1] - L[i] for i in range(len(L)-1)]
 
     def dlx_solver(self):
         r"""
@@ -1470,9 +1470,9 @@ class TilingSolver(SageObject):
                     common_prefix += 1
                 else:
                     break
-            for i in xrange(1, len(A)-common_prefix):
+            for i in range(1, len(A)-common_prefix):
                 yield A[:-i]
-            for j in xrange(common_prefix, len(B)):
+            for j in range(common_prefix, len(B)):
                 yield B[:j]
 
     def solve(self, partial=None):

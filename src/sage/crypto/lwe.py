@@ -123,7 +123,7 @@ class DiscreteGaussianSamplerRejection(SageObject):
         sage: DiscreteGaussianSamplerRejection(3.0)()
         -1
         sage: gs = DiscreteGaussianSamplerRejection(3.0, precision=100, tailcut=1.0)
-        sage: all(gs() <= 3.0 for _ in xrange(1000))
+        sage: all(gs() <= 3.0 for _ in range(1000))
         True
 
     .. automethod:: __init__
@@ -143,7 +143,7 @@ class DiscreteGaussianSamplerRejection(SageObject):
 
             sage: from sage.crypto.lwe import DiscreteGaussianSamplerRejection
             sage: gs = DiscreteGaussianSamplerRejection(3.0)
-            sage: sqrt(variance([gs() for _ in xrange(1000)])).n()
+            sage: sqrt(variance([gs() for _ in range(1000)])).n()
             2.965...
         """
         self.stddev = stddev
@@ -215,7 +215,7 @@ class DiscreteGaussianPolynomialSamplerRejection(SageObject):
         sage: DiscreteGaussianPolynomialSamplerRejection(8, 3.0)()
         x^7 - x^6 - 2*x^4 + 2*x^3 - x^2 + x - 1
         sage: gs = DiscreteGaussianPolynomialSamplerRejection(8, 3.0, precision=100, tailcut=1.0)
-        sage: [gs() for _ in xrange(3)]
+        sage: [gs() for _ in range(3)]
         [-x^7 + x^6 + 2*x^5 + 2*x^4 - x^3 - x^2 - 1,
          x^7 - 2*x^6 + 2*x^5 + x^4 - x^3 + 2*x^2 - x + 2,
          x^5 + 2*x^3 + 2*x + 1]
@@ -245,7 +245,7 @@ class DiscreteGaussianPolynomialSamplerRejection(SageObject):
             sage: DiscreteGaussianPolynomialSamplerRejection(8, 3.0)()
             x^7 - x^6 - 2*x^4 + 2*x^3 - x^2 + x - 1
             sage: gs = DiscreteGaussianPolynomialSamplerRejection(8, 3.0, precision=100, tailcut=1.0)
-            sage: [gs() for _ in xrange(3)]
+            sage: [gs() for _ in range(3)]
             [-x^7 + x^6 + 2*x^5 + 2*x^4 - x^3 - x^2 - 1,
              x^7 - 2*x^6 + 2*x^5 + x^4 - x^3 + 2*x^2 - x + 2,
              x^5 + 2*x^3 + 2*x + 1]
@@ -926,7 +926,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
         f = lambda a_c: a_c
     else:
         f = balance_sample
-    return [f(lwe()) for _ in xrange(m)]
+    return [f(lwe()) for _ in range(m)]
 
 def balance_sample(s, q=None):
     r"""

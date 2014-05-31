@@ -588,7 +588,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                 M = self._basis_keys
                 def exp_to_monomial(T):
                     out = []
-                    for i in xrange(len(T)):
+                    for i in range(len(T)):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
@@ -847,8 +847,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         n = self.__ngens
         cmat = Matrix(base_ring, n)
         dmat = Matrix(self, n)
-        for i in xrange(n):
-            for j in xrange(i+1,n):
+        for i in range(n):
+            for j in range(i+1,n):
                 cmat[i,j] = 1
         for (to_commute,commuted) in relations.iteritems():
             #This is dirty, coercion is broken

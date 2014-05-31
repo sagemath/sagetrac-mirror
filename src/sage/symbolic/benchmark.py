@@ -49,13 +49,13 @@ Problem R5::
 
 Problem R6::
 
-    sage: sum(((x+sin(i))/x+(x-sin(i))/x) for i in xrange(100)).expand()
+    sage: sum(((x+sin(i))/x+(x-sin(i))/x) for i in range(100)).expand()
     200
 
 Problem R7::
 
     sage: f = x^24+34*x^12+45*x^3+9*x^18 +34*x^10+ 32*x^21
-    sage: a = [f(x=random()) for _ in xrange(10^4)]
+    sage: a = [f(x=random()) for _ in range(10^4)]
 
 Problem R10::
 

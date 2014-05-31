@@ -443,7 +443,7 @@ cdef class CoinBackend(GenericBackend):
         cdef int * rows = <int *>sage_malloc(m * sizeof(int *))
         cdef int nrows = self.si.getNumRows()
 
-        for i in xrange(m):
+        for i in range(m):
 
             c = constraints[i]
             if c < 0 or c >= nrows:

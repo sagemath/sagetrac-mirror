@@ -155,7 +155,7 @@ class ChooseNK(CombinatorialClass):
             sage: ChooseNK(5,2).random_element()
             [0, 2]
         """
-        r = sorted(rnd.sample(xrange(self._n),self._k))
+        r = sorted(rnd.sample(range(self._n),self._k))
         return r
 
     def unrank(self, r):

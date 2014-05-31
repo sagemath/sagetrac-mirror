@@ -121,7 +121,7 @@ class SplitNK_nk(CombinatorialClass):
             sage: SplitNK(5,2).random_element()
             [[0, 2], [1, 3, 4]]
         """
-        r = rnd.sample(xrange(self._n),self._n)
+        r = rnd.sample(range(self._n),self._n)
         r0 = r[:self._k]
         r1 = r[self._k:]
         r0.sort()

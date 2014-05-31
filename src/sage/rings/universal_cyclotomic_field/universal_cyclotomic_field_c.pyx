@@ -136,7 +136,7 @@ cpdef ZumbroichBasisCython(int n, int m = 1):
         mu = quo_fac_dict[p]
         n_fac = n_fac_dict[ p ]
         m_fac = n_fac - mu
-        for k in xrange(m_fac, n_fac):
+        for k in range(m_fac, n_fac):
             list_of_index_sets.append([ n*i / p**(k+1) for i in ZumbroichIndexSet(p, k) ])
     index_tuples = product(*list_of_index_sets)
     cdef int size = prod([ len(index_set) for index_set in list_of_index_sets ])
@@ -197,7 +197,7 @@ cpdef ZumbroichDecomposition(int n, int i):
 
     for tup in prime_index_tuples:
         k = (i + sum([ n * tup[j] / mod_prime[j] for j in
-                       xrange(len(mod_prime))] )) % n
+                       range(len(mod_prime))] )) % n
         return_dict[ (n,k) ] = c
 
     return return_dict
@@ -558,7 +558,7 @@ cpdef dict_vector_multiplication(int n, tuple l1, tuple l2):
     cdef dict empty_dict = {}
     cdef dict D1, D2
 
-    for i in xrange(len(l1)):
+    for i in range(len(l1)):
         D1 = l1[i]
         D2 = l2[i]
         if D1 == empty_dict or D2 == empty_dict:

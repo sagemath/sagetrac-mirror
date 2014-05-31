@@ -694,7 +694,7 @@ class Partition(CombinatorialObject, Element):
             CombinatorialObject.__init__(self, mu._list)
             return
 
-        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in xrange(len(mu)-1)) \
+        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in range(len(mu)-1)) \
                 and mu[-1] in NN):
             Element.__init__(self, parent)
             if 0 in mu:
@@ -2097,7 +2097,7 @@ class Partition(CombinatorialObject, Element):
         else:
             l = len(p)
             conj =  [l]*p[-1]
-            for i in xrange(l-1,0,-1):
+            for i in range(l-1,0,-1):
                 conj.extend([i]*(p[i-1] - p[i]))
             return Partition(conj)
 
@@ -4430,7 +4430,7 @@ class Partition(CombinatorialObject, Element):
         Checks that the dimension satisfies the obvious recursion relation::
 
             sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
-            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10)
+            sage: all(test(larger,smaller) for l in range(1,10) for s in range(0,10)
             ....:     for larger in Partitions(l) for smaller in Partitions(s) if smaller != larger)
             True
 
@@ -4975,7 +4975,7 @@ class Partitions(UniqueRepresentation, Parent):
             return True
         if isinstance(x, (list, tuple)):
             return len(x) == 0 or (x[-1] in NN and
-                                   all(x[i] in NN and x[i] >= x[i+1] for i in xrange(len(x)-1)))
+                                   all(x[i] in NN and x[i] >= x[i+1] for i in range(len(x)-1)))
 
     def from_frobenius_coordinates(self, frobenius_coordinates):
         """
@@ -5011,7 +5011,7 @@ class Partitions(UniqueRepresentation, Parent):
             tmp.extend([r]*b[r-1])
         else:
             raise ValueError('%s is not a partition, no coordinate can be negative'%str(frobenius_coordinates))
-        for i in xrange(r-1,0,-1):
+        for i in range(r-1,0,-1):
             if b[i-1]-b[i] > 0:
                 tmp.extend([i]*(b[i-1]-b[i]-1))
             else:

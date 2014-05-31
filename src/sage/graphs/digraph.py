@@ -754,7 +754,7 @@ class DiGraph(GenericGraph):
             if multiedges is None:
                 multiedges = ((not weighted) and sorted(entries) != [0,1])
 
-            for i in xrange(data.nrows()):
+            for i in range(data.nrows()):
                 if data[i,i] != 0:
                     if loops is None: loops = True
                     elif not loops:
@@ -940,8 +940,8 @@ class DiGraph(GenericGraph):
 
         if format == 'dig6':
             k = 0
-            for i in xrange(n):
-                for j in xrange(n):
+            for i in range(n):
+                for j in range(n):
                     if m[k] == '1':
                         self._backend.add_edge(i, j, None, True)
                     k += 1
@@ -963,8 +963,8 @@ class DiGraph(GenericGraph):
             self.name(data.name())
         elif format == 'rule':
             verts = list(verts)
-            for u in xrange(num_verts):
-                for v in xrange(num_verts):
+            for u in range(num_verts):
+                for v in range(num_verts):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
                         self._backend.add_edge(uu,vv,None,True)

@@ -190,7 +190,7 @@ def test_word_perms(t_limit=5.0):
     S = Permutations(range(n))
     t = cputime()
     while cputime(t) < t_limit:
-        word = [randint(0,1) for _ in xrange(n)]
+        word = [randint(0,1) for _ in range(n)]
         cw1 = 0
         for j from 0 <= j < n:
             cw1 += (<codeword>word[j]) << (<codeword>j)

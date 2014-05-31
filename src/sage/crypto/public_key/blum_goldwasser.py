@@ -361,7 +361,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         x0 = mod(v*a*p + u*b*q, n).lift()
         # perform the decryption
         M = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
             M.append(map(xor, p, c[i]))
@@ -540,7 +540,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         # perform the encryption
         to_int = lambda x: int(str(x))
         C = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of

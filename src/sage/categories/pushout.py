@@ -2833,7 +2833,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if len(self.polys)==1:
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]], **self.kwds)
-                for i in xrange(len(self.polys))]
+                for i in range(len(self.polys))]
 
 class AlgebraicClosureFunctor(ConstructionFunctor):
     """

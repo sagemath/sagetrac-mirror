@@ -1747,7 +1747,7 @@ class PartitionTuples_all(PartitionTuples):
              ([], [], [], [])]
         """
         for size in NN:
-            for level in xrange(size+1):
+            for level in range(size+1):
                 for mu in PartitionTuples_level_size(level+1,size-level):
                     yield self._element_constructor_(mu)
 

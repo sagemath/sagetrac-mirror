@@ -574,7 +574,7 @@ def representation_vector_list(self, B, maxvectors = 10**8):
     n, m, vs = self._pari_().qfminim(2*(B-1), maxvectors)
     if n != 2 * len(vs):
         raise RuntimeError("insufficient number of vectors")
-    ms = [[] for _ in xrange(B)]
+    ms = [[] for _ in range(B)]
     ms[0] = [vector([0] * self.dim())]
     for v in vs._sage_().columns():
         ms[int(self(v))] += [v, -v]

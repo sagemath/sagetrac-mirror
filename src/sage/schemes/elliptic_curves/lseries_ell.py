@@ -488,7 +488,7 @@ class Lseries_ell(SageObject):
         L = R.zero()
         error = Rerror.zero()
 
-        for n in xrange(1,k+1):
+        for n in range(1,k+1):
             term = (zpow * an[n])/n
             zpow *= z
             L += term
@@ -643,7 +643,7 @@ class Lseries_ell(SageObject):
         # Sum of |an[n]|/n
         sumann = Rerror.zero()
 
-        for n in xrange(1,k+1):
+        for n in range(1,k+1):
             term = (v[n-1] * an[n])/n
             L += term
             error += term.epsilon(Rerror)*5 + L.ulp(Rerror)

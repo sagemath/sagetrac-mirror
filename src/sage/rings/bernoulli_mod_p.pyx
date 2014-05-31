@@ -109,7 +109,7 @@ def bernoulli_mod_p(int p):
 
         sage: bernoulli_mod_p(37)
          [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
-        sage: [bernoulli(n) % 37 for n in xrange(0, 36, 2)]
+        sage: [bernoulli(n) % 37 for n in range(0, 36, 2)]
          [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
 
     Boundary case:
@@ -258,27 +258,27 @@ def bernoulli_mod_p_single(long p, long k):
 
         sage: bernoulli_mod_p(37)
          [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
-        sage: [bernoulli_mod_p_single(37, n) % 37 for n in xrange(0, 36, 2)]
+        sage: [bernoulli_mod_p_single(37, n) % 37 for n in range(0, 36, 2)]
          [1, 31, 16, 15, 16, 4, 17, 32, 22, 31, 15, 15, 17, 12, 29, 2, 0, 2]
 
         sage: bernoulli_mod_p(31)
          [1, 26, 1, 17, 1, 9, 11, 27, 14, 23, 13, 22, 14, 8, 14]
-        sage: [bernoulli_mod_p_single(31, n) % 31 for n in xrange(0, 30, 2)]
+        sage: [bernoulli_mod_p_single(31, n) % 31 for n in range(0, 30, 2)]
          [1, 26, 1, 17, 1, 9, 11, 27, 14, 23, 13, 22, 14, 8, 14]
 
         sage: bernoulli_mod_p(3)
          [1]
-        sage: [bernoulli_mod_p_single(3, n) % 3 for n in xrange(0, 2, 2)]
+        sage: [bernoulli_mod_p_single(3, n) % 3 for n in range(0, 2, 2)]
          [1]
 
         sage: bernoulli_mod_p(5)
          [1, 1]
-        sage: [bernoulli_mod_p_single(5, n) % 5 for n in xrange(0, 4, 2)]
+        sage: [bernoulli_mod_p_single(5, n) % 5 for n in range(0, 4, 2)]
          [1, 1]
 
         sage: bernoulli_mod_p(7)
          [1, 6, 3]
-        sage: [bernoulli_mod_p_single(7, n) % 7 for n in xrange(0, 6, 2)]
+        sage: [bernoulli_mod_p_single(7, n) % 7 for n in range(0, 6, 2)]
          [1, 6, 3]
 
     AUTHOR:

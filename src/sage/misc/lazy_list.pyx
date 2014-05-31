@@ -18,7 +18,7 @@ EXAMPLES::
     sage: P[12:23].list()
     [41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83]
 
-    sage: f = lazy_list((i**2-3*i for i in xrange(10)))
+    sage: f = lazy_list((i**2-3*i for i in range(10)))
     sage: for i in f: print i,
     0 -2 -2 0 4 10 18 28 40 54
     sage: i1 = iter(f)
@@ -75,7 +75,7 @@ cdef class lazy_list_iterator(object):
         EXAMPLES::
 
             sage: from sage.misc.lazy_list import lazy_list
-            sage: l = lazy_list(2*i for i in xrange(2**10))
+            sage: l = lazy_list(2*i for i in range(2**10))
             sage: e1 = iter(l)
             sage: e2 = iter(l)
             sage: e1.next(), e1.next()
@@ -711,7 +711,7 @@ cdef class lazy_list(object):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(xrange(10000)))
+            sage: l = lazy_list(iter(range(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1.start_stop_step() == l2.start_stop_step()

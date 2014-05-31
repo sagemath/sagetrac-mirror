@@ -181,9 +181,7 @@ def ZS1_iterator(int n):
                 if t > 1:
                     h += 1
                     x[h] = t
-        #yield [x[i] for i in xrange(m+1)]
         yield x[:m+1]
-    #free(x)
 
 def ZS1_iterator_nk(int n, int k):
     """

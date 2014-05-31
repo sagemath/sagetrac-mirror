@@ -347,9 +347,9 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ##         # We convert the pivots to a set so we have fast
 ##         # inclusion testing
 ##         X = set(self.pivots())
-##         # [j for j in xrange(self.ncols()) if not (j in X)]
+##         # [j for j in range(self.ncols()) if not (j in X)]
 ##         np = []
-##         for j in xrange(self.ncols()):
+##         for j in range(self.ncols()):
 ##             if not (j in X):
 ##                 np.append(j)
 ##         return np
@@ -380,7 +380,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ##         C = set(columns)
 ##         X = []
 ##         j = 0
-##         for i in xrange(self.ncols()):
+##         for i in range(self.ncols()):
 ##             if i in C:
 ##                 X.append(j)
 ##                 j = j + 1
@@ -404,11 +404,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ##             a sparse matrix.
 ##         """
 ##         R = set(rows)
-##         if not R.issubset(set(xrange(self.nrows()))):
+##         if not R.issubset(set(range(self.nrows()))):
 ##             raise ArithmeticError, "Invalid rows."
 ##         X = []
 ##         i = 0
-##         for j in xrange(self.nrows()):
+##         for j in range(self.nrows()):
 ##             if j in R:
 ##                 X.append(i)
 ##                 i = i + 1
@@ -508,7 +508,7 @@ def Matrix_sparse_from_rows(X):
 
 cdef _convert_sparse_entries_to_dict(entries):
     e = {}
-    for i in xrange(len(entries)):
+    for i in range(len(entries)):
         for j, x in (entries[i].dict()).iteritems():
             e[(i,j)] = x
     return e
