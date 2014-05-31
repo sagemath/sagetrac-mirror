@@ -1,5 +1,4 @@
 include "sage/ext/cdefs.pxi"
-include "sage/libs/flint/fmpz.pxi"
 
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *

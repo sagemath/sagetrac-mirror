@@ -39,6 +39,7 @@ include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 
+from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 
 x = polygen(ZZ, 'x')

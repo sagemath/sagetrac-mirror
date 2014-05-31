@@ -8,8 +8,9 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include "../../ext/interrupt.pxi"
-include "fmpz.pxi"
+include "sage/ext/interrupt.pxi"
+
+from fmpz cimport *
 
 cdef extern from "flint/fmpq.h":
     ctypedef void * fmpq_t

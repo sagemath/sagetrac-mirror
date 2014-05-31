@@ -1,7 +1,8 @@
-include "fmpz.pxi"
 include "sage/libs/ntl/decl.pxi"
 
-from sage.libs.flint.nmod_poly cimport nmod_poly_t
+from flint cimport ulong, slong
+from fmpz cimport fmpz, fmpz_t
+from nmod_poly cimport nmod_poly_t
 
 cdef extern from "flint/fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:

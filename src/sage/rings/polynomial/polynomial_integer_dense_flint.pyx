@@ -41,8 +41,8 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
-from sage.libs.flint.ntl_interface cimport fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
-from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
+from sage.libs.flint.fmpz cimport *
+from sage.libs.ntl.ntl_ZZX_decl cimport *
 
 cdef extern from "limits.h":
     long LONG_MAX

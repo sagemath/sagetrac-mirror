@@ -21,12 +21,13 @@ include "sage/libs/ntl/decl.pxi"
 
 include "sage/ext/cdefs.pxi"
 
+from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.ntl_interface cimport *
 
 from sage.interfaces.all import singular as singular_default
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.flint.ntl_interface cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ

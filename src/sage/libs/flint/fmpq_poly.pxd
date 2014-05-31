@@ -7,6 +7,8 @@
 ###############################################################################
 
 from sage.libs.gmp.types cimport mpz_t, mpq_t
+from fmpz cimport fmpz_t
+from fmpz_poly cimport fmpz_poly_t
 
 cdef extern from "flint/fmpq.h":
     ctypedef void * fmpq_t
@@ -18,11 +20,11 @@ cdef extern from "flint/fmpq.h":
 cdef extern from "flint/fmpz_vec.h":
     long _fmpz_vec_max_limbs(void * c, long n)
 
-from fmpz_poly cimport *
-
 cdef extern from "flint/fmpq_poly.h":
-    ctypedef void * fmpz_t
-    ctypedef void * fmpq_poly_t
+    ctypedef struct fmpq_poly_struct:
+        pass
+
+    ctypedef fmpq_poly_struct fmpq_poly_t[1]
 
     void fmpq_poly_canonicalise(fmpq_poly_t)
 
