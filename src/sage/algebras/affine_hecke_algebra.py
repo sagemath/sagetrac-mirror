@@ -303,7 +303,6 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         # build the components of the various realizations
         from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
         self._E = ExtendedAffineWeylGroup(cartan_type, self._general_linear, fundamental="")
-        self._PvW0 = self._E.PvW0()
         self._FW = self._E.FW()
         self._F = self._E.fundamental_group()
         self._Wa = self._E.affine_weyl()
@@ -428,9 +427,10 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
 
             sage: ExtendedAffineHeckeAlgebra("A2")
             The affine Hecke algebra of type ['A', 2, 1]
-
+            sage: ExtendedAffineHeckeAlgebra("A2", general_linear=True)
+            The affine Hecke algebra of type GL(3)
         """
-        return "The affine Hecke algebra of type %s"%self.cartan_type()
+        return "The affine Hecke algebra of type %s"%(self.cartan_type() if not self._general_linear else "GL(%s)"%self._n)
 
     def base_ring(self):
         return self._base_ring
@@ -458,13 +458,13 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: ExtendedAffineHeckeAlgebra(['A',2,1]).extended_affine_weyl()
-            Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Multiplicative form of Weight lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the weight lattice)
+            Extended affine Weyl group of type ['A', 2, 1]
             sage: ExtendedAffineHeckeAlgebra(['C',2,1]).extended_affine_weyl()
-            Extended affine Weyl group of type ['C', 2, 1] realized by Semidirect product of Multiplicative form of Weight lattice of the Root system of type ['B', 2] acted upon by Weyl Group of type ['B', 2] (as a matrix group acting on the weight lattice)
+            Extended affine Weyl group of type ['C', 2, 1]
             sage: ExtendedAffineHeckeAlgebra(['D',3,2]).extended_affine_weyl()
-            Extended affine Weyl group of type ['C', 2, 1]^* realized by Semidirect product of Multiplicative form of Weight lattice of the Root system of type ['B', 2] acted upon by Weyl Group of type ['B', 2] (as a matrix group acting on the weight lattice)
+            Extended affine Weyl group of type ['C', 2, 1]^*
         """
-        return self._PvW0
+        return self._E
 
     def affine_weyl(self):
         r"""
@@ -1214,7 +1214,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
                 raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
             # in the extended affine Weyl group, express pi as w t_mu with w in W(Y) and mu in Y.
             E = H.extended_affine_weyl()
-            x = E.fundamental_group_morphism(pi)
+            x = E.PvW0().fundamental_group_morphism(pi)
             rw = x.to_dual_classical_weyl().reduced_word()
             mu = x.to_dual_translation_right().to_ambient()
             HY = H.dual_classical_hecke()
@@ -1369,7 +1369,7 @@ class ExtendedAffineHeckeAlgebra(UniqueRepresentation, Parent):
             if not H._dual_reduced:
                 raise ValueError, "Nontrivial fundamental group elements disallowed if the dual affine root system is nonreduced"
             # express pi as t_mu w with w in W(Y) and mu in Y.
-            x = H._PvW0.fundamental_group_morphism(pi)
+            x = H.extended_affine_weyl().PvW0().fundamental_group_morphism(pi)
             rw = x.to_dual_classical_weyl().reduced_word()
             mu = x.to_dual_translation_left().to_ambient()
             tv = self.factor(1)
