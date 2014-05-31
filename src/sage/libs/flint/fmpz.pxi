@@ -1,5 +1,7 @@
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.types cimport mpz_t
+
 cdef extern from "flint/fmpz.h":
 
     ctypedef unsigned long int mp_limb_t
@@ -10,7 +12,6 @@ cdef extern from "flint/fmpz.h":
 
     ctypedef long fmpz
     ctypedef long * fmpz_t
-    ctypedef void * mpz_t
 
     void fmpz_init(fmpz_t x)
 

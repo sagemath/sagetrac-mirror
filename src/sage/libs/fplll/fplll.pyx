@@ -878,14 +878,12 @@ cdef to_sage(ZZ_mat *A):
         A -- ZZ_mat
     """
     cdef int i,j
-    cdef mpz_t *t
 
     cdef Matrix_integer_dense B = <Matrix_integer_dense>matrix(ZZ,
                                                                A.GetNumRows(),
                                                                A.GetNumCols())
 
-    for i from 0 <= i < A.GetNumRows():
-        for j from 0 <= j < A.GetNumCols():
-            t = &B._matrix[i][j]
-            mpz_set(t[0], A.Get(i,j).GetData())
+    for i in range(A.GetNumRows()):
+        for j in range(A.GetNumCols()):
+            mpz_set(B._matrix[i][j], A.Get(i,j).GetData())
     return B

@@ -137,11 +137,13 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
     ########################################################################
 
     def __cinit__(self, parent, entries,copy, coerce):
-        mpz_init(self.a)
-        mpz_init(self.b)
-        mpz_init(self.c)
-        mpz_init(self.d)
-        self._entries = &self.a
+        cdef int i
+        for i in range(4):
+            mpz_init(self._entries[i])
+        self.a = self._entries[0]
+        self.b = self._entries[1]
+        self.c = self._entries[2]
+        self.d = self._entries[3]
         self._parent = parent
         self._base_ring = ZZ
         self._nrows = 2
@@ -214,10 +216,9 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             mpz_set(self.d, (<Integer>x).value)
 
     def  __dealloc__(self):
-        mpz_clear(self.a)
-        mpz_clear(self.b)
-        mpz_clear(self.c)
-        mpz_clear(self.d)
+        cdef int i
+        for i in range(4):
+            mpz_clear(self._entries[i])
 
     def testit(self):
         print "testing",self._base_ring
@@ -611,7 +612,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             16
         """
         cdef Integer z = PY_NEW(Integer)
-        mpz_add(z.value, self._entries[0], self._entries[3])
+        mpz_add(z.value, self.a, self.d)
         return z
 
     def charpoly(self, var='x'):

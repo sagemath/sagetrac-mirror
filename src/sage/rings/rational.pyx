@@ -99,6 +99,11 @@ cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
 
+cdef extern from "gmp.h":
+    # We need access to _mp_d directly
+    ctypedef struct real_mpz_struct "__mpz_struct":
+        mp_ptr _mp_d
+
 cdef class Rational(sage.structure.element.FieldElement)
 
 cdef inline void set_from_mpq(Rational self, mpq_t value):
@@ -3589,7 +3594,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
     # Convert q to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_ptr q_limbs = (<real_mpz_struct*>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]

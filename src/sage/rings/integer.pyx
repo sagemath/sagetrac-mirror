@@ -250,8 +250,8 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
     # Now we have a true PARI integer, convert it to Sage
     t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
-cdef mpz_t* get_value(Integer self):
-    return &self.value
+cdef __mpz_struct *get_value(Integer self):
+    return self.value
 
 
 def _test_mpz_set_longlong(long long v):
@@ -1593,12 +1593,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef mpz_t* get_value(Integer self):
-        return &self.value
+    cdef __mpz_struct *get_value(Integer self):
+        return self.value
 
     cdef void _to_ZZ(self, ZZ_c *z):
         sig_on()
-        mpz_to_ZZ(z, &self.value)
+        mpz_to_ZZ(z, self.value)
         sig_off()
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -6187,11 +6187,8 @@ cdef class long_to_Z(Morphism):
 
 include "sage/ext/python_rich_object.pxi"
 cdef extern from "gmp.h":
-    ctypedef long mp_limb_t
-    ctypedef mp_limb_t* mp_ptr #"mp_ptr"
-
     # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
-    ctypedef struct __mpz_struct "__mpz_struct":
+    ctypedef struct real_mpz_struct "__mpz_struct":
         int _mp_alloc
         int _mp_size
         mp_ptr _mp_d
@@ -6317,7 +6314,7 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         # because the rest of the mpz struct was already initialized
         # fully using the memcpy above.
 
-        (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
+        (<real_mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
@@ -6351,11 +6348,11 @@ cdef void fast_tp_dealloc(PyObject* o):
 
         # Here we free any extra memory used by the mpz_t by
         # setting it to a single limb.
-        if (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 10:
-            _mpz_realloc(<mpz_t *>( <char *>o + mpz_t_offset), 10)
+        if (<real_mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 10:
+            _mpz_realloc(<__mpz_struct *>( <char *>o + mpz_t_offset), 10)
 
         # It's cheap to zero out an integer, so do it here.
-        (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_size = 0
+        (<real_mpz_struct *>( <char *>o + mpz_t_offset))._mp_size = 0
 
         # And add it to the pool.
         integer_pool[integer_pool_count] = o
@@ -6366,7 +6363,7 @@ cdef void fast_tp_dealloc(PyObject* o):
     # The clean version of this line would be:
     #   mpz_clear(<mpz_t>(<char *>o + mpz_t_offset))
 
-    mpz_free((<__mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
+    mpz_free((<real_mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
@@ -6392,7 +6389,7 @@ cdef hook_fast_tp_functions():
     # the destructor.
     # Eventually this may be rendered obsolete by a change in Cython allowing
     # non-reference counted extension types.
-    mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
+    mpz_t_offset = <char *>global_dummy_Integer.value - <char *>o
     global mpz_t_offset_python
     mpz_t_offset_python = mpz_t_offset
 

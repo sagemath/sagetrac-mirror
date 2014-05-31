@@ -1,24 +1,32 @@
+### Type Declarations ###
+
 cdef extern from "gmp.h":
 
-    ### Type Declarations ###
-
     # Underlying typedefs
-    ctypedef unsigned long mp_limb_t
-    ctypedef long mp_size_t
-    ctypedef long mp_exp_t
+    ctypedef unsigned long int mp_limb_t
+    ctypedef long int mp_limb_signed_t
 
-    ctypedef long mp_limb_t
-    ctypedef mp_limb_t* mp_ptr
+    ctypedef mp_limb_t mp_bitcnt_t
 
-    # User-level types
-    ctypedef void* mpz_t
-    ctypedef void* mpq_t
-    ctypedef void* mpf_t
-    ctypedef void* gmp_randstate_t
+    ctypedef long int mp_size_t
+    ctypedef long int mp_exp_t
 
-    # This internal structure is not guaranteed to stay the same with future releases of gmp.
-    # We declare mpz_t as a void* because one is supposed to treat it as a black box.
+    ctypedef mp_limb_t * mp_ptr
+    ctypedef const mp_limb_t * mp_srcptr
+
+    # The internal structure is not guaranteed to stay the same with future
+    # releases of gmp, so we treat them as a black boxes:
     ctypedef struct __mpz_struct:
-        int _mp_alloc
-        int _mp_size
-        mp_ptr _mp_d
+        pass
+    ctypedef struct __mpq_struct:
+        pass
+    ctypedef struct __mpf_struct:
+        pass
+    ctypedef struct __gmp_randstate_struct:
+        pass
+
+    # User facing types
+    ctypedef __mpz_struct mpz_t[1]
+    ctypedef __mpq_struct mpq_t[1]
+    ctypedef __mpf_struct mpf_t[1]
+    ctypedef __gmp_randstate_struct gmp_randstate_t[1]

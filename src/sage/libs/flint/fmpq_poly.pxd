@@ -6,9 +6,7 @@
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
 
-cdef extern from "gmp.h":
-    ctypedef void * mpz_t
-    ctypedef void * mpq_t
+from sage.libs.gmp.types cimport mpz_t, mpq_t
 
 cdef extern from "flint/fmpq.h":
     ctypedef void * fmpq_t
