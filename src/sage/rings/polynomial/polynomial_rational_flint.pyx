@@ -22,6 +22,7 @@ include "sage/libs/ntl/decl.pxi"
 include "sage/ext/cdefs.pxi"
 
 from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *
 
@@ -42,7 +43,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 from sage.structure.factorization import Factorization
 
-
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
     Returns 1 when signal handling should be carried out for an operation
@@ -62,9 +62,9 @@ cdef inline bint _do_sig(fmpq_poly_t op):
     """
     # Trac #12173: check that the degree is greater than 1000 before computing
     # the max limb size
-    return fmpq_poly_length(op) > 0 and \
-       (fmpq_poly_degree(op) > 1000 or
-        _fmpz_vec_max_limbs(fmpq_poly_numref(op), fmpq_poly_length(op)) > 1)
+    return (fmpq_poly_length(op) > 0 and
+            (fmpq_poly_degree(op) > 1000 or
+                sage_fmpq_poly_max_limbs(op) > 1))
 
 cdef class Polynomial_rational_flint(Polynomial):
     """

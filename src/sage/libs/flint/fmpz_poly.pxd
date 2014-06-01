@@ -2,6 +2,7 @@ include "sage/libs/ntl/decl.pxi"
 
 from flint cimport ulong, slong
 from fmpz cimport fmpz, fmpz_t
+from fmpq cimport fmpq_t
 from nmod_poly cimport nmod_poly_t
 
 cdef extern from "flint/fmpz_poly.h":
