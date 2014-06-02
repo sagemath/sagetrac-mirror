@@ -770,7 +770,7 @@ cdef class Parent(category_object.CategoryObject):
         NOTE:
 
         Attributes beginning with two underscores but not ending with
-        an unnderscore are considered private and are thus exempted
+        an underscore are considered private and are thus exempted
         from the lookup in ``cat.parent_class``.
 
         EXAMPLES:
