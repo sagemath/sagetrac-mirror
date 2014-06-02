@@ -334,6 +334,10 @@ You can change it later in Preferences."];
     }
 }
 
+-(NSString*)sageBinary{
+    return sageBinary;
+}
+
 -(IBAction)revealInFinder:(id)sender{
     if ( [[sender title] isEqualToString:@"Reveal in Shell"] ) {
         [self terminalRun:[NSString stringWithFormat:@"cd '%@' && $SHELL",

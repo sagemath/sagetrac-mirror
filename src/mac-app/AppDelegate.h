@@ -29,7 +29,15 @@
 - (BOOL)application:(NSApplication * )theApplication openFile: (NSString * )filename;
 - (void)getUrl:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;
 
-
 -(IBAction)openDocumentWithDialogBox:(id)sender;
+
+// Services
+- (NSString*)writeData:(NSData*)data toTempFileWithSuffix:(NSString*)format;
+- (NSString *)urlEncodeValue:(NSString *)str;
+
+- (void)serviceUnspkg:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error;
+- (void)serviceExecute:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error;
+- (void)serviceTerminalRun:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error;
+- (void)serviceWorksheet:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error;
 
 @end

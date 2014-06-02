@@ -10,6 +10,7 @@
 #import <WebKit/WebFrame.h>
 #import <WebKit/WebView.h>
 #import <Carbon/Carbon.h>
+#import <AppKit/NSPasteboard.h>
 
 @implementation AppDelegate
 
@@ -62,6 +63,8 @@
         [[NSApp mainMenu] removeItemAtIndex:6]; // Window menu
         [[NSApp mainMenu] removeItemAtIndex:2]; // Edit menu
     }
+
+    [NSApp setServicesProvider:self];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -75,6 +78,18 @@
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender{
     return NO;
+}
+
+# pragma mark NSApplicationDelegate
+
+- (NSString *)urlEncodeValue:(NSString *)str {
+    NSString *result = (NSString *)
+    CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                            (CFStringRef)str,
+                                            NULL,
+                                            CFSTR(":/?#[]@!$&’()*+,;="),
+                                            kCFStringEncodingUTF8);
+    return [result autorelease];
 }
 
 // From here down are methods from NSApplicationDelegate, which probably do belong in another file.
@@ -200,6 +215,7 @@
     }
 }
 
+
 -(IBAction)openDocumentWithDialogBox:(id)sender{
     NSLog(@"openDocument:%@",sender);
 
@@ -220,6 +236,231 @@
             NSString* fileName = [files objectAtIndex:i];
             [self application:nil openFile:fileName];
         }
+    }
+}
+
+
+#pragma mark Services
+
+- (NSArray*)extractFileURLs:(NSPasteboard *)pboard error:(NSString **)error {
+
+    NSArray *classes = [NSArray arrayWithObject:[NSURL class]];
+
+    // Only on 10.6
+    if ( [pboard respondsToSelector:@selector(readObjectsForClasses:options:)] ) {
+
+        NSArray* fileURLs = [pboard readObjectsForClasses:classes
+                                                  options:nil];
+
+
+        NSMutableArray* tmpArray = [NSMutableArray arrayWithCapacity:[fileURLs count]];
+        NSEnumerator *enumerator = [fileURLs objectEnumerator];
+        id key;
+        while( (key = [enumerator nextObject]) ) {
+            if ([key isFileURL]) {
+                [tmpArray addObject:[key path]];
+            }
+        }
+        NSArray *filePaths = [NSArray arrayWithArray:tmpArray];
+        return filePaths;
+
+    } else if ([[pboard types] containsObject:NSURLPboardType] ) {
+        // On 10.5 I think you can only get one item no the paste board at a time, so this should be okay.
+        // Ensure a URL on the pasteboard.
+        NSURL *url = [NSURL URLFromPasteboard:pboard];
+        if ([url isFileURL]) {
+            return [NSArray arrayWithObject:[url path]];
+        }
+    }
+    *error = NSLocalizedString(@"Error: couldn't execute file.",
+                               @"pboard couldn't give URL.");
+    return nil;
+}
+
+
+- (void)serviceTerminalRun:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+
+    NSArray* files = [self extractFileURLs:pboard error:error];
+    if (files) {
+        [appController sageTerminalRun:userData withArguments:files];
+    }
+}
+
+- (void)serviceExecute:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+    NSLog(@"userData: %@",userData);
+    NSArray *supportedTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
+    NSString *bestType = [pboard availableTypeFromArray:supportedTypes];
+    if ( bestType ) {
+        NSString *str = [pboard stringForType:bestType];
+        [appController sageTerminalRun: ([userData length] > 0 ? userData : nil)
+                         withArguments:[NSArray
+                                        arrayWithObjects:
+                                        @"\n",
+                                        str,
+                                        nil]];
+    }
+}
+
+- (void)serviceUnspkg:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+    NSArray* files = [self extractFileURLs:pboard error:error];
+    if (files) {
+
+        NSWorkspace* ws = [NSWorkspace sharedWorkspace];
+        NSEnumerator *enumerator = [files objectEnumerator];
+        id file;
+        while( (file = [enumerator nextObject]) ) {
+
+            [ws openFile:file withApplication: @"/System/Library/CoreServices/Archive Utility.app"] ||
+            [ws openFile:file withApplication: @"/System/Library/CoreServices/BOMArchiveHelper.app"];
+
+        }
+    }
+}
+
+
+- (NSString*)writeData:(NSData*)data toTempFileWithSuffix:(NSString*)suffix{
+
+    NSString *tempFileTemplate = [NSTemporaryDirectory()
+                                  stringByAppendingPathComponent:
+                                  [NSString stringWithFormat:@"sage.XXXX%@", suffix]];
+    const char *tempFileTemplateCString = [tempFileTemplate fileSystemRepresentation];
+    char *tempFileNameCString = (char *)malloc(strlen(tempFileTemplateCString) + 1);
+    strcpy(tempFileNameCString, tempFileTemplateCString);
+    int fileDescriptor = mkstemps(tempFileNameCString, [suffix length]);
+    if (fileDescriptor == -1) {
+        free(tempFileNameCString);
+        return nil;
+    }
+
+    NSString* tempFileName = [[NSFileManager defaultManager]
+                              stringWithFileSystemRepresentation:tempFileNameCString
+                              length:strlen(tempFileNameCString)];
+
+    free(tempFileNameCString);
+
+    NSFileHandle* tempFileHandle = [[NSFileHandle alloc]
+                                    initWithFileDescriptor:fileDescriptor
+                                    closeOnDealloc:YES];
+
+    // write to file
+    [tempFileHandle writeData:data];
+    [tempFileHandle release];
+
+    // Return path to the file
+    return [NSString stringWithString:tempFileName];
+}
+
+
+- (void)serviceWorksheet:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+
+    NSArray *supportedTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
+    NSString *bestType = [pboard availableTypeFromArray:supportedTypes];
+    if ( bestType ) {
+        // Extract data from pasteboard
+        NSString *str = [pboard stringForType:bestType];
+
+        // Give it a title and surround with {{{ }}} if needed
+        // If it contains {{{ we assume they know what they are doing and pass it straight through
+        NSData* data;
+        NSRange match = [str rangeOfString:@"{{{" options:NSLiteralSearch];
+        if ( match.length == 0 ) {
+            NSString* tmpStr = [NSString stringWithFormat:@"Untitled\n{{{\n%@\n}}}", str];
+            data = [tmpStr dataUsingEncoding:NSUTF8StringEncoding];
+        } else {
+            data = [str dataUsingEncoding:NSUTF8StringEncoding];
+        }
+
+        // Write data to file
+        NSString* tmpPath = [self writeData:data toTempFileWithSuffix:@".txt" ];
+
+        // upload temp file
+        if (tmpPath) {
+            [self application:nil openFile:tmpPath];
+        }
+        // tmp file will get cleaned up in 3 days by the system...
+    }
+}
+
+
+- (void)servicePreparse:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+    NSArray *supportedTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
+    NSString *bestType = [pboard availableTypeFromArray:supportedTypes];
+    if ( bestType ) {
+        // Extract data from pasteboard
+        NSString *str = [pboard stringForType:bestType];
+
+        // Write data to a temporary file
+        NSData* data = [str dataUsingEncoding:NSUTF8StringEncoding];
+        NSString* tmpPath = [self writeData:data toTempFileWithSuffix:@".sage" ];
+
+        // preparse temp file
+        if (tmpPath) {
+            NSTask* preparser = [NSTask launchedTaskWithLaunchPath:[appController sageBinary]
+                                                         arguments:[NSArray arrayWithObjects:@"--preparse",
+                                                                    tmpPath,
+                                                                    nil]];
+            [preparser waitUntilExit];
+            if ( [preparser terminationStatus] == 0 ) {
+                NSString* preparsedFile = [[tmpPath stringByDeletingPathExtension]
+                                           stringByAppendingPathExtension:@"py"];
+                NSError* err;
+                NSString* contents = [NSString stringWithContentsOfFile:preparsedFile
+                                                               encoding:NSUTF8StringEncoding
+                                                                  error:&err];
+                if (contents) {
+                    // The first line contains an autogenerated message that we don't want
+                    NSRange firstLine = [contents rangeOfString:@"\n"];
+                    NSRange autoGenerated = [contents rangeOfString:@"This file was *autogenerated* from the file"];
+                    [pboard declareTypes:supportedTypes owner:nil];
+
+                    if ( autoGenerated.length > 0 && firstLine.length > 0 && autoGenerated.location < firstLine.location ) {
+                        [pboard setString:[contents substringFromIndex:firstLine.location+firstLine.length] forType:NSStringPboardType];
+                    } else {
+                        [pboard setString:contents forType:NSStringPboardType];
+                    }
+                } else if (error) {
+                    *error = [err localizedDescription];
+                }
+            } else if (error) {
+                *error = @"Could not preparse file";
+            }
+        } else if (error) {
+            *error = @"Could not create temp file";
+        }
+        // tmp file will get cleaned up in 3 days by the system...
+    }
+}
+
+
+- (void)serviceEval:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
+
+    NSArray *supportedTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
+    NSString *bestType = [pboard availableTypeFromArray:supportedTypes];
+    if ( bestType ) {
+        NSString *str = [pboard stringForType:bestType];
+
+        NSPipe* sageOut = [NSPipe pipe];
+        NSTask* task = [[NSTask alloc] init];
+        [task setLaunchPath:[appController sageBinary]];
+        [task setArguments:[NSArray arrayWithObjects:@"-c", str, nil]];
+        [task setStandardOutput:sageOut];
+
+        [task launch];
+
+        // It it writes more than 8k we may be in trouble...
+        [task waitUntilExit];
+
+        if ([task terminationStatus] == 0 ) {
+
+            NSData *data = [[sageOut fileHandleForReading] readDataToEndOfFile];
+            [pboard declareTypes:supportedTypes owner:nil];
+            [pboard setData:data forType:NSStringPboardType];
+
+        } else if (error) {
+            *error = @"Could not evaluate code.";
+        }
+
+        [task release];
     }
 }
 

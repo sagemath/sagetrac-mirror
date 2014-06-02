@@ -62,6 +62,7 @@
 
 -(void)ensureReadWrite;
 -(void)setupPaths;
+-(NSString*)sageBinary;
 
 // Quit
 -(IBAction)stopServerAndQuit:(id)sender;
