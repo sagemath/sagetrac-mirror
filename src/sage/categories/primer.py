@@ -576,10 +576,11 @@ We could implement the above hierarchies as usual::
     class GroupMorphism(MonoidMorphism):
         # generic methods that apply to all group morphisms
 
-And indeed that's how it was done in Sage before 2009, and there are
-still many traces of this. The drawback of this approach is
-duplication: the fact that a group is a monoid is repeated three times
-above!
+And indeed that's how it was done in Sage before 2009, and there is
+still such a hierarchy around (see this :ref:`discussion
+<category-primer-cython-hierarchy>`). The drawback of this approach is
+lack of flexibility and duplication: the fact that a group is a monoid
+is repeated three times above!
 
 Instead, Sage now uses the following syntax, where the :class:`Groups`
 bookshelf is structured into units with *nested classes*::
@@ -972,6 +973,88 @@ Here is the code for the finite semigroups category::
 
     sage: FiniteSemigroups??                      # not tested
 
+.. _category-primer-cython-hierarchy:
+
+Categories and the hierarchies of Cython abstract classes for parents and elements
+==================================================================================
+
+As we mentioned above, Sage still includes the original two
+hierarchies of abstract classes for parents and elements respectively:
+
+- :class:`Module`, :class:`Ring`, :class:`Field`, ...
+  (see :ref:`sage.rings.ring`)
+- :class:`ModuleElement`, :class:`RingElement`,:class:`FieldElement`, ...
+  (see :ref:`sage.structure.element`)
+
+This duplicate the corresponding hierarchies of abstract classes
+``Modules().parent_class``, ``Fields().element_class`, ... provided by
+the categories, and is a regular source of confusion. So why are those
+classes still around? Partially for backward compatibility:
+embarrassingly, not all Sage parents have yet been refactored to use
+categories.
+
+However the main rationale is speed. Indeed, even if it is technically
+possible to implement a method of a category in Cython (e.g. using the
+recent ``cython.binding`` decorator), calling such a method still
+involves a dynamic method resolution, as in Python. In most cases the
+overhead is negligible compared to a static Cython method call. But
+this is not anymore true for, say, arithmetic on small objects like
+integers or polynomials. See :trac:`16427` for benchmarks. Worst, an
+instance of a Cython class cannot benefit from special methods
+implemented in a category. Indeed, when evaluating `-x`, for example,
+the method `__neg__` is looked up directly in the class of `x`; when
+this is an extension class, this bypasses the current
+:meth:`Parent.__getattr__` trick which is used by such classes to
+dynamically inherit code from the category classes.
+
+On the other hand, due to the single inheritance limitation, Cython
+hierarchies of classes are extremely rigid and limited, and will ever
+be. For example, even if we had an ``AdditiveGroupElement`` class,
+``RingElement`` could not inherit simultaneously from it and from
+``MonoidElement`` as would be appropriate to avoid duplication.
+
+The purpose of the hierarchies of Cython abstract classes is therefore
+to implement generic speed-critical basic operations, such as the
+coercion-handling in the special methods `__add__`, `__mul__`, ... It
+is meant to cover the most critical and common cases (elements of
+rings, ...). This mostly concerns elements. There are few, if any,
+such methods for Parents.
+
+.. NOTE::
+
+   Any method implemented in a Cython abstract class takes precedence
+   over its counterparts in the categories. This is good for speed,
+   but lacks flexibility; in particular even a specialized category
+   can't override it in any way.
+
+Recommendations:
+
+- When implementing an element class `C` where pure speed is relevant,
+  and when the algebraic structure is known statically (e.g. elements
+  of a ring, ...), have `C` inherit from the relevant Cython abstract
+  class (e.g. :class:`RingElement`).
+
+- When implementing a parent class `C`, most of the time it's fine to
+  simply inherit from :class:`Parent`.
+
+- When adding a new generic method, put it in the relevant
+  category. If it's speed critical, consider providing an optimized
+  duplicate in the relevant Cython abstract class if benchmarks
+  dictate so.
+
+.. TODO::
+
+    - Cythonize the speed critical methods in the categories.
+
+    - Move up all the non speed critical non special methods from the
+      Cython abstract classes to the categories.
+
+    - Depending on what's left, possibly deprecate the Cython abstract
+      classes for parents.
+
+    - Decide whether generic construction like matrices or fractions
+      should require their elements to be instances of the relevant
+      Cython abstract class like `RingElement`.
 
 Specifying the category of a parent
 ===================================
