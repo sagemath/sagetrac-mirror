@@ -89,6 +89,45 @@ run from the command line.  You can change this later in the
 preferences.  You can also drag a sage folder (SAGE_ROOT) onto
 Sage.app to change what sage executable it will use.
 
+--------
+Services
+--------
+
+Sage.app provides several system services.  On Mac OS 10.6 you will
+have to enable those you wish to use in System Preferences > Keyboard >
+Keyboard Shortcuts > Services.  On earlier versions all services are
+enabled, and you must use a third party application to disable those
+which are undesired.  Services can be invoked either from a contextual
+menu, or from the Services submenu of the Application menu (the menu
+with the name of the application).
+
+Those services provided by Sage.app are of two types: those acting on
+files and those acting on text selection.  Selecting a file of the
+correct type in the Finder will allow you to invoke the service which
+act on files.  Selecting text in (almost) any application will allow
+you to invoke the correct services on that text.  Some textual
+services require ability to write to the document (e.g. selection on a
+webpage won't work).  Such services have "(and replace)" in the name.
+
+- Act on Files
+  - Test file with Sage -- run `sage -t` on a file or folder
+  - Unpack Sage Package -- untar an spkg
+  - Create Sage Package -- turn a folder into an spkg
+  - Create Uncompressed Sage Package
+    - as above, but uncompressed
+- Act on text selection
+  - New Sage Worksheet with Selection
+  - New Sage Terminal Session with Selection
+  - Preparse Code in Sage (and replace)
+    - preparse in a temp file which is slightly different than `preparse("...")`
+  - Evaluate Code in Sage (and replace)
+    - Uses `sage -c` so it can be slow and you must `print` the answer
+
+One potential problem is if you have more than one version of Sage.app
+installed the system can become confused and use the wrong version to
+invoke the service.  I'm not aware of a work around other than
+deleting old versions.
+
 -----------
 Preferences
 -----------
