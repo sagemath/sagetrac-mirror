@@ -86,7 +86,7 @@ def is_strongly_regular(g, parameters = False):
     r"""
     Tests whether ``self`` is strongly regular.
 
-    A graph `G` is said to be strongly regular with parameters `(n, k, \lambda,
+    A simple graph `G` is said to be strongly regular with parameters `(n, k, \lambda,
     \mu)` if and only if:
 
         * `G` has `n` vertices.
@@ -134,6 +134,23 @@ def is_strongly_regular(g, parameters = False):
         sage: g.is_strongly_regular()
         False
 
+    The intersection graph of a balanced incomplete block design (see
+    :func:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign`) or a
+    transversal design (see
+    :func:`~sage.combinat.designs.orthogonal_array.transversal_design`) is
+    strongly regular if it is not trivial::
+
+        sage: bibd = designs.BalancedIncompleteBlockDesign(13,3)
+        sage: V = map(Set, bibd.blocks())
+        sage: g = Graph([V, lambda x,y: x!=y and x&y])
+        sage: g.is_strongly_regular(parameters=True)
+        (26, 15, 8, 9)
+
+        sage: TD = designs.transversal_design(3,7)
+        sage: g = Graph([map(Set, TD), lambda x,y: x!=y and x&y])
+        sage: g.is_strongly_regular(parameters=True)
+        (49, 18, 7, 6)
+
     Complete graphs are not strongly regular. (:trac:`14297`) ::
 
         sage: g = graphs.CompleteGraph(5)
@@ -151,6 +168,17 @@ def is_strongly_regular(g, parameters = False):
         sage: g = graphs.EmptyGraph()
         sage: g.is_strongly_regular()
         False
+
+    If the input graph has loops or multiedges an exception is raised::
+
+        sage: Graph([(1,1),(2,2)]).is_strongly_regular()
+        Traceback (most recent call last):
+        ...
+        ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+        sage: Graph([(1,2),(1,2)]).is_strongly_regular()
+        Traceback (most recent call last):
+        ...
+        ValueError: This method is not known to work on graphs with multiedges. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges using allow_multiple_edges().
     """
     g._scream_if_not_simple()
     cdef binary_matrix_t m
