@@ -25,30 +25,6 @@ AUTHOR:
 #
 #===============================================================================
 
-# from psage.modform.fourier_expansion_framework.monoidpowerseries.monoidpowerseries_lazyelement import \
-#                                         EquivariantMonoidPowerSeries_lazy
-# from psage.modform.jacobiforms.jacobiformd1nn_fourierexpansion import JacobiFormD1NNFourierExpansionModule,  \
-#                                         JacobiFormD1NNFilter, JacobiFormD1NNIndices, JacobiFormD1WeightCharacter
-# from sage.combinat.partition import number_of_partitions
-# from sage.libs.flint.fmpz_poly import Fmpz_poly  
-# from sage.matrix.constructor import matrix
-# from sage.misc.cachefunc import cached_function
-# from sage.misc.functional import isqrt
-# from sage.misc.misc import prod
-# from sage.modular.modform.constructor import ModularForms
-# from sage.modular.modform.element import ModularFormElement
-# from sage.modules.free_module_element import vector
-# from sage.rings import big_oh
-# from sage.rings.all import GF
-# from sage.rings.arith import binomial, factorial
-# from sage.rings.integer import Integer
-# from sage.rings.integer_ring import ZZ
-# from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-# from sage.rings.power_series_ring import PowerSeriesRing
-# from sage.rings.rational_field import QQ
-# from sage.structure.sage_object import SageObject
-# import operator
-
 from sage.combinat.dict_addition import dict_linear_combination
 from sage.matrix.all import matrix
 from sage.misc.all import isqrt, cached_function
@@ -72,9 +48,17 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
     - ``reduce`` -- A boolean (default: ``False``).  If ``True``
                     restrict to `0 \le r \le m`.
 
-    ..TODO:
+    OUTPUT:
 
-    insert tests.
+    A generator of pairs of integers `(n,r)`.
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.all import *
+        sage: list(classical_jacobi_fe_indices(2, 3, True))
+        ???
+        sage: list(classical_jacobi_fe_indices(2, 3, False))
+        ???
     """
     fm = Integer(4*m)
 
@@ -120,8 +104,12 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     - `m` -- A non-negative integer.
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
+
+    OUTPUT:
+
+    A list of vectors.
     
-    TESTS::
+    EXAMPLES::
     
         sage: from sage.modular.jacobi.classical import _classical_jacobi_forms_as_weak_jacobi_forms
         sage: _classical_jacobi_forms_as_weak_jacobi_forms(10, 1)
@@ -146,6 +134,9 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
 
 def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
     r"""
+    Compute Fourier expansions of classical Jacobi forms of weight `k`
+    and index `m`.
+
     INPUT:
     
     - `k -- An integer.
@@ -158,7 +149,19 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is
                        implemented.
 
-    TESTS:
+    OUTPUT:
+
+    A list of dictionaries, mapping indices `(n,r)` to rationals.
+
+    EXAMPLES:
+
+        sage: from sage.modular.jacobi.classical import *
+        sage: k = 4; m = 2; prec = 5
+        sage: classical_jacobi_forms(k, m, prec)
+        ???
+
+    TESTS::
+
     
     We compute the Fourier expansion of a Jacobi form of weight `4`
     and index `2`.  This is denoted by ``d``.  Moreover, we span the
@@ -185,6 +188,10 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
         sage: phi2 = lambda nr: _phi2[nr] if nr in _phi2 else 0
         sage: all(h_poly[nr[0]][nr[1]] == 7/66 * phi1(nr) + 4480 * phi2(nr)  for nr in classical_jacobi_fe_indices(m, prec, reduced=True) )
         True
+
+    TESTS:
+
+    See ``test_classical.py``.
     """
     weak_forms = classical_weak_jacobi_forms(k, m, prec, algorithm)
     coords = _classical_jacobi_forms_as_weak_jacobi_forms(k, m)

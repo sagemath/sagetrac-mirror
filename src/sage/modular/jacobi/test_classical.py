@@ -26,14 +26,26 @@ AUTHOR:
 #===============================================================================
 
 from sage.matrix.all import matrix
-from sage.modules.all import vector
 from sage.modular.all import ModularForms
-from sage.modular.jacobi.all import classical_jacobi_forms
-from sage.modular.jacobi.classical import (
-    reduce_classical_jacobi_fe_index, classical_jacobi_fe_indices)
+from sage.modular.jacobi.all import 
+from sage.modules.all import vector
 from sage.rings.all import PolynomialRing, LaurentPolynomialRing, QQ
 
-def test_multiplication(prec, k, m, k_mod):
+from sage.modular.jacobi.classical import (
+    classical_jacobi_forms,
+    classical_jacobi_fe_indices,
+    reduce_classical_jacobi_fe_index
+)
+
+def test_classical_jacobi_forms():
+    prec = 10
+
+    for k in [8, 7, 12]:
+        for m in range(1, 5):
+            yield (_test_classical_jacobi_forms,
+                   k, m, prec)
+
+def _test_classical_jacobi_forms(prec, k, m, k_mod):
     r"""
     Check that the product of Jacobi forms of given weight and
     index with modular forms of given weight is a Jacobi form.
@@ -47,14 +59,6 @@ def test_multiplication(prec, k, m, k_mod):
     - `m -- A positive integer.
 
     - `k_mod` -- An integer.
-
-    TESTS::
-
-        sage: from sage.modular.jacobi.test_classical import *
-        sage: test_multiplication(30, 10, 4, 4)
-        sage: test_multiplication(30, 11, 4, 4)
-        sage: test_multiplication(30, 10, 5, 4)
-        sage: test_multiplication(30, 11, 5, 4)
     """
     P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
     q = P.gen(0)
@@ -81,4 +85,6 @@ def test_multiplication(prec, k, m, k_mod):
 
             phi2_poly = f_poly * phi1_poly
             phi2_vec = vector([phi2_poly[nr[0]][nr[1]] for nr in indices])
+
+            assert not phi2_vec.is_zero()
             assert phi2_vec in psi_span
