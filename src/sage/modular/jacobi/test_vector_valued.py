@@ -25,98 +25,199 @@ AUTHOR:
 #
 #===============================================================================
 
+from sage.all import (
+    matrix, diagonal_matrix, zero_matrix,
+    vector, zero_vector,
+    ZZ, QQ, PolynomialRing,
+    QuadraticForm,
+    ModularForms, CuspForms
+)
+
+from sage.modular.jacobi.vector_valued import (
+    vector_valued_modular_forms,
+    vector_valued_modular_forms_weakly_holomorphic,
+    vector_valued_modular_forms_weakly_holomorphic_with_principal_part,
+    positive_definite_quadratic_form,
+    _add_vvforms, _mul_scalar_vvform,
+    _split_off_hyperbolic, _split_off_E8
+)
+
 def _test_set__quadratic_forms():
     return [QuadraticForm(matrix([[6]])),
-            QuadraticForm(diagonal_matrix([2,2,4])),
-            QuadraticForm(matrix(4, [2,0,0,1, 0,2,0,1, 0,0,2,1, 1,1,1,2]))]
+            QuadraticForm(diagonal_matrix([2,4])),
+            QuadraticForm(matrix(4, [4,0,0,1, 0,2,0,1, 0,0,2,1, 1,1,1,2]))]
+
+def _test_set__indefinite_quadratic_forms():
+    return [QuadraticForm(matrix([[-2]])),
+            QuadraticForm(matrix(2, [-2,-1,-1,-2])),
+            QuadraticForm(matrix(2, [-2,0,0,-4])),
+            QuadraticForm(matrix(3, [-2,-1,-1, -1,-2,-1, -1,-1,-2])
+                          .block_sum(matrix(2, [2,0,0,-4])))]
 
 def test_vector_valued():
-    prec = 20
-    k_mod = 4
+    prec = 5
 
     for L in _test_set__quadratic_forms():
-        for k in [kk - L.dim()/2 for kk in [10,15,21,22]]:
+        for k in [k_jac + L.dim()/ZZ(2) for k_jac in [10,15,21,22]]:
 
-            vforms = vector_valued(k, L, prec)
+            vforms = vector_valued_modular_forms(k, L, prec)
+            assert len(vforms) != 0
             yield (_test_vector_valued__multiplication,
-                   (prec, k, L, k_mod))
+                   prec, k, L, 4, vforms)
 
-def _test_vector_valued__multiplication(prec, k, L, k_mod):
+def _test_vector_valued__multiplication(prec, k, L, k_mod, vforms):
     L_span = L.matrix().row_module()
-    img_forms = vector_valued(k + k_mod, L, prec)
+    img_forms = vector_valued_modular_forms(k + k_mod, L, prec)
 
     for f in ModularForms(1, k_mod).basis():
-        _multipliy_and_check(prec, f.qexp(prec), vforms, img_forms, L_span)
-
-def test_weakly_holomorphic_vector_valued():
-    prec = 20
+        _multipliy_and_check(prec, f.qexp(prec).dict(), vforms, 0, img_forms, L_span)
+    
+def test_vector_valued_modular_forms_weakly_holomorphic():
+    prec = 5
     k_mod = 4
 
     for L in _test_set__quadratic_forms():
-        for k in [kk - L.dim()/2 for kk in [10,15,21,22]]:
-            for order in [-1, -3, 2]:
+        for k in [k_jac - L.dim()/ZZ(2) for k_jac in [6,15,21,22]]:
+            for order in [1,2,3]:
+                vforms = vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec)
+                if len(vforms) == 0:
+                    print k, L, order
+                    raise AssertionError()
 
-            vforms = weakly_holomorphic_vector_valued_modular_forms(k, L, order, prec)
-            yield (_test_weakly_holomorphic_vector_valued__order,
-                   (order, vforms))
-            yield (_test_weakly_holomorphic_vector_valued__multiplication,
-                   (prec, k, L, order, vforms))
+                yield (_test_vector_valued_modular_forms_weakly_holomorphic__order,
+                       order, vforms)
+                yield (_test_vector_valued_modular_forms_weakly_holomorphic__multiplication,
+                       prec, k, L, order, vforms)
 
-def _test_weakly_holomorphic_vector_valued__order(order, vforms):
+def test_vector_valued_modular_forms_weakly_holomorphic_with_prinicpal_part():
+    for (k, L, pp) in [(2, QuadraticForm(matrix([[2]])), {(0,): {-1: 2}}),
+                       (5, QuadraticForm(matrix(2, [2,1,1,2])), {(0,1): {-1/4: 1}, (0,2): {-1/4: -1}})]:
+        wvvform = vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, pp, prec)
+
+        from sage.modular.jacobi.vector_valued import _principal_part
+        assert _principal_part(wvvform) == pp
+
+        yield (_test_vector_valued_modular_forms_weakly_holomorphic__order,
+               1, [wwvform])
+        yield (_test_vector_valued_modular_forms_weakly_holomorphic__multiplication,
+               prec, k, L, 1, [wvvform])
+
+def _test_vector_valued_modular_forms_weakly_holomorphic__order(order, vforms):
     for f in vforms:
         for (mu,fe) in f.items():
-            assert all(n >= order for n in fe.keys())
+            assert all(n >= -order for n in fe.keys())
 
-def _test_weakly_holomorphic_vector_valued__multiplication(prec, k, L, order, vforms):
+def _test_vector_valued_modular_forms_weakly_holomorphic__multiplication(prec, k, L, order, vforms):
     L_span = L.matrix().row_module()
 
-    if order >= 0:
-        img_forms = vector_valued(k, L, prec)
-        f = PolynomialRing(QQ, 'q')(1)
-        _multipliy_and_check(prec, f, vforms, img_forms, L_span)
-    else:
-        img_forms = vector_valued(k - 12*order, L, prec)
-        f = CuspForms(1,12).gen(0).qexp(prec)
-        _multipliy_and_check(prec, f, vforms, img_forms, L_span)
+    img_forms = vector_valued_modular_forms(k + 12*order, L, prec + order)
+    f = (CuspForms(1,12).gen(0).qexp(prec + 2*order)**order).dict()
+    _multipliy_and_check(prec, f, vforms, -order, img_forms, L_span)
     
-def _multipliy_and_check(prec, f, vforms, img_forms, L_span):
-    R = PolynomialRing(QQ, 'q')
-    q = R.gen(0)
+def _multipliy_and_check(prec, f_factor, vforms, valuation, img_forms, L_span):
+    ## NOTE: we assume that img_forms consists of expansions that are
+    ## regular at infinity
+    assert valuation <= 0 and valuation in ZZ
 
     mu_module = L_span.ambient_module() / L_span
-    mu_list = mu_module.list()
+    mu_list = list(mu_module)
 
-    psi_matrix = zero_matrix(QQ, len(mu_list)*prec, len(img_forms))
-    for (psi_ix, psi) in enumerate(img_forms):
-        for (mu,fe) in psi.items():
-            mu_ix = mu_list.index(mu_module()(mu))
+    img_prec = prec - valuation
+    img_matrix = matrix([_vvform_to_vector(mu_list, 0, img_prec, f)
+                         for f in img_forms])
+    img_span = img_matrix.row_module()
 
-            if len(fe) = 0: continue
+    for g in vforms:
+        fg = _mul_simple_vvform(f_factor, g, L_span)
+        fg_vec = _vvform_to_vector(mu_list, 0, img_prec, fg)
 
-            n_shift = min(fe.keys())
-            n_shift_red = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
+        assert not fg_vec.is_zero()
+        assert fg_vec in img_span
 
-            for n in range(n_shift - n_shift_red,
-                           prec if n_shift_red == 0 else prec - 1):
-                psi_matrix[psi_ix, mu_ix*prec + n] = fe[n + n_shift_red]
-    psi_span = psi_matrix.row_module()
+def _mul_simple_vvform(f, g, L_span):
+    res = {}
+    for (s,c) in f.items():
+        res = _add_vvforms(res, _mul_scalar_vvform(c,_shift_vvform(g, s)), L_span)
+    return res
 
-    for phi1 in vforms:
-        f_poly = f.polynomial()
+def _shift_vvform(f, s):
+    res = {}
+    for (mu, fe) in f.items():
+        res[mu] = dict((n+s,c) for (n,c) in fe.items())
+    return res
 
-        phi2_vec = zero_vector(len(mu_list) * prec)
-        for (mu,fe) in phi1.items():
-            mu_ix = mu_list.index(mu_module()(mu))
+def _vvform_to_vector(mu_list, valuation, prec, f):
+    mu_module = mu_list[0].parent()
+    cmp_len = prec - valuation
 
-            if len(fe) = 0: continue
+    res = zero_vector(QQ, cmp_len*len(mu_list))
+    for (mu,fe) in f.items():
+        if len(fe) == 0: continue
 
-            n_shift = min(fe.keys())
-            n_shift_red = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
+        mu_ix = mu_list.index(mu_module(vector(mu)))
 
-            phi1_poly = sum(c * q**(n - n_shift) for (n,c) in fe.items())
-            phi2_poly = f_poly * phi1_poly
+        n_shift = min(fe.keys())
+        n_shift_red = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
 
-            for n in range(n_shift - n_shift_red,
-                           prec if n_shift_red == 0 else prec - 1):
-                phi2_vec[mu_ix*prec + n] = phi2_poly[n + n_shift_red - n_shift]
-        assert phi2_vec in psi_span
+        for n in range(cmp_len if n_shift_red == 0 else cmp_len - 1):
+            try:
+                res[mu_ix*cmp_len + n] = fe[n + n_shift_red + valuation]
+            except KeyError:
+                pass
+
+    return res
+
+def test_stably_equivalent_positive_definite_quadratic_form():
+    for L in _test_set__indefinite_quadratic_forms():
+        yield (_test_stably_equivalent_positive_definite_quadratic_form,
+               L)
+
+def _test_stably_equivalent_positive_definite_quadratic_form(L):
+    M = stably_equivalent_positive_definite_quadratic_form(L, True)
+
+    assert M.is_positive_definite()
+
+    Mrowmodule = M.matrix().row_module()
+    Lrowmodule = L.matrix().row_module()
+    assert ((Mrowmodule.ambient_module() / Mrowmodule).invariants()
+            ==
+            (Lrowmodule.ambient_module() / Lrowmodule).invariants())
+
+def test__split_off_hyperbolic():
+    for L in _test_set__indefinite_quadratic_forms():
+        yield (_test__split_off_hyperbolic,
+               L)
+
+def _test__split_off_hyperbolic(L):
+    M = _split_off_hyperbolic(L)
+
+    assert M.dim() + 2 == L.dim() + 8
+
+    Mrowmodule = M.matrix().row_module()
+    Lrowmodule = L.matrix().row_module()
+    assert ((Mrowmodule.ambient_module() / Mrowmodule).invariants()
+            ==
+            (Lrowmodule.ambient_module() / Lrowmodule).invariants())
+
+
+def test__split_off_E8():
+    E8mat = matrix(ZZ, 8,
+            [2, -1, 0, 0,  0, 0, 0, 0,
+            -1, 2, -1, 0,  0, 0, 0, 0,
+            0, -1, 2, -1,  0, 0, 0, -1,
+            0, 0, -1, 2,  -1, 0, 0, 0,
+            0, 0, 0, -1,  2, -1, 0, 0,
+            0, 0, 0, 0,  -1, 2, -1, 0,
+            0, 0, 0, 0,  0, -1, 2, 0,
+            0, 0, -1, 0,  0, 0, 0, 2])
+
+    for M in _test_set__quadratic_forms():
+        L = QuadraticForm(M.matrix().block_sum(E8mat))
+        yield (_test__split_off_E8,
+               L, M)
+
+def _test__split_off_E8(L, M):
+    M_computed = _split_off_E8(L)
+
+    ## when isomorphism test is available, use it
+    assert M.theta_series() == M_computed.theta_series()
