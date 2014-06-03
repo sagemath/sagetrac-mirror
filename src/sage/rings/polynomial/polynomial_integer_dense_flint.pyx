@@ -434,45 +434,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         if name is None:
             name = self.parent().variable_name()
-        cdef long i
-        cdef mpz_t coef
-        mpz_init(coef)
-        all = []
-        for i from fmpz_poly_degree(self.__poly) >= i >= 0:
-            fmpz_poly_get_coeff_mpz(coef, self.__poly, i)
-            sign = mpz_sgn(coef)
-            if sign:
-                if sign > 0:
-                    sign_str = '+'
-                    coeff_str = mpz_to_str(coef)
-                else:
-                    sign_str = '-'
-                    coeff_str = mpz_to_str(coef)[1:]
-                if i > 0:
-                    if coeff_str == '1':
-                        coeff_str = ''
-                    elif not latex:
-                        coeff_str = coeff_str + '*'
-                if i > 1:
-                    if latex:
-                        PyList_Append(all, " %s %s%s^{%s}" % (sign_str,
-                            coeff_str, name, i))
-                    else:
-                        PyList_Append(all, " %s %s%s^%s" % (sign_str,
-                            coeff_str, name, i))
-                elif i == 1:
-                    PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
-                else:
-                    PyList_Append(all, " %s %s" % (sign_str, coeff_str))
-        mpz_clear(coef)
-        if len(all) == 0:
-            return '0'
-        leading = all[0]
-        if leading[1] == '+':
-            all[0] = leading[3:]
-        else:
-            all[0] = '-' + leading[3:]
-        return ''.join(all)
+        return fmpz_poly_get_python_str(self.__poly, name, latex=latex)
 
     def _latex_(self, name=None):
         """
@@ -482,7 +444,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: R.<t> = ZZ['t']
             sage: latex(t^10-t^2-5*t+1)
-            t^{10} - t^{2} - 5t + 1
+            t^{10} - t^2 - 5t + 1
             sage: cyclotomic_polynomial(10^5)._latex_()
             'x^{40000} - x^{30000} + x^{20000} - x^{10000} + 1'
             sage: cyclotomic_polynomial(10^5)._latex_(name='y')

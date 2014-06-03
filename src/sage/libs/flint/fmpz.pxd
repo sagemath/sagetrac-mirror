@@ -54,6 +54,10 @@ cdef extern from "flint/fmpz.h":
     #int fmpz_fprint(FILE *, fmpz_t)
     #size_t fmpz_out_raw(FILE *, fmpz_t)
 
+    # Basic properties and manipulation
+    size_t fmpz_sizeinbase(const fmpz_t, int)
+    int fmpz_sgn(const fmpz_t)
+
     # Comparison
     int fmpz_cmp(fmpz_t, fmpz_t)
     int fmpz_cmp_ui(fmpz_t, ulong)
@@ -164,3 +168,5 @@ cdef extern from "flint/fmpz.h":
     void fmpz_bin_uiui(fmpz_t, ulong, ulong)
     void fmpz_rfac_ui(fmpz_t, fmpz_t, ulong)
     void fmpz_rfac_uiui(fmpz_t, ulong, ulong)
+
+cdef str fmpz_get_python_str(const fmpz_t f, int base=?)

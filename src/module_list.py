@@ -670,6 +670,24 @@ ext_modules = [
               extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
+    Extension('sage.libs.flint.fmpz',
+              sources = ["sage/libs/flint/fmpz.pyx"],
+              libraries = ["flint", "gmp"],
+              extra_compile_args = ["-std=c99"],
+              depends = flint_depends),
+
+    Extension('sage.libs.flint.fmpz_poly',
+              sources = ["sage/libs/flint/fmpz_poly.pyx"],
+              libraries = ["flint", "gmp"],
+              extra_compile_args = ["-std=c99"],
+              depends = flint_depends),
+
+    Extension('sage.libs.flint.fmpz_poly_q',
+              sources = ["sage/libs/flint/fmpz_poly_q.pyx"],
+              libraries = ["flint", "gmp"],
+              extra_compile_args = ["-std=c99"],
+              depends = flint_depends),
+
     Extension('sage.libs.flint.fmpz_poly_old',
               sources = ["sage/libs/flint/fmpz_poly_old.pyx"],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
@@ -1655,6 +1673,12 @@ ext_modules = [
 
     Extension('sage.rings.function_field.function_field_element',
               sources = ['sage/rings/function_field/function_field_element.pyx']),
+
+    Extension('sage.rings.function_field.algebraic.rational_function_qq',
+              sources = ['sage/rings/function_field/algebraic/rational_function_qq.pyx'],
+              libraries = ["flint", "gmp"],
+              language = 'c++',
+              depends = flint_depends),
 
         ################################
         ##

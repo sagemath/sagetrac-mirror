@@ -285,7 +285,7 @@ cdef extern from "flint/fmpz_poly.h":
 
     # Input and output
     #int fmpz_poly_fprint(FILE *, fmpz_poly_t)
-    #int fmpz_poly_fprint_prett(FILE *, fmpz_poly_t, char *)
+    #int fmpz_poly_fprint_pretty(FILE *, fmpz_poly_t, char *)
     int fmpz_poly_print(const fmpz_poly_t)
     int fmpz_poly_print_pretty(const fmpz_poly_t, const char *)
 
@@ -312,3 +312,6 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_scalar_fdiv_mpz(fmpz_poly_t, const fmpz_poly_t, const mpz_t)
     void fmpz_poly_set_coeff_mpz(fmpz_poly_t, slong, const mpz_t)
     void fmpz_poly_get_coeff_mpz(mpz_t, const fmpz_poly_t, slong)
+
+cdef str fmpz_poly_get_python_str(
+        const fmpz_poly_t poly, str name=?, bint latex=?, int base=?)
