@@ -79,7 +79,7 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
 
     TESTS:
 
-    See ``test_higherrank.py:test__reduce_higherrank_jacobi_fe_index``.
+    See ``test_higherrank.py``.
     """
     (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
     nred = n - (m_adj(r) - m_adj(rred)) // (2*m.det())
@@ -116,7 +116,7 @@ def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
 
     TESTS:
 
-    See ``test_higherrank.py:test__reduce_higherrank_jacobi_fe_index__r``.
+    See ``test_higherrank.py``.
     """
     for r_class in r_classes:
         rred = r_class[0]
@@ -149,7 +149,6 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
 
     EXAMPLES::
 
-
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_fe_indices
         sage: m = QuadraticForm(matrix([[2]]))
@@ -159,14 +158,12 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
         sage: list(higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=False))
         [(0, (0)), (1, (0)), (1, (1)), (1, (-1)), (1, (2)), (1, (-2))]
 
-    TESTS:
-
-    See ``test_higherrank.py:test__higherrank_jacobi_fe_indices``.
-
-    ::
+    TESTS::
 
         sage: higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=True)
         <generator object ...
+
+    See also ``test_higherrank.py``.
     """
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
 
@@ -208,7 +205,7 @@ def higherrank_jacobi_r_classes(m):
 
     TESTS:
 
-    See ``test_higherrank.py:test__higherrank_jacobi_r_classes``.
+    See ``test_higherrank.py``.
     """
     m_mat = m.matrix()
     m_span = m_mat.row_module()
@@ -300,7 +297,6 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
         {(1, (1, 1)): -1/6, (2, (1, 1)): 5/3, (1, (0, 0)): 1, (2, (0, 0)): -15, (0, (0, 0)): 0}
         ]
 
-
     We access these the Fourier coefficients by means of the indices
     `n` and `r`, typical for Jacaobi forms.
 
@@ -328,7 +324,7 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
 
     TESTS:
 
-    See ``test_higherrank.py:test_higherrank_jacobi_forms``.
+    See ``test_higherrank.py``.
     """
     if algorithm != "restriction":
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
@@ -425,7 +421,7 @@ def _complete_set_of_restriction_vectors(m, r_classes, r_classes_reduction_signs
 
     TESTS:
 
-    Tested implicitely by higherrank_jacobi_forms:
+    See ``test_higherrank.py``
     """
     r_classes = [map(vector, r_class) for r_class in r_classes]
     
@@ -559,7 +555,7 @@ def _restriction_relation_matrices(k, m, prec, relation_prec,
 
     TESTS:
 
-    Tested implicitely by `meth:higherrank_jacobi_forms`.
+    Tested implicitely by ``meth:higherrank_jacobi_forms``.  See also ``test_higherrank.py``.
     """
     (restriction_matrix__big, row_groups, row_labels, column_labels) = \
         _restriction_matrix(k, m, prec, rst_vectors, False, r_classes, m_span)
@@ -649,7 +645,7 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
 
     TESTS:
 
-    Tested implicitely by `meth:higherrank_jacobi_forms`.
+    Tested implicitely by ``meth:higherrank_jacobi_forms``.  See also ``test_higherrank.py``.
     """
     k = k % 2
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
@@ -757,7 +753,7 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
 
     TESTS:
 
-    Tested implicitely by higherrank_jacobi_forms.
+    Tested implicitely by ``meth:higherrank_jacobi_forms``.  See also ``test_higherrank.py``.
     """
     k = k % 2
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
@@ -798,10 +794,6 @@ def _higherrank_jacobi_forms__restriction(
     Compute the Fourier expansions of Jacobi forms (over `\Q`) of weight `k` and 
     index `m` up to given precision.
 
-    ..TODO:
-
-    Update the input list.
-
     INPUT:
     
     - `k` -- An integer.  Only `k` modulo `2` is used.
@@ -837,7 +829,7 @@ def _higherrank_jacobi_forms__restriction(
 
     TESTS:
 
-    See test_higherrank.py.
+    Tested implicitely by `meth:higherrank_jacobi_forms`.  See also ``test_higherrank.py``.
     """
     assert relation_prec <= prec
 
