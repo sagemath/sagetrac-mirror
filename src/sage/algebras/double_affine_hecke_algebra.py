@@ -579,6 +579,8 @@ class DoubleAffineType(SageObject):
                         
             self._parameters = Family(dict([[key, param_dict[key]] for key in param_dict.keys()]))
         else:
+            if len(parameters.keys()) > 0:
+                raise ValueError, "Parameters were specified but the null_root parameter was not among them"
             K = QQ['q,v,vl,v0,v2,vz'].fraction_field()
             param_dict = dict({'null_root':K.gen(0),'short':K.gen(1),'long':K.gen(2),'zero':K.gen(3),'doubled':K.gen(4),'zero_doubled':K.gen(5)})
             self._parameters = Family(dict([[root_type, param_dict[root_type]] for root_type in Set(['null_root'])+self._orbits]))
@@ -937,6 +939,35 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         self._KLv = self._Lv.algebra(self._base_ring, prefix=prefixLv)
         self._Wv = self._H.dual_classical_weyl()
 
+        # set up eigenvalue computations
+        QYvee = self._Lv.cartan_type().root_system().coroot_space()
+        if 'long' in self._dat.parameters().keys() and self._dat.parameter('long') != self._dat.parameter('short'):
+            self._long_orbit_exists = True
+            # sum of short coroots of type Y; short here means strictly shorter than some other root
+            self._two_rho_short = QYvee.sum([alpha for alpha in QYvee.positive_roots() if alpha.is_short_root()]).to_ambient()
+            # sum of long coroots of type Y
+            self._two_rho_long = QYvee.sum([alpha for alpha in QYvee.positive_roots() if not alpha.is_short_root()]).to_ambient()
+            if not self._dat.untwisted():
+                self._two_rho_short, self._two_rho_long = self._two_rho_long, self._two_rho_short
+        else:
+            self._long_orbit_exists = False
+            self._two_rho_short = QYvee.sum([alpha for alpha in QYvee.positive_roots()]).to_ambient()
+            self._two_rho_long = QYvee.zero().to_ambient()
+        self._two_rho_zero = QYvee.zero().to_ambient()
+        self._zero_orbit_exists = False
+
+        if 'zero' in self._dat.parameters().keys():
+            if self._dat.parameter('zero') != self._dat.parameter('short'):
+                if self._long_orbit_exists and self._dat.parameter('zero') != self._dat.parameter('long'):
+                    self._zero_orbit_exists = True
+                    if self._long_orbit_exists and not self._dat._cartan_type_classical.root_system().root_space().simple_root(self._dat._cartan_type_classical.n).is_short_root():
+                        self._two_rho_zero = self._two_rho_long/2
+                        self._two_rho_long = self._two_rho_long/2
+                    else:
+                        self._two_rho_zero = self._two_rho_short/2
+                        self._two_rho_short = self._two_rho_short/2
+            
+        # the ingredients of different components of the DAHA
         self._T = self._H.T() # T-basis of extended affine Hecke algebra
         self._E = self._H.extended_affine_weyl()
         self._W0Pv = self._E.W0Pv()
@@ -978,6 +1009,8 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
 
         LT_to_LtvLv = LT.module_morphism(on_basis=LT_to_LtvLv_on_basis, codomain=LtvLv)
         LT_to_LtvLv.register_as_coercion()
+
+
 
     def double_affine_type(self):
         r"""
@@ -1199,6 +1232,84 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
         The dual lattice.
         """
         return self._Lv
+
+    def Y_eigenvalue(self, mu, la=None):
+        r"""
+        The function which, given the pair `(\mu,\lambda)`, returns the eigenvalue of
+        `Y^\mu` on the nonsymmetric Macdonald polynomial `E_\lambda`.
+
+        EXAMPLES::
+
+            sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2")
+            sage: mu = HH.dual_lattice().an_element(); mu
+            (2, 2, 3)
+            sage: la = HH.lattice().an_element(); la
+            (2, 2, 3)
+            sage: HH.Y_eigenvalue(mu,la)
+            1/(q^2*v^2)
+
+            sage: K = QQ['q,v'].fraction_field()
+            sage: q,v = K.gens()
+            sage: HH=DoubleAffineHeckeAlgebraSansDuality("B2", null_root=q, short=v, long=v)
+            sage: mu = HH.dual_lattice().an_element(); mu
+            (2, 2)
+            sage: la = HH.lattice().an_element(); la
+            (2, 2)
+            sage: HH.Y_eigenvalue(mu,la)
+            1/(q^16*v^8)            
+
+            sage: HH=DoubleAffineHeckeAlgebraSansDuality("B2", dual_reduced=False, null_root=q, short=v, long=v, zero=v)
+            sage: mu = HH.dual_lattice().an_element(); mu
+            (2, 2)
+            sage: la = HH.lattice().an_element(); la
+            (2, 2)
+            sage: HH.Y_eigenvalue(mu,la)
+            1/(q^16*v^8)            
+
+            sage: HH=DoubleAffineHeckeAlgebraSansDuality("B3", untwisted=False,reduced=False,dual_reduced=False)
+            sage: mu = HH.dual_lattice().from_vector(vector((-3,-2,0))); mu
+            (-3, -2, 0)
+            sage: la = HH.lattice().from_vector(vector((2,0,-1))); la
+            (2, 0, -1)
+            sage: HH.Y_eigenvalue(mu,la)
+            q^12*v*vl^12*v0
+
+        """
+        if la is None:
+            la = self.lattice().zero()
+        ulainv = self._Wv.from_reduced_word(la.reduced_word(positive=False))
+        ev = self._dat.q() ** (- self.Y_pair_X_m(mu, la)) * (self._dat.parameter('short') ** (ulainv.action(self._two_rho_short).scalar(mu)))
+        zed = self._two_rho_short.parent().zero()
+        if self._two_rho_long != zed:
+            ev = ev * (self._dat.parameter('long')  **ulainv.action(self._two_rho_long).scalar(mu))
+        if self._two_rho_zero != zed:
+            ev = ev * (self._dat.parameter('zero')  **ulainv.action(self._two_rho_zero).scalar(mu))
+        return ev
+
+    @cached_method
+    def T_eigenvalue(self, u):
+        r"""
+        The eigenvalue of `T_u` on the generator of the polynomial module, where `u` is an element of the finite Weyl group.
+
+        EXAMPLES::
+
+            sage: HH = DoubleAffineHeckeAlgebraSansDuality("A2")
+            sage: u = HH.double_affine_type().extended_affine_weyl().dual_classical_weyl().an_element(); u
+            s1*s2
+            sage: HH.T_eigenvalue(u)
+            v^2
+
+            sage: HH = DoubleAffineHeckeAlgebraSansDuality("B2", untwisted=False, reduced=False, dual_reduced=False)
+            sage: u = HH.double_affine_type().extended_affine_weyl().dual_classical_weyl().an_element(); u
+            s1*s2
+            sage: HH.T_eigenvalue(u)
+            v*vl
+
+        """
+        i = u.first_descent()
+        if i is None:
+            return self.base_ring().one()
+        return self._dat.q1(i) * self.T_eigenvalue(u.apply_simple_reflection(i))
 
     def lattice_algebra(self):
         r"""
@@ -1757,6 +1868,31 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
                 """
                 return self(self.realization_of().LtvLv().from_reduced_word(word))
 
+            def to_polynomial_module(self, x):
+                r"""
+                Project `x` into the polynomial module.
+
+                ..warning:: Must be implemented by basis "LtvLv".
+
+                EXAMPLES::
+
+                    sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2",general_linear=True); M = HH.LtvLv()
+                    sage: x = M.an_element(); x
+                    2*X[(2, 2, 3)] Ty[1,2,1] Y[(2, 2, 3)] + 4*X[(2, 2, 3)] Ty[1,2] Y[(2, 2, 3)] + X[(2, 2, 3)] Y[(2, 2, 3)]
+                    sage: M.to_polynomial_module(x)
+                    ((2*v^3+4*v^2+1)/v^2)*X[(2, 2, 3)]                    
+                    sage: LT = HH.LT()
+                    sage: y = LT.a_monomial(); y
+                    X[(2, 2, 3)] piX[5] TX[0,1,2]
+                    sage: M(y)
+                    X[(2, 2, 3)] Ty[2] Y[(2, 2, 1)]
+                    sage: LT.to_polynomial_module(y)
+                    v^3*X[(2, 2, 3)]
+
+                """
+                M = self.realization_of().LtvLv()
+                return M.to_polynomial_module(M(x))
+
     class _DAHABases(UniqueRepresentation, BindableClass):
         r"""
         The class of realizations of a double affine Hecke algebra without duality.
@@ -2071,6 +2207,8 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             SmashProductAlgebra.__init__(self, HH._KL, HH.tv_Lv(), twist_morphism=HH._twist_LtvLv, category=Category.join((HH._DAHABasesCategory(),AlgebrasWithBasis(HH.base_ring()).TensorProducts())))
             self._style = "LtvLv"
 
+            self._to_polynomial_morphism = self.module_morphism(on_basis=self._to_polynomial_module_on_basis, category=ModulesWithBasis(self.base_ring()), codomain = HH._KL)
+
         def _repr_(self):
             HH = self.realization_of()
             return "%s basis of %s"%(self._style, HH._repr_())
@@ -2146,3 +2284,34 @@ class DoubleAffineHeckeAlgebraSansDuality(UniqueRepresentation, Parent):
             """
             return self.factor_embedding(1)(self.factor(1).from_reduced_word(word))
 
+        def _to_polynomial_module_on_basis(self, (mu, u, nu)):
+            r"""
+            Given a basis triple for ``self``, return the projected element in the polynomial module.
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A3",general_linear=True); M = HH.LtvLv()
+                sage: mu = HH.lattice().an_element(); mu
+                (2, 2, 3, 0)
+                sage: u = HH.double_affine_type().extended_affine_weyl().dual_classical_weyl().an_element(); u
+                s1*s2*s3
+                sage: nu = HH.dual_lattice().an_element(); nu
+                (2, 2, 3, 0)
+                sage: HH.LtvLv()._to_polynomial_module_on_basis((mu,u,nu))
+                v^8*X[(2, 2, 3, 0)]
+
+            """
+            HH = self.realization_of()
+            return HH._KL.term(mu, HH.T_eigenvalue(u) * HH.Y_eigenvalue(nu))
+
+        def to_polynomial_module(self, x):
+            r"""
+            Project an element into the polynomial module.
+
+            EXAMPLES::
+
+                sage: HH=DoubleAffineHeckeAlgebraSansDuality("A2",general_linear=True); M = HH.LtvLv()
+                sage: x = M.an_element(); x
+                2*X[(2, 2, 3)] Ty[1,2,1] Y[(2, 2, 3)] + 4*X[(2, 2, 3)] Ty[1,2] Y[(2, 2, 3)] + X[(2, 2, 3)] Y[(2, 2, 3)]
+                sage: M.to_polynomial_module(x)
+                ((2*v^3+4*v^2+1)/v^2)*X[(2, 2, 3)]
+            """
+            return self._to_polynomial_morphism(x)
