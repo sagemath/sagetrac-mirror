@@ -27,51 +27,63 @@ AUTHOR:
 
 from sage.functions.all import factorial, gegenbauer
 from sage.matrix.all import matrix
-from sage.modules.all import vector, span
 from sage.modular.all import ModularForms, Gamma1
-from sage.modular.jacobi.all import classical_weak_jacobi_forms
+from sage.modules.all import vector, span
+from sage.rings.all import (PolynomialRing, LaurentPolynomialRing,
+                            PowerSeriesRing,
+                            ZZ, QQ, gcd)
+
 from sage.modular.jacobi.classical_weak import (
-    reduce_classical_jacobi_fe_index, classical_weak_jacobi_fe_indices,
-    classical_weak_jacobi_taylor_coefficients)
-from sage.rings.all import PolynomialRing, LaurentPolynomialRing, PowerSeriesRing, ZZ, QQ, gcd
+    classical_weak_jacobi_fe_indices,
+    reduce_classical_jacobi_fe_index,
+    classical_weak_jacobi_forms,
+    classical_weak_jacobi_taylor_coefficients
+)
 
+def test_classical_weak_jacobi_forms():
+    prec = 20
 
-def test__compare_taylor_coefficients(prec, k, m, algorithm="skoruppa") :
+    for k in [10, 11, 15, 18]:
+        for m  in range(1, 4):
+
+            yield (_test_classical_weak_jacobi_forms__taylor_coefficients,
+                   k, m, prec):
+
+            if k%2 == 0:
+                nu_bound = 20
+                yield (_test_classical_weak_jacobi_forms__taylor_coefficient_modularity,
+                       10, k, m, prec)
+
+            kmod = 6
+            yield (_test_classical_weak_jacobi_forms__multiplication,
+                   k, m, k_mod, prec)
+
+            for torsion_point in [0, 1/2]:
+                yield (_test_classical_weak_jacobi_forms__torsion_point,
+                       torsion_point, k, m, prec)
+
+def _test_classical_weak_jacobi_forms__taylor_coefficients(k, m, prec):
     r"""
     INPUT:
-    
-    - ``prec`` -- A non-negative integer that corresponds to a precision of
-                  the q-expansion.
     
     - `k -- An integer.
     
     - `m` -- A non-negative integer.
 
-    - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
-
-    TESTS::
-
-        sage: from sage.modular.jacobi.classical_weak import *
-        sage: from sage.modular.jacobi.test_classical_weak import *
-        sage: test__compare_taylor_coefficients(40, 10, 1)
-        sage: test__compare_taylor_coefficients(40, 12, 2)
-        sage: test__compare_taylor_coefficients(40, 9, 3)
-        sage: test__compare_taylor_coefficients(40, 7, 5) # long time
-        sage: test__compare_taylor_coefficients(40, 10, 10) # long time
+    - ``prec`` -- A non-negative integer that corresponds to a precision of
+                  the q-expansion.
     """
-    jacobi_forms = classical_weak_jacobi_forms(k, m, prec, algorithm)
+    jacobi_forms = classical_weak_jacobi_forms(k, m, prec)
     taylor_expansions = classical_weak_jacobi_taylor_coefficients(k, m)
     assert all( proj == f
                 for (phi, tcs) in zip(jacobi_forms, taylor_expansions)
                 for (proj, f) in zip(
-                        _jacobi_taylor_coefficients(phi, k, m, prec),
-                        _jacobi_predicted_taylor_coefficients(tcs, prec) ) )
+                        _taylor_coefficients(phi, k, m, prec),
+                        _predicted_taylor_coefficients(tcs, prec) ) )
 
-
-def _jacobi_taylor_coefficients(expansion, k, m, prec) :
+def _taylor_coefficients(expansion, k, m, prec) :
     r"""
-    Compute the renormalized Taylor coefficients of
-    a Jacobi form.
+    Normalized Taylor coefficients of a Jacobi form.
 
     INPUT:
 
@@ -86,11 +98,7 @@ def _jacobi_taylor_coefficients(expansion, k, m, prec) :
 
     OUTPUT:
 
-    - A list of power series in `q`.
-
-    TESTS:
-
-    See ``meth:test__classical_weak_jacobi_forms``.
+    A list of power series in `q`.
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen(0)
 
@@ -114,10 +122,10 @@ def _jacobi_taylor_coefficients(expansion, k, m, prec) :
 
     return projs
 
-def _jacobi_predicted_taylor_coefficients(fs, prec) :
+def _predicted_taylor_coefficients(fs, prec) :
     r"""
     Given a list of power series, which are the corrected Taylor coefficients
-    of a Jacobi form, return the renormalized uncorrected ones, assuming that
+    of a Jacobi form, return the normalized, uncorrected ones, assuming that
     all but one `f` vanish.
 
     INPUT:
@@ -129,10 +137,6 @@ def _jacobi_predicted_taylor_coefficients(fs, prec) :
     OUPUT:
 
     - A list of power series.
-
-    TESTS:
-
-    See ``meth:test__classical_weak_jacobi_forms``.
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen(0)
 
@@ -148,13 +152,7 @@ def _jacobi_predicted_taylor_coefficients(fs, prec) :
 
     return taylor_coefficients
 
-def test__modular_taylor_coefficients(nu_bound, k, m, prec):
-    r"""
-    TESTS::
-
-        sage: from sage.modular.jacobi.test_classical_weak import *
-        sage: test__modular_taylor_coefficients(10, 10, 7, 100)
-    """
+def _test_classical_weak_jacobi_forms__taylor_coefficient_modularity(nu_bound, k, m, prec):
     assert k % 2 == 0
 
     phis = classical_weak_jacobi_forms(k, m, prec)
@@ -171,7 +169,7 @@ def test__modular_taylor_coefficients(nu_bound, k, m, prec):
                for f_vec in fs_vec)
 
 
-def _jacobi_corrected_taylor_expansions(nu, phi, k, m, prec):
+def _corrected_taylor_expansions(nu, phi, k, m, prec):
     r"""
     Return the ``2 nu``-th corrected Taylor coefficient.
 
@@ -189,7 +187,7 @@ def _jacobi_corrected_taylor_expansions(nu, phi, k, m, prec):
 
     OUTPUT:
 
-    - A power series in `q`.
+    A power series in `q`.
 
     ..TODO:
 
@@ -210,26 +208,59 @@ def _jacobi_corrected_taylor_expansions(nu, phi, k, m, prec):
 
     return PowerSeriesRing(QQ, 'q')(coeffs)
 
-def test__jacobi_torsion_point(torsion_point, k, m, prec):
+def _test_classical_weak_jacobi_forms__multiplication(k, m, k_mod, prec):
     r"""
-    TESTS::
+    Check that the product of weak Jacobi forms of given weight and
+    index with modular forms of given weight is a weak Jacobi form.
 
-        sage: from sage.modular.jacobi.test_classical_weak import test__jacobi_torsion_point
-        sage: test__jacobi_torsion_point(0, 4, 7, 30)
-        sage: test__jacobi_torsion_point(2/3, 4, 1, 30) # long time
+    INPUT:
+
+    - `k` -- An integer.
+
+    - `m -- A positive integer.
+
+    - `k_mod` -- An integer.
+
+    - ``prec`` -- An integer.
     """
-    phis = classical_weak_jacobi_forms(k, m, prec)
-    fs = [_jacobi_torsion_point(torsion_point, phi, k, m, prec) for phi in phis]
+    P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
+    q = P.gen(0)
+    zeta = P.base_ring().gen(0)
+
+    indices = list(classical_weak_jacobi_fe_indices(m, prec, reduced=True))
+    red = lambda nr: reduce_classical_jacobi_fe_index(nr,m)
+
+    psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices]) for _psi in classical_weak_jacobi_forms(k+k_mod, m, prec)]
+    psi_span = matrix([[psi[nr] for nr in indices] for psi in psis]).row_module()
+
+    for phi1 in classical_weak_jacobi_forms(k, m, prec):
+        phi1_poly = P.zero()
+        for nr in classical_weak_jacobi_fe_indices(m, prec):
+            (nrred, s) = red(nr)
+            if nrred in phi1:
+                phi1_poly += s**k * phi1[nrred] * q**n * zeta**r
+
+        for f in ModularForms(1, k_mod).basis():
+            f_poly = f.qexp(prec).polynomial()
+
+            phi2_poly = f_poly * phi1_poly
+            phi2_vec = vector([phi2_poly[nr[0]][nr[1]] for nr in indices])
+            assert phi2_vec in psi_span
+
+def _test_classical_weak_jacobi_forms__torsion_point(torsion_point, k, m, prec):
+    jforms = classical_weak_jacobi_forms(k, m, prec)
+    fs = [_eval_at_torsion_point(torsion_point, phi, k, m, prec) for phi in jforms]
     fs_vec = [vector(f.padded_list(prec)) for f in fs]
 
-    mf_span = span([vector(b.qexp(prec).padded_list(prec)) for b in ModularForms(Gamma1(torsion_point.denominator()**3), k).basis()])
+    mf_span = span([vector(b.qexp(prec).padded_list(prec))
+                    for b in ModularForms(Gamma1(torsion_point.denominator()**3), k).basis()])
 
     assert all(f_vec in mf_span for f_vec in fs_vec)
 
-def _jacobi_torsion_point(torsion_point, phi, k, m, prec) :
+def _eval_at_torsion_point(torsion_point, phi, k, m, prec) :
     r"""
-    Given a list of power series, which are the corrected Taylor coefficients
-    of a Jacobi form, return the specialization to ``torsion_point``.
+    Given a dictonary that represents the Fourier expansion of a
+    Jacobi form, return the specialization to ``torsion_point``.
 
     INPUT:
 
@@ -258,50 +289,3 @@ def _jacobi_torsion_point(torsion_point, phi, k, m, prec) :
         coeffs[n] += s**k * zeta**r * phi[nrred]
 
     return PowerSeriesRing(K, 'q')(coeffs) 
-
-def test_multiplication(prec, k, m, k_mod):
-    r"""
-    Check that the product of weak Jacobi forms of given weight and
-    index with modular forms of given weight is a weak Jacobi form.
-
-    INPUT:
-
-    - ``prec`` -- An integer.
-
-    - `k` -- An integer.
-
-    - `m -- A positive integer.
-
-    - `k_mod` -- An integer.
-
-    TESTS::
-
-        sage: from sage.modular.jacobi.test_classical_weak import *
-        sage: test_multiplication(30, 10, 4, 4)
-        sage: test_multiplication(30, 11, 4, 4)
-        sage: test_multiplication(30, 10, 5, 4)
-        sage: test_multiplication(30, 11, 5, 4)
-    """
-    P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
-    q = P.gen(0)
-    zeta = P.base_ring().gen(0)
-
-    indices = list(classical_weak_jacobi_fe_indices(m, prec, reduced=True))
-    red = lambda nr: reduce_classical_jacobi_fe_index(nr,m)
-
-    psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices]) for _psi in classical_weak_jacobi_forms(k+k_mod, m, prec)]
-    psi_span = matrix([[psi[nr] for nr in indices] for psi in psis]).row_module()
-
-    for phi1 in classical_weak_jacobi_forms(k, m, prec):
-        phi1_poly = P.zero()
-        for nr in classical_weak_jacobi_fe_indices(m, prec):
-            (nrred, s) = red(nr)
-            if nrred in phi1:
-                phi1_poly += s**k * phi1[nrred] * q**n * zeta**r
-
-        for f in ModularForms(1, k_mod).basis():
-            f_poly = f.qexp(prec).polynomial()
-
-            phi2_poly = f_poly * phi1_poly
-            phi2_vec = vector([phi2_poly[nr[0]][nr[1]] for nr in indices])
-            assert phi2_vec in psi_span

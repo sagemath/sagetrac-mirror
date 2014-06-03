@@ -4,6 +4,11 @@ Fourier expansions of classical weak Jacobi forms.
 AUTHOR:
 
 - Martin Raum
+
+REFERENCES:
+
+[Sk84] - Skoruppa, Über den Zusammenhang zwischen Jacobiformen und
+         Modulformen halbganzen Gewichts, 1984, University of Bonn.
 """
 
 #===============================================================================
@@ -48,9 +53,17 @@ def reduce_classical_jacobi_fe_index((n, r), m):
 
     - `m` -- A positive integer.
 
-    ..TODO:
+    OUTPUT:
 
-    insert tests.
+    A pair `((n', r'), s)`, where `(n', r')` is an index that is
+    equivalent to `(n,r)` and `s` is a sign indicating whether `r -
+    r'` or `r + r'` is divisible by `2m`.
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.all import *
+        sage: reduce_classical_jacobi_index((2,2), 1)
+        ???
     """
     rred = r % (2*m)
 
@@ -77,9 +90,17 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
     - ``reduce`` -- A boolean (default: ``False``).  If ``True``
                     restrict to `0 \le r \le m`.
 
-    ..TODO:
+    OUTPUT:
 
-    insert tests.
+    A generator of pairs `(n,r)`.
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.all import *
+        sage: list(classical_weak_jacobi_fe_indices(2, 3, True))
+        ???
+        sage: list(classical_weak_jacobi_fe_indices(2, 3, False))
+        ???
     """
     fm = Integer(4*m)
 
@@ -129,19 +150,25 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
 
     - ``algorithm`` -- Default: ''skoruppa''.  Only ''skoruppa'' is implemented.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.all import *
+        sage: classical_weak_jacobi_forms(2, 1, 5)
+        ???
     
-    See test_multiplication.
+    TESTS:
+
+    See ``test_classical_weak.py``.
     """
     if algorithm != "skoruppa":
         raise NotImplementedError("Algorithm {} is not implemented.".format(algorithm))
     factory = ClassicalWeakJacobiFormsFactory(m, prec)
     
     return [ factory.from_taylor_expansion(fs, k, is_integral=True)
-             for fs in classical_weak_jacobi_taylor_coefficients(k, m) ]
+             for fs in _classical_weak_jacobi_taylor_coefficients(k, m) ]
 
 @cached_function
-def classical_weak_jacobi_taylor_coefficients(k, m) :
+def _classical_weak_jacobi_taylor_coefficients(k, m) :
     r"""
     A product basis of the echelon bases of 
     
@@ -154,11 +181,16 @@ def classical_weak_jacobi_taylor_coefficients(k, m) :
     - `k -- An integer.
     
     - `m` -- A non-negative integer.
+
+    OUTPUT:
+
+    A list of lists of functions.  When called with with an arguement
+    ``prec``, each of them returns a `q`-expansion of that precision.
     
-    TESTS::
+    EXAMPLES::
     
-        sage: from sage.modular.jacobi.classical_weak import *                      
-        sage: classical_weak_jacobi_taylor_coefficients(12, 1)
+        sage: from sage.modular.jacobi.classical_weak import _classical_weak_jacobi_taylor_coefficients
+        sage: _classical_weak_jacobi_taylor_coefficients(12, 1)
         [[<bound method ModularFormElement.qexp of 1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + 4629381120*q^5 + O(q^6)>, <function <lambda> at ...>], [<bound method ModularFormElement.qexp of q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)>, <function <lambda> at ...>], [<function <lambda> at ...>, <bound method ModularFormElement.qexp of 1 - 24*q - 196632*q^2 - 38263776*q^3 - 1610809368*q^4 - 29296875024*q^5 + O(q^6)>]]
     """
     R = PowerSeriesRing(ZZ, 'q'); q = R.gen()
@@ -186,6 +218,17 @@ def ClassicalWeakJacobiFormsFactory(m, prec):
     - `m` -- A non-negative integer.
 
     - ``prec`` -- An integer.
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiFormsFactory
+        sage: ClassicalWeakJacobiFormsFactory(2, 5)
+        ???
+
+    TESTS::
+
+        sage: fcty = ClassicalWeakJacobiFormsFactory(2, 5)
+        sage: assert fcty is ClassicalWeakJacobiFormsFactory(2, 5)
     """
     if (m, prec) in _classical_weak_jacobi_forms_factory_cache:
         return _classical_weak_jacobi_forms_factory_cache[(m, prec)]
@@ -208,6 +251,12 @@ class ClassicalWeakJacobiForms_factory:
         - `m` -- A non-negative integer.
 
         - ``prec`` -- An integer.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: ClassicalWeakJacobiForms_factory(2, 5)
+            ???
         """
         self.__prec = prec
         self.__jacobi_index = m
@@ -217,29 +266,90 @@ class ClassicalWeakJacobiForms_factory:
 
     def jacobi_index(self) :
         r"""
-        The index of the Jacobi forms that are computed by this factory. 
+        The index of the Jacobi forms that are computed by this factory.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty.jacobi_index()
+            2
         """
         return self.__jacobi_index
 
     def precision(self) :
         r"""
         The precision of Fourier expansions that are computed.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty.precision()
+            5
         """
         return self.__prec
 
     def _power_series_ring(self) :
         r"""
         An auxiliary power series ring that is cached in the factory.
+
+        OUTPUT:
+
+        An power series ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty._power_series_ring()
+            ??
         """
         return self.__power_series_ring
     
     def _power_series_ring_ZZ(self) :
         r"""
         An auxiliary power series ring over `\ZZ` that is cached in the factory.
-        """
+
+        OUTPUT:
+
+        An power series ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty._power_series_ring_ZZ()
+            ??        """
         return self.__power_series_ring_ZZ
 
     def _truncate_cache(self, prec):
+        r"""
+        A new factory instance whose cache is truncated to a given precision.
+
+        INPUT:
+
+        - ``prec`` -- An integer.
+
+        OUTPUT:
+
+        A factory for classical weak Jacobi forms.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty._truncate_cache(3)
+            ??
+        """
         other = ClassicalWeakJacobiForms(m, prec)
 
         try:
@@ -251,8 +361,8 @@ class ClassicalWeakJacobiForms_factory:
 
         try:
             other._wronskian_adjoint_odd = \
-                matrix([[e.truncate(prec) for e in r]
-                        for r in self._wronskian_adjoint_odd.rows()])
+                                           matrix([[e.truncate(prec) for e in r]
+                                                   for r in self._wronskian_adjoint_odd.rows()])
         except AttributeError:
             pass
 
@@ -279,6 +389,14 @@ class ClassicalWeakJacobiForms_factory:
         - ``wronskian_adjoint`` -- A list of lists of power series over `\Z`.
         
         - ``weight_parity`` -- An integer (default: `0`).
+
+        TESTS::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: adj = ("TEST", None)
+            sage: fcty._set_wronskian_adjont(adj, 0)
+            sage: assert fcty._wronskian_adjoint(0) is adj
         """
         wronskian_adjoint = [ [ e if e in self.__power_series_ring else self.__power_series_ring_ZZ(e)
                                 for e in row ]
@@ -289,20 +407,30 @@ class ClassicalWeakJacobiForms_factory:
         else :
             self._wronskian_adjoint_odd = wronskian_adjoint
     
-    def _wronskian_adjoint(self, weight_parity = 0, p = None) :
+    def _wronskian_adjoint(self, weight_parity = 0) :
         r"""
-        The matrix `W^\# \pmod{p}`, mentioned on page 142 of Nils Skoruppa's thesis.
+        The matrix `W^\# \pmod{p}`, mentioned on page 142 of [Sk84].
         This matrix is represented by a list of lists of q-expansions.
         
-        The q-expansion is shifted by `-(m + 1) (2*m + 1) / 24` in the case of even weights, and it is
-        shifted by `-(m - 1) (2*m - 3) / 24` otherwise. This is compensated by the missing q-powers
+        The q-expansion is shifted by `-(m + 1) (2*m + 1) / 24` in the
+        case of even weights, and it is shifted by `-(m - 1) (2*m - 3)
+        / 24` otherwise. This is compensated by the missing q-powers
         returned by _wronskian_invdeterminant.
         
         INPUT:
         
-        - `p` -- A prime or ``None``.
-        
         - ``weight_parity`` -- An integer (default: `0`).
+
+        OUTPUT:
+
+        A matrix over a power series ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty._wronskian_adjoint(0)
+            ??
         """
         try :
             if weight_parity % 2 == 0 :
@@ -310,12 +438,7 @@ class ClassicalWeakJacobiForms_factory:
             else :
                 wronskian_adjoint = self._wronskian_adjoint_ood
 
-            if p is None :
-                return wronskian_adjoint
-            else :
-                P = PowerSeriesRing(GF(p), 'q')
-                
-                return [map(P, row) for row in wronskian_adjoint] 
+            return wronskian_adjoint
 
         except AttributeError :
             if p is None :
@@ -439,6 +562,14 @@ class ClassicalWeakJacobiForms_factory:
         - ``wronskian_invdeterminant`` -- A power series over `\ZZ`.
         
         - ``weight_parity`` -- An integer (default: `0`).
+
+        TESTS::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: invdet = ("TEST", None)
+            sage: fcty._set_wronskian_invdeterminant(invdet, 0)
+            sage: assert fcty._wronskian_invdeterminant(0) is invdet
         """
         if not wronskian_invdeterminant in self.__power_series_ring_ZZ :
             wronskian_invdeterminant = self.__power_series_ring_ZZ(wronskian_invdeterminant)
@@ -450,12 +581,23 @@ class ClassicalWeakJacobiForms_factory:
     
     def _wronskian_invdeterminant(self, weight_parity = 0) :
         r"""
-        The inverse determinant of `W`, which in the considered cases is always a negative
-        power of the eta function. See the thesis of Nils Skoruppa.
+        The inverse determinant of `W`, which in the considered cases
+        is always a negative power of the eta function. See [Sk84] for details.
         
         INPUT:
         
         - ``weight_parity`` -- An integer (default: `0`).
+
+        OUTPUT:
+
+        A power series.
+
+        EXAMPLES::
+
+            sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
+            sage: fcty._wronskian_invdeterminant(0)
+            ??
         """
         try :
             if weight_parity % 2 == 0 :
@@ -482,10 +624,16 @@ class ClassicalWeakJacobiForms_factory:
  
     def from_taylor_expansion(self, fs, k, is_integral=False) :
         r"""
-        We combine the theta decomposition and the heat operator as in the
-        thesis of Nils Skoruppa. This yields a bijections of the space of weak
-        Jacobi forms of weight `k` and index `m` with the product of spaces
-        of elliptic modular forms `M_k \times S_{k+2} \times .. \times S_{k+2m}`.
+        The Fourier expansion of a weak Jacobi form computed from its
+        corrected Taylor coefficients.
+
+        ALGORITHM:
+
+        We combine the theta decomposition and the heat operator as in
+        [Sk84]. This yields a bijections of the space of weak Jacobi
+        forms of weight `k` and index `m` with the product of spaces
+        of elliptic modular forms `M_k \times S_{k+2} \times .. \times
+        S_{k+2m}`.
         
         INPUT:
         
@@ -506,7 +654,7 @@ class ClassicalWeakJacobiForms_factory:
             sage: R.<q> = ZZ[[]]
             sage: expansion = factory.from_taylor_expansion([lambda p: 0 + O(q^p), lambda p: CuspForms(1, 12).gen(0).qexp(p)], 9, True)
             sage: exp_gcd = gcd(expansion.values())
-            sage: sorted([ (12 * n - r**2, c/exp_gcd) for ((n, r), c) in expansion.iteritems()])
+            sage: sorted([ (12 * n - r**2, c/exp_gcd) for ((n, r), c) in expansion.items()])
             [(-4, 0), (-1, 0), (8, 1), (11, -2), (20, -14), (23, 32), (32, 72), (35, -210), (44, -112), (47, 672), (56, -378), (59, -728), (68, 1736), (71, -1856), (80, -1008), (83, 6902), (92, -6400), (95, -5792), (104, 10738), (107, -6564)]
         """
         if is_integral :
@@ -568,4 +716,3 @@ class ClassicalWeakJacobiForms_factory:
                 phi_coeffs[(n, r)] = series[n]
 
         return phi_coeffs
-
