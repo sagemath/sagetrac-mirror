@@ -441,10 +441,7 @@ class ClassicalWeakJacobiForms_factory:
             return wronskian_adjoint
 
         except AttributeError :
-            if p is None :
-                PS = self.__power_series_ring_ZZ
-            else :
-                PS = PowerSeriesRing(GF(p), 'q')
+            PS = self.__power_series_ring_ZZ
             m = self.jacobi_index()
             
             twom = 2 * m
@@ -545,11 +542,10 @@ class ClassicalWeakJacobiForms_factory:
                 wronskian_adjoint = [ [ Wadj[i,r] for i in xrange(m - 1) ]
                                       for r in xrange(m - 1) ]
             
-            if p is None :
-                if weight_parity % 2 == 0 :
-                    self._wronskian_adjoint_even = wronskian_adjoint
-                else :
-                    self._wronskian_adjoint_odd = wronskian_adjoint
+            if weight_parity % 2 == 0 :
+                self._wronskian_adjoint_even = wronskian_adjoint
+            else :
+                self._wronskian_adjoint_odd = wronskian_adjoint
                 
             return wronskian_adjoint
     
