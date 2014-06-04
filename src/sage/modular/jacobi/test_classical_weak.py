@@ -25,22 +25,20 @@ AUTHOR:
 #
 #===============================================================================
 
-from sage.rings.all import (PolynomialRing, LaurentPolynomialRing,
-                            PowerSeriesRing,
-                            ZZ, QQ, gcd)
-
-from sage.functions.all import factorial, gegenbauer
-from sage.matrix.all import matrix
-from sage.modular.all import ModularForms, Gamma1
-from sage.modules.all import vector, span
-
-
+from sage.all import (PolynomialRing, LaurentPolynomialRing,
+                      PowerSeriesRing,
+                      ZZ, QQ, gcd,
+                      factorial, gegenbauer,
+                      vector, span, FreeModule,
+                      matrix,
+                      ModularForms, Gamma1
+)
 
 from sage.modular.jacobi.classical_weak import (
     classical_weak_jacobi_fe_indices,
     reduce_classical_jacobi_fe_index,
     classical_weak_jacobi_forms,
-    classical_weak_jacobi_taylor_coefficients
+    _classical_weak_jacobi_taylor_coefficients
 )
 
 def test_classical_weak_jacobi_forms():
@@ -57,7 +55,7 @@ def test_classical_weak_jacobi_forms():
                 yield (_test_classical_weak_jacobi_forms__taylor_coefficient_modularity,
                        10, k, m, prec)
 
-            kmod = 6
+            k_mod = 6
             yield (_test_classical_weak_jacobi_forms__multiplication,
                    k, m, k_mod, prec)
 
@@ -77,7 +75,7 @@ def _test_classical_weak_jacobi_forms__taylor_coefficients(k, m, prec):
                   the q-expansion.
     """
     jacobi_forms = classical_weak_jacobi_forms(k, m, prec)
-    taylor_expansions = classical_weak_jacobi_taylor_coefficients(k, m)
+    taylor_expansions = _classical_weak_jacobi_taylor_coefficients(k, m)
     assert all( proj == f
                 for (phi, tcs) in zip(jacobi_forms, taylor_expansions)
                 for (proj, f) in zip(
@@ -160,7 +158,7 @@ def _test_classical_weak_jacobi_forms__taylor_coefficient_modularity(nu_bound, k
 
     phis = classical_weak_jacobi_forms(k, m, prec)
 
-    fss = [[_jacobi_corrected_taylor_expansions(nu, phi, k, m, prec) for phi in phis]
+    fss = [[_corrected_taylor_expansions(nu, phi, k, m, prec) for phi in phis]
            for nu in range(0,nu_bound,2)]
     fss_vec = [ [vector(f.padded_list(prec)) for f in fs] for fs in fss ]
 
@@ -239,6 +237,7 @@ def _test_classical_weak_jacobi_forms__multiplication(k, m, k_mod, prec):
     for phi1 in classical_weak_jacobi_forms(k, m, prec):
         phi1_poly = P.zero()
         for nr in classical_weak_jacobi_fe_indices(m, prec):
+            (n,r) = nr
             (nrred, s) = red(nr)
             if nrred in phi1:
                 phi1_poly += s**k * phi1[nrred] * q**n * zeta**r
@@ -255,8 +254,9 @@ def _test_classical_weak_jacobi_forms__torsion_point(torsion_point, k, m, prec):
     fs = [_eval_at_torsion_point(torsion_point, phi, k, m, prec) for phi in jforms]
     fs_vec = [vector(f.padded_list(prec)) for f in fs]
 
-    mf_span = span([vector(b.qexp(prec).padded_list(prec))
-                    for b in ModularForms(Gamma1(torsion_point.denominator()**3), k).basis()])
+    mf_span = FreeModule(QQ, prec).span([
+        vector(b.qexp(prec).padded_list(prec))
+        for b in ModularForms(Gamma1(QQ(torsion_point).denominator()**3), k).basis()])
 
     assert all(f_vec in mf_span for f_vec in fs_vec)
 
@@ -289,6 +289,7 @@ def _eval_at_torsion_point(torsion_point, phi, k, m, prec) :
     coeffs = dict( (n, QQ(0)) for n in range(prec) )
     for (n, r) in classical_weak_jacobi_fe_indices(m, prec):
         (nrred, s) = reduce_classical_jacobi_fe_index((n,r), m)
-        coeffs[n] += s**k * zeta**r * phi[nrred]
+        if nrred in phi:
+            coeffs[n] += s**k * zeta**r * phi[nrred]
 
     return PowerSeriesRing(K, 'q')(coeffs) 
