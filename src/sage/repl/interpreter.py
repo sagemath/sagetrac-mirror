@@ -86,6 +86,7 @@ DEFAULT_SAGE_CONFIG = Config(
     TerminalInteractiveShell = Config(
         ast_node_interactivity = 'all',
         colors = 'LightBG' if sys.stdout.isatty() else 'NoColor',
+        autoindent = 0 if os.getenv('TERM') == 'dumb' else 1,
         confirm_exit = False,
         separate_in = ''),
     InteractiveShellApp = Config(extensions=[SAGE_EXTENSION]),
