@@ -25,13 +25,16 @@ AUTHOR:
 #
 #===============================================================================
 
+from sage.rings.all import (PolynomialRing, LaurentPolynomialRing,
+                            PowerSeriesRing,
+                            ZZ, QQ, gcd)
+
 from sage.functions.all import factorial, gegenbauer
 from sage.matrix.all import matrix
 from sage.modular.all import ModularForms, Gamma1
 from sage.modules.all import vector, span
-from sage.rings.all import (PolynomialRing, LaurentPolynomialRing,
-                            PowerSeriesRing,
-                            ZZ, QQ, gcd)
+
+
 
 from sage.modular.jacobi.classical_weak import (
     classical_weak_jacobi_fe_indices,
@@ -47,7 +50,7 @@ def test_classical_weak_jacobi_forms():
         for m  in range(1, 4):
 
             yield (_test_classical_weak_jacobi_forms__taylor_coefficients,
-                   k, m, prec):
+                   k, m, prec)
 
             if k%2 == 0:
                 nu_bound = 20

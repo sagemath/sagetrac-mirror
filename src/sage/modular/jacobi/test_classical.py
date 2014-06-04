@@ -27,7 +27,6 @@ AUTHOR:
 
 from sage.matrix.all import matrix
 from sage.modular.all import ModularForms
-from sage.modular.jacobi.all import 
 from sage.modules.all import vector
 from sage.rings.all import PolynomialRing, LaurentPolynomialRing, QQ
 
