@@ -162,7 +162,7 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
         sage: list(higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=True))
         [(0, (0,)), (1, (0,)), (1, (1,))]
         sage: list(higherrank_jacobi_fe_indices(m, 2, r_classes, reduced=False))
-        [(0, (0)), (1, (0)), (1, (1)), (1, (-1)), (1, (2)), (1, (-2))]
+        [(0, (0,)), (1, (0,)), (1, (1,)), (1, (-1,)), (1, (2,)), (1, (-2,))]
 
     TESTS::
 
