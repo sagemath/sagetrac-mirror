@@ -81,11 +81,17 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
 
     See ``test_higherrank.py``.
     """
-    (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
+    try:
+        (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r__cache[(m,r)]
+    except KeyError:
+        (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
+        _reduce_higherrank_jacobi_fe_index__r__cache[(m,r)] = (rred, sgn)
+
     nred = n - (m_adj(r) - m_adj(rred)) // (2*m.det())
 
     return ((nred, rred), sgn)
 
+_reduce_higherrank_jacobi_fe_index__r__cache = {}
 def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
     r"""
     Find a representative in `r_classes` that is equivalent modulo `m
@@ -178,7 +184,7 @@ def higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
         for n in range(0, prec):
             for length in range(0, 2*m.det()*n + 1):
                 for r in short_vectors[length] :
-                    yield (n, r)
+                    yield (n, tuple(r))
 
     raise StopIteration
 

@@ -37,7 +37,7 @@ from sage.modular.jacobi.vector_valued import (
     vector_valued_modular_forms,
     vector_valued_modular_forms_weakly_holomorphic,
     vector_valued_modular_forms_weakly_holomorphic_with_principal_part,
-    positive_definite_quadratic_form,
+    stably_equivalent_positive_definite_quadratic_form,
     _add_vvforms, _mul_scalar_vvform,
     _split_off_hyperbolic, _split_off_E8
 )
@@ -45,7 +45,7 @@ from sage.modular.jacobi.vector_valued import (
 def _test_set__quadratic_forms():
     return [QuadraticForm(matrix([[6]])),
             QuadraticForm(diagonal_matrix([2,4])),
-            QuadraticForm(matrix(4, [4,0,0,1, 0,2,0,1, 0,0,2,1, 1,1,1,2]))]
+            QuadraticForm(matrix(3, [2,1,1, 1,2,1, 1,1,2]))]
 
 def _test_set__indefinite_quadratic_forms():
     return [QuadraticForm(matrix([[-2]])),
@@ -89,18 +89,45 @@ def test_vector_valued_modular_forms_weakly_holomorphic():
                 yield (_test_vector_valued_modular_forms_weakly_holomorphic__multiplication,
                        prec, k, L, order, vforms)
 
-def test_vector_valued_modular_forms_weakly_holomorphic_with_prinicpal_part():
-    for (k, L, pp) in [(2, QuadraticForm(matrix([[2]])), {(0,): {-1: 2}}),
-                       (5, QuadraticForm(matrix(2, [2,1,1,2])), {(0,1): {-1/4: 1}, (0,2): {-1/4: -1}})]:
+def test_vector_valued_modular_forms_weakly_holomorphic_with_principal_part():
+    prec = 5
+    for (k, L, pp) in [(11/ZZ(2), QuadraticForm(matrix([[4]])), {(0,): {-1: 2}}),
+                       (5, QuadraticForm(matrix(2, [2,1,1,2])), {(0,1): {-1/ZZ(3): 1}, (0,2): {-1/ZZ(3): -1}})]:
         wvvform = vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, pp, prec)
 
-        from sage.modular.jacobi.vector_valued import _principal_part
-        assert _principal_part(wvvform) == pp
+        yield (_test_vector_valued_modular_forms_weakly_holomorphic__principal_part,
+               wvvform, pp, L)
 
         yield (_test_vector_valued_modular_forms_weakly_holomorphic__order,
-               1, [wwvform])
+               1, [wvvform])
         yield (_test_vector_valued_modular_forms_weakly_holomorphic__multiplication,
                prec, k, L, 1, [wvvform])
+
+def _test_vector_valued_modular_forms_weakly_holomorphic__principal_part(wvvform, pp, L):
+    from sage.combinat.dict_addition import dict_addition
+
+    pp_computed = {}
+    for (mu,fe) in wvvform.items():
+        pp_computed[mu] = {}
+        for (n,coeff) in fe.items():
+            if n < 0: pp_computed[mu][n] = coeff
+
+    L_span = L.matrix().row_module()
+    mu_module = L_span.ambient_module() / L_span
+
+    for mu in list(mu_module):
+        pp_contribution = {}
+        for pp_mu in pp.keys():
+            if mu_module(vector(pp_mu)) != mu: continue
+            pp_contribution = dict_addition([pp_contribution, pp[pp_mu]])
+
+        pp_computed_contribution = {}
+        for pp_mu in pp_computed.keys():
+            if mu_module(vector(pp_mu)) != mu: continue
+            pp_computed_contribution = dict_addition([pp_computed_contribution,
+                                                      pp_computed[pp_mu]])
+
+        assert pp_contribution == pp_computed_contribution
 
 def _test_vector_valued_modular_forms_weakly_holomorphic__order(order, vforms):
     for f in vforms:

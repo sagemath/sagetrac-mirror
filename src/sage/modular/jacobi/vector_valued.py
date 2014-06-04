@@ -190,21 +190,20 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
         sage: k = -1
         sage: L = QuadraticForm(matrix(2, [2, 1, 1, 2]))
         sage: pp = {(0,0): {-1: 1}}
-        sage: vector_valued_modular_weakly_holomorphic_with_principal_part(k, L, pp, 5)
+        sage: vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, pp, 5)
         {(0, 0): {-1: 1, 0: 90, 1: 100116, 2: 8046620, 3: 268478010, 4: 5499299952},
          (0, 1): {-1/3: 0, 2/3: -16038, 5/3: -2125035, 8/3: -89099838, 11/3: -2095831260},
          (0, 2): {-1/3: 0, 2/3: 16038, 5/3: 2125035, 8/3: 89099838, 11/3: 2095831260}}
 
     TESTS:
 
-    See ``test_vector_valued.py.``
+    See ``test_vector_valued.py``.
     """
     order = -min(min(fe.keys()) for fe in principal_part.values())
     ## TODO: as soon as better weakly holomorphic forms function is
     ## implemented, we can remove this
     order = ceil(order)
     vvforms = vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec)
-    vvpps = map(_principal_part, vvforms)
 
     L_span = L.matrix().row_module()
     L_adj = QuadraticForm(2 * L.matrix().adjoint())
@@ -213,26 +212,36 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
 
     
     pp_matrix = zero_matrix(QQ, len(mu_indices)*order, len(vvforms))
-    pp_vector = vector(QQ, len(mu_indices)*order)
     for (col,vvf) in enumerate(vvforms):
         for (mu,fe) in vvf.items():
             mu_ix = mu_indices[mu_module(vector(mu))]
+
             n_shift = L_adj(mu)/(2*L.det())
             n_shift = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
+            if n_shift == 0: n_shift = 1
+
             for (n,coeff) in fe.items():
                 if n < 0:
                     pp_matrix[mu_ix*order - (n+n_shift), col] = coeff
+
+    pp_vector = vector(QQ, len(mu_indices)*order)
     for (mu,fe) in principal_part.items():
         mu_ix = mu_indices[mu_module(vector(mu))]
+
         n_shift = L_adj(mu)/(2*L.det())
         n_shift = (n_shift.numerator() % n_shift.denominator()) / n_shift.denominator()
+        if n_shift == 0: n_shift = 1
+
         for (n,coeff) in fe.items():
-            pp_vector[mu_ix*order + abs(n+n_shift)] = coeff
+            if n < 0:
+                print n, n_shift
+                assert n+n_shift in ZZ
+                pp_vector[mu_ix*order - (n+n_shift)] = coeff
     
     try :
         coords = pp_matrix.solve_right(pp_vector)
     except :
-        raise AssertionError(pp_matrix, pp_vector)
+        print pp_matrix, pp_vector
         raise ValueError( "Given principal part can not be constructed" )
 
     res = dict()
@@ -294,32 +303,6 @@ def theta_decomposition(phi, m, r_classes):
             f[mu][disc] = sign * coeff
 
     return f
-
-def _principal_part(f):
-    r"""
-    The principal part of a weakly holomorphic vector valued modular form.
-
-    INPUT:
-
-    - `f` -- A dictionary representing the Fourier expansion of a
-             weakly holomorphic modular forms.
-
-    OUTPUT:
-
-    A dictionary representing the principal part.
-
-    EXAMPLES::
-
-        sage: from sage.modular.jacobi.vector_valued import _principal_part
-        sage: _principal_part({(0,1): {-1: 4, 0: 2}})
-        {(0, 1): {-1: 4}}
-    """
-    res = {}
-    for (mu,fe) in f.items():
-        res[mu] = {}
-        for (n,coeff) in fe.items():
-            if n < 0: res[mu][n] = coeff
-    return res
 
 def _mul_scalar_vvform(c, f) :
     r"""
