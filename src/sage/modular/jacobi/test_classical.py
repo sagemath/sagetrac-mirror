@@ -25,10 +25,13 @@ AUTHOR:
 #
 #===============================================================================
 
-from sage.matrix.all import matrix
-from sage.modular.all import ModularForms
-from sage.modules.all import vector
-from sage.rings.all import PolynomialRing, LaurentPolynomialRing, QQ
+from sage.all import (
+    PolynomialRing, LaurentPolynomialRing,
+    QQ,
+    vector,
+    matrix,
+    ModularForms
+)
 
 from sage.modular.jacobi.classical import (
     classical_jacobi_forms,
@@ -38,26 +41,27 @@ from sage.modular.jacobi.classical import (
 
 def test_classical_jacobi_forms():
     prec = 10
+    k_mod = 6
 
     for k in [8, 7, 12]:
         for m in range(1, 5):
             yield (_test_classical_jacobi_forms,
-                   k, m, prec)
+                   k, m, k_mod, prec)
 
-def _test_classical_jacobi_forms(prec, k, m, k_mod):
+def _test_classical_jacobi_forms(k, m, k_mod, prec):
     r"""
     Check that the product of Jacobi forms of given weight and
     index with modular forms of given weight is a Jacobi form.
 
     INPUT:
 
-    - ``prec`` -- An integer.
-
     - `k` -- An integer.
 
     - `m -- A positive integer.
 
     - `k_mod` -- An integer.
+
+    - ``prec`` -- An integer.
     """
     P = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta'), 'q')
     q = P.gen(0)
@@ -75,6 +79,7 @@ def _test_classical_jacobi_forms(prec, k, m, k_mod):
     for phi1 in classical_jacobi_forms(k, m, prec):
         phi1_poly = P.zero()
         for nr in indices_nonreduced:
+            (n,r) = nr
             (nrred, s) = red(nr)
             if nrred in phi1:
                 phi1_poly += s**k * phi1[nrred] * q**n * zeta**r

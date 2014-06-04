@@ -56,9 +56,9 @@ def classical_jacobi_fe_indices(m, prec, reduced=False):
 
         sage: from sage.modular.jacobi.all import *
         sage: list(classical_jacobi_fe_indices(2, 3, True))
-        ???
+        [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (0, 0)]
         sage: list(classical_jacobi_fe_indices(2, 3, False))
-        ???
+        [(1, 0), (1, 1), (1, -1), (1, 2), (1, -2), (2, 0), (2, 1), (2, -1), (2, 2), (2, -2), (2, 3), (2, -3), (0, 0), (2, 4), (2, -4)]
     """
     fm = Integer(4*m)
 
@@ -158,36 +158,7 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
         sage: from sage.modular.jacobi.classical import *
         sage: k = 4; m = 2; prec = 5
         sage: classical_jacobi_forms(k, m, prec)
-        ???
-
-    TESTS::
-
-    
-    We compute the Fourier expansion of a Jacobi form of weight `4`
-    and index `2`.  This is denoted by ``d``.  Moreover, we span the
-    space of all Jacobi forms of weight `8` and index `2`.
-    Multiplying the weight `4` by the Eisenstein series of weight `4`
-    must yield an element of the weight `8` space.  Note that the
-    multiplication is done using a polynomial ring, since no native
-    multiplication for Jacobi forms is implemented.
-    
-    ::
-    
-        sage: from sage.modular.jacobi.classical import *
-        sage: P.<q> = PolynomialRing(LaurentPolynomialRing(QQ, 'zeta')); zeta = P.base_ring().gen(0)
-        sage: prec = 20; m = 2; k = 4
-        sage: f = classical_jacobi_forms(k, m, prec)[0]
-        sage: f_poly = sum(f[reduce_classical_jacobi_fe_index((n,r),m)[0]] * q**n * zeta**r for (n,r) in classical_jacobi_fe_indices(2, prec))
-        sage: E4_poly = ModularForms(1, 4).gen(0).qexp(prec).polynomial()
-        sage: h_poly = E4_poly * f_poly
-
-    ::
-
-        sage: _phi1, _phi2 = classical_jacobi_forms(8, m, prec)
-        sage: phi1 = lambda nr: _phi1[nr] if nr in _phi1 else 0
-        sage: phi2 = lambda nr: _phi2[nr] if nr in _phi2 else 0
-        sage: all(h_poly[nr[0]][nr[1]] == 7/66 * phi1(nr) + 4480 * phi2(nr)  for nr in classical_jacobi_fe_indices(m, prec, reduced=True) )
-        True
+        [{(1, 2): 564480, (3, 2): 33868800, (0, 0): 40320, (3, 0): 51932160, (3, 1): 54190080, (2, 1): 18063360, (1, 1): 2580480, (2, 0): 23143680, (2, 2): 11289600, (4, 2): 95477760, (1, 0): 3386880, (4, 1): 108380160, (4, 0): 138862080}]
 
     TESTS:
 
