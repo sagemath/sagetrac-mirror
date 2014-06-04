@@ -62,8 +62,8 @@ def reduce_classical_jacobi_fe_index((n, r), m):
     EXAMPLES::
 
         sage: from sage.modular.jacobi.all import *
-        sage: reduce_classical_jacobi_index((2,2), 1)
-        ???
+        sage: reduce_classical_jacobi_fe_index((2,2), 1)
+        ((1, 0), 1)
     """
     rred = r % (2*m)
 
@@ -98,9 +98,9 @@ def classical_weak_jacobi_fe_indices(m, prec, reduced=False):
 
         sage: from sage.modular.jacobi.all import *
         sage: list(classical_weak_jacobi_fe_indices(2, 3, True))
-        ???
+        [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (0, 0), (0, 1), (0, 2)]
         sage: list(classical_weak_jacobi_fe_indices(2, 3, False))
-        ???
+        [(1, 0), (1, 1), (1, -1), (1, 2), (1, -2), (2, 0), (2, 1), (2, -1), (2, 2), (2, -2), (2, 3), (2, -3), (0, -1), (1, 3), (2, -4), (0, 0), (2, 4), (1, -3), (0, 1), (0, -2), (0, 2)]
     """
     fm = Integer(4*m)
 
@@ -154,7 +154,7 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
 
         sage: from sage.modular.jacobi.all import *
         sage: classical_weak_jacobi_forms(2, 1, 5)
-        ???
+        [{(0, 1): 2, (0, 0): -4, (3, 0): -106016, (3, 1): 67024, (2, 1): 8238, (2, 0): -14512, (1, 0): -984, (4, 1): 385026, (1, 1): 496, (4, 0): -574488}]
     
     TESTS:
 
@@ -222,8 +222,7 @@ def ClassicalWeakJacobiFormsFactory(m, prec):
     EXAMPLES::
 
         sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiFormsFactory
-        sage: ClassicalWeakJacobiFormsFactory(2, 5)
-        ???
+        sage: fcty = ClassicalWeakJacobiFormsFactory(2, 5)
 
     TESTS::
 
@@ -234,10 +233,12 @@ def ClassicalWeakJacobiFormsFactory(m, prec):
         return _classical_weak_jacobi_forms_factory_cache[(m, prec)]
 
     for (mc, pc) in _classical_weak_jacobi_forms_factory_cache:
-        if m == mc and pc >= prec:
+        if m == mc and pc > prec:
             return _classical_weak_jacobi_forms_factory_cache[(m, pc)]._truncate_cache(prec)
 
-    return ClassicalWeakJacobiForms_factory(m, prec)
+    fcty = ClassicalWeakJacobiForms_factory(m, prec)
+    _classical_weak_jacobi_forms_factory_cache[(m, prec)] = fcty
+    return fcty
 
 class ClassicalWeakJacobiForms_factory:
     r"""
@@ -255,8 +256,7 @@ class ClassicalWeakJacobiForms_factory:
         EXAMPLES::
 
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
-            sage: ClassicalWeakJacobiForms_factory(2, 5)
-            ???
+            sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
         """
         self.__prec = prec
         self.__jacobi_index = m
@@ -311,7 +311,7 @@ class ClassicalWeakJacobiForms_factory:
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
             sage: fcty._power_series_ring()
-            ??
+            Power Series Ring in q over Rational Field
         """
         return self.__power_series_ring
     
@@ -328,7 +328,8 @@ class ClassicalWeakJacobiForms_factory:
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
             sage: fcty._power_series_ring_ZZ()
-            ??        """
+            Power Series Ring in q over Integer Ring
+        """
         return self.__power_series_ring_ZZ
 
     def _truncate_cache(self, prec):
@@ -347,10 +348,10 @@ class ClassicalWeakJacobiForms_factory:
 
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
-            sage: fcty._truncate_cache(3)
-            ??
+            sage: fcty_tr = fcty._truncate_cache(3)
+            sage: assert isinstance(fcty_tr, ClassicalWeakJacobiForms_factory)
         """
-        other = ClassicalWeakJacobiForms(m, prec)
+        other = ClassicalWeakJacobiFormsFactory(self.jacobi_index(), prec)
 
         try:
             other._wronskian_adjoint_even = \
@@ -394,11 +395,13 @@ class ClassicalWeakJacobiForms_factory:
 
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
-            sage: adj = ("TEST", None)
-            sage: fcty._set_wronskian_adjont(adj, 0)
-            sage: assert fcty._wronskian_adjoint(0) is adj
+            sage: R = fcty._power_series_ring_ZZ()
+            sage: adj = [[R(1), R(0)], [R(7), R(-2)]]
+            sage: fcty._set_wronskian_adjoint(adj, 0)
+            sage: assert all(all(e is f for (e,f) in zip(*rr)) for rr in zip(fcty._wronskian_adjoint(0),adj))
+
         """
-        wronskian_adjoint = [ [ e if e in self.__power_series_ring else self.__power_series_ring_ZZ(e)
+        wronskian_adjoint = [ [ e if e in self.__power_series_ring_ZZ else self.__power_series_ring_ZZ(e)
                                 for e in row ]
                               for row in wronskian_adjoint ]
         
@@ -430,15 +433,21 @@ class ClassicalWeakJacobiForms_factory:
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
             sage: fcty._wronskian_adjoint(0)
-            ??
+            [[48 - 720*q - 8400*q^3 + 5040*q^4 + O(q^5),
+              -60 + 260*q + 2436*q^3 - 5180*q^4 + O(q^5),
+              12 - 20*q - 84*q^3 + 140*q^4 + O(q^5)],
+             [3072*q^2 + O(q^5),
+              32 - 960*q^2 + 2592*q^4 + O(q^5),
+              -8 + 48*q^2 - 72*q^4 + O(q^5)],
+             [-960*q^2 - 4032*q^3 + O(q^5),
+              -2 - 162*q + 1020*q^2 - 550*q^3 + O(q^5),
+              2 + 18*q - 60*q^2 + 22*q^3 + O(q^5)]]
         """
         try :
             if weight_parity % 2 == 0 :
-                wronskian_adjoint = self._wronskian_adjoint_even
+                return self._wronskian_adjoint_even
             else :
-                wronskian_adjoint = self._wronskian_adjoint_ood
-
-            return wronskian_adjoint
+                return self._wronskian_adjoint_ood
 
         except AttributeError :
             PS = self.__power_series_ring_ZZ
@@ -563,7 +572,7 @@ class ClassicalWeakJacobiForms_factory:
 
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
-            sage: invdet = ("TEST", None)
+            sage: invdet = fcty._power_series_ring_ZZ()(13)
             sage: fcty._set_wronskian_invdeterminant(invdet, 0)
             sage: assert fcty._wronskian_invdeterminant(0) is invdet
         """
@@ -593,13 +602,14 @@ class ClassicalWeakJacobiForms_factory:
             sage: from sage.modular.jacobi.classical_weak import ClassicalWeakJacobiForms_factory
             sage: fcty = ClassicalWeakJacobiForms_factory(2, 5)
             sage: fcty._wronskian_invdeterminant(0)
-            ??
+            1 + 15*q + 135*q^2 + 920*q^3 + 5220*q^4 + O(q^5)
         """
         try :
             if weight_parity % 2 == 0 :
-                wronskian_invdeterminant = self._wronskian_invdeterminant_even
+                return self._wronskian_invdeterminant_even
             else :
-                wronskian_invdeterminant = self._wronskian_invdeterminant_odd
+                return self._wronskian_invdeterminant_odd
+
         except AttributeError :
             m = self.jacobi_index()
             if weight_parity % 2 == 0 :
@@ -616,7 +626,7 @@ class ClassicalWeakJacobiForms_factory:
             else :
                 self._wronskian_invdeterminant_odd = wronskian_invdeterminant
 
-        return wronskian_invdeterminant
+            return wronskian_invdeterminant
  
     def from_taylor_expansion(self, fs, k, is_integral=False) :
         r"""
