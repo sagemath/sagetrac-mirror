@@ -124,6 +124,12 @@ def vector_valued_modular_forms_weakly_holomorphic(k, L, order, prec):
         sage: order = 1
         sage: B = 5
         sage: vector_valued_modular_forms_weakly_holomorphic(k, L, order, B)
+        [{(0, 1): {11/3: -2095952744, 2/3: -49016/3, 8/3: -89122696, -1/3: 11/3, 5/3: -6384917/3},
+          (0, 0): {0: 24, 1: 98730, 2: 8033552, 3: 268396434, 4: 5498892864, -1: 1},
+          (0, 2): {11/3: 2095952744, 2/3: 49016/3, 8/3: 89122696, -1/3: -11/3, 5/3: 6384917/3}},
+         {(0, 1): {11/3: 5522/3, 2/3: 41/9, 8/3: 1039/3, -1/3: -1/18, 5/3: 446/9},
+          (0, 0): {0: 1, 1: 21, 2: 198, 3: 1236, 4: 6168, -1: 0},
+          (0, 2): {11/3: -5522/3, 2/3: -41/9, 8/3: -1039/3, -1/3: 1/18, 5/3: -446/9}}]
 
     TESTS:
 
@@ -181,8 +187,8 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
 
     OUTPUT:
 
-    - A dictionary of dictionaries that represents the Fourier
-      expansion of a weakly holomorphic modular form.
+    A dictionary of dictionaries that represents the Fourier expansion
+    of a weakly holomorphic modular form.
     
     EXAMPLES::
     
@@ -191,9 +197,9 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
         sage: L = QuadraticForm(matrix(2, [2, 1, 1, 2]))
         sage: pp = {(0,0): {-1: 1}}
         sage: vector_valued_modular_forms_weakly_holomorphic_with_principal_part(k, L, pp, 5)
-        {(0, 0): {-1: 1, 0: 90, 1: 100116, 2: 8046620, 3: 268478010, 4: 5499299952},
-         (0, 1): {-1/3: 0, 2/3: -16038, 5/3: -2125035, 8/3: -89099838, 11/3: -2095831260},
-         (0, 2): {-1/3: 0, 2/3: 16038, 5/3: 2125035, 8/3: 89099838, 11/3: 2095831260}}
+        {(0, 1): {11/3: -2095831260, 2/3: -16038, 8/3: -89099838, -1/3: 0, 5/3: -2125035},
+         (0, 0): {0: 90, 1: 100116, 2: 8046620, 3: 268478010, 4: 5499299952, -1: 1},
+         (0, 2): {11/3: 2095831260, 2/3: 16038, 8/3: 89099838, -1/3: 0, 5/3: 2125035}}
 
     TESTS:
 
@@ -234,15 +240,13 @@ def vector_valued_modular_forms_weakly_holomorphic_with_principal_part( k, L, pr
 
         for (n,coeff) in fe.items():
             if n < 0:
-                print n, n_shift
                 assert n+n_shift in ZZ
                 pp_vector[mu_ix*order - (n+n_shift)] = coeff
     
     try :
         coords = pp_matrix.solve_right(pp_vector)
     except :
-        print pp_matrix, pp_vector
-        raise ValueError( "Given principal part can not be constructed" )
+        raise ValueError( "Given principal part ({}) can not be constructed for weight {} and index {}".format(principal_part, k, m) )
 
     res = dict()
     return _sum_mul_vvforms(coords, vvforms, L_span)
@@ -262,9 +266,10 @@ def theta_decomposition(phi, m, r_classes):
 
     OUTPUT:
 
-    - A dictionary whose keys are lifts of elements of a discrimiant group, and whose
-      values are dictionaries whose keys are rationals (the exponents of `q`) and whose
-      values are also rationals (the corresponding coefficients).
+    A dictionary whose keys are lifts of elements of a discrimiant
+    group, and whose values are dictionaries whose keys are rationals
+    (the exponents of `q`) and whose values are also rationals (the
+    corresponding coefficients).
 
 
     EXAMPLES::
@@ -275,9 +280,9 @@ def theta_decomposition(phi, m, r_classes):
         sage: jforms = higherrank_jacobi_forms(k, L, 5)
         sage: (r_classes, _) = higherrank_jacobi_r_classes(L)
         sage: theta_decomposition(jforms[0], L, r_classes)
-        {(0, 1): {2/3: -1, 5/3: 16, 11/3: 320, 8/3: -104, 14/3: -260, 17/3: -1248, 23/3: -1664, 20/3: 3712, 26/3: -6890},
-        (0, 0): {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0},
-        (0, 2): {2/3: 1, 5/3: -16, 11/3: -320, 8/3: 104, 14/3: 260, 17/3: 1248, 23/3: 1664, 20/3: -3712, 26/3: 6890}}
+        {(0, 1): {11/3: 320, 2/3: -1, 8/3: -104, 5/3: 16},
+         (0, 0): {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+         (0, 2): {11/3: -320, 2/3: 1, 8/3: 104, 5/3: -16}}
     """
     L = m
     L_span = L.matrix().row_module()
