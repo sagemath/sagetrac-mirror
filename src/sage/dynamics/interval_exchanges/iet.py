@@ -42,8 +42,12 @@ There are two plotting methods for iet::
 """
 from copy import copy
 from sage.structure.sage_object import SageObject
+from sage.misc.prandom import random
 
 from template import side_conversion, interval_conversion
+
+import time
+import sage.dynamics.flat_surfaces.lekz as lekz   # the cython bindings
 
 class IntervalExchangeTransformation(SageObject):
     r"""
@@ -875,8 +879,267 @@ class IntervalExchangeTransformation(SageObject):
         """
         self.plot_two_intervals().show(axes=False)
 
-#TODO
-# class LinearInvolution(SageObject):
+
+class LinearInvolution(SageObject):
+    def __init__(self,permutation=None,lengths=None):
+        r"""
+        INPUT:
+
+        - ``permutation`` - a permutation (LabelledPermutationLI)
+
+        - ``lengths`` - the list of lengths
+
+        TEST::
+
+            sage: p=iet.LinearInvolution(('a a b','b c c'), {'a':1,'b':2,'c':1})
+            sage: p == loads(dumps(p))
+            True
+        """
+        from labelled import LabelledPermutationLI
+        if permutation is None or lengths is None:
+            self._permutation = LabelledPermutationLI()
+            self._lengths = []
+        else:
+            self._permutation = permutation
+            self._lengths = lengths
+
+    def permutation(self):
+        r"""
+        Returns the permutation associated to this iet.
+
+        OUTPUT:
+
+        permutation -- the permutation associated to this iet
+
+        EXAMPLES::
+
+            sage: perm = iet.Permutation('a b b','b c c')
+            sage: p = iet.LinearInvolution(perm,(1,2,1))
+            sage: p.permutation() == perm
+            True
+        """
+        return copy(self._permutation)
+
+    def label_length(self, label):
+        r"""
+        Returns the length of the given label
+        """
+        return self._lengths[self._permutation._alphabet.rank(label)]
+
+    def length(self, interval=0):
+        r"""
+        Returns the total length of the top (or bottom) interval.
+        
+        INPUT:
+
+        - ``interval`` - the considered interval, 'top' (0, 't') or 'bottom' (1, tb') 
+
+        OUTPUT:
+
+        real -- the length of the interval
+
+        EXAMPLES::
+
+            sage: t = iet.LinearInvolution(('a a b','b c c'),[1,2,1])
+            sage: t.length_top()
+            4
+        """
+        interval = interval_conversion(interval)
+        return sum([self._lengths[lab] for lab in self._permutation._labels[interval]])
+
+    def lengths(self):
+        r"""
+        Returns the list of lengths associated to this iet.
+
+        OUTPUT:
+
+        list -- the list of lengths of subinterval
+
+        EXAMPLES::
+
+            sage: p = iet.LinearInvolution(('a a b','b c c'),[1,2,1])
+            sage: p.lengths()
+            [1,2,1]
+        """
+        return copy(self._lengths)
+
+    def normalize(self, total=1, verbose=True):
+        r"""
+        Returns a interval exchange transformation of normalized lengths.
+
+        The normalization consist in consider a constant homothetic value for
+        each lengths in such way that the sum is given (default is 1).
+
+        INPUT:
+
+        - ``total`` - (default: 1) The total length of the interval
+
+        OUTPUT:
+
+        iet -- the normalized iet
+
+        EXAMPLES::
+
+            sage: t = iet.LinearInvolution(('a a b','b c c'), [1,2,1])
+            sage: t.length()
+            4
+            sage: s = t.normalize(2)
+            sage: s.length()
+            2
+            sage: s.lengths()
+            [1/2, 1, 1/2]
+        """
+        try:
+            y = float(total)
+        except ValueError:
+            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+
+        if total <= 0:
+           raise ValueError, "the total length must be positive"
+
+        res = copy(self)
+        coeff = total / res.length()
+        res._multiply_lengths(coeff)
+
+        if abs(self.length('top')-self.length('bot')) > 2**(-50):
+            if verbose: print "Warning: top and bottom lengths are different"
+            lab_double = self._permutation.find_double()
+            (s_0, l_0) = self._rel_sum(0,lab_double)
+            (s_1, l_1) = self._rel_sum(1,lab_double)
+            assert l_0 <> l_1
+            val = (s_0 - s_1)/(l_1 - l_0)
+            if val > 0 : res._lengths[self._permutation._alphabet.rank(lab_double)] = val
+            else: raise NameError('Error while renomalizing, check your original lengths are the same for top and bottom')
+        return res
+
+    def _rel_sum(self, interval, label):                                        #return(sum of lengths of intervals on a line, number of times label appears)
+        interval = interval_conversion(interval)
+        n = len(self._permutation[interval])
+        s, compt = 0, 0
+        for k in range(n) :
+            if self._permutation[interval][k] == label :
+                compt += 1
+            else :
+                s += self._lengths[self._permutation._labels[interval][k]]
+        return (s, compt)
+
+    def _multiply_lengths(self,x):
+        r"""
+        Multiplies the lengths of self by x (no verification on x).
+
+        INPUT:
+
+        - ``x`` - a positive number
+
+        TESTS::
+
+            sage: t = iet.IET(("a","a"), [1])
+            sage: t.lengths()
+            [1]
+            sage: t._multiply_lengths(2)
+            sage: t.lengths()
+            [2]
+        """
+        self._lengths = map(lambda t: t*x, self._lengths)
+
+    def _repr_(self):
+        r"""
+        A representation string.
+
+        EXAMPLES::
+
+            sage: a = iet.IntervalExchangeTransformation(('a','a'),[1])
+            sage: a   #indirect doctest
+            Interval exchange transformation of [0, 1[ with permutation
+            a
+            a
+        """
+        interval = "[0, %s["%self.length()
+        s = "Interval exchange transformation of %s "%interval
+        s += "with permutation\n%s"%self._permutation
+        return s
+
+    def stratum(self):
+        r"""
+        Returns the stratum in which the linear involution is.
+        Which depends only on its permutation.
+        """
+        return(self._permutation.stratum())
+
+    def stratum_component(self):
+        r"""
+        Returns the stratum component in which the linear involution is.
+        Which depends only on its permutation.
+        """
+        return(self._permutation.stratum_component())
+
+    def random_length(self):
+        r"""
+        Return a linear involutation with random length. 
+        The total length of the two intervals is not normalised.
+        """
+        res = copy(self)
+        for label in xrange(len(res._permutation)):
+            res._lengths[label] = random()
+        lab_double = res._permutation.find_double()
+        if lab_double == None:
+            return(res)
+        (s_0, l_0), (s_1, l_1) = res._rel_sum(0,lab_double), res._rel_sum(1,lab_double)
+        l = (s_0 - s_1)/(l_1 - l_0)
+        if l > 0: res._lengths[res._permutation._alphabet.rank(lab_double)] = l
+        else:
+            #it can append that the top length is too big compared to the bottom
+            lab_double = res._permutation._line_double('bot')
+            if lab_double == None: raise NameError('Problem while normalizing random lengths, please check your permutation')
+            (s_0, l_0), (s_1, l_1) = res._sum(0,lab_double), res._sum(1,lab_double)
+            l = (s_0 - s_1)/(l_1 - l_0)
+            if l <= 0: raise NameError('Negative values in lengths')
+            res._lengths[res._permutation._alphabet.rank(lab_double)] = l
+        return(res)
+
+    def lyapunov_exponents_H_plus(self, **kargs):
+        r"""
+        Compute the H^+ Lyapunov exponents in  the covering locus.
+
+        It calls the C-library lyap_exp interfaced with Cython. The computation
+        might be significantly faster if ``nb_vectors=1`` (or if it is not
+        provided but genus is 1).
+
+        INPUT:
+
+        - ``nb_vectors`` -- the number of exponents to compute. The number of
+          vectors must not exceed the dimension of the space!
+
+         - ``nb_experiments`` -- the number of experiments to perform. It might
+           be around 100 (default value) in order that the estimation of
+           confidence interval is accurate enough.
+
+         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
+           algorithm to perform for each experiments. The default is 2^15=32768
+           which is rather small but provide a good compromise between speed and
+           quality of approximation.
+
+        - ``verbose`` -- if ``True`` provide additional informations rather than
+          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
+          intervals, ...)
+
+        - ``output_file`` -- if provided (as a file object or a string) output
+          the additional information in the given file rather than on the
+          standard output.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        return(self._permutation.lyapunov_exponents_H_plus(*kargs, lengths=self._lengths))
+
+
+    
+
+# TODO
+# from is_identity to plot_two_intervals
 #     r"""_
 #     Linear involutions
 #     """

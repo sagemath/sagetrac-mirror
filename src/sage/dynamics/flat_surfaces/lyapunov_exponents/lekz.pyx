@@ -43,8 +43,8 @@ cdef extern from "src/lyapunov_exponents.h":
     void top_lyapunov_exponents_H_plus(quad_cyclic_cover *qcc, double *theta, size_t nb_iterations)
 
 def lyapunov_exponents_H_plus_cyclic_cover(
-        gp, twin, k, n, sigma, degree,
-        nb_vectors, nb_experiments, nb_iterations, lengths = None, nb_char = 0, dimensions = None, projections = None, isotopic_decompisition = True):
+    gp, k, twin, sigma, degree,
+    nb_vectors, nb_experiments, nb_iterations, lengths = None, nb_char = 0, dimensions = None, projections = None, isotopic_decompisition = True):
     r"""
     Compute the Lyapunov exponents of the H^+ part of the KZ-cocycle for
     covering locii.
@@ -59,8 +59,6 @@ def lyapunov_exponents_H_plus_cyclic_cover(
     - ``twin`` -- the twin data of the gp
 
     - ``k`` -- the length of the top interval
-
-    - ``n`` -- the length of gp
 
     - ``sigma`` -- covering data
 
@@ -84,22 +82,22 @@ def lyapunov_exponents_H_plus_cyclic_cover(
     cdef double * theta
     cdef double *proj
 
+    n = len(gp)//2
 
     # convert the data of into C values
-    p = <int *> malloc(2 * n * sizeof(int))
-    t = <int *> malloc(2 * n * sizeof(int))
+    p = <int *> malloc(2*n * sizeof(int))
+    t = <int *> malloc(2*n * sizeof(int))
     s = <size_t **> malloc(n * sizeof(size_t*))
 
-    for i from 0 <= i < n:
+    for i from 0 <= i < 2*n:
         p[i] = gp[i]
         t[i] = twin[i]
+    
+    for i from 0 <= i < n:
         tab = <size_t *> malloc(degree * sizeof(size_t))
-        for j in range(degree):
+        for j from 0 <= j < degree:
             tab[j] = sigma[j + degree * i]
         s[i] = tab
-    for i from n <= i < 2*n:
-        p[i] = gp[i]
-        t[i] = twin[i]
 
     if dimensions != None :
         nb_vectors = sum(dimensions)

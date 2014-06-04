@@ -147,7 +147,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-
+from sage.combinat.permutation import Permutation
 
 from strata import Stratum, StratumComponent,Strata
 
@@ -734,7 +734,157 @@ class QuadraticStratumComponent(StratumComponent):
         # hyperelliptic components
         return astratum.non_hyperelliptic_component()
 
+    def orientable_cover(self):
+        r"""
+        Return orientable cover
+        """
+        return OrStrCC(self)
+
+
 QSC = QuadraticStratumComponent
+
+
+class StratumComponentCover(SageObject):
+    r"""
+    Generic class for cover of connected component of a stratum of flat surfaces.
+
+    Assumes there are implemented
+
+    - a method .cover_permutations_representatives()
+
+    And an attribute
+
+    -  ._cover_stratum
+
+    There may be
+
+    - an attribute ._name
+
+    - an attribute ._latex_name
+
+    Test
+    """
+    _name = ''
+    _latex_name = ''
+
+    def __init__(self, stratum_comp):
+        r"""
+        TEST::
+            sage: q = QuadraticStratum(5,5,-1,-1).one_component().orientable_cover()
+            sage: q == loads(dumps(q))
+            True
+        """
+        self._stratum_comp = stratum_comp
+
+    def __reduce__(self):
+        r"""
+        Reduce method for pickling
+
+        TESTS:
+
+        Tests for quadratic strata::
+
+            sage: q = QuadraticStratum(12)
+            sage: all(loads(dumps(cc)) == cc for cc in q.components().orientable_cover())
+            True
+        """
+        return (self.__class__, self.cover_permutations_representatives(), (self._stratum_comp,))
+
+    def _repr_(self):
+        r"""
+        String representation
+
+        EXAMPLES::
+
+            sage: a_hyp = AbelianStratum(4).hyperelliptic_component()
+            sage: a_hyp._repr_()
+            'H_3(4)^hyp'
+            sage: a_odd = AbelianStratum(4).odd_component()
+            sage: a_odd._repr_()
+            'H_3(4)^odd'
+        """
+        return str(self._cover_stratum) + "-> (" + self._name + ") " + str(self._stratum_comp)
+
+    def stratum(self):
+        r"""
+        Return the stratum associated to self
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(4,4)
+            sage: all([c.stratum() == a for c in a.components()])
+            True
+        """
+        return self._stratum
+
+    def __eq__(self,other):
+        return NotImplemented
+
+    def __cmp__(self, other):
+        r"""
+        """
+        return NotImplemented
+
+StrCC = StratumComponentCover
+
+class OrientableStratumComponentCover(StrCC):
+    _name = 'or_cover'
+    _latex_name = '\text{orientable cover}'
+
+    def __init__(self, _stratum_comp):
+        self._stratum_comp = _stratum_comp
+        self._cover_stratum = _stratum_comp.orientation_cover_component()
+
+    def cover_permutations_representatives(self, left_degree=None, reduced=True, alphabet=None, relabel=True):
+        stratum_rep = self._stratum.permutation_representative(left_degree, reduced, alphabet, relabel)
+        cover_rep = {}
+
+        for l in stratum_rep.letters():
+            if stratum_rep.label_double(l):
+                cover_rep[l] = Permutation('(1, 2)')
+            else:
+                cover_rep[l] = Permutation('(2)')
+
+    def lyapunov_exponents_H_plus(self, **kargs):
+        r"""
+        Compute the H^+ Lyapunov exponents in  the covering locus.
+
+        It calls the C-library lyap_exp interfaced with Cython. The computation
+        might be significantly faster if ``nb_vectors=1`` (or if it is not
+        provided but genus is 1).
+
+        INPUT:
+
+        - ``nb_vectors`` -- the number of exponents to compute. The number of
+          vectors must not exceed the dimension of the space!
+
+         - ``nb_experiments`` -- the number of experiments to perform. It might
+           be around 100 (default value) in order that the estimation of
+           confidence interval is accurate enough.
+
+         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
+           algorithm to perform for each experiments. The default is 2^15=32768
+           which is rather small but provide a good compromise between speed and
+           quality of approximation.
+
+        - ``verbose`` -- if ``True`` provide additional informations rather than
+          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
+          intervals, ...)
+
+        - ``output_file`` -- if provided (as a file object or a string) output
+          the additional information in the given file rather than on the
+          standard output.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        return(self._stratum_comp.permutation_representative().lyapunov_exponents_H_plus(**kargs))
+
+OrStrCC = OrientableStratumComponentCover
+
 
 class GenusZeroQuadraticStratumComponent(QSC):
     r"""

@@ -458,6 +458,32 @@ class Permutation(SageObject):
             interval = interval_conversion(interval)
             return len(self._twin[interval])
 
+    
+    def label_double(self, label):
+        r"""
+        Test if the given label appears two times one the same line
+
+        EXAMPLES:
+        
+            sage: p1 = iet.Permutation('1 2 3', '3 1 2')
+            sage: p1.double()
+            False
+            sage: p2 = iet.GeneralizedPermutation('g o o', 'd d g')
+            sage: p2.double()
+            True
+        """
+        def double_line(i, i_label):
+            k = 0
+            while self._labels[i][k] <> i_label and k < len(self._labels[i]):
+                k += 1
+            for aux in xrange(k + 1, len(self._labels[i])):
+                if self._labels[i][aux] == i_label:
+                    return True
+                return False
+
+        i_label = self._alphabet.rank(label)
+        return double_line(0, i_label) or double_line(1, i_label)
+
     def _set_alphabet(self, alphabet):
         r"""
         Sets the alphabet of self.

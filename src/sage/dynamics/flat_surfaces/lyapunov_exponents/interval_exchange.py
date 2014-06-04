@@ -53,27 +53,6 @@ def index_cycle(i, cycles):
         raise NameError('Index not in the cycle')
     return cursor
 
-class CoveringStratum(FlippedLabelledPermutationLI):
-    r"""
-    Test
-    """
-    def __init__(self, intervals=None, alphabet=None, flips=None, permutations=None, lengths=None):
-        if intervals is None:
-            intervals = [[], []]
-        if flips is None: flips = []
-
-        super(FlippedLabelledPermutationLI, self).__init__(intervals, alphabet)
-        self._init_flips(intervals, flips)
-
-        self._permutations= deepcopy(permutations)
-        self.degree = len(permutations[permutations.keys()[0]])
-        self.number_of_intervals = [len(intervals[0]), len(intervals[1])]
-        self._lengths = deepcopy(lengths)
-
-        self.total_number_of_intervals_base = len(intervals[0]) + len(intervals[1])
-        self.nb_labels = self.total_number_of_intervals_base / 2
-        self.total_number_of_intervals_cover = (len(intervals[0]) + len(intervals[1]))*self.degree
-
 class IntExchange(object):
     r"""
     Create an interval exchange with possibility of considering a finite cover by giving
@@ -521,7 +500,7 @@ class IntExchange(object):
         To get random length associated to your interval exchange. It modify directly your interval exchange
         and returns it. The total length of the two intervals is normalised to `1`.
         """
-        lg = {self._intervals[i][j].label : R.random_element(0,1) for i in range(2) for j in range(self.number_of_intervals[i])}
+        lg = {self._intervals[i][j].label : random() for i in range(2) for j in range(self.number_of_intervals[i])}
         self._lengths = lg
         lab = lg.keys()
         i_double, j_double = self._double()
@@ -1290,8 +1269,8 @@ class IntExchange(object):
 
         t0 = time.time()
         res = lekz.lyapunov_exponents_H_plus_cyclic_cover(
-                   gp, twin, int(k), int(n), sigma, self.degree,
-                   nb_vectors, nb_experiments, nb_iterations, lengths)
+                   gp, twin, int(k), int(n), [0]*n, int(1),
+                   nb_vectors, nb_experiments, nb_iterations)
         t1 = time.time()
 
         res_final = []

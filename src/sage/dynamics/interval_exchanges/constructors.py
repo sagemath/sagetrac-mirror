@@ -938,6 +938,81 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
 
 IET = IntervalExchangeTransformation
 
+
+def LinearInvolution(permutation=None,lengths=None):
+    """
+    Constructs an Linear Involution.
+
+    INPUT:
+
+    - ``permutation`` - a permutation
+
+    - ``lengths`` - a list or a dictionnary of lengths
+
+    OUTPUT:
+
+    interval exchange transformation -- an map of an interval
+
+    EXAMPLES:
+
+    Two initialization methods, the first using a iet.Permutation::
+
+        sage: p = iet.Permutation('a b b','c c a')
+        sage: t = iet.IntervalExchangeTransformation(p, {'a':1,'b':0.4523,'c':2.8})
+
+    The second is more direct::
+
+        sage: t = iet.IntervalExchangeTransformation(('a b b','c c a'),{'a':1,'b':4,'c':1})
+
+    It's also possible to initialize the lengths only with a list::
+
+        sage: t = iet.IntervalExchangeTransformation(('a b b','c c a'),[0.123,0.4,2])
+
+    The two fundamental operations are Rauzy move and normalization::
+
+        sage: t = iet.IntervalExchangeTransformation(('a b b','c c a'),[0.123,0.4,2])
+        sage: s = t.rauzy_move()
+        sage: s_n = s.normalize(t.length())
+        sage: s_n.length() == t.length()
+        True
+    """
+    from iet import LinearInvolution as _LI
+    from labelled import LabelledPermutationLI
+    from template import FlippedPermutation
+
+    if isinstance(permutation, FlippedPermutation):
+        raise TypeError, "flips are not yet implemented"
+    elif isinstance(permutation, LabelledPermutationLI):
+        p = permutation
+    elif isinstance(permutation, tuple):
+        p = GeneralizedPermutation(*permutation)
+    else:
+        p = GeneralizedPermutation(permutation)
+
+    if isinstance(lengths, dict):
+        l = [0] * len(p)
+        alphabet = p._alphabet
+        for letter in lengths:
+            l[alphabet.rank(letter)] = lengths[letter]
+    else:
+        l = list(lengths)
+
+    if len(l) != len(p):
+        raise ValueError, "bad number of lengths"
+
+    for x in l:
+        try:
+            y = float(x)
+        except ValueError:
+            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+
+        if y <= 0:
+           raise ValueError, "lengths must be positive"
+
+    return _LI(p,l)
+
+IET = IntervalExchangeTransformation
+
 #TODO
 # def LinearInvolution(*args,**kargs):
 #     r"""

@@ -317,6 +317,48 @@ class LabelledPermutation(SageObject):
             self._hash = hash(''.join(t))
         return self._hash
 
+    def label_double(self, label):
+        r"""
+        Test if the given label appears two times one the same line
+
+        EXAMPLES:
+        
+            sage: p1 = iet.Permutation('1 2 3', '3 1 2')
+            sage: p1.double()
+            False
+            sage: p2 = iet.GeneralizedPermutation('g o o', 'd d g')
+            sage: p2.double()
+            True
+        """
+        def double_line(i, i_label):
+            k = 0
+            while k < len(self._labels[i]) and self._labels[i][k] <> i_label:
+                k += 1
+            for aux in xrange(k + 1, len(self._labels[i])):
+                if self._labels[i][aux] == i_label:
+                    return True
+            return False
+
+        i_label = self._alphabet.rank(label)
+        return double_line(0, i_label) or double_line(1, i_label)
+
+    def _line_double(self,k):                                     #find a label in the line k which appears twice, return None if there is none
+        n = len(self[k])
+        for i in xrange(n):
+            for j in xrange(i+1, n) :
+                if self[k][i] == self[k][j] :
+                    return self[k][i]
+        return(None)
+
+    def find_double(self):                                            #find a label which appears twice on the same line
+        lab_double = self._line_double(0)
+        if lab_double <> None:
+            return lab_double
+        lab_double = self._line_double(1)
+        if lab_double <> None:
+            return lab_double
+        return None
+
     def list(self):
         r"""
         Returns a list of two lists corresponding to the intervals.
