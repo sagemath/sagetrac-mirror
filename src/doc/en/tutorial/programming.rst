@@ -470,7 +470,8 @@ A common idiom is to iterate through the pairs in a dictionary:
     sage: [a*b for a, b in d.iteritems()]
     [8, 27, 64]
 
-A dictionary is unordered, as the last output illustrates.
+Please note that the last output could have been instead [27, 8, 64],
+[64, 8, 27], or any other permutation, as dictionaries are unordered.
 
 Sets
 ====
