@@ -946,6 +946,94 @@ cdef class CachedFunction(object):
 
 cached_function = decorator_keywords(CachedFunction)
 
+cdef class CachedFunctionWithFilter(CachedFunction):
+    r"""
+    A cached function decorator with filter function
+
+    The filter function can be used to decide whether the return value should be
+    cached or not. It can be used in order to only cache the value of small base
+    cases while not caching potentially less useful answers.
+
+    INPUT:
+
+    All arguments/features accepted by :class:`CachedFunction`. Additionally, it accepts:
+
+    - ``filter_function`` -- a function accepting the same input as the function
+      being decorated. It should return boolean answers indicating whether the
+      output should be cached.
+
+    EXAMPLE::
+
+        sage: from sage.misc.cachefunc import cached_function_with_filter
+        sage: @cached_function_with_filter(filter_function=lambda x:x<10)
+        ....: def a(n):
+        ....:    return n
+        sage: a.cache
+        {}
+        sage: a(4)
+        4
+        sage: a.cache
+        {((4,), ()): 4}
+        sage: a(30)
+        30
+        sage: a.cache
+        {((4,), ()): 4}
+    """
+    def __init__(self, *args, **kwds):
+        r"""
+        Stores ``filter_function`` then calls ``CachedFunction.__init__``.
+
+        INPUT:
+
+        All arguments/features accepted by :class:`CachedFunction`. Additionally, it accepts:
+
+        - ``filter_function`` -- a function accepting the same input as the function
+          being decorated. It should return boolean answers indicating whether the
+          output should be cached.
+
+        EXAMPLE::
+
+            sage: from sage.misc.cachefunc import cached_function_with_filter
+            sage: @cached_function_with_filter(filter_function=lambda x:x<10)
+            ....: def a(n):
+            ....:    return n
+            sage: a.cache
+            {}
+            sage: a(4)
+            4
+            sage: a.cache
+            {((4,), ()): 4}
+            sage: a(30)
+            30
+            sage: a.cache
+            {((4,), ()): 4}
+        """
+        self.filter_function = kwds.pop("filter_function",None)
+        CachedFunction.__init__(self, *args, **kwds)
+
+    def __call__(self, *args, **kwds):
+        r"""
+        Calls :meth:`CachedFunction.__call__` if needed, otherwise calls ``self.f``
+
+        EXAMPLE::
+
+            sage: from sage.misc.cachefunc import cached_function_with_filter
+            sage: @cached_function_with_filter(filter_function=lambda x:x<10)
+            ....: def a(n):
+            ....:    return n
+            sage: a.cache
+            {}
+            sage: a(4)
+            4
+
+        """
+        if self.filter_function is not None and self.filter_function(*args,**kwds):
+            return CachedFunction.__call__(self, *args, **kwds)
+        else:
+            return self.f(*args,**kwds)
+
+cached_function_with_filter = decorator_keywords(CachedFunctionWithFilter)
+
 cdef class WeakCachedFunction(CachedFunction):
     """
     A version of :class:`CachedFunction` using weak references on the values.

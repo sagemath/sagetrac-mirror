@@ -13,6 +13,9 @@ cdef class CachedFunction(object):
     cpdef clear_cache(self)
     cdef object key
 
+cdef class CachedFunctionWithFilter(CachedFunction):
+    cdef public object filter_function
+
 cdef class CachedMethod
 
 cdef class CachedMethodCaller(CachedFunction):
