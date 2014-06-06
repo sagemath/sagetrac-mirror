@@ -46,17 +46,7 @@ class SignedPermutation(Element):
         descents = []
         if self.w[0] < 0:
             descents.append(0)
-        for i in range(self.n):
-            a = self.w[i-1]
-            b = self.w[i]
-            if a > 0 and b < 0:
-                if a > b:
-                    descents.append(i)
-            elif a < 0 and b > 0:
-                if a < b:
-                    descents.append(i)
-        if self.w[-1] < 0:
-            descents.append(self.n)
+        descents.extend([i+1 for i in range(self.n) if self.w[i] > self.w[i+1]])
         return descents
 
     def descents(self):
@@ -67,6 +57,12 @@ class SignedPermutation(Element):
         """Returns the number of descents of `self`"""
         return len(self._descents)
 
+    def des_a(self):
+        if 0 in self.descents_:
+            return len(self.descents_) - 1
+        else:
+            return len(self.descents_)
+
     @lazy_attribute
     def _neg_entries(self):
         return [i+1 for (i,j) in enumerate(self.w) if j < 0]
@@ -75,10 +71,47 @@ class SignedPermutation(Element):
         """Returns list of `i` such that `self(i) < 0`"""
         return self._neg_entries
 
-    def number_of_negative_entries(self):
+    def neg(self):
         """Returns the number of `i` such that `self(i) < 0`"""
         return len(self._neg_entries)
+
+    def maj(self):
+        """Returns the major index of `self`"""
+        return sum(self._descents)
+
+    def nsum(self):
+        """Returns negative number sum of `self`"""
+        return -sum(self._neg_entries)
         
+    def length(self):
+        return self.inv() + self.nsum()
+
+    def inversions(self):
+        return self._inversions
+
+    @lazy_attribute
+    def _inversions(self):
+        return [(i,j) for i in range(1,n+1) for j in range(i+1,n+1) if\
+                self.w[i] > self.w[j]]
+
+    def inv(self):
+        return len(self._inversions)
+
+    def length(self):
+        if self.length() % 2 == 0:
+            return 1
+        else:
+            return -1
+
+    def fmaj(self):
+        #note that flag-major and fmaj are different! 
+        #this is truly fmaj from Adin, Brenti, Roichman p. 218
+        return 2*self.maj() + self.neg()
+
+    def fdes(self):
+        return 2*self.des_a() + (self.w[0] < 0)
+
+
 class SignedPermutations(Parent):
     r"""
     Class of signed permutations of `\{\pm 1, \pm 2,\ldots, \pm n\}`
