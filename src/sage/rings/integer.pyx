@@ -6544,7 +6544,7 @@ cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
     mpz_tdiv_q_2exp(q, x, shift)
 
     # Convert abs(q) to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_ptr q_limbs = (<real_mpz_struct*>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]
