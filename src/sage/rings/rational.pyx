@@ -1953,6 +1953,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             0.3333333333333333
             sage: float(1/10)
             0.1
+            sage: n = QQ(902834098234908209348209834092834098); float(n)
+            9.028340982349083e+35
 
         TESTS:
 
@@ -3460,7 +3462,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     TESTS::
 
-        sage: q= QQ(); float(q)
+        sage: q = QQ(); float(q)
         0.0
         sage: q = 2^-10000; float(q)
         0.0
@@ -3577,10 +3579,9 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     cdef mpz_t q, r
     mpz_init(q)
     mpz_init(r)
-    cdef bint remainder_is_zero
+    cdef int remainder_is_zero
     if shift > 0:
-        mpz_tdiv_r_2exp(r, a, shift)
-        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+        remainder_is_zero = mpz_divisible_2exp_p(a, shift)
         mpz_tdiv_q_2exp(q, a, shift)
     else:
         mpz_mul_2exp(q, a, -shift)
@@ -3593,7 +3594,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     if remainder_is_zero:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
-    # Convert q to a 64-bit integer.
+    # Convert abs(q) to a 64-bit integer.
     cdef mp_ptr q_limbs = (<real_mpz_struct*>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
@@ -3633,6 +3634,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             remainder_is_zero = ((q64 & mask) == 0)
         q64 = q64 >> add_shift
 
+    # Round q64 from 54 to 53 bits of precision.
     if ((q64 & 1) == 0):
         # Round towards zero
         pass
@@ -3641,6 +3643,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             # Remainder is non-zero: round away from zero
             q64 += 1
         else:
+            # Halfway case: round to even
             q64 += (q64 & 2) - 1
 
     # The conversion of q64 to double is *exact*.
