@@ -18,7 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
 from sage.misc.superseded import deprecated_function_alias
-from sage.categories.category import HomCategory
+from sage.categories.category import Category, HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -298,8 +298,7 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Join of Category of Cartesian products of monoids
-                    and Category of Cartesian products of commutative additive groups
+                Join of Category of rings and Category of Cartesian products of ...
             """
             return CartesianProductsCategory.category_of(self)
 
@@ -339,7 +338,7 @@ class Sets(Category_singleton):
 
             .. MATH::
 
-                op_A(e) = r(op_B(l(e))), \text{ for all `e\in A`}
+                op_A(e) = r(op_B(l(e))), \text{ for all } e\in A
 
             This allows for implementing the operations on `A` from
             those on `B`.
@@ -671,8 +670,11 @@ class Sets(Category_singleton):
                 sage: Groups().Algebras(QQ)
                 Category of group algebras over Rational Field
 
-                sage: CommutativeAdditiveGroups().Algebras(QQ)
-                Category of commutative additive group algebras over Rational Field
+                sage: AdditiveMagmas().AdditiveAssociative().Algebras(QQ)
+                Category of additive semigroup algebras over Rational Field
+
+                sage: Monoids().Algebras(Rings())
+                Category of monoid algebras over Category of rings
 
             .. SEEALSO::
 
@@ -684,7 +686,8 @@ class Sets(Category_singleton):
                 sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
             """
             from sage.categories.rings import Rings
-            assert base_ring in Rings
+            assert base_ring in Rings or (isinstance(base_ring, Category)
+                                          and base_ring.is_subcategory(Rings()))
             return AlgebrasCategory.category_of(self, base_ring)
 
         @cached_method
@@ -1342,7 +1345,8 @@ class Sets(Category_singleton):
                 sage: type(C)
                 <class 'sage.sets.cartesian_product.CartesianProduct_with_category'>
                 sage: C.category()
-                Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
+                Join of Category of rings and ...
+                    and Category of Cartesian products of commutative additive groups
             """
             return parents[0].CartesianProduct(
                 parents,

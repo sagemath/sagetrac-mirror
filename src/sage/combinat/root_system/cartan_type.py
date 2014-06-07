@@ -105,8 +105,6 @@ mathematical properties::
     sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystallographic()
     (True, True, False, True)
 
-It will eventually include Coxeter numbers, etc.
-
 In particular, a Sage Cartan type is endowed with a fixed choice of
 labels for the nodes of the Dynkin diagram. This choice follows the
 conventions of Nicolas Bourbaki, Lie Groups and Lie Algebras: Chapter 4-6,
@@ -2128,6 +2126,31 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         tester.assertTrue( self.classical().dual() == self.dual().classical() )
         tester.assertTrue( self.special_node() == self.dual().special_node() )
 
+    def other_affinization(self):
+        """
+        Return the other affinization of the same classical type.
+
+        EXAMPLES::
+
+            sage: CartanType(["A", 3, 1]).other_affinization()
+            ['A', 3, 1]
+            sage: CartanType(["B", 3, 1]).other_affinization()
+            ['C', 3, 1]^*
+            sage: CartanType(["C", 3, 1]).dual().other_affinization()
+            ['B', 3, 1]
+
+        Is this what we want?::
+
+            sage: CartanType(["BC", 3, 2]).dual().other_affinization()
+            ['B', 3, 1]
+        """
+        if self.is_untwisted_affine():
+            result = self.classical().dual().affine().dual()
+        else:
+            result = self.dual().classical().dual().affine()
+        assert result.classical() is self.classical()
+        return result
+
 ##############################################################################
 # Concrete base classes
 
@@ -2305,6 +2328,12 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
     def coxeter_number(self):
         """
         Return the Coxeter number associated with ``self``.
+
+        The Coxeter number is the order of a Coxeter element of the
+        corresponding Weyl group.
+
+        See Bourbaki, Lie Groups and Lie Algebras V.6.1 or
+        :wikipedia:`Coxeter_element` for more information.
 
         EXAMPLES::
 
