@@ -18,8 +18,21 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element cimport MonoidElement
+from sage.structure.element cimport MonoidElement, Element
+from sage.misc.bounded_integer_sequences cimport biseq_t, allocate_biseq, getitem_biseq, concat_biseq, startswith_biseq, contains_biseq, slice_biseq, list_to_biseq, biseq_to_list
+
 from sage.rings.integer_ring import ZZ
+from cython.operator import dereference as deref
+
+include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/interrupt.pxi"
+
+cdef extern from "Python.h":
+    bint PySlice_Check(PyObject* ob)
+
+cdef extern from "mpz_pylong.h":
+    cdef long mpz_pythonhash(mpz_t src)
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -62,14 +75,14 @@ cdef class QuiverPath(MonoidElement):
 
         sage: Q = DiGraph({1:{2:['a','d'], 3:['e']}, 2:{3:['b']}, 3:{1:['f'], 4:['c']}})
         sage: F = Q.path_semigroup()
-        sage: p = F([(1, 2, 'a'), (2, 2), (2, 3, 'b')])
+        sage: p = F([(1, 2, 'a'), (2, 3, 'b')])
         sage: p
         a*b
 
     Paths are not *unique*, but different representations of "the same" path
     yield *equal* paths::
 
-        sage: q = F([(1, 1), (1, 2, 'a'), (2, 3, 'b'), (3, 3)])
+        sage: q = F([(1, 1)]) * F([(1, 2, 'a'), (2, 3, 'b')]) * F([(3, 3)])
         sage: p is q
         False
         sage: p == q
@@ -80,7 +93,7 @@ cdef class QuiverPath(MonoidElement):
 
         sage: print(p*q)
         None
-        sage: p*F((3, 4, 'c'))
+        sage: p*F([(3, 4, 'c')])
         a*b*c
         sage: F([(2,3,'b'), (3,1,'f')])*p
         b*f*a*b
@@ -90,7 +103,7 @@ cdef class QuiverPath(MonoidElement):
 
         sage: len(p)
         2
-        sage: triv = F((1, 1))
+        sage: triv = F([(1, 1)])
         sage: len(triv)
         0
 
@@ -100,7 +113,7 @@ cdef class QuiverPath(MonoidElement):
         sage: for x in p: print x
         (1, 2, 'a')
         (2, 3, 'b')
-        sage: triv[:]
+        sage: list(triv)
         []
 
     There are methods giving the initial and terminal vertex of a path::
@@ -110,8 +123,22 @@ cdef class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
-    cdef public tuple _path
-    def __init__(self, parent, path, check=True):
+    cdef biseq_t _path
+    cdef int _start, _end
+
+    def __dealloc__(self):
+        # I tested that this will not crash, even if self._path isn't initialised
+        mpz_clear(self._path.data)
+
+    cdef QuiverPath _new_(self, int start, int end, biseq_t data):
+        cdef QuiverPath out = PY_NEW(self._parent.element_class)
+        out._parent = self._parent
+        out._start = start
+        out._end = end
+        out._path = data
+        return out
+
+    def __init__(self, parent, start, end, path, check=True):
         """
         Creates a path object.  Type ``QuiverPath?`` for more information.
 
@@ -119,72 +146,72 @@ cdef class QuiverPath(MonoidElement):
 
             sage: from sage.quivers.paths import QuiverPath
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: p = Q([(1, 1), (1, 1)])
+            sage: p = Q([(1, 1)]) * Q([(1, 1)])
             sage: Q([(1,3,'x')])
             Traceback (most recent call last):
             ...
-            ValueError: Cannot interpret [(1, 3, 'x')] as element of
-            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+            ValueError: (1, 3, 'x') is not in list
 
         Note that QuiverPath should not be called directly, because
         the elements of the path semigroup associated with a quiver
         use a sub-class of QuiverPath. Nonetheless, just for test, we
         show that it *is* possible to create a path in a deprecated way::
 
-            sage: p == QuiverPath(Q, (1, 1))
+            sage: p == QuiverPath(Q, 1, 1, [])
             True
-            sage: Q([(1, 1), (1, 2, 'a'), (2, 2), (2, 3, 'b'), (3, 3)])._path
-            ((1, 2, 'a'), (2, 3, 'b'))
+            sage: list(Q([(1, 1)])*Q([(1, 2, 'a')])*Q([(2, 2)])*Q([(2, 3, 'b')])*Q([(3, 3)]))
+            [(1, 2, 'a'), (2, 3, 'b')]
         """
         MonoidElement.__init__(self, parent=parent)
-
-        # Normalise the given path, unless it is asserted that the input is
-        # fine
+        cdef unsigned int l = len(path)
+        cdef mpz_t tmp
+        self._start = start
+        self._end   = end
+        mpz_init_set_ui(tmp, len(parent.quiver().edges())-1)
+        self._path = deref(list_to_biseq(deref(allocate_biseq(l, mpz_sizeinbase(tmp, 2))), path))
+        mpz_clear(tmp)
         if not check:
-            self._path = tuple(path)
             return
-        if path == 1:
-            # We do not guarantee that there is only one vertex.
-            # However, this element certainly exists.
-            v = parent.quiver().vertices()[0]
-            self._path = ((v,v),)
+        Q = parent.quiver()
+        E = Q.edges()
+        if not l:
+            if start!=end:
+                raise ValueError("Start and endpoint of a path of length 0 must coincide")
+            if start not in Q:
+                raise ValueError("Vertex {} not in the quiver".format(start))
             return
-        E = parent.quiver().edges()
-        if isinstance(path, QuiverPath):
-            if path.parent() is parent:
-                self._path = path._path
-                return
-            new_path = list(path._path)
-        # A tuple is assumed to be an edge, anything else is assumed to be a
-        # list of edges
-        elif isinstance(path, tuple):
-            new_path = [path]
-        else:
-            new_path = list(path)
+        V = Q.vertices()
+        if start not in V:
+            raise ValueError("Startpoint {} should belong to {}".format(start, V))
+        if end not in V:
+            raise ValueError("Startpoint {} should belong to {}".format(end, V))
+        if E[path[0]][0]!=start:
+            raise ValueError("First edge should start at vertex {}".format(start))
+        if E[path[-1]][1]!=end:
+            raise ValueError("Last edge should end at vertex {}".format(end))
+        cdef unsigned int n
+        for n from 0<n<l:
+            if E[path[n-1]][1]!=E[path[n]][0]:
+                raise ValueError("Edge {} ends at {}, but edge {} starts at {}".format(E[path[n-1]][2], E[path[n-1]][1], E[path[n]][2], E[path[n]][0]))
 
-        # Check that each edge in the path is valid
-        good = True
-        for x in new_path:
-            if (len(x) < 2 or x[0] not in ZZ or x[1] not in ZZ
-                           or len(x) == 2 and x[0] != x[1]
-                           or len(x) == 3 and x not in E
-                           or len(x) > 3):
-                good = False
-                break
-        if not good:
-            raise ValueError("Cannot interpret %s as element of %s"%(path,parent))
-        # Delete trivial edges, and clear the path if not valid
-        i = 0
-        while i + 1 < len(new_path):
-            if new_path[i][1] != new_path[i + 1][0]:
-                raise ValueError("Cannot interpret %s as element of %s"%(path,parent))
-            elif len(new_path[i])!=3:
-                del new_path[i]
-            else:
-                i += 1
-        if len(new_path) > 1 and len(new_path[-1])!=3:
-            del new_path[-1]
-        self._path = tuple(new_path)
+    def __reduce__(self):
+        cdef size_t n
+        cdef char *s
+        n = mpz_sizeinbase(self._path.data, 32) + 2
+        s = <char *>PyMem_Malloc(n)
+        if s == NULL:
+            raise MemoryError, "Unable to allocate enough memory for the string defining a bounded integer sequence."
+        sig_on()
+        mpz_get_str(s, 32, self._path.data)
+        sig_off()
+        data_str = <object> PyString_FromString(s)
+        PyMem_Free(s)
+        return NewQuiverPath, (self._parent, self._start, self._end, data_str, self._path.bitsize, self._path.itembitsize, self._path.length)
+
+    def __hash__(self):
+        if self._path.length==0:
+            return hash(self._start)
+        return mpz_pythonhash(self._path.data)
 
     def _repr_(self):
         r"""
@@ -195,13 +222,13 @@ cdef class QuiverPath(MonoidElement):
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]) # indirect doctest
             a*b
-            sage: Q((1, 1)) # indirect doctest
+            sage: Q([(1, 1)]) # indirect doctest
             e_1
         """
-        if len(self._path[0])!=3:
-            return 'e_{0}'.format(self._path[0][0])
-        else:
-            return '*'.join([e[2] for e in self._path])
+        if self._path.length:
+            E = self._parent.quiver().edges()
+            return '*'.join([E[e][2] for e in biseq_to_list(self._path)])
+        return 'e_{0}'.format(self._start)
 
     def __len__(self):
         """
@@ -212,15 +239,12 @@ cdef class QuiverPath(MonoidElement):
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: len(Q([(1, 2, 'a'), (2, 3, 'b')]))
             2
-            sage: len(Q((1, 1)))
+            sage: len(Q([(1, 1)]))
             0
-            sage: len(Q((1, 2, 'a')))
+            sage: len(Q([(1, 2, 'a')]))
             1
         """
-        if (not self._path) or (len(self._path[0])==2):
-            return 0
-        else:
-            return len(self._path)
+        return self._path.length
 
     def deg(self):
         """
@@ -231,9 +255,9 @@ cdef class QuiverPath(MonoidElement):
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: Q([(1, 2, 'a'), (2, 3, 'b')]).deg()
             2
-            sage: Q((1, 1)).deg()
+            sage: Q([(1, 1)]).deg()
             0
-            sage: Q((1, 2, 'a')).deg()
+            sage: Q([(1, 2, 'a')]).deg()
             1
         """
         return len(self)
@@ -250,8 +274,8 @@ cdef class QuiverPath(MonoidElement):
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
-            sage: a = Q((1, 2, 'a'))
-            sage: b = Q((2, 3, 'b'))
+            sage: a = Q([(1, 2, 'a')])
+            sage: b = Q([(2, 3, 'b')])
             sage: bool(a*b)
             True
             sage: bool(Q.idempotents()[0])
@@ -259,7 +283,10 @@ cdef class QuiverPath(MonoidElement):
         """
         return True
 
-    def __cmp__(self, other):
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Comparison for :class:`QuiverPaths`.
 
@@ -270,8 +297,8 @@ cdef class QuiverPath(MonoidElement):
         If the QuiverPaths are unequal then one of the following data (listed
         in order of preferance) is unequal and used for comparison:
 
-        - Length of the paths
-        - Edge sequence of the paths.
+        - **Negative** length of the paths
+        - Edge sequence of the paths, by reverse lexicographical ordering.
 
         .. NOTE::
 
@@ -281,19 +308,19 @@ cdef class QuiverPath(MonoidElement):
         TESTS::
 
             sage: Q = DiGraph({1:{2:['a', 'b']}, 2:{3:['c'], 4:['d']}}).path_semigroup()
-            sage: a = Q((1, 2, 'a'))
-            sage: b = Q((1, 2, 'b'))
-            sage: c = Q((2, 3, 'c'))
-            sage: d = Q((2, 4, 'd'))
+            sage: a = Q([(1, 2, 'a')])
+            sage: b = Q([(1, 2, 'b')])
+            sage: c = Q([(2, 3, 'c')])
+            sage: d = Q([(2, 4, 'd')])
             sage: e = Q.idempotents()[3]
-            sage: e < a
-            True
+            sage: e < a  # e is shorter than a
+            False
             sage: a < e
-            False
-            sage: d < a*c
             True
-            sage: a*c < d
+            sage: d < a*c
             False
+            sage: a*c < d
+            True
             sage: a < b
             True
             sage: b < a
@@ -307,23 +334,16 @@ cdef class QuiverPath(MonoidElement):
         """
         # Since QuiverPath inherits from Element, it is guaranteed that
         # both arguments are elements of the same path semigroup
-        s_p = self._path
-        o_p = other._path
-
-        # Compare lengths if different
-        c = cmp(len(s_p),len(o_p))
-        if c:
+        cdef QuiverPath cself, other
+        cself = left
+        other = right
+        # we want *negative* degree reverse lexicographical order
+        cdef int c = cmp(other._path.length, cself._path.length)
+        if c!=0:
             return c
+        return mpz_cmp(cself._path.data, other._path.data)
 
-        # Trivial paths should be smaller than non-trivial paths
-        c = cmp(len(s_p[0]),len(o_p[0]))
-        if c:
-            return c
-
-        # Now we have two non-trivial paths. Compare internal tuple
-        return cmp(s_p, o_p)
-
-    def __getitem__(self, args):
+    def __getitem__(self, index):
         """
         Implement index notation.
 
@@ -334,16 +354,31 @@ cdef class QuiverPath(MonoidElement):
             sage: p
             a*b*c
             sage: p[0]
-            (1, 2, 'a')
+            a
             sage: p[-1]
-            (3, 4, 'c')
+            c
             sage: p[1:]
-            ((2, 3, 'b'), (3, 4, 'c'))
+            b*c
         """
-        if self._path and self._path[0][0] == self._path[0][1]:
-            return list().__getitem__(args)
-        else:
-            return self._path.__getitem__(args)
+        cdef list E = self._parent._quiver.edges()
+        cdef int start, stop, step
+        cdef unsigned int init, end
+        if PySlice_Check(<PyObject *>index):
+            start,stop,step = index.indices(self._path.length)
+            if step!=1:
+                raise ValueError("Slicing only possible for step 1")
+            if start==0 and stop==self._path.length:
+                return self
+            init = E[getitem_biseq(self._path, start)][0]
+            end   = E[getitem_biseq(self._path, stop)][0]
+            return self._new_(init, end, deref(slice_biseq(self._path, start, stop, step)))
+        if index<0:
+            index = self._path.length+index
+        if index<0 or index>=self._path.length:
+            raise IndexError("list index out of range")
+        init = E[getitem_biseq(self._path, index)][0]
+        end = E[getitem_biseq(self._path, index)][1]
+        return self._new_(init, end, deref(slice_biseq(self._path, index, index+1, 1)))
 
     def __iter__(self):
         """
@@ -360,10 +395,9 @@ cdef class QuiverPath(MonoidElement):
         """
         # Return an iterator over an empty tuple for trivial paths, otherwise
         # return an iterator for _path as a list
-        if not len(self):
-            return list().__iter__()
-        else:
-            return list(self._path).__iter__()
+        E = self._parent.quiver().edges()
+        for n in biseq_to_list(self._path):
+            yield E[n]
 
     cpdef MonoidElement _mul_(self, MonoidElement other):
         """
@@ -383,7 +417,7 @@ cdef class QuiverPath(MonoidElement):
             None
             sage: x*y
             a*b*c*d
-            sage: x*Q((3, 4, 'c'))
+            sage: x*Q([(3, 4, 'c')])
             a*b*c
             sage: x*Q([(3, 4, 'c'), (4, 5, 'd')])
             a*b*c*d
@@ -396,14 +430,10 @@ cdef class QuiverPath(MonoidElement):
         """
         # By Sage's coercion model, both paths belong to the same quiver
         # In particular, both are QuiverPath
-        Q = self.parent()
-        if self.terminal_vertex() != other.initial_vertex():
+        cdef QuiverPath right = other
+        if self._end != right._start:
             return None
-        if len(self._path[0]) < 3:
-            return other
-        elif len(other._path[0]) < 3:
-            return self
-        return Q(self._path+other._path, check=False)
+        return self._new_(self._start, right._end, deref(concat_biseq(self._path,right._path)))
 
     def __mod__(self, other):
         """
@@ -417,10 +447,10 @@ cdef class QuiverPath(MonoidElement):
 
             sage: Q = DiGraph({1:{2:['a']}, 2:{3:['b']}}).path_semigroup()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b')])
-            sage: a = Q((1, 2, 'a'))
-            sage: b = Q((2, 3, 'b'))
-            sage: e1 = Q((1, 1))
-            sage: e2 = Q((2, 2))
+            sage: a = Q([(1, 2, 'a')])
+            sage: b = Q([(2, 3, 'b')])
+            sage: e1 = Q([(1, 1)])
+            sage: e2 = Q([(2, 2)])
             sage: p % a
             b
             sage: print p % b
@@ -430,23 +460,17 @@ cdef class QuiverPath(MonoidElement):
             sage: print p % e2
             None
         """
-        Q = self.parent()
-        # Convert other to a QuiverPath
-        oth = Q(other)
-        if self._path == oth._path:
-            v = self._path[-1][1]
-            return Q(((v, v),), check=False)
-
-        # Handle trivial paths
-        if oth._path[0][0] == oth._path[0][1]:
-            if self._path[0][0] == oth._path[0][0]:
-                return self
-            else:
-                return None
+        cdef QuiverPath right = other
+        cdef QuiverPath cself = self
+        # Handle trivial case
+        if right is None or cself._start!=right._start:
+            return None
+        if right._path.length==0:
+            return self
 
         # If other is the beginning, return the rest
-        if self._path[:len(oth._path)] == oth._path:
-            return Q(list(self._path[len(oth._path):]), check=False)
+        if startswith_biseq(cself._path, right._path):
+            return cself._new_(right._end, cself._end, deref(slice_biseq(cself._path, right._path.length, cself._path.length, 1)))
         else:
             return None
 
@@ -465,7 +489,7 @@ cdef class QuiverPath(MonoidElement):
             sage: y.initial_vertex()
             1
         """
-        return self._path[0][0]
+        return self._start
 
     def terminal_vertex(self):
         """
@@ -482,7 +506,7 @@ cdef class QuiverPath(MonoidElement):
             sage: y.terminal_vertex()
             3
         """
-        return self._path[-1][1]
+        return self._end
 
     def reverse(self):
         """
@@ -503,12 +527,23 @@ cdef class QuiverPath(MonoidElement):
             sage: e.reverse()
             e_1
         """
-        Q = self.parent().reverse()
+        Q = self._parent.reverse()
         # Handle trivial paths
-        if self._path[0][0] == self._path[0][1]:
-            return Q(((self._path[0][0],self._path[0][0]),), check=False)
+        if self._path.length==0:
+            return Q.element_class(Q, self._end, self._start, [], check=False)
 
         # Reverse all the edges in the path, then reverse the path
-        new_path = [(e[1], e[0], e[2]) for e in self._path]
-        return Q(reversed(new_path), check=False)
+        return Q.element_class(Q, self._end, self._start, biseq_to_list(self._path)[::-1], check=False)
 
+cpdef QuiverPath NewQuiverPath(Q, start, end, data, bitsize, itembitsize, length):
+    cdef QuiverPath out = PY_NEW(Q.element_class)
+    out._parent = Q
+    out._start = start
+    out._end   = end
+    mpz_init2(out._path.data, bitsize)
+    out._path.bitsize = bitsize
+    out._path.itembitsize = itembitsize
+    out._path.mask_item = ((<unsigned int>1)<<itembitsize)-1
+    out._path.length = length
+    mpz_set_str(out._path.data, data, 32)
+    return out
