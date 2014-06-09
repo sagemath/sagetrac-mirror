@@ -42,8 +42,12 @@ There are two plotting methods for iet::
 """
 from copy import copy
 from sage.structure.sage_object import SageObject
+from sage.misc.prandom import random
 
 from template import side_conversion, interval_conversion
+
+import time
+import sage.dynamics.flat_surfaces.lekz as lekz   # the cython bindings
 
 class IntervalExchangeTransformation(SageObject):
     r"""
@@ -173,9 +177,8 @@ class IntervalExchangeTransformation(SageObject):
         r"""
         Returns a interval exchange transformation of normalized lengths.
 
-        The normalization consists in multiplying all lengths by a
-        constant in such way that their sum is given by ``total``
-        (default is 1).
+        The normalization consist in consider a constant homothetic value for
+        each lengths in such way that the sum is given (default is 1).
 
         INPUT:
 
@@ -195,33 +198,21 @@ class IntervalExchangeTransformation(SageObject):
             2
             sage: s.lengths()
             [1/2, 3/2]
-
-        TESTS::
-
-           sage: s = t.normalize('bla')
-           Traceback (most recent call last):
-           ...
-           TypeError: unable to convert total (='bla') into a real number
-           sage: s = t.normalize(-691)
-           Traceback (most recent call last):
-           ...
-           ValueError: the total length must be positive
         """
         try:
-            float(total)
+            y = float(total)
         except ValueError:
-            raise TypeError("unable to convert total (='%s') into a real number"
-                            % (str(total)))
+            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
 
         if total <= 0:
-            raise ValueError("the total length must be positive")
+           raise ValueError, "the total length must be positive"
 
         res = copy(self)
         coeff = total / res.length()
         res._multiply_lengths(coeff)
         return res
 
-    def _multiply_lengths(self, x):
+    def _multiply_lengths(self,x):
         r"""
         Multiplies the lengths of self by x (no verification on x).
 
@@ -247,7 +238,7 @@ class IntervalExchangeTransformation(SageObject):
         EXAMPLES::
 
             sage: a = iet.IntervalExchangeTransformation(('a','a'),[1])
-            sage: a   # indirect doctest
+            sage: a   #indirect doctest
             Interval exchange transformation of [0, 1[ with permutation
             a
             a
@@ -311,7 +302,7 @@ class IntervalExchangeTransformation(SageObject):
             True
         """
         res = copy(self)
-        res._permutation._inversed()
+        res._permutation = self._permutation.top_bottom_inverse()
         return res
 
     def __mul__(self, other):
@@ -398,19 +389,13 @@ class IntervalExchangeTransformation(SageObject):
             cb da ca
             sage: r2.lengths()
             [1, 2, 3]
-
-        ::
-
-            sage: r * s
-            Traceback (most recent call last):
-            ...
-            ValueError: self and other are not IET of the same length
         """
-        if not(isinstance(other, IntervalExchangeTransformation) and
-               self.length() == other.length()):
-            raise ValueError("self and other are not IET of the same length")
+        assert(
+            isinstance(other, IntervalExchangeTransformation) and
+            self.length() == other.length())
 
         from labelled import LabelledPermutationIET
+        from sage.combinat.words.words import Words
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]
@@ -418,8 +403,8 @@ class IntervalExchangeTransformation(SageObject):
         n_other = len(other._permutation)
         n_self = len(self._permutation)
 
-        interval_other = other._permutation._intervals[1]
-        interval_self = self._permutation._intervals[0]
+        interval_other = other._permutation._labels[1]
+        interval_self = self._permutation._labels[0]
 
         d_other = dict([(i,[]) for i in interval_other])
         d_self = dict([(i,[]) for i in interval_self])
@@ -459,7 +444,7 @@ class IntervalExchangeTransformation(SageObject):
 
         l_lengths = []
         top_interval = []
-        for i in other._permutation._intervals[0]:
+        for i in other._permutation._labels[0]:
             for j in d_other[i]:
                 a = alphabet_other.unrank(i)
                 b = alphabet_self.unrank(j)
@@ -467,7 +452,7 @@ class IntervalExchangeTransformation(SageObject):
                 l_lengths.append(d_lengths[(i,j)])
 
         bottom_interval = []
-        for i in self._permutation._intervals[1]:
+        for i in self._permutation._labels[1]:
             for j in d_self[i]:
                 a = alphabet_other.unrank(j)
                 b = alphabet_self.unrank(i)
@@ -487,7 +472,7 @@ class IntervalExchangeTransformation(SageObject):
             True
         """
         return (
-            isinstance(self, type(other)) and
+            type(self) == type(other) and
             self._permutation == other._permutation and
             self._lengths == other._lengths)
 
@@ -502,7 +487,7 @@ class IntervalExchangeTransformation(SageObject):
             False
         """
         return (
-            not isinstance(self, type(other)) or
+            type(self) != type(other) or
             self._permutation != other._permutation or
             self._lengths != other._lengths)
 
@@ -551,34 +536,27 @@ class IntervalExchangeTransformation(SageObject):
             'b'
             sage: t.in_which_interval(2.9,'bottom')
             'a'
-
-        TESTS::
-
-            sage: t.in_which_interval(-2.9,'bottom')
-            Traceback (most recent call last):
-            ...
-            ValueError: your value does not lie in [0;l[
         """
         interval = interval_conversion(interval)
 
         if x < 0 or x >= self.length():
-            raise ValueError("your value does not lie in [0;l[")
+            raise ValueError, "your value does not lie in [0;l["
 
         i = 0
 
         while x >= 0:
-            x -= self._lengths[self._permutation._intervals[interval][i]]
+            x -= self._lengths[self._permutation._labels[interval][i]]
             i += 1
 
         i -= 1
-        x += self._lengths[self._permutation._intervals[interval][i]]
+        x += self._lengths[self._permutation._labels[interval][i]]
 
-        j = self._permutation._intervals[interval][i]
+        j = self._permutation._labels[interval][i]
         return self._permutation._alphabet.unrank(j)
 
     def singularities(self):
         r"""
-        The list of singularities of `T` and `T^{-1}`.
+        The list of singularities of 'T' and 'T^{-1}'.
 
         OUTPUT:
 
@@ -591,7 +569,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t.singularities()
             [[0, 1/2, 2], [0, 3/2, 2]]
         """
-        return [self.domain_singularities(), self.range_singularities()]
+        return [self.domain_singularities(),self.range_singularities()]
 
     def domain_singularities(self):
         r"""
@@ -609,7 +587,7 @@ class IntervalExchangeTransformation(SageObject):
             [0, 1, sqrt(2) + 1]
         """
         l = [0]
-        for j in self._permutation._intervals[0]:
+        for j in self._permutation._labels[0]:
             l.append(l[-1] + self._lengths[j])
         return l
 
@@ -629,7 +607,7 @@ class IntervalExchangeTransformation(SageObject):
             [0, sqrt(2), sqrt(2) + 1]
         """
         l = [0]
-        for j in self._permutation._intervals[1]:
+        for j in self._permutation._labels[1]:
             l.append(l[-1] + self._lengths[j])
         return l
 
@@ -648,16 +626,8 @@ class IntervalExchangeTransformation(SageObject):
             1/2
             sage: t(3/2)
             1
-
-        TESTS::
-
-            sage: t(-3/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: value must positive and smaller than length
         """
-        if not(value >= 0 and value < self.length()):
-            raise ValueError("value must positive and smaller than length")
+        assert(value >= 0 and value < self.length())
 
         dom_sg = self.domain_singularities()
         im_sg = self.range_singularities()
@@ -731,8 +701,8 @@ class IntervalExchangeTransformation(SageObject):
             ...
             ValueError: top and bottom extrem intervals have equal lengths
         """
-        top = self._permutation._intervals[0][side]
-        bottom = self._permutation._intervals[1][side]
+        top = self._permutation._labels[0][side]
+        bottom = self._permutation._labels[1][side]
 
         length_top = self._lengths[top]
         length_bottom = self._lengths[bottom]
@@ -746,7 +716,7 @@ class IntervalExchangeTransformation(SageObject):
             winner_interval = bottom
             loser_interval = top
         else:
-            raise ValueError("top and bottom extrem intervals have equal lengths")
+            raise ValueError, "top and bottom extrem intervals have equal lengths"
 
         res = IntervalExchangeTransformation(([],[]),{})
         res._permutation = self._permutation.rauzy_move(winner=winner,side=side)
@@ -791,7 +761,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t = iet.IntervalExchangeTransformation(('a b c d','d a c b'),[1,1,1,1])
             sage: t.plot_function(rgbcolor=(0,1,0))
         """
-        from sage.plot.all import Graphics
+        from sage.plot.plot import Graphics
         from sage.plot.plot import line2d
 
         G = Graphics()
@@ -804,15 +774,16 @@ class IntervalExchangeTransformation(SageObject):
 
         return G
 
-    def plot_two_intervals(self,
-                           position=(0,0),
-                           vertical_alignment='center',
-                           horizontal_alignment='left',
-                           interval_height=0.1,
-                           labels_height=0.05,
-                           fontsize=14,
-                           labels=True,
-                           colors=None):
+    def plot_two_intervals(
+        self,
+        position=(0,0),
+        vertical_alignment = 'center',
+        horizontal_alignment = 'left',
+        interval_height=0.1,
+        labels_height=0.05,
+        fontsize=14,
+        labels=True,
+        colors=None):
         r"""
         Returns a picture of the interval exchange transformation.
 
@@ -836,7 +807,7 @@ class IntervalExchangeTransformation(SageObject):
             sage: t = iet.IntervalExchangeTransformation(('a b','b a'),[1,1])
             sage: t.plot_two_intervals()
         """
-        from sage.plot.all import Graphics
+        from sage.plot.plot import Graphics
         from sage.plot.plot import line2d
         from sage.plot.plot import text
         from sage.plot.colors import rainbow
@@ -856,18 +827,18 @@ class IntervalExchangeTransformation(SageObject):
         elif horizontal_alignment == 'right':
             s = position[0] - total_length
         else:
-            raise ValueError("horizontal_alignement must be left, center or right")
+            raise ValueError, "horizontal_alignement must be left, center or right"
 
         top_height = position[1] + interval_height
-        for i in self._permutation._intervals[0]:
-            G += line2d([(s,top_height), (s+lengths[i],top_height)],
-                        rgbcolor=colors[i])
-            if labels:
+        for i in self._permutation._labels[0]:
+            G += line2d([(s,top_height),(s+lengths[i],top_height)],
+                rgbcolor=colors[i])
+            if labels == True:
                 G += text(str(self._permutation._alphabet.unrank(i)),
-                          (s+float(lengths[i])/2, top_height+labels_height),
-                          horizontal_alignment='center',
-                          rgbcolor=colors[i],
-                          fontsize=fontsize)
+                    (s+float(lengths[i])/2,top_height+labels_height),
+                    horizontal_alignment='center',
+                    rgbcolor=colors[i],
+                    fontsize=fontsize)
 
             s += lengths[i]
 
@@ -878,18 +849,18 @@ class IntervalExchangeTransformation(SageObject):
         elif horizontal_alignment == 'right':
             s = position[0] - total_length
         else:
-            raise ValueError("horizontal_alignement must be left, center or right")
+            raise ValueError, "horizontal_alignement must be left, center or right"
 
         bottom_height = position[1] - interval_height
-        for i in self._permutation._intervals[1]:
+        for i in self._permutation._labels[1]:
             G += line2d([(s,bottom_height), (s+lengths[i],bottom_height)],
-                        rgbcolor=colors[i])
-            if labels:
+                rgbcolor=colors[i])
+            if labels == True:
                 G += text(str(self._permutation._alphabet.unrank(i)),
-                          (s+float(lengths[i])/2, bottom_height-labels_height),
-                          horizontal_alignment='center',
-                          rgbcolor=colors[i],
-                          fontsize=fontsize)
+                    (s+float(lengths[i])/2,bottom_height-labels_height),
+                    horizontal_alignment='center',
+                    rgbcolor=colors[i],
+                    fontsize=fontsize)
             s += lengths[i]
 
         return G
@@ -908,9 +879,269 @@ class IntervalExchangeTransformation(SageObject):
         """
         self.plot_two_intervals().show(axes=False)
 
-#TODO
-# class LinearInvolution(SageObject):
+
+class LinearInvolution(SageObject):
+    def __init__(self,permutation=None,lengths=None):
+        r"""
+        INPUT:
+
+        - ``permutation`` - a permutation (LabelledPermutationLI)
+
+        - ``lengths`` - the list of lengths
+
+        TEST::
+
+            sage: p=iet.LinearInvolution(('a a b','b c c'), {'a':1,'b':2,'c':1})
+            sage: p == loads(dumps(p))
+            True
+        """
+        from labelled import LabelledPermutationLI
+        if permutation is None or lengths is None:
+            self._permutation = LabelledPermutationLI()
+            self._lengths = []
+        else:
+            self._permutation = permutation
+            self._lengths = lengths
+
+    def permutation(self):
+        r"""
+        Returns the permutation associated to this iet.
+
+        OUTPUT:
+
+        permutation -- the permutation associated to this iet
+
+        EXAMPLES::
+
+            sage: perm = iet.Permutation('a b b','b c c')
+            sage: p = iet.LinearInvolution(perm,(1,2,1))
+            sage: p.permutation() == perm
+            True
+        """
+        return copy(self._permutation)
+
+    def label_length(self, label):
+        r"""
+        Returns the length of the given label
+        """
+        return self._lengths[self._permutation._alphabet.rank(label)]
+
+    def length(self, interval=0):
+        r"""
+        Returns the total length of the top (or bottom) interval.
+        
+        INPUT:
+
+        - ``interval`` - the considered interval, 'top' (0, 't') or 'bottom' (1, tb') 
+
+        OUTPUT:
+
+        real -- the length of the interval
+
+        EXAMPLES::
+
+            sage: t = iet.LinearInvolution(('a a b','b c c'),[1,2,1])
+            sage: t.length_top()
+            4
+        """
+        interval = interval_conversion(interval)
+        return sum([self._lengths[lab] for lab in self._permutation._labels[interval]])
+
+    def lengths(self):
+        r"""
+        Returns the list of lengths associated to this iet.
+
+        OUTPUT:
+
+        list -- the list of lengths of subinterval
+
+        EXAMPLES::
+
+            sage: p = iet.LinearInvolution(('a a b','b c c'),[1,2,1])
+            sage: p.lengths()
+            [1,2,1]
+        """
+        return copy(self._lengths)
+
+    def normalize(self, total=1, verbose=True):
+        r"""
+        Returns a interval exchange transformation of normalized lengths.
+
+        The normalization consist in consider a constant homothetic value for
+        each lengths in such way that the sum is given (default is 1).
+
+        INPUT:
+
+        - ``total`` - (default: 1) The total length of the interval
+
+        OUTPUT:
+
+        iet -- the normalized iet
+
+        EXAMPLES::
+
+            sage: t = iet.LinearInvolution(('a a b','b c c'), [1,2,1])
+            sage: t.length()
+            4
+            sage: s = t.normalize(2)
+            sage: s.length()
+            2
+            sage: s.lengths()
+            [1/2, 1, 1/2]
+        """
+        try:
+            y = float(total)
+        except ValueError:
+            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+
+        if total <= 0:
+           raise ValueError, "the total length must be positive"
+
+        res = copy(self)
+        coeff = total / res.length()
+        res._multiply_lengths(coeff)
+
+        if abs(self.length('top')-self.length('bot')) > 2**(-50):
+            if verbose: print "Warning: top and bottom lengths are different"
+            lab_double = self._permutation.find_double()
+            (s_0, l_0) = self._rel_sum(0,lab_double)
+            (s_1, l_1) = self._rel_sum(1,lab_double)
+            assert l_0 <> l_1
+            val = (s_0 - s_1)/(l_1 - l_0)
+            if val > 0 : res._lengths[self._permutation._alphabet.rank(lab_double)] = val
+            else: raise NameError('Error while renomalizing, check your original lengths are the same for top and bottom')
+        return res
+
+    def _rel_sum(self, interval, label):                                        #return(sum of lengths of intervals on a line, number of times label appears)
+        interval = interval_conversion(interval)
+        n = len(self._permutation[interval])
+        s, compt = 0, 0
+        for k in range(n) :
+            if self._permutation[interval][k] == label :
+                compt += 1
+            else :
+                s += self._lengths[self._permutation._labels[interval][k]]
+        return (s, compt)
+
+    def _multiply_lengths(self,x):
+        r"""
+        Multiplies the lengths of self by x (no verification on x).
+
+        INPUT:
+
+        - ``x`` - a positive number
+
+        TESTS::
+
+            sage: t = iet.IET(("a","a"), [1])
+            sage: t.lengths()
+            [1]
+            sage: t._multiply_lengths(2)
+            sage: t.lengths()
+            [2]
+        """
+        self._lengths = map(lambda t: t*x, self._lengths)
+
+    def _repr_(self):
+        r"""
+        A representation string.
+
+        EXAMPLES::
+
+            sage: a = iet.IntervalExchangeTransformation(('a','a'),[1])
+            sage: a   #indirect doctest
+            Interval exchange transformation of [0, 1[ with permutation
+            a
+            a
+        """
+        interval = "[0, %s["%self.length()
+        s = "Interval exchange transformation of %s "%interval
+        s += "with permutation\n%s"%self._permutation
+        return s
+
+    def stratum(self):
+        r"""
+        Returns the stratum in which the linear involution is.
+        Which depends only on its permutation.
+        """
+        return(self._permutation.stratum())
+
+    def stratum_component(self):
+        r"""
+        Returns the stratum component in which the linear involution is.
+        Which depends only on its permutation.
+        """
+        return(self._permutation.stratum_component())
+
+    def random_length(self):
+        r"""
+        Return a linear involutation with random length. 
+        The total length of the two intervals is not normalised.
+        """
+        res = copy(self)
+        for label in xrange(len(res._permutation)):
+            res._lengths[label] = random()
+        lab_double = res._permutation.find_double()
+        if lab_double == None:
+            return(res)
+        (s_0, l_0), (s_1, l_1) = res._rel_sum(0,lab_double), res._rel_sum(1,lab_double)
+        l = (s_0 - s_1)/(l_1 - l_0)
+        if l > 0: res._lengths[res._permutation._alphabet.rank(lab_double)] = l
+        else:
+            #it can append that the top length is too big compared to the bottom
+            lab_double = res._permutation._line_double('bot')
+            if lab_double == None: raise NameError('Problem while normalizing random lengths, please check your permutation')
+            (s_0, l_0), (s_1, l_1) = res._sum(0,lab_double), res._sum(1,lab_double)
+            l = (s_0 - s_1)/(l_1 - l_0)
+            if l <= 0: raise NameError('Negative values in lengths')
+            res._lengths[res._permutation._alphabet.rank(lab_double)] = l
+        return(res)
+
+    def lyapunov_exponents_H_plus(self, **kargs):
+        r"""
+        Compute the H^+ Lyapunov exponents in  the covering locus.
+
+        It calls the C-library lyap_exp interfaced with Cython. The computation
+        might be significantly faster if ``nb_vectors=1`` (or if it is not
+        provided but genus is 1).
+
+        INPUT:
+
+        - ``nb_vectors`` -- the number of exponents to compute. The number of
+          vectors must not exceed the dimension of the space!
+
+         - ``nb_experiments`` -- the number of experiments to perform. It might
+           be around 100 (default value) in order that the estimation of
+           confidence interval is accurate enough.
+
+         - ``nb_iterations`` -- the number of iteration of the Rauzy-Zorich
+           algorithm to perform for each experiments. The default is 2^15=32768
+           which is rather small but provide a good compromise between speed and
+           quality of approximation.
+
+        - ``verbose`` -- if ``True`` provide additional informations rather than
+          returning only the Lyapunov exponents (i.e. ellapsed time, confidence
+          intervals, ...)
+
+        - ``output_file`` -- if provided (as a file object or a string) output
+          the additional information in the given file rather than on the
+          standard output.
+
+        EXAMPLES::
+            sage: R = cyclic_cover_iet(4, [1, 1, 1, 1])
+            sage: R.lyapunov_exponents_H_plus()
+            [0.9996553085103, 0.0007776980910571506, 0.00022201024035355403]
+
+        """
+        return(self._permutation.lyapunov_exponents_H_plus(*kargs, lengths=self._lengths))
+
+
+    
+
+# TODO
+# from is_identity to plot_two_intervals
 #     r"""_
 #     Linear involutions
 #     """
 #     pass
+

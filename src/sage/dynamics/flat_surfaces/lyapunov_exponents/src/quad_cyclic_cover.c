@@ -336,6 +336,7 @@ void set_random_lengths_quad_cyclic_cover(quad_cyclic_cover * qcc)
       qcc->length += i->lab->length;
       i = i->prev;
     }
+
   renormalize_length_quad_cyclic_cover(qcc);
 }
 
@@ -442,44 +443,21 @@ void print_quad_cyclic_cover(quad_cyclic_cover * qcc)
       printf("%zu ", i->lab - qcc->labels);
       i = i->next;
     }
-  printf("v :\n");
-  for(j=0; j < qcc->nb_labels; ++j)
-    for (d=0; d<qcc->degree; ++d){
-      for(k=0; k<qcc->nb_vectors; ++k){
-	printf(" %f", (double) (qcc->labels)[j].v[k + qcc->nb_vectors*d]);
-	printf(" | ");
-      }
-      printf("\n");
-    }
-  printf("\n");
-  if (verbose){
-    printf("v_buffer :\n");
-    for(j=0; j < qcc->nb_labels; ++j)
-      for (d=0; d < qcc->degree; ++d){
-	printf(" %f", (double) (qcc->v_buffer)[j + qcc->nb_labels * d]);
-	printf(" %i < %i,   %i", j + qcc->nb_labels * d, qcc->nb_labels * qcc->degree, j + qcc->nb_labels * d < qcc->nb_labels * qcc->degree);
-	printf(" | ");
-	printf("\n");
-      }
-    for(j=0; j< qcc->nb_labels; ++j)
-      print_permutation((qcc->labels)[j].sigma, qcc->degree);
-    printf("\n  total: %f", (double) qcc->length);
+
+  printf("\nlengths:");
+  for(j=0; j < qcc->nb_labels; ++j){
+    for(n=0; n < qcc->degree; ++n)
+      printf(" %Lf", (qcc->labels)[j].length);
     printf("\n");
-    printf("same interval:");
-    for(j=0; j < qcc->nb_labels; ++j)
-      printf(" %d", (qcc->labels)[j].same_interval);
-    printf("\n");
-    printf("\ngive name:");
-    for(j=0; j < 2*qcc->nb_labels; ++j)
-      printf(" %d", (give_name(qcc->intervals + j)));
-    printf("\nlengths:");
-    printf("\nZZ/%zuZZ \n cover:\n", qcc->degree);
-    for(j=0; j < qcc->nb_labels; ++j){
-      for(n=0; n < qcc->degree; ++n)
-	printf(" %d", (qcc->labels)[j].sigma[n]);
-      printf("\n");
-    };
   }
+
+  /* printf("\npermutation:"); */
+  /* for(j=0; j < qcc->nb_labels; ++j){ */
+  /*   for(n=0; n < qcc->degree; ++n) */
+  /*     printf(" %d", (qcc->labels)[j].sigma[n]); */
+  /*   printf("\n"); */
+  /* } */
+
   printf("\n");
 }
 
@@ -494,7 +472,7 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
   size_t i,k;
   double * tmp;
   int debug = 0, debug_ = 0;
-	
+
   if(qcc->top->lab->length > qcc->bot->lab->length)
     {
       win = qcc->top;
@@ -528,8 +506,7 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
     cyclic_permutation(0,qcc->perm_two, qcc->degree);}
 
   if (debug_){
-    printf("win :%i%i      los :%i%i\n", win->orientation, win->lab - qcc->labels, los->orientation, los->lab - qcc->labels);
-    print_quad_cyclic_cover(qcc);
+    printf("win :%i, %Lf      los :%i, %Lf\ndiff : %Lf\n", win->lab - qcc->labels, win->lab->length, los->lab - qcc->labels, los->lab->length, win->lab->length - los->lab->length);
   }
   if (debug){
     printf("perm:\n");
@@ -564,10 +541,11 @@ void rauzy_induction_H_plus_quad_cyclic_cover(quad_cyclic_cover *qcc)
       los->next = win_twin->next;
       los->prev = win_twin;
       if(win_twin->next != NULL) win_twin->next->prev = los;
+      else *los_ptr = los;
       win_twin->next = los;
       }
     }
-  
+
   /* apply KZ to the vectors */
   /* we put the result of KZ in qcc->buffer and then we switch the pointers */
   for(i=0; i<qcc->nb_vectors; ++i)
