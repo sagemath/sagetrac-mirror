@@ -6,8 +6,10 @@ The goal of this module is to give some tools to manipulate the
 tree-like tableaux.
 """
 #*****************************************************************************
-#  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr), 
-#                     Patxi Laborde Zubieta (patxi.laborde.zubieta@gmail.com)
+#  Copyright (C) 2014  Patxi Laborde Zubieta (patxi.laborde.zubieta@gmail.com),
+#
+#          co-auteur : Adrien Boussicault (boussica@labri.fr)
+#                        - Tikz options
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
