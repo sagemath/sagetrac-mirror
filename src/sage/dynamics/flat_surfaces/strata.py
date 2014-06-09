@@ -515,5 +515,54 @@ class StratumComponent(SageObject):
 #
 
 class Strata(Parent):
-    pass
+    r"""
+    sage: a = AbelianStratum(4,4).connected_components()[1]
+    sage: print a.representative(alphabet=range(11))
+    0 1 2 3 4 5 6 7 8 9 10
+    3 2 5 4 6 8 7 10 9 1 0
+    """
+        zeroes = filter(lambda x: x > 0, self._parent._zeroes)
+        zeroes = map(lambda x: x//2, zeroes)
 
+        n = self._parent._zeroes.count(0)
+        g = self._parent._genus
+
+        l0 = range(3*g-2)
+        l1 = [3, 2]
+        for k in range(4, 3*g-4, 3):
+            l1 += [k, k+2, k+1]
+        l1 += [1, 0]
+
+        k = 4
+        for d in zeroes:
+            for i in range(d-1):
+                del l0[l0.index(k)]
+                del l1[l1.index(k)]
+                k += 3
+            k += 3
+
+        # marked points
+        if n != 0:
+            interval = range(3*g-2, 3*g-2+n)
+
+            if self._parent._zeroes[0] == 0:
+                k = l0.index(3)
+                l0[k:k] = interval
+                l1[-1:-1] = interval
+            else:
+                l0[1:1] = interval
+                l1.extend(interval)
+
+        if self._parent._marked_separatrix == 'in':
+            l0.reverse()
+            l1.reverse()
+
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            return ReducedPermutationIET([l0, l1], alphabet=alphabet)
+
+        else:
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            return LabelledPermutationIET([l0, l1], alphabet=alphabet)
+
+OddCCA = OddConnectedComponentOfAbelianStratum

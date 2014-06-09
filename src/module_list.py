@@ -334,7 +334,9 @@ ext_modules = [
     ################################
 
     Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx']),
+        sources = ['sage/functions/prime_pi.pyx'],
+        libraries = ['pari', 'gmp'],
+        extra_compile_args = ['-std=c99']),
 
      ################################
      ##
@@ -1917,6 +1919,11 @@ ext_modules = [
                          flint_depends,
               libraries = ['flint', 'gmp', 'ratpoints']),
 
+
+    Extension('sage.schemes.elliptic_curves.period_lattice_region',
+              sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx'],
+              include_dirs = numpy_include_dirs),
+
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
                          'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
@@ -1945,6 +1952,9 @@ ext_modules = [
               libraries = ['gmp', 'flint'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+    Extension('sage.sets.recursively_enumerated_set',
+              sources = ['sage/sets/recursively_enumerated_set.pyx']),
 
     ################################
     ##
@@ -2079,6 +2089,15 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
+              
+    ################################
+    ## 
+    ## sage.schemes
+    ##
+    ################################
+              
+    Extension('sage.schemes.projective.projective_morphism_helper',
+              sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
 
 # Optional extensions :
@@ -2151,6 +2170,14 @@ if is_package_installed('cryptominisat'):
                   language = "c++",
                   libraries = ['cryptominisat', 'z'])
         ])
+
+if is_package_installed('mcqd'):
+    ext_modules.append(
+        Extension("sage.graphs.mcqd",
+                  ["sage/graphs/mcqd.pyx"],
+                  language = "c++"))
+#                  libraries = ["mcqd"]))
+
 
 # Only include darwin_utilities on OS_X >= 10.5
 UNAME = os.uname()

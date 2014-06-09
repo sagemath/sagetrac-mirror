@@ -2239,7 +2239,7 @@ class OrientablePermutationIET(PermutationIET):
         left_corner = (self[1][0],0)
         for s in self.interval_diagram(glue_ends=False,sign=True):
             if left_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def attached_in_degree(self):
         r"""
@@ -2263,7 +2263,7 @@ class OrientablePermutationIET(PermutationIET):
 
         for s in self.interval_diagram(glue_ends=False,sign=True):
             if right_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def profile(self):
         r"""
@@ -2276,9 +2276,22 @@ class OrientablePermutationIET(PermutationIET):
             sage: iet.Permutation('a b c d e','e d c b a').profile()
             [2, 2]
         """
-        from sage.combinat.partition import Partition
-        s = self.interval_diagram(glue_ends=True,sign=False)
-        return Partition(sorted((len(x)/2 for x in s),reverse=True))
+        left_corner = ((self[1][0], self[0][0]), 'L')
+        right_corner = ((self[0][-1], self[1][-1]), 'R')
+
+        l = self.separatrix_diagram(side=True)
+
+        for s in l:
+            if left_corner in s and right_corner in s:
+                i1 = s.index(left_corner)
+                i2 = s.index(right_corner)
+                return ([len(s)//2 - 1], ((i2-i1+1)//2) % 2)
+            elif left_corner in s:
+                left_degree = len(s)//2 - 1
+            elif right_corner in s:
+                right_degree = len(s)//2 - 1
+
+        return ([left_degree,right_degree], 0)
 
     def marking(self):
         r"""
@@ -2428,7 +2441,7 @@ class OrientablePermutationIET(PermutationIET):
         if len(self) == 1:
             return AbelianStratum([])
 
-        singularities = [x - 1 for x in self.profile()]
+        singularities = [len(x)//2 - 1 for x in self.separatrix_diagram()]
 
         return AbelianStratum(singularities)
 
