@@ -3,8 +3,8 @@ Quiver Paths
 """
 
 #*****************************************************************************
-#  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
-#                2013 Simon King <simon.king@uni-jena.de>
+#  Copyright (C) 2012    Jim Stark <jstarx@gmail.com>
+#                2013/14 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -18,10 +18,10 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element import MonoidElement
+from sage.structure.element cimport MonoidElement
 from sage.rings.integer_ring import ZZ
 
-class QuiverPath(MonoidElement):
+cdef class QuiverPath(MonoidElement):
     r"""
     Class for paths in a quiver.
 
@@ -110,6 +110,7 @@ class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
+    cdef public tuple _path
     def __init__(self, parent, path, check=True):
         """
         Creates a path object.  Type ``QuiverPath?`` for more information.
@@ -322,7 +323,7 @@ class QuiverPath(MonoidElement):
         # Now we have two non-trivial paths. Compare internal tuple
         return cmp(s_p, o_p)
 
-    def __getitem__(self, *args):
+    def __getitem__(self, args):
         """
         Implement index notation.
 
@@ -340,9 +341,9 @@ class QuiverPath(MonoidElement):
             ((2, 3, 'b'), (3, 4, 'c'))
         """
         if self._path and self._path[0][0] == self._path[0][1]:
-            return list().__getitem__(*args)
+            return list().__getitem__(args)
         else:
-            return self._path.__getitem__(*args)
+            return self._path.__getitem__(args)
 
     def __iter__(self):
         """
@@ -364,7 +365,7 @@ class QuiverPath(MonoidElement):
         else:
             return list(self._path).__iter__()
 
-    def _mul_(self, other):
+    cpdef MonoidElement _mul_(self, MonoidElement other):
         """
         Compose two paths.
 
