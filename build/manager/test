@@ -1,0 +1,54 @@
+#!/usr/bin/python
+
+try:
+    from sage_pkg import fix_paths
+except ImportError:
+    sys.path.append('')
+    from sage_pkg import fix_paths
+
+from develop.run import run_doctests, run_unittests, run_all
+from develop.watcher import watch
+
+
+DOCTEST_DIRS = (
+    'sage_pkg', 
+)    
+
+UNITTEST_DIRS = (
+    'sage_pkg/test',
+)
+
+WATCH_DIRS = set(DOCTEST_DIRS + UNITTEST_DIRS)
+
+
+
+description = \
+"""
+Run Automatted Tests
+
+Watches for filesystem changes if no argument is specified. Otherwise,
+the specified test is run.
+"""
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description=description)
+    parser.add_argument('-d', '--doc', dest='doc', action='store_true',
+                        default=False, help='Run doctests')
+    parser.add_argument('-u', '--unit', dest='unit', action='store_true',
+                        default=False, help='Run unittests')
+    parser.add_argument('file_py', metavar='file.py', nargs='?', 
+                        type=str, default=None, help='File to doctest')
+    args = parser.parse_args()
+    if args.doc:
+        run_doctests(DOCTEST_DIRS, args.file_py)
+    if args.unit:
+        run_unittests(UNITTEST_DIRS, args.file_py)
+    if not (args.doc or args.unit):
+        if args.file_py:
+            run_all(args.file_py)
+        else:
+            run_all()
+            watch(WATCH_DIRS)
+
+    

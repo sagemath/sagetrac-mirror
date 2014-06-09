@@ -4,11 +4,15 @@
 import os
 import sys
 
+
 try:
-    from sage_pkg import cmdline
+    from sage_pkg import fix_paths
 except ImportError:
     sys.path.append('')
-    from sage_pkg import cmdline
+    from sage_pkg import fix_paths
+
+
+from sage_pkg import cmdline
 
 if __name__ == '__main__':
     try:

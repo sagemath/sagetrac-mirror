@@ -36,13 +36,15 @@ def debug_shell(app, parser):
     ip.initialize(argv=[])
     ip.shell.user_global_ns['app'] = app
     ip.shell.user_global_ns['log'] = logger
-    ip.shell.user_global_ns['repo'] = app.repo
-    ip.shell.user_global_ns['git'] = app.git
+    # ip.shell.user_global_ns['git'] = app.git
+    from develop.config import config
+    ip.shell.user_global_ns['config'] = config
+
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)
         ip.shell.user_global_ns[identifier] = getattr(module, identifier) 
-    ipy_import('sage_pkg.git_interface', 'GitInterface')
+    # ipy_import('sage_pkg.git_interface', 'GitInterface')
     ip.start()
 
 
@@ -52,6 +54,7 @@ description = \
 The Sage Package Manager
 """
 
+DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'sage.yaml')
 
 
 def launch():
@@ -60,6 +63,8 @@ def launch():
     parser.add_argument('--debug', dest='debug', action='store_true',
                         default=False, 
                         help='debug')
+    parser.add_argument('--config', dest='config', type=str, default=None, 
+                        help='builder configuration file')
     parser.add_argument('--log', dest='log', default=None,
                         help='one of [DEBUG, INFO, ERROR, WARNING, CRITICAL]')
     subparsers = parser.add_subparsers(dest='subcommand')
@@ -77,8 +82,9 @@ def launch():
         level = getattr(logging, args.log)
         logger.setLevel(level=level)
 
+    config = args.config if args.config else DEFAULT_CONFIG
     from .app import Application
-    app = Application()
+    app = Application(config)
 
     if args.debug:
         print(args)

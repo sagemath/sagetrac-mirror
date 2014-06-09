@@ -1,0 +1,10 @@
+--- # The default Sage build configuration
+
+dot_git: ../../.git
+
+package_dir: ../pkg
+
+... # End of the builder configuration
+
+
+File names are relative to the location of the YAML file.
