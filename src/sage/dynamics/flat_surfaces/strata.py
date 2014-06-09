@@ -516,4 +516,3 @@ class StratumComponent(SageObject):
 
 class Strata(Parent):
     pass
-
