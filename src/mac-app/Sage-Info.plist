@@ -191,6 +191,8 @@
 			<array>
 				<string>org.sagemath.sage-source</string>
 				<string>public.folder</string>
+				<string>public.python-script</string>
+				<string>org.cython.cython-source</string>
 			</array>
 			<key>NSUserData</key>
 			<string>t</string>
