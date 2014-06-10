@@ -112,9 +112,7 @@ webpage won't work).  Such services have "(and replace)" in the name.
 - Act on Files
   - Test file with Sage -- run `sage -t` on a file or folder
   - Unpack Sage Package -- untar an spkg
-  - Create Sage Package -- turn a folder into an spkg
-  - Create Uncompressed Sage Package
-    - as above, but uncompressed
+  - Preparse File with Sage -- preparse the file to a .py file
 - Act on text selection
   - New Sage Worksheet with Selection
   - New Sage Terminal Session with Selection
