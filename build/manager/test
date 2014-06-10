@@ -11,6 +11,7 @@ from develop.watcher import watch
 
 
 DOCTEST_DIRS = (
+    'develop',
     'sage_pkg', 
 )    
 

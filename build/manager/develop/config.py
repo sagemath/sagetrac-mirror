@@ -10,9 +10,12 @@ class _ConfigDefault(object):
 
     TEST_DIR = os.path.join(_HOME, 'sage_pkg', 'test')
 
+    CONFIG_TEST_YAML = os.path.join(_HOME, 'test.yaml')
 
 
 
 config = _ConfigDefault()
 
 
+from sage_pkg.config import set_configuration
+set_configuration(config.CONFIG_TEST_YAML)

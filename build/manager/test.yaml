@@ -8,7 +8,7 @@ path:
         .git
 
     packages: 
-        build/pkg
+        build/manager/test_pkg
 
     sage_pkg:
         build/manager

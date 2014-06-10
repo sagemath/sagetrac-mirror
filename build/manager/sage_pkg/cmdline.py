@@ -27,8 +27,11 @@ import os
 import warnings
 
 from .logger import logger
+from .config import set_configuration
 
 
+DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'sage.yaml')
+TEST_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'test.yaml')
 
 def debug_shell(app, parser):
     from IPython.frontend.terminal.ipapp import TerminalIPythonApp
@@ -37,9 +40,10 @@ def debug_shell(app, parser):
     ip.shell.user_global_ns['app'] = app
     ip.shell.user_global_ns['log'] = logger
     # ip.shell.user_global_ns['git'] = app.git
-    from develop.config import config
+    from develop.config import config as dev_config
+    ip.shell.user_global_ns['dev_config'] = dev_config
+    from .config import config
     ip.shell.user_global_ns['config'] = config
-
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)
@@ -54,7 +58,6 @@ description = \
 The Sage Package Manager
 """
 
-DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'sage.yaml')
 
 
 def launch():
@@ -82,12 +85,12 @@ def launch():
         level = getattr(logging, args.log)
         logger.setLevel(level=level)
 
-    config = args.config if args.config else DEFAULT_CONFIG
+    set_configuration(args.config if args.config else DEFAULT_CONFIG)
+
     from .app import Application
-    app = Application(config)
+    app = Application()
 
     if args.debug:
-        print(args)
         debug_shell(app, parser)
     elif args.subcommand == 'info':
         app.info(args.package)

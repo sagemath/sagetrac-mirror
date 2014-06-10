@@ -8,6 +8,8 @@ from glob import glob
 from develop.config import config
 
 
+
+
 class TesterABC(object):
 
     def root_path(self):
@@ -82,8 +84,15 @@ class DocTester(TesterABC):
 
     def run(self):
         for m in self._modules:
-            doctest.testmod(m)
+            doctest.testmod(m, globs=self.global_variables())
 
+    def global_variables(self):
+        from sage_pkg.config import config
+        from sage_pkg.app import Application
+        return dict(
+            config=config,
+            app=Application(),
+        )
 
 
 class UnitTester(TesterABC):
