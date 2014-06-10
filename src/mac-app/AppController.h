@@ -70,6 +70,7 @@
 // Ancillary functions
 -(void)sageBrowse:(NSString*)location;
 -(void)sageTerminalRun:(NSString*)sessionType withArguments:(NSArray*)arguments;
+-(void)sageTerminalRun:(NSString*)sessionType withArguments:(NSArray*)arguments escaping:(BOOL)escape;
 -(void)terminalRun:(NSString*)command;
 -(NSString*)createPrompt:(NSString*)sessionType forCommand:(NSString*)command;
 -(BOOL)isTigerOrLess;

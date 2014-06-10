@@ -503,6 +503,10 @@ You can change it later in Preferences."];
 }
 
 -(void)sageTerminalRun:(NSString*)sessionType withArguments:(NSArray*)arguments{
+    [self sageTerminalRun:sessionType withArguments:arguments escaping:YES];
+}
+
+-(void)sageTerminalRun:(NSString*)sessionType withArguments:(NSArray*)arguments escaping:(BOOL)escape{
     NSString *command;
     if ( sessionType == nil ) {
         NSLog(@"starting sage" );
@@ -522,7 +526,14 @@ You can change it later in Preferences."];
     }
     if ( arguments != nil ) {
         for( int i = 0; i < [arguments count]; i++ ) {
-            command = [command stringByAppendingFormat:@" %@", [arguments objectAtIndex:i]];
+            NSString * arg = [arguments objectAtIndex:i];
+            // This is an ugly special case for when we are creating a session and we want
+            // the input to be on a different line and not escaped
+            if ( escape ) {
+                arg = [NSString stringWithFormat:@"'%@'",
+                       [arg stringByReplacingOccurrencesOfString:@"'" withString:@"'\\''"]];
+            }
+            command = [command stringByAppendingFormat:@" %@", arg];
         }
     }
 

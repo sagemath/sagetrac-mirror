@@ -297,7 +297,8 @@
                                         arrayWithObjects:
                                         @"\n",
                                         str,
-                                        nil]];
+                                        nil]
+                              escaping:NO];
     }
 }
 
