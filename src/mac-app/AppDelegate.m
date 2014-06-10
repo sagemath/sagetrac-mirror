@@ -453,6 +453,11 @@
         if ([task terminationStatus] == 0 ) {
 
             NSData *data = [[sageOut fileHandleForReading] readDataToEndOfFile];
+            if ( [data length] == 0 ) {
+                data = [[NSString
+                         stringWithFormat:@"%@\nThe code produced no output.  Please use print or similar to see the result.\n",
+                         str] dataUsingEncoding:NSUTF8StringEncoding];
+            }
             [pboard declareTypes:supportedTypes owner:nil];
             [pboard setData:data forType:NSStringPboardType];
 
