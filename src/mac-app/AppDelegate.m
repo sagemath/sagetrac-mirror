@@ -305,14 +305,25 @@
     NSArray* files = [self extractFileURLs:pboard error:error];
     if (files) {
 
-        NSWorkspace* ws = [NSWorkspace sharedWorkspace];
         NSEnumerator *enumerator = [files objectEnumerator];
+        NSMutableArray *tasks = [NSMutableArray arrayWithCapacity:[files count]];
+
+        // Launch the tasks
+        NSTask *t;
         id file;
         while( (file = [enumerator nextObject]) ) {
+            NSLog(@"unspking %@",file);
+            [tasks addObject:[NSTask launchedTaskWithLaunchPath:@"/usr/bin/tar"
+                                                      arguments:[NSArray arrayWithObjects:@"xjf", file,
+                                                                 @"-C", [file stringByDeletingLastPathComponent],
+                                                                 nil]]];
+        }
 
-            [ws openFile:file withApplication: @"/System/Library/CoreServices/Archive Utility.app"] ||
-            [ws openFile:file withApplication: @"/System/Library/CoreServices/BOMArchiveHelper.app"];
-
+        // Wait for all tasks to exit.
+        enumerator = [tasks objectEnumerator];
+        while( (t = [enumerator nextObject]) ) {
+            [t waitUntilExit];
+            NSLog(@"Exited with status %d", [t terminationStatus]);
         }
     }
 }
