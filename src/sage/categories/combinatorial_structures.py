@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 The category of classes of combinatorial structures
+
+AUTHORS:
+
+- Jean-Baptiste Priez (2014)
 """
 from sage.categories.category import Category
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -16,7 +20,7 @@ class CombinatorialStructures(Category):
     """
 
     def super_categories(self):
-        return [SetsWithGrading(), InfiniteEnumeratedSets()]
+        return [SetsWithGrading()]#, InfiniteEnumeratedSets()] that
 
     class ParentMethods:
 
@@ -49,6 +53,14 @@ class CombinatorialStructures(Category):
                      *max*.
             """
 
+        def __iter__(self):
+            """
+
+            """
+            for grade in self.grading_set():
+                for obj in self.graded_component(grade):
+                    yield obj
+
     class GradedComponents(Category):
 
         def super_categories(self):
@@ -57,7 +69,7 @@ class CombinatorialStructures(Category):
         class ParentMethods:
 
             def _repr_(self):
-                return repr(self.ambient()) + " of degree " + repr(self.grade())
+                return repr(self.ambient()) + " of degree " + repr(self.grading())
 
             @abstract_method(optional=False)
             def ambient(self):

@@ -182,6 +182,7 @@ class SetsWithGrading(Category):
             """
             return self.subset(grade)
 
+        @abstract_method(optional=True)
         def grading(self, elt):
             """
             Return the grading of the element ``elt`` of ``self``.
@@ -199,6 +200,7 @@ class SetsWithGrading(Category):
             """
 
         #@cached_method
+        @abstract_method(optional=True)
         def generating_series(self):
             """
             Default implementation for generating series.

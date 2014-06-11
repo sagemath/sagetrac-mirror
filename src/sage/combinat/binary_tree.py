@@ -38,7 +38,9 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.category import Category
 from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.functions.other import sqrt
 from sage.rings.rational_field import RationalField
 from sage.structure.list_clone import ClonableArray
@@ -2803,7 +2805,8 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
-            facade=True, keepkey=False, category=CombinatorialStructures())
+            facade=True, keepkey=False, category=Category.join([InfiniteEnumeratedSets(), CombinatorialStructures()])
+        )
 
     def _repr_(self):
         """
