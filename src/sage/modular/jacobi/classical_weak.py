@@ -10,7 +10,7 @@ REFERENCES:
 .. [Sk84] Skoruppa, Uber den Zusammenhang zwischen Jacobiformen und
    Modulformen halbganzen Gewichts, 1984, University of Bonn.
 
-EXAMPLES::
+EXAMPLES:
 
 To compute a basis of weight `k` and index `m \in \ZZ` weak Jacobi
 forms, we call ``classical_weak_jacobi_forms``.  This compute weight
@@ -32,9 +32,9 @@ accessed directly; If a reduced pair does not occur as a key and `n`
 does not exceed the prescribed precision, then the corresponding
 Fourier coefficient vanishes.
 
-To access Fourier coefficients of non reduced index, we compute the attached reduction by ``reduce_classical_jacobi_fe_index``::
+To access Fourier coefficients of non reduced index, we compute the attached reduction by ``classical_jacobi_reduce_fe_index``::
 
-    sage: reduce_classical_jacobi_fe_index((2, 3), 2)
+    sage: classical_jacobi_reduce_fe_index((2, 3), 2)
     ((1, 1), -1)
 
 As a result, we obtain `(n', r')` and a sign `s`.  The Fourier
@@ -77,7 +77,7 @@ from sage.rings import big_oh
 import operator
 
 
-def reduce_classical_jacobi_fe_index((n, r), m):
+def classical_jacobi_reduce_fe_index((n, r), m):
     r"""
     Reduce an index `(n, r)` of the Fourier expansion of Jacobi forms
     of index `m` suchthat `0 \le r \le m`.
@@ -97,7 +97,7 @@ def reduce_classical_jacobi_fe_index((n, r), m):
     EXAMPLES::
 
         sage: from sage.modular.jacobi.all import *
-        sage: reduce_classical_jacobi_fe_index((2,2), 1)
+        sage: classical_jacobi_reduce_fe_index((2,2), 1)
         ((1, 0), 1)
     """
     rred = r % (2*m)

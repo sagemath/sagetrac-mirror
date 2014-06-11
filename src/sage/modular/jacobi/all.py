@@ -1,5 +1,5 @@
 from classical_weak import (
-    reduce_classical_jacobi_fe_index,
+    classical_jacobi_reduce_fe_index,
     classical_weak_jacobi_fe_indices,
 
     classical_weak_jacobi_forms   
@@ -13,7 +13,7 @@ from classical import (
 
 from higherrank import (
     higherrank_jacobi_fe_indices,
-    reduce_higherrank_jacobi_fe_index,
+    higherrank_jacobi_reduce_fe_index,
     higherrank_jacobi_r_classes,
 
     higherrank_jacobi_forms

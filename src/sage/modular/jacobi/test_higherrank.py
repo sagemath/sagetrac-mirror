@@ -39,7 +39,7 @@ from sage.modular.jacobi.classical import (
     classical_jacobi_forms
 )
 from sage.modular.jacobi.higherrank import (
-    reduce_higherrank_jacobi_fe_index,
+    higherrank_jacobi_reduce_fe_index,
     higherrank_jacobi_fe_indices,
     higherrank_jacobi_forms,
 
@@ -56,7 +56,7 @@ def _test_set__jacobi_m():
             QuadraticForm(matrix(3, [2,1,1, 1,2,1, 1,1,2]))]
 
 
-def test__reduce_higherrank_jacobi_fe_index():
+def test_higherrank_jacobi_reduce_fe_index():
      for m in _test_set__jacobi_m():
         r_classes = higherrank_jacobi_r_classes(m)[0]
         m_span = m.matrix().row_module()
@@ -67,13 +67,13 @@ def test__reduce_higherrank_jacobi_fe_index():
             n = randint(0, 20)
             for _ in range(10):
                 r = fm.random_element()
-                yield (_test__reduce_higherrank_jacobi_fe_index,
+                yield (_test_higherrank_jacobi_reduce_fe_index,
                        (n, r), m, r_classes, m_adj, m_span)
 
-def _test__reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
-    from sage.modular.jacobi.higherrank import reduce_higherrank_jacobi_fe_index
+def _test_higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span):
+    from sage.modular.jacobi.higherrank import higherrank_jacobi_reduce_fe_index
 
-    ((nred, rred), s) = reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span)
+    ((nred, rred), s) = higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span)
 
     if s == 1:
         assert vector(r) - vector(rred) in m_span
@@ -84,20 +84,20 @@ def _test__reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span
 
     assert 2*m.det()*n - m_adj(r) == 2*m.det()*nred - m_adj(rred)
 
-def test__reduce_higherrank_jacobi_fe_index__r():
+def test__higherrank_jacobi_reduce_fe_index__r():
     for m in _test_set__jacobi_m():
         r_classes = higherrank_jacobi_r_classes(m)[0]
         m_span = m.matrix().row_module()
         fm = FreeModule(ZZ, m.dim())
 
         r = fm.random_element()
-        yield (_test__reduce_higherrank_jacobi_fe_index__r,
+        yield (_test__higherrank_jacobi_reduce_fe_index__r,
                r, r_classes, m_span)
 
-def _test__reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
-    from sage.modular.jacobi.higherrank import _reduce_higherrank_jacobi_fe_index__r
+def _test__higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span):
+    from sage.modular.jacobi.higherrank import _higherrank_jacobi_reduce_fe_index__r
 
-    (rred, s) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
+    (rred, s) = _higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span)
 
     if s == 1:
         assert vector(r) - vector(rred) in m_span
@@ -220,7 +220,7 @@ def _test_higherrank_jacobi_forms__restriction(k, m, prec, jforms):
     m_adj = QuadraticForm(2 * m.matrix().adjoint())
     m_span = m.matrix().row_module()
 
-    indices_red = [(nr, reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_adj, m_span))
+    indices_red = [(nr, higherrank_jacobi_reduce_fe_index(nr, m, r_classes, m_adj, m_span))
                    for nr in higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False)]
 
 
@@ -273,7 +273,7 @@ def _test_higherrank_jacobi_forms__multiplication(k, m, k_mod, prec, jforms):
 
     indices = list(higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=True))
     indices_nonreduced = list(higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False))
-    red = lambda nr: reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_adj, m_span)
+    red = lambda nr: higherrank_jacobi_reduce_fe_index(nr, m, r_classes, m_adj, m_span)
 
     psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0))
                    for nr in indices])

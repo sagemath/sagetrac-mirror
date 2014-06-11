@@ -36,7 +36,7 @@ from sage.all import (PolynomialRing, LaurentPolynomialRing,
 
 from sage.modular.jacobi.classical_weak import (
     classical_weak_jacobi_fe_indices,
-    reduce_classical_jacobi_fe_index,
+    classical_jacobi_reduce_fe_index,
     classical_weak_jacobi_forms,
     _classical_weak_jacobi_taylor_coefficients
 )
@@ -107,7 +107,7 @@ def _taylor_coefficients(expansion, k, m, prec) :
     for pw in (range(0, 2*m + 1, 2) if k % 2 == 0 else range(1, 2*m - 1, 2)):
         proj = dict( (n, 0) for n in range(prec) )
         for (n, r) in classical_weak_jacobi_fe_indices(m, prec):
-            ((nred, rred), sign) = reduce_classical_jacobi_fe_index((n,r), m)
+            ((nred, rred), sign) = classical_jacobi_reduce_fe_index((n,r), m)
             try :
                 proj[n] +=  (sign * r)**pw * expansion[(nred, rred)]
             except (KeyError, ValueError) :
@@ -204,7 +204,7 @@ def _corrected_taylor_expansions(nu, phi, k, m, prec):
 
     coeffs = dict( (n, QQ(0)) for n in range(prec) )
     for (n, r) in classical_weak_jacobi_fe_indices(m, prec):
-        (nrred, s) = reduce_classical_jacobi_fe_index((n,r), m)
+        (nrred, s) = classical_jacobi_reduce_fe_index((n,r), m)
         coeffs[n] += s**k * gegenbauer(m*n, r) * phi[nrred]
 
     return PowerSeriesRing(QQ, 'q')(coeffs)
@@ -229,7 +229,7 @@ def _test_classical_weak_jacobi_forms__multiplication(k, m, k_mod, prec):
     zeta = P.base_ring().gen(0)
 
     indices = list(classical_weak_jacobi_fe_indices(m, prec, reduced=True))
-    red = lambda nr: reduce_classical_jacobi_fe_index(nr,m)
+    red = lambda nr: classical_jacobi_reduce_fe_index(nr,m)
 
     psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices]) for _psi in classical_weak_jacobi_forms(k+k_mod, m, prec)]
     psi_span = matrix([[psi[nr] for nr in indices] for psi in psis]).row_module()
@@ -288,7 +288,7 @@ def _eval_at_torsion_point(torsion_point, phi, k, m, prec) :
 
     coeffs = dict( (n, QQ(0)) for n in range(prec) )
     for (n, r) in classical_weak_jacobi_fe_indices(m, prec):
-        (nrred, s) = reduce_classical_jacobi_fe_index((n,r), m)
+        (nrred, s) = classical_jacobi_reduce_fe_index((n,r), m)
         if nrred in phi:
             coeffs[n] += s**k * zeta**r * phi[nrred]
 

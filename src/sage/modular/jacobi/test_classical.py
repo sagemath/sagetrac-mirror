@@ -36,7 +36,7 @@ from sage.all import (
 from sage.modular.jacobi.classical import (
     classical_jacobi_forms,
     classical_jacobi_fe_indices,
-    reduce_classical_jacobi_fe_index
+    classical_jacobi_reduce_fe_index
 )
 
 def test_classical_jacobi_forms():
@@ -69,7 +69,7 @@ def _test_classical_jacobi_forms(k, m, k_mod, prec):
 
     indices = list(classical_jacobi_fe_indices(m, prec, reduced=True))
     indices_nonreduced = list(classical_jacobi_fe_indices(m, prec, reduced=False))
-    red = lambda nr: reduce_classical_jacobi_fe_index(nr,m)
+    red = lambda nr: classical_jacobi_reduce_fe_index(nr,m)
 
     psis = [dict([ (nr, (_psi[nr] if nr in _psi else 0)) for nr in indices])
             for _psi in classical_jacobi_forms(k+k_mod, m, prec)]

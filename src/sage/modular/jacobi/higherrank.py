@@ -9,7 +9,7 @@ REFERENCE:
 
 .. [Ra] Martin Raum, Computation of Jacobi forms degree 1 and higher rank index.
 
-EXAMPLES::
+EXAMPLES:
 
 To compute a basis of weight `k` and index `m` Jacobi forms, we call
 ``higherrank_jacobi_forms``.  The index `m` is a quadratic form over
@@ -46,11 +46,11 @@ reduced index.  They can be accessed directly; If a reduced pair does
 not occur as a key and `n` does not exceed the prescribed precision,
 then the corresponding Fourier coefficient vanishes.
 
-To access Fourier coefficients of non reduced index, we compute the attached reduction by ``reduce_classical_jacobi_fe_index``::
+To access Fourier coefficients of non reduced index, we compute the attached reduction by ``classical_jacobi_reduce_fe_index``::
 
     sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
     sage: m_span = m.matrix().row_module()
-    sage: reduce_higherrank_jacobi_fe_index((4, (2,1)), m, r_classes, m_adj, m_span)
+    sage: higherrank_jacobi_reduce_fe_index((4, (2,1)), m, r_classes, m_adj, m_span)
     ((3, (0, 0)), 1)
 
 As a result, we obtain `(n', r')` and a sign `s`.  The Fourier
@@ -85,7 +85,7 @@ from sage.matrix.all import matrix, zero_matrix, identity_matrix
 from sage.misc.cython import cython_lambda
 from sage.misc.flatten import flatten
 from sage.modular.jacobi.classical import (classical_jacobi_forms,
-                    classical_jacobi_fe_indices, reduce_classical_jacobi_fe_index)
+                    classical_jacobi_fe_indices, classical_jacobi_reduce_fe_index)
 from sage.modular.jacobi.higherrank_dimension import jacobi_dimension
 from sage.modules.all import FreeModule, vector, span, zero_vector
 from sage.rings.all import ZZ, QQ
@@ -96,7 +96,7 @@ import operator
 from random import Random
 
 
-def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
+def higherrank_jacobi_reduce_fe_index((n, r), m, r_classes, m_adj, m_span):
     r"""
     Reduce a Fourier index `(n, r)`.
 
@@ -121,12 +121,12 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
     EXAMPLES::
 
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
-        sage: from sage.modular.jacobi.higherrank import reduce_higherrank_jacobi_fe_index
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_reduce_fe_index
         sage: m = QuadraticForm(matrix([[2]]))
         sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
         sage: m_span = m.matrix().row_module()
         sage: r_classes = higherrank_jacobi_r_classes(m)[0]
-        sage: reduce_higherrank_jacobi_fe_index((1,(2,)), m, r_classes, m_adj, m_span)
+        sage: higherrank_jacobi_reduce_fe_index((1,(2,)), m, r_classes, m_adj, m_span)
         ((0, (0,)), 1)
 
     TESTS:
@@ -134,17 +134,17 @@ def reduce_higherrank_jacobi_fe_index((n, r), m, r_classes, m_adj, m_span):
     See ``test_higherrank.py``.
     """
     try:
-        (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r__cache[(m,r)]
+        (rred, sgn) = _higherrank_jacobi_reduce_fe_index__r__cache[(m,r)]
     except KeyError:
-        (rred, sgn) = _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span)
-        _reduce_higherrank_jacobi_fe_index__r__cache[(m,r)] = (rred, sgn)
+        (rred, sgn) = _higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span)
+        _higherrank_jacobi_reduce_fe_index__r__cache[(m,r)] = (rred, sgn)
 
     nred = n - (m_adj(r) - m_adj(rred)) // (2*m.det())
 
     return ((nred, rred), sgn)
 
-_reduce_higherrank_jacobi_fe_index__r__cache = {}
-def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
+_higherrank_jacobi_reduce_fe_index__r__cache = {}
+def _higherrank_jacobi_reduce_fe_index__r(r, r_classes, m_span):
     r"""
     Find a representative in `r_classes` that is equivalent modulo `m
     \Z^l` and `\pm` to `r`.
@@ -165,11 +165,11 @@ def _reduce_higherrank_jacobi_fe_index__r(r, r_classes, m_span):
     EXAMPLES::
 
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
-        sage: from sage.modular.jacobi.higherrank import _reduce_higherrank_jacobi_fe_index__r
+        sage: from sage.modular.jacobi.higherrank import _higherrank_jacobi_reduce_fe_index__r
         sage: m = QuadraticForm(matrix([[2]]))
         sage: m_span = m.matrix().row_module()
         sage: r_classes = higherrank_jacobi_r_classes(m)[0]
-        sage: _reduce_higherrank_jacobi_fe_index__r((2,), r_classes, m_span)
+        sage: _higherrank_jacobi_reduce_fe_index__r((2,), r_classes, m_span)
         ((0,), 1)
 
     TESTS:
@@ -371,12 +371,12 @@ def higherrank_jacobi_forms(k, m, prec, algorithm="restriction"):
     ::
 
         sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_r_classes
-        sage: from sage.modular.jacobi.higherrank import reduce_higherrank_jacobi_fe_index
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_reduce_fe_index
         sage: n = 2; r = (2, 2)
         sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
         sage: r_classes = higherrank_jacobi_r_classes(m)[0]
         sage: m_span = m.matrix().row_module()
-        sage: ((nred, rred), _) = reduce_higherrank_jacobi_fe_index((n,r), m, r_classes, m_adj, m_span)
+        sage: ((nred, rred), _) = higherrank_jacobi_reduce_fe_index((n,r), m, r_classes, m_adj, m_span)
         sage: jforms[0][(nred, rred)]
         -45
 
@@ -729,7 +729,7 @@ def _restriction_matrix(k, m, prec, rst_vectors, find_relations, r_classes, m_sp
     
     reductions = dict( (nr,[]) for nr in column_labels )
     for nr in higherrank_jacobi_fe_indices(m, prec, r_classes, reduced=False):
-        (nrred, sgn) = reduce_higherrank_jacobi_fe_index(nr, m, r_classes, m_adj, m_span)
+        (nrred, sgn) = higherrank_jacobi_reduce_fe_index(nr, m, r_classes, m_adj, m_span)
         reductions[nrred].append((nr, sgn))     
 
     if sum(map(len, reductions.items())) > 10000:
@@ -825,7 +825,7 @@ def _relation_matrix(k, m, prec, rst_vectors, r_classes, m_span) :
     for (s, m_rst, start, length) in row_groups:
         row_labels_dict = row_labels[m_rst]
         for (nr, ix) in row_labels_dict.items():
-            (nrred, sgn) = reduce_classical_jacobi_fe_index(nr, m_rst)
+            (nrred, sgn) = classical_jacobi_reduce_fe_index(nr, m_rst)
             if nrred == nr: continue
 
             rel = (mat.row(start + row_labels_dict[nrred])
@@ -936,7 +936,7 @@ def _higherrank_jacobi_forms__restriction(
         for phi in rst_jacobi_forms[m_rst]:
             v = vector(ZZ, len(row_labels_dict))
             for (nr, i) in row_labels_dict.items():
-                (nrred, sgn) = reduce_classical_jacobi_fe_index(nr, m_rst)
+                (nrred, sgn) = classical_jacobi_reduce_fe_index(nr, m_rst)
                 v[i] = ((1 if k%2 == 0 else sgn) * phi[nr]) if nr in phi else 0
     
             rst_jacobi_vectors.append(vector(

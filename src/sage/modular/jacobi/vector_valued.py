@@ -36,7 +36,7 @@ from sage.modular.all import CuspForms
 from sage.modular.jacobi.higherrank import (
     higherrank_jacobi_forms,
     higherrank_jacobi_r_classes,
-    _reduce_higherrank_jacobi_fe_index__r
+    _higherrank_jacobi_reduce_fe_index__r
 )
 from sage.modules.all import vector, zero_vector
 from sage.quadratic_forms.all import QuadraticForm
@@ -292,7 +292,7 @@ def theta_decomposition(phi, m, r_classes):
     r_to_mu = {}
     for mu in mu_list:
         try:
-            (r, sign) = _reduce_higherrank_jacobi_fe_index__r(mu, r_classes, L_span)
+            (r, sign) = _higherrank_jacobi_reduce_fe_index__r(mu, r_classes, L_span)
         except:
             raise AssertionError(mu, r_classes)
         try:
