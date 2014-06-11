@@ -19,25 +19,25 @@ from sage.misc.misc import prod
 
 class DoublyLinkedList():
     """
-    A doubly linked list class that provides constant time hiding and
-    unhiding of entries.
+    A doubly linked list class that provides constant time hiding,
+    unhiding, insertion and removal of entries.
 
     Note that this list's indexing is 1-based.
 
     EXAMPLES::
 
         sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3]); dll
-        Doubly linked list of [1, 2, 3]: [1, 2, 3]
+        Doubly linked list containing: [1, 2, 3]
         sage: dll.hide(1); dll
-        Doubly linked list of [1, 2, 3]: [2, 3]
+        Doubly linked list containing: [2, 3]
         sage: dll.unhide(1); dll
-        Doubly linked list of [1, 2, 3]: [1, 2, 3]
+        Doubly linked list containing: [1, 2, 3]
         sage: dll.hide(2); dll
-        Doubly linked list of [1, 2, 3]: [1, 3]
+        Doubly linked list containing: [1, 3]
         sage: dll.unhide(2); dll
-        Doubly linked list of [1, 2, 3]: [1, 2, 3]
+        Doubly linked list containing: [2, 1, 3]
     """
-    def __init__(self, l):
+    def __init__(self, l = []):
         """
         TESTS::
 
@@ -45,19 +45,13 @@ class DoublyLinkedList():
             sage: dll == loads(dumps(dll))
             True
         """
-        n = len(l)
-        self.l = l
         self.next_value = {}
-        self.next_value['begin'] = l[0]
-        self.next_value[l[n-1]] = 'end'
-        for i in xrange(n-1):
-            self.next_value[l[i]] = l[i+1]
-
         self.prev_value = {}
-        self.prev_value['end'] = l[-1]
-        self.prev_value[l[0]] = 'begin'
-        for i in xrange(1,n):
-            self.prev_value[l[i]] = l[i-1]
+
+        self.head_elem = None
+
+        for el in reversed(l):
+            self.insert(el)
 
     def __cmp__(self, x):
         """
@@ -73,22 +67,24 @@ class DoublyLinkedList():
         """
         if not isinstance(x, DoublyLinkedList):
             return -1
-        if self.l != x.l:
+        elem1 = self.head_elem
+        elem2 = x.head_elem
+        while elem1 == elem2 and elem1 != None and elem2 != None:
+            elem1 = self.next_value[elem1]
+            elem2 = x.next_value[elem2]
+        if elem1 == elem2:
+            return 0
+        else:
             return -1
-        if self.next_value != x.next_value:
-            return -1
-        if self.prev_value != x.prev_value:
-            return -1
-        return 0
 
     def __repr__(self):
         """
         TESTS::
 
             sage: repr(sage.combinat.misc.DoublyLinkedList([1,2,3]))
-            'Doubly linked list of [1, 2, 3]: [1, 2, 3]'
+            'Doubly linked list containing: [1, 2, 3]'
         """
-        return "Doubly linked list of %s: %s"%(self.l, list(self))
+        return "Doubly linked list containing: %s"%(list(self))
 
     def __iter__(self):
         """
@@ -98,8 +94,8 @@ class DoublyLinkedList():
             sage: list(dll)
             [1, 2, 3]
         """
-        j = self.next_value['begin']
-        while j != 'end':
+        j = self.head_elem
+        while j != None:
             yield j
             j = self.next_value[j]
 
@@ -112,8 +108,7 @@ class DoublyLinkedList():
             sage: list(dll)
             [2, 3]
         """
-        self.next_value[self.prev_value[i]] = self.next_value[i]
-        self.prev_value[self.next_value[i]] = self.prev_value[i]
+        self.remove(i)
 
     def unhide(self,i):
         """
@@ -124,8 +119,7 @@ class DoublyLinkedList():
             sage: list(dll)
             [1, 2, 3]
         """
-        self.next_value[self.prev_value[i]] = i
-        self.prev_value[self.next_value[i]] = i
+        self.insert(i)
 
     def head(self):
         """
@@ -138,7 +132,7 @@ class DoublyLinkedList():
             sage: dll.head()
             2
         """
-        return self.next_value['begin']
+        return self.head_elem
 
     def next(self, j):
         """
@@ -165,8 +159,35 @@ class DoublyLinkedList():
             1
         """
         return self.prev_value[j]
+    
+    def insert(self, object):
+        """
+        TESTS::
 
+            sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
+            sage: dll.insert(4); dll
+            Doubly linked list containing: [4, 1, 2, 3] 
+        """
+        self.prev_value[object] = None
+        self.next_value[object] = self.head_elem
+        self.prev_value[self.head_elem] = object
+        self.head_elem = object
+    def remove(self, object):
+        """
+        TESTS::
 
+            sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
+            sage: dll.remove(2); dll
+            Doubly linked list containing: [1, 3]
+        """
+        old_next = self.next_value[object]
+        old_prev = self.prev_value[object]
+        if old_next != None:
+            self.prev_value[old_next] = old_prev
+        if old_prev != None:
+            self.next_value[old_prev] = old_next
+        else:
+            self.head_elem = old_next
 
 def _monomial_exponent_to_lower_factorial(me, x):
     r"""
