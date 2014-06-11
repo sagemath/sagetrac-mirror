@@ -7631,7 +7631,7 @@ class GenericGraph(GenericGraph_pyx):
             md = n-1
             while active_lists[md].is_empty() and md > 0:
                 md -= 1
-            return active_lists[md].head
+            return active_lists[md].head()
         
         """
         Relabel all vertices according to their current actual distance to t
