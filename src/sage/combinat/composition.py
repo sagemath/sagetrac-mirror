@@ -28,9 +28,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
+import operator
+import __builtin__
 
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import RationalField
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -40,7 +44,6 @@ from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
-import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -324,7 +327,7 @@ class Composition(CombinatorialObject, Element):
 
         - ``compositions`` -- a list (or iterable) of compositions
 
-        EXAMPLES::
+        TESTS::
 
             sage: Composition.sum([Composition([1, 1, 3]), Composition([4, 1, 2]), Composition([3,1])])
             [1, 1, 3, 4, 1, 2, 3, 1]
@@ -1183,7 +1186,6 @@ class Composition(CombinatorialObject, Element):
             [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
               filter(lambda x: x != 0, [l for l in reversed(inner)])])
 
-
     def shuffle_product(self, other, overlap=False):
         r"""
         The (overlapping) shuffles of ``self`` and ``other``.
@@ -1612,11 +1614,22 @@ class Compositions(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()
         """
         if is_infinite:
-            Parent.__init__(self, category=InfiniteEnumeratedSets())
+            Parent.__init__(self, category=CombinatorialStructures())
         else:
-            Parent.__init__(self, category=FiniteEnumeratedSets())
+            Parent.__init__(self, category=CombinatorialStructures.GradedComponents())
 
     Element = Composition
+
+    def grading(self, I):
+        """
+        TESTS::
+
+            sage: I = Composition([1,1,3,2]); I.grade()
+            7
+            sage: Compositions().grading(I)
+            7
+        """
+        return reduce(operator.add, I, Integer(0))
 
     def _element_constructor_(self, lst):
         """
@@ -1850,6 +1863,20 @@ class Compositions_all(Compositions):
                 yield self.element_class(self, list(c))
             n += 1
 
+    def generating_series(self, var='x'):
+        """
+        TESTS::
+
+            sage: f = Compositions().generating_series(); f
+            1/(-2*x + 1)
+            sage: taylor(f, x, 0, 10)
+            1024*x^10 + 512*x^9 + 256*x^8 + 128*x^7 + 64*x^6 + 32*x^5 + 16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1
+        """
+        R = PolynomialRing(RationalField(), var)
+        x = R.gen()
+        return Integer(1) / (Integer(1) - Integer(2) * x)
+
+
 class Compositions_n(Compositions):
     """
     Class of compositions of a fixed `n`.
@@ -1882,6 +1909,16 @@ class Compositions_n(Compositions):
         """
         self.n = n
         Compositions.__init__(self, False)
+
+    @lazy_attribute
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Compositions(4).ambient()
+            Compositions of non-negative integers
+        """
+        return Compositions_all
 
     def _repr_(self):
         """
