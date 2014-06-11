@@ -5084,7 +5084,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return classes
 
-    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, method="FF", solver=None, verbose=0):
+    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, method="PR", solver=None, verbose=0):
         r"""
         Returns a minimum edge cut between vertices `s` and `t`
         represented by a list of edges.
@@ -5120,9 +5120,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``method`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
-                used.
+              * If ``method = "PR"`` (default), a Python implementation
+                of the Push-Relabel method is used.
+
+              * If ``method = "FF"`` a Python implementation of the 
+                Ford-Fulkerson algorithm is used.
 
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
@@ -5196,7 +5198,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_cut(0,1, method="Divination")
            Traceback (most recent call last):
            ...
-           ValueError: The method argument has to be equal to either "FF" or "LP"
+           ValueError: The method argument has to be equal to either "FF", "PR" or "LP"
 
         Same result for both methods::
 
@@ -5221,7 +5223,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             weight = lambda x: 1
 
-        if method == "FF":
+        if method == "FF" or method == "PR":
             if value_only:
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
@@ -5242,9 +5244,8 @@ class GenericGraph(GenericGraph_pyx):
                 return_value.append([reachable_from_s,list(set(self.vertices())-set(reachable_from_s))])
 
             return return_value
-
         if method != "LP":
-            raise ValueError("The method argument has to be equal to either \"FF\" or \"LP\"")
+            raise ValueError("The method argument has to be equal to either \"FF\", \"PR\" or \"LP\"")
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
@@ -7016,11 +7017,16 @@ class GenericGraph(GenericGraph_pyx):
                 Ford-Fulkerson algorithm is used (only available when
                 ``vertex_bound = False``)
 
+              * If ``method = "PR"``, a Python implementation of the
+                Push-Relabel algorithm is used (only available when
+                ``vertex_bound = False``)
+
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
 
-              * If ``method = None`` (default), the Ford-Fulkerson
-                implementation is used iif ``vertex_bound = False``.
+              * If ``method = None`` (default), the Push-Relabel
+                implementation is used iif ``vertex_bound = False``,
+                and Linear Programming otherwise.
 
         - ``solver`` -- Specify a Linear Program solver to be used.
           If set to ``None``, the default one is used.  function of
@@ -7074,7 +7080,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        An exception if raised when forcing "FF" with ``vertex_bound = True``::
+        An exception if raised when forcing "FF" or "PR" with ``vertex_bound = True``::
 
             sage: g = graphs.PetersenGraph()
             sage: g.flow(0,1,vertex_bound = True, method = "FF")
@@ -7082,12 +7088,17 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: This method does not support both vertex_bound=True and method="FF".
 
+            sage: g.flow(0,1,vertex_bound = True, method = "PR")
+            Traceback (most recent call last):
+            ...
+            ValueError: This method does not support both vertex_bound=True and method="PR".
+
         Or if the method is different from the expected values::
 
             sage: g.flow(0,1, method="Divination")
             Traceback (most recent call last):
             ...
-            ValueError: The method argument has to be equal to either "FF", "LP" or None
+            ValueError: The method argument has to be equal to either "FF", "PR", "LP" or None
 
         The two methods are indeed returning the same results (possibly with
         some numerical noise, cf. :trac:`12362`)::
@@ -7101,15 +7112,17 @@ class GenericGraph(GenericGraph_pyx):
            True
         """
         self._scream_if_not_simple(allow_loops=True)
-        if vertex_bound and method == "FF":
-            raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
+        if vertex_bound and (method == "FF" or method == "PR"):
+            raise ValueError("This method does not support both vertex_bound=True and method=\"" + method + "\".")
 
-        if (method == "FF" or
-            (method is None and not vertex_bound)):
+        if method == "FF":
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
+        if (method == "PR" or
+            (method is None and not vertex_bound)):
+            return self.push_relabel(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
 
         if method != "LP" and not method is None:
-            raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
+            raise ValueError("The method argument has to be equal to either \"FF\", \"PR\", \"LP\" or None")
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -7349,6 +7362,351 @@ class GenericGraph(GenericGraph_pyx):
         g.set_pos(self.get_pos())
 
         return flow_intensity, g
+
+    def push_relabel(self, s, t, use_edge_labels = False, integer = False, value_only = True, use_global_relabeling = False, use_gap_relabeling = True):
+	"""
+        Python implementation of the Push-Relabel method for the Maximum Flow 
+        problem.
+    
+        This method is a Python implementation of the Push-Relabel method using HL 
+        selection implementation for vertex selection. This method is (with default
+        settings) generally faster than the Ford-Fulkerson method.
+    
+        INPUT:
+
+        - ``s`` -- Source vertex
+    
+        - ``t`` -- Sink vertex
+    
+        - ``value_only`` -- boolean (default: ``True``)
+
+          - When set to ``True``, only the value of a maximal
+            flow is returned.
+
+          - When set to ``False``, is returned a pair whose first element is the 
+            value of the maximum flow, and whose second value is a flow graph (a 
+            copy of the current graph, such that each edge has the flow using it as
+            a label, the edges without flow being omitted).
+    
+        - ``use_edge_labels`` -- boolean (default: ``True``)
+    
+          - When set to ``True``, computes a maximum flow where each edge has a 
+            capacity defined by its label. (If an edge has no label, 1 is assumed.)
+    
+          - When set to ``False``, each edge has capacity `1`.
+        
+        - ``use_global_relabeling`` -- boolean (default: ``False``)
+          
+          - When set to ``True``, uses the Residual Graph to relabel every vertex 
+            after ``n`` relabelings. Can be a critical speedup for certain graph 
+            families, but comes with big initialization overhead.
+          
+          - When set to ``False``, does not relabel globally. This saves overhead in
+            initializing and pushing, but may let the algorithm take significantly 
+            longer on the actual flow computation.
+        
+        - ``use_gap_relabeling`` -- boolean (defailt: ``True``)
+          
+          - When set to ``True``, applies gap relabeling, relabeling vertices
+    
+        EXAMPLES::
+    
+        Two basic applications of the flow method for the ``PappusGraph`` and the
+        ``ButterflyGraph`` with parameter `2` ::
+    
+           sage: g=graphs.PappusGraph()
+           sage: g.push_relabel(1,2)
+           3
+    
+        ::
+    
+           sage: b=digraphs.ButterflyGraph(2)
+           sage: b.push_relabel(('00',1),('00',2))
+           1
+    
+        The flow method can be used to compute a matching in a bipartite graph by 
+        linking a source `s` to all the vertices of the first set and linking a sink
+        `t` to all the vertices of the second set, then computing a maximum `s-t` 
+        flow ::
+    
+            sage: g = DiGraph()
+            sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
+            sage: g.add_edges([(4+i,'t') for i in range(4)])
+            sage: [cardinal, flow_graph] = g.push_relabel('s','t',integer=True,value_only=False)
+            sage: flow_graph.delete_vertices(['s','t'])
+            sage: len(flow_graph.edges(labels=None))
+            4
+        """
+        
+        n = len(self)
+
+        """
+        Data used by the algoritm:
+            - ind:            Temporary indices for the vertices (to allow lists 
+                              instead of dictionaries)
+            - flow:           Current (Pre)flow
+            - cap:            Capacities of the edges (arcs)
+            - active_lists:   Lists of active vertices per label
+            - label_lists:    Lists of vertices per label
+            - edge_lists:     Lists of adjacent edges per vertex
+            - l:              Size of above list per vertex
+            - d:              Current label per vertex
+            - ex:             Current Excess per vertex
+            - ce:             Index of Current Edge in the edge list per vertex
+            - relabel_count:  The number of relabelings since last global relabeling,
+                              if applicable (use_global_relabeling = True)
+        """
+        n2 = n*n
+        ind = {}
+        flow = [0]*n2
+        cap = [0]*n2
+        active_lists = [None]*n
+        label_lists = [None]*n
+        edge_lists = [None]*n
+        l = [0]*n
+        d = [n]*n
+        ex = [0]*n
+        ce = [0]*n
+        relabel_count = 0
+        
+        notdirected = not self.is_directed()
+        count = 0
+
+        from sage.combinat.misc import DoublyLinkedList as DLL
+        
+        for v in self:
+            active_lists[count] = DLL()
+            label_lists[count] = DLL()
+            edge_lists[count] = []
+            ind[v] = count
+            count += 1
+        
+        """
+        Initialize the label of v as the minimum of n and the distance from v to t
+        """
+        for (v, dist) in self.breadth_first_search(t, neighbors = self.neighbor_in_iterator, report_distance = True):
+            d[ind[v]] = dist
+            label_lists[dist].insert(ind[v])
+    
+        if d[ind[s]] == n or s == t:
+            # t is unreachable from s
+            if value_only:
+                return 0
+            else:
+                G = self.copy()
+                for u, v in G.edge_iterator(labels=False):
+                    G.set_edge_label(u, v, 0)
+                return 0, G
+    
+        s = ind[s]
+        t = ind[t]
+        
+        if use_edge_labels:
+            l_capacity = lambda x: 1 if (x is None or x == {}) else (floor(x) if integer else x)
+        else:
+            l_capacity = lambda x: 1
+    
+        if use_global_relabeling:
+            Res=DiGraph()
+
+        """
+        Initialize the capacities, edge lists, list lengths, and excess at s
+        """
+        for u, v, la in self.edge_iterator():
+            iu = ind[u]
+            iv = ind[v]
+            cap[iu*n + iv] += l_capacity(la)
+            if use_global_relabeling and cap[iu*n + iv] > 0:
+                Res.add_edge(iu, iv)
+            if notdirected:
+                cap[iv*n + iu] = cap[iu*n + iv]
+                if use_global_relabeling and cap[iv*n + iu] > 0:
+                    Res.add_edge(iv, iu)
+            edge_lists[iu].append(iv)
+            edge_lists[iv].append(iu)
+            l[iv] = l[iv] + 1
+            l[iu] = l[iu] + 1
+            if iu == s:
+                ex[s] += cap[s*n + iv]
+            if iv == s:
+                ex[s] += cap[s*n + iu]
+        ex[s] += 1
+        
+        active_lists[d[s]].insert(s)
+        
+        """
+        Return the residual capacity of the arc (u, v)
+        """
+        def rescap(u, v):
+            return cap[u*n + v] - flow[u*n + v]
+    
+        """
+        Push as much as possible over the arc (u, v). (the minimum of ex[u] and 
+        rescap(u, v))
+        Pre-condition: d[u] < n and ex[u] > 0 and rescap(u, v) > 0 and d[u] == d[v] + 1.
+        """
+        def push(u, v):
+            c = min(ex[u], rescap(u, v))
+            if flow[u*n + v] == 0 and use_global_relabeling:
+                Res.add_edge(v, u)
+            flow[u*n + v] += c
+            flow[v*n + u] -= c
+            if ex[v] == 0 and d[v] < n and v != t:
+                active_lists[d[v]].insert(v)
+            ex[u] -= c
+            ex[v] += c
+            if ex[u] == 0:
+                active_lists[d[u]].remove(u)
+            if rescap(u, v) == 0 and use_global_relabeling:
+                Res.delete_edge(u, v)
+        
+        """
+        Check for a gap in labels. If there are no vertices with label D < n but 
+        there are vertices v with D < d[v] < n, then these vertices can never be 
+        active again, so relabel them to n.
+        """
+        def gap_relabel(level):
+            if label_lists[level].is_empty():
+                level = n
+                for i in xrange(level, n):
+                    for u in label_lists[i]:
+                        d[u] = n
+                    active_lists[i] = DLL()
+                    label_lists[i] = DLL()
+                return True
+            return False
+        
+        """
+        Relabel the vertex v, relocating it in the label lists, and possibly 
+        relocating it in the active lists. If applicable, check for gap relabeling.
+        """
+        def relabel(v):
+            nd = n
+            for e in edge_lists[v]:
+                if rescap(v,e) > 0:
+                    nd = min(nd, d[e]+1)
+            label_lists[d[v]].remove(v)
+            if use_gap_relabeling:
+                if gap_relabel(d[v]):
+                    nd = n
+            if nd != n:
+                label_lists[nd].insert(v)
+            if ex[v] > 0:
+                if nd != n and v != t:
+                    active_lists[nd].insert(v)
+                active_lists[d[v]].remove(v)
+            d[v] = nd
+        
+        """
+        Discharge the vertex v, pushing as much excess flow as possible to the level
+        below.
+        """
+        def discharge(v):
+            eol = False
+            while ex[v] > 0 and not eol:
+                w = edge_lists[v][ce[v]]
+                if d[v] == d[w] + 1 and rescap(v, w) > 0:
+                    push(v, w)
+                else:
+                    if ce[v] + 1 >= l[v]:
+                        ce[v] = 0
+                        eol = True
+                    else:
+                        ce[v] = ce[v] + 1
+            if eol:
+                relabel(v)
+            return eol
+            
+        """
+        Select the next (active) vertex for discharging. The vertex is chosen 
+        according to the HL selection criterion, meaning the active node with the 
+        highest label will be selected.
+        """
+        def select():
+            md = n-1
+            while active_lists[md].is_empty() and md > 0:
+                md -= 1
+            return active_lists[md].head
+        
+        """
+        Relabel all vertices according to their current actual distance to t
+        """
+        def global_relabel():
+            for i in xrange(n):
+                active_lists[i] = DLL()
+                label_lists[i] = DLL()
+            for v in G:
+                d[v] = n
+            for (v, dist) in bfs_distance(G, t):
+                d[v] = dist
+                label_lists[dist].insert(v)
+                if ex[v] > 0:
+                    active_lists[dist].insert(v)
+        
+        """
+        Run the actual algorithm: Selecting and discharging vertices until there are
+        no active vertices, possibly doing global relabeling in the mean time if 
+        applicable (use_global_relabeling = True)
+        """
+        def do_algorithm():
+            relabel_count = 0
+            while d[s] < n:
+                discharge(s)
+            v = select()
+            while v != None:
+                if discharge(v) and use_global_relabeling:
+                    relabel_count += 1
+                    if relabel_count == n:
+                        relabel_count = 0
+                        global_relabel()
+                v = select()
+        
+        """
+        Do Post-Processing for the algorithm if applicable (value_only = False), or
+        just return the value of the flow
+        """
+        def post_process():
+            if value_only:
+                return ex[t]
+            else:
+                G = DiGraph()
+                for u in xrange(n):
+                    for v in xrange(n):
+                        if flow[u*n + v] > 0:
+                            G.add_edge(u, v)
+                        else:
+                            G.delete_edge(u, v)
+                is_acyclic, order = G.is_directed_acyclic(certificate=True)
+                while not is_acyclic:
+                    order.append(order[0])
+                    edges = zip(order, order[1::])
+                    mf = flow[edges[0][0]*n + edges[0][1]]
+                    for (u, v) in edges:
+                        mf = min(mf, flow[u*n + v])
+                    for (u, v) in edges:
+                        flow[u*n + v] -= mf
+                        if flow[u*n + v] == 0:
+                            G.delete_edge(u, v)
+                    is_acyclic, order = G.is_directed_acyclic(certificate=True)
+                for v in order:
+                    if v != t:
+                        for w in G.neighbor_in_iterator(v):
+                            c = min(ex[v], flow[w*n + v])
+                            flow[w*n + v] -= c
+                            flow[v*n + w] += c
+                            ex[v] -= c
+                            ex[w] += c
+                if self.is_directed():
+                    g = DiGraph()
+                else:
+                    g = Graph()
+                g.add_edges([(x,y,flow[ind[x]*n + ind[y]]) for (x, y) in self.edge_iterator(labels=False) if flow[ind[x]*n + ind[y]] > 0])
+                g.set_pos(self.get_pos())
+                return ex[t], g
+        
+        do_algorithm()
+        return post_process()
 
     def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,vertex_bound=False, solver=None, verbose=0):
         r"""
@@ -7669,7 +8027,7 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 
-    def edge_disjoint_paths(self, s, t, method = "FF"):
+    def edge_disjoint_paths(self, s, t, method = "PR"):
         r"""
         Returns a list of edge-disjoint paths between two
         vertices as given by Menger's theorem.
@@ -7684,11 +8042,14 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``method`` -- There are currently two different
+        - ``method`` -- There are currently three different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python implementation of the
+              * If ``method = "FF"``, a Python implementation of the
                 Ford-Fulkerson algorithm is used.
+
+              * If ``method = "PR"`` (default), a Python implementation of the
+                Push-Relabel algorithm is used.
 
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.

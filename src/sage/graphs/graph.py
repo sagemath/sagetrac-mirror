@@ -5998,7 +5998,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices=None, method="FF"):
+    def _gomory_hu_tree(self, vertices=None, method="PR"):
         r"""
         Returns a Gomory-Hu tree associated to self.
 
@@ -6018,9 +6018,12 @@ class Graph(GenericGraph):
         - ``method`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
+              * If ``method = "PR"`` (default), a Python
+                implementation of the Push-Relabel method is
                 used.
+
+              * If ``method = "FF"``, a Python implementation of the 
+                Ford-Fulkerson algorithm is used.
 
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
@@ -6129,7 +6132,7 @@ class Graph(GenericGraph):
 
         return g
 
-    def gomory_hu_tree(self, method="FF"):
+    def gomory_hu_tree(self, method="PR"):
         r"""
         Returns a Gomory-Hu tree of self.
 
@@ -6148,9 +6151,12 @@ class Graph(GenericGraph):
         - ``method`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
+              * If ``method = "PR"`` (default), a Python
+                implementation of the Push-Relabel method is
                 used.
+
+              * If ``method = "FF"``, a Python implementation of the 
+                Ford-Fulkerson algorithm is used.
 
               * If ``method = "LP"``, the flow problems are solved
                 using Linear Programming.
