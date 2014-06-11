@@ -172,6 +172,7 @@ class DoublyLinkedList():
         self.next_value[object] = self.head_elem
         self.prev_value[self.head_elem] = object
         self.head_elem = object
+
     def remove(self, object):
         """
         TESTS::
@@ -188,6 +189,19 @@ class DoublyLinkedList():
             self.next_value[old_prev] = old_next
         else:
             self.head_elem = old_next
+
+    def is_empty(self):
+        """
+        TESTS::
+
+            sage: dll = sage.combinat.misc.DoublyLinkedList()
+            sage: dll.is_empty()
+            True
+            sage: dll.insert(1)
+            sage: dll.is_empty()
+            False
+        """
+        return self.head_elem == None
 
 def _monomial_exponent_to_lower_factorial(me, x):
     r"""
