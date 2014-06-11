@@ -19,7 +19,7 @@ Quiver Paths
 #*****************************************************************************
 
 from sage.structure.element cimport MonoidElement, Element
-from sage.misc.bounded_integer_sequences cimport biseq_t, allocate_biseq, getitem_biseq, concat_biseq, startswith_biseq, contains_biseq, slice_biseq, list_to_biseq, biseq_to_list
+from sage.misc.bounded_integer_sequences cimport biseq_t, allocate_biseq, getitem_biseq, concat_biseq, startswith_biseq, contains_biseq, max_overlap_biseq, slice_biseq, list_to_biseq, biseq_to_list
 
 from sage.rings.integer_ring import ZZ
 from cython.operator import dereference as deref
@@ -473,6 +473,64 @@ cdef class QuiverPath(MonoidElement):
             return cself._new_(right._end, cself._end, deref(slice_biseq(cself._path, right._path.length, cself._path.length, 1)))
         else:
             return None
+
+    def gcd(self, QuiverPath P):
+        """
+        Greatest common divisor of two quiver paths, with co-factors.
+
+        INPUT:
+
+        A :class:`QuiverPath` ``P``
+
+        OUTPUT:
+
+        - :class:`QuiverPath`s ``(C1,G,C2)`` such that ``self==C1*G`` and ``P=G*C2``, or
+        - ``(None, None, None)``, if the paths do not overlap (or belong to different quivers).
+
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a']}, 2:{1:['b'], 3:['c']}, 3:{1:['d']}}).path_semigroup()
+            sage: p1 = Q(['c','d','a','b','a','c','d'])
+            sage: p1
+            c*d*a*b*a*c*d
+            sage: p2 = Q(['a','b','a','c','d','a','c','d','a','b'])
+            sage: p2
+            a*b*a*c*d*a*c*d*a*b
+            sage: S1, G, S2 = p1.gcd(p2)
+            sage: S1, G, S2
+            (c*d, a*b*a*c*d, a*c*d*a*b)
+            sage: S1*G == p1
+            True
+            sage: G*S2 == p2
+            True
+            sage: p2.gcd(p1)
+            (a*b*a*c*d*a, c*d*a*b, a*c*d)
+
+        We test that a full overlap is detected::
+
+            sage: p2.gcd(p2)
+            (e_1, a*b*a*c*d*a*c*d*a*b, e_1)
+
+        The absence of an overlap is detected::
+
+            sage: p2[2:-1]
+            a*c*d*a*c*d*a
+            sage: p2[1:]
+            b*a*c*d*a*c*d*a*b
+            sage: print p2[2:-1].gcd(p2[1:])
+            (None, None, None)
+
+        """
+        if self._parent is not P._parent:
+            return (None, None, None)
+        cdef int i
+        if startswith_biseq(P._path, self._path):
+            i = 0
+        else:
+            i = max_overlap_biseq(self._path, P._path)
+        if i==-1:
+            return (None, None, None)
+        return (self[:i], self[i:], P[self._path.length-i:])
 
     def initial_vertex(self):
         """
