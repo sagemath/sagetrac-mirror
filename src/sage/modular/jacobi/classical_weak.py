@@ -7,8 +7,43 @@ AUTHOR:
 
 REFERENCES:
 
-[Sk84] - Skoruppa, Über den Zusammenhang zwischen Jacobiformen und
-         Modulformen halbganzen Gewichts, 1984, University of Bonn.
+.. [Sk84] Skoruppa, Uber den Zusammenhang zwischen Jacobiformen und
+   Modulformen halbganzen Gewichts, 1984, University of Bonn.
+
+EXAMPLES::
+
+To compute a basis of weight `k` and index `m \in \ZZ` weak Jacobi
+forms, we call ``classical_weak_jacobi_forms``.  This compute weight
+`9`, index `2` Jacobi forms up to precision `5`.
+
+::
+
+    sage: from sage.modular.jacobi.all import *
+    sage: jforms = classical_weak_jacobi_forms(9, 2, 5)
+    sage: jforms
+    [{(0, 1): 660, (3, 1): -3699449160, (4, 1): -56862841860, (1, 1): -172260, (2, 1): -89901900}]
+
+
+Fourier expansions are represented as dictionaries.  Fourier
+coefficients of Jacobi forms are index by pairs `(n,r)` of integers.
+We call `(n,r)` reduced if `0 \le r \le m`.  Fourier expansions are
+given in terms of Fourier coefficients of reduced index.  They can be
+accessed directly; If a reduced pair does not occur as a key and `n`
+does not exceed the prescribed precision, then the corresponding
+Fourier coefficient vanishes.
+
+To access Fourier coefficients of non reduced index, we compute the attached reduction by ``reduce_classical_jacobi_fe_index``::
+
+    sage: reduce_classical_jacobi_fe_index((2, 3), 2)
+    ((1, 1), -1)
+
+As a result, we obtain `(n', r')` and a sign `s`.  The Fourier
+coefficient at `(n,r)` equals `s^k` times the coefficient at `(n',
+r')`.  In the specific examples (`k` is odd), the `(2,3)`-th Fourier
+coefficient of the first basis element is equal to::
+
+   sage: -jforms[0][(1,1)]
+   172260
 """
 
 #===============================================================================
@@ -141,7 +176,7 @@ def classical_weak_jacobi_forms(k, m, prec, algorithm="skoruppa") :
     r"""
     INPUT:
     
-    - `k -- An integer.
+    - `k` -- An integer.
     
     - `m` -- A non-negative integer.
 
@@ -178,7 +213,7 @@ def _classical_weak_jacobi_taylor_coefficients(k, m) :
     
     INPUT:
     
-    - `k -- An integer.
+    - `k` -- An integer.
     
     - `m` -- A non-negative integer.
 

@@ -1,9 +1,32 @@
 r"""
-Fourier expansions of classical weak Jacobi forms.
+Fourier expansions of classical Jacobi forms.
 
 AUTHOR:
 
 - Martin Raum
+
+EXAMPLES:
+
+To compute a basis of weight `k` and index `m \in \ZZ` Jacobi forms,
+we call ``classical_jacobi_forms``.  This compute weight `10`, index
+`2` Jacobi forms up to precision `5`.
+
+::
+
+    sage: from sage.modular.jacobi.all import classical_jacobi_forms
+    sage: classical_jacobi_forms(10, 2, 5)
+    [{(1, 2): -329472, (3, 2): -318012963840, (0, 0): 823680,
+      (3, 0): -1497954991104, (3, 1): -1045412020224, (2, 1): -27622932480,
+      (1, 1): -42172416, (2, 0): -47908194048, (2, 2): -4157936640,
+      (4, 2): -5574898188288, (1, 0): -132447744, (4, 1): -13216244760576,
+      (4, 0): -17346153217536},
+     {(1, 2): 1248, (3, 2): 1123200, (3, 0): 913536,
+      (3, 1): -1707264, (2, 1): 149760, (1, 1): 9984, (2, 0): -19968,
+      (2, 2): -149760, (4, 2): -2715648, (1, 0): -22464, (4, 1): 4253184,
+      (4, 0): 359424}]
+
+For description of Fourier expansions, see the documentation of
+classical weak Jacobi forms.
 """
 
 #===============================================================================
@@ -99,7 +122,7 @@ def _classical_jacobi_forms_as_weak_jacobi_forms(k, m, algorithm="skoruppa"):
     
     INPUT:
     
-    - `k -- An integer.
+    - `k` -- An integer.
     
     - `m` -- A non-negative integer.
 
@@ -139,7 +162,7 @@ def classical_jacobi_forms(k, m, prec, algorithm="skoruppa"):
 
     INPUT:
     
-    - `k -- An integer.
+    - `k` -- An integer.
     
     - `m` -- A non-negative integer.
 

@@ -7,7 +7,59 @@ AUTHOR:
 
 REFERENCE:
 
-- [Ra] Martin Raum, Computation of Jacobi forms degree 1 and higher rank index.
+.. [Ra] Martin Raum, Computation of Jacobi forms degree 1 and higher rank index.
+
+EXAMPLES::
+
+To compute a basis of weight `k` and index `m` Jacobi forms, we call
+``higherrank_jacobi_forms``.  The index `m` is a quadratic form over
+`\ZZ`.  This compute weight `10` Jacobi forms up to precision `20`.
+
+::
+
+    sage: from sage.modular.jacobi.all import *
+    sage: m = QuadraticForm(ZZ, 2, [1,1,1])
+    sage: jforms = higherrank_jacobi_forms(10, m, 5)
+    sage: jforms
+    [{(4, (1, 1)): -7165440, (2, (1, 1)): -12672, (1, (0, 0)): 0,
+      (3, (0, 0)): -1416960, (2, (0, 0)): -59130, (4, (0, 0)): -14346720,
+      (3, (1, 1)): -558045, (1, (1, 1)): -45, (0, (0, 0)): 1},
+     {(4, (1, 1)): -155/3, (2, (1, 1)): 5/3, (1, (0, 0)): 1,
+      (3, (0, 0)): 90, (2, (0, 0)): -15, (4, (0, 0)): -248,
+      (3, (1, 1)): -4/3, (1, (1, 1)): -1/6, (0, (0, 0)): 0}]
+
+Fourier expansions are represented as dictionaries.  They are similar to the ones used for classical Jacobi forms.  Fourier
+coefficients of Jacobi forms are index by pairs `(n,r)`, where `n` is an integer and `r` is a tuple.  The notion of reduced `r` depends on a choice and is dictated by the following output::
+
+    sage: (r_classes, _) = higherrank_jacobi_r_classes(m)
+    sage: r_classes
+    [[(0, 0)],
+     [(1, 1), (-1, -1), (0, 1), (0, -1), (1, 0), (-1, 0)]]
+
+This is a list of lists, the first elements of which are, by convention, reduced.  They are guarenteed to have minimal length in their class in `\ZZ^l / m \ZZ^l`, where `l` is the rank of `m` and `m` is identified with its Gram matrix::
+
+    sage: ZZ^m.dim() / m.matrix().row_module()
+    Finitely generated module V/W over Integer Ring with invariants (3)
+
+Fourier expansions are given in terms of Fourier coefficients of
+reduced index.  They can be accessed directly; If a reduced pair does
+not occur as a key and `n` does not exceed the prescribed precision,
+then the corresponding Fourier coefficient vanishes.
+
+To access Fourier coefficients of non reduced index, we compute the attached reduction by ``reduce_classical_jacobi_fe_index``::
+
+    sage: m_adj = QuadraticForm(2 * m.matrix().adjoint())
+    sage: m_span = m.matrix().row_module()
+    sage: reduce_higherrank_jacobi_fe_index((4, (2,1)), m, r_classes, m_adj, m_span)
+    ((3, (0, 0)), 1)
+
+As a result, we obtain `(n', r')` and a sign `s`.  The Fourier
+coefficient at `(n,r)` equals `s^k` times the coefficient at `(n',
+r')`.  In the specific examples (`k` is odd), the `(4, (2,1))`-th Fourier
+coefficient of the first basis element is equal to::
+
+   sage: jforms[0][(3,(0,0))]
+   -1416960
 """
 
 #===============================================================================
