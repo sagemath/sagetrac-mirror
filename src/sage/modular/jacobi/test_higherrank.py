@@ -66,7 +66,7 @@ def test_higherrank_jacobi_reduce_fe_index():
         for _ in range(10):
             n = randint(0, 20)
             for _ in range(10):
-                r = fm.random_element()
+                r = tuple(fm.random_element())
                 yield (_test_higherrank_jacobi_reduce_fe_index,
                        (n, r), m, r_classes, m_adj, m_span)
 
