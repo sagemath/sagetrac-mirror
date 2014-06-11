@@ -7485,7 +7485,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         Initialize the label of v as the minimum of n and the distance from v to t
         """
-        for (v, dist) in self.breadth_first_search(t, neighbors = self.neighbor_in_iterator, report_distance = True):
+        if notdirected:
+            neighbors = self.neighbor_iterator
+        else:
+            neighbors = self.neighbor_in_iterator
+        for (v, dist) in self.breadth_first_search(t, neighbors = neighbors, report_distance = True):
             d[ind[v]] = dist
             label_lists[dist].insert(ind[v])
     
