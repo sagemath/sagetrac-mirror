@@ -6045,7 +6045,7 @@ class Graph(GenericGraph):
 
         # Small case, not really a problem ;-)
         if self.order() == 1:
-            return self.copy()
+            return self.copy(), {self.vertices()[0]:set(self.vertices())}
 
         # This is a sign that this is the first call
         # to this recursive function
@@ -6057,18 +6057,21 @@ class Graph(GenericGraph):
             # of the Gomory-Hu tree of each component
             if not self.is_connected():
                 g = Graph()
+                C = {}
                 for cc in self.connected_components_subgraphs():
-                    g = g.union(cc._gomory_hu_tree(method=method))
+                    g1, c = cc._gomory_hu_tree(method=method)
+                    g = g.union(g1)
+                    for k, v in c.items():
+                        C[k] = v
                 g.set_pos(self.get_pos())
-                return g
+                return g, C
             # All the vertices is this graph are the "real ones"
             vertices = Set(self.vertices())
-
         # There may be many vertices, though only one which is "real"
         if len(vertices) == 1:
             g = Graph()
             g.add_vertex(vertices[0])
-            return g
+            return g, {vertices[0]:set(self.vertices())}
 
         # Take any two vertices
         u,v = vertices[0:2]
@@ -6086,7 +6089,7 @@ class Graph(GenericGraph):
         g1_v = Set(set2)
         g2_v = Set(set1)
         g1.add_vertex(g1_v)
-        g1.add_vertex(g2_v)
+        g2.add_vertex(g2_v)
 
         # Each part of the graph had many edges going to the other part
         # Now that we have a new fake vertex in each part
@@ -6112,22 +6115,42 @@ class Graph(GenericGraph):
             else:
                 g2.add_edge(y, g2_v, capacity(self.edge_label(x, y)))
 
+        R1 = vertices & Set(g1.vertices())
+        R2 = vertices & Set(g2.vertices())
         # Recursion for the two new graphs... The new "real" vertices are the intersection with
         # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())), method=method)
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())), method=method)
+        g1_tree, C1 = g1._gomory_hu_tree(vertices = R1, method=method)
+        g2_tree, C2 = g2._gomory_hu_tree(vertices = R2, method=method)
+
+        C = {}
+        r1 = None
+        r2 = None
+        for r in R1:
+            if g1_v in C1.get(r, []):
+                C1r = C1.pop(r)
+                C1r.remove(g1_v)
+                C1[r] = C1r
+                r1 = r
+            C[r] = C1[r]
+        for r in R2:
+            if g2_v in C2.get(r, []):
+                C2r = C2.pop(r)
+                C2r.remove(g2_v)
+                C2[r] = C2r
+                r2 = r
+            C[r] = C2[r]
 
         # Union of the two partial trees ( it is disjoint, but
         # disjoint_union does not preserve the name of the vertices )
         g = g1_tree.union(g2_tree)
 
         # An edge to connect them, with the appropriate label
-        g.add_edge(g1_tree.vertex_iterator().next(), g2_tree.vertex_iterator().next(), flow)
+        g.add_edge(r1, r2, flow)
 
         if pos:
             g.set_pos(pos)
 
-        return g
+        return g, C
 
     def gomory_hu_tree(self, method="FF"):
         r"""
@@ -6198,7 +6221,8 @@ class Graph(GenericGraph):
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
         """
-        return self._gomory_hu_tree(method=method)
+        T, C = self._gomory_hu_tree(method=method)
+        return T
 
     def two_factor_petersen(self):
         r"""
