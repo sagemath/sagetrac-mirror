@@ -1210,7 +1210,7 @@ class Crystals(Category_singleton):
                 """
                 Obtained by linearity
                 """
-                return self.module_morphism( lambda x:
+                return self.module_morphism(lambda x:
                         self.monomial_or_zero_if_none(x.e(i)),
                         codomain=self.base_ring())
 
@@ -1219,18 +1219,40 @@ class Crystals(Category_singleton):
                 """
                 Obtained by linearity
                 """
-                return self.module_morphism( lambda x:
+                return self.module_morphism(lambda x:
                         self.monomial_or_zero_if_none(x.f(i)),
+                        codomain=self.base_ring())
+
+            def sigma(self, i):
+                """
+                Obtained by linearity
+                """
+                return self.module_morphism(lambda x:
+                        self.monomial_or_zero_if_none(x.sigma(i)),
+                        codomain=self.base_ring())
+
+            def zeta(self, i):
+                """
+                Obtained by linearity
+                """
+                return self.module_morphism(lambda x:
+                        self.monomial_or_zero_if_none(x.zeta(i)),
                         codomain=self.base_ring())
 
         class ElementMethods:
 
             def e(self, i):
-                """
+                r"""
+                Return the action of `e_i` on ``self``.
+
+                INPUT:
+
+                - ``i`` -- an element of the index set
+
                 EXAMPLES::
 
                     sage: from sage.combinat.words.crystal_of_words import *
-                    sage: W = CrystalOfWords([1,2,3])
+                    sage: W = CrystalOfWords(3)
                     sage: A = W.algebra(QQ)
                     sage: a = A.an_element() + A(W([3,1,1,1,2]))
                     sage: a.e(1)
@@ -1244,12 +1266,43 @@ class Crystals(Category_singleton):
                 """
                 EXAMPLES::
 
-                    sage: W = CrystalOfWords([1,2,3])
+                    sage: from sage.combinat.words.crystal_of_words import *
+                    sage: W = CrystalOfWords(3)
                     sage: A = W.algebra(QQ)
                     sage: a = A.an_element() + A(W([3,1,1,1,2]))
                     sage: a.f(1)
                     B[word: 31122] + B[word: 223]
                     sage: a.f(2)
-                    B[word: 31132] + B[word: 133]
+                    B[word: 133]
+                """
+                return self.parent().f(i)(self)
+
+            def sigma(self, i):
+                """
+                EXAMPLES::
+
+                    sage: from sage.combinat.words.crystal_of_words import *
+                    sage: W = CrystalOfWords(3)
+                    sage: A = W.algebra(QQ)
+                    sage: a = A.an_element() + A(W([3,1,1,1,2]))
+                    sage: a.sigma(1)
+                    B[word: 123] + B[word: 31222]
+                    sage: a.sigma(2)
+                    B[word: 123] + B[word: 31112]
+                """
+                return self.parent().sigma(i)(self)
+
+            def zeta(self, i):
+                """
+                EXAMPLES::
+
+                    sage: from sage.combinat.words.crystal_of_words import *
+                    sage: W = CrystalOfWords(3)
+                    sage: A = W.algebra(QQ)
+                    sage: a = A.an_element() + A(W([3,1,1,1,2]))
+                    sage: a.zeta(1)
+                    B[word: 31122] + B[word: 223]
+                    sage: a.zeta(2)
+                    B[word: 133]
                 """
                 return self.parent().f(i)(self)
