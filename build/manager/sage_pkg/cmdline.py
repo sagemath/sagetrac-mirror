@@ -30,8 +30,6 @@ from .logger import logger
 from .config import set_configuration
 
 
-DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'sage.yaml')
-TEST_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'test.yaml')
 
 def debug_shell(app, parser):
     from IPython.frontend.terminal.ipapp import TerminalIPythonApp
@@ -60,7 +58,7 @@ The Sage Package Manager
 
 
 
-def launch():
+def launch(DEFAULT_CONFIG):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=description)
     parser.add_argument('--debug', dest='debug', action='store_true',

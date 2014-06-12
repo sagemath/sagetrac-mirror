@@ -5,7 +5,7 @@ The main routines
 from sage_pkg.config import config
 
 from sage_pkg.tiny_git import GitRepository
-from sage_pkg.package import load_package, all_packages
+from sage_pkg.package_list import load_packages
 
 
 class Application(object):

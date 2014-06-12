@@ -136,6 +136,7 @@ class SagePkgConfig(ConfigYAML):
 
         >>> config    # doctest: +ELLIPSIS
         Configuration:
+        - config.path.configuration = []
         - config.path.dot_git = /.../.git
         - config.path.packages = /.../build/manager/test_pkg
         - config.path.root = /...
@@ -144,12 +145,26 @@ class SagePkgConfig(ConfigYAML):
     
     def _normalize(self, config):
         path = config.get('path', dict())
-        root = path['root']
-        root = os.path.abspath(root)
-        path['root'] = root
-        for key in ['dot_git', 'packages', 'sage_pkg']:
-            value = path[key]
+        self._normalize_paths(path)
+
+    def _normalize_paths(self, path, root=None):
+        if root is None:
+            root = path['root']
+            root = os.path.abspath(root)
+            path['root'] = root
+    
+        def normalize(value):
+            value = os.path.expanduser(value)
             if not os.path.isabs(value):
                 value = os.path.join(root, value)
-            path[key] = os.path.abspath(value)
+            return os.path.abspath(value)
+
+        for key in path.keys():
+            value = path[key]
+            if isinstance(value, list):
+                path[key] = map(normalize, value)
+            elif isinstance(value, dict):
+                self._normalize_paths(value, root)
+            else:
+                path[key] = normalize(value)
         

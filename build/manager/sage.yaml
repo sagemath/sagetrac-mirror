@@ -13,6 +13,9 @@ path:
     sage_pkg:
         build/manager
 
+    configuration:
+        - ~/.sage.yaml
+        - ~/.sage/sage.yaml
 
 ... # End of the builder configuration
 

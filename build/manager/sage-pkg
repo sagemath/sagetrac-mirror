@@ -4,19 +4,20 @@
 import os
 import sys
 
-
 try:
     from sage_pkg import fix_paths
 except ImportError:
     sys.path.append('')
     from sage_pkg import fix_paths
 
-
 from sage_pkg import cmdline
+
+DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), 'sage.yaml')
+
 
 if __name__ == '__main__':
     try:
-        cmdline.launch()
+        cmdline.launch(DEFAULT_CONFIG)
     except ValueError as error:
         print('Error: {0}'.format(error))
     except SystemExit as msg:
