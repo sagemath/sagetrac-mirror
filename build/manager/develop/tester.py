@@ -89,9 +89,11 @@ class DocTester(TesterABC):
     def global_variables(self):
         from sage_pkg.config import config
         from sage_pkg.app import Application
+        app = Application()
         return dict(
             config=config,
-            app=Application(),
+            app=app,
+            git=app.git,
         )
 
 
