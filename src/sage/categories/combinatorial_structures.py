@@ -24,6 +24,10 @@ class CombinatorialStructures(Category):
 
     class ParentMethods:
 
+        def sequence(F, **options):
+            from sage.combinat.structures.operations.sequences import Sequence
+            return Sequence(F, **options)
+
         def product(F, G):
             """
             @param F, G: both are classes of combinatorial structures
@@ -99,7 +103,7 @@ class CombinatorialStructures(Category):
 
         __add__ = sum
 
-        def restricted_structures(self, min, max):
+        def restricted_structures(self, min=None, max=None):
             """
             @param min, max: both define an interval of graduation of the class of combinatorial structures
             @return: the restriction of the combinatorial structure to the homogeneous components between *min* and

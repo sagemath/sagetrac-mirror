@@ -24,7 +24,7 @@ class _Operations(Structures):
     """
 
     @staticmethod
-    def __classcall__(cls, *structures):
+    def __classcall__(cls, *structures, **options):
         """
         Method to overload the *Structures* classcall method
 
@@ -34,7 +34,7 @@ class _Operations(Structures):
             sage: B + C
             Sum of structures : `Binary trees`, `Compositions of non-negative integers`
         """
-        return super(Structures, cls).__classcall__(cls, *structures)
+        return super(Structures, cls).__classcall__(cls, *structures, **options)
 
     def __init__(self, *structures):
         """
@@ -91,7 +91,7 @@ class RestrictedStructures(StructuresWithArguments):
         assert(F in CombinatorialStructures()), "`%s` has to be a class of combinatorial structures"
         self._F = F
 
-        assert(min in self.grading_set() and max in self.grading_set()), \
+        assert((not min or min in self.grading_set()) and (not max or max in self.grading_set())), \
                 "min and max have to be element of the grading set"
         self._min = min
         self._max = max
