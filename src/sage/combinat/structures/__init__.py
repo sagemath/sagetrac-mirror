@@ -139,7 +139,7 @@ class Structures(UniqueRepresentation, Parent):
             return self.graded_component(grade)
         else: return self
 
-    def __init__(self, category=CombinatorialStructures()):
+    def __init__(self, category=CombinatorialStructures(), *args, **options):
         """
         This constructor is use to:
           - memoize the graded component

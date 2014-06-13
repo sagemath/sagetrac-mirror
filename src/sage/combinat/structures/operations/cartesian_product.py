@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+"""
+The cartesian product of combinatorial classes of structures.
+
+Let `F` and `G` be both class of combinatorial structures.
+
+We denote `H = F \cdot G` (or just `H = FG`) the cartesian product of `F` and `G`.
+
+The generating series of `FG` is given the *Hadamard product* of the series:
+
+MATH::
+
+    (fg)(x) := f(x) \square g(x) = \sum_{n \geqslant 0} f_n g_n x^n
+
+
+"""
+from itertools import product, imap
+from sage.combinat.structures import Structures
+from __init__ import _Operations
+from sage.combinat.structures.operations.product import CauchyProduct
+
+
+class CartesianProduct(_Operations):
+
+    def _repr_(self):
+        """
+        TESTS::
+
+        """
+        return "Cartesian product of structures : '" + ", ".join(map(repr, self._structures)) + "'"
+
+    def generating_series(self):
+        """
+        The Hadarmard product of generating series of the class `F` and `G`:
+
+        MATH::
+
+            (fg)(x) := f(x) \square g(x) = \sum_{n \geqslant 0} f_n g_n x^n
+
+        """
+        return # TODO
+
+
+    class GradedComponent(Structures.GradedComponent):
+
+        def __iter__(self):
+            """
+            TESTS::
+
+                sage: B = BinaryTrees()
+                sage: C = Compositions()
+                sage: BcC = B.cartesian_product(C)
+                sage: BcC.graded_component(3).list()
+                [[[., [., [., .]]], [1, 1, 1]],
+                 [[., [., [., .]]], [1, 2]],
+                 [[., [., [., .]]], [2, 1]],
+                 [[., [., [., .]]], [3]],
+                 [[., [[., .], .]], [1, 1, 1]],
+                 [[., [[., .], .]], [1, 2]],
+                 [[., [[., .], .]], [2, 1]],
+                 [[., [[., .], .]], [3]],
+                 [[[., .], [., .]], [1, 1, 1]],
+                 [[[., .], [., .]], [1, 2]],
+                 [[[., .], [., .]], [2, 1]],
+                 [[[., .], [., .]], [3]],
+                 [[[., [., .]], .], [1, 1, 1]],
+                 [[[., [., .]], .], [1, 2]],
+                 [[[., [., .]], .], [2, 1]],
+                 [[[., [., .]], .], [3]],
+                 [[[[., .], .], .], [1, 1, 1]],
+                 [[[[., .], .], .], [1, 2]],
+                 [[[[., .], .], .], [2, 1]],
+                 [[[[., .], .], .], [3]]]
+
+            """
+            k = self.grading()
+            return imap(
+                self._element_constructor_,
+                product(*imap(
+                    lambda F: F.graded_component(k),
+                    self.ambient()._structures
+            )  ))
+
+    class Element(CauchyProduct.Element):
+        pass
