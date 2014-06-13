@@ -43,6 +43,8 @@ def debug_shell(app, parser):
     ip.shell.user_global_ns['config'] = config
     from sage_pkg.tiny_git import GitRepository
     ip.shell.user_global_ns['git'] = GitRepository(config.path.dot_git)
+    from sage_pkg.package_list import loader
+    ip.shell.user_global_ns['loader'] = loader
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)

@@ -8,6 +8,7 @@ import yaml
 from sage_pkg.config import config
 from sage_pkg.package.package_config import PackageConfig
 from sage_pkg.tiny_git import GitRepository
+from sage_pkg.task_queue import TaskQueue
 
 
 def load_config(pkg_name):
@@ -128,10 +129,38 @@ class PackageLoader(object):
             Task baz
         """
         pkg_dict = dict((pkg.name, pkg) for pkg in self.get_all())
-        from .task_queue import TaskQueue
         queue = TaskQueue()
         for pkg in self.get_all():
-            queue.add(pkg, [pkg_dict[dep] for dep in pkg.get_all_dependencies()])
+            queue.add_work(pkg, [pkg_dict[dep] for dep in pkg.get_all_dependencies()])
+        return queue
+
+    def build_queue(self):
+        """
+        Return the queue of build tasks
+
+        The build task queue is a refinement of the :meth:`queue` of
+        packages. Each package is broken up into different build
+        steps.
+
+        EXAMPLES::
+
+            >>> build = loader.build_queue()
+            >>> build.run_serial(reproducible=True)    # doctest: +ELLIPSIS
+            bar: downloading
+            bar: unpacking
+            bar: preparing
+            baz: downloading
+            ...
+            baz: installing
+        """
+        dependencies = dict()
+        packages = self.queue()
+        queue = TaskQueue()
+        while not packages.is_finished():
+            pkg = packages.next()
+            task_list = pkg.work.build_tasks(dependencies)
+            queue.add_task(*task_list)
+            packages.finish(pkg)
         return queue
 
 

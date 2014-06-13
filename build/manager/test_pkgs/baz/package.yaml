@@ -22,5 +22,4 @@ builder:
 
 depends:
     hard: 
-        - foo
         - bar

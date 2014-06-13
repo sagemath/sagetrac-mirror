@@ -93,10 +93,12 @@ class PackageBase(object):
 
     def get_all_dependencies(self):
         """
+        Return all direct dependencies.
+
         EXAMPLES::
 
             >>> loader.get('baz').get_all_dependencies()    
-            ['foo', 'bar']
+            ['bar']
         """
         return self.get_hard_dependencies() + self.get_build_dependencies()
 
@@ -117,8 +119,8 @@ class PackageBase(object):
         Each build step is its own task to be finer grained.
 
         Note that we try to push dependencies as far back as
-        possible. Download works without anything, prepare only needs
-        build tools (like GNU patch).
+        possible. Download works without anything, unpack and prepare
+        only needs build tools (like bzip2 and GNU patch).
 
         INPUT:
 
