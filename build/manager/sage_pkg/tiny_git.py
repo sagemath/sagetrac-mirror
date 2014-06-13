@@ -24,6 +24,7 @@ BLOB_RE = re.compile(r'(?P<type>[a-z]*) (?P<size>[0-9]*)\0(?P<content>.*)', flag
 
 BLOB_COMMIT_TREE_RE = re.compile(r'tree (?P<sha1>[a-f0-9]{40,40})')
 
+
 def Blob(filename):
     """
     Load the git object with given sha1 hash

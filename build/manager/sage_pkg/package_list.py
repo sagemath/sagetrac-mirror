@@ -33,7 +33,17 @@ def load_config(pkgname):
 
 
 def load_packages():
+    """
+    Return the list of all packages
+    """
     git = GitRepository(config.path.dot_git)
+    tree = git.get_tree(config.path.packages)
+    git_version = dict()
+    for mode, name, sha1 in git.get_tree(config.path.packages).ls_dirs():
+        pkg_tree = git.get(sha1)
+        if pkg_tree.is_clean():
+            git_version[name] = sha1
+
     for name in os.listdir(package_dir):
         if not os.path.isdir(name):
             continue
