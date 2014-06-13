@@ -33,9 +33,8 @@ def make_logger(name, doctest_mode=False):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-    #logger.setLevel(logging.WARNING)
-    logger.setLevel(logging.DEBUG)
-    
+    logger.setLevel(logging.WARNING)
+    #logger.setLevel(logging.DEBUG)    
     return logger
 
 

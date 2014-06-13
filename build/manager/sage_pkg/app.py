@@ -4,7 +4,7 @@ The main routines
 
 from sage_pkg.config import config
 
-from sage_pkg.package_list import load_packages, load_config
+from sage_pkg.package_list import load_config, loader
 
 
 class Application(object):
@@ -18,7 +18,7 @@ class Application(object):
         """
         Print a table of packages 
         """
-        for pkg in load_packages():
+        for pkg in loader.get_all():
             print(pkg)
 
     def info(self, pkg):
@@ -32,7 +32,7 @@ class Application(object):
         """
         Print a table of packages 
         """
-        for pkg in load_packages():
+        for pkg in loader.get_all():
             print(pkg)
         
         

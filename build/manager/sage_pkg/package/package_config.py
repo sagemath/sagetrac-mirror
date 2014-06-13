@@ -18,7 +18,7 @@ class PackageConfig(ConfigYAML):
         Configuration:
         - config.builder.check_script = spkg-check
         - config.builder.install_script = spkg-install
-        - config.builder.type = SpkgInstallScript
+        - config.builder.type = TestPackage
         - config.category = standard
         - config.depends.hard = ['foo', 'bar']
         - config.name = baz

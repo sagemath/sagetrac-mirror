@@ -16,7 +16,7 @@ source:
         commit:   refs/tags/{source.version}
 
 builder:
-    type:            SpkgInstallScript
+    type:            TestPackage
     install_script:  spkg-install
     check_script:    spkg-check
 

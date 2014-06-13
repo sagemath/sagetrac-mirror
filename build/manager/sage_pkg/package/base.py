@@ -40,11 +40,14 @@ class PackageBase(object):
         self._config = app_config
         self._version_stamp = version_stamp
 
+    def __eq__(self, other):
+        return self._config.name == other._config.name
+
     def __lt__(self, other):
         return self._config.name < other._config.name
 
     def __repr__(self):
-        return repr(self._config)
+        return self.name
 
     @property
     def name(self):
@@ -53,8 +56,8 @@ class PackageBase(object):
 
         EXAMPLES::
   
-            >>> load_package('foo').name
-            foo
+            >>> loader.get('foo').name
+            'foo'
         """
         return self._config.name
 
@@ -68,7 +71,7 @@ class PackageBase(object):
 
         EXAMPLES::
   
-            >>> load_package('foo').version
+            >>> loader.get('foo').version
             1.3
         """
         return self._config.source.version
@@ -83,10 +86,26 @@ class PackageBase(object):
 
         EXAMPLES::
   
-            >>> load_package('foo').version_stamp    # doctest: +SKIP
+            >>> loader.get('foo').version_stamp    # doctest: +SKIP
             'a71d5accb4ed818985dfcd796090b75afb83885c'
         """
         return self._version_stamp
+
+    def all_dependencies(self):
+        """
+        EXAMPLES::
+
+            >>> loader.get('baz').all_dependencies()    
+            ['foo', 'bar']
+        """
+        result = []
+        try:
+            depends = self._config.depends
+        except AttributeError:
+            return result
+        for deps in depends._c.values():
+            result.extend(deps)
+        return result
 
     def download(self):
         pass
