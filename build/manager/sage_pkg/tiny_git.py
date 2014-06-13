@@ -18,6 +18,7 @@ import re
 import zlib
 
 from .logger import logger
+from .git_ignore import is_ignored
 
 
 BLOB_RE = re.compile(r'(?P<type>[a-z]*) (?P<size>[0-9]*)\0(?P<content>.*)', flags=re.DOTALL)
@@ -38,6 +39,8 @@ def Blob(filename):
         return BlobCommit(match)
     if blob.startswith('tree'):
         return BlobTree(match)
+    if blob.startswith('blob'):
+        return BlobFile(match)
     raise ValueError('unsupported blob: ' + repr(blob))
 
 
@@ -79,6 +82,10 @@ class BlobCommit(BlobABC):
 
     
 class BlobTree(BlobABC):
+
+    MODE_NORMAL = '100644'
+    MODE_EXEC = '100755'
+    MODE_DIR = '40000'
 
     def ls(self):
         """
@@ -138,7 +145,7 @@ class BlobTree(BlobABC):
             ('40000', 'build', ...
         """
         for dirent in self.ls():
-            if dirent[0] == '40000':
+            if dirent[0] == self.MODE_DIR:
                 yield dirent
 
     def get(self, filename):
@@ -159,7 +166,18 @@ class BlobTree(BlobABC):
             if name == filename:
                 return sha1
         raise ValueError('file is not in the tree')
+
+    def _compare_files(self, dirname, verbose=False):
+        """
+        Helper to just compare the files
+        """
+
+
+class BlobFile(BlobABC):
+    pass
     
+
+
 
 class GitRepository(object):
 
@@ -269,6 +287,66 @@ class GitRepository(object):
             tree = self.get(sha1)
         return tree
 
+    def is_clean_dir(self, dirname, verbose=False):
+        """
+        Check that the directory is clean (identical to the repo state)
+
+        INPUT:
+
+        - ``dirname`` -- string. The name of the directory to compare to.
+
+        - ``verbose`` -- boolean.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            >>> git.is_clean_dir(config.path.packages, verbose=True)
+            True
+        """
+        tree = self.get_tree(dirname)
+        return self._is_clean_dir(dirname, tree, verbose)
+
+    def _is_clean_dir(self, dirname, tree, verbose):
+        dirent = set(os.listdir(dirname))
+        for mode, name, sha1 in tree.ls():
+            if name not in dirent:
+                if verbose: print('deleted: ' + name)
+                return False
+            if mode == BlobTree.MODE_DIR:
+                sub_dirname = os.path.join(dirname, name)
+                if not os.path.isdir(sub_dirname):
+                    if verbose: print('missing directory: ' + sub_dirname)
+                    return False
+                sub_tree = self.get(sha1)
+                clean = self._is_clean_dir(sub_dirname, sub_tree, verbose)
+            else:
+                filename = os.path.join(dirname, name)
+                clean = self._is_clean_file(filename, sha1, verbose)
+            if not clean:
+                return False
+            dirent.remove(name)
+        if any(not is_ignored(name) for name in dirent) > 0:
+            if verbose: print('untracked files: ' + ', '.join(dirent))
+            return False
+        return True
+        
+    def _is_clean_file(self, filename, sha1, verbose):
+        if not os.path.isfile(filename):
+            if verbose: print('missing file: ' + filename)
+            return False
+        blob = self.get(sha1)
+        with open(filename, 'r') as f:
+            if f.read() != blob._content:
+                if verbose: print('file modified: ' + filename)
+                return False
+        return True
+        
+
+
+
 
 def full_split_repo_path(path):
     """
@@ -291,14 +369,14 @@ def full_split_repo_path(path):
         ['a']
         >>> full_split_repo_path('a/')
         ['a']
-        >>> full_split_repo_path(os.path.join(config.path.packages, 'a', 'b'))
+        >>> full_split_repo_path(os.path.join(config.path.root, 'a', 'b'))
         ['a', 'b']
     """
     if os.path.isabs(path):
         path = os.path.abspath(path)
         from sage_pkg.config import config
-        if path.startswith(config.path.packages):
-            path = path[len(config.path.packages):].lstrip(os.path.sep)
+        if path.startswith(config.path.root):
+            path = path[len(config.path.root):].lstrip(os.path.sep)
         else:
             raise ValueError('path must be relative or absolute and start with the package path')
     path = path.rstrip(os.path.sep)

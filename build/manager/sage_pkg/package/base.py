@@ -41,6 +41,9 @@ class PackageBase(object):
         self._config = app_config
         self._version = version
 
+    def __lt__(self, other):
+        return self._config.name < other._config.name
+
     def __repr__(self):
         return repr(self._config)
 
