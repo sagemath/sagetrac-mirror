@@ -6,15 +6,20 @@ from .logger import logger
 
 class Task(object):
 
-    def __init__(self, work, work_depends):
+    def __init__(self, work, dependencies, name=None):
         self.work = work
-        self.depends = set(work_depends)
+        self.depends = set(dep.work if isinstance(dep, Task) else dep
+                           for dep in dependencies)
+        self._name = name
 
     def doit(self):
         self.work()
 
     def __repr__(self):
-        return 'Task {0}'.format(self.work)
+        if self._name:
+            return self._name
+        else:
+            return 'Task {0}'.format(self.work)
 
 
 class TaskQueue(object):
@@ -32,10 +37,12 @@ class TaskQueue(object):
         """
         Return a ready task.
         """
-        for task in list(self._pending):
+        newly_finished = set()
+        for task in self._pending:
             if len(task.depends) == 0:
-                self._pending.remove(task)
-                self._ready.add(task)
+                newly_finished.add(task)
+        self._pending.difference_update(newly_finished)
+        self._ready.update(newly_finished)
         logger.debug('Queue: pending = {0}, ready = {1}, finished = {2}'.format(
             self._pending, self._ready, self._finished))
         if len(self._ready) == 0:

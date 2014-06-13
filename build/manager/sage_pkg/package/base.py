@@ -91,21 +91,70 @@ class PackageBase(object):
         """
         return self._version_stamp
 
-    def all_dependencies(self):
+    def get_all_dependencies(self):
         """
         EXAMPLES::
 
-            >>> loader.get('baz').all_dependencies()    
+            >>> loader.get('baz').get_all_dependencies()    
             ['foo', 'bar']
         """
-        result = []
+        return self.get_hard_dependencies() + self.get_build_dependencies()
+
+    def get_hard_dependencies(self):
         try:
-            depends = self._config.depends
+            return self._config.depends.hard
         except AttributeError:
-            return result
-        for deps in depends._c.values():
-            result.extend(deps)
-        return result
+            return []
+        
+    def get_build_dependencies(self):
+        try:
+            return self._config.depends.build
+        except AttributeError:
+            return []
+        
+    def build_tasks(self, dependencies):
+        """
+        Each build step is its own task to be finer grained.
+
+        Note that we try to push dependencies as far back as
+        possible. Download works without anything, prepare only needs
+        build tools (like GNU patch).
+
+        INPUT:
+
+        - ``dependencies`` -- dict. Which build task satisfies which
+          package dependency.
+
+        OUTPUT:
+
+        A list of build tasks.
+
+        EXAMPLES::
+
+            >>> foo = loader.get('foo')
+            >>> deps = dict()
+            >>> foo.build_tasks(deps)
+            [foo-download, foo-unpack, foo-prepare, foo-configure, foo-build, foo-check, foo-install]
+
+        The ``deps`` is modified to record what task satisifes the
+        dependency on the package name::
+
+            >>> deps
+            {'foo': foo-install}
+        """
+        from sage_pkg.task_queue import Task
+        task_download  = prev = Task(self.download,  [],     name='{0}-download' .format(self.name))
+        build = [prev] + [dependencies[dep] for dep in self.get_build_dependencies()]
+        task_unpack    = prev = Task(self.unpack,    build,  name='{0}-unpack'   .format(self.name))
+        task_prepare   = prev = Task(self.prepare,   [prev], name='{0}-prepare'  .format(self.name))
+        hard = [prev] + [dependencies[dep] for dep in self.get_hard_dependencies()]
+        task_configure = prev = Task(self.configure, hard,   name='{0}-configure'.format(self.name))
+        task_build     = prev = Task(self.build,     [prev], name='{0}-build'    .format(self.name))
+        task_check     = prev = Task(self.check,     [prev], name='{0}-check'    .format(self.name))
+        task_install   = prev = Task(self.install,   [prev], name='{0}-install'  .format(self.name))
+        dependencies[self.name] = task_install
+        return [task_download, task_unpack, task_prepare, 
+                task_configure, task_build, task_check, task_install]
 
     def download(self):
         pass

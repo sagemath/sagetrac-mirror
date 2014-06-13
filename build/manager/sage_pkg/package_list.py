@@ -131,7 +131,7 @@ class PackageLoader(object):
         from .task_queue import TaskQueue
         queue = TaskQueue()
         for pkg in self.get_all():
-            queue.add(pkg, [pkg_dict[dep] for dep in pkg.all_dependencies()])
+            queue.add(pkg, [pkg_dict[dep] for dep in pkg.get_all_dependencies()])
         return queue
 
 
