@@ -6220,6 +6220,23 @@ class Graph(GenericGraph):
 
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
+
+        TESTS::
+        
+        We test that :trac:16475 actually works:
+
+            sage: G = Graph()
+            sage: G.add_edges([(1, 4, 87), (1, 6, 25), (1, 9, 91), (2, 4, 39),
+            ....:              (2, 5, 69), (3, 7, 95), (3, 8, 75), (3, 9, 43),
+            ....:              (4, 9, 29), (5, 7, 96), (6, 8, 25), (7, 8, 86),
+            ....:              (7, 9, 15), (8, 9, 82)])
+            sage: for u, v in Subsets(G.vertices(), 2):
+            ....:     f1 = G.flow(u, v, use_edge_labels = True)
+            ....:     f2 = T.flow(u, v, use_edge_labels = True)
+            ....:     if f1 != f2:
+            ....:         print 'Error'
+            sage: 
+
         """
         T, C = self._gomory_hu_tree(method=method)
         return T
