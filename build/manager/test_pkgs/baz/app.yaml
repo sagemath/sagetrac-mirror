@@ -1,0 +1,26 @@
+name:
+    baz
+
+category:
+    standard
+
+source:
+    version:  
+        2.0.1
+    tarball:
+        name:     '{name}_{source.version}.tar.gz'
+        url:      http://www.example.com/{source.version}.tar.gz
+        sha1:     99533b2233a27132ee65bcd2992f7bb464388b55
+    git:
+        repo:     git://github.com/example/{name}.git
+        commit:   refs/tags/{source.version}
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard: 
+        - foo
+        - bar

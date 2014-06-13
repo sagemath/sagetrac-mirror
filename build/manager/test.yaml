@@ -8,7 +8,7 @@ path:
         .git
 
     packages: 
-        build/manager/test_pkg
+        build/manager/test_pkgs
 
     sage_pkg:
         build/manager
@@ -16,9 +16,15 @@ path:
     configuration:
         []
 
+    download_cache:
+        upstream
+
 
 ... # End of the builder configuration
 
 The root_path can be absolute or relative to the location of the YAML
-file. All other paths are relative to the root_path.
+file. All other paths are relative to the root_path, or absolute
+paths. In the real world you don't know where the sources are, so you
+should only use absolute paths via home directory expansion (~/dir is
+expanded automatically to an absolute path).
 

@@ -33,8 +33,6 @@ def Blob(filename):
     match = BLOB_RE.match(blob)
     if not match:
         raise ValueError('file is not a git object')
-    #print match.groups()
-    #return
     if blob.startswith('commit'):
         return BlobCommit(match)
     if blob.startswith('tree'):
@@ -105,6 +103,24 @@ class BlobTree(BlobABC):
             sha1 = ''.join('{0:02x}'.format(ord(c)) for c in sha1_binary)
             yield (mode, name, sha1)
             pos = pos_zero + 21
+
+    def __repr__(self):
+        """
+        Iterate over the tree content
+        
+        Override the generic repr since the tree object contains binary sha1's.
+
+        EXAMPLES::
+
+            >>> commit = git.get_symbolic_ref('HEAD')
+            >>> git.get(commit.tree)   # doctest: +ELLIPSIS
+            BlobTree:
+                100644 ...
+        """
+        s = [self.__class__.__name__ + ':']
+        for mode, name, sha1 in self.ls():
+            s.append('    {0:>6} {1} {2}'.format(mode, sha1, name))
+        return '\n'.join(s)
 
     def ls_dirs(self):
         """
@@ -247,15 +263,46 @@ class GitRepository(object):
         """
         commit = self.get_symbolic_ref('HEAD')
         tree = self.get(commit.tree)
-
-        def full_split(path):
-            dirs = []
-            while len(path) > 0:
-                path, directory = os.path.split(path)
-                dirs = [directory] + dirs
-            return dirs
-
-        for name in full_split(dirname):
+        for name in full_split_repo_path(dirname):
             sha1 = tree.get(name)
             tree = self.get(sha1)
         return tree
+
+
+def full_split_repo_path(path):
+    """
+    Utility function to split path into list
+
+    INPUT:
+
+    - ``path`` -- string. Path relative to the repo root or absolute
+      path contained in the repo root.
+
+    EXAMPLES::
+
+        >>> import os
+        >>> from sage_pkg.tiny_git import full_split_repo_path
+        >>> full_split_repo_path('a/b/c/d')
+        ['a', 'b', 'c', 'd']
+        >>> full_split_repo_path('a/b')
+        ['a', 'b']
+        >>> full_split_repo_path('a')
+        ['a']
+        >>> full_split_repo_path('a/')
+        ['a']
+        >>> full_split_repo_path(os.path.join(config.path.packages, 'a', 'b'))
+        ['a', 'b']
+    """
+    if os.path.isabs(path):
+        path = os.path.abspath(path)
+        from sage_pkg.config import config
+        if path.startswith(config.path.packages):
+            path = path[len(config.path.packages):].lstrip(os.path.sep)
+        else:
+            raise ValueError('path must be relative or absolute and start with the package path')
+    path = path.rstrip(os.path.sep)
+    dirs = []
+    while len(path) > 0:
+        path, directory = os.path.split(path)
+        dirs = [directory] + dirs
+    return dirs

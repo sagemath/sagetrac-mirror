@@ -8,7 +8,7 @@ path:
         .git
 
     packages: 
-        build/pkg
+        build/pkgs
 
     sage_pkg:
         build/manager
@@ -16,6 +16,14 @@ path:
     configuration:
         - ~/.sage.yaml
         - ~/.sage/sage.yaml
+
+    download_cache:
+        upstream
+
+
+mirrors:
+    - http://www.sagemath.org/packages
+
 
 ... # End of the builder configuration
 

@@ -4,8 +4,7 @@ The main routines
 
 from sage_pkg.config import config
 
-from sage_pkg.tiny_git import GitRepository
-from sage_pkg.package_list import load_packages
+from sage_pkg.package_list import load_packages, load_config
 
 
 class Application(object):
@@ -14,22 +13,27 @@ class Application(object):
         """
         The Python constructor
         """
-        self.git = GitRepository(config.path.dot_git)
         
     def table(self):
         """
         Print a table of packages 
         """
-        for pkg in all_packages(self.package_dir, self.git):
+        for pkg in load_packages():
             print(pkg)
 
-    def info(self, pkg=None):
+    def info(self, pkg):
+        """
+        Print information about a package
+        """
+        pkg_config = load_config(pkg)
+        print(pkg_config)
+
+    def list(self, category=None):
         """
         Print a table of packages 
         """
-        if pkg is None:
-            return self.table()
-        pkg = load_package(pkg, self.git)
+        for pkg in load_packages():
+            print(pkg)
         
         
 

@@ -73,13 +73,65 @@ class ConfigYAML(object):
     def __init__(self, *args):
         self._merge(*args)
         self._init_attributes()
-        #print self
+        self._validate()
 
     def _normalize(self, config):
         """
         Hook for normalizing the values in the configuration dictionary
+
+        This is run before the object is initialized, so you cannot
+        access any attributes of ``self``.
+        
+        INPUT:
+        
+        - ``config`` -- deserialized yaml. Nested
+          dictionary/list/values.
+
+        The return value is discarded, you are supposed to change
+        values in place.
         """
         pass
+
+    def _validate(self):
+        """
+        Hook for validating the configuration
+        
+        Unlike :meth:`_normalize`, this method is run *after* the
+        object initialization. You can still raise a ``ValueError`` if
+        the cofiguration is invalid, but you cannot change it any
+        more.
+        """
+        pass
+
+
+    def _require(self, *args):
+        """
+        Require the presence of configuration keys
+
+        INPUT:
+
+        - ``*args`` -- each argument must be a string, or a list of
+          strings. Hierarchical sub-keys can also be joined by dots.
+
+        EXAMPLES::
+
+            >>> config._require('path.configuration')
+            >>> config.path.configuration
+            []
+            >>> config._require('path.foo.bar')
+            Traceback (most recent call last):
+            ...
+            ValueError: required key is not defined: path.foo.bar
+        """
+        for arg in args:
+            if isinstance(arg, basestring):
+                arg = arg.split('.')
+            value = self._c
+            for key in arg:
+                try:
+                    value = value[key]
+                except KeyError:
+                    raise ValueError('required key is not defined: ' + '.'.join(arg))
 
     def _merge(self, *args):
         """
@@ -126,45 +178,3 @@ class ConfigYAML(object):
         return '\n'.join(result)
         
 
-
-
-class SagePkgConfig(ConfigYAML):
-    """
-    The Configuration for the Sage Package Manager itself
-
-    EXAMPLES::
-
-        >>> config    # doctest: +ELLIPSIS
-        Configuration:
-        - config.path.configuration = []
-        - config.path.dot_git = /.../.git
-        - config.path.packages = /.../build/manager/test_pkg
-        - config.path.root = /...
-        - config.path.sage_pkg = /.../build/manager
-    """
-    
-    def _normalize(self, config):
-        path = config.get('path', dict())
-        self._normalize_paths(path)
-
-    def _normalize_paths(self, path, root=None):
-        if root is None:
-            root = path['root']
-            root = os.path.abspath(root)
-            path['root'] = root
-    
-        def normalize(value):
-            value = os.path.expanduser(value)
-            if not os.path.isabs(value):
-                value = os.path.join(root, value)
-            return os.path.abspath(value)
-
-        for key in path.keys():
-            value = path[key]
-            if isinstance(value, list):
-                path[key] = map(normalize, value)
-            elif isinstance(value, dict):
-                self._normalize_paths(value, root)
-            else:
-                path[key] = normalize(value)
-        

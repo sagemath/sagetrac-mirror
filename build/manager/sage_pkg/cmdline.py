@@ -35,13 +35,14 @@ def debug_shell(app, parser):
     from IPython.frontend.terminal.ipapp import TerminalIPythonApp
     ip = TerminalIPythonApp.instance()
     ip.initialize(argv=[])
-    ip.shell.user_global_ns['app'] = app
-    ip.shell.user_global_ns['log'] = logger
-    # ip.shell.user_global_ns['git'] = app.git
     from develop.config import config as dev_config
     ip.shell.user_global_ns['dev_config'] = dev_config
     from .config import config
+    ip.shell.user_global_ns['app'] = app
+    ip.shell.user_global_ns['log'] = logger
     ip.shell.user_global_ns['config'] = config
+    from sage_pkg.tiny_git import GitRepository
+    ip.shell.user_global_ns['git'] = GitRepository(config.path.dot_git)
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)

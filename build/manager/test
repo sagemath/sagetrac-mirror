@@ -17,6 +17,7 @@ TEST_CONFIG = os.path.join(os.path.dirname(__file__), 'test.yaml')
 DOCTEST_DIRS = (
     'develop',
     'sage_pkg', 
+    'sage_pkg/package', 
 )    
 
 UNITTEST_DIRS = (

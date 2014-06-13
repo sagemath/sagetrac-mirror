@@ -1,0 +1,20 @@
+name:
+    foo
+
+category:
+    standard
+
+source:
+    version:  
+        1.3
+    tarball:
+        name:  Foo-{source.version}.tar.gz
+        url:   http://www.example.com/{source.version}.tar.gz
+        sha1:  99533b2233a27132ee65bcd2992f7bb464388b55
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+
