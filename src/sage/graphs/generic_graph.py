@@ -7511,6 +7511,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             l_capacity = lambda x: 1
     
+        from sage.graphs.digraph import DiGraph
         if use_global_relabeling:
             Res=DiGraph()
 
