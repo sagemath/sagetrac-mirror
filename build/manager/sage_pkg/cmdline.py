@@ -41,7 +41,7 @@ def debug_shell(app, parser):
     ip.shell.user_global_ns['app'] = app
     ip.shell.user_global_ns['log'] = logger
     ip.shell.user_global_ns['config'] = config
-    from sage_pkg.tiny_git import GitRepository
+    from sage_pkg.git.repo import GitRepository
     ip.shell.user_global_ns['git'] = GitRepository(config.path.dot_git)
     from sage_pkg.package_list import loader
     ip.shell.user_global_ns['loader'] = loader

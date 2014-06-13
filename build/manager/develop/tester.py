@@ -89,7 +89,7 @@ class DocTester(TesterABC):
     def global_variables(self):
         from sage_pkg.config import config
         from sage_pkg.app import Application
-        from sage_pkg.tiny_git import GitRepository
+        from sage_pkg.git.repo import GitRepository
         from sage_pkg.package_list import loader
         app = Application()
         return dict(

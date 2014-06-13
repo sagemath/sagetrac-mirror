@@ -7,7 +7,7 @@ import yaml
 
 from sage_pkg.config import config
 from sage_pkg.package.package_config import PackageConfig
-from sage_pkg.tiny_git import GitRepository
+from sage_pkg.git.repo import GitRepository
 from sage_pkg.task_queue import TaskQueue
 
 

@@ -15,7 +15,7 @@ def get_gitignore():
 
     EXAMPLES::
 
-        >>> from sage_pkg.git_ignore import get_gitignore
+        >>> from sage_pkg.git.git_ignore import get_gitignore
         >>> get_gitignore()   # doctest: +ELLIPSIS
         ['*.pyc', ...
     """
@@ -56,7 +56,7 @@ def is_ignored(name):
 
     EXAMPLES::
 
-        >>> from sage_pkg.git_ignore import is_ignored
+        >>> from sage_pkg.git.git_ignore import is_ignored
         >>> is_ignored('file.py')
         False
         >>> is_ignored('dir/file.py')
