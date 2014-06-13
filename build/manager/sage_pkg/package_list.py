@@ -33,8 +33,8 @@ def load_config(pkg_name):
         - config.source.tarball.url = http://www.example.com/1.3.tar.gz
         - config.source.version = 1.3
     """
-    app_yaml = os.path.join(config.path.packages, pkg_name, 'app.yaml')
-    return PackageConfig(app_yaml)
+    package_yaml = os.path.join(config.path.packages, pkg_name, 'package.yaml')
+    return PackageConfig(package_yaml)
 
 
 def make_random_sha1():
@@ -54,40 +54,53 @@ def make_random_sha1():
     return sha.sha(now).hexdigest()
 
 
-def make_package(config, version):
-    from sage_pkg.packages import all
+def make_package(pkg_config, version):
+    from sage_pkg.package import all
     try:
-        cls = getattr(all, config.builder.type)
+        cls = getattr(all, pkg_config.builder.type)
     except AttributeError:
-        raise ValueError('unknown builder type: ' + config.builder.type)
-    return cls(config, version)
+        raise ValueError('unknown builder type: ' + pkg_config.builder.type)
+    return cls(pkg_config, version)
     
 
 def load_packages():
     """
     Return the list of all packages
+
+    EXAMPLES::
+
+        >>> from sage_pkg.package_list import load_packages
+        >>> load_packages()
     """
     git = GitRepository(config.path.dot_git)
     tree = git.get_tree(config.path.packages)
     git_version = dict()
     for mode, name, sha1 in git.get_tree(config.path.packages).ls_dirs():
-        pkg_tree = git.get(sha1)
-        if pkg_tree.is_clean():
+        pkg_dir_name = os.path.join(config.path.packages, name)
+        if git.is_clean_dir(pkg_dir_name):
             git_version[name] = sha1
     # Packages that are not clean or not checked in get a random version stamp to force rebuild
     random_version = make_random_sha1()
     result = []
     for name in os.listdir(config.path.packages):
-        if not os.path.isdir(name):
+        fullname = os.path.join(config.path.packages, name)
+        if not os.path.isdir(fullname):
             continue
-        config = load_config(name)
-        if config.name.lower() != name.lower():
-            raise ValueError('The name in app.yaml must match the directory name')
+        pkg_config = load_config(name)
+        if pkg_config.name.lower() != name.lower():
+            raise ValueError('The name in package.yaml must match the directory name')
         try:
             version = git_version[name]
         except KeyError:
-            print('Package {0} has changes, forcing rebuild')
+            print('Package {0} has changes, forcing rebuild'.format(name))
             version = random_version
-        pkg = make_package(config, version)
+        pkg = make_package(pkg_config, version)
         result.append(pkg)
     return sorted(result)
+
+
+def load_package(name):
+    for pkg in load_packages():
+        if pkg.name == name:
+            return pkg
+    raise ValueError('unknown package: ' + name)

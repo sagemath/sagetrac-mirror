@@ -26,7 +26,7 @@ successfully, that is, did not raise an exception.
 
 class PackageBase(object):
     
-    def __init__(self, app_config, version=None):
+    def __init__(self, app_config, version_stamp=None):
         """
         INPUT:
 
@@ -34,18 +34,59 @@ class PackageBase(object):
           :class:`~sage_pkg.package.package_config.PackageConfig`. The
           package configuration.
 
-        - ``version`` -- string that uniquely characterizes
+        - ``version_stamp`` -- string that uniquely characterizes
           ``app_config``.
         """
-        self._verify(app_config)
         self._config = app_config
-        self._version = version
+        self._version_stamp = version_stamp
 
     def __lt__(self, other):
         return self._config.name < other._config.name
 
     def __repr__(self):
         return repr(self._config)
+
+    @property
+    def name(self):
+        """
+        Package name
+
+        EXAMPLES::
+  
+            >>> load_package('foo').name
+            foo
+        """
+        return self._config.name
+
+    @property
+    def version(self):
+        """
+        Human-readable version.
+
+        May only be used for the UI, but never for dependency
+        calculations.
+
+        EXAMPLES::
+  
+            >>> load_package('foo').version
+            1.3
+        """
+        return self._config.source.version
+
+    @property
+    def version_stamp(self):
+        """
+        Unique machine-readable version.
+
+        This is the version relevant for dependency
+        calculations. Should not be used in the UI.
+
+        EXAMPLES::
+  
+            >>> load_package('foo').version_stamp    # doctest: +SKIP
+            'a71d5accb4ed818985dfcd796090b75afb83885c'
+        """
+        return self._version_stamp
 
     def download(self):
         pass
