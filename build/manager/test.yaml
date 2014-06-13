@@ -19,6 +19,9 @@ path:
     download_cache:
         upstream
 
+mirrors:
+    - http://download.example.com/packages
+
 
 ... # End of the builder configuration
 

@@ -15,6 +15,7 @@ class ManagerConfig(ConfigYAML):
 
         >>> config    # doctest: +ELLIPSIS
         Configuration:
+        - config.mirrors = ['http://download.example.com/packages']
         - config.path.configuration = []
         - config.path.dot_git = /.../.git
         - config.path.download_cache = /.../upstream
