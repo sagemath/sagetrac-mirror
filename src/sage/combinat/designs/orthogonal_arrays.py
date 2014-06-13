@@ -367,8 +367,7 @@ def is_transversal_design(B,k,n, verbose=False):
     """
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
-@cached_function
-def find_wilson_decomposition_with_one_truncated_group(k,n):
+def find_wilson_decomposition_with_one_truncated_group(k,n,cache={}):
     r"""
     Finds a wilson decomposition of `k,n` with one truncated group.
 
@@ -392,6 +391,15 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
         sage: find_wilson_decomposition_with_one_truncated_group(4,20)
         False
     """
+    if n in cache:
+        kk,(m,t,u),min_false = cache.get(n,[0,(0,0,0),n+2])
+        if min_false <= k:
+            return False
+        elif kk >= k:
+            return k,m,t,u
+    else:
+        cache[n] = [0,(0,0,0),n+2]
+
     # If there exists a TD(k+1,t) then k+1 < t+2, i.e. k <= t
     for t in range(max(1,k),n-1):
         u = n%t
@@ -409,12 +417,13 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
             transversal_design(k  ,m+1, existence=True) and
             transversal_design(k+1,t  , existence=True) and
             transversal_design(k  ,u  , existence=True)):
+            cache[n][1]=(m,t,u)
             return k,m,t,u
 
+    cache[n][2] = k
     return False
 
-@cached_function
-def find_wilson_decomposition_with_two_truncated_groups(k,n):
+def find_wilson_decomposition_with_two_truncated_groups(k,n,cache={}):
     r"""
     Helper function for Wilson's construction with two trucated columns
 
@@ -435,6 +444,15 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
         (5, 7, 7, 4, 5)
     """
+    if n in cache:
+        kk,(r,m,r1,r2),min_false = cache.get(n,[0,(0,0,0,0),n+2])
+        if min_false <= k:
+            return False
+        elif kk >= k:
+            return k,r,m,r1,r2
+    else:
+        cache[n] = [0,(0,0,0,0),n+2]
+
     for r in range(1,n-2): # as r*1+1+1 <= n
         if not orthogonal_array(k+2,r,existence=True):
             continue
@@ -453,7 +471,11 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
                 r2 = r1_p_r2-r1
                 if orthogonal_array(k,r2,existence=True):
                     assert n == r*m+r1+r2
+                    cache[n][0] = k
+                    cache[n][1] = (r,m,r1,r2)
                     return k,r,m,r1,r2
+
+    cache[n][2] = k
     return False
 
 def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
