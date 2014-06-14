@@ -19,7 +19,12 @@ path:
 
     download_cache:
         upstream
+ 
+    build:
+        local/var/tmp/sage-build
 
+    install:
+        local
 
 mirrors:
     - http://www.sagemath.org/packages

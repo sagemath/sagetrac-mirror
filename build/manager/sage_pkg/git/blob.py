@@ -42,7 +42,11 @@ def Blob_from_pack(sha1):
     
     EXAMPLES::
 
-        >>> git.get('b16df56703138b0e6bed3e0bb48ce0fa276cb575')
+        >>> git.get('b16df56703138b0e6bed3e0bb48ce0fa276cb575')   # doctest: +ELLIPSIS
+        BlobTree:
+             40000 dcb048ff5ef59140c1fcd3bc67d80913bd821f36 atlas
+             ...
+             40000 19b12481f7f4267c59d11eab2c615fb0b9b6509c zn_poly
     """
     #P = Pack(os.path.join(config.path.dot_git, 'objects', 'pack', 'pack-40ca8d1eac39ffa0fc6a071ae834e59e1a49ef9f'))
     #return P.get_raw(sha1)

@@ -19,6 +19,14 @@ path:
     download_cache:
         upstream
 
+    build:
+        /var/tmp/sage-build
+
+    install:
+       /usr/local 
+
+
+
 mirrors:
     - http://download.example.com/packages
 

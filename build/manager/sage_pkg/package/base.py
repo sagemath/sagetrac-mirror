@@ -23,6 +23,10 @@ successfully, that is, did not raise an exception.
 """
 
 
+import os
+
+from sage_pkg.config import config
+
 
 class PackageBase(object):
     
@@ -90,6 +94,21 @@ class PackageBase(object):
             'a71d5accb4ed818985dfcd796090b75afb83885c'
         """
         return self._version_stamp
+
+    @property
+    def build_dir(self):
+        """
+        The build directory. 
+        
+        The unpack step must create/overwrit this directory with the
+        source tree.
+
+        EXAMPLES::
+
+            >>> loader.get('foo').build_dir
+            '/var/tmp/sage-build/foo'
+        """
+        return os.path.join(config.path.build, self.name)
 
     def get_all_dependencies(self):
         """
