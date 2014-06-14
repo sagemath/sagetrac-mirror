@@ -24,3 +24,4 @@ class SageEnvironmentMixin(object):
         ])
         env['PYTHONPATH'] = SAGE_LOCAL
         return env
+

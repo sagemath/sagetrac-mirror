@@ -41,9 +41,9 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
         """
         Copy spkg-install to the build dir
         """
-        super(SpkgInstallScript, self).prepare()
         self._copy_spkg_install()
         self._copy_patches()
+        super(SpkgInstallScript, self).prepare()
 
     def _copy_spkg_install(self):
         spkg_install = os.path.join(self.build_dir, 'spkg-install')
@@ -57,16 +57,16 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
             shutil.copytree(patches, dst)
 
     def install(self):        
-        super(SpkgInstallScript, self).install()
         env = self.get_environment()
         with chdir(self.build_dir):
             subprocess.check_call('sage-spkg-sage_pkg', env=env, shell=True)
+        super(SpkgInstallScript, self).install()
 
     def check(self):
-        super(SpkgInstallScript, self).check()
         if not (self.want_check() and self.check_script):
             return
         env = self.get_environment()
         with chdir(self.build_dir):
             subprocess.check_call(self.check_script)
+        super(SpkgInstallScript, self).check()
 

@@ -15,3 +15,10 @@ builder:
     type:            SpkgInstallScript
     install_script:  spkg-install
 
+
+depends:
+    hard:
+        - mpir
+        - givaro
+        - gsl
+        - atlas

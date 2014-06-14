@@ -22,5 +22,5 @@ depends:
         - ipython
         - scons
         - boost_cropped
-        - m4ri
+        - libm4ri
         - gd

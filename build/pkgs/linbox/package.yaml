@@ -22,8 +22,8 @@ depends:
         - ntl
         - givaro
         - mpfr
-        - fplll
+        - libfplll
         - iml
-        - m4ri
-        - m4rie
-        - fflasffpack
+        - libm4ri
+        - libm4rie
+        - fflas_ffpack

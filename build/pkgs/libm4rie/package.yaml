@@ -15,3 +15,9 @@ builder:
     type:            SpkgInstallScript
     install_script:  spkg-install
     check_script:    spkg-check
+
+depends:
+    hard:
+        - libm4ri
+        - givaro
+        - ntl

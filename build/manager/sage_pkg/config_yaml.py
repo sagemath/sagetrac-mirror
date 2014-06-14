@@ -195,8 +195,8 @@ class ConfigYAML(object):
 
         EXAMPLES::
 
-            >>> config('path', 'install')
-            '/usr/local'
+            >>> config('path', 'install')   # doctest: +ELLIPSIS
+            '/.../test_data/local'
             >>> config('path', 'bar')
             Traceback (most recent call last):
             ...

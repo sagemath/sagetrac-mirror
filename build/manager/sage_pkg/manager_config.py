@@ -16,12 +16,12 @@ class ManagerConfig(ConfigYAML):
         >>> config    # doctest: +ELLIPSIS
         Configuration:
         - config.mirrors = ['http://download.example.com/packages']
-        - config.path.build = /var/tmp/sage-build
+        - config.path.build = /.../test_data/local/var/tmp/sage-build
         - config.path.configuration = []
         - config.path.dot_git = /.../.git
         - config.path.download_cache = /.../upstream
-        - config.path.install = /usr/local
-        - config.path.install_metadata = /usr/local/var/lib/sage/pkgs
+        - config.path.install = /.../test_data/local
+        - config.path.install_metadata = /.../test_data/local/var/lib/sage/pkgs
         - config.path.packages = /.../build/manager/test_data/test_pkgs
         - config.path.root = /...
         - config.path.sage_pkg = /.../build/manager

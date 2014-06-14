@@ -20,16 +20,17 @@ path:
         upstream
 
     build:
-        /var/tmp/sage-build
+        build/manager/test_data/local/var/tmp/sage-build
 
     install:
-       /usr/local 
+        build/manager/test_data/local
 
     install_metadata:
-        /usr/local/var/lib/sage/pkgs
+        build/manager/test_data/local/var/lib/sage/pkgs
 
     test_data:
         build/manager/test_data
+
 
 mirrors:
     - http://download.example.com/packages

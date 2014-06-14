@@ -75,7 +75,6 @@ class SageMirrorMixin(object):
         super(SageMirrorMixin, self).download()
 
     def unpack(self):
-        super(SageMirrorMixin, self).unpack()
         build_dir = self.build_dir
         logger.info('unpacking %s to %s', self.tarball, build_dir)
         if os.path.exists(build_dir):
@@ -85,6 +84,7 @@ class SageMirrorMixin(object):
         cmd = ['tar', '-xf', self.tarball_cache, '-C', build_dir, '--no-same-owner']
         subprocess.check_call(cmd)
         self._make_src_symlink()
+        super(SageMirrorMixin, self).unpack()
 
     def _make_src_symlink(self):
         """

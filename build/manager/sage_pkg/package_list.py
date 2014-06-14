@@ -53,7 +53,7 @@ class PackageLoader(object):
             >>> sha1 = loader._make_random_sha1()
             >>> sha1  # doctest: +SKIP
             '3835bb5604b33160a94f47ee8d4262b9471c0017'
-            >>> len(sha1) == 40 and int(sha1, 16) >= 0
+            >>> is_valid_sha1(sha1)
             True
         """
         import datetime
@@ -70,6 +70,28 @@ class PackageLoader(object):
         return cls(pkg_config, version, longterm)
         
     
+    def _git_versions(self):
+        """
+        Return a dictionary with git tree sha1s
+
+        EXAMPLES::
+
+            >>> versions = loader._git_versions()
+            >>> sha1 = versions['foo']
+            >>> sha1   # doctest: +SKIP
+            '131cde6b06be3e57a25bbbcb21c180f1c4a71e1f'
+            >>> is_valid_sha1(sha1)
+            True
+        """
+        git = GitRepository(config.path.dot_git)
+        tree = git.get_tree(config.path.packages)
+        git_version = dict()
+        for mode, name, sha1 in git.get_tree(config.path.packages).ls_dirs():
+            pkg_dir_name = os.path.join(config.path.packages, name)
+            if git.is_clean_dir(pkg_dir_name):
+                git_version[name] = sha1
+        return git_version
+
     def get_all(self):
         """
         Return the list of all packages
@@ -81,13 +103,7 @@ class PackageLoader(object):
         """
         if hasattr(self, '_packages'):
             return self._packages
-        git = GitRepository(config.path.dot_git)
-        tree = git.get_tree(config.path.packages)
-        git_version = dict()
-        for mode, name, sha1 in git.get_tree(config.path.packages).ls_dirs():
-            pkg_dir_name = os.path.join(config.path.packages, name)
-            if git.is_clean_dir(pkg_dir_name):
-                git_version[name] = sha1
+        git_version = self._git_versions()
         # Packages that are not clean or not checked in get a random version stamp to force rebuild
         random_version = self._make_random_sha1()
         result = []
@@ -111,6 +127,10 @@ class PackageLoader(object):
                 longterm = False
             pkg = self._make_package(pkg_config, version, longterm)
             result.append(pkg)
+        # replace text dependencies with actual package objects
+        pkg_dict = dict((pkg.name, pkg) for pkg in result)
+        for pkg in result:
+            pkg._init_dependencies(pkg_dict)
         self._packages = tuple(sorted(result))
         return self._packages
     
@@ -144,10 +164,9 @@ class PackageLoader(object):
             Task bar
             Task baz
         """
-        pkg_dict = dict((pkg.name, pkg) for pkg in self.get_all())
         queue = TaskQueue()
         for pkg in self.get_all():
-            queue.add_work(pkg, [pkg_dict[dep] for dep in pkg.get_all_dependencies()])
+            queue.add_work(pkg, pkg.get_all_dependencies())
         return queue
 
     def build_queue(self, stop_at='install'):

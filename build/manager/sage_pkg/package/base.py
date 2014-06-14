@@ -25,8 +25,11 @@ successfully, that is, did not raise an exception.
 
 import os
 import copy
+import shutil
+import tempfile
 
 from sage_pkg.config import config
+from sage_pkg.logger import logger
 from sage_pkg.task_queue import TaskQueue
 
 
@@ -50,6 +53,35 @@ class PackageBase(object):
         self._config = app_config
         self._version_stamp = version_stamp
         self._longterm = longterm
+
+    def _init_dependencies(self, pkg_dict):
+        """
+        Called after loading all packages
+
+        INPUT:
+
+        - ``pkg_dict`` -- a dictionary whose keys are all package
+          namse and values the associated :class:`PackageBase`
+          instance.
+        """
+        def deps(dep_type):
+            try:
+                dependencies = self._config('depends', dep_type)
+            except KeyError:
+                return tuple()
+            logger.debug('initializating %s dependencies for %s: %s', dep_type, self.name, dependencies)
+            if dependencies:
+                try:
+                    return tuple(pkg_dict[dep] for dep in dependencies)
+                except KeyError as err:
+                    raise ValueError('invalid {0} dependency in {1}: {2}'
+                                     .format(dep_type, self.name, err))
+            else:
+                return tuple()
+        self._hard_dependencies = deps('hard')
+        self._soft_dependencies = deps('soft')
+        self._test_dependencies = deps('test')
+        self._build_dependencies = deps('build')
 
     def __eq__(self, other):
         return self._config.name == other._config.name
@@ -112,8 +144,8 @@ class PackageBase(object):
 
         EXAMPLES::
 
-            >>> loader.get('foo').build_dir
-            '/var/tmp/sage-build/foo'
+            >>> loader.get('foo').build_dir   # doctest: +ELLIPSIS
+            '/.../test_data/local/var/tmp/sage-build/foo'
         """
         return os.path.join(config.path.build, self.name)
 
@@ -124,7 +156,7 @@ class PackageBase(object):
         EXAMPLES::
 
             >>> loader.get('baz').get_all_dependencies()    
-            ['bar']
+            (bar,)
         """
         return \
             self.get_hard_dependencies() + \
@@ -132,26 +164,20 @@ class PackageBase(object):
             self.get_build_dependencies()
 
     def get_hard_dependencies(self):
-        try:
-            return self._config.depends.hard
-        except AttributeError:
-            return []
+        return self._hard_dependencies
+        
+    def get_soft_dependencies(self):
+        return self._soft_dependencies
         
     def get_build_dependencies(self):
-        try:
-            return self._config.depends.build
-        except AttributeError:
-            return []
+        return self._build_dependencies
 
     def get_test_dependencies(self):
         """
         Return the dependencies for running self-tests
         """
-        try:
-            return self._config.depends.test
-        except AttributeError:
-            return []
-        
+        return self._test_dependencies
+
     def want_check(self):
         try:
             return config('check', self.name)
@@ -180,8 +206,8 @@ class PackageBase(object):
 
         INPUT:
 
-        - ``dependencies`` -- dict. Which build task satisfies which
-          package dependency.
+        - ``dependencies`` -- dict. Which build task (= value) satisfies which
+          package dependency (= key).
 
         OUTPUT:
 
@@ -205,7 +231,7 @@ class PackageBase(object):
         dependency on the package name::
 
             >>> deps
-            {'foo': foo-install}
+            {foo: foo-install}
 
         You can also stop before installation, in which case ``deps``
         is never modified::
@@ -223,7 +249,7 @@ class PackageBase(object):
             ValueError: unknown value for the stop_at parameter
         """
         from sage_pkg.task_queue import Task
-        dependencies[self.name] = None   # default if you skip installation
+        dependencies[self] = None   # default if you skip installation
         tasklist = []
         task_download  = prev = Task(self.download,  [],     name='{0}-download' .format(self.name))
         tasklist.append(prev)
@@ -257,7 +283,7 @@ class PackageBase(object):
         tasklist.append(prev)
         if stop_at != 'install':
             raise ValueError('unknown value for the stop_at parameter')
-        dependencies[self.name] = task_install
+        dependencies[self] = task_install
         return tasklist
 
     def build_queue(self, stop_at='install'):
@@ -273,7 +299,7 @@ class PackageBase(object):
 
             >>> pkg = loader.get('baz')
             >>> pkg.get_all_dependencies()
-            ['bar']
+            (bar,)
             >>> queue = pkg.build_queue()
             >>> queue.run_serial()
             baz: downloading
@@ -290,6 +316,35 @@ class PackageBase(object):
         tasks = self.build_tasks(dependencies, stop_at=stop_at)
         queue.add_task(*tasks)
         return queue
+
+    def _success(self):
+        """
+        Installation finished successfully.
+
+        This method is called when the installation finished
+        successfully as part of the install step.
+        """
+        import yaml
+        result_yaml = yaml.dump(dict(
+            version=self.version,
+            version_stamp=self.version_stamp,
+        ), default_flow_style=False)
+        # atomically save result
+        tmpfile = tempfile.NamedTemporaryFile(dir=config.path.install_metadata, mode='w', delete=False)
+        try:
+            tmpfile.write(result_yaml)
+            tmpfile.close()
+            metadata = os.path.join(config.path.install_metadata, self.name + '.yaml')
+            os.rename(tmpfile.name, metadata)
+        except BaseException as error:
+            try:
+                tmpfile.close()
+                os.remove(tmpfile.name)
+            except OSError:
+                pass
+            raise error
+        logger.info('saved %s metadata at %s', self.name, metadata)
+
 
     def download(self):
         """
@@ -353,13 +408,14 @@ class PackageBase(object):
         """
         Installation
 
-        To be implemented in a derived class.
+        To be implemented in a derived class. Make sure to call the
+        superclass :meth:`install` at the end.
 
         Typically, this runs ``make install``. 
 
         .. warning:: 
 
-            This is the only
-            step that is allowed to put files in the installation directory.
+            This is the only step that is allowed to put files in the
+            installation directory.
         """
-        pass
+        self._success()

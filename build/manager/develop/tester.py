@@ -91,6 +91,7 @@ class DocTester(TesterABC):
         from sage_pkg.app import Application
         from sage_pkg.git.repo import GitRepository
         from sage_pkg.package_list import loader
+        import develop.util
         app = Application()
         return dict(
             os=os,
@@ -98,6 +99,7 @@ class DocTester(TesterABC):
             app=app,
             git=GitRepository(config.path.dot_git),
             loader=loader,
+            is_valid_sha1=develop.util.is_valid_sha1,
         )
 
 

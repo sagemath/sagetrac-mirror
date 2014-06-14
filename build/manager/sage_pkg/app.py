@@ -3,8 +3,8 @@ The main routines
 """
 
 from sage_pkg.config import config
-
 from sage_pkg.package_list import load_config, loader
+from sage_pkg.directories import make_required_directories
 
 
 def build_queue(pkg=None, stop_at='install'):
@@ -21,6 +21,7 @@ class Application(object):
         """
         The Python constructor
         """
+        make_required_directories()
         
     def table(self):
         """
