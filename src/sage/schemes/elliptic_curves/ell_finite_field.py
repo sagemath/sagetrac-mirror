@@ -1311,16 +1311,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         already_visited=set()
         
         def recurse_loop(j):
-            if j in (0,1728): 
-                raise NotImplementedError("At least a curve has a j-invariant in" 
-                                          "(0,1728).")
             if j in already_visited: return
             already_visited.add(j)
 
             for (r,m) in mod_pol(x,j).roots():
-                while m:
-                    G.add_edge((r,j))
-                    m-=1
+                G.add_edges([(r,j)]*m)
                 recurse_loop(r)
         recurse_loop(self.j_invariant())
         return G
