@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.1.6.p0
+        1.1.6
     tarball:
         name:     lrcalc-{source.version}.tar.bz2
         sha1:     b36a8bdfab9f8ca0cfc7f922b4f4b0064d364464

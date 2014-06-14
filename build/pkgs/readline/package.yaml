@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        6.2.p4
+        6.2
     tarball:
         name:     readline-{source.version}.tar.bz2
         sha1:     96887a7ee7407ba6b9d12fb4bd5cc848981844e1

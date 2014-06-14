@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.2.2.p0
+        2.2.2
     tarball:
         name:     mercurial-{source.version}.tar.bz2
         sha1:     a1d967b2538ad483ab72d64e83ef0eed58bb723a

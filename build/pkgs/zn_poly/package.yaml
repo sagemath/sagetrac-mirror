@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        0.9.p11
+        0.9
     tarball:
         name:     zn_poly-{source.version}.tar.bz2
         sha1:     ca5efae40f03394a6b828704f600f64a808b19d6

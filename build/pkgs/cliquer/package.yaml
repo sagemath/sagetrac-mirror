@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.21.p2
+        1.21
     tarball:
         name:     cliquer-{source.version}.tar.bz2
         sha1:     8239530eb14c1273c32ffcf3b671dd3766084374

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.8.4.4.p0
+        1.8.4.4
     tarball:
         name:     git-{source.version}.tar.bz2
         sha1:     8640f3c97a93b7b7788147f6eef1097b24192b2b

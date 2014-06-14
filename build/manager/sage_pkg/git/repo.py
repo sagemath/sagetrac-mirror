@@ -23,6 +23,8 @@ from sage_pkg.git.blob import Blob_from_file, Blob_from_pack, BlobTree, BlobComm
 from sage_pkg.git.util import full_split_repo_path
 
 
+_blob_cache = dict()
+
 
 class GitRepository(object):
 
@@ -51,12 +53,19 @@ class GitRepository(object):
         - ``sha1`` -- 40-digit hex number as string. The sha1 of the
           object to load. Must be an unpacked blob.
         """
+        global _blob_cache
+        try:
+            return _blob_cache[sha1]
+        except KeyError:
+            pass
         logger.debug('Loading blob with sha1 = %s', sha1)
         filename = os.path.join(self.dot_git, 'objects', sha1[0:2], sha1[2:])
         if os.path.isfile(filename):
-            return Blob_from_file(filename)
+            blob = Blob_from_file(filename)
         else:
-            return Blob_from_pack(sha1)
+            blob = Blob_from_pack(sha1)
+        _blob_cache[sha1] = blob
+        return blob
 
     def get_symbolic_ref(self, symbolic_ref):
         """

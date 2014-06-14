@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        20070912.p18
+        20070912
     tarball:
         name:     rubiks-{source.version}.tar.bz2
         sha1:     01a915569068c65b21943b3f34a9f0d104349a96

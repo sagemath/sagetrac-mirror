@@ -156,6 +156,7 @@ DEPENDENCIES = {
 
 
 import os
+import re
 from sage_pkg.config import config
 
 
@@ -169,7 +170,8 @@ def upgrade_all():
 
 def old_version(pkg_dir):
     with open(os.path.join(pkg_dir, 'package-version.txt'), 'r') as f:
-        return f.read().strip()
+        version_patchlevel = f.read().strip()
+    return re.sub(r'\.p[0-9]*', '', version_patchlevel)
 
 def old_sha1(pkg_dir):
     with open(os.path.join(pkg_dir, 'checksums.ini'), 'r') as f:

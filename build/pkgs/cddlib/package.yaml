@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        094g.p0
+        094g
     tarball:
         name:     cddlib-{source.version}.tar.bz2
         sha1:     7fb95db0f42c20edd4dde1835342c2b41b74f267

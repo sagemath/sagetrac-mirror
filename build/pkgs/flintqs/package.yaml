@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        20070817.p8
+        20070817
     tarball:
         name:     flintqs-{source.version}.tar.bz2
         sha1:     f1abd8246cd1b7fd4f163dcd5d933d2a531d25ea

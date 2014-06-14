@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.6.1.p0
+        2.6.1
     tarball:
         name:     pycrypto-{source.version}.tar.gz
         sha1:     aeda3ed41caf1766409d4efc689b9ca30ad6aeb2

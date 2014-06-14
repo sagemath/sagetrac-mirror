@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.5.5b.p1
+        2.5.5b
     tarball:
         name:     pari-{source.version}.tar.bz2
         sha1:     3f0838940fcf1cb7748979fe16e4b5cab0d19080

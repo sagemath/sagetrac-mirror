@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        4.7.3.p1
+        4.7.3
     tarball:
         name:     gcc-{source.version}.tar.bz2
         sha1:     8776968e847416b68687cc05d4642d6f71746294

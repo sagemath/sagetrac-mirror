@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        3.0.2.p1
+        3.0.2
     tarball:
         name:     r-{source.version}.tar.bz2
         sha1:     0ba9c6e5ceda749cccf5bd9cf5b535ff163deefe

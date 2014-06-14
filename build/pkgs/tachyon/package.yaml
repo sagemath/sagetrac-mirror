@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        0.98.9.p5
+        0.98.9
     tarball:
         name:     tachyon-{source.version}.tar.bz2
         sha1:     9866dc93e129115994708efa6e7ca16e20d58237

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        0.17.4.p0
+        0.17.4
     tarball:
         name:     topcom-{source.version}.tar.bz2
         sha1:     a9a1437f17ad7d3868e548cc03066895d692209c

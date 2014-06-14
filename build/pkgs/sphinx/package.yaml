@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.1.2.p2
+        1.1.2
     tarball:
         name:     sphinx-{source.version}.tar.bz2
         sha1:     2a6f238185a58cbb5c597c985d715ab9653e0fbe

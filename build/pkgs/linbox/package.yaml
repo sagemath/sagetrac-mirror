@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.3.2.p0
+        1.3.2
     tarball:
         name:     linbox-{source.version}.tar.bz2
         sha1:     66bdbf0bf050ab123ba7e0a34df36ca4e98cfc3b

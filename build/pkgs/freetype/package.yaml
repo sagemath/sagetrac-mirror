@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.5.2.p1
+        2.5.2
     tarball:
         name:     freetype-{source.version}.tar.bz2
         sha1:     72731cf405b9f7c0b56d144130a8daafa262b729

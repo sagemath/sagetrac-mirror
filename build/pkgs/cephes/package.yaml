@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.8.p1
+        2.8
     tarball:
         name:     cephes-{source.version}.tar.bz2
         sha1:     ef2fd663d14bb28caaef4a7fd5758cd488aa6752

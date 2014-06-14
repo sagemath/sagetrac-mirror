@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.0.35.p7
+        2.0.35
     tarball:
         name:     gd-{source.version}.tar.bz2
         sha1:     bd54e053d659d8d4a60502f6f85bc27663abc4e2

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.15.p1
+        1.15
     tarball:
         name:     gsl-{source.version}.tar.bz2
         sha1:     9d00ec595367f11a8674315b957a55679b2a50cc

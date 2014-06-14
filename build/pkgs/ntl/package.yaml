@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        6.1.0.p0
+        6.1.0
     tarball:
         name:     ntl-{source.version}.tar.bz2
         sha1:     d700374059b730d6d586272f8f78836857617790

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.23.p12
+        1.23
     tarball:
         name:     lcalc-{source.version}.tar.bz2
         sha1:     b530ae73ff6a668a33660a9b4c404dd23e551abe

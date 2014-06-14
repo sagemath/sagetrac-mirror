@@ -24,6 +24,7 @@ successfully, that is, did not raise an exception.
 
 
 import os
+import copy
 
 from sage_pkg.config import config
 from sage_pkg.task_queue import TaskQueue
@@ -157,6 +158,18 @@ class PackageBase(object):
         except KeyError:
             return config('check', 'default', default=False)
         
+    def get_environment(self):
+        """
+        Get a dictionary of environment variables
+
+        EXAMPLES::
+
+            >>> foo = loader.get('foo')
+            >>> foo.get_environment()   # doctest: +ELLIPSIS
+            {'...'}
+        """
+        return copy.copy(os.environ)
+
     def build_tasks(self, dependencies, stop_at='install'):
         """
         Each build step is its own task to be finer grained.

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.018.1.p11
+        1.018.1
     tarball:
         name:     sympow-{source.version}.tar.bz2
         sha1:     0058f22576b20413dc20fd8aa812f6edeb340115

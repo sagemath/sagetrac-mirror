@@ -1,15 +1,15 @@
 name:
-    python
+    spkg_example
 
 category:
     standard
 
 source:
     version:  
-        2.7.5
+        4.7.4
     tarball:
-        name:     python-{source.version}.tar.bz2
-        sha1:     6b901ace46a66ea4ea01380cb7dd00d9ac9c5deb
+        name:     spkg_example-{source.version}.tar.bz2
+        sha1:     e61699cedf56b3b1668dec7387437eeb08fba3e7
 
 builder:
     type:            SpkgInstallScript
@@ -18,9 +18,6 @@ builder:
 
 depends:
     hard:
-        - zlib
-        - bzip2
-        - pkgconf
+        - ncurses
         - readline
-        - sqlite
-        - libpng
+        - mpir

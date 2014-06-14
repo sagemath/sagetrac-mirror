@@ -31,7 +31,7 @@ from .config import set_configuration
 
 
 
-def debug_shell(app, parser):
+def debug_shell(app, package, parser):
     from IPython.frontend.terminal.ipapp import TerminalIPythonApp
     ip = TerminalIPythonApp.instance()
     ip.initialize(argv=[])
@@ -45,11 +45,13 @@ def debug_shell(app, parser):
     ip.shell.user_global_ns['git'] = GitRepository(config.path.dot_git)
     from sage_pkg.package_list import loader
     ip.shell.user_global_ns['loader'] = loader
+    ip.shell.user_global_ns[package] = loader.get(package)
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)
         ip.shell.user_global_ns[identifier] = getattr(module, identifier) 
     # ipy_import('sage_pkg.git_interface', 'GitInterface')
+    print('Type "{0}" to access the {0} package'.format(package))
     ip.start()
 
 
@@ -64,9 +66,6 @@ The Sage Package Manager
 def launch(DEFAULT_CONFIG):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=description)
-    parser.add_argument('--debug', dest='debug', action='store_true',
-                        default=False, 
-                        help='debug')
     parser.add_argument('--config', dest='config', type=str, default=None, 
                         help='builder configuration file')
     parser.add_argument('--log', dest='log', default=None,
@@ -76,6 +75,10 @@ def launch(DEFAULT_CONFIG):
     # sage-pkg info <package>
     parser_info = subparsers.add_parser('info', help='Print information about package')
     parser_info.add_argument('package', type=str, help='Package name')
+
+    # sage-pkg debug <package>
+    parser_debug = subparsers.add_parser('debug', help='Debug package')
+    parser_debug.add_argument('package', type=str, help='Package name')
 
     # sage-pkg info <package>
     parser_list = subparsers.add_parser('list', help='List all packages')
@@ -119,8 +122,8 @@ def launch(DEFAULT_CONFIG):
     from .app import Application
     app = Application()
 
-    if args.debug:
-        debug_shell(app, parser)
+    if args.subcommand == 'debug':
+        debug_shell(app, args.package, parser)
     elif args.subcommand == 'info':
         app.info(args.package)
     elif args.subcommand == 'list':

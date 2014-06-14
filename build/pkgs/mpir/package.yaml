@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        2.6.0.p4
+        2.6.0
     tarball:
         name:     mpir-{source.version}.tar.bz2
         sha1:     a9fbfe30db672939abab06d16ce48087ee1b0d01

@@ -6,7 +6,7 @@ category:
 
 source:
     version:  
-        1.0.3.p0
+        1.0.3
     tarball:
         name:     iml-{source.version}.tar.bz2
         sha1:     4db731294de286468eb8ea30617a4fa12a5b85e2
