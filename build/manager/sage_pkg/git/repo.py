@@ -8,8 +8,7 @@ Limitations:
 
 * Readonly!
 
-* No support for packed anything. You can be sure that ``'HEAD'``
-  works, but other branches might not.
+* Only new git repo format (e.g. pack index v2)
 """
 
 
@@ -20,7 +19,7 @@ import zlib
 from sage_pkg.logger import logger
 from sage_pkg.git.git_ignore import is_ignored
 
-from sage_pkg.git.blob import Blob, BlobTree, BlobCommit, BlobFile
+from sage_pkg.git.blob import Blob_from_file, Blob_from_pack, BlobTree, BlobCommit, BlobFile
 from sage_pkg.git.util import full_split_repo_path
 
 
@@ -54,7 +53,10 @@ class GitRepository(object):
         """
         logger.debug('Loading blob with sha1 = %s', sha1)
         filename = os.path.join(self.dot_git, 'objects', sha1[0:2], sha1[2:])
-        return Blob(filename)
+        if os.path.isfile(filename):
+            return Blob_from_file(filename)
+        else:
+            return Blob_from_pack(sha1)
 
     def get_symbolic_ref(self, symbolic_ref):
         """
@@ -105,8 +107,7 @@ class GitRepository(object):
                     continue
                 if line.rstrip().endswith(branch):
                     sha1 = line[0:40]
-                    # This is the sha, but the corresponding object is going to be packed
-                    raise ValueError('branch is packed')
+                    return sha1
         raise ValueError('no such branch')
         
     def get_tree(self, dirname):

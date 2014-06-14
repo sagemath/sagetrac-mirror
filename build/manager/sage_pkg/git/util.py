@@ -3,8 +3,20 @@ Utility functions
 """
 
 import os
+import binascii
 
 from sage_pkg.config import config
+
+
+
+def sha_to_binary(sha_ascii):
+    assert len(sha_ascii) == 40
+    return binascii.unhexlify(sha_ascii)
+
+
+def sha_to_ascii(sha_binary):
+    assert len(sha_binary) == 20
+    return binascii.exlify(sha_binary)
 
 
 def full_split_repo_path(path):

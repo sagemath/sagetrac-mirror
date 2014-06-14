@@ -6,8 +6,11 @@ Git Blobs
 import os
 import re
 import zlib
+import glob
 
 from sage_pkg.logger import logger
+from sage_pkg.git.pack import Pack
+from sage_pkg.config import config
 
 
 BLOB_RE = re.compile(r'(?P<type>[a-z]*) (?P<size>[0-9]*)\0(?P<content>.*)', flags=re.DOTALL)
@@ -15,9 +18,9 @@ BLOB_RE = re.compile(r'(?P<type>[a-z]*) (?P<size>[0-9]*)\0(?P<content>.*)', flag
 BLOB_COMMIT_TREE_RE = re.compile(r'tree (?P<sha1>[a-f0-9]{40,40})')
 
 
-def Blob(filename):
+def Blob_from_file(filename):
     """
-    Load the git object with given sha1 hash
+    Load the unpacked git object with given sha1 hash
     """
     with open(filename, 'rb') as f:
         blob = zlib.decompress(f.read())
@@ -25,20 +28,50 @@ def Blob(filename):
     if not match:
         raise ValueError('file is not a git object')
     if blob.startswith('commit'):
-        return BlobCommit(match)
+        return BlobCommit(match.group('content'))
     if blob.startswith('tree'):
-        return BlobTree(match)
+        return BlobTree(match.group('content'))
     if blob.startswith('blob'):
-        return BlobFile(match)
+        return BlobFile(match.group('content'))
     raise ValueError('unsupported blob: ' + repr(blob))
+
+
+def Blob_from_pack(sha1):
+    """
+    Load object from pack
+    
+    EXAMPLES::
+
+        >>> git.get('b16df56703138b0e6bed3e0bb48ce0fa276cb575')
+    """
+    #P = Pack(os.path.join(config.path.dot_git, 'objects', 'pack', 'pack-40ca8d1eac39ffa0fc6a071ae834e59e1a49ef9f'))
+    #return P.get_raw(sha1)
+
+    pack_glob = os.path.join(config.path.dot_git, 'objects', 'pack', 'pack-*.pack')
+    for pack_name in glob.glob(pack_glob):
+        basename = pack_name[:-5]   # strip off '.pack'
+        with Pack(basename) as P:
+            try:
+                type_num, content = P.get_raw(sha1)
+            except KeyError:
+                continue
+        if type_num == 1:
+            return BlobCommit(content)
+        if type_num == 2:
+            return BlobTree(content)
+        if type_num == 3:
+            return BlobFile(content)
+        if type_num == 4:
+            raise NotImplementedError('git tag object not implemented')
+        raise ValueError('unsupported blob type_num: ' + str(type_num))
+    raise ValueError('not in any pack file: ' + sha1)
+
 
 
 class BlobABC(object):
     
-    def __init__(self, match):
-        self._type = match.group('type')
-        self._size = int(match.group('size'))
-        self._content = match.group('content')
+    def __init__(self, content):
+        self._content = content
 
     def __repr__(self):
         s = [self.__class__.__name__ + ':']
