@@ -1,0 +1,22 @@
+name:
+    mpc
+
+category:
+    standard
+
+source:
+    version:  
+        1.0.2.p0
+    tarball:
+        name:     mpc-{source.version}.tar.gz
+        sha1:     5072d82ab50ec36cc8c0e320b5c377adb48abe70
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - mpfr

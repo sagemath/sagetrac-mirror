@@ -1,0 +1,26 @@
+name:
+    cvxopt
+
+category:
+    standard
+
+source:
+    version:  
+        1.1.6.p0
+    tarball:
+        name:     cvxopt-{source.version}.tar.bz2
+        sha1:     ded19c9acfa3c256e6cbd738fbaf5a155c7dbc96
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - numpy
+        - atlas
+        - cephes
+        - gsl
+        - glpk
+        - matplotlib

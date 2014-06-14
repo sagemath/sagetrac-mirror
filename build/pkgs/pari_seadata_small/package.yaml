@@ -1,0 +1,20 @@
+name:
+    pari_seadata_small
+
+category:
+    standard
+
+source:
+    version:  
+        20090618
+    tarball:
+        name:     pari_seadata_small-{source.version}.tar.bz2
+        sha1:     9df70728bfae81fad4ff66a3c7f57d99bbe70732
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

@@ -3,7 +3,7 @@ Base class for Packages
 
 Packages define 7 steps:
 
-* Download of the sources
+* Download of the sources (including verification of checksums)
 
 * Unpacking of the sources
 
@@ -178,22 +178,74 @@ class PackageBase(object):
                 task_configure, task_build, task_check, task_install]
 
     def download(self):
+        """
+        Download of the sources.
+
+        This includes verification of checksums, if any.
+
+        To be implemented in a derived class.
+        """
         pass
 
     def unpack(self):
+        """
+        Unpacking of the sources.
+
+        To be implemented in a derived class
+        """
         pass
 
     def prepare(self):
+        """
+        Preparation of the source.
+
+        To be implemented in a derived class.
+
+        Typically, this step applies patches.
+        """
         pass
 
     def configure(self):
+        """
+        Configuring.
+
+        To be implemented in a derived class.
+
+        Typically, this runs ``./configure``.
+        """
         pass
 
     def build(self):
+        """
+        Build.
+        
+        To be implemented in a derived class
+
+        Typically, this runs ``make``.
+        """
         pass
 
     def check(self):
+        """
+        Run self-tests
+        
+        To be implemented in a derived class
+
+        Typically, this runs ``make check``.
+        """
         pass
 
     def install(self):
+        """
+        Installation
+
+        To be implemented in a derived class.
+
+        Typically, this runs ``make install``. 
+
+        .. warning:: 
+
+            This is the only
+            step that is allowed to put files in the destination directory.
+        """
         pass

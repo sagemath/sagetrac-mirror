@@ -1,0 +1,24 @@
+name:
+    singular
+
+category:
+    standard
+
+source:
+    version:  
+        3.1.6.p1
+    tarball:
+        name:     singular-{source.version}.tar.bz2
+        sha1:     aa94b574ca6632280a9fe58ad762eff9cd2d6912
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - mpir
+        - ntl
+        - readline
+        - mpfr

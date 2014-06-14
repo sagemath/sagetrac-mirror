@@ -1,0 +1,17 @@
+name:
+    libm4rie
+
+category:
+    standard
+
+source:
+    version:  
+        20130416
+    tarball:
+        name:     libm4rie-{source.version}.tar.bz2
+        sha1:     f576292b73383a8ec701684f135401350e627ada
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

@@ -1,0 +1,22 @@
+name:
+    ntl
+
+category:
+    standard
+
+source:
+    version:  
+        6.1.0.p0
+    tarball:
+        name:     ntl-{source.version}.tar.bz2
+        sha1:     d700374059b730d6d586272f8f78836857617790
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - gf2x

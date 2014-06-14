@@ -1,0 +1,17 @@
+name:
+    database_cremona_ellcurve
+
+category:
+    standard
+
+source:
+    version:  
+        20140512
+    tarball:
+        name:     database_cremona_ellcurve-{source.version}.tar.bz2
+        sha1:     ab96f509574419c03d9f1c8820c4d96042a17a04
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

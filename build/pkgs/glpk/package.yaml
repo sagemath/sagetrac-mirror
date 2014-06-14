@@ -1,0 +1,22 @@
+name:
+    glpk
+
+category:
+    standard
+
+source:
+    version:  
+        4.44.p0
+    tarball:
+        name:     glpk-{source.version}.tar.bz2
+        sha1:     dff3253bcaf23ba6303e72f019b9dfa4dad9ea06
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - zlib

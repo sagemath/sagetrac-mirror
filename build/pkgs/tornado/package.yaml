@@ -1,0 +1,21 @@
+name:
+    tornado
+
+category:
+    standard
+
+source:
+    version:  
+        3.1.1
+    tarball:
+        name:     tornado-{source.version}.tar.gz
+        sha1:     cfc560ee6ff36393b48cb467a27ff294b8879158
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

@@ -1,0 +1,17 @@
+name:
+    configure
+
+category:
+    standard
+
+source:
+    version:  
+        33
+    tarball:
+        name:     configure-{source.version}.tar.gz
+        sha1:     94c4a9dc954e0d5653907a5187f61059835c713b
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

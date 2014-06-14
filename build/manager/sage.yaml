@@ -26,8 +26,15 @@ path:
     install:
         local
 
+
 mirrors:
     - http://www.sagemath.org/packages
+
+
+install:
+    - gcc: maybe
+
+
 
 
 ... # End of the builder configuration

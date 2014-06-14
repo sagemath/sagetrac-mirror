@@ -1,0 +1,21 @@
+name:
+    pexpect
+
+category:
+    standard
+
+source:
+    version:  
+        2.0.p6
+    tarball:
+        name:     pexpect-{source.version}.tar.bz2
+        sha1:     c4167a668e75b36a9e698c450627dac29ced6320
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

@@ -25,7 +25,8 @@ path:
     install:
        /usr/local 
 
-
+    test_data:
+        build/manager/test_data
 
 mirrors:
     - http://download.example.com/packages

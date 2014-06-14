@@ -1,0 +1,21 @@
+name:
+    givaro
+
+category:
+    standard
+
+source:
+    version:  
+        3.7.1
+    tarball:
+        name:     givaro-{source.version}.tar.bz2
+        sha1:     e8358e175087ab091588f02d04261d8cad61af38
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir

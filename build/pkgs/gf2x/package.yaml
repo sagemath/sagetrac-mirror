@@ -1,0 +1,20 @@
+name:
+    gf2x
+
+category:
+    standard
+
+source:
+    version:  
+        1.1.p0
+    tarball:
+        name:     gf2x-{source.version}.tar.bz2
+        sha1:     5e3a4db7c5ebd24a67b6dc92297a4a18e55ead9f
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

@@ -1,0 +1,23 @@
+name:
+    ecl
+
+category:
+    standard
+
+source:
+    version:  
+        12.12.1.20140409
+    tarball:
+        name:     ecl-{source.version}.tar.bz2
+        sha1:     c79fa3573afad1834cf6057c15f303505fc0011d
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - mpir
+        - readline
+        - boehm_gc

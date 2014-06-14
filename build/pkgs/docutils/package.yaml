@@ -1,0 +1,21 @@
+name:
+    docutils
+
+category:
+    standard
+
+source:
+    version:  
+        0.7.p0
+    tarball:
+        name:     docutils-{source.version}.tar.bz2
+        sha1:     17138988f425af9c4ded43113e191da572f8b078
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

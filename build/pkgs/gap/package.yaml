@@ -1,0 +1,23 @@
+name:
+    gap
+
+category:
+    standard
+
+source:
+    version:  
+        4.7.4
+    tarball:
+        name:     gap-{source.version}.tar.bz2
+        sha1:     e61699cedf56b3b1668dec7387437eeb08fba3e7
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - ncurses
+        - readline
+        - mpir

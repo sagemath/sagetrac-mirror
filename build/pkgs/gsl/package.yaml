@@ -1,0 +1,21 @@
+name:
+    gsl
+
+category:
+    standard
+
+source:
+    version:  
+        1.15.p1
+    tarball:
+        name:     gsl-{source.version}.tar.bz2
+        sha1:     9d00ec595367f11a8674315b957a55679b2a50cc
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - atlas

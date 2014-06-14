@@ -1,0 +1,21 @@
+name:
+    sympy
+
+category:
+    standard
+
+source:
+    version:  
+        0.7.4
+    tarball:
+        name:     sympy-{source.version}.tar.gz
+        sha1:     0ce667f10522824ef022651e776d9e9cf6af4517
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

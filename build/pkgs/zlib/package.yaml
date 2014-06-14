@@ -1,0 +1,20 @@
+name:
+    zlib
+
+category:
+    standard
+
+source:
+    version:  
+        1.2.8.p0
+    tarball:
+        name:     zlib-{source.version}.tar.bz2
+        sha1:     e63277b761e138a75f8c6a9ededb8d95198739a7
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

@@ -1,0 +1,22 @@
+name:
+    ppl
+
+category:
+    standard
+
+source:
+    version:  
+        1.1
+    tarball:
+        name:     ppl-{source.version}.tar.bz2
+        sha1:     f76fbc2d374170771fed030b79a5ffac08d907bf
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - glpk

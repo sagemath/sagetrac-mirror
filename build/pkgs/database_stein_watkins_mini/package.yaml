@@ -1,0 +1,17 @@
+name:
+    database_stein_watkins_mini
+
+category:
+    standard
+
+source:
+    version:  
+        20070827
+    tarball:
+        name:     database_stein_watkins_mini-{source.version}.tar.bz2
+        sha1:     4979191668e7cc8490eda75044435519faab0f9c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

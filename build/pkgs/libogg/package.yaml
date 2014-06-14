@@ -1,0 +1,17 @@
+name:
+    libogg
+
+category:
+    standard
+
+source:
+    version:  
+        1.3.1
+    tarball:
+        name:     libogg-{source.version}.tar.gz
+        sha1:     270685c2a3d9dc6c98372627af99868aa4b4db53
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

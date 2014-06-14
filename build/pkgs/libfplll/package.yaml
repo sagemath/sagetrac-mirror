@@ -1,0 +1,17 @@
+name:
+    libfplll
+
+category:
+    standard
+
+source:
+    version:  
+        4.0.4
+    tarball:
+        name:     libfplll-{source.version}.tar.bz2
+        sha1:     4e997a182bfb515cca1c4cf65759a1f3380b081c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

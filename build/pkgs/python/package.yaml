@@ -1,0 +1,26 @@
+name:
+    python
+
+category:
+    standard
+
+source:
+    version:  
+        2.7.5.p2
+    tarball:
+        name:     python-{source.version}.tar.bz2
+        sha1:     6b901ace46a66ea4ea01380cb7dd00d9ac9c5deb
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - zlib
+        - bzip2
+        - pkgconf
+        - readline
+        - sqlite
+        - libpng

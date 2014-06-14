@@ -1,0 +1,17 @@
+name:
+    autotools
+
+category:
+    standard
+
+source:
+    version:  
+        20140114
+    tarball:
+        name:     autotools-{source.version}.tar.bz2
+        sha1:     671edb2a9bfe0f65803acc73e400497b4ee3fb21
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

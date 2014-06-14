@@ -1,0 +1,20 @@
+name:
+    pari_galdata
+
+category:
+    standard
+
+source:
+    version:  
+        20080411
+    tarball:
+        name:     pari_galdata-{source.version}.tar.bz2
+        sha1:     4ae710687cb711c49645314c28d53ab3b3a38706
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

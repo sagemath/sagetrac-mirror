@@ -1,0 +1,20 @@
+name:
+    cliquer
+
+category:
+    standard
+
+source:
+    version:  
+        1.21.p2
+    tarball:
+        name:     cliquer-{source.version}.tar.bz2
+        sha1:     8239530eb14c1273c32ffcf3b671dd3766084374
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

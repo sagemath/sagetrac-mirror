@@ -1,0 +1,26 @@
+name:
+    sagenb
+
+category:
+    standard
+
+source:
+    version:  
+        0.10.8.2
+    tarball:
+        name:     sagenb-{source.version}.tar
+        sha1:     89f92fa00102aa5c9080e0517c374fa6ebf11999
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - setuptools
+        - pexpect
+        - jinja2
+        - sphinx
+        - docutils

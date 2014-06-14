@@ -1,0 +1,21 @@
+name:
+    ipython
+
+category:
+    standard
+
+source:
+    version:  
+        1.2.1
+    tarball:
+        name:     ipython-{source.version}.tar.gz
+        sha1:     0041de4de5cac2fb5d0522af84958c78c1dfd9bf
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

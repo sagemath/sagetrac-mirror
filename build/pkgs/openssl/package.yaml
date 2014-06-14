@@ -1,0 +1,17 @@
+name:
+    openssl
+
+category:
+    standard
+
+source:
+    version:  
+        1.0.1e
+    tarball:
+        name:     openssl-{source.version}.tar.gz
+        sha1:     3f1b1223c9e8189bfe4e186d86449775bd903460
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

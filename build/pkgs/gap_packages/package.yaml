@@ -1,0 +1,17 @@
+name:
+    gap_packages
+
+category:
+    standard
+
+source:
+    version:  
+        4.7.4.20140531
+    tarball:
+        name:     gap_packages-{source.version}.tar.bz2
+        sha1:     9ce61e1947bc5aa0f761f97fb9777e97ab6d3eda
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

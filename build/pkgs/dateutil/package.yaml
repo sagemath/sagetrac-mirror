@@ -1,0 +1,23 @@
+name:
+    dateutil
+
+category:
+    standard
+
+source:
+    version:  
+        2.2
+    tarball:
+        name:     dateutil-{source.version}.tar.gz
+        sha1:     51bdee8ba3817707fcb22767da0d2d039c5ab921
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - six
+        - setuptools

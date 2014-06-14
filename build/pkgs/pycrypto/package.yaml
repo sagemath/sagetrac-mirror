@@ -1,0 +1,21 @@
+name:
+    pycrypto
+
+category:
+    standard
+
+source:
+    version:  
+        2.6.1.p0
+    tarball:
+        name:     pycrypto-{source.version}.tar.gz
+        sha1:     aeda3ed41caf1766409d4efc689b9ca30ad6aeb2
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - python

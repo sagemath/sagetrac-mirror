@@ -1,0 +1,17 @@
+name:
+    gmp
+
+category:
+    standard
+
+source:
+    version:  
+        5.1.3
+    tarball:
+        name:     gmp-{source.version}.tar.bz2
+        sha1:     b35928e2927b272711fdfbf71b7cfd5f86a6b165
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

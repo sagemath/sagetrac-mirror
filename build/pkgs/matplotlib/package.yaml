@@ -1,0 +1,29 @@
+name:
+    matplotlib
+
+category:
+    standard
+
+source:
+    version:  
+        1.3.1
+    tarball:
+        name:     matplotlib-{source.version}.tar.gz
+        sha1:     f340378c43c4c3f6219ef9fd84af4ebbe18f8feb
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - numpy
+        - freetype
+        - libpng
+        - gdmodule
+        - dateutil
+        - pkgconf
+        - pyparsing
+        - setuptools

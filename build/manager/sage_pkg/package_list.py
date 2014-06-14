@@ -11,6 +11,10 @@ from sage_pkg.git.repo import GitRepository
 from sage_pkg.task_queue import TaskQueue
 
 
+class InvalidPackage(Exception):
+    pass
+    
+
 def load_config(pkg_name):
     """
     Return the configuration for a package
@@ -35,6 +39,8 @@ def load_config(pkg_name):
         - config.source.version = 1.3
     """
     package_yaml = os.path.join(config.path.packages, pkg_name, 'package.yaml')
+    if not os.path.isfile(package_yaml):
+        raise InvalidPackage('missing package.yaml')
     return PackageConfig(package_yaml)
 
 
@@ -89,7 +95,11 @@ class PackageLoader(object):
             fullname = os.path.join(config.path.packages, name)
             if not os.path.isdir(fullname):
                 continue
-            pkg_config = load_config(name)
+            try:
+                pkg_config = load_config(name)
+            except InvalidPackage as err:
+                print('Package {0} invalid: {1}'.format(name, err))
+                continue
             if pkg_config.name.lower() != name.lower():
                 raise ValueError('The name in package.yaml must match the directory name')
             try:
@@ -117,11 +127,15 @@ class PackageLoader(object):
         """
         Return packages as queue
 
+        The packages don't have any work associated (i.e. they are not
+        callable). So you can only use it the output to iterate
+        through the packages (in a way that satisfies dependencies).
+
         EXAMPLES::
 
             >>> queue = loader.queue()
             >>> while not queue.is_finished():
-            ...     task = queue.next()
+            ...     task = queue.next(reproducible=True)
             ...     print task
             ...     queue.finish(task)
             Task foo

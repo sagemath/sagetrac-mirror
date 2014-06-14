@@ -1,0 +1,17 @@
+name:
+    sage_mode
+
+category:
+    standard
+
+source:
+    version:  
+        0.11
+    tarball:
+        name:     sage_mode-{source.version}.tar.bz2
+        sha1:     83abb4de8724543bf67dba05c37d8e8400d811e6
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

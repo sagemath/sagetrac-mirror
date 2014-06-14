@@ -1,0 +1,21 @@
+name:
+    jmol
+
+category:
+    standard
+
+source:
+    version:  
+        12.3.27.p3
+    tarball:
+        name:     jmol-{source.version}.tar.bz2
+        sha1:     e2a6ed355948a106c8d574922a7254b337e8f8a3
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - sagenb

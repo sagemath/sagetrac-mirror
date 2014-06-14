@@ -1,0 +1,21 @@
+name:
+    ratpoints
+
+category:
+    standard
+
+source:
+    version:  
+        2.1.3.p3
+    tarball:
+        name:     ratpoints-{source.version}.tar.bz2
+        sha1:     14fbc3dd50742794e0b33d2dd1217e5dd8ad2623
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - mpir

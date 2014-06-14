@@ -1,0 +1,22 @@
+name:
+    lcalc
+
+category:
+    standard
+
+source:
+    version:  
+        1.23.p12
+    tarball:
+        name:     lcalc-{source.version}.tar.bz2
+        sha1:     b530ae73ff6a668a33660a9b4c404dd23e551abe
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - pari
+        - mpfr

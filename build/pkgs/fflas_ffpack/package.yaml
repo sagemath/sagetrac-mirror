@@ -1,0 +1,17 @@
+name:
+    fflas_ffpack
+
+category:
+    standard
+
+source:
+    version:  
+        1.6.0.p0
+    tarball:
+        name:     fflas_ffpack-{source.version}.tar.bz2
+        sha1:     4a2235955cd79167143ac23c19951545be37a021
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

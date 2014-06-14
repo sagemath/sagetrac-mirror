@@ -1,0 +1,17 @@
+name:
+    git_trac
+
+category:
+    standard
+
+source:
+    version:  
+        1.0
+    tarball:
+        name:     git_trac-{source.version}.tar.bz2
+        sha1:     624d927bc0d6cb315f7158df97293adac46e14b0
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

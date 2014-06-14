@@ -1,0 +1,21 @@
+name:
+    libgap
+
+category:
+    standard
+
+source:
+    version:  
+        4.7.4
+    tarball:
+        name:     libgap-{source.version}.tar.gz
+        sha1:     8a642b7b8ba0e9f707b5dab89d435994257b9f43
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - gap

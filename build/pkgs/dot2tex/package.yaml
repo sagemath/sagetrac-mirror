@@ -1,0 +1,17 @@
+name:
+    dot2tex
+
+category:
+    standard
+
+source:
+    version:  
+        20120520
+    tarball:
+        name:     dot2tex-{source.version}.tar.bz2
+        sha1:     514771c38869014d8af36cc942bef2653187ae7c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

@@ -1,0 +1,22 @@
+name:
+    gfan
+
+category:
+    standard
+
+source:
+    version:  
+        0.5.p0
+    tarball:
+        name:     gfan-{source.version}.tar.bz2
+        sha1:     a39379824ba09ed41db5cc6c2d7c41f869fe940f
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - mpir
+        - cddlib

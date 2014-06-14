@@ -1,0 +1,21 @@
+name:
+    ecm
+
+category:
+    standard
+
+source:
+    version:  
+        6.4.4
+    tarball:
+        name:     ecm-{source.version}.tar.bz2
+        sha1:     97a6f9fc68337d8dadebc4754a61fdfe97bb0136
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir

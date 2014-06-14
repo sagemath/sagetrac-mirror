@@ -1,0 +1,23 @@
+name:
+    jinja2
+
+category:
+    standard
+
+source:
+    version:  
+        2.5.5
+    tarball:
+        name:     jinja2-{source.version}.tar.bz2
+        sha1:     e9e13b4f573effd35e03b1ecd978c684342d549c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - setuptools
+        - docutils

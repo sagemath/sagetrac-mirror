@@ -1,0 +1,21 @@
+name:
+    bzip2
+
+category:
+    standard
+
+source:
+    version:  
+        1.0.6.20140317
+    tarball:
+        name:     bzip2-{source.version}.tar.gz
+        sha1:     3533f6a2325e4e727a2c8ead5ea48202e9b9b423
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - pkgconf

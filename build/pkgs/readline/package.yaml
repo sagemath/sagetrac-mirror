@@ -1,0 +1,21 @@
+name:
+    readline
+
+category:
+    standard
+
+source:
+    version:  
+        6.2.p4
+    tarball:
+        name:     readline-{source.version}.tar.bz2
+        sha1:     96887a7ee7407ba6b9d12fb4bd5cc848981844e1
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - ncurses

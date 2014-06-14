@@ -93,6 +93,7 @@ class DocTester(TesterABC):
         from sage_pkg.package_list import loader
         app = Application()
         return dict(
+            os=os,
             config=config,
             app=app,
             git=GitRepository(config.path.dot_git),

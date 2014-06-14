@@ -1,0 +1,21 @@
+name:
+    boehm_gc
+
+category:
+    standard
+
+source:
+    version:  
+        7.2d.p0
+    tarball:
+        name:     boehm_gc-{source.version}.tar.bz2
+        sha1:     4013e5d6b685e1a3c7ff9b5447405a2b452731be
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - pkgconf

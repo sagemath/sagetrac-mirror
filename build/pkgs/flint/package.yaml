@@ -1,0 +1,23 @@
+name:
+    flint
+
+category:
+    standard
+
+source:
+    version:  
+        2.4.3
+    tarball:
+        name:     flint-{source.version}.tar.gz
+        sha1:     1baa7157d64a881e1612620e190d780b55e5ee3b
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - mpfr
+        - ntl

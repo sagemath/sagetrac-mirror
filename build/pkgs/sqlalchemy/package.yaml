@@ -1,0 +1,22 @@
+name:
+    sqlalchemy
+
+category:
+    standard
+
+source:
+    version:  
+        0.5.8
+    tarball:
+        name:     sqlalchemy-{source.version}.tar.bz2
+        sha1:     dcc1b0b997be96342817f108e45005c260e940e7
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - python
+        - setuptools

@@ -1,0 +1,21 @@
+name:
+    mpmath
+
+category:
+    standard
+
+source:
+    version:  
+        0.18
+    tarball:
+        name:     mpmath-{source.version}.tar.gz
+        sha1:     b103be6ab76aa2747f5b5d46b9a097b97a191dee
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

@@ -1,0 +1,20 @@
+name:
+    graphs
+
+category:
+    standard
+
+source:
+    version:  
+        20120404.p4
+    tarball:
+        name:     graphs-{source.version}.tar.bz2
+        sha1:     3454dcbb5162f937f2bb62355cdfffd31ee70eee
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

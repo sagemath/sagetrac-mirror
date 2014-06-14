@@ -1,0 +1,17 @@
+name:
+    rpy2
+
+category:
+    standard
+
+source:
+    version:  
+        2.3.8
+    tarball:
+        name:     rpy2-{source.version}.tar.gz
+        sha1:     5e26a8dcbfe27ac099867f02c15ef830051ca19e
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

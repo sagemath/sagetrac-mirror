@@ -1,0 +1,20 @@
+name:
+    symmetrica
+
+category:
+    standard
+
+source:
+    version:  
+        2.0.p9
+    tarball:
+        name:     symmetrica-{source.version}.tar.bz2
+        sha1:     946111801dc98a11bb50d8a02ebc18b3e6d2ee28
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

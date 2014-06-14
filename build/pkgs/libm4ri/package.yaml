@@ -1,0 +1,17 @@
+name:
+    libm4ri
+
+category:
+    standard
+
+source:
+    version:  
+        20130416
+    tarball:
+        name:     libm4ri-{source.version}.tar.bz2
+        sha1:     cf5c8a92bd503354e751ca27380fb5fd1be5437f
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

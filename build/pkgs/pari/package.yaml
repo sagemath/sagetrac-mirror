@@ -1,0 +1,24 @@
+name:
+    pari
+
+category:
+    standard
+
+source:
+    version:  
+        2.5.5b.p1
+    tarball:
+        name:     pari-{source.version}.tar.bz2
+        sha1:     3f0838940fcf1cb7748979fe16e4b5cab0d19080
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - readline
+        - mpir
+        - pari_galdata
+        - pari_seadata_small

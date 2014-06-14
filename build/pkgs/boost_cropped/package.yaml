@@ -1,0 +1,20 @@
+name:
+    boost_cropped
+
+category:
+    standard
+
+source:
+    version:  
+        1.52.0
+    tarball:
+        name:     boost_cropped-{source.version}.tar.bz2
+        sha1:     25daefce8a55f14bb56b72fffd573972cd2379d2
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

@@ -1,0 +1,21 @@
+name:
+    genus2reduction
+
+category:
+    standard
+
+source:
+    version:  
+        0.3.p8
+    tarball:
+        name:     genus2reduction-{source.version}.tar.bz2
+        sha1:     a29ae793b4c2d427ed5ffbecce4f77f5ba5c1e36
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - pari

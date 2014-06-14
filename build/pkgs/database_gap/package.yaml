@@ -1,0 +1,17 @@
+name:
+    database_gap
+
+category:
+    standard
+
+source:
+    version:  
+        4.7.4
+    tarball:
+        name:     database_gap-{source.version}.tar.bz2
+        sha1:     6e5f63df55881a509076c4ecbd02c7afc8f81ef9
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check

@@ -1,0 +1,21 @@
+name:
+    six
+
+category:
+    standard
+
+source:
+    version:  
+        1.4.1
+    tarball:
+        name:     six-{source.version}.tar.gz
+        sha1:     b4cfd03344390d73d84349c815808358a128cc1d
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

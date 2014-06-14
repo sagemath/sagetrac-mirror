@@ -1,0 +1,21 @@
+name:
+    patch
+
+category:
+    standard
+
+source:
+    version:  
+        2.5.9.p3
+    tarball:
+        name:     patch-{source.version}.tar.bz2
+        sha1:     b0858023f34c87028cbdbeab6c4a797258ea1be1
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - bzip2

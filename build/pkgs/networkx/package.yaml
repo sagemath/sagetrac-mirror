@@ -1,0 +1,21 @@
+name:
+    networkx
+
+category:
+    standard
+
+source:
+    version:  
+        1.8.1
+    tarball:
+        name:     networkx-{source.version}.tar.gz
+        sha1:     d6c1524724d3e47f7621bb2072863463924bfb99
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

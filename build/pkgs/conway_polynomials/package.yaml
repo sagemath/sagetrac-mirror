@@ -1,0 +1,17 @@
+name:
+    conway_polynomials
+
+category:
+    standard
+
+source:
+    version:  
+        0.4.p0
+    tarball:
+        name:     conway_polynomials-{source.version}.tar.bz2
+        sha1:     25b7abe5c935d20c3ebcde943308652c412d14dc
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

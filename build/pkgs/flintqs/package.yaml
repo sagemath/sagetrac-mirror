@@ -1,0 +1,21 @@
+name:
+    flintqs
+
+category:
+    standard
+
+source:
+    version:  
+        20070817.p8
+    tarball:
+        name:     flintqs-{source.version}.tar.bz2
+        sha1:     f1abd8246cd1b7fd4f163dcd5d933d2a531d25ea
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - mpir

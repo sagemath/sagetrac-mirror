@@ -1,0 +1,21 @@
+name:
+    atlas
+
+category:
+    standard
+
+source:
+    version:  
+        3.10.1.20140210
+    tarball:
+        name:     atlas-{source.version}.tar.bz2
+        sha1:     ecacb1132efac76c7a018ec7212508d4a7e7ebcc
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - python

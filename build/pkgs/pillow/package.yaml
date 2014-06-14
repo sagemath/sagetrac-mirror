@@ -1,0 +1,22 @@
+name:
+    pillow
+
+category:
+    standard
+
+source:
+    version:  
+        2.2.2
+    tarball:
+        name:     Pillow-{source.version}.tar.gz
+        sha1:     053337a612dd16ec6f1f6fc544374ca5fe65ae2c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - setuptools

@@ -1,0 +1,20 @@
+name:
+    palp
+
+category:
+    standard
+
+source:
+    version:  
+        2.1.p1
+    tarball:
+        name:     palp-{source.version}.tar.bz2
+        sha1:     2d13769d0d1639adbe23d00147506d15f490102c
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

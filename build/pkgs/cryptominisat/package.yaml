@@ -1,0 +1,17 @@
+name:
+    cryptominisat
+
+category:
+    standard
+
+source:
+    version:  
+        2.9.6
+    tarball:
+        name:     cryptominisat-{source.version}.tar.gz
+        sha1:     3566754f4e1eb5aefec703f7806c74e4c3edda80
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

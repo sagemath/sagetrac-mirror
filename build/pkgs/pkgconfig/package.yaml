@@ -1,0 +1,22 @@
+name:
+    pkgconfig
+
+category:
+    standard
+
+source:
+    version:  
+        1.1.0
+    tarball:
+        name:     pkgconfig-{source.version}.tar.gz
+        sha1:     aaf00b11dc3e8e167e59a0efab05efd9cb19f882
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - setuptools

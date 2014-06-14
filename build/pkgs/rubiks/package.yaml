@@ -1,0 +1,20 @@
+name:
+    rubiks
+
+category:
+    standard
+
+source:
+    version:  
+        20070912.p18
+    tarball:
+        name:     rubiks-{source.version}.tar.bz2
+        sha1:     01a915569068c65b21943b3f34a9f0d104349a96
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:

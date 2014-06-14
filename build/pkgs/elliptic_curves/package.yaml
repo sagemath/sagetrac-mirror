@@ -1,0 +1,22 @@
+name:
+    elliptic_curves
+
+category:
+    standard
+
+source:
+    version:  
+        0.7
+    tarball:
+        name:     elliptic_curves-{source.version}.tar.bz2
+        sha1:     779a6abd34b7f33d28f5242c36d6494970dc5136
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - sqlite

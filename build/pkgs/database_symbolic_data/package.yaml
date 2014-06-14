@@ -1,0 +1,17 @@
+name:
+    database_symbolic_data
+
+category:
+    standard
+
+source:
+    version:  
+        20070206
+    tarball:
+        name:     database_symbolic_data-{source.version}.tar.bz2
+        sha1:     5f8532dacae12f36813ea609c6f511016955d1ee
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

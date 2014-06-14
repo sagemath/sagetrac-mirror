@@ -1,0 +1,20 @@
+name:
+    pkgconf
+
+category:
+    standard
+
+source:
+    version:  
+        0.9.4
+    tarball:
+        name:     pkgconf-{source.version}.tar.bz2
+        sha1:     2d353227f5dfbcaa2c0f48f045f828dac2abcff0
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

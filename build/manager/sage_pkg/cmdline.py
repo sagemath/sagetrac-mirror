@@ -74,8 +74,14 @@ def launch(DEFAULT_CONFIG):
     subparsers = parser.add_subparsers(dest='subcommand')
 
     # sage-pkg info <package>
-    parser_info = subparsers.add_parser('info', help='Print information')
+    parser_info = subparsers.add_parser('info', help='Print information about package')
     parser_info.add_argument('package', type=str, help='Package name')
+
+    # sage-pkg info <package>
+    parser_list = subparsers.add_parser('list', help='List all packages')
+
+    # sage-pkg pkg-upgrade-v1
+    parser_upgrade_v1 = subparsers.add_parser('pkg-upgrade-v1', help='Upgrade packages')
 
     # sage-pkg help
     parser_help = subparsers.add_parser('help', help='Get help')
@@ -95,6 +101,10 @@ def launch(DEFAULT_CONFIG):
         debug_shell(app, parser)
     elif args.subcommand == 'info':
         app.info(args.package)
+    elif args.subcommand == 'list':
+        app.list_all()
+    elif args.subcommand == 'pkg-upgrade-v1':
+        app.upgrade_v1()
     elif args.subcommand == 'help':
         parser.print_help()
     else:

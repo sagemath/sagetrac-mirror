@@ -1,0 +1,26 @@
+name:
+    sagetex
+
+category:
+    standard
+
+source:
+    version:  
+        2.3.4
+    tarball:
+        name:     sagetex-{source.version}.tar.bz2
+        sha1:     0d4ff45b97e591a22b225f0d7d1469ff903d4846
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - python
+        - maxima
+        - scipy
+        - matplotlib
+        - pillow
+        - tachyon

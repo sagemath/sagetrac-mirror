@@ -1,0 +1,26 @@
+name:
+    polybori
+
+category:
+    standard
+
+source:
+    version:  
+        0.8.3
+    tarball:
+        name:     polybori-{source.version}.tar.bz2
+        sha1:     74909ce4912905135f54c0ba9c3ec8c71622ee1f
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - ipython
+        - scons
+        - boost_cropped
+        - m4ri
+        - gd

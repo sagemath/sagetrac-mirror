@@ -1,0 +1,21 @@
+name:
+    scons
+
+category:
+    standard
+
+source:
+    version:  
+        1.2.0
+    tarball:
+        name:     scons-{source.version}.tar.bz2
+        sha1:     f64373026891502f0ba328504d3126a58e9ec2de
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

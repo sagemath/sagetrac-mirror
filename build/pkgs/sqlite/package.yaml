@@ -1,0 +1,21 @@
+name:
+    sqlite
+
+category:
+    standard
+
+source:
+    version:  
+        3.8.4.3
+    tarball:
+        name:     sqlite-{source.version}.tar.bz2
+        sha1:     d721fb8c43d91321b58f020a06351d15b321b2a3
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - readline

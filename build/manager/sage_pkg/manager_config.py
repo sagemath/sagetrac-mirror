@@ -24,6 +24,7 @@ class ManagerConfig(ConfigYAML):
         - config.path.packages = /.../build/manager/test_pkgs
         - config.path.root = /...
         - config.path.sage_pkg = /.../build/manager
+        - config.path.test_data = /.../build/manager/test_data
     """
     
     def _normalize(self, config):

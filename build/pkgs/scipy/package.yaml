@@ -1,0 +1,22 @@
+name:
+    scipy
+
+category:
+    standard
+
+source:
+    version:  
+        0.14.0
+    tarball:
+        name:     scipy-{source.version}.tar.gz
+        sha1:     faf16ddf307eb45ead62a92ffadc5288a710feb8
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - atlas
+        - numpy

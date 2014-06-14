@@ -1,0 +1,20 @@
+name:
+    iconv
+
+category:
+    standard
+
+source:
+    version:  
+        1.14
+    tarball:
+        name:     iconv-{source.version}.tar.bz2
+        sha1:     5b5e732cd1eaa01bcfa2b47903ce6ea041a0fae3
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

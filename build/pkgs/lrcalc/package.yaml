@@ -1,0 +1,20 @@
+name:
+    lrcalc
+
+category:
+    standard
+
+source:
+    version:  
+        1.1.6.p0
+    tarball:
+        name:     lrcalc-{source.version}.tar.bz2
+        sha1:     b36a8bdfab9f8ca0cfc7f922b4f4b0064d364464
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:

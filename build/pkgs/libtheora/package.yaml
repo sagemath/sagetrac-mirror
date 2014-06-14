@@ -1,0 +1,17 @@
+name:
+    libtheora
+
+category:
+    standard
+
+source:
+    version:  
+        1.1.1
+    tarball:
+        name:     libtheora-{source.version}.tar.bz2
+        sha1:     8dcaa8e61cd86eb1244467c0b64b9ddac04ae262
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+

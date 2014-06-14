@@ -1,0 +1,22 @@
+name:
+    mpfi
+
+category:
+    standard
+
+source:
+    version:  
+        1.5.1
+    tarball:
+        name:     mpfi-{source.version}.tar.bz2
+        sha1:     68773ce05e89e0f968687dd82d402f80ccc4c31f
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+    check_script:    spkg-check
+
+depends:
+    hard:
+        - mpir
+        - mpfr

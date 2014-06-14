@@ -1,0 +1,21 @@
+name:
+    setuptools
+
+category:
+    standard
+
+source:
+    version:  
+        3.6
+    tarball:
+        name:     setuptools-{source.version}.tar.gz
+        sha1:     745cbb942f8015dbcbfd9df5cb815adb63c7b0e9
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python

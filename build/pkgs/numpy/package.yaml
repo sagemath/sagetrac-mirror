@@ -1,0 +1,23 @@
+name:
+    numpy
+
+category:
+    standard
+
+source:
+    version:  
+        1.8.1
+    tarball:
+        name:     numpy-{source.version}.tar.gz
+        sha1:     8fe1d5f36bab3f1669520b4c7d8ab59a21a984da
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - python
+        - atlas
+        - pkgconf

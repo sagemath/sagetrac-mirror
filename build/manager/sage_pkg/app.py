@@ -28,13 +28,17 @@ class Application(object):
         pkg_config = load_config(pkg)
         print(pkg_config)
 
-    def list(self, category=None):
+    def list_all(self, category=None):
         """
         Print a table of packages 
         """
         for pkg in loader.get_all():
             print(pkg)
         
-        
-
+    def upgrade_v1(self):
+        """
+        Generate package.yaml from old-style directories
+        """
+        from sage_pkg.upgrade_v1 import upgrade_all
+        upgrade_all()
     

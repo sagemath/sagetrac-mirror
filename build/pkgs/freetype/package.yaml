@@ -1,0 +1,21 @@
+name:
+    freetype
+
+category:
+    standard
+
+source:
+    version:  
+        2.5.2.p1
+    tarball:
+        name:     freetype-{source.version}.tar.bz2
+        sha1:     72731cf405b9f7c0b56d144130a8daafa262b729
+
+builder:
+    type:            SpkgInstallScript
+    install_script:  spkg-install
+
+
+depends:
+    hard:
+        - libpng
