@@ -26,6 +26,9 @@ path:
     install:
         local
 
+    install_metadata:
+        local/var/lib/sage/pkgs
+
 
 mirrors:
     - http://www.sagemath.org/packages

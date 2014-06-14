@@ -21,7 +21,8 @@ class ManagerConfig(ConfigYAML):
         - config.path.dot_git = /.../.git
         - config.path.download_cache = /.../upstream
         - config.path.install = /usr/local
-        - config.path.packages = /.../build/manager/test_pkgs
+        - config.path.install_metadata = /usr/local/var/lib/sage/pkgs
+        - config.path.packages = /.../build/manager/test_data/test_pkgs
         - config.path.root = /...
         - config.path.sage_pkg = /.../build/manager
         - config.path.test_data = /.../build/manager/test_data
