@@ -32,9 +32,11 @@ mirrors:
 
 
 install:
-    - gcc: maybe
+    gcc: autodetect
 
 
+check:
+    default: false
 
 
 ... # End of the builder configuration

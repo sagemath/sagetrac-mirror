@@ -81,10 +81,32 @@ def launch(DEFAULT_CONFIG):
     parser_list = subparsers.add_parser('list', help='List all packages')
 
     # sage-pkg pkg-upgrade-v1
-    parser_upgrade_v1 = subparsers.add_parser('pkg-upgrade-v1', help='Upgrade packages')
+    parser_upgrade_v1 = subparsers.add_parser('pkg-upgrade-v1', help='Upgrade package descriptions')
 
     # sage-pkg help
     parser_help = subparsers.add_parser('help', help='Get help')
+
+    # The different build steps
+    parser_download = subparsers.add_parser('download', help='Build up to the "download" step')
+    parser_download.add_argument('package', type=str, help='Package name')
+
+    parser_unpack = subparsers.add_parser('unpack', help='Build up to the "unpack" step')
+    parser_unpack.add_argument('package', type=str, help='Package name')
+
+    parser_prepare = subparsers.add_parser('prepare', help='Build up to the "prepare" step')
+    parser_prepare.add_argument('package', type=str, help='Package name')
+
+    parser_configure = subparsers.add_parser('configure', help='Build up to the "configure" step')
+    parser_configure.add_argument('package', type=str, help='Package name')
+
+    parser_compile = subparsers.add_parser('compile', help='Build up to the "compile" step')
+    parser_compile.add_argument('package', type=str, help='Package name')
+
+    parser_check = subparsers.add_parser('check', help='Build up to the "check" step')
+    parser_check.add_argument('package', type=str, help='Package name')
+
+    parser_install = subparsers.add_parser('install', help='Build and install')
+    parser_install.add_argument('package', type=str, help='Package name')
 
     args = parser.parse_args()
     if args.log is not None:
@@ -105,6 +127,20 @@ def launch(DEFAULT_CONFIG):
         app.list_all()
     elif args.subcommand == 'pkg-upgrade-v1':
         app.upgrade_v1()
+    elif args.subcommand == 'download':
+        app.download(args.package)
+    elif args.subcommand == 'unpack':
+        app.unpack(args.package)
+    elif args.subcommand == 'prepare':
+        app.prepare(args.package)
+    elif args.subcommand == 'configure':
+        app.configure(args.package)
+    elif args.subcommand == 'compile':
+        app.compile(args.package)
+    elif args.subcommand == 'check':
+        app.check(args.package)
+    elif args.subcommand == 'install':
+        app.install(args.package)
     elif args.subcommand == 'help':
         parser.print_help()
     else:

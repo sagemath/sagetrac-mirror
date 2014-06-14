@@ -103,7 +103,6 @@ class ConfigYAML(object):
         """
         pass
 
-
     def _require(self, *args):
         """
         Require the presence of configuration keys
@@ -177,4 +176,42 @@ class ConfigYAML(object):
             result.append(line)
         return '\n'.join(result)
         
+    def __getitem__(self, key):
+        """
+        Get nested values
 
+        EXAMPLES::
+        
+            >>> config.mirrors
+            ['http://download.example.com/packages']
+            >>> config['mirrors']
+            ['http://download.example.com/packages']
+        """
+        return self._c[key]
+
+    def __call__(self, *args, **kwds):
+        """
+        Get nested values
+
+        EXAMPLES::
+
+            >>> config('path', 'install')
+            '/usr/local'
+            >>> config('path', 'bar')
+            Traceback (most recent call last):
+            ...
+            KeyError: 'bar'
+            >>> config('path', 'bar', default='baz')
+            'baz'
+        """
+        default = kwds.pop('default', None)
+        value = self._c
+        for key in args:
+            try:
+                value = value[key]
+            except KeyError:
+                if default is not None:
+                    return default
+                else:
+                    raise
+        return value

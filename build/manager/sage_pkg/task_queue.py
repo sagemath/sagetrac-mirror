@@ -16,14 +16,16 @@ class Task(object):
         calling it performs the actual work (see :meth:`doit`).
 
         - ``dependencies`` -- list/tuple/iterable of work objects
-          (objects that are the ``work`` of other tasks) or of tasks.
+          (objects that are the ``work`` of other tasks) or of
+          tasks. Additionally, an entry can be ``None``, which is
+          skipped over.
 
         - ``name`` -- string (optional). If set, overrides the string
           representation.
         """
         self.work = work
         self.depends = set(dep.work if isinstance(dep, Task) else dep
-                           for dep in dependencies)
+                           for dep in dependencies if dep is not None)
         self._name = name
 
     def doit(self):

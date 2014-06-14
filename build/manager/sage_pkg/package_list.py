@@ -61,13 +61,13 @@ class PackageLoader(object):
         import sha
         return sha.sha(now).hexdigest()
     
-    def _make_package(self, pkg_config, version):
+    def _make_package(self, pkg_config, version, longterm):
         from sage_pkg.package import all
         try:
             cls = getattr(all, pkg_config.builder.type)
         except AttributeError:
             raise ValueError('unknown builder type: ' + pkg_config.builder.type)
-        return cls(pkg_config, version)
+        return cls(pkg_config, version, longterm)
         
     
     def get_all(self):
@@ -104,10 +104,12 @@ class PackageLoader(object):
                 raise ValueError('The name in package.yaml must match the directory name')
             try:
                 version = git_version[name]
+                longterm = True
             except KeyError:
                 print('Package {0} has changes, forcing rebuild'.format(name))
                 version = random_version
-            pkg = self._make_package(pkg_config, version)
+                longterm = False
+            pkg = self._make_package(pkg_config, version, longterm)
             result.append(pkg)
         self._packages = tuple(sorted(result))
         return self._packages
@@ -148,7 +150,7 @@ class PackageLoader(object):
             queue.add_work(pkg, [pkg_dict[dep] for dep in pkg.get_all_dependencies()])
         return queue
 
-    def build_queue(self):
+    def build_queue(self, stop_at='install'):
         """
         Return the queue of build tasks
 
@@ -172,7 +174,7 @@ class PackageLoader(object):
         queue = TaskQueue()
         while not packages.is_finished():
             pkg = packages.next()
-            task_list = pkg.work.build_tasks(dependencies)
+            task_list = pkg.work.build_tasks(dependencies, stop_at=stop_at)
             queue.add_task(*task_list)
             packages.finish(pkg)
         return queue

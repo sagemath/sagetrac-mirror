@@ -11,7 +11,7 @@ Packages define 7 steps:
 
 * Configuring (typically run ``./configure``)
 
-* Build (typically run ``make``)
+* Compile (typically run ``make``)
 
 * Check (typically run ``make check``)
 
@@ -26,11 +26,12 @@ successfully, that is, did not raise an exception.
 import os
 
 from sage_pkg.config import config
+from sage_pkg.task_queue import TaskQueue
 
 
 class PackageBase(object):
     
-    def __init__(self, app_config, version_stamp=None):
+    def __init__(self, app_config, version_stamp=None, longterm=False):
         """
         INPUT:
 
@@ -38,11 +39,16 @@ class PackageBase(object):
           :class:`~sage_pkg.package.package_config.PackageConfig`. The
           package configuration.
 
-        - ``version_stamp`` -- string that uniquely characterizes
+        - ``version_stamp`` -- string. Uniquely characterizes
           ``app_config``.
+
+        - ``longterm`` -- boolean. Whether the same ``version_stamp``
+          can possibly reappear in a future compilation. If true, the
+          compiled package might be cached.
         """
         self._config = app_config
         self._version_stamp = version_stamp
+        self._longterm = longterm
 
     def __eq__(self, other):
         return self._config.name == other._config.name
@@ -119,7 +125,10 @@ class PackageBase(object):
             >>> loader.get('baz').get_all_dependencies()    
             ['bar']
         """
-        return self.get_hard_dependencies() + self.get_build_dependencies()
+        return \
+            self.get_hard_dependencies() + \
+            self.get_test_dependencies() + \
+            self.get_build_dependencies()
 
     def get_hard_dependencies(self):
         try:
@@ -132,8 +141,23 @@ class PackageBase(object):
             return self._config.depends.build
         except AttributeError:
             return []
+
+    def get_test_dependencies(self):
+        """
+        Return the dependencies for running self-tests
+        """
+        try:
+            return self._config.depends.test
+        except AttributeError:
+            return []
         
-    def build_tasks(self, dependencies):
+    def want_check(self):
+        try:
+            return config('check', self.name)
+        except KeyError:
+            return config('check', 'default', default=False)
+        
+    def build_tasks(self, dependencies, stop_at='install'):
         """
         Each build step is its own task to be finer grained.
 
@@ -154,28 +178,105 @@ class PackageBase(object):
 
             >>> foo = loader.get('foo')
             >>> deps = dict()
-            >>> foo.build_tasks(deps)
-            [foo-download, foo-unpack, foo-prepare, foo-configure, foo-build, foo-check, foo-install]
+            >>> tasks = foo.build_tasks(deps);  tasks
+            [foo-download, foo-unpack, foo-prepare, foo-configure, foo-compile, foo-install]
+            >>> for task in tasks:  print task.work
+            <bound method TestPackage.download of foo>
+            <bound method TestPackage.unpack of foo>
+            <bound method TestPackage.prepare of foo>
+            <bound method TestPackage.configure of foo>
+            <bound method TestPackage.compile of foo>
+            <bound method TestPackage.install of foo>
 
         The ``deps`` is modified to record what task satisifes the
         dependency on the package name::
 
             >>> deps
             {'foo': foo-install}
+
+        You can also stop before installation, in which case ``deps``
+        is never modified::
+
+            >>> foo.build_tasks(deps, stop_at='download')
+            [foo-download]
+            >>> foo.build_tasks(deps, stop_at='unpack')
+            [foo-download, foo-unpack]
+            >>> foo.build_tasks(deps, stop_at='prepare')
+            [foo-download, foo-unpack, foo-prepare]
+
+            >>> foo.build_tasks(deps, stop_at='unknownvalue')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown value for the stop_at parameter
         """
         from sage_pkg.task_queue import Task
+        dependencies[self.name] = None   # default if you skip installation
+        tasklist = []
         task_download  = prev = Task(self.download,  [],     name='{0}-download' .format(self.name))
+        tasklist.append(prev)
+        if stop_at == 'download':
+            return tasklist
         build = [prev] + [dependencies[dep] for dep in self.get_build_dependencies()]
         task_unpack    = prev = Task(self.unpack,    build,  name='{0}-unpack'   .format(self.name))
+        tasklist.append(prev)
+        if stop_at == 'unpack':
+            return tasklist
         task_prepare   = prev = Task(self.prepare,   [prev], name='{0}-prepare'  .format(self.name))
+        tasklist.append(prev)
+        if stop_at == 'prepare':
+            return tasklist
         hard = [prev] + [dependencies[dep] for dep in self.get_hard_dependencies()]
         task_configure = prev = Task(self.configure, hard,   name='{0}-configure'.format(self.name))
-        task_build     = prev = Task(self.build,     [prev], name='{0}-build'    .format(self.name))
-        task_check     = prev = Task(self.check,     [prev], name='{0}-check'    .format(self.name))
+        tasklist.append(prev)
+        if stop_at == 'configure':
+            return tasklist
+        task_compile   = prev = Task(self.compile,   [prev], name='{0}-compile'  .format(self.name))
+        tasklist.append(prev)
+        if stop_at == 'compile':
+            return tasklist
+        if self.want_check():
+            test = [prev] + [dependencies[dep] for dep in self.get_test_dependencies()]
+            task_check     = prev = Task(self.check,     test,   name='{0}-check'    .format(self.name))
+            tasklist.append(prev)
+            if stop_at == 'check':
+                return tasklist
         task_install   = prev = Task(self.install,   [prev], name='{0}-install'  .format(self.name))
+        tasklist.append(prev)
+        if stop_at != 'install':
+            raise ValueError('unknown value for the stop_at parameter')
         dependencies[self.name] = task_install
-        return [task_download, task_unpack, task_prepare, 
-                task_configure, task_build, task_check, task_install]
+        return tasklist
+
+    def build_queue(self, stop_at='install'):
+        """
+        Return the queue of build tasks for this package
+
+        This method is analogous to
+        :meth:`~sage_pkg.package_list.PackageLoader.build_queue`
+        except that it only contains build tasks for this one
+        package. Inter-package dependencies are ignored.
+
+        EXAMPLES::
+
+            >>> pkg = loader.get('baz')
+            >>> pkg.get_all_dependencies()
+            ['bar']
+            >>> queue = pkg.build_queue()
+            >>> queue.run_serial()
+            baz: downloading
+            baz: unpacking
+            baz: preparing
+            baz: configuring
+            baz: installing
+        """
+        # Ignore dependencies
+        dependencies = dict()
+        for dep in self.get_all_dependencies():
+            dependencies[dep] = None
+        queue = TaskQueue()
+        tasks = self.build_tasks(dependencies, stop_at=stop_at)
+        queue.add_task(*tasks)
+        return queue
 
     def download(self):
         """
@@ -215,9 +316,9 @@ class PackageBase(object):
         """
         pass
 
-    def build(self):
+    def compile(self):
         """
-        Build.
+        Compile.
         
         To be implemented in a derived class
 
@@ -246,6 +347,6 @@ class PackageBase(object):
         .. warning:: 
 
             This is the only
-            step that is allowed to put files in the destination directory.
+            step that is allowed to put files in the installation directory.
         """
         pass
