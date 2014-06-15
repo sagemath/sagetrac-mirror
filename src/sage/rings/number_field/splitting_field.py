@@ -13,14 +13,15 @@ AUTHORS:
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.integer import Integer
 from sage.rings.arith import factorial
-from sage.rings.number_field.all import is_NumberField, NumberField
+from sage.rings.number_field.all import NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.rational_field import RationalField, is_RationalField
 from sage.libs.pari.all import pari, PariError
