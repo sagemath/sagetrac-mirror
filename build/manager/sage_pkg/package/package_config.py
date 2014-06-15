@@ -20,7 +20,10 @@ class PackageConfig(ConfigYAML):
         - config.builder.install_script = spkg-install
         - config.builder.type = TestPackage
         - config.category = standard
+        - config.depends.build = None
         - config.depends.hard = ['bar']
+        - config.depends.soft = None
+        - config.depends.test = None
         - config.name = baz
         - config.source.git.commit = refs/tags/2.0.1
         - config.source.git.repo = git://github.com/example/baz.git

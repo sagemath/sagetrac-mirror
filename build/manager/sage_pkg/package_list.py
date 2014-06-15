@@ -38,9 +38,12 @@ def load_config(pkg_name):
         - config.source.tarball.url = http://www.example.com/1.3.tar.gz
         - config.source.version = 1.3
     """
+    package_dir = os.path.join(config.path.packages, pkg_name)
+    if not os.path.exists(package_dir):
+        raise InvalidPackage('package directory does not exist: ' + package_dir)
     package_yaml = os.path.join(config.path.packages, pkg_name, 'package.yaml')
     if not os.path.isfile(package_yaml):
-        raise InvalidPackage('missing package.yaml')
+        raise InvalidPackage('file does not exist: ' + package_yaml)
     return PackageConfig(package_yaml)
 
 

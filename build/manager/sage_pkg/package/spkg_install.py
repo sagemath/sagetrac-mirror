@@ -8,6 +8,7 @@ import subprocess
 
 from sage_pkg.config import config
 from sage_pkg.chdir_context import chdir
+from sage_pkg.utils import cached_property
 from .base import PackageBase
 from .sage_mirror_mixin import SageMirrorMixin
 from .sage_environment_mixin import SageEnvironmentMixin
@@ -16,12 +17,12 @@ from .sage_environment_mixin import SageEnvironmentMixin
 
 class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
 
-    @property
+    @cached_property
     def install_script(self):
         scriptname = self._config.builder.install_script
         return os.path.join(config.path.packages, self.name, scriptname)
 
-    @property
+    @cached_property
     def check_script(self):
         try:
             scriptname = self._config.builder.check_script

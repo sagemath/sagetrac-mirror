@@ -31,6 +31,40 @@ import tempfile
 from sage_pkg.config import config
 from sage_pkg.logger import logger
 from sage_pkg.task_queue import TaskQueue
+from sage_pkg.utils import cached_property
+
+
+class CommutingSha1Accumulator(object):
+    """
+    Accumulate SHA1 checksums disregarding their order.
+
+    EXAMPLES::
+
+        >>> from sage_pkg.package.base import CommutingSha1Accumulator
+        >>> acc = CommutingSha1Accumulator();  str(acc)
+        '0000000000000000000000000000000000000000'
+        >>> acc += 'bbd8ea60604b02bf7e33c8c3ca86c2b6ac032b3e'
+        >>> acc += '2cdba115ff4cb73bb14bb02881e31f3dfe871ec6'
+        >>> str(acc)
+        'e8b48b765f97b9fb2f7f78ec4c69e1f4aa8a4a04'
+        >>> rev = CommutingSha1Accumulator()
+        >>> rev += '2cdba115ff4cb73bb14bb02881e31f3dfe871ec6'
+        >>> rev += 'bbd8ea60604b02bf7e33c8c3ca86c2b6ac032b3e'
+        >>> str(acc) == str(rev)
+        True
+    """
+
+    def __init__(self):
+        self.value = 0
+    
+    def __iadd__(self, sha1):
+        if not len(sha1) == 40:
+            raise ValueError('sha1 must be 40 digits')
+        self.value += int(sha1, 16)
+        return self
+
+    def __repr__(self):
+        return  '{0:040x}'.format(self.value)[-40:]
 
 
 class PackageBase(object):
@@ -57,6 +91,10 @@ class PackageBase(object):
     def _init_dependencies(self, pkg_dict):
         """
         Called after loading all packages
+
+        In a second initialization step, we replace dependency names
+        with the actual package objects. As a side effect, this checks
+        for typos in the dependencies.
 
         INPUT:
 
@@ -110,7 +148,7 @@ class PackageBase(object):
         Human-readable version.
 
         May only be used for the UI, but never for dependency
-        calculations.
+        calculations. See :meth:`version_stamp`.
 
         EXAMPLES::
   
@@ -127,6 +165,10 @@ class PackageBase(object):
         This is the version relevant for dependency
         calculations. Should not be used in the UI.
 
+        OUTPUT:
+
+        String (ASCII SHA1).
+
         EXAMPLES::
   
             >>> loader.get('foo').version_stamp    # doctest: +SKIP
@@ -134,7 +176,44 @@ class PackageBase(object):
         """
         return self._version_stamp
 
-    @property
+    @cached_property
+    def dependency_stamp(self):
+        """
+        Dependency version.
+
+        This versions the dependency, that is: If and only if
+        this property changes then the package must be recompiled.
+
+        It combines:
+
+        * Our own :meth:`version_stamp`
+
+        * The :meth:`dependency_stamp` of the hard and soft
+          dependencies.
+
+        Hence, it recursively includes the version stamps of all
+        dependencies.
+
+        Note that the test and build dependencies are not included; If
+        you managed to successfully build/test the package with older
+        versions then there is no need to recompile.
+
+        OUTPUT:
+
+        String (ASCII SHA1).
+
+        EXAMPLES::
+
+            >>> loader.get('foo').dependency_stamp    # doctest: +SKIP
+            'a71d5accb4ed818985dfcd796090b75afb83885c'
+        """
+        acc = CommutingSha1Accumulator()
+        acc += self.version_stamp
+        for dep in self.get_hard_dependencies() + self.get_soft_dependencies():
+            acc += dep.depedency_stamp
+        return str(acc)
+
+    @cached_property
     def build_dir(self):
         """
         The build directory. 
@@ -328,6 +407,7 @@ class PackageBase(object):
         result_yaml = yaml.dump(dict(
             version=self.version,
             version_stamp=self.version_stamp,
+            dependency_stamp=self.dependency_stamp,
         ), default_flow_style=False)
         # atomically save result
         tmpfile = tempfile.NamedTemporaryFile(dir=config.path.install_metadata, mode='w', delete=False)

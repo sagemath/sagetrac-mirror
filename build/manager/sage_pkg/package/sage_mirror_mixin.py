@@ -9,7 +9,7 @@ import subprocess
 from sage_pkg.config import config
 from sage_pkg.logger import logger
 from sage_pkg.chdir_context import chdir
-
+from sage_pkg.utils import cached_property
 
 
 class SageMirrorMixin(object):
@@ -38,7 +38,7 @@ class SageMirrorMixin(object):
         """
         return self._config.source.tarball.name
 
-    @property
+    @cached_property
     def tarball_cache(self):
         """
         The tarball cache (file where "download" stores the tarball)

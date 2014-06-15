@@ -161,6 +161,9 @@ from sage_pkg.config import config
 
 
 def upgrade_all():
+    """
+    Upgrade all packages
+    """
     for name in os.listdir(config.path.packages):
         fullname = os.path.join(config.path.packages, name)
         if not os.path.isdir(fullname):
@@ -172,6 +175,7 @@ def old_version(pkg_dir):
     with open(os.path.join(pkg_dir, 'package-version.txt'), 'r') as f:
         version_patchlevel = f.read().strip()
     return re.sub(r'\.p[0-9]*', '', version_patchlevel)
+
 
 def old_sha1(pkg_dir):
     with open(os.path.join(pkg_dir, 'checksums.ini'), 'r') as f:
@@ -240,8 +244,10 @@ def make_package_yaml(name, pkg_dir):
     return result
 
 
-
 def upgrade(name, pkg_dir):
+    """
+    Upgrade a single package
+    """
     with open(os.path.join(pkg_dir, 'package.yaml'), 'w') as yaml:
         package_yaml = make_package_yaml(name, pkg_dir)
         yaml.write(package_yaml)

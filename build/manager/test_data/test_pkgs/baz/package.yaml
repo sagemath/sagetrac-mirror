@@ -23,3 +23,6 @@ builder:
 depends:
     hard: 
         - bar
+    soft:
+    test:
+    build:
