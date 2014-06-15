@@ -27,7 +27,10 @@ class ManagerConfig(ConfigYAML):
         - config.path.sage_pkg = /.../build/manager
         - config.path.test_data = /.../build/manager/test_data
     """
-    
+    def __init__(self, *args, **kwds):
+        self._base_dir = kwds.pop('base_dir', '.')
+        super(ManagerConfig, self).__init__(*args, **kwds)
+
     def _normalize(self, config):
         super(ManagerConfig, self)._normalize(config)
         path = config.get('path', dict())
@@ -46,7 +49,7 @@ class ManagerConfig(ConfigYAML):
     def _normalize_paths(self, path, root=None):
         if root is None:
             root = path['root']
-            root = os.path.abspath(root)
+            root = os.path.abspath(os.path.join(self._base_dir, root))
             path['root'] = root
     
         def normalize(value):

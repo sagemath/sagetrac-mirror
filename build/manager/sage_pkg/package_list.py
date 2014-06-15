@@ -73,7 +73,6 @@ class PackageLoader(object):
             raise ValueError('unknown builder type: ' + pkg_config.builder.type)
         return cls(pkg_config, version, longterm)
         
-    
     def _git_versions(self):
         """
         Return a dictionary with git tree sha1s
@@ -175,7 +174,7 @@ class PackageLoader(object):
 
     def build_queue(self, stop_at='install'):
         """
-        Return the queue of build tasks
+        Return the queue of build tasks for "standard" packages
 
         The build task queue is a refinement of the :meth:`queue` of
         packages. Each package is broken up into different build
@@ -196,10 +195,17 @@ class PackageLoader(object):
         packages = self.queue()
         queue = TaskQueue()
         while not packages.is_finished():
-            pkg = packages.next()
-            task_list = pkg.work.build_tasks(dependencies, stop_at=stop_at)
-            queue.add_task(*task_list)
-            packages.finish(pkg)
+            pkg_task = packages.next()
+            pkg = pkg_task.work
+            if pkg.category != 'standard':
+                # cannot be a dependency for a standard package either
+                pass
+            elif pkg.is_up_to_date:
+                dependencies[pkg] = None
+            else:
+                task_list = pkg.build_tasks(dependencies, stop_at=stop_at)
+                queue.add_task(*task_list)
+            packages.finish(pkg_task)
         return queue
 
 

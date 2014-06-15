@@ -224,6 +224,20 @@ class PackageBase(object):
             acc += dep.dependency_stamp
         return str(acc)
 
+    @property
+    def is_up_to_date(self):
+        """
+        Whether the package needs to be built (or rebuilt).
+
+        OUTPUT:
+
+        Boolean
+
+            >>> loader.get('foo').is_up_to_date
+            False
+        """
+        return self.dependency_stamp == self.metadata.dependency_stamp
+
     @cached_property
     def status(self):
         """

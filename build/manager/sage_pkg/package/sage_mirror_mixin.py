@@ -92,7 +92,8 @@ class SageMirrorMixin(object):
         """
         build_dir = self.build_dir
         src = os.path.join(build_dir, 'src')
-        assert not os.path.exists(src)    # we just deleted the old build_dir
+        if os.path.exists(src):
+            logger.info('tarball %s already contains a "src" directory', self.tarball)
         tarball_dir = None
         for dirent in os.listdir(build_dir):
             fullname = os.path.join(build_dir, dirent)

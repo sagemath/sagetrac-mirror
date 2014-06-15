@@ -75,6 +75,7 @@ class ConfigYAML(object):
         self._init_attributes()
         self._validate()
         self._name = kwds.pop('name', 'config')
+        self._base_dir = kwds.pop('base_dir', '.')
         if kwds:
             raise ValueError('unknown keyword arguments: {0}'.format(kwds))
 

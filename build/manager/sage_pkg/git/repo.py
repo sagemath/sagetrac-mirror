@@ -30,7 +30,7 @@ class GitRepository(object):
 
     def __init__(self, dot_git):
         if not os.path.isdir(dot_git):
-            raise ValueError('directory does not exist')
+            raise ValueError('directory does not exist: ' + dot_git)
         self.dot_git = dot_git
 
     def __repr__(self):

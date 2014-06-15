@@ -111,6 +111,9 @@ def launch(DEFAULT_CONFIG):
     parser_install = subparsers.add_parser('install', help='Build and install')
     parser_install.add_argument('package', type=str, help='Package name')
 
+    # Build the whole thing
+    parser_build = subparsers.add_parser('build', help='Build everything')
+
     args = parser.parse_args()
     if args.log is not None:
         import logging
@@ -144,6 +147,8 @@ def launch(DEFAULT_CONFIG):
         app.check(args.package)
     elif args.subcommand == 'install':
         app.install(args.package)
+    elif args.subcommand == 'build':
+        app.build()
     elif args.subcommand == 'help':
         parser.print_help()
     else:

@@ -30,20 +30,24 @@ class Application(object):
         EXAMPLES::
 
             >>> app.list_all()
+            Package name                    Category            Version             Status
+            ------------------------------------------------------------------------------
+            bar                             standard                3.7      not installed
+            baz                             standard              2.0.1      not installed
+            foo                             standard                1.3      not installed
         """
-        def print_line(name, category, version, status, age):
-            print('{0:<27} {1:>7}  {2:>16}  {3:>15}  {4:>11}'.format(
-                name, category, version, status, age))
+        def print_line(name, category, version, status):
+            print('{0:<30}  {1:>8} {2:>18} {3:>18}'.format(
+                name, category, version, status))
         print_line(
             'Package name',
             'Category',
             'Version',
             'Status',
-            'Age'
         )
-        print('-' * 79)
+        print('-' * 78)
         for pkg in loader.get_all():
-            print_line(pkg.name, pkg.category, pkg.version, pkg.status, pkg.age)
+            print_line(pkg.name, pkg.category, pkg.version, pkg.status)
 
     def info(self, pkg):
         """
@@ -110,3 +114,9 @@ class Application(object):
         """
         self._build_until_step(pkg, 'install')
         
+    def build(self):
+        """
+        (Re-)Install all packages that are not up-to-date
+        """
+        queue = loader.build_queue()
+        queue.run_serial()
