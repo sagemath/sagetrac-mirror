@@ -2,7 +2,7 @@ name:
     rpy2
 
 category:
-    standard
+    optional
 
 source:
     version:  

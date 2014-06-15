@@ -2,7 +2,7 @@ name:
     cryptominisat
 
 category:
-    standard
+    optional
 
 source:
     version:  

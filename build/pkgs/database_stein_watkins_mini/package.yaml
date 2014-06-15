@@ -2,7 +2,7 @@ name:
     database_stein_watkins_mini
 
 category:
-    standard
+    optional
 
 source:
     version:  

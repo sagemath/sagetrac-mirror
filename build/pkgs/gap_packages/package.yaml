@@ -2,7 +2,7 @@ name:
     gap_packages
 
 category:
-    standard
+    optional
 
 source:
     version:  

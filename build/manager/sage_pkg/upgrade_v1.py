@@ -10,7 +10,7 @@ name:
     {name}
 
 category:
-    standard
+    {category}
 
 source:
     version:  
@@ -231,6 +231,7 @@ def make_package_yaml(name, pkg_dir):
         version=old_version(pkg_dir),
         sha1=sha1,
         tarball=tarball,
+        category=category
     )
     result += '\n'
     if os.path.exists(os.path.join(pkg_dir, 'spkg-check')):

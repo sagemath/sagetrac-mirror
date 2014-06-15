@@ -2,7 +2,7 @@ name:
     gmp
 
 category:
-    standard
+    optional
 
 source:
     version:  

@@ -2,7 +2,7 @@ name:
     libogg
 
 category:
-    standard
+    optional
 
 source:
     version:  

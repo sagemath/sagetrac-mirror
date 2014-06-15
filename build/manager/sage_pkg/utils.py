@@ -2,6 +2,8 @@
 Utilities
 """
 
+import datetime
+
 
 class cached_property(object):
     """
@@ -28,3 +30,43 @@ class cached_property(object):
         if self.is_readonly:
             raise TypeError('read only property')
         obj.__dict__[self.__name__] = value
+
+
+
+def pretty_age(time_utc):
+    """
+    Return string for age
+    
+    OUTPUT:
+
+    A pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+    'just now', etc.
+    """
+    now = datetime.datetime.utcnow()
+    diff = now - time_utc
+    second_diff = diff.seconds
+    day_diff = diff.days
+    if day_diff < 0:
+        return 'from future?'
+    if day_diff == 0:
+        if second_diff < 10:
+            return "just now"
+        if second_diff < 60:
+            return str(second_diff) + " seconds ago"
+        if second_diff < 120:
+            return  "a minute ago"
+        if second_diff < 3600:
+            return str( second_diff / 60 ) + " minutes ago"
+        if second_diff < 7200:
+            return "an hour ago"
+        if second_diff < 86400:
+            return str( second_diff / 3600 ) + " hours ago"
+    if day_diff == 1:
+        return "yesterday"
+    if day_diff < 7:
+        return str(day_diff) + " days ago"
+    if day_diff < 31:
+        return str(day_diff/7) + " weeks ago"
+    if day_diff < 365:
+        return str(day_diff/30) + " months ago"
+    return str(day_diff/365) + " years ago"

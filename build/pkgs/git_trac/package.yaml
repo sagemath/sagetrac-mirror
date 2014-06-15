@@ -2,7 +2,7 @@ name:
     git_trac
 
 category:
-    standard
+    optional
 
 source:
     version:  

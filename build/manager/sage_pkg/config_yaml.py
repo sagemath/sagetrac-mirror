@@ -70,10 +70,13 @@ class FrozenDictProxy(collections.Mapping):
 
 class ConfigYAML(object):
     
-    def __init__(self, *args):
+    def __init__(self, *args, **kwds):
         self._merge(*args)
         self._init_attributes()
         self._validate()
+        self._name = kwds.pop('name', 'config')
+        if kwds:
+            raise ValueError('unknown keyword arguments: {0}'.format(kwds))
 
     def _normalize(self, config):
         """
@@ -172,7 +175,8 @@ class ConfigYAML(object):
         Return a string representation
         """
         result = ['Configuration:']
-        for line in recursive_list_attrs('- config', self):
+        prefix = '- ' + self._name
+        for line in recursive_list_attrs(prefix, self):
             result.append(line)
         return '\n'.join(result)
         

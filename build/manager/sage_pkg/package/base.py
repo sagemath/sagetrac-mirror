@@ -27,11 +27,14 @@ import os
 import copy
 import shutil
 import tempfile
+import yaml
+import datetime
 
 from sage_pkg.config import config
+from sage_pkg.config_yaml import ConfigYAML
 from sage_pkg.logger import logger
 from sage_pkg.task_queue import TaskQueue
-from sage_pkg.utils import cached_property
+from sage_pkg.utils import cached_property, pretty_age
 
 
 class CommutingSha1Accumulator(object):
@@ -87,6 +90,7 @@ class PackageBase(object):
         self._config = app_config
         self._version_stamp = version_stamp
         self._longterm = longterm
+        self._metadata = None
 
     def _init_dependencies(self, pkg_dict):
         """
@@ -141,6 +145,13 @@ class PackageBase(object):
             'foo'
         """
         return self._config.name
+
+    @property
+    def category(self):
+        """
+        Return the package category
+        """
+        return self._config.category
 
     @property
     def version(self):
@@ -210,9 +221,31 @@ class PackageBase(object):
         acc = CommutingSha1Accumulator()
         acc += self.version_stamp
         for dep in self.get_hard_dependencies() + self.get_soft_dependencies():
-            acc += dep.depedency_stamp
+            acc += dep.dependency_stamp
         return str(acc)
 
+    @cached_property
+    def status(self):
+        """
+        Human-readable package status.
+
+        OUTPUT:
+
+        String. Indicates whether the package is up to date or not.
+        """
+        if not self.metadata.previous:
+            return 'not installed'
+        if self.dependency_stamp == self.metadata.dependency_stamp:
+            return 'up to date'
+        if self.version_stamp == self.metadata.version_stamp:
+            return 'dependencies changed'
+
+    @cached_property
+    def age(self):
+        if not self.metadata.previous:
+            return 'NA'
+        return pretty_age(self.metadata.time)
+        
     @cached_property
     def build_dir(self):
         """
@@ -403,19 +436,64 @@ class PackageBase(object):
         This method is called when the installation finished
         successfully as part of the install step.
         """
-        import yaml
-        result_yaml = yaml.dump(dict(
+        result = dict(
             version=self.version,
             version_stamp=self.version_stamp,
             dependency_stamp=self.dependency_stamp,
-        ), default_flow_style=False)
+            time=datetime.datetime.utcnow(),
+            install_dir=config.path.install,
+        )
+        self._save_metadata(result)
+        
+    @cached_property
+    def _metadata_filename(self):
+        """
+        Where the package installation metadata is saved
+        """
+        return os.path.join(config.path.install_metadata, self.name + '.yaml')
+
+    @cached_property
+    def metadata(self):
+        """
+        Return the metadata of previous installation attempts.
+        """
+        defaults = dict(
+            filename=self._metadata_filename,
+            version_stamp='0'*40,
+            dependency_stamp='0'*40,
+        )
+        if os.path.exists(self._metadata_filename):
+            return ConfigYAML(defaults, dict(previous=True), self._metadata_filename, name='metadata')
+        else:
+            return ConfigYAML(defaults, dict(previous=False), name='metadata')
+            
+    def _save_metadata(self, value_dict):
+        """
+        Save the metadata.
+
+        This should only be called after successful installation. The
+        new metadata will then be found the next time we run the
+        package manager.
+
+        EXAMPLES::
+
+            >>> pkg = loader.get('baz')
+            >>> pkg.metadata    # doctest: +ELLIPSIS
+            Configuration:
+            - metadata.dependency_stamp = 0000000000000000000000000000000000000000
+            - metadata.filename = /.../test_data/local/var/lib/sage/pkgs/baz.yaml
+            - metadata.previous = False
+            - metadata.version_stamp = 0000000000000000000000000000000000000000
+            >>> pkg._metadata_filename    # doctest: +ELLIPSIS
+            '/.../test_data/local/var/lib/sage/pkgs/baz.yaml'
+        """
+        metadata = yaml.dump(value_dict, default_flow_style=False)
         # atomically save result
         tmpfile = tempfile.NamedTemporaryFile(dir=config.path.install_metadata, mode='w', delete=False)
         try:
-            tmpfile.write(result_yaml)
+            tmpfile.write(metadata)
             tmpfile.close()
-            metadata = os.path.join(config.path.install_metadata, self.name + '.yaml')
-            os.rename(tmpfile.name, metadata)
+            os.rename(tmpfile.name, self._metadata_filename)
         except BaseException as error:
             try:
                 tmpfile.close()
@@ -423,8 +501,7 @@ class PackageBase(object):
             except OSError:
                 pass
             raise error
-        logger.info('saved %s metadata at %s', self.name, metadata)
-
+        logger.info('saved %s metadata at %s', self.name, self._metadata_filename)
 
     def download(self):
         """

@@ -9,6 +9,7 @@ from sage_pkg.config import config
 from sage_pkg.package.package_config import PackageConfig
 from sage_pkg.git.repo import GitRepository
 from sage_pkg.task_queue import TaskQueue
+from sage_pkg.logger import logger
 
 
 class InvalidPackage(Exception):
@@ -125,7 +126,7 @@ class PackageLoader(object):
                 version = git_version[name]
                 longterm = True
             except KeyError:
-                print('Package {0} has changes, forcing rebuild'.format(name))
+                logger.warn('Package %s has changes, forcing rebuild', name)
                 version = random_version
                 longterm = False
             pkg = self._make_package(pkg_config, version, longterm)

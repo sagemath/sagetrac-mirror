@@ -2,7 +2,7 @@ name:
     database_symbolic_data
 
 category:
-    standard
+    optional
 
 source:
     version:  

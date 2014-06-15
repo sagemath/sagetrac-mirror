@@ -23,26 +23,36 @@ class Application(object):
         """
         make_required_directories()
         
-    def table(self):
+    def list_all(self, category=None):
         """
         Print a table of packages 
+
+        EXAMPLES::
+
+            >>> app.list_all()
         """
+        def print_line(name, category, version, status, age):
+            print('{0:<27} {1:>7}  {2:>16}  {3:>15}  {4:>11}'.format(
+                name, category, version, status, age))
+        print_line(
+            'Package name',
+            'Category',
+            'Version',
+            'Status',
+            'Age'
+        )
+        print('-' * 79)
         for pkg in loader.get_all():
-            print(pkg)
+            print_line(pkg.name, pkg.category, pkg.version, pkg.status, pkg.age)
 
     def info(self, pkg):
         """
         Print information about a package
         """
-        pkg_config = load_config(pkg)
-        print(pkg_config)
-
-    def list_all(self, category=None):
-        """
-        Print a table of packages 
-        """
-        for pkg in loader.get_all():
-            print(pkg)
+        pkg = loader.get(pkg)
+        print(pkg._config)
+        print('Status: ' + pkg.status)
+        print('Installed when: ' + pkg.age)
         
     def upgrade_v1(self):
         """

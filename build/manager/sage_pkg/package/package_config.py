@@ -31,6 +31,8 @@ class PackageConfig(ConfigYAML):
         - config.source.tarball.sha1 = 99533b2233a27132ee65bcd2992f7bb464388b55
         - config.source.tarball.url = http://www.example.com/2.0.1.tar.gz
         - config.source.version = 2.0.1
+        Status: not installed
+        Installed when: NA
     """
     
     def _normalize(self, config):
