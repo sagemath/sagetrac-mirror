@@ -7119,7 +7119,7 @@ class GenericGraph(GenericGraph_pyx):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         if (method == "PR" or
             (method is None and not vertex_bound)):
-            return self.push_relabel(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
+            return self._push_relabel(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
 
         if method != "LP" and not method is None:
             raise ValueError("The method argument has to be equal to either \"FF\", \"PR\", \"LP\" or None")
@@ -7363,7 +7363,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return flow_intensity, g
 
-    def push_relabel(self, s, t, use_edge_labels = False, integer = False, value_only = True, use_global_relabeling = False, use_gap_relabeling = True):
+    def _push_relabel(self, s, t, use_edge_labels = False, integer = False, value_only = True, use_global_relabeling = False, use_gap_relabeling = True):
 	"""
         Python implementation of the Push-Relabel method for the Maximum Flow 
         problem.
@@ -7415,13 +7415,13 @@ class GenericGraph(GenericGraph_pyx):
         ``ButterflyGraph`` with parameter `2` ::
     
            sage: g=graphs.PappusGraph()
-           sage: g.push_relabel(1,2)
+           sage: g._push_relabel(1,2)
            3
     
         ::
     
            sage: b=digraphs.ButterflyGraph(2)
-           sage: b.push_relabel(('00',1),('00',2))
+           sage: b._push_relabel(('00',1),('00',2))
            1
     
         The flow method can be used to compute a matching in a bipartite graph by 
@@ -7433,7 +7433,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([('s',i) for i in range(4)])
             sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
             sage: g.add_edges([(4+i,'t') for i in range(4)])
-            sage: [cardinal, flow_graph] = g.push_relabel('s','t',integer=True,value_only=False)
+            sage: [cardinal, flow_graph] = g._push_relabel('s','t',integer=True,value_only=False)
             sage: flow_graph.delete_vertices(['s','t'])
             sage: len(flow_graph.edges(labels=None))
             4
@@ -7680,8 +7680,6 @@ class GenericGraph(GenericGraph_pyx):
                     for v in xrange(n):
                         if flow[u*n + v] > 0:
                             G.add_edge(u, v)
-                        else:
-                            G.delete_edge(u, v)
                 is_acyclic, order = G.is_directed_acyclic(certificate=True)
                 while not is_acyclic:
                     order.append(order[0])
@@ -7691,10 +7689,11 @@ class GenericGraph(GenericGraph_pyx):
                         mf = min(mf, flow[u*n + v])
                     for (u, v) in edges:
                         flow[u*n + v] -= mf
+                        flow[v*n + u] += mf
                         if flow[u*n + v] == 0:
                             G.delete_edge(u, v)
                     is_acyclic, order = G.is_directed_acyclic(certificate=True)
-                for v in order:
+                for v in reversed(order):
                     if v != t:
                         for w in G.neighbor_in_iterator(v):
                             c = min(ex[v], flow[w*n + v])
@@ -7702,11 +7701,14 @@ class GenericGraph(GenericGraph_pyx):
                             flow[v*n + w] += c
                             ex[v] -= c
                             ex[w] += c
-                if self.is_directed():
-                    g = DiGraph()
-                else:
-                    g = Graph()
-                g.add_edges([(x,y,flow[ind[x]*n + ind[y]]) for (x, y) in self.edge_iterator(labels=False) if flow[ind[x]*n + ind[y]] > 0])
+                g = DiGraph()
+                for x, y in self.edge_iterator(labels = False):
+                    xyf = flow[ind[x]*n + ind[y]]
+                    if xyf != 0:
+                        if xyf > 0:
+                            g.add_edge(x, y, xyf)
+                        else:
+                            g.add_edge(y, x, -xyf)
                 g.set_pos(self.get_pos())
                 return ex[t], g
         
