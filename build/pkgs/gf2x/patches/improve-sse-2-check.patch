@@ -1,0 +1,126 @@
+diff -u -r src/config/acinclude.m4 new/config/acinclude.m4
+--- src/config/acinclude.m4	2012-05-31 22:53:47.000000000 +0200
++++ new/config/acinclude.m4	2014-06-15 20:40:54.465269861 +0200
+@@ -74,8 +74,21 @@
+ 
+ AC_DEFUN([SSE2_EXAMPLE],[AC_LANG_SOURCE([
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ ])])
+ 
+ # Check whether we need some flag such as -msse2 in order to enable sse-2
+diff -u -r src/configure new/configure
+--- src/configure	2012-05-31 22:54:00.000000000 +0200
++++ new/configure	2014-06-15 20:39:51.590053902 +0200
+@@ -16359,8 +16359,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -16380,8 +16393,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
+@@ -16421,8 +16447,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_cpp "$LINENO"; then :
+@@ -16436,8 +16475,21 @@
+ /* end confdefs.h.  */
+ 
+ #include <emmintrin.h>
+-__v2di x;
+-int main() {}
++__v2di x;       /* Our code currently uses these, but it should not */
++int main(int argc, char * argv) {
++     __m128i foo = _mm_setr_epi32(argc, argc + 1, argc + 2, argc + 3);
++     __m128i bar = _mm_setr_epi32(argc + 3, argc + 2, argc + 1, argc);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_slli_epi64(foo, 1);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_epi64(foo, 1);
++    foo = _mm_mullo_epi16(foo, bar);
++    foo = _mm_shuffle_epi32(foo, 78);
++    foo = _mm_xor_si128(bar, _mm_unpacklo_epi32 (foo, bar));
++    foo = _mm_srli_si128(foo, 1);
++
++    return _mm_extract_epi16(foo, 0) & (argc - 1);
++}
+ 
+ _ACEOF
+ if ac_fn_c_try_cpp "$LINENO"; then :

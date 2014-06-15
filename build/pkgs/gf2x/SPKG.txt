@@ -26,8 +26,14 @@ Website: http://gf2x.gforge.inria.fr/
 
 === Patches ===
  * no-undefined.patch: pass -no-undefined flag to libtool.
+ * improve-sse-2-check.patch: Use stricter sse-2 check from upstream
+   revision 160.
 
 == Changelog ==
+
+=== gf2x-1.1.p1 (Erik Massop, 15 June 2013) ===
+  * Trac #16481: Improved sse-2 check from upstream revision 160.
+    Revision 160 is before the switch to GPLv3.
 
 === gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
   * Trac #15014: Let gf2x build a shared library on Cygwin.
