@@ -19,16 +19,11 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
 
     @cached_property
     def install_script(self):
-        scriptname = self._config.builder.install_script
-        return os.path.join(config.path.packages, self.name, scriptname)
+        return self._config.builder.install_script
 
     @cached_property
     def check_script(self):
-        try:
-            scriptname = self._config.builder.check_script
-        except AttributeError:
-            return None
-        return os.path.join(config.path.packages, self.name, scriptname)
+        return self._config.builder('check_script', default=None)
 
     def get_environment(self):
         """
@@ -42,20 +37,27 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
         """
         Copy spkg-install to the build dir
         """
-        self._copy_spkg_install()
-        self._copy_patches()
+        self._copy_pkg_directory_contents()
+        self._make_scripts_executable()
         super(SpkgInstallScript, self).prepare()
 
-    def _copy_spkg_install(self):
-        spkg_install = os.path.join(self.build_dir, 'spkg-install')
-        shutil.copy(self.install_script, spkg_install)
-        os.chmod(spkg_install, 0o755)
-
-    def _copy_patches(self):
-        patches = os.path.join(config.path.packages, self.name, 'patches')
-        if os.path.isdir(patches):
-            dst = os.path.join(self.build_dir, 'patches')
-            shutil.copytree(patches, dst)
+    def _copy_pkg_directory_contents(self):
+        src = os.path.join(config.path.packages, self.name)
+        dst = os.path.join(self.build_dir)
+        for dirent in os.listdir(src):
+            fqn = os.path.join(src, dirent)
+            if os.path.isdir(fqn):
+                shutil.copytree(fqn, os.path.join(dst, dirent))
+            else:
+                shutil.copyfile(fqn, os.path.join(dst, dirent))
+                
+    def _make_scripts_executable(self):
+        def make_executable(script):
+            if script is not None:
+                fname = os.path.join(self.build_dir, script)
+                os.chmod(fname, 0o700)
+        make_executable(self.install_script)
+        make_executable(self.check_script)
 
     def install(self):        
         env = self.get_environment()

@@ -10,6 +10,8 @@ from sage_pkg.config import config
 from sage_pkg.logger import logger
 from sage_pkg.chdir_context import chdir
 from sage_pkg.utils import cached_property
+from sage_pkg.mirror_network import MirrorList, Tarball
+
 
 
 class SageMirrorMixin(object):
@@ -52,26 +54,13 @@ class SageMirrorMixin(object):
         """
         return os.path.join(config.path.download_cache, self.tarball)
 
-    def tarball_url_iter(self):
-        """
-        Iterator for potential download URLs
-
-        EXAMPLES::
-
-            >>> from sage_pkg.package.sage_mirror_mixin import SageMirrorMixin
-            >>> pkg = SageMirrorMixin._doctest_example()
-            >>> list(pkg.tarball_url_iter())
-            ['http://download.example.com/packages/spkg_example/spkg_example-4.7.4.tar.bz2']
-        """
-        try:
-            mirrors = config.mirrors
-        except AttributeError:
-            raise ValueError('you need to define at least one mirror')
-        for url in mirrors:
-            url = url.rstrip('/')
-            yield '/'.join([url, self.name, self.tarball])
-
     def download(self):
+        sha1 = self._config.source.tarball('sha1', default=None)
+        tarball = Tarball(self.tarball, sha1)
+        if not tarball.is_cached():
+            logger.info('downloading tarball %s', self.tarball)
+            mirror_list = MirrorList()
+            tarball.download(mirror_list)
         super(SageMirrorMixin, self).download()
 
     def unpack(self):
@@ -94,15 +83,17 @@ class SageMirrorMixin(object):
         src = os.path.join(build_dir, 'src')
         if os.path.exists(src):
             logger.info('tarball %s already contains a "src" directory', self.tarball)
+            return
         tarball_dir = None
         for dirent in os.listdir(build_dir):
             fullname = os.path.join(build_dir, dirent)
             if not os.path.isdir(fullname):
                 continue
-            if dirent.lower().startswith(self.name):
-                tarball_dir = dirent
+            if tarball_dir is not None:
+                raise ValueError('ambiguous "src" symlink: multiple directories in %s', self.tarball)
+            tarball_dir = dirent
         if tarball_dir is None:
-            raise ValueError('no suitable directory as target for the "src" symlink')
+            raise ValueError('no suitable directory in %s as target for the "src" symlink', self.tarball)
         logger.info('symlinking %s to %s', tarball_dir, src)
         os.symlink(tarball_dir, src)
         

@@ -75,7 +75,6 @@ class ConfigYAML(object):
         self._init_attributes()
         self._validate()
         self._name = kwds.pop('name', 'config')
-        self._base_dir = kwds.pop('base_dir', '.')
         if kwds:
             raise ValueError('unknown keyword arguments: {0}'.format(kwds))
 
@@ -187,9 +186,9 @@ class ConfigYAML(object):
 
         EXAMPLES::
         
-            >>> config.mirrors
+            >>> config.mirrors.extra
             ['http://download.example.com/packages']
-            >>> config['mirrors']
+            >>> config.mirrors['extra']
             ['http://download.example.com/packages']
         """
         return self._c[key]
@@ -209,13 +208,17 @@ class ConfigYAML(object):
             >>> config('path', 'bar', default='baz')
             'baz'
         """
-        default = kwds.pop('default', None)
+        try:
+            default = kwds.pop('default')
+            have_default = True
+        except KeyError:
+            have_default = False
         value = self._c
         for key in args:
             try:
                 value = value[key]
             except KeyError:
-                if default is not None:
+                if have_default:
                     return default
                 else:
                     raise

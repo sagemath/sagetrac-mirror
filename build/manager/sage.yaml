@@ -31,8 +31,11 @@ path:
 
 
 mirrors:
-    - http://www.sagemath.org/packages
-
+    first:
+        - http://www.sagemath.org/packages
+    list: http://www.sagemath.org/mirror_list
+    extra:
+        - http://www.sagemath.org/packages
 
 install:
     standard: yes

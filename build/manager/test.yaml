@@ -33,7 +33,11 @@ path:
 
 
 mirrors:
-    - http://download.example.com/packages
+    first:
+        - http://try.this.first/packages
+    list:
+    extra:
+        - http://download.example.com/packages
 
 
 ... # End of the builder configuration

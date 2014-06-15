@@ -117,7 +117,7 @@ def launch(DEFAULT_CONFIG):
     args = parser.parse_args()
     if args.log is not None:
         import logging
-        level = getattr(logging, args.log)
+        level = getattr(logging, args.log.upper())
         logger.setLevel(level=level)
 
     set_configuration(args.config if args.config else DEFAULT_CONFIG)

@@ -15,7 +15,9 @@ class ManagerConfig(ConfigYAML):
 
         >>> config    # doctest: +ELLIPSIS
         Configuration:
-        - config.mirrors = ['http://download.example.com/packages']
+        - config.mirrors.extra = ['http://download.example.com/packages']
+        - config.mirrors.first = ['http://try.this.first/packages']
+        - config.mirrors.list = None
         - config.path.build = /.../test_data/local/var/tmp/sage-build
         - config.path.configuration = []
         - config.path.dot_git = /.../.git
@@ -44,6 +46,7 @@ class ManagerConfig(ConfigYAML):
             'path.packages',
             'path.sage_pkg',
             'path.download_cache',
+            'mirrors.list',
         )
 
     def _normalize_paths(self, path, root=None):
