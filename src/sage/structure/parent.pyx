@@ -2585,13 +2585,6 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
-        if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
-            # Sequences is used as a category and a "Parent"
-            from sage.categories.category_types import Sequences
-            from sage.structure.coerce_maps import ListMorphism
-            if isinstance(S, Sequences):
-                return ListMorphism(S, self.convert_map_from(list))
-
         mor = self._generic_convert_map(S)
         return mor
 

@@ -927,7 +927,7 @@ class OEISSequence(SageObject):
         TESTS::
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
-            sage: s.natural_object().universe()
+            sage: s.natural_object().parent()
             Field of all continued fractions
 
             sage: s = oeis._imaginary_sequence('nonn')
@@ -939,9 +939,8 @@ class OEISSequence(SageObject):
             Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
-            CFF = ContinuedFractionField()(self.first_terms())
-            return Sequence(self.first_terms(), CFF)
-        elif 'cons' in self.keywords():
+            return ContinuedFractionField()(self.first_terms())
+        if 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))
             return RealLazyField()('0' + ''.join(map(str, terms[:offset])) + '.' + ''.join(map(str, terms[offset:])))

@@ -2,7 +2,6 @@ from category import Category, HomCategory
 
 from category_types import(
                         Elements,
-                        Sequences,
                         SimplicialComplexes,
                         ChainComplexes,
 )

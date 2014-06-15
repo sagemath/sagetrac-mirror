@@ -145,10 +145,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         [1, 2, 1]
         sage: v.universe()
         Rational Field
-        sage: v.parent()
-        doctest:757: DeprecationWarning: You possibly can call universe() instead
-        See http://trac.sagemath.org/15852 for details.
-        <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     Note that assignment coerces if possible,::
 
@@ -208,14 +204,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         sage: w[1] = 2/3
         sage: w
         [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
-
-    Sequences themselves live in a category, the category of all sequences
-    in the given universe.::
-
-        sage: w.category()
-        doctest:1: DeprecationWarning: You possibly can call universe() instead
-        See http://trac.sagemath.org/15852 for details.
-        <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     The default universe for any sequence, if no compatible parent structure
     can be found, is the universe of all Sage objects.
@@ -732,30 +720,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         else:
             return list.__str__(self)
 
-    def category(self):
-        """
-        EXAMPLES::
-
-            sage: Sequence([1,2/3,-2/5]).category()
-            doctest:1: DeprecationWarning: You possibly can call universe() instead
-            See http://trac.sagemath.org/15852 for details.
-            <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
-        """
-        from sage.misc.superseded import deprecation
-        import sage.categories.all
-        deprecation(15852, 'You possibly can call universe() instead')        
-        return sage.categories.finite_enumerated_sets.FiniteEnumeratedSets
-
-    def parent(self):
-        """
-
-        EXAMPLES::
-
-            sage: Sequence([1,2/3,-2/5]).parent()
-            <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
-        """
-        return self.category()
-
     def universe(self):
         """
         EXAMPLES::
@@ -861,8 +825,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t.is_immutable == s.is_immutable
             True
             sage: t.is_mutable == s.is_mutable
-            True
-            sage: t.parent() == s.parent()
             True
 
         """
