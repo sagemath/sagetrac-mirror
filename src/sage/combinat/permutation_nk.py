@@ -16,9 +16,10 @@ Deprecated low-level permutations
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 def PermutationsNK(n, k):
     r"""
-    This is deprecated in :trac:`16472`. Use :class:`Permutations` instead
+    This is deprecated in :trac:`16472`. Use :class:`~permutation.Permutations` instead
     (or ``itertools.permutations`` for iteration).
 
     EXAMPLES::
@@ -40,3 +41,34 @@ def PermutationsNK(n, k):
     from permutation import Permutations
     return Permutations(range(n),k)
 
+from permutation import Permutations_nk
+class PermutationsNK_backward_compatibility(Permutations_nk):
+    r"""
+    .. WARNING::
+
+        Not to be used! (backward compatibility for pickling)
+    """
+    def __getattr__(self, name):
+        r"""
+        If the attribute
+
+        EXAMPLES::
+
+            sage: from sage.combinat.permutation_nk import PermutationsNK_backward_compatibility
+            sage: P = PermutationsNK_backward_compatibility(10,3)
+            sage: P
+            Permutations of {1,...,10} of length 3
+        """
+        if name == 'n' or name == 'k':
+            n = self._n
+            k = self._k
+            Permutations_nk.__init__(self, n, k)
+            return getattr(self, name)
+        raise AttributeError
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override(
+    'sage.combinat.permutation_nk',
+    'PermutationsNK',
+    PermutationsNK_backward_compatibility,
+    call_name=('sage.combinat.permutation', 'Permutations'))

@@ -194,3 +194,8 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
+# this line below seems to be useless but it is not! Loading this module on
+# startup allows old pickle to work correctly (see sage.structure.sage_object).
+# As soon as we get rid of sage.combinat.permutation_nk.Permutations_nk in
+# the pickle jar we can safely remove it.
+import permutation_nk
