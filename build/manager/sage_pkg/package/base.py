@@ -135,6 +135,26 @@ class PackageBase(object):
         return self.name
 
     @property
+    def config(self):
+        """
+        The package configuration (read from ``package.yaml``)
+
+        EXAMPLES::
+  
+            >>> loader.get('foo').config
+            Configuration:
+            - config.builder.install_script = spkg-install
+            - config.builder.type = TestPackage
+            - config.category = standard
+            - config.name = foo
+            - config.source.tarball.name = Foo-1.3.tar.gz
+            - config.source.tarball.sha1 = 99533b2233a27132ee65bcd2992f7bb464388b55
+            - config.source.tarball.url = http://www.example.com/1.3.tar.gz
+            - config.source.version = 1.3
+        """
+        return self._config
+
+    @property
     def name(self):
         """
         Package name

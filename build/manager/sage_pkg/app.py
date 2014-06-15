@@ -120,3 +120,19 @@ class Application(object):
         """
         queue = loader.build_queue()
         queue.run_serial()
+
+    def get_file(self, url, destination=None, progress=True):
+        """
+        Download tarball/spkg/file
+        
+        INPUT:
+
+        - ``url`` -- string. A url or tarball name.
+        """
+        from mirror_network import MirrorList, Tarball, http_download
+        if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
+            http_download(url, destination, progress=progress)
+        else:
+            tarball = Tarball(url)
+            mirror_list = MirrorList()
+            tarball.download(mirror_list)

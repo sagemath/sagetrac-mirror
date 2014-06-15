@@ -31,7 +31,7 @@ from .config import set_configuration
 
 
 
-def debug_shell(app, package, parser):
+def debug_shell(app, parser):
     from IPython.frontend.terminal.ipapp import TerminalIPythonApp
     ip = TerminalIPythonApp.instance()
     ip.initialize(argv=[])
@@ -45,13 +45,15 @@ def debug_shell(app, package, parser):
     ip.shell.user_global_ns['git'] = GitRepository(config.path.dot_git)
     from sage_pkg.package_list import loader
     ip.shell.user_global_ns['loader'] = loader
-    ip.shell.user_global_ns[package] = loader.get(package)
+    packages = loader.get_all()
+    for pkg in packages:
+        ip.shell.user_global_ns[pkg.name] = pkg
     def ipy_import(module_name, identifier):
         import importlib
         module = importlib.import_module(module_name)
         ip.shell.user_global_ns[identifier] = getattr(module, identifier) 
     # ipy_import('sage_pkg.git_interface', 'GitInterface')
-    print('Type "{0}" to access the {0} package'.format(package))
+    print('Loaded packages: ' + ', '.join([pkg.name for pkg in packages]))
     ip.start()
 
 
@@ -67,18 +69,17 @@ def launch(DEFAULT_CONFIG):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=description)
     parser.add_argument('--config', dest='config', type=str, default=None, 
-                        help='builder configuration file')
+                        help='Builder configuration file')
     parser.add_argument('--log', dest='log', default=None,
-                        help='one of [DEBUG, INFO, ERROR, WARNING, CRITICAL]')
+                        help='One of [DEBUG, INFO, ERROR, WARNING, CRITICAL]')
     subparsers = parser.add_subparsers(dest='subcommand')
 
     # sage-pkg info <package>
     parser_info = subparsers.add_parser('info', help='Print information about package')
     parser_info.add_argument('package', type=str, help='Package name')
 
-    # sage-pkg debug <package>
-    parser_debug = subparsers.add_parser('debug', help='Debug package')
-    parser_debug.add_argument('package', type=str, help='Package name')
+    # sage-pkg shell
+    parser_shell = subparsers.add_parser('shell', help='IPython shell')
 
     # sage-pkg info <package>
     parser_list = subparsers.add_parser('list', help='List all packages')
@@ -90,30 +91,36 @@ def launch(DEFAULT_CONFIG):
     parser_help = subparsers.add_parser('help', help='Get help')
 
     # The different build steps
-    parser_download = subparsers.add_parser('download', help='Build up to the "download" step')
+    parser_download = subparsers.add_parser('download', help='Build package up to the "download" step')
     parser_download.add_argument('package', type=str, help='Package name')
 
-    parser_unpack = subparsers.add_parser('unpack', help='Build up to the "unpack" step')
+    parser_unpack = subparsers.add_parser('unpack', help='Build package up to the "unpack" step')
     parser_unpack.add_argument('package', type=str, help='Package name')
 
-    parser_prepare = subparsers.add_parser('prepare', help='Build up to the "prepare" step')
+    parser_prepare = subparsers.add_parser('prepare', help='Build package up to the "prepare" step')
     parser_prepare.add_argument('package', type=str, help='Package name')
 
-    parser_configure = subparsers.add_parser('configure', help='Build up to the "configure" step')
+    parser_configure = subparsers.add_parser('configure', help='Build package up to the "configure" step')
     parser_configure.add_argument('package', type=str, help='Package name')
 
-    parser_compile = subparsers.add_parser('compile', help='Build up to the "compile" step')
+    parser_compile = subparsers.add_parser('compile', help='Build package up to the "compile" step')
     parser_compile.add_argument('package', type=str, help='Package name')
 
-    parser_check = subparsers.add_parser('check', help='Build up to the "check" step')
+    parser_check = subparsers.add_parser('check', help='Build package up to the "check" step')
     parser_check.add_argument('package', type=str, help='Package name')
 
-    parser_install = subparsers.add_parser('install', help='Build and install')
+    parser_install = subparsers.add_parser('install', help='Build package and install')
     parser_install.add_argument('package', type=str, help='Package name')
 
     # Build the whole thing
     parser_build = subparsers.add_parser('build', help='Build everything')
 
+    # Download files
+    parser_get = subparsers.add_parser('get', help='Download tarball/spkg/file')
+    parser_get.add_argument('--progress', dest='progress', type=bool, 
+                            help='Show progress bar', default=True)
+    parser_get.add_argument('filename', type=str, help='Name')
+    
     args = parser.parse_args()
     if args.log is not None:
         import logging
@@ -125,8 +132,8 @@ def launch(DEFAULT_CONFIG):
     from .app import Application
     app = Application()
 
-    if args.subcommand == 'debug':
-        debug_shell(app, args.package, parser)
+    if args.subcommand == 'shell':
+        debug_shell(app, parser)
     elif args.subcommand == 'info':
         app.info(args.package)
     elif args.subcommand == 'list':
@@ -149,6 +156,9 @@ def launch(DEFAULT_CONFIG):
         app.install(args.package)
     elif args.subcommand == 'build':
         app.build()
+    elif args.subcommand == 'get':
+        print args
+        app.get_file(args.filename, progress=args.progress)
     elif args.subcommand == 'help':
         parser.print_help()
     else:

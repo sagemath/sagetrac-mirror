@@ -282,7 +282,10 @@ class Tarball(object):
         """
         import re
         regex = re.compile('(?P<base>(?:[^-]|-(?!\d))*)-(?P<version>.*)\.(?P<ext>tar.*|zip|tgz)')
-        return regex.match(name).groups()
+        match = regex.match(name)
+        if not match:
+            raise ValueError('%s does not in tarball name format "xyz-1.0.tar.gz"', name)
+        return match.groups()
 
     def _compute_hash(self, algorithm):
         with open(self.upstream_fqn, 'rb') as f:
@@ -310,9 +313,12 @@ class Tarball(object):
     def download(self, mirror_list):
         """
         Download the tarball to the upstream directory.
+
+        Checksum is verified if the ``sha1`` was given to the
+        :class:`Tarball` constructor.
         """
         destination = self.upstream_fqn
-        if os.path.isfile(destination):
+        if self.sha1 and os.path.isfile(destination):
             if self.checksum_verifies():
                 print('Using cached file {destination}'.format(destination=destination))
                 return
@@ -333,7 +339,7 @@ class Tarball(object):
                 pass  # mirror doesn't have file for whatever reason...
         if not successful_download:
             raise FileNotMirroredError('tarball does not exist on mirror')
-        if not self.checksum_verifies():
+        if self.sha1 and not self.checksum_verifies():
             raise ChecksumError('checksum does not match')
 
     def save_as(self, destination):
