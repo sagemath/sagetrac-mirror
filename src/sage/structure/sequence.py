@@ -1,5 +1,5 @@
 r"""
-Finite Sequences
+Finite Homogenous Sequences
 
 A mutable sequence of elements with a common guaranteed category,
 which can be set immutable.
@@ -146,6 +146,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         sage: v.universe()
         Rational Field
         sage: v.parent()
+        doctest:757: DeprecationWarning: You possibly can call universe() instead
+        See http://trac.sagemath.org/15852 for details.
         <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     Note that assignment coerces if possible,::
@@ -211,6 +213,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     in the given universe.::
 
         sage: w.category()
+        doctest:1: DeprecationWarning: You possibly can call universe() instead
+        See http://trac.sagemath.org/15852 for details.
         <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
 
     The default universe for any sequence, if no compatible parent structure
@@ -733,9 +737,13 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         EXAMPLES::
 
             sage: Sequence([1,2/3,-2/5]).category()
+            doctest:1: DeprecationWarning: You possibly can call universe() instead
+            See http://trac.sagemath.org/15852 for details.
             <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets'>
         """
+        from sage.misc.superseded import deprecation
         import sage.categories.all
+        deprecation(15852, 'You possibly can call universe() instead')        
         return sage.categories.finite_enumerated_sets.FiniteEnumeratedSets
 
     def parent(self):
