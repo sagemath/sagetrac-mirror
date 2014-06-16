@@ -402,7 +402,7 @@ class PackageBase(object):
         tasklist.append(prev)
         if stop_at == 'compile':
             return tasklist
-        if self.want_check():
+        if self.want_check() or (stop_at == 'check'):
             test = [prev] + [dependencies[dep] for dep in self.get_test_dependencies()]
             task_check     = prev = Task(self.check,     test,   name='{0}:check'    .format(self.name))
             tasklist.append(prev)

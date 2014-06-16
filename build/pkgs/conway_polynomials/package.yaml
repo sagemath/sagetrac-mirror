@@ -2,7 +2,7 @@ name:
     conway_polynomials
 
 category:
-    optional
+    standard
 
 source:
     version:  
@@ -15,3 +15,6 @@ builder:
     type:            SpkgInstallScript
     install_script:  spkg-install
 
+
+depends:
+    hard:

@@ -2,7 +2,7 @@ name:
     rpy2
 
 category:
-    optional
+    standard
 
 source:
     version:  
@@ -15,3 +15,8 @@ builder:
     type:            SpkgInstallScript
     install_script:  spkg-install
 
+
+depends:
+    hard:
+        - python
+        - r

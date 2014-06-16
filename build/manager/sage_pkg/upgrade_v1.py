@@ -39,6 +39,7 @@ DEPS_TEMPLATE = """
 
 
 DEPENDENCIES = {
+    'conway_polynomials': [],
     'sqlite': ['readline', ],
     'bzip2': ['pkgconf'],
     'patch': ['bzip2'],
@@ -123,7 +124,7 @@ DEPENDENCIES = {
     'ecl': ['mpir', 'readline', 'boehm_gc'],
     'maxima': ['ecl'],
     'r': ['atlas', 'iconv', 'readline', 'pkgconf'],
-    'rpy': ['python', 'r'],
+    'rpy2': ['python', 'r'],
     'sympy': ['python'],
     'cython': ['python'],
     'flintqs': ['mpir'],
