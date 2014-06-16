@@ -127,7 +127,8 @@ class BetaAdicMonoid(Monoid_class):
         
         str = ""
         if hasattr(self, 'ss'):
-            str=" with subshift of %s states"%self.ss.num_verts()
+            if self.ss is not None:
+                str=" with subshift of %s states"%self.ss.num_verts()
         
         from sage.rings.rational_field import QQ
         if self.b in QQ:
@@ -961,11 +962,25 @@ class BetaAdicMonoid(Monoid_class):
                 sage: m.plot(ss = ssd, n=19)     # long time
         """
         
+        m = None
+        
         if ss2 is None:
             if hasattr(self, 'ss'):
-                ss2 = ss
+                ss2 = self.ss
             else:
                 raise ValueError("Only one sub-shift given, I need two !")
+            if type(ss) == type(BetaAdicMonoid(2,{0,1})):
+                m = ss
+                ss = m.ss
+                if m.b != self.b:
+                    raise ValueError("Cannot compute the intersection of two beta-adic monoids with differents beta.")
+                m.C = m.C.union(self.C)
+                self.C = self.C.union(m.C)
+                if hasattr(m, 'ss'):
+                    m.ss.A = m.C
+                else:
+                    raise ValueError("Only one sub-shift given, I need two !")
+                self.ss.A = self.C
         
         if Iss is None:
             if hasattr(ss, 'I'):
@@ -995,8 +1010,8 @@ class BetaAdicMonoid(Monoid_class):
                     m[c-c2] = [(c,c2)]
         if verb: print "m = %s"%m
         
-        L = a.edge_labels()
-        LA = ar.edge_labels()
+        L = a.Alphabet() #a.edge_labels()
+        LA = ar.Alphabet() #ar.edge_labels()
         d = dict([])
         for u, v in L:
             for ka in LA:
@@ -1015,6 +1030,10 @@ class BetaAdicMonoid(Monoid_class):
         #p.emonde0(I=I)
         p.I = [((i,i2), self.b.parent().zero()) for i,i2 in zip(Iss, Iss2)]
         p = p.emonde0_simplify()
+        if m is not None:
+            ssd = p.determinize2(A=self.C, noempty=True)
+            ssd = ssd.emonde0_simplify()
+            return ssd
         return p
     
     def intersection_words (self, w1, w2, ss=None, iss=None):
@@ -1066,7 +1085,7 @@ class BetaAdicMonoid(Monoid_class):
         ss1 = ss.prefix(w=w1, i=iss)
         ss2 = ss.prefix(w=w2, i=iss)
         ssi = self.intersection(ss=ss1, ss2=ss2)
-        ssd = ssi.determinize(A=self.C, noempty=True)
+        ssd = ssi.determinize2(A=self.C, noempty=True)
         ssd = ssd.emonde0_simplify()
         return ssd
     
@@ -1445,5 +1464,54 @@ class BetaAdicMonoid(Monoid_class):
             print "Calcul de l'automate des mots réduits...\n"
         a = self.reduced_words_automaton(ss=ss, verb=verb)
         return self.critical_exponent_free (prec=prec, ss=a, verb=verb)
+    
+    #test if 0 is an inner point of the limit set
+    def ZeroInner (self, verb=False):
+        
+        if not hasattr(self, 'ss'):
+            self.ss = self.default_ss()
+        
+        ar = self.relations_automaton(ext=True)
+        ar.complementary()
+        
+        if verb: print "complementaire : %s"%ar
+        #return ar
+        
+        a = self.default_ss().product(self.ss)
+        
+        if verb: print "a = %s"%a
+        #return a
+        
+        #a = ar.intersection(a)
+        
+        if verb: print "product..."
+        
+        L = a.edge_labels()
+        Lr = ar.edge_labels()
+        d = dict([])
+        for k in L:
+            for kr in Lr:
+                if k == kr and k[0] == 0:
+                    d[(k, kr)] = 0
+                else:
+                    d[(k, kr)] = None
+        a2 = a.product(A=ar, d=d)
+        
+        if verb: print "product = %s"%a2
+        #return a2
+        
+        #test if there is a cycle in the graph
+        if a2.is_directed_acyclic():
+            print "0 is not an inner point."
+        else:
+            ss = self.ss
+            self.ss = None
+            print "Zero is an inner point iff the %s has non-empty interior."%self
+            self.ss = ss
+        
+        
+        
+        
+        
         
         

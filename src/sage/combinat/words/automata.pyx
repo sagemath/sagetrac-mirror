@@ -60,10 +60,16 @@ class Automaton (DiGraph):
             a.A = self.A
         return a
     
+    def Alphabet (self):
+        if hasattr(self, 'A'):
+            return self.A
+        else:
+            return self.edge_labels()
+    
     def product (self, A, d=None):
+        L = self.Alphabet()
+        LA = A.Alphabet()
         if d is None:
-            L = self.edge_labels()
-            LA = A.edge_labels()
             d = dict([])
             for k in L:
                 for ka in LA:
@@ -89,7 +95,8 @@ class Automaton (DiGraph):
             P.I = [(u,v) for u in self.I for v in A.I]
         if hasattr(self, 'F') and hasattr(A, 'F'):
             P.F = [(u,v) for u in self.F for v in A.F]
-        P.A = [u for u in set(d.values()) if u is not None]
+        P.A = [(l,la) for l in L for la in LA]
+        #[u for u in set(d.values()) if u is not None]
         return P
    
     def intersection(self, A):
@@ -555,6 +562,14 @@ class Automaton (DiGraph):
                     res.delete_vertex(Set(S))
         res = res.emonde0_simplify()
         return res
+     
+    #compute the automaton recognizing the complementary
+    def complementary (self):
+        self.complete()
+        if hasattr(self, 'F'):
+            self.F = [f for f in self.vertices() if f not in self.F]
+        else:
+            self.F = self.vertices()
         
 #    def plot (self, edge_labels=True, **options):
 #        DiGraph.plot(self, edge_labels=edge_labels, **options)

@@ -3082,9 +3082,9 @@ class WordMorphism(SageObject):
         else:
             ss.F = ss.vertices()
         if invss:
-        	res.ss = ss.transpose()
+            res.ss = ss.transpose()
         else:
-	        res.ss = ss.determinize(noempty=True)
+            res.ss = ss.determinize(noempty=True)
         
         return res
         
