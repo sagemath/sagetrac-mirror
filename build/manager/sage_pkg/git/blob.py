@@ -192,7 +192,7 @@ class BlobTree(BlobABC):
         for mode, name, sha1 in self.ls():
             if name == filename:
                 return sha1
-        raise ValueError('file is not in the tree')
+        raise ValueError('file is not in the tree: ' + filename)
 
     def _compare_files(self, dirname, verbose=False):
         """

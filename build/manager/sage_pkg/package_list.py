@@ -120,6 +120,9 @@ class PackageLoader(object):
         pkg_dict = dict((pkg.name, pkg) for pkg in result)
         for pkg in result:
             pkg._init_dependencies(pkg_dict)
+        # finally, call the validation hook
+        for pkg in result:
+            pkg._validate()
         self._packages = tuple(sorted(result))
         return self._packages
     

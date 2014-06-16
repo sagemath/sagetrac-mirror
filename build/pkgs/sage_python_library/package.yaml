@@ -1,0 +1,59 @@
+summary:
+    Python/Cython Part of the Sage Library
+
+name:
+    sage_python_library
+
+category:
+    standard
+
+source:
+    - src/sage
+#    - src/sage_setup
+        
+builder:
+    type:     ShellCommands
+    workdir:    src
+    commands:  
+        - source bin/sage-env && python setup.py install
+
+depends:
+    hard:
+       - atlas
+       - cephes
+       - cliquer
+       - cython
+       - ecl
+       - eclib
+       - ecm
+       - flint
+       - libfplll
+       - gd
+       - givaro
+       - glpk
+       - gsl
+       - iml
+       - jinja2
+       - lcalc
+       - libgap
+       - libpng
+       - linbox
+       - libm4ri
+       - libm4rie
+       - mpc
+       - mpfi
+       - mpfr
+       - mpir
+       - ntl
+       - numpy
+       - pari
+       - polybori
+       - ppl
+       - pynac
+       - python
+       - ratpoints
+       - readline
+       - singular
+       - symmetrica
+       - zn_poly
+       - sage_c_library

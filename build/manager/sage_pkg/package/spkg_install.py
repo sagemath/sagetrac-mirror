@@ -7,7 +7,6 @@ import shutil
 import subprocess
 
 from sage_pkg.config import config
-from sage_pkg.chdir_context import chdir
 from sage_pkg.utils import cached_property
 from .base import PackageBase
 from .sage_mirror_mixin import SageMirrorMixin
@@ -19,7 +18,7 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
 
     def _validate(self):
         super(SpkgInstallScript, self)._validate()
-        self._require(
+        self._config._require(
             'source.version',
             'builder.install_script',
         )
@@ -83,15 +82,13 @@ class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
 
     def install(self):        
         env = self.get_environment()
-        with chdir(self.build_dir):
-            subprocess.check_call('sage-spkg-sage_pkg', env=env, shell=True)
+        subprocess.check_call('sage-spkg-sage_pkg', env=env, shell=True, cwd=self.build_dir)
         super(SpkgInstallScript, self).install()
 
     def check(self):
         if not (self.want_check() and self.check_script):
             return
         env = self.get_environment()
-        with chdir(self.build_dir):
-            subprocess.check_call(self.check_script)
+        subprocess.check_call(self.check_script, cwd=self.build_dir)
         super(SpkgInstallScript, self).check()
 

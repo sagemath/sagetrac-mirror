@@ -25,4 +25,4 @@ depends:
         - bar
     soft:
     test:
-    build:
+    compile:

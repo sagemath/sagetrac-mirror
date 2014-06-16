@@ -18,7 +18,7 @@ class SageMirrorMixin(object):
 
     def _validate(self):
         super(SageMirrorMixin, self)._validate()
-        self._require(
+        self._config._require(
             'source.tarball.name',
             'source.tarball.sha1',
         )

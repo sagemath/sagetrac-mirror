@@ -51,7 +51,7 @@ DEPENDENCIES = {
     'iconv': [],
     'docutils': ['python'],
     'elliptic_curves': ['python', 'sqlite'],
-    'conway': [],
+    'conway': ['sage_python_library', 'sage_noarch', 'sagenb', 'ipython'],
     'graphs': [],
     'glpk': ['mpir', 'zlib'],
     'python': ['zlib', 'bzip2', 'pkgconf', 'readline', 'sqlite', 'libpng'],

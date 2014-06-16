@@ -20,7 +20,7 @@ class PackageConfig(ConfigYAML):
         - config.builder.install_script = spkg-install
         - config.builder.type = TestPackage
         - config.category = standard
-        - config.depends.build = None
+        - config.depends.compile = None
         - config.depends.hard = ['bar']
         - config.depends.soft = None
         - config.depends.test = None

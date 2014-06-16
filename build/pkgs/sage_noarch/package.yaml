@@ -1,0 +1,21 @@
+summary:
+    Architecture-Independent Files of Sage
+
+name:
+    sage_noarch
+
+category:
+    standard
+
+source:
+    - src/bin
+    - src/ext
+        
+builder:
+    type:     ShellCommands
+    workdir:    src
+    commands:  
+        - cp -r -p -f bin/* "$SAGE_LOCAL/bin/"
+        - cp -r -p -f ext/* "$SAGE_EXTCODE/"
+
+depends:

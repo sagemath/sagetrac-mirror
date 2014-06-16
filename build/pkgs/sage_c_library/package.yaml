@@ -1,3 +1,6 @@
+summary:
+    C Support Library for Sage
+
 name:
     sage_c_library
 

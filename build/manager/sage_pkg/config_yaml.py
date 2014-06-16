@@ -67,6 +67,9 @@ class FrozenDictProxy(collections.Mapping):
     def __len__(self):
         return self._dictionary.__len__()
 
+    def __repr__(self):
+        return 'frozen' + repr(self._dictionary)
+
 
 class ConfigYAML(object):
     
@@ -216,12 +219,14 @@ class ConfigYAML(object):
         except KeyError:
             have_default = False
         value = self._c
-        for key in args:
-            try:
+        try:
+            for key in args:
+                if not isinstance(value, (dict, FrozenDictProxy)):
+                    raise KeyError('parent is not a dict, cannot get key = ' + key)
                 value = value[key]
-            except KeyError:
-                if have_default:
-                    return default
-                else:
-                    raise
+        except KeyError:
+            if have_default:
+                return default
+            else:
+                raise
         return value
