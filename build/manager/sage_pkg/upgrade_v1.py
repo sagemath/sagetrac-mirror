@@ -131,7 +131,7 @@ DEPENDENCIES = {
     'eclib': ['pari', 'ntl', 'flint'],
     'libm4ri': ['libpng', 'pkgconf'],
     'libm4rie': ['libm4ri', 'givaro', 'ntl'],
-    'znpoly': ['mpir', 'python'],
+    'zn_poly': ['mpir', 'python'],
     'sagenb': [
         'python', 'setuptools', 'pexpect',
         'jinja2', 'sphinx', 'docutils'],
@@ -168,8 +168,9 @@ def upgrade_all():
         fullname = os.path.join(config.path.packages, name)
         if not os.path.isdir(fullname):
             continue
-        if not os.path.exists('package-version.txt'):
+        if not os.path.exists(os.path.join(fullname, 'package-version.txt')):
             continue
+        print('upgrading ' + name)
         upgrade(name, fullname)
 
 
