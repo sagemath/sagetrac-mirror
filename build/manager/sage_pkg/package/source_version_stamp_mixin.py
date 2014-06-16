@@ -32,7 +32,9 @@ class SourceVersionStampMixin(object):
         Iterate over the sources specified in the package config
         """
         for source_dir in self._config.source:
-            yield source_dir
+            if os.path.isabs(source_dir):
+                raise ValueError('source directory must be relative to build root, got ' + source_dir)
+            yield os.path.join(config.path.root, source_dir)
 
     def _directory_version_stamp(self, directory):
         git = GitRepository(config.path.dot_git)
