@@ -5,14 +5,16 @@ Interface to dot-gitignore
 
 import os
 import glob
+from sage_pkg.config import config
+from sage_pkg.logger import logger
 from sage_pkg.git.util import full_split_repo_path
-
+from .gitignore_pattern import GitIgnorePattern
 
 
 _gitignore = dict()
 
 def get_gitignore(path_components):
-    """
+    r"""
     Return the content of the gitignore file
 
     INPUT:
@@ -23,13 +25,13 @@ def get_gitignore(path_components):
     EXAMPLES::
 
         >>> from sage_pkg.git.git_ignore import get_gitignore
-        >>> get_gitignore([])   # doctest: +ELLIPSIS
-        ('*.pyc', ...
-        >>> get_gitignore(['src', 'c_lib'])   # doctest: +ELLIPSIS
-        ('*.os', '*.so', '*.dylib', '.sconsign.dblite')
+        >>> get_gitignore(())   # doctest: +ELLIPSIS
+        (gitignore:^/(?:.+/)?[^/]*\.pyc$, ...
+        >>> get_gitignore(('src', 'c_lib'))   # doctest: +ELLIPSIS
+        (gitignore:^/(?:.+/)?[^/]*\.os$, ...
     """
     global _gitignore
-    path_components = tuple(path_components)
+    assert isinstance(path_components, tuple)
     try:
         return _gitignore[path_components]
     except KeyError:
@@ -43,13 +45,11 @@ def get_gitignore(path_components):
     except (OSError, IOError):
         gitignore = ''
     result = []
+    root = os.path.join(config.path.root, *path_components)
     for line in gitignore.splitlines():
-        line = line.strip()
-        if len(line) == 0:
-            continue
-        if line.startswith('#'):
-            continue
-        result.append(line)
+        pattern = GitIgnorePattern(line, root=root)
+        if pattern:
+            result.append(pattern)
     result = tuple(result)
     _gitignore[path_components] = result
     return result
@@ -57,6 +57,52 @@ def get_gitignore(path_components):
 
         
     
+# def is_ignored_old(name):
+#     """
+#     Return whether ``name`` is matched by ``.gitignore``
+    
+#     INPUT:
+
+#     - ``name`` -- string. File name. Either relative to the
+#       repository root or absolute and inside the repo.
+
+#     OUTPUT:
+
+#     Boolean.
+
+#     EXAMPLES::
+
+#         >>> from sage_pkg.git.git_ignore import is_ignored
+#         >>> is_ignored('file.py')
+#         False
+#         >>> is_ignored('dir/file.py')
+#         False
+#         >>> is_ignored('dir/file.pyc')
+#         True
+#         >>> is_ignored('dir/file.py~')
+#         True
+#         >>> is_ignored('src/c_lib/libcsage.so')
+#         True
+#         >>> is_ignored(os.path.join(config.path.root, 'src/c_lib/libcsage.so'))
+#         True
+#     """
+#     parts = full_split_repo_path(name)
+#     filename = parts[-1]               # just the file name
+#     path_components = []
+#     fullname = os.path.join(*parts)    # includes directory name relative to root
+#     for part in parts:
+#         for pattern in get_gitignore(path_components):
+#             if pattern.startswith(os.path.sep):
+#                 if glob.fnmatch.fnmatch(fullname, pattern):
+#                     return True
+#             else:
+#                 if glob.fnmatch.fnmatch(filename, pattern):
+#                     return True
+#         path_components.append(part)
+#     logger.info('file is not ignored: %s', name)
+#     return False
+
+
 def is_ignored(name):
     """
     Return whether ``name`` is matched by ``.gitignore``
@@ -87,16 +133,12 @@ def is_ignored(name):
         True
     """
     parts = full_split_repo_path(name)
-    filename = parts[-1]               # just the file name
-    path_components = []
-    fullname = os.path.join(*parts)    # includes directory name relative to root
+    fullname = os.path.join(config.path.root, *parts)    # includes directory name relative to root
+    path_components = ()
     for part in parts:
         for pattern in get_gitignore(path_components):
-            if pattern.startswith(os.path.sep):
-                if glob.fnmatch.fnmatch(fullname, pattern):
-                    return True
-            else:
-                if glob.fnmatch.fnmatch(filename, pattern):
-                    return True
-        path_components.append(part)
+            if pattern.matches(fullname):
+                return True
+        path_components += (part,)
+    logger.info('file is not ignored: %s', name)
     return False

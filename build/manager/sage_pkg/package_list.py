@@ -187,7 +187,6 @@ class PackageLoader(object):
             pkg_task = packages.next()
             pkg = pkg_task.work
             logger.debug('adding %s to build queue', pkg)
-            print dependencies
             if pkg.category != 'standard':
                 # cannot be a dependency for a standard package either
                 pass

@@ -9,6 +9,7 @@ also no other directories of the repository.
 import os
  
 from sage_pkg.config import config
+from sage_pkg.logger import logger
 from sage_pkg.utils import random_sha1, cached_property
 from sage_pkg.git.repo import GitRepository
 from sage_pkg.package.dependency_accumulator import CommutingSha1Accumulator
@@ -39,6 +40,7 @@ class SourceVersionStampMixin(object):
             tree = git.get_tree(directory)
             return tree.sha1
         else:
+            logger.info('source directory is dirty: %s', directory)
             return random_sha1()
 
     @cached_property
