@@ -35,39 +35,7 @@ from sage_pkg.config_yaml import ConfigYAML
 from sage_pkg.logger import logger
 from sage_pkg.task_queue import TaskQueue
 from sage_pkg.utils import cached_property, pretty_age
-
-
-class CommutingSha1Accumulator(object):
-    """
-    Accumulate SHA1 checksums disregarding their order.
-
-    EXAMPLES::
-
-        >>> from sage_pkg.package.base import CommutingSha1Accumulator
-        >>> acc = CommutingSha1Accumulator();  str(acc)
-        '0000000000000000000000000000000000000000'
-        >>> acc += 'bbd8ea60604b02bf7e33c8c3ca86c2b6ac032b3e'
-        >>> acc += '2cdba115ff4cb73bb14bb02881e31f3dfe871ec6'
-        >>> str(acc)
-        'e8b48b765f97b9fb2f7f78ec4c69e1f4aa8a4a04'
-        >>> rev = CommutingSha1Accumulator()
-        >>> rev += '2cdba115ff4cb73bb14bb02881e31f3dfe871ec6'
-        >>> rev += 'bbd8ea60604b02bf7e33c8c3ca86c2b6ac032b3e'
-        >>> str(acc) == str(rev)
-        True
-    """
-
-    def __init__(self):
-        self.value = 0
-    
-    def __iadd__(self, sha1):
-        if not len(sha1) == 40:
-            raise ValueError('sha1 must be 40 digits')
-        self.value += int(sha1, 16)
-        return self
-
-    def __repr__(self):
-        return  '{0:040x}'.format(self.value)[-40:]
+from .dependency_accumulator import CommutingSha1Accumulator
 
 
 class PackageBase(object):
@@ -186,7 +154,7 @@ class PackageBase(object):
             >>> loader.get('foo').version
             1.3
         """
-        return self._config.source.version
+        return 'unknown'
 
     @property
     def version_stamp(self):
@@ -269,10 +237,12 @@ class PackageBase(object):
         """
         if not self.metadata.previous:
             return 'not installed'
-        if self.dependency_stamp == self.metadata.dependency_stamp:
+        elif self.dependency_stamp == self.metadata.dependency_stamp:
             return 'up to date'
-        if self.version_stamp == self.metadata.version_stamp:
+        elif self.version_stamp == self.metadata.version_stamp:
             return 'dependencies changed'
+        else:
+            return 'old version'
 
     @cached_property
     def age(self):

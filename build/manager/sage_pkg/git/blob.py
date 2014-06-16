@@ -18,7 +18,7 @@ BLOB_RE = re.compile(r'(?P<type>[a-z]*) (?P<size>[0-9]*)\0(?P<content>.*)', flag
 BLOB_COMMIT_TREE_RE = re.compile(r'tree (?P<sha1>[a-f0-9]{40,40})')
 
 
-def Blob_from_file(filename):
+def Blob_from_file(filename, sha1):
     """
     Load the unpacked git object with given sha1 hash
     """
@@ -28,11 +28,11 @@ def Blob_from_file(filename):
     if not match:
         raise ValueError('file is not a git object')
     if blob.startswith('commit'):
-        return BlobCommit(match.group('content'))
+        return BlobCommit(match.group('content'), sha1)
     if blob.startswith('tree'):
-        return BlobTree(match.group('content'))
+        return BlobTree(match.group('content'), sha1)
     if blob.startswith('blob'):
-        return BlobFile(match.group('content'))
+        return BlobFile(match.group('content'), sha1)
     raise ValueError('unsupported blob: ' + repr(blob))
 
 
@@ -60,11 +60,11 @@ def Blob_from_pack(sha1):
             except KeyError:
                 continue
         if type_num == 1:
-            return BlobCommit(content)
+            return BlobCommit(content, sha1)
         if type_num == 2:
-            return BlobTree(content)
+            return BlobTree(content, sha1)
         if type_num == 3:
-            return BlobFile(content)
+            return BlobFile(content, sha1)
         if type_num == 4:
             raise NotImplementedError('git tag object not implemented')
         raise ValueError('unsupported blob type_num: ' + str(type_num))
@@ -74,8 +74,9 @@ def Blob_from_pack(sha1):
 
 class BlobABC(object):
     
-    def __init__(self, content):
+    def __init__(self, content, sha1):
         self._content = content
+        self.sha1 = sha1
 
     def __repr__(self):
         s = [self.__class__.__name__ + ':']
@@ -87,7 +88,7 @@ class BlobABC(object):
 
 
 class BlobCommit(BlobABC):
-    
+
     @property
     def tree(self):
         """

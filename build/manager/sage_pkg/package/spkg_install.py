@@ -17,6 +17,28 @@ from .sage_environment_mixin import SageEnvironmentMixin
 
 class SpkgInstallScript(SageEnvironmentMixin, SageMirrorMixin, PackageBase):
 
+    def _validate(self):
+        super(SpkgInstallScript, self)._validate()
+        self._require(
+            'source.version',
+            'builder.install_script',
+        )
+
+    @property
+    def version(self):
+        """
+        Human-readable version.
+
+        May only be used for the UI, but never for dependency
+        calculations. See :meth:`version_stamp`.
+
+        EXAMPLES::
+  
+            >>> loader.get('foo').version
+            1.3
+        """
+        return self._config.source.version
+
     @cached_property
     def install_script(self):
         return self._config.builder.install_script

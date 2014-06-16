@@ -132,6 +132,8 @@ class ConfigYAML(object):
             for key in arg:
                 try:
                     value = value[key]
+                except TypeError:
+                    raise ValueError('parent entity is list, need dict: ' + '.'.join(arg))
                 except KeyError:
                     raise ValueError('required key is not defined: ' + '.'.join(arg))
 

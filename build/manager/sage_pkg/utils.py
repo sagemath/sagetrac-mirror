@@ -5,6 +5,29 @@ Utilities
 import datetime
 
 
+def random_sha1():
+    """
+    Return a random SHA1
+
+    OUTPUT:
+
+    String containing 40 hex digits.
+
+    EXAMPLES::
+    
+        >>> from sage_pkg.utils import random_sha1
+        >>> sha1 = random_sha1()
+        >>> sha1  # doctest: +SKIP
+        '3835bb5604b33160a94f47ee8d4262b9471c0017'
+        >>> is_valid_sha1(sha1)
+        True
+    """
+    import datetime
+    now = str(datetime.datetime.utcnow())
+    import sha
+    return sha.sha(now).hexdigest()
+
+
 class cached_property(object):
     """
     Memoized ``@property``

@@ -10,6 +10,7 @@ from sage_pkg.package.package_config import PackageConfig
 from sage_pkg.git.repo import GitRepository
 from sage_pkg.task_queue import TaskQueue
 from sage_pkg.logger import logger
+from sage_pkg.utils import random_sha1
 
 
 class InvalidPackage(Exception):
@@ -45,26 +46,12 @@ def load_config(pkg_name):
     package_yaml = os.path.join(config.path.packages, pkg_name, 'package.yaml')
     if not os.path.isfile(package_yaml):
         raise InvalidPackage('file does not exist: ' + package_yaml)
+    logger.debug('loading package config: %s', package_yaml)
     return PackageConfig(package_yaml)
 
 
 class PackageLoader(object):
 
-    def _make_random_sha1(self):
-        """
-        EXAMPLES::
-
-            >>> sha1 = loader._make_random_sha1()
-            >>> sha1  # doctest: +SKIP
-            '3835bb5604b33160a94f47ee8d4262b9471c0017'
-            >>> is_valid_sha1(sha1)
-            True
-        """
-        import datetime
-        now = str(datetime.datetime.utcnow())
-        import sha
-        return sha.sha(now).hexdigest()
-    
     def _make_package(self, pkg_config, version, longterm):
         from sage_pkg.package import all
         try:
@@ -87,7 +74,6 @@ class PackageLoader(object):
             True
         """
         git = GitRepository(config.path.dot_git)
-        tree = git.get_tree(config.path.packages)
         git_version = dict()
         for mode, name, sha1 in git.get_tree(config.path.packages).ls_dirs():
             pkg_dir_name = os.path.join(config.path.packages, name)
@@ -108,7 +94,7 @@ class PackageLoader(object):
             return self._packages
         git_version = self._git_versions()
         # Packages that are not clean or not checked in get a random version stamp to force rebuild
-        random_version = self._make_random_sha1()
+        random_version = random_sha1()
         result = []
         for name in os.listdir(config.path.packages):
             fullname = os.path.join(config.path.packages, name)

@@ -168,6 +168,8 @@ def upgrade_all():
         fullname = os.path.join(config.path.packages, name)
         if not os.path.isdir(fullname):
             continue
+        if not os.path.exists('package-version.txt'):
+            continue
         upgrade(name, fullname)
 
 

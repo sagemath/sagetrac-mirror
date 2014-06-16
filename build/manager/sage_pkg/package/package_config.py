@@ -46,9 +46,13 @@ class PackageConfig(ConfigYAML):
         self._require(
             'name',
             'category',
-            'source.version',
+            'source',
             'builder.type',
         )
+        if not self.name.islower():
+            raise ValueError('package name must be all lower case, got ' + self.name)
+        if self.category not in ['standard', 'optional', 'experimental', 'huge']:
+            raise ValueError('package category unknown, got ' + self.category)
 
     def _normalize_format(self, config, formatting):
         def recurse_into(config):

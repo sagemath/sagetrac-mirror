@@ -1,0 +1,24 @@
+name:
+    sage_c_library
+
+category:
+    standard
+
+source:
+    - src/c_lib
+        
+builder:
+    type:     ShellCommands
+    chdir:    src/c_lib
+    commands:  
+        - source ../bin/sage-env && scons -Q install
+
+
+depends:
+    build:
+        - scons
+    hard:
+        - mpir
+        - ntl
+        - pari
+        - python

@@ -16,6 +16,13 @@ from sage_pkg.mirror_network import MirrorList, Tarball
 
 class SageMirrorMixin(object):
 
+    def _validate(self):
+        super(SageMirrorMixin, self)._validate()
+        self._require(
+            'source.tarball.name',
+            'source.tarball.sha1',
+        )
+
     @classmethod
     def _doctest_example(cls):
         from sage_pkg.package.package_config import PackageConfig

@@ -7,6 +7,21 @@ from .base import PackageBase
 
 class TestPackage(PackageBase):
 
+    @property
+    def version(self):
+        """
+        Human-readable version.
+
+        May only be used for the UI, but never for dependency
+        calculations. See :meth:`version_stamp`.
+
+        EXAMPLES::
+  
+            >>> loader.get('foo').version
+            1.3
+        """
+        return self._config.source.version
+
     def download(self):
         print('{self.name}: downloading'.format(self=self))
 

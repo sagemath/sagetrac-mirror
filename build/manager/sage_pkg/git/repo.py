@@ -16,6 +16,7 @@ import os
 import re
 import zlib
 
+from sage_pkg.config import config
 from sage_pkg.logger import logger
 from sage_pkg.git.git_ignore import is_ignored
 
@@ -61,7 +62,7 @@ class GitRepository(object):
         logger.debug('Loading blob with sha1 = %s', sha1)
         filename = os.path.join(self.dot_git, 'objects', sha1[0:2], sha1[2:])
         if os.path.isfile(filename):
-            blob = Blob_from_file(filename)
+            blob = Blob_from_file(filename, sha1)
         else:
             blob = Blob_from_pack(sha1)
         _blob_cache[sha1] = blob
@@ -166,9 +167,11 @@ class GitRepository(object):
         return self._is_clean_dir(dirname, tree, verbose)
 
     def _is_clean_dir(self, dirname, tree, verbose):
-        dirent = set(os.listdir(dirname))
+        if not os.path.isabs(dirname):
+            dirname = os.path.join(config.path.root, dirname)
+        dirents = set(os.listdir(dirname))
         for mode, name, sha1 in tree.ls():
-            if name not in dirent:
+            if name not in dirents:
                 if verbose: print('deleted: ' + name)
                 return False
             if mode == BlobTree.MODE_DIR:
@@ -183,9 +186,9 @@ class GitRepository(object):
                 clean = self._is_clean_file(filename, sha1, verbose)
             if not clean:
                 return False
-            dirent.remove(name)
-        if any(not is_ignored(name) for name in dirent) > 0:
-            if verbose: print('untracked files: ' + ', '.join(dirent))
+            dirents.remove(name)
+        if any(not is_ignored(os.path.join(dirname, name)) for name in dirents) > 0:
+            if verbose: print('untracked files: ' + ', '.join(dirents))
             return False
         return True
         
