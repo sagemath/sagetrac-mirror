@@ -15,7 +15,9 @@ builder:
     type:     ShellCommands
     workdir:    src
     commands:  
+        - mkdir -p $SAGE_LOCAL
         - cp -r -p -f bin/* "$SAGE_LOCAL/bin/"
+        - mkdir -p $SAGE_EXTCODE
         - cp -r -p -f ext/* "$SAGE_EXTCODE/"
 
 depends:

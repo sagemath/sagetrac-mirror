@@ -160,7 +160,7 @@ fi
 TARGET="$SAGE_LOCAL/lib/sympow"
 
 rm -rf "$TARGET"
-mkdir "$TARGET"
+mkdir -p "$TARGET"
 
 cp sympow *.gp new_data "$TARGET/"
 if [ $? -ne 0 ]; then
