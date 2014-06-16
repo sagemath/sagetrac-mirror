@@ -91,7 +91,7 @@ class PackageBase(object):
         self._hard_dependencies = deps('hard')
         self._soft_dependencies = deps('soft')
         self._test_dependencies = deps('test')
-        self._build_dependencies = deps('build')
+        self._compile_dependencies = deps('compile')
 
     def __eq__(self, other):
         return self._config.name == other._config.name
@@ -277,7 +277,7 @@ class PackageBase(object):
         return \
             self.get_hard_dependencies() + \
             self.get_test_dependencies() + \
-            self.get_build_dependencies()
+            self.get_compile_dependencies()
 
     def get_hard_dependencies(self):
         return self._hard_dependencies
@@ -285,8 +285,8 @@ class PackageBase(object):
     def get_soft_dependencies(self):
         return self._soft_dependencies
         
-    def get_build_dependencies(self):
-        return self._build_dependencies
+    def get_compile_dependencies(self):
+        return self._compile_dependencies
 
     def get_test_dependencies(self):
         """
@@ -371,7 +371,7 @@ class PackageBase(object):
         tasklist.append(prev)
         if stop_at == 'download':
             return tasklist
-        build = [prev] + [dependencies[dep] for dep in self.get_build_dependencies()]
+        build = [prev] + [dependencies[dep] for dep in self.get_compile_dependencies()]
         task_unpack    = prev = Task(self.unpack,    build,  name='{0}-unpack'   .format(self.name))
         tasklist.append(prev)
         if stop_at == 'unpack':

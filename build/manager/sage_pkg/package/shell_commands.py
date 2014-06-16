@@ -21,18 +21,18 @@ class ShellCommands(SourceVersionStampMixin, SageEnvironmentMixin, PackageBase):
     def _validate(self):
         super(ShellCommands, self)._validate()
         self._require(
-            'builder.chdir',
+            'builder.workdir',
             'builder.commands',
         )
 
     @property
     def version(self):
-        return 'Sage Version'
+        return '== Sage Version'
 
     def install(self):
         env = self.get_environment()
         builder = self._config.builder
-        work_dir = os.path.join(config.path.root, builder.chdir)
+        work_dir = os.path.join(config.path.root, builder.workdir)
         with chdir(work_dir):
             for cmd in builder.commands:
                 logger.debug('%s: executing %s', self.name, cmd)

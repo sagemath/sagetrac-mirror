@@ -9,13 +9,12 @@ source:
         
 builder:
     type:     ShellCommands
-    chdir:    src/c_lib
+    workdir:    src/c_lib
     commands:  
         - source ../bin/sage-env && scons -Q install
 
-
 depends:
-    build:
+    compile:
         - scons
     hard:
         - mpir
