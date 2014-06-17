@@ -6122,6 +6122,11 @@ class Graph(GenericGraph):
         g1_tree, C1 = g1._gomory_hu_tree(vertices = R1, method=method)
         g2_tree, C2 = g2._gomory_hu_tree(vertices = R2, method=method)
 
+        # Combine the two partitions C1 and C2 into one, after extracting the vertices r1 and r2
+        # to which the connecting edge will be added. The vertices r1 and r2 are the vertices such 
+        # that g1_v and g2_v are in $C_{r1}$ and $C_{r2}$ respectively, as described in 
+        # http://www.lix.polytechnique.fr/~vjost/mpri/gomory-hu-trees.pdf , Proof of Theorem 15.14
+        # r1 and r2 are referred to as r' and r'' there.
         C = {}
         r1 = None
         r2 = None
