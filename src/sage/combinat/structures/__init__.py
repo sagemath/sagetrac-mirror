@@ -94,7 +94,7 @@ class Structure(Element):
                 parent = cls._auto_parent_
             except AttributeError:
                 # see:: for example *BinaryTree*
-                raise AttributeError("A *Structure* must have an attribute *_auto_parent_*")
+                raise AttributeError("A *Structure* (%s) must have an attribute *_auto_parent_*" %cls)
         return typecall(cls, parent, *args, **options)
 
 
@@ -164,15 +164,10 @@ class Structures(UniqueRepresentation, Parent):
             sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
             sage: C = Compositions(); C
             Compositions of integers
-            sage: C.graded_component(4)
-            Compositions of integers of degree 4
-            sage: C._graded_components
-            {4: Compositions of integers of degree 4}
             sage: C.graded_component(2)
             Compositions of integers of degree 2
-            sage: C._graded_components
-            {2: Compositions of integers of degree 2,
-             4: Compositions of integers of degree 4}
+            sage: len(C._graded_components) > 0
+            True
 
             sage: C.graded_component(18).ambient()
             Compositions of integers
@@ -182,8 +177,6 @@ class Structures(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=category)
         self._graded_components = {}
-        # FIXME: this modification is static and update each parent instances...
-        self.Element._auto_parent_ = self
 
     @staticmethod
     def grading_set():
@@ -211,7 +204,7 @@ class Structures(UniqueRepresentation, Parent):
             sage: C._element_constructor_([2,2,2])
             [2, 2, 2]
         """
-        return self.element_class(*args, **options)
+        return self.element_class(parent=self, *args, **options)
 
     def graded_component(self, k):
         """
@@ -219,19 +212,10 @@ class Structures(UniqueRepresentation, Parent):
 
             sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
             sage: C = Compositions()
-            sage: C.graded_component(4)
-            Compositions of integers of degree 4
-            sage: C._graded_components
-            {4: Compositions of integers of degree 4}
             sage: C.graded_component(2)
             Compositions of integers of degree 2
-            sage: C._graded_components
-            {2: Compositions of integers of degree 2,
-             4: Compositions of integers of degree 4}
-            sage: C.graded_component(2)
-            sage: C._graded_components
-            {2: Compositions of integers of degree 2,
-             4: Compositions of integers of degree 4}
+            sage: len(C._graded_components) > 0
+            True
         """
         # memoization of graded component: that is less fat than UniqueRepresentation...
         if self._graded_components.has_key(k):
@@ -255,7 +239,7 @@ class Structures(UniqueRepresentation, Parent):
             Compositions of integers
 
         """
-        return self.graded_component(1).first()
+        return self.first()
 
     def some_elements(self):
         """

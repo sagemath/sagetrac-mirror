@@ -55,13 +55,13 @@ class CombinatorialStructures(Category):
 
                 sage: BC2 = B.restricted_structures(min=1).cycle(grading_set="sum"); BC2
                 Cycle of `Binary trees with grading min=`1``
-                sage: BC2.graded_component(3).list()
+                sage: ascii_art(BC2.graded_component(3).list())
                 [ ( o     )  ( o   )             (   o )  (     o )
                 [ (  \    )  (  \  )             (  /  )  (    /  )  (        )  (        )
                 [ (   o   )  (   o )  (   o   )  ( o   )  (   o   )  ( o, o   )  ( o,   o )
                 [ (    \  )  (  /  )  (  / \  )  (  \  )  (  /    )  (     \  )  (     /  )  (
                 [ (     o ), ( o   ), ( o   o ), (   o ), ( o     ), (      o ), (    o   ), (
-
+                <BLANKLINE>
                           ]
                           ]
                           ]
@@ -78,11 +78,10 @@ class CombinatorialStructures(Category):
                 sage: C = Compositions()
                 sage: MC = C.multiset(); MC
                 Multi-set of `Compositions of non-negative integers`
-                sage: MC.graded_component(3).list()
                 sage: MC32 = MC.graded_component(3,2); MC32
                 Multi-set of `Compositions of non-negative integers` of degree (3, 2)
                 sage: MC32.list()
-                [([1], [1, 1]), ([1], [2])]
+                [{[1], [1, 1]}, {[1], [2]}, {[], [1, 1, 1]}, {[], [1, 2]}, {[], [2, 1]}, {[], [3]}]
             """
             from sage.combinat.structures.operations.multi_sets import MultiSet
             return MultiSet(F, **options)
@@ -137,7 +136,7 @@ class CombinatorialStructures(Category):
         def product(F, G):
             """
             @param F, G: both are classes of combinatorial structures
-            @return: the product of combinatorial structures *FG*
+            @return: the (Cauchy) product of combinatorial structures *FG*
 
             TESTS::
 
@@ -146,19 +145,10 @@ class CombinatorialStructures(Category):
                 sage: CB = C*B; CB
                 Product of structures : `Compositions of non-negative integers`, `Binary trees`
                 sage: ascii_art(CB.graded_component(2).list())
-                [[[1, 1, 1], .],
-                 [[1, 2], .],
-                 [[2, 1], .],
-                 [[3], .],
-                 [[1, 1], [., .]],
-                 [[2], [., .]],
-                 [[1], [., [., .]]],
-                 [[1], [[., .], .]],
-                 [[], [., [., [., .]]]],
-                 [[], [., [[., .], .]]],
-                 [[], [[., .], [., .]]],
-                 [[], [[., [., .]], .]],
-                 [[], [[[., .], .], .]]]
+                [                              [       ]  [       ] ]
+                [                              [ , o   ]  [ ,   o ] ]
+                [ [ *   ]  [      ]  [      ]  [    \  ]  [    /  ] ]
+                [ [ *,  ], [ **,  ], [ *, o ], [     o ], [   o   ] ]
             """
             from sage.combinat.structures.operations.product import CauchyProduct
             return CauchyProduct(F, G)
@@ -219,7 +209,7 @@ class CombinatorialStructures(Category):
 
                 sage: B = BinaryTrees()
                 sage: RB = B.restricted_structures(min=3, max=4); RB
-                Binary trees with min=`3`, max=`4`
+                Binary trees with grading min=`3`, max=`4`
                 sage: RB.graded_component(2).list()
                 []
                 sage: RB.graded_component(35).list()
@@ -231,7 +221,7 @@ class CombinatorialStructures(Category):
                  [[., [., .]], .],
                  [[[., .], .], .]]
                 sage: _[2].parent()
-                Binary trees with min=`3`, max=`4`
+                Binary trees with grading min=`3`, max=`4`
             """
             from sage.combinat.structures.operations import RestrictedStructures
             return RestrictedStructures(self, min=min, max=max)
