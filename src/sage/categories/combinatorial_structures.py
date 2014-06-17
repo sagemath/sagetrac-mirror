@@ -2,10 +2,17 @@
 """
 The category of classes of combinatorial structures
 
-AUTHORS:
+AUTHOR:
 
 - Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.categories.category import Category
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -24,7 +31,106 @@ class CombinatorialStructures(Category):
 
     class ParentMethods:
 
+        def cycle(F, **options):
+            """
+            TESTS::
+
+                sage: B = BinaryTrees()
+                sage: BC = B.cycle(); BC
+                Cycle of `Binary trees`
+                sage: ascii_art(BC.graded_component(3,2).list())
+                [                         (         )  (       )               (       )  (
+                [                         ( , o     )  ( , o   )               ( ,   o )  ( ,
+                [ (        )  (        )  (    \    )  (    \  )  (         )  (    /  )  (
+                [ ( o, o   )  ( o,   o )  (     o   )  (     o )  ( ,   o   )  (   o   )  (
+                [ (     \  )  (     /  )  (      \  )  (    /  )  (    / \  )  (    \  )  (
+                [ (      o ), (    o   ), (       o ), (   o   ), (   o   o ), (     o ), (
+                <BLANKLINE>
+                      ) ]
+                    o ) ]
+                   /  ) ]
+                  o   ) ]
+                 /    ) ]
+                o     ) ]
+
+                sage: BC2 = B.restricted_structures(min=1).cycle(grading_set="sum"); BC2
+                Cycle of `Binary trees with grading min=`1``
+                sage: BC2.graded_component(3).list()
+                [ ( o     )  ( o   )             (   o )  (     o )
+                [ (  \    )  (  \  )             (  /  )  (    /  )  (        )  (        )
+                [ (   o   )  (   o )  (   o   )  ( o   )  (   o   )  ( o, o   )  ( o,   o )
+                [ (    \  )  (  /  )  (  / \  )  (  \  )  (  /    )  (     \  )  (     /  )  (
+                [ (     o ), ( o   ), ( o   o ), (   o ), ( o     ), (      o ), (    o   ), (
+
+                          ]
+                          ]
+                          ]
+                        ) ]
+                o, o, o ) ]
+            """
+            from sage.combinat.structures.operations.cycle import Cycle
+            return Cycle(F, **options)
+
+        def multiset(F, **options):
+            """
+            TESTS::
+
+                sage: C = Compositions()
+                sage: MC = C.multiset(); MC
+                Multi-set of `Compositions of non-negative integers`
+                sage: MC.graded_component(3).list()
+                sage: MC32 = MC.graded_component(3,2); MC32
+                Multi-set of `Compositions of non-negative integers` of degree (3, 2)
+                sage: MC32.list()
+                [([1], [1, 1]), ([1], [2])]
+            """
+            from sage.combinat.structures.operations.multi_sets import MultiSet
+            return MultiSet(F, **options)
+
         def sequence(F, **options):
+            """
+            TESTS::
+
+                sage: B = BinaryTrees()
+                sage: BS = B.sequence(); BS
+                Sequence of `Binary trees`
+                sage: ascii_art(BS.graded_component(3,2).list())
+                [
+                [ [ o       ]  [ o     ]               [   o   ]  [     o   ]
+                [ [  \      ]  [  \    ]               [  /    ]  [    /    ]
+                [ [   o     ]  [   o   ]  [   o     ]  [ o     ]  [   o     ]  [ o    o ]  [
+                [ [    \    ]  [  /    ]  [  / \    ]  [  \    ]  [  /      ]  [  \     ]  [
+                [ [     o,  ], [ o  ,  ], [ o   o,  ], [   o,  ], [ o    ,  ], [   o,   ], [
+                <BLANKLINE>
+                                                  [         ]  [       ]               [
+                                                  [ , o     ]  [ , o   ]               [ ,   o
+                          [        ]  [        ]  [    \    ]  [    \  ]  [         ]  [    /
+                  o  o ]  [ o, o   ]  [ o,   o ]  [     o   ]  [     o ]  [ ,   o   ]  [   o
+                 /     ]  [     \  ]  [     /  ]  [      \  ]  [    /  ]  [    / \  ]  [    \
+                o  ,   ], [      o ], [    o   ], [       o ], [   o   ], [   o   o ], [     o
+                <BLANKLINE>
+                 ]  [         ] ]
+                 ]  [ ,     o ] ]
+                 ]  [      /  ] ]
+                 ]  [     o   ] ]
+                 ]  [    /    ] ]
+                 ], [   o     ] ]
+                sage: BS2 = B.restricted_structures(min=1).sequence(grading_set="sum"); BS2
+                Sequence of `Binary trees with grading min=`1``
+                sage: ascii_art(BS2.graded_component(3).list())
+                [ [ o     ]  [ o   ]             [   o ]  [     o ]
+                [ [  \    ]  [  \  ]             [  /  ]  [    /  ]                          [
+                [ [   o   ]  [   o ]  [   o   ]  [ o   ]  [   o   ]  [ o    o ]  [   o  o ]  [
+                [ [    \  ]  [  /  ]  [  / \  ]  [  \  ]  [  /    ]  [  \     ]  [  /     ]  [
+                [ [     o ], [ o   ], [ o   o ], [   o ], [ o     ], [   o,   ], [ o  ,   ], [
+                <BLANKLINE>
+                                                  ]
+                       ]  [        ]              ]
+                o, o   ]  [ o,   o ]              ]
+                    \  ]  [     /  ]  [         ] ]
+                     o ], [    o   ], [ o, o, o ] ]
+
+            """
             from sage.combinat.structures.operations.sequences import Sequence
             return Sequence(F, **options)
 

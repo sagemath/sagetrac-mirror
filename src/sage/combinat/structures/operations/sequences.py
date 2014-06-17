@@ -17,7 +17,18 @@ References:
 
 .. [FS] Analytic combinatorics
   Philippe Flajolet and Robert Sedgewick
+
+AUTHOR:
+
+- Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import product, chain
 from sage.categories.combinatorial_structures import CombinatorialStructures
 from sage.combinat.integer_vector import IntegerVectors
@@ -130,10 +141,9 @@ class Sequence(_Operations):
                 sage: B1Seq3.cardinality()
                 10
 
-                sage: BSeq = B.sequence()
-                sage: BSeq4 = BSeq.sequence(grading_set="sum").graded_component(4); BSeq4
-                Sequence of `Sequence of `Binary trees`` of degree 4
-                sage: BSeq4.cardinality()
+                sage: BSeq = B.sequence(grading_set="sum"); BSeq
+                Sequence of `Binary trees`
+                sage: BSeq.graded_component(4).cardinality()
                 Traceback (most recent call last):
                 ...
                 Exception: `Binary trees` contains an element of grading 0, so the cardinality of the sequence is not defined.
@@ -142,7 +152,8 @@ class Sequence(_Operations):
             if self.ambient()._F.graded_component(0).cardinality() != 0:
                 raise Exception("`%s` contains an element of grading 0, so the cardinality"%self.ambient()._F + \
                                 " of the sequence is not defined.")
-            else: return sum(self.ambient().GradedComponentByLengthSum((self.grading(), i)).cardinality()
+            else: return sum(self.ambient().GradedComponentByLengthSum(self.ambient(),
+                                                                       (self.grading(), i)).cardinality()
                              for i in range(self.grading() + 1)
                          )
             # FIXME: that suppose *self.grading* is an integer but... we want (may be) the sum or not...
@@ -180,7 +191,7 @@ class Sequence(_Operations):
             if self.ambient()._F.graded_component(0).cardinality() != 0:
                 raise Exception("`%s` contains an element of grading 0, so the cardinality"%self.ambient()._F + \
                                 " of the sequence is not defined.")
-            return chain(*(self.ambient().GradedComponentByLengthSum((self.grading(), i))
+            return chain(*(self.ambient().GradedComponentByLengthSum(self.ambient(), (self.grading(), i))
                            for i in range(self.grading() + 1)))
 
     _graded_component = {"both" : (GradedComponentByLengthSum,
@@ -212,9 +223,22 @@ class Sequence(_Operations):
         assert(F in CombinatorialStructures())
         self._F = F
 
-
         self.GradedComponent = self._graded_component[grading_set][0]
-        self.grading_set = self._graded_component[grading_set][1]
+        self._grading_set = self._graded_component[grading_set][1]
+
+    def grading_set(self):
+        """
+        TESTS::
+
+            sage: B = BinaryTrees()
+            sage: BS = B.sequence()
+            sage: BS.grading_set()
+            The cartesian product of (Non negative integers, Non negative integers)
+            sage: BS2 = B.sequence(grading_set="sum")
+            sage: BS2.grading_set()
+            Non negative integers
+        """
+        return self._grading_set(self._F)
 
     def graded_component(self, k, length=None):
         """

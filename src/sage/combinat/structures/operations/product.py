@@ -5,13 +5,22 @@ Cauchy product of classes of combinatorial structures.
 Let `F` and `G` be both classes of combinatorial structures.
 
 We denote `H = F \times G` the (Cauchy) product of `F` and `G`.
+
+AUTHOR:
+
+- Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import product, imap, izip
 from sage.misc.ascii_art import ascii_art_list
 from sage.structure.list_clone import ClonableArray
-
 from sage.combinat.integer_vector import IntegerVectors
-
 from sage.misc.misc_c import prod
 from sage.combinat.structures import Structures, Structure
 from sage.combinat.structures.operations import _Operations

@@ -23,10 +23,17 @@ References:
   Philippe Flajolet and Robert Sedgewick
 
 
-AUTHORS:
+AUTHOR:
 
 - Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -175,7 +182,7 @@ class Structures(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=category)
         self._graded_components = {}
-        self.GradedComponent._ambient_ = self
+        # FIXME: this modification is static and update each parent instances...
         self.Element._auto_parent_ = self
 
     @staticmethod
@@ -230,7 +237,7 @@ class Structures(UniqueRepresentation, Parent):
         if self._graded_components.has_key(k):
             return self._graded_components[k]
 
-        component = self.GradedComponent(k)
+        component = self.GradedComponent(self, k)
         self._graded_components[k] = component
         return component
 
@@ -265,7 +272,7 @@ class Structures(UniqueRepresentation, Parent):
 
     class GradedComponent(Parent):
 
-        def __init__(self, grade, category=CombinatorialStructures.GradedComponents()):
+        def __init__(self, ambient, grade, category=CombinatorialStructures.GradedComponents()):
             """
             TESTS::
 
@@ -279,6 +286,7 @@ class Structures(UniqueRepresentation, Parent):
             """
             Parent.__init__(self, category=category)
             self._grade_ = grade
+            self._ambient_ = ambient
 
         def __contains__(self, obj):
             """

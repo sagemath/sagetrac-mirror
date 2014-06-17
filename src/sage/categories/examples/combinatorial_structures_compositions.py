@@ -39,10 +39,17 @@ This module provides a light implementation to rapid use. This example uses the 
         GradedComponent = MyGradedComponent
 
 
-AUTHORS:
+AUTHOR:
 
 - Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import imap
 from sage.combinat.structures import Structures, Structure
 from sage.misc.lazy_attribute import lazy_class_attribute
@@ -70,7 +77,7 @@ class Composition(Structure, ClonableIntArray):
         sage: I.parent()
         Compositions of integers
         sage: I.grade()
-        5
+        6
     """
 
     def check(self):
@@ -93,7 +100,7 @@ class Compositions(Structures):
     """
     TESTS::
 
-        sage: from sage.categories.examples.combinatorial_structures_compositions import, Compositions
+        sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
         sage: C3 = Compositions(3); C3
         Compositions of integers of degree 3
         sage: C3.ambient()
@@ -108,10 +115,11 @@ class Compositions(Structures):
 
             sage: from sage.categories.examples.combinatorial_structures_compositions import Composition, Compositions
             sage: I = Composition([2,1,3]); I
+            [2, 1, 3]
             sage: I.parent().grading(I)
-            5
+            6
             sage: Compositions().grading(I)
-            5
+            6
         """
         return sum(I)
 

@@ -5,7 +5,18 @@ The sum of classes of combinatorial structures.
 Let `F` and `G` be both disjoint classes.
 
 We denote `H = F + G` the addition of `F` and `G`.
+
+AUTHOR:
+
+- Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.combinat.structures.operations import _Operations
 from sage.combinat.structures import Structures
 

@@ -7,7 +7,18 @@ That module implements several operations on class of combinatorial structures
     - Hadamard product
     - Differentiation
     - ...
+
+AUTHOR:
+
+- Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import imap
 from sage.categories.combinatorial_structures import CombinatorialStructures
 from sage.combinat.structures import Structures, StructuresWithArguments

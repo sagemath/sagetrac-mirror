@@ -12,8 +12,17 @@ MATH::
 
     (fg)(x) := f(x) \square g(x) = \sum_{n \geqslant 0} f_n g_n x^n
 
+AUTHOR:
 
+- Jean-Baptiste Priez (2014)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>.
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import product, imap
 from sage.combinat.structures import Structures
 from __init__ import _Operations
