@@ -1,6 +1,7 @@
-#from sage.rings.finite_rings.finite_field_prime_modn import *
+from sage.rings.finite_rings.finite_field_prime_modn import *
 from sage.matroids.advanced import *
 from sage.sets.set import Set
+from sage.all import *
 R=None
 def add2(R,M):
     for N in R:
@@ -24,9 +25,12 @@ def next2(R):
 
 def all2(N, R=10):
     MM={}
+    # loop over n= 0 to N
     for n in xrange(N+1):
         MM[n,0]=[BinaryMatroid(identity_matrix(GF(2),n))]
+        #print "MM is", MM 
         for r in xrange(min(n,R+1)):
+            #print 'n,r', n,r
             MM[r,n-r]=next2(MM[r,n-r-1])
         print [len(MM[r,n-r]) for r in xrange(min(n,R)+1)]
     return MM
@@ -59,6 +63,9 @@ def addpcode(list_of_pcodes,pcode):
        
     
 def is_pmap_deletion(dict1,dict2):
+    """ 
+    checks whether $dict1\subseteq dict2$
+    """
     if len(dict1) > len(dict2):
         return False 
     idict1=invert(dict1)
@@ -76,6 +83,7 @@ def is_pmap_deletion(dict1,dict2):
 
 
 def naive_candidates(M_ext,list_of_pmaps):
+    
     cand = []
     
     
