@@ -7641,9 +7641,13 @@ class GenericGraph(GenericGraph_pyx):
             for i in xrange(n):
                 active_lists[i] = DLL()
                 label_lists[i] = DLL()
-            for v in G:
+            for v in Res:
                 d[v] = n
-            for (v, dist) in bfs_distance(G, t):
+            if notdirected:
+                neighbors = Res.neighbor_iterator
+            else:
+                neighbors = Res.neighbor_in_iterator
+            for (v, dist) in Res.breadth_first_search(t, neighbors = neighbors, report_distance = True):
                 d[v] = dist
                 label_lists[dist].insert(v)
                 if ex[v] > 0:
