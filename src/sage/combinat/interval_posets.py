@@ -2499,6 +2499,23 @@ class TamariIntervalPoset(Element):
         dec = self.lower_contacts_decomposition()
         return TamariIntervalPosets.initial_rise_composition(dec[0].initial_rise_involution(), dec[1].initial_rise_involution(),dec[2])
 
+    def b_composition(self, ip2, r):
+        ip1 = self
+        size = ip1.size() + ip2.size() +1
+        relations = []
+        relations.extend([(i+1,j+1) for (i,j) in ip2._cover_relations])
+        relations.extend([(i+1+ip2.size(),j+1+ip2.size()) for (i,j) in ip1._cover_relations])
+        ip2_roots = ip2.decreasing_roots()
+        relations.extend([(ip2_roots[i]+1,1) for i in xrange(r)])
+        if ip1.size()!=0:
+            relations.extend([(i,ip2.size()+2) for i in xrange(1,ip2.size()+2)])
+        return TamariIntervalPoset(size,relations)
+    
+    def b_involution(self):
+        if self.size()<=1:
+            return self
+        dec = self.lower_contacts_decomposition()
+        return dec[0].b_involution().b_composition(dec[1].b_involution(),dec[2])
 # Abstract class to serve as a Factory ; no instances are created.
 class TamariIntervalPosets(UniqueRepresentation, Parent):
     r"""
