@@ -37,6 +37,14 @@ def all2(N, R=10):
 
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
 
+def see(N,mdict):
+    """
+    Return a dictionary that maps matroids in mdict to their respective extensions
+    The keys are tuples ``(r,index)`` where ``r`` is the rank and ``index`` is the 
+    index of parent in the list it was in ``mdict``  
+    """
+    
+
 def extendpmaps(M,M_codes,M_e):
     """
     Return a maximal list of p-codes corresponding to a given matroid
