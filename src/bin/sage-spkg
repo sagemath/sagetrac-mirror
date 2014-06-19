@@ -590,11 +590,17 @@ if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "Finished set up"
 else
     echo "Finished extraction"
-
     cd "$PKG_NAME"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
-        exit 1
+        PKG_DIR_NAME=$(uncompress_spkg "$PKG_SRC" | tar tf - | grep '^[^/][^/]*/$' )
+        if [ -n $PKG_DIR_NAME ]; then
+            cd "$PKG_DIR_NAME"
+            if [ $? -ne 0 ]; then
+                echo >&2 "Error: after extracting, the directory $PKG_NAME does not exist"
+                exit 1
+            fi
+            PKG_NAME=${PKG_DIR_NAME%/}
+        fi
     fi
 fi
 
