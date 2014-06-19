@@ -173,6 +173,7 @@ Combinatorics
 
    sage/combinat/tutorial
 
+   sage/combinat/asymptotics_multivariate_generating_functions
    sage/combinat/cartesian_product
    sage/combinat/combination
    sage/combinat/e_one_star
