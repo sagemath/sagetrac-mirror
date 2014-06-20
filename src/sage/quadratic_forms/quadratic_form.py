@@ -896,7 +896,7 @@ class QuadraticForm(SageObject):
         else:
             raise TypeError
 
-    def new_lattice_on_space(self,L):
+    def new_lattice_on_space(self, L):
         r"""
         Determines the quadratic lattice spanned by the vectors in `L`
         with the same underlying quadratic space as the lattice given.
@@ -910,7 +910,7 @@ class QuadraticForm(SageObject):
 
         INPUT:
 
-        `L` -- a list of vectors
+        - `L` -- a list of vectors
 
         OUTPUT:
 
@@ -960,21 +960,23 @@ class QuadraticForm(SageObject):
             raise TypeError("a basis must have n elements")
         for i in range(len(L)):
             if len(L[i]) != self.dim():
-                raise TypeError("vectors must have the same dimension as the underlying space")
+                raise TypeError("vectors must have the same dimension "
+                                "as the underlying space")
         from sage.rings.rational_field import QQ
         V = self.base_change_to(QQ)
         mat_entries = []
         for i in range(len(L)):
-            w_i = vector(QQ,L[i])
-            for j in range(i,len(L)):
-                w_j = vector(QQ,L[j])
-                if V.bilinear_map(w_i,w_j) not in ZZ:
-                    raise TypeError("this basis cannot give an integral lattice")
+            w_i = vector(QQ, L[i])
+            for j in range(i, len(L)):
+                w_j = vector(QQ, L[j])
+                if V.bilinear_map(w_i, w_j) not in ZZ:
+                    raise TypeError("this basis cannot give an "
+                                    "integral lattice")
                 elif i == j:
-                    mat_entries += [V.bilinear_map(w_i,w_j)]
+                    mat_entries += [V.bilinear_map(w_i, w_j)]
                 elif i != j:
-                    mat_entries += [2*V.bilinear_map(w_i,w_j)]
-        return QuadraticForm(ZZ,self.dim(),mat_entries)
+                    mat_entries += [2 * V.bilinear_map(w_i, w_j)]
+        return QuadraticForm(ZZ, self.dim(), mat_entries)
 
 ## =====================================================================================================
 
