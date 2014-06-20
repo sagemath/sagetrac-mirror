@@ -28,7 +28,7 @@ For documentation on the individual functions see:
     * :func:`lattice_polytopes.SmoothFano<sage.geometry.lattice_polytopes_backend.SmoothFano>`
     * :func:`lattice_polytopes.TerminalFano<sage.geometry.lattice_polytopes_backend.TerminalFano>`
     * :func:`lattice_polytopes.lReflexive<sage.geometry.lattice_polytopes_backend.lReflexive>`
-    * :func:`lattice_polytopes.LDP<sage.geometry.lattice_polytopes_backend.LDP>`
+    * :func:`lattice_polytopes.LogDelPezzo<sage.geometry.lattice_polytopes_backend.LogDelPezzo>`
 
 EXAMPLES::
 
@@ -44,4 +44,4 @@ AUTHORS:
 """
 from lattice_polytopes_backend import (CanonicalFano, ReflexiveFano,
                                         SmallPolygon, SmoothFano,
-                                        TerminalFano, lReflexive, LDP)
+                                        TerminalFano, lReflexive, LogDelPezzo)
