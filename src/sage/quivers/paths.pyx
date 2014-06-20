@@ -18,21 +18,8 @@ Quiver Paths
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element cimport MonoidElement, Element
-from sage.misc.bounded_integer_sequences cimport biseq_t, allocate_biseq, getitem_biseq, concat_biseq, startswith_biseq, contains_biseq, max_overlap_biseq, slice_biseq, list_to_biseq, biseq_to_list
-
 from sage.rings.integer_ring import ZZ
 from cython.operator import dereference as deref
-
-include "sage/ext/stdsage.pxi"
-include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
-
-cdef extern from "Python.h":
-    bint PySlice_Check(PyObject* ob)
-
-cdef extern from "mpz_pylong.h":
-    cdef long mpz_pythonhash(mpz_t src)
 
 cdef class QuiverPath(MonoidElement):
     r"""
@@ -123,8 +110,6 @@ cdef class QuiverPath(MonoidElement):
         sage: p.terminal_vertex()
         3
     """
-    cdef biseq_t _path
-    cdef int _start, _end
 
     def __dealloc__(self):
         # I tested that this will not crash, even if self._path isn't initialised
