@@ -46,35 +46,34 @@ class Groups(CategoryWithAxiom):
         return GL(4,QQ)
 
     @staticmethod
-    def free(n=None, names='x', index_set=None, abelian=False, **kwds):
+    def free(index_set=None, names=None, **kwds):
         r"""
-        Return the free (abelian) group.
+        Return the free group.
 
         INPUT:
 
-        - ``n`` -- integer or ``None`` (default). The nnumber of
-          generators. If not specified the ``names`` are counted.
-
-        - ``names`` -- string or list/tuple/iterable of strings (default:
-          ``'x'``). The generator names or name prefix.
-
         - ``index_set`` -- (optional) an index set for the generators; if
-          specified then the optional keyword ``abelian`` can be used
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
 
-        - ``abelian`` -- (default: ``False``) whether the free monoid is
-          abelian or not
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
 
         EXAMPLES::
 
             sage: Groups.free(index_set=ZZ)
             Free group indexed by Integer Ring
-            sage: Groups().free(index_set=ZZ)
+            sage: Groups().free(ZZ)
             Free group indexed by Integer Ring
             sage: F.<x,y,z> = Groups().free(); F
             Free Group on generators {x, y, z}
         """
-        from sage.groups.free_group import FreeGroup
-        return FreeGroup(n, names, index_set, abelian, **kwds)
+        from sage.rings.all import ZZ
+        if index_set in ZZ or (index_set is None and names is not None):
+            from sage.groups.free_group import FreeGroup
+            return FreeGroup(index_set, names, **kwds)
+
+        from sage.groups.indexed_free_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, **kwds)
 
     class ParentMethods:
 
@@ -394,6 +393,48 @@ class Groups(CategoryWithAxiom):
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
+
+    class Commutative(CategoryWithAxiom):
+        """
+        Category of commutative (abelian) groups.
+
+        A group `G` is *commutative* if `xy = yx` for all `x,y \in G`.
+        """
+        @staticmethod
+        def free(index_set=None, names=None, **kwds):
+            r"""
+            Return the free commutative group.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) an index set for the generators; if
+              an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+            - ``names`` -- a string or list/tuple/iterable of strings
+              (default: ``'x'``); the generator names or name prefix
+
+            EXAMPLES::
+
+                sage: Groups.Commutative.free(index_set=ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: Groups().Commutative().free(ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: F.<x,y,z> = Groups().Commutative().free(); F
+                Free abelian group indexed by {'x', 'y', 'z'}
+            """
+            if names is not None:
+                if isinstance(names, str):
+                    from sage.rings.all import ZZ
+                    if ',' not in names and index_set in ZZ:
+                        names = [names + repr(i) for i in range(index_set)]
+                    else:
+                        names = names.split(',')
+                names = tuple(names)
+                if index_set is None:
+                    index_set = names
+
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, **kwds)
 
     class Algebras(AlgebrasCategory):
         r"""

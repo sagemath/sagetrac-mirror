@@ -40,6 +40,8 @@ from sage.combinat.words.finite_word import FiniteWord_class
 
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
+from sage.misc.decorators import rename_keyword
+from sage.rings.all import ZZ
 
 class FreeMonoidFactory(UniqueFactory):
     """
@@ -73,7 +75,8 @@ class FreeMonoidFactory(UniqueFactory):
 
 FreeMonoid_factory = FreeMonoidFactory("sage.monoids.free_monoid.FreeMonoid_factory")
 
-def FreeMonoid(n=None, names=None, index_set=None, abelian=False, **kwds):
+@rename_keyword(deprecation=15289, n="index_set")
+def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
     r"""
     Return a free monoid on `n` generators or with the generators indexed by
     a set `I`.
@@ -85,14 +88,13 @@ def FreeMonoid(n=None, names=None, index_set=None, abelian=False, **kwds):
 
     INPUT:
 
-    -  ``n`` -- integer
+    - ``index_set`` -- an indexing set for the generators; if an integer,
+      than this becomes `\{0, 1, \ldots, n-1\}`
 
     -  ``names`` -- names of generators
 
-    - ``index_set`` -- an indexing set for the generators
-
-    - ``abelian`` -- (default: ``False``) whether the free monoid is abelian
-      or not
+    - ``commutative`` -- (default: ``False``) whether the free monoid is
+      commutative or not
 
     OUTPUT:
 
@@ -107,31 +109,35 @@ def FreeMonoid(n=None, names=None, index_set=None, abelian=False, **kwds):
 
         sage: F.<x,y,z> = FreeMonoid(abelian=True); F
         Free abelian monoid on 3 generators (x, y, z)
-        sage: FreeMonoid(index_set=ZZ, abelian=True)
+        sage: FreeMonoid(index_set=ZZ, commutative=True)
         Free abelian monoid indexed by Integer Ring
     """
-    if abelian:
+    if 'abelian' in kwds:
+        commutative = kwds['abelian']
+        del kwds['abelian']
+
+    if commutative:
         from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
-        return FreeAbelianMonoid(n, names, index_set, **kwds)
+        return FreeAbelianMonoid(index_set, names, **kwds)
 
-    if isinstance(n, str): # Swap args (this works if names is None as well)
-        names, n = n, names
+    if isinstance(index_set, str): # Swap args (this works if names is None as well)
+        names, index_set = index_set, names
 
-    if n is None and names is not None:
+    if index_set is None and names is not None:
         if isinstance(names, str):
-            n = names.count(',')
+            index_set = names.count(',')
         else:
-            n = len(names)
+            index_set = len(names)
 
-    if index_set is not None:
+    if index_set not in ZZ:
         if names is not None:
-            names = normalize_names(n, names)
-        from sage.monoids.indexed_monoid import IndexedFreeMonoid
+            names = normalize_names(len(names), names)
+        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
         return IndexedFreeMonoid(index_set, names=names, **kwds)
 
     if names is None:
         raise ValueError("names must be specified")
-    return FreeMonoid_factory(n, names)
+    return FreeMonoid_factory(index_set, names)
 
 def is_FreeMonoid(x):
     """
@@ -148,8 +154,15 @@ def is_FreeMonoid(x):
         False
         sage: is_FreeMonoid(FreeAbelianMonoid(0,''))
         False
+        sage: is_FreeMonoid(FreeMonoid(index_set=ZZ))
+        True
+        sage: is_FreeMonoid(FreeAbelianMonoid(index_set=ZZ))
+        False
     """
-    return isinstance(x, FreeMonoid_class)
+    if isinstance(x, FreeMonoid_class):
+        return True
+    from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
+    return isinstance(x, IndexedFreeMonoid)
 
 class FreeMonoid_class(Monoid_class):
     """
@@ -317,6 +330,9 @@ class FreeMonoid_class(Monoid_class):
             sage: F.cardinality()
             +Infinity
         """
+        if self.__ngens == 0:
+            from sage.rings.all import ZZ
+            return ZZ.one()
         from sage.rings.infinity import infinity
         return infinity
 
