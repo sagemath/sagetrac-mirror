@@ -5,7 +5,7 @@ Rabin information dispersal
 Implements the Rabin information dispersal [Rabin1989]_ protocol
 originally intended for secure distributed data storage. From
 a cryptographic standpoint it is clear, that it cannot be secure,
-however, the idea inspired many new protocols. 
+however, the idea inspired many new protocols.
 The protocol relies on the idea of Reed-Solomon codes as well as
 to Shamir secret sharing [Shamir1979]_.
 
@@ -15,8 +15,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Rabin1989] Rabin, M. O. (1989). Efficient dispersal of information for security, 
-   load balancing, and fault tolerance. Journal of the ACM, 36(2), 335–348. 
+.. [Rabin1989] Rabin, M. O. (1989). Efficient dispersal of information for security,
+   load balancing, and fault tolerance. Journal of the ACM, 36(2), 335–348.
    :doi:`10.1145/62044.62050`
 """
 ###############################################################################
@@ -38,12 +38,13 @@ REFERENCES:
 
 from shamir_ss import ShamirSS
 
+
 class RabinIDS(ShamirSS):
     r"""
     Rabin information dispersal.
-   
+
     This class implements the original version of information dispersal as proposed
-    by Rabin [Rabin1989]_.  This is a very basic implementation intended for 
+    by Rabin [Rabin1989]_.  This is a very basic implementation intended for
     educational purposes only.
 
     EXAMPLES::
@@ -67,7 +68,7 @@ class RabinIDS(ShamirSS):
 
     def _latex_(self):
         r"""
-        Return Latex representation of self.
+        Return Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -80,10 +81,9 @@ class RabinIDS(ShamirSS):
         return "`({},{})`-Rabin information dispersal over the field `{}`".format(
             self._n, self._k, latex(self._F))
 
-
     def _repr_(self):
         r"""
-        Return String representation of self.
+        Return string representation of ``self``.
 
         EXAMPLES::
 
@@ -92,8 +92,9 @@ class RabinIDS(ShamirSS):
             sage: print(ids)
             (7,3)-Rabin information dispersal over Finite Field in a of size 2^8
         """
-        return "({},{})-Rabin information dispersal over {}".format(self._n, self._k, 
-                                                              self._F)
+        return "({},{})-Rabin information dispersal over {}".format(self._n,
+                                                                    self._k,
+                                                                    self._F)
     ### begin public api
 
     def reconstruct(self, shares, decoder='lg'):
@@ -138,11 +139,10 @@ class RabinIDS(ShamirSS):
         secret = []
         for element in shares:
             # convert to field
-            points = [(self._to_GF(x), self._to_GF(y)) for x,y in element]
+            points = [(self._to_GF(x), self._to_GF(y)) for x, y in element]
             # call decoder
             secret.extend([self._to_Int(i) for i in decode(points)])
         return secret
-
 
     def share(self, secret):
         r"""
@@ -171,19 +171,18 @@ class RabinIDS(ShamirSS):
             True
         """
         # check input list size (padding is not supported)
-        if len(secret)%self._k:
-            raise TypeError("input list must be multiple of k (padding is not supported).")
-        
+        if len(secret) % self._k:
+            raise TypeError("input list must be multiple of k (padding "
+                            "is not supported).")
+
         # generate shares
         shares = []
-        for i in range(len(secret)/self._k):
+        for i in range(len(secret) / self._k):
             poly = 0
             for j in range(self._k):
                 # gen polynomial form data
                 poly += self._to_GF(secret[i*self._k + j]) * self._P.gen()**j
             # evaluate polynomial at different points (shares)
-            shares.append([(i, self._to_Int(poly(self._to_GF(i)))) for i in range(1, self._n+1)])
+            shares.append([(i, self._to_Int(poly(self._to_GF(i))))
+                           for i in range(1, self._n + 1)])
         return shares
-
-
-# vim: set fileencoding=UTF-8 filetype=python :

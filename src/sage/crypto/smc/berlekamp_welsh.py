@@ -2,7 +2,7 @@
 r"""
 Berlekamp-Welsh algorithm
 
-The Berlekamp-Welsh algorithm serves for the purpose of reconstructing 
+The Berlekamp-Welsh algorithm serves for the purpose of reconstructing
 polynomials with erroneous points.
 The algorithm is well explained at
 `Wikipedia <https://en.wikipedia.org/wiki/Berlekamp–Welch_algorithm>`_.
@@ -10,7 +10,6 @@ The algorithm is well explained at
 AUTHORS:
 
 - Thomas Loruenser (2013): initial version
-
 """
 ###############################################################################
 # Copyright 2013, Thomas Loruenser <thomas.loruenser@ait.ac.at>
@@ -28,8 +27,6 @@ AUTHORS:
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
-
-from sage.structure.sage_object import SageObject
 
 
 def berlekamp_welsh(deg, points):
@@ -70,7 +67,6 @@ def berlekamp_welsh(deg, points):
         sage: points[0] = (points[0][0], points[0][1] + F.fetch_int(9))
         sage: poly == berlekamp_welsh(deg, points)
         True
-
     """
     # check input vector
     F = points[0][0].parent()
@@ -79,7 +75,7 @@ def berlekamp_welsh(deg, points):
     for x, y in points:
         if x.parent() != F or y.parent() != F:
             raise TypeError("all points must be from same field.")
-        
+
     # generate and solve system of linear equations
     from sage.functions.all import floor
     deg_E = floor((len(points) - (deg + 1)) / 2.)
@@ -90,17 +86,16 @@ def berlekamp_welsh(deg, points):
     A = Matrix(F, sys_size)
     b = vector(F, sys_size)
     for n, (x, y) in enumerate(points):
-        A[n] = ([x**i for i in range(deg_Q+1)]+[-y * x**i for i in range(deg_E)])
-        b[n] = (y * x**deg_E)
+        A[n] = ([x ** i for i in range(deg_Q + 1)]
+                + [-y * x ** i for i in range(deg_E)])
+        b[n] = (y * x ** deg_E)
         QE = A.solve_right(b)
 
     # reconstruct polynomial
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     P = PolynomialRing(F, 'x')
-    Q = sum([coeff * P.gen()**i for i, coeff in enumerate(QE[:deg_Q+1])]);
-    E = P.gen()**deg_E
-    E += sum([coeff * P.gen()**i for i, coeff in enumerate(QE[deg_Q+1:])]);
+    Q = sum([coeff * P.gen() ** i for i, coeff in enumerate(QE[:deg_Q + 1])])
+    E = P.gen() ** deg_E
+    E += sum([coeff * P.gen() ** i for i, coeff in enumerate(QE[deg_Q + 1:])])
     P = Q.quo_rem(E)[0]
     return P
-
-# vim: set fileencoding=UTF-8 filetype=python :

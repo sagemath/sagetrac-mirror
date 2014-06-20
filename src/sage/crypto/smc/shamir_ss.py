@@ -2,9 +2,9 @@
 r"""
 Sharmir Secret Sharing
 
-Implements the original versions of perfectly secure secret sharing 
-as proposed by Shamir in [Shamir1979]_. Note that this code is for educational 
-purposes only and demonstrate the basic algorithms. 
+Implements the original versions of perfectly secure secret sharing
+as proposed by Shamir in [Shamir1979]_. Note that this code is for educational
+purposes only and demonstrate the basic algorithms.
 
 AUTHORS:
 
@@ -12,7 +12,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Shamir1979] Shamir, A. (1979). How to share a secret. 
+.. [Shamir1979] Shamir, A. (1979). How to share a secret.
    Communications of the ACM, 22(11), 612–613. :doi:`10.1145/359168.359176`
 """
 ###############################################################################
@@ -34,11 +34,12 @@ REFERENCES:
 
 from sage.structure.sage_object import SageObject
 
+
 class ShamirSS(SageObject):
     r"""
     Shamir secret sharing.
-   
-    This class implements the original version of perfectly secure secret sharing 
+
+    This class implements the original version of perfectly secure secret sharing
     as proposed by Shamir in [Shamir1979]_. It is a very basic implementation
     intended for educational purposes only.
 
@@ -183,9 +184,8 @@ class ShamirSS(SageObject):
         return "`({},{})`-Shamir secret sharing over the field `{}`".format(
             self._n, self._k, latex(self._F))
 
-
     def _to_GF(self, x):
-        r""" 
+        r"""
         Convert integer representation to finite field
 
         INPUT:
@@ -197,7 +197,7 @@ class ShamirSS(SageObject):
         The finite field representation.
 
         EXAMPLES::
-        
+
             sage: from sage.crypto.smc.shamir_ss import ShamirSS
             sage: sss = ShamirSS()
             sage: sss._to_GF(42)
@@ -215,9 +215,8 @@ class ShamirSS(SageObject):
         else:
             return self._F.fetch_int(x)
 
-
     def _to_Int(self, x):
-        r""" 
+        r"""
         Convert field representation to integer
 
         INPUT:
@@ -229,7 +228,7 @@ class ShamirSS(SageObject):
         The integer representation of the field element.
 
         EXAMPLES::
-        
+
             sage: from sage.crypto.smc.shamir_ss import ShamirSS
             sage: sss = ShamirSS()
             sage: secret = 42
@@ -242,7 +241,6 @@ class ShamirSS(SageObject):
             return Integer(x)
         else:
             return x.integer_representation()
-
 
     def _rec_berlekamp_welsh(self, points):
         r"""
@@ -281,12 +279,11 @@ class ShamirSS(SageObject):
 
         """
         from berlekamp_welsh import berlekamp_welsh
-        polycoeffs =  berlekamp_welsh(self._k-1, points).coeffs()
+        polycoeffs = berlekamp_welsh(self._k - 1, points).coeffs()
         return polycoeffs
 
-
     def _rec_lagrange(self, points):
-        r""" 
+        r"""
         Reconstruct with Lagrange interpolation.
 
         INPUT:
@@ -321,7 +318,6 @@ class ShamirSS(SageObject):
             raise ValueError("lagrange polynomial degree mismatch.")
         return polycoeffs
 
-
     def _repr_(self):
         r"""
         Return String representation of self.
@@ -333,7 +329,7 @@ class ShamirSS(SageObject):
             sage: print(sss)
             (7,3)-Shamir secret sharing over Finite Field in a of size 2^8
         """
-        return "({},{})-Shamir secret sharing over {}".format(self._n, self._k, 
+        return "({},{})-Shamir secret sharing over {}".format(self._n, self._k,
                                                               self._F)
     ### begin public api
 
@@ -440,13 +436,12 @@ class ShamirSS(SageObject):
         secret = []
         for element in shares:
             # convert to field
-            points = [(self._to_GF(x), self._to_GF(y)) for x,y in element]
+            points = [(self._to_GF(x), self._to_GF(y)) for x, y in element]
             # call decoder
             secret.append(self._to_Int(decode(points)[0]))
         if len(secret) == 1:
             secret = secret[0]
         return secret
-
 
     def share(self, secret):
         r"""
@@ -485,24 +480,21 @@ class ShamirSS(SageObject):
             True
         """
         # make input iterable
-        from sage.rings.integer import Integer
         if not type(secret) == list:
             secret = [secret]
-        
+
         # generate shares
         shares = []
         for s in secret:
             # random polynomial with s as constant coefficient
             ssp = self._to_GF(s)
             for i in range(1, self._k):
-                ssp += self._F.random_element() * self._P.gen()**i
+                ssp += self._F.random_element() * self._P.gen() ** i
 
             # evaluate polynomial at different points (shares)
-            shares.append([(i, self._to_Int(ssp(self._to_GF(i)))) for i in range(1, self._n+1)])
-        
+            shares.append([(i, self._to_Int(ssp(self._to_GF(i))))
+                           for i in range(1, self._n + 1)])
+
         if len(shares) == 1:
             shares = shares[0]
         return shares
-
-
-# vim: set fileencoding=UTF-8 filetype=python :
