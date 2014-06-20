@@ -16,6 +16,8 @@ from lattice_polytope import (LatticePolytope, NefPartition, ReflexivePolytope,
 
 import lattice_polytope
 
+import lattice_polytopes
+
 from toric_lattice import ToricLattice
 
 import sage.geometry.pseudolines
