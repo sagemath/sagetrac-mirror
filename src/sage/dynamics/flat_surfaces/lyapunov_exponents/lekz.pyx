@@ -3,6 +3,7 @@ Python bindings for various computation of Lyapunov exponents.
 """
 
 from libc.stdlib cimport malloc,free
+from math import isnan, isinf
 
 cdef extern from "src/lyapunov_exponents.h":
     ctypedef struct quad_cyclic_cover:
@@ -123,11 +124,18 @@ def lyapunov_exponents_H_plus_cyclic_cover(
 
     res = [[] for _ in xrange(nb_vectors+1)]
 
+    c_isnan, c_isinf, tot_isnan, tot_isinf = 0, 0, 0, 0
+
     if nb_vectors == 1:
         for i in xrange(nb_experiments):
             top_lyapunov_exponents_H_plus(qcc, theta, nb_iterations)
-            for j in xrange(2):
-                res[j].append(theta[j])
+            if isnan(theta[0]) or isnan(theta[1]):
+                c_isnan  += 1
+            elif isinf(theta[0]) or isinf(theta[1]):
+                c_isinf  += 1
+            else:
+                for j in xrange(2):
+                    res[j].append(theta[j])
 
     else:
         init_GS(nb_vectors)
@@ -143,11 +151,29 @@ def lyapunov_exponents_H_plus_cyclic_cover(
                 lyapunov_exponents_isotopic(qcc, theta, nb_iterations, nc, dim, proj)
                 free(dim)
                 free(proj)
+
             else:
                 lyapunov_exponents_H_plus(qcc, theta, nb_iterations)
-            for j in xrange(nb_vectors+1):
-                res[j].append(theta[j])
+                
+            if   len(filter(isnan, [theta[i] for i in range(nb_vectors+1)])) > 0:
+                c_isnan  += 1
+            elif len(filter(isinf, [theta[i] for i in range(nb_vectors+1)])) > 0:
+                c_isinf  += 1
+            else:
+                for j in xrange(nb_vectors+1):
+                    res[j].append(theta[j])
+            if (i == nb_experiments-1) and (c_isnan + c_isinf < 9*nb_experiments/10):
+                i = nb_experiments - (c_isnan+c_isinf) - 1
+                tot_isnan += c_isnan
+                tot_isinf += c_isinf
+                c_isnan, c_isinf = 0, 0
 
+    if tot_isnan > 0:
+        print("Warning, " + str(tot_isnan) + " NaN results in the experiments")
+    if tot_isinf > 0:
+        print("Warning, " + str(tot_isinf) + " infinity results in the experiments")
+    if (c_isnan + c_isinf >= 9*nb_experiments/10):
+        raise NameError('too much NaN or inf results')
 
     for i in xrange(n):
         free(s[i])
