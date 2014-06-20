@@ -12,6 +12,10 @@ cdef class CachedFunction(object):
     cpdef get_cache(self)
     cpdef clear_cache(self)
     cdef object key
+    cdef bint pickle
+
+cdef class CacheDict(dict):
+    cdef bint pickle
 
 cdef class CachedMethod
 
@@ -29,5 +33,5 @@ cdef class CachedMethod(object):
     cdef public str __module__
     cdef CachedFunction _cachedfunc
     cdef int nargs
-    cpdef dict _get_instance_cache(self, inst)
+    cpdef CacheDict _get_instance_cache(self, inst)
 
