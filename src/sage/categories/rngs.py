@@ -11,7 +11,7 @@ Rngs
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.misc.lazy_import import LazyImport
-from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+from sage.categories.nonassociative_rngs import NonassociativeRngs
 
 class Rngs(CategoryWithAxiom):
     """
@@ -28,7 +28,7 @@ class Rngs(CategoryWithAxiom):
         Category of rngs
         sage: sorted(C.super_categories(), key=str)
         [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas,
-         Category of commutative additive groups]
+         Category of nonassociative rngs]
 
         sage: sorted(C.axioms())
         ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
@@ -43,8 +43,7 @@ class Rngs(CategoryWithAxiom):
 
         sage: TestSuite(C).run()
     """
-
-    _base_category_class_and_axiom = (MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "AdditiveInverse")
+    _base_category_class_and_axiom = (NonassociativeRngs, "Associative")
 
     Unital = LazyImport('sage.categories.rings', 'Rings', at_startup=True)
 

@@ -125,6 +125,7 @@ Categories
    sage/categories/modules_with_basis
    sage/categories/monoid_algebras
    sage/categories/monoids
+   sage/categories/nonassociative_rngs
    sage/categories/number_fields
    sage/categories/objects
    sage/categories/partially_ordered_monoids

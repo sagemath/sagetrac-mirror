@@ -29,7 +29,9 @@ class Rings(CategoryWithAxiom):
         sage: Rings()
         Category of rings
         sage: sorted(Rings().super_categories(), key=str)
-        [Category of rngs, Category of semirings]
+        [Category of nonassociative rings,
+         Category of rngs,
+         Category of semirings]
 
         sage: sorted(Rings().axioms())
         ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
