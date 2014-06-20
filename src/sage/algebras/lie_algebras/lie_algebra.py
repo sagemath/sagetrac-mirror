@@ -24,7 +24,7 @@ AUTHORS:
 from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.indexed_generators import IndexedGenerators
+from sage.structure.indexed_generators import IndexedGenerators
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -51,7 +51,6 @@ from sage.modules.free_module import FreeModule, span
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.sets.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.misc.indexed_generators import IndexedGenerators
 
 class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     r"""

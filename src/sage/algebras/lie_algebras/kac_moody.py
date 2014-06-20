@@ -24,10 +24,10 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import RingElement
+from sage.structure.indexed_generators import IndexedGenerators
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
 from sage.misc.cachefunc import cached_method
-from sage.misc.indexed_generators import IndexedGenerators
 from sage.misc.misc import repr_lincomb
 
 from sage.algebras.free_algebra import FreeAlgebra
