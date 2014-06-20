@@ -583,7 +583,7 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
         return ReducedRauzyDiagram(self, **kargs)
     
     def lyapunov_exponents_H_plus(self, nb_vectors=None, nb_experiments=10,
-                                  nb_iterations=32768, verbose=False, output_file=None, lengths=None):
+                                  nb_iterations=32768, return_speed=False, verbose=False, output_file=None, lengths=None):
         r"""
         Compute the H^+ Lyapunov exponents in  the covering locus.
 
@@ -670,6 +670,8 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
         res_final = []
 
         m,d = mean_and_std_dev(res[0])
+        lexp = m
+
         if verbose:
             from math import log, floor, sqrt
             output_file.write("sample of %d experiments\n"%nb_experiments)
@@ -686,7 +688,8 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
                     i,m,d, 2.576*d/sqrt(nb_experiments)))
             res_final.append(m)
 
-        return res_final
+        if return_speed: return (lexp, res_final)
+        else: return res_final
 
 
 def labelize_flip(couple):
