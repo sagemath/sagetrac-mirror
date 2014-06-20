@@ -865,6 +865,31 @@ cdef class CachedFunction(object):
             self.argfix_init()
         (<dict>self.cache)[self._fix_to_pos(*args, **kwds)] = value
 
+    def unset_cache(self, *args, **kwds):
+        r"""
+        Remove the entry for the given arguments and keyword arguments from the
+        cache. A ``KeyError`` is raised if no such entry is present in the cache.
+
+        EXAMPLES::
+
+            sage: g = CachedFunction(number_of_partitions)
+            sage: g(5)
+            7
+            sage: g.get_cache()
+            {((5, 'default'), ()): 7}
+            sage: g.unset_cache(5)
+            sage: g.get_cache()
+            {}
+            sage: g.unset_cache(5)
+            Traceback (most recent call last):
+            ...
+            KeyError: ((5, 'default'), ())
+            sage: g(5)
+            7
+
+        """
+        del (<dict>self.cache)[self.get_key(*args, **kwds)]
+
     def get_key(self, *args, **kwds):
         """
         Return the key in the cache to be used when ``args``
@@ -1138,6 +1163,29 @@ cdef class WeakCachedFunction(CachedFunction):
             self.argfix_init()
         self.cache[self._fix_to_pos(*args, **kwds)] = value
 
+    def unset_cache(self, *args, **kwds):
+        r"""
+        Remove the entry for the given arguments and keyword arguments from the
+        cache. A ``KeyError` is raised if no such entry is present in the
+        cache.
+
+        EXAMPLES::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: @weak_cached_function
+            ....: def f(n): return ZZ
+            sage: f(5)
+            Integer Ring
+            sage: f.unset_cache(5)
+            sage: f.get_cache().items()
+            []
+            sage: f.unset_cache(5)
+            Traceback (most recent call last):
+            ...
+            KeyError: ((5,), ())
+
+        """
+        del self.cache[self.get_key(*args, **kwds)]
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
 
