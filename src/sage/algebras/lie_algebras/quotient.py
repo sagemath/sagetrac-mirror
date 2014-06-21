@@ -26,6 +26,7 @@ from sage.structure.category_object import check_default_category
 from sage.categories.lie_algebras import LieAlgebras
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
+from sage.sets.family import Family
 
 class QuotientLieAlgebraElement(LieAlgebraElementWrapper):
     r"""
@@ -172,6 +173,14 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
         return self.element_class(self, x)
 
     Element = QuotientLieAlgebraElement
+
+    @cached_method
+    def lie_algebra_generators(self):
+        """
+        Return the generators of ``self`` as a Lie algebra.
+        """
+        gens = self.__lie.lie_algebra_generators()
+        return Family({k: self.element_class(self, gens[k]) for k in gens})
 
     def gen(self, i=0):
         """

@@ -22,10 +22,12 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.monoids.indexed_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
+from sage.rings.all import ZZ
 
 class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
     r"""
@@ -85,8 +87,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             # Make this into the lift map
             basis_function = lambda x: self.monomial(self._basis_map[x])
             # TODO: this diagonal, but with a smaller indexing set...
-            return g.module_morphism(basis_function, codomain=self,
-                                     triangular='upper', unitriangular=True)
+            return self._g.module_morphism(basis_function, codomain=self,
+                                           triangular='upper', unitriangular=True)
         return super(PoincareBirkhoffWittBasis, self)._coerce_map_from_(R)
 
     def lie_algebra(self):
@@ -186,7 +188,6 @@ class IdealPBW: # TODO: inherit from the correct classes
         Return ``x`` modulo ``self``.
         """
         ret = self._UEA.zero()
-        R = self._UEA.base_ring()
         if G is None:
             G = self.groebner_basis()
         while x != 0:

@@ -28,7 +28,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.categories.monoids import Monoids
-#from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
 #from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
@@ -168,6 +167,8 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
             return '\n(\n  {}\n)\n',format(',\n\n  '.join(L))
         return '({})'.format(', '.join(L))
 
+# This not quite right, this is the ideal of a free Lie algebra that
+#   **creates a finitely presented Lie algebra
 class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
     """
     An ideal of a finitely presented Lie algebra.
@@ -180,6 +181,12 @@ class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
       that all elements of ``gens`` is in ``lie_algebra``
     - ``inner_reduce`` -- (default: ``True``) if ``True``, then this inner
       reduces the generators as a starting point
+
+    .. TODO::
+
+        Implement a version which better handles computations where the
+        relations are of homogeneous degree (i.e., the Groebner basis can be
+        created up to the degree to do reductions).
     """
     def __init__(self, lie_algebra, gens, coerce=True, inner_reduce=True):
         """
