@@ -10,8 +10,8 @@ AUTHORS:
 - Tom Boothby (added DiskCachedFunction).
 - Simon King (improved performance, more doctests, cython version,
   CachedMethodCallerNoArgs, weak cached function, cached special methods).
-- Julian Rueth (2014-03-19,2014-05-12): added ``key`` parameter; added
-  ``pickle`` parameter
+- Julian Rueth (2014-03-19,2014-05-12,2014-06-20): added ``key`` parameter;
+  added ``pickle`` parameter; fixed circular pickles
 
 EXAMPLES:
 
@@ -425,6 +425,7 @@ from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getarg
 import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
 from sage.misc.decorators import decorator_keywords
+from sage.structure.sage_object import register_unpickle_override
 
 cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
             '__and__', '__call__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__',
@@ -1341,25 +1342,24 @@ class CachedMethodPickle(object):
 
     - Simon King (2011-01)
     """
-    def __init__(self, inst, name, cache=None):
+    def __init__(self, name):
         """
         INPUT:
 
-        - ``inst`` - some instance.
         - ``name`` (string) - usually the name of an attribute
           of ``inst`` to which ``self`` is assigned.
 
         TEST::
 
             sage: from sage.misc.cachefunc import CachedMethodPickle
-            sage: P = CachedMethodPickle(1, 'foo')
+            sage: P = CachedMethodPickle('foo')
             sage: P
             Pickle of the cached method "foo"
 
         """
-        self._instance = inst
+        self._instance = None
         self._name = name
-        self._cache = cache
+        self._cache = None
 
     def __repr__(self):
         """
@@ -1403,7 +1403,72 @@ class CachedMethodPickle(object):
              x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
              x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3]}
         """
-        return CachedMethodPickle,(self._instance,self._name,self._cache)
+        self._check_state()
+        return CachedMethodPickle,(self._name,),(self._instance,self._cache)
+
+    def _check_state(self):
+        r"""
+        Check whether ``_instance`` has already been set.
+
+        The constructor does not set ``_instance`` since this almost always
+        creates a circular reference between the pickle and the instance which
+        contains this method during unpickling. The ``_instance`` is only set
+        in :meth:`__setstate`. If any method which requires ``_instance`` is
+        called before, this is a bug, and an assertion is raised.
+
+        EXAMPLES:
+
+        Usually, this happens when a type ``A`` implements ``__reduce__`` to
+        return ``(A,args,state,...)`` and the constructor of ``A`` uses a
+        cached method of ``A``::
+
+            sage: class A:
+            ....:    def __init__(self):
+            ....:        self.some_bar = self.bar()
+            ....:    def __reduce__(self):
+            ....:        return (A,())
+            ....:    @cached_method
+            ....:    def bar(self):
+            ....:        return 0
+            sage: a = A()
+            sage: loads(dumps(a)) # indirect doctest
+
+        To fix the problem, it is usually best to do the parts which need the cached method in ``__setstate__``::
+
+            sage: class A:
+            ....:    def __init__(self):
+            ....:        self.some_bar = self.bar()
+            ....:    def __reduce__(self):
+            ....:        return (unpickle_A,())
+            ....:    def __setstate__(self, state):
+            ....:        self.some_bar = self.bar()
+            ....:    @cached_method
+            ....:    def bar(self):
+            ....:        return 0
+            sage: def unpickle_A(*args): return A.__new__()
+            sage: a = A()
+            sage: loads(dumps(a)) # indirect doctest
+
+        """
+        if self._instance is None:
+            raise AssertionError("CachedMethod is not ready yet since CachedMethodPickle.__setstate__() has not been called.")
+
+    def __setstate__(self, state):
+        r"""
+        Restore ``_instance`` and ``_cache`` of this pickle.
+
+        TESTS::
+
+            sage: from sage.misc.cachefunc import CachedMethodPickle
+            sage: P = CachedMethodPickle('foo')
+            sage: P.__setstate__((ZZ, None))
+            sage: P._instance
+
+        """
+        self._instance = state[0]
+        if len(state)>=2:
+            assert(len(state)==2)
+            self._cache = state[1]
 
     def __call__(self,*args,**kwds):
         """
@@ -1427,6 +1492,7 @@ class CachedMethodPickle(object):
             Cached version of <function gens at 0x...>
 
         """
+        self._check_state()
         self._instance.__dict__.__delitem__(self._name)
         CM = getattr(self._instance,self._name)
         if self._cache is not None:
@@ -1466,6 +1532,7 @@ class CachedMethodPickle(object):
             Cached version of <function groebner_basis at 0x...>
 
         """
+        self._check_state()
         self._instance.__dict__.__delitem__(self._name)
         CM = getattr(self._instance,self._name)
         if self._cache is not None:
@@ -1475,6 +1542,40 @@ class CachedMethodPickle(object):
                 for k,v in self._cache:
                     CM.cache[k] = v
         return getattr(CM,s)
+
+def unpickle_CachedMethodPickle(*args):
+    r"""
+    Unpickle a :class:`CachedMethodPickle` from ``args``.
+
+    This function is necessary to unpickle legacy pickles of
+    :class:`CachedMethodPickle`.
+
+    TESTS:
+
+    We can unpickle a new :class:`CachedMethodPickle`::
+
+        sage: from sage.misc.cachefunc import unpickle_CachedMethodPickle
+        sage: unpickle_CachedMethodPickle('foo')
+
+    We can unpickle an old :class:`CachedMethodPickle`::
+
+        sage: unpickle_CachedMethodPickle(ZZ,'foo',{})
+
+    """
+    if len(args)==1:
+        return CachedMethodPickle(*args)
+    if len(args)>=2:
+        instance = args[0]
+        name = args[1]
+        cache = None
+        if len(args)>=3:
+            assert(len(args)==3)
+            cache = args[2]
+        ret = CachedMethodPickle(name)
+        ret.__setstate__((instance, cache))
+        return ret
+
+register_unpickle_override('sage.misc.cachefunc', 'CachedMethodPickle', unpickle_CachedMethodPickle)
 
 cdef class CachedMethodCaller(CachedFunction):
     """
@@ -1585,9 +1686,9 @@ cdef class CachedMethodCaller(CachedFunction):
             Cached version of <function groebner_basis at 0x...>
         """
         if isinstance(self._cachedmethod, CachedInParentMethod) or hasattr(self._instance,self._cachedmethod._cache_name) or not self.pickle:
-            return CachedMethodPickle,(self._instance,self.__name__)
+            return CachedMethodPickle,(self.__name__,),(self._instance, None)
         else:
-            return CachedMethodPickle,(self._instance,self.__name__,self.cache.items())
+            return CachedMethodPickle,(self.__name__,),(self._instance, self.cache.items())
 
     def _instance_call(self, *args, **kwds):
         """
@@ -2018,9 +2119,9 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
         """
         if self.pickle:
-            return CachedMethodPickle,(self._instance,self.__name__,self.cache)
+            return CachedMethodPickle,(self.__name__,),(self._instance,self.cache)
         else:
-            return CachedMethodPickle,(self._instance,self.__name__)
+            return CachedMethodPickle,(self.__name__,),(self._instance,)
 
     def _instance_call(self):
         """
