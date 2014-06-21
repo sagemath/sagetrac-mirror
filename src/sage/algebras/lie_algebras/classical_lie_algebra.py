@@ -34,7 +34,6 @@ from sage.structure.element import RingElement
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
-from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import FreeAlgebra
@@ -825,7 +824,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         self._s_coeff = coeffs
 
         names = e_names + f_names + names
-        category = FiniteDimensionalLieAlgebrasWithBasis(R)
+        category = LieAlgebras(R).FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
         IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
                                    prefix='E', generator_cmp=self._basis_cmp)

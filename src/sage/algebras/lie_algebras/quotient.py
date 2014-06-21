@@ -44,7 +44,7 @@ class QuotientLieAlgebraElement(LieAlgebraElementWrapper):
             sage: v = S.gens(); v
             (xbar,)
         """
-        ElementWrapper.__init__(self, parent, rep)
+        LieAlgebraElementWrapper.__init__(self, parent, rep)
         if reduce:
             self._reduce_()
 
@@ -112,6 +112,16 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
     - ``I`` -- an ideal of ``lie``
 
     - ``names`` -- a list of generator names
+
+    EXAMPLES:
+
+    We construct `\mathfrak{sl}_2` as a quotient of a free algebra::
+
+        sage: L = LieAlgebra(QQ, 'e,f,h')
+        sage: Lyn = L.Lyndon()
+        sage: e,f,h = Lyn.gens()
+        sage: I = Lyn.ideal(Lyn[e,f] - h, Lyn[h,e] - 2*e, Lyn[h,f] + 2*f) # not tested - known bug
+        sage: Q = Lyn.quotient(I) # not tested
     """
     def __init__(self, lie, I, names=None, index_set=None, category=None):
         r"""
@@ -207,5 +217,6 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
         return UEA.quotient(I)
 
     # This is to make the category framework happy
+    # TODO: Is this necessary?
     ambient = cover_lie_algebra
 

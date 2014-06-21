@@ -18,6 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.distributive_magmas_and_additive_magmas import DistributiveMagmasAndAdditiveMagmas
 from sage.categories.modules import Modules
 from sage.categories.sets_cat import Sets
 from sage.categories.homset import Hom

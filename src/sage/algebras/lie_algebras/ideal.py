@@ -171,13 +171,23 @@ class LieAlgebraIdeal(LieSubalgebra): #, MonoidElement): # FIXME: layout conflic
 class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
     """
     An ideal of a finitely presented Lie algebra.
+
+    INPUT:
+
+    - ``lie_algebra`` -- the ambient Lie algebra
+    - ``gens`` -- the generators of this ideal
+    - ``coerce`` -- (default: ``True``) if ``True``, then this makes sure
+      that all elements of ``gens`` is in ``lie_algebra``
+    - ``inner_reduce`` -- (default: ``True``) if ``True``, then this inner
+      reduces the generators as a starting point
     """
-    def __init__(self, lie_algebra, gens, coerce=True):
+    def __init__(self, lie_algebra, gens, coerce=True, inner_reduce=True):
         """
         Initialize ``self``.
         """
-        LieAlgebraIdeal.__init__(self, lie_algebra, gens, coerce=True)
-        gb = self._inner_reduce(self._gens)
+        LieAlgebraIdeal.__init__(self, lie_algebra, gens, coerce=coerce)
+        if inner_reduce:
+            gb = self._inner_reduce(self._gens)
         self._gb = set(gb)
         gb = list(gb)
         self._gb_todo = set([(g,h) for i,g in enumerate(gb) for h in gb[i+1:]])
@@ -239,17 +249,18 @@ class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
         zero = self._ambient.zero()
         while not reduced:
             M = set()
-            reduced = False
+            reduced = True
             for i,g in enumerate(G):
                 red = self._normal_form(g, G[:i] + G[i+1:])
                 red /= red.leading_coefficient(term_cmp)
                 if red != g:
-                    reduced = True
+                    reduced = False
                 if red != zero:
                     M.add(red)
             G = list(M)
         return G
 
+    # TODO: It's probably better to inline this in the one place it's used
     def _inner_reduce_with_map(self, G):
         """
         Return a self-reduced generating set from a (finite)
@@ -262,11 +273,12 @@ class LieAlgebraIdealFinitelyPresented(LieAlgebraIdeal):
         ret_map = {g:g for g in G}
         while not reduced:
             M = set()
+            reduced = True
             for i,g in enumerate(MG):
                 red = self._normal_form(g, MG[:i] + MG[i+1:])
                 red /= red.leading_coefficient(term_cmp)
                 if red != g:
-                    reduced = True
+                    reduced = False
                     ret_map[red] = ret_map[g]
                     del ret_map[g]
                 if red != zero:
