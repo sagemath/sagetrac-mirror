@@ -1,3 +1,5 @@
+from sage.misc.lazy_import import lazy_import
+
 from piecewise import piecewise, Piecewise
 
 from trig import ( sin, cos, sec, csc, cot, tan,
@@ -77,4 +79,4 @@ from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei)
 
-from hypergeometric import hypergeometric
+lazy_import("sage.functions.hypergeometric", "hypergeometric")
