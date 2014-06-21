@@ -357,6 +357,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             return ret.Lyndon()
         return ret
 
+    # TODO: Should this inherit from IndexedGenerators?
     def __init__(self, R, names=None, index_set=None, category=None):
         """
         The Lie algebra.

@@ -180,7 +180,7 @@ class QuotientLieAlgebra(FinitelyGeneratedLieAlgebra):
         Return the generators of ``self`` as a Lie algebra.
         """
         gens = self.__lie.lie_algebra_generators()
-        return Family({k: self.element_class(self, gens[k]) for k in gens})
+        return Family({k: self.element_class(self, gens[k]) for k in gens.keys()})
 
     def gen(self, i=0):
         """

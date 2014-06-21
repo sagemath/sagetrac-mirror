@@ -38,7 +38,8 @@ from sage.categories.lie_algebras import LieAlgebras
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra, LieAlgebraFromAssociative
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement, LieBracket
+from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -101,9 +102,10 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         names = ['e%s'%i for i in range(1, n+1)]
         names += ['f%s'%i for i in range(1, n+1)]
         names += ['h%s'%i for i in range(1, n+1)]
+        category = LieAlgebras(R).FiniteDimensional().WithBasis()
         LieAlgebraFromAssociative.__init__(self, R, e[0].parent(),
                                            tuple(e + f + h), tuple(names),
-                                           category=FiniteDimensionalLieAlgebrasWithBasis(R))
+                                           category=category)
         self._cartan_type = ct
 
         gens = tuple(self.gens())
@@ -268,6 +270,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         """
         Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
         """
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
 
 class gl(LieAlgebraFromAssociative):
@@ -295,8 +298,9 @@ class gl(LieAlgebraFromAssociative):
                 mat.set_immutable()
                 gens.append(mat)
         self._n = n
-        LieAlgebraFromAssociative.__init__(self, R, MS, tuple(gens), tuple(names),
-                                           category=FiniteDimensionalLieAlgebrasWithBasis(R))
+        category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        LieAlgebraFromAssociative.__init__(self, R, MS, tuple(gens),
+                                           tuple(names), category=category)
 
     def _repr_(self):
         """
@@ -619,7 +623,7 @@ class su(ClassicalMatrixLieAlgebra):
         #gens = {('E[%s,%s]'%i,j): MS({(i,j):one}) for i in range(n) for j in range(n)}
         #e = [MS({(i,i+1):one}) for i in range(n-1)]
         #f = [MS({(i+1,i):one}) for i in range(n-1)]
-        h = [MS({(i,i):one, (i+1,i+1):-one}) for i in range(n-1)]
+        #h = [MS({(i,i):one, (i+1,i+1):-one}) for i in range(n-1)]
         gens = {}
         LieAlgebraFromAssociative.__init__(self, R, gens)
 
@@ -667,10 +671,9 @@ class su(ClassicalMatrixLieAlgebra):
 #######################################
 ## Chevalley Basis
 
-# TODO: inherit from LieAlgebraWithStructureCoefficients
-class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
+class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     r"""
-    A simple Lie algebra in the Chevalley basis.
+    A simple finite dimensional Lie algebra in the Chevalley basis.
 
     Let `L` be a simple complex Lie algebra with roots `\Phi`, then the
     Chevalley basis is given by `e_{\alpha}` for all `\alpha \in \Phi` and
@@ -733,10 +736,6 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         roots = RL.roots()
         num_sroots = len(alpha)
 
-        names = ['h{}'.format(i) for i in range(1, num_sroots+1)]
-        e_names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
-        f_names = ['f{}'.format(i) for i in range(1, num_sroots+1)]
-
         # Determine the signs for the structure coefficients from the root system
         # We first create the special roots
         sp_sign = {}
@@ -776,21 +775,21 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
             return p
 
         # Now we can compute all necessary structure coefficients
-        coeffs = {}
+        s_coeffs = {}
         for i,r in enumerate(p_roots):
             # [e_r, h_i] and [h_i, f_r]
             for ac in alphacheck:
                 c = r.scalar(ac)
                 if c == 0:
                     continue
-                coeffs[(r, ac)] = {r: -c}
-                coeffs[(ac, -r)] = {-r: -c}
+                s_coeffs[LieBracket(r, ac)] = {r: -c}
+                s_coeffs[LieBracket(ac, -r)] = {-r: -c}
 
             # [e_r, f_r]
             h_sum = {}
             for j, c in r.associated_coroot():
                 h_sum[alphacheck[j]] = c
-            coeffs[(r, -r)] = h_sum
+            s_coeffs[LieBracket(r, -r)] = h_sum
 
             # [e_r, e_s] and [e_r, f_s] with r != +/-s
             for j, s in enumerate(p_roots[i+1:]):
@@ -804,30 +803,32 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
                         c = -c * sp_sign[(b, a)]
                     else:
                         c *= sp_sign[(a, b)]
-                    coeffs[(-r, s)] = {a: -c}
-                    coeffs[(r, -s)] = {a: c}
+                    s_coeffs[LieBracket(-r, s)] = {a: -c}
+                    s_coeffs[LieBracket(r, -s)] = {a: c}
 
                 # [e_r, e_s]
                 a = r + s
                 if a in p_roots:
                     # (r, s) is a special pair
                     c = e_coeff(r, s) * sp_sign[(r, s)]
-                    index = p_roots.index(r+s) + 1
-                    coeffs[(r, s)] = {a: c}
-                    coeffs[(-r, -s)] = {-a: -c}
+                    s_coeffs[LieBracket(r, s)] = {a: c}
+                    s_coeffs[LieBracket(-r, -s)] = {-a: -c}
 
         # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
-        for a,b in coeffs.keys():
+        for k in s_coeffs.keys():
+            a,b = k[0], k[1]
             if self._basis_cmp(a, b) > 0:
-                coeffs[(b,a)] = {k:-v for k,v in coeffs[(a, b)].items()}
-                del coeffs[(a, b)]
-        self._s_coeff = coeffs
+                s_coeffs[LieBracket(b,a)] = {k:-v for k,v in s_coeffs[k].items()}
+                del s_coeffs[k]
 
-        names = e_names + f_names + names
+        names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
+        names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
+        names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names, category=category)
-        IndexedGenerators.__init__(self, p_roots + n_roots + list(alphacheck),
-                                   prefix='E', generator_cmp=self._basis_cmp)
+        index_set = p_roots + n_roots + list(alphacheck)
+        LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set,
+                                                     category, prefix='E', bracket='[',
+                                                     generator_cmp=self._basis_cmp)
 
     def _repr_(self):
         """
@@ -883,44 +884,6 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
             return 1
         return cmp(n_roots.index(x), n_roots.index(y))
 
-    def dimension(self):
-        """
-        Return the dimension of ``self``.
-
-        EXAMPLES::
-
-            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
-            sage: L.dimension()
-            8
-        """
-        return len(self.basis())
-
-    def bracket_on_basis(self, x, y):
-        """
-        Return the Lie bracket of ``[x, y]``.
-
-        EXAMPLES::
-
-            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
-            sage: e1,e2,f1,f2,h1,h2 = L.gens()
-            sage: L.bracket(e1, f1) # indirect doctest
-            h1
-            sage: L.bracket(h1, e1)
-            2*E[alpha[1]]
-            sage: L.bracket(h1, f1)
-            -2*E[-alpha[1]]
-            sage: L.bracket(e1, e1)
-            0
-            sage: k = L.bracket(e1, e2); k
-            E[alpha[1] + alpha[2]]
-            sage: L.bracket(e1, k)
-            0
-        """
-        b = (x, y)
-        if b not in self._s_coeff:
-            return self.zero()
-        return self.element_class(self, self._s_coeff[b])
-
     def cartan_type(self):
         """
         Return the Cartan type of ``self``.
@@ -938,7 +901,7 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         Return the (untwisted) affine Lie algebra of ``self``.
         """
-        from sage.algebras.lie_algebras.classical_lie_algebra import AffineLieAlgebra
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
 
     # Useful in creating the UEA
@@ -955,6 +918,45 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         RL = self._cartan_type.root_system().root_lattice()
         return {i+1:r for i,r in enumerate(RL.positive_roots())}
+
+    def lie_algebra_generators(self, str_keys=False):
+        r"""
+        Return the Chevalley Lie algebra generators of ``self``.
+
+        INPUT:
+
+        - ``str_keys`` -- (default: ``False``) set to ``True`` to have the
+          indices indexed by strings instead of simple (co)roots
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 1])
+            sage: L.lie_algebra_generators()
+            Finite family {-alpha[1]: E[-alpha[1]], alpha[1]: E[alpha[1]], alphacheck[1]: h1}
+            sage: L.lie_algebra_generators(True)
+            Finite family {'f1': E[-alpha[1]], 'h1': h1, 'e1': E[alpha[1]]}
+        """
+        index_set = self._cartan_type.index_set()
+        RL = self._cartan_type.root_system().root_lattice()
+        alpha = RL.simple_roots()
+        alphacheck = RL.simple_coroots()
+        B = self.basis()
+        ret = {}
+
+        if str_keys:
+            for i in index_set:
+                al = alpha[i]
+                ret['e{}'.format(i)] = B[al]
+                ret['f{}'.format(i)] = B[-al]
+                ret['h{}'.format(i)] = B[alphacheck[i]]
+        else:
+            for i in index_set:
+                al = alpha[i]
+                ret[al] = B[al]
+                ret[-al] = B[-al]
+                ret[alphacheck[i]] = B[alphacheck[i]]
+
+        return Family(ret)
 
     @cached_method
     def gens(self):
@@ -983,28 +985,6 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         return self.gens()[i]
 
-    def basis(self):
-        """
-        Return the basis of ``self``.
-        """
-        one = self.base_ring().one()
-        return Family(self._indices, lambda x: self.element_class(self, {x: one}))
-
-    def algebra_generators(self):
-        """
-        Return the Lie algebra generators of ``self``.
-        """
-        RL = self._cartan_type.root_system().root_lattice()
-        alpha = RL.simple_roots()
-        alphacheck = RL.simple_coroots()
-        d = {}
-        B = self.basis()
-        for i in self._cartan_type.index_set():
-            d['e{}'.format(i)] = B[alpha[i]]
-            d['f{}'.format(i)] = B[-alpha[i]]
-            d['h{}'.format(i)] = B[alphacheck[i]]
-        return Family(d)
-
     def highest_root_basis_elt(self, pos=True):
         r"""
         Return the basis element corresponding to the highest root `\theta`.
@@ -1017,24 +997,4 @@ class LieAlgebraChevalleyBasis(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         if pos:
             return B[theta]
         return B[-theta]
-
-    class Element(LieAlgebraElement):
-        def _repr_(self):
-            r"""
-            Return a string representation of ``self``.
-            """
-            return repr_lincomb(self._sorted_items_for_printing(),
-                                scalar_mult=self.parent()._print_options['scalar_mult'],
-                                repr_monomial = self.parent()._repr_generator,
-                                strip_one = True)
-
-        def _latex_(self):
-            r"""
-            Return a `\LaTeX` representation of ``self``.
-            """
-            return repr_lincomb(self._sorted_items_for_printing(),
-                                scalar_mult       = self.parent()._print_options['scalar_mult'],
-                                latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
-                                repr_monomial = self.parent()._latex_generator,
-                                is_latex=True, strip_one = True)
 

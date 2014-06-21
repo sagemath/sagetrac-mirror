@@ -2547,7 +2547,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
     @cached_method
     def summand_projection(self, i):
         """
-        Returns the natural projection onto the i-th summand of self
+        Return the natural projection onto the i-th summand of self
 
         INPUTS:
 
@@ -2574,7 +2574,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the elements
+        Return the cartesian product of the elements.
 
         INPUT:
 

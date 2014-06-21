@@ -169,7 +169,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         """
         Return the `i`-th generator of ``self``.
         """
-        n = self.ngens()
+        n = len(self.gens())
         if self._kac_moody:
             if i == n - 1:
                 return self.element_class(self, {'d': 1})
@@ -203,7 +203,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
             if not self or not y or s_mon == y_mon:
                 return self.parent().zero()
             d = {}
-            gd = self.parent()._g.gens_dict()
+            gd = self.parent()._g.basis()
             for ml,cl in sorted(s_mon): # The left monomials
                 for mr,cr in sorted(y_mon): # The right monomials
                     if ml == mr or ml == 'c' or mr == 'c':
@@ -222,7 +222,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
                             d[(gd[m], tl+tr)] = cl * cr * c
                     if tl != 0 and tr + tl == 0:
                         d['c'] = gl.killing_form(gr) * cl * cr * tl
-            if len(d) == 0:
+            if not d:
                 return self.parent().zero()
             return self.__class__(self.parent(), d)
 

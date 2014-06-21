@@ -764,7 +764,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
     def quotient(self, I, mats=None, names=None, category=None):
         """
-        Returns a quotient algebra.
+        Return a quotient algebra.
 
         The quotient algebra can be defined in two ways:
 
@@ -929,17 +929,18 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         l = {}
         while elt: # != 0
             lst = list(elt)
-            support = [i[0].to_word() for i in lst]
-            min_elt = support[0]
-            for word in support[1:len(support)-1]:
-                if min_elt.lex_less(word):
-                    min_elt = word
-            coeff = lst[support.index(min_elt)][1]
-            min_elt = min_elt.to_monoid_element()
+            min_elt, coeff = lst[0]
+            min_word = min_elt.to_word()
+            for item in lst[1:-1]:
+                word = item[0].to_word()
+                if min_word.lex_less(word):
+                    min_elt, coeff = item
+                    min_word = word
             l[min_elt] = l.get(min_elt, 0) + coeff
             elt = elt - coeff * self.lie_polynomial(min_elt)
         return PBW.sum_of_terms([(k, v) for k,v in l.items() if v != 0], distinct=True)
 
+    @cached_method
     def lie_polynomial(self, w):
         """
         Return the Lie polynomial associated to the Lyndon word ``w``. If
