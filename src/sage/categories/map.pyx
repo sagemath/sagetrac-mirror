@@ -33,24 +33,25 @@ cdef inline parent_c(x):
         except AttributeError:
             return <object>PY_TYPE(x)
 
-def unpickle_map(_class, parent, _dict, _slots):
+def unpickle_map(_class, parent, *args):
     """
-    Auxiliary function for unpickling a map.
+    Auxiliary function for unpickling a :class:`Map`.
 
     TEST::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y,x-y],R)
-        sage: f == loads(dumps(f))  # indirect doctest
+        sage: f == loads(dumps(f)) # indirect doctest
         True
+
     """
-    # should we use slots?
-    # from element.pyx
     cdef Map mor = _class.__new__(_class)
     mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
+    if args:
+        # Additional arguments may be present if this pickle was created before
+        # #15156 was merged. They contain the dict and slots which are now
+        # initialized during __setstate__.
+        mor.__setstate__(args)
     return mor
 
 def is_Map(x):
@@ -472,7 +473,28 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (self.__class__, self._parent), (_dict, self._extra_slots({}))
+
+    def __setstate__(self, state):
+        r"""
+        Restore the ``__dict__`` and ``__slots__`` of this map.
+
+        INPUT:
+
+        - ``state`` -- a tuple ``(dict,slots)`` or ``None`` (if this is called
+          for an old pickle)
+
+        TESTS::
+
+            sage: from sage.categories.map import Map
+            sage: f = Map(Hom(QQ, ZZ, Rings())); f
+            sage: loads(dumps(f)) is f # indirect doctest
+
+        """
+        if state:
+            if HAS_DICTIONARY(self):
+                self.__dict__ = state[0]
+            self._update_slots(state[1])
 
     def _repr_type(self):
         """
