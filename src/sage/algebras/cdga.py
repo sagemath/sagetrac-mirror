@@ -493,7 +493,7 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
             for i in I.gens():
                 if not i.is_homogeneous():
                     raise ValueError("The ideal must be homogeneous")
-        CA = CDGAlgebra(self.base_ring(), self._names, self._degrees,  NCR, J)
+        CA = CGAlgebra(self.base_ring(), self._names, self._degrees,  NCR, J)
         return CA
 
 
@@ -714,6 +714,42 @@ class CDGAlgebra(CGAlgebra):
         h1 = V0.Hom(V1)(M)
         h2 = V1.Hom(V2)(N)
         return h2.kernel().quotient(h1.image())
+
+
+    def quotient(self, I, check=True):
+        """
+        Create the quotient of this algebra by a twosided ideal ``I``
+
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: I = A.ideal([x*t+y^2, x*z - t])
+            sage: B = A.quotient(I)
+            sage: B
+            Commutative Graded Differential Algebra over Finite Field of size 5 with generators ('x', 'y', 'z', 't')
+            sage: B(x*t)
+            0
+            sage: B(x*z)
+            t
+            sage: A.homogeneous_part(7)
+            [y*t, y*z^2, x*y*z, x^2*y]
+            sage: B.homogeneous_part(7)
+            [y*t, y*z^2, x^2*y]
+
+
+        """
+        NCR = self._QuotientRing_nc__R
+        gens1 = list(self._QuotientRing_nc__I.gens())
+        gens2 = [i.lift() for i in I.gens()]
+        J = NCR.ideal(gens1+gens2, side='twosided')
+        if check:
+            for i in I.gens():
+                if not i.is_homogeneous():
+                    raise ValueError("The ideal must be homogeneous")
+        CA = CDGAlgebra(self.base_ring(), self._names, self._degrees,  NCR, J)
+        return CA
+
 
     def differential(self):
         return self._differential
