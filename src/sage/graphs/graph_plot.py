@@ -392,7 +392,7 @@ class GraphPlot(SageObject):
             else:
                 self._plot_components['vertices'] = scatter_plot(
                     self._pos.values(), clip=False,
-                    lw=self._options['thickness'], **voptions)
+                    thickness=self._options['thickness'], **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -421,7 +421,7 @@ class GraphPlot(SageObject):
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,
                     facecolor=colors, clip=False,
-                    lw=self._options['thickness'], **voptions)
+                    thickness=self._options['thickness'], **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []

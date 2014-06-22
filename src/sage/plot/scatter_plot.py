@@ -84,6 +84,7 @@ class ScatterPlot(GraphicPrimitive):
             ('edgecolor', 'The color of the marker border.'),
             ('facecolor', 'The color of the marker face.'),
             ('hue', 'The color given as a hue.'),
+            ('thickness', 'The thickness of the marker.'),
             ('marker', 'What shape to plot the points.'),
             ('markersize', 'the size of the markers.'),
             ('rgbcolor', 'The color as an RGB tuple.'),
@@ -97,7 +98,8 @@ class ScatterPlot(GraphicPrimitive):
                 'facecolor':'The color of the marker face.',
                 'edgecolor':'The color of the marker border.',
                 'zorder':'The layer level in which to draw.',
-                'clip': 'Whether or not to clip.'}
+                'clip': 'Whether or not to clip.',
+                'thickness': 'The thickness of the marker.'}
 
     def _repr_(self):
         """
@@ -131,11 +133,13 @@ class ScatterPlot(GraphicPrimitive):
         p = subplot.scatter(self.xdata, self.ydata, alpha=options['alpha'],
                 zorder=options['zorder'], marker=options['marker'],
                 s=options['markersize'], facecolors=options['facecolor'],
-                edgecolors=options['edgecolor'], clip_on=options['clip'])
+                edgecolors=options['edgecolor'], clip_on=options['clip'],
+                linewidths=options['thickness'])
         if not options['clip']:
             self._bbox_extra_artists=[p]
 
-@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8', edgecolor='black', clip=True, aspect_ratio='automatic')
+@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8',
+        edgecolor='black', clip=True, aspect_ratio='automatic', thickness=1)
 def scatter_plot(datalist, **options):
     """
     Returns a Graphics object of a scatter plot containing all points in
@@ -166,6 +170,8 @@ def scatter_plot(datalist, **options):
     - ``facecolor`` -- default: ``'#fec7b8'``
 
     - ``edgecolor`` -- default: ``'black'``
+
+    - ``thickness`` -- (default: 1) the thickness of the marker
 
     - ``zorder`` -- default: 5
 
