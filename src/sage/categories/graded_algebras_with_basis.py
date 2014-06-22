@@ -10,6 +10,7 @@ Graded algebras with basis
 #******************************************************************************
 
 from sage.categories.graded_modules import GradedModulesCategory
+from sage.misc.lazy_import import LazyImport
 
 class GradedAlgebrasWithBasis(GradedModulesCategory):
     """
@@ -28,6 +29,9 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
 
         sage: TestSuite(C).run()
     """
+    Differential = LazyImport('sage.categories.differential_graded_algebras_with_basis',
+                              'DifferentialGradedAlgebrasWithBasis',
+                              as_name='Differential')
 
     class ParentMethods:
         pass
