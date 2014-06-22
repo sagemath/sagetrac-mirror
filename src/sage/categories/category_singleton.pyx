@@ -318,7 +318,7 @@ class Category_singleton(Category):
             cls = cls.__base__
         # TODO: find a better way to check that cls is an abstract class
         from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
-        assert (cls.__mro__[1] is Category_singleton or cls.__mro__[1] is CategoryWithAxiom_singleton), \
+        assert (Category_singleton in cls.__mro__ or CategoryWithAxiom_singleton in cls.__mro__), \
             "%s is not a direct subclass of %s"%(cls, Category_singleton)
         obj = super(Category_singleton, cls).__classcall__(cls, *args)
         cls._set_classcall(ConstantFunction(obj))
