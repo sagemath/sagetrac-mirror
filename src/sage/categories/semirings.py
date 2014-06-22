@@ -11,6 +11,7 @@ Semirngs
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_import import LazyImport
 
 class Semirings(CategoryWithAxiom):
     """
@@ -46,6 +47,9 @@ class Semirings(CategoryWithAxiom):
         sage: TestSuite(Semirings()).run()
     """
     _base_category_class_and_axiom = (MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital")
+
+    Differential = LazyImport('sage.categories.differential_semirings',
+                              'DifferentialSemirings')
 
     class SubcategoryMethods:
         @cached_method

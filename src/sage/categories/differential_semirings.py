@@ -8,7 +8,8 @@ Differential Semirings
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
+from sage.categories.category_singleton import Category_singleton
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.semirings import Semirings
 from sage.misc.abstract_method import abstract_method
@@ -17,7 +18,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
 
-class DifferentialSemiringsCategory(RegressiveCovariantConstructionCategory, CategoryWithAxiom):
+class DifferentialSemiringsCategory(RegressiveCovariantConstructionCategory, Category_singleton):
     def __init__(self, base_category):
         """
         EXAMPLES::
@@ -36,7 +37,7 @@ class DifferentialSemiringsCategory(RegressiveCovariantConstructionCategory, Cat
             sage: GradedHopfAlgebrasWithBasis(QQ).base_ring()
             Rational Field
         """
-        super(DifferentialSemiringsCategory, self).__init__(base_category, Semirings)
+        super(DifferentialSemiringsCategory, self).__init__(base_category)
 
     _functor_category = "Differential"
 
