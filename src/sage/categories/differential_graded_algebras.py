@@ -35,10 +35,6 @@ class DifferentialGradedAlgebras(DifferentialAlgebrasCategory):
 
         sage: TestSuite(DifferentialGradedAlgebras(QQ)).run()
     """
-    WithBasis = LazyImport("sage.categories.differential_graded_algebras_with_basis",
-                           "DifferentialGradedAlgebrasWithBasis",
-                           as_name="WithBasis")
-
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """

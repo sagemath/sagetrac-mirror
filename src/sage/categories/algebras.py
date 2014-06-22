@@ -89,8 +89,8 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
-    Differential = LazyImport('sage.categories.differential_graded_algebras',
-                              'DifferentialGradedAlgebras', as_name='Differential')
+    Differential = LazyImport('sage.categories.differential_algebras',
+                              'DifferentialAlgebras', as_name='Differential')
 
     class SubcategoryMethods:
         @cached_method

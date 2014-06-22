@@ -162,7 +162,7 @@ class DifferentialAlgebras(DifferentialAlgebrasCategory):
             sage: C.extra_super_categories()
             (Category of chain complexes over Rational Field,)
         """
-        return (ChainComplexes(self.base_ring()),)
+        return [ChainComplexes(self.base_ring())]
 
     def example(self):
         """
@@ -263,13 +263,6 @@ class DifferentialAlgebras(DifferentialAlgebrasCategory):
                                           degrees=[x.degree() for x in gens],
                                           relations=relns)
             pass
-
-
-    WithBasis = LazyImport("sage.categories.differential_algebras_with_basis",
-                           "DifferentialAlgebrasWithBasis", as_name="WithBasis")
-
-    Graded = LazyImport("sage.categories.differential_graded_algebras",
-                        "DifferentialGradedAlgebras", as_name="Graded")
 
     class CartesianProducts(CartesianProductsCategory):
         """

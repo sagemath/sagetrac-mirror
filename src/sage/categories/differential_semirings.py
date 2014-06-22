@@ -18,6 +18,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
 
+# Should this be CategoryWithAxiom_singleton?
 class DifferentialSemiringsCategory(RegressiveCovariantConstructionCategory, Category_singleton):
     def __init__(self, base_category):
         """
