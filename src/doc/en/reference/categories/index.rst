@@ -69,6 +69,10 @@ Categories
    sage/categories/commutative_rings
    sage/categories/coxeter_groups
    sage/categories/crystals
+   sage/categories/differential_algebras
+   sage/categories/differential_algebras_with_basis
+   sage/categories/differential_graded_algebras
+   sage/categories/differential_graded_algebras_with_basis
    sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
    sage/categories/domains

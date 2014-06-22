@@ -12,7 +12,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
 
 class Semirings(CategoryWithAxiom):
     """
@@ -50,12 +49,33 @@ class Semirings(CategoryWithAxiom):
     """
     _base_category_class_and_axiom = (MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "Unital")
 
+    class ParentMethods:
+        def _test_differential(self, **options):
+            """
+            Verify that the differential of ``self`` satisfies the
+            graded Leibniz rule.
+
+            INPUT:
+
+            - ``options`` -- any keyword arguments accepted
+              by :meth:`_tester`
+            """
+            tester = self._tester(**options)
+            D = self.differential
+            S = self.some_elements()
+            for x in S:
+                for y in S:
+                    tester.assertEquals(D(x*y), D(x)*y + (-1)**x.degree() * x*D(y))
+
     class Differential(CategoryWithAxiom):
         class ParentMethods:
             @abstract_method
-            def differential(self):
+            def differential(self, x):
                 """
-                Return the differential of this semiring as a morphism.
+                Return the differential of ``x`` in this semiring.
+
+                It is recommended that this should be a ``@lazy_attribute``
+                which is the differential as a morphism.
                 """
 
             def _test_differential(self, **options):

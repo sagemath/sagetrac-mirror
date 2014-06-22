@@ -1,5 +1,5 @@
 """
-Differential graded algebras with basis
+Differential graded algebras
 
 AUTHORS:
 
@@ -15,40 +15,42 @@ AUTHORS:
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import TensorProductsCategory
+from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 
-class DifferentialGradedAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
+class DifferentialGradedAlgebras(CategoryWithAxiom_over_base_ring):
     """
-    The category of differential graded algebras with a distinguished basis.
+    The category of differential graded algebras.
 
     EXAMPLES::
 
-        sage: Algebras(QQ).Differential().Graded().WithBasis()
+        sage: from sage.categories.differential_graded_algebras import DifferentialGradedAlgebras
+        sage: DifferentialGradedAlgebras(QQ)
         Category of differential graded algebras with basis over Rational Field
-        sage: Algebras(QQ).Differential().Graded().WithBasis().super_categories()
+        sage: DifferentialGradedAlgebras(QQ).super_categories()
         [Category of graded algebras with basis over Rational Field,
          Category of chain complexes over Rational Field]
 
     TESTS::
 
-        sage: TestSuite(Algebras(QQ).Differential().Graded().WithBasis()).run()
+        sage: TestSuite(DifferentialGradedAlgebras(QQ)).run()
     """
     class ParentMethods:
         pass
 
-    class ElementMethods:
-        pass
+    WithBasis = LazyImport("sage.categories.differential_graded_algebras_with_basis",
+                           "DifferentialGradedAlgebrasWithBasis",
+                           as_name="WithBasis")
 
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """
-            A cartesian product of differential graded algebras with a
-            distinguished basis is endowed with a natural graded algebra
-            structure, a distinguished basis, and differential.
+            A cartesian product of differential graded algebras is endowed
+            with a natural graded algebra structure and differential.
 
             EXAMPLES::
 
-                sage: C = Algebras(QQ).Differential().Graded().WithBasis().CartesianProducts()
+                sage: C = Algebras(QQ).Differential().Graded().CartesianProducts()
                 sage: C.extra_super_categories()
                 [Category of algebras over Rational Field]
                 sage: sorted(C.super_categories(), key=str)
@@ -66,14 +68,13 @@ class DifferentialGradedAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             EXAMPLES::
 
-                sage: C = Algebras(QQ).Differential().Graded().WithBasis().TensorProducts()
-                sage: C.extra_super_categories()
+                sage: Algebras(QQ).Differential().Graded().TensorProducts().extra_super_categories()
                 [Category of algebras over Rational Field]
-                sage: C.super_categories()
+                sage: Algebras(QQ).Differential().Graded().TensorProducts().super_categories()
                 [Category of algebras over Rational Field]
 
-            Meaning: a tensor product of differential graded algebras with
-            basis is a differential graded algebra with basis.
+            Meaning: a tensor product of differential algebras is a
+            differential graded algebra.
             """
             return [self.base_category()]
 

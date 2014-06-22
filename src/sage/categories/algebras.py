@@ -90,6 +90,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
 
+    Differential = LazyImport('sage.categories.differential_graded_algebras',
+                              'DifferentialGradedAlgebras', as_name='Differential')
+
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy
         def _div_(self, y):
