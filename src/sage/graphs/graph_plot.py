@@ -84,6 +84,7 @@ graphplot_options.update(
                     'max_dist': 'The max distance range to allow multiedges.',
                     'talk': 'Whether to display the vertices in talk mode '
                         '(larger and white).',
+                    'thickness': 'The thickness of the edges',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
 for key, value in graphplot_options.iteritems():
@@ -188,6 +189,7 @@ DEFAULT_PLOT_OPTIONS = {
     "heights"             : None,
     "graph_border"        : False,
     "talk"                : False,
+    "thickness"           : 1,
     "color_by_label"      : False,
     "partition"           : None,
     "dist"                : .075,
@@ -383,11 +385,14 @@ class GraphPlot(SageObject):
             voptions['facecolor'] = vertex_colors
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(center,
-                    self._vertex_radius, fill=True, facecolor=vertex_colors, edgecolor='black', clip=False)
+                    self._vertex_radius, fill=True,
+                    facecolor=vertex_colors, edgecolor='black', clip=False,
+                    thickness=self._options['thickness'])
                     for center in self._pos.values()]
             else:
                 self._plot_components['vertices'] = scatter_plot(
-                    self._pos.values(), clip=False, **voptions)
+                    self._pos.values(), clip=False,
+                    lw=self._options['thickness'], **voptions)
         else:
             # Color list must be ordered:
             pos = []
@@ -409,11 +414,14 @@ class GraphPlot(SageObject):
 
             if self._arcdigraph:
                 self._plot_components['vertices'] = [circle(pos[i],
-                    self._vertex_radius, fill=True, facecolor=colors[i], edgecolor='black', clip=False)
+                    self._vertex_radius, fill=True, facecolor=colors[i],
+                    edgecolor='black', clip=False,
+                    thickness=self._options['thickness'])
                     for i in range(len(pos))]
             else:
                 self._plot_components['vertices'] = scatter_plot(pos,
-                    facecolor=colors, clip=False, **voptions)
+                    facecolor=colors, clip=False,
+                    lw=self._options['thickness'], **voptions)
 
         if self._options['vertex_labels']:
             self._plot_components['vertex_labels'] = []
