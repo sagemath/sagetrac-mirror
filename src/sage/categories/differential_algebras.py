@@ -13,14 +13,122 @@ AUTHORS:
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.category_types import Category_over_base_ring
 from sage.categories.algebras import Algebras
 from sage.categories.category_types import ChainComplexes
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_class_attribute
 
-class DifferentialAlgebras(CategoryWithAxiom_over_base_ring):
+class DifferentialAlgebrasCategory(RegressiveCovariantConstructionCategory, Category_over_base_ring):
+    def __init__(self, base_category):
+        """
+        EXAMPLES::
+
+            sage: C = GradedAlgebras(QQ)
+            sage: C
+            Category of graded algebras over Rational Field
+            sage: C.base_category()
+            Category of algebras over Rational Field
+            sage: sorted(C.super_categories(), key=str)
+            [Category of algebras over Rational Field,
+             Category of graded modules over Rational Field]
+
+            sage: AlgebrasWithBasis(QQ).Graded().base_ring()
+            Rational Field
+            sage: GradedHopfAlgebrasWithBasis(QQ).base_ring()
+            Rational Field
+        """
+        super(DifferentialAlgebrasCategory, self).__init__(base_category, base_category.base_ring())
+
+    _functor_category = "Differential"
+
+    @lazy_class_attribute
+    def _base_category_class(cls):
+        """
+        Recover the class of the base category.
+
+        OUTPUT:
+
+        A *tuple* whose first entry is the base category class.
+
+        .. WARNING::
+
+            This is only used for graded categories that are not
+            implemented as nested classes, and won't work otherwise.
+
+        .. SEEALSO:: :meth:`__classcall__`
+
+        EXAMPLES::
+
+            sage: DifferentialAlgebras._base_category_class
+            (<class 'sage.categories.modules.Modules'>,)
+            sage: DifferentialAlgebrasWithBasis._base_category_class
+            (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>,)
+
+        The reason for wrapping the base category class in a tuple is
+        that, often, the base category class implements a
+        :meth:`__classget__` method which would get in the way upon
+        attribute access::
+
+                sage: F = DifferentialAlgebras
+                sage: F._foo = F._base_category_class[0]
+                sage: F._foo
+                Traceback (most recent call last):
+                ...
+                AssertionError: base category class for <...Algebras'> mismatch;
+                expected <...Algebras'>, got <...DifferentialAlgebras'>
+        """
+        module_name = cls.__module__.replace("differential_","")
+        import sys
+        name   = cls.__name__.replace("Differential","")
+        __import__(module_name)
+        module = sys.modules[module_name]
+        return (module.__dict__[name],)
+
+    @staticmethod
+    def __classcall__(cls, category, *args):
+        """
+        Magic support for putting Differential categories in their own file.
+
+        EXAMPLES::
+
+            sage: from sage.categoires.differential_algebras import DifferentialAlgebras
+            sage: DifferentialAlgebras(ZZ)   # indirect doctest
+            Category of graded modules over Integer Ring
+            sage: Algebras(ZZ).Differential()
+            Category of graded modules over Integer Ring
+            sage: DifferentialAlgebras(ZZ) is Algebras(ZZ).Differential()
+            True
+
+        .. TODO::
+
+            Generalize this support for all other functorial
+            constructions if at some point we have a category ``Blah`` for
+            which we want to implement the construction ``Blah.Foo`` in a
+            separate file like we do for e.g. :class:`DifferentialAlgebras`,
+            :class:`GradedAlgebras`, ...
+
+        .. SEEALSO:: :meth:`_base_category_class`
+        """
+        base_category_class = cls._base_category_class[0]
+        if isinstance(category, base_category_class):
+            return super(DifferentialAlgebrasCategory, cls).__classcall__(cls, category, *args)
+        return base_category_class(category, *args).Differential()
+
+    def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: Algebra(QQ).Differnetial()  # indirect doctest
+            Category of differential algebras over Rational Field
+        """
+        return "differential {}".format(self.base_category()._repr_object_names())
+
+class DifferentialAlgebras(DifferentialAlgebrasCategory):
     """
     The category of differential algebras.
 
@@ -36,8 +144,6 @@ class DifferentialAlgebras(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(Algebras((QQ).Differential()).run()
     """
-    _base_category_class_and_axiom = (Algebras, "Differential")
-
     def extra_super_categories(self):
         r"""
         Return the :class:`ChainComplexes` category.

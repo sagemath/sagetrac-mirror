@@ -89,9 +89,46 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
-
     Differential = LazyImport('sage.categories.differential_graded_algebras',
                               'DifferentialGradedAlgebras', as_name='Differential')
+
+    class SubcategoryMethods:
+        @cached_method
+        def Graded(self, base_ring=None):
+            r"""
+            Return the subcategory of the graded objects of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Algebras(ZZ).Differential()
+                Category of graded modules over Integer Ring
+
+                sage: Coalgebras(QQ).Differential()
+                Join of Category of graded modules over Rational Field
+                    and Category of coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Differential()
+                Category of graded algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`.
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Differential.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.differential_algebras import DifferentialAlgebrasCategory
+            return DifferentialAlgebrasCategory.category_of(self)
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here or higher in the category hierarchy

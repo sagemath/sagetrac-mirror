@@ -12,12 +12,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.differential_algebras import DifferentialAlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import TensorProductsCategory
 from sage.misc.cachefunc import cached_method
 
-class DifferentialGradedAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
+class DifferentialGradedAlgebrasWithBasis(DifferentialAlgebrasCategory):
     """
     The category of differential graded algebras with a distinguished basis.
 
@@ -33,12 +33,6 @@ class DifferentialGradedAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         sage: TestSuite(Algebras(QQ).Differential().Graded().WithBasis()).run()
     """
-    class ParentMethods:
-        pass
-
-    class ElementMethods:
-        pass
-
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             """

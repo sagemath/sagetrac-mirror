@@ -1658,7 +1658,7 @@ from sage.structure.dynamic_class import DynamicMetaclass
 all_axioms = ("Flying", "Blue",
               "Facade", "Finite", "Infinite",
               "FiniteDimensional", "Connected", "WithBasis",
-              "Irreducible", "Differential",
+              "Irreducible",
               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
               "Distributive",

@@ -12,14 +12,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.differential_algebras import DifferentialAlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import TensorProductsCategory
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
-class DifferentialAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
+class DifferentialAlgebrasWithBasis(DifferentialAlgebrasCategory):
     """
     The category of differential algebras with a distinguished basis.
 
