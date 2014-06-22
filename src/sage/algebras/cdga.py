@@ -207,7 +207,7 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
 
 
-class CDGAElement(QuotientRingElement):
+class CGAElement(QuotientRingElement):
     r"""
     An element of the CDGA.
     """
@@ -291,25 +291,7 @@ class CDGAElement(QuotientRingElement):
             return True
         return False
 
-    def differential(self, D):
-        r"""
-        Return the differential of the element.
 
-        EXAMPLES::
-
-            sage: A.<x,y,z> = CDGAlgebra(QQ)
-            sage: D = A.differential({x: y*z, y: x*z, z: x*y})
-            sage: x.differential(D)
-            y*z
-            sage: y.differential(D)
-            x*z
-            sage: (x + y).differential(D)
-            x*z + y*z
-            sage: (x*y).differential(D)
-            0
-
-        """
-        return D(self)
 
     def dict(self):
         r"""
@@ -328,14 +310,35 @@ class CDGAElement(QuotientRingElement):
         """
         return self.lift().dict()
 
+class CDGAElement(CGAElement):
+
+        def differential(self):
+            r"""
+            Return the differential of the element.
+
+            EXAMPLES::
+
+                sage: A.<x,y,z> = CDGAlgebra(QQ)
+                sage: D = A.differential({x: y*z, y: x*z, z: x*y})
+                sage: x.differential(D)
+                y*z
+                sage: y.differential(D)
+                x*z
+                sage: (x + y).differential(D)
+                x*z + y*z
+                sage: (x*y).differential(D)
+                0
+
+            """
+            return self.parent().differential()(self)
 
 
-class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
+class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
     r"""
     The class of CDGA's
 
     """
-    Element = CDGAElement
+    Element = CGAElement
 
     @staticmethod
     def __classcall__(cls, base, names, degrees=None, R = None, I = None):
@@ -380,7 +383,7 @@ class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
                     rels[gens[j]*gens[i]] = (-1) ** (degrees[i] * degrees[j]) * gens[i] * gens[j]
             R = F.g_algebra(rels, order = TermOrder('wdegrevlex', degrees))
             I = R.ideal([R.gen(i)**2 for i in range(n) if is_odd(degrees[i])], side='twosided')
-        return super(CDGAlgebra, cls).__classcall__(cls, base, R, I, names, degrees)
+        return super(CGAlgebra, cls).__classcall__(cls, base, R, I, names, degrees)
 
 
     def __init__(self, base, R, I, names, degrees=None):
@@ -425,7 +428,7 @@ class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
             Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
 
         """
-        return "Commutative Graded Differential Algebra over {} with generators {}".format(self.base_ring(), self._names)
+        return "Commutative Graded Algebra over {} with generators {}".format(self.base_ring(), self._names)
 
 
     def homogeneous_part(self, n):
@@ -458,52 +461,6 @@ class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
         return basis
 
 
-
-    def differential_matrix(self, n, D):
-        """
-        Return the matrix that gives the differential on the n'th degree.
-
-        INPUT:
-
-        - ``n`` -- Integer
-
-        - ``D`` -- The differential.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
-            sage: D = A.differential({t: x*y, x: y, z: y})
-            sage: A.differential_matrix(4, D)
-            [0 1]
-            [2 0]
-            [1 1]
-            [0 2]
-            sage: A.homogeneous_part(4)
-            [t, z^2, x*z, x^2]
-            sage: A.homogeneous_part(5)
-            [y*z, x*y]
-            sage: D(t)
-            x*y
-            sage: D(z^2)
-            2*y*z
-            sage: D(x*z)
-            x*y + y*z
-            sage: D(x^2)
-            2*x*y
-
-
-        """
-        dom = self.homogeneous_part(n)
-        cod = self.homogeneous_part(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
-        m = matrix(self.base_ring(), len(dom), len(cod))
-        for i in range(len(dom)):
-            im = dom[i].differential(D)
-            dic = im.lift().dict()
-            for j in dic.keys():
-                k = cokeys.index(j)
-                m[i,k] = dic[j]
-        return m
 
     def quotient(self, I, check=True):
         """
@@ -570,6 +527,154 @@ class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
             x = R(x)
         return self.element_class(self, x)
 
+
+    def differential(self, dic):
+        r"""
+        Return the differential of self determined by the dictionary ``dic``
+
+        INPUT:
+
+        - ``dic`` -- A dictionary with the images of the generators.
+
+        The generators that don't appear in the dictionary are sent to zero.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
+            sage: D = A.differential({t: x*y, x: y, z: y})
+            sage: D
+            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            sending:
+                x --> y
+                y --> 0
+                z --> y
+                t --> x*y
+
+        """
+        aux = [self.zero() for i in range(self.ngens())]
+        for k in dic:
+            i = self.gens().index(k)
+            aux[i] = coerce(self, dic[k])
+        return CDGA_Differential(self, tuple(aux))
+
+    def CDGAlgebra(self, dic):
+        return CDGAlgebra(self.base_ring(), self._QuotientRing_nc__R,
+                          self._QuotientRing_nc__I, self._names,
+                          self._degrees,dic, self)
+
+
+
+
+class CDGAlgebra(CGAlgebra):
+    Element = CDGAElement
+
+    __classcall__ = None
+
+
+
+    def __init__(self, base, R, I, names, degrees, differential, A):
+        """
+        Python constructor
+
+        INPUT:
+
+        - ``R`` -- The ring over which the algebra is defined.
+
+        - ``I`` -- An ideal over the corresponding g-algebra. It is meant to
+        include, among other relations, the squares of the generators of
+        odd degree.
+
+        - ``names`` -- The names of the generators
+
+        -- ``differential`` -- A tuple of dictionaries. They determine the
+        differential of each generator.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
+            sage: A # indirect doctesting
+            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            sage: CDGAlgebra(QQ, ('x','y','z'), [3,4,2])
+            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
+            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1])
+            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+
+        """
+        self._A=A
+        CGAlgebra.__init__(self, base, R, I, names, degrees)
+
+        dicdif = {self(a):self(differential[a]) for a in differential}
+        aux = [self.zero() for i in range(self.ngens())]
+        for k in dicdif:
+            i = self.gens().index(k)
+            aux[i] = coerce(self, dicdif[k])
+        self._differential = CDGA_Differential(self, tuple(aux))
+
+
+    def _coerce_map_from_(self, other):
+        if other is self._A:
+            return True
+        else:
+            return CGAlgebra._coerce_map_from_(self, other)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1]) # indirect doctesting
+            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+
+        """
+        return "Commutative Graded Differential Algebra over {} with generators {}".format(self.base_ring(), self._names)
+
+
+    def differential_matrix(self, n, D):
+        """
+        Return the matrix that gives the differential on the n'th degree.
+
+        INPUT:
+
+        - ``n`` -- Integer
+
+        - ``D`` -- The differential.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: D = A.differential({t: x*y, x: y, z: y})
+            sage: A.differential_matrix(4, D)
+            [0 1]
+            [2 0]
+            [1 1]
+            [0 2]
+            sage: A.homogeneous_part(4)
+            [t, z^2, x*z, x^2]
+            sage: A.homogeneous_part(5)
+            [y*z, x*y]
+            sage: D(t)
+            x*y
+            sage: D(z^2)
+            2*y*z
+            sage: D(x*z)
+            x*y + y*z
+            sage: D(x^2)
+            2*x*y
+
+
+        """
+        dom = self.homogeneous_part(n)
+        cod = self.homogeneous_part(n+1)
+        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        m = matrix(self.base_ring(), len(dom), len(cod))
+        for i in range(len(dom)):
+            im = dom[i].differential(D)
+            dic = im.lift().dict()
+            for j in dic.keys():
+                k = cokeys.index(j)
+                m[i,k] = dic[j]
+        return m
+
+
     def cohomology(self, n, differential):
         """
         Return the n'th cohomology group of the algebra. This is in fact a
@@ -610,35 +715,5 @@ class CDGAlgebra(UniqueRepresentation, QuotientRing_nc):
         h2 = V1.Hom(V2)(N)
         return h2.kernel().quotient(h1.image())
 
-    def differential(self, dic):
-        r"""
-        Return the differential of self determined by the dictionary ``dic``
-
-        INPUT:
-
-        - ``dic`` -- A dictionary with the images of the generators.
-
-        The generators that don't appear in the dictionary are sent to zero.
-
-        EXAMPLES::
-
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
-            sage: D = A.differential({t: x*y, x: y, z: y})
-            sage: D
-            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sending:
-                x --> y
-                y --> 0
-                z --> y
-                t --> x*y
-
-        """
-        aux = [self.zero() for i in range(self.ngens())]
-        for k in dic:
-            i = self.gens().index(k)
-            aux[i] = coerce(self, dic[k])
-        return CDGA_Differential(self, tuple(aux))
-
-
-
-
+    def differential(self):
+        return self._differential

@@ -44,4 +44,4 @@ lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
-from sage.algebras.cdga import CDGAlgebra
+#from sage.algebras.cdga import CGAlgebra
