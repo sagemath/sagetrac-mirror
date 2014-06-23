@@ -418,7 +418,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
     r"""
     Helper function for Wilson's construction with two trucated columns
 
-    Find integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
+    Find integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1 \leq r_2<r`
     and such that the following designs exist : `OA(k+2,r)`, `OA(k,r1)`,
     `OA(k,r2)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,m+2)`.
 
@@ -435,19 +435,22 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
         (5, 7, 7, 4, 5)
     """
-    for r in range(1,n-2): # as r*1+1+1 <= n
+    assert k >= 2
+
+    for r in range(k+1,n-1): # as r*1+1+1 <= n
         if not orthogonal_array(k+2,r,existence=True):
             continue
-        for m in range(max(1,(n-(2*r-2))//r),(n-2)/r+1): # as r*m+1+1 <= n
-            r1_p_r2 = n-r*m # the sum of r1+r2
-            if (r1_p_r2 < 2 or
-                r1_p_r2 > 2*r-2 or
+        for m in range(max(k-1,(n-(2*r-2))//r), (n-2)/r+1): # as r*m+1+1 <= n
+            r1_p_r2 = n-r*m # the sum of r1+r2 (decreases along the loop)
+            if r1_p_r2 < 2:
+                break
+            if (r1_p_r2 > 2*r-2 or
                 not orthogonal_array(k,m  ,existence=True) or
                 not orthogonal_array(k,m+1,existence=True) or
                 not orthogonal_array(k,m+2,existence=True)):
                 continue
 
-            for r1 in range(max(1,r1_p_r2-(r-1)),r):
+            for r1 in range(max(k-1,r1_p_r2-(r-1)), r):
                 if not orthogonal_array(k,r1,existence=True):
                     continue
                 r2 = r1_p_r2-r1
