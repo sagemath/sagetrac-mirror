@@ -94,9 +94,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
     class SubcategoryMethods:
         @cached_method
-        def Graded(self, base_ring=None):
+        def Differential(self, base_ring=None):
             r"""
-            Return the subcategory of the graded objects of ``self``.
+            Return the subcategory of the differential objects of ``self``.
 
             INPUT:
 
@@ -105,7 +105,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: Algebras(ZZ).Differential()
-                Category of graded modules over Integer Ring
+                Category of differential algebras over Integer Ring
 
                 sage: Coalgebras(QQ).Differential()
                 Join of Category of graded modules over Rational Field

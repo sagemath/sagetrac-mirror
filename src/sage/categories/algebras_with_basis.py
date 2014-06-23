@@ -118,6 +118,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_algebras_with_basis', 'FiniteDimensionalAlgebrasWithBasis')
     Graded = LazyImport('sage.categories.graded_algebras_with_basis', 'GradedAlgebrasWithBasis')
+    Differential = LazyImport('sage.categories.differential_algebras',
+                              'DifferentialAlgebras', as_name='Differential')
 
     class ParentMethods:
 
