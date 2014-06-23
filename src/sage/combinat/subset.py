@@ -119,17 +119,15 @@ def Subsets(s, k=None, submultiset=False):
         sage: S3.cardinality()
         115792089237316195423570985008687907853269984665640564039457584007913129639936
         sage: S3.unrank(14123091480)
-        {{{1, 3}, {1, 2, 3}, {2}, {1}},
-         {{2}, {1, 2, 3}, {}, {1, 2}},
-         {},
-         {{2}, {1, 2, 3}, {}, {3}, {1, 2}},
-         {{1, 2, 3}, {}, {1}}, {{2}, {2, 3}, {}, {1, 2}}}
+        {{}, {{}, {1}, {1, 2, 3}}, {{}, {2}, {1, 2}, {2, 3}},
+         {{}, {2}, {1, 2}, {1, 2, 3}}, {{1}, {2}, {1, 3}, {1, 2, 3}},
+         {{}, {2}, {3}, {1, 2}, {1, 2, 3}}}
 
         sage: T = Subsets(S2, 10)
         sage: T.cardinality()
         278826214642518400
         sage: T.unrank(1441231049)
-        {{{3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, ..., {{2, 3}, {}}, {{}}}
+        {{}, {{}}, {{1}}, ..., {1, 3}, {2, 3}, {1, 2, 3}}}
     """
     if k is not None:
         k = Integer(k)
@@ -175,10 +173,7 @@ class Subsets_s(Parent):
         sage: S.cardinality()
         115792089237316195423570985008687907853269984665640564039457584007913129639936
         sage: S.unrank(3149254230)
-        {{{1, 2}, {0, 1, 2}, {0, 2}, {0, 1}},
-         {{1, 2}, {}, {0, 2}, {1}, {0, 1, 2}, {2}},
-         {{1, 2}, {0}}, {{1, 2}, {0, 1}, {0, 1, 2}, {1}},
-         {{0, 2}, {1}}}
+        {{{0}, {1, 2}}, {{1}, {0, 2}}, ..., {{}, {1}, {2}, {0, 2}, {1, 2}, {0, 1, 2}}}
     """
     # TODO: Set_object_enumerated does not inherit from Element... so we set
     # directly element_class as Set_object_enumerated
@@ -665,7 +660,9 @@ class Subsets_sk(Subsets_s):
         if self._k > self._s.cardinality():
             raise EmptySetError
         else:
-            return self.element_class([i for i in itertools.islice(reversed(self._s),self._k)])
+            l = [i for i in itertools.islice(reversed(self._s),self._k)]
+            l.reverse()
+            return self.element_class(l)
 
     def _fast_iterator(self):
         r"""
@@ -707,7 +704,7 @@ class Subsets_sk(Subsets_s):
 
             sage: Subsets(3, 2).random_element()
             {1, 2}
-            sage: Subsets(3,4).random_element()
+            sage: Subsets(3, 4).random_element()
             Traceback (most recent call last):
             ...
             EmptySetError
@@ -717,7 +714,12 @@ class Subsets_sk(Subsets_s):
         if self._k > len(lset):
             raise EmptySetError
         else:
-            return self.element_class(rnd.sample(lset, self._k))
+            # note 1: rnd.sample does not return a sorted list!
+            # note 2: hopefully, calling sample with a xrange argument makes
+            # things fast (see the documentation of random.sample)
+            spl = rnd.sample(xrange(self.cardinality()), self._k)
+            spl.sort()
+            return self.element_class([lset[i] for i in spl])
 
     def rank(self, sub):
         """
@@ -974,7 +976,7 @@ class SubMultiset_s(Parent):
             [2]
         """
         l = []
-        for i in self._d:
+        for i in sorted(self._d):
             l.extend([i]*rnd.randint(0,self._d[i]))
         return l
 
@@ -1066,8 +1068,9 @@ class SubMultiset_s(Parent):
 
 class SubMultiset_sk(SubMultiset_s):
     """
-    The combinatorial class of the subsets of size k of a multiset s.  Note
-    that each subset is represented by a list of the elements rather than a
+    The combinatorial class of the subsets of size k of a multiset s.
+
+    Note that each subset is represented by a list of the elements rather than a
     set since we can have multiplicities (no multiset data structure yet in
     sage).
 
@@ -1096,6 +1099,7 @@ class SubMultiset_sk(SubMultiset_s):
         """
         SubMultiset_s.__init__(self, s)
         self._l = dict_to_list(self._d)
+        self._l.sort()
         self._k = k
 
     def __eq__(self, other):
@@ -1193,19 +1197,32 @@ class SubMultiset_sk(SubMultiset_s):
 
         EXAMPLES::
 
-            sage: Subsets(7,3).random_element()
-            {1, 4, 7}
-            sage: Subsets(7,5).random_element()
-            {1, 3, 4, 5, 7}
+            sage: Subsets([1,1,2,3,5,5,5],submultiset=True).random_element()
+            [2, 5]
+            sage: Subsets([1,1,2,3,5,5,5],submultiset=True).random_element()
+            [1, 3]
+
+        The method is efficient enough to work on relatively large sets::
+
+            sage: l = []
+            sage: for i in xrange(1,1000):
+            ....:     l.extend([i]*i)
+            sage: len(l)
+            499500
+            sage: M = Subsets(l, k=10, submultiset=True)
+            sage: M.random_element()
+            [387, 697, 703, 762, 869, 879, 930, 930, 939, 942]
         """
-        return rnd.sample(self._l, self._k)
+        # note 1: rnd.sample does not return a sorted list!
+        # note 2: hopefully, calling sample with a xrange argument makes things
+        # fast (see the documentation of random.sample)
+        spl = rnd.sample(xrange(len(self._l)), self._k)
+        spl.sort()
+        return [self._l[i] for i in spl]
 
     def __iter__(self):
         """
-        Iterates through the subsets of size ``self._k`` of the multiset
-        ``self._s``. Note that each subset is represented by a list of the
-        elements rather than a set since we can have multiplicities (no
-        multiset data structure yet in sage).
+        Iterator.
 
         EXAMPLES::
 

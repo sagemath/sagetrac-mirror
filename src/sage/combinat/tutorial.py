@@ -665,13 +665,16 @@ calculate its cardinality (`2^{2^{2^4}}`)::
     Subsets of Subsets of Subsets of {1, 2, 3, 4}
     sage: n = S.cardinality(); n
     2003529930406846464979072351560255750447825475569751419265016973...
+    sage: n == 2^(2^(2^4))
+    True
 
-which is roughly `2\cdot 10^{19728}`::
+which is roughly `2\cdot 10^{19729}`::
 
-    sage: n.ndigits()                         # long time
+    sage: n.ndigits()
     19729
 
-or ask for its `237102124`-th element::
+It is also possible to ask for its `237102124`-th element (recall that the first
+element is at position `0`)::
 
     sage: S.unrank(237102123)
     {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},

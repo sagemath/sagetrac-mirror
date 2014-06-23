@@ -558,14 +558,15 @@ class Set_object(Set_generic):
         try:
             if not self.is_finite():
                 return sage.rings.infinity.infinity
-        except AttributeError:
+        except (AttributeError,NotImplementedError):
             pass
         try:
             return self.__object.cardinality()
-        except AttributeError:
+        except (AttributeError,NotImplementedError):
             pass
         try:
-            return len(self.__object)
+            from sage.rings.integer import Integer
+            return Integer(len(self.__object))
         except TypeError:
             raise NotImplementedError("computation of cardinality of %s not yet implemented"%self.__object)
 
@@ -661,6 +662,18 @@ class Set_object(Set_generic):
 class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.
+
+    The order used for the object is the one given on input. The input might be
+    any given iterable and there is no check that it contains no repetition nor
+    that it is immutable.
+
+    EXAMPLES::
+
+        sage: S = Set_object_enumerated([3,5,2,1])
+        sage: S
+        {3, 5, 2, 1}
+        sage: latex(S)
+        \left\{3, 5, 2, 1\right\}
     """
     def __init__(self, X):
         """
@@ -668,10 +681,7 @@ class Set_object_enumerated(Set_object):
 
         EXAMPLES::
 
-            sage: S = Set(GF(19)); S
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
-            sage: print latex(S)
-            \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
+            sage: S = Set(GF(19))
             sage: TestSuite(S).run()
         """
         Set_object.__init__(self, X)
@@ -685,7 +695,11 @@ class Set_object_enumerated(Set_object):
             sage: Set([1,1]).cardinality()
             1
         """
-        return len(self.set())
+        try:
+            return Set_object.cardinality(self)
+        except NotImplementedError:
+            pass
+        return Integer(len(self.list()))
 
     def __len__(self):
         """
@@ -695,7 +709,6 @@ class Set_object_enumerated(Set_object):
             1
         """
         return self.cardinality()
-
 
     def __iter__(self):
         r"""
@@ -714,8 +727,7 @@ class Set_object_enumerated(Set_object):
             sage: I.next()
             3
         """
-        for x in self.set():
-            yield x
+        return iter(self.object())
 
     def _latex_(self):
         r"""
@@ -727,7 +739,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
+        return '\\left\\{' + ', '.join(latex(x) for x in self)  + '\\right\\}'
 
     def _repr_(self):
         r"""
@@ -739,8 +751,7 @@ class Set_object_enumerated(Set_object):
             sage: S
             {0, 1}
         """
-        s = repr(self.set())
-        return "{" + s[5:-2] + "}"
+        return "{" + ', '.join(repr(x) for x in self) + "}"
 
     def list(self):
         """
@@ -756,15 +767,8 @@ class Set_object_enumerated(Set_object):
             sage: type(X.list())
             <type 'list'>
 
-        .. TODO::
-
-            FIXME: What should be the order of the result?
-            That of ``self.object()``? Or the order given by
-            ``set(self.object())``? Note that :meth:`__getitem__` is
-            currently implemented in term of this list method, which
-            is really inefficient ...
         """
-        return list(set(self.object()))
+        return list(self.object())
 
     def set(self):
         """
