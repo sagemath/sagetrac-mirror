@@ -1097,13 +1097,13 @@ def reduce_load_MaximaLib():
 # Smart translations between SR and Maxima
 #############################################
 
-import sage.rings.real_double
-import sage.symbolic.expression
-import sage.functions.trig
-import sage.functions.log
-import sage.functions.other
-import sage.symbolic.integration.integral
+from sage.symbolic.expression import operator
+from sage.functions.log import (ln, log, lambert_w, polylog)
+from sage.functions.other import (abs, factorial, erf, gamma_inc, psi, psi1, psi2) 
+from sage.symbolic.integration.integral import (definite_integral, indefinite_integral)
 from sage.symbolic.operators import FDerivativeOperator
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.functions.hypergeometric", "hypergeometric")
 
 car=EclObject("car")
 cdr=EclObject("cdr")
@@ -1119,26 +1119,26 @@ lisp_length=EclObject("length")
 
 ## Dictionaries for standard operators
 sage_op_dict = {
-    sage.functions.other.abs : "MABS",
-    sage.symbolic.expression.operator.add : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
-    sage.symbolic.expression.operator.eq : "MEQUAL",
-    sage.symbolic.expression.operator.ge : "MGEQP",
-    sage.symbolic.expression.operator.gt : "MGREATERP",
-    sage.symbolic.expression.operator.le : "MLEQP",
-    sage.symbolic.expression.operator.lt : "MLESSP",
-    sage.symbolic.expression.operator.mul : "MTIMES",
-    sage.symbolic.expression.operator.ne : "MNOTEQUAL",
-    sage.symbolic.expression.operator.neg : "MMINUS",
-    sage.symbolic.expression.operator.pow : "MEXPT",
-    sage.symbolic.expression.operator.or_ : "MOR",
-    sage.symbolic.expression.operator.and_ : "MAND",
-    sage.functions.log.ln : "%LOG",
-    sage.functions.log.log : "%LOG",
-    sage.functions.log.lambert_w : "%LAMBERT_W",
-    sage.functions.other.factorial : "MFACTORIAL",
-    sage.functions.other.erf : "%ERF",
-    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
+    abs : "MABS",
+    operator.add : "MPLUS",
+    operator.div : "MQUOTIENT",
+    operator.eq : "MEQUAL",
+    operator.ge : "MGEQP",
+    operator.gt : "MGREATERP",
+    operator.le : "MLEQP",
+    operator.lt : "MLESSP",
+    operator.mul : "MTIMES",
+    operator.ne : "MNOTEQUAL",
+    operator.neg : "MMINUS",
+    operator.pow : "MEXPT",
+    operator.or_ : "MOR",
+    operator.and_ : "MAND",
+    ln : "%LOG",
+    log : "%LOG",
+    lambert_w : "%LAMBERT_W",
+    factorial : "MFACTORIAL",
+    erf : "%ERF",
+    gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1225,7 +1225,7 @@ max_psi = EclObject("$PSI")
 max_hyper = EclObject("$%F")
 max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
-max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
+max_lambert_w = sage_op_dict[lambert_w]
 
 def mrat_to_sage(expr):
     r"""
@@ -1280,13 +1280,13 @@ def mqapply_to_sage(expr):
         polylog(2, 3)
     """
     if caaadr(expr) == max_li:
-        return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
+        return polylog(max_to_sr(cadadr(expr)),
                                           max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
-        return sage.functions.other.psi(max_to_sr(cadadr(expr)),
+        return psi(max_to_sr(cadadr(expr)),
                                         max_to_sr(caddr(expr)))
     if caaadr(expr) == max_hyper:
-        return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
+        return hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
                                                             mlist_to_sage(car(cdr(cdr(cdr(expr))))),
                                                             max_to_sr(car(cdr(cdr(cdr(cdr(expr)))))))
     else:
@@ -1401,11 +1401,9 @@ def dummy_integrate(expr):
     """
     args=[max_to_sr(a) for a in cdr(expr)]
     if len(args) == 4 :
-        return sage.symbolic.integration.integral.definite_integral(*args,
-                                                                hold=True)
+        return definite_integral(*args, hold=True)
     else:
-        return sage.symbolic.integration.integral.indefinite_integral(*args,
-                                                                  hold=True)
+        return indefinite_integral(*args, hold=True)
 
 ## The dictionaries
 special_max_to_sage={
@@ -1418,11 +1416,11 @@ special_max_to_sage={
 }
 
 special_sage_to_max={
-    sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
-    sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
-    sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
-    sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
-    sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
+    polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
+    psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+    psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+    lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
+    hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 
 
@@ -1462,9 +1460,11 @@ def pyobject_to_max(obj):
         ...
         TypeError: Unimplemented type for python_to_ecl
     """
-    if isinstance(obj,sage.rings.rational.Rational):
+    from sage.rings.rational import Rational
+    from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+    if isinstance(obj, Rational):
         return EclObject(obj) if (obj.denom().is_one()) else EclObject([[rat], obj.numer(),obj.denom()])
-    elif isinstance(obj,sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic) and obj.parent().defining_polynomial().list() == [1,0,1]:
+    elif isinstance(obj, NumberFieldElement_quadratic) and obj.parent().defining_polynomial().list() == [1,0,1]:
         re, im = obj.list()
         return EclObject([[mplus], pyobject_to_max(re), [[mtimes], pyobject_to_max(im), max_i]])
     return EclObject(obj)
@@ -1573,7 +1573,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
-max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+from sage.symbolic.pynac import symbol_table
+max_to_pynac_table = symbol_table['maxima']
 
 
 def max_to_sr(expr):
@@ -1633,5 +1634,6 @@ def max_to_sr(expr):
     else:
         e=expr.python()
         if isinstance(e,float):
-            return sage.rings.real_double.RealDoubleElement(e)
+            from sage.rings.real_double import RealDoubleElement
+            return RealDoubleElement(e)
         return e
