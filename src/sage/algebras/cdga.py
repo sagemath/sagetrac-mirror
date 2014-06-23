@@ -6,49 +6,42 @@ AUTHORS:
 
 - Miguel Marco (2014-06-20): initial version
 
+Commutative graded algebras are algebras endowed with a grading. The multiplication
+is anticomutative for odd degree elements, and commutative otherwise.
+
 Commutative graded differential algebras are graded commutative algebras endowed
-with a differential.
+with a graded differential.
 
 
 EXAMPLES:
 
-The CDGA is constructed with the command CDGAlgebra::
+The CGA is constructed with the command CDGAlgebra::
 
-    sage: A = CDGAlgebra(QQ, 'x,y,z')
+    sage: A = CGAlgebra(QQ, 'x,y,z')
     sage: A
-    Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
+    Commutative Graded Algebra over Rational Field with generators ('x', 'y', 'z')
 
 If the degrees are not given, they are assumed to be all one::
 
-    sage: A.<x,y,z> = CDGAlgebra(QQ)
+    sage: A.<x,y,z> = CGAlgebra(QQ)
     sage: x.degree()
     1
-    sage: B.<a,b> = CDGAlgebra(QQ, degrees = (2,3))
+    sage: B.<a,b> = CGAlgebra(QQ, degrees = (2,3))
     sage: a.degree()
     2
     sage: b.degree()
     3
 
-The differential is defined as a separated object::
+The differential version is computed from the CGA::
 
-    sage: A.<x,y> = CDGAlgebra(QQ)
-    sage: D = A.differential({x: x*y, y: x*y})
-    sage: D
-    Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y')
+    sage: A.<x,y,z>=CGAlgebra(QQ, degrees=(1,1,2))
+    sage: B=A.CDGAlgebra({x: x*y, y: -x*y })
+    sage: B.differential()
+    Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
     sending:
         x --> x*y
-        y --> x*y
-
-This way the same algebra structire can be used to compute cohomologies
-in different cases::
-
-    sage: A.<x,y,z,t> = CDGAlgebra(QQ)
-    sage: D = A.differential({x: x*y, y: x*y, z: z*t, t: t*z})
-    sage: [A.cohomology(i, D).dimension() for i in range(6)]
-    [1, 2, 1, 0, 0, 0]
-    sage: D2 = A.differential({x:0, y: 0, z: 0, t: x*y})
-    sage: [A.cohomology(i, D2).dimension() for i in range(6)]
-    [1, 3, 4, 3, 1, 0]
+        y --> -x*y
+        z --> 0
 
 
 
@@ -88,15 +81,18 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
     EXAMPLES::
 
-        sage: A.<x,y>=CDGAlgebra(QQ, degrees=(1,1))
-        sage: D = A.differential({x: x*y, y: x*y})
-        sage: D
-        Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y')
+        sage: A.<x,y,z,t>=CGAlgebra(QQ, degrees=(1,1,2,3))
+        sage: B=A.CDGAlgebra({x: x*y, y: -x*y , z: t  })
+        sage: B.differential()
+        Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
         sending:
             x --> x*y
-            y --> x*y
-        sage: D(x)
+            y --> -x*y
+            z --> t
+            t --> 0
+        sage: B.differential()(x)
         x*y
+
 
     """
     def __init__(self, A, im_gens):
@@ -111,27 +107,11 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
-            sage: D = A.differential({x: x*y, y: x*y, z: z*t, t: t*z})
-            sage: [A.cohomology(i, D).dimension() for i in range(6)]
+            sage: A.<x,y,z,t> = CGAlgebra(QQ) # indirect doctest
+            sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z})
+            sage: [B.cohomology(i).dimension() for i in range(6)]
             [1, 2, 1, 0, 0, 0]
-            sage: D2 = A.differential({x:0, y: 0, z: 0, t: x*y})
-            sage: [A.cohomology(i, D2).dimension() for i in range(6)]
-            [1, 3, 4, 3, 1, 0]
-            sage: D
-            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sending:
-                x --> x*y
-                y --> x*y
-                z --> z*t
-                t --> -z*t
-            sage: D2
-            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sending:
-                x --> 0
-                y --> 0
-                z --> 0
-                t --> x*y
+
 
         """
         Map.__init__(self, Hom(A, A, category=Sets()))
@@ -152,8 +132,9 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
         TESTS::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
-            sage: D = A.differential({x: x*y, y: x*y, z: z*t, t: t*z})
+            sage: A.<x,y,z,t> = CGAlgebra(QQ)
+            sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z})
+            sage: D = B.differential()
             sage: D(x*t+1/2*t*x*y) # indirect doctesting
             -1/2*x*y*z*t + x*y*t + x*z*t
 
@@ -181,8 +162,9 @@ class CDGA_Differential(UniqueRepresentation, Map):
         r"""
         TESTS::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
-            sage: D = A.differential({x: x*y, y: x*y, z: z*t, t: t*z})
+            sage: A.<x,y,z,t> = CGAlgebra(QQ)
+            sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z})
+            sage: D = B.differential()
             sage: D
             Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
             sending:
@@ -190,14 +172,7 @@ class CDGA_Differential(UniqueRepresentation, Map):
                 y --> x*y
                 z --> z*t
                 t --> -z*t
-            sage: D2 = A.differential({t: x*y})
-            sage: D2
-            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sending:
-                x --> 0
-                y --> 0
-                z --> 0
-                t --> x*y
+
         """
         string = "Differential map in {}".format(self.domain()) + "\n"
         string += "sending:"
@@ -225,7 +200,7 @@ class CGAElement(QuotientRingElement):
         EXAMPLES::
 
 
-            sage: B.<x,y>=CDGAlgebra(QQ, degrees=(2, 2))
+            sage: B.<x,y>=CGAlgebra(QQ, degrees=(2, 2))
             sage: a = B({(1,1): -3, (2,5): 1/2})
             sage: a # indirect doctest
             1/2*x^2*y^5 - 3*x*y
@@ -244,7 +219,7 @@ class CGAElement(QuotientRingElement):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t>=CDGAlgebra(QQ, degrees = (2,3,3,1))
+            sage: A.<x,y,z,t>=CGAlgebra(QQ, degrees = (2,3,3,1))
             sage: el = y*z+2*x*t-x^2*y
             sage: el.degree()
             7
@@ -266,7 +241,7 @@ class CGAElement(QuotientRingElement):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t>=CDGAlgebra(QQ, degrees = (2,3,3,1))
+            sage: A.<x,y,z,t>=CGAlgebra(QQ, degrees = (2,3,3,1))
             sage: el = y*z + 2*x*t - x^2*y
             sage: el.degree()
             7
@@ -302,7 +277,7 @@ class CGAElement(QuotientRingElement):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees=(1, 2, 2, 3))
+            sage: A.<x,y,z,t> = CGAlgebra(QQ, degrees=(1, 2, 2, 3))
             sage: dic = (x*y - 5*y*z + 7*x*y^2*z^3*t).dict()
             sage: sorted(dic.items())
             [((0, 1, 1, 0), -5), ((1, 1, 0, 0), 1), ((1, 2, 3, 1), 7)]
@@ -318,15 +293,17 @@ class CDGAElement(CGAElement):
 
             EXAMPLES::
 
-                sage: A.<x,y,z> = CDGAlgebra(QQ)
-                sage: D = A.differential({x: y*z, y: x*z, z: x*y})
-                sage: x.differential(D)
+                sage: A.<x,y,z> = CGAlgebra(QQ)
+                sage: B = A.CDGAlgebra({x: y*z, y: x*z, z: x*y})
+                sage: B.inject_variables()
+                Defining x, y, z
+                sage: x.differential()
                 y*z
-                sage: y.differential(D)
+                sage: y.differential()
                 x*z
-                sage: (x + y).differential(D)
+                sage: (x + y).differential()
                 x*z + y*z
-                sage: (x*y).differential(D)
+                sage: (x*y).differential()
                 0
 
             """
@@ -361,8 +338,8 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         TESTS::
 
-        sage: CDGAlgebra(GF(2), 'x,y', (3, 6)) # indirect doctesting
-        Commutative Graded Differential Algebra over Finite Field of size 2 with generators ('x', 'y')
+        sage: CGAlgebra(GF(2), 'x,y', (3, 6)) # indirect doctesting
+        Commutative Graded Algebra over Finite Field of size 2 with generators ('x', 'y')
 
         """
         if isinstance(names, basestring):
@@ -405,13 +382,13 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
+            sage: A.<x,y,z,t> = CGAlgebra(QQ)
             sage: A # indirect doctesting
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sage: CDGAlgebra(QQ, ('x','y','z'), [3,4,2])
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
-            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1])
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            Commutative Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            sage: CGAlgebra(QQ, ('x','y','z'), [3,4,2])
+            Commutative Graded Algebra over Rational Field with generators ('x', 'y', 'z')
+            sage: CGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1])
+            Commutative Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't')
 
         """
         self._degrees = tuple(degrees)
@@ -424,8 +401,8 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
         """
         TESTS::
 
-            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1]) # indirect doctesting
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            sage: CGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1]) # indirect doctesting
+            Commutative Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't')
 
         """
         return "Commutative Graded Algebra over {} with generators {}".format(self.base_ring(), self._names)
@@ -437,7 +414,7 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees=(1, 2, 2, 3))
+            sage: A.<x,y,z,t> = CGAlgebra(QQ, degrees=(1, 2, 2, 3))
             sage: A.homogeneous_part(2)
             [z, y]
             sage: A.homogeneous_part(3)
@@ -469,11 +446,11 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: A.<x,y,z,t> = CGAlgebra(GF(5), degrees=(2, 3, 2, 4))
             sage: I = A.ideal([x*t+y^2, x*z - t])
             sage: B = A.quotient(I)
             sage: B
-            Commutative Graded Differential Algebra over Finite Field of size 5 with generators ('x', 'y', 'z', 't')
+            Commutative Graded Algebra over Finite Field of size 5 with generators ('x', 'y', 'z', 't')
             sage: B(x*t)
             0
             sage: B(x*z)
@@ -501,10 +478,10 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
         r"""
         TESTS::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
+            sage: A.<x,y,z,t> = CGAlgebra(QQ, degrees = (2, 3, 2, 4))
             sage: A({(1,0,3,1): 2, (2,1,2,2): 3}) # indirect doctesting
             3*x^2*y*z^2*t^2 + 2*x*z^3*t
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5))
+            sage: A.<x,y,z,t> = CGAlgebra(GF(5))
             sage: A({(1,0,3,1): 2, (2,1,2,2): 3})
             0
         """
@@ -528,36 +505,26 @@ class CGAlgebra(UniqueRepresentation, QuotientRing_nc):
         return self.element_class(self, x)
 
 
-    def differential(self, dic):
+    def CDGAlgebra(self, dic):
         r"""
-        Return the differential of self determined by the dictionary ``dic``
+        Construct a graded differential commutative algebra. The resulting
+        CDGA is just the current algebra endowed with a differential determined
+        by the dictionary.
 
         INPUT:
 
-        - ``dic`` -- A dictionary with the images of the generators.
-
-        The generators that don't appear in the dictionary are sent to zero.
+        - ``dic`` -- A dictionary with the differentials of the generators.
+        The generators not specified are assumed to have zero differential.
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
-            sage: D = A.differential({t: x*y, x: y, z: y})
-            sage: D
-            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sending:
-                x --> y
-                y --> 0
-                z --> y
-                t --> x*y
+            sage: A.<a,b,c> = CGAlgebra(QQ, degrees=(1,1,1))
+            sage: B = A.CDGAlgebra({a: b*c, b: a*c, c: a*b})
+            sage: B
+            Commutative Graded Differential Algebra over Rational Field with generators ('a', 'b', 'c')
+
 
         """
-        aux = [self.zero() for i in range(self.ngens())]
-        for k in dic:
-            i = self.gens().index(k)
-            aux[i] = coerce(self, dic[k])
-        return CDGA_Differential(self, tuple(aux))
-
-    def CDGAlgebra(self, dic):
         return CDGAlgebra(self.base_ring(), self._QuotientRing_nc__R,
                           self._QuotientRing_nc__I, self._names,
                           self._degrees,dic, self)
@@ -591,13 +558,26 @@ class CDGAlgebra(CGAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
-            sage: A # indirect doctesting
+            sage: A.<x,y,z,t> = CGAlgebra(QQ, degrees=(3, 2, 2, 3))
+            sage: A.CDGAlgebra({x: y*z }) # indirect doctesting
             Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
-            sage: CDGAlgebra(QQ, ('x','y','z'), [3,4,2])
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
-            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1])
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+
+        The differential is actually checked to be both of degree 1::
+
+            sage: A.<a,b,c> = CGAlgebra(QQ, degrees=(1,1,1))
+            sage: A.CDGAlgebra({a: a*b*c })
+            Traceback (most recent call last):
+            ...
+            ValueError: The given dictionary does not determine a degree 1 map
+
+        It is also checked that the differential of the differentia is zero::
+
+            sage: A.<a,b,c> = CGAlgebra(QQ, degrees=(1,2,3))
+            sage: A.CDGAlgebra({a:b, b:c})
+            Traceback (most recent call last):
+            ...
+            ValueError: The given dictionary does not determine a valid differential
+
 
         """
         self._A=A
@@ -612,6 +592,21 @@ class CDGAlgebra(CGAlgebra):
 
 
     def _coerce_map_from_(self, other):
+        r"""
+        Returns ``True`` if there is a coercion map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = CGAlgebra(QQ, degrees=(2,1,1))
+            sage: B = A.CDGAlgebra({y:y*z, z: y*z})
+            sage: B._coerce_map_from_(A)
+            True
+            sage: B._coerce_map_from_(QQ)
+            True
+            sage: B._coerce_map_from_(GF(3))
+            False
+
+        """
         if other is self._A:
             return True
         else:
@@ -621,14 +616,16 @@ class CDGAlgebra(CGAlgebra):
         """
         TESTS::
 
-            sage: CDGAlgebra(QQ, ('x','y','z', 't'), [3, 4, 2, 1]) # indirect doctesting
-            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z', 't')
+            sage: A.<x,y,z> = CGAlgebra(QQ, degrees=(2,1,1))
+            sage: B = A.CDGAlgebra({y:y*z, z: y*z})
+            sage: B # indirect doctesting
+            Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
 
         """
         return "Commutative Graded Differential Algebra over {} with generators {}".format(self.base_ring(), self._names)
 
 
-    def differential_matrix(self, n, D):
+    def differential_matrix(self, n):
         """
         Return the matrix that gives the differential on the n'th degree.
 
@@ -636,21 +633,22 @@ class CDGAlgebra(CGAlgebra):
 
         - ``n`` -- Integer
 
-        - ``D`` -- The differential.
-
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
-            sage: D = A.differential({t: x*y, x: y, z: y})
-            sage: A.differential_matrix(4, D)
+            sage: A.<x,y,z,t> = CGAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: B = A.CDGAlgebra({t: x*y, x: y, z: y})
+            sage: B.differential_matrix(4)
             [0 1]
             [2 0]
             [1 1]
             [0 2]
-            sage: A.homogeneous_part(4)
+            sage: B.homogeneous_part(4)
             [t, z^2, x*z, x^2]
-            sage: A.homogeneous_part(5)
+            sage: B.homogeneous_part(5)
             [y*z, x*y]
+            sage: D = B.differential()
+            sage: B.inject_variables()
+            Defining x, y, z, t
             sage: D(t)
             x*y
             sage: D(z^2)
@@ -667,7 +665,7 @@ class CDGAlgebra(CGAlgebra):
         cokeys = [a.lift().dict().keys()[0] for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
-            im = dom[i].differential(D)
+            im = dom[i].differential()
             dic = im.lift().dict()
             for j in dic.keys():
                 k = cokeys.index(j)
@@ -675,7 +673,7 @@ class CDGAlgebra(CGAlgebra):
         return m
 
 
-    def cohomology(self, n, differential):
+    def cohomology(self, n):
         """
         Return the n'th cohomology group of the algebra. This is in fact a
         vector space over the base ring.
@@ -684,13 +682,12 @@ class CDGAlgebra(CGAlgebra):
 
         - ``n`` -- The degree in which the cohomology is computed.
 
-        - ``differential`` -- The differential to be used.
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
-            sage: D = A.differential({t: x*y, x: y, z: y})
-            sage: A.cohomology(4, D)
+            sage: A.<x,y,z,t> = CGAlgebra(QQ, degrees = (2, 3, 2, 4))
+            sage: B = A.CDGAlgebra({t: x*y, x: y, z: y})
+            sage: B.cohomology(4)
             Vector space quotient V/W of dimension 2 over Rational Field where
             V: Vector space of degree 4 and dimension 2 over Rational Field
             Basis matrix:
@@ -703,11 +700,11 @@ class CDGAlgebra(CGAlgebra):
 
 
         """
-        N = self.differential_matrix(n, differential)
+        N = self.differential_matrix(n)
         if n == 1:
             M = matrix(self.base_ring(), 0, N.nrows())
         else:
-            M = self.differential_matrix(n-1, differential)
+            M = self.differential_matrix(n-1)
         V0 = self.base_ring()**M.nrows()
         V1 = self.base_ring()**M.ncols()
         V2 = self.base_ring()**N.ncols()
@@ -723,33 +720,55 @@ class CDGAlgebra(CGAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
-            sage: I = A.ideal([x*t+y^2, x*z - t])
-            sage: B = A.quotient(I)
-            sage: B
-            Commutative Graded Differential Algebra over Finite Field of size 5 with generators ('x', 'y', 'z', 't')
-            sage: B(x*t)
+            sage: A.<x,y,z> = CGAlgebra(QQ, degrees=(2,1,1))
+            sage: B = A.CDGAlgebra({y:y*z, z: y*z})
+            sage: B.inject_variables()
+            Defining x, y, z
+            sage: I = B.ideal([x*y])
+            sage: C = B.quotient(I)
+            sage: (x*y).differential()
+            x*y*z
+            sage: C((x*y).differential())
             0
-            sage: B(x*z)
-            t
-            sage: A.homogeneous_part(7)
-            [y*t, y*z^2, x*y*z, x^2*y]
-            sage: B.homogeneous_part(7)
-            [y*t, y*z^2, x^2*y]
+            sage: C(x*y)
+            0
 
+        It is checked that the differential maps the ideal into itself, to make
+        sure that the quotient inherits a differential structure::
+
+        sage: A.<x,y,z> = CGAlgebra(QQ, degrees=(2,2,1))
+        sage: B=A.CDGAlgebra({z:y})
+        sage: I=B.ideal([z])
+        sage: C=B.quotient(I)
+        Traceback (most recent call last):
+        ...
+        ValueError: The differential does not preserve the ideal
 
         """
-        NCR = self._QuotientRing_nc__R
-        gens1 = list(self._QuotientRing_nc__I.gens())
-        gens2 = [i.lift() for i in I.gens()]
-        J = NCR.ideal(gens1+gens2, side='twosided')
-        if check:
-            for i in I.gens():
-                if not i.is_homogeneous():
-                    raise ValueError("The ideal must be homogeneous")
-        CA = CDGAlgebra(self.base_ring(), self._names, self._degrees,  NCR, J)
-        return CA
+        J = self._A.ideal(I)
+        AQ = self._A.quotient(J)
+        for g in I.gens():
+            if not AQ(self._A(g.differential())).is_zero():
+                raise ValueError("The differential does not preserve the ideal")
+        dic = {AQ(self._A(a)): AQ(self._A(a.differential())) for a in self.gens()}
+        return AQ.CDGAlgebra(dic)
+
 
 
     def differential(self):
+        r"""
+        Return the differential of the algebra.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = CGAlgebra(QQ, degrees=(2,1,1))
+            sage: B = A.CDGAlgebra({y:y*z, z: y*z})
+            sage: B.differential()
+            Differential map in Commutative Graded Differential Algebra over Rational Field with generators ('x', 'y', 'z')
+            sending:
+                x --> 0
+                y --> y*z
+                z --> y*z
+
+        """
         return self._differential
