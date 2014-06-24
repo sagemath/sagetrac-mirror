@@ -30,6 +30,7 @@ class SignedPermutation(Element):
         #self._parent = SignedPermutations
     
     def __call__(self, i):
+        #note that this is permutations acting on the left!
         if i > 0:
             return self.w[i-1]
         return -self.w[-i-1]
@@ -54,7 +55,11 @@ class SignedPermutation(Element):
         return descents
     
     def descents(self):
-        """Returns a list of positions of descents"""
+        r"""Returns a list of positions of descents.
+        
+        A signed permutation `\pi` has a descent at `i \in [0,n-1]` if `\pi(i)
+        > \pi(i+1)`.
+        """
         return self._descents
     
     def number_of_descents(self):
@@ -101,7 +106,7 @@ class SignedPermutation(Element):
     def inv(self):
         return len(self._inversions)
     
-    def length(self):
+    def sign(self):
         if self.length() % 2 == 0:
             return 1
         else:
