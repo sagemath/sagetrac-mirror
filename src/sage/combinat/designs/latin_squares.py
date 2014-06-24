@@ -23,7 +23,7 @@ from the Handbook of Combinatorial Designs.
     sage: def MOLS_table(number_of_lines):
     ....:     print "     "+join(['%3s'%str(i) for i in range(20)])
     ....:     print "    "+"_"*80
-    ....:     for i in range(20*15):
+    ....:     for i in range(20*number_of_lines):
     ....:         if i%20==0:
     ....:             print "\n"+'%3s'%str(i)+"|",
     ....:         print '%3s'%str(designs.mutually_orthogonal_latin_squares(i,None,existence=True) if i>1 else "+oo"),
@@ -31,22 +31,21 @@ from the Handbook of Combinatorial Designs.
            0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
     <BLANKLINE>
-      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18 
-     20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5 
-     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   5  58 
-     60|   5  60   5   6  63   7   6  66   6   6   6  70   7  72   5   7   6   6   6  78 
-     80|   9  80   8  82   6   6   6   6   7  88   5   6   6   6   6   6   7  96   6   8 
-    100|   8 100   6 102   7   7   6 106   6 108   6   6   7 112   6   7   6   8   6   6 
-    120|   6 120   6   6   6 124   6 126 127   7   6 130   6   6   6   6   7 136   6 138 
-    140|   6   7   6  10  10   7   6   7   6 148   6 150   7   8   8   6   6 156   6   6 
-    160|   7   7   6 162   6   7   6 166   7 168   6   8   6 172   6   6  10   9   6 178 
-    180|   6 180   6   6   7   8   6  10   6   6   6 190   7 192   6   7   6 196   6 198 
-    200|   7   7   6   7   6   6   6   8  12  11  10 210   6   7   6   7   7   8   6  10 
-    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   6 238 
-    240|   7 240   6 242   6   7   6  12   7   7   6 250   6  10   7   7 255 256   7   7 
-    260|   7   8   7 262   7   8   6  10   6 268   7 270  15  16   6  10  10 276   6   8 
+      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18
+     20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
+     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   3  58
+     60|   5  60   5   6  63   7   5  66   5   6   6  70   7  72   5   7   6   6   6  78
+     80|   9  80   8  82   6   6   6   4   7  88   4   6   6   6   6   6   7  96   6   8
+    100|   8 100   6 102   7   7   6 106   6 108   6   6   7 112   5   7   5   8   4   6
+    120|   6 120   5   6   5 124   6 126 127   7   6 130   6   6   6   6   7 136   6 138
+    140|   6   7   6  10  10   7   6   7   6 148   6 150   7   8   8   6   6 156   6   6
+    160|   7   7   6 162   5   7   6 166   7 168   6   8   6 172   6   6  10   9   6 178
+    180|   6 180   6   6   7   8   6  10   6   6   6 190   7 192   6   7   6 196   6 198
+    200|   7   7   6   7   6   6   6   8  12  11  10 210   6   7   6   7   7   8   6  10
+    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   6 238
+    240|   7 240   6 242   6   7   6  12   7   7   6 250   6  10   7   7 255 256   6   7
+    260|   6   8   7 262   7   8   6  10   6 268   7 270  15  16   6  10  10 276   6   8
     280|   7 280   6 282   6  12   6   7  15 288   6   6   6 292   6   6   7  10  10  12
-
 
 TODO:
 
@@ -143,7 +142,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     from designs_pyx import is_orthogonal_array
     return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
 
-def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
+def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -193,11 +192,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one.
 
     EXAMPLES::
 
@@ -313,7 +307,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         if existence:
             return k
 
-    if existence and not who_asked and _get_OA_cache(k+2,n) is not None:
+    if existence and _get_OA_cache(k+2,n) is not None:
         return _get_OA_cache(k+2,n)
 
     if n == 1:
@@ -334,11 +328,9 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
         matrices = construction()[:k]
 
-    elif (orthogonal_array not in who_asked and
-        orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
-
+    elif orthogonal_array(k+2,n,existence=True) is not Unknown:
         # Forwarding non-existence results
-        if orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)):
+        if orthogonal_array(k+2,n,existence=True):
             if existence:
                 return True
         else:
@@ -346,7 +338,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
                 return False
             raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
-        OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
+        OA = orthogonal_array(k+2,n,check=False)
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
 
         # We first define matrices as lists of n^2 values
@@ -360,8 +352,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         matrices = [Matrix(M) for M in matrices]
 
     else:
-        if not who_asked:
-            _set_OA_cache(k+2,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))
