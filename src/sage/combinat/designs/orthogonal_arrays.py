@@ -437,8 +437,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
 
     OUTPUT:
 
-    A quadruple of integers ``(k,r,m,r1,r2)`` if the construction is available
-    or ``None``.
+    A triple ``(r,m,(r1,r2))`` if the construction is available or ``False``.
 
     EXAMPLES::
 
@@ -446,25 +445,36 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
         (7, 7, (4, 5))
     """
-    for r in range(k+1,n-1): # as r*1+1+1 <= n
+    for r in [1] + range(k+1,n-1): # as r*1+1+1 <= n
         if not orthogonal_array(k+2,r,existence=True):
             continue
-        for m in range(max(k-1,(n-(2*r-2))//r), (n-2)/r+1): # as r*m+1+1 <= n
+
+        m_min = (n - (2*r-2))//r
+        if m_min > 1:
+            m_values = range(max(k-1,m_min), (n-2)//r+1)
+        else:
+            m_values = [1] + range(k-1, (n-2)//r+1)
+        
+        for m in m_values:
             r1_p_r2 = n-r*m # the sum of r1+r2 (decreases along the loop)
             if r1_p_r2 < 2:
-                break
+                    break
             if (r1_p_r2 > 2*r-2 or
                 not orthogonal_array(k,m  ,existence=True) or
                 not orthogonal_array(k,m+1,existence=True) or
                 not orthogonal_array(k,m+2,existence=True)):
                 continue
 
-            for r1 in range(max(k-1,r1_p_r2-(r-1)), r):
+            r1_min = r1_p_r2 - (r-1)
+            if r1_min > 1:
+                r1_values = range(max(k-1,r1_min), min((r1_p_r2+1)//2,r))
+            else:
+                r1_values = [1] + range(k-1, min((r1_p_r2+1)//2,r))
+
+            for r1 in r1_values:
                 if not orthogonal_array(k,r1,existence=True):
                     continue
-                r2 = r1_p_r2-r1
-                if r2 < r1:
-                    break
+                r2 = r1_p_r2 - r1
                 if orthogonal_array(k,r2,existence=True):
                     assert n == r*m+r1+r2
                     return m,r,(r1,r2)
