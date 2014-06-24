@@ -370,7 +370,7 @@ def is_transversal_design(B,k,n, verbose=False):
 @cached_function
 def find_wilson_decomposition_with_one_truncated_group(k,n):
     r"""
-    Finds a wilson decomposition to build an `OA(k,n)` with one truncated column
+    Finds a wilson decomposition (with one truncated group) to build an `OA(k,n)`.
 
     This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
     such that Sage knows how to build a `OA(k,m), OA(k,m+1), OA(k+1,t)` and a
@@ -476,7 +476,7 @@ def wilson_construction(OA,k,r,m,u,check=True):
     - an `OA(k,u_i)` for every `1\leq i\leq s`
 
     Then there exists an `OA(k,rm+\sum u_i)`. This construction is a
-    straightforward generalization of Lemma 3.16 of [HananiBIBD]_.
+    generalization of Lemma 3.16 of [HananiBIBD]_.
 
     INPUT:
 
