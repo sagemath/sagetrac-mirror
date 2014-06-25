@@ -28,9 +28,9 @@ def all2(N, R=10):
     # loop over n= 0 to N
     for n in xrange(N+1):
         MM[n,0]=[BinaryMatroid(identity_matrix(GF(2),n))]
-        #print "MM is", MM 
+        print "MM is", MM 
         for r in xrange(min(n,R+1)):
-            #print 'n,r', n,r
+            print 'n,r', n,r
             MM[r,n-r]=next2(MM[r,n-r-1])
         print [len(MM[r,n-r]) for r in xrange(min(n,R)+1)]
     return MM
@@ -45,7 +45,7 @@ def see(N,mdict):
     """
     
 
-def extendpmaps(M,M_codes,M_e):
+def extendpmaps(M,M_codes,M_child):
     """
     Return a maximal list of p-codes corresponding to a given matroid
     """
@@ -116,9 +116,62 @@ def invert(m):
         return mi
     else:
         return {} 
-                
 
+def ncmatenum(nc,r,N):
+    n=r
+    MM={}
+    MM[n]=[BinaryMatroid(identity_matrix(GF(2),n)),{}]
+
+def init_enum(ncinstance,r,N):
+    """
+    returns a rank r matroid on r elements and all the p-codes it forms
+    by using brute force
+    """
+    parts=OrderedSet(
+    
+
+
+def ncinstance_vars(nc):
+    varset=Set([])
+    for i in nc:
+        for j in nc[0]:
+            v=Set(j[1])
+            varset=varset.union(v)
+    varse.union(Set(nc[1]))
+    return varset
+
+def applicable_cons(def_vars,nc):
+    cons=[]
+    for j in nc[0]:
+         if all([k in def_vars for k in j[1]]):
+             cons.append(j)
+    return cons
+         
         
+                
+def is_pcode(M,pmap,ncinstance):
+    ipmap = invert(pmap)
+    def_vars = ipmap.keys()
+    nodecons=applicable_cons(def_vars,ncinstance)
+    for con in nodecons:
+        lhs_el = []
+        for v in con[0]:
+            lhs_el.extend(list(ipmap[v]))
+        rhs_el=[]
+        for v in con[1]:
+            rhs_el.extend(list(ipmap[v]))
+        if M.rank(rhs_el) != M.el(lhs_el):
+            return False
+    def_src = [v for v in def_vars if v in ncinstance[1]]
+    if len(def_src) > 0:
+        src_sum=0
+        for s in def_src:
+            src_sum += M.rank(ipmap[s])
+        src_joint = M.rank(def_src)
+        if src_sum != src_joint:
+            return False
+    return True
+    
                 
     
 def butterfly():
