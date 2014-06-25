@@ -32,6 +32,10 @@ Animate using ffmpeg instead of ImageMagick::
     sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
     sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
 
+Animate as an Animated PNG::
+
+    sage: a.show(format="png")  # long time
+
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
     sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
@@ -61,7 +65,7 @@ Animations of 3d objects::
     sage: def frame(t):
     ....:     return implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], region=lambda x,y,z: x<=t or y>=t or z<=t)
     sage: a = animate([frame(t) for t in srange(.01,1.5,.2)])
-    sage: a[0]       # first frame
+    sage: a[0]       # long time
     sage: a.show()   # optional -- ImageMagick
 
 If the input objects do not have a ``save_image`` method, then the
@@ -79,6 +83,7 @@ AUTHORS:
 - William Stein
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
+- Martin von Gagern
 
 REFERENCES:
 
@@ -95,6 +100,8 @@ REFERENCES:
 ############################################################################
 
 import os
+import struct
+import zlib
 
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_filename, tmp_dir, graphics_filename
@@ -373,8 +380,7 @@ class Animation(SageObject):
             sage: y = lambda n,t: sin(t)/n
             sage: B = MyAnimation([([x(t), y(i+1,t)],(t,0,1), {'color':Color((1,0,i/4)), 'aspect_ratio':1, 'ymax':1}) for i in range(4)])
 
-            sage: d = B.png()
-            sage: v = os.listdir(d); v.sort(); v
+            sage: d = B.png(); v = os.listdir(d); v.sort(); v  # long time
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
             sage: B.show()  # not tested
 
@@ -413,8 +419,7 @@ class Animation(SageObject):
         EXAMPLES::
 
             sage: a = animate([plot(x^2 + n) for n in range(4)])
-            sage: d = a.png()
-            sage: v = os.listdir(d); v.sort(); v
+            sage: d = a.png(); v = os.listdir(d); v.sort(); v  # long time
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
         if dir is None:
@@ -435,6 +440,16 @@ class Animation(SageObject):
         self._png_dir = d
         return d
 
+    def _adjust_savefile(self, ext, savefile=None):
+        if ext[0] != '.':
+            ext = '.' + ext
+        if savefile is None:
+            savefile = tmp_filename(ext=ext)
+        if not savefile.endswith(ext):
+            savefile += ext
+        savefile = os.path.abspath(savefile)
+        return savefile
+            
     def graphics_array(self, ncols=3):
         r"""
         Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
@@ -542,11 +557,7 @@ class Animation(SageObject):
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        if not savefile:
-            savefile = tmp_filename(ext='.gif')
-        if not savefile.endswith('.gif'):
-            savefile += '.gif'
-        savefile = os.path.abspath(savefile)
+        savefile = self._adjust_savefile('gif', savefile)
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
         have_ffmpeg = self._have_ffmpeg()
@@ -765,22 +776,17 @@ a movie file in any format other than GIF requires this software, so
 please install it and try again."""
             raise OSError(msg)
         else:
-            if savefile is None:
-                if output_format is None:
-                    output_format = '.mpg'
-                else:
-                    if output_format[0] != '.':
-                        output_format = '.'+output_format
-                savefile = tmp_filename(ext=output_format)
-            else:
-                if output_format is None:
+            if output_format is None:
+                if savefile is not None:
                     suffix = os.path.splitext(savefile)[1]
                     if len(suffix) > 0:
                         output_format = suffix
-                    else:
-                        output_format = '.mpg'
-            if not savefile.endswith(output_format):
-                savefile += output_format
+                if output_format is None:
+                    output_format = '.mpg'
+            else:
+                if output_format[0] != '.':
+                    output_format = '.'+output_format
+            savefile = self._adjust_savefile(output_format, savefile)
             early_options = ''
             if output_format == '.gif':
                 # We try to set reasonable options for gif output.
@@ -806,7 +812,6 @@ please install it and try again."""
                 ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
             if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
                 early_options += ' -r %s ' % int(100/delay)
-            savefile = os.path.abspath(savefile)
             pngdir = self.png()
             pngs = os.path.join(pngdir, "%08d.png")
             # For ffmpeg, it seems that some options, like '-g ... -r
@@ -828,6 +833,68 @@ please install it and try again."""
             except (CalledProcessError, OSError):
                 print "Error running ffmpeg."
                 raise
+        return savefile
+
+    def apng(self, savefile=None, show_path=False, delay=20, iterations=0):
+        r"""
+        Creates an animated PNG composed from rendering the graphics
+        objects in self. Return the absolute path to that file.
+
+        Notice that not all web browsers are capable of displaying APNG
+        files, though they should still present the first frame of the
+        animation as a fallback.
+
+        The generated file is not optimized, so it may be quite large.
+
+        Input:
+
+        -  ``delay`` - (default: 20) delay in hundredths of a
+           second between frames
+
+        -  ``savefile`` - file that the animated gif gets saved
+           to
+
+        -  ``iterations`` - integer (default: 0); number of
+           iterations of animation. If 0, loop forever.
+
+        -  ``show_path`` - boolean (default: False); if True,
+           print the path to the saved file
+
+        EXAMPLES::
+
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
+            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: dir = tmp_dir()
+            sage: a.apng()  # long time
+            '...png'
+            sage: a.apng(savefile=dir + 'my_animation.png', delay=35, iterations=3)  # long time
+            '.../my_animation.png'
+            sage: a.apng(savefile=dir + 'my_animation.png', show_path=True)  # long time
+            Animation saved to .../my_animation.png.
+            '.../my_animation.png'
+
+        If the individual frames have different sizes, an error will be raised:
+
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
+            ....:             xmin=0, xmax=2*pi, aspect_ratio=1, figsize=[2,1])
+            sage: a.apng()  # long time
+            Traceback (most recent call last):
+            ...
+            ValueError: Chunk IHDR mismatch
+
+        """
+        pngdir = self.png()
+        savefile = self._adjust_savefile('png', savefile)
+        with open(savefile, "wb") as out:
+            apng = APngAssembler(
+                out, len(self),
+                delay=delay, num_plays=iterations)
+            for i in range(len(self)):
+                png = os.path.join(pngdir, "%08d.png" % i)
+                apng.frame(png)
+            apng.iend()
+        if show_path:
+            print "Animation saved to file %s." % savefile
         return savefile
 
     def save(self, filename=None, **kwargs):
@@ -880,9 +947,168 @@ please install it and try again."""
 
         if filename is None or suffix == '.gif':
             self.gif(savefile=filename, **kwargs)
+        elif suffix == '.png':
+            self.apng(savefile=filename, **kwargs)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
             if kwargs.get('show_path', False):
                 print "Animation saved to file %s." % filename
         else:
             self.ffmpeg(savefile=filename, **kwargs)
+
+
+class APngAssembler(object):
+    """
+    Builds an Animated PNG from a sequence of PNG files.
+
+    This code is quite simple; it does little more than copying chunks
+    from input PNG files to the output file. There is no optimization
+    involved.
+
+    REFERENCES:
+
+        * https://wiki.mozilla.org/APNG_Specification
+    """
+
+    magic = b"\x89PNG\x0d\x0a\x1a\x0a"
+    mustmatch = frozenset([b"IHDR", b"PLTE", b"bKGD", b"cHRM", b"gAMA",
+                           b"pHYs", b"sBIT", b"tRNS"])
+
+    def __init__(self, out, num_frames,
+                 num_plays=0, delay=200, delay_denominator=100):
+        """
+        Initialize for creation of an APNG file.
+
+        INPUT:
+
+        - ``out`` -- a file opened for binary writing to which the data
+          will be written
+
+        - ``num_frames`` -- the number of frames in the animation
+
+        - ``num_plays`` -- how often to iterate, 0 means infinitely
+
+        - ``delay`` -- numerator of the delay fraction in seconds
+
+        - ``delay_denominator`` -- denominator of the delay in seconds
+        
+        """
+        self.last_seqno = -1
+        self.idx = 0
+        self.out = out
+        self.num_frames = num_frames
+        self.num_plays = num_plays
+        self.default_delay_numerator = delay
+        self.default_delay_denominator = delay_denominator
+        self.matchref = dict()
+        self.out.write(self.magic)
+
+    def frame(self, pngfile, delay=None, delay_denominator=None):
+        """
+        Adds a single frame to the APNG file.
+
+        INPUT:
+
+        - ``pngfile`` -- file name of the PNG file with data for this frame
+
+        - ``delay`` -- numerator of the delay fraction in seconds
+
+        - ``delay_denominator`` -- denominator of the delay in seconds
+
+        If the delay is not specified, the default from the constructor
+        applies.
+        """
+        self.delay_numerator = self.default_delay_numerator
+        self.delay_denominator = self.default_delay_denominator
+        self.fctl_written = False
+        if delay is not None:
+            self.delay_numerator = delay
+        if delay_denominator is not None:
+            self.delay_denominator = delay_denominator
+        with open(pngfile, 'rb') as png:
+            if png.read(8) != self.magic:
+                raise ValueError("{} is not a PNG file".format(pngfile))
+            while True:
+                chead = png.read(8)
+                if len(chead) == 0:
+                    break
+                clen, ctype = struct.unpack(">L4s", chead)
+                cdata = png.read(clen)
+                ccrc = png.read(4)
+                utype = ctype.decode("ascii")
+                self.current_chunk = (chead[:4], ctype, cdata, ccrc)
+                if ctype in self.mustmatch:
+                    ref = self.matchref.get(ctype)
+                    if ref is None:
+                        self.matchref[ctype] = cdata
+                        self.copy()
+                    else:
+                        if cdata != ref:
+                            raise ValueError("Chunk {} mismatch".format(utype))
+                met = ("next_" if self.idx else "first_") + utype
+                try:
+                    met = getattr(self, met)
+                except AttributeError:
+                    pass
+                else:
+                    met(cdata)
+        self.idx += 1
+
+    def iend(self):
+        """
+        End the construction of the file, by writing the last chunk.
+
+        This method must be called after the last frame.
+        """
+        self.chunk(b"IEND", b"")
+
+    def seqno(self):
+        self.last_seqno += 1
+        return struct.pack(">L", self.last_seqno)
+
+    def first_IHDR(self, data):
+        w, h, d, ctype, comp, filt, ilace = struct.unpack(">2L5B", data)
+        self.width = w
+        self.height = h
+
+    def first_IDAT(self, data):
+        self.actl()
+        self.fctl()
+        self.copy()
+
+    def next_IDAT(self, data):
+        self.fctl()
+        maxlen = 0x7ffffffb
+        while len(data) > maxlen:
+            self.chunk(b"fdAT", self.seqno() + data[:maxlen])
+            data = data[maxlen:]
+        self.chunk(b"fdAT", self.seqno() + data)
+
+    def copy(self):
+        """Copy an existing chunk without modification"""
+        for d in self.current_chunk:
+            self.out.write(d)
+
+    def actl(self):
+        """Write animation control data"""
+        data = struct.pack(">2L", self.num_frames, self.num_plays)
+        self.chunk(b"acTL", data)
+
+    def fctl(self):
+        """Write frame control data"""
+        if self.fctl_written:
+            return
+        data = struct.pack(
+            ">4L2H2B",
+            self.width, self.height, 0, 0,
+            self.delay_numerator, self.delay_denominator,
+            1, 0)
+        self.chunk(b"fcTL", self.seqno() + data)
+        self.fctl_written = True
+
+    def chunk(self, ctype, cdata):
+        """Write a new (or modified) chunk of data"""
+        ccrc = struct.pack(">L", zlib.crc32(ctype + cdata) & 0xffffffff)
+        clen = struct.pack(">L", len(cdata))
+        for d in [clen, ctype, cdata, ccrc]:
+            self.out.write(d)
