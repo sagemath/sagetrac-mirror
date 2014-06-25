@@ -97,10 +97,11 @@ REFERENCES:
 import os
 
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_filename, tmp_dir
+from sage.misc.temporary_file import tmp_filename, tmp_dir, graphics_filename
 import plot
 import sage.misc.misc
 import sage.misc.viewer
+from sage.misc.html import html
 
 
 def animate(frames, **kwds):
@@ -582,7 +583,7 @@ the animate command can be saved in PNG image format.
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
 
-    def show(self, delay=20, iterations=0):
+    def show(self, delay=20, iterations=0, linkmode=False):
         r"""
         Show this animation.
 
@@ -595,6 +596,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         -  ``iterations`` - integer (default: 0); number of
            iterations of animation. If 0, loop forever.
 
+        - ``linkmode`` - (default: False) If True a string containing a link
+            to the produced file is returned.
 
         .. note::
 
@@ -631,16 +634,17 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+        filename = graphics_filename(ext='gif')
+        self.gif(delay=delay, savefile=filename, iterations=iterations)
         if sage.doctest.DOCTEST_MODE:
-            filename = tmp_filename(ext='.gif')
-            self.gif(savefile=filename, delay=delay, iterations=iterations)
             return
-
         if plot.EMBEDDED_MODE:
-            self.gif(delay = delay, iterations = iterations)
+            link = "<img src='cell://%s'>" % filename
+            if linkmode:
+                return link
+            else:
+                html(link)
         else:
-            filename = tmp_filename(ext='.gif')
-            self.gif(delay=delay, savefile=filename, iterations=iterations)
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
 
