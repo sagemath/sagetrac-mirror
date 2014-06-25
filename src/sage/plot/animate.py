@@ -483,8 +483,8 @@ class Animation(SageObject):
     def gif(self, delay=20, savefile=None, iterations=0, show_path=False,
             use_ffmpeg=False):
         r"""
-        Returns an animated gif composed from rendering the graphics
-        objects in self.
+        Creates an animated gif composed from rendering the graphics
+        objects in self. Return the absolute path to that file.
 
         This method will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
@@ -520,12 +520,16 @@ class Animation(SageObject):
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: dir = tmp_dir()
-            sage: a.gif()              # not tested
+            sage: a.gif()              # optional -- ImageMagick
+            '...gif'
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
+            '.../my_animation.gif'
             sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
+            '.../my_animation.gif'
             sage: a.gif(savefile=dir + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
             Animation saved to .../my_animation_2.gif.
+            '.../my_animation_2.gif'
 
         .. note::
 
@@ -538,6 +542,11 @@ class Animation(SageObject):
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+        if not savefile:
+            savefile = tmp_filename(ext='.gif')
+        if not savefile.endswith('.gif'):
+            savefile += '.gif'
+        savefile = os.path.abspath(savefile)
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
         have_ffmpeg = self._have_ffmpeg()
@@ -560,11 +569,6 @@ Error: ffmpeg does not appear to be installed.  Download it from
 www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
-            if not savefile:
-                savefile = tmp_filename(ext='.gif')
-            if not savefile.endswith('.gif'):
-                savefile += '.gif'
-            savefile = os.path.abspath(savefile)
             d = self.png()
             cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
                     '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
@@ -582,6 +586,7 @@ the animate command can be saved in PNG image format.
 
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
+        return savefile
 
     def show(self, delay=20, iterations=0, linkmode=False):
         r"""
@@ -665,8 +670,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
     def ffmpeg(self, savefile=None, show_path=False, output_format=None,
                ffmpeg_options='', delay=None, iterations=0, pix_fmt='rgb24'):
         r"""
-        Returns a movie showing an animation composed from rendering
-        the frames in self.
+        Creates a movie showing an animation composed from rendering
+        the frames in self. Return the absolute path to that file.
 
         This method will only work if ffmpeg is installed.  See
         http://www.ffmpeg.org for information about ffmpeg.
@@ -720,10 +725,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             ....:                xmin=0, xmax=2*pi, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
+            '.../new.mpg'
             sage: a.ffmpeg(savefile=dir + 'new.avi')       # optional -- ffmpeg
+            '.../new.avi'
             sage: a.ffmpeg(savefile=dir + 'new.gif')       # optional -- ffmpeg
+            '.../new.gif'
             sage: a.ffmpeg(savefile=dir + 'new.mpg', show_path=True) # optional -- ffmpeg
             Animation saved to .../new.mpg.
+            '.../new.mpg'
 
         .. note::
 
@@ -740,6 +749,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
+            '...gif'
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -810,6 +820,7 @@ please install it and try again."""
             except (CalledProcessError, OSError):
                 print "Error running ffmpeg."
                 raise
+        return savefile
 
     def save(self, filename=None, show_path=False, use_ffmpeg=False):
         """
