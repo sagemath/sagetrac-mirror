@@ -40,7 +40,6 @@ from the Handbook of Combinatorial Designs.
     260|   6   8   7 262   7   8   6  10   6 268   7 270  15  16   6  10  10 276   6   8
     280|   7 280   6 282   6  12   6   7  15 288   6   6   6 292   6   6   7  10  10  12
 
-
 Comparison with the results from the Handbook of Combinatorial Designs (2ed)::
 
     sage: MOLS_table(15,compare=True) # long time
@@ -293,7 +292,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(1, None)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
+        ValueError: there are no bound on k when 0<=n<=1
         sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
         True
         sage: designs.mutually_orthogonal_latin_squares(10,2)
@@ -317,11 +316,11 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
     # Is k is None we find the largest available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
+            raise ValueError("there are no bound on k when 0<=n<=1")
 
         k = orthogonal_array(None,n,existence=True) - 2
         if existence:

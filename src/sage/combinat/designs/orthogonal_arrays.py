@@ -263,15 +263,15 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
+        ValueError: there is no upper bound on k when 0<=n<=1
     """
     # Is k is None we find the largest available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
+            raise ValueError("there is no upper bound on k when 0<=n<=1")
 
         k = orthogonal_array(None,n,existence=True)
         if existence:
@@ -405,10 +405,10 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
         if k >= m+2:
             break
 
-        if (transversal_design(k  ,m  , existence=True) and
-            transversal_design(k  ,m+1, existence=True) and
-            transversal_design(k+1,t  , existence=True) and
-            transversal_design(k  ,u  , existence=True)):
+        if (orthogonal_array(k  ,m  , existence=True) and
+            orthogonal_array(k  ,m+1, existence=True) and
+            orthogonal_array(k+1,t  , existence=True) and
+            orthogonal_array(k  ,u  , existence=True)):
             return k,m,t,u
 
     return False
@@ -435,19 +435,32 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
         (5, 7, 7, 4, 5)
     """
-    for r in range(1,n-2): # as r*1+1+1 <= n
+    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need 
+                                   # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not orthogonal_array(k+2,r,existence=True):
             continue
-        for m in range(max(1,(n-(2*r-2))//r),(n-2)/r+1): # as r*m+1+1 <= n
+        m_min = (n - (2*r-2))//r
+        m_max = (n - 2)//r
+        if m_min > 1:
+            m_values = range(max(m_min,k-1), m_max+1)
+        else:
+            m_values = [1] + range(k-1, m_max+1)
+        for m in m_values:
             r1_p_r2 = n-r*m # the sum of r1+r2
-            if (r1_p_r2 < 2 or
-                r1_p_r2 > 2*r-2 or
+                            # it is automatically >= 2 since m <= m_max
+            if (r1_p_r2 > 2*r-2 or
                 not orthogonal_array(k,m  ,existence=True) or
                 not orthogonal_array(k,m+1,existence=True) or
                 not orthogonal_array(k,m+2,existence=True)):
                 continue
 
-            for r1 in range(max(1,r1_p_r2-(r-1)),r):
+            r1_min = r1_p_r2 - (r-1)
+            r1_max = min(r-1, r1_p_r2)
+            if r1_min > 1:
+                r1_values = range(max(k-1,r1_min), r1_max+1)
+            else:
+                r1_values = [1] + range(k-1, r1_max+1)
+            for r1 in r1_values:
                 if not orthogonal_array(k,r1,existence=True):
                     continue
                 r2 = r1_p_r2-r1
@@ -460,15 +473,16 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     r"""
     Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
 
-    Let `iOA` be an incomplete `OA(k+s,r)` with `s` truncated columns of sizes
+    Let `OA` be a truncated `OA(k+s,r)` with `s` truncated columns of sizes
     `u_1,...,u_s`, whose blocks have sizes in `\{k+b_1,...,k+b_t\}`. If there
     exist:
 
-    - An `OA(k,m+b_i)` for every `1\leq i\leq t`
+    - An `OA(k,m+b_i) - b_i.OA(k,1)` for every `1\leq i\leq t`
 
     - An `OA(k,u_i)` for every `1\leq i\leq s`
 
-    Then there exists an `OA(k,rm+\sum u_i)`.
+    Then there exists an `OA(k,rm+\sum u_i)`. The construction is a
+    generalization of Lemma 3.16 in [HananiBIBD]_.
 
     INPUT:
 
@@ -515,16 +529,13 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     assert n_trunc == len(u)
 
     # Computing the sizes of the blocks by filtering out None entries
-    block_sizes = set()
-    for B in OA:
-        s_b = sum(xx!=None for xx in B)
-        block_sizes.add(s_b)
+    block_sizes = set(sum(xx!=None for xx in B) for B in OA)
 
     # For each block of size k+i we need a OA(k,m+i)-i.OA(k,1)
-    OA_k_mpi = {i-k+m: incomplete_orthogonal_array( k ,i-k+m,(1,)*(i-k)) for i in block_sizes}
+    OA_k_mpi = {i-k+m: incomplete_orthogonal_array(k, i-k+m, (1,)*(i-k)) for i in block_sizes}
 
     # For each truncated column of size uu we need a OA(k,uu)
-    OA_k_u = {uu: orthogonal_array( k ,uu) for uu in u}
+    OA_k_u = {uu: orthogonal_array(k, uu) for uu in u}
 
     # Building the actual design ! The set of integers is :
     # 0*m+0...0*m+(m-1)|...|(r-1)m+0...(r-1)m+(m-1)|mr+0...mr+(r1-1)|mr+r1...mr+r1+r2-1
@@ -835,7 +846,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
-        EmptySetError: No Orthogonal Array exists when k>=n+t except when n=1
+        EmptySetError: No Orthogonal Array exists when k>=n+t except when n<=1
         sage: designs.orthogonal_array(12,20)
         Traceback (most recent call last):
         ...
@@ -851,48 +862,69 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     TESTS:
 
-    The special case `n=1`::
+    The special cases `n=0,1`::
 
+        sage: designs.orthogonal_array(3,0)
+        []
         sage: designs.orthogonal_array(3,1)
         [[0, 0, 0]]
+        sage: designs.orthogonal_array(None,0,existence=True)
+        +Infinity
         sage: designs.orthogonal_array(None,1,existence=True)
         +Infinity
         sage: designs.orthogonal_array(None,1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
-        sage: designs.orthogonal_array(None,14,existence=True)
-        6
+        ValueError: there is no upper bound on k when 0<=n<=1
+        sage: designs.orthogonal_array(None,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: there is no upper bound on k when 0<=n<=1
+        sage: designs.orthogonal_array(16,0)
+        []
         sage: designs.orthogonal_array(16,1)
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+    when `t>2` and `k=None`::
+
+        sage: t = 3
+        sage: designs.orthogonal_array(None,5,t=t,existence=True) == t
+        True
+        sage: _ = designs.orthogonal_array(t,5,t)
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions
     from block_design import projective_plane, projective_plane_to_OA
 
+    assert n>=0
+
     # If k is set to None we find the largest value available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
-
-        for k in range(1,n+2):
-            if not orthogonal_array(k+1,n,existence=True):
-                break
+            raise ValueError("there is no upper bound on k when 0<=n<=1")
+        elif t == 2 and projective_plane(n,existence=True):
+            k = n+1
+        else:
+            for k in range(t-1,n+2):
+                if not orthogonal_array(k+1,n,t=t,existence=True):
+                    break
         if existence:
             return k
+
+    if k < t:
+        raise ValueError("undefined for k<t")
 
     if existence and not who_asked and _get_OA_cache(k,n) is not None and t == 2:
         return _get_OA_cache(k,n)
 
-    if k < 2:
-        raise ValueError("undefined for k less than 2")
-
-    if n == 1:
-        OA = [[0]*k]
+    if n <= 1:
+        if existence:
+            return True
+        OA = [[0]*k]*n
 
     elif k >= n+t:
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
@@ -901,19 +933,23 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         # i.e. k<n+t.
         if existence:
             return False
-        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n=1")
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n<=1")
 
-    elif k == t:
+    elif k <= t:
         if existence:
             return True
 
         from itertools import product
-        OA = map(list, product(range(n), repeat=k))
+        return map(list, product(range(n), repeat=k))
+
+    elif t != 2:
+        if existence:
+            return Unknown
+        raise NotImplementedError("Only trivial orthogonal arrays are implemented for t>=2")
 
     # projective spaces are equivalent to OA(n+1,n,2)
-    elif (t == 2 and
-          (projective_plane(n, existence=True) or
-           (k == n+1 and projective_plane(n, existence=True) is False))):
+    elif (projective_plane(n, existence=True) or
+           (k == n+1 and projective_plane(n, existence=True) is False)):
         _set_OA_cache(n+1,n,projective_plane(n, existence=True))
         if k == n+1:
             if existence:
@@ -953,7 +989,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = OA_relabel(OA,k+2,r,matrix=[range(r)]*k+[range(u1)+[None]*(r-u1),range(u2)+[None]*(r-u2)])
         OA = wilson_construction(OA,k,r,m,2,[u1,u2],check=False)
 
-    elif (t == 2 and transversal_design not in who_asked and
+    elif (transversal_design not in who_asked and
           transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence
@@ -971,7 +1007,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     # Section 6.5.1 from [Stinson2004]
-    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
+    elif (mutually_orthogonal_latin_squares not in who_asked and
           mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence
@@ -1514,7 +1550,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: This is not a nice honest PBD from the good old days !
+        RuntimeError: The PBD covers a point 8 which is not in {0, .., 5}
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))
