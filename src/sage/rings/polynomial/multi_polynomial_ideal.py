@@ -1031,6 +1031,15 @@ class MPolynomialIdeal_singular_repr(
             ...
             ValueError: Coefficient ring must be a field for function 'complete_primary_decomposition'.
 
+         We try a simple example from page 51 of Atiyah-Macdonald::
+
+           sage: R.<x,y,z> = QQ[]
+           sage: I = R.ideal([x*y - z^2])
+           sage: A.<xbar,ybar,zbar> = R.quotient(I)
+           sage: p = A.ideal([x,z])
+           sage: p.primary_decomposition()
+           [Ideal (zbar, xbar) of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by the ideal (x*y - z^2)]
+
         ALGORITHM:
 
         Uses Singular.
@@ -1063,15 +1072,22 @@ class MPolynomialIdeal_singular_repr(
             return []
 
         import sage.libs.singular
-
-        if algorithm == 'sy':
-            primdecSY =  sage.libs.singular.ff.primdec__lib.primdecSY
-            P = primdecSY(self)
-        elif algorithm == 'gtz':
-            primdecGTZ =  sage.libs.singular.ff.primdec__lib.primdecGTZ
-            P = primdecGTZ(self)
-
         R = self.ring()
+        try:
+            if algorithm == 'sy':
+                primdecSY =  sage.libs.singular.ff.primdec__lib.primdecSY
+                P = primdecSY(self)
+            elif algorithm == 'gtz':
+                primdecGTZ =  sage.libs.singular.ff.primdec__lib.primdecGTZ
+                P = primdecGTZ(self)
+        except TypeError:
+            if algorithm == 'sy':
+                P = self._singular_().primdecSY()
+            elif algorithm == 'gtz':
+                P = self._singular_().primdecGTZ()
+
+            P = [([R(f) for f in X[1]], [R(f) for f in X[2]]) for X in P]
+
         V = [(R.ideal(X[0]), R.ideal(X[1])) for X in P]
         V = Sequence(V)
         self.__complete_primary_decomposition[algorithm] = V
