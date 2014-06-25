@@ -588,12 +588,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
         return savefile
 
-    def show(self, delay=20, iterations=0, linkmode=False):
+    def show(self, **kwargs):
         r"""
         Show this animation.
 
         INPUT:
 
+
+        - ``format`` - (default: gif) format to use for output
 
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
@@ -639,21 +641,23 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        if sage.doctest.DOCTEST_MODE:
-            filename = os.path.join(sage.misc.misc.SAGE_TMP, 'test.gif')
-            self.gif(delay=delay, savefile=filename, iterations=iterations)
-            return
+        linkmode = kwargs.pop('linkmode', False)
+        format = kwargs.pop('format', 'gif')
+        suffix = format
         if plot.EMBEDDED_MODE:
-            filename = graphics_filename(ext='gif')
-            self.gif(delay=delay, savefile=filename, iterations=iterations)
+            filename = graphics_filename(ext=suffix)
+        else:
+            filename = tmp_filename(ext='.'+suffix)
+        self.save(filename, **kwargs)
+        if sage.doctest.DOCTEST_MODE:
+            return
+        elif plot.EMBEDDED_MODE:
             link = "<img src='cell://%s'>" % filename
             if linkmode:
                 return link
             else:
                 html(link)
         else:
-            filename = tmp_filename(ext='.gif')
-            self.gif(delay=delay, savefile=filename, iterations=iterations)
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
 
@@ -826,7 +830,7 @@ please install it and try again."""
                 raise
         return savefile
 
-    def save(self, filename=None, show_path=False, use_ffmpeg=False):
+    def save(self, filename=None, **kwargs):
         """
         Save this animation.
 
@@ -875,14 +879,10 @@ please install it and try again."""
                 suffix = '.gif'
 
         if filename is None or suffix == '.gif':
-            self.gif(savefile=filename, show_path=show_path,
-                     use_ffmpeg=use_ffmpeg)
-            return
+            self.gif(savefile=filename, **kwargs)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
-            if show_path:
+            if kwargs.get('show_path', False):
                 print "Animation saved to file %s." % filename
-            return
         else:
-            self.ffmpeg(savefile=filename, show_path=show_path)
-            return
+            self.ffmpeg(savefile=filename, **kwargs)
