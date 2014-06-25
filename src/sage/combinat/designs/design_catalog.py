@@ -40,7 +40,7 @@ Currently, this module gathers the following designs :
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
-    :meth:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign`
+    :meth:`~sage.combinat.designs.bibd.balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
