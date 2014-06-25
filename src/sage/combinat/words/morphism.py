@@ -2493,10 +2493,11 @@ class WordMorphism(SageObject):
             u = iter(self.reversal().periodic_points()[0][0])
         else:
             u = iter(self.periodic_points()[0][0])
-
+        
+        dim_fractal = len(canonical_basis_proj[alphabet[0]])
+        
         # Manage various options in function of dimension
         if n is None:
-            dim_fractal = len(canonical_basis_proj[alphabet[0]])
             if dim_fractal == 1:
                 n = 1000
             elif dim_fractal == 2:

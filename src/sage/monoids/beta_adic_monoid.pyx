@@ -303,7 +303,7 @@ class BetaAdicMonoid(Monoid_class):
             if abs(b) < 1:
                 #garde la place courante
                 #place = lambda x: CC(x.n())
-                return [CC(c).conjugate().N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+                return [CC(c).N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
             else:
                 #choisis une place
                 places = K.places()
@@ -321,7 +321,7 @@ class BetaAdicMonoid(Monoid_class):
         #else:
         #    #print "in AA !"
         #    return [place(c).conjugate().N() for c in self.points_exact(n=n, ss=ss, iss=iss)]
-        return [place(c).conjugate().N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
+        return [place(c).N(prec) for c in self.points_exact(n=n, ss=ss, iss=iss)]
     
 #          if n == 0:
 #             #donne un point au hasard dans l'ensemble limite
@@ -1470,6 +1470,8 @@ class BetaAdicMonoid(Monoid_class):
         
         if not hasattr(self, 'ss'):
             self.ss = self.default_ss()
+        
+        if verb: print "relations automaton..."
         
         ar = self.relations_automaton(ext=True)
         ar.complementary()
