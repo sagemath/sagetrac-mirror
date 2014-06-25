@@ -639,17 +639,21 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        filename = graphics_filename(ext='gif')
-        self.gif(delay=delay, savefile=filename, iterations=iterations)
         if sage.doctest.DOCTEST_MODE:
+            filename = os.path.join(sage.misc.misc.SAGE_TMP, 'test.gif')
+            self.gif(delay=delay, savefile=filename, iterations=iterations)
             return
         if plot.EMBEDDED_MODE:
+            filename = graphics_filename(ext='gif')
+            self.gif(delay=delay, savefile=filename, iterations=iterations)
             link = "<img src='cell://%s'>" % filename
             if linkmode:
                 return link
             else:
                 html(link)
         else:
+            filename = tmp_filename(ext='.gif')
+            self.gif(delay=delay, savefile=filename, iterations=iterations)
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
 
