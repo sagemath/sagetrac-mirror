@@ -4460,6 +4460,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def sparsity(self):
+        """
+        Return the number of nonzero monomials of self.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x+x^4+x^7
+            sage: f.sparsity()
+            3
+        """
+        zero = self.parent().base_ring().zero_element()
+        l = self.list()
+        cdef int c
+        while True:
+            try:
+                if l.pop() is not zero: c+=1
+            except IndexError:
+                return c
+
     def prec(self):
         """
         Return the precision of this polynomial. This is always infinity,
@@ -5679,7 +5699,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):
             ret = K._roots_univariate_polynomial(self, ring=ring, multiplicities=multiplicities, algorithm=algorithm)
-            if not ret is None: return ret
+            if ret is not None: return ret
 
         L = K if ring is None else ring
 

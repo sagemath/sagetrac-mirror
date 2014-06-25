@@ -125,6 +125,19 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
+    def sparsity(self):
+        """
+        Return the number of nonzero monomials in self.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: f = x+x^4+x^7
+            sage: f.sparsity()
+            3
+        """
+        return len(self.__coeffs)
+
     def coefficients(self):
         """
         Return the coefficients of the monomials appearing in self.
