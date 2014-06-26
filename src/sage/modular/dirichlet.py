@@ -1897,6 +1897,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
             sage: K.<a> = Qq(9)
             sage: DirichletGroup(2,base_ring=K,zeta=K(-1),zeta_order=2)
+            Group of Dirichlet characters of modulus 2 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
 
         """
         parent_gens.ParentWithMultiplicativeAbelianGens.__init__(self, zeta.parent())
