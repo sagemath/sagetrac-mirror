@@ -19,9 +19,7 @@ AUTHORS:
   This is a significantly modified form of part of the module block_design.py
   (version 0.6) written by Peter Dobcsanyi peter@designtheory.org.
 
-
-Classes and methods
--------------------
+- Vincent Delecroix (2014): major rewrite
 """
 #***************************************************************************
 #                              Copyright (C) 2007                          #
@@ -36,37 +34,18 @@ Classes and methods
 #                    http://www.gnu.org/licenses/                          #
 #***************************************************************************
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial
 
-###  utility functions  -------------------------------------------------------
+from sage.misc.superseded import deprecated_function_alias
+from sage.misc.cachefunc import cached_method
 
-def coordinatewise_product(L):
-    """
-    Returns the coordinatewise product of a list of vectors.
-
-    INPUT:
-
-    - ``L`` is a list of `n`-vectors or lists all of length `n` with a common
-      parent. This returns the vector whose `i`-th coordinate is the product of
-      the `i`-th coordinates of the vectors.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.incidence_structures import coordinatewise_product
-        sage: L = [[1,2,3],[-1,-1,-1],[5,7,11]]
-        sage: coordinatewise_product(L)
-        [-5, -14, -33]
-    """
-    n = len(L[0])
-    ans = [1]*n
-    for x in L:
-        ans = [ans[i]*x[i] for i in range(n)]
-    return ans
+from sage.rings.all import ZZ
+from sage.rings.integer import Integer
 
 def IncidenceStructureFromMatrix(M, name=None):
     """
-    Builds and incidence structure from a matrix.
+    Deprecated function that builds and incidence structure from a matrix.
+
+    You should now use ``designs.IncidenceStructure(incidence_matrix=M)``.
 
     INPUT:
 
@@ -75,90 +54,107 @@ def IncidenceStructureFromMatrix(M, name=None):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.block_design import BlockDesign
-        sage: BD1 = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+        sage: BD1 = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: M = BD1.incidence_matrix()
         sage: BD2 = IncidenceStructureFromMatrix(M)
+        doctest:1: DeprecationWarning: IncidenceStructureFromMatrix is deprecated.
+        Please use designs.IncidenceStructure(incidence_matrix=M) instead.
+        See http://trac.sagemath.org/16553 for details.
         sage: BD1 == BD2
         True
     """
-    nm = name
-    v = len(M.rows())
-    b = len(M.columns())
-    #points = range(v)
-    blocks = []
-    for i in range(b):
-        B = []
-        for j in range(v):
-            if M[j, i] != 0:
-                B.append(j)
-        blocks.append(B)
-    return IncidenceStructure(range(v), blocks, name=nm)
+    from sage.misc.superseded import deprecation
+    deprecation(16553, 'IncidenceStructureFromMatrix is deprecated. Please use designs.IncidenceStructure(incidence_matrix=M) instead.')
+    return IncidenceStructure(incidence_matrix=M, name=name)
 
 class IncidenceStructure(object):
     """
-    This the base class for block designs.
+    A base class for incidence structure (or block design) with explicit ground
+    set and blocks.
+
+    EXAMPLES::
+
+    An incidence structure can be constructed by giving the number of points and the list of
+    blocks::
+
+        sage: designs.IncidenceStructure(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+        Incidence structure with 7 points and 7 blocks
+
+    Or by its adjacency matrix (a `{0,1}`-matrix in which rows are indexed by
+    points and columns by blocks)::
+
+        sage: m = [[0,1,0],[0,0,1],[1,0,1],[1,1,1]]
+        sage: designs.BlockDesign(incidence_matrix=m)
+        Incidence structure with 4 points and 3 blocks
+
+    The order of the points and blocks do not matter (see :trac:`11333`)::
+
+        sage: A = designs.BlockDesign([0,1,2], [[0],[0,2]])
+        sage: B = designs.BlockDesign([1,0,2], [[0],[2,0]])
+        sage: B == A
+        True
+
+        sage: C = designs.BlockDesign(2, [[0], [1,0]])
+        sage: D = designs.BlockDesign(2, [[0,1], [0]])
+        sage: C == D
+        True
     """
-    def __init__(self, pts, blks, inc_mat=None, name=None, test=True):
+    def __init__(self, points=None, blocks=None, incidence_matrix=None, name=None, check=True):
         """
         INPUT:
 
-        - ``pts, blks`` -- a list of points, and a list of lists (list of blocks).
+        - ``points`` -- the points (might be any iterable)
 
-          If each `B` in ``blks`` is contained in ``pts`` then the incidence
-          matrix ` inc_mat`` need not (and should not) be given.  Otherwise,
-          ``inc_mat`` should be the ``ptsxblks`` `(0,1)`-matrix `A` for which
-          `A_i,j=1` iff ``blks[j]`` is incident with ``pts[i]``.
+        - ``blocks`` -- the blocks (might be any iterable)
 
-        - ``inc_mat`` (for giving the `(0,1)`-incidence matrix)
+        - ``incidence_matrix`` -- the incidence matrix
 
         - ``name`` (a string, such as "Fano plane").
 
-        - ``test`` (boolean) - if ``True``, then each block must be a list of pts.
+        - ``check`` -- whether to check the input
 
-        EXAMPLES::
+        TESTS::
 
-            sage: IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            Incidence structure with 7 points and 7 blocks
-
-        Points are sorted  ::
-
-            sage: BD1 = IncidenceStructure([4,6,0,3,2,5,1],[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD1.points()
-            [0, 1, 2, 3, 4, 5, 6]
-
-        TESTS:
-
-        The following shows that :trac:`11333` is fixed.  ::
-
-            sage: A = IncidenceStructure([0,1],[[0]])
-            sage: B = IncidenceStructure([1,0],[[0]])
-            sage: B == A
-            True
-
-        REFERENCES:
-
-        - E. Assmus, J. Key, Designs and their codes, CUP, 1992.
+            sage: designs.IncidenceStructure(3, [[4]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Point 4 is not in the base set.
         """
-        bs = []
-        self.pnts = pts
-        self.pnts.sort()
-        v, blocks = len(pts), blks
-        for block in blocks:
-            if test:
-                for x in block:
-                    if not(x in self.pnts):
-                        raise ValueError('Point %s is not in the base set.' % x)
-            try:
-                y = sorted(block[:])
-                bs.append(y)
-            except Exception:
-                bs.append(block)
-        bs.sort(cmp)
-        self.v = v
-        self.blcks = bs
-        self.name = name
-        self._incidence_matrix = inc_mat
+        if points is None:
+            assert incidence_matrix is not None
+            from sage.matrix.constructor import matrix
+            M = matrix(incidence_matrix)
+            v = M.nrows()
+            b = M.ncols()
+            self._points = range(v)
+            blocks = [[] for _ in range(b)]
+            for i in range(b):
+                for j in range(v):
+                    if not M[j,i].is_zero():
+                        blocks[i].append(j)
+            self._blocks = blocks
+            self._blocks.sort()
+
+        else:
+            assert incidence_matrix is None
+            if isinstance(points, (int,Integer)):
+                self._points = range(points)
+            else:
+                self._points = sorted(points)
+            v = len(self._points)
+            self._blocks = [sorted(block) for block in blocks]
+            self._blocks.sort()
+            if check:
+                for block in self._blocks:
+                    for x in block:
+                        if x not in self._points:
+                            raise ValueError('Point {} is not in the base set.'.format(x))
+                    if len(block) != len(set(block)):
+                        raise ValueError("Repeated element in block {}".format(block))
+
+        self._block_sizes = set(len(b) for b in self._blocks)
+        self._incidence_matrix = None
+        self._name = str(name) if name is not None else 'IncidenceStructure'
 
     def __iter__(self):
         """
@@ -170,8 +166,7 @@ class IncidenceStructure(object):
             sage: list(sts)
             [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
         """
-
-        return iter(self.blcks)
+        return iter(self._blocks)
 
     def __repr__(self):
         """
@@ -184,8 +179,8 @@ class IncidenceStructure(object):
             sage: BD
             Incidence structure with 7 points and 7 blocks
         """
-        repr = 'Incidence structure with %s points and %s blocks' % (len(self.pnts), len(self.blcks))
-        return repr
+        return 'Incidence structure with {} points and {} blocks'.format(
+                self.num_points(), self.num_blocks())
 
     def __str__(self):
         """
@@ -193,24 +188,606 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: print BD
-            BlockDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            sage: BD = designs.IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: print BD
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
         """
-        if self.name:
-            repr = '%s<points=%s, blocks=%s>' % (self.name, self.pnts,
-                                                 self.blcks)
+        return '{}<points={}, blocks={}>'.format(
+                self._name, self._points, self._blocks)
+
+    def __eq__(self, other):
+        """
+        Returns true if their points and blocks are equal (resp.).
+
+        EXAMPLES::
+
+            sage: BD1 = designs.BlockDesign(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: M = BD1.incidence_matrix()
+            sage: BD2 = designs.BlockDesign(incidence_matrix=M)
+            sage: BD1 == BD2
+            True
+        """
+        if not isinstance(other, IncidenceStructure):
+            return False
+        return self.points() == other.points() and self.blocks() == other.blocks()
+
+    def __ne__(self, other):
+        r"""
+        Difference test.
+
+        EXAMPLES::
+
+            sage: BD1 = designs.BlockDesign(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: M = BD1.incidence_matrix()
+            sage: BD2 = designs.BlockDesign(incidence_matrix=M)
+            sage: BD1 != BD2
+            False
+        """
+        return not self.__eq__(other)
+
+    def points(self):
+        r"""
+        Return the list of points.
+
+        EXAMPLES::
+
+            sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).points()
+            [0, 1, 2]
+        """
+        return self._points
+
+    def num_points(self):
+        r"""
+        The number of points in that design.
+
+        EXAMPLES::
+
+            sage: designs.DesarguesianProjectivePlaneDesign(2).num_points()
+            7
+            sage: B = designs.IncidenceStructure(4, [[0,1],[0,2],[0,3],[1,2], [1,2,3]])
+            sage: B.num_points()
+            4
+        """
+        return len(self._points)
+
+    def num_blocks(self):
+        r"""
+        The number of blocks.
+
+        EXAMPLES::
+
+            sage: designs.DesarguesianProjectivePlaneDesign(2).num_blocks()
+            7
+            sage: B = designs.BlockDesign(4, [[0,1],[0,2],[0,3],[1,2], [1,2,3]])
+            sage: B.num_blocks()
+            5
+        """
+        return len(self._blocks)
+
+    def blocks(self):
+        """
+        Return the list of blocks.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.designs.block_design import BlockDesign
+            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.blocks()
+            [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
+        """
+        return self._blocks
+
+    def block_sizes(self):
+        r"""
+        Return the set of block sizes.
+
+        EXAMPLES::
+
+            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
+            sage: BD.block_sizes()
+            set([2, 3, 4])
+            sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.block_sizes()
+            set([3])
+        """
+        return self._block_sizes
+
+    def is_connected(self):
+        r"""
+        Test whether the design is connected.
+
+        EXAMPLES::
+
+            sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).is_connected()
+            True
+            sage: designs.IncidenceStructure(4, [[0,1],[2,3]]).is_connected()
+            False
+        """
+        return self.incidence_graph().is_connected()
+
+    def is_simple(self):
+        r"""
+        Test whether this design is simple (i.e. no repeated block).
+
+        EXAMPLES::
+
+            sage: designs.IncidenceStructure(3, [[0,1],[1,2],[0,2]]).is_simple()
+            True
+            sage: designs.IncidenceStructure(3, [[0],[0]]).is_simple()
+            False
+        """
+        B = self._blocks
+        for b in B:
+            if B.count(b) > 1:
+                return False
+        return True
+
+    def _gap_(self):
+        """
+        Return the GAP string describing the design.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.designs.block_design import BlockDesign
+            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD._gap_()
+            'BlockDesign(7,[[1, 2, 3], [1, 4, 5], [1, 6, 7], [2, 4, 6], [2, 5, 7], [3, 4, 7], [3, 5, 6]])'
+        """
+        B = self.blocks()
+        v = self.num_points()
+        gB = []
+        for b in B:
+            gB.append([x+1 for x in b])
+        return "BlockDesign("+str(v)+","+str(gB)+")"
+
+    def incidence_matrix(self):
+        """
+        Return the incidence matrix `A` of the design. A is a `(v \times b)`
+        matrix defined by: ``A[i,j] = 1`` if ``i`` is in block ``B_j`` and 0
+        otherwise.
+
+        EXAMPLES::
+
+            sage: BD = designs.BlockDesign(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.block_sizes()
+            set([3])
+            sage: BD.incidence_matrix()
+            [1 1 1 0 0 0 0]
+            [1 0 0 1 1 0 0]
+            [1 0 0 0 0 1 1]
+            [0 1 0 1 0 1 0]
+            [0 1 0 0 1 0 1]
+            [0 0 1 1 0 0 1]
+            [0 0 1 0 1 1 0]
+        """
+        if self._incidence_matrix is None:
+            from sage.matrix.constructor import Matrix
+            from sage.rings.all import ZZ
+            A = Matrix(ZZ, self.num_points(), self.num_blocks(), sparse=True)
+            for j, b in enumerate(self.blocks()):
+                for i in b:
+                    A[i, j] = 1
+            self._incidence_matrix = A
+        return self._incidence_matrix
+
+    def incidence_graph(self):
+        """
+        Returns the incidence graph of the design, where the incidence
+        matrix of the design is the adjacency matrix of the graph.
+
+        EXAMPLE::
+
+            sage: BD = designs.BlockDesign(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.incidence_graph()
+            Bipartite graph on 14 vertices
+            sage: A = BD.incidence_matrix()
+            sage: Graph(block_matrix([[A*0,A],[A.transpose(),A*0]])) == BD.incidence_graph()
+            True
+
+        REFERENCE:
+
+        - Sage Reference Manual on Graphs
+        """
+        from sage.graphs.bipartite_graph import BipartiteGraph
+        A = self.incidence_matrix()
+        return BipartiteGraph(A)
+
+    def replication_numbers(self):
+        r"""
+        Return the set replication numbers as an ordered list.
+
+        Given a point `x` in the ground set the *replication number* of `x` is
+        the number of blocks that contains `x`. It is a notion dual to the one
+        of block sizes.
+
+        EXAMPLES::
+
+            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
+            sage: BD.replication_numbers()
+            set([1, 2, 3])
+            sage: BD.dual().block_sizes()
+            set([1, 2, 3])
+
+            sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.replication_numbers()
+            set([3])
+        """
+        pts = {p:0 for p in self._points}
+        for b in self._blocks:
+            for i in b:
+                pts[i] += 1
+        return set(pts.values())
+
+    def intersection_numbers(self):
+        r"""
+        Return the set of intersection numbers as an ordered list.
+
+        EXAMPLES::
+
+            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
+            sage: BD.intersection_numbers()
+            set([0, 1, 2])
+            sage: BD = designs.DesarguesianProjectivePlaneDesign(4)
+            sage: BD.intersection_numbers()
+            set([1])
+        """
+        B = self.blocks()
+        return set(len(frozenset(B[i]).intersection(B[j])) for i in xrange(1,len(B)) for j in xrange(i))
+
+    def degrees(self, t):
+        r"""
+        Return the set of ``t``-degrees of ``self``.
+
+        Given a subset of `t` points, its *degree* is the number of blocks that
+        contain it. It is a generalization of the number of blocks (`0`-indices)
+        and intersection numbers (`1`-indices).
+
+        .. SEEALSO::
+
+            :func:`num_blocks` and :func:`intersection_numbers`.
+
+        EXAMPLES::
+
+            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
+            sage: BD.points()
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            sage: BD.degrees(0)
+            set([4])
+            sage: BD.degrees(1)
+            set([1, 2, 3])
+            sage: BD.degrees(2)
+            set([0, 1, 2])
+            sage: BD.degrees(3)
+            set([0, 1])
+            sage: BD.degrees(4)
+            set([0, 1])
+            sage: BD.degrees(5)
+            set([])
+
+            sage: P = designs.DesarguesianProjectivePlaneDesign(2)
+            sage: P.degrees(2)
+            set([1])
+            sage: P.degrees(3)
+            set([0, 1])
+        """
+        if t == 0:
+            return set([self.num_blocks()])
+
+        v = self.num_blocks()
+        k = max(self._block_sizes)
+
+        if t > max(self._block_sizes):
+            return set()
+
+        p_to_blocks = {p:set([]) for p in self.points()}
+        for i,b in enumerate(self.blocks()):
+            for j in b:
+                p_to_blocks[j].add(i)
+
+        import operator
+        from itertools import combinations
+        I = set()
+        for s in combinations(self.points(), t):
+            # compute the intersection
+            b = reduce(operator.and_, (p_to_blocks[i] for i in s))
+
+            # add it to the current list
+            I.add(len(b))
+        return I
+
+    @cached_method
+    def t_design_parameters(self):
+        r"""
+        Return a 4-tuple `(t,v,k,l)` such that the design is a `t-(v,k,l)`
+        design with `t` maximum.
+
+        If the design is not a `t`-design then an exception occurs.
+
+        EXAMPLES::
+
+        Many affine geometry design are examples of `t`-designs::
+
+            sage: A = designs.AffineGeometryDesign(3, 1, GF(2))
+            sage: A.t_design_parameters()
+            (2, 8, 2, 1)
+            sage: A = designs.AffineGeometryDesign(4, 2, GF(2))
+            sage: A.t_design_parameters()
+            (3, 16, 4, 1)
+
+        Steiner triple and quadruple systems are other names for `2-(v,3,1)` and
+        `3-(v,4,1)` designs::
+
+            sage: S3_9 = designs.steiner_triple_system(9)
+            sage: S3_9.t_design_parameters()
+            (2, 9, 3, 1)
+
+            sage: blocks = designs.steiner_quadruple_system(8)
+            sage: S8 = designs.IncidenceStructure(8, blocks)
+            sage: S8.t_design_parameters()
+            (3, 8, 4, 1)
+
+            sage: blocks = designs.steiner_quadruple_system(14)
+            sage: S14 = designs.IncidenceStructure(14, blocks)
+            sage: S14.t_design_parameters()
+            (3, 14, 4, 1)
+
+        Some examples of Witt designs that need the gap database::
+
+            sage: BD = designs.WittDesign(9)     # optional - gap_packages
+            sage: BD.t_design_parameters()       # optional - gap_packages
+            (2, 9, 3, 1)
+            sage: W12 = designs.WittDesign(12)    # optional - gap_packages
+            sage: W12.t_design_parameters()       # optional - gap_packages
+            (5, 12, 6, 1)
+
+        Further examples::
+
+            sage: D = designs.IncidenceStructure(4,[[],[]])
+            sage: D.t_design_parameters()
+            (0, 4, 0, 2)
+
+            sage: D = designs.IncidenceStructure(4, [[0,1],[0,2],[0,3]])
+            sage: D.t_design_parameters()
+            (0, 4, 2, 3)
+
+            sage: D = designs.IncidenceStructure(4, [[0],[1],[2],[3]])
+            sage: D.t_design_parameters()
+            (1, 4, 1, 1)
+
+            sage: D = designs.IncidenceStructure(4,[[0,1],[2,3]])
+            sage: D.t_design_parameters()
+            (1, 4, 2, 1)
+
+            sage: D = designs.IncidenceStructure(4, [range(4)])
+            sage: D.t_design_parameters()
+            (4, 4, 4, 1)
+
+        Bad cases::
+
+            sage: designs.IncidenceStructure(2, []).t_design_parameters()
+            Traceback (most recent call last):
+            ...
+            ValueError: there should be at least one point and one block in a t-design
+
+            sage: designs.IncidenceStructure(2, [[0],[0,1]]).t_design_parameters()
+            Traceback (most recent call last):
+            ...
+            ValueError: in a t-design all blocks have the same size
+        """
+        from sage.rings.arith import binomial
+
+        v = self.num_points()
+        b = self.num_blocks()
+
+        if v == 0 or b == 0:
+            raise ValueError("there should be at least one point and one block in a t-design")
+
+        k = len(self._blocks[0])
+        if any(len(block) != k for block in self._blocks):
+            raise ValueError("in a t-design all blocks have the same size")
+
+        # here we already know that we are a 0-design
+        deg = self.degrees(1)
+        if len(deg) != 1:
+            return (0,v,k,b)
+        l = deg.pop()
+
+        # here we know that it is a 1-design
+        if k == v:
+            # this is the design (X, {X,X,X,...})
+            return (v,v,v,b)
+
+        t = 1
+
+        for tt in range(2,k+1):
+            # is lambda an integer?
+            if (b*binomial(k,tt)) % binomial(v,tt) != 0:
+                break
+
+            ll = b*binomial(k,tt) // binomial(v,tt)
+            if len(self.degrees(tt)) == 1:
+                t = tt
+                l = ll
+            else:
+                break
+
+        return (t,v,k,l)
+
+
+    def is_t_design(self, t=None, v=None, k=None, l=None):
+        """
+        Test whether ``self`` is a ``t-(v,k,l)` design.
+
+        A `t-(v,k,\lambda)` (sometimes called `t`-design for short) is a block
+        design in which:
+        - the underlying set has cardinality `v`
+        - the blocks have size `k`
+        - each `t`-subset of points is covered by `\lambda` blocks
+
+        INPUT:
+
+        - ``t``, ``v``, ``k``, ``l`` -- optional parameters
+
+        - ``verbose`` (boolean) -- prints useful information when the answer is
+          negative.
+
+        EXAMPLES::
+
+            sage: fano_blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
+            sage: BD = designs.BlockDesign(7, fano_blocks)
+            sage: BD.is_t_design()
+            True
+            sage: BD.t_design_parameters()
+            (2, 7, 3, 1)
+            sage: BD.is_t_design(2, 7, 3, 1)
+            True
+            sage: BD.is_t_design(1, 7, 3, 3)
+            True
+            sage: BD.is_t_design(0, 7, 3, 7)
+            True
+
+            sage: BD.is_t_design(0,6,3,7) or BD.is_t_design(0,7,4,7) or BD.is_t_design(0,7,3,8)
+            False
+
+            sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
+            sage: BD.is_t_design(2)
+            True
+
+        Steiner triple and quadruple systems are other names for `2-(v,3,1)` and
+        `3-(v,4,1)` designs::
+
+            sage: S3_9 = designs.steiner_triple_system(9)
+            sage: S3_9.is_t_design(2,9,3,1)
+            True
+
+            sage: blocks = designs.steiner_quadruple_system(8)
+            sage: S4_8 = designs.IncidenceStructure(8, blocks)
+            sage: S4_8.is_t_design(3,8,4,1)
+            True
+
+            sage: blocks = designs.steiner_quadruple_system(14)
+            sage: S4_14 = designs.IncidenceStructure(14, blocks)
+            sage: S4_14.is_t_design(3,14,4,1)
+            True
+
+        Some examples of Witt designs that need the gap database::
+
+            sage: BD = designs.WittDesign(9)         # optional - gap_packages
+            sage: BD.is_t_design(2,9,3,1)            # optional - gap_packages
+            True
+            sage: W12 = designs.WittDesign(12)       # optional - gap_packages
+            sage: W12.is_t_design(5,12,6,1)          # optional - gap_packages
+            True
+            sage: W12.is_t_design(4)                 # optional - gap_packages
+            True
+
+        TESTS::
+
+            sage: blocks = designs.steiner_quadruple_system(8)
+            sage: S4_8 = designs.IncidenceStructure(8, blocks)
+            sage: R = range(15)
+            sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(3,v,k,l)]
+            [(8, 4, 1)]
+            sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(2,v,k,l)]
+            [(8, 4, 3)]
+            sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(1,v,k,l)]
+            [(8, 4, 7)]
+            sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(0,v,k,l)]
+            [(8, 4, 14)]
+        """
+        try:
+            tt,vv,kk,ll = self.t_design_parameters()
+        except ValueError:
+            return False
+
+        if t is None:
+            t = tt
+
+        if t > tt:
+            return False
+
+        # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
+        # also a s-(v,k,lambda_s) design with:
+        # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
+
+        from sage.rings.arith import binomial
+        return ((v is None or v == vv) and
+                (k is None or k == kk) and
+                (l is None or l == ll * binomial(v-t,tt-t) // binomial(k-t,tt-t)))
+
+    #####################
+    # real computations #
+    #####################
+
+    def dual(self, algorithm=None):
+        """
+        Returns the dual of the incidence structure.
+
+        Note that the dual of a block design may not be a block design.
+
+        INPUT:
+
+        - ``algorithm`` -- whether to use Sage's implementation
+          (``algorithm=None``, default) or use GAP's (``algorithm="gap"``).
+
+          .. NOTE::
+
+              The ``algorithm="gap"`` option requires GAP's Design package
+              (included in the gap_packages Sage spkg).
+
+        EXAMPLES:
+
+        The dual of a projective plane is a projective plane::
+
+            sage: PP = designs.DesarguesianProjectivePlaneDesign(4)
+            sage: PP.dual().t_design_parameters()
+            (2, 21, 5, 1)
+
+        TESTS::
+
+            sage: D = designs.IncidenceStructure(4, [[0,2],[1,2,3],[2,3]])
+            sage: D
+            Incidence structure with 4 points and 3 blocks
+            sage: D.dual()
+            Incidence structure with 3 points and 4 blocks
+            sage: print D.dual(algorithm="gap")       # optional - gap_packages
+            IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
+            sage: blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
+            sage: BD = designs.IncidenceStructure(7, blocks, name="FanoPlane");
+            sage: BD
+            Incidence structure with 7 points and 7 blocks
+            sage: print BD.dual(algorithm="gap")         # optional - gap_packages
+            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            sage: BD.dual()
+            Incidence structure with 7 points and 7 blocks
+
+        REFERENCE:
+
+        - Soicher, Leonard, Design package manual, available at
+          http://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
+        """
+        if algorithm == "gap":
+            from sage.interfaces.gap import gap
+            gap.load_package("design")
+            gD = self._gap_()
+            gap.eval("DD:=DualBlockDesign("+gD+")")
+            v = eval(gap.eval("DD.v"))
+            gblcks = eval(gap.eval("DD.blocks"))
+            gB = []
+            for b in gblcks:
+                gB.append([x-1 for x in b])
+            return IncidenceStructure(range(v), gB, name=None, check=False)
         else:
-            repr = 'IncidenceStructure<points=%s, blocks=%s>' % (self.pnts,
-                                                                 self.blcks)
-        return repr
+            from block_design import BlockDesign
+            return IncidenceStructure(
+                          incidence_matrix=self.incidence_matrix().transpose(),
+                          check=False)
 
     def automorphism_group(self):
-        """
+        r"""
         Returns the subgroup of the automorphism group of the incidence graph
         which respects the P B partition. It is (isomorphic to) the automorphism
         group of the block design, although the degrees differ.
@@ -227,11 +804,10 @@ class IncidenceStructure(object):
 
         A non self-dual example::
 
-            sage: from sage.combinat.designs.incidence_structures import IncidenceStructure
-            sage: IS = IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
+            sage: IS = designs.IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
             sage: IS.automorphism_group().cardinality()
             6
-            sage: IS.dual_design().automorphism_group().cardinality()
+            sage: IS.dual().automorphism_group().cardinality()
             1
         """
         from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
@@ -241,10 +817,21 @@ class IncidenceStructure(object):
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
-        return PermutationGroup(gens, domain=range(self.v))
+        return PermutationGroup(gens, domain=self.points())
+
+    ###############
+    # Deprecation #
+    ###############
+
+    parameters = deprecated_function_alias(16553, t_design_parameters)
+    dual_design = deprecated_function_alias(16553, dual)
+    dual_incidence_structure = deprecated_function_alias(16553, dual)
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """
+        This method is deprecated and will soon be removed (see :trac:`16553`).
+        You could use :meth:`is_t_design` or :meth:`t_design_parameters` instead.
+
         This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
         Design function IsBlockDesign
         http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htm
@@ -277,395 +864,47 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.is_block_design()
-            (True, [2, 7, 3, 1])
-            sage: BD.block_design_checker(2, 7, 3, 1)
-            True
-            sage: BD.block_design_checker(2, 7, 3, 1,"binary")
-            True
-            sage: BD.block_design_checker(2, 7, 3, 1,"connected")
-            True
-            sage: BD.block_design_checker(2, 7, 3, 1,"simple")
-            True
-        """
-        from sage.sets.set import Set
-        if not(v == len(self.points())):
-            return False
-        b = lmbda*binomial(v, t)/binomial(k, t)
-        r = int(b*k/v)
-        if not(b == len(self.blocks())):
-            return False
-        if not(ZZ(v).divides(b*k)):
-            return False
-        A = self.incidence_matrix()
-        #k = sum(A.columns()[0])
-        #r = sum(A.rows()[0])
-        for i in range(b):
-            if not(sum(A.columns()[i]) == k):
-                return False
-        for i in range(v):
-            if not(sum(A.rows()[i]) == r):
-                return False
-        if type is None:
-            return True
-        if type == "binary":
-            for b in self.blocks():
-                if len(b) != len(Set(b)):
-                    return False
-            return True
-        if type == "simple":
-            B = self.blocks()
-            for b in B:
-                if B.count(b) > 1:
-                    return False
-            return True
-        if type == "connected":
-            Gamma = self.incidence_graph()
-            if Gamma.is_connected():
-                return True
-            else:
-                return False
-
-    def blocks(self):
-        """
-        Return the list of blocks.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.blocks()
-            [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
-        """
-        B = sorted(self.blcks)
-        return B
-
-    def __eq__(self, other):
-        """
-        Returns true if their points and blocks are equal (resp.).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD1 = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: M = BD1.incidence_matrix()
-            sage: BD2 = IncidenceStructureFromMatrix(M)
-            sage: BD1 == BD2
-            True
-        """
-        bool1 = self.points() == other.points()
-        bool2 = self.blocks() == other.blocks()
-        return (bool1 and bool2)
-
-    def block_sizes(self):
-        """
-        Return a list of block's sizes.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.block_sizes()
-            [3, 3, 3, 3, 3, 3, 3]
-        """
-        self._block_sizes = map(len, self.blocks())
-        return self._block_sizes
-
-    def _gap_(self):
-        """
-        Return the GAP string describing the design.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD._gap_()
-            'BlockDesign(7,[[1, 2, 3], [1, 4, 5], [1, 6, 7], [2, 4, 6], [2, 5, 7], [3, 4, 7], [3, 5, 6]])'
-        """
-        B = self.blocks()
-        v = len(self.points())
-        gB = []
-        for b in B:
-            gB.append([x+1 for x in b])
-        return "BlockDesign("+str(v)+","+str(gB)+")"
-
-    def dual_incidence_structure(self, algorithm=None):
-        """
-        Returns the dual of the incidence structure.
-
-        Note that the dual of a block design may not be a block design.
-
-        INPUT:
-
-        - ``algorithm`` -- whether to use Sage's implementation
-          (``algorithm=None``, default) or use GAP's (``algorithm="gap"``).
-
-          .. NOTE::
-
-              The ``algorithm="gap"`` option requires GAP's Design package
-              (included in the gap_packages Sage spkg).
-
-        Also can be called with ``dual_design``.
-
-        EXAMPLES:
-
-        The dual of a projective plane is a projective plane::
-
-            sage: PP = designs.DesarguesianProjectivePlaneDesign(4)
-            sage: PP.dual_design().is_block_design()
-            (True, [2, 21, 5, 1])
-            sage: PP = designs.DesarguesianProjectivePlaneDesign(4) # optional - gap_packages
-            sage: PP.dual_design(algorithm="gap").is_block_design() # optional - gap_packages
-            (True, [2, 21, 5, 1])
-
-        TESTS::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]], test=False)
-            sage: D
-            Incidence structure with 4 points and 3 blocks
-            sage: D.dual_design()
-            Incidence structure with 3 points and 4 blocks
-            sage: print D.dual_design(algorithm="gap")       # optional - gap_packages
-            IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
-            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
-            sage: BD
-            Incidence structure with 7 points and 7 blocks
-            sage: print BD.dual_design(algorithm="gap")         # optional - gap_packages
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-            sage: BD.dual_incidence_structure()
-            Incidence structure with 7 points and 7 blocks
-
-        REFERENCE:
-
-        - Soicher, Leonard, Design package manual, available at
-          http://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
-        """
-        if algorithm == "gap":
-            from sage.interfaces.gap import gap
-            gap.load_package("design")
-            gD = self._gap_()
-            gap.eval("DD:=DualBlockDesign("+gD+")")
-            v = eval(gap.eval("DD.v"))
-            gblcks = eval(gap.eval("DD.blocks"))
-            gB = []
-            for b in gblcks:
-                gB.append([x-1 for x in b])
-            return IncidenceStructure(range(v), gB, name=None, test=False)
-        else:
-            M = self.incidence_matrix()
-            new_blocks = [list(r.dict(copy=False)) for r in M.rows()]
-            return IncidenceStructure(range(M.ncols()), new_blocks, name=None, test=False)
-
-    dual_design = dual_incidence_structure  # to preserve standard terminology
-
-    def incidence_matrix(self):
-        """
-        Return the incidence matrix `A` of the design. A is a `(v \times b)`
-        matrix defined by: ``A[i,j] = 1`` if ``i`` is in block ``B_j`` and 0
-        otherwise.
-
-        EXAMPLES::
-
-            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.block_sizes()
-            [3, 3, 3, 3, 3, 3, 3]
-            sage: BD.incidence_matrix()
-            [1 1 1 0 0 0 0]
-            [1 0 0 1 1 0 0]
-            [1 0 0 0 0 1 1]
-            [0 1 0 1 0 1 0]
-            [0 1 0 0 1 0 1]
-            [0 0 1 1 0 0 1]
-            [0 0 1 0 1 1 0]
-        """
-        if not self._incidence_matrix is None:
-            return self._incidence_matrix
-        else:
-            from sage.matrix.constructor import Matrix
-            v = len(self.points())
-            blks = self.blocks()
-            b = len(blks)
-            A = Matrix(ZZ, v, b, sparse=True)
-            for j, b in enumerate(blks):
-                for i in b:
-                    A[i, j] = 1
-            self._incidence_matrix = A
-            return A
-
-    def incidence_graph(self):
-        """
-        Returns the incidence graph of the design, where the incidence
-        matrix of the design is the adjacency matrix of the graph.
-
-        EXAMPLE::
-
-            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.incidence_graph()
-            Bipartite graph on 14 vertices
-            sage: A = BD.incidence_matrix()
-            sage: Graph(block_matrix([[A*0,A],[A.transpose(),A*0]])) == BD.incidence_graph()
-            True
-
-        REFERENCE:
-
-        - Sage Reference Manual on Graphs
-        """
-        from sage.graphs.bipartite_graph import BipartiteGraph
-        A = self.incidence_matrix()
-        return BipartiteGraph(A)
-
-    def is_block_design(self, verbose=False):
-        """
-        Returns a pair ``True, pars`` if the incidence structure is a
-        `t`-design, for some `t`, where ``pars`` is the list of parameters `(t,
-        v, k, lmbda)`.  The largest possible `t` is returned, provided `t=10`.
-
-        INPUT:
-
-        - ``verbose`` (boolean) -- prints useful information when the answer is
-          negative.
-
-        EXAMPLES::
-
-            sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.is_block_design()
-            (True, [2, 7, 3, 1])
-            sage: BD.block_design_checker(2, 7, 3, 1)
-            True
-            sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
-            sage: BD.is_block_design()         # optional - gap_packages (design package)
-            (True, [2, 9, 3, 1])
-            sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
-            sage: BD.is_block_design()         # optional - gap_packages (design package)
-            (True, [5, 12, 6, 1])
-            sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
-            sage: BD.is_block_design()
-            (True, [2, 8, 2, 1])
-        """
-        from sage.rings.arith import binomial
-        from itertools import combinations
-        v = len(self.points())
-        b = len(self.blcks)
-
-        # Definition and consistency of 'k' and 'r'
-        #
-        # r_list stores the degree of each point
-        k = len(self.blcks[0])
-        r_list = [0]*v
-        for block in self.blcks:
-            if len(block) != k:
-                if verbose:
-                    print "All blocks do not have the same size"
-                return False
-            for x in block:
-                r_list[x] += 1
-
-        r = r_list[0]
-        if any(x!=r for x in r_list):
-            if verbose:
-                print "All points do not have the same degree"
-            return False
-
-        # Definition and consistency of 'l' (lambda) and 't'
-        t_found_yet = False
-
-        for t in range(2,min(v,k+1)):
-            # Is lambda an integer ?
-            if (b*binomial(k,t)) % binomial(v,t) == 0:
-                l = (b*binomial(k,t))/binomial(v,t)
-            else:
-                continue
-
-            # Associates to every t-subset of [v] the number of its occurrences
-            # as a subset of a block
-            t_counts = {}
-            for block in self.blcks:
-                for t_set in combinations(sorted(block),t):
-                    t_counts[t_set] = t_counts.get(t_set,0)+1
-
-            # Checking the consistency of l
-            l_values = t_counts.values()
-
-            if all(l == x for x in l_values):
-                t_found_yet = True
-                t_lambda = t,l
-
-        if t_found_yet:
-            t,l = t_lambda
-            return (True, [t,v,k,l])
-        else:
-            return (False, [0,0,0,0])
-
-    def parameters(self, t=None):
-        """
-        Returns `(t,v,k,lambda)`. Does not check if the input is a block
-        design.
-
-        INPUT:
-
-        - ``t`` -- `t` such that the design is a `t`-design.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
-            sage: BD.parameters(t=2)
+            sage: BD = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD.t_design_parameters()
             (2, 7, 3, 1)
-            sage: BD.parameters(t=3)
-            (3, 7, 3, 0)
-        """
-        if t is None:
-            from sage.misc.superseded import deprecation
-            deprecation(15664, "the 't' argument will become mandatory soon. 2"+
-                        " is used when none is provided.")
-            t = 2
+            sage: BD.block_design_checker(2, 7, 3, 1)
+            doctest:...: DeprecationWarning: .block_design_checker(v,t,k,lmbda) is deprecated; please use
+            .is_t_design(v,t,k,lmbda) instead
+            See http://trac.sagemath.org/16553 for details.
+            True
 
-        v = len(self.points())
-        blks = self.blocks()
-        k = len(blks[int(0)])
-        b = len(blks)
-        #A = self.incidence_matrix()
-        #r = sum(A.rows()[0])
-        lmbda = int(b/(binomial(v, t)/binomial(k, t)))
-        return (t, v, k, lmbda)
+            sage: BD.block_design_checker(2, 7, 3, 1,"binary")
+            doctest:1: DeprecationWarning: .block_design_checker(type='binary') is
+            deprecated; use .is_binary() instead
+            See http://trac.sagemath.org/16553 for details.
+            True
 
-    def points(self):
-        """
-        Returns the list of points.
+            sage: BD.block_design_checker(2, 7, 3, 1,"connected")
+            doctest:1: DeprecationWarning: block_design_checker(type='connected') is
+            deprecated, please use .is_connected() instead
+            See http://trac.sagemath.org/16553 for details.
+            True
 
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.points()
-            [0, 1, 2, 3, 4, 5, 6]
-        """
-        return self.pnts
-
-    def points_from_gap(self):
-        """
-        Literally pushes this block design over to GAP and returns the
-        points of that. Other than debugging, usefulness is unclear.
-
-        REQUIRES: GAP's Design package.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.points_from_gap()      # optional - gap_packages (design package)
-            doctest:1: DeprecationWarning: Unless somebody protests this method will be removed, as nobody seems to know why it is there.
-            See http://trac.sagemath.org/14499 for details.
-            [1, 2, 3, 4, 5, 6, 7]
+            sage: BD.block_design_checker(2, 7, 3, 1,"simple")
+            doctest:1: DeprecationWarning: .block_design_checker(type='simple')
+            is deprecated; all designs here are simple!
+            See http://trac.sagemath.org/16553 for details.
+            True
         """
         from sage.misc.superseded import deprecation
-        deprecation(14499, ('Unless somebody protests this method will be '
-                            'removed, as nobody seems to know why it is there.'))
-        from sage.interfaces.gap import gap
-        gap.load_package("design")
-        gD = self._gap_()
-        gP = gap.eval("BlockDesignPoints("+gD+")").replace("..", ",")
-        return range(eval(gP)[0], eval(gP)[1]+1)
+
+        ans = self.is_t_design(t,v,k,lmbda)
+
+        if type is None:
+            deprecation(16553, ".block_design_checker(v,t,k,lmbda) is deprecated; please use .is_t_design(v,t,k,lmbda) instead")
+            return ans
+
+        if type == "binary":
+            deprecation(16553, ".block_design_checker(type='binary') is deprecated; use .is_binary() instead")
+            return True
+        if type == "simple":
+            deprecation(16553, ".block_design_checker(type='simple') is deprecated; all designs here are simple!")
+            return True
+        if type == "connected":
+            deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
+            return self.incidence_graph().is_connected()

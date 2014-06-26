@@ -1016,7 +1016,9 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters(t=2)
+        sage: d.is_t_design(t=2)
+        True
+        sage: d.t_design_parameters()
         (2, 2, 2, 2)
     """
 
