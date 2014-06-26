@@ -187,12 +187,14 @@ class Animation(SageObject):
         ....:            for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
 
-    Do not convert input iterator to a list::
+    Do not convert input iterator to a list too early::
 
-        sage: a = animate((x^p for p in sxrange(1,2,.1))); a
+        sage: a = animate((plot(x^p, (x,0,2)) for p in sxrange(1,2,.1))); a
         Animation with unknown number of frames
         sage: a._frames
         <generator object ...
+        sage: a.png(); a._frames  # long time
+        [Graphics object ...]
 
     """
     def __init__(self, v=None, **kwds):
@@ -430,7 +432,7 @@ class Animation(SageObject):
             d = tmp_dir()
         else:
             d = dir
-        G = self._frames
+        self._frames = list(self._frames)
         for i, frame in enumerate(self._frames):
             filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
             try:
