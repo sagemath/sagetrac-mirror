@@ -43,6 +43,8 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 from sage.structure.factorization import Factorization
 
+from sage.modules.vector_integer_dense import Vector_integer_dense
+from sage.modules.vector_rational_dense import Vector_rational_dense
 
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
@@ -214,7 +216,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         elif PY_TYPE_CHECK(x, Rational):
             fmpq_poly_set_mpq(self.__poly, (<Rational> x).value)
 
-        elif PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
+        elif PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple) or \
+             PY_TYPE_CHECK(x, Vector_integer_dense) or \
+             PY_TYPE_CHECK(x, Vector_rational_dense):
 
             if len(x) == 0:
                 return

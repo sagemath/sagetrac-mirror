@@ -109,6 +109,9 @@ import sage.rings.ring
 from sage.misc.latex import latex_variable_name
 from sage.misc.misc import union
 
+from sage.modules.vector_integer_dense import Vector_integer_dense
+from sage.modules.vector_rational_dense import Vector_rational_dense
+
 from unit_group import UnitGroup
 from class_group import ClassGroup
 from class_group import SClassGroup
@@ -6279,7 +6282,7 @@ class NumberField_absolute(NumberField_generic):
         """
         if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
-                              list)):
+                              list, Vector_rational_dense, Vector_integer_dense)):
             return self._element_class(self, x)
 
         if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\

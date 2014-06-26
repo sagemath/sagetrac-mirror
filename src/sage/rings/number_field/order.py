@@ -1352,6 +1352,89 @@ class AbsoluteOrder(Order):
             self.__basis = B
         return B
 
+    def basis_matrix(self):
+        """
+        Return the basis matrix for this order.
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(16)
+            sage: O = K.ring_of_integers()
+            sage: O.basis_matrix()
+            [1 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0]
+            [0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 1]
+
+            sage: k.<i> = NumberField(x^2 + 1)
+            sage: O6 = k.order(6*i)
+            sage: O6.basis_matrix()
+            [1 0]
+            [0 6]
+        """
+        from sage.matrix.constructor import matrix
+        return matrix([g.vector() for g in self.basis()])
+        
+    def random_element(self, distribution='default', sigma=1.0, check=True, *args, **kwds):
+        """
+        Return a random element of this order.
+
+        INPUT:
+
+        - ``distribution`` -- either ``"default"`` or ``"gaussian"``.
+        - ``sigma`` -- used by Gaussian distribution
+        - ``check`` -- used by Gaussian distribution
+        - ``args``, ``kwds`` -- parameters passed to the random
+          integer function if ``"default"`` distribution is chosen.
+          See the documentation for ``ZZ.random_element()`` for details.
+
+        DISTRIBUTIONS:
+
+        - ``default`` -- sample multiplies with ``ZZ.random_element(*args, **kwds)``
+          and multiply by basis elements.
+
+        - ``gaussian`` -- return samples following a discrete Gaussian distribution
+          with parameter `σ` and centered at zero. Samples are returned with probability
+
+          `\exp(-|r|_2^2/(2σ²))/(∑_{r ∈ R} \exp(-|r|_2^2/(2σ²)))`
+
+          where `|r|_2` is the `ℓ_2` norm of the coefficient vector of some element `r`
+          and `R` is this order. The parameter ``sigma`` can either be a real number
+          or an instance of :class:`sage.stats.distributions.discrete_gaussian_lattice.DiscreteGaussianLatticeSampler`.
+          If ``check==True`` then instances of this class are checked if they
+          match ``self.basis_basis()``.
+
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(16)
+            sage: R = K.ring_of_integers()
+            sage: R.random_element(distribution='gaussian', sigma=3.0)
+            2*zeta16^7 + 3*zeta16^6 + 3*zeta16^5 + zeta16^4 + 5*zeta16^2 + 3
+            
+            sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+            sage: D = DiscreteGaussianLatticeSampler(R.basis_matrix(), sigma=10.0)
+            sage: R.random_element(distribution='gaussian', sigma=D)
+            -3*zeta16^7 - 4*zeta16^6 - 4*zeta16^5 - 5*zeta16^4 + zeta16^3 + 4*zeta16^2 - 2*zeta16 - 4
+
+        """
+        if distribution == 'default':
+            return Order.random_element(self, *args, **kwds)
+        elif distribution == 'gaussian':
+            from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+            if isinstance(sigma, DiscreteGaussianLatticeSampler):
+                D = sigma
+                if check:
+                    if self.basis_matrix() != D.B:
+                        raise ValueError("D's lattice does not match this ring.")
+            else:
+                D = DiscreteGaussianLatticeSampler(self.basis_matrix(), sigma)
+            return self(D())
+        
     def absolute_order(self):
         """
         Return the absolute order associated to this order, which is
