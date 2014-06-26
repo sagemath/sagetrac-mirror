@@ -737,6 +737,7 @@ class table(SageObject):
             <td><script type="math/tex">x</script></td>
         """
         from sage.plot.all import Graphics
+        from sage.plot.animate import Animation
         from latex import latex
         from html import math_parse
         import types
@@ -755,7 +756,7 @@ class table(SageObject):
 
         # First entry of row:
         entry = row[0]
-        if isinstance(entry, Graphics):
+        if isinstance(entry, (Graphics, Animation)):
             print(first_column_tag % entry.show(linkmode = True))
         elif isinstance(entry, str):
             print(first_column_tag % math_parse(entry))
@@ -764,7 +765,7 @@ class table(SageObject):
 
         # Other entries:
         for column in xrange(1,len(row)):
-            if isinstance(row[column], Graphics):
+            if isinstance(row[column], (Graphics, Animation)):
                 print(column_tag % row[column].show(linkmode = True))
             elif isinstance(row[column], str):
                 print(column_tag % math_parse(row[column]))
