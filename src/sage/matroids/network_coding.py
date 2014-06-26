@@ -2,57 +2,7 @@ from sage.rings.finite_rings.finite_field_prime_modn import *
 from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
-R=None
-def add2(R,M):
-    for N in R:
-        if M.is_field_isomorphic(N):
-            return
-    R.append(M)
-    
-def extensions2(M):
-    R=[]
-    x=len(M)
-    for N in M.linear_extensions(len(M)):
-        add2(R,N)
-    return R
-
-def next2(R):
-    R2=[]
-    for M in R:
-        for N in extensions2(M):
-            add2(R2,N)
-    return R2
-
-def all2(N, R=10):
-    MM={}
-    # loop over n= 0 to N
-    for n in xrange(N+1):
-        MM[n,0]=[BinaryMatroid(identity_matrix(GF(2),n))]
-        print "MM is", MM 
-        for r in xrange(min(n,R+1)):
-            print 'n,r', n,r
-            MM[r,n-r]=next2(MM[r,n-r-1])
-        print [len(MM[r,n-r]) for r in xrange(min(n,R)+1)]
-    return MM
-
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
-
-def see(N,mdict):
-    """
-    Return a dictionary that maps matroids in mdict to their respective extensions
-    The keys are tuples ``(r,index)`` where ``r`` is the rank and ``index`` is the 
-    index of parent in the list it was in ``mdict``  
-    """
-    
-
-def extendpmaps(M,M_codes,M_child):
-    """
-    Return a maximal list of p-codes corresponding to a given matroid
-    """
-    
-    return
-
-
 
 def addpcode(list_of_pcodes,pcode):
     """
@@ -78,7 +28,7 @@ def is_pmap_deletion(dict1,dict2):
         return False 
     idict1=invert(dict1)
     idict2=invert(dict2)
-    # check variable set containmentadd
+    # check variable set containment
     if Set(idict1.keys()).issubset(Set(idict2.keys())) == True:
         for key in idict1.keys():
             if idict1[key] != idict2[key]: #non-matching variable definitions
@@ -87,14 +37,7 @@ def is_pmap_deletion(dict1,dict2):
         return False
     return True
     
-    
-
-
-def naive_candidates(M_ext,list_of_pmaps):
-    
-    cand = []
-    
-    
+        
 def invert(m):
     """
     Inverts the given network to matroid or matroid to network mapping
@@ -127,8 +70,6 @@ def init_enum(ncinstance,r,N):
     returns a rank r matroid on r elements and all the p-codes it forms
     by using brute force
     """
-    parts=OrderedSet(
-    
 
 
 def ncinstance_vars(nc):
@@ -171,9 +112,27 @@ def is_pcode(M,pmap,ncinstance):
         if src_sum != src_joint:
             return False
     return True
+
+
+def see(N,mdict):
+    """
+    Return a dictionary that maps matroids in mdict to their respective extensions
+    The keys are tuples ``(r,index)`` where ``r`` is the rank and ``index`` is the 
+    index of parent in the list it was in ``mdict``  
+    """
     
-                
+
+def extendpmaps(M,M_codes,M_child):
+    """
+    Return a maximal list of p-codes corresponding to a given matroid
+    """
+ 
+    return
+
+def naive_candidates(M_ext,list_of_pmaps):
     
+    cand = []    
+   
 def butterfly():
  return [[ [[3,4],[1,2,3,4]], [[5,7],[3,5,7]], [[6,7],[4,6,7]] ],[1,2]]
  
