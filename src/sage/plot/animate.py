@@ -615,23 +615,27 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
         return savefile
 
-    def show(self, **kwargs):
+    def show(self, format=None, linkmode=False, mimetype=None, **kwargs):
         r"""
         Show this animation.
 
         INPUT:
 
 
-        - ``format`` - (default: gif) format to use for output
+        - ``format`` - (default: gif) format to use for output.
+
+        - ``linkmode`` - (default: False) if True a string containing a
+           link to the produced file is returned. Will override the
+           default format.
+
+        - ``mimetype`` - (default: 'video/'+format) the mime type to be
+            used in an HTML5 video tag.
 
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
 
         -  ``iterations`` - integer (default: 0); number of
            iterations of animation. If 0, loop forever.
-
-        - ``linkmode`` - (default: False) If True a string containing a link
-            to the produced file is returned.
 
         .. note::
 
@@ -665,6 +669,11 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a.show(format="gif", use_ffmpeg=True)  # optional -- ffmpeg
             sage: a.show(format="png")                   # long time
 
+        You can also make use of the HTML5 video element in notebooks::
+
+            sage: a.show(format="webm")                  # optional -- ffmpeg
+            sage: a.show(mimetype="video/ogg")           # optional -- ffmpeg
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -676,9 +685,18 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        linkmode = kwargs.pop('linkmode', False)
-        format = kwargs.pop('format', 'gif')
+        if format is None:
+            if mimetype is not None:
+                import mimetypes
+                format = mimetypes.guess_extension(mimetype, strict=False)
+                if format is None:
+                    raise ValueError("MIME type without associated extension")
+                else:
+                    format = format.lstrip(".")
+            else:
+                format = "gif"
         suffix = format
+        # we might want to translate from format to suffix in some cases.
         if plot.EMBEDDED_MODE:
             filename = graphics_filename(ext=suffix)
         else:
@@ -687,7 +705,19 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         if sage.doctest.DOCTEST_MODE:
             return
         elif plot.EMBEDDED_MODE:
-            link = "<img src='cell://%s'>" % filename
+            if format in ['gif', 'png']:
+                link = '<img src="cell://%s" />' % filename
+            else:
+                if mimetype is None:
+                    import mimetypes
+                    mimetype = mimetypes.guess_type(filename, strict=False)[0]
+                    if mimetype is None:
+                        mimetype = 'video/' + format
+                link = ('<video autoplay="autoplay" controls="controls">'
+                        '<source src="cell://{0}" type="{1}" /><p>'
+                        '<a target="_new" href="cell://{0}" class="file_link">'
+                        'Download {2} video</a></p></video>'
+                        ).format(filename, mimetype, format)
             if linkmode:
                 return link
             else:
