@@ -2,11 +2,18 @@ r"""
 Animated plots
 
 Animations are generated from a list (or other iterable) of graphics
-objects.  Images are produced by calling the ``save_image`` method on
-each input object, and using ImageMagick's ``convert`` program [IM] or
-``ffmpeg`` [FF] to generate an animation.  The output format is GIF by
-default, but can be any of the formats supported by ``convert`` or
-``ffmpeg``.
+objects.
+Images are produced by calling the ``save_image`` method on each input
+object, creating a sequence of PNG files.
+These are then assembled to various target formats using different
+tools.
+In particular, the ``convert`` program from ImageMagick_ can be used to
+generate an animated GIF file.
+FFmpeg_ (with the command line program ``ffmpeg``) provides support for
+various video formats, but also an alternative method of generating
+animated GIFs.
+For `browsers which support it`_, APNG_ can be used as another
+alternative which works without any extra dependencies.
 
 .. Warning::
 
@@ -15,24 +22,25 @@ default, but can be any of the formats supported by ``convert`` or
     convert`` at a command prompt to see if ``convert`` (part of the
     ImageMagick suite) is installed.  If it is, you will be given its
     location.  Similarly, you can check for ``ffmpeg`` with ``which
-    ffmpeg``.  See [IM] or [FF] for installation instructions.
+    ffmpeg``.  See the websites of ImageMagick_ or FFmpeg_ for
+    installation instructions.
 
 EXAMPLES:
 
 The sine function::
 
-    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1,ymax=1) for c in sxrange(0,1,.2)]
+    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in sxrange(0,1,.2)]
     sage: a = animate(sines)
     sage: a
     Animation with 5 frames
     sage: a.show()  # optional -- ImageMagick
 
-Animate using ffmpeg instead of ImageMagick::
+Animate using FFmpeg_ instead of ImageMagick::
 
     sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
-    sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
+    sage: a.save(filename=f, use_ffmpeg=True) # optional -- ffmpeg
 
-Animate as an Animated PNG::
+Animate as an APNG_::
 
     sage: a.show(format="png")  # long time
 
@@ -85,11 +93,12 @@ AUTHORS:
 - Niles Johnson (2013-12): Expand to animate more graphics objects
 - Martin von Gagern
 
-REFERENCES:
+.. REFERENCES (not rendered as a section, but linked inline):
 
-.. [IM] http://www.imagemagick.org
-
-.. [FF]  http://www.ffmpeg.org
+.. _ImageMagick: http://www.imagemagick.org
+.. _FFmpeg: http://www.ffmpeg.org
+.. _`browsers which support it`: http://caniuse.com/#feat=apng
+.. _APNG: https://wiki.mozilla.org/APNG_Specification
 
 """
 
@@ -121,6 +130,8 @@ def animate(frames, **kwds):
         sage: t = var('t')
         sage: a = animate((cos(c*pi*t) for c in sxrange(1,2,.2)))
         sage: a.show()  # optional -- ImageMagick
+
+    See also :mod:`sage.plot.animate` for more examples.
     """
     return Animation(frames, **kwds)
 
@@ -144,8 +155,9 @@ class Animation(SageObject):
 
     EXAMPLES::
 
-        sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
-        ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+        sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+        ....:              for k in srange(0,2*pi,0.3)],
+        ....:             ymin=-1, ymax=1, figsize=[2,1])
         sage: a
         Animation with 21 frames
         sage: a[:5]
@@ -184,7 +196,7 @@ class Animation(SageObject):
     We check that :trac:`7981` is fixed::
 
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
-        ....:            for k in srange(0,2*pi,0.3)])
+        ....:              for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
 
     Do not convert input iterator to a list too early::
@@ -205,8 +217,9 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1]) # indirect doctest
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.3)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: a
             Animation with 21 frames
         """
@@ -473,7 +486,7 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(); print g
             Graphics Array of size 2 x 3
-            sage: g.show(figsize=[4,1]) # optional
+            sage: g.show(figsize=[6,3]) # optional
 
         Specify different arrangement of array and save with different file name::
 
@@ -534,8 +547,9 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.gif()              # optional -- ImageMagick
             '...gif'
@@ -630,9 +644,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: a.show()       # optional -- ImageMagick
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
+            sage: a.show()               # optional -- ImageMagick
 
         The preceding will loop the animation forever. If you want to show
         only three iterations instead::
@@ -642,6 +657,13 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         To put a half-second delay between frames::
 
             sage: a.show(delay=50)        # optional -- ImageMagick
+
+        Sometimes one can obtain better results, or obtain results more
+        quickly, by using a different file format or conversion tool::
+
+            sage: a.show(format="gif")                   # optional -- ImageMagick
+            sage: a.show(format="gif", use_ffmpeg=True)  # optional -- ffmpeg
+            sage: a.show(format="png")                   # long time
 
         .. note::
 
@@ -742,8 +764,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
             '.../new.mpg'
@@ -864,8 +887,9 @@ please install it and try again."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.apng()  # long time
             '...png'
@@ -875,7 +899,7 @@ please install it and try again."""
             Animation saved to .../my_animation.png.
             '.../my_animation.png'
 
-        If the individual frames have different sizes, an error will be raised:
+        If the individual frames have different sizes, an error will be raised::
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
             ....:             xmin=0, xmax=2*pi, aspect_ratio=1, figsize=[2,1])
@@ -927,8 +951,9 @@ please install it and try again."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.save()         # not tested
             sage: a.save(dir + 'wave.gif')   # optional -- ImageMagick
@@ -961,15 +986,36 @@ please install it and try again."""
 
 class APngAssembler(object):
     """
-    Builds an Animated PNG from a sequence of PNG files.
+    Builds an APNG_ (Animated PNG) from a sequence of PNG files.
+    This is used by the :meth:`sage.plot.animate.Animation.apng` method.
 
     This code is quite simple; it does little more than copying chunks
     from input PNG files to the output file. There is no optimization
-    involved.
+    involved. This does not depend on external programs or libraries.
 
-    REFERENCES:
+    EXAMPLES::
 
-        * https://wiki.mozilla.org/APNG_Specification
+        sage: from sage.plot.animate import APngAssembler
+        sage: def assembleAPNG():
+        ...       a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+        ...                    for k in srange(0,2*pi,0.3)],
+        ...                   ymin=-1, ymax=1, figsize=[2,1])
+        ...       pngdir = a.png()
+        ...       outfile = sage.misc.temporary_file.tmp_filename(ext='.png')
+        ...       with open(outfile, "wb") as f:
+        ...           apng = APngAssembler(f, len(a))
+        ...           for i in range(len(a)):
+        ...               png = os.path.join(pngdir, "{:08d}.png".format(i))
+        ...               apng.frame(png, delay=10*i + 10)
+        ...           apng.iend()
+        ...       return outfile
+        ...
+        sage: assembleAPNG()  # long time
+        '...png'
+
+    .. REFERENCES:
+
+    .. _APNG: https://wiki.mozilla.org/APNG_Specification
     """
 
     magic = b"\x89PNG\x0d\x0a\x1a\x0a"
@@ -1066,20 +1112,24 @@ class APngAssembler(object):
         self.chunk(b"IEND", b"")
 
     def seqno(self):
+        """Generate next sequence number."""
         self.last_seqno += 1
         return struct.pack(">L", self.last_seqno)
 
     def first_IHDR(self, data):
+        """Remember image size."""
         w, h, d, ctype, comp, filt, ilace = struct.unpack(">2L5B", data)
         self.width = w
         self.height = h
 
     def first_IDAT(self, data):
+        """Write acTL and fcTL, then copy as IDAT."""
         self.actl()
         self.fctl()
         self.copy()
 
     def next_IDAT(self, data):
+        """write fcTL, then convert to fdAT."""
         self.fctl()
         maxlen = 0x7ffffffb
         while len(data) > maxlen:
@@ -1088,12 +1138,12 @@ class APngAssembler(object):
         self.chunk(b"fdAT", self.seqno() + data)
 
     def copy(self):
-        """Copy an existing chunk without modification"""
+        """Copy an existing chunk without modification."""
         for d in self.current_chunk:
             self.out.write(d)
 
     def actl(self):
-        """Write animation control data"""
+        """Write animation control data (acTL)."""
         if self.actl_written:
             return
         data = struct.pack(">2L", self.num_frames, self.num_plays)
@@ -1101,7 +1151,7 @@ class APngAssembler(object):
         self.actl_written = True
 
     def fctl(self):
-        """Write frame control data"""
+        """Write frame control data (fcTL)."""
         if self.fctl_written:
             return
         data = struct.pack(
