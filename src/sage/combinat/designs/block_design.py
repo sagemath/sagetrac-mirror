@@ -155,6 +155,60 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
+def _desarguesian_projective_plane_coordinates(n,relabel,x,y,z):
+    r"""
+    Coordinate system for a finite Desarguesian projective plane.
+
+    INPUT:
+
+    - ``n`` -- the order of the finite field
+
+    - ``relabel`` -- a dictionnary whose keys are the element of the field and
+      the values are `{0,...,n-1}`
+
+    - ``x,y,z`` -- the coordinate `[x:y:z]` for the point in the projective
+      plane.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import _desarguesian_projective_plane_coordinates
+        sage: K = GF(3)
+        sage: relabel = {x:i for i,x in enumerate(K)}
+        sage: coord = lambda x,y,z: _desarguesian_projective_plane_coordinates(3,relabel,x,y,z)
+        sage: PP = [(x,y,K.one()) for x in K for y in K]
+        sage: PP.extend((x,K.one(),K.zero()) for x in K)
+        sage: PP.append((K.one(),K.zero(),K.zero()))
+        sage: for p in PP:
+        ....:     print "[{}:{}:{}]: {}".format(p[0],p[1],p[2],coord(*p))
+        [0:0:1]: 0
+        [0:1:1]: 3
+        [0:2:1]: 6
+        [1:0:1]: 1
+        [1:1:1]: 4
+        [1:2:1]: 7
+        [2:0:1]: 2
+        [2:1:1]: 5
+        [2:2:1]: 8
+        [0:1:0]: 9
+        [1:1:0]: 10
+        [2:1:0]: 11
+        [1:0:0]: 12
+    """
+    assert len(relabel) == n
+
+    # - the affine plane is the set of points [x:y:1] (i.e. the third coordinate
+    #   is non-zero) and gets relabeled from 0 to n^2-1
+    if not z.is_zero():
+        return relabel[x/z] + n * relabel[y/z]
+
+    # - the point [1:0:0] "at infinity" gets relabeld n^2 + n
+    if y.is_zero():
+        return n**2 + n
+
+    # - the affine line is the set of points [x:1:0] (i.e. the third coordinate is
+    #   zero but not the second one) and gets relabeld from n^2 to n^2 + n - 1
+    return n**2 + relabel[x/y]
+
 def DesarguesianProjectivePlaneDesign(n, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
@@ -192,46 +246,143 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         ValueError: the order of a finite field must be a prime power.
     """
     K = FiniteField(n, 'x')
-    n2 = n**2
+    K0 = K.zero()
+    K1 = K.one()
     relabel = {x:i for i,x in enumerate(K)}
-    Kiter = relabel  # it is much faster to iterate throug a dict than through
+    coord = lambda x,y,z: _desarguesian_projective_plane_coordinates(n,relabel,x,y,z)
+    Kiter = relabel  # it is much faster to iterate through a dict than through
                      # the finite field K
-
-    # we decompose the (equivalence class) of points [x:y:z] of the projective
-    # plane into an affine plane, an affine line and a point. At the same time,
-    # we relabel the points with the integers from 0 to n^2 + n as follows:
-    # - the affine plane is the set of points [x:y:1] (i.e. the third coordinate
-    #   is non-zero) and gets relabeled from 0 to n^2-1
-    affine_plane   = lambda x,y: relabel[x] + n * relabel[y]
-
-    # - the affine line is the set of points [x:1:0] (i.e. the third coordinate is
-    #   zero but not the second one) and gets relabeld from n^2 to n^2 + n - 1
-    line_infinity  = lambda x: n2 + relabel[x]
-
-    # - the point is [1:0:0] and gets relabeld n^2 + n
-    point_infinity = n2 + n
-
     blcks = []
 
     # the n^2 lines of the form "x = sy + az"
     for s in Kiter:
         for a in Kiter:
             # points in the affine plane
-            blcks.append([affine_plane(s*y+a, y) for y in Kiter])
+            blcks.append([coord(s*y+a,y,K1) for y in Kiter])
             # point at infinity
-            blcks[-1].append(line_infinity(s))
+            blcks[-1].append(coord(s,K1,K0))
 
     # the n horizontals of the form "y = az"
     for a in Kiter:
         # points in the affine plane
-        blcks.append([affine_plane(x,a) for x in Kiter])
+        blcks.append([coord(x,a,K1) for x in Kiter])
         # point at infinity
-        blcks[-1].append(point_infinity)
+        blcks[-1].append(coord(K1,K0,K0))
 
     # the line at infinity "z = 0"
-    blcks.append(range(n2,n2+n+1))
+    blcks.append([coord(x,K1,K0) for x in Kiter])
+    blcks[-1].append(coord(K1,K0,K0))
 
-    return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, test=check)
+    return BlockDesign(n**2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, test=check)
+
+def OvalInDesarguesianProjectivePlaneDesign(n, check=True):
+    r"""
+    Return the oval that corresponds to the conic `{[t:t^2:1]; t \in F_q} \cup
+    \{[0:1:0]\}` in the Desarguesian projective plane obtained from
+    :func:`DesarguesianProjectivePlaneDesign`.
+
+    See :wikipedia:`Oval_(projective_plane)`.
+
+    INPUT:
+
+    - ``check`` - whether to check the output. It is ``True`` by default (we are
+      cautious guys) but it can be turned to ``False`` for speed.
+
+    EXAMPLES::
+        
+        sage: from sage.combinat.designs.block_design import OvalInDesarguesianProjectivePlaneDesign
+        sage: OvalInDesarguesianProjectivePlaneDesign(3)
+        [0, 4, 5, 9]
+    """
+    K = FiniteField(n, 'x')
+    K0 = K.zero()
+    K1 = K.one()
+    relabel = {x:i for i,x in enumerate(K)}
+    coord = lambda x,y,z: _desarguesian_projective_plane_coordinates(n,relabel,x,y,z)
+    oval = [coord(t,t**2,K1) for t in relabel]
+    oval.append(coord(K0,K1,K0))
+    if check:
+        assert len(oval) == n+1
+        D = DesarguesianProjectivePlaneDesign(n)
+        for block in D:
+            assert sum((i in block) for i in oval) <= 2
+    return oval
+
+def HyperovalInDesarguesianProjectivePlaneDesign(n, check=True):
+    r"""
+    Return the points of the conic `\{(t,t^2,1); t \in F_2\} \cup
+    \{(0,1,0),(1,0,0)\}` which forms an hyper oval.
+
+    See :wikipedia:`Oval_(projective_plane)`.
+
+    EXAMPLES::
+        
+        sage: from sage.combinat.designs.block_design import HyperovalInDesarguesianProjectivePlaneDesign
+        sage: HyperovalInDesarguesianProjectivePlaneDesign(2)
+        [0, 3, 4, 6]
+    """
+    if check:
+        from sage.rings.arith import is_power_of_two
+        assert is_power_of_two(n)
+    K = FiniteField(n, 'x')
+    K0 = K.zero()
+    K1 = K.one()
+    relabel = {x:i for i,x in enumerate(K)}
+    coord = lambda x,y,z: _desarguesian_projective_plane_coordinates(n,relabel,x,y,z)
+    hyp_oval = [coord(t,t**2,K1) for t in relabel]
+    hyp_oval.append(coord(K0,K1,K0))
+    hyp_oval.append(coord(K1,K0,K0))
+    if check:
+        assert len(hyp_oval) == n+2
+        D = DesarguesianProjectivePlaneDesign(n)
+        for block in D:
+            assert sum((i in block) for i in hyp_oval) <= 2
+    return hyp_oval
+
+def find_oval(PP, n, check=True):
+    r"""
+    Find an oval in the projective plane ``PP``.
+    
+    The current implementation uses integer linear programming.
+
+    INPUT:
+
+    - ``PP`` -- a projective plane
+
+    - ``n`` -- the number `n` such that the number of points in ``PP`` is `n^2 +
+      n + 1` (or each line has cardinality `n+1`).
+
+    - ``check`` -- whether to check the input and output
+
+    EXAMPLES::
+
+        sage: PP = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: from sage.combinat.designs.block_design import find_oval
+        sage: find_oval(PP,3)
+        [2, 3, 11, 12]
+    """
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+
+    V = PP.points()
+    assert len(V) == n**2 + n + 1
+    assert len(PP.blocks()) == n**2 + n + 1
+
+    p = MixedIntegerLinearProgram()
+    b = p.new_variable(binary=True)
+    p.add_constraint(p.sum([b[i] for i in V]) == n+1)
+    for bl in PP:
+        p.add_constraint(p.sum([b[i] for i in bl]) <= 2)
+    try:
+        p.solve()
+    except MIPSolverException:
+        raise ValueError("no oval in this design")
+    b = p.get_values(b)
+    oval = [x for x,i in b.items() if i]
+    if check:
+        assert len(oval) == n+1
+        for block in PP:
+            assert sum((i in block) for i in oval) <= 2
+    return oval
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""

@@ -490,24 +490,13 @@ def OA_and_oval(q):
 
     """
     from sage.rings.arith import is_prime_power
-    from sage.combinat.designs.block_design import projective_plane
+    from block_design import (DesarguesianProjectivePlaneDesign,
+                         OvalInDesarguesianProjectivePlaneDesign)
     from orthogonal_arrays import OA_relabel
 
     assert is_prime_power(q)
-    B = projective_plane(q, check=False)
-
-    # We compute the oval with a linear program
-    from sage.numerical.mip import MixedIntegerLinearProgram
-    p = MixedIntegerLinearProgram()
-    b = p.new_variable(binary=True)
-    V = B.points()
-    p.add_constraint(p.sum([b[i] for i in V]) == q+1)
-    for bl in B:
-        p.add_constraint(p.sum([b[i] for i in bl]) <= 2)
-    p.solve()
-    b = p.get_values(b)
-    oval = [x for x,i in b.items() if i]
-    assert len(oval) == q+1
+    B = DesarguesianProjectivePlaneDesign(q, check=False)
+    oval = OvalInDesarguesianProjectivePlaneDesign(q, check=False)
 
     # We remove one element from the oval
     x = oval.pop()
