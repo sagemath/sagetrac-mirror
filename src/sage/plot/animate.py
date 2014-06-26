@@ -205,7 +205,9 @@ class Animation(SageObject):
         Animation with unknown number of frames
         sage: a._frames
         <generator object ...
-        sage: a.png(); a._frames  # long time
+        sage: a.png()    # long time
+        '.../'
+        sage: a._frames  # long time
         [Graphics object ...]
 
     """
