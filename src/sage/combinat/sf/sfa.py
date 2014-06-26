@@ -410,8 +410,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s.is_integral_domain()
                 True
 
-                sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
-                sage: s.is_integral_domain() # not tested
+                sage: s = SymmetricFunctions(Zmod(14)).s()
+                sage: s.is_integral_domain()
                 False
             """
             return self.base_ring().is_integral_domain()
