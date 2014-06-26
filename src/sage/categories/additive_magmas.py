@@ -3,6 +3,7 @@ Additive Magmas
 """
 #*****************************************************************************
 #  Copyright (C) 2010-2014 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -672,6 +673,18 @@ class AdditiveMagmas(Category_singleton):
 
                 See the documentation for :class:`TestSuite` for
                 more information.
+
+                TESTS:
+
+                Verify that :trac:`16250` has been resolved::
+
+                    sage: K.<a> = Qq(9)
+                    sage: hash(K.zero())
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+                    sage: K._test_zero()
+
                 """
                 tester = self._tester(**options)
                 zero = self.zero()
@@ -679,9 +692,11 @@ class AdditiveMagmas(Category_singleton):
                 tester.assert_(self.is_parent_of(zero))
                 for x in tester.some_elements():
                     tester.assert_(x + zero == x)
-                # Check that zero is immutable by asking its hash:
-                tester.assertEqual(type(zero.__hash__()), int)
-                tester.assertEqual(zero.__hash__(), zero.__hash__())
+                # Check that zero is immutable by asking its hash (if it is hashable)
+                try:
+                    tester.assertEqual(type(zero.__hash__()), int)
+                    tester.assertEqual(zero.__hash__(), zero.__hash__())
+                except TypeError: pass # zero is unhashable
                 # Check that bool behave consistently on zero
                 tester.assertFalse(bool(self.zero()))
 
