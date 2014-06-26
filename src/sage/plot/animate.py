@@ -1020,6 +1020,7 @@ class APngAssembler(object):
         """
         self.delay_numerator = self.default_delay_numerator
         self.delay_denominator = self.default_delay_denominator
+        self.actl_written = False
         self.fctl_written = False
         if delay is not None:
             self.delay_numerator = delay
@@ -1091,8 +1092,11 @@ class APngAssembler(object):
 
     def actl(self):
         """Write animation control data"""
+        if self.actl_written:
+            return
         data = struct.pack(">2L", self.num_frames, self.num_plays)
         self.chunk(b"acTL", data)
+        self.actl_written = True
 
     def fctl(self):
         """Write frame control data"""
