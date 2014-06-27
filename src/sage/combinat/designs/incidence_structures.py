@@ -85,6 +85,9 @@ class IncidenceStructure(object):
 
     - ``check`` -- whether to check the input
 
+    - ``copy`` -- whether the input is copied (``True`` by default) in which
+      case the data stored are tuples.
+
     EXAMPLES::
 
     An incidence structure can be constructed by giving the number of points and the list of
@@ -111,9 +114,17 @@ class IncidenceStructure(object):
         sage: D = designs.BlockDesign(2, [[0,1], [0]])
         sage: C == D
         True
+
+    Test the parameter ``copy``::
+
+        sage: A = designs.IncidenceStructure([0,1,2], [[0,1],[1,2],[0,2]], copy=False)
+        sage: A.points()
+        [0, 1, 2]
+        sage: A.blocks()
+        [[0, 1], [1, 2], [0, 2]]
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
-            name=None, check=True, test=None):
+            name=None, check=True, test=None, copy=True):
         """
         TESTS::
 
@@ -147,19 +158,28 @@ class IncidenceStructure(object):
             assert incidence_matrix is not None
             M = matrix(incidence_matrix)
             v = M.nrows()
-            self._points = range(v)
-            self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
+            self._points = tuple(range(v))
+            self._blocks = sorted(tuple(M.nonzero_positions_in_column(i)) for i in range(M.ncols()))
             self._blocks.sort()
+            self._blocks = tuple(self._blocks)
 
         else:
             assert incidence_matrix is None
             if isinstance(points, (int,Integer)):
-                self._points = range(points)
+                self._points = tuple(range(points))
+            elif copy:
+                self._points = tuple(sorted(points))
             else:
-                self._points = sorted(points)
+                self._points = points
             v = len(self._points)
-            self._blocks = [sorted(block) for block in blocks]
-            self._blocks.sort()
+
+            if copy:
+                self._blocks = [tuple(sorted(block)) for block in blocks]
+                self._blocks.sort()
+                self._blocks = tuple(self._blocks)
+            else:
+                self._blocks = blocks
+
             if check:
                 for block in self._blocks:
                     for x in block:
@@ -171,7 +191,7 @@ class IncidenceStructure(object):
         self._block_sizes = frozenset(len(b) for b in self._blocks)
         self._incidence_matrix = None
         self._name = str(name) if name is not None else 'IncidenceStructure'
-        self._degrees = []
+        self._degrees_cache = []
 
     def __iter__(self):
         """
@@ -181,7 +201,8 @@ class IncidenceStructure(object):
 
             sage: sts = designs.steiner_triple_system(9)
             sage: list(sts)
-            [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
+            [(0, 1, 5), (0, 2, 4), (0, 3, 6), (0, 7, 8), (1, 2, 3), (1, 4, 7),
+            (1, 6, 8), (2, 5, 8), (2, 6, 7), (3, 4, 8), (3, 5, 7), (4, 5, 6)]
         """
         return iter(self._blocks)
 
@@ -207,10 +228,10 @@ class IncidenceStructure(object):
 
             sage: BD = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: print BD
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            IncidenceStructure<points=(0, 1, 2, 3, 4, 5, 6), blocks=((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (1, 4, 6), (2, 3, 6), (2, 4, 5))>
             sage: BD = designs.IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: print BD
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            IncidenceStructure<points=(0, 1, 2, 3, 4, 5, 6), blocks=((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (1, 4, 6), (2, 3, 6), (2, 4, 5))>
         """
         return '{}<points={}, blocks={}>'.format(
                 self._name, self._points, self._blocks)
@@ -252,10 +273,9 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).points()
-            [0, 1, 2]
+            (0, 1, 2)
         """
-        from copy import deepcopy
-        return deepcopy(self._points)
+        return self._points
 
     def num_points(self):
         r"""
@@ -294,17 +314,9 @@ class IncidenceStructure(object):
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.blocks()
-            [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
-
-        It is safe to modify the output::
-
-            sage: b = BD.blocks()
-            sage: b[0][0] = 18
-            sage: BD.blocks()[0]
-            [0, 1, 2]
+            ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (1, 4, 6), (2, 3, 6), (2, 4, 5))
         """
-        from copy import deepcopy
-        return deepcopy(self._blocks)
+        return self._blocks
 
     def block_sizes(self):
         r"""
@@ -421,37 +433,72 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
+    #####################
+    # real computations #
+    #####################
+
     @cached_method
     def _degree_iterator(self):
         r"""
-        Manage cached degree computation.
+        An iterator over the degrees of self.
+
+        It used internally by :meth:`_degrees`.
+
+        .. WARNING::
+
+            This is an iterator and it is cached to avoid lengthy unuseful
+            computations. It is used on demand by the method `_degrees`.
 
         EXAMPLES::
 
             sage: I = designs.IncidenceStructure(4, [[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
-            sage: I.degrees(None)      # indirect doctest
+            sage: [I._degrees(i) for i in xrange(4)]      # indirect doctest
             [frozenset([4]), frozenset([3]), frozenset([2]), frozenset([1])]
 
             sage: I = designs.IncidenceStructure(4, [[0,1],[1,2],[0,1,2],[0,1,3]])
-            sage: I.degrees(None)      # indirect doctest
+            sage: [I._degrees(i) for i in xrange(4)]      # indirect doctest
             [frozenset([4]), frozenset([1, 2, 3, 4]), frozenset([0, 1, 2, 3]), frozenset([0, 1])]
         """
-        points = frozenset(self._points)
-        p_to_blocks = {p:[] for p in points}
+        # we compute successively the set of k-subsets of the ground set that
+        # are contained in a nonzero number of blocks (and store this list of
+        # blocks for each of these k-subsets)
+        # the main objects are dictionnaries:
+        #   p_to_blocks: point -> set of blocks that contain that point
+        #   s_to_blocks: subset -> set of blocks that contain that subset
+        # on startup s_to_blocks is initialized with subsets of size one (i.e.
+        # it is essentially a copy of p_to_blocks)
+        # let us repeat that we do *not* store k-subsets that are conained in no
+        # block
+
+        # degree 0 is just the number of blocks
+        yield frozenset([self.num_blocks()])
+
+        # degree 1 is the possible number of blocks adjacent to a point
+        p_to_blocks = {}
         for i,b in enumerate(self._blocks):
             for j in b:
+                if j not in p_to_blocks:
+                    p_to_blocks[j] = []
                 p_to_blocks[j].append(i)
-        for p in self._points:
-            p_to_blocks[p] = frozenset(p_to_blocks[p])
-        s_to_blocks = {}
-        for i in p_to_blocks:
-            s_to_blocks[frozenset([i])] = frozenset(p_to_blocks[i])
+        for i,B in p_to_blocks.iteritems():
+            p_to_blocks[i] = frozenset(B)
 
+        points = frozenset(p_to_blocks)
+        no_empty = len(points) == self.num_points()
+        zeroset = frozenset([0])
+        if no_empty:
+            yield frozenset(len(B) for B in p_to_blocks.itervalues())
+        else:
+            yield frozenset(len(B) for B in p_to_blocks.itervalues())|zeroset
+
+        # now start the loop for degree >= 2
+        s_to_blocks = {}
         no_empty = True
-        yield frozenset([self.num_blocks()])
-        yield frozenset(len(s) for s in p_to_blocks.itervalues())
+        s_to_blocks = {frozenset([i]): frozenset(B) for i,B in p_to_blocks.iteritems()}
+
         k = max(self._block_sizes)
-        for i in xrange(2,k+1):
+        for _ in xrange(2,k+1):
+            # we create a new dictionnary for subsets of size one bigger
             s_to_blocks2 = {}
             for s1,B1 in s_to_blocks.iteritems():
                 for p in points - s1:
@@ -460,64 +507,61 @@ class IncidenceStructure(object):
                         s_to_blocks2[s1.union([p])] = B2
                     else:
                         no_empty = False
+            # replace the old by the new
             s_to_blocks = s_to_blocks2
-            #print i
-            #for s,b in s_to_blocks.iteritems():
-            #    print "  {}: {}".format(sorted(s), sorted(b))
             d = frozenset(len(b) for b in s_to_blocks.itervalues())
-            if not no_empty:
-                d = d.union([0])
-            yield d
+            if no_empty:
+                yield d
+            else:
+                yield d|zeroset
 
-    def degrees(self, t):
+    def _degrees(self, t):
         r"""
         Return the set of ``t``-degrees of ``self``.
 
         Given a subset of `t` points, its *degree* is the number of blocks that
-        contain it. Note that for `t=0` it is the number of blocks.
+        contain it. Note that for `t=0` it is just the number of blocks and for
+        `t=1` it is the possible number of blocks incident to a point.
+
+        The actual computation is actually performed in the method
+        :meth:`_degree_iterator`.
 
         EXAMPLES::
 
             sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
             sage: BD.points()
-            [0, 1, 2, 3, 4, 5, 6, 7]
-            sage: BD.degrees(0)
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: BD._degrees(0)
             frozenset([4])
-            sage: BD.degrees(1)
+            sage: BD._degrees(3)
+            frozenset([0, 1])
+            sage: BD._degrees(1)
             frozenset([1, 2, 3])
-            sage: BD.degrees(2)
+            sage: BD._degrees(2)
             frozenset([0, 1, 2])
-            sage: BD.degrees(3)
+            sage: BD._degrees(4)
             frozenset([0, 1])
-            sage: BD.degrees(4)
-            frozenset([0, 1])
-            sage: BD.degrees(5)
+            sage: BD._degrees(5)
             frozenset([])
 
             sage: P = designs.DesarguesianProjectivePlaneDesign(2)
-            sage: P.degrees(2)
-            frozenset([1])
-            sage: P.degrees(3)
+            sage: P._degrees(3)
             frozenset([0, 1])
+            sage: P._degrees(2)
+            frozenset([1])
         """
-        if t is None:
-            for d in self._degree_iterator():
-                self._degrees.append(d)
-            return self._degrees[:]
-
         if t > max(self._block_sizes):
             return frozenset()
 
-        while len(self._degrees) <= t:
-            self._degrees.append(self._degree_iterator().next())
-        return self._degrees[t]
+        while len(self._degrees_cache) <= t:
+            self._degrees_cache.append(self._degree_iterator().next())
+        return self._degrees_cache[t]
 
-    def _t_design_parameters(self):
+    def _t_design_parameters(self, t=None):
         r"""
         Return a 4-tuple `(t,v,k,l)` such that the design is a `t-(v,k,l)`
-        design with `t` maximum.
-
-        If the design is not a `t`-design then an exception occurs.
+        design with `t` maximum. If `t` is provided, then only check for
+        `t`-design. If ``self`` is not a `t`-design return ``None``.
 
         EXAMPLES::
 
@@ -532,15 +576,13 @@ class IncidenceStructure(object):
 
         Bad cases::
 
-            sage: designs.IncidenceStructure(2, [])._t_design_parameters()
-            Traceback (most recent call last):
-            ...
-            ValueError: there should be at least one point and one block in a t-design
+            sage: I = designs.IncidenceStructure(2, [])
+            sage: I._t_design_parameters() is None
+            True
 
-            sage: designs.IncidenceStructure(2, [[0],[0,1]])._t_design_parameters()
-            Traceback (most recent call last):
-            ...
-            ValueError: in a t-design all blocks have the same size
+            sage: I = designs.IncidenceStructure(2, [[0],[0,1]])
+            sage: I._t_design_parameters() is None
+            True
         """
         from sage.rings.arith import binomial
 
@@ -548,38 +590,66 @@ class IncidenceStructure(object):
         b = self.num_blocks()
 
         if v == 0 or b == 0:
-            raise ValueError("there should be at least one point and one block in a t-design")
+            return None
 
         k = len(self._blocks[0])
         if any(len(block) != k for block in self._blocks):
-            raise ValueError("in a t-design all blocks have the same size")
+            return None
 
-        # here we already know that we are a 0-design
-        deg = self.degrees(1)
-        if len(deg) != 1:
-            return (0,v,k,b)
-        l, = deg
-
-        # here we know that it is a 1-design
+        if t is not None and t > k:
+            return None
         if k == v:
             # this is the design (X, {X,X,X,...})
-            return (v,v,v,b)
+            if t is None:
+                return (v,v,v,b)
+            else:
+                return (t,v,v,b)
 
-        t = 1
+        # here we have at least a 0-design
+        if t == 0:
+            return (0,v,k,b)
+        elif k == 0:
+            # this is the design (X, {{},{},...})
+            if t is None:
+                return (0,v,0,b)
+            else:
+                return None
 
-        for tt in range(2,k+1):
+        deg = self._degrees(1)
+        if len(deg) != 1:
+            if t is None or t == 0:
+                return (0,v,k,b)
+            else:
+                return None
+        l, = deg
+
+        # here we have at least a 1-design
+        if t is None:
+            t_values = range(2,k+1)
+        else:
+            t_values = range(2,t+1)
+
+        tt = 1
+
+        # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
+        # also a s-(v,k,lambda_s) design with:
+        # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
+        # so we check for increasing values of t whether we have a t-design
+        for ttt in t_values:
             # is lambda an integer?
-            if (b*binomial(k,tt)) % binomial(v,tt) != 0:
+            if (b*binomial(k,ttt)) % binomial(v,ttt) != 0:
                 break
 
-            ll = b*binomial(k,tt) // binomial(v,tt)
-            if len(self.degrees(tt)) == 1:
-                t = tt
+            ll = b*binomial(k,ttt) // binomial(v,ttt)
+            if len(self._degrees(ttt)) == 1:
+                tt = ttt
                 l = ll
             else:
                 break
 
-        return (t,v,k,l)
+        if t is not None and tt != t:
+            return None
+        return (tt,v,k,l)
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         """
@@ -617,6 +687,8 @@ class IncidenceStructure(object):
             False
 
             sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
+            sage: BD.is_t_design(1)
+            True
             sage: BD.is_t_design(2)
             True
 
@@ -683,29 +755,19 @@ class IncidenceStructure(object):
             [(8, 4, 7)]
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(0,v,k,l)]
             [(8, 4, 14)]
-
-
         """
-        try:
-            tt,vv,kk,ll = self._t_design_parameters()
-        except ValueError:
-            return False
-
-        if t is None:
-            t = tt
-        elif t > tt:
-            return False
-
-        # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
-        # also a s-(v,k,lambda_s) design with:
-        # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
-
-        from sage.rings.arith import binomial
-        lll = ll * binomial(vv-t,tt-t) // binomial(kk-t,tt-t)
-
-        if ((v is None or v == vv) and (k is None or k == kk) and (l is None or l == lll)):
+        res = self._t_design_parameters(t=t)
+        if res is None:
             if return_parameters:
-                return True, (t,vv,kk,lll)
+                return False, (None,)*4
+            else:
+                return False
+
+        tt,vv,kk,ll = res
+
+        if ((v is None or v == vv) and (k is None or k == kk) and (l is None or l == ll)):
+            if return_parameters:
+                return True, (tt,vv,kk,ll)
             else:
                 return True
         else:
@@ -713,10 +775,6 @@ class IncidenceStructure(object):
                 return False, (None,)*4
             else:
                 return False
-
-    #####################
-    # real computations #
-    #####################
 
     def dual(self, algorithm=None):
         """
