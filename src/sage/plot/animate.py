@@ -2,11 +2,16 @@ r"""
 Animated plots
 
 Animations are generated from a list (or other iterable) of graphics
-objects.  Images are produced by calling the ``save_image`` method on
-each input object, and using ImageMagick's ``convert`` program [IM] or
-``ffmpeg`` [FF] to generate an animation.  The output format is GIF by
-default, but can be any of the formats supported by ``convert`` or
-``ffmpeg``.
+objects.
+Images are produced by calling the ``save_image`` method on each input
+object, creating a sequence of PNG files.
+These are then assembled to various target formats using different
+tools.
+In particular, the ``convert`` program from ImageMagick_ can be used to
+generate an animated GIF file.
+FFmpeg_ (with the command line program ``ffmpeg``) provides support for
+various video formats, but also an alternative method of generating
+animated GIFs.
 
 .. Warning::
 
@@ -15,7 +20,8 @@ default, but can be any of the formats supported by ``convert`` or
     convert`` at a command prompt to see if ``convert`` (part of the
     ImageMagick suite) is installed.  If it is, you will be given its
     location.  Similarly, you can check for ``ffmpeg`` with ``which
-    ffmpeg``.  See [IM] or [FF] for installation instructions.
+    ffmpeg``.  See the websites of ImageMagick_ or FFmpeg_ for
+    installation instructions.
 
 EXAMPLES:
 
@@ -27,7 +33,7 @@ The sine function::
     Animation with 5 frames
     sage: a.show()  # optional -- ImageMagick
 
-Animate using ffmpeg instead of ImageMagick::
+Animate using FFmpeg_ instead of ImageMagick::
 
     sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
     sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
@@ -80,11 +86,10 @@ AUTHORS:
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
 
-REFERENCES:
+.. REFERENCES (not rendered as a section, but linked inline):
 
-.. [IM] http://www.imagemagick.org
-
-.. [FF]  http://www.ffmpeg.org
+.. _ImageMagick: http://www.imagemagick.org
+.. _FFmpeg: http://www.ffmpeg.org
 
 """
 
