@@ -588,7 +588,7 @@ the animate command can be saved in PNG image format.
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
 
-    def show(self, format=None, linkmode=False, **kwargs):
+    def show(self, format=None, linkmode=False, mimetype=None, **kwargs):
         r"""
         Show this animation.
 
@@ -600,6 +600,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         - ``linkmode`` - (default: False) if True a string containing a
            link to the produced file is returned. Will override the
            default format.
+
+        - ``mimetype`` - (default: 'video/'+format) the mime type to be
+            used in an HTML5 video tag.
 
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
@@ -632,6 +635,12 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(delay=50)        # optional -- ImageMagick
 
+        You can also make use of the HTML5 video element in notebooks::
+
+            sage: a.show(format="webm")                  # optional -- ffmpeg
+            sage: a.show(mimetype="video/ogg")           # optional -- ffmpeg
+            sage: a.show(format="webm", iterations=1, autoplay=False)  # optional -- ffmpeg
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -644,18 +653,49 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
         if format is None:
-            format = "gif"
+            if mimetype is not None:
+                import mimetypes
+                format = mimetypes.guess_extension(mimetype, strict=False)
+                if format is None:
+                    raise ValueError("MIME type without associated extension")
+                else:
+                    format = format.lstrip(".")
+            else:
+                format = "gif"
         suffix = format
         # we might want to translate from format to suffix in some cases.
+        attrs = { "autoplay": True, "controls": True, "loop": True }
         if plot.EMBEDDED_MODE:
             filename = graphics_filename(ext=suffix)
+            iterations = kwargs.get('iterations', 0)
+            if iterations:
+                attrs["loop"] = False
+            for k in attrs:
+                if k in kwargs:
+                    attrs[k] = kwargs.pop(k)
         else:
             filename = tmp_filename(ext='.'+suffix)
         self.save(filename, **kwargs)
         if sage.doctest.DOCTEST_MODE:
             return
         elif plot.EMBEDDED_MODE:
-            link = '<img src="cell://%s" />' % filename
+            if format in ['gif', 'png']:
+                link = '<img src="cell://%s" />' % filename
+            else:
+                if mimetype is None:
+                    import mimetypes
+                    mimetype = mimetypes.guess_type(filename, strict=False)[0]
+                    if mimetype is None:
+                        mimetype = 'video/' + format
+                attrs = dict((k, k if v is True else v)
+                             for k, v in attrs.iteritems() if v is not False)
+                attrs = " ".join('{}="{}"'.format(k, v)
+                                 for k, v in sorted(attrs.iteritems()))
+                link = ('<video {3}>'
+                        '<source src="cell://{0}" type="{1}" /><p>'
+                        '<a target="_new" href="cell://{0}" class="file_link">'
+                        'Download {2} video</a></p></video>'
+                        ).format(filename, mimetype, format, attrs)
             if linkmode:
                 return link
             else:
