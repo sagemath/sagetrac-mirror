@@ -352,7 +352,7 @@ def is_transversal_design(B,k,n, verbose=False):
     """
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
-def wilson_construction(master_design,k,r,m,u,check=True):
+def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     r"""
     Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
 
@@ -369,13 +369,14 @@ def wilson_construction(master_design,k,r,m,u,check=True):
 
     INPUT:
 
-    - ``master_design`` -- a truncated orthogonal array with ``k+sum(u)`` columns. The
+    - ``OA`` -- an incomplete orthogonal array with ``k+n_trunc`` columns. The
       elements of a column of size `c` must belong to `\{0,...,c\}`. The missing
       entries of a block are represented by ``None`` values.
 
-    - ``k,r,m`` (integers)
+    - ``k,r,m,n_trunc`` (integers)
 
-    - ``u`` (list) -- a list of such that column ``k+i`` has size ``u[i]``.
+    - ``u`` (list) -- a list of length ``n_trunc`` such that column ``k+i`` has
+      size ``u[i]``.
 
     - ``check`` (boolean) -- whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -388,44 +389,28 @@ def wilson_construction(master_design,k,r,m,u,check=True):
       Haim Hanani,
       Discrete Mathematics 11.3 (1975) pages 255-369.
 
-    EXAMPLES:
-
-    A product construction::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: OA1 = designs.orthogonal_array(6,7)
-        sage: OA2 = designs.orthogonal_array(6,12)
-        sage: OA6_84 = wilson_construction(OA1,6,7,12,[])
-        sage: is_orthogonal_array(OA6_84, 6, 84)
-        True
-
-    A lot of Wilson construction with one truncated group::
-
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: total = 0
         sage: for k in range(3,8):
         ....:    for n in range(1,30):
         ....:        if find_wilson_decomposition_with_one_truncated_group(k,n):
         ....:            total += 1
-        ....:            k,r,m,u = find_wilson_decomposition_with_one_truncated_group(k,n)
-        ....:            _ = wilson_construction(None,k,r,m,u,check=True)
+        ....:            f, args = find_wilson_decomposition_with_one_truncated_group(k,n)
+        ....:            _ = f(*args)
         sage: print total
         41
     """
-    n_trunc = len(u)
     n = r*m+sum(u)
+    master_design = OA
 
-    # build a random master_design if needed
-    if master_design is None:
-        master_design = orthogonal_array(k+n_trunc,r,check=False)
-        matrix = [range(r)]*k
-        for uu in u:
-            matrix.append(range(uu)+[None]*(r-uu))
-        master_design = OA_relabel(master_design,k+n_trunc,r,matrix=matrix)
+    assert n_trunc == len(u)
 
     # Computing the sizes of the blocks by filtering out None entries
-    block_sizes = set(sum(xx!=None for xx in B) for B in master_design)
+    block_sizes = set(sum(xx!=None for xx in B) for B in OA)
 
     # For each block of size k+i we need a OA(k,m+i)-i.OA(k,1)
     OA_k_mpi = {i-k+m: incomplete_orthogonal_array(k, i-k+m, (1,)*(i-k)) for i in block_sizes}

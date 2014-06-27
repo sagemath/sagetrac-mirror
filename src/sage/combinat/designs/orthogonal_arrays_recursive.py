@@ -67,20 +67,10 @@ def find_recursive_construction(k,n):
     """
     assert k > 3
 
-    res = find_product_decomposition(k,n)
-    if res:
-        from orthogonal_arrays import wilson_construction
-        n1,n2 = res
-        return wilson_construction, (None,k,n1,n2,(),False)
-
-    for find_c in [find_wilson_decomposition_with_one_truncated_group,
-                   find_wilson_decomposition_with_two_truncated_groups]:
-        res = find_c(k,n)
-        if res:
-            from orthogonal_arrays import wilson_construction
-            return wilson_construction, (None,) + res + (False,)
-
-    for find_c in [find_construction_3_3,
+    for find_c in [find_product_decomposition,
+                   find_wilson_decomposition_with_one_truncated_group,
+                   find_wilson_decomposition_with_two_truncated_groups,
+                   find_construction_3_3,
                    find_construction_3_4,
                    find_construction_3_5,
                    find_construction_3_6,
@@ -97,7 +87,7 @@ def find_product_decomposition(k,n):
     If Sage can build a `OA(k,n_1)` and a `OA(k,n_2)` such that `n=n_1\times
     n_2` then a `OA(k,n)` can be built (from the function
     :func:`transversal_design`). This method returns such a pair of integers if
-    it exists, and ``None`` otherwise.
+    it exists, and ``False`` otherwise.
 
     INPUT:
 
@@ -106,20 +96,17 @@ def find_product_decomposition(k,n):
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_product_decomposition
-        sage: find_product_decomposition(6, 84)
-        (7, 12)
-
-        sage: TD1 = designs.transversal_design(6, 7)
-        sage: TD2 = designs.transversal_design(6, 12)
-        sage: from sage.combinat.designs.orthogonal_arrays import TD_product
-        sage: TD = TD_product(6, TD1, 7, TD2, 12)
+        sage: f,args = find_product_decomposition(6, 84)
+        sage: args
+        (6, 7, 12, ())
+        sage: _ = f(*args)
     """
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
         n2 = n//n1
         if orthogonal_array(k, n1, existence=True) and orthogonal_array(k, n2, existence=True):
-            return n1,n2
-    return None
+            return simple_wilson_construction, (k,n1,n2,())
+    return False
 
 def find_wilson_decomposition_with_one_truncated_group(k,n):
     r"""
@@ -140,8 +127,11 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
-        sage: find_wilson_decomposition_with_one_truncated_group(4,38)
+        sage: f,args = find_wilson_decomposition_with_one_truncated_group(4,38)
+        sage: args
         (4, 5, 7, (3,))
+        sage: _ = f(*args)
+
         sage: find_wilson_decomposition_with_one_truncated_group(4,20)
         False
     """
@@ -162,7 +152,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
             orthogonal_array(k  ,m+1, existence=True) and
             orthogonal_array(k+1,r  , existence=True) and
             orthogonal_array(k  ,u  , existence=True)):
-            return k,r,m,(u,)
+            return simple_wilson_construction, (k,r,m,(u,))
 
     return False
 
@@ -184,8 +174,10 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_two_truncated_groups
-        sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
+        sage: f,args = find_wilson_decomposition_with_two_truncated_groups(5,58)
+        sage: args
         (5, 7, 7, (4, 5))
+        sage: _ = f(*args)
     """
     for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need 
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
@@ -218,8 +210,46 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
                 r2 = r1_p_r2-r1
                 if orthogonal_array(k,r2,existence=True):
                     assert n == r*m+r1+r2
-                    return k,r,m,(r1,r2)
+                    return simple_wilson_construction, (k,r,m,(r1,r2))
     return False
+
+def simple_wilson_construction(k,r,m,u):
+    r"""
+    Return the Wilson construction with parameters `(k,r,m,u)`.
+
+    .. TODO::
+
+        As soon as wilson construction accepts an empty master design we should
+        remove this intermediate functions.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import simple_wilson_construction
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+
+        sage: OA = simple_wilson_construction(6,7,12,())
+        sage: is_orthogonal_array(OA,6,84)
+        True
+
+        sage: OA = simple_wilson_construction(4,5,7,(3,))
+        sage: is_orthogonal_array(OA,4,38)
+        True
+
+        sage: OA = simple_wilson_construction(5,7,7,(4,5))
+        sage: is_orthogonal_array(OA,5,58)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays import wilson_construction, OA_relabel
+
+    n = r*m + sum(u)
+    n_trunc = len(u)
+    OA = orthogonal_array(k+n_trunc,r,check=False)
+    matrix = [range(r)]*k
+    for uu in u:
+            matrix.append(range(uu)+[None]*(r-uu))
+    OA = OA_relabel(OA,k+n_trunc,r,matrix=matrix)
+
+    return wilson_construction(OA,k,r,m,n_trunc,u,False)
 
 def find_construction_3_3(k,n):
     r"""
@@ -296,7 +326,7 @@ def construction_3_3(k,n,m,i):
     # Truncated version
     OA = [B[:k]+[0 if x == 0 else None for x in B[k:]] for B in OA]
 
-    OA = wilson_construction(OA,k,n,m,[1]*i,check=False)[:-i]
+    OA = wilson_construction(OA,k,n,m,i,[1]*i,check=False)[:-i]
     matrix = [range(m)+range(n*m,n*m+i)]*k
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
@@ -404,7 +434,7 @@ def construction_3_4(k,n,m,r,s):
         matrix[-1][x] = i
 
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
-    OA = wilson_construction(OA,k,n,m,[1]*r+[s],check=False)
+    OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
     return OA
 
 def find_construction_3_5(k,n):
@@ -528,7 +558,7 @@ def construction_3_5(k,n,m,r,s,t):
         r3[x] = i
 
     OA = OA_relabel(master_design, k+3,q, matrix=[range(q)]*k+[r1,r2,r3])
-    OA = wilson_construction(OA,k,q,m,[r,s,t], check=False)
+    OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
     return OA
 
 def find_construction_3_6(k,n):
@@ -604,7 +634,7 @@ def construction_3_6(k,n,m,i):
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
-    OA = wilson_construction(OA,k,n,m,[1]*i)
+    OA = wilson_construction(OA,k,n,m,i,[1]*i)
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
