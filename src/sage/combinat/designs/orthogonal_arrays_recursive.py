@@ -65,7 +65,7 @@ def find_recursive_construction(k,n):
         sage: print count
         56
     """
-    assert k >= 3
+    assert k > 3
 
     res = find_product_decomposition(k,n)
     if res:
