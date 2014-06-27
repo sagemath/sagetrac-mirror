@@ -437,126 +437,6 @@ class IncidenceStructure(object):
     # real computations #
     #####################
 
-    @cached_method
-    def _degree_iterator(self):
-        r"""
-        An iterator over the degrees of self.
-
-        It used internally by :meth:`_degrees`.
-
-        .. WARNING::
-
-            This is an iterator and it is cached to avoid lengthy unuseful
-            computations. It is used on demand by the method `_degrees`.
-
-        EXAMPLES::
-
-            sage: I = designs.IncidenceStructure(4, [[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
-            sage: [I._degrees(i) for i in xrange(4)]      # indirect doctest
-            [frozenset([4]), frozenset([3]), frozenset([2]), frozenset([1])]
-
-            sage: I = designs.IncidenceStructure(4, [[0,1],[1,2],[0,1,2],[0,1,3]])
-            sage: [I._degrees(i) for i in xrange(4)]      # indirect doctest
-            [frozenset([4]), frozenset([1, 2, 3, 4]), frozenset([0, 1, 2, 3]), frozenset([0, 1])]
-        """
-        # we compute successively the set of k-subsets of the ground set that
-        # are contained in a nonzero number of blocks (and store this list of
-        # blocks for each of these k-subsets)
-        # the main objects are dictionnaries:
-        #   p_to_blocks: point -> set of blocks that contain that point
-        #   s_to_blocks: subset -> set of blocks that contain that subset
-        # on startup s_to_blocks is initialized with subsets of size one (i.e.
-        # it is essentially a copy of p_to_blocks)
-        # let us repeat that we do *not* store k-subsets that are conained in no
-        # block
-
-        # degree 0 is just the number of blocks
-        yield frozenset([self.num_blocks()])
-
-        # degree 1 is the possible number of blocks adjacent to a point
-        p_to_blocks = {}
-        for i,b in enumerate(self._blocks):
-            for j in b:
-                if j not in p_to_blocks:
-                    p_to_blocks[j] = []
-                p_to_blocks[j].append(i)
-        for i,B in p_to_blocks.iteritems():
-            p_to_blocks[i] = frozenset(B)
-
-        points = frozenset(p_to_blocks)
-        no_empty = len(points) == self.num_points()
-        zeroset = frozenset([0])
-        if no_empty:
-            yield frozenset(len(B) for B in p_to_blocks.itervalues())
-        else:
-            yield frozenset(len(B) for B in p_to_blocks.itervalues())|zeroset
-
-        # now start the loop for degree >= 2
-        s_to_blocks = {}
-        no_empty = True
-        s_to_blocks = {frozenset([i]): frozenset(B) for i,B in p_to_blocks.iteritems()}
-
-        k = max(self._block_sizes)
-        for _ in xrange(2,k+1):
-            # we create a new dictionnary for subsets of size one bigger
-            s_to_blocks2 = {}
-            for s1,B1 in s_to_blocks.iteritems():
-                for p in points - s1:
-                    B2 = p_to_blocks[p] & B1
-                    if B2:
-                        s_to_blocks2[s1.union([p])] = B2
-                    else:
-                        no_empty = False
-            # replace the old by the new
-            s_to_blocks = s_to_blocks2
-            d = frozenset(len(b) for b in s_to_blocks.itervalues())
-            if no_empty:
-                yield d
-            else:
-                yield d|zeroset
-
-    def _degrees(self, t):
-        r"""
-        Return the set of ``t``-degrees of ``self``.
-
-        Given a subset of `t` points, its *degree* is the number of blocks that
-        contain it. Note that for `t=0` it is just the number of blocks and for
-        `t=1` it is the possible number of blocks incident to a point.
-
-        The actual computation is actually performed in the method
-        :meth:`_degree_iterator`.
-
-        EXAMPLES::
-
-            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
-            sage: BD.points()
-            (0, 1, 2, 3, 4, 5, 6, 7)
-            sage: BD._degrees(0)
-            frozenset([4])
-            sage: BD._degrees(3)
-            frozenset([0, 1])
-            sage: BD._degrees(1)
-            frozenset([1, 2, 3])
-            sage: BD._degrees(2)
-            frozenset([0, 1, 2])
-            sage: BD._degrees(4)
-            frozenset([0, 1])
-            sage: BD._degrees(5)
-            frozenset([])
-
-            sage: P = designs.DesarguesianProjectivePlaneDesign(2)
-            sage: P._degrees(3)
-            frozenset([0, 1])
-            sage: P._degrees(2)
-            frozenset([1])
-        """
-        if t > max(self._block_sizes):
-            return frozenset()
-
-        while len(self._degrees_cache) <= t:
-            self._degrees_cache.append(self._degree_iterator().next())
-        return self._degrees_cache[t]
-
     def _t_design_parameters(self, t=None):
         r"""
         Return a 4-tuple `(t,v,k,l)` such that the design is a `t-(v,k,l)`
@@ -615,37 +495,49 @@ class IncidenceStructure(object):
             else:
                 return None
 
-        deg = self._degrees(1)
-        if len(deg) != 1:
+        s = {}
+        for block in self._blocks:
+            for i in block:
+                s[i] = s.get(i,0) + 1
+        K = set(s.values())
+        if len(K) != 1:
             if t is None or t == 0:
                 return (0,v,k,b)
             else:
                 return None
-        l, = deg
+        l = K.pop()
 
         # here we have at least a 1-design
-        if t is None:
-            t_values = range(2,k+1)
-        else:
-            t_values = range(2,t+1)
 
-        tt = 1
+        if t == 1:
+            return (1,v,k,l)
+        if k == 1:
+            if t is None or t == 1:
+                return (1,v,1,l)
+            else:
+                return None
 
         # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
         # also a s-(v,k,lambda_s) design with:
         # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
         # so we check for increasing values of t whether we have a t-design
-        for ttt in t_values:
+        from itertools import combinations
+        for tt in (range(2,k+1) if t is None else [t]):
             # is lambda an integer?
-            if (b*binomial(k,ttt)) % binomial(v,ttt) != 0:
+            if (b*binomial(k,tt)) % binomial(v,tt) != 0:
+                tt -= 1
                 break
 
-            ll = b*binomial(k,ttt) // binomial(v,ttt)
-            if len(self._degrees(ttt)) == 1:
-                tt = ttt
-                l = ll
-            else:
+            ll = b*binomial(k,tt) // binomial(v,tt)
+            s = {}
+            for block in self._blocks:
+                for i in combinations(block,tt):
+                    s[i] = s.get(i,0) + 1
+            K = set(s.values())
+            if len(K) != 1:
+                tt -= 1
                 break
+            l = ll
 
         if t is not None and tt != t:
             return None
