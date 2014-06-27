@@ -168,6 +168,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: ZZ['x']({2^3: 1})
             x^8
 
+        Construct from a vector::
+
+            sage: R(vector(ZZ,0))
+            0
+            sage: R(vector(ZZ,3,[1,2,3]))
+            3*x^2 + 2*x + 1
+            
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
@@ -239,8 +246,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 sig_off()
                 return
 
-        elif not isinstance(x, list):
-            x = [x]   # constant polynomials
+        else:
+            try:
+                x = list(x)                
+            except TypeError:
+                x = [x]   # constant polynomials
 
         sig_on()
         fmpz_poly_realloc(self.__poly, len(x))

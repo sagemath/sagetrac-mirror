@@ -4,7 +4,12 @@ include "sage/libs/ntl/decl.pxi"
 from sage.libs.flint.nmod_poly cimport nmod_poly_t
 
 cdef extern from "flint/fmpz_poly.h":
-    ctypedef void* fmpz_poly_t
+    ctypedef struct fmpz_poly_struct:
+        fmpz * coeffs
+        long alloc
+        long length
+
+    ctypedef fmpz_poly_struct* fmpz_poly_t
 
     void fmpz_poly_init(fmpz_poly_t poly)
     void fmpz_poly_init2(fmpz_poly_t poly, unsigned long alloc)
@@ -21,18 +26,25 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_truncate(fmpz_poly_t poly, unsigned long length)
 
     void fmpz_poly_set(fmpz_poly_t result, fmpz_poly_t poly)
+    int fmpz_poly_is_zero(const fmpz_poly_t poly)
+    int fmpz_poly_is_one(const fmpz_poly_t poly)
     void fmpz_poly_zero(fmpz_poly_t poly)
-    void fmpz_poly_set_coeff_si(fmpz_poly_t poly, unsigned long n, long x)
-    void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, unsigned long n, \
+    void fmpz_poly_set_coeff_si(fmpz_poly_t poly, long n, long x)
+    void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, long n, \
             unsigned long x)
-    void fmpz_poly_set_coeff_mpz(fmpz_poly_t poly, unsigned long n, mpz_t x)
-    void fmpz_poly_set_coeff_fmpz(fmpz_poly_t poly, unsigned long n, fmpz_t x)
-
-    void fmpz_poly_get_coeff_mpz(mpz_t x, fmpz_poly_t poly, unsigned long n)
+    void fmpz_poly_set_coeff_mpz(fmpz_poly_t poly, long n, mpz_t x)
+    void fmpz_poly_set_coeff_fmpz(fmpz_poly_t poly, long n, fmpz_t x)
+    void fmpz_poly_set_coeff_si(fmpz_poly_t poly, long n, long x)
+    void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, long n, unsigned long x)
+    
+    void fmpz_poly_get_coeff_mpz(mpz_t x, fmpz_poly_t poly, long n)
     void fmpz_poly_get_coeff_mpz_read_only(mpz_t x, fmpz_poly_t poly, \
-            unsigned long n)
-    fmpz* fmpz_poly_get_coeff_ptr(fmpz_poly_t poly, unsigned long n)
+            long n)
+    fmpz* fmpz_poly_get_coeff_ptr(fmpz_poly_t poly, long n)
+    long fmpz_poly_get_coeff_si(fmpz_poly_t, long n)
+    unsigned long fmpz_poly_get_coeff_ui(fmpz_poly_t, long n)
 
+    
     void fmpz_poly_get_nmod_poly(nmod_poly_t res, fmpz_poly_t poly)
 
     void fmpz_poly_add(fmpz_poly_t output, fmpz_poly_t input1, \
@@ -72,6 +84,7 @@ cdef extern from "flint/fmpz_poly.h":
             mpz_t x)
 
     void fmpz_poly_div(fmpz_poly_t Q, fmpz_poly_t A, fmpz_poly_t B)
+    void fmpz_poly_rem(fmpz_poly_t R, fmpz_poly_t A, fmpz_poly_t B)
     void fmpz_poly_divrem(fmpz_poly_t Q, fmpz_poly_t R, fmpz_poly_t A, \
             fmpz_poly_t B)
 
@@ -90,12 +103,12 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_pow(fmpz_poly_t output, fmpz_poly_t poly, \
             unsigned long exp)
     void fmpz_poly_pow_trunc(fmpz_poly_t output, fmpz_poly_t poly, \
-            unsigned long exp, unsigned long n)
+            unsigned long exp, long n)
 
     void fmpz_poly_shift_left(fmpz_poly_t output, fmpz_poly_t poly, \
-            unsigned long n)
+            long n)
     void fmpz_poly_shift_right(fmpz_poly_t output, fmpz_poly_t poly, \
-            unsigned long n)
+            long n)
 
     void fmpz_poly_derivative(fmpz_poly_t der, fmpz_poly_t poly)
 
