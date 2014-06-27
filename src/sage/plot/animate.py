@@ -439,6 +439,16 @@ class Animation(SageObject):
         self._png_dir = d
         return d
 
+    def _adjust_savefile(self, ext, savefile=None):
+        if ext[0] != '.':
+            ext = '.' + ext
+        if savefile is None:
+            savefile = tmp_filename(ext=ext)
+        if not savefile.endswith(ext):
+            savefile += ext
+        savefile = os.path.abspath(savefile)
+        return savefile
+
     def graphics_array(self, ncols=3):
         r"""
         Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
@@ -542,6 +552,7 @@ class Animation(SageObject):
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+        savefile = self._adjust_savefile('gif', savefile)
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
         have_ffmpeg = self._have_ffmpeg()
@@ -564,11 +575,6 @@ Error: ffmpeg does not appear to be installed.  Download it from
 www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
-            if not savefile:
-                savefile = tmp_filename(ext='.gif')
-            if not savefile.endswith('.gif'):
-                savefile += '.gif'
-            savefile = os.path.abspath(savefile)
             d = self.png()
             cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
                     '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
@@ -751,22 +757,17 @@ a movie file in any format other than GIF requires this software, so
 please install it and try again."""
             raise OSError(msg)
         else:
-            if savefile is None:
-                if output_format is None:
-                    output_format = '.mpg'
-                else:
-                    if output_format[0] != '.':
-                        output_format = '.'+output_format
-                savefile = tmp_filename(ext=output_format)
-            else:
-                if output_format is None:
+            if output_format is None:
+                if savefile is not None:
                     suffix = os.path.splitext(savefile)[1]
                     if len(suffix) > 0:
                         output_format = suffix
-                    else:
-                        output_format = '.mpg'
-            if not savefile.endswith(output_format):
-                savefile += output_format
+                if output_format is None:
+                    output_format = '.mpg'
+            else:
+                if output_format[0] != '.':
+                    output_format = '.'+output_format
+            savefile = self._adjust_savefile(output_format, savefile)
             early_options = ''
             if output_format == '.gif':
                 # We try to set reasonable options for gif output.
@@ -792,7 +793,6 @@ please install it and try again."""
                 ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
             if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
                 early_options += ' -r %s ' % int(100/delay)
-            savefile = os.path.abspath(savefile)
             pngdir = self.png()
             pngs = os.path.join(pngdir, "%08d.png")
             # For ffmpeg, it seems that some options, like '-g ... -r
