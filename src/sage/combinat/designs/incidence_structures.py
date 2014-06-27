@@ -43,7 +43,7 @@ from sage.rings.integer import Integer
 
 def IncidenceStructureFromMatrix(M, name=None):
     """
-    Deprecated function that builds and incidence structure from a matrix.
+    Deprecated function that builds an incidence structure from a matrix.
 
     You should now use ``designs.IncidenceStructure(incidence_matrix=M)``.
 
@@ -72,6 +72,19 @@ class IncidenceStructure(object):
     A base class for incidence structure (or block design) with explicit ground
     set and blocks.
 
+    INPUT:
+
+    - ``points`` -- the underlying set. If it is an integer `v`, then the set is
+      considered to be `{0, ..., v-1}`.
+
+    - ``blocks`` -- the blocks (might be any iterable)
+
+    - ``incidence_matrix`` -- the incidence matrix
+
+    - ``name`` (a string, such as "Fano plane").
+
+    - ``check`` -- whether to check the input
+
     EXAMPLES::
 
     An incidence structure can be constructed by giving the number of points and the list of
@@ -83,8 +96,8 @@ class IncidenceStructure(object):
     Or by its adjacency matrix (a `{0,1}`-matrix in which rows are indexed by
     points and columns by blocks)::
 
-        sage: m = [[0,1,0],[0,0,1],[1,0,1],[1,1,1]]
-        sage: designs.BlockDesign(incidence_matrix=m)
+        sage: m = matrix([[0,1,0],[0,0,1],[1,0,1],[1,1,1]])
+        sage: designs.BlockDesign(m)
         Incidence structure with 4 points and 3 blocks
 
     The order of the points and blocks do not matter (see :trac:`11333`)::
@@ -99,40 +112,43 @@ class IncidenceStructure(object):
         sage: C == D
         True
     """
-    def __init__(self, points=None, blocks=None, incidence_matrix=None, name=None, check=True):
+    def __init__(self, points=None, blocks=None, incidence_matrix=None,
+            name=None, check=True, test=None):
         """
-        INPUT:
-
-        - ``points`` -- the points (might be any iterable)
-
-        - ``blocks`` -- the blocks (might be any iterable)
-
-        - ``incidence_matrix`` -- the incidence matrix
-
-        - ``name`` (a string, such as "Fano plane").
-
-        - ``check`` -- whether to check the input
-
         TESTS::
 
             sage: designs.IncidenceStructure(3, [[4]])
             Traceback (most recent call last):
             ...
             ValueError: Point 4 is not in the base set.
+
+            sage: designs.IncidenceStructure(3, [[0,1],[0,2]], test=True)
+            doctest:...: DeprecationWarning: the keyword test is deprecated,
+            use check instead
+            See http://trac.sagemath.org/16553 for details.
+            Incidence structure with 3 points and 2 blocks
+
+            sage: designs.IncidenceStructure(2, [[0,1,2,3,4,5]], test=False)
+            Incidence structure with 2 points and 1 blocks
         """
+        if test is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16553, "the keyword test is deprecated, use check instead")
+            check = test
+
+        from sage.matrix.constructor import matrix
+        from sage.structure.element import Matrix
+
+        if isinstance(points, Matrix):
+            incidence_matrix = points
+            points = None
+
         if points is None:
             assert incidence_matrix is not None
-            from sage.matrix.constructor import matrix
             M = matrix(incidence_matrix)
             v = M.nrows()
-            b = M.ncols()
             self._points = range(v)
-            blocks = [[] for _ in range(b)]
-            for i in range(b):
-                for j in range(v):
-                    if not M[j,i].is_zero():
-                        blocks[i].append(j)
-            self._blocks = blocks
+            self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
             self._blocks.sort()
 
         else:
@@ -212,7 +228,7 @@ class IncidenceStructure(object):
         """
         if not isinstance(other, IncidenceStructure):
             return False
-        return self.points() == other.points() and self.blocks() == other.blocks()
+        return self._points == other._points and self._blocks == other._blocks
 
     def __ne__(self, other):
         r"""
@@ -237,7 +253,8 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).points()
             [0, 1, 2]
         """
-        return self._points
+        from copy import deepcopy
+        return deepcopy(self._points)
 
     def num_points(self):
         r"""
@@ -277,8 +294,16 @@ class IncidenceStructure(object):
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.blocks()
             [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
+
+        It is safe to modify the output::
+
+            sage: b = BD.blocks()
+            sage: b[0][0] = 18
+            sage: BD.blocks()[0]
+            [0, 1, 2]
         """
-        return self._blocks
+        from copy import deepcopy
+        return deepcopy(self._blocks)
 
     def block_sizes(self):
         r"""
@@ -725,8 +750,6 @@ class IncidenceStructure(object):
     def dual(self, algorithm=None):
         """
         Returns the dual of the incidence structure.
-
-        Note that the dual of a block design may not be a block design.
 
         INPUT:
 
