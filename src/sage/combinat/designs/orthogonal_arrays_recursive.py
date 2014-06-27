@@ -718,9 +718,12 @@ def find_q_x(k,n):
     for q in range(max(3,k+2),n):
         # n-q**2+q-2 = 2x-qx
         #            = x(2-q)
-        x = (n-q**2+q-2)//(2-q)
-        if (x < q and
-            0 < x and
+        x = (n-q**2)//(2-q) - 1  # x is increasing along the loop
+                                 # as the numerator of the derivative is
+                                 # (q^2 - 4q + n) which is >= 0
+        if x >= q:
+            break
+        if (0 < x and
             n == (q-1)*(q-x)+x+2 and
             is_prime_power(q) and
             orthogonal_array(k+1,q-x-1,existence=True) and
