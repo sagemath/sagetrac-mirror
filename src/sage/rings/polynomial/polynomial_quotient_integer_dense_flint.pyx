@@ -25,7 +25,7 @@ EXAMPLES::
     [ 12   0   0  -1   1 -95  -1  -2]
     [  2  12   0   0  -1   1 -95  -1]
     [  1   2  12   0   0  -1   1 -95]
-    
+
 """
 
 # We need to define this stuff before including the templating stuff
@@ -39,7 +39,7 @@ cdef inline cparent get_cparent(parent) except? NULL:
         return NULL
 
 
-include "sage/libs/flint/fmpz_poly_quo_linkage.pxi"        
+include "sage/libs/flint/fmpz_poly_quo_linkage.pxi"
 include "polynomial_template.pxi"
 
 cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
@@ -62,14 +62,14 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
             Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
             self._set_fmpz_poly((<Polynomial_integer_dense_flint>x).__poly)
             return
-            
+
         try:
             _ = iter(x) # trigger TypeError early if we can't iterate
             Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
             self._set_list(list(x))
         except TypeError:
             pass
-            
+
         Polynomial_template.__init__(self, parent, x, check, is_gen, construct)
 
     cdef Polynomial_template _new(self):
@@ -87,7 +87,7 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
 
         - ``x`` - a scalar.
         - ``P`` - a parent.
-        
+
         EXAMPLE::
 
             sage: P.<x> = ZZ[]
@@ -103,7 +103,7 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
         """
         if type(P) != type(self._parent):
           raise TypeError("Supplied parent does not match self's parent.")
-        
+
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         r._parent = P
         r._cparent = get_cparent(P)
@@ -115,7 +115,7 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
     cdef int _set_list(self, list x) except -1:
         cdef Integer tmp
         cdef fmpz_poly_struct *modulus = self._cparent
-        
+
         if not len(x):
             fmpz_poly_zero(&self.x)
             return 0
@@ -161,7 +161,7 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
             IndexError: index must be between 0 and degree minus 1 of modulus.
 
         """
-        cdef Integer c = PY_NEW(Integer)        
+        cdef Integer c = PY_NEW(Integer)
         cdef Polynomial_template r
         if 0 <= i < celement_len(&self.x, (<Polynomial_template>self)._cparent):
             fmpz_poly_get_coeff_mpz(c.value, &self.x, i)
@@ -182,6 +182,30 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
         """
         return make_element, ((<Polynomial_template>self)._parent, (self.list(),))
 
+    def lift(self):
+        """
+        Lift this polynomial to the integers.
+
+        EXAMPLE::
+
+            sage: R.<x> = ZZ['x'].quotient(ZZ['x'].cyclotomic_polynomial(32))
+            sage: x.lift()
+            x
+            sage: R.<Y> = ZZ['x'].quotient(ZZ['x'].cyclotomic_polynomial(2048))
+            sage: Y.lift()
+            x
+            sage: R.<Y> = ZZ['Z'].quotient(ZZ['Z'].cyclotomic_polynomial(32))
+            sage: (Y^34).lift()
+            Z^2
+        """
+
+        cover_ring = self._parent.cover_ring()
+        cdef Polynomial_integer_dense_flint r = Polynomial_integer_dense_flint(cover_ring, 0,
+                                                                               check=False,
+                                                                               is_gen=False)
+        fmpz_poly_set(r.__poly, &self.x)
+        return r
+
     def matrix(self):
         """
         Return the matrix of right multiplication by `1, x, x^2, …, x^{d-1}`
@@ -199,11 +223,11 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
             [-400 -378 -382 -379 -375 -378]
             [ 378  -22    0   -4   -1    3]
             [  -3  375  -25   -3   -7   -4]
-            [   4    1  379  -21    1   -3]        
+            [   4    1  379  -21    1   -3]
         """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        
+
         x = self._parent.gen()
         degree = self._parent.modulus().degree()
         M = matrix(ZZ, degree, degree)
@@ -212,4 +236,3 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
             for c in xrange(row.degree()+1):
                 M[r,c] = row[c]
         return M
-            

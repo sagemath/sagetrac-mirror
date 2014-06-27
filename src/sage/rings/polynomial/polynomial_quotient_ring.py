@@ -1624,7 +1624,7 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         from sage.matrix.all import matrix
         return matrix(ZZ, self.modulus().degree(), self.modulus().degree(), 1)
 
-    def random_element(self, distribution='default', sigma=1.0, check=True, *args, **kwds):
+    def random_element(self, distribution='default', sigma=None, check=True, *args, **kwds):
         """
         Return a random element in this ring..
 
@@ -1663,10 +1663,15 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
             sage: D = DiscreteGaussianLatticeSampler(R.basis_matrix(), sigma=10.0)
-            sage: R.random_element(distribution='gaussian', sigma=D)
+            sage: R.random_element(sigma=D)
             -3*x^7 - 4*x^6 - 4*x^5 - 5*x^4 + x^3 + 4*x^2 - 2*x - 4
 
         """
+        if sigma is not None:
+            distribution = 'gaussian'
+        else:
+            sigma = 1.0
+
         if distribution == 'default':
             return PolynomialQuotientRing_domain.random_element(self, *args, **kwds)
         elif distribution == 'gaussian':
