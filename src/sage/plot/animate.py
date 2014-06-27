@@ -102,10 +102,11 @@ AUTHORS:
 import os
 
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_filename, tmp_dir
+from sage.misc.temporary_file import tmp_filename, tmp_dir, graphics_filename
 import plot
 import sage.misc.misc
 import sage.misc.viewer
+from sage.misc.html import html
 
 
 def animate(frames, **kwds):
@@ -587,7 +588,7 @@ the animate command can be saved in PNG image format.
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
 
-    def show(self, format=None, **kwargs):
+    def show(self, format=None, linkmode=False, **kwargs):
         r"""
         Show this animation.
 
@@ -595,6 +596,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
 
         - ``format`` - (default: gif) format to use for output.
+
+        - ``linkmode`` - (default: False) if True a string containing a
+           link to the produced file is returned. Will override the
+           default format.
 
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
@@ -642,12 +647,19 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             format = "gif"
         suffix = format
         # we might want to translate from format to suffix in some cases.
-        filename = tmp_filename(ext='.'+suffix)
+        if plot.EMBEDDED_MODE:
+            filename = graphics_filename(ext=suffix)
+        else:
+            filename = tmp_filename(ext='.'+suffix)
         self.save(filename, **kwargs)
         if sage.doctest.DOCTEST_MODE:
             return
-        if plot.EMBEDDED_MODE:
-            return
+        elif plot.EMBEDDED_MODE:
+            link = '<img src="cell://%s" />' % filename
+            if linkmode:
+                return link
+            else:
+                html(link)
         else:
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
