@@ -1411,7 +1411,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
     def __reduce__(self):
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
-        
+
     def is_finite(self):
         """
         Return whether or not this quotient ring is finite.
@@ -1547,7 +1547,7 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
     The ring `\\ZZ[x]/<f>`.
 
     EXAMPLE::
-    
+
         sage: P.<x> = ZZ[]
         sage: Q = P.quotient(x^2+2)
         sage: Q.category()
@@ -1566,7 +1566,7 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         - ``ring`` -- the ring `\\ZZ[x]`.
         - ``polynomial`` - a polynomial ``f`.
         - ``name`` - the name of the generator.
-        
+
         TESTS::
 
             sage: P.<x> = ZZ[]
@@ -1603,7 +1603,7 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         from sage.structure.sequence import Sequence
         x = self.gen()
         return Sequence([x**i for i in range(self.modulus().degree())])
-    
+
     def basis_matrix(self):
         """
         Return a basis matrix for the power basis for this ring considered as
@@ -1624,6 +1624,61 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         from sage.matrix.all import matrix
         return matrix(ZZ, self.modulus().degree(), self.modulus().degree(), 1)
 
+    def random_element(self, distribution='default', sigma=1.0, check=True, *args, **kwds):
+        """
+        Return a random element in this ring..
+
+        INPUT:
+
+        - ``distribution`` -- either ``"default"`` or ``"gaussian"``.
+        - ``sigma`` -- used by Gaussian distribution
+        - ``check`` -- used by Gaussian distribution
+        - ``args``, ``kwds`` -- parameters passed to the random
+          integer function if ``"default"`` distribution is chosen.
+          See the documentation for ``ZZ.random_element()`` for details.
+
+        DISTRIBUTIONS:
+
+        - ``default`` -- sample multiplies with ``ZZ.random_element(*args,
+        **kwds)`` and multiply by basis elements.
+
+        - ``gaussian`` -- return samples following a discrete Gaussian
+          distribution with parameter `σ` and centered at zero. Samples are
+          returned with probability
+
+             `\exp(-|r|_2^2/(2σ²))/(∑_{r ∈ R} \exp(-|r|_2^2/(2σ²)))`
+
+          where `|r|_2` is the `ℓ_2` norm of the coefficient vector of some
+          element `r` and `R` is this order. The parameter ``sigma`` can either
+          be a real number or an instance of
+          :class:`sage.stats.distributions.discrete_gaussian_lattice.DiscreteGaussianLatticeSampler`.
+          If ``check==True`` then instances of this class are checked if they
+          match ``self.basis_basis()``.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ['x'].quotient(ZZ['x'].cyclotomic_polynomial(16))
+            sage: R.random_element(distribution='gaussian', sigma=3.0)
+            2*x^7 + 3*x^6 + 3*x^5 + x^4 + 5*x^2 + 3
+
+            sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+            sage: D = DiscreteGaussianLatticeSampler(R.basis_matrix(), sigma=10.0)
+            sage: R.random_element(distribution='gaussian', sigma=D)
+            -3*x^7 - 4*x^6 - 4*x^5 - 5*x^4 + x^3 + 4*x^2 - 2*x - 4
+
+        """
+        if distribution == 'default':
+            return PolynomialQuotientRing_domain.random_element(self, *args, **kwds)
+        elif distribution == 'gaussian':
+            from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+            if isinstance(sigma, DiscreteGaussianLatticeSampler):
+                D = sigma
+                if check:
+                    if self.basis_matrix() != D.B:
+                        raise ValueError("D's lattice does not match this ring.")
+            else:
+                D = DiscreteGaussianLatticeSampler(self.basis_matrix(), sigma)
+            return self(D())
 
 class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     """
@@ -1668,5 +1723,3 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         CC = sage.rings.complex_field.ComplexField(prec)
         v = self.modulus().roots(multiplicities=False, ring=CC)
         return [self.hom([a], check=False) for a in v]
-
-
