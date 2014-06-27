@@ -168,9 +168,10 @@ class IncidenceStructure(object):
                     if len(block) != len(set(block)):
                         raise ValueError("Repeated element in block {}".format(block))
 
-        self._block_sizes = set(len(b) for b in self._blocks)
+        self._block_sizes = frozenset(len(b) for b in self._blocks)
         self._incidence_matrix = None
         self._name = str(name) if name is not None else 'IncidenceStructure'
+        self._degrees = []
 
     def __iter__(self):
         """
@@ -313,10 +314,10 @@ class IncidenceStructure(object):
 
             sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
             sage: BD.block_sizes()
-            set([2, 3, 4])
+            frozenset([2, 3, 4])
             sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.block_sizes()
-            set([3])
+            frozenset([3])
         """
         return self._block_sizes
 
@@ -378,7 +379,7 @@ class IncidenceStructure(object):
 
             sage: BD = designs.BlockDesign(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.block_sizes()
-            set([3])
+            frozenset([3])
             sage: BD.incidence_matrix()
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]
@@ -420,59 +421,60 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def replication_numbers(self):
+    @cached_method
+    def _degree_iterator(self):
         r"""
-        Return the set replication numbers as an ordered list.
-
-        Given a point `x` in the ground set the *replication number* of `x` is
-        the number of blocks that contains `x`. It is a notion dual to the one
-        of block sizes.
+        Manage cached degree computation.
 
         EXAMPLES::
 
-            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
-            sage: BD.replication_numbers()
-            set([1, 2, 3])
-            sage: BD.dual().block_sizes()
-            set([1, 2, 3])
+            sage: I = designs.IncidenceStructure(4, [[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
+            sage: I.degrees(None)      # indirect doctest
+            [frozenset([4]), frozenset([3]), frozenset([2]), frozenset([1])]
 
-            sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.replication_numbers()
-            set([3])
+            sage: I = designs.IncidenceStructure(4, [[0,1],[1,2],[0,1,2],[0,1,3]])
+            sage: I.degrees(None)      # indirect doctest
+            [frozenset([4]), frozenset([1, 2, 3, 4]), frozenset([0, 1, 2, 3]), frozenset([0, 1])]
         """
-        pts = {p:0 for p in self._points}
-        for b in self._blocks:
-            for i in b:
-                pts[i] += 1
-        return set(pts.values())
+        points = frozenset(self._points)
+        p_to_blocks = {p:[] for p in points}
+        for i,b in enumerate(self._blocks):
+            for j in b:
+                p_to_blocks[j].append(i)
+        for p in self._points:
+            p_to_blocks[p] = frozenset(p_to_blocks[p])
+        s_to_blocks = {}
+        for i in p_to_blocks:
+            s_to_blocks[frozenset([i])] = frozenset(p_to_blocks[i])
 
-    def intersection_numbers(self):
-        r"""
-        Return the set of intersection numbers as an ordered list.
-
-        EXAMPLES::
-
-            sage: BD = designs.BlockDesign(8, [[0,1,3],[1,4,5,6],[1,2],[5,6,7]])
-            sage: BD.intersection_numbers()
-            set([0, 1, 2])
-            sage: BD = designs.DesarguesianProjectivePlaneDesign(4)
-            sage: BD.intersection_numbers()
-            set([1])
-        """
-        B = self.blocks()
-        return set(len(frozenset(B[i]).intersection(B[j])) for i in xrange(1,len(B)) for j in xrange(i))
+        no_empty = True
+        yield frozenset([self.num_blocks()])
+        yield frozenset(len(s) for s in p_to_blocks.itervalues())
+        k = max(self._block_sizes)
+        for i in xrange(2,k+1):
+            s_to_blocks2 = {}
+            for s1,B1 in s_to_blocks.iteritems():
+                for p in points - s1:
+                    B2 = p_to_blocks[p] & B1
+                    if B2:
+                        s_to_blocks2[s1.union([p])] = B2
+                    else:
+                        no_empty = False
+            s_to_blocks = s_to_blocks2
+            #print i
+            #for s,b in s_to_blocks.iteritems():
+            #    print "  {}: {}".format(sorted(s), sorted(b))
+            d = frozenset(len(b) for b in s_to_blocks.itervalues())
+            if not no_empty:
+                d = d.union([0])
+            yield d
 
     def degrees(self, t):
         r"""
         Return the set of ``t``-degrees of ``self``.
 
         Given a subset of `t` points, its *degree* is the number of blocks that
-        contain it. It is a generalization of the number of blocks (`0`-indices)
-        and intersection numbers (`1`-indices).
-
-        .. SEEALSO::
-
-            :func:`num_blocks` and :func:`intersection_numbers`.
+        contain it. Note that for `t=0` it is the number of blocks.
 
         EXAMPLES::
 
@@ -480,48 +482,35 @@ class IncidenceStructure(object):
             sage: BD.points()
             [0, 1, 2, 3, 4, 5, 6, 7]
             sage: BD.degrees(0)
-            set([4])
+            frozenset([4])
             sage: BD.degrees(1)
-            set([1, 2, 3])
+            frozenset([1, 2, 3])
             sage: BD.degrees(2)
-            set([0, 1, 2])
+            frozenset([0, 1, 2])
             sage: BD.degrees(3)
-            set([0, 1])
+            frozenset([0, 1])
             sage: BD.degrees(4)
-            set([0, 1])
+            frozenset([0, 1])
             sage: BD.degrees(5)
-            set([])
+            frozenset([])
 
             sage: P = designs.DesarguesianProjectivePlaneDesign(2)
             sage: P.degrees(2)
-            set([1])
+            frozenset([1])
             sage: P.degrees(3)
-            set([0, 1])
+            frozenset([0, 1])
         """
-        if t == 0:
-            return set([self.num_blocks()])
-
-        v = self.num_blocks()
-        k = max(self._block_sizes)
+        if t is None:
+            for d in self._degree_iterator():
+                self._degrees.append(d)
+            return self._degrees[:]
 
         if t > max(self._block_sizes):
-            return set()
+            return frozenset()
 
-        p_to_blocks = {p:set([]) for p in self.points()}
-        for i,b in enumerate(self.blocks()):
-            for j in b:
-                p_to_blocks[j].add(i)
-
-        import operator
-        from itertools import combinations
-        I = set()
-        for s in combinations(self.points(), t):
-            # compute the intersection
-            b = reduce(operator.and_, (p_to_blocks[i] for i in s))
-
-            # add it to the current list
-            I.add(len(b))
-        return I
+        while len(self._degrees) <= t:
+            self._degrees.append(self._degree_iterator().next())
+        return self._degrees[t]
 
     @cached_method
     def t_design_parameters(self):
@@ -618,7 +607,7 @@ class IncidenceStructure(object):
         deg = self.degrees(1)
         if len(deg) != 1:
             return (0,v,k,b)
-        l = deg.pop()
+        l, = deg
 
         # here we know that it is a 1-design
         if k == v:
@@ -640,7 +629,6 @@ class IncidenceStructure(object):
                 break
 
         return (t,v,k,l)
-
 
     def is_t_design(self, t=None, v=None, k=None, l=None):
         """
