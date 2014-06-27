@@ -440,9 +440,9 @@ class CoveringDesign(SageObject):
             sage: C=CoveringDesign(7,3,2,7,range(7),[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]],0, 'Projective Plane')
             sage: D = C.incidence_structure()
             sage: D.points()
-            [0, 1, 2, 3, 4, 5, 6]
+            (0, 1, 2, 3, 4, 5, 6)
             sage: D.blocks()
-            [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
+            ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (1, 4, 6), (2, 3, 6), (2, 4, 5))
 
         """
         return self.__incidence_structure
