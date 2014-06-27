@@ -665,14 +665,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         suffix = format
         # we might want to translate from format to suffix in some cases.
         attrs = { "autoplay": True, "controls": True, "loop": True }
+        iterations = kwargs.get('iterations', 0)
+        if iterations:
+            attrs["loop"] = False
+        for k in attrs:
+            if k in kwargs:
+                attrs[k] = kwargs.pop(k)
         if plot.EMBEDDED_MODE:
             filename = graphics_filename(ext=suffix)
-            iterations = kwargs.get('iterations', 0)
-            if iterations:
-                attrs["loop"] = False
-            for k in attrs:
-                if k in kwargs:
-                    attrs[k] = kwargs.pop(k)
         else:
             filename = tmp_filename(ext='.'+suffix)
         self.save(filename, **kwargs)
