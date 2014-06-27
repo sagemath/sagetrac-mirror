@@ -898,6 +898,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: F2 = F1.extension(x^2+x+1, 'u')
             sage: F2.random_element()
             (a^6 + 1)*u + a^5 + a^4 + a^3 + 1
+
         """
         return self(self.polynomial_ring().random_element( \
             degree=self.degree()-1, *args, **kwds))
@@ -1639,8 +1640,8 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
 
         DISTRIBUTIONS:
 
-        - ``default`` -- sample multiplies with ``ZZ.random_element(*args,
-        **kwds)`` and multiply by basis elements.
+        - ``default`` -- sample multiplies with ``ZZ.random_element(*args, **kwds)``
+          and multiply by basis elements.
 
         - ``gaussian`` -- return samples following a discrete Gaussian
           distribution with parameter `σ` and centered at zero. Samples are
@@ -1659,12 +1660,12 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
 
             sage: R.<x> = ZZ['x'].quotient(ZZ['x'].cyclotomic_polynomial(16))
             sage: R.random_element(distribution='gaussian', sigma=3.0)
-            2*x^7 + 3*x^6 + 3*x^5 + x^4 + 5*x^2 + 3
+            3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
             sage: D = DiscreteGaussianLatticeSampler(R.basis_matrix(), sigma=10.0)
             sage: R.random_element(sigma=D)
-            -3*x^7 - 4*x^6 - 4*x^5 - 5*x^4 + x^3 + 4*x^2 - 2*x - 4
+            -4*x^7 - 12*x^6 + 3*x^5 + 7*x^4 - 11*x^3 + 2*x^2 - 7*x + 2
 
         """
         if sigma is not None:
