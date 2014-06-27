@@ -512,8 +512,7 @@ class IncidenceStructure(object):
             self._degrees.append(self._degree_iterator().next())
         return self._degrees[t]
 
-    @cached_method
-    def t_design_parameters(self):
+    def _t_design_parameters(self):
         r"""
         Return a 4-tuple `(t,v,k,l)` such that the design is a `t-(v,k,l)`
         design with `t` maximum.
@@ -525,68 +524,20 @@ class IncidenceStructure(object):
         Many affine geometry design are examples of `t`-designs::
 
             sage: A = designs.AffineGeometryDesign(3, 1, GF(2))
-            sage: A.t_design_parameters()
+            sage: A._t_design_parameters()
             (2, 8, 2, 1)
             sage: A = designs.AffineGeometryDesign(4, 2, GF(2))
-            sage: A.t_design_parameters()
+            sage: A._t_design_parameters()
             (3, 16, 4, 1)
-
-        Steiner triple and quadruple systems are other names for `2-(v,3,1)` and
-        `3-(v,4,1)` designs::
-
-            sage: S3_9 = designs.steiner_triple_system(9)
-            sage: S3_9.t_design_parameters()
-            (2, 9, 3, 1)
-
-            sage: blocks = designs.steiner_quadruple_system(8)
-            sage: S8 = designs.IncidenceStructure(8, blocks)
-            sage: S8.t_design_parameters()
-            (3, 8, 4, 1)
-
-            sage: blocks = designs.steiner_quadruple_system(14)
-            sage: S14 = designs.IncidenceStructure(14, blocks)
-            sage: S14.t_design_parameters()
-            (3, 14, 4, 1)
-
-        Some examples of Witt designs that need the gap database::
-
-            sage: BD = designs.WittDesign(9)     # optional - gap_packages
-            sage: BD.t_design_parameters()       # optional - gap_packages
-            (2, 9, 3, 1)
-            sage: W12 = designs.WittDesign(12)    # optional - gap_packages
-            sage: W12.t_design_parameters()       # optional - gap_packages
-            (5, 12, 6, 1)
-
-        Further examples::
-
-            sage: D = designs.IncidenceStructure(4,[[],[]])
-            sage: D.t_design_parameters()
-            (0, 4, 0, 2)
-
-            sage: D = designs.IncidenceStructure(4, [[0,1],[0,2],[0,3]])
-            sage: D.t_design_parameters()
-            (0, 4, 2, 3)
-
-            sage: D = designs.IncidenceStructure(4, [[0],[1],[2],[3]])
-            sage: D.t_design_parameters()
-            (1, 4, 1, 1)
-
-            sage: D = designs.IncidenceStructure(4,[[0,1],[2,3]])
-            sage: D.t_design_parameters()
-            (1, 4, 2, 1)
-
-            sage: D = designs.IncidenceStructure(4, [range(4)])
-            sage: D.t_design_parameters()
-            (4, 4, 4, 1)
 
         Bad cases::
 
-            sage: designs.IncidenceStructure(2, []).t_design_parameters()
+            sage: designs.IncidenceStructure(2, [])._t_design_parameters()
             Traceback (most recent call last):
             ...
             ValueError: there should be at least one point and one block in a t-design
 
-            sage: designs.IncidenceStructure(2, [[0],[0,1]]).t_design_parameters()
+            sage: designs.IncidenceStructure(2, [[0],[0,1]])._t_design_parameters()
             Traceback (most recent call last):
             ...
             ValueError: in a t-design all blocks have the same size
@@ -630,7 +581,7 @@ class IncidenceStructure(object):
 
         return (t,v,k,l)
 
-    def is_t_design(self, t=None, v=None, k=None, l=None):
+    def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         """
         Test whether ``self`` is a ``t-(v,k,l)` design.
 
@@ -644,8 +595,8 @@ class IncidenceStructure(object):
 
         - ``t``, ``v``, ``k``, ``l`` -- optional parameters
 
-        - ``verbose`` (boolean) -- prints useful information when the answer is
-          negative.
+        - ``return_parameters`` -- whether to return the parameters of the
+          `t`-design
 
         EXAMPLES::
 
@@ -653,8 +604,8 @@ class IncidenceStructure(object):
             sage: BD = designs.BlockDesign(7, fano_blocks)
             sage: BD.is_t_design()
             True
-            sage: BD.t_design_parameters()
-            (2, 7, 3, 1)
+            sage: BD.is_t_design(return_parameters=True)
+            (True, (2, 7, 3, 1))
             sage: BD.is_t_design(2, 7, 3, 1)
             True
             sage: BD.is_t_design(1, 7, 3, 3)
@@ -697,6 +648,28 @@ class IncidenceStructure(object):
             sage: W12.is_t_design(4)                 # optional - gap_packages
             True
 
+        Further examples::
+
+            sage: D = designs.IncidenceStructure(4,[[],[]])
+            sage: D.is_t_design(return_parameters=True)
+            (True,  (0, 4, 0, 2))
+
+            sage: D = designs.IncidenceStructure(4, [[0,1],[0,2],[0,3]])
+            sage: D.is_t_design(return_parameters=True)
+            (True, (0, 4, 2, 3))
+
+            sage: D = designs.IncidenceStructure(4, [[0],[1],[2],[3]])
+            sage: D.is_t_design(return_parameters=True)
+            (True, (1, 4, 1, 1))
+
+            sage: D = designs.IncidenceStructure(4,[[0,1],[2,3]])
+            sage: D.is_t_design(return_parameters=True)
+            (True, (1, 4, 2, 1))
+
+            sage: D = designs.IncidenceStructure(4, [range(4)])
+            sage: D.is_t_design(return_parameters=True)
+            (True, (4, 4, 4, 1))
+
         TESTS::
 
             sage: blocks = designs.steiner_quadruple_system(8)
@@ -710,16 +683,17 @@ class IncidenceStructure(object):
             [(8, 4, 7)]
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(0,v,k,l)]
             [(8, 4, 14)]
+
+
         """
         try:
-            tt,vv,kk,ll = self.t_design_parameters()
+            tt,vv,kk,ll = self._t_design_parameters()
         except ValueError:
             return False
 
         if t is None:
             t = tt
-
-        if t > tt:
+        elif t > tt:
             return False
 
         # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
@@ -727,9 +701,18 @@ class IncidenceStructure(object):
         # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
 
         from sage.rings.arith import binomial
-        return ((v is None or v == vv) and
-                (k is None or k == kk) and
-                (l is None or l == ll * binomial(v-t,tt-t) // binomial(k-t,tt-t)))
+        lll = ll * binomial(vv-t,tt-t) // binomial(kk-t,tt-t)
+
+        if ((v is None or v == vv) and (k is None or k == kk) and (l is None or l == lll)):
+            if return_parameters:
+                return True, (t,vv,kk,lll)
+            else:
+                return True
+        else:
+            if return_parameters:
+                return False, (None,)*4
+            else:
+                return False
 
     #####################
     # real computations #
@@ -754,8 +737,8 @@ class IncidenceStructure(object):
         The dual of a projective plane is a projective plane::
 
             sage: PP = designs.DesarguesianProjectivePlaneDesign(4)
-            sage: PP.dual().t_design_parameters()
-            (2, 21, 5, 1)
+            sage: PP.dual().is_t_design(return_parameters=True)
+            (True, (2, 21, 5, 1))
 
         TESTS::
 
@@ -834,7 +817,7 @@ class IncidenceStructure(object):
     # Deprecation #
     ###############
 
-    parameters = deprecated_function_alias(16553, t_design_parameters)
+    parameters = deprecated_function_alias(16553, _t_design_parameters)
     dual_design = deprecated_function_alias(16553, dual)
     dual_incidence_structure = deprecated_function_alias(16553, dual)
 
@@ -876,8 +859,8 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: BD = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: BD.t_design_parameters()
-            (2, 7, 3, 1)
+            sage: BD.is_t_design(return_parameters=True)
+            (True, (2, 7, 3, 1))
             sage: BD.block_design_checker(2, 7, 3, 1)
             doctest:...: DeprecationWarning: .block_design_checker(v,t,k,lmbda) is deprecated; please use
             .is_t_design(v,t,k,lmbda) instead

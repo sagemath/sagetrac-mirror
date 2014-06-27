@@ -116,8 +116,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
         sage: BD = designs.ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # optional - gap_packages (design package)
-        sage: BD.t_design_parameters()                                            # optional - gap_packages (design package)
-        (2, 7, 3, 1)
+        sage: BD.is_t_design(return_parameters=True)                              # optional - gap_packages (design package)
+        (True, (2, 7, 3, 1))
     """
     q = F.order()
     if algorithm is None:
@@ -400,17 +400,17 @@ def AffineGeometryDesign(n, d, F):
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
-        sage: BD.t_design_parameters()
-        (2, 8, 2, 1)
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (2, 8, 2, 1))
         sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
-        sage: BD.t_design_parameters()
-        (3, 8, 4, 1)
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (3, 8, 4, 1))
 
     With an integer instead of a Finite Field::
 
         sage: BD = designs.AffineGeometryDesign(3, 2, 4)
-        sage: BD.t_design_parameters()
-        (2, 64, 16, 5)
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (2, 64, 16, 5))
     """
     try:
         q = int(F)
@@ -449,9 +449,9 @@ def WittDesign(n):
 
     EXAMPLES::
 
-        sage: BD = designs.WittDesign(9)     # optional - gap_packages (design package)
-        sage: BD.t_design_parameters()       # optional - gap_packages (design package)
-        (2, 9, 3, 1)
+        sage: BD = designs.WittDesign(9)             # optional - gap_packages (design package)
+        sage: BD.is_t_design(return_parameters=True) # optional - gap_packages (design package)
+        (True, (2, 9, 3, 1))
         sage: BD                             # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD                       # optional - gap_packages (design package)

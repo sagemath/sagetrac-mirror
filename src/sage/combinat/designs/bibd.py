@@ -257,8 +257,8 @@ def steiner_triple_system(n):
 
     As any pair of vertices is covered once, its parameters are ::
 
-        sage: sts.t_design_parameters()
-        (2, 9, 3, 1)
+        sage: sts.is_t_design(return_parameters=True)
+        (True, (2, 9, 3, 1))
 
     An exception is raised for invalid values of ``n`` ::
 
