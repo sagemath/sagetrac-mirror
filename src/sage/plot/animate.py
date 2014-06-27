@@ -136,8 +136,9 @@ class Animation(SageObject):
 
     EXAMPLES::
 
-        sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
-        ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+        sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+        ....:              for k in srange(0,2*pi,0.3)],
+        ....:             ymin=-1, ymax=1, figsize=[2,1])
         sage: a
         Animation with 21 frames
         sage: a[:5]
@@ -195,8 +196,9 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.3)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1]) # indirect doctest
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.3)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: a
             Animation with 21 frames
         """
@@ -516,8 +518,9 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
@@ -607,9 +610,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: a.show()       # optional -- ImageMagick
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
+            sage: a.show()               # optional -- ImageMagick
 
         The preceding will loop the animation forever. If you want to show
         only three iterations instead::
@@ -712,8 +716,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
             sage: a.ffmpeg(savefile=dir + 'new.avi')       # optional -- ffmpeg
@@ -835,8 +840,9 @@ please install it and try again."""
 
         EXAMPLES::
 
-            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: a = animate([plot(sin(x + float(k)), (x,0,2*pi))
+            ....:              for k in srange(0,2*pi,0.7)],
+            ....:             ymin=-1, ymax=1, figsize=[2,1])
             sage: dir = tmp_dir()
             sage: a.save()         # not tested
             sage: a.save(dir + 'wave.gif')   # optional -- ImageMagick
