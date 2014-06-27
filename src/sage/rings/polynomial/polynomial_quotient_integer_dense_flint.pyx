@@ -236,3 +236,16 @@ cdef class PolynomialQuotientRingElement_integer_flint(Polynomial_template):
             for c in xrange(row.degree()+1):
                 M[r,c] = row[c]
         return M
+
+    def _pari_(self):
+        """
+        EXAMPLE::
+
+            sage: R.<x> = ZZ['X'].quotient(ZZ['X'].cyclotomic_polynomial(13))
+            sage: f = x^5 + 2*x
+            sage: pari(f) #indirect doctest
+            Mod(X^5 + 2*X, X^12 + X^11 + X^10 + X^9 + X^8 + X^7 + X^6 + X^5 + X^4 + X^3 + X^2 + X + 1)
+        """
+        f = self.lift()._pari_()
+        g = self._parent.modulus()._pari_()
+        return f.Mod(g)
