@@ -1,32 +1,22 @@
 r"""
 Elements of Quotients of Univariate Polynomial Rings
 
-EXAMPLES: We create a quotient of a univariate polynomial ring over
-`\ZZ`.
-
-::
+EXAMPLES: We create a quotient of a univariate polynomial ring over `\ZZ`.::
 
     sage: R.<x> = ZZ[]
     sage: S.<a> = R.quotient(x^3 + 3*x -1)
     sage: 2 * a^3
     -6*a + 2
 
-Next we make a univariate polynomial ring over
-`\ZZ[x]/(x^3+3x-1)`.
-
-::
+Next we make a univariate polynomial ring over `\ZZ[x]/(x^3+3x-1)`.::
 
     sage: S1.<y> = S[]
 
-And, we quotient out that by `y^2 + a`.
-
-::
+And, we quotient out that by `y^2 + a`.::
 
     sage: T.<z> = S1.quotient(y^2+a)
 
-In the quotient `z^2` is `-a`.
-
-::
+In the quotient `z^2` is `-a`.::
 
     sage: z^2
     -a
@@ -52,13 +42,9 @@ And since `a^3 = -3x + 1`, we have::
     sage: a^3
     2
 
-For the purposes of comparison in Sage the quotient element
-`a^3` is equal to `x^3`. This is because when the
-comparison is performed, the right element is coerced into the
-parent of the left element, and `x^3` coerces to
-`a^3`.
-
-::
+For the purposes of comparison in Sage the quotient element `a^3` is equal to `x^3`.
+This is because when the comparison is performed, the right element is coerced into
+the parent of the left element, and `x^3` coerces to `a^3`.::
 
     sage: a == x
     True

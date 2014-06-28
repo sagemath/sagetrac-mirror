@@ -1838,12 +1838,6 @@ ext_modules = [
               language = 'c++',
               depends = flint_depends),
 
-    Extension('sage.rings.polynomial.polynomial_quotient_integer_dense_flint',
-              sources = ['sage/rings/polynomial/polynomial_quotient_integer_dense_flint.pyx'],
-              libraries = ["flint", "gmp", "gmpxx", "ntl", "zn_poly"],
-              language = 'c++',
-              depends = flint_depends),
-    
     Extension('sage.rings.polynomial.polynomial_integer_dense_flint',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_flint.pyx'],
               language = 'c++',

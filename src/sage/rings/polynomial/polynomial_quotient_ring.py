@@ -42,7 +42,6 @@ from sage.structure.parent_gens import ParentWithGens
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
-from sage.rings.polynomial.polynomial_quotient_integer_dense_flint import PolynomialQuotientRingElement_integer_flint
 from sage.all import sage_eval, parent
 from sage.structure.element import Element
 
@@ -186,18 +185,14 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: S.<xbar> = R.quotient(x^2 + 1); S
         Univariate Quotient Polynomial Ring in xbar over Ring of integers modulo 8 with modulus x^2 + 1
 
-    We demonstrate object persistence.
-
-    ::
+    We demonstrate object persistence::
 
         sage: loads(S.dumps()) == S
         True
         sage: loads(xbar.dumps()) == xbar
         True
 
-    We create some sample homomorphisms;
-
-    ::
+    We create some sample homomorphisms::
 
         sage: R.<x> = PolynomialRing(ZZ)
         sage: S = R.quo(x^2-4)
@@ -1393,6 +1388,62 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         return gens
 
+    def basis(self):
+        """
+        Return the power basis for this ring considered as a module over
+        the base ring. This basis is `1, x, x^2, …, x^{d-1}` where `d` is
+        the degree of the modulus.
+
+        EXAMPLE::
+
+            sage: P.<x> = ZZ[]
+            sage: Q = P.quotient(x^4+2)
+            sage: Q.basis()
+            [1, xbar, xbar^2, xbar^3]
+        """
+        from sage.structure.sequence import Sequence
+        x = self.gen()
+        return Sequence([x**i for i in range(self.modulus().degree())])
+
+    def basis_matrix(self):
+        """
+        Return a basis matrix for the power basis for this ring considered as
+        a -module over the base ring, i.e. the `d × d` identity matrix, where
+        `d` is the degree of the modulus.
+
+        EXAMPLE::
+
+            sage: P.<x> = GF(127)[]
+            sage: Q = P.quotient(x^2+37)
+            sage: Q.basis_matrix()
+            [1 0]
+            [0 1]
+
+            sage: P.<x> = IntegerModRing(2^32)[]
+            sage: Q.<x> = P.quotient(x^8 + 1)
+            sage: Q.basis_matrix()
+            [1 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0]
+            [0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 1]
+       
+            sage: P.<x> = ZZ[]
+            sage: Q = P.quotient(x^4+2)
+            sage: Q.basis_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+
+        """
+        from sage.matrix.all import matrix
+        return matrix(self.base_ring(), self.modulus().degree(), self.modulus().degree(), 1)
+
+
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.integral_domain.IntegralDomain):
     """
     EXAMPLES::
@@ -1556,7 +1607,7 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         sage: TestSuite(Q).run()
 
     """
-    Element = PolynomialQuotientRingElement_integer_flint
+    Element = PolynomialQuotientRingElement
 
     def __init__(self, ring, polynomial, name=None):
         """
@@ -1587,43 +1638,6 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         """
         return PolynomialQuotientRing_integer, (self.polynomial_ring(),
                                         self.modulus(), self.variable_names())
-
-    def basis(self):
-        """
-        Return the power basis for this ring considered as a `\\ZZ`-module.
-        This basis is `1, x, x^2, …, x^{d-1}` where `d` is the degree of
-        the modulus.
-
-        EXAMPLE::
-
-            sage: P.<x> = ZZ[]
-            sage: Q = P.quotient(x^4+2)
-            sage: Q.basis()
-            [1, xbar, xbar^2, xbar^3]
-        """
-        from sage.structure.sequence import Sequence
-        x = self.gen()
-        return Sequence([x**i for i in range(self.modulus().degree())])
-
-    def basis_matrix(self):
-        """
-        Return a basis matrix for the power basis for this ring considered as
-        a `\\ZZ`-module, i.e. the `d × d` identity matrix, where `d` is the
-        degree of the modulus.
-
-        EXAMPLE::
-
-            sage: P.<x> = ZZ[]
-            sage: Q = P.quotient(x^4+2)
-            sage: Q.basis_matrix()
-            [1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
-
-        """
-        from sage.matrix.all import matrix
-        return matrix(ZZ, self.modulus().degree(), self.modulus().degree(), 1)
 
     def random_element(self, distribution='default', sigma=None, check=True, *args, **kwds):
         """
