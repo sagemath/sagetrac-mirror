@@ -36,7 +36,7 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
+from sage.categories.quotient_fields import QuotientFields
 
 from sage.misc.misc_c import is_64_bit
 
@@ -122,7 +122,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef int characteristic
     cdef int ringtype = 0
     cdef MPolynomialRing_libsingular k
-    cdef MPolynomial_libsingular minpoly
+    cdef MPolynomial_libsingular minpoly = None
     cdef lnumber *nmp
     cdef int * m
 
@@ -227,6 +227,18 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             ringflaga = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
             mpz_init_set_ui(ringflaga, characteristic)
             ringflagb = 1
+    elif base_ring in QuotientFields():
+        if PY_TYPE_CHECK(base_ring.base_ring(), RationalField):
+            characteristic = 1
+        elif base_ring.base_ring().is_prime_field():
+            characteristic = -base_ring.characteristic()
+        else:
+            raise TypeError("Parameters can only be used over the rationals or a finite prime field")
+        try:
+            k = PolynomialRing(base_ring.base_ring(), base_ring.ngens(), base_ring.variable_names())
+        except TypeError:
+            raise TypeError("The given base ring '{}' was supposed to be the quotient field of a polynomial ring of type {}".format(base_ring, MPolynomialRing_libsingular))
+        is_extension = True
     else:
         raise NotImplementedError("Base ring is not supported.")
 
@@ -248,7 +260,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring.parameter[0] = omStrDup(_ring.algring.names[0])
 
         nmp = <lnumber*>omAlloc0Bin(rnumber_bin)
-        nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
+        if minpoly is None:
+            nmp.z = NULL
+        else:
+            nmp.z= <napoly*>p_Copy(minpoly._poly, _ring.algring) # fragile?
         nmp.s=2
 
         _ring.minpoly=<number*>nmp
