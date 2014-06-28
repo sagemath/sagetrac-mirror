@@ -112,11 +112,21 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x
             x
 
-        Construct from list::
+        Construct from list, tuple, vector::
 
             sage: R([])
             0
             sage: R([1, -2, 3])
+            3*x^2 - 2*x + 1
+
+            sage: R(tuple())
+            0
+            sage: R((1, -2, 3))
+            3*x^2 - 2*x + 1
+
+            sage: R(vector(ZZ,0))
+            0
+            sage: R(vector(ZZ, 3, (1, -2, 3)))
             3*x^2 - 2*x + 1
 
         Coercions from other rings are attempted automatically::
@@ -239,8 +249,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 sig_off()
                 return
 
-        elif not isinstance(x, list):
-            x = [x]   # constant polynomials
+        else:
+            try:
+                x = list(x) # at this point anything that can be a list, is treated list
+            except TypeError:
+                x = [x]   # constant polynomials
 
         sig_on()
         fmpz_poly_realloc(self.__poly, len(x))
