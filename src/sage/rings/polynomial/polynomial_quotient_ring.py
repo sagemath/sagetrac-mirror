@@ -1687,6 +1687,11 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
         else:
             sigma = 1.0
 
+        from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+        if isinstance(distribution, DiscreteGaussianLatticeSampler):
+            sigma = distribution
+            distribution = 'gaussian'
+
         if distribution == 'default':
             return PolynomialQuotientRing_domain.random_element(self, *args, **kwds)
         elif distribution == 'gaussian':
@@ -1698,7 +1703,9 @@ class PolynomialQuotientRing_integer(PolynomialQuotientRing_domain):
                         raise ValueError("D's lattice does not match this ring.")
             else:
                 D = DiscreteGaussianLatticeSampler(self.basis_matrix(), sigma)
-            return self(D())
+            return self(D().list())
+        else:
+            raise ValueError("Distribution '%s' unknown."%distribution)
 
 class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     """
