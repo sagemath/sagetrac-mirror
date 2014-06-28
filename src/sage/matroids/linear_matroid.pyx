@@ -3419,6 +3419,39 @@ cdef class BinaryMatroid(LinearMatroid):
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
         return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
+    
+    # represented binary minor test
+    cpdef _has_binary_minor(self,N=None,Nmat1=None):
+        cdef long r,c
+        if N is not None:
+            B_N=N.basis()
+            Nmat1=list(N.representation(B=B_N,reduced=True))
+            Nmat=BinaryMatrix(Nmat1[0].nrows(),Nmat1[0].ncols(),Nmat1[0])
+            zeros2={}
+            for r in range(Nmat.nrows()):
+                zeros2[r]=[]
+                for c in range(Nmat.ncols()):
+                    if not Nmat.is_nonzero(r,c):
+                        zeros2[r].append(c)
+        elif Nmat1 is not None:
+            Nmat=BinaryMatrix(Nmat1.nrows(),Nmat1.ncols(),Nmat1)
+            zeros2={}
+            for r in range(Nmat.nrows()):
+                zeros2[r]=[]
+                for c in range(Nmat.ncols()):
+                    if not Nmat.is_nonzero(r,c):
+                        zeros2[r].append(c)
+        else:
+            raise ValueError("either N or Nmat1 must be provided")
+        for B1 in self.bases():
+            mat=self._reduced_representation(B=B1)
+            zeros1={}
+            for r in range(mat.nrows()):
+                zeros1[r]=[]
+                for c in range(mat.ncols()):
+                    if not mat.is_nonzero(r,c):
+                        zeros1[r].append(c)
+        return
 
     # graphicness test
     cpdef is_graphic(self):
