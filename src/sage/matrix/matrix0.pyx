@@ -2223,46 +2223,73 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def permute_columns(self, permutation):
         r"""
-        Permute the columns of ``self`` by applying the permutation
-        group element ``permutation``.
-
-        As a permutation group element acts on integers `\{1, \hdots, n\}`
-        the columns are considered as being numbered from 1 for this
-        operation.
+        Permute the columns of ``self`` according to ``permutation``.
 
         INPUT:
 
-        - ``permutation`` -- a ``PermutationGroupElement``.
+        - ``permutation`` -- a :class:`PermutationGroupElement`
 
-        EXAMPLE: We create a matrix::
+        OUTPUT: ``None``
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+        After this operation, the coefficients will be changed
+        according to ``new[i,j] = old[i,permutation(j)]``.
+
+        .. SEEALSO::
+
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix and save a copy of it::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
+            sage: N = copy(M)
 
-        Next of all, create a permutation group element and act
-        on ``M`` with it::
+        Next we create a permutation group element and act on ``M``::
 
-            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
-            sage: sigma
-            (1,2,3)(4,5)
             sage: M.permute_columns(sigma)
             sage: M
-            [0 0 1 0 0]
-            [2 0 0 0 0]
-            [0 3 0 0 0]
-            [0 0 0 0 4]
+            [1 0 1 0 0]
+            [2 2 0 0 0]
+            [0 3 0 0 3]
+            [0 0 0 4 4]
             [0 0 0 5 0]
 
+            sage: assert all(M[i,j] == N[i,sigma(j)] for i in range(5) for j in range(5))
+
+        .. WARNING::
+
+            For backward compatibility, if a permutation group element
+            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            the columns are considered as being numbered from `1`:
+
+                sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+                sage: sigma, tau = G.gens()
+                sage: sigma
+                (1,2,3)(4,5)
+                sage: M = copy(N)
+                sage: M.permute_columns(sigma)
+                sage: M
+                [1 0 1 0 0]
+                [2 2 0 0 0]
+                [0 3 0 0 3]
+                [0 0 0 4 4]
+                [0 0 0 5 0]
         """
         self.check_mutability()
+        shift = 1 if 0 not in permutation.domain() else 0
         for cycle in permutation.cycle_tuples():
-            cycle = [elt-1 for elt in reversed(cycle)]
+            cycle = [elt-shift for elt in reversed(cycle)]
             for elt in cycle:
                 self.check_column_bounds(cycle[0], elt)
                 if cycle[0] != elt:
@@ -2270,57 +2297,87 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def with_permuted_columns(self, permutation):
         r"""
-        Return the matrix obtained from permuting the columns
-        of ``self`` by applying the permutation group element
-        ``permutation``.
-
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the columns are considered as being numbered from 1 for this
-        operation.
+        Return a matrix obtained from permuting the columns of ``self``.
 
         INPUT:
 
-        - ``permutation``, a ``PermutationGroupElement``
+        - ``permutation`` -- a :class:`PermutationGroupElement`
 
         OUTPUT:
 
-        - A matrix.
+        - The matrix with coefficients ``m[i,j] = self[i,permutation(j)]``
 
-        EXAMPLE: We create some matrix::
+        .. SEEALSO::
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
 
-        Next of all, create a permutation group element and
-        act on ``M``::
+        Next we create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (0,1,2)(3,4)
+            sage: M.with_permuted_columns(sigma)
+            [1 0 1 0 0]
+            [2 2 0 0 0]
+            [0 3 0 0 3]
+            [0 0 0 4 4]
+            [0 0 0 5 0]
+
+        Here we act with a permutation of ``\{1,\dots,n\}`` instead.
+        See :meth:`permute_columns` for details::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: sigma, tau = G.gens()
             sage: sigma
             (1,2,3)(4,5)
             sage: M.with_permuted_columns(sigma)
-            [0 0 1 0 0]
-            [2 0 0 0 0]
-            [0 3 0 0 0]
-            [0 0 0 0 4]
+            [1 0 1 0 0]
+            [2 2 0 0 0]
+            [0 3 0 0 3]
+            [0 0 0 4 4]
             [0 0 0 5 0]
         """
         cdef Matrix temp
         temp = self.__copy__()
-        for cycle in permutation.cycle_tuples():
-            cycle = [(elt - 1) for elt in reversed(cycle)]
-            for elt in cycle:
-                self.check_column_bounds(cycle[0], elt)
-                if cycle[0] != elt:
-                    temp.swap_columns_c(cycle[0], elt)
+        temp.permute_columns(permutation)
         return temp
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
+        r"""
+        Swap columns r1 and r2 of self.
+
+        EXAMPLES: We create a rational matrix::
+
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A
+            [  1   9  -7]
+            [4/5   4   3]
+            [  6   4   3]
+
+        Since the first column is numbered zero, this swaps the first
+        and third columns::
+
+            sage: A.swap_columns(0,2); A
+            [ -7   9   1]
+            [  3   4 4/5]
+            [  3   4   6]
+        """
         cdef Py_ssize_t r
         for r from 0 <= r < self._nrows:
             a = self.get_unsafe(r, c2)
@@ -2328,7 +2385,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(r, c1, a)
 
     def swap_rows(self, r1, r2):
-        """
+        r"""
         Swap rows r1 and r2 of self.
 
         EXAMPLES: We create a rational matrix::
@@ -2408,44 +2465,73 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def permute_rows(self, permutation):
         r"""
-        Permute the rows of ``self`` by applying the permutation
-        group element ``permutation``.
-
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        Permute the rows of ``self`` according to ``permutation``.
 
         INPUT:
 
-        - ``permutation`` -- a ``PermutationGroupElement``
+        - ``permutation`` -- a :class:`PermutationGroupElement`
 
-        EXAMPLE: We create a matrix::
+        OUTPUT: ``None``
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+        After this operation, the coefficients will be changed
+        according to ``new[i,j] = old[permutation(i),j]``.
+
+        .. SEEALSO::
+
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix and save a copy of it::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
+            sage: N = copy(M)
 
-        Next of all, create a permutation group element and act on ``M``::
+        Next we create a permutation group element and act on ``M``::
 
-            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
-            sage: sigma
-            (1,2,3)(4,5)
             sage: M.permute_rows(sigma)
             sage: M
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [1 0 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [1 1 0 0 0]
             [0 0 0 0 5]
-            [0 0 0 4 0]
+            [0 0 0 4 4]
+
+            sage: assert all(M[i,j] == N[sigma(i),j] for i in range(5) for j in range(5))
+
+        .. WARNING::
+
+            For backward compatibility, if a permutation group element
+            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            the rows are considered as being numbered from `1`:
+
+                sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+                sage: sigma, tau = G.gens()
+                sage: sigma
+                (1,2,3)(4,5)
+                sage: M = copy(N)
+                sage: M.permute_rows(sigma)
+                sage: M
+                [0 2 2 0 0]
+                [0 0 3 3 0]
+                [1 1 0 0 0]
+                [0 0 0 0 5]
+                [0 0 0 4 4]
         """
+        shift = 1 if 0 not in permutation.domain() else 0
         self.check_mutability()
         for cycle in permutation.cycle_tuples():
-            cycle = [elt - 1 for elt in reversed(cycle)]
+            cycle = [elt - shift for elt in reversed(cycle)]
             for elt in cycle:
                 self.check_row_bounds(cycle[0], elt)
                 if cycle[0] != elt:
@@ -2453,53 +2539,64 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def with_permuted_rows(self, permutation):
         r"""
-        Return the matrix obtained from permuting the rows
-        of ``self`` by applying the permutation group element
-        ``permutation``.
-
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        Return a matrix obtained from permuting the rows of ``self``.
 
         INPUT:
 
-        - ``permutation`` -- a ``PermutationGroupElement``
+        - ``permutation`` -- a :class:`PermutationGroupElement`
 
         OUTPUT:
 
-        - A matrix.
+        - The matrix with coefficients ``m[i,j] = self[permutation(i),j]``
 
-        EXAMPLE: We create a matrix::
+        .. SEEALSO::
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
 
-        Next of all, create a permutation group element and act on ``M``::
+        Next we create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (0,1,2)(3,4)
+            sage: M.with_permuted_rows(sigma)
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [1 1 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 4]
+
+        Here we act with a permutation of ``\{1,\dots,n\}`` instead.
+        See :meth:`permute_rows` for details::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: sigma, tau = G.gens()
             sage: sigma
             (1,2,3)(4,5)
             sage: M.with_permuted_rows(sigma)
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [1 0 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [1 1 0 0 0]
             [0 0 0 0 5]
-            [0 0 0 4 0]
+            [0 0 0 4 4]
         """
         cdef Matrix temp
         temp = self.__copy__()
-        for cycle in permutation.cycle_tuples():
-            cycle = [elt - 1 for elt in reversed(cycle)]
-            for elt in cycle:
-                self.check_row_bounds(cycle[0], elt)
-                if cycle[0] != elt:
-                    temp.swap_rows_c(cycle[0], elt)
+        temp.permute_rows(permutation)
         return temp
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
@@ -2509,95 +2606,158 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(r2, c, self.get_unsafe(r1, c))
             self.set_unsafe(r1, c, a)
 
-    def permute_rows_and_columns(self, row_permutation, column_permutation):
+    def permute_rows_and_columns(self, row_permutation, column_permutation=None):
         r"""
-        Permute the rows and columns of ``self`` by applying the permutation
-        group elements ``row_permutation`` and ``column_permutation``
-        respectively.
-        
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows and columns are considered as being numbered from 1 for
-        this operation.
+        Permute the rows and columns of ``self``.
 
         INPUT:
 
-        - ``row_permutation`` -- a ``PermutationGroupElement``
-        - ``column_permutation`` -- a ``PermutationGroupElement``
+        - ``row_permutation``    -- a :class:`PermutationGroupElement`
+        - ``column_permutation`` -- a :class:`PermutationGroupElement` (default: ``None``)
 
-        OUTPUT:
+        OUTPUT: ``None``
 
-        - A matrix.
+        After this operation, the coefficients will be changed
+        according to ``new[i,j] = old[row_permutation(i),column_permutation(j)]``.
 
-        EXAMPLE: We create a matrix::
+        .. SEEALSO::
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix and store a copy::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
+            sage: N = copy(M)
 
-        Next of all, create a permutation group element and act on ``M``::
+        Next we create a permutation group element and act on ``M``::
 
-            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
-            sage: sigma
-            (1,2,3)(4,5)
             sage: M.permute_rows_and_columns(sigma,tau)
             sage: M
-            [2 0 0 0 0]
-            [0 3 0 0 0]
-            [0 0 0 0 1]
+            [2 2 0 0 0]
+            [0 3 3 0 0]
+            [1 0 0 0 1]
             [0 0 0 5 0]
-            [0 0 4 0 0]
+            [0 0 4 4 0]
+
+            sage: assert all(M[i,j] == N[sigma(i), tau(j)] for i in range(5) for j in range(5))
+
+        If the column permutation is not specified, the same
+        permutation is used for rows and columns::
+
+            sage: M = copy(N)
+            sage: M.permute_rows_and_columns(sigma)
+            sage: M
+            [2 2 0 0 0]
+            [0 3 0 0 3]
+            [1 0 1 0 0]
+            [0 0 0 5 0]
+            [0 0 0 4 4]
+
+        .. WARNING::
+
+            For backward compatibility, if a permutation group element
+            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            the rows and/or columns are considered accordingly as
+            being numbered from `1`:
+
+                sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+                sage: _, tau = G.gens()
+                sage: sigma, tau
+                ((0,1,2)(3,4), (1,2,3,4,5))
+                sage: M = copy(N)
+                sage: M.permute_rows_and_columns(sigma, tau)
+                sage: M
+                [2 2 0 0 0]
+                [0 3 3 0 0]
+                [1 0 0 0 1]
+                [0 0 0 5 0]
+                [0 0 4 4 0]
         """
+        if column_permutation is None:
+            column_permutation = row_permutation
         self.permute_rows(row_permutation)
         self.permute_columns(column_permutation)
 
-    def with_permuted_rows_and_columns(self,row_permutation,column_permutation):
+    def with_permuted_rows_and_columns(self,row_permutation,column_permutation=None):
         r"""
-        Return the matrix obtained from permuting the rows and
-        columns of ``self`` by applying the permutation group
-        elements ``row_permutation`` and ``column_permutation``.
-        
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        Return a matrix obtained from permuting the rows and columns of ``self``.
 
         INPUT:
 
-        - ``row_permutation`` -- a ``PermutationGroupElement``
-        - ``column_permutation`` -- a ``PermutationGroupElement``
+        - ``row_permutation``    -- a :class:`PermutationGroupElement`
+        - ``column_permutation`` -- a :class:`PermutationGroupElement` (default: ``None``)
 
         OUTPUT:
 
-        - A matrix.
+        - The matrix with coefficients ``m[i,j] = self[row_permutation(i),row_permutation(j)]``
 
-        EXAMPLE: We create a matrix::
+        .. SEEALSO::
 
-            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+
+        EXAMPLES:
+
+        We create a matrix and save a copy of it::
+
+            sage: M = matrix(ZZ,[[1,1,0,0,0],[0,2,2,0,0],[0,0,3,3,0],[0,0,0,4,4],[0,0,0,0,5]])
             sage: M
-            [1 0 0 0 0]
-            [0 2 0 0 0]
-            [0 0 3 0 0]
-            [0 0 0 4 0]
+            [1 1 0 0 0]
+            [0 2 2 0 0]
+            [0 0 3 3 0]
+            [0 0 0 4 4]
             [0 0 0 0 5]
 
-        Next of all, create a permutation group element and act on ``M``::
+        Next we create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
+            sage: sigma, tau = G.gens()
+            sage: M.with_permuted_rows_and_columns(sigma, tau)
+            [2 2 0 0 0]
+            [0 3 3 0 0]
+            [1 0 0 0 1]
+            [0 0 0 5 0]
+            [0 0 4 4 0]
+
+        If the column permutation is not specified, the same
+        permutation is used for rows and columns::
+
+            sage: M.with_permuted_rows_and_columns(sigma)
+            [2 2 0 0 0]
+            [0 3 0 0 3]
+            [1 0 1 0 0]
+            [0 0 0 5 0]
+            [0 0 0 4 4]
+
+        Here we act with permutations of ``\{1,\dots,n\}`` instead.
+        See :meth:`permuted_rows_and_columns` for details::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: sigma, tau = G.gens()
-            sage: sigma
-            (1,2,3)(4,5)
-            sage: M.with_permuted_rows_and_columns(sigma,tau)
-            [2 0 0 0 0]
-            [0 3 0 0 0]
-            [0 0 0 0 1]
+            sage: M.with_permuted_rows_and_columns(sigma, tau)
+            [2 2 0 0 0]
+            [0 3 3 0 0]
+            [1 0 0 0 1]
             [0 0 0 5 0]
-            [0 0 4 0 0]
+            [0 0 4 4 0]
         """
-        return self.with_permuted_rows(row_permutation).with_permuted_columns(column_permutation)
+        cdef Matrix temp
+        temp = self.__copy__()
+        temp.permute_rows_and_columns(row_permutation,column_permutation)
+        return temp
 
     def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col=0):
         """
