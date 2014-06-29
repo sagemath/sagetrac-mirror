@@ -190,6 +190,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: g = f.change_ring(QQ)
             sage: g[:10]
             10*x^9 + 9*x^8 + 8*x^7 + 7*x^6 + 6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
+
+            sage: R(vector(QQ, 3, range(3)))
+            2*t^2 + t
         """
         cdef long deg
         cdef unsigned long n
@@ -213,34 +216,6 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         elif PY_TYPE_CHECK(x, Rational):
             fmpq_poly_set_mpq(self.__poly, (<Rational> x).value)
-
-        elif PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
-
-            if len(x) == 0:
-                return
-            elif len(x) == 1:
-                Polynomial_rational_flint.__init__(self, parent, x[0], \
-                                check=check, is_gen=False, construct=construct)
-                return
-
-            L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
-            n  = <unsigned long> len(x)
-            sig_on()
-            L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
-            for deg from 0 <= deg < n:
-                mpq_init(L2[deg])
-                mpq_set(L2[deg], (<Rational> L1[deg]).value)
-            fmpq_poly_set_array_mpq(self.__poly, L2, n)
-            for deg from 0 <= deg < n:
-                mpq_clear(L2[deg])
-            sage_free(L2)
-            sig_off()
-
-#           deg = 0
-#           for e in x:
-#               c = Rational(e)
-#               fmpq_poly_set_coeff_mpq(self.__poly, deg, c.value)
-#               deg += 1
 
         elif PY_TYPE_CHECK(x, dict):
             for deg, e in x.iteritems():
@@ -268,9 +243,31 @@ cdef class Polynomial_rational_flint(Polynomial):
                                             is_gen=is_gen, construct=construct)
 
         else:
-            x = parent.base_ring()(x)
-            Polynomial_rational_flint.__init__(self, parent, x, check=check, \
-                                            is_gen=is_gen, construct=construct)
+            try:
+                x = parent.base_ring()(x)
+                Polynomial_rational_flint.__init__(self, parent, x, check=check, \
+                                                is_gen=is_gen, construct=construct)
+            except (TypeError, ValueError):
+                if len(x) == 0:
+                    return
+                elif len(x) == 1:
+                    Polynomial_rational_flint.__init__(self, parent, x[0], \
+                                    check=check, is_gen=False, construct=construct)
+                    return
+
+                L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
+                n  = <unsigned long> len(x)
+                sig_on()
+                L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
+                for deg from 0 <= deg < n:
+                    mpq_init(L2[deg])
+                    mpq_set(L2[deg], (<Rational> L1[deg]).value)
+                fmpq_poly_set_array_mpq(self.__poly, L2, n)
+                for deg from 0 <= deg < n:
+                    mpq_clear(L2[deg])
+                sage_free(L2)
+                sig_off()
+
 
     def __reduce__(self):
         """

@@ -95,6 +95,11 @@ cdef class Polynomial_template(Polynomial):
             x^2 + 1
             sage: P(map(GF(2),[1,0,1]))
             x^2 + 1
+
+            sage: P.<x> = GF(127)[]
+            sage: v = vector(GF(127),10, range(10))
+            sage: P(v)
+            9*x^9 + 8*x^8 + 7*x^7 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
         """
         cdef celement *gen, *monomial
         cdef Py_ssize_t deg
@@ -120,25 +125,6 @@ cdef class Polynomial_template(Polynomial):
                 celement_set_si(&self.x, int(x), (<Polynomial_template>self)._cparent)
             except NotImplementedError:
                 raise TypeError("%s not understood."%x)
-
-        elif PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
-            celement_construct(&self.x, (<Polynomial_template>self)._cparent)
-            gen = celement_new((<Polynomial_template>self)._cparent)
-            monomial = celement_new((<Polynomial_template>self)._cparent)
-
-            celement_set_si(&self.x, 0, (<Polynomial_template>self)._cparent)
-            celement_gen(gen, 0, (<Polynomial_template>self)._cparent)
-
-            deg = 0
-            for e in x:
-                # r += parent(e)*power
-                celement_pow(monomial, gen, deg, NULL, (<Polynomial_template>self)._cparent)
-                celement_mul(monomial, &(<Polynomial_template>self.__class__(parent, e)).x, monomial, (<Polynomial_template>self)._cparent)
-                celement_add(&self.x, &self.x, monomial, (<Polynomial_template>self)._cparent)
-                deg += 1
-
-            celement_delete(gen, (<Polynomial_template>self)._cparent)
-            celement_delete(monomial, (<Polynomial_template>self)._cparent)
 
         elif PY_TYPE_CHECK(x, dict):
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
@@ -168,8 +154,28 @@ cdef class Polynomial_template(Polynomial):
             x = x.numerator()
             self.__class__.__init__(self, parent, x, check=check, is_gen=is_gen, construct=construct)
         else:
-            x = parent.base_ring()(x)
-            self.__class__.__init__(self, parent, x, check=check, is_gen=is_gen, construct=construct)
+            try:
+                x = parent.base_ring()(x)
+                self.__class__.__init__(self, parent, x, check=check, is_gen=is_gen, construct=construct)
+            except (TypeError,ValueError):
+                x = list(x)
+                celement_construct(&self.x, (<Polynomial_template>self)._cparent)
+                gen = celement_new((<Polynomial_template>self)._cparent)
+                monomial = celement_new((<Polynomial_template>self)._cparent)
+
+                celement_set_si(&self.x, 0, (<Polynomial_template>self)._cparent)
+                celement_gen(gen, 0, (<Polynomial_template>self)._cparent)
+
+                deg = 0
+                for e in x:
+                    # r += parent(e)*power
+                    celement_pow(monomial, gen, deg, NULL, (<Polynomial_template>self)._cparent)
+                    celement_mul(monomial, &(<Polynomial_template>self.__class__(parent, e)).x, monomial, (<Polynomial_template>self)._cparent)
+                    celement_add(&self.x, &self.x, monomial, (<Polynomial_template>self)._cparent)
+                    deg += 1
+
+                celement_delete(gen, (<Polynomial_template>self)._cparent)
+                celement_delete(monomial, (<Polynomial_template>self)._cparent)
 
     def get_cparent(self):
         return <long> self._cparent
