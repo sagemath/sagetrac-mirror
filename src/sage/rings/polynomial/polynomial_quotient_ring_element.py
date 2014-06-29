@@ -106,14 +106,23 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         INPUT:
 
+        - ``parent`` -- a quotient of a polynomial ring
 
-        -  ``parent`` - a quotient of a polynomial ring
+        - ``polynomial`` -- a polynomial
 
-        -  ``polynomial`` - a polynomial
+        - ``check`` -- a boolean (default: ``True``): whether or not to verify
+          that ``polynomial`` is a valid element of the polynomial ring
 
-        -  ``check`` - bool (optional): whether or not to
-           verify that x is a valid element of the polynomial ring and reduced
-           (mod the modulus).
+        TESTS:
+
+        Check that :trac:`13662` has been fixed, i.e., leading zero
+        coefficients do not show up in the quotient anymore::
+
+            sage: R.<x> = Qp(3,5)[]
+            sage: S.<xbar> = R.quo(x^2 + (O(3^2)*x) + (3+O(3^2)))
+            sage: xbar^3
+            (2*3 + O(3^2))*xbar + (O(3^3))
+
         """
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
@@ -130,21 +139,41 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
                 raise TypeError("polynomial must be in the polynomial ring of the parent")
 
         f = parent.modulus()
-        if polynomial.degree() >= f.degree() and polynomial.degree() >= 0:
-            try:
-                polynomial %= f
-            except AttributeError:
-                A = polynomial
-                B = f
-                R = A
-                P = B.parent()
-                Q = P(0)
-                X = P.gen()
-                while R.degree() >= B.degree():
-                    S = P((R.leading_coefficient()/B.leading_coefficient())) * X**(R.degree()-B.degree())
-                    Q = Q + S
-                    R = R - S*B
-                polynomial = R
+        if polynomial.degree() >= f.degree():
+            polynomial %= f
+        assert polynomial.degree() < f.degree()
+        if len(polynomial.list()) > f.degree():
+            assert not polynomial.parent().is_exact()
+            # This may happen over inexact rings such as the p-adics, if
+            # polynomial has leading zero coefficients, i.e., coefficients
+            # which are not exactly zero but approximately zero.
+            # This means that the quo_rem algorithm was not sure about the
+            # degree of the result.
+            # In this quotient ring the exact degree does not make a
+            # difference. Here we reduce these leading coefficients modulo f
+            # and add the result to polynomial. Though this reduction is zero,
+            # it can make a difference since it may add error terms to the
+            # result.
+            if not f.leading_coefficient().is_unit():
+                raise NotImplementedError
+            coeffs = polynomial.list()
+            # write the defining equation as f=x^n-error.
+            error = (-f * ~f.leading_coefficient()).list()[:-1]
+            error.reverse()
+            # replace x^n with error in reduction.
+            for d in range(len(coeffs)-1,f.degree()-1,-1):
+                # naively iterate over the coefficients of the polynomial
+                # this could probably be done much faster by forming sums of
+                # the error polynomials, however the polynomial code tends to
+                # treat inexact zero coefficients as exact zeros so it is safer
+                # to do it like this
+                for i,e in enumerate(error):
+                    eps = error[i]*coeffs[d]
+                    assert eps.is_zero() # usually an inexact zero
+                    coeffs[d-i-1] += eps
+                coeffs.pop()
+            polynomial = polynomial.parent()(coeffs)
+            assert len(polynomial.list()) <= f.degree()
         self._polynomial = polynomial
 
     def _im_gens_(self, codomain, im_gens):
@@ -618,6 +647,17 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             [ 0  1  0]
             [ 0  0  1]
             [ 5 -2  0]
+
+        TESTS:
+
+        Check that :trac:`13662` has been resolved::
+
+            sage: R.<x> = Zp(3,2)[]
+            sage: S.<xbar> = R.quo(x^2 + 1)
+            sage: xbar.matrix()
+            [               0       1 + O(3^2)]
+            [2 + 2*3 + O(3^2)                0]
+
         """
         # Multiply each power of field generator on the right by this
         # element, then return the matrix whose rows are the

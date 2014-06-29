@@ -484,7 +484,7 @@ class pAdicLseries(SageObject):
             sage: alpha = L.alpha(10); alpha
             (1 + O(3^10))*alpha
             sage: alpha^2 - E.ap(3)*alpha + 3
-            (O(3^10))*alpha^2 + (O(3^11))*alpha + (O(3^11))
+            (O(3^11))*alpha + (O(3^11))
 
         A reducible prime::
 
@@ -1103,7 +1103,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve("17a1")
             sage: L = E.padic_lseries(3)
             sage: L.series(4,prec=1)
-            (O(3^18))*alpha^2 + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
+            (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
 
         """
         n = ZZ(n)
