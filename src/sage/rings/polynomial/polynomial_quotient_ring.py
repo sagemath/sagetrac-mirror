@@ -81,7 +81,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: x in S
         True
         sage: a in R
-        False
+        True
         sage: S.polynomial_ring()
         Univariate Polynomial Ring in x over Integer Ring
         sage: S.modulus()
