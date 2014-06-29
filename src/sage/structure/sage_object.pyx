@@ -153,6 +153,13 @@ cdef class SageObject:
         else:
             return repr_func()
 
+    def _repr_png_(self):
+        from IPython.display import Image
+        from sage.misc.latex import view
+        #v = view(self)
+        #print v, type(v)
+        return Image(view(self)).data
+
     def _ascii_art_(self):
         r"""
         Return an ASCII art representation.

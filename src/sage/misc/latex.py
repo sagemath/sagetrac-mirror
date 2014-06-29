@@ -2207,12 +2207,12 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         if MathJax_okay:  # put comma at end of line below?
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
-            base_dir = os.path.abspath("")
+            base_dir = os.path.abspath("") + "/.sage/temp/"
             png_file = graphics_filename(ext='png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
-            print('<html><img src="{}"></html>'.format(png_link))  # put comma at end of line?
+            return base_dir + png_file
         return
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
@@ -2279,7 +2279,7 @@ def png(x, filename, density=150, debug=False,
         x.save(filename)
         return
     # if not graphics: create a string of latex code to write in a file
-    s = _latex_file_([x], math_left='$\\displaystyle', math_right='$', title='',
+    s = _latex_file_([x], math_left='$\\displaystyle ', math_right='$', title='',
                      debug=debug, tiny=tiny,
                      extra_preamble='\\textheight=2\\textheight')
     # path name for permanent png output
