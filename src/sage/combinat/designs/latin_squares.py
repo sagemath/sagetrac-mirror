@@ -474,7 +474,9 @@ def MOLS_table(number_of_lines,compare=False):
          80|                                           -   -
     """
     if compare:
-        handbook_file = open("handbook_data.txt",'r')
+        from sage.misc.misc import SAGE_SHARE
+        from os.path import join
+        handbook_file = open(join(SAGE_SHARE, "handbook_data.txt"),'r')
         hb = map(int,handbook_file.readlines()[9].split(','))
         handbook_file.close()
 
