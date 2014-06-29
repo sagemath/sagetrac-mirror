@@ -458,14 +458,16 @@ class pAdicLseries(SageObject):
 
     def alpha(self, prec=20):
         r"""
-        Return a `p`-adic root `\alpha` of the polynomial `x^2 - a_p x
-        + p` with `ord_p(\alpha) < 1`.  In the ordinary case this is
-        just the unit root.
+        Return a `p`-adic root `\alpha` of the polynomial `x^2 - a_p x + p`
+        with `\mathrm{ord}_p(\alpha) < 1`.  In the ordinary case this is just
+        the unit root.
 
         INPUT:
+
         -  ``prec`` - positive integer, the `p`-adic precision of the root.
 
         EXAMPLES:
+
         Consider the elliptic curve 37a::
 
             sage: E = EllipticCurve('37a')
@@ -1085,7 +1087,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        A superingular example, where we must compute to higher precision to see anything::
+
+        A supersingular example, where we must compute to higher precision to see anything::
 
             sage: e = EllipticCurve('37a')
             sage: L = e.padic_lseries(3); L
@@ -1098,7 +1101,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
 
-        An example where we only compute the leading term (:trac: `15737`)::
+        An example where we only compute the leading term (:trac:`15737`)::
 
             sage: E = EllipticCurve("17a1")
             sage: L = E.padic_lseries(3)
