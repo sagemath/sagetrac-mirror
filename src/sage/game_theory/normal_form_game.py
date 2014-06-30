@@ -1,11 +1,12 @@
 """
 Normal Form games with N players.
 
-This module implements a class for normal form games (strategic form games).
-At present 3 algorithms are implemented to compute equilibria of these
-games (LCP - interfaced with gambit, lrs - interfaced with the lrs library
-and support enumeration built in Sage). The architecture for the class is
-based on the gambit architecture to ensure an easy transition between the two.
+This module implements a class for normal form games (strategic form games)
+[NN2007]_. At present 3 algorithms are implemented to compute equilibria
+of these games (LCP - interfaced with gambit, lrs - interfaced with the lrs
+library and support enumeration built in Sage). The architecture for the
+class is based on the gambit architecture to ensure an easy transition
+between the two.
 
 At present the algorithms for the enumeration of equilibria only solve 2 player
 games.
@@ -264,8 +265,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     * ``enumeration``: Support enumeration for 2 player games. This
       algorithm is hard coded in Sage and checks through all potential
-      supports of a strategy. Note: this is not the preferred algorithm. For
-      more information about this see [NN2007]_.
+      supports of a strategy. Supports of a given size with a conditionally
+      dominated strategy are ignored. Note: this is not the preferred
+      algorithm. An excellent overview of this algorithm is given in
+      [SLB2008]_.
 
     Below we show how all three algorithms are called: ::
 
@@ -470,6 +473,10 @@ class NormalFormGame(SageObject, MutableMapping):
     .. [MMAT2014] McKelvey, Richard D., McLennan, Andrew M., and Turocy, Theodore L.
        *Gambit: Software Tools for Game Theory, Version 13.1.2.*
        http://www.gambit-project.org (2014).
+
+    .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown.
+       *Multiagent systems: Algorithmic, game-theoretic, and logical foundations.*
+       Cambridge University Press, 2008.
 
 
     """
