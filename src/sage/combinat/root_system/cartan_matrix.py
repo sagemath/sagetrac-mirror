@@ -463,6 +463,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         return self.ncols()
 
+    def relabel(self, relabelling):
+        """
+        Return the relabelled Cartan matrix.
+
+        EXAMPLES::
+
+            sage: CM = CartanMatrix(['C',3])
+            sage: R = CM.relabel({1:0, 2:4, 3:1}); R
+            [ 2  0 -1]
+            [ 0  2 -1]
+            [-1 -2  2]
+            sage: R.index_set()
+            (0, 1, 4)
+            sage: CM
+            [ 2 -1  0]
+            [-1  2 -2]
+            [ 0 -1  2]
+        """
+        return self.dynkin_diagram().relabel(relabelling, inplace=False).cartan_matrix()
+
     @cached_method
     def dynkin_diagram(self):
         """
@@ -541,17 +561,19 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         return CartanMatrix(self.transpose())
 
     def is_crystallographic(self):
-        """
+        r"""
         Implements :meth:`CartanType_abstract.is_crystallographic`.
 
-        A Cartan matrix is crystallographic if it is symmetrizable.
+        A Cartan matrix is crystallographic if it is symmetrizable and all
+        entries are in `\{2, -1, -2, -3\}`.
 
         EXAMPLES::
 
             sage: CartanMatrix(['F',4]).is_crystallographic()
             True
         """
-        return self.is_symmetrizable()
+        valid = set([2,-1,-2,-3])
+        return self.is_symmetrizable() and all(x in valid for row in self for x in row)
 
     def column_with_indices(self, j):
         """
@@ -618,6 +640,17 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if self._cartan_type is None:
             return self.det() == 0
         return self._cartan_type.is_affine()
+
+    def is_lorentzian(self):
+        """
+        Return if ``self`` is a Lorizenian type.
+        """
+        if self._cartan_type is None:
+            if self.det() == 0:
+                return False
+            eigen = sorted(self.eigenvalues())
+            return eigen[0] < 0 and eigen[1] > 0
+        return self._cartan_type.is_lorentzian()
 
 def is_generalized_cartan_matrix(M):
     """

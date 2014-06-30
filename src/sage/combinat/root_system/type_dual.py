@@ -11,13 +11,11 @@ Root system data for dual Cartan types
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import SageObject
 from sage.combinat.root_system import cartan_type
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.combinat.root_system import ambient_space
 
-class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crystallographic):
+class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crystallographic):
     r"""
     A class for dual Cartan types.
 
@@ -139,9 +137,9 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
-       """
+        """
         assert type.is_crystallographic()
-        self._dual = type
+        cartan_type.CartanType_decorator.__init__(self, type)
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_relabel.CartanType.__init__
@@ -632,20 +630,20 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             sage: CartanType.global_options.reset()
         """
         if self.global_options('notation') == "Kac":
-            if self.dual().type() == 'B':
+            if self._type.type() == 'B':
                 return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
-            elif self.dual().type() == 'BC':
+            elif self._type.type() == 'BC':
                 return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
             elif self.dual().type() == 'C':
-                return "D_{%s}^{(2)}"%(self.rank)()
+                return "D_{%s}^{(2)}"%(self.rank)
             elif self.dual().type() == 'F':
                 return "E_6^{(2)}"
-        result = self._dual._latex_()
+        result = self._type._latex_()
         import re
         if re.match(".*\^{\(\d\)}$", result):
             return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
         else:
-            return "{%s}^%s"%(result, self.global_options('dual_latex'))
+            return "{%s}^{%s}"%(result, self.global_options('dual_latex'))
 
     def _default_folded_cartan_type(self):
         """
@@ -665,17 +663,17 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             ['G', 2, 1]^* as a folding of ['D', 4, 1]
         """
         from sage.combinat.root_system.type_folded import CartanTypeFolded
-        letter = self._dual.type()
+        letter = self._type.type()
         if letter == 'BC': # A_{2n}^{(2)\dagger}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['A', 2*n - 1, 1],
                 [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
         if letter == 'B': # A_{2n-1}^{(2)}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['D', n + 1, 1],
                 [[i] for i in range(n)] + [[n, n+1]])
         if letter == 'C': # D_{n+1}^{(2)}
-            n = self._dual.classical().rank()
+            n = self._type.classical().rank()
             return CartanTypeFolded(self, ['A', 2*n-1, 1],
                 [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
         if letter == 'F': # E_6^{(2)}
@@ -683,4 +681,101 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if letter == 'G': # D_4^{(3)}
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
+
+    def lorentzian(self):
+        r"""
+        Return the Lorentzian type corresponding to ``self``.
+        """
+        letter = self._dual.type()
+        raise NotImplementedError
+
+###########################################################################
+class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
+    def classical(self):
+        """
+        Return the classical Cartan type associated with ``self`` (which should
+        be lorentzian).
+
+        EXAMPLES::
+        """
+        return self.dual().classical().dual()
+
+    def affine(self):
+        """
+        Return the affine Cartan type associated with ``self`` (which should
+        be lorentzian).
+
+        EXAMPLES::
+        """
+        return self.dual().affine().dual()
+
+    def special_node(self):
+        """
+        Implement :meth:`CartanType_affine.special_node`
+
+        The special node of the dual of a Lorentzian type `T` is the
+        special node of `T`.
+
+        EXAMPLES::
+        """
+        return self.dual().special_node()
+
+    def overextended_node(self):
+        """
+        Implement :meth:`CartanType_lorenztian.overextended_node`
+
+        The overextended node of the dual of an Lorentzian type `T` is the
+        overextended node of `T`.
+
+        EXAMPLES::
+        """
+        return self.dual().overextended_node()
+
+    def _repr_(self, compact=False):
+        """
+        EXAMPLES::
+        """
+        dual_str = self.global_options('dual_str')
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                if compact:
+                    return 'A%s^2'%(self.classical().rank()*2-1)
+                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+            elif self.dual().type() == 'BC':
+                dual_str = '+'
+            elif self.dual().type() == 'C':
+                if compact:
+                    return 'D%s^2'%(self.rank())
+                return "['D', %s, 2]"%(self.rank())
+            elif self.dual().type() == 'F':
+                if compact:
+                    return 'E6^2'
+                return "['E', 6, 2]"
+        return CartanType._repr_(self, compact)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.global_options.reset()
+        """
+        ll = self.global_options('lorentzian_latex')
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                return "A_{%s}^{(2) %S}"%(self.classical().rank()*2-1, ll)
+            elif self.dual().type() == 'BC':
+                return "A_{%s}^{(2)\\dagger %s}"%(2*self.classical().rank(), ll)
+            elif self.dual().type() == 'C':
+                return "D_{{{}}}^{{(2) {}}}".format(self.rank, ll)
+            elif self.dual().type() == 'F':
+                return "E_6^{{(2) {}}}".format(ll)
+        result = self._dual._latex_()
+        import re
+        if re.match(".*\^{\(\d\)}$", result):
+            return "%s%s\wedge}"%(result[:-1], ll)
+
+        return "{%s}^{%s}"%(result, ll)
 
