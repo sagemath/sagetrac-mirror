@@ -798,8 +798,6 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
             sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
-            sage: g.obtain_Nash(algorithm='enumeration', maximization=False)
-            [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
 
         This particular game has 3 Nash equilibria. ::
 
@@ -1166,15 +1164,14 @@ class NormalFormGame(SageObject, MutableMapping):
             False
 
         """
-        # Verify that vectors are indeed probability vectors
-        if (not all(i >= 0 for i in a)
-            or not all(i >= 0 for i in b)):
+        # Check that supports are obeyed
+        if not (all([a[i] > 0 for i in p1_support]) and
+            all([b[j] > 0 for j in p2_support]) and
+            all([a[i] == 0 for i in range(len(a)) if i not in p1_support]) and
+            all([b[j] == 0 for j in range(len(b)) if j not in p2_support])):
             return False
 
-        # I have no idea what this is for
-        if sum(x > 0 for x in a) != sum(x > 0 for x in b):
-            return False
-
+        # Check that have pair of best responses
         p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
         p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]
 
