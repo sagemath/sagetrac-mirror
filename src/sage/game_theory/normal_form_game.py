@@ -798,6 +798,8 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
             sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
+            sage: g.obtain_Nash(algorithm='enumeration', maximization=False)
+            [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
 
         This particular game has 3 Nash equilibria. ::
 
@@ -1081,14 +1083,20 @@ class NormalFormGame(SageObject, MutableMapping):
 
         equilibria = []
         for pair in potential_support_pairs:
-            if (self._cond_dominance(pair[0], pair[1], M1)
-               and self._cond_dominance(pair[1], pair[0], M2.transpose())):
+            # Check if any supports are dominated for row player
+            if (self._row_cond_dominance(pair[0], pair[1], M1)
+                # Check if any supports are dominated for col player
+               and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
                     result = self._solve_indifference(pair[0], pair[1], M1, M2)
                     if result:
                         equilibria.append([result[0], result[1]])
         return equilibria
 
-    def _cond_dominance(self, p1_sup, p2_sup, matrix):
+    def _row_cond_dominance(self, p1_sup, p2_sup, matrix):
+        r"""
+        Checks if any row strategies of a sub matrix defined
+        by a given pair of supports are conditionally dominated.
+        """
         subm = matrix.matrix_from_rows_and_columns(list(p1_sup), list(p2_sup))
         for strategy in subm.rows():
                 for row in subm.rows():
