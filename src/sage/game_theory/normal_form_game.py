@@ -38,7 +38,7 @@ lazy_import('subprocess', 'Popen')
 
 
 class NormalFormGame(SageObject, MutableMapping):
-    r"""
+    """
     An object representing a Normal Form Game. Primarily used to compute the
     Nash Equilibria.
 
@@ -1075,25 +1075,36 @@ class NormalFormGame(SageObject, MutableMapping):
 
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
-                               for player in self.players]
+                              for player in self.players]
 
         potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
 
         equilibria = []
         for pair in potential_support_pairs:
-            result = self._solve_indifference(pair[0], pair[1], M1, M2)
-            if result:
-                equilibria.append([result[0], result[1]])
+            if (self._cond_dominance(pair[0], pair[1], M1)
+               and self._cond_dominance(pair[1], pair[0], M2.transpose())):
+                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
+                    if result:
+                        equilibria.append([result[0], result[1]])
         return equilibria
+
+    def _cond_dominance(self, p1_sup, p2_sup, matrix):
+        subm = matrix.matrix_from_rows_and_columns(list(p1_sup), list(p2_sup))
+        for strategy in subm.rows():
+                for row in subm.rows():
+                    if strategy == row:
+                        pass
+                    elif all(strategy[i] < row[i] for i in range(subm.ncols())):
+                        return False
+        return True
 
     def _solve_indifference(self, p1_support, p2_support, M1, M2):
         r"""
-        For a support pair obtains vector pair that ensures indifference amongst support strategies.
+        For a support pair obtains vector pair that ensures indifference
+        amongst support strategies.
         """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
-
-
 
         # Build linear system for player 1
         for p1_strategy in p1_support:
