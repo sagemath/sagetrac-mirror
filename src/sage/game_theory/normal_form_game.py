@@ -38,7 +38,7 @@ lazy_import('subprocess', 'Popen')
 
 
 class NormalFormGame(SageObject, MutableMapping):
-    """
+    r"""
     An object representing a Normal Form Game. Primarily used to compute the
     Nash Equilibria.
 
