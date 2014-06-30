@@ -1,11 +1,18 @@
 """
 Normal Form games with N players.
 
+This module implements a class for normal form games (strategic form games).
+At present 3 algorithms are implemented to compute equilibria of these
+games (LCP - interfaced with gambit, lrs - interfaced with the lrs library
+and support enumeration built in Sage). The architecture for the class is
+based on the gambit architecture to ensure an easy transition between the two.
+
+At present the algorithms for the enumeration of equilibria only solve 2 player
+games.
+
 AUTHOR:
 
-    - James Campbell 06-2014: Original version
-    - Vince Knight 06-2014
-
+    - James Campbell and Vince Knight (06-2014): Original version
 """
 
 #*****************************************************************************
