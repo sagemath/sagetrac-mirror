@@ -1,11 +1,19 @@
 """
 Normal Form games with N players.
 
+This module implements a class for normal form games (strategic form games)
+[NN2007]_. At present 3 algorithms are implemented to compute equilibria
+of these games (LCP - interfaced with gambit, lrs - interfaced with the lrs
+library and support enumeration built in Sage). The architecture for the
+class is based on the gambit architecture to ensure an easy transition
+between the two.
+
+At present the algorithms for the enumeration of equilibria only solve 2 player
+games.
+
 AUTHOR:
 
-    - James Campbell 06-2014: Original version
-    - Vince Knight 06-2014
-
+    - James Campbell and Vince Knight (06-2014): Original version
 """
 
 #*****************************************************************************
@@ -257,8 +265,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     * ``enumeration``: Support enumeration for 2 player games. This
       algorithm is hard coded in Sage and checks through all potential
-      supports of a strategy. Note: this is not the preferred algorithm. For
-      more information about this see [NN2007]_.
+      supports of a strategy. Supports of a given size with a conditionally
+      dominated strategy are ignored. Note: this is not the preferred
+      algorithm. An excellent overview of this algorithm is given in
+      [SLB2008]_.
 
     Below we show how all three algorithms are called: ::
 
@@ -366,7 +376,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: threegame.obtain_Nash()
         Traceback (most recent call last):
         ...
-        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
     There are however a variety of such algorithms available in gambit,
     further compatibility between Sage and gambit is actively being developed:
@@ -464,6 +474,10 @@ class NormalFormGame(SageObject, MutableMapping):
        *Gambit: Software Tools for Game Theory, Version 13.1.2.*
        http://www.gambit-project.org (2014).
 
+    .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown.
+       *Multiagent systems: Algorithmic, game-theoretic, and logical foundations.*
+       Cambridge University Press, 2008.
+
 
     """
 
@@ -521,7 +535,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame.obtain_Nash() # optional - gambit
             Traceback (most recent call last):
             ...
-            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
         Initiate from a gambit Game. ::
 
@@ -867,7 +881,7 @@ class NormalFormGame(SageObject, MutableMapping):
             raise NotImplementedError("Nash equilibrium for games with more "
                                       "than 2 players have not been "
                                       "implemented yet. Please see the gambit "
-                                      "website [LINK] that has a variety of "
+                                      "website (http://gambit.sourceforge.net/) that has a variety of "
                                       "available algorithms")
 
         if not self._is_complete():
