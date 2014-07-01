@@ -617,6 +617,9 @@ class NormalFormGame(SageObject, MutableMapping):
         return latex(self._repr_)
 
     def _gambit_game(self, game):
+        r"""
+        Creates a ``NormalFormGame`` object from a Gambit game.
+        """
         self.players = []
         self.utilities = {}
         for player in game.players:
