@@ -376,7 +376,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: threegame.obtain_Nash()
         Traceback (most recent call last):
         ...
-        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
     There are however a variety of such algorithms available in gambit,
     further compatibility between Sage and gambit is actively being developed:
@@ -535,7 +535,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame.obtain_Nash() # optional - gambit
             Traceback (most recent call last):
             ...
-            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
         Initiate from a gambit Game. ::
 
@@ -878,7 +878,7 @@ class NormalFormGame(SageObject, MutableMapping):
             raise NotImplementedError("Nash equilibrium for games with more "
                                       "than 2 players have not been "
                                       "implemented yet. Please see the gambit "
-                                      "website [LINK] that has a variety of "
+                                      "website (http://gambit.sourceforge.net/) that has a variety of "
                                       "available algorithms")
 
         if not self._is_complete():
