@@ -273,6 +273,23 @@ class ParkingFunctions_n(CombinatorialClass):
         """
         self.n = n
 
+    def __call__(self, x):
+        """
+        EXAMPLES::
+
+            sage: PF4 = ParkingFunctions(4)
+            sage: a = PF4([1,4,3,1])
+            sage: b = PF4[52]
+            sage: type(a)
+            <class 'sage.combinat.parking_functions.ParkingFunction_class'>
+            sage: type(a) == type(b)
+            True
+        """
+        if len(x) == self.n:
+            return ParkingFunction(x)
+        else:
+            raise ValueError("%s must be of size %s"%(x, self.n))
+
     def __repr__(self):
         """
         TESTS::
@@ -496,6 +513,21 @@ class ParkingFunction_class(CombinatorialObject):
             6
         """
         return self._list[n-1]
+
+
+    def __le__(self, other):
+        return (len(self) == len(other)) and all(selfi <= otheri for (selfi, otheri)
+                in zip(self, other))
+
+    def __lt__(self, other):
+        return self.__le__(other) and self != other
+
+    def __ge__(self, other):
+        return (len(self) == len(other)) and all(selfi >= otheri for (selfi, otheri)
+                in zip(self, other))
+
+    def __gt__(self, other):
+        return self.__ge__(other) and self != other
 
     def diagonal_reading_word(self):
         r"""
