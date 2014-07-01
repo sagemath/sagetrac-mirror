@@ -1,0 +1,12 @@
+*~
+*.pyc
+.\#*
+\#*\#
+build
+dist
+MANIFEST
+.tox
+*.aux
+*.log
+*.out
+*.synctex.gz
