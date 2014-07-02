@@ -28,8 +28,7 @@ AUTHORS:
 #****************************************************************************
 
 from sage.structure.parent import Parent
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.infinity_crystals import InfinityCrystals
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 
@@ -223,7 +222,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: TestSuite(B).run() # long time
         """
-        Parent.__init__( self, category=(HighestWeightCrystals(), InfiniteEnumeratedSets()) )
+        Parent.__init__( self, category=(InfinityCrystals(),) )
         self._cartan_type = cartan_type
         self.letters = CrystalOfLetters(cartan_type)
         self.module_generators = (self.module_generator(),)

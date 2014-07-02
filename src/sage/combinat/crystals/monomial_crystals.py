@@ -100,6 +100,7 @@ from copy import copy
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.infinity_crystals import InfinityCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -866,7 +867,7 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
 
         self.Element = elt_class
         if category is None:
-            category = (HighestWeightCrystals(), InfiniteEnumeratedSets())
+            category = (InfinityCrystals(),)
         Parent.__init__(self, category=category)
         self.module_generators = (self.element_class(self,{}),)
 
