@@ -105,7 +105,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
         self.k = k
         self.t = R(t)
 
-        category = GradedHopfAlgebras(R) if t == 1 else GradedCoalgebras(R)
+        category = GradedHopfAlgebras(R.category()) if t == 1 else GradedCoalgebras(R.category())
         Parent.__init__(self, category = category.Subobjects().WithRealizations())
 
         ks = self.kschur()

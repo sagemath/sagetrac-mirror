@@ -127,7 +127,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             self._quotient_basis = Sym.m()
         else:
             self._quotient_basis = Sym.hall_littlewood(t=self.t).P()
-        Parent.__init__(self, category = GradedHopfAlgebras(R).Quotients().WithRealizations())
+        Parent.__init__(self, category = GradedHopfAlgebras(R.category()).Quotients().WithRealizations())
         self.indices = ConstantFunction(Partitions_all_bounded(k))
 
     def ambient(self):

@@ -519,7 +519,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
         if hasattr(self, "_m_cache"):
             # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-            category = sage.categories.all.ModulesWithBasis(self._sym.base_ring())
+            category = sage.categories.all.ModulesWithBasis(self._sym.base_ring().category())
             self._m = self._sym.monomial()
             self   .register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
             self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))

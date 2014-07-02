@@ -655,7 +655,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
         if hasattr(self, "_s_cache"):
             # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-            category = sage.categories.all.ModulesWithBasis(self.base_ring())
+            category = sage.categories.all.ModulesWithBasis(self.base_ring().category())
             self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
             self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
 

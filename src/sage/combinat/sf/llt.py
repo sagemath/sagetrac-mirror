@@ -436,7 +436,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         sfa.SymmetricFunctionAlgebra_generic.__init__(self, self._sym)
 
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
-        category = sage.categories.all.ModulesWithBasis(self._sym.base_ring())
+        category = sage.categories.all.ModulesWithBasis(self._sym.base_ring().category())
         self._m = llt._sym.m()
         self   .register_coercion(SetMorphism(Hom(self._m, self, category), self._m_to_self))
         self._m.register_coercion(SetMorphism(Hom(self, self._m, category), self._self_to_m))

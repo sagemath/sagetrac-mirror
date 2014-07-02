@@ -760,7 +760,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
-        Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
+        Parent.__init__(self, category = GradedHopfAlgebras(R.category()).WithRealizations())
 
     def a_realization(self):
         r"""
