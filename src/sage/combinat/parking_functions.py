@@ -273,7 +273,8 @@ class ParkingFunctions_n(CombinatorialClass):
         """
         self.n = n
 
-    def __call__(self, pf, labelling=None, area_sequence=None, labelled_dyck_word = None):
+    def __call__(self, pf, labelling=None, area_sequence=None,
+                 labelled_dyck_word=None):
         """
         EXAMPLES::
 
@@ -284,11 +285,16 @@ class ParkingFunctions_n(CombinatorialClass):
             <class 'sage.combinat.parking_functions.ParkingFunction_class'>
             sage: type(a) == type(b)
             True
+
+            sage: ParkingFunctions(3)([1,1,1]) in ParkingFunctions(3)
+            True
+            sage: ParkingFunctions(3)([1,1,1]) in ParkingFunctions()
+            True
         """
         if len(pf) == self.n:
-            return ParkingFunction(pf, labelling=None, area_sequence=None, labelled_dyck_word = None)
-        else:
-            raise ValueError("%s must be of size %s"%(pf, self.n))
+            return ParkingFunction(pf, labelling=None, area_sequence=None,
+                                   labelled_dyck_word=None)
+        raise ValueError("%s must be of size %s" % (pf, self.n))
 
     def __repr__(self):
         """
@@ -392,6 +398,7 @@ class ParkingFunctions_n(CombinatorialClass):
                 yield ParkingFunction(list(pi))
         return
 
+
 def ParkingFunction(pf=None, labelling=None, area_sequence=None, labelled_dyck_word = None):
     r"""
     Returns the combinatorial class of Parking Functions.
@@ -469,6 +476,7 @@ def ParkingFunction(pf=None, labelling=None, area_sequence=None, labelled_dyck_w
     else:
         raise ValueError("did not manage to make this into a parking function")
 
+
 class ParkingFunction_class(CombinatorialObject):
     def __init__(self, lst):
         """
@@ -512,12 +520,11 @@ class ParkingFunction_class(CombinatorialObject):
             sage: PF(6)
             6
         """
-        return self._list[n-1]
-
+        return self._list[n - 1]
 
     def __le__(self, other):
         """
-        Check that ``self`` is less than or equals to ``other`` for the
+        Check that ``self`` is less than or equal to ``other`` for the
         lexicographic order.
 
         EXAMPLES::
@@ -529,8 +536,9 @@ class ParkingFunction_class(CombinatorialObject):
             sage: ParkingFunction([3,1,2,1]).__le__(ParkingFunction([4,2,3,1]))
             True
         """
-        return (len(self) == len(other)) and all(selfi <= otheri for (selfi, otheri)
-                in zip(self, other))
+        return (len(self) == len(other)
+                and all(selfi <= otheri for (selfi, otheri)
+                        in zip(self, other)))
 
     def __lt__(self, other):
         """
@@ -549,7 +557,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def __ge__(self, other):
         """
-        Check that ``self`` is greater than or equals to ``other`` for the
+        Check that ``self`` is greater than or equal to ``other`` for the
         lexicographic order.
 
         EXAMPLES::
@@ -561,12 +569,14 @@ class ParkingFunction_class(CombinatorialObject):
             sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([2,3,1]))
             False
         """
-        return (len(self) == len(other)) and all(selfi >= otheri for (selfi, otheri)
-                in zip(self, other))
+        return (len(self) == len(other)
+                and all(selfi >= otheri for (selfi, otheri)
+                        in zip(self, other)))
 
     def __gt__(self, other):
         """
-        Check that ``self`` is greater than ``other`` for the lexicographic order.
+        Check that ``self`` is greater than ``other`` for the
+        lexicographic order.
 
         EXAMPLES::
 
