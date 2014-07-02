@@ -535,6 +535,15 @@ class ParkingFunction_class(CombinatorialObject):
     def __lt__(self, other):
         """
         Check that ``self`` is less than ``other`` for the lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__lt__(ParkingFunction([3,1,2]))
+            False
+            sage: ParkingFunction([3,1,2]).__lt__(ParkingFunction([2,3,1]))
+            False
+            sage: ParkingFunction([2,1,2]).__lt__(ParkingFunction([3,1,2]))
+            True
         """
         return self.__le__(other) and self != other
 
@@ -542,6 +551,15 @@ class ParkingFunction_class(CombinatorialObject):
         """
         Check that ``self`` is greater than or equals to ``other`` for the
         lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([3,1,2]))
+            True
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([3,1,1]))
+            True
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([2,3,1]))
+            False
         """
         return (len(self) == len(other)) and all(selfi >= otheri for (selfi, otheri)
                 in zip(self, other))
@@ -549,6 +567,15 @@ class ParkingFunction_class(CombinatorialObject):
     def __gt__(self, other):
         """
         Check that ``self`` is greater than ``other`` for the lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([3,1,2]))
+            False
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([3,1,1]))
+            True
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([2,1,3]))
+            False
         """
         return self.__ge__(other) and self != other
 
