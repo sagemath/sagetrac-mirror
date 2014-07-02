@@ -20,14 +20,15 @@ class InfinityCrystals(Category_singleton):
 
     EXMAPLES::
 
-    """
-    def super_categories(self):
-    r"""
-    EXAMPLES::
-
         sage:
     """
-    return [InfiniteEnumeratedSets(), HighestWeightCrystals()]
+    def super_categories(self):
+        r"""
+        EXAMPLES::
+
+            sage:
+        """
+        return [InfiniteEnumeratedSets(), HighestWeightCrystals()]
 
     class ElementMethods:
 
