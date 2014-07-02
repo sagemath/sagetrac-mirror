@@ -273,6 +273,23 @@ class ParkingFunctions_n(CombinatorialClass):
         """
         self.n = n
 
+    def __call__(self, pf, labelling=None, area_sequence=None, labelled_dyck_word = None):
+        """
+        EXAMPLES::
+
+            sage: PF4 = ParkingFunctions(4)
+            sage: a = PF4([1,4,3,1])
+            sage: b = PF4[52]
+            sage: type(a)
+            <class 'sage.combinat.parking_functions.ParkingFunction_class'>
+            sage: type(a) == type(b)
+            True
+        """
+        if len(pf) == self.n:
+            return ParkingFunction(pf, labelling=None, area_sequence=None, labelled_dyck_word = None)
+        else:
+            raise ValueError("%s must be of size %s"%(pf, self.n))
+
     def __repr__(self):
         """
         TESTS::
@@ -496,6 +513,71 @@ class ParkingFunction_class(CombinatorialObject):
             6
         """
         return self._list[n-1]
+
+
+    def __le__(self, other):
+        """
+        Check that ``self`` is less than or equals to ``other`` for the
+        lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2,1]).__le__(ParkingFunction([2,1]))
+            False
+            sage: ParkingFunction([3,1,2,1]).__le__(ParkingFunction([2,1,1,1]))
+            False
+            sage: ParkingFunction([3,1,2,1]).__le__(ParkingFunction([4,2,3,1]))
+            True
+        """
+        return (len(self) == len(other)) and all(selfi <= otheri for (selfi, otheri)
+                in zip(self, other))
+
+    def __lt__(self, other):
+        """
+        Check that ``self`` is less than ``other`` for the lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__lt__(ParkingFunction([3,1,2]))
+            False
+            sage: ParkingFunction([3,1,2]).__lt__(ParkingFunction([2,3,1]))
+            False
+            sage: ParkingFunction([2,1,2]).__lt__(ParkingFunction([3,1,2]))
+            True
+        """
+        return self.__le__(other) and self != other
+
+    def __ge__(self, other):
+        """
+        Check that ``self`` is greater than or equals to ``other`` for the
+        lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([3,1,2]))
+            True
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([3,1,1]))
+            True
+            sage: ParkingFunction([3,1,2]).__ge__(ParkingFunction([2,3,1]))
+            False
+        """
+        return (len(self) == len(other)) and all(selfi >= otheri for (selfi, otheri)
+                in zip(self, other))
+
+    def __gt__(self, other):
+        """
+        Check that ``self`` is greater than ``other`` for the lexicographic order.
+
+        EXAMPLES::
+
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([3,1,2]))
+            False
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([3,1,1]))
+            True
+            sage: ParkingFunction([3,1,2]).__gt__(ParkingFunction([2,1,3]))
+            False
+        """
+        return self.__ge__(other) and self != other
 
     def diagonal_reading_word(self):
         r"""
