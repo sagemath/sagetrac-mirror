@@ -16,6 +16,7 @@ from sage.combinat.crystals.tensor_product import TensorProductOfCrystals as Ten
 
 from sage.rings.infinity import Infinity
 
+
 class InfinityCrystals(Category_singleton):
     r"""
     Category of infinity crystals.
@@ -32,6 +33,7 @@ class InfinityCrystals(Category_singleton):
         """
         return [InfiniteEnumeratedSets(), HighestWeightCrystals()]
 
+
     class ParentMethods:
 
         def cardinality(self):
@@ -41,6 +43,7 @@ class InfinityCrystals(Category_singleton):
             EXAMPLES::
             """
             return Infinity
+
 
     class ElementMethods:
 
