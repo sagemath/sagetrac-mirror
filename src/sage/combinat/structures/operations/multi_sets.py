@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Multi set class of combinatorial structures.
+Class of multi set of combinatorial structures.
 
-Let `F` be class of combinatorial structures, the *multi set* class `\mathbf{MSet}(F)` is
-defined the infinite sum:
+Let `F` be a class of combinatorial structures, the *multi set* class
+`\mathbf{MSet}(F)` is defined to be the infinite sum:
 
 MATH::
 
     \mathbf{MSet}(F) := \mathbf{Seq}(F)/\mathcal{R}
 
-with `\mathcal{R}` being the equivalence relation of sequences being defined by `s_1 \mathcal{R} s_2` if
-and only if their exist some permutation `\sigma` such that `s_1 \sigma = s_2` _[FS].
+with `\mathcal{R}` being the equivalence relation on sequences defined by `s_1
+\mathcal{R} s_2` if and only if it exists some permutation `\sigma` such that
+`s_1 \sigma = s_2` _[FS].
 
 
 References:
@@ -42,18 +43,19 @@ from sage.combinat.structures import Structures, Structure
 
 
 class MultiSet(Sequence):
-    """
-    Multi set class of combinatorial structures.
+    r"""
+    Class of multi set of combinatorial structures.
 
-    Let `F` be class of combinatorial structures, the *multi set* class `\mathbf{MSet}(F)` is
-    defined the infinite sum:
+    Let `F` be a class of combinatorial structures, the *multi set* class
+    `\mathbf{MSet}(F)` is defined to be the infinite sum:
 
     MATH::
 
         \mathbf{MSet}(F) := \mathbf{Seq}(F)/\mathcal{R}
 
-    with `\mathcal{R}` being the equivalence relation of sequences being defined by `s_1 \mathcal{R} s_2` if
-    and only if their exist some permutation `\sigma` such that `s_1 \sigma = s_2` _[FS].
+    with `\mathcal{R}` being the equivalence relation on sequences defined by
+    `s_1 \mathcal{R} s_2` if and only if it exists some permutation `\sigma`
+    such that `s_1 \sigma = s_2` _[FS].
 
     TESTS::
 
@@ -82,7 +84,7 @@ class MultiSet(Sequence):
     """
 
     class GradedComponentByLengthSum(Structures.GradedComponent):
-        """
+        r"""
         `\mathbf{MSet}(F).graded_component((i, j))` with:
             - `i` the sum of the grading element in the sequence and
             - `j` the length of the sequence
@@ -164,10 +166,10 @@ class MultiSet(Sequence):
                     for tup in product(*iterators):
                         yield self._element_constructor_(reduce(lambda a, b: a+b, tup, ()))
 
-    _graded_component = {"both" : (GradedComponentByLengthSum,
+    _graded_component = {"both": (GradedComponentByLengthSum,
                                    lambda F: NonNegativeIntegers().cartesian_product(F.grading_set())),
 
-                         "sum"  : (Sequence.GradedComponentBySum,
+                         "sum": (Sequence.GradedComponentBySum,
                                    lambda F: F.grading_set())}
 
     def _repr_(self):
@@ -183,18 +185,20 @@ class MultiSet(Sequence):
         return "Multi-set of `" + repr(self._F) + "`"
 
     def generating_series(self):
-        """
-        The generating series the sequence of `F` is given by:
+        r"""
+        Return the generating serie of ``self``.
+
+        The generating serie is given by:
 
         MATH::
 
             Seq_F(t) = ...
 
-        with `f(t)` the generating series of `F` and `[0]f(t) = 0`.
+        with `f(t)` the generating serie of `F` and `[0]f(t) = 0`.
 
         """
         ##return Integer(1) / (Integer(1) - self._structures[0].generating_series())
-        
+
     class Element(Structure, ClonableArray):
         """
         TESTS::

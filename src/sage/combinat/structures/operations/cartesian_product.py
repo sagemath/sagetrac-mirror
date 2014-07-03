@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-The cartesian product of combinatorial classes of structures.
+Implement the cartesian product of combinatorial classes of structures.
 
-Let `F` and `G` be both class of combinatorial structures.
+Let `F` and `G` be combinatorial structures classes.
 
 We denote `H = F \cdot G` (or just `H = FG`) the cartesian product of `F` and `G`.
 
@@ -40,7 +40,8 @@ class CartesianProduct(_Operations):
 
     def generating_series(self):
         """
-        The Hadarmard product of generating series of the class `F` and `G`:
+        Return the generating serie of ``self``. This is the Hadamard product of
+        the series ``F`` and ``G``.
 
         MATH::
 

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-The sum of classes of combinatorial structures.
+This class is an implementation of the sum of two combinatorial strctures.
 
-Let `F` and `G` be both disjoint classes.
-
-We denote `H = F + G` the addition of `F` and `G`.
+Let `F` and `G` be both disjoint classes, we denote `H = F + G` the sum of
+`F` and `G`.
 
 AUTHOR:
 
@@ -23,11 +22,10 @@ from sage.combinat.structures import Structures
 
 class Sum(_Operations):
     """
-    The sum of classes of combinatorial structures.
+    This class is an implementation of the sum of two combinatorial strctures.
 
-    Let `F` and `G` be both disjoint classes.
-
-    We denote `H = F + G` the addition of `F` and `G`.
+    Let `F` and `G` be both disjoint classes, we denote `H = F + G` the sum of
+    `F` and `G`.
     """
 
     def _repr_(self):
@@ -43,7 +41,15 @@ class Sum(_Operations):
 
     def generating_series(self, variable="x"):
         """
-        The generating series `h` of `H`: the sum of `F` and `G` is
+        Return the generating serie of ``self``.
+
+        INPUT:
+
+        - variable (default: `x`)
+
+        OUTPUT:
+
+        - The generating series `h` of `H`: the sum of `F` and `G` is
         defined by the sum of its generating series:
 
         MATH::
@@ -55,7 +61,7 @@ class Sum(_Operations):
 
     def _element_constructor_(self, F, *args, **options):
         """
-        The element constructor use the original one and change the parent
+        The element constructor uses the original one and change the parent.
 
         TESTS::
 

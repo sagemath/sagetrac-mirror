@@ -22,12 +22,12 @@ from sage.misc.abstract_method import abstract_method
 
 class CombinatorialStructures(Category):
     """
-    "In mathematics, a combinatorial class is a countable set of mathematical objects."
-    (Wikipedia)
+    "In mathematics, a combinatorial class is a countable set of mathematical
+    objects." (Wikipedia)
     """
 
     def super_categories(self):
-        return [SetsWithGrading()]#, InfiniteEnumeratedSets()] that
+        return [SetsWithGrading()]  #InfiniteEnumeratedSets()] that
 
     class ParentMethods:
 
@@ -79,9 +79,11 @@ class CombinatorialStructures(Category):
                 sage: MC = C.multiset(); MC
                 Multi-set of `Compositions of non-negative integers`
                 sage: MC32 = MC.graded_component(3,2); MC32
-                Multi-set of `Compositions of non-negative integers` of degree (3, 2)
+                Multi-set of `Compositions of non-negative integers` of degree
+                (3, 2)
                 sage: MC32.list()
-                [{[1], [1, 1]}, {[1], [2]}, {[], [1, 1, 1]}, {[], [1, 2]}, {[], [2, 1]}, {[], [3]}]
+                [{[1], [1, 1]}, {[1], [2]}, {[], [1, 1, 1]}, {[], [1, 2]}, {[],
+                [2, 1]}, {[], [3]}]
             """
             from sage.combinat.structures.operations.multi_sets import MultiSet
             return MultiSet(F, **options)
@@ -135,15 +137,23 @@ class CombinatorialStructures(Category):
 
         def product(F, G):
             """
-            @param F, G: both are classes of combinatorial structures
-            @return: the (Cauchy) product of combinatorial structures *FG*
+            Return the Cauchy product of two structure.
+
+            INPUT:
+
+            -``F``, ``G`` -- two combinatorial structures.
+
+            OUTPUT:
+
+            The Cauchy product of ``F`` and ``G``.
 
             TESTS::
 
                 sage: B = BinaryTrees()
                 sage: C = Compositions()
                 sage: CB = C*B; CB
-                Product of structures : `Compositions of non-negative integers`, `Binary trees`
+                Product of structures : `Compositions of non-negative integers`,
+                `Binary trees`
                 sage: ascii_art(CB.graded_component(2).list())
                 [                              [       ]  [       ] ]
                 [                              [ , o   ]  [ ,   o ] ]
@@ -156,15 +166,23 @@ class CombinatorialStructures(Category):
 
         def cartesian_product(F, G):
             """
-            @param F, G: both are classes of combinatorial structures
-            @return: the cartesian product of combinatorial structures *F \square G*
+            Return the cartesian products of two structures.
+
+            INPUT:
+
+            -``F``, ``G`` -- two combinatorial structures.
+
+            OUTPUT:
+
+            The cartesian product of ``F`` and ``G``.
 
             TESTS::
 
                 sage: B = BinaryTrees()
                 sage: C = Compositions()
                 sage: BcC = B.cartesian_product(C); BcC
-                Cartesian product of structures : 'Binary trees, Compositions of non-negative integers'
+                Cartesian product of structures : 'Binary trees, Compositions of
+                non-negative integers'
                 sage: ascii_art(BcC.graded_component(2).list())
                 [ [      * ]               [      * ]              ]
                 [ [ o    * ]  [ o    ** ]  [   o  * ]  [   o  ** ] ]
@@ -176,15 +194,23 @@ class CombinatorialStructures(Category):
 
         def sum(F, G):
             """
-            @param F, G: both are classes of combinatorial structures
-            @return: the sum of combinatorial structures *F + G*
+            Return the sum of two structures.
+
+            INPUT:
+
+            -``F``, ``G`` -- two combinatorial structures.
+
+            OUTPUT:
+
+            The sum of ``F`` and ``G``.
 
             TESTS::
 
                 sage: B = BinaryTrees()
                 sage: C = Compositions()
                 sage: BpC = B + C; BpC
-                Sum of structures : `Binary trees`, `Compositions of non-negative integers`
+                Sum of structures : `Binary trees`, `Compositions of
+                non-negative integers`
                 sage: ascii_art(BpC.graded_component(3).list())
                 [                                *              ]
                 [                                *  **   *      ]
@@ -201,9 +227,20 @@ class CombinatorialStructures(Category):
 
         def restricted_structures(self, min=None, max=None):
             """
-            @param min, max: both define an interval of graduation of the class of combinatorial structures
-            @return: the restriction of the combinatorial structure to the homogeneous components between *min* and
-                     *max*.
+            Return the restriction of the combinatorial structure to the
+            homogeneous component between ``min`` and ``max``.
+
+            Return the sum of two structures.
+
+            INPUT:
+
+            -``min`` -- integer (default: None) lower bound of the interval.
+            -``max`` -- integer (default: None) upper bound of the interval.
+
+            OUTPUT:
+
+            The restricted structure of ``self`` on the interval bounded by
+            ``min`` and ``max``.
 
             TESTS::
 
@@ -254,7 +291,7 @@ class CombinatorialStructures(Category):
             @abstract_method(optional=False)
             def ambient(self):
                 """
-                @return: the combinatorial class of the homogeneous component
+                Return the combinatorial class of the homogeneous component.
 
                 TESTS::
 
@@ -265,7 +302,7 @@ class CombinatorialStructures(Category):
             @abstract_method(optional=False)
             def grading(self):
                 """
-                @return: the grading of the homogeneous component
+                Return the grading of the homogenous component.
 
                 TESTS::
 

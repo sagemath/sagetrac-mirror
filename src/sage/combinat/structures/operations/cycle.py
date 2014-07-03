@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Cycle class of combinatorial structures.
 
-Let `F` be class of combinatorial structures, the *cycle* class `\mathbf{Cyc}(F)` is
-defined the infinite sum:
+Let `F` a class of combinatorial structures, the *cycle* class `\mathbf{Cyc}(F)`
+is defined to be the infinite sum:
 
 MATH::
 
     \mathbf{Cyc}(F) := \mathbf{Seq}(F)/\mathcal{R}
 
-with `\mathcal{R}` being the equivalence relation of sequences being defined by `s_1 \mathcal{R} s_2` if
-and only if their exist some cyclic permutation `\sigma` such that `s_1 \sigma = s_2` _[FS].
+with `\mathcal{R}` being the equivalence relation on sequences being defined by
+`s_1 \mathcal{R} s_2` if and only if it exists some cyclic permutation
+`\sigma` such that `s_1 \sigma = s_2` _[FS].
 
 
 References:
@@ -40,18 +41,19 @@ from sage.combinat.structures import Structures, Structure
 
 
 class Cycle(Sequence):
-    """
+    r"""
     Cycle class of combinatorial structures.
 
-    Let `F` be class of combinatorial structures, the *cycle* class `\mathbf{Cyc}(F)` is
-    defined the infinite sum:
+    Let `F` be class of combinatorial structures, the *cycle* class
+    `\mathbf{Cyc}(F)` is defined to be the infinite sum:
 
     MATH::
 
         \mathbf{Cyc}(F) := \mathbf{Seq}(F)/\mathcal{R}
 
-    with `\mathcal{R}` being the equivalence relation of sequences being defined by `s_1 \mathcal{R} s_2` if
-    and only if their exist some cyclic permutation `\sigma` such that `s_1 \sigma = s_2` _[FS].
+    with `\mathcal{R}` being the equivalence relation on sequences being defined
+    by `s_1 \mathcal{R} s_2` if and only if it exists some cyclic permutation
+    `\sigma` such that `s_1 \sigma = s_2` _[FS].
 
     TESTS::
 
@@ -62,7 +64,7 @@ class Cycle(Sequence):
     """
 
     class GradedComponentByLengthSum(Structures.GradedComponent):
-        """
+        r"""
         `\mathbf{Cyc}(F).graded_component((i, j))` with:
             - `i` the sum of the grading element in the sequence and
             - `j` the length of the sequence
@@ -127,10 +129,10 @@ class Cycle(Sequence):
                     yield self._element_constructor_(cyc)
 
 
-    _graded_component = {"both" : (GradedComponentByLengthSum,
+    _graded_component = {"both": (GradedComponentByLengthSum,
                                    lambda F: NonNegativeIntegers().cartesian_product(F.grading_set())),
 
-                         "sum"  : (Sequence.GradedComponentBySum,
+                         "sum": (Sequence.GradedComponentBySum,
                                    lambda F: F.grading_set())}
 
     def _repr_(self):
@@ -146,8 +148,8 @@ class Cycle(Sequence):
         return "Cycle of `" + repr(self._F) + "`"
 
     def generating_series(self):
-        """
-        The generating series the sequence of `F` is given by:
+        r"""
+        Return the generating serie of ``self`` which is given by:
 
         MATH::
 
@@ -157,7 +159,7 @@ class Cycle(Sequence):
 
         """
         ##return Integer(1) / (Integer(1) - self._structures[0].generating_series())
-        
+
     class Element(Structure, ClonableArray):
         """
         TESTS::
