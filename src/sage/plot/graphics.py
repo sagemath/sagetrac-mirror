@@ -34,6 +34,7 @@ from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
+FILE_NUMBER = 0
 DEFAULT_DPI = 100
 DOCTEST_MODE_FILE = os.path.join(sage.misc.misc.SAGE_TMP, 'test.png')
 
@@ -1800,7 +1801,10 @@ class Graphics(SageObject):
             else:
                 html("<img src='cell://%s'>" % kwds['filename'])
         else:
-            kwds.setdefault('filename', tmp_filename(ext='.png'))
+            global FILE_NUMBER
+            filename = tmp_filename(name='tmp_{:03}_'.format(FILE_NUMBER), ext='.png')
+            FILE_NUMBER += 1
+            kwds.setdefault('filename', filename)
             self.save(**kwds)
             os.system('%s %s 2>/dev/null 1>/dev/null &'
                       % (sage.misc.viewer.png_viewer(), kwds['filename']))
@@ -3286,7 +3290,9 @@ class GraphicsArray(SageObject):
             self.save(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
         if filename is None:
-            filename = tmp_filename(ext='.png')
+            global FILE_NUMBER
+            filename = tmp_filename(name='tmp_{:03}_'.format(FILE_NUMBER), ext='.png')
+            FILE_NUMBER += 1
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.png_viewer(), filename))
