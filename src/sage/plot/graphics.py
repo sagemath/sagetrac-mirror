@@ -1812,8 +1812,7 @@ class Graphics(SageObject):
             ValueError: 'title_pos' must be a list or tuple of two real numbers.
 
         """
-        if filename is None:
-            filename = graphics_filename()
+        filename = graphics_filename(filename=filename)
 
         self.save(filename, **kwds)
 

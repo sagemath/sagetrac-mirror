@@ -147,7 +147,8 @@ def tmp_filename(name="tmp_", ext=""):
     return name
 
 
-def graphics_filename(ext='png'):
+def graphics_filename(ext='png', curdir=False,
+                      filename=None, enforce_ext=False):
     """
     When run from the Sage notebook, return the next available canonical
     filename for a plot/graphics file in the current working directory.
@@ -157,6 +158,20 @@ def graphics_filename(ext='png'):
 
     - ``ext`` -- (default: ``"png"``) A file extension (without the dot)
       for the filename.
+
+    - ``curdir`` -- (default: False) Always place the file in the
+      current working directory, even when not working in embedded
+      (i.e. notebook) mode. Note that this is UNSAFE! It might cause a
+      race condition which can be exploited if the current working
+      directory is writable by other users.
+
+    - ``filename`` -- (default: None) File name provided by the caller.
+      If this parameter is not None, it is returned, unmodified or
+      perhaps with the extension added to it.
+
+    - ``enforce_ext`` -- (default: False) Whether to append the chosen
+      extension to the caller-supplied file name if that name doesn't
+      have this extension yet.
 
     OUTPUT:
 
@@ -169,6 +184,12 @@ def graphics_filename(ext='png'):
         sage: from sage.misc.temporary_file import graphics_filename
         sage: print graphics_filename()  # random, typical filename for sagenb
         sage0.png
+        sage: graphics_filename(ext='foo', curdir=True)
+        'sage0.foo'
+        sage: graphics_filename(filename='some.foo')
+        'some.foo'
+        sage: graphics_filename(ext='bar', filename='more.x', enforce_ext=True)
+        'more.x.bar'
 
     TESTS:
 
@@ -183,9 +204,14 @@ def graphics_filename(ext='png'):
         True
     """
     ext = '.' + ext
+    if filename is not None:
+        if enforce_ext:
+            if not filename.endswith(ext):
+                filename += ext
+        return filename
     # Don't use this unsafe function except in the notebook, #15515
     import sage.plot.plot
-    if sage.plot.plot.EMBEDDED_MODE:
+    if curdir or sage.plot.plot.EMBEDDED_MODE:
         i = 0
         while os.path.exists('sage%d%s'%(i,ext)):
             i += 1
@@ -193,7 +219,6 @@ def graphics_filename(ext='png'):
         return filename
     else:
         return tmp_filename(ext=ext)
-
 
 #################################################################
 # write to a temporary file and move it in place
