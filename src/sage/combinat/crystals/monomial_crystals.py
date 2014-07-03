@@ -899,18 +899,6 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
         """
         return "Infinity Crystal of modified Nakajima monomials of type {}".format(self._cartan_type)
 
-    def cardinality(self):
-        r"""
-        Return the cardinality of ``self``, which is always `\infty`.
-
-        EXAMPLES::
-
-            sage: M = crystals.infinity.NakajimaMonomials(['A',5,2])
-            sage: M.cardinality()
-            +Infinity
-        """
-        return Infinity
-
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""
     Element class for
