@@ -588,24 +588,24 @@ the animate command can be saved in PNG image format.
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
 
-    def show(self, format=None, linkmode=False, **kwargs):
+    def show(self, delay=None, iterations=None, **kwds):
         r"""
         Show this animation.
 
         INPUT:
 
 
-        - ``format`` - (default: gif) format to use for output.
-
-        - ``linkmode`` - (default: False) if True a string containing a
-           link to the produced file is returned. Will override the
-           default format.
-
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
 
         -  ``iterations`` - integer (default: 0); number of
            iterations of animation. If 0, loop forever.
+
+        - ``format`` - (default: gif) format to use for output.
+
+        - ``linkmode`` - (default: False) if True a string containing a
+           link to the produced file is returned. Will override the
+           default format.
 
 
         .. note::
@@ -632,6 +632,13 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(delay=50)        # optional -- ImageMagick
 
+        TESTS:
+
+        Use of positional parameters is discouraged, will likely get
+        deprecated, but should still work for the time being::
+
+            sage: a.show(50, 3)
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -643,15 +650,28 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+
+        # Positional parameters for the sake of backwards compatibility
+        if delay is not None:
+            kwds.setdefault("delay", delay)
+        if iterations is not None:
+            kwds.setdefault("iterations", iterations)
+
+        # enforced as keyword-only parameters
+        linkmode = kwds.get("linkmode", False)
+        format = kwds.get("format", None)
         if format is None:
+            # users are allowed to explicitely state format=None for default
             format = "gif"
+
         suffix = format
         # we might want to translate from format to suffix in some cases.
+
         if plot.EMBEDDED_MODE:
             filename = graphics_filename(ext=suffix)
         else:
             filename = tmp_filename(ext='.'+suffix)
-        self.save(filename, **kwargs)
+        self.save(filename, **kwds)
         if sage.doctest.DOCTEST_MODE:
             return
         elif plot.EMBEDDED_MODE:
@@ -827,7 +847,7 @@ please install it and try again."""
                 print "Error running ffmpeg."
                 raise
 
-    def save(self, filename=None, **kwargs):
+    def save(self, filename=None, show_path=False, use_ffmpeg=False, **kwds):
         """
         Save this animation.
 
@@ -876,10 +896,11 @@ please install it and try again."""
                 suffix = '.gif'
 
         if filename is None or suffix == '.gif':
-            self.gif(savefile=filename, **kwargs)
+            self.gif(savefile=filename, show_path=show_path,
+                     use_ffmpeg=use_ffmpeg, **kwds)
         elif suffix == '.sobj':
             SageObject.save(self, filename)
-            if kwargs.get('show_path', False):
+            if show_path:
                 print "Animation saved to file %s." % filename
         else:
-            self.ffmpeg(savefile=filename, **kwargs)
+            self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
