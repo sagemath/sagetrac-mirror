@@ -368,6 +368,7 @@ if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
+    PYTHONPATH="$SAGE_ROOT/src/:$PYTHONPATH"
     PYTHONHOME="$SAGE_ROOT/local"
     export PYTHONPATH
     export PYTHONHOME

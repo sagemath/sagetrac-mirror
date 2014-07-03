@@ -379,10 +379,12 @@ class sage_build_ext(build_ext):
         sources = list(sources)
 
         fullname = self.get_ext_fullname(ext.name)
+        self.inplace = True
         if self.inplace:
             # ignore build-lib -- put the compiled extension into
             # the source tree along with pure Python modules
 
+            import string
             modpath = string.split(fullname, '.')
             package = string.join(modpath[0:-1], '.')
             base = modpath[-1]
@@ -409,6 +411,8 @@ class sage_build_ext(build_ext):
         prefixes = ['', self.build_lib, self.build_temp]
         for prefix in prefixes:
             path = os.path.join(prefix, relative_ext_dir)
+            if not path:
+                continue
             try:
                 os.makedirs(path)
             except OSError as e:
