@@ -493,9 +493,8 @@ class Animation(SageObject):
 
         This method will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
-        command or (b) ``ffmpeg`` is installed.  See
-        [IM] for more about ImageMagick, and see
-        [FF] for more about ``ffmpeg``.  By default, this
+        command or (b) ``ffmpeg`` is installed.  See the web sites of
+        ImageMagick_ and FFmpeg_ for more details.  By default, this
         produces the gif using ``convert`` if it is present.  If this
         can't find ``convert`` or if ``use_ffmpeg`` is True, then it
         uses ``ffmpeg`` instead.
@@ -542,6 +541,11 @@ class Animation(SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
+
+        .. REFERENCES (not rendered as a section, but linked inline):
+
+        .. _ImageMagick: http://www.imagemagick.org
+        .. _FFmpeg: http://www.ffmpeg.org
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
