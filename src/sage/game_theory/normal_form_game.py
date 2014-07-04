@@ -30,7 +30,6 @@ from itertools import product, combinations, chain
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
-from gambit import Game
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc import powerset
 from sage.rings.all import QQ, ZZ
@@ -43,6 +42,10 @@ lazy_import('sage.rings.arith', 'lcm')
 lazy_import('sage.rings.rational', 'Rational')
 lazy_import('subprocess', 'PIPE')
 lazy_import('subprocess', 'Popen')
+try:
+    from gambit import Game
+except:
+    pass
 
 
 class NormalFormGame(SageObject, MutableMapping):
@@ -569,8 +572,11 @@ class NormalFormGame(SageObject, MutableMapping):
         self.utilities = {}
         matrices = []
         if type(generator) is not list and generator != None:
-            if type(generator) is not Game:
-                raise TypeError("Generator function must be a list, gambit game or nothing")
+            if is_package_installed('gambit'):
+                if type(generator) is not Game:
+                    raise TypeError("Generator function must be a list, gambit game or nothing")
+            else:
+                raise TypeError("Generator function must be a list or nothing")
 
         if type(generator) is list:
             if len(generator) == 1:
@@ -579,9 +585,10 @@ class NormalFormGame(SageObject, MutableMapping):
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
             self._two_matrix_game(matrices)
-        if type(generator) is Game:
-            game = generator
-            self._gambit_game(game)
+        elif is_package_installed('gambit'):
+            if type(generator) is Game:
+                game = generator
+                self._gambit_game(game)
 
     def _repr_(self):
         r"""
