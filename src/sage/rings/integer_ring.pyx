@@ -1290,7 +1290,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         c = p.coefficients()
         e = p.exponents()
-        k = len(c)
+        cdef int i, j, k = len(c)
 
         K=p.base_ring()
         x=p.variable_name()
