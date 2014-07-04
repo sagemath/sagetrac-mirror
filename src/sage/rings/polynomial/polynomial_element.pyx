@@ -4467,18 +4467,42 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: f = x+x^4+x^7
-            sage: f.sparsity()
+            sage: (x+x^4+x^7).sparsity()
             3
+
+        TESTS::
+            sage: R.<x> = ZZ[]
+            sage: (x+x^4+x^7).sparsity()
+            3
+            sage: R(0).sparsity()
+            0
+            sage: R(1).sparsity()
+            1
+            sage: R.<x> = QQ[]
+            sage: (1/2*x+x^4+x^7/3).sparsity()
+            3
+            sage: R.<x> = QQbar[]
+            sage: (1-x+x^4+x^7).sparsity()
+            4
+            sage: R.<x> = GF(17)[]
+            sage: (1-x+17*x^4+x^7).sparsity()
+            3
+            sage: K.<a> = GF(3^5)
+            sage: R.<x> = K[]
+            sage: ((a^6-1)+x-a*x^4).sparsity()
+            3
+            sage: R.<x> = IntegerModRing(10)[]
+            sage: (1+x+10*x^2+12*x^3).sparsity()
+            3
+            sage: S = QuotientRing(R,Ideal(x^2-1))
+            sage: T.<t> = S[]
+            sage: ((9*x + 8)*t^4 + (5*x + 9)*t + x^2 + 4).sparsity()
+            3
+            sage: ((x^2+9)*t).sparsity()
+            0
         """
         zero = self.parent().base_ring().zero_element()
-        l = self.list()
-        cdef int c
-        while True:
-            try:
-                if l.pop() is not zero: c+=1
-            except IndexError:
-                return c
+        return len([c for c in self.list() if c != zero])
 
     def prec(self):
         """
