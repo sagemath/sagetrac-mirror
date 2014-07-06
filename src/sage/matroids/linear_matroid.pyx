@@ -115,6 +115,7 @@ from basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
 from utilities import newlabel
+from sage.rings.integer import Integer
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3451,7 +3452,46 @@ cdef class BinaryMatroid(LinearMatroid):
                 for c in range(mat.ncols()):
                     if not mat.is_nonzero(r,c):
                         zeros1[r].append(c)
+        vrows1=[r for r in zeros1.keys() if len(zeros1[r])>0]
+        vrows2=[r for r in zeros2.keys() if len(zeros2[r])>0]
+        if len(vrows1)<len(vrows2): # not enough rows with zeros
+            return False
+        # loop over all maps from rows to rows
+        comp=[1]*len(vrows2)
+        comp.append(len(vrows1)-len(vrows2))
+        from sage.combinat.set_partition_ordered import OrderedSetPartitions
+        for p in OrderedSetPartitions(len(vrows1),comp):
+            print p
+            m= [s[0] for s in p[0:len(p)-1]]
+            print m
         return
+
+    cpdef _fundamental_graph(self, B1=None):
+        """
+        Return the fundamental graph corresponding to the binary matroid
+        """
+        if B1 is None:
+            B1=self.basis()
+        rmat1=list(self.representation(B=B1,reduced=True))
+        rmat=BinaryMatrix(rmat1[0].nrows(),rmat1[0].ncols(),rmat1[0])
+        cdef long i,k
+        G = {}
+        G['S1'] = []
+        G['S2'] = []
+        for i in range(1,rmat._nrows+1):
+            G['S1'].append('r'+str(i))
+        for i in range(1,rmat._ncols+1):
+            G['S2'].append('c'+str(i))
+        # populate degree and neighbours of vertices
+        for k in xrange(len(G['S1'])):
+            j=G['S1'][k]
+            j_neighbours = [G['S2'][i] for i in xrange(Integer(rmat._ncols)) if rmat.is_nonzero(Integer(j[1:])-1, i)]
+            G[j] = [len(j_neighbours), j_neighbours]
+        for k in xrange(len(G['S2'])):
+            j=G['S2'][k]
+            j_neighbours = [G['S1'][i] for i in xrange(Integer(rmat._nrows)) if rmat.is_nonzero(i, Integer(j[1:])-1)]
+            G[j]=[len(j_neighbours), j_neighbours]
+        return G
 
     # graphicness test
     cpdef is_graphic(self):
