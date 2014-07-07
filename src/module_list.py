@@ -1168,6 +1168,9 @@ ext_modules = [
 
     Extension('sage.matroids.unpickling',
             ['sage/matroids/unpickling.pyx']),
+    
+    Extension('sage.matroids.repminor_helpers',
+            ['sage/matroids/repminor_helpers.pyx']),
 
     ################################
     ##
