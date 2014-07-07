@@ -1205,6 +1205,9 @@ ext_modules = [
     Extension('sage.matroids.unpickling',
             ['sage/matroids/unpickling.pyx'],
               libraries = ['gmp']),
+    
+    Extension('sage.matroids.repminor_helpers',
+            ['sage/matroids/repminor_helpers.pyx']),
 
     ################################
     ##

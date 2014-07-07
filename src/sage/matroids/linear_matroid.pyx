@@ -3422,50 +3422,14 @@ cdef class BinaryMatroid(LinearMatroid):
         return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
     
     # represented binary minor test
-    cpdef _has_binary_minor(self,N=None,Nmat1=None):
+    cpdef _has_binary_minor(self,N=None):
         cdef long r,c
         if N is not None:
-            B_N=N.basis()
-            Nmat1=list(N.representation(B=B_N,reduced=True))
-            Nmat=BinaryMatrix(Nmat1[0].nrows(),Nmat1[0].ncols(),Nmat1[0])
-            zeros2={}
-            for r in range(Nmat.nrows()):
-                zeros2[r]=[]
-                for c in range(Nmat.ncols()):
-                    if not Nmat.is_nonzero(r,c):
-                        zeros2[r].append(c)
-        elif Nmat1 is not None:
-            Nmat=BinaryMatrix(Nmat1.nrows(),Nmat1.ncols(),Nmat1)
-            zeros2={}
-            for r in range(Nmat.nrows()):
-                zeros2[r]=[]
-                for c in range(Nmat.ncols()):
-                    if not Nmat.is_nonzero(r,c):
-                        zeros2[r].append(c)
+            GN = N._fundamental_graph()
         else:
             raise ValueError("either N or Nmat1 must be provided")
-        for B1 in self.bases():
-            mat=self._reduced_representation(B=B1)
-            zeros1={}
-            for r in range(mat.nrows()):
-                zeros1[r]=[]
-                for c in range(mat.ncols()):
-                    if not mat.is_nonzero(r,c):
-                        zeros1[r].append(c)
-        vrows1=[r for r in zeros1.keys() if len(zeros1[r])>0]
-        vrows2=[r for r in zeros2.keys() if len(zeros2[r])>0]
-        if len(vrows1)<len(vrows2): # not enough rows with zeros
-            return False
-        # loop over all maps from rows to rows
-        comp=[1]*len(vrows2)
-        comp.append(len(vrows1)-len(vrows2))
-        from sage.combinat.set_partition_ordered import OrderedSetPartitions
-        for p in OrderedSetPartitions(len(vrows1),comp):
-            print p
-            m= [s[0] for s in p[0:len(p)-1]]
-            print m
         return
-
+    
     cpdef _fundamental_graph(self, B1=None):
         """
         Return the fundamental graph corresponding to the binary matroid
@@ -3492,7 +3456,7 @@ cdef class BinaryMatroid(LinearMatroid):
             j_neighbours = [G['S1'][i] for i in xrange(Integer(rmat._nrows)) if rmat.is_nonzero(i, Integer(j[1:])-1)]
             G[j]=[len(j_neighbours), j_neighbours]
         return G
-
+    
     # graphicness test
     cpdef is_graphic(self):
         """
