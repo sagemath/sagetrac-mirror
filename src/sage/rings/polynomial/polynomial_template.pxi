@@ -158,7 +158,9 @@ cdef class Polynomial_template(Polynomial):
                 x = parent.base_ring()(x)
                 self.__class__.__init__(self, parent, x, check=check, is_gen=is_gen, construct=construct)
             except (TypeError,ValueError):
+                sig_on()
                 x = list(x)
+                sig_off()
                 celement_construct(&self.x, (<Polynomial_template>self)._cparent)
                 gen = celement_new((<Polynomial_template>self)._cparent)
                 monomial = celement_new((<Polynomial_template>self)._cparent)

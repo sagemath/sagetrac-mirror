@@ -251,7 +251,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         else:
             try:
+                sig_on()
                 x = list(x) # at this point anything that can be a list, is treated list
+                sig_off()
             except TypeError:
                 x = [x]   # constant polynomials
 

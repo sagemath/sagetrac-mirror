@@ -255,7 +255,10 @@ cdef class Polynomial_rational_flint(Polynomial):
                                     check=check, is_gen=False, construct=construct)
                     return
 
+                sig_on()
                 L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
+                sig_off()
+
                 n  = <unsigned long> len(x)
                 sig_on()
                 L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
