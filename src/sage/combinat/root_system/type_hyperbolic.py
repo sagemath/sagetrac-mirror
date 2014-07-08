@@ -8,6 +8,10 @@ Root system data for hyperbolic types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.combinat.root_system.cartan_type import (CartanType_crystallographic,
+    CartanType_simply_laced, CartanType_hyperbolic)
+from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
+
 def construct_hyperbolic(rank, index):
     """
     Construct the hyperbolic type of the given rank from the table
@@ -24,9 +28,8 @@ def construct_hyperbolic(rank, index):
        http://hal.archives-ouvertes.fr/docs/00/06/10/26/PDF/asrfhkmla_1_.pdf
     """
 
-from cartan_type import CartanType_crystallographic, CartanType_hyperbolic
-from cartan_type import CartanType_lorentzian as TypeLorentzian
-from dynkin_diagram import DynkinDiagram
+#####################################################################
+## Classes
 
 class CartanType(CartanType_hyperbolic, CartanType_crystallographic):
     r"""
@@ -59,18 +62,35 @@ class CartanType(CartanType_hyperbolic, CartanType_crystallographic):
         """
         return "H_{{{}}}^{{({})}}".format(self.index, self.n)
 
-class CartanType_lorentzian(CartanType, TypeLorentzian):
+class CartanType_baseline(CartanType_hyperbolic):
     """
-    Concrete base class for hyperbolic Lorentzian Cartan types.
+    Hyperbolic Cartan types whose overextended node lies on the baseline of
+    the affine Cartan type.
     """
-    def __init__(self, affine, index):
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
         """
-        Initialize ``self``.
+        ret = "\\draw (0 cm,0) -- ({} cm,0);\n".format(node_dist)
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{{${}$}};".format(label(-1))
+        # TODO: Move the frame over node_dist units
+        ret = self._affine._latex_dynkin_diagram(label, node_dist)
+        # TODO: Move the frame back?
+        return ret
+
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the hyperbolic Dynkin diagram.
+
+        EXAMPLES::
         """
-        TypeLorentzian.__init__(self, affine)
-        CartanType.__init__(self, self._affine.rank()+1, index)
+        ret = self._affine.ascii_art(label).splitlines()
+        return sum(ret[:-2], "") + "O---" + ret[-2] + "{}   ".format(label(-1)) + ret[-1]
 
 #####################################################################
+## Rank 3 hyperbolic types
 
 class CartanType_rank3_two_types(CartanType):
     r"""
@@ -394,7 +414,7 @@ class CartanType_rank3_two_types(CartanType):
         """
         return self._X not in ['BC', 'A~'] and self._Y not in ['BC', 'A~']
 
-# These are all (non necessarily standard) Lorentzian extensions of affine types
+# These are all (non necessarily standard) hyperbolic extensions of affine types
 class CartanType_rank3_XY(CartanType_rank3_two_types):
     """
     Hyperbolic Cartan types for rank 3 that are of the form `XY`.
@@ -632,4 +652,117 @@ class CartanType_rank3_cycle(CartanType):
         Return the index set of ``self``.
         """
         return (1, 2, 3)
+
+
+#####################################################################
+## Types XE_n
+
+class CartanType_DEn(CartanType_simply_laced, CartanType_hyperbolic):
+    r"""
+    The Cartan type `DE_n`.
+
+    These are also denoted by `D_{n-2}^{(1)\wedge}` and `H_1^{(n)}`.
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+        """
+        CartanType_hyperbolic.__init__(self, ['D', n-2, 1])
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+        """
+        n = self.rank()
+        ret = "\\draw (0 cm,0) -- ({} cm,0);\n".format((n-3)*node_dist)
+        ret += "\\draw ({} cm, 0 cm) -- +(0,{} cm);\n".format(2*node_dist, node_dist)
+        ret += "\\draw ({} cm, 0 cm) -- +(0,{} cm);\n".format((n-4)*node_dist, node_dist)
+
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{{${}$}};\n".format(label(1))
+        for i in range(1, n-3):
+            ret += "\\draw[fill=white] ({} cm, 0) circle (.25cm) node[below=4pt]{{${}$}};\n".format(i*node_dist, label(i+2))
+        ret += "\\draw[fill=white] ({} cm, {} cm) circle (.25cm) node[right=3pt]{{${}$}};".format(2*node_dist, node_dist, label(2))
+        ret += "\\draw[fill=white] ({} cm, {} cm) circle (.25cm) node[right=3pt]{{${}$}};".format((n-4)*node_dist, node_dist, label(n-1))
+        ret += "\\draw[fill=white] ({} cm, 0) circle (.25cm) node[below=4pt]{{${}$}};".format((n-3)*node_dist, label(n))
+        return ret
+
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the extended Dynkin diagram.
+
+        EXAMPLES::
+        """
+        n = self.rank()
+        if n == 6:
+            return "    " + special_str + " %s\n    |\n    |\nO---O---O\n%s   |%s  %s\n    |\n    O %s"%tuple(label(i) for i in (4,1,2,3,0,-1))
+        ret =  "        O {} "   + "    "*(n-7) + "O {}"
+        ret += ("\n        |   " + "    "*(n-7) + "|")*2
+        labels = [2,n-1,1,3,4] + range(5, n-1) + [n]
+        return (ret + "\nO" + "---O"*(n-3) + "\n"
+                "{}" + "   {}"*(n-3)).format(*map(label, labels))
+
+class CartanType_XEn(CartanType_hyperbolic):
+    r"""
+    The Cartan type `XE_n` for `X = B,C` and `n = 7,8,9,10`.
+
+    These are also denoted by `B_{n-2} `H_i^{(n)}` where `i = 2,3` for `X = B,C`
+    respectively.
+    """
+    def __init__(self, n, letter):
+        """
+        Initialize ``self``.
+        """
+        CartanType_hyperbolic.__init__(self, [letter, n, 1])
+
+    def dual(self):
+        """
+        Types `EB_n` and `EC_n` are in duality:
+
+        EXAMPLES::
+
+            sage: CartanType(["C", 3]).dual()
+            ['B', 3]
+        """
+        if self.letter == 'B':
+            return CartanType_XEn('C', self.n)
+        # otherwise self.letter == 'C'
+        return CartanType_XEn('B', self.n)
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+        """
+        n = self.n
+        ret = "\\draw (0 cm,0) -- ({} cm,0);\n".format((n-3)*node_dist)
+        ret += "\\draw ({} cm, 0 cm) -- +(0,{} cm);\n".format(2*node_dist, node_dist)
+        ret += "\\draw ({} cm, 0.1 cm) -- +({} cm,0);\n".format((n-3)*node_dist, node_dist)
+        ret += "\\draw ({} cm, -0.1 cm) -- +({} cm,0);\n".format((n-3)*node_dist, node_dist)
+        if self.letter == 'B':
+            ret += self._latex_draw_arrow_tip((n-2.5)*node_dist+0.2, 0, 0)
+        elif self.letter == 'C':
+            ret += self._latex_draw_arrow_tip((n-2.5)*node_dist-0.2, 0, 180)
+
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{{${}$}};\n".format(label(1))
+        for i in range(1, n-1):
+            ret += "\\draw[fill=white] ({} cm, 0) circle (.25cm) node[below=4pt]{{${}$}};\n".format(i*node_dist, label(i+2))
+        ret += "\\draw[fill=white] ({} cm, {} cm) circle (.25cm) node[right=3pt]{{${}$}};".format(2*node_dist, node_dist, label(2))
+        return ret
+
+    def ascii_art(self, label=lambda x: x):
+        r"""
+        Return a ascii art representation of the extended Dynkin diagram.
+
+        EXAMPLES::
+        """
+        ret = "        O {}\n        |\n        |\nO" + "---O"*(self.n-3)
+        if self.letter == 'B':
+            ret += "=>=O"
+        elif self.letter == 'C':
+            ret += "=<=O"
+        return (ret + "\n{}" + "   {}"*(self.n-2)).format(*map(label, [2,1,3,4] + range(5, self.n+1)))
+
 

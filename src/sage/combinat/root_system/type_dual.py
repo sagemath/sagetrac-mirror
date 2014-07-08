@@ -682,19 +682,19 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
 
-    def lorentzian(self):
+    def hyperbolic(self):
         r"""
-        Return the Lorentzian type corresponding to ``self``.
+        Return the hyperbolic type corresponding to ``self``.
         """
         letter = self._dual.type()
         raise NotImplementedError
 
 ###########################################################################
-class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
+class CartanType_hyperbolic(CartanType, cartan_type.CartanType_hyperbolic):
     def classical(self):
         """
         Return the classical Cartan type associated with ``self`` (which should
-        be lorentzian).
+        be hyperbolic).
 
         EXAMPLES::
         """
@@ -703,7 +703,7 @@ class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
     def affine(self):
         """
         Return the affine Cartan type associated with ``self`` (which should
-        be lorentzian).
+        be hyperbolic).
 
         EXAMPLES::
         """
@@ -713,7 +713,7 @@ class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
         """
         Implement :meth:`CartanType_affine.special_node`
 
-        The special node of the dual of a Lorentzian type `T` is the
+        The special node of the dual of a hyperbolic type `T` is the
         special node of `T`.
 
         EXAMPLES::
@@ -724,7 +724,7 @@ class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
         """
         Implement :meth:`CartanType_lorenztian.overextended_node`
 
-        The overextended node of the dual of an Lorentzian type `T` is the
+        The overextended node of the dual of an hyperbolic type `T` is the
         overextended node of `T`.
 
         EXAMPLES::
@@ -762,7 +762,7 @@ class CartanType_lorentzian(CartanType, cartan_type.CartanType_lorentzian):
             sage: CartanType.global_options['notation'] = 'Kac'
             sage: CartanType.global_options.reset()
         """
-        ll = self.global_options('lorentzian_latex')
+        ll = self.global_options('hyperbolic_latex')
         if self.global_options('notation') == "Kac":
             if self.dual().type() == 'B':
                 return "A_{%s}^{(2) %S}"%(self.classical().rank()*2-1, ll)

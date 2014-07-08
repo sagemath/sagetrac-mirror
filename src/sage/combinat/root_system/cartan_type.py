@@ -480,11 +480,11 @@ CartanTypeOptions=GlobalOptions(name='cartan_type',  doc=r"""
     dual_latex=dict(default="\\vee",
                     description='The latex used for dual Cartan types when latexing',
                     checker=lambda char: isinstance(char,str)),
-    lorentzian_str=dict(default="^",
-                  description='The string used for Lorentzian Cartan types when printing',
+    hyperbolic_str=dict(default="^",
+                  description='The string used for hyperbolic Cartan types when printing',
                   checker=lambda char: isinstance(char,str)),
-    lorentzian_latex=dict(default="\\wedge",
-                    description='The latex used for Lorentzian Cartan types when latexing',
+    hyperbolic_latex=dict(default="\\wedge",
+                    description='The latex used for hyperbolic Cartan types when latexing',
                     checker=lambda char: isinstance(char,str)),
     mark_special_node=dict(default="none",
                            description="Make the special nodes",
@@ -611,8 +611,8 @@ class CartanTypeFactory(SageObject):
                         import type_E_affine
                         return type_E_affine.CartanType(8)
                     if n == 10:
-                        import type_E_lorentzian
-                        return type_E_lorentzian.CartanType_E10()
+                        import type_E_hyperbolic
+                        return type_E_hyperbolic.CartanType_E10()
                 if letter == "F":
                     if n == 4:
                         import type_F
@@ -876,7 +876,7 @@ class CartanType_abstract(object):
 
     - :meth:`is_affine()`
 
-    - :meth:`is_lorentzian()`
+    - :meth:`is_hyperbolic()`
 
     - :meth:`is_irreducible()`
     """
@@ -1136,7 +1136,7 @@ class CartanType_abstract(object):
 
             sage: CartanType(['F',4]).marked_nodes([1, 3]).dynkin_diagram()
             X---O=>=X---O
-            1   2   3   4   
+            1   2   3   4
             F4 with nodes (1, 3) marked
         """
         if not marked_nodes:
@@ -1251,26 +1251,26 @@ class CartanType_abstract(object):
         """
 
     @abstract_method
-    def is_lorentzian(self):
+    def is_hyperbolic(self):
         """
-        Return whether this Cartan type is Lorentzian.
+        Return whether this Cartan type is hyperbolic.
 
         EXAMPLES::
 
             sage: from sage.combinat.root_system.cartan_type import CartanType_abstract
             sage: C = CartanType_abstract()
-            sage: C.is_lorentzian()
+            sage: C.is_hyperbolic()
             Traceback (most recent call last):
             ...
             NotImplementedError: <abstract method is_finite at ...>
 
         ::
 
-            sage: CartanType(['A', 4]).is_lorentzian()
+            sage: CartanType(['A', 4]).is_hyperbolic()
             False
-            sage: CartanType(['A', 4, 1]).is_lorentzian()
+            sage: CartanType(['A', 4, 1]).is_hyperbolic()
             False
-            sage: CartanType(['E', 10]).is_lorentzian()
+            sage: CartanType(['E', 10]).is_hyperbolic()
             True
         """
 
@@ -1778,11 +1778,11 @@ class CartanType_finite(CartanType_abstract):
         """
         return False
 
-    def is_lorentzian(self):
+    def is_hyperbolic(self):
         """
         EXAMPLES::
 
-            sage: CartanType(['A', 3]).is_lorentzian()
+            sage: CartanType(['A', 3]).is_hyperbolic()
             False
         """
         return False
@@ -1850,11 +1850,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         return True
 
-    def is_lorentzian(self):
+    def is_hyperbolic(self):
         """
         EXAMPLES::
 
-            sage: CartanType(['A', 3, 1]).is_lorentzian()
+            sage: CartanType(['A', 3, 1]).is_hyperbolic()
             False
         """
         return False
@@ -1957,9 +1957,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
 
     @abstract_method(optional=True) # This is only optional until all are implemented
-    def lorentzian(self):
+    def hyperbolic(self):
         """
-        Return the Lorentzian type associated with ``self``.
+        Return the hyperbolic type associated with ``self``.
         """
 
     @abstract_method
@@ -2936,9 +2936,9 @@ class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract
         return self._type.type()
 
 ##########################################################################
-class CartanType_lorentzian(CartanType_crystallographic):
+class CartanType_hyperbolic(CartanType_crystallographic):
     """
-    A concrete base class for simple Lorentzian Cartan types.
+    A concrete base class for simple hyperbolic Cartan types.
     """
     def __init__(self, affine):
         """
@@ -2947,11 +2947,11 @@ class CartanType_lorentzian(CartanType_crystallographic):
         self._affine = CartanType(affine)
         self.n = self._affine.n
 
-    def is_lorentzian(self):
+    def is_hyperbolic(self):
         """
         EXAMPLES::
 
-            sage: CartanType(['E', 10]).is_lorentzian()
+            sage: CartanType(['E', 10]).is_hyperbolic()
             False
         """
         return True
@@ -3008,7 +3008,7 @@ class CartanType_lorentzian(CartanType_crystallographic):
             sage: CartanType.global_options['notation'] = 'Kac'
             sage: CartanType.global_options.reset()
         """
-        ll = self.global_options('lorentzian_latex')
+        ll = self.global_options('hyperbolic_latex')
         result = self._affine._latex_()
         import re
         if re.match(".*\^{.*}$", result):
@@ -3204,7 +3204,7 @@ class CartanType_lorentzian(CartanType_crystallographic):
         """
         Return the dual of ``self``.
         """
-        return self._affine.dual().lorentzian()
+        return self._affine.dual().hyperbolic()
 
     @cached_method
     def dynkin_diagram(self):

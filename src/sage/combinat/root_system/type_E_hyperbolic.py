@@ -1,19 +1,20 @@
 r"""
-Root system data for Lorentzian type E
+Root system data for hyperbolic type E
 """
 
 from sage.combinat.root_system.cartan_type import CartanType_simply_laced
-from sage.combinat.root_system.type_hyperbolic import CartanType_lorentzian
+from sage.combinat.root_system.type_hyperbolic import CartanType_hyperbolic
 
-class CartanType_E6Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
+class CartanType_E6hyperbolic(CartanType_simply_laced, CartanType_hyperbolic):
     r"""
-    The Cartan type `E_6^{(1) \wedge}` which is `T_{4,3,3}` or `H_5^{(8)}`.
+    The Cartan type `E_6^{(1) \wedge}`, which is also known by `T_{4,3,3}`
+    or `H_5^{(8)}`.
     """
     def __init__(self):
         """
         Initialize ``self``.
         """
-        CartanType_lorentzian.__init__(self, ['E',6,1], 4)
+        CartanType_hyperbolic.__init__(self, ['E',6,1])#, 4) # the index in the rank
 
     def ascii_art(self, label=lambda x: x):
         r"""
@@ -25,15 +26,16 @@ class CartanType_E6Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
                 "O---O---O---O---O\n{}   {}   {}   {}   {}").format(
                 *map(label, [-1,0,2,1,3,4,5,6]))
 
-class CartanType_E7Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
+class CartanType_E7hyperbolic(CartanType_simply_laced, CartanType_hyperbolic):
     r"""
-    The Cartan type `E_7^{(1) \wedge}` which is `T_{5,4,2}` or `H_5^{(9)}`.
+    The Cartan type `E_7^{(1) \wedge}`, which is also known by `T_{5,4,2}`
+    or `H_5^{(9)}`.
     """
     def __init__(self):
         """
         Initialize ``self``.
         """
-        CartanType_lorentzian.__init__(self, ['E',7,1], 4)
+        CartanType_hyperbolic.__init__(self, ['E',7,1])#, 4)
 
     def ascii_art(self, label=lambda x: x):
         r"""
@@ -45,15 +47,16 @@ class CartanType_E7Lorentzian(CartanType_simply_laced, CartanType_lorentzian):
                 " O" + "---O"*7 + "\n{}" + "   {}"*7).format(
                 *map(label, [2,-1,0,1,3,4,5,6,7]))
 
-class CartanType_E10(CartanType_simply_laced, CartanType_lorentzian):
+class CartanType_E10(CartanType_simply_laced, CartanType_hyperbolic):
     r"""
-    The Cartan type `E_{10}` which is `E_8^{(1)\wedge}` or `H_4^{(10)}`.
+    The Cartan type `E_{10}`, which is also known by `E_8^{(1)\wedge}`
+    or `H_4^{(10)}`.
     """
     def __init__(self):
         """
         Initialize ``self``.
         """
-        CartanType_lorentzian.__init__(self, ['E',8,1], 4)
+        CartanType_hyperbolic.__init__(self, ['E',8,1])#, 4)
 
     def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
         r"""

@@ -211,12 +211,13 @@ class CartanType(CartanType_standard_untwisted_affine):
         return CartanTypeFolded(self, ['D', n + 1, 1],
             [[i] for i in range(n)] + [[n, n+1]])
 
-    def lorentzian(self):
+    def hyperbolic(self):
         r"""
-        Return the Lorentzian type corresponding to ``self``.
+        Return the hyperbolic type corresponding to ``self``.
         """
         if 3 <= self.n and self.n <= 8:
-            from sage.combinat.root_system.type_lorentzian import CartanType_E6Lorentzian
-            return CartanType_E6Lorentzian()
+            # Placeholder
+            from sage.combinat.root_system.type_hyperbolic import CartanType_E6hyperbolic
+            return CartanType_E6hyperbolic()
         raise NotImplementedError
 

@@ -226,22 +226,23 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
             nodes = map(node, labels)
             return ret + '---'.join(n for n in nodes) + '\n' + "".join("{!s:4}".format(i) for i in labels)
 
-    def lorentzian(self):
+    def hyperbolic(self):
         r"""
-        Return the Lorentzian type corresponding to ``self``.
+        Return the hyperbolic type corresponding to ``self``.
+
         EXAMPLES::
 
-            sage: CartanType(['E',6,1]).lorentzian()
-            sage: CartanType(['E',7,1]).lorentzian()
-            sage: CartanType(['E',8,1]).lorentzian()
+            sage: CartanType(['E',6,1]).hyperbolic()
+            sage: CartanType(['E',7,1]).hyperbolic()
+            sage: CartanType(['E',8,1]).hyperbolic()
         """
         if self.n == 6:
-            from sage.combinat.root_system.type_E_lorentzian import CartanType_E6Lorentzian
-            return CartanType_E6Lorentzian()
+            from sage.combinat.root_system.type_E_hyperbolic import CartanType_E6hyperbolic
+            return CartanType_E6hyperbolic()
         elif self.n == 7:
-            from sage.combinat.root_system.type_E_lorentzian import CartanType_E7Lorentzian
-            return CartanType_E7Lorentzian()
+            from sage.combinat.root_system.type_E_hyperbolic import CartanType_E7hyperbolic
+            return CartanType_E7hyperbolic()
         elif self.n == 8:
-            from sage.combinat.root_system.type_E_lorentzian import CartanType_E10
+            from sage.combinat.root_system.type_E_hyperbolic import CartanType_E10
             return CartanType_E10()
 

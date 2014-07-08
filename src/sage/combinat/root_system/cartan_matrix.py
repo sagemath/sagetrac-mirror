@@ -641,16 +641,16 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             return self.det() == 0
         return self._cartan_type.is_affine()
 
-    def is_lorentzian(self):
+    def is_hyperbolic(self):
         """
-        Return if ``self`` is a Lorizenian type.
+        Return if ``self`` is a hyperbolic type.
         """
         if self._cartan_type is None:
             if self.det() == 0:
                 return False
             eigen = sorted(self.eigenvalues())
             return eigen[0] < 0 and eigen[1] > 0
-        return self._cartan_type.is_lorentzian()
+        return self._cartan_type.is_hyperbolic()
 
 def is_generalized_cartan_matrix(M):
     """
