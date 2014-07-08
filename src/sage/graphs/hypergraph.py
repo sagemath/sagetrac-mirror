@@ -7,6 +7,8 @@ automorphism groups and to draw them. The latter is done at the moment through
 `\LaTeX` and TikZ, and can be obtained from Sage through the ``view`` command::
 
     sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+    doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+    See http://trac.sagemath.org/16622 for details.
     Hypergraph on 6 vertices containing 4 sets
     sage: view(H) # not tested
 
@@ -54,6 +56,8 @@ class Hypergraph:
     EXAMPLES::
 
         sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{6}]); H
+        doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+        See http://trac.sagemath.org/16622 for details.
         Hypergraph on 6 vertices containing 4 sets
 
     REFERENCES:
@@ -67,8 +71,13 @@ class Hypergraph:
         EXAMPLES::
 
             sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+            See http://trac.sagemath.org/16622 for details.
             Hypergraph on 6 vertices containing 4 sets
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16622, "Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.")
+
         from sage.sets.set import Set
         self._sets = map(Set, sets)
         self._domain = set([])
@@ -83,6 +92,8 @@ class Hypergraph:
         EXAMPLES::
 
             sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+            See http://trac.sagemath.org/16622 for details.
             Hypergraph on 6 vertices containing 4 sets
         """
         return ("Hypergraph on "+str(len(self.domain()))+" "
@@ -96,6 +107,8 @@ class Hypergraph:
         EXAMPLES::
 
             sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+            See http://trac.sagemath.org/16622 for details.
             Hypergraph on 6 vertices containing 4 sets
             sage: H.domain()
             set([1, 2, 3, 4, 5, 6])
@@ -118,6 +131,8 @@ class Hypergraph:
 
             sage: H = designs.steiner_triple_system(7).blocks()
             sage: H = Hypergraph(H)
+            doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+            See http://trac.sagemath.org/16622 for details.
             sage: g = H.to_bipartite_graph(); g
             Graph on 14 vertices
             sage: g.is_regular()
@@ -147,6 +162,8 @@ class Hypergraph:
 
             sage: H = designs.steiner_triple_system(7).blocks()
             sage: H = Hypergraph(H)
+            doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+            See http://trac.sagemath.org/16622 for details.
             sage: g = H.automorphism_group(); g
             Permutation Group with generators [(2,4)(5,6), (2,5)(4,6), (1,2)(3,4), (1,3)(5,6), (0,1)(2,5)]
             sage: g.is_isomorphic(groups.permutation.PGL(3,2))
@@ -186,6 +203,8 @@ def edge_coloring(H):
     EXAMPLES::
 
         sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+        See http://trac.sagemath.org/16622 for details.
         Hypergraph on 6 vertices containing 4 sets
         sage: C = H.edge_coloring()
         sage: C # random
@@ -236,6 +255,8 @@ def _spring_layout(H):
     EXAMPLES::
 
         sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+        See http://trac.sagemath.org/16622 for details.
         Hypergraph on 6 vertices containing 4 sets
         sage: L = H._spring_layout()
         sage: L # random
@@ -293,6 +314,8 @@ def _latex_(H):
     EXAMPLES::
 
         sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        doctest:...: DeprecationWarning: Hypergraph will soon be replaced by IncidenceStructure. Use this other class in the meantime.
+        See http://trac.sagemath.org/16622 for details.
         Hypergraph on 6 vertices containing 4 sets
         sage: view(H) # not tested
 
