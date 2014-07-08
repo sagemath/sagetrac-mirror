@@ -165,7 +165,7 @@ class Hypergraph:
 
         return PermutationGroup(gens = gens, domain = domain)
 
-def edge_coloring(self):
+def edge_coloring(H):
     r"""
     Compute a proper edge-coloring.
 
@@ -188,10 +188,10 @@ def edge_coloring(self):
         True
     """
     from sage.graphs.graph import Graph
-    g = Graph([self._sets,lambda x,y : len(x&y)],loops = False)
+    g = Graph([H._sets,lambda x,y : len(x&y)],loops = False)
     return g.coloring(algorithm="MILP")
 
-def _spring_layout(self):
+def _spring_layout(H):
     r"""
     Return a spring layout for the vertices.
 
@@ -230,7 +230,7 @@ def _spring_layout(self):
     from sage.graphs.graph import Graph
 
     g = Graph()
-    for s in self._sets:
+    for s in H._sets:
         for x in s:
             g.add_edge(s,x)
 
@@ -239,7 +239,7 @@ def _spring_layout(self):
     # The values are rounded as TikZ does not like accuracy.
     return {k:(round(x,3),round(y,3)) for k,(x,y) in g.get_pos().items()}
 
-def _latex_(self):
+def _latex_(H):
     r"""
     Return a TikZ representation of the hypergraph.
 
@@ -275,12 +275,12 @@ def _latex_(self):
         raise RuntimeError("You must have TikZ installed in order "
                            "to draw a hypergraph.")
 
-    domain = self.domain()
-    pos = self._spring_layout()
+    domain = H.domain()
+    pos = H._spring_layout()
     tex = "\\begin{tikzpicture}[scale=3]\n"
 
     colors = ["black", "red", "green", "blue", "cyan", "magenta", "yellow","pink","brown"]
-    colored_sets = [(s,i) for i,S in enumerate(self.edge_coloring()) for s in S]
+    colored_sets = [(s,i) for i,S in enumerate(H.edge_coloring()) for s in S]
 
     # Prints each set with its color
     for s,i in colored_sets:
@@ -315,3 +315,8 @@ def _latex_(self):
 
     tex += "\\end{tikzpicture}"
     return tex
+
+import types
+Hypergraph.edge_coloring = types.MethodType(edge_coloring, None, Hypergraph)
+Hypergraph._spring_layout = types.MethodType(_spring_layout, None, Hypergraph)
+Hypergraph._latex_ = types.MethodType(_latex_, None, Hypergraph)
