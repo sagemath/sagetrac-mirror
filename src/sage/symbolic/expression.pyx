@@ -9376,23 +9376,33 @@ cdef class Expression(CommutativeRingElement):
         if multiplicities and to_poly_solve:
             raise NotImplementedError("to_poly_solve does not return multiplicities")
 
-
         if isinstance(x, (list, tuple)):
             if not all([isinstance(i, Expression) for i in x]):
                 raise TypeError("%s are not valid variables." % repr(x))
         else:
             if x is None:
-                v = ex.variables()
-                if len(v) == 0:
+                vars = ex.variables()
+                if len(vars) == 0:
                     if multiplicities:
                         return [], []
                     else:
                         return []
-                x = v[0]
+                x = vars[0]
 
             if not isinstance(x, Expression):
                 raise TypeError("%s is not a valid variable." % repr(x))
 
+        # check if all variables are assumed integer;
+        # if so, we have a Diophantine
+        def has_integer_assumption(v):
+            from sage.symbolic.assumptions import assumptions
+            alist = assumptions()
+            return any(a.has(v) and a._assumption in ['even','odd','integer','integervalued']
+                for a in alist) 
+        if all(has_integer_assumption(var) for var in ex.variables()):
+            return self.solve_diophantine(x, solution_dict=solution_dict)
+
+        # from here on, maxima is used for solution        
         m = ex._maxima_()
         P = m.parent()
         if explicit_solutions:
@@ -9482,7 +9492,7 @@ cdef class Expression(CommutativeRingElement):
                         continue
 
         # if solution_dict is True:
-        # Relaxed form suggested by Mike Hansen (#8553):
+        # Relaxed form suggested by Mike Hansen (:trac:`8553`)
         if solution_dict:
             X=[dict([[sol.left(),sol.right()]]) for sol in X]
 
@@ -9490,6 +9500,95 @@ cdef class Expression(CommutativeRingElement):
             return X, ret_multiplicities
         else:
             return X
+    
+    def solve_diophantine(self, x=None, solution_dict=False):
+        """
+        Solve a polynomial equation in the integers (a so called Diophantine)
+        using sympy's http://docs.sympy.org/latest/modules/solvers/diophantine.html
+        
+        If the argument is just a polynomial expression, equate to zero.
+        If `solution_dict=True` return a list of dictionaries instead of
+        a list of tuples.
+        
+        EXAMPLES::
+        
+            sage: x,y = var('x,y')
+            sage: solve_diophantine(3*x==4)
+            []
+            sage: solve_diophantine(x^2-9)
+            [-3, 3]
+            sage: solve_diophantine(x^2+y^2==25)
+            [(-4, 3), (4, -3), (0, -5), (-4, -3), (0, 5), (4, 3)]
+            
+        You can also pick specific variables, and get the solution as
+        a dictionary::
+            sage: solve_diophantine(x*y==10,x)
+            [-10, -5, -2, -1, 1, 2, 5, 10]
+            sage: solve_diophantine(x*y-y==10,solution_dict=True)
+            [{x: 6, y: 2},
+             {x: 2, y: 10},
+             {x: 3, y: 5},
+             {x: 0, y: -10},
+             {x: -1, y: -5},
+             {x: 11, y: 1},
+             {x: -4, y: -2},
+             {x: -9, y: -1}]
+            
+ 
+        If the sympy solution is parametrized the variables are not  
+            sage: solve_diophantine(x^2-y==0)
+            [(t, t^2)]
+            sage: solve_diophantine(x^2+y^2==z^2)
+        """
+        from sympy.solvers.diophantine import diophantine
+        from sympy import sympify
+        
+        if solution_dict not in (True,False):
+            raise AttributeError("Please use a tuple or list for several variables.")
+        if is_a_relational(self._gobj) and self.operator() is operator.eq:
+            ex = self.lhs() - self.rhs()
+        else:
+            ex = self
+        sympy_ex = sympify(ex)
+        solutions = diophantine(sympy_ex)
+        
+        if isinstance(solutions, (set)):
+            solutions = list(solutions)
+
+        if len(solutions) == 0:
+            return []
+        if not isinstance(solutions[0], tuple):
+            solutions = [sol._sage_() for sol in solutions]
+        else:
+            solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
+
+#            has_parameters = any(len(s.variables()) > 0 for sol in solutions for s in sol)
+#            has_parameters = any(len(sol.variables()) > 0 for sol in solutions)
+#        if has_parameters:
+#            if solution_dict == False:
+#                return solutions
+        
+        if x is None:
+            wanted_vars = ex.variables()
+            var_idx = range(len(ex.variables()))
+        else:
+            if isinstance(x, (list, tuple)):
+                wanted_vars = x
+            else:
+                wanted_vars = [x]
+            var_idx = [ex.variables().index(v) for v in wanted_vars]
+
+        if solution_dict == False:
+            if len(wanted_vars) == 1:
+                ret = sorted([sol[var_idx[0]] for sol in solutions])
+            else:
+                ret = [tuple([sol[i] for i in var_idx]) for sol in solutions]
+        else:
+            nvars = len(sympy_ex.free_symbols)
+            ret = [dict([[ex.variables()[i],sol[i]] for i in var_idx]) for sol in solutions]
+        if len(ret) == 1:
+            ret = ret[0]
+        return ret
 
     def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
         """

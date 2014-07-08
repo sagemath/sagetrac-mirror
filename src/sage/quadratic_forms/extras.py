@@ -3,6 +3,8 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.rings.arith import legendre_symbol
 from sage.rings.integer_ring import ZZ
+from sage.symbolic.ring import SR
+from sage.symbolic.expression import Expression
 
 def is_triangular_number(n, return_value=False):
     """
@@ -200,4 +202,9 @@ def least_quadratic_nonresidue(p):
     for r in xsrange(7,p):
         if legendre_symbol(r, p) == -1:
             return ZZ(r)
+
+def solve_diophantine(f,  *args, **kwds):
+    if not isinstance(f, Expression):
+        f = SR(f)
+    return f.solve_diophantine(*args, **kwds)
 
