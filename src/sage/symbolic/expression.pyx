@@ -9519,12 +9519,23 @@ cdef class Expression(CommutativeRingElement):
             [-3, 3]
             sage: solve_diophantine(x^2+y^2==25)
             [(-4, 3), (4, -3), (0, -5), (-4, -3), (0, 5), (4, 3)]
+        
+        The function is used with `solve()` whenever all variables are
+        assumed integer::
+        
+            sage: assume(x,'integer')
+            sage: assume(y,'integer')
+            sage: solve(x*y==1,(x,y))
+            [(1, 1), (-1, -1)]
             
         You can also pick specific variables, and get the solution as
         a dictionary::
-            sage: solve_diophantine(x*y==10,x)
+        
+            sage: solve_diophantine(x*y==10, x)
             [-10, -5, -2, -1, 1, 2, 5, 10]
-            sage: solve_diophantine(x*y-y==10,solution_dict=True)
+            sage: solve_diophantine(x*y-y==10, (x,y))
+            [(6, 2), (2, 10), (3, 5), (0, -10), (-1, -5), (11, 1), (-4, -2), (-9, -1)]
+            sage: solve_diophantine(x*y-y==10, solution_dict=True)
             [{x: 6, y: 2},
              {x: 2, y: 10},
              {x: 3, y: 5},
@@ -9533,13 +9544,34 @@ cdef class Expression(CommutativeRingElement):
              {x: 11, y: 1},
              {x: -4, y: -2},
              {x: -9, y: -1}]
-            
  
-        If the sympy solution is parametrized the variables are not  
-            sage: solve_diophantine(x^2-y==0)
-            [(t, t^2)]
-            sage: solve_diophantine(x^2+y^2==z^2)
-        """
+        If the sympy solution is parametrized the variables are not defined,
+        but you can substitute them with specific integer values::
+        
+            sage: sol=solve_diophantine(x^2-y==0); sol
+            (t, t^2)
+            sage: print [(sol[0].subs(t=t),sol[1].subs(t=t)) for t in range(-3,4)]
+            [(-3, 9), (-2, 4), (-1, 1), (0, 0), (1, 1), (2, 4), (3, 9)]
+            sage: sol=solve_diophantine(x^2+y^2==z^2); sol
+            (2*p*q, p^2 - q^2, p^2 + q^2)
+            sage: print [(sol[0].subs(p=p,q=q),sol[1].subs(p=p,q=q),sol[2].subs(p=p,q=q)) for p in range(1,4) for q in range(1,4)]
+            [(2, 0, 2), (4, -3, 5), (6, -8, 10), (4, 3, 5), (8, 0, 8), (12, -5, 13), (6, 8, 10), (12, 5, 13), (18, 0, 18)]
+
+        Solve Pellian equations::
+        
+            sage: sol=solve_diophantine(x^2-2*y^2==1); sol
+            (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
+             3/4*sqrt(2)*(2*sqrt(2) + 3)^t - 3/4*sqrt(2)*(-2*sqrt(2) + 3)^t + (2*sqrt(2) + 3)^t + (-2*sqrt(2) + 3)^t)
+            sage: print [(sol[0].subs(t=t).simplify_full(),sol[1].subs(t=t).simplify_full()) for t in range(-1,5)]
+            [(1, 0), (3, 2), (17, 12), (99, 70), (577, 408), (3363, 2378)]
+
+        TESTS::
+        
+            sage: solve_diophantine(x**2-y,x,y)
+            Traceback (most recent call last)
+            ...
+            AttributeError: Please use a tuple or list for several variables.
+            """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
         
@@ -9551,7 +9583,6 @@ cdef class Expression(CommutativeRingElement):
             ex = self
         sympy_ex = sympify(ex)
         solutions = diophantine(sympy_ex)
-        
         if isinstance(solutions, (set)):
             solutions = list(solutions)
 
@@ -9561,13 +9592,6 @@ cdef class Expression(CommutativeRingElement):
             solutions = [sol._sage_() for sol in solutions]
         else:
             solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
-
-#            has_parameters = any(len(s.variables()) > 0 for sol in solutions for s in sol)
-#            has_parameters = any(len(sol.variables()) > 0 for sol in solutions)
-#        if has_parameters:
-#            if solution_dict == False:
-#                return solutions
-        
         if x is None:
             wanted_vars = ex.variables()
             var_idx = range(len(ex.variables()))
@@ -9584,8 +9608,8 @@ cdef class Expression(CommutativeRingElement):
             else:
                 ret = [tuple([sol[i] for i in var_idx]) for sol in solutions]
         else:
-            nvars = len(sympy_ex.free_symbols)
             ret = [dict([[ex.variables()[i],sol[i]] for i in var_idx]) for sol in solutions]
+            
         if len(ret) == 1:
             ret = ret[0]
         return ret
