@@ -22,7 +22,8 @@ do
     echo $tarball
     ## Suggestion to user. Alernative : fix it automagically. TBD
     if [ $upstream_pkg_name != $pkg_name ] ; then
-	echo "(should be renamed in lowercase !)"
+	echo "(must be renamed in lowercase !)"
+	exit 1
     fi
     if [ -d "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
 	sage_version=$(cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/\.p[0-9]+$//")
@@ -33,9 +34,10 @@ do
 	    sage_patch=".p0"
 	    sage_version=$tar_ver
 	    ## Suggestion to user. Alernative : fix it automagically. TBD
+	    ## Volker Braun : this must be an error.
 	    echo "Version mismatch between tarball $tar_ver and directory build/pkgs/$pkg_name."
-	    echo "Newer version ? You should put $sage_version$sage_patch in package-version.txt."
-	    echo "Proceeding anyway."
+	    echo "Newer version ? You must put $sage_version$sage_patch in package-version.txt."
+	    exit 1
 	fi
 	checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
 	echo "tarball=$tarball"> $checksums
@@ -57,6 +59,7 @@ do
         echo -n "cksum=">> $checksums
         cksum $upstream | sed 's/ .*//'>> $checksums
     else
-	echo "Warning : directory $pkg_name does not exist. Ignored."
+	echo "Error : directory $pkg_name does not exist."
+	exit 1
     fi
 done
