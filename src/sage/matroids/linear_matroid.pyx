@@ -116,6 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
+from repminor_helpers import search_assgn
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3425,7 +3426,9 @@ cdef class BinaryMatroid(LinearMatroid):
     cpdef _has_binary_minor(self,N=None):
         cdef long r,c
         if N is not None:
+            G = self._fundamental_graph()
             GN = N._fundamental_graph()
+            search_assgn(GN,G,{},None)
         else:
             raise ValueError("either N or Nmat1 must be provided")
         return
