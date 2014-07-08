@@ -1,1 +1,1 @@
-cpdef nothing()
+cpdef search_assgn(Ga,Gb,assgn,cand=*)
