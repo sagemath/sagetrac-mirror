@@ -173,6 +173,12 @@ def edge_coloring(H):
     hypergraph such that two sets with non-empty intersection receive
     different colors. The coloring returned minimizes the number of colors.
 
+    INPUT:
+
+    - ``H`` -- a :class:`Hypergraph` or
+      :class:`sage.combinat.designs.incidence_structures.IncidenceStructure`
+      instance.
+
     OUTPUT:
 
     A partition of the sets into color classes.
@@ -186,10 +192,25 @@ def edge_coloring(H):
         [[{3, 4, 5}], [{4, 5, 6}, {1, 2, 3}], [{2, 3, 4}]]
         sage: Set(sum(C,[])) == Set(H._sets)
         True
+
+    Same for incidence structures::
+
+        sage: H = IncidenceStructure({1,2,3,4,5,6},[{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        Incidence structure with 6 points and 4 blocks
+        sage: C = H.edge_coloring()
+        sage: C # random
+        [[{3, 4, 5}], [{4, 5, 6}, {1, 2, 3}], [{2, 3, 4}]]
+        sage: Set(map(tuple,sum(C,[]))) == Set(map(tuple,H.blocks()))
+        True
+
     """
+    try:
+        sets = H._sets
+    except AttributeError:
+        sets = H.blocks()
     from sage.graphs.graph import Graph
-    g = Graph([H._sets,lambda x,y : len(x&y)],loops = False)
-    return g.coloring(algorithm="MILP")
+    g = Graph([range(len(sets)),lambda x,y : len(frozenset(sets[x])&frozenset(sets[y]))],loops = False)
+    return [[sets[i] for i in c] for c in g.coloring(algorithm="MILP")]
 
 def _spring_layout(H):
     r"""
@@ -200,6 +221,12 @@ def _spring_layout(H):
     vertices it contains before a spring layout is computed for this
     graph. The position of the vertices in the hypergraph is the position of
     the same vertices in the graph's layout.
+
+    INPUT:
+
+    - ``H`` -- a :class:`Hypergraph` or
+      :class:`sage.combinat.designs.incidence_structures.IncidenceStructure`
+      instance.
 
     .. NOTE::
 
@@ -226,11 +253,25 @@ def _spring_layout(H):
         True
         sage: all(v in L for v in H._sets)
         True
+
+    Same for incidence structures::
+
+        sage: H = IncidenceStructure({1,2,3,4,5,6}, [{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        Incidence structure with 6 points and 4 blocks
+        sage: L = H._spring_layout()
+        sage: all(v in L for v in H.ground_set())
+        True
+
     """
     from sage.graphs.graph import Graph
 
+    try:
+        sets = H._sets
+    except AttributeError:
+        sets = map(Set,H.blocks())
+
     g = Graph()
-    for s in H._sets:
+    for s in sets:
         for x in s:
             g.add_edge(s,x)
 
@@ -242,6 +283,12 @@ def _spring_layout(H):
 def _latex_(H):
     r"""
     Return a TikZ representation of the hypergraph.
+
+    INPUT:
+
+    - ``H`` -- a :class:`Hypergraph` or
+      :class:`sage.combinat.designs.incidence_structures.IncidenceStructure`
+      instance.
 
     EXAMPLES::
 
@@ -256,6 +303,18 @@ def _latex_(H):
         sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
         sage: H = Hypergraph(sets)
         sage: view(H) # not tested
+
+    Same for incidence structures::
+
+        sage: H = IncidenceStructure({1,2,3,4,5,6},[{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+        Incidence structure with 6 points and 4 blocks
+        sage: view(H) # not tested
+        sage: g = graphs.Grid2dGraph(5,5)
+        sage: C4 = graphs.CycleGraph(4)
+        sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
+        sage: H = IncidenceStructure(g.vertices(),sets)
+        sage: view(H) # not tested
+
     """
     from sage.rings.integer import Integer
     from sage.functions.trig import arctan2
@@ -275,7 +334,12 @@ def _latex_(H):
         raise RuntimeError("You must have TikZ installed in order "
                            "to draw a hypergraph.")
 
-    domain = H.domain()
+
+    try:
+        domain = H.domain()
+    except AttributeError:
+        domain = H.ground_set()
+
     pos = H._spring_layout()
     tex = "\\begin{tikzpicture}[scale=3]\n"
 
@@ -301,7 +365,7 @@ def _latex_(H):
 
         # Reorders the vertices of s according to their angle with the
         # "center", i.e. the vertex representing the set s
-        cx, cy = pos[s]
+        cx, cy = pos[Set(s)]
         s = map(lambda x: pos[x], s)
         s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 

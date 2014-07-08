@@ -953,3 +953,10 @@ class IncidenceStructure(object):
         if type == "connected":
             deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
             return self.incidence_graph().is_connected()
+
+# When Hypergraph will be removed, these three methods should become methods of IncidenceStructure
+import types
+from sage.graphs.hypergraph import edge_coloring, _spring_layout, _latex_
+IncidenceStructure.edge_coloring = types.MethodType(edge_coloring, None, IncidenceStructure)
+IncidenceStructure._spring_layout = types.MethodType(_spring_layout, None, IncidenceStructure)
+IncidenceStructure._latex_ = types.MethodType(_latex_, None, IncidenceStructure)
