@@ -157,9 +157,9 @@ the fan. In this case check out
     2-d cone of Rational polyhedral fan in 3-d lattice M
     sage: sorted(L.hasse_diagram().neighbors(cone))
     [1-d cone of Rational polyhedral fan in 3-d lattice M,
-     1-d cone of Rational polyhedral fan in 3-d lattice M,
      3-d cone of Rational polyhedral fan in 3-d lattice M,
-     3-d cone of Rational polyhedral fan in 3-d lattice M]
+     3-d cone of Rational polyhedral fan in 3-d lattice M,
+     1-d cone of Rational polyhedral fan in 3-d lattice M]
 
 You can check how "good" a fan is::
 
