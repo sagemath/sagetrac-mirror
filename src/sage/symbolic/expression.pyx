@@ -9243,15 +9243,6 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((x-z)^2==2, x)
             [x == z - sqrt(2), x == z + sqrt(2)]
 
-        We use sympy for Diophantine equations, see :meth:`solve_diophantine` ::
-
-            sage: assume(x, 'integer')
-            sage: assume(z, 'integer')
-            sage: solve((x-z)^2==2, x)
-            []
-
-            sage: forget()
-
         In some cases it may be worthwhile to directly use to_poly_solve,
         if one suspects some answers are being missed::
 
@@ -9280,6 +9271,15 @@ cdef class Expression(CommutativeRingElement):
             (b, c)
             sage: solve((b-1)*(c-1), [b,c])
             [[b == 1, c == r3], [b == r4, c == 1]]
+
+        We use sympy for Diophantine equations, see :meth:`solve_diophantine` ::
+
+            sage: assume(x, 'integer')
+            sage: assume(z, 'integer')
+            sage: solve((x-z)^2==2, x)
+            []
+
+            sage: forget()
 
         Some basic inequalities can be also solved::
 
@@ -9503,11 +9503,10 @@ cdef class Expression(CommutativeRingElement):
     
     def solve_diophantine(self, x=None, solution_dict=False):
         """
-        Solve a polynomial equation in the integers (a so called Diophantine)
-        using sympy's http://docs.sympy.org/latest/modules/solvers/diophantine.html
+        Solve a polynomial equation in the integers (a so called Diophantine).
         
         If the argument is just a polynomial expression, equate to zero.
-        If `solution_dict=True` return a list of dictionaries instead of
+        If ``solution_dict=True`` return a list of dictionaries instead of
         a list of tuples.
         
         EXAMPLES::
@@ -9520,7 +9519,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve_diophantine(x^2+y^2==25)
             [(-4, 3), (4, -3), (0, -5), (-4, -3), (0, 5), (4, 3)]
         
-        The function is used with `solve()` whenever all variables are
+        The function is used when ``solve()`` is called with all variables are
         assumed integer::
         
             sage: assume(x,'integer')
@@ -9545,7 +9544,7 @@ cdef class Expression(CommutativeRingElement):
              {x: -4, y: -2},
              {x: -9, y: -1}]
  
-        If the sympy solution is parametrized the variables are not defined,
+        If the solution is parametrized the parameter(s) are not defined,
         but you can substitute them with specific integer values::
         
             sage: x,y,z = var('x,y,z')
@@ -9558,7 +9557,7 @@ cdef class Expression(CommutativeRingElement):
             sage: print [(sol[0].subs(p=p,q=q),sol[1].subs(p=p,q=q),sol[2].subs(p=p,q=q)) for p in range(1,4) for q in range(1,4)]
             [(2, 0, 2), (4, -3, 5), (6, -8, 10), (4, 3, 5), (8, 0, 8), (12, -5, 13), (6, 8, 10), (12, 5, 13), (18, 0, 18)]
 
-        Solve Pellian equations::
+        Solve Pell equations::
         
             sage: sol=solve_diophantine(x^2-2*y^2==1); sol
             (sqrt(2)*(2*sqrt(2) + 3)^t - sqrt(2)*(-2*sqrt(2) + 3)^t + 3/2*(2*sqrt(2) + 3)^t + 3/2*(-2*sqrt(2) + 3)^t,
@@ -9572,6 +9571,8 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             AttributeError: Please use a tuple or list for several variables.
+            
+        .. SEEALSO: http://docs.sympy.org/latest/modules/solvers/diophantine.html
             """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
@@ -10432,6 +10433,30 @@ cdef class Expression(CommutativeRingElement):
             raise TypeError("this expression must be a relation")
         return self / x
 
+def solve_diophantine(f,  *args, **kwds):
+    """
+    Solve a Diophantine equation.
+    
+    The argument, if not given as symbolic equation, is set equal to zero.
+    It can be given in any form that can be converted to symbolic. Please
+    see :meth:`Expression.solve_diophantine()` for a detailed
+    synopsis.
+    
+    EXAMPLES::
+    
+        sage: R.<a,b> = PolynomialRing(ZZ); R
+        Multivariate Polynomial Ring in a, b over Integer Ring
+        sage: solve_diophantine(a^2-3*b^2+1)
+        []
+        sage: solve_diophantine(a^2-3*b^2+2)
+        (1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
+         1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t)
+    """
+    from sage.symbolic.ring import SR
+
+    if not isinstance(f, Expression):
+        f = SR(f)
+    return f.solve_diophantine(*args, **kwds)
 
     # Functions to add later, maybe.  These were in Ginac mainly
     # implemented using a lot from cln, and I had to mostly delete
