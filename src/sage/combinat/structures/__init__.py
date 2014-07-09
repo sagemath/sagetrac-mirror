@@ -287,6 +287,10 @@ class Structures(UniqueRepresentation, Parent):
                 True
 
             """
+            if not isinstance(obj, self.ambient().element_class):
+                try:
+                    obj = self._element_constructor_(obj)
+                except: return False
             return obj in self.ambient() and obj.grade() == self.grading()
 
         def ambient(self):
