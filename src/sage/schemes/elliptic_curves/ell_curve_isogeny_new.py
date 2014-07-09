@@ -30,7 +30,14 @@ def kernel_polynomial_from_points(kernel_gens, check):
     for P in kernel_list:
         polyn *= x - P.xy()[0]
     return polyn
-        
+
+def change_elliptic_coef((a1, a2, a3, a4, a6), (u,r,s,t)):
+            a6 += r*(a4 + r*(a2 + r)) - t*(a3 + r*a1 + t)
+            a4 += -s*a3 + 2*r*a2 - (t + r*s)*a1 + 3*r*r - 2*s*t
+            a3 += r*a1 +t+t
+            a2 += -s*a1 + 3*r - s*s
+            a1 += 2*s
+            return (a1/u,a2/u**2,a3/u**3,a4/u**4,a6/u**6)
 class EllipticIsogeny(Morphism):
     r"""
     Construct an elliptic curve isogeny.
@@ -205,9 +212,9 @@ class EllipticIsogeny(Morphism):
             a1, a3 = E.base_field()(0), E.base_field()(0)
             a2, a4, a6 = E.b2()/4, E.b4()/2, E.b6()/4
             self.__domain_reduced = EllipticCurve((a1,a2,a3,a4,a6))
+        # Compute power sum of roots of h
         n = self.h.degree()
         coeffs_list = self.h.list()
-        
         c1, c2, c3 = 0, 0, 0
         if 1 <= n:
             c1 = coeffs_list[n-1]
@@ -215,16 +222,20 @@ class EllipticIsogeny(Morphism):
             c2 = coeffs_list[n-2]
         if 3 <= n:
             c3 = coeffs_list[n-3]
-        
         s1 = -c1
         s2 = c1**2 - 2*c2
         s3 = -c1**3 + 3*c1*c2 - 3*c3
+        # End of power sum computing
         
+        # Apply Velu's formulae
         t = 3*s2 + 2*a2*s1 + n*a4
         w = 5*s3 + 4*a2*s2 + 3*a4*s1 +2*n*a6
         
         a4 = a4 - 5*t
         a6 = a6 - 4*a2*t - 7*w
+        # End of Velu's formulae
+        
+        (a1, a2, a3, a4, a6) = change_elliptic_coef((a1, a2, a3, a4, a6), self._pre_urst)
         E2 = None
         if codomain is not None:
             E2 = EllipticCurve((a1, a2, a3, a4, a6))
@@ -234,17 +245,11 @@ class EllipticIsogeny(Morphism):
             self.urst = urst
             E2 = codomain
         elif urst is not None:
-            u, r, s, t = urst
-            if u == 0:
+            if urst[0] == 0:
                 raise ValueError, "In (u, r, s, t), u can not be null."
                 
             self.urst  = urst
-            a6 += r*(a4 + r*(a2 + r)) - t*(a3 + r*a1 + t)
-            a4 += -s*a3 + 2*r*a2 - (t + r*s)*a1 + 3*r*r - 2*s*t
-            a3 += r*a1 +t+t
-            a2 += -s*a1 + 3*r - s*s
-            a1 += 2*s
-            E2 = EllipticCurve((a1/u,a2/u**2,a3/u**3,a4/u**4,a6/u**6))
+            E2 = EllipticCurve(change_elliptic_coef((a1, a2, a3, a4, a6), urst))
         else:
             E2 = EllipticCurve((a1, a2, a3, a4, a6))
             self.urst  = (1, 0, 0, 0)
@@ -268,7 +273,9 @@ class EllipticIsogeny(Morphism):
         _,_,s,t = self._pre_urst
         y += s*x + t
         x_map, y_map = self.__internal_maps()
-        xn, yn = x_map(x), y*y_map(x)
+        xn = x_map(x)
+        yn = y*y_map(x) - s*xn -t
+        
         u,r,s,t= self.urst_inv
         return E2( (u**2*xn + r, u**3*yn + s*u**2*xn + t) )
     
@@ -291,12 +298,15 @@ class EllipticIsogeny(Morphism):
     def rational_maps(self):
         R = PolynomialRing(self.domain().base_ring().fraction_field(), 2, 'xy').fraction_field()
         x, y = R.gens()
-        u, r, s, t = self.urst
-        x_map, y_map = self.__internal_maps()
-        phi_x, phi_y = R(u**2*x_map + r), R(u**3*y*y_map + s*u**2*x_map + t)
-
+        
         _,_,s,t = self._pre_urst
-        return phi_x(y=y-s*x-t), phi_y(y=y-s*x-t)
+        x_map, y_map = self.__internal_maps()
+        phi_x, phi_y = x_map, y*y_map + s*x_map + t
+        phi_y = phi_y(y=y-s*x-t)
+
+        u, r, s, t = self.urst        
+        phi_x, phi_y = R(u**2*phi_x + r), R(u**3*phi_y + s*u**2*phi_x + t)
+        return phi_x, phi_y
         
     def degree(self):
         return self.h.degree() + 1
