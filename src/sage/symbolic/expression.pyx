@@ -9243,12 +9243,12 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((x-z)^2==2, x)
             [x == z - sqrt(2), x == z + sqrt(2)]
 
-        There is still room for improvement::
+        We use sympy for Diophantine equations, see :meth:`solve_diophantine` ::
 
             sage: assume(x, 'integer')
             sage: assume(z, 'integer')
             sage: solve((x-z)^2==2, x)
-            [x == z - sqrt(2), x == z + sqrt(2)]
+            []
 
             sage: forget()
 
@@ -9388,18 +9388,18 @@ cdef class Expression(CommutativeRingElement):
                     else:
                         return []
                 x = vars[0]
-
             if not isinstance(x, Expression):
                 raise TypeError("%s is not a valid variable." % repr(x))
 
         # check if all variables are assumed integer;
         # if so, we have a Diophantine
         def has_integer_assumption(v):
-            from sage.symbolic.assumptions import assumptions
+            from sage.symbolic.assumptions import assumptions, GenericDeclaration
             alist = assumptions()
-            return any(a.has(v) and a._assumption in ['even','odd','integer','integervalued']
+            return any(a.has(v) and isinstance(a, GenericDeclaration) and
+                       a._assumption in ['even','odd','integer','integervalued']
                 for a in alist) 
-        if all(has_integer_assumption(var) for var in ex.variables()):
+        if len(ex.variables()) and all(has_integer_assumption(var) for var in ex.variables()):
             return self.solve_diophantine(x, solution_dict=solution_dict)
 
         # from here on, maxima is used for solution        
@@ -9548,6 +9548,7 @@ cdef class Expression(CommutativeRingElement):
         If the sympy solution is parametrized the variables are not defined,
         but you can substitute them with specific integer values::
         
+            sage: x,y,z = var('x,y,z')
             sage: sol=solve_diophantine(x^2-y==0); sol
             (t, t^2)
             sage: print [(sol[0].subs(t=t),sol[1].subs(t=t)) for t in range(-3,4)]
@@ -9567,8 +9568,8 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS::
         
-            sage: solve_diophantine(x**2-y,x,y)
-            Traceback (most recent call last)
+            sage: solve_diophantine(x^2-y,x,y)
+            Traceback (most recent call last):
             ...
             AttributeError: Please use a tuple or list for several variables.
             """
