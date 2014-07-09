@@ -139,10 +139,12 @@ class Structures(UniqueRepresentation, Parent):
             Compositions of integers
             sage: Compositions(4)
             Compositions of integers of degree 4
+            sage: Compositions(0)
+            Compositions of integers of degree 0
         """
         self = super(Structures, cls).__classcall__(cls, *args, **options)
 
-        if grade and grade in cls.grading_set():
+        if grade is not None and grade in cls.grading_set():
             return self.graded_component(grade)
         else: return self
 
