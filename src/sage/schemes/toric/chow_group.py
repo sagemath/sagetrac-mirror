@@ -670,7 +670,7 @@ class ChowGroup_class(FGP_Module_class):
         V = FreeModule(base_ring, len(self._cones), sparse=True)
         W = self._rational_equivalence_relations(V)
 
-        super(ChowGroup_class,self).__init__(V, W, check=False)
+        super(ChowGroup_class, self).__init__(V, W, check=False)
 
 
     def scheme(self):
