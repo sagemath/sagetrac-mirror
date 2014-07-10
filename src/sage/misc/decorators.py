@@ -782,3 +782,134 @@ def decorator_keywords(func):
         else:
             return func(f, **kwargs)
     return wrapped
+
+@decorator_keywords
+def keyword_only(wrapped, positional=None, deprecation=None, extra=None):
+    r"""
+    A decorator to enforce passing certain arguments as keywords,
+    not positional parameters.
+
+    This is similar in spirit to what Python 3 allows since `PEP 3102`_.
+    But this use of the decorator comes at a performance cost,
+    since it adds one layer of function call indirection.
+    So weigh carefully the benefits of simpler implementations
+    against the drawbacks of this performance hit.
+    In particular, don't use this decorator in stuff that is likely
+    to be called inside a tight loop.
+
+    .. _PEP 3102: http://legacy.python.org/dev/peps/pep-3102/
+
+    INPUT:
+
+    - ``positional`` -- number of arguments that may be passed positional.
+      If unset, this will be equal to the number of arguments which have
+      no default value.
+      For methods, be sure to include the ``self`` argument in the count.
+
+    - ``deprecation`` -- trac ticket number when positional arguments
+      were deprecated.
+      If this is set, then passing more positional arguments
+      than specified will only result in a deprecation warning,
+      while the original functionality will be maintained.
+
+    - ``extra`` -- names to be used for excess positional parameters,
+      given as a comma-separated list of identifiers.
+      This only makes sense if ``deprecation`` is used as well.
+      It allows turning positional arguments into keyword arguments
+      even if the wrapped function no longer has positional arguments
+      in these places. The extra arguments can then be collected
+      by a ``**kwds`` argument dictionary.
+
+    EXAMPLES:
+
+    In the simplest case, any optional parameters will become keyword-only,
+    raising exceptions if used positionally::
+
+        sage: from sage.misc.decorators import keyword_only
+        sage: @keyword_only
+        ....: def f(foo, bar=None): print((foo, bar))
+        sage: f(1)
+        (1, None)
+        sage: f(1, bar=2)
+        (1, 2)
+        sage: f(1, 2)
+        Traceback (most recent call last):
+        ...
+        TypeError: Must pass bar as keyword argument to f()
+
+    If positional parameters were supported (perhaps unintentionally)
+    in the past, then it is better to issue a deprecation warning
+    for one year before removing support for these::
+    
+        sage: @keyword_only(deprecation=1111)
+        ....: def f(foo, bar=None): print((foo, bar))
+        sage: f(1,2)
+        doctest:...: DeprecationWarning: Please pass pass bar as keyword argument to f()
+        See http://trac.sagemath.org/1111 for details.
+        (1, 2)
+
+    Suppose a function used to support more positional parameters
+    in the past, but now only has a ``**kwds`` dictionary
+    (which will likely get passed to some other function).
+    Then you can state the names of the old arguments like this::
+
+        sage: @keyword_only(deprecation=2222, extra="bar,baz")
+        ....: def f(foo, **kwds): print((foo, sorted(kwds.items())))
+        sage: f(1, 2, huff=5)
+        doctest:...: DeprecationWarning: Please pass pass bar as keyword argument to f()
+        See http://trac.sagemath.org/2222 for details.
+        (1, [('bar', 2), ('huff', 5)])
+
+    You can allow optional positional arguments::
+
+        sage: @keyword_only(positional=2)
+        ....: def f(foo, bar=None, baz=None): print((foo, bar, baz))
+        sage: f(1, 2)
+        (1, 2, None)
+        sage: f(1, bar=2)
+        (1, 2, None)
+        sage: f(1, 2, 3)
+        Traceback (most recent call last):
+        ...
+        TypeError: Must pass baz as keyword argument to f()
+        sage: f(1, 2, bar=3)
+        Traceback (most recent call last):
+        ...
+        TypeError: f() got multiple values for keyword argument 'bar' 
+
+    """
+
+    spec = sage_getargspec(wrapped)
+    if positional is None:
+        positional = len(spec.args)
+        if spec.defaults is not None:
+            positional -= len(spec.defaults)
+    argnames = spec.args
+    if extra is not None:
+        argnames = list(argnames) + list(extra.split(','))
+
+    @sage_wraps(wrapped)
+    def wrapper(*args, **kwds):
+        if len(args) > positional:
+            vs = args[positional:]
+            ks = argnames[positional:len(args)]
+            if deprecation is None:
+                msg = ('Must pass {} as keyword argument to {}()'
+                       .format(', '.join(ks), wrapped.__name__))
+                raise TypeError(msg)
+            # In the case of deprecation, maintain backwards compatibility
+            import sage.misc.superseded
+            msg = ('Please pass pass {} as keyword argument to {}()'
+                   .format(', '.join(ks), wrapped.__name__))
+            sage.misc.superseded.deprecation(deprecation, msg)
+            args = args[:positional]
+            for k, v in zip(ks, vs):
+                if k in kwds:
+                    raise TypeError(
+                        "{}() got multiple values for "
+                        "keyword argument '{}'"
+                        .format(wrapped.__name__, k))
+                kwds[k] = v
+        return wrapped(*args, **kwds)
+
+    return wrapper
