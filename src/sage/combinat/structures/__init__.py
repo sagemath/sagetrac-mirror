@@ -236,7 +236,7 @@ class Structures(UniqueRepresentation, Parent):
 
             sage: from sage.categories.examples.combinatorial_structures_compositions import Compositions
             sage: I = Compositions()._an_element_(); I
-            [1]
+            []
             sage: I.parent()
             Compositions of integers
 
