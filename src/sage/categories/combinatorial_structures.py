@@ -27,7 +27,7 @@ class CombinatorialStructures(Category):
     """
 
     def super_categories(self):
-        return [SetsWithGrading()]  #InfiniteEnumeratedSets()] that
+        return [SetsWithGrading(), InfiniteEnumeratedSets()]
 
     class ParentMethods:
 
