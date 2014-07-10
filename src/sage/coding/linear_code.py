@@ -1152,6 +1152,18 @@ class LinearCode(module.Module_old):
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
 
+    def cardinality(self):
+        r"""
+        Return the size of this code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.cardinality()
+            16
+        """
+        return self.__len__()
+
     def __contains__(self,v):
         r"""
         Returns True if `v` can be coerced into `self`. Otherwise, returns False.
