@@ -138,6 +138,37 @@ class PatternGradedConnectedHopfAlgebra(Parent, UniqueRepresentation):
                     if indices.grading(sigma) == indices.grading_set().first() \
                     else self.base_ring().zero()
 
+def words_like_getitem(self, c, *rest):
+    """
+    This method implements the abuses of notations::
+
+        F[1,3,2]
+        F[[1,3,2]]
+        F[FQSym.indices()([2,1])]
+
+    .. todo::
+
+        This should call ``super.monomial`` if the input can't
+        be made into a composition so as not to interfere with
+        the standard notation ``Psi['x,y,z']``.
+
+        This could possibly be shared with Sym, FQSym, and
+        other algebras with bases indexed by list-like objects
+
+        TODO:: généraliser la méthode...
+    """
+    from sage.rings.integer import Integer
+    Keys = self.basis().keys()
+    if c in Keys:
+        assert len(rest) == 0
+        c = Keys(c)
+    else:
+        if len(rest) > 0 or isinstance(c, (int, Integer)):
+            c = Keys([c] + list(rest))
+        else:
+            c = Keys(list(c))
+    return self.monomial(c)
+
 def register_basis_to_cha(basis_class, name, cha_class):
     """
     Function uses to register the basis define in the class `basis_class`
