@@ -13,7 +13,7 @@ AUTHOR:
 - Jean-Baptiste Priez
 """
 #*****************************************************************************
-#       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
+#       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -23,6 +23,7 @@ import itertools
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct
+from sage.combinat.structures import Structure, Structures
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -68,7 +69,7 @@ def to_pack(li):
     return PackedWord([l.index(i) + 1 for i in li])
 
 
-class PackedWord(ClonableIntArray):
+class PackedWord(Structure, ClonableIntArray):
     """
     The class of packed words
 
@@ -77,47 +78,30 @@ class PackedWord(ClonableIntArray):
         sage: PackedWord()
         []
     """
-    __metaclass__ = ClasscallMetaclass
 
-    @staticmethod
-    def __classcall_private__(cls, *args, **opts):
+    def __init__(self, parent, li=None):
         """
-        Ensure that packed words created by the enumerated sets and directly
-        are the same and that they are instances of :class:`PackedWord`
-
         TESTS::
 
-            sage: from sage.combinat.packed_word import PackedWords_all
-            sage: issubclass(PackedWords_all().element_class, PackedWord)
+            sage: p = PackedWord(); p
+            []
+            sage: p == PackedWord([])
             True
-            sage: w0 = PackedWord([4,2,3,1,2])
-            sage: w0.parent()
-            Packed words
-            sage: type(w0)
-            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
-            sage: w1 = PackedWords()([4,2,3,1,2])
-            sage: w1.parent() is w0.parent()
-            True
-            sage: type(w1) is type(w0)
-            True
-        """
-        return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
 
-    @lazy_class_attribute
-    def _auto_parent(cls):
-        return PackedWords_all()
-
-    def __init__(self, parent, li=None, check=True):
-        """
-
-        TESTS::
-
-            sage: PackedWord([]).parent()
-            Packed words
         """
         if li is None:
             li = []
-        ClonableIntArray.__init__(self, parent, li, check=check)
+        ClonableIntArray.__init__(self, parent, li)
+
+    @lazy_class_attribute
+    def _auto_parent_(cls):
+        """
+        TESTS::
+
+            sage: PackedWord([1,1]).parent()
+            Packed words
+        """
+        return PackedWords()
 
     def check(self):
         """
@@ -128,14 +112,15 @@ class PackedWord(ClonableIntArray):
             sage: PackedWord([3,3,2,1])
             [3, 3, 2, 1]
 
-            #sage: PackedWord([2,2,1,0,4])
-            #Traceback (most recent call last)
-            #...
-            #AssertionError: This is not a packed word
+            sage: PackedWord([2,2,1,0,4])
+            Traceback (most recent call last):
+            ...
+            AssertionError: This is not a packed word `[2, 2, 1, 0, 4]`
+
         """
         s = uniq(self)
         assert(len(s) == 0 or (max(s) == len(s) and min(s) == 1)
-            ), "This is not a packed word %s" % str(self)
+            ), "This is not a packed word `%s`" % str(self)
 
     def to_ordered_set_partition(self):
         """
@@ -194,12 +179,8 @@ class PackedWord(ClonableIntArray):
 
             sage: PW = PackedWord
             sage: list(PW([1,1]).shifted_shuffle(PW([1,2])))
-            [[1, 1, 2, 3],
-             [1, 2, 1, 3],
-             [1, 2, 3, 1],
-             [2, 1, 1, 3],
-             [2, 1, 3, 1],
-             [2, 3, 1, 1]]
+            [[1, 1, 2, 3], [2, 1, 1, 3], [1, 2, 1, 3], [2, 3, 1, 1],
+             [2, 1, 3, 1], [1, 2, 3, 1]]
             sage: list(PW([1,1]).shifted_shuffle(PW([])))
             [[1, 1]]
             sage: list(PW([]).shifted_shuffle(PW([1,2])))
@@ -283,17 +264,6 @@ class PackedWord(ClonableIntArray):
             '[', '').replace(
             ']', '').replace(
             ', ', '')
-
-    def size(self):
-        """
-        EXAMPLES::
-
-            sage: PackedWord().size()
-            0
-            sage: PackedWord([2,1,1]).size()
-            3
-        """
-        return len(self)
 
     def pseudo_permutohedron_succ(self):
         r"""
@@ -448,10 +418,7 @@ class PackedWord(ClonableIntArray):
         return True
 
 
-#==============================================================================
-# Abstract class to serve as a Factory no instance are created
-#==============================================================================
-class PackedWords(UniqueRepresentation, Parent):
+class PackedWords(Structures):
     """
     Factory class for packed words.
 
@@ -472,60 +439,21 @@ class PackedWords(UniqueRepresentation, Parent):
         sage: PackedWords()
         Packed words
         sage: PackedWords(4)
-        Packed words of size 4
+        Packed words of degree 4
     """
-    @staticmethod
-    def __classcall_private__(cls, n=None):
-        """
-        TESTS::
-
-            sage: from sage.combinat.packed_word import PackedWords_size, \
-            ....:     PackedWords_all
-            sage: isinstance(PackedWords(2), PackedWords)
-            True
-            sage: isinstance(PackedWords(), PackedWords)
-            True
-            sage: PackedWords(2) is PackedWords_size(2)
-            True
-            sage: PackedWords(5).cardinality()
-            541
-            sage: PackedWords() is PackedWords_all()
-            True
-        """
-        if n is None:
-            return PackedWords_all()
-        else:
-            assert(isinstance(n, (Integer, int)) and n >= 0), \
-                "n must be a non negative integer"
-            return PackedWords_size(Integer(n))
-
-    def __init__(self, is_infinite=False):
-        """
-        Initialize ``self``
-
-        TESTS::
-
-            sage: TestSuite(PackedWords()).run()
-
-        """
-        if is_infinite:
-            Parent.__init__(self, category=InfiniteEnumeratedSets())
-        else:
-            Parent.__init__(self, category=FiniteEnumeratedSets())
 
     Element = PackedWord
 
-    def __call__(self, x=None, *args, **keywords):
+    def grading(self, pw):
         """
-        Ensure that ``None`` instead of ``0`` is passed by default.
-
         TESTS::
 
-            sage: P = PackedWords()
-            sage: P()
-            []
+            sage: PackedWord([1,2,1,1]).grade()
+            4
+            sage: PackedWords().grading(PackedWord([1,1,2]))
+            3
         """
-        return super(PackedWords, self).__call__(x, *args, **keywords)
+        return len(pw)
 
     def __contains__(self, item):
         """
@@ -556,37 +484,7 @@ class PackedWords(UniqueRepresentation, Parent):
             sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
-        return PackedWords_size(len(sigma)).permutation_to_packed_word(sigma)
-
-
-#==============================================================================
-# Enumerated set of all packed words
-#==============================================================================
-class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
-
-    def __init__(self):
-        """
-        TESTS::
-
-            sage: from sage.combinat.packed_word import PackedWords_all
-            sage: P = PackedWords_all()
-            sage: P.cardinality()
-            +Infinity
-            sage: it = iter(P)
-            sage: (it.next(), it.next(), it.next(), it.next(), it.next())
-            ([], [1], [1, 2], [2, 1], [1, 1])
-            sage: it.next().parent()
-            Packed words
-            sage: P([])
-            []
-            sage: P is PackedWords_all()
-            True
-            sage: TestSuite(P).run()
-        """
-        PackedWords.__init__(self, True)
-        DisjointUnionEnumeratedSets.__init__(
-            self, Family(NonNegativeIntegers(), PackedWords_size),
-            facade=True, keepkey=False)
+        return self.graded_component(len(sigma)).permutation_to_packed_word(sigma)
 
     def _repr_(self):
         """
@@ -597,9 +495,6 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         """
         return "Packed words"
 
-    def combinatorial_class_of_size(self, size):
-        return PackedWords(size)
-
     def __contains__(self, item):
         """
         TESTS::
@@ -614,193 +509,88 @@ class PackedWords_all(DisjointUnionEnumeratedSets, PackedWords):
         if isinstance(item, self.element_class):
             return True
         try:
-            self._element_constructor(item)
+            self._element_constructor_(item)
             return True
         except TypeError:
             return False
 
-    def _element_constructor_(self, *args, **keywords):
-        """
-        EXAMPLES::
 
-            sage: P = PackedWords(0)
-            sage: P([])
-            []
+    class GradedComponent(Structures.GradedComponent):
 
-            # sage: P([1])
-            # Traceback (most recent call last)
-            # ...
-            # ValueError: Wrong size of word
-        """
-        return self.element_class(self, *args, **keywords)
+        def cardinality(self):
+            """
+            Stirling number ???
 
+            TESTS::
 
-#==============================================================================
-# Enumerated set of packed words of a given size
-#==============================================================================
-class PackedWords_size(PackedWords):
-    """
-    TESTS::
+                sage: PackedWords(0).cardinality()
+                1
+                sage: PackedWords(1).cardinality()
+                1
+                sage: PackedWords(2).cardinality()
+                3
+                sage: PackedWords(3).cardinality()
+                13
+            """
+            return OrderedSetPartitions(self.grading()).cardinality()
 
-        sage: from sage.combinat.packed_word import PackedWords_size
-        sage: TestSuite(PackedWords_size(5)).run()
+        def __iter__(self):
+            """
+            TESTS::
 
-    """
+                sage: PackedWords(0).list()
+                [[]]
+                sage: PackedWords(1).list()
+                [[1]]
+                sage: PackedWords(2).list()
+                [[1, 2], [2, 1], [1, 1]]
+                sage: PackedWords().graded_component(3).list()
+                [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1],
+                 [1, 2, 2], [2, 1, 2], [2, 2, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1],
+                 [1, 1, 1]]
+            """
+            n = self.grading()
+            if n == 0:
+                yield self._element_constructor_()
+            else:
+                for osp in OrderedSetPartitions(n):
+                    yield osp.to_packed_word()
 
-    def __init__(self, size):
-        super(PackedWords_size, self).__init__(False)
-        assert(size >= 0), "Argument size (%d) must be a positive integer" % size
-        self._size = size
+        def permutation_to_packed_word(self, sigma):
+            """
+            Compute all packed words which give *sigma* by standardization.
 
-    @lazy_attribute
-    def _parent_for(self):
-        return PackedWords_all()
+            TESTS::
 
-    @lazy_attribute
-    def element_class(self):
-        """
-        TESTS::
-
-            sage: P4 = PackedWords(4)
-            sage: type(P4.an_element())
-            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
-            sage: type(P4([1,2,3,4]))
-            <class 'sage.combinat.packed_word.PackedWords_all_with_category.element_class'>
-        """
-        return self._parent_for.element_class
-
-    def _element_constructor_(self, *args, **keywords):
-        """
-        EXAMPLES::
-
-            sage: P = PackedWords(0)
-            sage: P([])
-            []
-
-            # sage: P([1])
-            # Traceback (most recent call last)
-            # ...
-            # ValueError: Wrong size of word
-        """
-        res = self.element_class(self._parent_for, *args, **keywords)
-        if res.size() != self._size:
-            raise ValueError, "Wrong size of word"
-        return res
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: PackedWords(4)
-            Packed words of size 4
-        """
-        return "Packed words of size %s" % (self._size)
-
-    def __contains__(self, x):
-        """
-        TESTS::
-
-            sage: P = PackedWords(4)
-            sage: 1 in P
-            False
-            sage: PackedWord([]) in P
-            False
-            sage: PackedWord([1,2,1,3,1,4]) in P
-            False
-            sage: PackedWord([1,2,1,3]) in P
-            True
-            sage: [1,2,1,3] in P
-            True
-
-        """
-        if isinstance(x, self.element_class):
-            return self._size == x.size()
-        else:
-            return super(PackedWords_size, self).__contains__(x) and len(x) == self._size
-
-    def _an_element_(self):
-        """
-        TESTS::
-
-            sage: PackedWords(6).an_element()
-            [1, 2, 3, 4, 5, 6]
-        """
-        return self.first()
-
-    def cardinality(self):
-        """
-        Stirling number ???
-
-        TESTS::
-
-            sage: from sage.combinat.packed_word import PackedWords_size
-            sage: PackedWords_size(0).cardinality()
-            1
-            sage: PackedWords_size(1).cardinality()
-            1
-            sage: PackedWords_size(2).cardinality()
-            3
-            sage: PackedWords_size(3).cardinality()
-            13
-        """
-        return OrderedSetPartitions(self._size).cardinality()
-
-    def __iter__(self):
-        """
-        TESTS::
-
-            sage: from sage.combinat.packed_word import PackedWords_size
-            sage: list(PackedWords_size(0))
-            [[]]
-            sage: list(PackedWords_size(1))
-            [[1]]
-            sage: list(PackedWords_size(2))
-            [[1, 2], [2, 1], [1, 1]]
-            sage: list(PackedWords_size(3))
-            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1],
-             [1, 2, 2], [2, 1, 2], [2, 2, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1],
-             [1, 1, 1]]
-        """
-        if self._size == 0:
-            yield self._element_constructor()
-        else:
-            for osp in OrderedSetPartitions(self._size):
-                yield osp.to_packed_word()
-
-    def permutation_to_packed_word(self, sigma):
-        """
-        Compute all packed words which give *sigma* by standardization.
-
-        TESTS::
-
-            sage: PW = PackedWords()
-            sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
-            [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
-            sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
-            [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
-        """
-        if self._size <= 1:
-            if self._size == 0:
-                return [self._element_constructor([])]
-            if self._size == 1:
-                return [self._element_constructor([1])]
-        li = [({sigma.index(1):1}, sigma.index(1))]
-        for i in range(2, self._size):
-            index_i = sigma.index(i)
-            tmp = []
+                sage: PW = PackedWords()
+                sage: PW.permutation_to_packed_word(Permutation([3,1,2,4]))
+                [[2, 1, 1, 2], [2, 1, 1, 3], [3, 1, 2, 3], [3, 1, 2, 4]]
+                sage: PW.permutation_to_packed_word(Permutation([1,2,3]))
+                [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
+            """
+            n = self.grading()
+            if n <= 1:
+                if n == 0:
+                    return [self._element_constructor_([])]
+                if n == 1:
+                    return [self._element_constructor_([1])]
+            li = [({sigma.index(1):1}, sigma.index(1))]
+            for i in range(2, n):
+                index_i = sigma.index(i)
+                tmp = []
+                for (pw, l_index) in li:
+                    if l_index < index_i:
+                        pw[index_i] = pw[l_index]
+                        tmp.append((dict(pw), index_i))
+                    pw[index_i] = pw[l_index] + 1
+                    tmp.append((dict(pw), index_i))
+                li = tmp
+            index_i = sigma.index(n)
+            res = []
             for (pw, l_index) in li:
                 if l_index < index_i:
                     pw[index_i] = pw[l_index]
-                    tmp.append((dict(pw), index_i))
+                    res.append(self._element_constructor_(pw.values()))
                 pw[index_i] = pw[l_index] + 1
-                tmp.append((dict(pw), index_i))
-            li = tmp
-        index_i = sigma.index(self._size)
-        res = []
-        for (pw, l_index) in li:
-            if l_index < index_i:
-                pw[index_i] = pw[l_index]
-                res.append(self._element_constructor(pw.values()))
-            pw[index_i] = pw[l_index] + 1
-            res.append(self._element_constructor(pw.values()))
-        return res
+                res.append(self._element_constructor_(pw.values()))
+            return res
