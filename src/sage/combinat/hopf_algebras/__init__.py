@@ -55,23 +55,26 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
         Parent.__init__(self, base=R,
                     category=self._underlying_category_(R).WithRealizations())
 
-        # define a default realization
-        self._Basis.realization_of = lambda o: self
-
-        # define a default set of indices if possible
-        if self._default_basis_indices_ is not None:
-            self._Basis._basis_indices_ = self._default_basis_indices_
-
     def __init_extra__(self):
-        # TODO:: tester
-        __import__(self.__module__ + ".bases")
+        try:
+            __import__(self.__module__ + ".bases")
+        except ImportError:
+            pass
 
         # register realization given by *register_basis_to_cha*
         # NOTE: it's important to register realization to use morphism!
         for realization_name in self._external_realizations:
-            getattr(self, realization_name)
-
-        self.a_realization = lambda : self._realizations[0]
+            Fcls = getattr(self, realization_name)
+            setattr(Fcls, "realization_of", lambda o: self)
+            # define a default set of indices if possible
+            if self._default_basis_indices_ is not None:
+                setattr(Fcls, "_basis_indices_", self._default_basis_indices_)
+            getattr(self, realization_name)()
+        try:
+            self.a_realization = lambda : self._realizations[0]
+        except IndexError:
+            raise AssertionError("A Hopf algebras with realizations must " +
+                                 "have realizations")
 
     class BasisCategory(Category_realization_of_parent):
         """
@@ -187,7 +190,7 @@ def register_as_realization(cha_class, realization_class, short_name=None):
         sage: F = SimpleFQSym(QQ).F()
     """
     if not hasattr(cha_class, "_external_realizations"):
-        setattr(cha_class, "_external_realizations", [])
+        cha_class._external_realizations = []
     setattr(cha_class, realization_class.__name__, realization_class)
     cha_class._external_realizations.append(realization_class.__name__)
     if short_name:
