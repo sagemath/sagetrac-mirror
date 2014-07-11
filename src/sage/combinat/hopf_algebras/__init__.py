@@ -18,6 +18,7 @@ Author:
 #*****************************************************************************
 from sage.categories.category import Category
 from sage.categories.hopf_algebras import HopfAlgebras
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -35,7 +36,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
     # Define this attribute if there a default basis index
     _default_basis_indices_ = None
 
-    def _underlying_category_(self, R):
+    def _extra_categories_(self):
         """
         This method is define the category of the Hopf algebra.
 
@@ -44,7 +45,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
         (There is no part `WithRealizations` because it is automatically
          added in the `_init_` method.)
         """
-        return HopfAlgebras(R).Graded().Connected()
+        return []
 
     def __init__(self, R):
         """
@@ -53,7 +54,10 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
         assert(R in Rings()), '%s must be a ring' % R
         self.BasisCategory.func.ambient = lambda o: self
         Parent.__init__(self, base=R,
-                    category=self._underlying_category_(R).WithRealizations())
+                category=Category.join(
+                    [HopfAlgebras(R).Graded().Connected().WithRealizations()] +
+                    self._extra_categories_()
+        )       )
 
     def __init_extra__(self):
         try:
@@ -83,8 +87,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
 
         def super_categories(self):
             R = self.base().base_ring()
-            return [self.ambient()._underlying_category_(R).\
-                    WithBasis().Realizations()]
+            return [HopfAlgebrasWithBasis(R).Graded().Connected().Realizations()]
 
         class ParentMethods:
             pass
