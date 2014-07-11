@@ -71,7 +71,7 @@ class Homogene(FreeQuasiSymmetricFunctions._Basis):
         '''
         TESTS::
 
-            sage: FQS = FQSym(ZZ); F = FQS.F(); H = FQS.H()
+            sage: FQS = FQSym(QQ); F = FQS.F(); H = FQS.H()
             sage: F(H[3,2,1])
             F[1, 2, 3] + F[1, 3, 2] + F[2, 1, 3] + F[2, 3, 1] + F[3, 1, 2] + F[3, 2, 1]
             sage: F(H[1,2,3])

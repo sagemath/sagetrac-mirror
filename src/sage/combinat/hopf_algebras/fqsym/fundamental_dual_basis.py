@@ -213,7 +213,7 @@ class FundamentalDual(FreeQuasiSymmetricFunctions._Basis):
         """
         TESTS::
 
-            sage: G = FQSym(ZZ).G()
+            sage: G = FQSym(QQ).G()
             sage: G[[]].coproduct()
             G[] # G[]
             sage: G[1].coproduct()

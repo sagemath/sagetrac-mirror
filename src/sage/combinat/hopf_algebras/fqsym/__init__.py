@@ -347,10 +347,8 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnexeHopfAlgebra):
 
     _default_basis_indices_ = Permutations()
 
-    def _underlying_category_(self, R):
-        return Category.join((
-             HopfAlgebras(R).Graded().Connected(), BidendriformBialgebras(R)
-        ))
+    def _extra_categories_(self, R):
+        return [BidendriformBialgebras(R).WithRealizations()]
 
     def a_realization(self):
         return self.F()
@@ -367,6 +365,7 @@ class FreeQuasiSymmetricFunctions(GenericGradedConnexeHopfAlgebra):
         def _extra_categories_(self):
             R = self.realization_of().base_ring()
             return [
+                BidendriformBialgebras(R).Realizations(),
                 DieseProductAlgebras(R).WithBasis().Realizations(),
                 GradedModulesWithInternalProduct(R).WithBasis().Realizations(),
                 PolynomialRealizationAlgebras(R).WithBasis().Realizations(),

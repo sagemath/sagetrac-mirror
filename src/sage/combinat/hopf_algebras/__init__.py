@@ -87,7 +87,8 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
 
         def super_categories(self):
             R = self.base().base_ring()
-            return [HopfAlgebrasWithBasis(R).Graded().Connected().Realizations()]
+            return [self.base().Realizations(),
+                HopfAlgebrasWithBasis(R).Graded().Connected().Realizations()]
 
         class ParentMethods:
             pass

@@ -145,7 +145,7 @@ class Fundamental(FreeQuasiSymmetricFunctions._Basis):
         """
         TESTS::
 
-            sage: F = FQSym(ZZ).F()
+            sage: F = FQSym(QQ).F()
             sage: F[[]].coproduct()
             F[] # F[]
             sage: F[1].coproduct()
