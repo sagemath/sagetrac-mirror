@@ -62,10 +62,14 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
         if self._default_basis_indices_ is not None:
             self._Basis._basis_indices_ = self._default_basis_indices_
 
+    def __init_extra__(self):
+        # TODO:: tester
+        __import__(self.__module__ + ".bases")
+
         # register realization given by *register_basis_to_cha*
         # NOTE: it's important to register realization to use morphism!
-        for real in self._external_realizations:
-            getattr(self,real)()
+        for realization_name in self._external_realizations:
+            getattr(self, realization_name)
 
         self.a_realization = lambda : self._realizations[0]
 
