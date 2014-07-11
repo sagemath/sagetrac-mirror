@@ -36,7 +36,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
     # Define this attribute if there a default basis index
     _default_basis_indices_ = None
 
-    def _extra_categories_(self):
+    def _extra_categories_(self, R):
         """
         This method is define the category of the Hopf algebra.
 
@@ -56,7 +56,7 @@ class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
         Parent.__init__(self, base=R,
                 category=Category.join(
                     [HopfAlgebras(R).Graded().Connected().WithRealizations()] +
-                    self._extra_categories_()
+                    self._extra_categories_(R)
         )       )
 
     def __init_extra__(self):
