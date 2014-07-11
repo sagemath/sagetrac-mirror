@@ -28,9 +28,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
+import operator
+import __builtin__
 
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.combinatorial_structures import CombinatorialStructures
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import RationalField
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -40,7 +44,6 @@ from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
-import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -195,17 +198,34 @@ class Composition(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
-    @combinatorial_map(name='conjugate')
+    @combinatorial_map(order=2, name='conjugate')
     def conjugate(self):
         r"""
         Return the conjugate of the composition ``self``.
 
-        Algorithm from mupad-combinat.
+        The conjugate of a composition `I` is defined as the
+        complement (see :meth:`complement`) of the reverse composition
+        (see :meth:`reversed`) of `I`.
+
+        An equivalent definition of the conjugate goes by saying that
+        the ribbon shape of the conjugate of a composition `I` is the
+        conjugate of the ribbon shape of `I`. (The ribbon shape of a
+        composition is returned by :meth:`to_skew_partition`.)
+
+        This implementation uses the algorithm from mupad-combinat.
 
         EXAMPLES::
 
             sage: Composition([1, 1, 3, 1, 2, 1, 3]).conjugate()
             [1, 1, 3, 3, 1, 3]
+
+        The ribbon shape of the conjugate of `I` is the conjugate of
+        the ribbon shape of `I`::
+
+            sage: all( I.conjugate().to_skew_partition()
+            ....:      == I.to_skew_partition().conjugate()
+            ....:      for I in Compositions(4) )
+            True
 
         TESTS::
 
@@ -227,10 +247,13 @@ class Composition(CombinatorialObject, Element):
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
 
-    @combinatorial_map(name='reversed')
+    @combinatorial_map(order=2, name='reversed')
     def reversed(self):
-        """
+        r"""
         Return the reverse composition of ``self``.
+
+        The reverse composition of a composition `(i_1, i_2, \ldots, i_k)`
+        is defined as the composition `(i_k, i_{k-1}, \ldots, i_1)`.
 
         EXAMPLES::
 
@@ -239,11 +262,25 @@ class Composition(CombinatorialObject, Element):
         """
         return self.parent()(reversed(self))
 
-    @combinatorial_map(name = 'complement')
+    @combinatorial_map(order=2, name='complement')
     def complement(self):
-        """
-        Return the complement composition of ``self``. The complement is the
-        reverse of the conjugate composition of ``self``.
+        r"""
+        Return the complement of the composition ``self``.
+
+        The complement of a composition `I` is defined as follows:
+
+        If `I` is the empty composition, then the complement is the empty
+        composition as well. Otherwise, let `S` be the descent set of `I`
+        (that is, the subset
+        `\{ i_1, i_1 + i_2, \ldots, i_1 + i_2 + \cdots + i_{k-1} \}`
+        of `\{ 1, 2, \ldots, |I|-1 \}`, where `I` is written as
+        `(i_1, i_2, \ldots, i_k)`). Then, the complement of `I` is
+        defined as the composition of size `|I|` whose descent set is
+        `\{ 1, 2, \ldots, |I|-1 \} \setminus S`.
+
+        The complement of a composition `I` also is the reverse
+        composition (:meth:`reversed`) of the conjugate
+        (:meth:`conjugate`) of `I`.
 
         EXAMPLES::
 
@@ -268,7 +305,7 @@ class Composition(CombinatorialObject, Element):
             sage: Composition([]) + Composition([]) == Composition([])
             True
         """
-        return Composition(list(self)+list(other))
+        return Compositions()(list(self)+list(other))
 
     def size(self):
         """
@@ -290,7 +327,7 @@ class Composition(CombinatorialObject, Element):
 
         - ``compositions`` -- a list (or iterable) of compositions
 
-        EXAMPLES::
+        TESTS::
 
             sage: Composition.sum([Composition([1, 1, 3]), Composition([4, 1, 2]), Composition([3,1])])
             [1, 1, 3, 4, 1, 2, 3, 1]
@@ -305,7 +342,7 @@ class Composition(CombinatorialObject, Element):
             sage: Composition.sum([]) == Composition([])
             True
         """
-        return sum(compositions, Composition([]))
+        return sum(compositions, Compositions()([]))
 
     def near_concatenation(self, other):
         r"""
@@ -341,7 +378,7 @@ class Composition(CombinatorialObject, Element):
         """
         if len(self) == 0 or len(other) == 0:
             return None
-        return Composition(list(self)[:-1] + [self[-1] + other[0]] + list(other)[1:])
+        return Compositions()(list(self)[:-1] + [self[-1] + other[0]] + list(other)[1:])
 
     def ribbon_decomposition(self, other, check=True):
         r"""
@@ -422,13 +459,6 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: [3, 1, 1, 3, 1] is not the same size as [4, 3, 1]
 
-        REFERENCES:
-
-        .. [NCSF1] Israel Gelfand, D. Krob, Alain Lascoux, B. Leclerc,
-           V. S. Retakh, J.-Y. Thibon,
-           *Noncommutative symmetric functions*.
-           :arxiv:`hep-th/9407124v1`
-
         AUTHORS:
 
         - Darij Grinberg (2013-08-29)
@@ -452,7 +482,7 @@ class Composition(CombinatorialObject, Element):
                     try:
                         i = I_iter.next()
                     except StopIteration:
-                        factors.append(Composition(current_factor))
+                        factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
                 if current_factor_size + i <= j:
                     current_factor.append(i)
@@ -465,7 +495,7 @@ class Composition(CombinatorialObject, Element):
                         current_factor.append(j - current_factor_size)
                         i -= j - current_factor_size
                         signs.append(1)
-                    factors.append(Composition(current_factor))
+                    factors.append(Compositions()(current_factor))
                     break
 
         return (tuple(factors), tuple(signs))
@@ -584,7 +614,7 @@ class Composition(CombinatorialObject, Element):
                     try:
                         i = I_iter.next()
                     except StopIteration:
-                        return Composition(factors)
+                        return Compositions()(factors)
                 if current_factor_size + i <= j:
                     factors.append(i)
                     current_factor_size += i
@@ -595,7 +625,7 @@ class Composition(CombinatorialObject, Element):
                         i -= j - current_factor_size
                     break
 
-        return Composition(factors)
+        return Compositions()(factors)
 
     sup = join
 
@@ -705,7 +735,7 @@ class Composition(CombinatorialObject, Element):
                         i = I_iter.next()
                     except StopIteration:
                         factors.append(current_part)
-                        return Composition(factors)
+                        return Compositions()(factors)
                 if current_factor_size + i <= j:
                     current_part += i
                     current_factor_size += i
@@ -719,7 +749,7 @@ class Composition(CombinatorialObject, Element):
                         current_part += j - current_factor_size
                     break
 
-        return Composition(factors)
+        return Compositions()(factors)
 
     inf = meet
 
@@ -816,7 +846,7 @@ class Composition(CombinatorialObject, Element):
         for i in range(len(grouping)):
             result[i] = sum(self[j:j+grouping[i]])
             j += grouping[i]
-        return Composition(result)
+        return Compositions()(result)
 
     def fatter(self):
         """
@@ -894,7 +924,7 @@ class Composition(CombinatorialObject, Element):
                 sum1 += new_comp[-1]
             if sum1 > sum2:
                 raise ValueError("composition J (= %s) does not refine self (= %s)"%(I, J))
-            decomp.append(Composition(new_comp))
+            decomp.append(Compositions()(new_comp))
         return decomp
 
     def refinement_splitting_lengths(self, J):
@@ -921,7 +951,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Composition(map(len,self.refinement_splitting(J)))
+        return Compositions()(map(len,self.refinement_splitting(J)))
 
     refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
 
@@ -958,8 +988,8 @@ class Composition(CombinatorialObject, Element):
             return [0]
 
         code = []
-        for i in range(len(self)):
-            code += [1] + [0]*(self[i]-1)
+        for i in self:
+            code += [1] + [0]*(i-1)
 
         return code
 
@@ -1155,7 +1185,6 @@ class Composition(CombinatorialObject, Element):
         return SkewPartition(
             [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
               filter(lambda x: x != 0, [l for l in reversed(inner)])])
-
 
     def shuffle_product(self, other, overlap=False):
         r"""
@@ -1585,11 +1614,22 @@ class Compositions(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()
         """
         if is_infinite:
-            Parent.__init__(self, category=InfiniteEnumeratedSets())
+            Parent.__init__(self, category=CombinatorialStructures())
         else:
-            Parent.__init__(self, category=FiniteEnumeratedSets())
+            Parent.__init__(self, category=CombinatorialStructures.GradedComponents())
 
     Element = Composition
+
+    def grading(self, I):
+        """
+        TESTS::
+
+            sage: I = Composition([1,1,3,2]); I.grade()
+            7
+            sage: Compositions().grading(I)
+            7
+        """
+        return reduce(operator.add, I, Integer(0))
 
     def _element_constructor_(self, lst):
         """
@@ -1624,10 +1664,10 @@ class Compositions(Parent, UniqueRepresentation):
         if isinstance(x, Composition):
             return True
         elif isinstance(x, __builtin__.list):
-            for i in range(len(x)):
-                if (not isinstance(x[i], (int, Integer))) and x[i] not in ZZ:
+            for i in x:
+                if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False
-                if x[i] < 0:
+                if i < 0:
                     return False
             return True
         else:
@@ -1685,6 +1725,11 @@ class Compositions(Parent, UniqueRepresentation):
             sage: Compositions().from_subset({2,1,5,9}, 12)
             [1, 1, 3, 4, 3]
 
+            sage: Compositions().from_subset([], 12)
+            [12]
+            sage: Compositions().from_subset([], 0)
+            []
+
         TESTS::
 
             sage: Compositions().from_subset([2,1,5,9],9)
@@ -1701,7 +1746,7 @@ class Compositions(Parent, UniqueRepresentation):
                 return self.element_class(self, [n])
 
         if n <= d[-1]:
-            raise ValueError, "S (=%s) is not a subset of {1, ..., %s}" % (d,n-1)
+            raise ValueError("S (=%s) is not a subset of {1, ..., %s}" % (d,n-1))
         else:
             d.append(n)
 
@@ -1818,6 +1863,20 @@ class Compositions_all(Compositions):
                 yield self.element_class(self, list(c))
             n += 1
 
+    def generating_series(self, var='x'):
+        """
+        TESTS::
+
+            sage: f = Compositions().generating_series(); f
+            1/(-2*x + 1)
+            sage: taylor(f, x, 0, 10)
+            1024*x^10 + 512*x^9 + 256*x^8 + 128*x^7 + 64*x^6 + 32*x^5 + 16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1
+        """
+        R = PolynomialRing(RationalField(), var)
+        x = R.gen()
+        return Integer(1) / (Integer(1) - Integer(2) * x)
+
+
 class Compositions_n(Compositions):
     """
     Class of compositions of a fixed `n`.
@@ -1850,6 +1909,16 @@ class Compositions_n(Compositions):
         """
         self.n = n
         Compositions.__init__(self, False)
+
+    @lazy_attribute
+    def ambient(self):
+        """
+        TESTS::
+
+            sage: Compositions(4).ambient()
+            Compositions of non-negative integers
+        """
+        return Compositions_all
 
     def _repr_(self):
         """
