@@ -1,0 +1,11 @@
+--- mpmath/mpmath/libmp/backend.py~    2013-08-08 14:49:58.000000000 +0200
++++ mpmath/mpmath/libmp/backend.py     2014-07-11 08:54:28.759388954 +0200
+@@ -71,6 +71,7 @@
+     try:
+         import sage.all
+         import sage.libs.mpmath.utils as _sage_utils
++        import sage.libs.mpmath.ext_main as _mpf_module
+         sage = sage.all
+         sage_utils = _sage_utils
+         BACKEND = 'sage'
+

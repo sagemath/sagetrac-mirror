@@ -14,4 +14,13 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/mpmath*
 
 cd src/
 
+echo "Applying patches to upstream sources..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done
+
 python setup.py install
