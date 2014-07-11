@@ -1,6 +1,6 @@
 from sage.combinat.permutation import Permutations, to_standard
 from sage.combinat.hopf_algebras import PatternGradedConnectedHopfAlgebra, \
-    register_basis_to_cha
+    register_as_realization
 
 
 class SimpleFQSym(PatternGradedConnectedHopfAlgebra):
@@ -41,10 +41,10 @@ class GBasis(SimpleFQSym._Basis):
         ).register_as_coercion()
 
 
-###############################################################
-### should be automatically made by inheritage ###            #
-#### that could be do in a __metaclass__ but ...              #
-#### the function *dynamiclass* use by category fails!!!      #
-register_basis_to_cha(FBasis, "Fundamental", SimpleFQSym)     #
-register_basis_to_cha(GBasis, "FundamentalDual", SimpleFQSym) #
-###############################################################
+############################################################
+### should be automatically made by inheritage ###         #
+#### that could be do in a __metaclass__ but ...           #
+#### the function *dynamiclass* use by category fails!!!   #
+register_as_realization(SimpleFQSym, FBasis, "F")          #
+register_as_realization(SimpleFQSym, GBasis, "G")          #
+############################################################
