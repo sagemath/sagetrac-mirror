@@ -25,7 +25,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class PatternGradedConnectedHopfAlgebra(Parent, UniqueRepresentation):
+class GenericGradedConnexeHopfAlgebra(Parent, UniqueRepresentation):
     """
     This class is a pattern use to define easily a Hopf algebra with
     with several bases.
@@ -178,9 +178,9 @@ def register_as_realization(cha_class, realization_class, short_name=None):
 
     For example::
 
-        sage: from sage.combinat.hopf_algebras.exmaples.simple_fqsym import \
+        sage: from sage.combinat.hopf_algebras.examples.simple_fqsym import \
         ...         SimpleFQSym
-        sage: F = SimpleFQSym(QQ).Fundamental()
+        sage: F = SimpleFQSym(QQ).F()
     """
     if not hasattr(cha_class, "_external_realizations"):
         setattr(cha_class, "_external_realizations", [])
