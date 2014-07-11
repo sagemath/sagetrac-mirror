@@ -64,7 +64,7 @@ class PatternGradedConnectedHopfAlgebra(Parent, UniqueRepresentation):
 
         # register realization given by *register_basis_to_cha*
         # NOTE: it's important to register realization to use morphism!
-        for real in self._list_of_realizations:
+        for real in self._external_realizations:
             getattr(self,real)()
 
         self.a_realization = lambda : self._realizations[0]
@@ -169,7 +169,7 @@ def words_like_getitem(self, c, *rest):
             c = Keys(list(c))
     return self.monomial(c)
 
-def register_basis_to_cha(basis_class, name, cha_class):
+def register_as_realization(cha_class, realization_class, short_name=None):
     """
     Function uses to register the basis define in the class `basis_class`
     in the combinatorial Hopf algebra define in the class `cha_class`.
@@ -182,8 +182,10 @@ def register_basis_to_cha(basis_class, name, cha_class):
         ...         SimpleFQSym
         sage: F = SimpleFQSym(QQ).Fundamental()
     """
-    setattr(cha_class, name, basis_class)
-    setattr(cha_class, basis_class._prefix_, basis_class)
-    if not hasattr(cha_class, "_list_of_realizations"):
-        cha_class._list_of_realizations = []
-    cha_class._list_of_realizations.append(basis_class._prefix_)
+    if not hasattr(cha_class, "_external_realizations"):
+        setattr(cha_class, "_external_realizations", [])
+    setattr(cha_class, realization_class.__name__, realization_class)
+    cha_class._external_realizations.append(realization_class.__name__)
+    if short_name:
+        setattr(cha_class, short_name, realization_class)
+
