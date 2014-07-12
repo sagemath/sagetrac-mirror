@@ -233,20 +233,14 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.rings import Rings
 from sage.categories.sets_cat import Sets
-from sage.combinat.combinat import CombinatorialObject
 from sage.graphs.graph import Graph
-from sage.interfaces.html_display import HTMLDisplay, HTMLTable
 from sage.matrix.constructor import matrix
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
 from sage.misc.latex import latex
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.semirings.non_negative_integer_semiring import NN
-from sage.sets.family import LazyFamily
 from sage.structure.element import is_Element, is_Matrix
-from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 
 
@@ -844,9 +838,9 @@ class LabelledMatrix(SageObject):
         This is a dummy function which caches the html table being constructed
         by the matrix.
         """
-        if not hasattr(self, '__html_display'):
-            self.__html_display=HTMLDisplay(title=self._name, html_file=filename, url_include=url_include)
-        return self.__html_display
+        #if not hasattr(self, '__html_display'):
+        #    self.__html_display=HTMLDisplay(title=self._name, html_file=filename, url_include=url_include)
+        #return self.__html_display
 
 
     def _html_table(self):
@@ -901,11 +895,11 @@ class LabelledMatrix(SageObject):
                 else:
                     table[row].append('{}'.format(self[row][col]))
 
-        return HTMLTable(table=table, col_label=col_label, row_label=row_label,
-                         col_label_math_mode=self._col_label_math_mode,
-                         row_label_math_mode=self._row_label_math_mode,
-                         entries_math_mode=False  # already taken care of
-                        )
+        #return HTMLTable(table=table, col_label=col_label, row_label=row_label,
+        #                 col_label_math_mode=self._col_label_math_mode,
+        #                 row_label_math_mode=self._row_label_math_mode,
+        #                 entries_math_mode=False  # already taken care of
+        #                )
 
 
     def html_display(self, filename=None, url_include=None):
