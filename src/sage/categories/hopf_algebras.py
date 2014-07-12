@@ -179,5 +179,5 @@ class HopfAlgebras(Category_over_base_ring):
                     R_to_self = self.coerce_map_from(R)
                     if self_to_R is not None and R_to_self is not None and \
                        R.antipode != R.antipode_by_coercion:
-                        return self(R(left).antipode())
+                        return self(R(x).antipode())
                 return NotImplementedError
