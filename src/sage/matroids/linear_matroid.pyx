@@ -116,7 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
-from repminor_helpers import init_iso_matrices
+from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3425,18 +3425,15 @@ cdef class BinaryMatroid(LinearMatroid):
     # represented binary minor test
     cpdef _has_binary_minor(self,N=None):
         cdef long r,c
-        cdef BinaryMatrix M_rmat,N_rmat
+        cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
         if N is not None:
-            for B1 in self.bases():
-                M_rmat=self._reduced_representation(B=B1)
-                N_rmat=N._reduced_representation()
-                print M_rmat,N_rmat
-                [M1_0,M2_0]=init_iso_matrices(M_rmat,N_rmat)
-                print 'valid maps:::\n',M1_0, M2_0
+            M_rmat=self._reduced_representation()
+            N_rmat=N._reduced_representation()
+            _check_bin_minor(M_rmat, N_rmat)
         else:
             raise ValueError("either N or Nmat1 must be provided")
         return
-    
+
     cpdef _fundamental_graph(self, B1=None):
         """
         Return the fundamental graph corresponding to the binary matroid
