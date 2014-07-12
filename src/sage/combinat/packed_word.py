@@ -24,6 +24,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
+from itertools import imap
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct
@@ -170,6 +171,68 @@ class PackedWord(Structure, ClonableIntArray):
             [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
         """
         return transitive_ideal(PackedWord.succ_zabrocki_bergeron, self)
+
+    def bruhat_succ(self, side="left"):
+        """
+        TESTS::
+
+            sage: list(PackedWord([1,1,2,3]).bruhat_succ())
+            [[2, 2, 1, 3], [1, 1, 3, 2]]
+            sage: list(PackedWord([1,1,2,3]).bruhat_succ(side="right"))
+            [[1, 2, 1, 3], [1, 1, 3, 2]]
+
+        """
+        # TODO make documentation with Yannik
+        if side == "left":
+            return imap(lambda o: o.to_packed_word(),
+                    self.to_ordered_set_partition()._bruhat_left_succ()
+            )
+        else:
+            return self._bruhat_right_succ()
+
+    def bruhat_greater(self, side="left"):
+        """
+        TESTS::
+
+            sage: list(PackedWord([1,1,2,3]).bruhat_greater())
+            [[3, 3, 2, 1],
+             [2, 2, 3, 1],
+             [3, 3, 1, 2],
+             [1, 1, 3, 2],
+             [2, 2, 1, 3],
+             [1, 1, 2, 3]]
+            sage: list(PackedWord([1,1,2,3]).bruhat_greater(side="right"))
+            [[1, 1, 2, 3],
+             [1, 1, 3, 2],
+             [1, 2, 1, 3],
+             [1, 2, 3, 1],
+             [1, 3, 1, 2],
+             [1, 3, 2, 1],
+             [2, 1, 1, 3],
+             [2, 1, 3, 1],
+             [2, 3, 1, 1],
+             [3, 1, 1, 2],
+             [3, 1, 2, 1],
+             [3, 2, 1, 1]]
+        """
+        # TODO make documentation with Yannik
+        if side == "left":
+            return map(lambda o: o.to_packed_word(),
+                        self.to_ordered_set_partition().bruhat_greater())
+        else:
+            return transitive_ideal(PackedWord._bruhat_right_succ, self)
+
+    def _bruhat_right_succ(self):
+        """
+        TESTS::
+
+            sage: list(PackedWord([1,1,2,3]).bruhat_succ(side="right")) # indirect doctest
+            [[1, 2, 1, 3], [1, 1, 3, 2]]
+        """
+        # TODO make documentation with Yannik
+        for i in range(len(self)-1):
+            if self[i] < self[i+1]:
+                yield self.parent()(self[:i] + [self[i+1], self[i]] + self[i+2:])
 
     @combinatorial_map(name='to composition')
     def to_composition(self):
