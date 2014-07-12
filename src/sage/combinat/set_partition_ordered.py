@@ -36,6 +36,7 @@ References:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from itertools import imap
 from sage.combinat.shuffle import ShuffleProduct
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.permutation import to_standard
@@ -255,6 +256,72 @@ class OrderedSetPartition(ClonableArray):
                     lambda (setL, setR): Set(setL).intersection(Set(setR)),
                     itertools.product(self, right)
         )))
+
+    def bruhat_succ(self, side="left"):
+        """
+        TESTS::
+
+            sage: list(OrderedSetPartition([{1,2},{3},{4}]).bruhat_succ())
+            [[{3}, {1, 2}, {4}], [{1, 2}, {4}, {3}]]
+            sage: list(OrderedSetPartition([{1,2},{3},{4}]).bruhat_succ(side="right"))
+            [[{1, 3}, {2}, {4}], [{1, 2}, {4}, {3}]]
+        """
+        # TODO make documentation with Yannik
+        if side == "left":
+            return self._bruhat_left_succ()
+        else:
+            return imap(lambda p: p.to_ordered_set_partition(),
+                self.to_packed_word()._bruhat_right_succ())
+
+
+    def bruhat_greater(self, side="left"):
+        """
+        TESTS::
+
+            sage: OrderedSetPartition([{1,2},{3},{4}]).bruhat_greater()
+            [[{4}, {3}, {1, 2}],
+             [{4}, {1, 2}, {3}],
+             [{3}, {4}, {1, 2}],
+             [{1, 2}, {4}, {3}],
+             [{3}, {1, 2}, {4}],
+             [{1, 2}, {3}, {4}]]
+            sage: OrderedSetPartition([{1,2},{3},{4}]).bruhat_greater(side="right")
+            [[{1, 2}, {3}, {4}],
+             [{1, 2}, {4}, {3}],
+             [{1, 3}, {2}, {4}],
+             [{1, 4}, {2}, {3}],
+             [{1, 3}, {4}, {2}],
+             [{1, 4}, {3}, {2}],
+             [{2, 3}, {1}, {4}],
+             [{2, 4}, {1}, {3}],
+             [{3, 4}, {1}, {2}],
+             [{2, 3}, {4}, {1}],
+             [{2, 4}, {3}, {1}],
+             [{3, 4}, {2}, {1}]]
+        """
+        # TODO make documentation with Yannik
+        if side == "left":
+            return transitive_ideal(OrderedSetPartition._bruhat_left_succ, self)
+        else:
+            return map(lambda o: o.to_ordered_set_partition(),
+                        self.to_packed_word().bruhat_greater(side="right"))
+
+    def _bruhat_left_succ(self):
+        """
+        TESTS::
+
+            sage: OrderedSetPartition([{1,2},{3},{4}]).bruhat_greater() # indirect doctest
+            [[{4}, {3}, {1, 2}],
+             [{4}, {1, 2}, {3}],
+             [{3}, {4}, {1, 2}],
+             [{1, 2}, {4}, {3}],
+             [{3}, {1, 2}, {4}],
+             [{1, 2}, {3}, {4}]]
+        """
+        # TODO make documentation with Yannik
+        for i in range(len(self)-1):
+            if min(self[i]) < min(self[i+1]):
+                yield self.parent()(self[:i] + [self[i+1], self[i]] + self[i+2:])
 
     def transformation_bergeron_zabrocki_relation(self, i):
         """
