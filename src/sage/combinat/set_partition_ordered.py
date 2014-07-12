@@ -36,6 +36,7 @@ References:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.combinat.shuffle import ShuffleProduct
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.permutation import to_standard
 
@@ -328,6 +329,20 @@ class OrderedSetPartition(ClonableArray):
             OrderedSetPartition.succ_zabrocki_bergeron,
             self
         )
+
+    def shifted_shuffle(self, other):
+        """
+        TESTS::
+
+            sage: O = OrderedSetPartition
+            sage: o1, o2 = O([{1}, {2}]), O([{1,2}])
+            sage: list(o1.shifted_shuffle(o2))
+            [[{1}, {2}, {3, 4}], [{3, 4}, {1}, {2}], [{1}, {3, 4}, {2}]]
+        """
+        k = len(self.parent()._set)
+        return iter(ShuffleProduct(
+            self, [[i + k for i in set] for set in other],
+            element_constructor=OrderedSetPartition))
 
     def shifted_quasi_shuffle(self, other):
         """
