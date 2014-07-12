@@ -17,6 +17,10 @@ References:
 .. [NoTh06] Polynomial realizations of some trialgebras,
     J.-C. Novelli and J.-Y. Thibon.
 
+.. [BerZab] The Hopf algebras of symmetric functions and quasi-symmetric
+            functions in non-commutative variables are free and co-free},
+    N. Bergeron, and M. Zabrocki.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -250,6 +254,80 @@ class OrderedSetPartition(ClonableArray):
                     lambda (setL, setR): Set(setL).intersection(Set(setR)),
                     itertools.product(self, right)
         )))
+
+    def transformation_bergeron_zabrocki_relation(self, i):
+        """
+        This method implement the function `f(\Phi, i)` defined by (for
+        `1 \leqslant i < l(\Phi)`):
+
+        MATH::
+
+            f(\Phi, i) := (\Phi_1, \cdots , \Phi_i \cup \Phi_{i+1}, \Phi_{i+2}, \cdots, \Phi_{l(\Phi)})\,.
+
+        (see :meth:`succ_bergeron_zabrocki_relation` and _[BerZab])
+
+        (here define from *0* to *len(self) -2* to respect the python
+         convention)
+
+        EXAMPLES::
+
+            sage: o = OrderedSetPartition([{1,2},{3,4,5},{6}]);o
+            [{1, 2}, {3, 4, 5}, {6}]
+            sage: o.transformation_bergeron_zabrocki_relation(0)
+            [{1, 2, 3, 4, 5}, {6}]
+            sage: o.transformation_bergeron_zabrocki_relation(1)
+            [{1, 2}, {3, 4, 5, 6}]
+            sage: o.transformation_bergeron_zabrocki_relation(2)
+            Traceback (most recent call last):
+            ...
+            AttributeError: `i=2` must be smaller than the length -2 of `[{1, 2}, {3, 4, 5}, {6}]`
+        """
+        if i >= len(self) - 1:
+            raise AttributeError("`i=%d` must be smaller than the "%i +
+                                 "length -2 of `%s`"%repr(self))
+        return self.parent()(self[:i] + [self[i] + self[i+1]] + self[i+2:])
+
+    def succ_zabrocki_bergeron(self):
+        """
+        Compute successors for the order on defined with the covering relation:
+
+        MATH::
+
+            \Phi \lessdot (\Phi_1, \cdots , \Phi_i \cup \Phi_{i+1}, \Phi_{i+2}, \cdots, \Phi_{l(\Phi)})
+
+        for each `1 \leqslant i < l(\Phi)` (see _[BerZab]).
+
+        TESTS::
+
+            sage: o = OrderedSetPartition([{1,2},{3,4,5},{6}]);o
+            [{1, 2}, {3, 4, 5}, {6}]
+            sage: list(o.succ_zabrocki_bergeron())
+            [[{1, 2, 3, 4, 5}, {6}], [{1, 2}, {3, 4, 5, 6}]]
+
+        """
+        for i in range(len(self)-1):
+            yield self.transformation_bergeron_zabrocki_relation(i)
+
+    def greater_zabrocki_bergeron(self):
+        """
+        see: :meth:`succ_zabrocki_bergeron` and _[BerZab]
+
+        TESTS::
+
+            sage: o = OrderedSetPartition([{1,2},{3,4,5},{6}]);o
+            [{1, 2}, {3, 4, 5}, {6}]
+            sage: o.greater_zabrocki_bergeron()
+            [[{1, 2, 3, 4, 5, 6}],
+             [{1, 2}, {3, 4, 5, 6}],
+             [{1, 2, 3, 4, 5}, {6}],
+             [{1, 2}, {3, 4, 5}, {6}]]
+            sage: OrderedSetPartition([{1},{2},{3}]).greater_zabrocki_bergeron()
+            [[{1, 2, 3}], [{1}, {2, 3}], [{1, 2}, {3}], [{1}, {2}, {3}]]
+        """
+        return transitive_ideal(
+            OrderedSetPartition.succ_zabrocki_bergeron,
+            self
+        )
 
     def shifted_quasi_shuffle(self, other):
         """

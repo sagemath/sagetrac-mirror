@@ -8,6 +8,10 @@ References:
 .. [NoTh06] Polynomial realizations of some trialgebras,
     J.-C. Novelli and J.-Y. Thibon.
 
+.. [BerZab] The Hopf algebras of symmetric functions and quasi-symmetric
+            functions in non-commutative variables are free and co-free},
+    N. Bergeron, and M. Zabrocki.
+
 AUTHOR:
 
 - Jean-Baptiste Priez
@@ -24,6 +28,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct
 from sage.combinat.structures import Structure, Structures
+from sage.combinat.tools import transitive_ideal
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -139,6 +144,32 @@ class PackedWord(Structure, ClonableIntArray):
         for i in range(len(self)):
             d[self[i]].append(i + 1)
         return OrderedSetPartition([Set(d[k]) for k in sorted(d.keys())])
+
+    def succ_zabrocki_bergeron(self):
+        """
+        see _[BerZab] and
+        :meth:`sage.combinat.set_partition_ordered.OrderedSetPartition.succ_zabrocki_bergeron`.
+
+        TESTS::
+
+            sage: PackedWord([1,2,3]).succ_zabrocki_bergeron()
+            [[1, 1, 2], [1, 2, 2]]
+        """
+        return map(
+            lambda osp: osp.to_packed_word(),
+            self.to_ordered_set_partition().succ_zabrocki_bergeron())
+
+    def greater_zabrocki_bergeron(self):
+        """
+        see _[BerZab] and
+        :meth:`sage.combinat.set_partition_ordered.OrderedSetPartition.greater_zabrocki_bergeron`
+
+        TESTS::
+
+            sage: PackedWord([1,2,3]).greater_zabrocki_bergeron()
+            [[1, 1, 1], [1, 1, 2], [1, 2, 2], [1, 2, 3]]
+        """
+        return transitive_ideal(PackedWord.succ_zabrocki_bergeron, self)
 
     @combinatorial_map(name='to composition')
     def to_composition(self):
