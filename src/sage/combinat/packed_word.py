@@ -502,7 +502,7 @@ class PackedWords(Structures):
         try:
             self._element_constructor(item)
             return True
-        except TypeError:
+        finally:
             return False
 
     def permutation_to_packed_word(self, sigma):
@@ -525,26 +525,6 @@ class PackedWords(Structures):
             Packed words
         """
         return "Packed words"
-
-    def __contains__(self, item):
-        """
-        TESTS::
-
-            sage: [1,1,1] in PackedWords()
-            True
-            sage: [2,1,1] in PackedWords()
-            True
-            sage: [2,'2',1] in PackedWords()
-            False
-        """
-        if isinstance(item, self.element_class):
-            return True
-        try:
-            self._element_constructor_(item)
-            return True
-        except TypeError:
-            return False
-
 
     class GradedComponent(Structures.GradedComponent):
 
