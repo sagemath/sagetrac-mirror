@@ -1116,6 +1116,14 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: fraction has denominator 0
+        
+        Print an improved error message (:trac:`15954`)::
+        
+            sage: R.<x> = PolynomialRing(Integers(101), implementation='ntl')
+            sage: 1/x
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Fraction fields not implemented for this type.
         """
         cdef Polynomial_zmod_flint x
         try:
