@@ -12,7 +12,7 @@ for upstream in "$@"
 do
     tarball=`basename "$upstream"`
     upstream_pkg_name=${tarball%-*}
-    ## uppercase==>lowercase ? Allows to accept existing cases.
+    ## uppercase==>lowercase ? Allows to accept existing cases. TBD.
     pkg_name=$( echo $upstream_pkg_name | tr A-Z a-z )
     pkg_compression=${tarball#*.tar}   # gz or bz2
     tar_pkg=$( echo $tarball | sed -r "s/^([^-]*)-.*$/\1/" )
@@ -20,25 +20,30 @@ do
     ext_str="s/^"$tar_pkg"-(.*)"$tar_cmp"$/\1/"
     tar_ver=$( echo $tarball | sed -r $ext_str )
     echo $tarball
-    ## Suggestion to user. Alernative : fix it automagically. TBD
-    if [ $upstream_pkg_name != $pkg_name ] ; then
-	echo "(must be renamed in lowercase !)"
-	exit 1
+    ## After discussion on trac#16629 : no spurious warnng messages.
+    # ## Suggestion to user. Alernative : fix it automagically. TBD
+    # if [ $upstream_pkg_name != $pkg_name ] ; then
+    # 	echo "(should be renamed in lowercase !)"
+    # 	## exit 1
     fi
     if [ -d "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
 	sage_version=$(cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/\.p[0-9]+$//")
 	sage_patch=$( cat $SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt | sed -re "s/^(.*)\.(p[0-9]+)$/\2/" )
 	if [ $sage_patch = $sage_version ] ; then sage_patch="" ; fi
+	## The following version mismatch detection ws discussed on
+	## trac#16629 and found a bad idea. Therefore, no attempt is
+	## made to check tarball's idea of version.
 	## echo sage_version = $sage_version, sage_patch = $sage_patch
-	if [ $sage_version != $tar_ver ] ; then
-	    sage_patch=".p0"
-	    sage_version=$tar_ver
-	    ## Suggestion to user. Alernative : fix it automagically. TBD
-	    ## Volker Braun : this must be an error.
-	    echo "Version mismatch between tarball $tar_ver and directory build/pkgs/$pkg_name."
-	    echo "Newer version ? You must put $sage_version$sage_patch in package-version.txt."
-	    exit 1
-	fi
+	# if [ $sage_version != $tar_ver ] ; then
+	#     sage_patch=".p0"
+	#     sage_version=$tar_ver
+	#     ## Suggestion to user. Alernative : fix it automagically. TBD
+	#     ## Volker Braun : this must be an error.
+	#     ## Turns ut not.
+	#     echo "Version mismatch between tarball $tar_ver and directory build/pkgs/$pkg_name."
+	#     echo "Newer version ? You must put $sage_version$sage_patch in package-version.txt."
+	#     exit 1
+	# fi
 	checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
 	echo "tarball=$tarball"> $checksums
 	## echo "tarball=$tarball"
