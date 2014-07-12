@@ -500,9 +500,9 @@ class PackedWords(Structures):
         if isinstance(item, self.element_class):
             return True
         try:
-            self._element_constructor(item)
+            self._element_constructor_(item)
             return True
-        finally:
+        except:
             return False
 
     def permutation_to_packed_word(self, sigma):
