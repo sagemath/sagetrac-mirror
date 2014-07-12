@@ -263,7 +263,11 @@ class OrderedSetPartition(ClonableArray):
 
         MATH::
 
-            f(\Phi, i) := (\Phi_1, \cdots , \Phi_i \cup \Phi_{i+1}, \Phi_{i+2}, \cdots, \Phi_{l(\Phi)})\,.
+            f(\Phi, i) := (\Phi_1, \cdots , \Phi_i \cup \Phi_{i+1}, \Phi_{i+2}, \cdots, \Phi_{l(\Phi)})\,,
+
+
+        if that every integer in `\Phi_i` is less than every integer in
+        `\Phi_{i+1}`.
 
         (see :meth:`succ_bergeron_zabrocki_relation` and _[BerZab])
 
@@ -286,6 +290,11 @@ class OrderedSetPartition(ClonableArray):
         if i >= len(self) - 1:
             raise AttributeError("`i=%d` must be smaller than the "%i +
                                  "length -2 of `%s`"%repr(self))
+
+        if max(self[i]) > min(self[i+1]):
+            raise AssertionError("every integer in `%s` must be" % repr(self[i]) +
+                                 " less than every integer in" +
+                                 " `%s`"% repr(self[i+1]))
         return self.parent()(self[:i] + [self[i] + self[i+1]] + self[i+2:])
 
     def succ_zabrocki_bergeron(self):
@@ -307,7 +316,8 @@ class OrderedSetPartition(ClonableArray):
 
         """
         for i in range(len(self)-1):
-            yield self.transformation_bergeron_zabrocki_relation(i)
+            if max(self[i]) < min(self[i+1]):
+                yield self.transformation_bergeron_zabrocki_relation(i)
 
     def greater_zabrocki_bergeron(self):
         """
@@ -324,6 +334,8 @@ class OrderedSetPartition(ClonableArray):
              [{1, 2}, {3, 4, 5}, {6}]]
             sage: OrderedSetPartition([{1},{2},{3}]).greater_zabrocki_bergeron()
             [[{1, 2, 3}], [{1}, {2, 3}], [{1, 2}, {3}], [{1}, {2}, {3}]]
+            sage: OrderedSetPartition([{1},{3},{2}]).greater_zabrocki_bergeron()
+            [[{1, 3}, {2}], [{1}, {3}, {2}]]
         """
         return transitive_ideal(
             OrderedSetPartition.succ_zabrocki_bergeron,
