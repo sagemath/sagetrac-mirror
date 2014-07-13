@@ -1223,6 +1223,27 @@ class FinitePosets(CategoryWithAxiom):
                 l = self.birational_toggle(v, l)
             return l
 
+        def birational_rowvacuation(self, labelling):
+            r"""
+            Return the result of applying birational rowvacuation to the
+            `\mathbf{K}`-labelling ``labelling`` of the ranked poset
+            ``self``.
+
+            .. TODO::
+
+                Doc from here.
+            """
+            l = labelling
+            els = list(reversed(self.linear_extension()))
+            if not els:
+                return l
+            max_rank = self.rank(els[0])
+            for j in range(max_rank + 1): # not range(max_rank, -1, -1):
+                for v in els:
+                    if self.rank(v) <= j:
+                        l = self.birational_toggle(v, l)
+            return l
+
         def panyushev_orbits(self, element_constructor = set):
             r"""
             Return the Panyushev orbits of antichains in ``self``.
