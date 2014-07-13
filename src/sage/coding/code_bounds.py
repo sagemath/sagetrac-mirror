@@ -134,23 +134,23 @@ This module implements:
 -  gv_bound_asymp(delta,q), asymptotic analog of Gilbert lower
    bound.
 
--  plotkin_upper_bound(n,q,d)
+-  plotkin_bound(n,d,q)
 
 -  plotkin_bound_asymp(delta,q), asymptotic analog of Plotkin
    bound.
 
--  griesmer_upper_bound(n,q,d)
+-  griesmer_bound(n,d,q)
 
--  elias_upper_bound(n,q,d)
+-  elias_bound(n,d,q)
 
 -  elias_bound_asymp(delta,q), asymptotic analog of Elias bound.
 
--  hamming_upper_bound(n,q,d)
+-  hamming_bound(n,d,q)
 
 -  hamming_bound_asymp(delta,q), asymptotic analog of Hamming
    bound.
 
--  singleton_upper_bound(n,q,d)
+-  singleton_bound(n,d,q)
 
 -  singleton_bound_asymp(delta,q), asymptotic analog of Singleton
    bound.
@@ -190,6 +190,7 @@ from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
 from sage.functions.all import log, sqrt
+from sage.misc.superseded import deprecation
 from delsarte_bounds import delsarte_bound_hamming_space, \
                 delsarte_bound_additive_hamming_space
 
@@ -235,11 +236,11 @@ def codesize_upper_bound(n,d,q,algorithm=None):
     if algorithm=="LP":
         return int(delsarte_bound_hamming_space(n,d,q))
     else:
-        eub = elias_upper_bound(n,q,d)
-        gub = griesmer_upper_bound(n,q,d)
-        hub = hamming_upper_bound(n,q,d)
-        pub = plotkin_upper_bound(n,q,d)
-        sub = singleton_upper_bound(n,q,d)
+        eub = elias_bound(n,d,q)
+        gub = griesmer_bound(n,d,q)
+        hub = hamming_bound(n,d,q)
+        pub = plotkin_bound(n,d,q)
+        sub = singleton_bound(n,d,q)
         return min([eub,gub,hub,pub,sub])
 
 def dimension_upper_bound(n,d,q,algorithm=None):
@@ -282,29 +283,81 @@ def volume_hamming(n,q,r):
 
 def gilbert_lower_bound(n,q,d):
     r"""
-    Returns lower bound for number of elements in the largest code of
-    minimum distance d in `\GF{q}^n`.
+    Deprecated function. Use :func:`gv_bound` instead as
+    ``gv_bound(n, d, q)``.
 
     EXAMPLES::
 
         sage: gilbert_lower_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'gv_bound' instead as
+        'gv_bound(n, d, q)'. For consistency of notation in the
+        bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
+        128/7
+    """
+    deprecation(15438, "Call 'gv_bound' instead as "
+                       "'gv_bound(n, d, q)'. For consistency of "
+                       "notation in the bounds, this function name is "
+                       "deprecated.")
+    return gv_bound(n, d, q)
+
+def gv_bound(n, d, q):
+    r"""
+    Returns lower bound for number of elements in the largest code of
+    minimum distance d in `\GF{q}^n`.
+
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+
+    EXAMPLES::
+
+        sage: gv_bound(10, 3, 2)
         128/7
     """
     ans=q**n/volume_hamming(n,q,d-1)
     return ans
 
-def plotkin_upper_bound(n,q,d, algorithm=None):
+def plotkin_upper_bound(n, q, d, algorithm=None):
     r"""
-    Returns Plotkin upper bound for number of elements in the largest
-    code of minimum distance d in `\GF{q}^n`.
-
-    The algorithm="gap" option wraps Guava's UpperBoundPlotkin.
+    Deprecated function. Use :func:`plotkin_bound` instead as
+    ``plotkin_bound(n, d, q, algorithm=None)``.
 
     EXAMPLES::
 
         sage: plotkin_upper_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'plotkin_bound' instead as
+        'plotkin_bound(n, d, q, algorithm=None)'. For consistency of
+        notation in the bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
         192
-        sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+    """
+    deprecation(15438, "Call 'plotkin_bound' instead as "
+                       "'plotkin_bound(n, d, q, algorithm={})'. "
+                       "For consistency of notation in the bounds, this "
+                       "function name is deprecated.".format(algorithm))
+    return plotkin_bound(n, d, q, algorithm=algorithm)
+
+def plotkin_bound(n, d, q, algorithm=None):
+    r"""
+    Returns Plotkin upper bound for number of elements in the largest
+    code of minimum distance d in `\GF{q}^n`.
+
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+      option wraps Guava's ``UpperBoundPlotkin``.
+
+    EXAMPLES::
+
+        sage: plotkin_bound(10,3,2)
+        192
+        sage: plotkin_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         192
     """
     if algorithm=="gap":
@@ -327,15 +380,43 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
 
 def griesmer_upper_bound(n,q,d,algorithm=None):
     r"""
-    Returns the Griesmer upper bound for number of elements in the
-    largest code of minimum distance d in `\GF{q}^n`.
-    Wraps GAP's UpperBoundGriesmer.
+    Deprecated function. Use :func:`griesmer_bound` instead as
+    ``griesmer_bound(n, d, q, algorithm=None)``.
 
     EXAMPLES::
 
         sage: griesmer_upper_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'griesmer_bound' instead as
+        'griesmer_bound(n, d, q, algorithm=None)'. For consistency of
+        notation in the bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
         128
-        sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+    """
+    deprecation(15438, "Call 'griesmer_bound' instead as "
+                       "'griesmer_bound(n, d, q, algorithm={})'. "
+                       "For consistency of notation in the bounds, this "
+                       "function name is deprecated.".format(algorithm))
+    return griesmer_bound(n, d, q, algorithm=algorithm)
+
+def griesmer_bound(n, d, q, algorithm=None):
+    r"""
+    Returns the Griesmer upper bound for number of elements in the
+    largest code of minimum distance d in `\GF{q}^n`.
+    Wraps GAP's UpperBoundGriesmer.
+
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+      option wraps GAP's ``UpperBoundGriesmer``.
+
+    EXAMPLES::
+
+        sage: griesmer_bound(10, 3, 2)
+        128
+        sage: griesmer_bound(10, 3, 2, algorithm="gap")  # optional - gap_packages (Guava package)
         128
     """
     if algorithm=="gap":
@@ -358,18 +439,45 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
             k = k + 1
         return q**(k-1)
 
-
 def elias_upper_bound(n,q,d,algorithm=None):
     r"""
-    Returns the Elias upper bound for number of elements in the largest
-    code of minimum distance d in `\GF{q}^n`. Wraps
-    GAP's UpperBoundElias.
+    Deprecated function. Use :func:`elias_bound` instead as
+    ``elias_bound(n, d, q, algorithm=None)``.
 
     EXAMPLES::
 
         sage: elias_upper_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'elias_bound' instead as
+        'elias_bound(n, d, q, algorithm=None)'. For consistency of
+        notation in the bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
         232
-        sage: elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+    """
+    deprecation(15438, "Call 'elias_bound' instead as "
+                       "'elias_bound(n, d, q, algorithm={})'. "
+                       "For consistency of notation in the bounds, this "
+                       "function name is deprecated.".format(algorithm))
+    return elias_bound(n, d, q, algorithm=algorithm)
+
+def elias_bound(n, d, q, algorithm=None):
+    r"""
+    Returns the Elias upper bound for number of elements in the largest
+    code of minimum distance d in `\GF{q}^n`. Wraps
+    GAP's ``UpperBoundElias``.
+
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+      option wraps GAP's ``UpperBoundElias``.
+
+    EXAMPLES::
+
+        sage: elias_bound(10,3,2)
+        232
+        sage: elias_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         232
 
     """
@@ -393,38 +501,80 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
 def hamming_upper_bound(n,q,d):
     r"""
+    Deprecated function. Use :func:`hamming_bound` instead as
+    ``hamming_bound(n, d, q)``.
+
+    EXAMPLES::
+
+        sage: hamming_upper_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'hamming_bound' instead as
+        'hamming_bound(n, d, q)'. For consistency of
+        notation in the bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
+        93
+    """
+    deprecation(15438, "Call 'hamming_bound' instead as "
+                       "'hamming_bound(n, d, q)'. "
+                       "For consistency of notation in the bounds, this "
+                       "function name is deprecated.")
+    return hamming_bound(n, d, q)
+
+def hamming_bound(n, d, q):
+    r"""
     Returns the Hamming upper bound for number of elements in the
     largest code of minimum distance d in `\GF{q}^n`.
-    Wraps GAP's UpperBoundHamming.
 
     The Hamming bound (also known as the sphere packing bound) returns
     an upper bound on the size of a code of length n, minimum distance
     d, over a field of size q. The Hamming bound is obtained by
     dividing the contents of the entire space
     `\GF{q}^n` by the contents of a ball with radius
-    floor((d-1)/2). As all these balls are disjoint, they can never
+    ``floor((d-1)/2)``. As all these balls are disjoint, they can never
     contain more than the whole vector space.
-
 
     .. math::
 
          M \leq {q^n \over V(n,e)},
-
-
 
     where M is the maximum number of codewords and `V(n,e)` is
     equal to the contents of a ball of radius e. This bound is useful
     for small values of d. Codes for which equality holds are called
     perfect.
 
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
-        sage: hamming_upper_bound(10,2,3)
+        sage: hamming_bound(10,3,2)
         93
     """
     return int((q**n)/(volume_hamming(n, q, int((d-1)/2))))
 
 def singleton_upper_bound(n,q,d):
+    r"""
+    Deprecated function. Use :func:`singleton_bound` instead as
+    ``singleton_bound(n, d, q)``.
+
+    EXAMPLES::
+
+        sage: singleton_upper_bound(10,2,3)
+        doctest:...: DeprecationWarning: Call 'singleton_bound' instead as
+        'singleton_bound(n, d, q)'. For consistency of
+        notation in the bounds, this function name is deprecated.
+        See http://trac.sagemath.org/15438 for details.
+        256
+    """
+    deprecation(15438, "Call 'singleton_bound' instead as "
+                       "'singleton_bound(n, d, q)'. "
+                       "For consistency of notation in the bounds, this "
+                       "function name is deprecated.")
+    return singleton_bound(n, d, q)
+
+def singleton_bound(n, d, q):
     r"""
     Returns the Singleton upper bound for number of elements in the
     largest code of minimum distance d in `\GF{q}^n`.
@@ -434,19 +584,22 @@ def singleton_upper_bound(n,q,d):
     `(n, M, d)` code d-1 times, an `(n-d+1,M,1)` code
     results, with `M \leq q^n-d+1`. Thus
 
-
     .. math::
 
          M \leq q^{n-d+1}.
 
-
-
     Codes that meet this bound are called maximum distance separable
     (MDS).
 
+    INPUT::
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
-        sage: singleton_upper_bound(10,2,3)
+        sage: singleton_bound(10,3,2)
         256
     """
     return q**(n - d + 1)
@@ -462,7 +615,7 @@ def gv_info_rate(n,delta,q):
         0.367049926083
     """
     q = ZZ(q)
-    ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
+    ans=log(gv_bound(n, int(n*delta), q), q)/n
     return ans
 
 def entropy(x, q=2):

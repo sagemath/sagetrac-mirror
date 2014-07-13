@@ -62,7 +62,14 @@ from code_bounds import (codesize_upper_bound,
                          singleton_bound_asymp,
                          plotkin_bound_asymp,
                          elias_bound_asymp,
-                         mrrw1_bound_asymp)
+                         mrrw1_bound_asymp,
+                         elias_bound,
+                         griesmer_bound,
+                         gv_bound,
+                         hamming_bound,
+                         plotkin_bound,
+                         singleton_bound
+                         )
 
 from linear_code import (LinearCode, LinearCodeFromVectorSpace,
                          best_known_linear_code,
