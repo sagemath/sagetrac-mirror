@@ -124,7 +124,7 @@ This module implements:
    `B(n,d)=B_q(n,d)` for the dimension of a linear code of
    length n, minimum distance d over a field of size q.
 
--  gilbert_lower_bound(n,q,d), a lower bound for number of
+-  gv_bound(n,d,q), a lower bound for number of
    elements in the largest code of min distance d in
    `\GF{q}^n`.
 
@@ -199,7 +199,7 @@ def codesize_upper_bound(n,d,q,algorithm=None):
     This computes the minimum value of the upper bound using the
     methods of Singleton, Hamming, Plotkin, and Elias.
 
-    If algorithm="gap" then this returns the best known upper
+    If ``algorithm="gap"`` then this returns the best known upper
     bound `A(n,d)=A_q(n,d)` for the size of a code of length n,
     minimum distance d over a field of size q. The function first
     checks for trivial cases (like d=1 or n=d), and if the value
@@ -209,10 +209,18 @@ def codesize_upper_bound(n,d,q,algorithm=None):
     `A(n, 2\ell-1) = A(n+1,2\ell)`, so the function
     takes the minimum of the values obtained from all algorithms for the
     parameters `(n, 2\ell-1)` and `(n+1, 2\ell)`. This
-    wraps GUAVA's (i.e. GAP's package Guava) UpperBound( n, d, q ).
+    wraps GUAVA's (i.e. GAP's package Guava) ``UpperBound( n, d, q )``.
 
     If algorithm="LP" then this returns the Delsarte (a.k.a. Linear
     Programming) upper bound.
+
+    INPUT:
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+    - ``algorithm`` -- (optional; default: ``None``) The ``algorithm="gap"``
+      option wraps Guava's ``UpperBound``.
 
     EXAMPLES::
 
@@ -248,7 +256,15 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     Returns an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
-    Parameter "algorithm" has the same meaning as in :func:`codesize_upper_bound`
+    Parameter ``algorithm`` has the same meaning as in :func:`codesize_upper_bound`
+
+    INPUT:
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``q`` -- (integer) field size
+    - ``algorithm`` -- (optional; default: ``None``) The ``algorithm="gap"``
+      option wraps Guava's ``UpperBound``.
 
     EXAMPLES::
 
@@ -272,6 +288,12 @@ def volume_hamming(n,q,r):
     r"""
     Returns number of elements in a Hamming ball of radius r in `\GF{q}^n`.
     Agrees with Guava's SphereContent(n,r,GF(q)).
+
+    INPUT:
+
+    - ``n`` -- (integer) length of the code
+    - ``d`` -- (integer) minimum distance of the code
+    - ``r`` -- (integer) radius of the ball
 
     EXAMPLES::
 
@@ -306,7 +328,7 @@ def gv_bound(n, d, q):
     Returns lower bound for number of elements in the largest code of
     minimum distance d in `\GF{q}^n`.
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
@@ -345,12 +367,12 @@ def plotkin_bound(n, d, q, algorithm=None):
     Returns Plotkin upper bound for number of elements in the largest
     code of minimum distance d in `\GF{q}^n`.
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
     - ``q`` -- (integer) field size
-    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+    - ``algorithm`` -- (optional; default: ``None``) The ``algorithm="gap"``
       option wraps Guava's ``UpperBoundPlotkin``.
 
     EXAMPLES::
@@ -404,12 +426,12 @@ def griesmer_bound(n, d, q, algorithm=None):
     largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundGriesmer.
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
     - ``q`` -- (integer) field size
-    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+    - ``algorithm`` -- (optional; default: ``None``) The ``algorithm="gap"``
       option wraps GAP's ``UpperBoundGriesmer``.
 
     EXAMPLES::
@@ -465,12 +487,12 @@ def elias_bound(n, d, q, algorithm=None):
     code of minimum distance d in `\GF{q}^n`. Wraps
     GAP's ``UpperBoundElias``.
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
     - ``q`` -- (integer) field size
-    - ``algorithm`` -- (optional; default: ``None``) The algorithm="gap"
+    - ``algorithm`` -- (optional; default: ``None``) The ``algorithm="gap"``
       option wraps GAP's ``UpperBoundElias``.
 
     EXAMPLES::
@@ -541,7 +563,7 @@ def hamming_bound(n, d, q):
     for small values of d. Codes for which equality holds are called
     perfect.
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
@@ -591,7 +613,7 @@ def singleton_bound(n, d, q):
     Codes that meet this bound are called maximum distance separable
     (MDS).
 
-    INPUT::
+    INPUT:
 
     - ``n`` -- (integer) length of the code
     - ``d`` -- (integer) minimum distance of the code
@@ -607,7 +629,13 @@ def singleton_bound(n, d, q):
 def gv_info_rate(n,delta,q):
     """
     GV lower bound for information rate of a q-ary code of length n
-    minimum distance delta\*n
+    minimum distance ``delta * n``
+
+    INPUT:
+
+    - ``n`` -- (integer) length of the code
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
 
     EXAMPLES::
 
@@ -670,7 +698,7 @@ def entropy_inverse(x, q=2):
 
     - ``x`` -- real number in the interval `[0, 1]`.
 
-    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+    - ``q`` -- (default: 2) integer greater than 1. This is the base of the
       logarithm.
 
     OUTPUT:
@@ -716,6 +744,11 @@ def gv_bound_asymp(delta,q):
     """
     Computes the asymptotic GV bound for the information rate, R.
 
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
         sage: RDF(gv_bound_asymp(1/4,2))
@@ -730,6 +763,11 @@ def hamming_bound_asymp(delta,q):
     """
     Computes the asymptotic Hamming bound for the information rate.
 
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
         sage: RDF(hamming_bound_asymp(1/4,2))
@@ -742,6 +780,11 @@ def hamming_bound_asymp(delta,q):
 def singleton_bound_asymp(delta,q):
     """
     Computes the asymptotic Singleton bound for the information rate.
+
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
 
     EXAMPLES::
 
@@ -757,6 +800,11 @@ def plotkin_bound_asymp(delta,q):
     Computes the asymptotic Plotkin bound for the information rate,
     provided `0 < \delta < 1-1/q`.
 
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
         sage: plotkin_bound_asymp(1/4,2)
@@ -770,6 +818,11 @@ def elias_bound_asymp(delta,q):
     Computes the asymptotic Elias bound for the information rate,
     provided `0 < \delta < 1-1/q`.
 
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
+
     EXAMPLES::
 
         sage: elias_bound_asymp(1/4,2)
@@ -781,7 +834,13 @@ def elias_bound_asymp(delta,q):
 def mrrw1_bound_asymp(delta,q):
     """
     Computes the first asymptotic McEliese-Rumsey-Rodemich-Welsh bound
-    for the information rate, provided `0 < \delta < 1-1/q`.
+    for the information rate, provided `0 < \delta < 1-1/q`. This is the
+    asymptotic form of the :func:`delsarte_bound_hamming_space`.
+
+    INPUT:
+
+    - ``delta`` -- (real number in [0,1]) relative minimum distance of the code
+    - ``q`` -- (integer) field size
 
     EXAMPLES::
 
