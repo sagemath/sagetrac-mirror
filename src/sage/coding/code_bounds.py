@@ -190,11 +190,9 @@ from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
 from sage.functions.all import log, sqrt
-from sage.misc.decorators import rename_keyword
 from delsarte_bounds import delsarte_bound_hamming_space, \
                 delsarte_bound_additive_hamming_space
 
-@rename_keyword(deprecation=6094, method="algorithm")
 def codesize_upper_bound(n,d,q,algorithm=None):
     r"""
     This computes the minimum value of the upper bound using the
@@ -244,7 +242,6 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sub = singleton_upper_bound(n,q,d)
         return min([eub,gub,hub,pub,sub])
 
-@rename_keyword(deprecation=6094, method="algorithm")
 def dimension_upper_bound(n,d,q,algorithm=None):
     r"""
     Returns an upper bound `B(n,d) = B_q(n,d)` for the
@@ -296,7 +293,6 @@ def gilbert_lower_bound(n,q,d):
     ans=q**n/volume_hamming(n,q,d-1)
     return ans
 
-@rename_keyword(deprecation=6094, method="algorithm")
 def plotkin_upper_bound(n,q,d, algorithm=None):
     r"""
     Returns Plotkin upper bound for number of elements in the largest
@@ -329,7 +325,6 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
                 fact = int(fact) + 1
             return int(d/( d - t * fact)) * q**(n - fact)
 
-@rename_keyword(deprecation=6094, method="algorithm")
 def griesmer_upper_bound(n,q,d,algorithm=None):
     r"""
     Returns the Griesmer upper bound for number of elements in the
@@ -364,7 +359,6 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
         return q**(k-1)
 
 
-@rename_keyword(deprecation=6094, method="algorithm")
 def elias_upper_bound(n,q,d,algorithm=None):
     r"""
     Returns the Elias upper bound for number of elements in the largest
