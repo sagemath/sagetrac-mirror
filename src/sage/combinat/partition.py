@@ -812,7 +812,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low()
             1^7, 2, 3^2, 7^3
+            sage: print Partition([])._repr_exp_low()
+            -
         """
+        if not self._list:
+            return '-'
         exp = self.to_exp()
         return '%s' % ', '.join('%s%s' % (m+1, '' if e==1 else '^%s'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -826,8 +830,12 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high()
             7^3, 3^2, 2, 1^7
+
+            sage: print Partition([])._repr_exp_high()
+            -
         """
-        if len(self._list)==0: return ''  # exceptional case as max(self) fails
+        if not self._list:
+            return '-'
         exp = self.to_exp()[::-1]         # reversed list of exponents
         M=max(self)
         return '%s' % ', '.join('%s%s' % (M-m, '' if e==1 else '^%s'%e)
@@ -842,7 +850,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low()
             1^7,2,3^2,7^3
+            sage: print Partition([])._repr_compact_low()
+            -
         """
+        if not self._list:
+            return '-'
         exp = self.to_exp()
         return '%s' % ','.join('%s%s' % (m+1, '' if e==1 else '^%s'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -856,8 +868,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high()
             7^3,3^2,2,1^7
+            sage: print Partition([])._repr_compact_low()
+            -
         """
-        if len(self._list)==0: return ''  # exceptional case as max(self) fails
+        if not self._list:
+            return '-'
         exp = self.to_exp()[::-1]         # reversed list of exponents
         M=max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^%s'%e)
@@ -976,8 +991,10 @@ class Partition(CombinatorialObject, Element):
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
+            sage: print Partition([])._latex_young_diagram()
+            {\emptyset}
         """
-        if len(self._list) == 0:
+        if not self._list:
             return "{\\emptyset}"
 
         from sage.combinat.output import tex_from_array
@@ -996,8 +1013,10 @@ class Partition(CombinatorialObject, Element):
             \lr{\ast}\\
             \end{array}$}
             }
+            sage: print Partition([])._latex_diagram()
+            {\emptyset}
         """
-        if len(self._list) == 0:
+        if not self._list:
             return "{\\emptyset}"
 
         entry = self.parent().global_options("latex_diagram_str")
@@ -1012,6 +1031,8 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2, 1])._latex_list()
             [2, 1]
+            sage: print Partition([])._latex_list()
+            []
         """
         return repr(self._list)
 
@@ -1023,7 +1044,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2,2,1])._latex_exp_low()
             1,2^{2}
+            sage: print Partition([])._latex_exp_low()
+            {\emptyset}
         """
+        if not self._list:
+            return "{\\emptyset}"
         exp = self.to_exp()
         return '%s' % ','.join('%s%s' % (m+1, '' if e==1 else '^{%s}'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -1036,7 +1061,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2,2,1])._latex_exp_high()
             2^{2},1
+            sage: print Partition([])._latex_exp_high()
+            {\emptyset}
         """
+        if not self._list:
+            return "{\\emptyset}"
         exp = self.to_exp()[::-1]  # reversed list of exponents
         M = max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^{%s}'%e)
@@ -1068,9 +1097,16 @@ class Partition(CombinatorialObject, Element):
             ##
             #####
             #####
+            sage: print Partition([]).ferrers_diagram()
+            -
+            sage: Partitions.global_options(diagram_str='-')
+            sage: print Partition([]).ferrers_diagram()
+            (/)
             sage: Partitions.global_options.reset()
         """
         diag_str = self.parent().global_options('diagram_str')
+        if not self._list:
+            return '-' if diag_str != '-' else "(/)"
         if self.parent().global_options('convention') == "English":
             return '\n'.join([diag_str*p for p in self])
         else:
@@ -1626,11 +1662,11 @@ class Partition(CombinatorialObject, Element):
         mu = self
         muconj = mu.conjugate()     # Naive implementation
         if len(mu) <= len(muconj):
-            a = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(mu)])
-            b = filter(lambda x: x>=0, [muconj[i]-i-1 for i in range(len(a))])
+            a = [x for x in (val-i-1 for i, val in enumerate(mu)) if x>=0]
+            b = [x for x in (muconj[i]-i-1 for i in range(len(a))) if x>=0]
         else:
-            b = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(muconj)])
-            a = filter(lambda x: x>=0, [mu[i]-i-1 for i in range(len(b))])
+            b = [x for x in (val-i-1 for i, val in enumerate(muconj)) if x>=0]
+            a = [x for x in (mu[i]-i-1 for i in range(len(b))) if x>=0]
         return (a,b)
 
     def frobenius_rank(self):
@@ -1703,7 +1739,7 @@ class Partition(CombinatorialObject, Element):
             [4, 3, 2, 0]
         """
         true_length = len(self)
-        if length == None:
+        if length is None:
             length = true_length
         elif length < true_length:
             raise ValueError("length must be at least the length of the partition")
@@ -3316,7 +3352,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,1]).corners_residue(2, 3)
             [(0, 2)]
         """
-        return filter(lambda x: self.residue(*x, l=l) == i, self.corners())
+        return [x for x in self.corners() if self.residue(*x, l=l) == i]
 
     inside_corners_residue = corners_residue
     removable_cells_residue = corners_residue
@@ -3382,7 +3418,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,1]).outside_corners_residue(2, 3)
             [(2, 1)]
         """
-        return filter(lambda x: self.residue(*x, l=l) == i, self.outside_corners())
+        return [x for x in self.outside_corners() if self.residue(*x, l=l) == i]
 
     addable_cells_residue = outside_corners_residue
 
@@ -3485,7 +3521,7 @@ class Partition(CombinatorialObject, Element):
         partitions).
 
         These are also known as **path sequences**, **Maya diagrams**,
-        **plus-minus diagrams**, **Comet code** [Sta1999]_, among others.
+        **plus-minus diagrams**, **Comet code** [Sta-EC2]_, among others.
 
         OUTPUT:
 
@@ -3568,7 +3604,7 @@ class Partition(CombinatorialObject, Element):
         #Remove the canonical vector
         part = [part[i-1]-len(part)+i for i in range(1, len(part)+1)]
         #Select the r-core
-        return Partition(filter(lambda x: x != 0, part))
+        return Partition([x for x in part if x != 0])
 
     def quotient(self, length):
         r"""
@@ -3636,7 +3672,7 @@ class Partition(CombinatorialObject, Element):
             tmp = []
             for i in reversed(range(len(part))):
                 if part[i] % length == e:
-                    tmp.append(ZZ((part[i]-k)/length))
+                    tmp.append(ZZ((part[i]-k)//length))
                     k += length
 
             a = [i for i in tmp if i != 0]
@@ -5113,7 +5149,7 @@ class Partitions(UniqueRepresentation, Parent):
         k = length*max(len(q) for q in components) + len(core)
         # k needs to be large enough. this seems to me like the smallest it can be
         v = [core[i]-i for i in range(len(core))] + [ -i for i in range(len(core),k) ]
-        w = [ filter(lambda x: (x-i) % length == 0, v) for i in range(1, length+1) ]
+        w = [ [x for x in v if (x-i) % length == 0] for i in range(1, length+1) ]
         new_w = []
         for i in range(length):
             lw = len(w[i])
@@ -6420,7 +6456,7 @@ class PartitionsInBox(Partitions):
                     new_list += add(element)
                 l = new_list
 
-            return [self.element_class(self, filter(lambda x: x!=0, p)) for p in l]
+            return [self.element_class(self, [x for x in p if x!=0]) for p in l]
 
 def PartitionsInBox_hw(h, w):
     """

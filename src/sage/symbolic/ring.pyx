@@ -163,8 +163,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
-                                        is_FiniteField)
+                                        RLF, CLF, AA, QQbar, InfinityRing)
+            from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
 
@@ -804,13 +804,13 @@ cdef class NumpyToSRMorphism(Morphism):
             Real Double Field
         """
         from sage.rings.all import RDF, CDF
-        numpy_type = self._domain.object()
+        numpy_type = self.domain().object()
         if 'complex' in numpy_type.__name__:
             res = CDF(a)
         else:
             res = RDF(a)
 
-        return new_Expression_from_pyobject(self._codomain, res)
+        return new_Expression_from_pyobject(self.codomain(), res)
 
 cdef class UnderscoreSageMorphism(Morphism):
     def __init__(self, t, R):
@@ -845,7 +845,7 @@ cdef class UnderscoreSageMorphism(Morphism):
             sage: bool(SR(b) == SR(b._sage_()))
             True
         """
-        return self._codomain(a._sage_())
+        return self.codomain()(a._sage_())
 
 
 def the_SymbolicRing():
