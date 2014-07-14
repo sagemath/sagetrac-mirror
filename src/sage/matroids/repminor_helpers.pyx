@@ -92,45 +92,104 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat):
     [M1_0,M2_0]=init_iso_matrices(M_rmat,N_rmat)
     for i in range(M_rmat.nrows()+M_rmat.ncols()):
         bitset_add(unused_cols,i)
-    print bitset_string(unused_cols)
-    M1=BinaryMatrix(M1_0.nrows(),M1_0.ncols(),ring=GF(2))
-    M2=BinaryMatrix(M2_0.nrows(),M2_0.ncols(),ring=GF(2))
-    recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,M1_0,M2_0)
+    print 'unused cols',bitset_string(unused_cols)
+    M1=copy_mat(M1_0) #BinaryMatrix(M1_0.nrows(),M1_0.ncols(),ring=GF(2))
+    M2=BinaryMatrix(M2_0.nrows(),M1_0.ncols(),ring=GF(2)).augment(copy_mat(M2_0))#BinaryMatrix(M2_0.nrows(),M2_0.ncols(),ring=GF(2))
+    print 'M1', M1
+    print 'M2', M2
+    if not degrees_are_sane(M1,M2):
+        print 'Degrees are insane!!!!'
+        return False
+    else:
+        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2) == 1
 
-cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2, BinaryMatrix M1_0, BinaryMatrix M2_0):
+cpdef degrees_are_sane(BinaryMatrix M1,BinaryMatrix M2):
+    """ Check if there is an all-zero row in M1 or M2 and return ``False``
+    if there is one. 
+    """
+    cdef long i
+    for i in range(M1.nrows()):
+        if bitset_isempty(M1._M[i]):
+            return False
+    for i in range(M2.nrows()):
+        if bitset_isempty(M2._M[i]):
+            return False
+    return True
+
+cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2):
     cdef long i,j
-    cdef bitset_t valid_cols
+    cpdef bitset_t valid_cols
     cpdef bitset_t curr_cols
+    cpdef bitset_t saved_row
+    cdef BinaryMatrix iso
+    cdef long found = 0
     if cur_row == M1.nrows() + M2.nrows():
         # check if [M1 0; 0 M2] is an induced isomorphism and return True/False accordingly
-        pass
+        print 'reached bottom'
+        iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF(2))).stack(M2)
+        print 'isomorphism matrix', iso
+        return is_weak_induced_isomorphism( M1, M2,   M_rmat,  N_rmat)
     elif cur_row < M1.nrows():
+        # cur_row in in M1
+        print 'deal with M1',M1
         bitset_init(curr_cols,M_rmat.nrows()+M_rmat.ncols())
         bitset_init(valid_cols,M_rmat.nrows()+M_rmat.ncols())
         for i in range(M1.ncols()):
             bitset_add(curr_cols,i)
-        bitset_intersection(valid_cols, curr_cols, M1_0._M[cur_row])
+        bitset_intersection(valid_cols, curr_cols, M1._M[cur_row])
+        bitset_intersection(valid_cols,valid_cols,unused_cols)
+        bitset_init(saved_row,M1.ncols())
     else:
+        # cur_row is in M2
+        print 'deal with M2',M2
         bitset_init(curr_cols,M_rmat.nrows()+M_rmat.ncols())
         bitset_init(valid_cols,M_rmat.nrows()+M_rmat.ncols())
         for i in range(M1.ncols(),M1.ncols()+M2.ncols()):
             bitset_add(curr_cols,i)
-        bitset_intersection(valid_cols, curr_cols, M2_0._M[cur_row-M1_0.nrows()])
-    print bitset_string(curr_cols)
-    print bitset_string(valid_cols)
+        print cur_row-M1.nrows()
+        bitset_intersection(valid_cols, curr_cols, M2._M[cur_row-M1.nrows()])
+        bitset_intersection(valid_cols,valid_cols,unused_cols)
+        bitset_init(saved_row,M2.ncols())
+    print 'curr_cols',bitset_string(curr_cols)
+    print 'valid_cols',bitset_string(valid_cols)
     while True:
         try:
-            i=pop(valid_cols)
+            i=bitset_pop(valid_cols)
+            bitset_remove(unused_cols,i)
+            print 'popped',i
             if cur_row < M1.nrows():
                 # set up M1, prune and recurse
                 bitset_clear(M1._M[cur_row])
                 bitset_add(M1._M[cur_row],i)
-                recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,M1_0,M2_0)
+                print 'M1', M1
+                found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2)
+                bitset_add(unused_cols,i)
+                if found == 1:
+                    break
             else:
                 # set up M2, prune and recurse
-                recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,M1_0,M2_0)
+                bitset_clear(M2._M[cur_row-M1.nrows()])
+                bitset_add(M2._M[cur_row-M1.nrows()],i)                
+                print 'here'
+                print 'cur_row', bitset_string(M2._M[cur_row-M1.nrows()]) 
+                print 'M2', M2 
+                found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2)
+                bitset_add(unused_cols,i)
+                print 'found@M2', found 
+                if found == 1:
+                    break
+        except KeyError:
+            print 'keyerror', 'row', cur_row
+            if cur_row < M1.nrows():
+                bitset_copy(M1._M[cur_row],saved_row)
+            else:
+                bitset_copy(M2._M[cur_row],saved_row)
+            break
     #M1=prune(M1_0,M2_0,cur_row, M_rmat,N_rmat,M_rmatT,N_rmatT)
-    print 'returned M1',M1
+    print 'returned M1,M2',M1,M2
+    return found
+
+
 
 cpdef prune(BinaryMatrix M1, BinaryMatrix M2, long cur_row,BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT):
     cdef long r,c,flag
@@ -178,3 +237,43 @@ cdef full_set(bitset_t bits):
     cdef i
     for  i in range(bitset_len(bits)):
         bitset_add(bits,i)
+
+cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1,BinaryMatrix M2_1, BinaryMatrix  M_rmat, BinaryMatrix N_rmat):
+    """
+    For binary matrices this will in fact answer if M1,M2 specify induced 
+    subgraph isomorphism whereas for higher fields, this only verifies a 
+    necessary but not sufficient condition 
+    """
+    cdef long i,k
+    cdef int j,*roworders, *colorders
+    cdef BinaryMatrix rmat1
+    cdef BinaryMatrix M1,M2
+    M1 = M1_1.copy()
+    M2=M2_1.copy()
+    # rmat corresponding to given isomorphism
+    rmat1=BinaryMatrix(N_rmat.nrows(),N_rmat.ncols(),ring=GF(2))
+    roworders = <int* > sage_malloc(N_rmat.nrows() * sizeof(int))
+    for i in range(M1.nrows()):
+        j = bitset_pop(M1._M[i])
+        # row i maps to row j
+        roworders[i]=j
+    colorders = <int* > sage_malloc(N_rmat.ncols() * sizeof(int))
+    for i in range(M2.nrows()):
+        j = bitset_pop(M2._M[i])
+        # col i maps to row j
+        colorders[i]=j-M1.ncols()
+    for i in range(M1.nrows()):
+        print roworders[i]
+    for i in range(M2.nrows()):
+        print colorders[i]
+    for i in range(M1.nrows()):
+        for k in range(M2.nrows()):
+            print roworders[i],',',colorders[k]
+            rmat1.set_unsafe(i,k,M_rmat.get_unsafe(roworders[i],colorders[k]))
+    sage_free(roworders)
+    sage_free(colorders)
+    print 'compare', N_rmat, rmat1
+    for i in range(N_rmat.nrows()):
+        if not bitset_eq(N_rmat._M[i], rmat1._M[i]):
+            return 0
+    return 1
