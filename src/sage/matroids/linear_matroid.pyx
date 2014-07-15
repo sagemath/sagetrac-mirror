@@ -3429,10 +3429,10 @@ cdef class BinaryMatroid(LinearMatroid):
         if N is not None:
             M_rmat=self._reduced_representation()
             N_rmat=N._reduced_representation()
-            _check_bin_minor(M_rmat, N_rmat)
+            return _check_bin_minor(M_rmat, N_rmat)
         else:
             raise ValueError("either N or Nmat1 must be provided")
-        return
+        return False 
 
     cpdef _fundamental_graph(self, B1=None):
         """
