@@ -138,6 +138,7 @@ from sage.lfunctions.all import *
 from sage.geometry.all   import *
 from sage.geometry.triangulation.all   import *
 from sage.geometry.riemannian_manifolds.all   import *
+from sage.geometry.manifolds.all   import *
 
 from sage.dynamics.all   import *
 
@@ -168,6 +169,7 @@ from sage.ext.fast_eval      import fast_float
 sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 
 from sage.tensor.all     import *
+from sage.tensor.modules.all     import *
 
 from sage.matroids.all   import *
 

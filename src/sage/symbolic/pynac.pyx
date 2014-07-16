@@ -457,7 +457,19 @@ def py_print_function_pystring(id, args, fname_paren=False):
         olist = ['(', func._name, ')']
     else:
         olist = [func._name]
+
+    # default: print the arguments
+    olistnp = ''.join(olist)
     olist.extend(['(', ', '.join(map(repr, args)), ')'])
+
+    try:
+        omit_function_args_choice
+    except NameError:
+        pass
+    else:
+        if omit_function_args_choice:
+            olist = olistnp 
+
     return ''.join(olist)
 
 cdef public stdstring* py_print_function(unsigned id, object args) except +:
@@ -544,10 +556,20 @@ def py_latex_function_pystring(id, args, fname_paren=False):
         olist = [r'\left(', name, r'\right)']
     else:
         olist = [name]
-    # print the arguments
+
+    # default: print the arguments
+    olistnp = ''.join(olist)
     from sage.misc.latex import latex
-    olist.extend([r'\left(', ', '.join([latex(x) for x in args]),
-        r'\right)'] )
+    olist.extend([r'\left(', ', '.join([latex(x) for x in args]), r'\right)'] )
+
+    try:
+        omit_function_args_choice
+    except NameError:
+        pass
+    else:
+        if omit_function_args_choice:
+            olist = olistnp
+
     return ''.join(olist)
 
 cdef public stdstring* py_latex_function(unsigned id, object args) except +:
@@ -569,10 +591,34 @@ cdef public stdstring* py_print_fderivative(unsigned id, object params,
 
     """
     ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
-    fstr = py_print_function_pystring(id, args, True)
+    bra  = True
+
+    try: 
+        textbook_style_deriv_choice
+    except NameError:
+        pass
+    else:
+        if textbook_style_deriv_choice:
+            if(len(params)>1):
+                op = ''.join(['D^',str(len(params)),'/D'])
+            else: 
+                op = 'D/D' 
+            ostr = ''.join([op, 'D'.join([repr(args[int(x)]) for x in params]), ' '])
+            bra = False
+
+    fstr = py_print_function_pystring(id, args, bra)
     py_res = ostr + fstr
     return string_from_pystr(py_res)
 
+def textbook_style_deriv(c=False):
+        global textbook_style_deriv_choice
+        textbook_style_deriv_choice = c
+
+def omit_function_args(c=False):
+        global omit_function_args_choice
+        omit_function_args_choice = c
+
+ 
 def py_print_fderivative_for_doctests(id, params, args):
     """
     Used for testing a cdef'd function.
@@ -620,7 +666,26 @@ cdef public stdstring* py_latex_fderivative(unsigned id, object params,
 
     """
     ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
-    fstr = py_latex_function_pystring(id, args, True)
+    bra  = True
+
+    try:
+        textbook_style_deriv_choice
+    except NameError:
+        pass
+    else:
+        if textbook_style_deriv_choice:
+            from sage.misc.latex import latex 
+            if(len(params)>1):
+                op = ''.join(['\\frac{\partial^',str(len(params)),'}{\partial '])
+            else: 
+                op = '\\frac{\partial}{\partial '
+
+            ostr = ''.join([op, '\partial '.join([''.join([latex(args[int(x)]), '^{', str(params.count(int(x)) if  params.count(int(x)) > 1 else ""), '}']) for x in list(set(params))]), '}'])
+
+
+            bra = False
+
+    fstr = py_latex_function_pystring(id, args, bra)
     py_res = ostr + fstr
     return string_from_pystr(py_res)
 

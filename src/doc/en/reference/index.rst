@@ -84,6 +84,7 @@ Groups, Monoids, Matrices, Modules
 * :doc:`Monoids <monoids/index>`
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Modules <modules/index>`
+* :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
 
 Geometry and Topology
 ---------------------
@@ -91,6 +92,7 @@ Geometry and Topology
 * :doc:`Combinatorial Geometry <geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
+* :doc:`Differential Geometry <manifolds/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 
 Number Theory, Algebraic Geometry
