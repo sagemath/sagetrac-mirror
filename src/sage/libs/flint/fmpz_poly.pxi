@@ -21,6 +21,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_truncate(fmpz_poly_t poly, unsigned long length)
 
     void fmpz_poly_set(fmpz_poly_t result, fmpz_poly_t poly)
+    void fmpz_poly_set_si(fmpz_poly_t result, long x)
     void fmpz_poly_zero(fmpz_poly_t poly)
     void fmpz_poly_set_coeff_si(fmpz_poly_t poly, unsigned long n, long x)
     void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, unsigned long n, \

@@ -1611,12 +1611,20 @@ ext_modules = [
     Extension('sage.rings.finite_rings.finite_field_base',
               sources = ['sage/rings/finite_rings/finite_field_base.pyx']),
 
+    Extension('sage.rings.finite_rings.finite_field_flint_fq',
+              sources = ['sage/rings/finite_rings/finite_field_flint_fq.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
     Extension('sage.rings.finite_rings.element_base',
               sources = ['sage/rings/finite_rings/element_base.pyx']),
 
     Extension('sage.rings.finite_rings.integer_mod',
               sources = ['sage/rings/finite_rings/integer_mod.pyx'],
               libraries = ['gmp']),
+
+    Extension('sage.rings.finite_rings.element_flint_fq',
+              sources = ['sage/rings/finite_rings/element_flint_fq.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
 
     Extension('sage.rings.finite_rings.element_givaro',
               sources = ["sage/rings/finite_rings/element_givaro.pyx"],
