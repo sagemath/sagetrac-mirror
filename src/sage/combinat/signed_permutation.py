@@ -4,6 +4,7 @@ from sage.combinat.permutation import Permutation
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 import itertools
 
 class SignedPermutation(Element):
@@ -16,9 +17,8 @@ class SignedPermutation(Element):
     
     - ``l`` -- a list of integers, viewed as one-line permutation notation.
     """
-    
-    def __init__(self, l):
-        """Constructor
+    def __init__(self, l, natural_order = True):
+        """Initializer
         
         INPUT:
         
@@ -27,7 +27,7 @@ class SignedPermutation(Element):
         Element.__init__(self,SignedPermutations(len(l)))
         self.w = l
         self.n = len(l)
-        #self._parent = SignedPermutations
+        self.natural_order = natural_order
     
     def __call__(self, i):
         #note that this is permutations acting on the left!
@@ -40,6 +40,21 @@ class SignedPermutation(Element):
     
     def _repr_(self):
         return repr(self.w)
+
+    def _comp(self,a,b):
+        """
+        To avoid having to write everything twice for the two orders on \pm[n]
+        used for signed permutations, this function compares a and b according
+        to the appropriate order based on self.natural_order.
+        """
+        if self.natural_order:
+            return a < b
+        #now we're using the -1 < -2 < ... order 
+        if a < 0 and b > 0:
+            return True
+        if a > 0 and b < 0:
+            return False
+        return abs(a) <= abs(b)
     
     def abs(self):
         """Returns a Permtuation object `w` such that `w(i)=|self(i)|`"""
@@ -49,12 +64,17 @@ class SignedPermutation(Element):
     def _descents(self):
         """Calculates where the descents are"""
         descents = []
-        if self.w[0] < 0:
-            descents.append(0)
-        descents.extend([i+1 for i in range(self.n) if self.w[i] > self.w[i+1]])
+        if self.natural_order:
+            if self.w[0] < 0:
+                descents.append(0)
+        else:
+            if self.w[n] < 0:
+                descents.append(n)
+        descents.extend([i+1 for i in range(self.n-1) if\
+            self._comp(self.w[i],self.w[i+1])])
         return descents
     
-    def descents(self):
+    def descent_set(self):
         r"""Returns a list of positions of descents.
         
         A signed permutation `\pi` has a descent at `i \in [0,n-1]` if `\pi(i)
@@ -62,13 +82,15 @@ class SignedPermutation(Element):
         """
         return self._descents
     
-    def number_of_descents(self):
+    def des(self):
         """Returns the number of descents of `self`"""
         return len(self._descents)
     
     def des_a(self):
-        if 0 in self.descents_:
+        if self.natural_order and 0 in self.descents_:
             return len(self.descents_) - 1
+        elif (not self.natural_order) and n in self.descents_:
+            return len(self.descents_)-1
         else:
             return len(self.descents_)
     
@@ -113,19 +135,17 @@ class SignedPermutation(Element):
             return -1
     
     def fmaj(self):
-        #note that flag-major and fmaj are different!
-        #this is truly fmaj from Adin, Brenti, Roichman p. 218
         return 2*self.maj() + self.neg()
     
     def fdes(self):
-        return 2*self.des_a() + (self.w[0] < 0)
-        
+        return self.des()+self.des_a()
+
 class SignedPermutations(UniqueRepresentation,Parent):
     r"""
     Class of signed permutations of `\{\pm 1, \pm 2,\ldots, \pm n\}`
     """
     Element = SignedPermutation
-    def __init__(self, n):
+    def __init__(self, n, natural_order=True):
         self.n = n
         Parent.__init__(self, category = Sets())
 
@@ -135,7 +155,8 @@ class SignedPermutations(UniqueRepresentation,Parent):
     def __iter__(self):
         for p in itertools.permutations(range(1,self.n+1)):
             for s in itertools.product([1,-1],repeat=self.n):
-                yield(SignedPermutation([p[i]*s[i] for i in range(self.n)]))
+                yield(SignedPermutation([p[i]*s[i] for i in\
+                    range(self.n)],natural_order))
     
     def _element_constructor(self,l):
         return self.element_class(l)
