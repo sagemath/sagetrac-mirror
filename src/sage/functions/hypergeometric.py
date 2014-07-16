@@ -133,8 +133,8 @@ differential equations (example from `here <http://ask.sagemath.org/question/
     sage: y = function('y', x)
     sage: desolve(diff(y, x, 2) + 2*x*diff(y, x) - 4*m*y, y,
     ....:         contrib_ode=true, ivar=x)
-    [y(x) == k1*hypergeometric_M(-m, 1/2, -x^2) +...
-     k2*hypergeometric_U(-m, 1/2, -x^2)]
+    [y(x) == _K1*hypergeometric_M(-m, 1/2, -x^2) +...
+     _K2*hypergeometric_U(-m, 1/2, -x^2)]
 
 Series expansions of confluent hypergeometric functions::
 
