@@ -267,7 +267,7 @@ class Function_Bessel_J(BuiltinFunction):
         1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-x^2/4)*x^3/24
+        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
 
     Visualization::
 
@@ -305,7 +305,7 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(0, 1.0, "maxima", 53)
             doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
-            .7651976865579666
+            0.7651976865579666
         """
         if len(args) > 2 or len(kwds) > 0:
             from sage.misc.superseded import deprecation
@@ -1000,10 +1000,10 @@ def Bessel(*args, **kwds):
 
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
-        sage: f.derivative('x')
-        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
-        sage: f.derivative('y')
-        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
+        sage: f.derivative('_SAGE_VAR_x')
+        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        sage: f.derivative('_SAGE_VAR_y')
+        -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 
     Compute the particular solution to Bessel's Differential Equation that
     satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions
@@ -1481,8 +1481,8 @@ class _Bessel():
             bessel_j(6,pi)
             sage: b.n(53)
             0.0145459669825056
-            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)
-            0.0294619840059568
+            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)  # rel tol 5e-13
+            0.02946198400594384
             sage: _Bessel(6, typ='Y', algorithm="maxima")(pi)
             -4.33932818939038
 
@@ -1611,8 +1611,8 @@ class _Bessel():
             sage: from sage.functions.bessel import _Bessel
             sage: _Bessel(3,'K')(5.0)
             0.00829176841523093
-            sage: _Bessel(20,algorithm='maxima')(5.0)
-            27.703300521289436e-12
+            sage: _Bessel(20,algorithm='maxima')(5.0)  # rel tol 1e-15
+            2.770330052128942e-11
             sage: _Bessel(20,prec=100)(5.0101010101010101)
             2.8809188227195382093062257967e-11
             sage: B = _Bessel(2,'Y',algorithm='scipy',prec=50)
