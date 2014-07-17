@@ -400,12 +400,9 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         if fq_is_zero((<FiniteFieldElement_flint_fq>right).val, self._cparent):
             raise ZeroDivisionError
         cdef FiniteFieldElement_flint_fq x = self._new()
-        cdef fq_t rinv
-        fq_init(rinv, self._cparent)
-        fq_inv(rinv, (<FiniteFieldElement_flint_fq>right).val, self._cparent)
-        fq_mul(x.val, (<FiniteFieldElement_flint_fq>self).val,
-                      rinv, self._cparent)
-        fq_clear(rinv, self._cparent)
+        fq_div(x.val, (<FiniteFieldElement_flint_fq>self).val,
+                      (<FiniteFieldElement_flint_fq>right).val,
+                      self._cparent)
         return x
 
     def is_zero(FiniteFieldElement_flint_fq self):

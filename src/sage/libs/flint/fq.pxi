@@ -75,3 +75,7 @@ cdef extern from "flint/fq.h":
     void fq_trace(fmpz_t rop, const fq_t op, const fq_ctx_t ctx)
     void fq_frobenius(fq_t rop, const fq_t op, long e, const fq_ctx_t ctx)
     void fq_norm(fmpz_t rop, const fq_t op, const fq_ctx_t ctx)
+
+    # Templated functions
+ 
+    void fq_div(fq_t rop, const fq_t op1, const fq_t op2, const fq_ctx_t ctx)
