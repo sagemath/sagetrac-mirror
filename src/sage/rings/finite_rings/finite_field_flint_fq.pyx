@@ -207,7 +207,7 @@ cdef class FiniteField_flint_fq(FiniteField):
 
             sage: k.<b> = FiniteField(5^20, impl='flint_fq')
             sage: type(k)
-            <class 'sage.rings.finite_rings.finite_field_flint_fq.FiniteField_flint_fq_with_category'>
+            <type 'sage.rings.finite_rings.finite_field_flint_fq.FiniteField_flint_fq'>
             sage: k is loads(dumps(k))
             True
         """
