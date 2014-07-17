@@ -7,3 +7,4 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_clear(fmpz_mod_poly_t poly)
 
     void fmpz_mod_poly_set_coeff_fmpz(fmpz_mod_poly_t poly, long n, const fmpz_t x)
+    void fmpz_mod_poly_get_coeff_fmpz(fmpz_t x, const fmpz_mod_poly_t poly, long n)

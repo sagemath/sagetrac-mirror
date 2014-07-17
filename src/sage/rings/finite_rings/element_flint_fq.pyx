@@ -3,9 +3,8 @@ Finite field elements implemented via FLINT's fq_t type
 
 AUTHORS:
 
-- Peter Bruin (June 2013): initial version, based on
-  element_ext_pari.py by William Stein et al. and
-  element_ntl_gf2e.pyx by Martin Albrecht.
+- Jean-Pierre Flori (July 2014): initial version, based on
+  element_pari_ffelt.py by Peter Bruin.
 """
 
 #*****************************************************************************
@@ -576,7 +575,25 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: (a**2 + 1).polynomial()._parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        return self._parent.polynomial_ring()(self.list())
+        cdef fmpz_t cflint
+        cdef mpz_t cgmp
+        cdef Integer cint
+        cdef int i, n
+        cdef FiniteField_flint_fq K
+        cdef list clist
+        fmpz_init(cflint)
+        cint = Integer.__new__(Integer)
+        K = self._parent
+        n = K.degree()
+        clist = []
+        for i in xrange(n):
+            fmpz_mod_poly_get_coeff_fmpz(cflint, self.val, i)
+            flint_mpz_init_set_readonly(cgmp, cflint)
+            cint.set_from_mpz(cgmp)
+            flint_mpz_clear_readonly(cgmp)
+            clist.append(Integer(cint))
+        fmpz_clear(cflint)
+        return K.polynomial_ring()(clist)
 
     # No FLINT implementation yet
     #def charpoly(FiniteFieldElement_flint_fq self, object var='x'):

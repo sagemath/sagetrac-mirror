@@ -485,42 +485,6 @@ cdef class FiniteField_flint_fq(FiniteField):
             sage: R.<x> = PolynomialRing(k)
             sage: k([ R(-1), x/x ])
             t + 2
-
-        Check that zeros are created correctly (:trac:`11685`)::
-
-            sage: K = FiniteField(3^11, 't', impl='flint_fq'); a = K.0
-            sage: v = 0; pari(K(v))
-            0
-            sage: v = Mod(0,3); pari(K(v))
-            0
-            sage: v = pari(0); pari(K(v))
-            0
-            sage: v = pari("Mod(0,3)"); pari(K(v))
-            0
-            sage: v = []; pari(K(v))
-            0
-            sage: v = [0]; pari(K(v))
-            0
-            sage: v = [0,0]; pari(K(v))
-            0
-            sage: v = pari("Pol(0)"); pari(K(v))
-            0
-            sage: v = pari("Mod(0, %s)"%K.modulus()); pari(K(v))
-            0
-            sage: v = pari("Mod(Pol(0), %s)"%K.modulus()); pari(K(v))
-            0
-            sage: v = K(1) - K(1); pari(K(v))
-            0
-            sage: v = K([1]) - K([1]); pari(K(v))
-            0
-            sage: v = a - a; pari(K(v))
-            0
-            sage: v = K(1)*0; pari(K(v))
-            0
-            sage: v = K([1])*K([0]); pari(K(v))
-            0
-            sage: v = a*0; pari(K(v))
-            0
         """
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
