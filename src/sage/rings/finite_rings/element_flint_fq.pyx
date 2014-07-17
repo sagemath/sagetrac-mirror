@@ -131,6 +131,12 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         fq_init(x.val, x._cparent)
         return x
 
+    cdef void set_from_fq(FiniteFieldElement_flint_fq self, fq_t val) except *:
+        """
+        Sets self from an fq_t.
+        """
+        fq_set(self.val, val, self._cparent)
+
     cdef void construct_from(FiniteFieldElement_flint_fq self, object x) except *:
         """
         Initialise ``self`` from the Sage object `x`.
@@ -166,6 +172,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             fq_zero(self.val, self._cparent)
 
         elif isinstance(x, FiniteFieldElement_pari_ffelt):
+            print "groumpf"
             raise NotImplementedError
 
         elif isinstance(x, pari_gen):

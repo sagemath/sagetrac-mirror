@@ -156,13 +156,20 @@ cdef class FiniteField_flint_fq(FiniteField):
             fmpz_init_set_readonly(cflint, <void*>ci + mpz_t_offset)
             fmpz_mod_poly_set_coeff_fmpz(modulus_flint, i, cflint)
             fmpz_clear_readonly(cflint)
-        fq_ctx_init_modulus(self._ctx, modulus_flint, <char *> name)
+        fq_ctx_init_modulus(self._ctx, modulus_flint, <char *> (name[0]))
         self._ctx_initialized = 1
         fmpz_mod_poly_clear(modulus_flint)
 
         self._zero_element = self.element_class(self, 0)
         self._one_element = self.element_class(self, 1)
-        self._gen = self.element_class(self, [0, 1])
+        cdef fq_t gen_flint
+        cdef FiniteFieldElement_flint_fq gen
+        fq_init(gen_flint, self._ctx)
+        fq_gen(gen_flint, self._ctx)
+        gen = (<FiniteFieldElement_flint_fq>self._zero_element)._new()
+        gen.set_from_fq(gen_flint)
+        fq_clear(gen_flint, self._ctx)
+        self._gen = gen
 
     def __cinit__(FiniteField_flint_fq self):
         self._ctx = <fq_ctx_struct *>sage_malloc(sizeof(fq_ctx_t))
