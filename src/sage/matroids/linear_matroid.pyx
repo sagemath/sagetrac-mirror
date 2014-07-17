@@ -3426,14 +3426,15 @@ cdef class BinaryMatroid(LinearMatroid):
     cpdef _has_binary_minor(self,N=None):
         cdef long r,c
         cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
-        if N is not None:
-            M_rmat=self._reduced_representation()
-            N_rmat=N._reduced_representation()
-            return _check_bin_minor(M_rmat, N_rmat)
-        else:
-            raise ValueError("either N or Nmat1 must be provided")
-        return False 
-
+        M_rmat=self._reduced_representation()
+        for B1 in N.bases():
+            N_rmat=N._reduced_representation(B=B1)
+            if _check_bin_minor(M_rmat, N_rmat) is True:
+                return True
+        return False
+#        else:
+#            raise ValueError("either N or Nmat1 must be provided")
+    
     cpdef _fundamental_graph(self, B1=None):
         """
         Return the fundamental graph corresponding to the binary matroid
