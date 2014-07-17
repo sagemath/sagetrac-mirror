@@ -881,13 +881,20 @@ def _higherrank_jacobi_forms__restriction(
     
     A list of dictionaries.
 
-    EXAMPLES:
+    NOTE:
 
-    See usage in `meth:higherrank_jacobi_forms`.
+    A minimal example of how to call this function can be found in
+    `meth:higherrank_jacobi_forms`.
 
-    TESTS:
+    TESTS::
 
-    Tested implicitely by `meth:higherrank_jacobi_forms`.  See also ``test_higherrank.py``.
+        sage: from sage.modular.jacobi.higherrank import higherrank_jacobi_forms
+        sage: k = 8
+        sage: m = QuadraticForm(matrix(2, [2,1,1,2]))
+        sage: higherrank_jacobi_forms(k, m, 1)
+        [{(0, (0, 0)): 1}]
+
+    See also ``test_higherrank.py``.
     """
     assert relation_prec <= prec
 
