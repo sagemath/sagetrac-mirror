@@ -77,5 +77,6 @@ cdef extern from "flint/fq.h":
     void fq_norm(fmpz_t rop, const fq_t op, const fq_ctx_t ctx)
 
     # Templated functions
- 
-    void fq_div(fq_t rop, const fq_t op1, const fq_t op2, const fq_ctx_t ctx)
+
+    # Not in 2.4 branch
+    #void fq_div(fq_t rop, const fq_t op1, const fq_t op2, const fq_ctx_t ctx)
