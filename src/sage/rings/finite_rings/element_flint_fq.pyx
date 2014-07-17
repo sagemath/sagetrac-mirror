@@ -301,7 +301,13 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: a > a^2
             False
         """
-        return not fq_equal(self.val, (<FiniteFieldElement_flint_fq>other).val, self._cparent)
+        if fq_equal(self.val, (<FiniteFieldElement_flint_fq>other).val, self._cparent):
+            return 0
+        else:
+            r = cmp(fmpz_poly_degree(self.val), fmpz_poly_degree((<FiniteFieldElement_flint_fq>other).val))
+            if r:
+                return r
+            return cmp(self.polynomial(), other.polynomial())
 
     def __richcmp__(FiniteFieldElement_flint_fq left, object right, int op):
         """
