@@ -157,6 +157,7 @@ cdef class FiniteField_flint_fq(FiniteField):
             fmpz_mod_poly_set_coeff_fmpz(modulus_flint, i, cflint)
             fmpz_clear_readonly(cflint)
         fq_ctx_init_modulus(self._ctx, modulus_flint, <char *> name)
+        self._ctx_initialized = 1
         fmpz_mod_poly_clear(modulus_flint)
 
         self._zero_element = self.element_class(self, 0)
@@ -167,8 +168,9 @@ cdef class FiniteField_flint_fq(FiniteField):
         self._ctx = <fq_ctx_struct *>sage_malloc(sizeof(fq_ctx_t))
 
     def __dealloc__(FiniteField_flint_fq self):
-        if self._ctx:
+        if self._ctx_initialized:
             fq_ctx_clear(self._ctx)
+        if self._ctx:
             sage_free(self._ctx)
 
     Element = FiniteFieldElement_flint_fq
