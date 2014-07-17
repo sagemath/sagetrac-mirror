@@ -156,8 +156,8 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             fmpz_clear_readonly(x_flint)
 
         elif isinstance(x, int) or isinstance(x, long):
-            fmpz_poly_set_si(self.val, x)
-            fq_reduce(self.val, self._cparent)
+            x_INT = Integer(x)
+            self.construct_from(x_INT)
 
         elif isinstance(x, IntegerMod_abstract):
             if self._parent.characteristic().divides(x.modulus()):
@@ -531,7 +531,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         if exp == 0:
             return self._parent.one_element()
         if exp < 0:
-            if not fq_is_zero(self.val, self._cparent):
+            if fq_is_zero(self.val, self._cparent):
                 raise ZeroDivisionError
             inv = 1
             exp = -exp
@@ -579,7 +579,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             alpha
             sage: (a**2 + 1).polynomial()
             alpha^2 + 1
-            sage: (a**2 + 1).polynomial()._parent()
+            sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         cdef fmpz_t cflint
@@ -606,8 +606,56 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
     #def charpoly(FiniteFieldElement_flint_fq self, object var='x'):
     #def is_square(FiniteFieldElement_flint_fq self):
     #def sqrt(FiniteFieldElement_flint_fq self, extend=False, all=False):
-    #def log(FiniteFieldElement_flint_fq self, object base):
     #def multiplicative_order(FiniteFieldElement_flint_fq self):
+
+    # JPF: the following should definitely go into element_base.pyx.
+    def log(FiniteFieldElement_flint_fq self, FiniteFieldElement_flint_fq base):
+        """
+        Return `x` such that `b^x = a`, where `x`
+        is `a` and `b` is the base.
+
+        INPUT:
+
+        -  ``b`` -- finite field element that generates the
+           multiplicative group.
+
+        OUTPUT:
+
+        Integer `x` such that `a^x = b`, if it exists. Raises a
+        ``ValueError`` exception if no such `x` exists.
+
+        EXAMPLES::
+
+            sage: F = GF(17)
+            sage: F(3^11).log(F(3))
+            11
+            sage: F = GF(113)
+            sage: F(3^19).log(F(3))
+            19
+            sage: F = GF(next_prime(10000))
+            sage: F(23^997).log(F(23))
+            997
+
+        ::
+
+            sage: F = FiniteField(2^10, 'a', impl='flint_fq')
+            sage: g = F.gen()
+            sage: b = g; a = g^37
+            sage: a.log(b)
+            37
+            sage: b^37; a
+            a^8 + a^7 + a^4 + a + 1
+            a^8 + a^7 + a^4 + a + 1
+
+        AUTHORS:
+
+        - David Joyner and William Stein (2005-11)
+        """
+        from  sage.groups.generic import discrete_log
+
+        b = self.parent()(base)
+        # TODO: This function is TERRIBLE!
+        return discrete_log(self, b)
 
     def lift(FiniteFieldElement_flint_fq self):
         """
@@ -620,7 +668,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: a = k(17)/k(19)
             sage: b = a.lift(); b
             7894736858
-            sage: b._parent()
+            sage: b.parent()
             Integer Ring
         """
         if fq_is_zero(self.val, self._cparent):
