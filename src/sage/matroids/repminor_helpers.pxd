@@ -13,6 +13,7 @@ cdef full_set(bitset_t bits)
 cpdef degrees_are_sane(BinaryMatrix M1,BinaryMatrix M2)
 cpdef is_weak_induced_isomorphism(BinaryMatrix M1,BinaryMatrix M2, BinaryMatrix  M_rmat, BinaryMatrix N_rmat)
 cdef mat_transpose(BinaryMatrix mat)
-cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat)
+cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat,long cur_row)
+cpdef findmap( M, N)
 
 #cpdef mat_transpose(mat)
