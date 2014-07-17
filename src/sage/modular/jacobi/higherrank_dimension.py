@@ -43,7 +43,6 @@ from sage.rings.all import moebius, gcd, QuadraticField, fundamental_discriminan
 from sage.quadratic_forms.all import QuadraticForm, BinaryQF_reduced_representatives 
 from sage.symbolic.all import I, pi
 from copy import copy
-import mpmath
 import operator
 
 
