@@ -235,7 +235,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: c^20  # indirect doctest
             c^4 + 2*c^3
         """
-        return <bytes> fq_get_str_pretty(self.val, self._cparent)
+        return (<bytes> fq_get_str_pretty(self.val, self._cparent)).replace('+', ' + ')
 
     def __hash__(FiniteFieldElement_flint_fq self):
         """
