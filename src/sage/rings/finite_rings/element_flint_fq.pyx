@@ -810,7 +810,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: b._pari_()
             a^2 + 2*a + 1
         """
-        return pari(self._pari_init_(var))
+        return pari(self._pari_init_())
 
     def _pari_init_(self):
         """
