@@ -1,5 +1,5 @@
 r"""
-Class factories for Interval exchange transformations.
+Interval exchange transformations.
 
 This library is designed for the usage and manipulation of interval
 exchange transformations and linear involutions. It defines specialized
@@ -10,15 +10,15 @@ of intervals (constructed using :meth:`iet.IntervalExchangeTransformation`).
 
 EXAMPLES:
 
-Creation of an interval exchange transformation::
+Creation of an interval exchange transformation (iet)::
 
     sage: T = iet.IntervalExchangeTransformation(('a b','b a'),(sqrt(2),1))
-    sage: print T
+    sage: T
     Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
     a b
     b a
 
-It can also be initialized using permutation (group theoretic ones)::
+It can also be initialized using permutation (group theoritic ones)::
 
     sage: p = Permutation([3,2,1])
     sage: T = iet.IntervalExchangeTransformation(p, [1/3,2/3,1])
@@ -27,8 +27,34 @@ It can also be initialized using permutation (group theoretic ones)::
     1 2 3
     3 2 1
 
-For the manipulation of permutations of iet, there are special types provided
-by this module. All of them can be constructed using the constructor
+
+As the iet's are functions, you can compose and invert them
+
+    sage: T = iet.IntervalExchangeTransformation(('a b','b a'),(sqrt(2),1))
+    sage: T*T
+    Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
+    aa ab ba
+    ab ba aa
+    sage: S = T.inverse()
+    sage: S
+    Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
+    b a
+    a b
+    sage: S * T
+    Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
+    aa bb
+    aa bb
+    sage: (S * T).is_identity()
+    True
+    sage: T * S
+    Interval exchange transformation of [0, sqrt(2) + 1[ with permutation
+    bb aa
+    bb aa
+    sage: (T * S).is_identity()
+    True
+
+For the manipulation of permutations of iet, there are special types provided by
+this module. All of them can be constructed using the constructor
 iet.Permutation. For the creation of labelled permutations of interval exchange
 transformation::
 
@@ -53,7 +79,9 @@ You can also, create labelled permutations of linear involutions::
     a a b
     b c c
 
-Sometimes it's more easy to deal with reduced permutations::
+By default, the permutations are labelled (it means that the labels are
+important and (a b / b a) differs from (b a / a b)). It sometimes useful to deal
+with reduced permutations for which the order does not import::
 
     sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
     sage: print p
@@ -141,9 +169,12 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from template import PermutationIET, PermutationLI
 
-def _two_lists(a):
+from sage.rings.integer import Integer
+
+
+
+def _two_lists(t):
     r"""
     Try to return the input as a list of two lists
 
@@ -158,6 +189,7 @@ def _two_lists(a):
     TESTS:
 
     ::
+
         sage: from sage.dynamics.interval_exchanges.constructors import _two_lists
         sage: _two_lists(('a1 a2','b1 b2'))
         [['a1', 'a2'], ['b1', 'b2']]
@@ -171,68 +203,64 @@ def _two_lists(a):
         sage: _two_lists('a b')
         Traceback (most recent call last):
         ...
-        ValueError: your chain must contain two lines
+        ValueError: the chain must contain two lines
         sage: _two_lists('a b\nc d\ne f')
         Traceback (most recent call last):
         ...
-        ValueError: your chain must contain two lines
+        ValueError: the chain must contain two lines
         sage: _two_lists(1)
         Traceback (most recent call last):
         ...
         TypeError: argument not accepted
-        sage: _two_lists([1,2,3])
-        Traceback (most recent call last):
-        ...
-        ValueError: your argument can not be split in two parts
     """
-    from sage.combinat.permutation import Permutation
+    from sage.combinat.permutation import Permutation as CombinatPermutation
+    from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
-    res = [None, None]
-
-    if isinstance(a,str):
-        a = a.split('\n')
-        if len(a) != 2:
-            raise ValueError("your chain must contain two lines")
-        else :
-            res[0] = a[0].split()
-            res[1] = a[1].split()
-
-    elif isinstance(a, Permutation):
-        res[0] = range(1,len(a)+1)
-        res[1] = [a[i] for i in range(len(a))]
-
-    elif not hasattr(a,'__len__'):
+    try:
+        len(t)
+    except StandardError:
         raise TypeError("argument not accepted")
 
-    elif len(a) == 0 or len(a) > 2:
-        raise ValueError("your argument can not be split in two parts")
+    if len(t) == 1:
+        if (len(t[0]) == 2 and
+            isinstance(t[0][0], (list,tuple,str)) and
+            isinstance(t[0][1],(list,tuple,str))):
+            t = t[0]
 
-    elif len(a) == 1:
-        a = a[0]
-        if isinstance(a, Permutation):
-            res[0] = range(1,len(a)+1)
-            res[1] = [a[i] for i in range(len(a))]
+        elif isinstance(t,(tuple,list)):
+            t = t[0]
 
-        elif isinstance(a, (list,tuple)):
-            if (len(a) != 2):
-                raise ValueError("your list must contain two objects")
-            for i in range(2):
-                if isinstance(a[i], str):
-                    res[i] = a[i].split()
-                else:
-                    res[i] = list(a[i])
+    if isinstance(t, str):
+        t = t.split('\n')
+        if len(t) != 2:
+            raise ValueError("the chain must contain two lines")
+        return [t[0].split(), t[1].split()]
 
-        else :
-            raise TypeError("argument not accepted")
+    if isinstance(t, CombinatPermutation):
+        return [range(1,len(t)+1),list(t)]
 
-    else :
-        for i in range(2):
-            if isinstance(a[i], str):
-                res[i] = a[i].split()
+    if isinstance(t, PermutationGroupElement):
+        dom = list(t.parent().domain())
+        return [dom,[t(i) for i in dom]]
+
+    if isinstance(t, (tuple,list)):
+        try:
+            t = CombinatPermutation(t)
+            return [range(1,len(t)+1),list(t)]
+        except StandardError:
+            pass
+
+    if len(t) == 2:
+        res = [None,None]
+        for i in 0,1:
+            if isinstance(t[i], str):
+                res[i] = t[i].split()
             else:
-                res[i] = list(a[i])
+                res[i] = list(t[i])
 
-    return res
+        return res
+
+    raise ValueError("Your argument can not be split into two parts")
 
 def Permutation(*args,**kargs):
     r"""
@@ -244,7 +272,7 @@ def Permutation(*args,**kargs):
 
     The combinatoric part of interval exchange transformation can be taken
     independently from its dynamical origin. It has an important link with
-    strata of Abelian differential (see :mod:`~sage.dynamics.interval_exchanges.strata`)
+    strata of Abelian differential (see :mod:`~sage.combinat.iet.strata`)
 
     INPUT:
 
@@ -280,36 +308,57 @@ def Permutation(*args,**kargs):
         sage: iet.Permutation('a b c', 'c b a', reduced = True)
         a b c
         c b a
-        sage: iet.Permutation([0, 1, 2, 3], [1, 3, 0, 2])
+        sage: iet.Permutation([0, 1, 2, 3], [1, 3, 0, 2], reduced=True)
         0 1 2 3
         1 3 0 2
+        sage: iet.Permutation([2,1], reduced=True)
+        1 2
+        2 1
+
+    Managing the alphabet: two labelled permutations with different (ordered)
+    alphabet but with the same labels are different::
+
+        sage: p = iet.Permutation('a b','b a', alphabet='ab')
+        sage: q = iet.Permutation('a b','b a', alphabet='ba')
+        sage: str(p) == str(q)
+        True
+        sage: p == q
+        False
+        sage: p.rauzy_move_matrix('top')
+        [1 0]
+        [1 1]
+        sage: q.rauzy_move_matrix('top')
+        [1 1]
+        [0 1]
+
+    For reduced permutations, the alphabet does not play any role excepted for
+    printing the object::
+
+        sage: p = iet.Permutation('a b c','c b a', reduced=True)
+        sage: q = iet.Permutation([0,1,2],[2,1,0], reduced=True)
+        sage: p == q
+        True
 
     Creation of flipped permutations::
 
         sage: iet.Permutation('a b c', 'c b a', flips=['a','b'])
         -a -b  c
          c -b -a
-        sage: iet.Permutation('a b c', 'c b a', flips=['a'], reduced=True)
-        -a  b  c
-         c  b -a
+        sage: iet.Permutation('a b c', 'c b a', flips='ab', reduced=True)
+        -a -b  c
+         c -b -a
 
-    TESTS:
+    TESTS::
 
-    ::
-
-        sage: p = iet.Permutation('a b c','c b a')
+        sage: p = iet.Permutation(('a b c','c b a'))
         sage: iet.Permutation(p) == p
         True
         sage: iet.Permutation(p, reduced=True) == p.reduced()
         True
 
-    ::
-
         sage: p = iet.Permutation('a','a',flips='a',reduced=True)
         sage: iet.Permutation(p) == p
         True
-
-    ::
 
         sage: p = iet.Permutation('a b c','c b a',flips='a')
         sage: iet.Permutation(p) == p
@@ -317,26 +366,9 @@ def Permutation(*args,**kargs):
         sage: iet.Permutation(p, reduced=True) == p.reduced()
         True
 
-    ::
-
         sage: p = iet.Permutation('a b c','c b a',reduced=True)
         sage: iet.Permutation(p) == p
         True
-
-    TESTS::
-
-        sage: iet.Permutation('a b c','c b a',reduced='badly')
-        Traceback (most recent call last):
-        ...
-        TypeError: reduced must be of type boolean
-        sage: iet.Permutation('a','a',flips='b',reduced=True)
-        Traceback (most recent call last):
-        ...
-        ValueError: flips contains not valid letters
-        sage: iet.Permutation('a b c','c a a',reduced=True)
-        Traceback (most recent call last):
-        ...
-        ValueError: letters must appear once in each interval
     """
     from labelled import LabelledPermutation
     from labelled import LabelledPermutationIET
@@ -351,7 +383,8 @@ def Permutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        reduction = kargs["reduced"]
+        if kargs["reduced"] == True : reduction = True
+        else : reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -365,35 +398,35 @@ def Permutation(*args,**kargs):
         alphabet = kargs['alphabet']
 
     if len(args) == 1:
-        args = args[0]
-        if isinstance(args, LabelledPermutation):
+        a = args[0]
+        if isinstance(a, LabelledPermutation):
             if flips == []:
-                if reduction is None or not reduction:
+                if reduction is None or reduction is False:
                     from copy import copy
-                    return copy(args)
+                    return copy(a)
                 else:
-                    return args.reduced()
+                    return a.reduced()
             else: # conversion not yet implemented
                 reduced = reduction in (None, False)
                 return PermutationIET(
-                    args.list(),
+                    a.list(),
                     reduced=reduced,
                     flips=flips,
                     alphabet=alphabet)
 
-        if isinstance(args, ReducedPermutation):
+        if isinstance(a, ReducedPermutation):
             if flips == []:
-                if reduction is None or reduction:
+                if reduction is None or reduction is True:
                     from copy import copy
-                    return copy(args)
+                    return copy(a)
                 else:  # conversion not yet implemented
                     return PermutationIET(
-                        args.list(),
+                        a.list(),
                         reduced=True)
             else: # conversion not yet implemented
                 reduced = reduction in (None, True)
                 return PermutationIET(
-                    args.list(),
+                    a.list(),
                     reduced=reduced,
                     flips=flips,
                     alphabet=alphabet)
@@ -411,13 +444,13 @@ def Permutation(*args,**kargs):
         if a[0].count(letter) != 1 or a[1].count(letter) != 1:
             raise ValueError("letters must appear once in each interval")
 
-    if reduction :
-        if flips == [] :
+    if reduction == True :
+        if flips == []:
             return ReducedPermutationIET(a, alphabet=alphabet)
         else :
             return FlippedReducedPermutationIET(a, alphabet=alphabet, flips=flips)
     else :
-        if flips == [] :
+        if flips == []:
             return LabelledPermutationIET(a, alphabet=alphabet)
         else :
             return FlippedLabelledPermutationIET(a, alphabet=alphabet, flips=flips)
@@ -473,22 +506,9 @@ def GeneralizedPermutation(*args,**kargs):
         sage: iet.GeneralizedPermutation('a b c a', 'd c d b', flips = ['a','b'])
         -a -b  c -a
          d  c  d -b
-
-    TESTS::
-
-        sage: iet.GeneralizedPermutation('a a b b', 'c c d d', reduced = 'may')
-        Traceback (most recent call last):
-        ...
-        TypeError: reduced must be of type boolean
-        sage: iet.GeneralizedPermutation('a b c a', 'd c d b', flips = ['e','b'])
-        Traceback (most recent call last):
-        ...
-        TypeError: The flip list is not valid
-        sage: iet.GeneralizedPermutation('a b c a', 'd c c b', flips = ['a','b'])
-        Traceback (most recent call last):
-        ...
-        ValueError: Letters must reappear twice
     """
+    from template import FlippedPermutation
+
     from labelled import LabelledPermutation
     from labelled import LabelledPermutationLI
     from labelled import FlippedLabelledPermutationLI
@@ -502,7 +522,8 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        reduction = kargs["reduced"]
+        if kargs["reduced"] == True : reduction = True
+        else : reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -516,10 +537,10 @@ def GeneralizedPermutation(*args,**kargs):
         alphabet = kargs['alphabet']
 
     if len(args) == 1:
-        args = args[0]
-        if isinstance(args, LabelledPermutation):
+        a = args[0]
+        if isinstance(a, LabelledPermutation):
             if flips == []:
-                if reduction is None or not reduction:
+                if reduction is None or reduction is False:
                     from copy import copy
                     return copy(args)
                 else:
@@ -527,24 +548,24 @@ def GeneralizedPermutation(*args,**kargs):
             else: # conversion not yet implemented
                 reduced = reduction in (None, False)
                 return PermutationLI(
-                    args.list(),
+                    a.list(),
                     reduced=reduced,
                     flips=flips,
                     alphabet=alphabet)
 
-        if isinstance(args, ReducedPermutation):
+        if isinstance(a, ReducedPermutation):
             if flips == []:
-                if reduction is None or reduction:
+                if reduction is None or reduction is True:
                     from copy import copy
-                    return copy(args)
+                    return copy(a)
                 else:  # conversion not yet implemented
                     return PermutationLI(
-                        args.list(),
+                        a.list(),
                         reduced=True)
             else: # conversion not yet implemented
                 reduced = reduction in (None, True)
                 return PermutationLI(
-                    args.list(),
+                    a.list(),
                     reduced=reduced,
                     flips=flips,
                     alphabet=alphabet)
@@ -556,7 +577,8 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        reduction = kargs["reduced"]
+        if kargs["reduced"] == True : reduction = True
+        else : reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -577,9 +599,9 @@ def GeneralizedPermutation(*args,**kargs):
 
     for letter in letters :
         if l.count(letter) != 2:
-            raise ValueError("Letters must reappear twice")
+            raise ValueError, "Letters must reappear twice"
 
-    # check existence of admissible length
+    # check exitence of admissible length
     b0 = a[0][:]
     b1 = a[1][:]
     for letter in letters :
@@ -588,30 +610,33 @@ def GeneralizedPermutation(*args,**kargs):
             del b1[b1.index(letter)]
 
     if (b0 == []) and (b1 == []):
-        return Permutation(a,**kargs)
+        return Permutation(a[0],a[1],**kargs)
 
     elif (b0 == []) or (b1 == []):
-        raise ValueError("There is no admissible length")
+        raise ValueError, "There is no admissible length"
 
-    if reduction :
-        if flips == [] :
+    if reduction == True :
+        if flips == []:
             return ReducedPermutationLI(a, alphabet=alphabet)
         else :
             return FlippedReducedPermutationLI(a, alphabet=alphabet, flips=flips)
     else :
-        if flips == [] :
+        if flips == []:
             return LabelledPermutationLI(a, alphabet=alphabet)
         else :
             return FlippedLabelledPermutationLI(a, alphabet=alphabet, flips=flips)
 
-def Permutations_iterator(nintervals=None, irreducible=True,
-                          reduced=False, alphabet=None):
+def Permutations_iterator(
+    nintervals=None,
+    irreducible=True,
+    reduced=False,
+    alphabet=None):
     r"""
     Returns an iterator over permutations.
 
     This iterator allows you to iterate over permutations with given
     constraints. If you want to iterate over permutations coming from a given
-    stratum you have to use the module :mod:`~sage.dynamics.flat_surfaces.strata` and
+    stratum you have to use the module :mod:`~sage.combinat.iet.strata` and
     generate Rauzy diagrams from connected components.
 
     INPUT:
@@ -648,43 +673,32 @@ def Permutations_iterator(nintervals=None, irreducible=True,
         a b c
         c b a
         * * *
-
-    TESTS::
-
-        sage: P = iet.Permutations_iterator(nintervals=None, alphabet=None)
-        Traceback (most recent call last):
-        ...
-        ValueError: You must specify an alphabet or a length
-        sage: P = iet.Permutations_iterator(nintervals=None, alphabet=ZZ)
-        Traceback (most recent call last):
-        ...
-        ValueError: You must specify a length with infinite alphabet
     """
     from labelled import LabelledPermutationsIET_iterator
     from reduced import ReducedPermutationsIET_iterator
-    from sage.combinat.words.alphabet import Alphabet
-    from sage.rings.infinity import Infinity
 
     if nintervals is None:
         if alphabet is None:
-            raise ValueError("You must specify an alphabet or a length")
+            raise ValueError, "You must specify an alphabet or a length"
         else:
             alphabet = Alphabet(alphabet)
             if alphabet.cardinality() is Infinity:
-                raise ValueError("You must specify a length with infinite alphabet")
+                raise ValueError, "You must sepcify a length with infinite alphabet"
             nintervals = alphabet.cardinality()
 
     elif alphabet is None:
-            alphabet = range(1, nintervals+1)
+            alphabet = range(1,nintervals+1)
 
     if reduced:
-        return ReducedPermutationsIET_iterator(nintervals,
-                                               irreducible=irreducible,
-                                               alphabet=alphabet)
+        return ReducedPermutationsIET_iterator(
+            nintervals,
+            irreducible=irreducible,
+            alphabet=alphabet)
     else:
-        return LabelledPermutationsIET_iterator(nintervals,
-                                                irreducible=irreducible,
-                                                alphabet=alphabet)
+        return LabelledPermutationsIET_iterator(
+            nintervals,
+            irreducible=irreducible,
+            alphabet=alphabet)
 
 def RauzyDiagram(*args, **kargs):
     r"""
@@ -764,8 +778,8 @@ def RauzyDiagram(*args, **kargs):
         [2 4 1]
         [2 3 2]
         sage: s = g.orbit_substitution()
-        sage: s
-        WordMorphism: a->acbbc, b->acbbcbbc, c->acbc
+        sage: print s
+        a->acbbc, b->acbbcbbc, c->acbc
         sage: s.incidence_matrix() == m
         True
 
@@ -781,8 +795,8 @@ def RauzyDiagram(*args, **kargs):
         sage: w1 = []
         sage: x = 0
         sage: for i in range(20):
-        ....:  w1.append(T.in_which_interval(x))
-        ....:  x = T(x)
+        ...    w1.append(T.in_which_interval(x))
+        ...    x = T(x)
         sage: w1 = Word(w1)
         sage: w1
         word: acbbcacbcacbbcbbcacb
@@ -801,7 +815,7 @@ def RauzyDiagram(*args, **kargs):
 
     p = GeneralizedPermutation(
         args,
-        reduced= kargs['reduced'],
+        reduced = kargs['reduced'],
         flips = kargs['flips'],
         alphabet = kargs['alphabet'])
 
@@ -827,7 +841,7 @@ def RauzyDiagram(*args, **kargs):
 # def GeneralizedPermutation_iterator():
 #     print "gpi"
 
-def IntervalExchangeTransformation(permutation=None, lengths=None):
+def IntervalExchangeTransformation(permutation=None,lengths=None):
     """
     Constructs an Interval exchange transformation.
 
@@ -886,33 +900,19 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         sage: s = t.rauzy_move(iterations=8)
         sage: s.normalize() == t.normalize()
         True
-
-    TESTS::
-
-        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.123,2])
-        Traceback (most recent call last):
-        ...
-        ValueError: bad number of lengths
-        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,'rho',2])
-        Traceback (most recent call last):
-        ...
-        TypeError: unable to convert x (='rho') into a real number
-        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,-2,2])
-        Traceback (most recent call last):
-        ...
-        ValueError: lengths must be positive
     """
     from iet import IntervalExchangeTransformation as _IET
     from labelled import LabelledPermutationIET
     from template import FlippedPermutation
 
     if isinstance(permutation, FlippedPermutation):
-        raise TypeError("flips are not yet implemented")
-    if isinstance(permutation, LabelledPermutationIET):
+        raise TypeError, "flips are not yet implemented"
+    elif isinstance(permutation, LabelledPermutationIET):
         p = permutation
+    elif isinstance(permutation, tuple):
+        p = Permutation(*permutation)
     else:
-        p = Permutation(permutation,reduced=False)
-
+        p = Permutation(permutation)
 
     if isinstance(lengths, dict):
         l = [0] * len(p)
@@ -923,18 +923,18 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         l = list(lengths)
 
     if len(l) != len(p):
-        raise ValueError("bad number of lengths")
+        raise ValueError, "bad number of lengths"
 
     for x in l:
         try:
             y = float(x)
         except ValueError:
-            raise TypeError("unable to convert x (='%s') into a real number" % (str(x)))
+            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
 
         if y <= 0:
-            raise ValueError("lengths must be positive")
+           raise ValueError, "lengths must be positive"
 
-    return _IET(p, l)
+    return _IET(p,l)
 
 IET = IntervalExchangeTransformation
 
@@ -947,3 +947,5 @@ IET = IntervalExchangeTransformation
 #     pass
 
 # LI = LinearInvolution
+
+

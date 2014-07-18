@@ -795,7 +795,7 @@ class AbelianStratum(SageObject):
         else:
             self._zeroes.sort(reverse=True)
 
-        self._genus = sum(l)/2 + 1
+        self._genus = sum(l) / 2 + 1
 
         self._genus = Integer(self._genus)
 
@@ -888,7 +888,7 @@ class AbelianStratum(SageObject):
             ...
             TypeError: the right member must be a stratum
         """
-        if not isinstance(self, type(other)):
+        if type(self) != type(other):
             raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix == other._marked_separatrix and
@@ -921,7 +921,7 @@ class AbelianStratum(SageObject):
             ...
             TypeError: the right member must be a stratum
         """
-        if not isinstance(self, type(other)):
+        if type(self) != type(other):
             raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix != other._marked_separatrix or
@@ -945,7 +945,7 @@ class AbelianStratum(SageObject):
             sage: a3_out == a3_in
             False
         """
-        if (not isinstance(self, type(other)) or
+        if (type(self) != type(other) or
             self._marked_separatrix != other._marked_separatrix):
             raise TypeError("the other must be a stratum with same marking")
 
@@ -1412,7 +1412,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         if not isinstance(other, CCA):
             raise TypeError("other must be a connected component")
 
-        if isinstance(self, type(other)):
+        if type(self) == type(other):
             if self._parent._zeroes > other._parent._zeroes:
                 return 1
             elif self._parent._zeroes < other._parent._zeroes:
