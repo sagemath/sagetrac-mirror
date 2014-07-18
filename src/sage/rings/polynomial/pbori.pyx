@@ -818,7 +818,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
-                    coefs = other.coefficients()
+                    coefs = other.nonzero_coefficients()
                     for i in range(len(coefs)):
                         if self._base(coefs[i]).is_one():
                             m = self._monom_monoid._one_element
@@ -931,7 +931,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             exponents = other.exponents()
-            coefs = other.coefficients()
+            coefs = other.nonzero_coefficients()
             if PY_TYPE_CHECK(other, Polynomial):
                 # we have a univariate polynomial.
                 # That case had only been implemented

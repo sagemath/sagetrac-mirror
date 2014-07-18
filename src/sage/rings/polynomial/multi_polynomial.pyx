@@ -179,9 +179,10 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return R([self])
 
-    def coefficients(self):
+    def nonzero_coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
+
         The returned list is decreasingly ordered by the term ordering
         of ``self.parent()``, i.e. the list of coefficients matches the list
         of monomials returned by
@@ -191,22 +192,22 @@ cdef class MPolynomial(CommutativeRingElement):
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [23, 6, 1]
             sage: R.<x,y,z> = PolynomialRing(QQ,3,order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [6, 23, 1]
 
         Test the same stuff with base ring `\ZZ` -- different implementation::
 
             sage: R.<x,y,z> = PolynomialRing(ZZ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [23, 6, 1]
             sage: R.<x,y,z> = PolynomialRing(ZZ,3,order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [6, 23, 1]
 
         AUTHOR:
@@ -216,6 +217,8 @@ cdef class MPolynomial(CommutativeRingElement):
         degs = self.exponents()
         d = self.dict()
         return  [ d[i] for i in degs ]
+
+    coefficients = nonzero_coefficients
 
     def truncate(self, var, n):
         """
@@ -830,7 +833,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R = magma(self.parent())
         g = R.gen_names()
         v = []
-        for m, c in zip(self.monomials(), self.coefficients()):
+        for m, c in zip(self.monomials(), self.nonzero_coefficients()):
             v.append('(%s)*%s'%( c._magma_init_(magma),
                                  m._repr_with_changed_varnames(g)))
         if len(v) == 0:
@@ -918,7 +921,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: sum(c*m for c,m in f) == f
             True
         """
-        L = zip(self.coefficients(), self.monomials())
+        L = zip(self.nonzero_coefficients(), self.monomials())
         return iter(L)
 
     def content(self):
@@ -948,7 +951,7 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         from sage.rings.arith import gcd
         from sage.rings.all import ZZ
-        return gcd(self.coefficients())
+        return gcd(self.nonzero_coefficients())
 
     def is_generator(self):
         r"""
@@ -1285,7 +1288,7 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         if self.degree() == -1:
             return self.base_ring().one_element()
-        x = self.coefficients()
+        x = self.nonzero_coefficients()
         try:
             d = x[0].denominator()
             for y in x:

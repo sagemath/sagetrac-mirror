@@ -135,7 +135,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         ALGORITHM: A Laurent polynomial is a unit if and only if its "unit
         part" is a unit.
         """
-        return self.__u.is_term() and self.__u.coefficients()[0].is_unit()
+        return self.__u.is_term() and self.__u.nonzero_coefficients()[0].is_unit()
 
     def is_zero(self):
         """
@@ -391,20 +391,22 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: f.dict()
             {0: x^9, -6: 3*x^3*y^2, 2: 1, -3: 3*x^6*y, -9: y^3}
         """
-        return dict(zip(self.exponents(), self.coefficients()))
+        return dict(zip(self.exponents(), self.nonzero_coefficients()))
 
-    def coefficients(self):
+    def nonzero_coefficients(self):
         """
         Return the nonzero coefficients of ``self``.
+
+        For the list of all coefficients, see :meth:`coeffs`
 
         EXAMPLES::
 
             sage: R.<t> = LaurentPolynomialRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [-5, 1, 1, -10/3]
         """
-        return self.__u.coefficients()
+        return self.__u.nonzero_coefficients()
 
     def exponents(self):
         """
@@ -1523,12 +1525,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f = ~x
             sage: parent(f)
             Multivariate Laurent Polynomial Ring in x, y over Integer Ring
-            sage: parent(f.coefficients()[0]) is parent(f).base_ring()
+            sage: parent(f.nonzero_coefficients()[0]) is parent(f).base_ring()
             True
             sage: g = ~(2*x)
             sage: parent(g)
             Multivariate Laurent Polynomial Ring in x, y over Rational Field
-            sage: parent(g.coefficients()[0]) is parent(g).base_ring()
+            sage: parent(g.nonzero_coefficients()[0]) is parent(g).base_ring()
             True
         """
         cdef dict d = self.dict()
@@ -1786,9 +1788,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             mon._compute_polydict()
         return self.parent()(self._prod.coefficient((<LaurentPolynomial_mpair>mon).dict()))
 
-    def coefficients(self):
+    def nonzero_coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
+
         The returned list is decreasingly ordered by the term ordering
         of ``self.parent()``.
 
@@ -1796,14 +1799,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ,order='degrevlex')
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [4, 3, 2, 1]
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ,order='lex')
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [4, 1, 2, 3]
         """
-        return self._poly.coefficients()
+        return self._poly.nonzero_coefficients()
 
     def variables(self, sort=True):
         """

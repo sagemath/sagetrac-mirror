@@ -460,7 +460,7 @@ cdef class SymmetricReductionStrategy:
             return
         cdef int i = 0
         cdef int l = len(self._lm)
-        cdef int newLength = len(p._p.coefficients())
+        cdef int newLength = len(p._p.nonzero_coefficients())
         p = p/p.lc()
         if (self._min_lm is None) or (p.lm()<self._min_lm):
             self._min_lm = p.lm()
@@ -484,7 +484,7 @@ cdef class SymmetricReductionStrategy:
                 l-=1
                 i-=1
             else:
-                q_len = len(q._p.coefficients())
+                q_len = len(q._p.nonzero_coefficients())
                 if q_len<self._lengths[i]:
                     self._lm.pop(i)
                     self._lengths.pop(i)
@@ -640,7 +640,7 @@ cdef class SymmetricReductionStrategy:
         OUT = p.parent()(0)
         while (p._p!=0):
             if report is not None:
-                sys.stdout.write('T[%d]'%len(p._p.coefficients()))
+                sys.stdout.write('T[%d]'%len(p._p.nonzero_coefficients()))
                 sys.stdout.flush()
             p = self.reduce(p, notail=True, report=report)
             OUT = OUT + p.lt()

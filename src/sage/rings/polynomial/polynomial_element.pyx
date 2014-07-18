@@ -3792,7 +3792,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from sage.groups.generic import order_from_multiple
             return n == order_from_multiple(y, n, n_prime_divs, operation="*")
         else:
-            return R.ideal(self.coefficients())==R.ideal(1)
+            return R.ideal(self.nonzero_coefficients()) == R.ideal(1)
 
     def is_constant(self):
         """
@@ -4331,15 +4331,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return a*self
 
-    def coefficients(self):
-        """
-        Return the coefficients of the monomials appearing in self.
+    def nonzero_coefficients(self):
+        r"""
+        Return the coefficients of the monomials appearing in ``self``.
+
+        For the list of all coefficients, use :meth:`coeffs` instead.
 
         EXAMPLES::
 
             sage: _.<x> = PolynomialRing(ZZ)
             sage: f = x^4+2*x^2+1
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [1, 2, 1]
         """
         zero = self.parent().base_ring().zero_element()
@@ -4459,10 +4461,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def coeffs(self):
         r"""
-        Returns ``self.list()``.
+        Return the list of all coefficients of ``self``, including zeroes.
 
-        (It is potentially slightly faster to use
-        ``self.list()`` directly.)
+        This method calls :meth:`list`. It is potentially slightly
+        faster to use ``self.list()`` directly.
+
+        For the list of nonzero coefficients, use
+        :meth:`nonzero_coefficients` instead.
 
         EXAMPLES::
 
@@ -4472,6 +4477,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [2/17, 5, 0, 10]
         """
         return self.list()
+
+    coefficients = coeffs
 
     def newton_raphson(self, n, x0):
         """
@@ -6368,7 +6375,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.content()
             Ideal (2, 3, 1) of Ring of integers modulo 4
         """
-        return self.base_ring().ideal(self.coefficients())
+        return self.base_ring().ideal(self.nonzero_coefficients())
 
     def norm(self, p):
         r"""

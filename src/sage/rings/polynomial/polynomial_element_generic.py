@@ -125,16 +125,18 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
-    def coefficients(self):
-        """
-        Return the coefficients of the monomials appearing in self.
+    def nonzero_coefficients(self):
+        r"""
+        Return the coefficients of the monomials appearing in ``self``.
+
+        For the list of all coefficients, use :meth:`coeffs` instead.
 
         EXAMPLES::
 
             sage: R.<w> = PolynomialRing(Integers(8), sparse=True)
             sage: f = 5 + w^1997 - w^10000; f
             7*w^10000 + w^1997 + 5
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [5, 1, 7]
         """
         return [c[1] for c in sorted(self.__coeffs.iteritems())]

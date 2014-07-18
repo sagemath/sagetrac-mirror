@@ -4415,7 +4415,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             if _ring.ringtype == 4:
                 P = self._parent.change_ring(RationalField())
                 res = P(self).gcd(P(right))
-                coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
+                coef = sage.rings.integer.GCD_list(self.nonzero_coefficients() + right.nonzero_coefficients())
                 return self._parent(coef*res)
 
             raise NotImplementedError("GCD over rings not implemented.")
@@ -5085,9 +5085,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
 
-    def coefficients(self):
+    def nonzero_coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
+
         The returned list is decreasingly ordered by the term ordering
         of the parent.
 
@@ -5095,12 +5096,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: R.<x,y,z> = PolynomialRing(QQ, order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [23, 6, 1]
 
             sage: R.<x,y,z> = PolynomialRing(QQ, order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
-            sage: f.coefficients()
+            sage: f.nonzero_coefficients()
             [6, 23, 1]
 
         AUTHOR:
@@ -5117,6 +5118,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             coeffs.append(si2sa(p_GetCoeff(p, r), r, base))
             p = pNext(p)
         return coeffs
+
+    coefficients = nonzero_coefficients
 
     def gradient(self):
         """
