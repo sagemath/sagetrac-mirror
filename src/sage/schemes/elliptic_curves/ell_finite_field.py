@@ -764,27 +764,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         INPUT:
 
-
-        -  ``algorithm`` - string (default: 'heuristic'), used
+        -  ``algorithm`` - string (default: ``'heuristic'``), used
            only for point counting over prime fields
 
-            -  ``'heuristic'`` - use a heuristic to choose between
-               ``'pari'`` and ``'bsgs'``.
+           -  ``'heuristic'`` - use a heuristic to choose between
+              ``'pari'`` and ``'bsgs'``
 
-            - ``'pari'`` - use the baby step giant step or SEA methods
-               as implemented in PARI via the C-library function ellap.
+           - ``'pari'`` - use the baby step giant step or SEA methods
+              as implemented in PARI via the C-library function ellap
 
-            -  ``'bsgs'`` - use the baby step giant step method as
-               implemented in Sage, with the Cremona-Sutherland version
-               of Mestre's trick.
+           -  ``'bsgs'`` - use the baby step giant step method as
+              implemented in Sage, with the Cremona-Sutherland version
+              of Mestre's trick
 
-            - ``'all'`` - (over prime fields only) compute cardinality
-              with all of PARI and bsgs; return result if they agree
-              or raise a RuntimeError if they do not.
+           - ``'all'`` - (over prime fields only) compute cardinality
+             with all of PARI and bsgs; return result if they agree
+             or raise a ``RuntimeError`` if they do not
 
         -  ``extension_degree`` - int (default: 1); if the
            base field is `k=GF(p^n)` and extension_degree=d, returns
-           the cardinality of `E(GF(p^{n d}))`.
+           the cardinality of `E(GF(p^{n d}))`
 
 
         OUTPUT: an integer
@@ -796,7 +795,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         curve with the same j-invariant over the field GF(p)(j), then
         lifted to the base_field, and finally account is taken of twists.
 
-        For j=0 and j=1728 special formulas are used instead.
+        For `j = 0` and `j = 1728` special formulas are used instead.
 
         EXAMPLES::
 
@@ -847,6 +846,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             ...
             ValueError: Algorithm is not known
         """
+        if algorithm == 'sea':
+            algorithm = 'pari'  # purely for backwards compatibility
+        if algorithm not in ['heuristic', 'pari', 'bsgs', 'all']:
+            raise ValueError("Algorithm is not known")
+
         if extension_degree>1:
             # A recursive call to cardinality() with
             # extension_degree=1, which will cache the cardinality, is
@@ -888,8 +892,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 algorithm = 'pari'
             if algorithm == 'pari':
                 N = self.cardinality_pari()
-            elif algorithm == 'sea':
-                N = self.cardinality_pari()  # purely for backwards compatibility
             elif algorithm == 'bsgs':
                 N = self.cardinality_bsgs()
             elif algorithm == 'all':
@@ -899,8 +901,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     N = N1
                 else:
                     raise RuntimeError("BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2))
-            else:
-                raise ValueError("Algorithm is not known")
             self._order = Integer(N)
             return self._order
 
