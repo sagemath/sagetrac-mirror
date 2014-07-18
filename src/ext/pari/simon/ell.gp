@@ -84,6 +84,11 @@
 
 */
 
+
+nf_scalar_or_multable_to_alg(nf, z) = {
+  if (type(z) == "t_MAT", nfbasistoalg(nf, z[,1]), z);
+}
+
 {
 \\
 \\ Usual global variables
@@ -505,7 +510,7 @@ if( DEBUGLEVEL_ell >= 5, print("     end of nfissquaremodp"));
 if( DEBUGLEVEL_ell >= 5, print("     end of nfissquaremodp"));
     return(0));
   if( valap,
-    zlog = ideallog(nf,a*(nfbasistoalg(nf,p[5])/p.p)^valap,zinit)
+    zlog = ideallog(nf,a*(nf_scalar_or_multable_to_alg(nf,p[5])/p.p)^valap,zinit)
   ,
     zlog = ideallog(nf,a,zinit));
   for( i = 1, #zinit[2][2],
@@ -533,7 +538,7 @@ if( DEBUGLEVEL_ell >= 5, print("     end of nfissquaremodpq"));
 if( DEBUGLEVEL_ell >= 5, print("     end of nfissquaremodpq"));
     return(0));
   zinit = idealstar(nf,idealpow(nf,p,q-vala),2);
-  zlog = ideallog(nf,a*nfbasistoalg(nf,p[5]/2)^vala,zinit);
+  zlog = ideallog(nf,a*nf_scalar_or_multable_to_alg(nf,p[5]/2)^vala,zinit);
   for( i = 1, #zinit[2][2],
     if( !(zinit[2][2][i]%2) && (zlog[i]%2),
 if( DEBUGLEVEL_ell >= 5, print("     end of nfissquaremodpq"));
@@ -556,7 +561,7 @@ if( DEBUGLEVEL_ell >= 5, print("     end of nfsqrtmodpq"));
     return(0));
 if( f%2, error("nfsqrtmodpq: a is not a square, odd valuation"));
   a = nfalgtobasis(nf,a);
-  if( f, aaa = nfeltpow(nf,nfeltdiv(nf,a,p[5]/p.p),f), aaa = a);
+  if( f, aaa = nfeltpow(nf,nfeltdiv(nf,a,nf_scalar_or_multable_to_alg(nf,p[5]/p.p)),f), aaa = a);
   p_hnf = idealhnf(nf,p);
   p_ini = nfmodprinit(nf,p);
 if( DEBUGLEVEL_ell >= 5, print("     p_hnf = ",p_hnf));
@@ -680,7 +685,7 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
     if( q > 2*v,
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(-1));
-    if( nfissquaremodpq(nf,gx*nfbasistoalg(nf,p[5]/2)^lambda,p,q),
+    if( nfissquaremodpq(nf,gx*nf_scalar_or_multable_to_alg(nf,p[5]/2)^lambda,p,q),
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(1))
   ,
@@ -694,7 +699,7 @@ if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
     if( q > 2*v,
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(-1));
-    if( nfissquaremodpq(nf,gx*nfbasistoalg(nf,p[5]/2)^lambda,p,q),
+    if( nfissquaremodpq(nf,gx*nf_scalar_or_multable_to_alg(nf,p[5]/2)^lambda,p,q),
 if( DEBUGLEVEL_ell >= 5, print("fin de nflemma7"));
       return(0))
   );
@@ -772,7 +777,7 @@ if( DEBUGLEVEL_ell >= 4, print("    end of nfqp_solublebig"));
   cont = idealval(nf,polcoeff(pol,0),p);
   for( i = 1, deg,
     if( cont, cont = min(cont,idealval(nf,polcoeff(pol,i),p))));
-  if( cont, pi = nfbasistoalg(nf,p[5]/p.p));
+  if( cont, pi = nf_scalar_or_multable_to_alg(nf,p[5]/p.p));
   if( cont > 1, pol *= pi^(2*(cont\2)));
 
 \\ On essaye des valeurs de x au hasard
@@ -984,7 +989,7 @@ if( DEBUGLEVEL_ell >= 2, print("  Algorithm of 2-descent via isogenies"));
 if( DEBUGLEVEL_ell >= 3, print("   starting bnfell2descent_viaisog"));
   if( variable(bnf.pol) != 'y,
     error("bnfell2descent_viaisog: the variable of the number field must be y"));
-  ell = ellinit(Mod(lift(ell),bnf.pol),1);
+  ell = ellinit(Mod(lift(ell),bnf.pol));
 
   if( ell.disc == 0,
     error("bnfell2descent_viaisog: singular curve !!"));
@@ -1231,7 +1236,7 @@ if( DEBUGLEVEL_ell >= 4, print("    bbbnf.clgp = ",bbbnf.clgp));
   SL = idealfactor(bbbnf,SL1)[,1]~;
   sunL = bnfsunit(bbbnf,SL);
   fondsunL = concat(bbbnf.futu,vector(#sunL[1],i,nfbasistoalg(bbbnf,sunL[1][i])));
-  normfondsunL = norm(rnfeltabstorel( rrrnf,fondsunL));
+  normfondsunL = vector(#fondsunL, i, norm(rnfeltabstorel(rrrnf,fondsunL[i])));
   SK = idealfactor(bnf,idealnorm(bbbnf,SL1))[,1]~;
   sunK = bnfsunit(bnf,SK);
   fondsunK = concat(bnf.futu,vector(#sunK[1],i,nfbasistoalg(bnf,sunK[1][i])));
@@ -1500,7 +1505,7 @@ if( DEBUGLEVEL_ell >= 4, print("    starting bnfell2descent_gen"));
   nf = bnf.nf;
   unnf = Mod(1,nf.pol);
   ellnf = ell*unnf;
-  if( #ellnf <= 5, ellnf = ellinit(ellnf,1));
+  if( #ellnf <= 5, ellnf = ellinit(ellnf));
 
   A = ellnf.a2; if( DEBUGLEVEL_ell >= 2, print("  A = ",A));
   B = ellnf.a4; if( DEBUGLEVEL_ell >= 2, print("  B = ",B));
@@ -1887,7 +1892,8 @@ if( DEBUGLEVEL_ell >= 4, print("    end of bnfell2descent_gen"));
 local(urst,urst1,den,factden,eqtheta,rnfeq,bbnf,ext,rang,f);
 
 if( DEBUGLEVEL_ell >= 3, print("   starting bnfellrank"));
-  if( #ell <= 5, ell = ellinit(ell,1));
+  if( #ell < 5, ell = ellinit(ell));
+  ell = vector(5, i, ell[i]);
 
 \\ removes the coefficients a1 and a3
   urst = [1,0,0,0];
