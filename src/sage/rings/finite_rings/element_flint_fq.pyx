@@ -20,13 +20,18 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/flint/fmpz.pxi"
 include "sage/libs/flint/fmpz_poly.pxi"
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
 
 import sage.rings.integer
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_flint_fq cimport FiniteField_flint_fq
+from sage.libs.pari.pari_instance cimport PariInstance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.rings.finite_rings.element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
 from sage.interfaces.gap import is_GapElement
@@ -106,6 +111,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         self._cparent = (<FiniteField_flint_fq>parent)._ctx
         # cannot do that in cinit as we need cparent
         fq_init(self.val, self._cparent)
+        self.initialized = 1
         self.construct_from(x)
 
     # Cython should automatically set the C fields to 0
@@ -117,7 +123,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         """
         Cython deconstructor.
         """
-        if self.val:
+        if self.initialized:
             fq_clear(self.val, self._cparent)
 
     cdef FiniteFieldElement_flint_fq _new(FiniteFieldElement_flint_fq self):
@@ -129,6 +135,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         x._parent = self._parent
         x._cparent = self._cparent
         fq_init(x.val, x._cparent)
+        self.initialized = 1
         return x
 
     cdef void set_from_fq(FiniteFieldElement_flint_fq self, fq_t val) except *:
@@ -142,6 +149,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         Initialise ``self`` from the Sage object `x`.
         """
         cdef Integer x_INT
+        cdef GEN x_GEN
         cdef fmpz_t x_flint
 
         if isinstance(x, FiniteFieldElement_flint_fq):
@@ -171,12 +179,53 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
         elif x is None:
             fq_zero(self.val, self._cparent)
 
-        elif isinstance(x, FiniteFieldElement_pari_ffelt):
-            print "groumpf"
-            raise NotImplementedError
+        #elif isinstance(x, FiniteFieldElement_base):
+        #    raise NotImplementedError
 
         elif isinstance(x, pari_gen):
-            raise NotImplementedError
+            x_GEN = (<pari_gen>x).g
+
+            pari_catch_sig_on()
+            if gequal0(x_GEN):
+                fq_zero(self.val, self._cparent)
+                pari_catch_sig_off()
+            elif gequal1(x_GEN):
+                fq_one(self.val, self._cparent)
+                pari_catch_sig_off()
+            else:
+                t = typ(x_GEN)
+                p = self._parent.characteristic()
+                f = self._parent.degree()
+                R = ZZ.polynomial_ring()
+                modulus = R(self._parent.modulus())
+                if t == t_FFELT:
+                    # The following calls pari_catch_sig_off()
+                    x = (<PariInstance>pari).new_gen(FF_p(x_GEN))
+                    pari_catch_sig_on()
+                    y = FF_f(x_GEN)
+                    pari_catch_sig_on()
+                    z = (<PariInstance>pari).new_gen(FF_mod(x_GEN))
+                    if x == p and y == f and z == modulus:
+                        # The following calls pari_catch_sig_off()
+                        x = (<PariInstance>pari).new_gen(FF_to_FpXQ(x_GEN))
+                        self.construct_from(R(x))
+                elif t == t_INT:
+                    pari_catch_sig_off()
+                    self.construct_from(Integer(x))
+                elif t == t_INTMOD:
+                    # The following calls pari_catch_sig_off()
+                    x = (<PariInstance>pari).new_gen(gel(x_GEN, 1))
+                    if x % p == 0:
+                        self.construct_from(Integer(x))
+                elif t == t_FRAC:
+                    # The following calls pari_catch_sig_off()
+                    x = (<PariInstance>pari).new_gen(gel(x_GEN, 2))
+                    if x % p != 0:
+                        self.construct_from(Rational(x))
+                else:
+                    pari_catch_sig_off()
+                    raise TypeError("no coercion defined")
+
 
         elif (isinstance(x, FreeModuleElement)
               and x.parent() is self._parent.vector_space()):
@@ -760,7 +809,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: b._pari_()
             a^2 + 2*a + 1
         """
-        raise NotImplementedError
+        return pari(self._pari_init_(var))
 
     def _pari_init_(self):
         """

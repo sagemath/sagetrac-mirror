@@ -1139,6 +1139,7 @@ cdef extern from 'pari/pari.h':
     GEN     FF_conjvec(GEN x)
     GEN     FF_div(GEN a, GEN b)
     int     FF_equal(GEN a, GEN b)
+    long    FF_f(GEN a)
     GEN     FF_inv(GEN a)
     long    FF_issquare(GEN x)
     long    FF_issquareall(GEN x, GEN *pt)
