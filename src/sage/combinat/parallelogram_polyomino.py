@@ -1,6 +1,6 @@
 r"""
 The Parallelogram Polyominoes 
-=====================
+=============================
 
 The goal of this module is to give some tools to manipulate the 
 parallelogram polyominoes.
@@ -14,7 +14,6 @@ parallelogram polyominoes.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.set_factories import (
@@ -44,14 +43,14 @@ default_tikz_options = dict(
     , translation=[0,0], rotation=0
 )
 
-ParallelogramPolyominoesOptions=GlobalOptions(
-    name = 'Parallelogram Polyominoes',
+ParallelogramPolyominoesOptions = GlobalOptions(
+    name='Parallelogram Polyominoes',
     doc=r"""
     """,
     end_doc=r"""
     """,
     tikz_options=dict(
-        default= default_tikz_options,
+        default=default_tikz_options,
         description='the tikz options',
         checker=lambda x: Set(x.keys()).issubset(
             Set( [
@@ -86,9 +85,10 @@ ParallelogramPolyominoesOptions=GlobalOptions(
     )
 )
 
-class ParallelogramPolyomino( ClonableList ):
+
+class ParallelogramPolyomino(ClonableList):
     r"""
-    The class of Parallelogram Polyomino
+    The class of Parallelogram Polyominoes
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -104,9 +104,9 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return ParallelogramPolyominoes()
 
-    def check( self ):
+    def check(self):
         r"""
-        This method raise an error if the internal data of the class doesn't
+        This method raises an error if the internal data of the class does not
         represent a parallelogram polyomino.
 
         EXAMPLES::
@@ -159,25 +159,25 @@ class ParallelogramPolyomino( ClonableList ):
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()
-        if( lower_path==[0] and upper_path==[0] ):
-            raise ValueError, "A Parallelogam Polyomino can have the path [[0],[0]]."
-        if( lower_path==[] or upper_path==[] ):
-            raise ValueError, "A Parallelogam Polyomino can have lower or upper path equals to []."
+        if lower_path == [0] and upper_path == [0]:
+            raise ValueError("A Parallelogam Polyomino can have the path [[0],[0]].")
+        if lower_path == [] or upper_path == []:
+            raise ValueError("A Parallelogam Polyomino can have lower or upper path equals to [].")
         if len(upper_path) != len(lower_path):
-            raise ValueError, "Lower upper paht have different size ( %s != %s )."%(
+            raise ValueError("Lower upper paht have different size ( %s != %s )."%(
                 len(upper_path), len(lower_path)
-            )
-        p_up = [0,0]
-        p_down = [0,0]
+            ))
+        p_up = [0, 0]
+        p_down = [0, 0]
         for i in range( len(upper_path)-1 ):
             p_up[ 1-upper_path[i] ] += 1
             p_down[ 1-lower_path[i] ] += 1
             if( p_up[0] <= p_down[0] or p_down[1] <= p_up[1] ):
-                raise ValueError, "Lower and upper path are crossing."
+                raise ValueError("Lower and upper path are crossing.")
         p_up[ 1-upper_path[-1] ] += 1
         p_down[ 1-lower_path[-1] ] += 1
         if( p_up[0] != p_down[0] or p_up[1] != p_down[1] ):
-            raise ValueError, "The two paths don't join together at the end."
+            raise ValueError("The two paths don't join together at the end.")
 
     def __hash__(self):
         r"""
@@ -202,7 +202,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return hash( tuple( map( tuple, list(self) ) ) )
 
-    def __copy__( self ):
+    def __copy__(self):
         r"""
         Copy a parallelogram Polyomino
 
@@ -246,14 +246,14 @@ class ParallelogramPolyomino( ClonableList ):
             sage: pp
             [[1], [1]]
         """
-        ClonableList.__init__(self, parent, value )
+        ClonableList.__init__(self, parent, value)
         if check:
-            if not isinstance( value, (list, tuple) ) :
-                raise ValueError, "Value %s must be a list or a tuple."%(value)
+            if not isinstance(value, (list, tuple)):
+                raise ValueError("Value %s must be a list or a tuple." % (value))
             self.check()
         self._options = None
 
-    def _to_dyck_delest_viennot( self ):
+    def _to_dyck_delest_viennot(self):
         r"""
         Convert to a Dyck word using the Delest-Viennot bijection.
 
@@ -270,15 +270,15 @@ class ParallelogramPolyomino( ClonableList ):
         dyck = []
         upper_path = self.upper_path()
         lower_path = self.lower_path()
-        dyck.append( 1 - lower_path[0] )
-        for i in range( 1, size ):
-            dyck.append( upper_path[i] )
-            dyck.append( 1 - lower_path[i] )
-        dyck.append( upper_path[ size ] )
-        return DyckWord( dyck )
+        dyck.append(1 - lower_path[0])
+        for i in range(1, size):
+            dyck.append(upper_path[i])
+            dyck.append(1 - lower_path[i])
+        dyck.append(upper_path[size])
+        return DyckWord(dyck)
 
     @combinatorial_map(name = "To Dyck word")
-    def to_dyck_word( self, bijection=None):
+    def to_dyck_word(self, bijection=None):
         r"""
         Convert to a Dyck word.
  
@@ -300,7 +300,6 @@ class ParallelogramPolyomino( ClonableList ):
         if bijection is None or bijection == 'Delest-Viennot':
             return self._to_dyck_delest_viennot( )
 
-
     def _to_binary_tree_Aval_Boussicault( self, position=[0,0] ):
         r"""
         Convert to a binary tree using the Aval-Boussicault algorithm.
@@ -308,7 +307,7 @@ class ParallelogramPolyomino( ClonableList ):
         Ref. : 
         J.C Aval, A. Boussicault, M. Bouvel, M. Silimbani, 
         "Combinatorics of non-ambiguous trees", 
-        arXiv:1305.3716
+        :arxiv:`1305.3716`
 
         INPUT:
         
@@ -401,10 +400,10 @@ class ParallelogramPolyomino( ClonableList ):
         if bijection is None or bijection == 'Aval-Boussicault':
             return self._to_binary_tree_Aval_Boussicault( [0,0] )
 
-    def _to_ordered_tree_via_dyck( self ):
+    def _to_ordered_tree_via_dyck(self):
         return self._to_dyck_delest_viennot( ).to_ordered_tree()
 
-    def _to_ordered_tree_Bou_Socci( self ):
+    def _to_ordered_tree_Bou_Socci(self):
         r"""
         Return the ordered tree using the Boussicault-Socci bijection.
 
@@ -482,7 +481,7 @@ class ParallelogramPolyomino( ClonableList ):
         if bijection == 'via dyck and Delest-Viennot':
             return self._to_ordered_tree_via_dyck( )
 
-    def get_options( self ):
+    def get_options(self):
         r"""
         Return all the opitons of the object.
 
@@ -529,7 +528,7 @@ class ParallelogramPolyomino( ClonableList ):
             self._options = deepcopy( self.get_options() )
         self._options( *get_value, **set_value )
 
-    def upper_path( self ):
+    def upper_path(self):
         r"""
         Get the upper path of the parallelogram polyomino
         
@@ -543,7 +542,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return list( ClonableList.__getitem__( self, 1 ) )
 
-    def lower_path( self ):
+    def lower_path(self):
         r"""
         Get the lower path of the parallelogram polyomino
         
@@ -567,19 +566,19 @@ class ParallelogramPolyomino( ClonableList ):
                 res.append( h )
         return res
 
-    def upper_heights( self ):
+    def upper_heights(self):
         return self._path_heights( self.upper_path(), 0 )
 
-    def lower_heights( self ):
+    def lower_heights(self):
         return self._path_heights( self.lower_path(), 0 )
 
-    def upper_widths( self ):
+    def upper_widths(self):
         return self._path_heights( self.upper_path(), 1 )
 
-    def lower_widths( self ):
+    def lower_widths(self):
         return self._path_heights( self.lower_path(), 1 )
 
-    def widths( self ):
+    def widths(self):
         r"""
         This method return a list of the withds of the parallelogram 
         polyomino : the parallelogram polyomino is splited row by row and the
@@ -608,7 +607,7 @@ class ParallelogramPolyomino( ClonableList ):
             widths.append( uw[i] - lw[i] )
         return widths
 
-    def heights( self ):
+    def heights(self):
         r"""
         This method return a list of heights of the parallelogram 
         polyomino : the parallelogram polyomino is splited column by column and
@@ -637,7 +636,7 @@ class ParallelogramPolyomino( ClonableList ):
             heights.append( lh[i] - uh[i] )
         return heights
 
-    def width( self ):
+    def width(self):
         r"""
         Return the width of the parallelogram polyomino.
 
@@ -665,7 +664,7 @@ class ParallelogramPolyomino( ClonableList ):
             return 1
         return self.upper_widths()[-1]
 
-    def height( self ):
+    def height(self):
         r"""
         Return the height of the parallelogram polyomino.
 
@@ -694,7 +693,7 @@ class ParallelogramPolyomino( ClonableList ):
         return self.lower_heights()[-1]
 
     @cached_method
-    def get_array( self ):
+    def get_array(self):
         r"""
         Return an array of 0 and 1 such that the represent the boxes of
         the parallelogram polyomino
@@ -747,11 +746,11 @@ class ParallelogramPolyomino( ClonableList ):
             ):
                 return self.polyomino.get_array()[ self.row ][ column ]
             return 0
-        def is_inside( self ):
+        def is_inside(self):
             return 0 <= self.row and self.row < self.polyomino.height()
-        def is_outside( self ):
+        def is_outside(self):
             return not( self.is_inside() )
-        def __repr__( self ):
+        def __repr__(self):
             if self.is_outside():
                 return "The (outside) row %s of the parallelogram"%(self.row)
             else:
@@ -931,7 +930,7 @@ class ParallelogramPolyomino( ClonableList ):
             result += (1+(int(i/2)))*path[i]
         return result
 
-    def area( self ):
+    def area(self):
         r"""
         Returns the are of the parallelogram polyomino.
         
@@ -978,7 +977,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return self.get_options().dispatch(self, '_repr_', 'display')
 
-    def _repr_list( self ):
+    def _repr_list(self):
         r"""
         Return a string representation with list style.
 
@@ -991,7 +990,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return ClonableList._repr_(self)
 
-    def _repr_drawing( self ):
+    def _repr_drawing(self):
         r"""
         Return a string representing a drawing od the parallelogram polyomino.
 
@@ -1004,10 +1003,10 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return str( matrix( self.get_array() ) )
 
-    def get_tikz_options( self ):
+    def get_tikz_options(self):
         return self.get_options()['tikz_options']
 
-    def _to_tikz_diagram( self ):
+    def _to_tikz_diagram(self):
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
         grid_height = self.height() + 1
@@ -1137,7 +1136,7 @@ class ParallelogramPolyomino( ClonableList ):
                 res += draw_bounce( 0, tikz_options['color_bounce_0'] )
         return res
 
-    def _to_tikz_tree( self ):
+    def _to_tikz_tree(self):
         res = ""
         tikz_options = self.get_tikz_options()
         if self.size() == 0:
@@ -1218,7 +1217,7 @@ class ParallelogramPolyomino( ClonableList ):
         return self.get_path_in_pair_of_tree_from_box( pos, 1 )
 
 
-    def get_nodes( self ):
+    def get_nodes(self):
         result = []
         for h in range( self.height() ):
             result.append( self.get_node_position_at_row( h ) )
@@ -1226,7 +1225,7 @@ class ParallelogramPolyomino( ClonableList ):
             result.append( self.get_node_position_at_line( w ) )
         return result
 
-    def get_right_nodes( self ):
+    def get_right_nodes(self):
         result = []
         for h in range( self.height() ):
             path2 = self.get_path_in_pair_of_tree_from_row( h )
@@ -1238,7 +1237,7 @@ class ParallelogramPolyomino( ClonableList ):
                 result.append( self.get_node_position_at_line( w ) )
         return result
 
-    def get_left_nodes( self ):
+    def get_left_nodes(self):
         result = []
         for h in range( self.height() ):
             path2 = self.get_path_in_pair_of_tree_from_row( h )
@@ -1251,7 +1250,7 @@ class ParallelogramPolyomino( ClonableList ):
         return result
 
 
-    def to_tikz( self ):
+    def to_tikz(self):
         r"""
         Return the tikz code of the parallelogram polyomino.
 
@@ -1301,7 +1300,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return [ self.height(), self.width() ]
 
-    def size( self ):
+    def size(self):
         r"""
         Returns the size of the parallelogram polyomino.
         
@@ -1336,7 +1335,7 @@ class ParallelogramPolyomino( ClonableList ):
         """
         return self.get_options().dispatch(self, '_latex_', 'latex')
 
-    def _latex_drawing( self ):
+    def _latex_drawing(self):
         r"""
         Return a LaTeX version of ``self`` in a drawing style.
         """
@@ -1347,11 +1346,11 @@ class ParallelogramPolyomino( ClonableList ):
         res += "\n\\end{tikzpicture}"
         return res
 
-    def _latex_list( self ):
+    def _latex_list(self):
         r"""
         Return a LaTeX version of ``self`` in a list style.
         """
-        return "\\[%s\\]"%(self._repr_list())
+        return "\\[%s\\]" % self._repr_list()
         NotImplemented
 
 
@@ -1369,7 +1368,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
             return ParallelogramPolyominoes_size(size, policy)
         if size is None:
             return ParallelogramPolyominoes_all(policy)
-        raise ValueError, "Invalide argument for Tre-like tableaux Factory."
+        raise ValueError("Invalid argument for Tree-like tableaux Factory.")
 
     def add_constraints(self, cons, (args, opts)):
         r"""
@@ -1422,11 +1421,11 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
         r"""
         """
         if el.size() != self.size():
-            raise ValueError, "The parallelogram polyomino have a Wrong size : %s"%(el.size())
+            raise ValueError("The parallelogram polyomino have a Wrong size : %s"%(el.size()))
 
-    def cardinality( self ):
+    def cardinality(self):
         r"""
-        Return the number of parallelogram polyomino.
+        Return the number of parallelogram polyominoes.
 
         EXAMPLES::
 
@@ -1451,13 +1450,14 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
             ....: ] )
             True
         """
-        return catalan_number( self.size() )
+        return catalan_number(self.size())
 
     def __iter__(self):
         r"""
         Rerturn a parallelogram polyomino generator.
         
         EXAMPLES::
+
             sage: len( list( ParallelogramPolyominoes(3) ) ) == 5
             True
             sage: all( [ 
@@ -1472,10 +1472,10 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
                 dyck
             )
 
-    def get_options( self ):
+    def get_options(self):
         return self.global_options
 
-    def size( self ):
+    def size(self):
         r"""
         Return the size of the parallelogram polyominoes generated by this
         parent.
@@ -1496,6 +1496,7 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
 
     global_options = ParallelogramPolyominoesOptions
 
+
 class bijections_parallelogram_polyominoes:
     @staticmethod
     def _dyck_to_pp_delest_viennot( dyck ):
@@ -1511,6 +1512,7 @@ class bijections_parallelogram_polyominoes:
     def dyck_to_parallelogram_polyomino( dyck, bijection=None ):
         if bijection is None or bijection == 'Delest-Viennot':
             return bijections_parallelogram_polyominoes._dyck_to_pp_delest_viennot( dyck )
+
 
 class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     r"""
@@ -1561,7 +1563,8 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
 
     def check_element(self, el, check):
         r"""
-        Check is a given element `el` is in the set of parallelogram polyominoes.
+        Check is a given element `el` is in the set of parallelogram
+        polyominoes.
 
         EXAMPLES::
 
@@ -1571,9 +1574,10 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
         """
         pass
 
-    def get_options( self ):
+    def get_options(self):
         r"""
-        Returns all the aptions associated with the set of parallelogram polyominoes.
+        Returns all the aptions associated with the set of
+        parallelogram polyominoes.
         
         EXAMPLES::
 
