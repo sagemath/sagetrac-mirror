@@ -80,10 +80,10 @@ Sage的 ``sigma(n,k)`` 函数求 ``n`` 的所有因子的 :math:`k`
 
     sage: n = 2005
     sage: for i in range(1000):
-    ...       n = 3*odd_part(n) + 1
-    ...       if odd_part(n)==1:
-    ...           print i
-    ...           break
+    ....:     n = 3*odd_part(n) + 1
+    ....:     if odd_part(n)==1:
+    ....:         print i
+    ....:         break
     38
 
 最后我们展示中国剩余定理。
@@ -91,7 +91,7 @@ Sage的 ``sigma(n,k)`` 函数求 ``n`` 的所有因子的 :math:`k`
 ::
 
     sage: x = crt(2, 1, 3, 5); x   
-    -4
+    11
     sage: x % 3  # x mod 3 = 2
     2
     sage: x % 5  # x mod 5 = 1
@@ -104,8 +104,8 @@ Sage的 ``sigma(n,k)`` 函数求 ``n`` 的所有因子的 :math:`k`
     [1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, 1]
     sage: n = 10000; sum([moebius(m) for m in range(1,n)])
     -23
-    sage: list(partitions(4))
-    [(1, 1, 1, 1), (1, 1, 2), (2, 2), (1, 3), (4,)]
+    sage: list(Partitions(4))
+    [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
 :math:`p`-adic 数
 ------------------------
@@ -153,11 +153,11 @@ Google group)上向专家们询问相关细节。
     Univariate Quotient Polynomial Ring in a over Rational Field with modulus 
     x^3 + x^2 - 2*x + 8
     sage: K.units()
-    [3*a^2 + 13*a + 13]
+    (3*a^2 + 13*a + 13,)
     sage: K.discriminant()
     -503
     sage: K.class_group()
-    Class group of order 1 with structure  of Number Field in a with 
-    defining polynomial x^3 + x^2 - 2*x + 8
+    Class group of order 1 of Number Field in a with defining polynomial
+    x^3 + x^2 - 2*x + 8
     sage: K.class_number()
     1

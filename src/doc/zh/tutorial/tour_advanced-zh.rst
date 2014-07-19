@@ -35,13 +35,13 @@
     sage: V.irreducible_components()
     [
     Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-      y - 1
+      y - 1,
       x,
     Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-      y
+      y,
       x - 1,
     Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-      x + y + 2
+      x + y + 2,
       2*y^2 + 4*y + 3
     ]
 
@@ -59,14 +59,7 @@ Sage可以计算投影3空间中三次挠线的环面理想。
     Ideal (b^2 - a*c, c^2 - b*d, -b*c + a*d) of Multivariate Polynomial Ring
     in a, b, c, d over Rational Field
     sage: F.reduced_groebner_bases ()
-    [[-c^2 + b*d, -b*c + a*d, -b^2 + a*c],
-     [c^2 - b*d, -b*c + a*d, -b^2 + a*c],
-     [c^2 - b*d, b*c - a*d, -b^2 + a*c, -b^3 + a^2*d],
-     [c^2 - b*d, b*c - a*d, b^3 - a^2*d, -b^2 + a*c],
-     [c^2 - b*d, b*c - a*d, b^2 - a*c],
-     [-c^2 + b*d, b^2 - a*c, -b*c + a*d],
-     [-c^2 + b*d, b*c - a*d, b^2 - a*c, -c^3 + a*d^2],
-     [c^3 - a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c]]
+    [[-c^2 + b*d, -b*c + a*d, -b^2 + a*c], [-c^2 + b*d, b^2 - a*c, -b*c + a*d], [-c^2 + b*d, b*c - a*d, b^2 - a*c, -c^3 + a*d^2], [c^3 - a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c], [c^2 - b*d, -b*c + a*d, -b^2 + a*c], [c^2 - b*d, b*c - a*d, -b^2 + a*c, -b^3 + a^2*d], [c^2 - b*d, b*c - a*d, b^3 - a^2*d, -b^2 + a*c], [c^2 - b*d, b*c - a*d, b^2 - a*c]]
     sage: F.polyhedralfan()
     Polyhedral fan in 4 dimensions of dimension 4
 
@@ -275,11 +268,9 @@ with :math:`\gcd(N,x)>1` to 0.
 
     sage: G = DirichletGroup(21)
     sage: list(G)
-    [[1, 1], [-1, 1], [1, zeta6], [-1, zeta6], [1, zeta6 - 1], [-1, zeta6 - 1], 
-     [1, -1], [-1, -1], [1, -zeta6], [-1, -zeta6], [1, -zeta6 + 1], 
-     [-1, -zeta6 + 1]]
+    [Dirichlet character modulo 21 of conductor 1 mapping 8 |--> 1, 10 |--> 1, Dirichlet character modulo 21 of conductor 3 mapping 8 |--> -1, 10 |--> 1, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> zeta6, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6 - 1, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> zeta6 - 1, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -1, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -1, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -zeta6, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -zeta6, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -zeta6 + 1, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -zeta6 + 1]
     sage: G.gens()
-    ([-1, 1], [1, zeta6])
+    (Dirichlet character modulo 21 of conductor 3 mapping 8 |--> -1, 10 |--> 1, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6)
     sage: len(G)
     12
 
@@ -291,7 +282,7 @@ with it.
 ::
 
     sage: chi = G.1; chi
-    [1, zeta6]
+    Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6
     sage: chi.values()
     [0, 1, zeta6 - 1, 0, -zeta6, -zeta6 + 1, 0, 0, 1, 0, zeta6, -zeta6, 0, -1, 
      0, 0, zeta6 - 1, zeta6, 0, -zeta6 + 1, -1]
@@ -317,14 +308,14 @@ factorization of the modulus.
 
     sage: G.galois_orbits()
     [
-    [[1, 1]],
-    [[1, zeta6], [1, -zeta6 + 1]],
-    [[1, zeta6 - 1], [1, -zeta6]],
-    [[1, -1]],
-    [[-1, 1]],
-    [[-1, zeta6], [-1, -zeta6 + 1]],
-    [[-1, zeta6 - 1], [-1, -zeta6]],
-    [[-1, -1]]
+    [Dirichlet character modulo 21 of conductor 1 mapping 8 |--> 1, 10 |--> 1],
+    [Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -zeta6 + 1],
+    [Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> zeta6 - 1, Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -zeta6],
+    [Dirichlet character modulo 21 of conductor 7 mapping 8 |--> 1, 10 |--> -1],
+    [Dirichlet character modulo 21 of conductor 3 mapping 8 |--> -1, 10 |--> 1],
+    [Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> zeta6, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -zeta6 + 1],
+    [Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> zeta6 - 1, Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -zeta6],
+    [Dirichlet character modulo 21 of conductor 21 mapping 8 |--> -1, 10 |--> -1]
     ]
     
     sage: G.decomposition()
@@ -342,8 +333,7 @@ with values in :math:`\QQ(i)`:
 
     sage: G = DirichletGroup(20)
     sage: G.list()
-    [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4], 
-     [-1, -zeta4]]
+    [Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1, Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4, Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1, Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4, Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4]
 
 We next compute several invariants of ``G``:
 
@@ -352,9 +342,10 @@ We next compute several invariants of ``G``:
 ::
 
     sage: G.gens()
-    ([-1, 1], [1, zeta4])
+    (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1,
+    Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
     sage: G.unit_gens()
-    [11, 17]
+    (11, 17)
     sage: G.zeta()
     zeta4
     sage: G.zeta_order()
@@ -376,7 +367,7 @@ the third argument to ``DirichletGroup`` below.
     Group of Dirichlet characters of modulus 5 over Number Field in a with 
     defining polynomial x^4 + 1
     sage: G.list()
-    [[1], [a^2], [-1], [-a^2]]
+    [Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> a^2, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -a^2]
 
 Here ``NumberField(x^4 + 1, 'a')`` tells Sage to use the symbol "a" in
 printing what ``K`` is (a Number Field in a with defining polynomial
@@ -470,7 +461,7 @@ We can even compute spaces of modular symbols with character.
     Modular Symbols space of dimension 4 and level 13, weight 2, character 
     [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
     sage: M.T(2).charpoly('x').factor()
-    (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
+    (x - zeta6 - 2) * (x - 2*zeta6 - 1) * (x + zeta6 + 1)^2
     sage: S = M.cuspidal_submodule(); S
     Modular Symbols subspace of dimension 2 of Modular Symbols space of 
     dimension 4 and level 13, weight 2, character [zeta6], sign 0, over 

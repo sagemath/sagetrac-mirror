@@ -216,7 +216,7 @@ Sage增加了很多其他类型，如，向量空间：
     sage: V = VectorSpace(QQ, 1000000); V
     Vector space of dimension 1000000 over Rational Field
     sage: type(V)
-    <class 'sage.modules.free_module.FreeModule_ambient_field'>
+    <class 'sage.modules.free_module.FreeModule_ambient_field_with_category'>
 
 只有特定的函数才能在作用在 ``V`` 上。其他数学软件中，
 可能会用“函数”形式 ``foo(V,...)``. 在Sage中，特定的函数附加于 ``V``
@@ -315,7 +315,7 @@ Sage整数（或有理数，或其他有 ``__index__`` 方法的对象）都可�
     sage: L[12]
     13
     sage: type(L[12])
-    <class 'sage.structure.factorization.Factorization'>
+    <class 'sage.structure.factorization_integer.IntegerFactorization'>
     sage: [factor(n) for n in range(1, 15) if is_odd(n)]
     [1, 3, 5, 7, 3^2, 11, 13]
 
@@ -364,7 +364,7 @@ Sage整数（或有理数，或其他有 ``__index__`` 方法的对象）都可�
     sage: v
     [1, 2, 3, 4/5]
     sage: type(v)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: type(v[1])
     <type 'sage.rings.rational.Rational'>
     sage: v.universe()
@@ -401,7 +401,7 @@ Sage整数（或有理数，或其他有 ``__index__`` 方法的对象）都可�
     (0, 0, 1)
     ]
     sage: type(B)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: B[0] = B[1]
     Traceback (most recent call last):
     ...
@@ -545,8 +545,8 @@ Sage也有自己的集合类型，多数情况下是用Python内置的集合类�
 ::
 
     >>> for i in range(5):
-           print(i)
-       
+    ...     print(i)
+    ...
     0
     1
     2

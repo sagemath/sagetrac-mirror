@@ -46,8 +46,8 @@ Sage可以执行许多基本的代数和微积分运算：如方程求解，
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3], 
-     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3],
+    [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
 要求解的近似值，可以这样：
 
@@ -131,7 +131,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 .. _section-systems:
 
@@ -146,7 +146,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
     sage: x = function('x',t)   # 定义x是变量t的函数
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 这里用到了Sage调用Maxima [Max]_ 的接口，
 所以它的输出看上去与其他Sage的输出略有不同。
@@ -162,7 +162,7 @@ Sage知道如何求很多函数的微分和积分。比如求 :math:`\sin(u)`
     sage: t = var("t")
     sage: f = t^2*exp(t) - sin(t)
     sage: f.laplace(t,s)
-    2/(s - 1)^3 - 1/(s^2 + 1)
+    -1/(s^2 + 1) + 2/(s - 1)^3
 
 这儿有一个更复杂的例子。两个弹簧连在左边的墙上，
 
@@ -308,7 +308,7 @@ Equations, 6th ed, Addison-Wesley, 2004. (见 § 5.5).
 :math:`a`      :math:`c`            :math:`hf(a,c)`
 :math:`a+h`    :math:`c+hf(a,c)`    ...
 :math:`a+2h`   ...                   
-...	                             
+...
 :math:`b=a+nh` ???                  ...
 ============== ==================   ================  
 
@@ -374,12 +374,12 @@ Equations, 6th ed, Addison-Wesley, 2004. (见 § 5.5).
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-    0.16708949925104899
+    sage: bessel_I(2,1.1).n()   # last few digits are random
+    0.16708949925104...
 
 这里Sage直接求得数值解，如果想求符号解，请象下面这样直接使用Maxima接口：
 

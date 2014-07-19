@@ -86,7 +86,7 @@
 
 ::
 
-       sage: f = sin	
+       sage: f = sin
        sage: f.derivative()
        Traceback (most recent call last):
        ...
@@ -108,10 +108,10 @@
 ::
 
        sage: def h(x):
-       ...       if x<2:
-       ...	     return 0
-       ...       else:
-       ...	     return x-2
+       ....:     if x < 2:
+       ....:         return 0
+       ....:     else:
+       ....:         return x - 2
 
 问题: ``plot(h(x), 0, 4)`` 画出来的是直线 `y=x-2`, 而不是 ``h``
 定义的折线。为什么？在命令 ``plot(h(x), 0, 4)`` 中，
