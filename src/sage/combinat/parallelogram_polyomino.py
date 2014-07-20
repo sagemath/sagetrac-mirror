@@ -227,7 +227,7 @@ class ParallelogramPolyomino(ClonableList):
         
         The input is a pair of lower path and upper path.
 
-        The lower and upper path of the empty parallelogram polyomino is
+        The lower and upper paths of the empty parallelogram polyomino are
         [1] and [1].
 
         EXAMPLES::
@@ -483,11 +483,13 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_options(self):
         r"""
-        Return all the opitons of the object.
+        Return all the options of the object.
 
-        sage: pp = ParallelogramPolyomino( [[0,1], [1,0]] )
-        sage: pp.get_options()
-        options for Parallelogram Polyominoes
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino( [[0,1], [1,0]] )
+            sage: pp.get_options()
+            options for Parallelogram Polyominoes
         """
         if self._options is None:
             return self.parent().get_options()
@@ -530,7 +532,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def upper_path(self):
         r"""
-        Get the upper path of the parallelogram polyomino
+        Get the upper path of the parallelogram polyomino.
         
         EXAMPLES::
         
@@ -544,8 +546,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def lower_path(self):
         r"""
-        Get the lower path of the parallelogram polyomino
-        
+        Get the lower path of the parallelogram polyomino.
+
         EXAMPLES::
         
             sage: lower_path = [0, 0, 1, 0, 1, 1]
@@ -580,11 +582,11 @@ class ParallelogramPolyomino(ClonableList):
 
     def widths(self):
         r"""
-        This method return a list of the withds of the parallelogram 
-        polyomino : the parallelogram polyomino is splited row by row and the
-        method return a the list containing the sizes of the rows.
+        This method return a list of the widths of the parallelogram 
+        polyomino : the parallelogram polyomino is splitted row by row and the
+        method returns the list containing the sizes of the rows.
 
-        Examples::
+        EXAMPLES::
         
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
@@ -610,10 +612,10 @@ class ParallelogramPolyomino(ClonableList):
     def heights(self):
         r"""
         This method return a list of heights of the parallelogram 
-        polyomino : the parallelogram polyomino is splited column by column and
-        the method return a the list containing the sizes of the rows.
+        polyomino : the parallelogram polyomino is splitted column by column and
+        the method returns the list containing the sizes of the columns.
 
-        Examples::
+        EXAMPLES::
         
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,0,1,0,1,0,1,1], [1,0,1,1,0,0,1,0,0] ]
@@ -660,7 +662,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.width()
             1
         """
-        if( self.size()==0 ):
+        if self.size() == 0:
             return 1
         return self.upper_widths()[-1]
 
@@ -688,15 +690,15 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.height()
             0
         """
-        if( self.size()==0 ):
+        if self.size() == 0:
             return 0
         return self.lower_heights()[-1]
 
     @cached_method
     def get_array(self):
         r"""
-        Return an array of 0 and 1 such that the represent the boxes of
-        the parallelogram polyomino
+        Return an array of 0s and 1s such that the 1s represent the boxes of
+        the parallelogram polyomino.
         
         EXAMPLES::
 
@@ -759,12 +761,14 @@ class ParallelogramPolyomino(ClonableList):
     def __getitem__(self, row):
         r"""
         Return the row of the parallelogram polyomino.
-        The index of the tow can be out of range of the height of 
+
+        The index of the row can be out of range of the height of 
         the parallelogram polyomino.
         In that case, the row returned is outside the parallelogram
         polyomino.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
             ....: )
@@ -793,16 +797,16 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the bounce path of the parallelogram polyomino.
 
-        The bounce is a path with two steps (1,0) and (0,1).
+        The bounce path is a path with two steps (1,0) and (0,1).
 
         If 'direction' is 1 (resp. 0), the bounce path is the path
         starting at position position (h=1,w=0) (resp. (h=0,w=1)) with 
         initial direction, the vector (0,1) (resp. (1,0)), and turning 
-        each time the path crosses the permiter of the parallelogram
+        each time the path crosses the perimeter of the parallelogram
         polyomino.
 
-        The path is coded by a list of integer. Each integer represent
-        the size of the path beetween two turnings.
+        The path is coded by a list of integers. Each integer represents
+        the size of the path between two turnings.
 
         You can visualize the two bounce paths by using the following 
         commands :
@@ -932,8 +936,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def area(self):
         r"""
-        Returns the are of the parallelogram polyomino.
-        
+        Returns the area of the parallelogram polyomino.
+
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
@@ -964,6 +968,7 @@ class ParallelogramPolyomino(ClonableList):
         Return a string representation of the parallelogram polyomino.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
             ....: )
@@ -982,6 +987,7 @@ class ParallelogramPolyomino(ClonableList):
         Return a string representation with list style.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
             ....: )
@@ -992,9 +998,10 @@ class ParallelogramPolyomino(ClonableList):
 
     def _repr_drawing(self):
         r"""
-        Return a string representing a drawing od the parallelogram polyomino.
+        Return a string representing a drawing of the parallelogram polyomino.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [ [0,0,1,0,1,1], [1,1,0,0,1,0] ]
             ....: )
@@ -1058,7 +1065,6 @@ class ParallelogramPolyomino(ClonableList):
                 X(w1),Y(h), X(w2),Y(h)
             )
         return res
-
 
     def _to_tikz_tree_with_bounce( self, directions=[0,1] ):
         res = ""
@@ -1216,7 +1222,6 @@ class ParallelogramPolyomino(ClonableList):
         pos = self.get_node_position_at_line( line )
         return self.get_path_in_pair_of_tree_from_box( pos, 1 )
 
-
     def get_nodes(self):
         result = []
         for h in range( self.height() ):
@@ -1254,7 +1259,7 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the tikz code of the parallelogram polyomino.
 
-        This code is the code present inside a tikz latex environemet.
+        This code is the code present inside a tikz latex environment.
         """
         res = ""
         drawing_components = self.get_options()['drawing_components']
@@ -1275,8 +1280,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def geometry(self):
         r"""
-        Returns a pair [h,w] containing the height and the width of the 
-        parallelogram polyomino
+        Return a pair [h,w] containing the height and the width of the 
+        parallelogram polyomino.
 
         EXAMPLES::
 
@@ -1302,8 +1307,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def size(self):
         r"""
-        Returns the size of the parallelogram polyomino.
-        
+        Return the size of the parallelogram polyomino.
+
         EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
@@ -1368,12 +1373,13 @@ class ParallelogramPolyominoesFactory(SetFactory):
             return ParallelogramPolyominoes_size(size, policy)
         if size is None:
             return ParallelogramPolyominoes_all(policy)
-        raise ValueError("Invalid argument for Tree-like tableaux Factory.")
+        raise ValueError("Invalid argument for Parallelogram Polyominoes "
+                         "Factory.")
 
     def add_constraints(self, cons, (args, opts)):
         r"""
         """
-        return cons+args
+        return cons + args
 
     @lazy_attribute
     def _default_policy(self):
@@ -1410,7 +1416,7 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
             sage: ParallelogramPolyominoes( 3 )
             parallelogram polyominoes of size 3
         """
-        return "parallelogram polyominoes of size %s"%(self._size)
+        return "parallelogram polyominoes of size %s" % (self._size)
 
     def an_element(self):
         r"""
@@ -1454,7 +1460,7 @@ class ParallelogramPolyominoes_size(ParentWithSetFactory, UniqueRepresentation):
 
     def __iter__(self):
         r"""
-        Rerturn a parallelogram polyomino generator.
+        Return a parallelogram polyomino generator.
         
         EXAMPLES::
 
@@ -1516,11 +1522,11 @@ class bijections_parallelogram_polyominoes:
 
 class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumeratedSets ):
     r"""
-    This class enumerate all the parallelogram polyominoes.
+    This class enumerates all the parallelogram polyominoes.
     """
     def __init__(self, policy):
         r"""
-        Construct the set af all the parallelogram polyominoes.
+        Construct the set of all parallelogram polyominoes.
 
         EXAMPLES::
         
@@ -1551,7 +1557,7 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
 
     def _repr_(self):
         r"""
-        Returns a string representation of the set of parallelogram polyominoes.
+        Return a string representation of the set of parallelogram polyominoes.
 
         EXAMPLES::
         
@@ -1576,7 +1582,7 @@ class ParallelogramPolyominoes_all( ParentWithSetFactory, DisjointUnionEnumerate
 
     def get_options(self):
         r"""
-        Returns all the aptions associated with the set of
+        Return all the options associated with the set of
         parallelogram polyominoes.
         
         EXAMPLES::
