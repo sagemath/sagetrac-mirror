@@ -579,7 +579,7 @@ def LabelledPermutationsIET_iterator(
 
     if irreducible is False:
         if nintervals is None:
-            raise ValueError, "choose a number of intervals"
+            raise ValueError("choose a number of intervals")
         else:
             assert(isinstance(nintervals,(int,Integer)))
             assert(nintervals > 0)
@@ -589,7 +589,7 @@ def LabelledPermutationsIET_iterator(
             alphabet = Alphabet(alphabet)
             g = lambda x: [alphabet.unrank(k-1) for k in x]
             P = map(g, Permutations(nintervals))
-            return imap(f,product(P,P))
+            return imap(f,product(P, P))
     else:
         return ifilter(
             lambda x: x.is_irreducible(),

@@ -80,17 +80,17 @@ def interval_conversion(interval=None):
     """
     if isinstance(interval, (int,Integer)):
         if interval != 0 and interval != 1:
-            raise ValueError, "interval must be 0 or 1"
+            raise ValueError("interval must be 0 or 1")
         return interval
 
     if isinstance(interval,str):
         if interval == '':
-            raise ValueError, "the interval can not be the empty string"
+            raise ValueError("the interval can not be the empty string")
         if 'top'.startswith(interval): return 0
         if 'bottom'.startswith(interval): return 1
-        raise ValueError, "'%s' can not be converted to interval" %(interval)
+        raise ValueError("'%s' can not be converted to interval"  % interval)
 
-    raise TypeError, "'%s' is not an admissible type" %(str(interval))
+    raise TypeError("'%s' is not an admissible type" % str(interval))
 
 def side_conversion(side=None):
     r"""
@@ -139,18 +139,18 @@ def side_conversion(side=None):
 
     if isinstance(side,str):
         if side == '':
-            raise ValueError, "no empty string for side"
+            raise ValueError("no empty string for side")
         if 'left'.startswith(side): return 0
         if 'right'.startswith(side): return -1
-        raise ValueError, "'%s' can not be converted to a side" %(side)
+        raise ValueError("'%s' can not be converted to a side" % side)
 
     if isinstance(side, (int,Integer)):
         if side != 0 and side != 1 and side != -1:
-            raise ValueError, "side must be 0 or 1"
+            raise ValueError("side must be 0 or 1")
         if side == 0: return 0
         return -1
 
-    raise TypeError, "'%s' is not an admissible type" %(str(side))
+    raise TypeError("'%s' is not an admissible type" % str(side))
 
 #
 # NICE PRINTING OF FLIPS
@@ -507,7 +507,7 @@ class Permutation(SageObject):
         from sage.combinat.words.alphabet import build_alphabet
         alphabet = build_alphabet(alphabet)
         if alphabet.cardinality() < len(self):
-            raise ValueError, "Your alphabet has not enough letters"
+            raise ValueError("Your alphabet has not enough letters")
         self._alphabet = alphabet
 
     def alphabet(self, data=None):
@@ -2904,7 +2904,7 @@ class RauzyDiagram(SageObject):
 
             start = data[0]
             if start not in self._parent:
-                raise ValueError, "Starting point not in this Rauzy diagram"
+                raise ValueError("Starting point not in this Rauzy diagram")
 
             self._start = self._parent._permutation_to_vertex(start)
 
@@ -2917,10 +2917,10 @@ class RauzyDiagram(SageObject):
                     i = self._parent.edge_types_index(i)
 
                 if i < 0 or i > n:
-                    raise ValueError, "indices must be integer between 0 and %d" %(n)
+                    raise ValueError("indices must be integer between 0 and %d" %(n))
                 neighbours = self._parent._succ[cur_vertex]
                 if neighbours[i] is None:
-                    raise ValueError, "Invalid path"
+                    raise ValueError("Invalid path")
 
                 cur_vertex = neighbours[i]
                 self._edge_types.append(i)
@@ -3110,10 +3110,10 @@ class RauzyDiagram(SageObject):
                 edge_type = self._parent.edge_types_index(edge_type)
 
             elif edge_type < 0 or edge_type >= len(self._parent._edge_types):
-                raise ValueError, "Edge type not valid"
+                raise ValueError("Edge type not valid")
 
             if self._parent._succ[self._end][edge_type] is None:
-                raise ValueError, "%d is not a valid edge" %(edge_type)
+                raise ValueError("%d is not a valid edge" % edge_type)
 
             self._edge_types.append(edge_type)
             self._end = self._parent._succ[self._end][edge_type]
@@ -3166,10 +3166,10 @@ class RauzyDiagram(SageObject):
                 True
             """
             if self._parent != path._parent:
-                raise ValueError, "Not on the same Rauzy diagram"
+                raise ValueError("Not on the same Rauzy diagram")
 
             if self._end != path._start:
-                raise ValueError, "The end of the first path must the start of the second"
+                raise ValueError("The end of the first path must the start of the second")
 
             self._edge_types.extend(path._edge_types)
             self._end = path._end
@@ -3233,7 +3233,7 @@ class RauzyDiagram(SageObject):
                 True
             """
             if i > len(self) or i < -len(self)-1:
-                raise IndexError, "path index out of range"
+                raise IndexError("path index out of range")
 
             if i == 0: return self.start()
             if i < 0: i = i + len(self) + 1
@@ -3259,7 +3259,7 @@ class RauzyDiagram(SageObject):
                 True
             """
             if self._end != other._start:
-                raise ValueError, "The end of the first path is not the start of the second"
+                raise ValueError("The end of the first path is not the start of the second")
 
             res = copy(self)
             res._fast_extend(other)
@@ -3517,7 +3517,7 @@ class RauzyDiagram(SageObject):
 
         elif isinstance(right_induction,str):
             if right_induction == '':
-                raise ValueError, "right_induction can not be empty string"
+                raise ValueError("right_induction can not be empty string")
 
             elif 'top'.startswith(right_induction):
                 self._index['rt_rauzy'] = len(self._edge_types)
@@ -3528,7 +3528,7 @@ class RauzyDiagram(SageObject):
                 self._edge_types.append(('rauzy_move',(1,-1)))
 
             else:
-                raise ValueError, "%s is not valid for right_induction" %(right_induction)
+                raise ValueError("%s is not valid for right_induction" % right_induction)
 
         if left_induction is True:
             self._index['lt_rauzy'] = len(self._edge_types)
@@ -3538,7 +3538,7 @@ class RauzyDiagram(SageObject):
 
         elif isinstance(left_induction,str):
             if left_induction == '':
-                raise ValueError, "left_induction can not be empty string"
+                raise ValueError("left_induction can not be empty string")
 
             elif 'top'.startswith(left_induction):
                 self._index['lt_rauzy'] = len(self._edge_types)
@@ -3549,7 +3549,7 @@ class RauzyDiagram(SageObject):
                 self._edge_types.append(('rauzy_move',(1,0)))
 
             else:
-                raise ValueError, "%s is not valid for left_induction" %(right_induction)
+                raise ValueError("%s is not valid for left_induction" % right_induction)
 
         if left_right_inversion is True:
             self._index['lr_inverse'] = len(self._edge_types)
@@ -3800,50 +3800,50 @@ class RauzyDiagram(SageObject):
             1
          """
         if not isinstance(data,str):
-            raise ValueError, "the edge type must be a string"
+            raise ValueError("the edge type must be a string")
 
         if ('top_rauzy_move'.startswith(data) or
             't_rauzy_move'.startswith(data)):
             if self._index.has_key('lt_rauzy'):
                 if self._index.has_key('rt_rauzy'):
-                    raise ValueError, "left and right inductions must be differentiated"
+                    raise ValueError("left and right inductions must be differentiated")
                 return self._index['lt_rauzy']
 
             if self._index.has_key('rt_rauzy'):
                 return self._index['rt_rauzy']
 
-            raise ValueError, "no top induction in this Rauzy diagram"
+            raise ValueError("no top induction in this Rauzy diagram")
 
         if ('bottom_rauzy_move'.startswith(data) or
             'b_rauzy_move'.startswith(data)):
             if self._index.has_key('lb_rauzy'):
                 if self._index.has_key('rb_rauzy'):
-                    raise ValueError, "left and right inductions must be differentiated"
+                    raise ValueError("left and right inductions must be differentiated")
                 return self._index['lb_rauzy']
 
             if self._index.has_key('rb_rauzy'):
                 return self._index['rb_rauzy']
 
-            raise ValueError, "no bottom Rauzy induction in this diagram"
+            raise ValueError("no bottom Rauzy induction in this diagram")
 
         if ('left_rauzy_move'.startswith(data) or
             'l_rauzy_move'.startswith(data)):
             if self._index.has_key('lt_rauzy'):
                 if self._index.has_key('lb_rauzy'):
-                    raise ValueError, "top and bottom inductions must be differentiated"
+                    raise ValueError("top and bottom inductions must be differentiated")
                 return self._index['lt_rauzy']
 
             if self._index.has_key('lb_rauzy'):
                 return self._index('lb_rauzy')
 
-            raise ValueError, "no left Rauzy induction in this diagram"
+            raise ValueError("no left Rauzy induction in this diagram")
 
         if ('lt_rauzy_move'.startswith(data) or
             'tl_rauzy_move'.startswith(data) or
             'left_top_rauzy_move'.startswith(data) or
             'top_left_rauzy_move'.startswith(data)):
             if not self._index.has_key('lt_rauzy'):
-                raise ValueError, "no top-left Rauzy induction in this diagram"
+                raise ValueError("no top-left Rauzy induction in this diagram")
             else:
                 return self._index['lt_rauzy']
 
@@ -3852,19 +3852,19 @@ class RauzyDiagram(SageObject):
             'left_bottom_rauzy_move'.startswith(data) or
             'bottom_left_rauzy_move'.startswith(data)):
             if not self._index.has_key('lb_rauzy'):
-                raise ValueError, "no bottom-left Rauzy induction in this diagram"
+                raise ValueError("no bottom-left Rauzy induction in this diagram")
             else:
                 return self._index['lb_rauzy']
 
         if 'right'.startswith(data):
-            raise ValueError, "ambiguity with your edge name: %s" %(data)
+            raise ValueError("ambiguity with your edge name: %s" % data)
 
         if ('rt_rauzy_move'.startswith(data) or
             'tr_rauzy_move'.startswith(data) or
             'right_top_rauzy_move'.startswith(data) or
             'top_right_rauzy_move'.startswith(data)):
             if not self._index.has_key('rt_rauzy'):
-                raise ValueError, "no top-right Rauzy induction in this diagram"
+                raise ValueError("no top-right Rauzy induction in this diagram")
             else:
                 return self._index['rt_rauzy']
 
@@ -3873,33 +3873,33 @@ class RauzyDiagram(SageObject):
             'right_bottom_rauzy_move'.startswith(data) or
             'bottom_right_rauzy_move'.startswith(data)):
             if not self._index.has_key('rb_rauzy'):
-                raise ValueError, "no bottom-right Rauzy induction in this diagram"
+                raise ValueError("no bottom-right Rauzy induction in this diagram")
             else:
                 return self._index['rb_rauzy']
 
         if 'symmetric'.startswith(data):
             if not self._index.has_key('symmetric'):
-                raise ValueError, "no symmetric in this diagram"
+                raise ValueError("no symmetric in this diagram")
             else:
                 return self._index['symmetric']
 
         if 'inversion'.startswith(data) or data == 'inverse':
             if self._index.has_key('lr_inverse'):
                 if self._index.has_key('tb_inverse'):
-                    raise ValueError, "left-right and top-bottom inversions must be differentiated"
+                    raise ValueError("left-right and top-bottom inversions must be differentiated")
                 return self._index['lr_inverse']
 
             if self._index.has_key('tb_inverse'):
                 return self._index['tb_inverse']
 
-            raise ValueError, "no inversion in this diagram"
+            raise ValueError("no inversion in this diagram")
 
         if ('lr_inversion'.startswith(data) or
             data == 'lr_inverse' or
             'left_right_inversion'.startswith(data) or
             data == 'left_right_inverse'):
             if not self._index.has_key('lr_inverse'):
-                raise ValueError, "no left-right inversion in this diagram"
+                raise ValueError("no left-right inversion in this diagram")
             else:
                 return self._index['lr_inverse']
 
@@ -3908,11 +3908,11 @@ class RauzyDiagram(SageObject):
             'top_bottom_inversion'.startswith(data)
             or data == 'top_bottom_inverse'):
             if not self._index.has_key('tb_inverse'):
-                raise ValueError, "no top-bottom inversion in this diagram"
+                raise ValueError("no top-bottom inversion in this diagram")
             else:
                 return self._index['tb_inverse']
 
-        raise ValueError, "this edge type does not exist: %s" %(data)
+        raise ValueError("this edge type does not exist: %s" % data)
 
     def edge_types(self):
         r"""
@@ -4259,7 +4259,7 @@ class RauzyDiagram(SageObject):
             True
         """
         if not isinstance(p, self._element_class):
-            raise ValueError, "Your element does not have the good type"
+            raise ValueError("Your element does not have the good type")
 
         perm = self._permutation_to_vertex(p)
         return map(lambda x: self._vertex_to_permutation(x),
@@ -4325,10 +4325,10 @@ class RauzyDiagram(SageObject):
             sage: r = iet.RauzyDiagram('a b c','c b a',tb_inversion=True)   #indirect doctest
         """
         if p.__class__ is not self._element_class:
-            raise ValueError, "your permutation is not of good type"
+            raise ValueError("your permutation is not of good type")
 
         if len(p) != self._n:
-            raise ValueError, "your permutation has not the good length"
+            raise ValueError("your permutation has not the good length")
 
         pred = self._pred
         succ = self._succ
@@ -4454,10 +4454,10 @@ class FlippedRauzyDiagram(RauzyDiagram):
             Rauzy diagram with 8 permutations
         """
         if p.__class__ is not self._element_class:
-            raise ValueError, "your permutation is not of good type"
+            raise ValueError("your permutation is not of good type")
 
         if len(p) != self._n:
-            raise ValueError, "your permutation has not the good length"
+            raise ValueError("your permutation has not the good length")
 
         pred = self._pred
         succ = self._succ

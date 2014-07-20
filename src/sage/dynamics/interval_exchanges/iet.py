@@ -198,10 +198,10 @@ class IntervalExchangeTransformation(SageObject):
         try:
             y = float(total)
         except ValueError:
-            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+            raise TypeError("unable to convert x (='%s') into a real number" % str(x))
 
         if total <= 0:
-           raise ValueError, "the total length must be positive"
+           raise ValueError("the total length must be positive")
 
         res = copy(self)
         coeff = total / res.length()
@@ -536,7 +536,7 @@ class IntervalExchangeTransformation(SageObject):
         interval = interval_conversion(interval)
 
         if x < 0 or x >= self.length():
-            raise ValueError, "your value does not lie in [0;l["
+            raise ValueError("your value does not lie in [0;l[")
 
         i = 0
 
@@ -712,7 +712,7 @@ class IntervalExchangeTransformation(SageObject):
             winner_interval = bottom
             loser_interval = top
         else:
-            raise ValueError, "top and bottom extrem intervals have equal lengths"
+            raise ValueError("top and bottom extrem intervals have equal lengths")
 
         res = IntervalExchangeTransformation(([],[]),{})
         res._permutation = self._permutation.rauzy_move(winner=winner,side=side)
@@ -823,7 +823,7 @@ class IntervalExchangeTransformation(SageObject):
         elif horizontal_alignment == 'right':
             s = position[0] - total_length
         else:
-            raise ValueError, "horizontal_alignement must be left, center or right"
+            raise ValueError("horizontal_alignement must be left, center or right")
 
         top_height = position[1] + interval_height
         for i in self._permutation._labels[0]:
@@ -845,7 +845,7 @@ class IntervalExchangeTransformation(SageObject):
         elif horizontal_alignment == 'right':
             s = position[0] - total_length
         else:
-            raise ValueError, "horizontal_alignement must be left, center or right"
+            raise ValueError("horizontal_alignement must be left, center or right")
 
         bottom_height = position[1] - interval_height
         for i in self._permutation._labels[1]:
