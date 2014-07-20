@@ -204,6 +204,13 @@ def _discriminant_form(L):
       of the discriminant form.  The second and third component are
       functions on `l` and `2l` arguments, respectively.
 
+    EXAMPLES::
+
+        sage: L = QuadraticForm(ZZ, 2, [1,1,1])
+        sage: from sage.modular.jacobi.higherrank_dimension import _discriminant_form
+        sage: _discriminant_form(L)
+        ([3], <function ..., <function ...)
+
     TESTS:
 
     See test_higherrank_dimension:test__discrimant_form.
@@ -270,30 +277,38 @@ def _discriminant_form_pmone(L, discriminant_form_exponents):
       second component of which consists of repepresentatives of pairs
       of elements which are not.
 
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank_dimension import _discriminant_form_pmone
+        sage: L = QuadraticForm(ZZ, 2, [1,1,1])
+        sage: _discriminant_form_pmone(L, [3])
+        ([[0]], [[2]])
+
     TESTS:
 
     See test_higherrank_dimension:test__discrimant_form_pmone.
     """
     ## red gives a normal form for elements in the discriminant group
     red = lambda x : map(operator.mod, x, discriminant_form_exponents)
-    def is_singl(x) :
-        y = red(map(operator.neg, x))
-        for (e, f) in zip(x, y) :
-            if e < f :
-                return -1
-            elif e > f :
-                return 1
-        return 0
 
     ## singls and pairs are elements of the discriminant group that are, respectively,
     ## fixed and not fixed by negation.
     singls = list()
     pairs = list()
     for x in mrange(discriminant_form_exponents) :
-        si = is_singl(x)
-        if si == 0 :
+        y = red(map(operator.neg, x))
+        for (e, f) in zip(x, y) :
+            if e < f :
+                si = -1
+                break
+            elif e > f :
+                si = 1
+                break
+        else:
             singls.append(x)
-        elif si == 1 :
+            continue
+
+        if si == 1 :
             pairs.append(x)
 
     return (singls, pairs)
@@ -332,6 +347,21 @@ def _weil_representation(CC, L, singls, pairs, plus_basis,
     - A pair of matrices `S` and `T` that corrspond to the image under
       the Weil representation of `((0,-1; 1,0), \sqrt{\tau})` and
       `((1,1; 0,1), 1)`.
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank_dimension import _weil_representation, _discriminant_form, _discriminant_form_pmone
+        sage: CI = ComplexIntervalField(10)
+        sage: L = QuadraticForm(ZZ, 2, [1,1,1])
+        sage: (eds, quad, bil) = _discriminant_form(L)
+        sage: (singls, pairs) = _discriminant_form_pmone(L, eds)
+        sage: _weil_representation(CI, L, singls, pairs, True, eds, quad, bil)
+        (
+        [0.0? + 0.6?*I 0.0? + 0.8?*I]  [           1            0]
+        [0.0? + 0.8?*I   0.? - 1.?*I], [           0 -1.? + 1.?*I]
+        )
+        sage: _weil_representation(CI, L, singls, pairs, False, eds, quad, bil)
+        ([-1.? + 0.?*I], [-1.? + 1.?*I])
 
     TESTS:
 
@@ -389,8 +419,35 @@ def _qr(mat) :
     corresponding matrix class, but for the infrastructure of the
     matrix class seems a bit too obscrure to me.  Can an expert help?
     Ask Rob Beezer?
+
+    EXAMPLES::
+
+        sage: from sage.modular.jacobi.higherrank_dimension import _qr
+        sage: CI = ComplexIntervalField(100)
+        sage: m = matrix(CI, 2, [2,1,1,2])
+        sage: _qr(m)
+        [2.23606797749978969640917366873?  1.7888543819998317571273389350?]
+        [                               0 -1.3416407864998738178455042012?]
+        sage: m = MatrixSpace(CI, 3,3).random_element()
+        sage: mqr = _qr(m)
+        sage: mqr[1,0] == 0 and mqr[2,0] == 0 and mqr[2,1] == 0
+        True
+        sage: mqr[2,2].contains_zero() or ((m * mqr.inverse()) * (m * mqr.inverse()).transpose().conjugate()).is_one()
+        True
+
+    TESTS::
+
+        sage: _qr(matrix(CC, [[2]]))
+        Traceback (most recent call last):
+        ...
+        TypeError: This QR decomposition is implemented only over complex inverval fields
     """
+    from sage.rings.complex_interval_field import is_ComplexIntervalField
+
     CC = mat.base_ring()
+    if not is_ComplexIntervalField(CC):
+        raise TypeError("This QR decomposition is implemented only over complex inverval fields")
+
     mat = copy(mat)
     m = mat.nrows()
     n = mat.ncols()
