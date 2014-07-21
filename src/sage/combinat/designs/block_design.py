@@ -1,5 +1,5 @@
 """
-Block designs.
+Block designs
 
 A *block design* is a set together with a family of subsets (repeated subsets
 are allowed) whose members are chosen to satisfy some set of properties that are
@@ -86,26 +86,33 @@ def tdesign_params(t, v, k, L):
 
 def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parameters=False):
     r"""
-    Return ``True`` if the parameters ``(v,k,lmbda)`` are the one of hyperplanes in
+    Tests if the parameters ``(v,k,lmbda)`` are the one of hyperplanes in
     a (finite Desarguesian) projective space.
-    
-    In other words, test whether there exists a prime power ``q`` and an integer
+
+    In other words, tests whether there exists a prime power ``q`` and an integer
     ``d`` greater than two such that:
 
     - `v = (q^{d+1}-1)/(q-1) = q^d + q^{d-1} + ... + 1`
     - `k = (q^d - 1)/(q-1) = q^{d-1} + q^{d-2} + ... + 1`
     - `lmbda = (q^{d-1}-1)/(q-1) = q^{d-2} + q^{d-3} + ... + 1`
 
-    If it exists, such a pair ``(q,d)`` is unique.
+    In this case the pair `(q,d)` is unique, and the incidence structure of
+    lines and hyperplanes of `\mathbb{F}_q^d` is a `(v,k,\lambda)`-BIBD.
 
     INPUT:
 
     - ``v,k,lmbda`` (integers)
 
+    - ``return_parameters`` (boolean) -- set to ``False`` by default.
+
     OUTPUT:
 
     - a boolean or, if ``return_parameters`` is set to ``True`` a pair
       ``(True, (q,d))`` or ``(False, (None,None))``.
+
+    .. SEEALSO::
+
+        :func:`ProjectiveGeometryDesign`
 
     EXAMPLES::
 
@@ -139,8 +146,8 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
     """
     import sage.rings.arith as arith
 
-    q1 = Integer(v - k)
-    q2 = Integer(k - lmbda)
+    q1 = Integer(v - k)     # equal to q^d
+    q2 = Integer(k - lmbda) # equal to q^(d-1)
 
     if (lmbda <= 0 or q1 < 4 or q2 < 2 or
         not q1.is_prime_power() or
@@ -206,7 +213,6 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
         from copy import copy
 
-        points = {}
         points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True))}
         blocks = []
         for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
@@ -570,7 +576,7 @@ def HadamardDesign(n):
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
     We verify that `NJ = 5J` for this design. ::
-     
+
         sage: D = designs.HadamardDesign(11); N = D.incidence_matrix()
         sage: J = matrix(ZZ, 11, 11, [1]*11*11); N*J
         [5 5 5 5 5 5 5 5 5 5 5]

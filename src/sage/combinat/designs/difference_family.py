@@ -164,7 +164,6 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         print "It is a ({},{},{})-difference family".format(v,k,l)
     return True
 
-
 def singer_difference_set(q,d):
     r"""
     Return a difference set associated to the projective space of dimension `d`
@@ -248,7 +247,7 @@ def singer_difference_set(q,d):
 
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
-    Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    Return a `(k,l)`-difference family on an Abelian group of size `v`.
 
     Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
     `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
