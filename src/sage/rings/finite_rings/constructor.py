@@ -524,6 +524,9 @@ class FiniteFieldFactory(UniqueFactory):
                 elif impl == 'flint_fq':
                     from finite_field_flint_fq import FiniteField_flint_fq
                     K = FiniteField_flint_fq(p, modulus, name)
+                elif impl == 'flint_fq_nmod':
+                    from finite_field_flint_fq_nmod import FiniteField_flint_fq_nmod
+                    K = FiniteField_flint_fq_nmod(p, modulus, name)
                 else:
                     raise ValueError("no such finite field implementation: %s" % impl)
 
