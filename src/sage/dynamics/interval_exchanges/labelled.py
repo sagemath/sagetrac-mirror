@@ -1,21 +1,21 @@
 r"""
 Labelled permutations
 
-A labelled (generalized) permutation is better suited to study the dynamic of
-a translation surface than a reduced one (see the module
-:mod:`sage.dynamics.interval_exchanges.reduced`). The latter is more adapted to the
-study of strata. This kind of permutation was introduced by Yoccoz [Yoc05]_
-(see also [MMY03]_).
+A labelled (generalized) permutation is better suited to study the
+dynamic of a translation surface than a reduced one (see the module
+:mod:`sage.dynamics.interval_exchanges.reduced`). The latter is more
+adapted to the study of strata. This kind of permutation was
+introduced by Yoccoz [Yoc05]_ (see also [MMY03]_).
 
-In fact, there is a geometric counterpart of labelled permutations. They
-correspond to translation surface with marked outgoing separatrices (i.e. we fi
-a label for each of them).
+In fact, there is a geometric counterpart of labelled
+permutations. They correspond to translation surface with marked
+outgoing separatrices (i.e. we fi a label for each of them).
 
-Remarks that Rauzy diagram of reduced objects are significantly smaller than
-the one for labelled object (for the permutation a b d b e / e d c a c the
-labelled Rauzy diagram contains 8760 permutations, and the reduced only 73).
-But, as it is in geometrical way, the labelled Rauzy diagram is a covering of
-the reduced Rauzy diagram.
+Remarks that Rauzy diagram of reduced objects are significantly
+smaller than the one for labelled object (for the permutation a b d b
+e / e d c a c the labelled Rauzy diagram contains 8760 permutations,
+and the reduced only 73).  But, as it is in geometrical way, the
+labelled Rauzy diagram is a covering of the reduced Rauzy diagram.
 
 AUTHORS:
 
@@ -86,11 +86,11 @@ TESTS::
 
 REFERENCES:
 
-.. [Yoc05] Jean-Cristophe Yoccoz "Echange d'Intervalles", Cours au college de
+.. [Yoc05] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au college de
    France
 
-.. [MMY03] Jean-Cristophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
-   cohomological equation for interval exchange maps", arXiv:math/0304469v1
+.. [MMY03] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
+   cohomological equation for interval exchange maps", :arxiv:`math/0304469v1`
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -117,12 +117,14 @@ from template import FlippedPermutationIET, FlippedPermutationLI
 from template import RauzyDiagram, FlippedRauzyDiagram
 from template import interval_conversion, side_conversion
 
+
 class LabelledPermutation(SageObject):
     r"""
     General template for labelled objects.
 
     .. warning::
-       Internal class! Do not use directly!
+
+        Internal class! Do not use directly!
     """
     def __init__(self, intervals=None, alphabet=None):
         r"""
@@ -316,7 +318,7 @@ class LabelledPermutation(SageObject):
 
     def list(self):
         r"""
-        Returns a list of two lists corresponding to the intervals.
+        Return a list of two lists corresponding to the intervals.
 
         OUTPUT:
 
@@ -357,11 +359,12 @@ class LabelledPermutation(SageObject):
 
     def rauzy_move_matrix(self, winner=None, side='right'):
         r"""
-        Returns the Rauzy move matrix.
+        Return the Rauzy move matrix.
 
-        This matrix corresponds to the action of a Rauzy move on the vector of
-        lengths. By convention (to get a positive matrix), the matrix is define
-        as the inverse transformation on the length vector.
+        This matrix corresponds to the action of a Rauzy move on the
+        vector of lengths. By convention (to get a positive matrix),
+        the matrix is defined as the inverse transformation on the
+        length vector.
 
         OUTPUT:
 
@@ -408,13 +411,13 @@ class LabelledPermutation(SageObject):
 
     def rauzy_move_winner(self,winner=None,side=None):
         r"""
-        Returns the winner of a Rauzy move.
+        Return the winner of a Rauzy move.
 
         INPUT:
 
-        - ``winner`` - either 'top' or 'bottom' ('t' or 'b' for short)
+        - ``winner`` -- either 'top' or 'bottom' ('t' or 'b' for short)
 
-        - ``side`` - either 'left' or 'right' ('l' or 'r' for short)
+        - ``side`` -- either 'left' or 'right' ('l' or 'r' for short)
 
         OUTPUT:
 
@@ -456,13 +459,13 @@ class LabelledPermutation(SageObject):
 
     def rauzy_move_loser(self,winner=None,side=None):
         r"""
-        Returns the loser of a Rauzy move
+        Return the loser of a Rauzy move
 
         INPUT:
 
-        - ``winner`` - either 'top' or 'bottom' ('t' or 'b' for short)
+        - ``winner`` -- either 'top' or 'bottom' ('t' or 'b' for short)
 
-        - ``side`` - either 'left' or 'right' ('l' or 'r' for short)
+        - ``side`` -- either 'left' or 'right' ('l' or 'r' for short)
 
         OUTPUT:
 
@@ -488,20 +491,22 @@ class LabelledPermutation(SageObject):
 
         return self[1-winner][side]
 
+
 def LabelledPermutationsIET_iterator(
     nintervals=None,
     irreducible=True,
     alphabet=None):
     r"""
-    Returns an iterator over labelled permutations.
+    Return an iterator over labelled permutations.
 
     INPUT:
 
-    - ``nintervals`` - integer or None
+    - ``nintervals`` -- integer or ``None``
 
-    - ``irreducible`` - boolean (default: True)
+    - ``irreducible`` -- boolean (default: ``True``)
 
-    - ``alphabet`` - something that should be converted to an alphabet of at least nintervals letters
+    - ``alphabet`` -- something that should be converted to an
+      alphabet of at least nintervals letters
 
     OUTPUT:
 
@@ -510,7 +515,7 @@ def LabelledPermutationsIET_iterator(
     TESTS::
 
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
-        ...       print p, "\n****"   #indirect doctest
+        ....:     print p, "\n****"   #indirect doctest
         a b
         b a
         ****
@@ -518,7 +523,7 @@ def LabelledPermutationsIET_iterator(
         a b
         ****
         sage: for p in iet.Permutations_iterator(3, alphabet="abc"):
-        ...       print p, "\n*****"   #indirect doctest
+        ....:     print p, "\n*****"   #indirect doctest
         a b c
         b c a
         *****
@@ -595,6 +600,7 @@ def LabelledPermutationsIET_iterator(
             lambda x: x.is_irreducible(),
             LabelledPermutationsIET_iterator(nintervals,False,alphabet))
 
+
 class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
     """
     Labelled permutation for iet
@@ -639,6 +645,7 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
         The order is lexicographic on intervals[0] + intervals[1]
 
         TESTS::
+
             sage: list_of_p2 = []
             sage: p0 = iet.Permutation('1 2', '1 2')
             sage: p1 = iet.Permutation('1 2', '2 1')
@@ -656,7 +663,7 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
         if n != len(other):
             return n - len(other)
 
-        i, j = 0,0
+        i, j = 0, 0
         while (self._labels[i][j] == other._labels[i][j]):
             j += 1
             if j == n:
@@ -667,12 +674,11 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
 
     def reduced(self):
         r"""
-        Returns the associated reduced abelian permutation.
+        Return the associated reduced abelian permutation.
 
         OUTPUT:
 
         a reduced permutation -- the underlying reduced permutation
-
 
         EXAMPLES:
 
@@ -683,17 +689,17 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
         """
         from reduced import ReducedPermutationIET
 
-        return ReducedPermutationIET(self.list(),alphabet=self._alphabet)
+        return ReducedPermutationIET(self.list(), alphabet=self._alphabet)
 
-    def rauzy_move_interval_substitution(self,winner=None,side=None):
+    def rauzy_move_interval_substitution(self, winner=None, side=None):
         r"""
-        Returns the interval substitution associated.
+        Return the interval substitution associated.
 
         INPUT:
 
-        - ``winner`` - the winner interval ('top' or 'bottom')
+        - ``winner`` -- the winner interval ('top' or 'bottom')
 
-        - ``side`` - (default: 'right') the side ('left' or 'right')
+        - ``side`` -- (default: 'right') the side ('left' or 'right')
 
         OUTPUT:
 
@@ -711,7 +717,7 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
             sage: print p.rauzy_move_interval_substitution('bottom','left')
             a->a, b->ab
         """
-        d = dict([(letter,letter) for letter in self.letters()])
+        d = dict([(letter, letter) for letter in self.letters()])
 
         if winner is None and side is None:
             return WordMorphism(d)
@@ -729,17 +735,17 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
 
         return WordMorphism(d)
 
-    def rauzy_move_orbit_substitution(self,winner=None,side=None):
+    def rauzy_move_orbit_substitution(self, winner=None, side=None):
         r"""
         Return the action fo the rauzy_move on the orbit.
 
         INPUT:
 
-        - ``i`` - integer
+        - ``i`` -- integer
 
-        - ``winner`` - the winner interval ('top' or 'bottom')
+        - ``winner`` -- the winner interval ('top' or 'bottom')
 
-        - ``side`` - (default: 'right') the side ('right' or 'left')
+        - ``side`` -- (default: 'right') the side ('right' or 'left')
 
         OUTPUT:
 
@@ -757,14 +763,13 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
             sage: print p.rauzy_move_orbit_substitution('bottom','left')
             a->ba, b->b
         """
-        d = dict([(letter,letter) for letter in self.letters()])
+        d = dict([(letter, letter) for letter in self.letters()])
 
         if winner is None and side is None:
             return WordMorphism(d)
 
         winner = interval_conversion(winner)
         side = side_conversion(side)
-
 
         loser_letter = self.rauzy_move_loser(winner,side)
 
@@ -777,7 +782,7 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
 
     def rauzy_diagram(self, **args):
         """
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         For more information try help(iet.RauzyDiagram).
 
@@ -791,6 +796,7 @@ class LabelledPermutationIET(LabelledPermutation, OrientablePermutationIET):
             sage: d = p.rauzy_diagram()
         """
         return LabelledRauzyDiagram(self, **args)
+
 
 class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
     r"""
@@ -845,6 +851,7 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
         Order is lexicographic on length of intervals and on intervals.
 
         TESTS::
+
             sage: p0 = iet.GeneralizedPermutation('0 0','1 1 2 2')
             sage: p1 = iet.GeneralizedPermutation('0 0','1 2 1 2')
             sage: p2 = iet.GeneralizedPermutation('0 0','1 2 2 1')
@@ -901,7 +908,7 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
     def has_right_rauzy_move(self, winner):
         r"""
-        Test of Rauzy movability with a specified winner)
+        Test of Rauzy movability with a specified winner.
 
         A quadratic (or generalized) permutation is rauzy_movable type
         depending on the possible length of the last interval. It's
@@ -909,11 +916,11 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
         INPUT:
 
-        - ``winner`` - 'top' (or 't' or 0) or 'bottom' (or 'b' or 1)
+        - ``winner`` -- 'top' (or 't' or 0) or 'bottom' (or 'b' or 1)
 
         OUTPUT:
 
-        bool -- True if self has a Rauzy move
+        bool -- ``True`` if ``self`` has a Rauzy move
 
         EXAMPLES:
 
@@ -974,11 +981,11 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
         INPUT:
 
-        - ``winner`` - 'top' (or 't' or 0) or 'bottom' (or 'b' or 1)
+        - ``winner`` -- 'top' (or 't' or 0) or 'bottom' (or 'b' or 1)
 
         OUTPUT:
 
-        boolean -- True if self has a Rauzy move
+        boolean -- ``True`` if ``self`` has a Rauzy move
 
         EXAMPLES:
 
@@ -1046,11 +1053,11 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
         INPUT:
 
-        - ``winner`` - 'top' or 'bottom'
+        - ``winner`` -- 'top' or 'bottom'
 
         OUTPUT:
 
-        permutation -- the Rauzy move of self
+        permutation -- the Rauzy move of ``self``
 
         EXAMPLES:
 
@@ -1116,7 +1123,7 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
     def reduced(self):
         r"""
-        Returns the associated reduced quadratic permutations.
+        Return the associated reduced quadratic permutation.
 
         OUTPUT:
 
@@ -1138,7 +1145,7 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated RauzyDiagram.
+        Return the associated RauzyDiagram.
 
         OUTPUT:
 
@@ -1155,22 +1162,24 @@ class LabelledPermutationLI(LabelledPermutation, OrientablePermutationLI):
         """
         return LabelledRauzyDiagram(self, **kargs)
 
+
 class FlippedLabelledPermutation(LabelledPermutation):
     r"""
     General template for labelled objects
 
     .. warning::
-       Internal class! Do not use directly!
+
+        Internal class! Do not use directly!
     """
     def __init__(self, intervals=None, alphabet=None, flips=None):
         r"""
         INPUT:
 
-        - `intervals` - the intervals as a list of two lists
+        - `intervals` -- the intervals as a list of two lists
 
-        - `alphabet` - something that should be converted to an alphabe
+        - `alphabet` -- something that should be converted to an alphabe
 
-        - `flips` - a list of letters of the alphabet
+        - `flips` -- a list of letters of the alphabet
 
         TESTS:
 
@@ -1194,15 +1203,17 @@ class FlippedLabelledPermutation(LabelledPermutation):
             sage: p == loads(dumps(p))
             True
         """
-        if intervals is None: intervals=[[],[]]
-        if flips is None: flips = []
+        if intervals is None:
+            intervals = [[], []]
+        if flips is None:
+            flips = []
 
         super(FlippedLabelledPermutation, self).__init__(intervals, alphabet)
         self._init_flips(intervals, flips)
 
     def __eq__(self,other):
         r"""
-        Test of equality
+        Test of equality.
 
         ALGORITHM:
 
@@ -1228,7 +1239,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
     def __ne__(self,other):
         r"""
-        Test of difference
+        Test of difference.
 
         ALGORITHM:
 
@@ -1253,11 +1264,11 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
     def list(self, flips=False):
         r"""
-        Returns a list associated to the permutation.
+        Return a list associated to the permutation.
 
         INPUT:
 
-        - ``flips`` - boolean (default: False)
+        - ``flips`` -- boolean (default: ``False``)
 
         OUTPUT:
 
@@ -1320,6 +1331,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         flips = self._flips[i]
 
         return zip(letters,flips)
+
 
 class FlippedLabelledPermutationIET(
     FlippedLabelledPermutation,
@@ -1399,8 +1411,8 @@ class FlippedLabelledPermutationIET(
             sage: p.append(iet.Permutation('a b','b a',flips='ab'))
             sage: h = map(hash, p)
             sage: for i in range(len(h)-1):
-            ...      if h[i] == h[i+1]:
-            ...          print "You choose a bad hash!"
+            ....:    if h[i] == h[i+1]:
+            ....:        print "You choose a bad hash!"
         """
         if self._hash is None:
             f = self._flips
@@ -1414,13 +1426,13 @@ class FlippedLabelledPermutationIET(
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the Rauzy diagram associated to this permutation.
+        Return the Rauzy diagram associated to this permutation.
 
         For more information, try help(iet.RauzyDiagram)
 
         OUTPUT:
 
-        RauzyDiagram -- the Rauzy diagram of self
+        RauzyDiagram -- the Rauzy diagram of ``self``
 
         EXAMPLES::
 
@@ -1497,11 +1509,11 @@ class FlippedLabelledPermutationLI(
 
         INPUT:
 
-        - ``winner`` - either 'top' or 'bottom' ('t' or 'b' for short)
+        - ``winner`` -- either 'top' or 'bottom' ('t' or 'b' for short)
 
         OUTPUT:
 
-        permutation -- the Rauzy move of self
+        permutation -- the Rauzy move of ``self``
 
         EXAMPLES:
 
@@ -1559,7 +1571,7 @@ class FlippedLabelledPermutationLI(
 
         INPUT:
 
-        - ``winner`` - either 'top' or 'bottom' ('t' or 'b' for short)
+        - ``winner`` -- either 'top' or 'bottom' ('t' or 'b' for short)
 
         OUTPUT:
 
@@ -1604,7 +1616,7 @@ class FlippedLabelledPermutationLI(
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         For more information, try help(RauzyDiagram)
 
@@ -1619,6 +1631,7 @@ class FlippedLabelledPermutationLI(
         """
         return FlippedLabelledRauzyDiagram(self, **kargs)
 
+
 class LabelledRauzyDiagram(RauzyDiagram):
     r"""
     Template for Rauzy diagrams of labelled permutations.
@@ -1631,7 +1644,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
         """
         def matrix(self):
             r"""
-            Returns the matrix associated to a path.
+            Return the matrix associated to a path.
 
             The matrix associated to a Rauzy induction, is the linear
             application that allows to recover the lengths of self from the
@@ -1678,7 +1691,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def interval_substitution(self):
             r"""
-            Returns the substitution of intervals obtained.
+            Return the substitution of intervals obtained.
 
             OUTPUT:
 
@@ -1705,11 +1718,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def orbit_substitution(self):
             r"""
-            Returns the substitution on the orbit of the left extremity.
+            Return the substitution on the orbit of the left extremity.
 
             OUTPUT:
 
-            WordMorhpism -- the word morphism corresponding to the orbit
+            WordMorphism -- the word morphism corresponding to the orbit
 
             EXAMPLES::
 
@@ -1735,13 +1748,13 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def is_full(self):
             r"""
-            Tests the fullness.
+            Test the fullness.
 
             A path is full if all intervals win at least one time.
 
             OUTPUT:
 
-            boolean -- True if the path is full and False else
+            boolean -- ``True`` if the path is full and ``False`` else
 
             EXAMPLE::
 
@@ -1762,7 +1775,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
     def edge_to_interval_substitution(self, p=None, edge_type=None):
         r"""
-        Returns the interval substitution associated to an edge
+        Return the interval substitution associated to an edge
 
         OUTPUT:
 
@@ -1792,7 +1805,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
     def edge_to_orbit_substitution(self, p=None, edge_type=None):
         r"""
-        Returns the interval substitution associated to an edge
+        Return the interval substitution associated to an edge
 
         OUTPUT:
 
@@ -1822,13 +1835,13 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
     def full_loop_iterator(self, start=None, max_length=1):
         r"""
-        Returns an iterator over all full path starting at start.
+        Return an iterator over all full path starting at start.
 
         INPUT:
 
-        - ``start`` - the start point
+        - ``start`` -- the start point
 
-        - ``max_length`` - a limit on the length of the paths
+        - ``max_length`` -- a limit on the length of the paths
 
         OUTPUT:
 
@@ -1839,7 +1852,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for g in r.full_loop_iterator(p,2):
-            ...       print g.matrix(), "\n*****"
+            ....:     print g.matrix(), "\n*****"
             [1 1]
             [1 2]
             *****
@@ -1859,13 +1872,13 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
     def full_nloop_iterator(self, start=None, length=1):
         r"""
-        Returns an iterator over all full loops of given length.
+        Return an iterator over all full loops of given length.
 
         INPUT:
 
-        - ``start`` - the initial permutation
+        - ``start`` -- the initial permutation
 
-        - ``length`` - the length to consider
+        - ``length`` -- the length to consider
 
         OUTPUT:
 
@@ -1876,7 +1889,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()
             sage: for g in d.full_nloop_iterator(p,2):
-            ...       print g.matrix(), "\n*****"
+            ....:     print g.matrix(), "\n*****"
             [1 1]
             [1 2]
             *****
@@ -1900,7 +1913,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         INPUT:
 
-        - ``p`` - a labelled Permutation
+        - ``p`` -- a labelled Permutation
 
         TESTS::
 
@@ -1909,13 +1922,12 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p in r   #indirect doctest
             True
         """
-        return (
-        tuple(p._labels[0]),tuple(p._labels[1]),
-        tuple(p._twin[0]),tuple(p._twin[1]))
+        return (tuple(p._labels[0]),tuple(p._labels[1]),
+                tuple(p._twin[0]),tuple(p._twin[1]))
 
-    def _set_element(self,data):
+    def _set_element(self, data):
         r"""
-        Sets self._element with data
+        Set self._element with data.
 
         TESTS::
 
@@ -1929,17 +1941,18 @@ class LabelledRauzyDiagram(RauzyDiagram):
         self._element._labels = [list(data[0]), list(data[1])]
         self._element._twin = [list(data[2]), list(data[3])]
 
+
 class FlippedLabelledRauzyDiagram(FlippedRauzyDiagram, LabelledRauzyDiagram):
     r"""
     Rauzy diagram of flipped labelled permutations
     """
     def _permutation_to_vertex(self, p):
         r"""
-        Returns what must be stored from p.
+        Return what must be stored from `p`.
 
         INPUT:
 
-        - ``p`` - a Flipped labelled permutation
+        - `p` -- a Flipped labelled permutation
 
         TESTS::
 
@@ -1954,7 +1967,7 @@ class FlippedLabelledRauzyDiagram(FlippedRauzyDiagram, LabelledRauzyDiagram):
 
     def _set_element(self, data):
         r"""
-        Returns what the vertex i as a permutation.
+        Return what the vertex i as a permutation.
 
         TESTS::
 
@@ -1966,4 +1979,3 @@ class FlippedLabelledRauzyDiagram(FlippedRauzyDiagram, LabelledRauzyDiagram):
         self._element._labels = [list(data[0][0]), list(data[0][1])]
         self._element._twin = [list(data[1][0]), list(data[1][1])]
         self._element._flips = [list(data[2][0]), list(data[2][1])]
-
