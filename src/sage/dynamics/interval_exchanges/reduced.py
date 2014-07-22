@@ -1,11 +1,12 @@
 r"""
 Reduced permutations
 
-A reduced (generalized) permutation is better suited to study strata of Abelian
-(or quadratic) holomorphic forms on Riemann surfaces. The Rauzy diagram is an
-invariant of such a component. Corentin Boissy proved the identification of
-Rauzy diagrams with connected components of stratas. But the geometry of the
-diagram and the relation with the strata is not yet totally understood.
+A reduced (generalized) permutation is better suited to study strata
+of Abelian (or quadratic) holomorphic forms on Riemann surfaces. The
+Rauzy diagram is an invariant of such a component. Corentin Boissy
+proved the identification of Rauzy diagrams with connected components
+of stratas. But the geometry of the diagram and the relation with the
+strata is not yet totally understood.
 
 AUTHORS:
 
@@ -65,6 +66,7 @@ from template import RauzyDiagram, FlippedRauzyDiagram
 
 from template import interval_conversion, side_conversion
 
+
 class ReducedPermutation(SageObject) :
     r"""
     Template for reduced objects.
@@ -77,9 +79,9 @@ class ReducedPermutation(SageObject) :
         r"""
         INPUT:
 
-        - ``intervals`` - a list of two lists of labels
+        - ``intervals`` -- a list of two lists of labels
 
-        - ``alphabet`` - (default: None) alphabet
+        - ``alphabet`` -- (default: ``None``) alphabet
 
         TESTS::
 
@@ -115,7 +117,7 @@ class ReducedPermutation(SageObject) :
                     raise TypeError("the alphabet is too short")
                 self._alphabet = alphabet
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         r"""
         TESTS::
 
@@ -137,21 +139,21 @@ def ReducedPermutationsIET_iterator(
     irreducible=True,
     alphabet=None):
     r"""
-    Returns an iterator over reduced permutations
+    Return an iterator over reduced permutations
 
     INPUT:
 
-    - ``nintervals`` - integer or None
+    - ``nintervals`` -- integer or ``None``
 
-    - ``irreducible`` - boolean
+    - ``irreducible`` -- boolean
 
-    - ``alphabet`` - something that should be converted to an alphabet
+    - ``alphabet`` -- something that should be converted to an alphabet
       of at least nintervals letters
 
     TESTS::
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
-        ...    print p  #indirect doctest
+        ....:  print p  # indirect doctest
         a b c
         b c a
         a b c
@@ -164,7 +166,7 @@ def ReducedPermutationsIET_iterator(
 
     if irreducible is False:
         if nintervals is None:
-            raise NotImplementedError, "choose a number of intervals"
+            raise NotImplementedError("choose a number of intervals")
         else:
             assert(isinstance(nintervals,(int,Integer)))
             assert(nintervals > 0)
@@ -176,6 +178,7 @@ def ReducedPermutationsIET_iterator(
     else:
         return ifilter(lambda x: x.is_irreducible(),
         ReducedPermutationsIET_iterator(nintervals,False,alphabet))
+
 
 class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
     """
@@ -229,7 +232,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
     """
     def list(self):
         r"""
-        Returns a list of two list that represents the permutation.
+        Return a list of two lists that represents the permutation.
 
         EXAMPLES::
 
@@ -246,9 +249,10 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def __hash__(self):
         r"""
-        Returns a hash value (does not depends of the alphabet).
+        Return a hash value (does not depends of the alphabet).
 
         TESTS::
+
             sage: p = iet.Permutation([1,2],[1,2], reduced=True)
             sage: q = iet.Permutation([1,2],[2,1], reduced=True)
             sage: r = iet.Permutation([2,1],[1,2], reduced=True)
@@ -263,7 +267,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def __eq__(self,other):
         r"""
-        Tests equality
+        Test equality.
 
         TESTS::
 
@@ -280,7 +284,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def __ne__(self, other):
         r"""
-        Tests difference
+        Test difference.
 
         TESTS::
 
@@ -297,7 +301,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def __cmp__(self, other):
         r"""
-        Defines a natural lexicographic order.
+        Define a natural lexicographic order.
 
         TESTS::
 
@@ -330,7 +334,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
             True
         """
         if type(self) != type(other):
-            raise ValueError, "Permutations must be of the same type"
+            raise ValueError("Permutations must be of the same type")
 
         if len(self) > len(other):
             return 1
@@ -350,7 +354,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def rauzy_move_relabel(self, winner, side='right'):
         r"""
-        Returns the relabelization obtained from this move.
+        Return the relabelization obtained from this move.
 
         EXAMPLE::
 
@@ -391,15 +395,13 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         OUTPUT:
 
         A Rauzy diagram
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d', 'd a b c',reduced=True)
             sage: d = p.rauzy_diagram()
@@ -411,6 +413,7 @@ class ReducedPermutationIET(ReducedPermutation, OrientablePermutationIET):
         For more information, try help RauzyDiagram
         """
         return ReducedRauzyDiagram(self, **kargs)
+
 
 class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
     r"""
@@ -435,7 +438,7 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
         sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
-    Rauzy movavability and Rauzy move::
+    Rauzy movability and Rauzy move::
 
         sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
         sage: p.has_rauzy_move(0)
@@ -479,10 +482,10 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
 
     def __eq__(self, other) :
         r"""
-        Tests equality.
+        Test equality.
 
         Two reduced permutations are equal if they have the same order of
-        apparition of intervals. Non necessarily the same alphabet.
+        apparition of intervals. Not necessarily the same alphabet.
 
         TESTS::
 
@@ -498,9 +501,10 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
 
     def __ne__(self, other) :
         """
-        Tests difference.
+        Test difference.
 
         TESTS::
+
             sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
             sage: q = iet.GeneralizedPermutation('b b a', 'c c a', reduced = True)
             sage: r = iet.GeneralizedPermutation('i j j', 'k k i', reduced = True)
@@ -513,7 +517,7 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         The Rauzy diagram of a permutation corresponds to all permutations
         that we could obtain from this one by Rauzy move. The set obtained
@@ -531,9 +535,10 @@ class ReducedPermutationLI(ReducedPermutation, OrientablePermutationLI):
         """
         return ReducedRauzyDiagram(self, **kargs)
 
+
 def labelize_flip(couple):
     r"""
-    Returns a string from a 2-uple couple of the form (name, flip).
+    Return a string from a 2-uple couple of the form (name, flip).
 
     TESTS::
 
@@ -543,8 +548,10 @@ def labelize_flip(couple):
         sage: labelize_flip(('a',-1))
         '-a'
     """
-    if couple[1] == -1: return '-' + str(couple[0])
+    if couple[1] == -1:
+        return '-' + str(couple[0])
     return ' ' + str(couple[0])
+
 
 class FlippedReducedPermutation(ReducedPermutation):
     r"""
@@ -556,11 +563,11 @@ class FlippedReducedPermutation(ReducedPermutation):
 
     INPUT:
 
-    - ``intervals`` - a list of two lists
+    - ``intervals`` -- a list of two lists
 
-    - ``flips`` - the flipped letters
+    - ``flips`` -- the flipped letters
 
-    - ``alphabet`` - an alphabet
+    - ``alphabet`` -- an alphabet
     """
     def __init__(self, intervals=None, flips=None, alphabet=None):
         r"""
@@ -603,6 +610,7 @@ class FlippedReducedPermutation(ReducedPermutation):
 
             self._hash = None
 
+
 class FlippedReducedPermutationIET(
     FlippedReducedPermutation,
     FlippedPermutationIET,
@@ -625,7 +633,7 @@ class FlippedReducedPermutationIET(
         sage: p == loads(dumps(p))
         True
     """
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
         TESTS::
 
@@ -679,7 +687,7 @@ class FlippedReducedPermutationIET(
 
     def __cmp__(self, other):
         r"""
-        Defines a natural lexicographic order.
+        Define a natural lexicographic order.
 
         TESTS::
 
@@ -738,16 +746,15 @@ class FlippedReducedPermutationIET(
 
     def list(self, flips=False):
         r"""
-        Returns a list representation of self.
+        Return a list representation of ``self``.
 
         INPUT:
 
-        - ``flips`` - boolean (default: False) if True the output contains
-           2-uple of (label, flip)
+        - ``flips`` -- boolean (default: ``False``) if ``True`` the
+           output contains 2-uple of (label, flip)
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
             sage: p = iet.Permutation('a b','b a',reduced=True,flips='b')
             sage: p.list(flips=True)
             [[('a', 1), ('b', -1)], [('b', -1), ('a', 1)]]
@@ -773,11 +780,11 @@ class FlippedReducedPermutationIET(
             a0 = map(self.alphabet().unrank, range(0,len(self)))
             a1 = map(self.alphabet().unrank, self._twin[1])
 
-        return [a0,a1]
+        return [a0, a1]
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         EXAMPLES::
 
@@ -787,6 +794,7 @@ class FlippedReducedPermutationIET(
             True
         """
         return FlippedReducedRauzyDiagram(self, **kargs)
+
 
 class FlippedReducedPermutationLI(
     FlippedReducedPermutation,
@@ -803,11 +811,11 @@ class FlippedReducedPermutationLI(
     """
     def list(self, flips=False):
         r"""
-        Returns a list representation of self.
+        Return a list representation of ``self``.
 
         INPUT:
 
-        - ``flips`` - boolean (default: False) return the list with flips
+        - ``flips`` -- boolean (default: ``False``) return the list with flips
 
         EXAMPLES:
 
@@ -825,7 +833,7 @@ class FlippedReducedPermutationLI(
             sage: p.list(flips=False)
             [['a', 'a', 'b'], ['b', 'c', 'c']]
 
-        one can rebuild the permutation from the list::
+        One can rebuild the permutation from the list::
 
             sage: p = iet.GeneralizedPermutation('a a b','b c c',flips='a',reduced=True)
             sage: iet.GeneralizedPermutation(p.list(),flips=p.flips(),reduced=True) == p
@@ -895,7 +903,7 @@ class FlippedReducedPermutationLI(
 
     def rauzy_diagram(self, **kargs):
         r"""
-        Returns the associated Rauzy diagram.
+        Return the associated Rauzy diagram.
 
         For more explanation and a list of arguments try help(iet.RauzyDiagram)
 
@@ -908,6 +916,7 @@ class FlippedReducedPermutationLI(
         """
         return FlippedReducedRauzyDiagram(self, **kargs)
 
+
 class ReducedRauzyDiagram(RauzyDiagram):
     r"""
     Rauzy diagram of reduced permutations
@@ -917,7 +926,6 @@ class ReducedRauzyDiagram(RauzyDiagram):
         The necessary data to store the permutation.
 
         TESTS::
-
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True)   #indirect doctest
             sage: r = p.rauzy_diagram()
@@ -939,6 +947,7 @@ class ReducedRauzyDiagram(RauzyDiagram):
         """
         self._element._twin = [list(data[0]), list(data[1])]
 
+
 class FlippedReducedRauzyDiagram(FlippedRauzyDiagram, ReducedRauzyDiagram):
     r"""
     Rauzy diagram of flipped reduced permutations.
@@ -957,7 +966,8 @@ class FlippedReducedRauzyDiagram(FlippedRauzyDiagram, ReducedRauzyDiagram):
 
     def _set_element(self, data=None):
         r"""
-        Sets self._element with data.
+        Set self._element with data.
+
         TESTS::
 
             sage: r = iet.RauzyDiagram('a b c','c b a',flips='b',reduced=True)   #indirect doctest
