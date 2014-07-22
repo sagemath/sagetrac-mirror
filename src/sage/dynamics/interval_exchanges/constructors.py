@@ -53,10 +53,10 @@ As the iet's are functions, you can compose and invert them
     sage: (T * S).is_identity()
     True
 
-For the manipulation of permutations of iet, there are special types provided by
-this module. All of them can be constructed using the constructor
-iet.Permutation. For the creation of labelled permutations of interval exchange
-transformation::
+For the manipulation of permutations of iet, there are special types
+provided by this module. All of them can be constructed using the
+constructor iet.Permutation. For the creation of labelled permutations
+of interval exchange transformation::
 
     sage: p1 =  iet.Permutation('a b c', 'c b a')
     sage: print p1
@@ -79,9 +79,10 @@ You can also, create labelled permutations of linear involutions::
     a a b
     b c c
 
-By default, the permutations are labelled (it means that the labels are
-important and (a b / b a) differs from (b a / a b)). It sometimes useful to deal
-with reduced permutations for which the order does not import::
+By default, the permutations are labelled (it means that the labels
+are important and (a b / b a) differs from (b a / a b)). It is sometimes
+useful to deal with reduced permutations for which the order does not
+matter::
 
     sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
     sage: print p
@@ -138,8 +139,8 @@ of the corresponding matrix::
 REFERENCES:
 
 .. [BL08] Corentin Boissy and Erwan Lanneau, "Dynamics and geometry of the
-  Rauzy-Veech induction for quadratic differentials" (arxiv:0710.5614) to appear
-  in Ergodic Theory and Dynamical Systems
+  Rauzy-Veech induction for quadratic differentials" (:arxiv:`0710.5614`)
+  to appear in Ergodic Theory and Dynamical Systems
 
 .. [DN90] Claude Danthony and Arnaldo Nogueira "Measured foliations on
   nonorientable surfaces", Annales scientifiques de l'Ecole Normale
@@ -173,22 +174,19 @@ AUTHORS:
 from sage.rings.integer import Integer
 
 
-
 def _two_lists(t):
     r"""
     Try to return the input as a list of two lists
 
     INPUT:
 
-    - ``a`` - either a string, one or two lists, one or two tuples
+    - ``a`` -- either a string, one or two lists, one or two tuples
 
     OUTPUT:
 
-    -- two lists
+    - two lists
 
-    TESTS:
-
-    ::
+    TESTS::
 
         sage: from sage.dynamics.interval_exchanges.constructors import _two_lists
         sage: _two_lists(('a1 a2','b1 b2'))
@@ -262,9 +260,10 @@ def _two_lists(t):
 
     raise ValueError("Your argument can not be split into two parts")
 
+
 def Permutation(*args,**kargs):
     r"""
-    Returns a permutation of an interval exchange transformation.
+    Return a permutation of an interval exchange transformation.
 
     Those permutations are the combinatoric part of an interval exchange
     transformation (IET). The combinatorial study of those objects starts with
@@ -276,14 +275,15 @@ def Permutation(*args,**kargs):
 
     INPUT:
 
-    - ``intervals`` - string, two strings, list, tuples that can be converted to
-      two lists
+    - ``intervals`` -- string, two strings, list, tuples that can be
+      converted to two lists
 
-    - ``reduced`` - boolean (default: False) specifies reduction. False means
-      labelled permutation and True means reduced permutation.
+    - ``reduced`` -- boolean (default: ``False``) specifies
+      reduction. ``False`` means labelled permutation and ``True`` means
+      reduced permutation.
 
-    - ``flips`` -  iterable (default: None) the letters which correspond to
-      flipped intervals.
+    - ``flips`` -- iterable (default: ``None``) the letters which
+      correspond to flipped intervals.
 
     OUTPUT:
 
@@ -291,7 +291,7 @@ def Permutation(*args,**kargs):
 
     EXAMPLES:
 
-    Creation of labelled permutations ::
+    Creation of labelled permutations::
 
         sage: iet.Permutation('a b c d','d c b a')
         a b c d
@@ -383,8 +383,10 @@ def Permutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        if kargs["reduced"] is True:
+            reduction = True
+        else:
+            reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -444,7 +446,7 @@ def Permutation(*args,**kargs):
         if a[0].count(letter) != 1 or a[1].count(letter) != 1:
             raise ValueError("letters must appear once in each interval")
 
-    if reduction == True :
+    if reduction:
         if flips == []:
             return ReducedPermutationIET(a, alphabet=alphabet)
         else :
@@ -455,24 +457,27 @@ def Permutation(*args,**kargs):
         else :
             return FlippedLabelledPermutationIET(a, alphabet=alphabet, flips=flips)
 
-def GeneralizedPermutation(*args,**kargs):
-    r"""
-    Returns a permutation of an interval exchange transformation.
 
-    Those permutations are the combinatoric part of linear involutions and were
-    introduced by Danthony-Nogueira [DN90]_. The full combinatoric study and
-    precise links with strata of quadratic differentials was achieved few years
-    later by Boissy-Lanneau [BL08]_.
+def GeneralizedPermutation(*args, **kargs):
+    r"""
+    Return a permutation of an interval exchange transformation.
+
+    Those permutations are the combinatoric part of linear involutions
+    and were introduced by Danthony-Nogueira [DN90]_. The full
+    combinatoric study and precise links with strata of quadratic
+    differentials was achieved few years later by Boissy-Lanneau
+    [BL08]_.
 
     INPUT:
 
-    - ``intervals`` - strings, list, tuples
+    - ``intervals`` -- strings, list, tuples
 
-    - ``reduced`` - boolean (defaut: False) specifies reduction. False means
-      labelled permutation and True means reduced permutation.
+    - ``reduced`` -- boolean (defaut: ``False``) specifies
+      reduction. ``False`` means labelled permutation and ``True`` means
+      reduced permutation.
 
-    - ``flips`` -  iterable (default: None) the letters which correspond to
-      flipped intervals.
+    - ``flips`` -- iterable (default: ``None``) the letters which
+      correspond to flipped intervals.
 
     OUTPUT:
 
@@ -522,8 +527,10 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        if kargs["reduced"] is True:
+            reduction = True
+        else:
+            reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -577,8 +584,10 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        if kargs["reduced"] is True:
+            reduction = True
+        else:
+            reduction = False
 
     if 'flips' not in kargs :
         flips = []
@@ -599,7 +608,7 @@ def GeneralizedPermutation(*args,**kargs):
 
     for letter in letters :
         if l.count(letter) != 2:
-            raise ValueError, "Letters must reappear twice"
+            raise ValueError("Letters must reappear twice")
 
     # check exitence of admissible length
     b0 = a[0][:]
@@ -613,9 +622,9 @@ def GeneralizedPermutation(*args,**kargs):
         return Permutation(a[0],a[1],**kargs)
 
     elif (b0 == []) or (b1 == []):
-        raise ValueError, "There is no admissible length"
+        raise ValueError("There is no admissible length")
 
-    if reduction == True :
+    if reduction is True :
         if flips == []:
             return ReducedPermutationLI(a, alphabet=alphabet)
         else :
@@ -626,13 +635,14 @@ def GeneralizedPermutation(*args,**kargs):
         else :
             return FlippedLabelledPermutationLI(a, alphabet=alphabet, flips=flips)
 
+
 def Permutations_iterator(
     nintervals=None,
     irreducible=True,
     reduced=False,
     alphabet=None):
     r"""
-    Returns an iterator over permutations.
+    Return an iterator over permutations.
 
     This iterator allows you to iterate over permutations with given
     constraints. If you want to iterate over permutations coming from a given
@@ -641,13 +651,13 @@ def Permutations_iterator(
 
     INPUT:
 
-    - ``nintervals`` - non negative integer
+    - ``nintervals`` -- non negative integer
 
-    - ``irreducible`` - boolean (default: True)
+    - ``irreducible`` -- boolean (default: ``True``)
 
-    - ``reduced`` - boolean (default: False)
+    - ``reduced`` -- boolean (default: ``False``)
 
-    - ``alphabet`` - alphabet (default: None)
+    - ``alphabet`` -- alphabet (default: ``None``)
 
     OUTPUT:
 
@@ -679,15 +689,15 @@ def Permutations_iterator(
 
     if nintervals is None:
         if alphabet is None:
-            raise ValueError, "You must specify an alphabet or a length"
+            raise ValueError("You must specify an alphabet or a length")
         else:
             alphabet = Alphabet(alphabet)
             if alphabet.cardinality() is Infinity:
-                raise ValueError, "You must sepcify a length with infinite alphabet"
+                raise ValueError("You must specify a length with infinite alphabet")
             nintervals = alphabet.cardinality()
 
     elif alphabet is None:
-            alphabet = range(1,nintervals+1)
+            alphabet = range(1, nintervals + 1)
 
     if reduced:
         return ReducedPermutationsIET_iterator(
@@ -700,40 +710,42 @@ def Permutations_iterator(
             irreducible=irreducible,
             alphabet=alphabet)
 
+
 def RauzyDiagram(*args, **kargs):
     r"""
     Return an object coding a Rauzy diagram.
 
-    The Rauzy diagram is an oriented graph with labelled edges. The set of
-    vertices corresponds to the permutations obtained by different operations
-    (mainly the .rauzy_move() operations that corresponds to an induction of
-    interval exchange transformation). The edges correspond to the action of the
+    The Rauzy diagram is an oriented graph with labelled edges. The
+    set of vertices corresponds to the permutations obtained by
+    different operations (mainly the .rauzy_move() operations that
+    corresponds to an induction of interval exchange
+    transformation). The edges correspond to the action of the
     different operations considered.
 
-    It first appeard in the original article of Rauzy [R79]_.
+    It first appeared in the original article of Rauzy [R79]_.
 
     INPUT:
 
-    - ``intervals`` - lists, or strings, or tuples
+    - ``intervals`` -- lists, or strings, or tuples
 
-    - ``reduced`` - boolean (default: False) to precise reduction
+    - ``reduced`` -- boolean (default: ``False``) to precise reduction
 
-    - ``flips`` - list (default: []) for flipped permutations
+    - ``flips`` -- list (default: []) for flipped permutations
 
-    - ``right_induction`` - boolean (default: True) consideration of left
-      induction in the diagram
+    - ``right_induction`` -- boolean (default: ``True``) consideration
+      of left induction in the diagram
 
-    - ``left_induction`` - boolean (default: False) consideration of right
-      induction in the diagram
+    - ``left_induction`` -- boolean (default: ``False``) consideration
+      of right induction in the diagram
 
-    - ``left_right_inversion`` - boolean (default: False) consideration of
-      inversion
+    - ``left_right_inversion`` -- boolean (default: ``False``)
+      consideration of inversion
 
-    - ``top_bottom_inversion`` - boolean (default: False) consideration of
-      reversion
+    - ``top_bottom_inversion`` -- boolean (default: ``False``)
+      consideration of reversion
 
-    - ``symmetric`` - boolean (default: False) consideration of the symmetric
-      operation
+    - ``symmetric`` -- boolean (default: ``False``) consideration of
+      the symmetric operation
 
     OUTPUT:
 
@@ -784,7 +796,7 @@ def RauzyDiagram(*args, **kargs):
         True
 
     We can then create the corresponding interval exchange transformation and
-    comparing the orbit of `0` to the fixed point of the orbit substitution::
+    compare the orbit of `0` to the fixed point of the orbit substitution::
 
         sage: v = m.eigenvectors_right()[-1][1][0]
         sage: T = iet.IntervalExchangeTransformation(p, v).normalize()
@@ -795,8 +807,8 @@ def RauzyDiagram(*args, **kargs):
         sage: w1 = []
         sage: x = 0
         sage: for i in range(20):
-        ...    w1.append(T.in_which_interval(x))
-        ...    x = T(x)
+        ....:     w1.append(T.in_which_interval(x))
+        ....:     x = T(x)
         sage: w1 = Word(w1)
         sage: w1
         word: acbbcacbcacbbcbbcacb
@@ -841,26 +853,28 @@ def RauzyDiagram(*args, **kargs):
 # def GeneralizedPermutation_iterator():
 #     print "gpi"
 
+
 def IntervalExchangeTransformation(permutation=None,lengths=None):
     """
     Constructs an Interval exchange transformation.
 
     An interval exchange transformation (or iet) is a map from an
-    interval to itself. It is defined on the interval except at a finite
-    number of points (the singularities) and is a translation on each
-    connected component of the complement of the singularities. Moreover it is a
-    bijection on its image (or it is injective).
+    interval to itself. It is defined on the interval except at a
+    finite number of points (the singularities) and is a translation
+    on each connected component of the complement of the
+    singularities. Moreover it is a bijection on its image (or it is
+    injective).
 
-    An interval exchange transformation is encoded by two datas. A permutation
-    (that corresponds to the way we echange the intervals) and a vector of
-    positive reals (that corresponds to the lengths of the complement of the
-    singularities).
+    An interval exchange transformation is encoded by two datas. A
+    permutation (that corresponds to the way we echange the intervals)
+    and a vector of positive reals (that corresponds to the lengths of
+    the complement of the singularities).
 
     INPUT:
 
-    - ``permutation`` - a permutation
+    - ``permutation`` -- a permutation
 
-    - ``lengths`` - a list or a dictionnary of lengths
+    - ``lengths`` -- a list or a dictionnary of lengths
 
     OUTPUT:
 
@@ -877,7 +891,7 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
 
         sage: t = iet.IntervalExchangeTransformation(('a b','b a'),{'a':1,'b':4})
 
-    It's also possible to initialize the lengths only with a list::
+    It is also possible to initialize the lengths only with a list::
 
         sage: t = iet.IntervalExchangeTransformation(('a b c','c b a'),[0.123,0.4,2])
 
@@ -906,7 +920,7 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
     from template import FlippedPermutation
 
     if isinstance(permutation, FlippedPermutation):
-        raise TypeError, "flips are not yet implemented"
+        raise TypeError("flips are not yet implemented")
     elif isinstance(permutation, LabelledPermutationIET):
         p = permutation
     elif isinstance(permutation, tuple):
@@ -923,16 +937,16 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
         l = list(lengths)
 
     if len(l) != len(p):
-        raise ValueError, "bad number of lengths"
+        raise ValueError("bad number of lengths")
 
     for x in l:
         try:
             y = float(x)
         except ValueError:
-            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+            raise TypeError("unable to convert x (='%s') into a real number" % str(x))
 
         if y <= 0:
-           raise ValueError, "lengths must be positive"
+           raise ValueError("lengths must be positive")
 
     return _IET(p,l)
 
@@ -947,5 +961,3 @@ IET = IntervalExchangeTransformation
 #     pass
 
 # LI = LinearInvolution
-
-
