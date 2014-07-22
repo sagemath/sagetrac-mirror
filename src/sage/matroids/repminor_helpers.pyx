@@ -1,6 +1,12 @@
+# cython: profile=True
+
 include 'sage/misc/bitset.pxi'
 from lean_matrix cimport BinaryMatrix
 from sage.rings.all import GF
+cdef bint GF2_not_defined = True
+cdef GF2, GF2_one, GF2_zero
+
+
 
 cpdef search_assgn(Ga,Gb,assgn,cand=None):
     """ Implement Ullman's algorithm for exact subgraph isomorphism 
@@ -62,20 +68,21 @@ cpdef init_iso_matrices(BinaryMatrix M_rmat,BinaryMatrix N_rmat):
     """
     cdef long r1,r2
     cdef BinaryMatrix M1_0,M2_0
+    global GF2
     # initialize M1_0 and M2_0
-    M1_0 = BinaryMatrix(N_rmat.nrows(),M_rmat.nrows(), ring=GF(2))
-    M2_0 = BinaryMatrix(N_rmat.ncols(),M_rmat.ncols(),ring=GF(2))
+    M1_0 = BinaryMatrix(N_rmat.nrows(),M_rmat.nrows(), ring=GF2)
+    M2_0 = BinaryMatrix(N_rmat.ncols(),M_rmat.ncols(),ring=GF2)
     # for lhs vertices in N_rmat(rows), find out rows in M_rmat that have
     # greater than equal degree
-    for r1 in range(N_rmat.nrows()):
+    for r1 in xrange(N_rmat.nrows()):
         d1 = N_rmat.row_len(r1)
-        for r2 in range(M_rmat.nrows()):
+        for r2 in xrange(M_rmat.nrows()):
             d2 = M_rmat.row_len(r2)
             if d1 <= d2:
                 M1_0.set(r1,r2)
-    for c1 in range(N_rmat.ncols()):
+    for c1 in xrange(N_rmat.ncols()):
         d1 = col_len(N_rmat,c1)
-        for c2 in range(M_rmat.ncols()):
+        for c2 in xrange(M_rmat.ncols()):
             d2 = col_len(M_rmat,c2)
             if d1 <= d2:
                 M2_0.set(c1,c2)
@@ -84,61 +91,123 @@ cpdef init_iso_matrices(BinaryMatrix M_rmat,BinaryMatrix N_rmat):
 cpdef col_len(BinaryMatrix mat,long c):
     cdef int r,d
     d=0
-    for r in range(mat.nrows()):
+    for r in xrange(mat.nrows()):
         if mat.is_nonzero(r,c):
             d+=1
     return d
 
-cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat):
+cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,Mpcl,Npcl):
     cdef long i
     cdef bitset_t unused_cols
     cdef BinaryMatrix M_rmatT, N_rmatT,M1,M2
+    global GF2
     M_rmatT = mat_transpose(M_rmat)
     N_rmatT = mat_transpose(N_rmat)
     #print M_rmat
     #print N_rmat
     bitset_init(unused_cols,M_rmat.nrows()+ M_rmat.ncols())
     [M1_0,M2_0]=init_iso_matrices(M_rmat,N_rmat)
-    #print M1_0,M2_0
-    for i in range(M_rmat.nrows()+M_rmat.ncols()):
+    print 'M1_0',M1_0,'M2_0',M2_0
+    for i in xrange(M_rmat.nrows()+M_rmat.ncols()):
         bitset_add(unused_cols,i)
     M1=copy_mat(M1_0) #BinaryMatrix(M1_0.nrows(),M1_0.ncols(),ring=GF(2))
-    M2=BinaryMatrix(M2_0.nrows(),M1_0.ncols(),ring=GF(2)).augment(copy_mat(M2_0))#BinaryMatrix(M2_0.nrows(),M2_0.ncols(),ring=GF(2))
+    M2=BinaryMatrix(M2_0.nrows(),M1_0.ncols(),ring=GF2).augment(copy_mat(M2_0))#BinaryMatrix(M2_0.nrows(),M2_0.ncols(),ring=GF(2))
     if not degrees_are_sane(M1,M2):
         #print 'degrees insane'
         return False
     else:
         #print 'degrees sane'
-        #print 'M1',M1,'\n','M2',M2
-        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2) == 1
+        print 'M1',M1,'\n','M2',M2
+        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices, Mpcl,Npcl) == 1
 
 cpdef degrees_are_sane(BinaryMatrix M1,BinaryMatrix M2):
     """ Check if there is an all-zero row in M1 or M2 and return ``False``
     if there is one. 
     """
     cdef long i
-    for i in range(M1.nrows()):
+    for i in xrange(M1.nrows()):
         if bitset_isempty(M1._M[i]):
             return False
-    for i in range(M2.nrows()):
+    for i in xrange(M2.nrows()):
         if bitset_isempty(M2._M[i]):
             return False
     return True
 
-cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2):
+cpdef _lp_are_sane(M, N):
+    # check if loops of N have consistent mappings
+    if len(M.loops()) < len(N.loops()):
+        print 'loops insane'
+        return False
+    # check if there are atleast as many nontrivial parallel class in M as 
+    # there are in N
+    Mpcl=[k-M.loops() for k in M.flats(1) if len(k-M.loops())>1]
+    print 'Mpcl',Mpcl
+    Npcl=[k-N.loops() for k in N.flats(1) if len(k-N.loops())>1]
+    print 'Npcl',Npcl
+    if len(Mpcl) < len(Npcl):
+        return False
+    for npcl in Npcl:
+        if len([mpcl for mpcl in Mpcl if len(mpcl)>=len(npcl)]) == 0:
+            return False
+    return True
+
+cdef _pcl_have_maps(Mpcl,Npcl,iso_map):
+    for pcl in Npcl:
+        rep = list(pcl & set(iso_map.keys()))[0] # representative
+        repmap = iso_map[rep]
+        repmap_pcl_M = [i for i in Mpcl if repmap in i][0]
+        if len(repmap_pcl_M) < len(pcl):
+            # pcl doesn't have consistant map
+            return False
+        return True
+        
+cdef iso_mats_to_dict(BinaryMatrix M1, BinaryMatrix M2, indices):
+    N_R=indices[0]
+    N_C=indices[1]
+    M_R=indices[2]
+    M_C=indices[3]
+    iso_map={}
+    k=0
+    print 'crating dict from',M1,M2
+    for nr in N_R:
+        iso_map[nr]=M_R[bitset_pop(M1._M[k])]
+        k=k+1
+    k=0
+    for nc in N_C:
+        iso_map[nc]=M_C[bitset_pop(M2._M[k])]
+        k=k+1
+    return iso_map
+                
+        
+cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2,indices,Mpcl,Npcl):
     cdef long i,j
     cpdef bitset_t valid_cols
     cpdef bitset_t curr_cols
     cpdef bitset_t saved_row
     cdef BinaryMatrix iso,saved_M1,saved_M2
+    global GF2, GF2_zero, GF2_one, GF2_not_defined
+    if GF2_not_defined:
+            GF2 = GF(2)
+            GF2_zero = GF2(0)
+            GF2_one = GF2(1)
+            GF2_not_defined = False
     cdef long found = 0
-#    if cur_row==0:
-#        print 'new basis'
+    print 'cur_row',cur_row
     if cur_row == M1.nrows() + M2.nrows():
         # check if [M1 0; 0 M2] is an induced isomorphism and return True/False accordingly
-        iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF(2))).stack(M2)
+        iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF2)).stack(M2)
         found = is_weak_induced_isomorphism( M1, M2,   M_rmat,  N_rmat)
         return found
+#        if found == 1:
+#            print 'weak isomorphism'
+#            print 'M1',M1
+#            print 'M2',M2
+#            iso_map = iso_mats_to_dict(M1,M2,indices)
+#            print iso_map
+#            if _pcl_have_maps(Mpcl,Npcl,iso_map):
+#                return found
+#            else:
+#                return 0
     else:
         # save M1,M2 before pruning
         saved_M1 = copy_mat(M1)
@@ -160,34 +229,38 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
             # cur_row in in M1
             bitset_init(curr_cols,M_rmat.nrows()+M_rmat.ncols())
             bitset_init(valid_cols,M_rmat.nrows()+M_rmat.ncols())
-            for i in range(M1.ncols()):
+            for i in xrange(M1.ncols()):
                 bitset_add(curr_cols,i)
             bitset_intersection(valid_cols, curr_cols, M1._M[cur_row])
             bitset_intersection(valid_cols,valid_cols,unused_cols)
             bitset_init(saved_row,M1.ncols())
             bitset_copy(saved_row,M1._M[cur_row])
         else:
-            # cur_row is in M2
+            # cur_row is in M2bitset_pop
             bitset_init(curr_cols,M_rmat.nrows()+M_rmat.ncols())
             bitset_init(valid_cols,M_rmat.nrows()+M_rmat.ncols())
-            for i in range(M1.ncols(),M1.ncols()+M2.ncols()):
+            for i in xrange(M1.ncols(),M1.ncols()+M2.ncols()):
                 bitset_add(curr_cols,i)
             bitset_intersection(valid_cols, curr_cols, M2._M[cur_row-M1.nrows()])
             bitset_intersection(valid_cols,valid_cols,unused_cols)
             bitset_init(saved_row,M2.ncols())
             bitset_copy(saved_row,M2._M[cur_row-M1.nrows()])
-    iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF(2))).stack(M2)
+    iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF2)).stack(M2)
     #print iso
     while not bitset_isempty(valid_cols):
         i=bitset_pop(valid_cols)
         bitset_remove(unused_cols,i)
-#            if cur_row==0:
-#                print cur_row,'->', i
+#        if cur_row==0:
+#            print cur_row,'->', i
+#        if M1.is_nonzero(0,1) :
+#            print cur_row,'->', i
+#        print iso
+#        print cur_row,'->', i
         if cur_row < M1.nrows():
             # set up M1, prune and recurse
             bitset_clear(M1._M[cur_row])
             bitset_add(M1._M[cur_row],i)
-            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2)
+            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,Mpcl,Npcl)
             bitset_add(unused_cols,i)
             if found == 1:
                 break
@@ -195,7 +268,7 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
             # set up M2, prune and recurse
             bitset_clear(M2._M[cur_row-M1.nrows()])
             bitset_add(M2._M[cur_row-M1.nrows()],i)
-            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2)
+            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,Mpcl,Npcl)
             bitset_add(unused_cols,i)
             if found == 1:
                 break
@@ -208,15 +281,15 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
 
 cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat,long cur_row):
     cdef long r
-    for r in range(cur_row,saved_mat.nrows()):
+    for r in xrange(cur_row,saved_mat.nrows()):
         bitset_copy(mat._M[r],saved_mat._M[r])
     return
 
 cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT):
     cdef long r,c,flag
     cdef long npruned
-    for r in range(max(0,cur_row),M1.nrows()):
-        for c in range(M1.ncols()):
+    for r in xrange(max(0,cur_row),M1.nrows()):
+        for c in xrange(M1.ncols()):
             if M1.is_nonzero(r,c):
                 #print 'check',r,'->>',c
                 #print 'n(r)',_neighbours(N_rmat,N_rmatT,r,1)
@@ -231,8 +304,8 @@ cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, 
                         npruned+=1
                         #print 'bad mapping',r,'->>',c
                         M1.set_unsafe(r, c, 0)
-    for r in range(max(0,cur_row),M2.nrows()):
-        for c in range(M1.ncols(),M2.ncols()):
+    for r in xrange(max(0,cur_row),M2.nrows()):
+        for c in xrange(M1.ncols(),M2.ncols()):
             if M2.is_nonzero(r,c):
                 #print 'check',r+M1.nrows(),'->>',c
                 #print 'n(r)', _neighbours(N_rmat,N_rmatT,r,0)
@@ -251,14 +324,15 @@ cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, 
     if degrees_are_sane(M1,M2):
         return True
     else:
-        #print 'pruning creates degree insanity'
+        print 'pruning creates degree insanity'
         return False
 
-cpdef copy_mat(BinaryMatrix mat):
+cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
     cdef long i
+    global GF2
     cdef BinaryMatrix mat_copy
-    mat_copy = BinaryMatrix(mat.nrows(),mat.ncols(),ring=GF(2))
-    for i in range(mat.nrows()):
+    mat_copy = BinaryMatrix(mat.nrows(),mat.ncols(),ring=GF2)
+    for i in xrange(mat.nrows()):
         bitset_copy(mat_copy._M[i], mat._M[i])
     return mat_copy
 
@@ -266,11 +340,11 @@ cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
     cdef long c
     neighbours=[]
     if rc == 1: #neighbors of lhs , look through ith row
-        for c in range(rmat.ncols()):
+        for c in xrange(rmat.ncols()):
             if rmat.is_nonzero(i, c):
                 neighbours.append(c)
     if rc == 0:
-        for c in range(rmatT.ncols()):
+        for c in xrange(rmatT.ncols()):
             if rmatT.is_nonzero(i,c):
                 neighbours.append(c)
     return neighbours
@@ -278,7 +352,7 @@ cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
 cdef full_set(bitset_t bits):
     "return a set with 0:len-1 elements"
     cdef i
-    for  i in range(bitset_len(bits)):
+    for  i in xrange(bitset_len(bits)):
         bitset_add(bits,i)
 
 cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1,BinaryMatrix M2_1, BinaryMatrix  M_rmat, BinaryMatrix N_rmat):
@@ -291,17 +365,18 @@ cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1,BinaryMatrix M2_1, BinaryMat
     cdef int j,*roworders, *colorders
     cdef BinaryMatrix rmat1
     cdef BinaryMatrix M1,M2
+    global GF2
     M1 = M1_1.copy()
     M2=M2_1.copy()
     # rmat corresponding to given isomorphism
-    rmat1=BinaryMatrix(N_rmat.nrows(),N_rmat.ncols(),ring=GF(2))
+    rmat1=BinaryMatrix(N_rmat.nrows(),N_rmat.ncols(),ring=GF2)
     roworders = <int* > sage_malloc(N_rmat.nrows() * sizeof(int))
-    for i in range(M1.nrows()):
+    for i in xrange(M1.nrows()):
         j = bitset_pop(M1._M[i])
         # row i maps to row j
         roworders[i]=j
     colorders = <int* > sage_malloc(N_rmat.ncols() * sizeof(int))
-    for i in range(M2.nrows()):
+    for i in xrange(M2.nrows()):
         j = bitset_pop(M2._M[i])
         # col i maps to row j
         colorders[i]=j-M1.ncols()
@@ -309,13 +384,13 @@ cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1,BinaryMatrix M2_1, BinaryMat
 #        print roworders[i]
 #    for i in range(M2.nrows()):
 #        print colorders[i]
-    for i in range(M1.nrows()):
-        for k in range(M2.nrows()):
+    for i in xrange(M1.nrows()):
+        for k in xrange(M2.nrows()):
             #print roworders[i],',',colorders[k]
             rmat1.set_unsafe(i,k,M_rmat.get_unsafe(roworders[i],colorders[k]))
     sage_free(roworders)
     sage_free(colorders)
-    for i in range(N_rmat.nrows()):
+    for i in xrange(N_rmat.nrows()):
         if not bitset_eq(N_rmat._M[i], rmat1._M[i]):
             return 0
     return 1
@@ -323,7 +398,7 @@ cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1,BinaryMatrix M2_1, BinaryMat
 cdef mat_transpose(BinaryMatrix mat):
     cdef long i,j
     matT = BinaryMatrix(mat.ncols(),mat.nrows()) 
-    for i in range(mat.nrows()):
-        for j in range(mat.ncols()):
+    for i in xrange(mat.nrows()):
+        for j in xrange(mat.ncols()):
             matT.set_unsafe(j,i,mat.get_unsafe(i,j))
     return matT
