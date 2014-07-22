@@ -116,7 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
-from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor
+from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor,_lp_are_sane
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3426,11 +3426,24 @@ cdef class BinaryMatroid(LinearMatroid):
     cpdef _has_binary_minor(self,N=None):
         cdef long r,c
         cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
-        M_rmat=self._reduced_representation()
-        for B1 in N.bases():
-            N_rmat=N._reduced_representation(B=B1)
-            if _check_bin_minor(M_rmat, N_rmat) is True:
+        Ms=self.simplify()
+        Ns=N.simplify()
+        M_rmat=Ms._reduced_representation()#B={0,4,5,8,9})
+        M_R, M_C = Ms._current_rows_cols()
+        Mpcl=[k-self.loops() for k in self.flats(1) if len(k-self.loops())>1]
+        Npcl=[k-N.loops() for k in N.flats(1) if len(k-N.loops())>1]
+        for B1 in Ns.bases():
+            N_rmat=Ns._reduced_representation(B=B1)#{2,4,5})
+            if M_rmat.ncols() == 0 and N_rmat.ncols()==0:
                 return True
+            elif M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
+                return False
+            elif N_rmat.ncols() == 0:
+                return True
+            else:
+                N_R, N_C = Ns._current_rows_cols()
+                if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C],Mpcl,Npcl) is True:
+                    return True
         return False
 #        else:
 #            raise ValueError("either N or Nmat1 must be provided")

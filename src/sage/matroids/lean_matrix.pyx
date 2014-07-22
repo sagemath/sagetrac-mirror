@@ -1,3 +1,5 @@
+# cython: profile=False
+
 """
 Lean matrices
 
