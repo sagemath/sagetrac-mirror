@@ -992,6 +992,106 @@ class Function_gamma_inc(BuiltinFunction):
 # synonym.
 gamma_inc = Function_gamma_inc()
 
+class Function_gamma_inc_lower(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The lower incomplete gamma function.
+
+        It is defined by the integral
+        
+        .. math::
+
+            \Gamma(a,z)=\int_0^z t^{a-1}e^{-t}\,\mathrm{d}t
+
+        EXAMPLES::
+
+            sage: gamma_inc_lower(CDF(0,1), 3)
+            -0.158158403295 - 0.51042185393*I
+            sage: gamma_inc_lower(RDF(1), 3)
+            0.950212931632
+            sage: gamma_inc_lower(3,2)
+            gamma_inc_lower(3, 2)
+            sage: gamma_inc_lower(x,0)
+            0
+            sage: latex(gamma_inc_lower(3,2))
+            \gamma\left(3, 2\right)
+            sage: loads(dumps((gamma_inc_lower(3,2))))
+            gamma_inc_lower(3, 2)
+            sage: i = ComplexField(30).0; gamma_inc_lower(2, 1 + i)
+            0.29290790 + 0.42035364*I
+            sage: gamma_inc_lower(2., 5)
+            0.959572318005487
+
+    .. SEEALSO::
+
+        :meth:`sage.functions.other.Function_gamma_inc`
+        """
+        BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
+                conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
+                    'maple':'GAMMA'})
+
+    def _eval_(self, x, y):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc_lower(2.,0)
+            0.000000000000000
+            sage: gamma_inc_lower(2,0)
+            0
+            sage: gamma_inc_lower(1/2,2)
+            sqrt(pi)*erf(sqrt(2))
+            sage: gamma_inc_lower(1/2,1)
+            sqrt(pi)*erf(1)
+            sage: gamma_inc_lower(1/2,0)
+            0
+            sage: gamma_inc_lower(x,0)
+            0
+            sage: gamma_inc_lower(1,2)
+            -e^(-2) + 1
+            sage: gamma_inc_lower(0,2)
+            +Infinity
+        """
+        from sage.rings.infinity import Infinity
+        if not is_inexact(x) and x == 0:
+            return Infinity
+        if not isinstance(x, Expression) and not isinstance(y, Expression) and \
+               (is_inexact(x) or is_inexact(y)):
+            x, y = coercion_model.canonical_coercion(x, y)
+            return self._evalf_(x, y, s_parent(x))
+
+        if y == 0:
+            return 0
+        if x == 1:
+            return 1-exp(-y)
+        if x == Rational(1)/2: #only for x>0
+            return sqrt(pi)*erf(sqrt(y))
+        return None
+
+    def _evalf_(self, x, y, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: gamma_inc_lower(3,2.)
+            0.646647167633873
+            sage: gamma_inc_lower(3,2).n()
+            0.646647167633873
+            sage: gamma_inc_lower(0,2.)
+            +Infinity
+        """
+        try:
+            return x.gamma() - x.gamma_inc(y)
+        except AttributeError:
+            if not (is_ComplexNumber(x)):
+                if is_ComplexNumber(y):
+                    C = y.parent()
+                else:
+                    C = ComplexField()
+                    x = C(x)
+            return x.gamma() - x.gamma_inc(y)
+
+# synonym.
+gamma_inc_lower = Function_gamma_inc_lower()
+
 def gamma(a, *args, **kwds):
     r"""
     Gamma and upper incomplete gamma functions in one symbol.
