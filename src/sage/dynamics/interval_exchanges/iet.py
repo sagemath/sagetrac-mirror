@@ -179,7 +179,7 @@ class IntervalExchangeTransformation(SageObject):
 
         INPUT:
 
-        - ``total`` - (default: 1) The total length of the interval
+        - ``total`` -- (default: 1) The total length of the interval
 
         OUTPUT:
 
@@ -195,11 +195,23 @@ class IntervalExchangeTransformation(SageObject):
             2
             sage: s.lengths()
             [1/2, 3/2]
+
+        TESTS::
+
+            sage: t.normalize(total=4*I)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (='4*I') into a real number
+
+            sage: t.normalize(total=-4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the total length must be positive
         """
         try:
-            y = float(total)
-        except ValueError:
-            raise TypeError("unable to convert x (='%s') into a real number" % str(x))
+            float(total)
+        except TypeError:
+            raise TypeError("unable to convert x (='%s') into a real number" % str(total))
 
         if total <= 0:
            raise ValueError("the total length must be positive")
@@ -396,7 +408,6 @@ class IntervalExchangeTransformation(SageObject):
             self.length() == other.length())
 
         from labelled import LabelledPermutationIET
-        from sage.combinat.words.words import Words
 
         other_sg = other.range_singularities()[1:]
         self_sg = self.domain_singularities()[1:]
@@ -795,7 +806,7 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``labels`` -- boolean (defaut: ``True``)
 
-        - ``fontsize`` - the size of the label
+        - ``fontsize`` -- the size of the label
 
 
         OUTPUT:

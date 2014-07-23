@@ -1880,7 +1880,7 @@ class OrientablePermutationIET(PermutationIET):
             sage: p2_odd.connected_component('out') == p4_odd.connected_component('out')
             False
         """
-        from sage.dynamics.flat_surfaces.strata import (CCA, HypCCA, NonHypCCA,
+        from sage.dynamics.flat_surfaces.strata import (HypCCA,
                                                         OddCCA, EvenCCA)
 
         if not self.is_irreducible():
@@ -2446,37 +2446,36 @@ class OrientablePermutationLI(PermutationLI):
         """
         l0 = self.length_top()
         l1 = self.length_bottom()
-        s0,s1 = self.list()
+        s0, s1 = self.list()
 
         # testing two corners empty on the right (i12 = i22 = 0)
-        A11, A21, A12, A22 = [],[],[],[]
+        A11, A21, A12, A22 = [], [], [], []
 
         for i11 in range(1, l0):
-            if s0[i11-1] in A11:
+            if s0[i11 - 1] in A11:
                 break
             A11 = s0[:i11]
 
             for i21 in range(1, l1):
-                if s1[i21-1] in A21:
+                if s1[i21 - 1] in A21:
                     break
                 A21 = s1[:i21]
 
                 if sorted(A11)  == sorted(A21):
                     if return_decomposition:
-                        return False,(A11,A12,A21,A22)
+                        return False, (A11, A12, A21, A22)
                     return False
             A21 = []
 
         # testing no corner empty but one or two on the left
-        t11 = t21 = False
         A11, A12, A21, A22 = [], [], [], []
         for i11 in range(0, l0):
-            if i11 > 0 and s0[i11-1] in A11:
+            if i11 > 0 and s0[i11 - 1] in A11:
                 break
             A11 = s0[:i11]
 
             for i21 in xrange(0, l1):
-                if i21 > 0 and s1[i21-1] in A21:
+                if i21 > 0 and s1[i21 - 1] in A21:
                     break
                 A21 = s1[:i21]
 
@@ -2492,7 +2491,7 @@ class OrientablePermutationLI(PermutationLI):
 
                         if sorted(A11 + A22) == sorted(A12 + A21):
                             if return_decomposition :
-                                return False, (A11,A12,A21,A22)
+                                return False, (A11, A12, A21, A22)
                             return False
                     A22 = []
                 A12 = []
@@ -2538,7 +2537,7 @@ class FlippedPermutation(Permutation):
             ['a', 'b']
         """
         self._flips = [[1]*self.length_top(), [1]*self.length_bottom()]
-        for interval in (0,1):
+        for interval in (0, 1):
             for i,letter in enumerate(intervals[interval]):
                 if letter in flips:
                     self._flips[interval][i] = -1
@@ -2560,8 +2559,6 @@ class FlippedPermutation(Permutation):
         return (' '.join(map(labelize_flip, l[0]))
                 + sep
                 + ' '.join(map(labelize_flip, l[1])))
-
-        return s
 
 
 class FlippedPermutationIET(FlippedPermutation, PermutationIET):
