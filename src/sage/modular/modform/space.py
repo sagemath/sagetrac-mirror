@@ -1565,7 +1565,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             if self.__is_cuspidal == True:
                 return self
-            if self.__cuspidal_submodule != None:
+            if self.__cuspidal_submodule is not None:
                 return self.__cuspidal_submodule
         except AttributeError:
             pass
@@ -1763,7 +1763,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         except AttributeError:
             pass
         try:
-            if self.__eisenstein_submodule != None:
+            if self.__eisenstein_submodule is not None:
                 return self.__eisenstein_submodule
         except AttributeError:
             pass

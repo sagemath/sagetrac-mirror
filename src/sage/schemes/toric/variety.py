@@ -1989,7 +1989,7 @@ class ToricVariety_field(AmbientSpace):
             sage: X.cohomology_basis(dimension(X))[0] == X.volume_class()
             True
         """
-        if d!=None:
+        if d is not None:
             return self.cohomology_basis()[d]
 
         H = self.cohomology_ring()
@@ -2182,7 +2182,7 @@ class ToricVariety_field(AmbientSpace):
         """
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
         c = prod([ 1+self.cohomology_ring().gen(i) for i in range(0,self._fan.nrays()) ])
-        if deg==None:
+        if deg is None:
             return c
         else:
             return c.part_of_degree(deg)
@@ -2225,7 +2225,7 @@ class ToricVariety_field(AmbientSpace):
         n_rels = self._fan.nrays() - self.dimension()
         ch = sum([ self.cohomology_ring().gen(i).exp()
                    for i in range(0,self._fan.nrays()) ]) - n_rels
-        if deg==None:
+        if deg is None:
             return ch
         else:
             return ch.part_of_degree(deg)
@@ -2277,7 +2277,7 @@ class ToricVariety_field(AmbientSpace):
             Td += -QQ(1)/720 * (c1**4 -4*c1**2*c2 -3*c2**2 -c1*c3 +c4)
         if self.dimension() >= 5:
             raise NotImplementedError('Todd class is currently only implemented up to degree 4')
-        if deg==None:
+        if deg is None:
             return Td
         else:
             return Td.part_of_degree(deg)
@@ -3513,7 +3513,7 @@ class CohomologyClass(QuotientRingElement):
         """
         Q = self.parent()
         # We iterate over monomials of self.lift()
-        p = filter( lambda x: x[1].total_degree() == d, self.lift() )
+        p = [x for x in self.lift() if x[1].total_degree() == d]
         if len(p)==0:
             return Q.zero()
         else:
