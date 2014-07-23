@@ -990,7 +990,7 @@ class Function_gamma_inc(BuiltinFunction):
             return x.gamma_inc(y)
 
 # synonym.
-incomplete_gamma = gamma_inc=Function_gamma_inc()
+gamma_inc = Function_gamma_inc()
 
 def gamma(a, *args, **kwds):
     r"""
@@ -1067,7 +1067,15 @@ def gamma(a, *args, **kwds):
         return gamma1(a, **kwds)
     if len(args) > 1:
         raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
-    return incomplete_gamma(a,args[0],**kwds)
+    return gamma_inc(a,args[0],**kwds)
+
+def incomplete_gamma(*args, **kwds):
+    """
+        Deprecated name for :meth:`sage.functions.other.Function_gamma_inc`.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(16697, 'Please use gamma_inc().')
+    return gamma_inc(*args, **kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
