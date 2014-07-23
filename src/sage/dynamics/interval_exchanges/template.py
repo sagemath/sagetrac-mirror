@@ -2,7 +2,7 @@ r"""
 Permutations template
 
 This file define high level operations on permutations (alphabet,
-the different rauzy moves, ...) shared by reduced and labeled
+the different Rauzy moves, ...) shared by reduced and labeled
 permutations.
 
 AUTHORS:
@@ -11,11 +11,11 @@ AUTHORS:
 
 - Vincent Delecroix (2010-02-11): datatype simplification
 
-TODO:
+.. TODO::
 
-- construct dynamic graphs
+    - construct dynamic graphs
 
-- construct coherent _repr_
+    - construct coherent _repr_
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -35,11 +35,11 @@ from sage.misc.nested_class import NestedClassMetaclass
 
 def interval_conversion(interval=None):
     r"""
-    Converts the argument in 0 or 1.
+    Convert the argument in 0 or 1.
 
     INPUT:
 
-    - ``winner`` - 'top' (or 't' or 0) or bottom (or 'b' or 1)
+    - ``winner`` -- 'top' (or 't' or 0) or bottom (or 'b' or 1)
 
     OUTPUT:
 
@@ -88,9 +88,10 @@ def interval_conversion(interval=None):
             raise ValueError("the interval can not be the empty string")
         if 'top'.startswith(interval): return 0
         if 'bottom'.startswith(interval): return 1
-        raise ValueError("'%s' can not be converted to interval"  % interval)
+        raise ValueError("'%s' can not be converted to interval" % interval)
 
     raise TypeError("'%s' is not an admissible type" % str(interval))
+
 
 def side_conversion(side=None):
     r"""
@@ -98,7 +99,7 @@ def side_conversion(side=None):
 
     INPUT:
 
-    - ``side`` - either 'left' (or 'l' or 0) or 'right' (or 'r' or -1)
+    - ``side`` -- either 'left' (or 'l' or 0) or 'right' (or 'r' or -1)
 
     OUTPUT:
 
@@ -135,19 +136,23 @@ def side_conversion(side=None):
         ...
         ValueError: 'top' can not be converted to a side
     """
-    if side is None: return -1
+    if side is None:
+        return -1
 
     if isinstance(side,str):
         if side == '':
             raise ValueError("no empty string for side")
-        if 'left'.startswith(side): return 0
-        if 'right'.startswith(side): return -1
+        if 'left'.startswith(side):
+            return 0
+        if 'right'.startswith(side):
+            return -1
         raise ValueError("'%s' can not be converted to a side" % side)
 
     if isinstance(side, (int,Integer)):
         if side != 0 and side != 1 and side != -1:
             raise ValueError("side must be 0 or 1")
-        if side == 0: return 0
+        if side == 0:
+            return 0
         return -1
 
     raise TypeError("'%s' is not an admissible type" % str(side))
@@ -158,7 +163,7 @@ def side_conversion(side=None):
 
 def labelize_flip(couple):
     r"""
-    Returns a string from a 2-uple couple of the form (name, flip).
+    Return a string from a 2-uple couple of the form (name, flip).
 
     TESTS::
 
@@ -168,7 +173,8 @@ def labelize_flip(couple):
         sage: labelize_flip((0,-1))
         '-0'
     """
-    if couple[1] == -1: return '-' + str(couple[0])
+    if couple[1] == -1:
+        return '-' + str(couple[0])
     return ' ' + str(couple[0])
 
 #
@@ -183,8 +189,8 @@ class Permutation(SageObject):
 
         Internal class! Do not use directly!
 
-    This class implement generic algorithm (stratum, connected component, ...)
-    and unfies all its children.
+    This class implements generic algorithms (stratum, connected
+    component, ...)  and unifies all its children.
 
     It has three attributes
 
@@ -201,7 +207,7 @@ class Permutation(SageObject):
 
     def _repr_(self):
         r"""
-        Representation method of self.
+        Representation method of ``self``.
 
         Apply the function str to _repr_type(_repr_options) if _repr_type is
         callable and _repr_type else.
@@ -255,7 +261,7 @@ class Permutation(SageObject):
 
         INPUT:
 
-        - ``sep`` - (default: '\n') a separator for the two intervals
+        - ``sep`` -- (default: '\n') a separator for the two intervals
 
         OUTPUT:
 
@@ -289,16 +295,15 @@ class Permutation(SageObject):
 
             sage: p == iet.GeneralizedPermutation(p.str())
             True
-
         """
         l = self.list()
-        s0 =  ' '.join(map(str,l[0]))
-        s1 = ' '.join(map(str,l[1]))
+        s0 = ' '.join(map(str, l[0]))
+        s1 = ' '.join(map(str, l[1]))
         return s0 + sep + s1
 
-    def __copy__(self) :
+    def __copy__(self):
         r"""
-        Returns a copy of self.
+        Return a copy of ``self``.
 
         EXAMPLES::
 
@@ -361,7 +366,7 @@ class Permutation(SageObject):
 
     def length_top(self):
         r"""
-        Returns the number of intervals in the top segment.
+        Return the number of intervals in the top segment.
 
         OUTPUT:
 
@@ -392,7 +397,7 @@ class Permutation(SageObject):
 
     def length_bottom(self):
         r"""
-        Returns the number of intervals in the bottom segment.
+        Return the number of intervals in the bottom segment.
 
         OUTPUT:
 
@@ -417,7 +422,7 @@ class Permutation(SageObject):
 
     def length(self, interval=None):
         r"""
-        Returns the 2-uple of lengths.
+        Return the 2-uple of lengths.
 
         p.length() is identical to (p.length_top(), p.length_bottom())
         If an interval is specified, it returns the length of the specified
@@ -425,7 +430,8 @@ class Permutation(SageObject):
 
         INPUT:
 
-        - ``interval`` - None, 'top' (or 't' or 0) or 'bottom' (or 'b' or 1)
+        - ``interval`` -- ``None``, 'top' (or 't' or 0) or 'bottom'
+          (or 'b' or 1)
 
         OUTPUT:
 
@@ -447,14 +453,14 @@ class Permutation(SageObject):
             (3, 5)
         """
         if interval is None :
-            return len(self._twin[0]),len(self._twin[1])
+            return len(self._twin[0]), len(self._twin[1])
         else :
             interval = interval_conversion(interval)
             return len(self._twin[interval])
 
     def _set_alphabet(self, alphabet):
         r"""
-        Sets the alphabet of self.
+        Set the alphabet of ``self``.
 
         TESTS:
 
@@ -512,20 +518,20 @@ class Permutation(SageObject):
 
     def alphabet(self, data=None):
         r"""
-        Manages the alphabet of self.
+        Manage the alphabet of ``self``.
 
-        If there is no argument, the method returns the alphabet used. If the
-        argument could be converted to an alphabet, this alphabet will be used.
+        If there is no argument, the method returns the alphabet
+        used. If the argument could be converted to an alphabet, this
+        alphabet will be used.
 
         INPUT:
 
-        - ``data`` - None or something that could be converted to an alphabet
-
+        - ``data`` -- ``None`` or something that could be converted to
+          an alphabet
 
         OUTPUT:
 
-        -- either None or the current alphabet
-
+        either ``None`` or the current alphabet
 
         EXAMPLES::
 
@@ -550,10 +556,10 @@ class Permutation(SageObject):
 
     def letters(self):
         r"""
-        Returns the list of letters of the alphabet used for representation.
+        Return the list of letters of the alphabet used for representation.
 
-        The letters used are not necessarily the whole alphabet (for example if
-        the alphabet is infinite).
+        The letters used are not necessarily the whole alphabet (for
+        example if the alphabet is infinite).
 
         OUTPUT: a list of labels
 
@@ -571,12 +577,12 @@ class Permutation(SageObject):
 
     def left_right_inverse(self):
         r"""
-        Returns the left-right inverse.
+        Return the left-right inverse.
 
-        The left-right inverse of a permutation, is the permutation obtained by
-        reversing the order of the underlying ordering.
+        The left-right inverse of a permutation, is the permutation
+        obtained by reversing the order of the underlying ordering.
 
-        You can also use the shorter .lr_inverse()
+        You can also use the shorthand :meth:`lr_inverse`.
 
         There are two other symmetries of permutation which are accessible via
         the methods
@@ -640,9 +646,9 @@ class Permutation(SageObject):
 
     def top_bottom_inverse(self):
         r"""
-        Returns the top-bottom inverse.
+        Return the top-bottom inverse.
 
-        You can use also use the shorter .tb_inverse().
+        You can use also use the shorthand :meth:`tb_inverse`.
 
         There are two other symmetries of permutation which are accessible via
         the methods
@@ -697,7 +703,7 @@ class Permutation(SageObject):
 
     def symmetric(self):
         r"""
-        Returns the symmetric permutation.
+        Return the symmetric permutation.
 
         The symmetric permutation is the composition of the top-bottom
         inversion and the left-right inversion (which are geometrically
@@ -760,6 +766,7 @@ class Permutation(SageObject):
 
         return res
 
+
 class PermutationIET(Permutation):
     def _init_twin(self, a):
         r"""
@@ -775,22 +782,22 @@ class PermutationIET(Permutation):
             c a b
         """
         if a is None:
-            self._twin = [[],[]]
+            self._twin = [[], []]
 
         else:
             self._twin = [[0]*len(a[0]), [0]*len(a[1])]
-            for i in range(len(a[0])) :
+            for i in range(len(a[0])):
                 j = a[1].index(a[0][i])
                 self._twin[0][i] = j
                 self._twin[1][j] = i
 
-    def _init_alphabet(self,a) :
+    def _init_alphabet(self, a):
         r"""
-        Initializes the alphabet from intervals.
+        Initialize the alphabet from intervals.
 
         INPUT:
 
-        - ``a`` - the two intervals as lists
+        - ``a`` -- the two intervals as lists
 
         TESTS::
 
@@ -806,7 +813,7 @@ class PermutationIET(Permutation):
 
     def _inversed_twin(self):
         r"""
-        Inverses the twin of the permutation.
+        Inverse the twin of the permutation.
 
         EXAMPLES:
 
@@ -828,7 +835,7 @@ class PermutationIET(Permutation):
 
     def _reversed_twin(self):
         r"""
-        Reverses the twin of the permutation.
+        Reverse the twin of the permutation.
 
         EXAMPLES:
 
@@ -844,12 +851,11 @@ class PermutationIET(Permutation):
         tmp = [self._twin[0][:], self._twin[1][:]]
 
         n = self.length_top()
-        for i in (0,1):
+        for i in (0, 1):
             for j in range(n):
                 tmp[i][n- 1 - j] = n - 1 - self._twin[i][j]
 
         self._twin = tmp
-
 
     def _move(self, interval, position, position_to):
         r"""
@@ -857,11 +863,11 @@ class PermutationIET(Permutation):
 
         INPUT:
 
-        - ``interval`` - 0 or 1
+        - ``interval`` -- 0 or 1
 
-        - ``position`` - a position in interval
+        - ``position`` -- a position in interval
 
-        - ``position_to`` - a position in interval
+        - ``position_to`` -- a position in interval
 
         TESTS::
 
@@ -939,7 +945,7 @@ class PermutationIET(Permutation):
 
     def has_rauzy_move(self, winner, side='right'):
         r"""
-        Tests if the permutation is rauzy_movable on the left.
+        Test if the permutation is rauzy_movable on the left.
 
         EXAMPLES:
 
@@ -973,12 +979,10 @@ class PermutationIET(Permutation):
         return self._twin[winner][side] % len(self) != side % len(self)
 
 
-
-
 class PermutationLI(Permutation):
     def _init_twin(self, a):
         r"""
-        Initializes the _twin attribute
+        Initialize the _twin attribute
 
         TESTS::
 
@@ -987,16 +991,15 @@ class PermutationLI(Permutation):
             [[(0, 1), (0, 0)], [(1, 1), (1, 0)]]
         """
         if a is None:
-            self._twin = [[],[]]
-
+            self._twin = [[], []]
         else:
             twin = [
                 [(0,j) for j in range(len(a[0]))],
                 [(1,j) for j in range(len(a[1]))]]
 
-            for i in (0,1):
-              for j in range(len(twin[i])) :
-                  if twin[i][j] == (i,j) :
+            for i in (0, 1):
+              for j in range(len(twin[i])):
+                  if twin[i][j] == (i, j):
                     if a[i][j] in a[i][j+1:] :
                     # two up or two down
                         j2 = (a[i][j+1:]).index(a[i][j]) + j + 1
@@ -1010,9 +1013,9 @@ class PermutationLI(Permutation):
 
             self._twin = twin
 
-    def _init_alphabet(self, intervals) :
+    def _init_alphabet(self, intervals):
         r"""
-        Intialization procedure of the alphabet of self from intervals list
+        Intialization procedure of the alphabet of ``self`` from intervals list
 
         TEST::
 
@@ -1034,7 +1037,7 @@ class PermutationLI(Permutation):
 
     def _inversed_twin(self):
         r"""
-        Inverses the twin of the permutation.
+        Inverse the twin of the permutation.
 
         EXAMPLES::
 
@@ -1053,7 +1056,7 @@ class PermutationLI(Permutation):
         """
         self._twin = [self._twin[1], self._twin[0]]
 
-        for interval in (0,1):
+        for interval in (0, 1):
             for j in xrange(self.length(interval)):
                 self._twin[interval][j] = (
                     1-self._twin[interval][j][0],
@@ -1061,7 +1064,7 @@ class PermutationLI(Permutation):
 
     def _reversed_twin(self):
         r"""
-        Reverses the twin of the permutation.
+        Reverse the twin of the permutation.
 
         EXAMPLES::
 
@@ -1078,7 +1081,7 @@ class PermutationLI(Permutation):
 
         n = self.length()
 
-        for i in (0,1):
+        for i in (0, 1):
             for j in range(n[i]):
                 interval, position = self._twin[i][j]
                 tmp[i][n[i] - 1 - j] = (
@@ -1093,13 +1096,13 @@ class PermutationLI(Permutation):
 
         INPUT:
 
-        - ``interval`` - 0 or 1
+        - ``interval`` -- 0 or 1
 
-        - ``position`` - a position in the corresponding interval
+        - ``position`` -- a position in the corresponding interval
 
-        - ``interval_to`` - 0 or 1
+        - ``interval_to`` -- 0 or 1
 
-        - ``position_to`` - a position in the corresponding interval
+        - ``position_to`` -- a position in the corresponding interval
 
         TESTS::
 
@@ -1137,11 +1140,11 @@ class PermutationLI(Permutation):
             k2 = self._twin[interval][position+1:] # interval to unshift
 
             # increment the twin after the position_to
-            for j,(tw,pos) in enumerate(k1):
+            for j, (tw, pos) in enumerate(k1):
                 self._twin[tw][pos] = (interval_to, position_to+j+1)
 
             # decrement the twin after the position
-            for j,(tw,pos) in enumerate(k2):
+            for j, (tw, pos) in enumerate(k2):
                 self._twin[tw][pos] = (interval, position+j)
 
             # modify twin of the moved interval
@@ -1205,7 +1208,6 @@ class PermutationLI(Permutation):
                         position_to,
                         self._twin[interval].pop(position))
 
-
     def has_rauzy_move(self, winner, side='right'):
         r"""
         Test of Rauzy movability (with an eventual specified choice of winner)
@@ -1216,7 +1218,7 @@ class PermutationLI(Permutation):
 
         INPUT:
 
-        - ``winner`` - the integer 'top' or 'bottom'
+        - ``winner`` -- the integer 'top' or 'bottom'
 
         EXAMPLES::
 
@@ -1277,8 +1279,10 @@ class PermutationLI(Permutation):
                 return False
 
             # winner or loser letter is repeated on the other interval (True)
-            if self._twin[0][-1][0] == 1: return True
-            if self._twin[1][-1][0] == 0: return True
+            if self._twin[0][-1][0] == 1:
+                return True
+            if self._twin[1][-1][0] == 0:
+                return True
 
             # the loser letter is the only letter repeated in
             # the loser interval (False)
@@ -1289,12 +1293,14 @@ class PermutationLI(Permutation):
 
         elif side == 0:
             # the same letter at the left-end (False)
-            if (self._twin[0][0] == (1,0)):
+            if (self._twin[0][0] == (1, 0)):
                 return False
 
             # winner or loser repeated on the other interval (True)
-            if self._twin[0][0][0] == 1: return True
-            if self._twin[1][0][0] == 0: return True
+            if self._twin[0][0][0] == 1:
+                return True
+            if self._twin[1][0][0] == 0:
+                return True
 
             # the loser letter is the only letter repeated in
             # the loser interval (False)
@@ -1318,7 +1324,7 @@ class OrientablePermutationIET(PermutationIET):
     """
     def is_identity(self):
         r"""
-        Returns True if self is the identity.
+        Return ``True`` if ``self`` is the identity.
 
         EXAMPLES::
 
@@ -1333,9 +1339,9 @@ class OrientablePermutationIET(PermutationIET):
         """
         return all(self._twin[0][i] == i for i in range(len(self)))
 
-    def is_irreducible(self, return_decomposition=False) :
+    def is_irreducible(self, return_decomposition=False):
         r"""
-        Tests the irreducibility.
+        Test the irreducibility.
 
         An abelian permutation p = (p0,p1) is reducible if:
         set(p0[:i]) = set(p1[:i]) for an i < len(p0)
@@ -1355,7 +1361,7 @@ class OrientablePermutationIET(PermutationIET):
             False
         """
         s0, s1 = 0, 0
-        for i in range(len(self)-1) :
+        for i in range(len(self)-1):
             s0 += i
             s1 += self._twin[0][i]
             if s0 == s1 :
@@ -1368,12 +1374,11 @@ class OrientablePermutationIET(PermutationIET):
 
     def decompose(self):
         r"""
-        Returns the decomposition of self.
+        Return the decomposition of ``self``.
 
         OUTPUT:
 
-        -- a list of permutations
-
+        a list of permutations
 
         EXAMPLES::
 
@@ -1408,7 +1413,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def intersection_matrix(self):
         r"""
-        Returns the intersection matrix.
+        Return the intersection matrix.
 
         This `d*d` antisymmetric matrix is given by the rule :
 
@@ -1446,20 +1451,19 @@ class OrientablePermutationIET(PermutationIET):
         n = self.length_top()
         m = matrix(n)
         for i in range(n):
-            for j in range(i,n):
+            for j in range(i, n):
                 if self._twin[0][i] > self._twin[0][j]:
-                    m[i,j] = 1
-                    m[j,i] = -1
+                    m[i, j] = 1
+                    m[j, i] = -1
         return m
 
     def attached_out_degree(self):
         r"""
-        Returns the degree of the singularity at the left of the interval.
+        Return the degree of the singularity at the left of the interval.
 
         OUTPUT:
 
-        -- a positive integer
-
+        a positive integer
 
         EXAMPLES::
 
@@ -1473,16 +1477,15 @@ class OrientablePermutationIET(PermutationIET):
         left_corner = ((self[1][0], self[0][0]), 'L')
         for s in self.separatrix_diagram(side=True):
             if left_corner in s:
-                return len(s)//2 - 1
+                return len(s) // 2 - 1
 
     def attached_in_degree(self):
         r"""
-        Returns the degree of the singularity at the right of the interval.
+        Return the degree of the singularity at the right of the interval.
 
         OUTPUT:
 
-        -- a positive integer
-
+        a positive integer
 
         EXAMPLES::
 
@@ -1497,7 +1500,7 @@ class OrientablePermutationIET(PermutationIET):
 
         for s in self.separatrix_diagram(side=True):
             if right_corner in s:
-                return len(s)//2 - 1
+                return len(s) // 2 - 1
 
     def attached_type(self):
         r"""
@@ -1556,17 +1559,15 @@ class OrientablePermutationIET(PermutationIET):
 
     def separatrix_diagram(self, side=False):
         r"""
-        Returns the separatrix diagram of the permutation.
+        Return the separatrix diagram of the permutation.
 
         INPUT:
 
-        - ``side`` - boolean
-
+        - ``side`` -- boolean
 
         OUTPUT:
 
-        -- a list of lists
-
+        a list of lists
 
         EXAMPLES::
 
@@ -1583,7 +1584,6 @@ class OrientablePermutationIET(PermutationIET):
 
         singularities = []
 
-
         twin = self._twin
         n = len(self)-1
 
@@ -1591,7 +1591,7 @@ class OrientablePermutationIET(PermutationIET):
             start = separatrices.pop(0)
             separatrix = start
             if side:
-                singularity = [(labels[start],'L')]
+                singularity = [(labels[start], 'L')]
             else:
                 singularity = [labels[start]]
 
@@ -1616,7 +1616,7 @@ class OrientablePermutationIET(PermutationIET):
                 else:
                     separatrix -= 1
                     if side:
-                        singularity.append((labels[separatrix],'R'))
+                        singularity.append((labels[separatrix], 'R'))
                     else:
                         singularity.append(labels[separatrix])
 
@@ -1627,7 +1627,7 @@ class OrientablePermutationIET(PermutationIET):
                         else:
                             a = singularity.pop()
                         if side:
-                            singularity.append(((a,labels[separatrix]),'R'))
+                            singularity.append(((a,labels[separatrix]), 'R'))
                         else:
                             singularity.append((a,labels[separatrix]))
 
@@ -1640,7 +1640,7 @@ class OrientablePermutationIET(PermutationIET):
                 elif separatrix != twin[0][0]:
                     del separatrices[separatrices.index(separatrix)]
                     if side:
-                        singularity.append((labels[separatrix],'L'))
+                        singularity.append((labels[separatrix], 'L'))
                     else:
                         singularity.append(labels[separatrix])
 
@@ -1648,7 +1648,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def stratum(self, marked_separatrix='no'):
         r"""
-        Returns the strata in which any suspension of this permutation lives.
+        Return the strata in which any suspension of this permutation lives.
 
         OUTPUT:
 
@@ -1692,7 +1692,8 @@ class OrientablePermutationIET(PermutationIET):
             H^out(1, 3, 2)
 
         AUTHORS:
-            - Vincent Delecroix (2008-12-20)
+
+        - Vincent Delecroix (2008-12-20)
         """
         from sage.dynamics.flat_surfaces.strata import AbelianStratum
 
@@ -1702,17 +1703,18 @@ class OrientablePermutationIET(PermutationIET):
         if len(self) == 1:
             return AbelianStratum([])
 
-        singularities = [len(x)//2 - 1 for x in self.separatrix_diagram()]
+        singularities = [len(x) // 2 - 1 for x in self.separatrix_diagram()]
 
-        return AbelianStratum(singularities,marked_separatrix=marked_separatrix)
+        return AbelianStratum(singularities,
+                              marked_separatrix=marked_separatrix)
 
-    def genus(self) :
+    def genus(self):
         r"""
-        Returns the genus corresponding to any suspension of the permutation.
+        Return the genus corresponding to any suspension of the permutation.
 
         OUTPUT:
 
-        -- a positive integer
+        a positive integer
 
         EXAMPLES::
 
@@ -1727,13 +1729,14 @@ class OrientablePermutationIET(PermutationIET):
             2
 
         REFERENCES:
-            Veech
+
+        Veech
         """
         return self.stratum().genus()
 
     def arf_invariant(self):
         r"""
-        Returns the Arf invariant of the suspension of self.
+        Return the Arf invariant of the suspension of ``self``.
 
         OUTPUT:
 
@@ -1777,7 +1780,7 @@ class OrientablePermutationIET(PermutationIET):
         M = self.intersection_matrix()
         F, C = M.symplectic_form()
 
-        g = F.rank()/2
+        g = F.rank() / 2
         n = F.ncols()
 
         s = 0
@@ -1808,9 +1811,9 @@ class OrientablePermutationIET(PermutationIET):
 
         return s
 
-    def connected_component(self,marked_separatrix='no'):
+    def connected_component(self, marked_separatrix='no'):
         r"""
-        Returns a connected components of a stratum.
+        Return a connected components of a stratum.
 
         EXAMPLES:
 
@@ -1877,7 +1880,8 @@ class OrientablePermutationIET(PermutationIET):
             sage: p2_odd.connected_component('out') == p4_odd.connected_component('out')
             False
         """
-        from sage.dynamics.flat_surfaces.strata import (CCA, HypCCA, NonHypCCA, OddCCA, EvenCCA)
+        from sage.dynamics.flat_surfaces.strata import (CCA, HypCCA, NonHypCCA,
+                                                        OddCCA, EvenCCA)
 
         if not self.is_irreducible():
             return map(lambda x: x.connected_component(marked_separatrix),
@@ -1907,13 +1911,13 @@ class OrientablePermutationIET(PermutationIET):
 
     def order_of_rauzy_action(self, winner, side=None):
         r"""
-        Returns the order of the action of a Rauzy move.
+        Return the order of the action of a Rauzy move.
 
         INPUT:
 
-        - ``winner`` - string ``'top'`` or ``'bottom'``
+        - ``winner`` -- string ``'top'`` or ``'bottom'``
 
-        - ``side`` - string ``'left'`` or ``'right'``
+        - ``side`` -- string ``'left'`` or ``'right'``
 
         OUTPUT:
 
@@ -1941,13 +1945,13 @@ class OrientablePermutationIET(PermutationIET):
 
     def rauzy_move(self, winner, side='right'):
         r"""
-        Returns the permutation after a Rauzy move.
+        Return the permutation after a Rauzy move.
 
         INPUT:
 
-        - ``winner`` - 'top' or 'bottom' interval
+        - ``winner`` -- 'top' or 'bottom' interval
 
-        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding
+        - ``side`` -- 'right' or 'left' (defaut: 'right') corresponding
           to the side on which the Rauzy move must be performed.
 
         OUTPUT:
@@ -2008,13 +2012,13 @@ class OrientablePermutationIET(PermutationIET):
 
     def backward_rauzy_move(self, winner, side='right'):
         r"""
-        Returns the permutation before a Rauzy move.
+        Return the permutation before a Rauzy move.
 
         INPUT:
 
-        - ``winner`` - 'top' or 'bottom' interval
+        - ``winner`` -- 'top' or 'bottom' interval
 
-        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding
+        - ``side`` -- 'right' or 'left' (defaut: 'right') corresponding
           to the side on which the Rauzy move must be performed.
 
         OUTPUT:
@@ -2027,20 +2031,20 @@ class OrientablePermutationIET(PermutationIET):
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
 
         Testing the inversion on reduced permutations::
 
             sage: p = iet.Permutation('a b c d','d c b a',reduced=True)
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
         """
         winner = interval_conversion(winner)
@@ -2070,12 +2074,12 @@ class OrientablePermutationIET(PermutationIET):
             if self._labels is not None:
                 res._labels[loser].insert(
                         0,
-                        res._labels[loser].pop(winner_twin-1))
+                        res._labels[loser].pop(winner_twin - 1))
 
             # move the element
             res._twin[loser].insert(
                     0,
-                    res._twin[loser].pop(winner_twin-1))
+                    res._twin[loser].pop(winner_twin - 1))
 
             # correction for the moved element
             res._twin[winner][res._twin[loser][0]] = 0
@@ -2088,7 +2092,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def erase_marked_points(self):
         r"""
-        Returns a permutation equivalent to self but without marked points.
+        Return a permutation equivalent to ``self`` but without marked points.
 
         EXAMPLES::
 
@@ -2128,12 +2132,12 @@ class OrientablePermutationIET(PermutationIET):
 
     def is_hyperelliptic(self):
         r"""
-        Returns True if the permutation is in the class of the symmetric
-        permutations (with eventual marked points).
+        Return ``True`` if the permutation is in the class of the
+        symmetric permutations (with eventual marked points).
 
-        This is equivalent to say that the suspension lives in an hyperelliptic
-        stratum of Abelian differentials H_hyp(2g-2) or H_hyp(g-1, g-1) with
-        some marked points.
+        This is equivalent to say that the suspension lives in an
+        hyperelliptic stratum of Abelian differentials H_hyp(2g-2) or
+        H_hyp(g-1, g-1) with some marked points.
 
         EXAMPLES::
 
@@ -2147,10 +2151,9 @@ class OrientablePermutationIET(PermutationIET):
         Gerard Rauzy, "Echanges d'intervalles et transformations induites",
         Acta Arith. 34, no. 3, 203-212, 1980
 
-        M. Kontsevich, A. Zorich "Connected components of the moduli space
-        of Abelian differentials with prescripebd singularities" Invent. math.
-        153, 631-678 (2003)
-        """
+        [KoZo03] M. Kontsevich, A. Zorich "Connected components of the
+        moduli space of Abelian differentials with prescripebd
+        singularities" Invent. math.  153, 631-678 (2003) """
         test = self.erase_marked_points()
 
         n = test.length_top()
@@ -2159,7 +2162,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def cylindric(self):
         r"""
-        Returns a permutation in the Rauzy class such that
+        Return a permutation in the Rauzy class such that
 
             twin[0][-1] == 0
             twin[1][-1] == 0
@@ -2218,7 +2221,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def is_cylindric(self):
         r"""
-        Returns True if the permutation is Rauzy_1n.
+        Return ``True`` if the permutation is Rauzy_1n.
 
         A permutation is cylindric if 1 and n are exchanged.
 
@@ -2233,7 +2236,7 @@ class OrientablePermutationIET(PermutationIET):
 
     def to_permutation(self):
         r"""
-        Returns the permutation as an element of the symetric group.
+        Return the permutation as an element of the symmetric group.
 
         EXAMPLES::
 
@@ -2249,7 +2252,8 @@ class OrientablePermutationIET(PermutationIET):
             True
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(map(lambda x: x+1,self._twin[1]))
+        return Permutation(map(lambda x: x + 1,self._twin[1]))
+
 
 class OrientablePermutationLI(PermutationLI):
     r"""
@@ -2265,7 +2269,7 @@ class OrientablePermutationLI(PermutationLI):
     """
     def rauzy_move(self, winner, side=-1):
         r"""
-        Returns the permutation after a Rauzy move.
+        Return the permutation after a Rauzy move.
 
         TESTS:
 
@@ -2322,21 +2326,20 @@ class OrientablePermutationLI(PermutationLI):
 
             sage: p = iet.GeneralizedPermutation('a a b b','c c d d')
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
-
 
         Tests the inversion on reduced generalized permutations::
 
             sage: p = iet.GeneralizedPermutation('a a b b','c c d d',reduced=True)
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
         """
         winner = interval_conversion(winner)
@@ -2346,7 +2349,6 @@ class OrientablePermutationLI(PermutationLI):
         res = copy(self)
 
         wti, wtp = res._twin[winner][side]
-
 
         if side == -1:
             d = len(self._twin[loser])
@@ -2367,8 +2369,8 @@ class OrientablePermutationLI(PermutationLI):
         r"""
         Test of reducibility
 
-        A quadratic (or generalized) permutation is *reducible* if there exists
-        a decomposition
+        A quadratic (or generalized) permutation is *reducible* if
+        there exists a decomposition
 
         .. math::
 
@@ -2383,15 +2385,16 @@ class OrientablePermutationLI(PermutationLI):
 
         INPUT:
 
-        -  ``return_decomposition`` - boolean (default: False) - if True, and
-           the permutation is reducible, returns also the blocs A1 u B1, B1 u
-           A2, A1 u B2 and B2 u A2 of a decomposition as above.
+        - ``return_decomposition`` -- boolean (default: ``False``) -
+           if ``True``, and the permutation is reducible, returns also
+           the blocs A1 u B1, B1 u A2, A1 u B2 and B2 u A2 of a
+           decomposition as above.
 
         OUTPUT:
 
-        If return_decomposition is True, returns a 2-uple
-        (test,decomposition) where test is the preceding test and
-        decomposition is a 4-uple (A11,A12,A21,A22) where:
+        If return_decomposition is ``True``, returns a 2-uple
+        (test, decomposition) where test is the preceding test and
+        decomposition is a 4-uple (A11, A12, A21, A22) where:
 
         A11 = A1 u B1
         A12 = B1 u A2
@@ -2439,7 +2442,7 @@ class OrientablePermutationLI(PermutationLI):
 
         AUTHORS:
 
-            - Vincent Delecroix (2008-12-20)
+        - Vincent Delecroix (2008-12-20)
         """
         l0 = self.length_top()
         l1 = self.length_bottom()
@@ -2472,22 +2475,22 @@ class OrientablePermutationLI(PermutationLI):
                 break
             A11 = s0[:i11]
 
-            for i21 in xrange(0, l1) :
+            for i21 in xrange(0, l1):
                 if i21 > 0 and s1[i21-1] in A21:
                     break
                 A21 = s1[:i21]
 
-                for i12 in xrange(l0 - 1, i11 - 1, -1) :
+                for i12 in xrange(l0 - 1, i11 - 1, -1):
                     if s0[i12] in A12 or s0[i12] in A21:
                         break
                     A12 = s0[i12:]
 
-                    for i22 in xrange(l1 - 1, i21 - 1, -1) :
+                    for i22 in xrange(l1 - 1, i21 - 1, -1):
                         if s1[i22] in A22 or s1[i22] in A11:
                             break
                         A22 = s1[i22:]
 
-                        if sorted(A11 + A22) == sorted(A12 + A21) :
+                        if sorted(A11 + A22) == sorted(A12 + A21):
                             if return_decomposition :
                                 return False, (A11,A12,A21,A22)
                             return False
@@ -2495,10 +2498,10 @@ class OrientablePermutationLI(PermutationLI):
                 A12 = []
             A21 = []
 
-
         if return_decomposition:
             return True, ()
         return True
+
 
 class FlippedPermutation(Permutation):
     r"""
@@ -2512,7 +2515,7 @@ class FlippedPermutation(Permutation):
 
     - Vincent Delecroix (2008-12-20): initial version
     """
-    def _init_flips(self,intervals,flips):
+    def _init_flips(self, intervals, flips):
         r"""
         Initialize the flip list
 
@@ -2571,7 +2574,7 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
     """
     def rauzy_move(self, winner, side=-1):
         r"""
-        Returns the permutation after a Rauzy move.
+        Return the permutation after a Rauzy move.
 
         TESTS::
 
@@ -2612,32 +2615,32 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
             res._move(loser, d-1, wtp+1-flip)
 
         if side == 0:
-            res._move(loser, 0, wtp+flip)
+            res._move(loser, 0, wtp + flip)
 
         return res
 
     def backward_rauzy_move(self, winner, side=-1):
         r"""
-        Returns the permutation before a Rauzy move.
+        Return the permutation before a Rauzy move.
 
         TESTS::
 
             sage: p = iet.GeneralizedPermutation('a b c d e','d a b e c',flips='abcd')
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
 
         Testing the inversion on reduced permutations::
 
             sage: p = iet.Permutation('f a b c d e','d f c b e a',flips='abcd', reduced=True)
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
         """
         winner = interval_conversion(winner)
@@ -2671,7 +2674,7 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
 
     def flips(self):
         r"""
-        Returns the list of flips.
+        Return the list of flips.
 
         EXAMPLES::
 
@@ -2685,7 +2688,6 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
             if f == -1:
                 result.append(l[0][i])
         return result
-
 
 
 class FlippedPermutationLI(FlippedPermutation, PermutationLI):
@@ -2702,7 +2704,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     """
     def flips(self):
         r"""
-        Returns the list of flipped intervals.
+        Return the list of flipped intervals.
 
         EXAMPLES::
 
@@ -2716,11 +2718,11 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         res = []
         l = self.list(flips=False)
         letters = []
-        for i,f in enumerate(self._flips[0]):
+        for i, f in enumerate(self._flips[0]):
             if f == -1 and l[0][i] not in letters:
                 res.append(l[0][i])
                 letters.append(l[0][i])
-        for i,f in enumerate(self._flips[1]):
+        for i, f in enumerate(self._flips[1]):
             if f == -1 and l[1][i] not in letters:
                 res.append(l[1][i])
                 letters.append(l[1][i])
@@ -2788,20 +2790,20 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
 
             sage: p = iet.GeneralizedPermutation('a b c e b','d c d a e',flips='abcd')
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
 
         Testing the inversion on reduced permutations::
 
             sage: p = iet.GeneralizedPermutation('a b c e b','d c d a e',flips='abcd',reduced=True)
             sage: for pos,side in [('t','r'),('b','r'),('t','l'),('b','l')]:
-            ...    q = p.rauzy_move(pos,side)
-            ...    print q.backward_rauzy_move(pos,side) == p,
-            ...    q = p.backward_rauzy_move(pos,side)
-            ...    print q.rauzy_move(pos,side) == p,
+            ....:  q = p.rauzy_move(pos,side)
+            ....:  print q.backward_rauzy_move(pos,side) == p,
+            ....:  q = p.backward_rauzy_move(pos,side)
+            ....:  print q.rauzy_move(pos,side) == p,
             True True True True True True True True
         """
         winner = interval_conversion(winner)
@@ -2833,7 +2835,6 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
                 else:
                     res._move(winner, wtp-1, loser, d)
 
-
         if side == 0:
             if wti == loser:
                 if flip == -1:
@@ -2855,7 +2856,6 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         return res
 
 
-
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -2875,11 +2875,12 @@ class RauzyDiagram(SageObject):
         r"""
         Path in Rauzy diagram.
 
-            A path in a Rauzy diagram corresponds to a subsimplex of the simplex of
-            lengths. This correspondance is obtained via the Rauzy induction. To a
-            idoc IET we can associate a unique path in a Rauzy diagram. This
-            establishes a correspondance between infinite full path in Rauzy diagram
-            and equivalence topologic class of IET.
+        A path in a Rauzy diagram corresponds to a subsimplex of the
+        simplex of lengths. This correspondance is obtained via the
+        Rauzy induction. To a idoc IET we can associate a unique path
+        in a Rauzy diagram. This establishes a correspondance between
+        infinite full path in Rauzy diagram and equivalence topologic
+        class of IET.
         """
         def __init__(self, parent, *data):
             r"""
@@ -2929,7 +2930,7 @@ class RauzyDiagram(SageObject):
 
         def _repr_(self):
             r"""
-            Returns a representation of the path.
+            Return a representation of the path.
 
             TEST::
 
@@ -2946,7 +2947,7 @@ class RauzyDiagram(SageObject):
 
         def start(self):
             r"""
-            Returns the first vertex of the path.
+            Return the first vertex of the path.
 
             EXAMPLES::
 
@@ -2960,7 +2961,7 @@ class RauzyDiagram(SageObject):
 
         def end(self):
             r"""
-            Returns the last vertex of the path.
+            Return the last vertex of the path.
 
             EXAMPLES::
 
@@ -2977,7 +2978,7 @@ class RauzyDiagram(SageObject):
 
         def edge_types(self):
             r"""
-            Returns the edge types of the path.
+            Return the edge types of the path.
 
             EXAMPLES::
 
@@ -3012,7 +3013,7 @@ class RauzyDiagram(SageObject):
                 self._start == other._start and
                 self._edge_types == other._edge_types)
 
-        def __ne__(self,other):
+        def __ne__(self, other):
             r"""
             Tests inequality
 
@@ -3037,7 +3038,7 @@ class RauzyDiagram(SageObject):
 
         def __copy__(self):
             r"""
-            Returns a copy of the path.
+            Return a copy of the path.
 
             TESTS::
 
@@ -3055,7 +3056,7 @@ class RauzyDiagram(SageObject):
 
         def pop(self):
             r"""
-            Pops the queue of the path
+            Pop the queue of the path
 
             OUTPUT:
 
@@ -3088,7 +3089,7 @@ class RauzyDiagram(SageObject):
             else:
                 e = self._edge_types.pop()
                 self._end = self._parent._pred[self._end][e]
-                return self._parent.path(self.end(),e)
+                return self._parent.path(self.end(), e)
 
         def append(self, edge_type):
             r"""
@@ -3149,7 +3150,7 @@ class RauzyDiagram(SageObject):
 
         def extend(self, path):
             r"""
-            Extends self with another path.
+            Extend ``self`` with another path.
 
             EXAMPLES::
 
@@ -3169,7 +3170,8 @@ class RauzyDiagram(SageObject):
                 raise ValueError("Not on the same Rauzy diagram")
 
             if self._end != path._start:
-                raise ValueError("The end of the first path must the start of the second")
+                raise ValueError("The end of the first path must be the "
+                                 "start of the second")
 
             self._edge_types.extend(path._edge_types)
             self._end = path._end
@@ -3196,10 +3198,9 @@ class RauzyDiagram(SageObject):
 
         def __len__(self):
             r"""
-            Returns the length of the path.
+            Return the length of the path.
 
             TEST::
-
 
                 sage: p = iet.Permutation('a b c','c b a')
                 sage: r = p.rauzy_diagram()
@@ -3235,7 +3236,8 @@ class RauzyDiagram(SageObject):
             if i > len(self) or i < -len(self)-1:
                 raise IndexError("path index out of range")
 
-            if i == 0: return self.start()
+            if i == 0:
+                return self.start()
             if i < 0: i = i + len(self) + 1
 
             v = self._start
@@ -3259,7 +3261,8 @@ class RauzyDiagram(SageObject):
                 True
             """
             if self._end != other._start:
-                raise ValueError("The end of the first path is not the start of the second")
+                raise ValueError("The end of the first path is not the "
+                                 "start of the second")
 
             res = copy(self)
             res._fast_extend(other)
@@ -3282,20 +3285,20 @@ class RauzyDiagram(SageObject):
             if not self.is_loop():
                 raise ValueError("Must be a loop to have multiple")
 
-            if not isinstance(n, (Integer,int)):
+            if not isinstance(n, (Integer, int)):
                 raise TypeError("The multiplier must be an integer")
 
             if n < 0:
                 raise ValueError("The multiplier must be non negative")
 
             res = copy(self)
-            for i in range(n-1):
+            for i in range(n - 1):
                 res += self
             return res
 
         def is_loop(self):
             r"""
-            Tests whether the path is a loop (start point = end point).
+            Test whether the path is a loop (start point = end point).
 
             EXAMPLES::
 
@@ -3310,7 +3313,7 @@ class RauzyDiagram(SageObject):
 
         def winners(self):
             r"""
-            Returns the winner list associated to the edge of the path.
+            Return the winner list associated to the edge of the path.
 
             EXAMPLES::
 
@@ -3329,7 +3332,7 @@ class RauzyDiagram(SageObject):
 
         def losers(self):
             r"""
-            Returns a list of the loosers on the path.
+            Return a list of the loosers on the path.
 
             EXAMPLES::
 
@@ -3356,12 +3359,12 @@ class RauzyDiagram(SageObject):
                 sage: r = p.rauzy_diagram()
                 sage: g = r.path(p)
                 sage: for q in g:
-                ...       print p
+                ....:     print p
                 a b c
                 c b a
                 sage: g = r.path(p, 't', 't')
                 sage: for q in g:
-                ...       print q, "\n*****"
+                ....:     print q, "\n*****"
                 a b c
                 c b a
                 *****
@@ -3373,7 +3376,7 @@ class RauzyDiagram(SageObject):
                 *****
                 sage: g = r.path(p,'b','t')
                 sage: for q in g:
-                ...       print q, "\n*****"
+                ....:     print q, "\n*****"
                 a b c
                 c b a
                 *****
@@ -3392,17 +3395,17 @@ class RauzyDiagram(SageObject):
 
             yield self.end()
 
-        def composition(self, function, composition = None):
+        def composition(self, function, composition=None):
             r"""
             Compose an edges function on a path
 
             INPUT:
 
-            - ``path`` - either a Path or a tuple describing a path
+            - ``path`` -- either a Path or a tuple describing a path
 
-            - ``function`` - function must be of the form
+            - ``function`` -- function must be of the form
 
-            - ``composition`` - the composition function
+            - ``composition`` -- the composition function
 
             AUTHOR:
 
@@ -3413,8 +3416,8 @@ class RauzyDiagram(SageObject):
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
                 sage: def f(i,t):
-                ...       if t is None: return []
-                ...       return [t]
+                ....:     if t is None: return []
+                ....:     return [t]
                 sage: g = r.path(p)
                 sage: g.composition(f,list.__add__)
                 []
@@ -3430,28 +3433,31 @@ class RauzyDiagram(SageObject):
 
             for i in self._edge_types:
                 self._parent._set_element(cur_vertex)
-                result = composition(result, function(p,i))
+                result = composition(result, function(p, i))
                 cur_vertex = self._parent._succ[cur_vertex][i]
 
             return result
 
-        def right_composition(self, function, composition = None) :
+        def right_composition(self, function, composition=None):
             r"""
             Compose an edges function on a path
 
             INPUT:
 
-            - ``function`` - function must be of the form (indice,type) -> element. Moreover function(None,None) must be an identity element for initialization.
+            - ``function`` -- function must be of the form
+              (indice, type) -> element. Moreover function(None, None)
+              must be an identity element for initialization.
 
-            - ``composition`` - the composition function for the function. * if None (defaut None)
+            - ``composition`` -- the composition function for the
+              function. * if ``None`` (defaut ``None``)
 
             TEST::
 
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
                 sage: def f(i,t):
-                ...       if t is None: return []
-                ...       return [t]
+                ....:     if t is None: return []
+                ....:     return [t]
                 sage: g = r.path(p)
                 sage: g.right_composition(f,list.__add__)
                 []
@@ -3463,7 +3469,8 @@ class RauzyDiagram(SageObject):
             p = self._parent._element
             cur_vertex = self._start
 
-            if composition is None: composition = result.__class__.__mul__
+            if composition is None:
+                composition = result.__class__.__mul__
 
             for i in self._edge_types:
                 self._parent._set_element(cur_vertex)
@@ -3482,24 +3489,24 @@ class RauzyDiagram(SageObject):
         self._succ contains successors
         self._pred contains predecessors
 
-        self._element_class is the class of elements of self
+        self._element_class is the class of elements of ``self``
         self._element is an instance of this class (hence contains the alphabet,
         the representation mode, ...). It is used to store data about property
         of permutations and also as a fast iterator.
 
          INPUT:
 
-         - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+         - ``right_induction`` -- boolean or 'top' or 'bottom':
+           consider the right induction
 
-         - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+         - ``left_induction`` -- boolean or 'top' or 'bottom':
+           consider the left induction
 
-         - ``left_right_inversion`` - consider the left right inversion
+         - ``left_right_inversion`` -- consider the left right inversion
 
-         - ``top_bottom_inversion`` - consider the top bottom inversion
+         - ``top_bottom_inversion`` -- consider the top bottom inversion
 
-         - ``symmetric`` - consider the symmetric
+         - ``symmetric`` -- consider the symmetric
 
         TESTS::
 
@@ -3521,20 +3528,20 @@ class RauzyDiagram(SageObject):
 
             elif 'top'.startswith(right_induction):
                 self._index['rt_rauzy'] = len(self._edge_types)
-                self._edge_types.append(('rauzy_move',(0,-1)))
+                self._edge_types.append(('rauzy_move',(0, -1)))
 
             elif 'bottom'.startswith(right_induction):
                 self._index['rb_rauzy'] = len(self._edge_types)
-                self._edge_types.append(('rauzy_move',(1,-1)))
+                self._edge_types.append(('rauzy_move',(1, -1)))
 
             else:
                 raise ValueError("%s is not valid for right_induction" % right_induction)
 
         if left_induction is True:
             self._index['lt_rauzy'] = len(self._edge_types)
-            self._edge_types.append(('rauzy_move',(0,0)))
+            self._edge_types.append(('rauzy_move',(0, 0)))
             self._index['lb_rauzy'] = len(self._edge_types)
-            self._edge_types.append(('rauzy_move',(1,0)))
+            self._edge_types.append(('rauzy_move',(1, 0)))
 
         elif isinstance(left_induction,str):
             if left_induction == '':
@@ -3542,11 +3549,11 @@ class RauzyDiagram(SageObject):
 
             elif 'top'.startswith(left_induction):
                 self._index['lt_rauzy'] = len(self._edge_types)
-                self._edge_types.append(('rauzy_move',(0,0)))
+                self._edge_types.append(('rauzy_move',(0, 0)))
 
             elif 'bottom'.startswith(left_induction):
                 self._index['lb_rauzy'] = len(self._edge_types)
-                self._edge_types.append(('rauzy_move',(1,0)))
+                self._edge_types.append(('rauzy_move',(1, 0)))
 
             else:
                 raise ValueError("%s is not valid for left_induction" % right_induction)
@@ -3575,7 +3582,7 @@ class RauzyDiagram(SageObject):
 
     def __eq__(self, other):
         r"""
-        Tests equality.
+        Test equality.
 
         TESTS:
 
@@ -3597,7 +3604,7 @@ class RauzyDiagram(SageObject):
 
             sage: r = iet.RauzyDiagram('a b c d','d c b a')
             sage: for p in r:
-            ...       p.rauzy_diagram() == r
+            ....:     p.rauzy_diagram() == r
             True
             True
             True
@@ -3613,8 +3620,7 @@ class RauzyDiagram(SageObject):
 
     def __ne__(self, other):
         r"""
-        Tests difference.
-
+        Test difference.
 
         TEST::
 
@@ -3637,7 +3643,7 @@ class RauzyDiagram(SageObject):
 
     def vertices(self):
         r"""
-        Returns a list of the vertices.
+        Return a list of the vertices.
 
         EXAMPLES::
 
@@ -3652,7 +3658,7 @@ class RauzyDiagram(SageObject):
 
     def vertex_iterator(self):
         r"""
-        Returns an iterator over the vertices
+        Return an iterator over the vertices
 
         EXAMPLES::
 
@@ -3677,7 +3683,7 @@ class RauzyDiagram(SageObject):
 
     def edges(self,labels=True):
         r"""
-        Returns a list of the edges.
+        Return a list of the edges.
 
         EXAMPLES::
 
@@ -3689,19 +3695,19 @@ class RauzyDiagram(SageObject):
 
     def edge_iterator(self):
         r"""
-        Returns an iterator over the edges of the graph.
+        Return an iterator over the edges of the graph.
 
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for e in r.edge_iterator():
-            ...    print e[0].str(sep='/'), '-->', e[1].str(sep='/')
+            ....:  print e[0].str(sep='/'), '-->', e[1].str(sep='/')
             a b/b a --> a b/b a
             a b/b a --> a b/b a
         """
         for x in self._succ.keys():
-            for i,y in enumerate(self._succ[x]):
+            for i, y in enumerate(self._succ[x]):
                 if y is not None:
                     yield(
                         (self._vertex_to_permutation(x),
@@ -3714,7 +3720,7 @@ class RauzyDiagram(SageObject):
 
         INPUT:
 
-        - ``data`` - a string
+        - ``data`` -- a string
 
         OUTPUT:
 
@@ -3737,8 +3743,8 @@ class RauzyDiagram(SageObject):
             sage: r[p][1] == p.rauzy_move('bottom')
             True
 
-        The special operations (inversion and symmetry) always appears after the
-        different Rauzy inductions::
+        The special operations (inversion and symmetry) always appears
+        after the different Rauzy inductions::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram(symmetric=True)
@@ -3747,7 +3753,7 @@ class RauzyDiagram(SageObject):
             sage: r[p][2] == p.symmetric()
             True
 
-        This function always try to resolve conflictuous name. If it's
+        This function always try to resolve conflictuous name. If it is
         impossible a ValueError is raised::
 
             sage: p = iet.Permutation('a b c','c b a')
@@ -3799,7 +3805,7 @@ class RauzyDiagram(SageObject):
             sage: r.edge_types_index('i')
             1
          """
-        if not isinstance(data,str):
+        if not isinstance(data, str):
             raise ValueError("the edge type must be a string")
 
         if ('top_rauzy_move'.startswith(data) or
@@ -3947,6 +3953,8 @@ class RauzyDiagram(SageObject):
 
     def alphabet(self, data=None):
         r"""
+        Return the alphabet of the RauzyDiagram.
+        
         TESTS::
 
             sage: r = iet.RauzyDiagram('a b','b a')
@@ -3963,7 +3971,7 @@ class RauzyDiagram(SageObject):
 
     def letters(self):
         r"""
-        Returns the letters used by the RauzyDiagram.
+        Return the letters used by the RauzyDiagram.
 
         EXAMPLES::
 
@@ -3982,7 +3990,7 @@ class RauzyDiagram(SageObject):
 
     def _vertex_to_permutation(self,data=None):
         r"""
-        Converts the (vertex) data to a permutation.
+        Convert the (vertex) data to a permutation.
 
         TESTS:
 
@@ -3998,9 +4006,9 @@ class RauzyDiagram(SageObject):
 
         INPUT:
 
-        - ``p`` - a permutation
+        - ``p`` -- a permutation
 
-        - ``edge_type`` - 0 or 1 corresponding to the type of the edge
+        - ``edge_type`` -- 0 or 1 corresponding to the type of the edge
 
         OUTPUT:
 
@@ -4025,11 +4033,11 @@ class RauzyDiagram(SageObject):
 
         arguments = self._edge_types[edge_type][1]
 
-        return getattr(p,function_name)(*arguments)
+        return getattr(p, function_name)(*arguments)
 
     def edge_to_winner(self, p=None, edge_type=None):
         r"""
-        Return the corresponding winner
+        Return the corresponding winner.
 
         TEST::
 
@@ -4047,11 +4055,11 @@ class RauzyDiagram(SageObject):
 
         arguments = self._edge_types[edge_type][1]
 
-        return [getattr(p,function_name)(*arguments)]
+        return [getattr(p, function_name)(*arguments)]
 
     def edge_to_loser(self, p=None, edge_type=None):
         r"""
-        Return the corresponding loser
+        Return the corresponding loser.
 
         TEST::
 
@@ -4069,17 +4077,17 @@ class RauzyDiagram(SageObject):
 
         arguments = self._edge_types[edge_type][1]
 
-        return [getattr(p,function_name)(*arguments)]
+        return [getattr(p, function_name)(*arguments)]
 
     def _all_npath_extension(self, g, length=0):
         r"""
-        Returns an iterator over all extension of fixed length of p.
+        Return an iterator over all extensions of fixed length of p.
 
         INPUT:
 
-        - ``p`` - a path
+        - ``p`` -- a path
 
-        - ``length`` - a non-negative integer
+        - ``length`` -- a non-negative integer (default 0)
 
         TESTS:
 
@@ -4089,14 +4097,14 @@ class RauzyDiagram(SageObject):
             sage: r = p.rauzy_diagram()
             sage: g0 = r.path(p)
             sage: for g in r._all_npath_extension(g0,0):
-            ...       print g
+            ....:     print g
             Path of length 0 in a Rauzy diagram
             sage: for g in r._all_npath_extension(g0,1):
-            ...       print g
+            ....:     print g
             Path of length 1 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
             sage: for g in r._all_npath_extension(g0,2):
-            ...       print g
+            ....:     print g
             Path of length 2 in a Rauzy diagram
             Path of length 2 in a Rauzy diagram
             Path of length 2 in a Rauzy diagram
@@ -4125,12 +4133,13 @@ class RauzyDiagram(SageObject):
             for i in range(len(self._edge_types)):
                 if self._succ[g._end][i] is not None:
                     g._fast_append(i)
-                    for h in self._all_npath_extension(g,length-1): yield h
+                    for h in self._all_npath_extension(g,length-1):
+                        yield h
                     g.pop()
 
     def _all_path_extension(self, g, length=0):
         r"""
-        Returns an iterator over all path extension of p.
+        Return an iterator over all path extensions of `p`.
 
         TESTS:
 
@@ -4140,10 +4149,10 @@ class RauzyDiagram(SageObject):
             sage: r = p.rauzy_diagram()
             sage: g0 = r.path(p)
             sage: for g in r._all_path_extension(g0,0):
-            ...       print g
+            ....:     print g
             Path of length 0 in a Rauzy diagram
             sage: for g in r._all_path_extension(g0, 1):
-            ...       print g
+            ....:     print g
             Path of length 0 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
@@ -4168,7 +4177,8 @@ class RauzyDiagram(SageObject):
             for i in range(len(self._edge_types)):
                 if self._succ[g._end][i] is not None:
                     g._fast_append(i)
-                    for h in self._all_path_extension(g,length-1): yield h
+                    for h in self._all_path_extension(g,length-1):
+                        yield h
                     g.pop()
 
     def __iter__(self):
@@ -4217,7 +4227,7 @@ class RauzyDiagram(SageObject):
 
     def _repr_(self):
         r"""
-        Returns a representation of self
+        Return a representation of ``self``
 
         TEST::
 
@@ -4231,21 +4241,20 @@ class RauzyDiagram(SageObject):
         elif len(self._succ) == 1:
             return "Rauzy diagram with 1 permutation"
         else:
-            return "Rauzy diagram with %d permutations" %(len(self._succ))
+            return "Rauzy diagram with %d permutations" % len(self._succ)
 
-    def __getitem__(self,p):
+    def __getitem__(self, p):
         r"""
-        Returns the neighbors of p.
+        Return the neighbors of p.
 
-        Just use the function vertex_to_permutation that must be defined
-        in each child.
+        Just uses the function vertex_to_permutation that must be
+        defined in each child.
 
         INPUT:
 
-        - ``p`` - a permutation in the Rauzy diagram
+        - ``p`` -- a permutation in the Rauzy diagram
 
         TESTS::
-
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: p0 = iet.Permutation('a b c','c a b',alphabet="abc")
@@ -4279,11 +4288,11 @@ class RauzyDiagram(SageObject):
 
     def cardinality(self):
         r"""
-        Returns the number of permutations in this Rauzy diagram.
+        Return the number of permutations in this Rauzy diagram.
 
         OUTPUT:
 
-        - `integer` - the number of vertices in the diagram
+        - `integer` -- the number of vertices in the diagram
 
         EXAMPLES::
 
@@ -4304,15 +4313,16 @@ class RauzyDiagram(SageObject):
         Completion of the Rauzy diagram.
 
         Add to the Rauzy diagram all permutations that are obtained by
-        successive operations defined by edge_types(). The permutation must be
-        of the same type and the same length as the one used for the creation.
+        successive operations defined by edge_types(). The permutation
+        must be of the same type and the same length as the one used
+        for the creation.
 
         INPUT:
 
-        - ``p`` - a permutation of Interval exchange transformation
+        - ``p`` -- a permutation of Interval exchange transformation
 
         Rauzy diagram is the reunion of all permutations that could be
-        obtained with successive rauzy moves. This function just use the
+        obtained with successive Rauzy moves. This function just use the
         functions __getitem__ and has_rauzy_move and rauzy_move which must
         be defined for child and their corresponding permutation types.
 
@@ -4359,13 +4369,13 @@ class RauzyDiagram(SageObject):
 
     def path(self, *data):
         r"""
-        Returns a path over this Rauzy diagram.
+        Return a path over this Rauzy diagram.
 
         INPUT:
 
-        - ``initial_vertex`` - the initial vertex (starting point of the path)
+        - ``initial_vertex`` -- the initial vertex (starting point of the path)
 
-        - ``data`` - a sequence of edges
+        - ``data`` -- a sequence of edges
 
         EXAMPLES::
 
@@ -4377,11 +4387,11 @@ class RauzyDiagram(SageObject):
             raise TypeError("Must be non empty")
         elif len(data) == 1 and isinstance(data[0], self.Path):
                 return copy(data[0])
-        return self.Path(self,*data)
+        return self.Path(self, *data)
 
     def graph(self):
         r"""
-        Returns the Rauzy diagram as a Graph object
+        Return the Rauzy diagram as a graph object.
 
         The graph returned is more precisely a DiGraph (directed graph) with
         loops and multiedges allowed.
@@ -4397,18 +4407,19 @@ class RauzyDiagram(SageObject):
         from sage.graphs.digraph import DiGraph
 
         if len(self._element) != 2:
-            G = DiGraph(loops=True,multiedges=False)
+            G = DiGraph(loops=True, multiedges=False)
         else:
-            G = DiGraph(loops=True,multiedges=True)
+            G = DiGraph(loops=True, multiedges=True)
 
         for p,neighbours in self._succ.iteritems():
             p = self._vertex_to_permutation(p)
             for i,n in enumerate(neighbours):
                 if n is not None:
                     q = self._vertex_to_permutation(n)
-                    G.add_edge(p,q,i)
+                    G.add_edge(p, q, i)
 
         return G
+
 
 class FlippedRauzyDiagram(RauzyDiagram):
     r"""
@@ -4426,17 +4437,18 @@ class FlippedRauzyDiagram(RauzyDiagram):
         r"""
         Completion of the Rauzy diagram
 
-        Add all successors of p for defined operations in edge_types. Could be
-        used for generating non (strongly) connected Rauzy diagrams. Sometimes,
-        for flipped permutations, the maximal connected graph in all
-        permutations is not strongly connected. Finding such components needs to
-        call most than once the .complete() method.
+        Add all successors of p for defined operations in
+        edge_types. Could be used for generating non (strongly)
+        connected Rauzy diagrams. Sometimes, for flipped permutations,
+        the maximal connected graph in all permutations is not
+        strongly connected. Finding such components needs to call most
+        than once the .complete() method.
 
         INPUT:
 
-        - ``p`` - a permutation
+        - ``p`` -- a permutation
 
-        - ``reducible`` - put or not reducible permutations
+        - ``reducible`` -- put or not reducible permutations
 
         EXAMPLES::
 
@@ -4487,4 +4499,3 @@ class FlippedRauzyDiagram(RauzyDiagram):
 
                         succ[p][t] = q
                         pred[q][t] = p
-
