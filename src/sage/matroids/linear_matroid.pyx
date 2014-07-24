@@ -3421,28 +3421,33 @@ cdef class BinaryMatroid(LinearMatroid):
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
         return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
-    
+    ######################################################################
     # represented binary minor test
     cpdef _has_binary_minor(self,N=None):
-        cdef long r,c
+        cdef long r,c,nloops
         cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
         Ms=self.simplify()
         Ns=N.simplify()
-        M_rmat=Ms._reduced_representation()#B={0,4,5,8,9})
-        M_R, M_C = Ms._current_rows_cols()
-        Mpcl=[k-self.loops() for k in self.flats(1) if len(k-self.loops())>1]
+        N_rmat=Ns._reduced_representation()#{2,4,5})
         Npcl=[k-N.loops() for k in N.flats(1) if len(k-N.loops())>1]
-        for B1 in Ns.bases():
-            N_rmat=Ns._reduced_representation(B=B1)#{2,4,5})
-            if M_rmat.ncols() == 0 and N_rmat.ncols()==0:
-                return True
-            elif M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
+        nloops=len(N.loops())
+        for B1 in Ms.bases():
+            M_rmat=Ms._reduced_representation(B=B1)#B={0,4,5,8,9})
+            M_R, M_C = Ms._current_rows_cols()
+            M_R1,M_C1 = self._current_rows_cols(B=B1)
+            
+            if M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
+                # Ms is uniform while Ns has nonloopy/parallel nonbases
+                print '0,1'
                 return False
-            elif N_rmat.ncols() == 0:
-                return True
-            else:
+            else: 
+                # Both Ns and Ms are not uniform
                 N_R, N_C = Ns._current_rows_cols()
-                if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C],Mpcl,Npcl) is True:
+#                print 'N_R', N_R
+#                print 'N_C', N_C
+#                print 'M_R', M_R
+#                print 'M_C', M_C
+                if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C,M_R1],self,Npcl,nloops) is True:
                     return True
         return False
 #        else:
