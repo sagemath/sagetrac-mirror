@@ -92,6 +92,21 @@ class SignedPermutation(Element):
     
     - ``l`` -- a list of integers, viewed as one-line permutation notation.
     """
+    __metaclass__ = ClasscallMetaclass
+    @staticmethod
+    def __classcall_private__(cls,l):
+        """
+        Using the metaclass to parse all the input.
+
+        I'm not sure this actually *ought* to be done here.
+        """
+        if isinstance(l,SignedPermutation):
+            return l
+        if isinstance(l,str):
+            #got given cycle notation, need to get one-line
+            pass
+        return type.__call__(cls,l)
+
     def __init__(self, l, natural_order = True):
         """Initializer
         
@@ -297,7 +312,34 @@ class SignedPermutation(Element):
 
     ####cycle representations####
     def to_cycles(self, singletons=True):
-        pass
+        cycles = []
+        l = self.w[:]
+        for i in range(self.n):
+            if l[i] == False:
+                continue
+            cycleFirst = i+1
+            cycle = [cycleFirst]
+            l[i], next = False, l[i]
+            while next!= cycleFirst:
+                cycle.append(next)
+                l[next -1], next = False, l[next-1]
+            if singletons or len(cycle) > 1:
+                cycles.append(tuple(cycle))
+        return cycles
+
+    def cycle_string(self, singletons = False):
+        """
+        Returns a string of the permutation in cycle notation.
+
+        If ``singletons = True``, it includes 1-cycles in the string.
+        """
+        cycles = self.to_cycles(singletons = singletons)
+        if cycles == []:
+            return "()"
+        else:
+            return "".join(["("+",".join([str(l) for l in x[)+")"+ for x in\
+            cycles])
+            
         
 class SignedPermutations(UniqueRepresentation,Parent):
     r"""
