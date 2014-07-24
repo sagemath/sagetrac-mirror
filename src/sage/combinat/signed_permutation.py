@@ -313,16 +313,18 @@ class SignedPermutation(Element):
     ####cycle representations####
     def to_cycles(self, singletons=True):
         cycles = []
-        l = self.w[:]
+        seen = dict([(i,False) for i in range(-self.n,self.n+1) if not i == 0])
         for i in range(self.n):
-            if l[i] == False:
+            if seen[self.w[i]]:
                 continue
             cycleFirst = i+1
             cycle = [cycleFirst]
-            l[i], next = False, l[i]
-            while next!= cycleFirst:
+            seen[cycleFirst] = True
+            next = self(cycleFirst)
+            while next != cycleFirst:
                 cycle.append(next)
-                l[next -1], next = False, l[next-1]
+                seen[next] = True
+                next = self(next)
             if singletons or len(cycle) > 1:
                 cycles.append(tuple(cycle))
         return cycles
@@ -337,8 +339,7 @@ class SignedPermutation(Element):
         if cycles == []:
             return "()"
         else:
-            return "".join(["("+",".join([str(l) for l in x[)+")"+ for x in\
-            cycles])
+            return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
             
         
 class SignedPermutations(UniqueRepresentation,Parent):
