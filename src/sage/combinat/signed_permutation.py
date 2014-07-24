@@ -7,6 +7,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.matrix.all import matrix
+from sage.rings.all import Integer
 import itertools
 
 SignedPermutationOptions = GlobalOptions(name='signed permutations',
@@ -94,17 +95,40 @@ class SignedPermutation(Element):
     """
     __metaclass__ = ClasscallMetaclass
     @staticmethod
-    def __classcall_private__(cls,l):
+    def __classcall_private__(cls,w):
         """
         Using the metaclass to parse all the input.
 
         I'm not sure this actually *ought* to be done here.
         """
-        if isinstance(l,SignedPermutation):
-            return l
-        if isinstance(l,str):
+        l = None
+        if isinstance(w,SignedPermutation):
+            return w
+        elif isinstance(w,str):
             #got given cycle notation, need to get one-line
-            pass
+            cyclestrings = w[1:-1].split(")(")
+            cycle_list = []
+            for cycle_string in cyclestrings:
+                cycle_list.append( [int(j) for j in cycle_string.split(',')])
+            l = cls.from_cycles(max([max([abs(i) for i in c]) for c in cycle_list]),cycle_list)
+        #need to distinguish a list from a list of lists or tuples giving cycle notation
+        elif isinstance(w,tuple):
+            if all(isinstance(x, (int,Integer)) for x in w):
+                #tuple of ints
+                l = list(w)
+            elif len(w[0]) > 0:
+                n = max([max([abs(i) for i in c]) for c in w])
+                l = cls.from_cycles(n, w)
+        elif isinstance(w,list):
+            if all(isinstance(x, (int,Integer)) for x in w):
+                #list of ints
+                l = w
+            elif len(w) >= 1 and len(w[0]) > 0:
+                #list of tuples or lists
+                n = max([max([abs(i) for i in c]) for c in w])
+                l = cls.from_cycles(n, w)
+        if l is None:
+            raise ValueError("cannot convert w (= %s) to a SignedPermutation"%w)
         return type.__call__(cls,l)
 
     def __init__(self, l, natural_order = True):
@@ -341,6 +365,69 @@ class SignedPermutation(Element):
         else:
             return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
             
+    @staticmethod
+    def from_cycles(n,cycles):
+        r"""
+        Return the signed permutation in the `n`-th signed permutation group whose
+        decomposition into disjoint cycles is ``cycles``.
+        
+        .. WARNING::
+        
+            Does *not* check whether the cycle notation satisfies ``w(-i)=-w(i)``.
+            
+        EXAMPLES::
+        
+            sage: SignedPermutation.from_cycles(4,[[1,2]])
+            [2,1,3,4]
+            sage: SignedPermutation.from_cycles(4,[[1,-2]])
+            [-2, -1, 3, 4]
+        """
+        p = range(1,n+1) #start with the identity permutation
+        #implement some of the input checks
+        flattened_and_sorted = []
+        for c in cycles:
+            flattened_and_sorted.extend(c)
+        flattened_and_sorted.sort()
+        
+        #Empty input
+        if len(flattened_and_sorted) == 0:
+            return p
+            
+        if 0 in flattened_and_sorted:
+            raise ValueError("A signed permutation should not involve 0 in its cycle notation")
+            
+        if flattened_and_sorted[-1] > n:
+            raise ValueError("You claimed that this was a signed permutation on 1..."+
+                    str(n)+" but it contains"+str(flattened_and_sorted[-1]))
+                    
+        if flattened_and_sorted[0] < -n:
+            raise ValueError("You claimed that this was a signed permutation on 1..."+
+                    str(n)+" but it contains"+str(flattened_and_sorted[0]))
+                    
+        #disjoint cycles ?
+        previous = flattened_and_sorted[0]-1
+        for i in flattened_and_sorted:
+            if i == previous:
+                raise ValueError("An element appears twice. It should not.")
+            else:
+                previous = i
+                
+        #now build the one-line notation
+        for cycle in cycles:
+            if not cycle:
+                #empty cycle
+                continue
+            first = cycle[0]
+            for i in range(len(cycle)-1):
+                if cycle[i] > 0:
+                    p[cycle[i]-1] = cycle[i+1]
+                else:
+                    p[-cycle[i]-1] = -cycle[i+1]
+            if cycle[-1] > 0:
+                p[cycle[-1]-1] = first
+            else:
+                p[-cycle[-1]-1] = -first
+        return p
         
 class SignedPermutations(UniqueRepresentation,Parent):
     r"""
