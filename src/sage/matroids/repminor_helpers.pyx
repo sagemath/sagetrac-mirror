@@ -96,7 +96,7 @@ cpdef col_len(BinaryMatrix mat,long c):
             d+=1
     return d
 
-cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,Mpcl,Npcl):
+cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,M,Npcl, long nloops):
     cdef long i
     cdef bitset_t unused_cols
     cdef BinaryMatrix M_rmatT, N_rmatT,M1,M2
@@ -107,7 +107,7 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,Mpcl,Npcl
     #print N_rmat
     bitset_init(unused_cols,M_rmat.nrows()+ M_rmat.ncols())
     [M1_0,M2_0]=init_iso_matrices(M_rmat,N_rmat)
-    print 'M1_0',M1_0,'M2_0',M2_0
+    #print 'M1_0',M1_0,'M2_0',M2_0
     for i in xrange(M_rmat.nrows()+M_rmat.ncols()):
         bitset_add(unused_cols,i)
     M1=copy_mat(M1_0) #BinaryMatrix(M1_0.nrows(),M1_0.ncols(),ring=GF(2))
@@ -117,8 +117,8 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,Mpcl,Npcl
         return False
     else:
         #print 'degrees sane'
-        print 'M1',M1,'\n','M2',M2
-        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices, Mpcl,Npcl) == 1
+        #print 'M1',M1,'\n','M2',M2
+        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices, M,Npcl,nloops) == 1
 
 cpdef degrees_are_sane(BinaryMatrix M1,BinaryMatrix M2):
     """ Check if there is an all-zero row in M1 or M2 and return ``False``
@@ -151,35 +151,39 @@ cpdef _lp_are_sane(M, N):
             return False
     return True
 
-cdef _pcl_have_maps(Mpcl,Npcl,iso_map):
+cdef _pcl_have_maps(M, Npcl, iso_map, indices,long nloops):
+    # contract the rows that are unmapped
+#    print 'indices',indices
+#    print 'allrows',indices[4]
+#    print 'badrows', set(iso_map.values())
+#    print 'contract', set(indices[4])-set(iso_map.values())
+    M2=M.contract(set(indices[4])-set(iso_map.values()))
+    if len(M2.loops()) < nloops:
+        return False
+    # for each repmap check if it has big enough parallel class
     for pcl in Npcl:
-        rep = list(pcl & set(iso_map.keys()))[0] # representative
+        rep = list(set(pcl) & set(iso_map.keys()))[0] # representative
         repmap = iso_map[rep]
-        repmap_pcl_M = [i for i in Mpcl if repmap in i][0]
+        repmap_pcl_M = set(M2.closure({repmap}))-M2.loops()
         if len(repmap_pcl_M) < len(pcl):
             # pcl doesn't have consistant map
             return False
-        return True
+    return True
         
 cdef iso_mats_to_dict(BinaryMatrix M1, BinaryMatrix M2, indices):
-    N_R=indices[0]
-    N_C=indices[1]
-    M_R=indices[2]
-    M_C=indices[3]
+    M_R=indices[0]
+    M_C=indices[1]
+    N_R=indices[2]
+    N_C=indices[3]
     iso_map={}
-    k=0
-    print 'crating dict from',M1,M2
-    for nr in N_R:
-        iso_map[nr]=M_R[bitset_pop(M1._M[k])]
-        k=k+1
-    k=0
-    for nc in N_C:
-        iso_map[nc]=M_C[bitset_pop(M2._M[k])]
-        k=k+1
+    for i in xrange(M1.nrows()):
+        iso_map[N_R[i]]=M_R[bitset_list(M1._M[i])[0]]
+    for i in xrange(M2.nrows()):
+        iso_map[N_C[i]]=M_C[bitset_list(M2._M[i])[0]-M1.ncols()]
     return iso_map
                 
         
-cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2,indices,Mpcl,Npcl):
+cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,BinaryMatrix M1,BinaryMatrix M2,indices,M,Npcl,long nloops):
     cdef long i,j
     cpdef bitset_t valid_cols
     cpdef bitset_t curr_cols
@@ -192,22 +196,28 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
             GF2_one = GF2(1)
             GF2_not_defined = False
     cdef long found = 0
-    print 'cur_row',cur_row
+    #print 'cur_row',cur_row
     if cur_row == M1.nrows() + M2.nrows():
         # check if [M1 0; 0 M2] is an induced isomorphism and return True/False accordingly
-        iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF2)).stack(M2)
+        #print 'check induced isomorphism'
+#        iso= M1.augment(BinaryMatrix(M1.nrows(),M2.ncols()-M1.ncols(),ring=GF2)).stack(M2)
+#        print iso
         found = is_weak_induced_isomorphism( M1, M2,   M_rmat,  N_rmat)
-        return found
-#        if found == 1:
-#            print 'weak isomorphism'
+        #print 'wii=',found
+        # return found
+        if found == 1:
+            #print 'weak isomorphism'
 #            print 'M1',M1
 #            print 'M2',M2
-#            iso_map = iso_mats_to_dict(M1,M2,indices)
-#            print iso_map
-#            if _pcl_have_maps(Mpcl,Npcl,iso_map):
-#                return found
-#            else:
-#                return 0
+            iso_map = iso_mats_to_dict(M1,M2,indices)
+            #print iso_map
+            
+            if _pcl_have_maps(M,Npcl,iso_map,indices,nloops):
+                return found
+            else:
+                return 0
+        else:
+            return 0
     else:
         # save M1,M2 before pruning
         saved_M1 = copy_mat(M1)
@@ -260,7 +270,7 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
             # set up M1, prune and recurse
             bitset_clear(M1._M[cur_row])
             bitset_add(M1._M[cur_row],i)
-            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,Mpcl,Npcl)
+            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,M,Npcl,nloops)
             bitset_add(unused_cols,i)
             if found == 1:
                 break
@@ -268,7 +278,7 @@ cdef recurse(bitset_t unused_cols,long cur_row, BinaryMatrix M_rmat, BinaryMatri
             # set up M2, prune and recurse
             bitset_clear(M2._M[cur_row-M1.nrows()])
             bitset_add(M2._M[cur_row-M1.nrows()],i)
-            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,Mpcl,Npcl)
+            found=recurse(unused_cols,cur_row+1,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices,M,Npcl,nloops)
             bitset_add(unused_cols,i)
             if found == 1:
                 break
@@ -324,7 +334,7 @@ cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, 
     if degrees_are_sane(M1,M2):
         return True
     else:
-        print 'pruning creates degree insanity'
+        #print 'pruning creates degree insanity'
         return False
 
 cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
