@@ -208,7 +208,7 @@ class BetaAdicMonoid(Monoid_class):
         
         if iss is None:
             if hasattr(ss, 'I'):
-                iss = ss.I[0]
+                iss = [i for i in ss.I][0]
             if iss is None:
                 print "Donner l'état de départ iss de l'automate ss !"
                 return
@@ -233,7 +233,7 @@ class BetaAdicMonoid(Monoid_class):
             for c in C:
                 v = ss.succ(iss, c)
                 if v is not None:
-                    orbit_points = orbit_points.union([b*p+c for p in orbit_points0[v]])
+                    orbit_points.update([b*p+c for p in orbit_points0[v]])
                     #orbit_points = orbit_points.union([b*p+c for p in self.points_exact(n=n-1, ss=ss, iss=v)])
             #orbit_points0 = self.points_exact(n-1)
             #orbit_points = Set([])
@@ -333,7 +333,7 @@ class BetaAdicMonoid(Monoid_class):
 #                 orbit_points = orbit_points.union(Set([place(b)*p+place(c) for p in orbit_points0]))
 #         return orbit_points
     
-    def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, verb=False):
+    def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
         r"""
         Draw the limit set of the beta-adic monoid (with or without subshift).
 
@@ -429,10 +429,10 @@ class BetaAdicMonoid(Monoid_class):
         from sage.rings.qqbar import QQbar, AA
         if QQbar(self.b) not in AA: #2D plots
             from sage.all import points
-            G = points(orbit_points, size=point_size)
+            G = points(orbit_points, size=point_size, color=color)
         else: # 1D plots
             from sage.all import plot
-            G += plot(orbit_points, thickness=point_size)
+            G += plot(orbit_points, thickness=point_size, color=color)
 #            if plotbasis:
 #                from matplotlib import cm
 #                from sage.plot.arrow import arrow

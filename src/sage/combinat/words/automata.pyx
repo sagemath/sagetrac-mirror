@@ -64,9 +64,104 @@ class Automaton (DiGraph):
         if hasattr(self, 'A'):
             return self.A
         else:
-            return self.edge_labels()
+            return set(self.edge_labels())
     
-    def product (self, A, d=None):
+    def product2_ (self, A, d=None, verb=False):
+        L = self.Alphabet()
+        LA = A.Alphabet()
+        if d is None:
+            d = dict([])
+            for k in L:
+                for ka in LA:
+                    d[(k, ka)] = [(k, ka)] #alphabet produit par défaut
+#        if dA is None:
+#            dA = dict([])
+#            for k in L:
+#                dA[k] = k
+#        if d.keys() != dA.keys():
+#            print "Error : incompatible keys : %s and %s"%(d,dA)
+        P = Automaton(loops=True, multiedges=True)
+        V = self.vertices()
+        VA = A.vertices()
+        for v in V:
+            for va in VA:
+                P.add_vertex((v,va))
+                for v1, v2, l in self.outgoing_edges(v, labels=True):
+                    for va1, va2, la in A.outgoing_edges(va, labels=True):
+                        for e in d[(l, la)]:
+                            if verb:
+                                print "ajout de %s, %s, %s"%((v1, va1), (v2, va2), e)
+                            P.add_edge((v1, va1), (v2, va2), e)
+        if hasattr(self, 'I') and hasattr(A, 'I'):
+            P.I = [(u,v) for u in self.I for v in A.I]
+        if hasattr(self, 'F') and hasattr(A, 'F'):
+            P.F = [(u,v) for u in self.F for v in A.F]
+        P.A = set([a for l in L for la in LA for a in d[(l,la)]])
+        #[u for u in set(d.values()) if u is not None]
+        return P
+    
+    def product2 (self, A, d=None, verb=False):
+        L = self.Alphabet()
+        LA = A.Alphabet()
+        if d is None:
+            d = dict([])
+            for k in L:
+                for ka in LA:
+                    d[(k, ka)] = (k, ka) #alphabet produit par défaut
+        P = Automaton(loops=True, multiedges=True)
+        S = set([(i, i2) for i in self.I for i2 in A.I]) #ensemble des sommets à explorer
+        E = set([]) #ensemble des sommets déjà explorés
+        while len(S) != 0:
+            (v,va) = S.pop()
+            P.add_vertex((v, va))
+            for v1, v2, l in self.outgoing_edges(v, labels=True):
+                for va1, va2, la in A.outgoing_edges(va, labels=True):
+                    for e in d[(l, la)]:
+                        if verb:
+                            print "ajout de %s, %s, %s"%((v1, va1), (v2, va2), e)
+                        P.add_edge((v1, va1), (v2, va2), e)
+                    if len(d[(l, la)]) > 0 and (v2, va2) not in E:
+                        S.add((v2, va2))
+            E.add((v,va))
+        if hasattr(self, 'I') and hasattr(A, 'I'):
+            P.I = [(u,v) for u in self.I for v in A.I]
+        if hasattr(self, 'F') and hasattr(A, 'F'):
+            P.F = [(u,v) for u in self.F for v in A.F]
+        P.A = set([a for l in L for la in LA for a in d[(l,la)]])
+        #[u for u in set(d.values()) if u is not None]
+        return P
+    
+    def product (self, A, d=None, verb=False):
+        L = self.Alphabet()
+        LA = A.Alphabet()
+        if d is None:
+            d = dict([])
+            for k in L:
+                for ka in LA:
+                    d[(k, ka)] = (k, ka) #alphabet produit par défaut
+        P = Automaton(loops=True, multiedges=True)
+        S = set([(i, ia) for i in self.I for ia in A.I]) #ensemble des sommets à explorer
+        E = set([]) #ensemble des sommets déjà explorés
+        while len(S) != 0:
+            if verb:
+                print S, E
+            (v,va) = S.pop()
+            P.add_vertex((v, va))
+            for v1, v2, l in self.outgoing_edges(v, labels=True):
+                for va1, va2, la in A.outgoing_edges(va, labels=True):
+                    if d[(l, la)] is not None:
+                        P.add_edge((v1, va1), (v2, va2), d[(l, la)])
+                        if (v2, va2) not in E:
+                            S.add((v2, va2))
+            E.add((v,va))
+        if hasattr(self, 'I') and hasattr(A, 'I'):
+            P.I = [(u,v) for u in self.I for v in A.I]
+        if hasattr(self, 'F') and hasattr(A, 'F'):
+            P.F = [(u,v) for u in self.F for v in A.F]
+        P.A = [d[(l,la)] for l in L for la in LA if d[(l,la)] is not None]
+        return P
+    
+    def product_ (self, A, d=None):
         L = self.Alphabet()
         LA = A.Alphabet()
         if d is None:
@@ -95,13 +190,13 @@ class Automaton (DiGraph):
             P.I = [(u,v) for u in self.I for v in A.I]
         if hasattr(self, 'F') and hasattr(A, 'F'):
             P.F = [(u,v) for u in self.F for v in A.F]
-        P.A = [(l,la) for l in L for la in LA]
+        P.A = [d[(l,la)] for l in L for la in LA if d[(l,la)] is not None]
         #[u for u in set(d.values()) if u is not None]
         return P
    
-    def intersection(self, A):
-        L = self.edge_labels()
-        LA = A.edge_labels()
+    def intersection (self, A, verb=False):
+        L = self.Alphabet()
+        LA = A.Alphabet()
         d = dict([])
         for k in L:
             for ka in LA:
@@ -109,7 +204,9 @@ class Automaton (DiGraph):
                     d[(k, ka)] = k
                 else:
                     d[(k, ka)] = None
-        res = self.product(A=A, d=d)
+        if verb:
+            print d
+        res = self.product(A=A, d=d, verb=verb)
         #if self.I is not None and A.I is not None:
         #if hasattr(self, 'I') and hasattr(A, 'I'):
         #    res.I = [(u, v) for u in self.I for v in A.I]
@@ -279,14 +376,15 @@ class Automaton (DiGraph):
         return a
     
     def succ (self, i, a): #donne un état atteint en partant de i et en lisant a (rend None si n'existe pas)
+        if i is None:
+            return
         for u,v,l in self.outgoing_edges(i):
             if l == a:
                 return v
     
     def transpose (self):
-        a = self.copy()
+        a  = Automaton(loops=True, multiedges=True)
         for u,v,l in self.edges():
-            a.delete_edge(u,v,l)
             a.add_edge(v,u,l)
         if hasattr(self, 'F'):
             a.I = self.F
@@ -299,7 +397,7 @@ class Automaton (DiGraph):
     def save_graphviz (self, file):
         a = self.copy()
         d=dict()
-        for u in a.edge_labels():
+        for u in a.Alphabet():
             d[u]=[str(u)]
         a.graphviz_to_file_named(file, edge_labels=True)
            
@@ -382,10 +480,7 @@ class Automaton (DiGraph):
             if I is None:
                 raise ValueError("The set I of initial states must be defined !")
         if A is None:
-            if hasattr(self, 'A'):
-                A = self.A
-            if A is None:
-                A = set(self.edge_labels())
+            A = self.Alphabet()
                 #raise ValueError("The alphabet A must be defined !")
         #from sage.sets.set import set
         
@@ -432,7 +527,7 @@ class Automaton (DiGraph):
         """
         self.allow_multiple_edges(True)
         #from sage.sets.set import set
-        L = set(self.edge_labels())
+        L = self.Alphabet()
         V = self.vertices()
         ns = True
         for v in V:
@@ -480,7 +575,7 @@ class Automaton (DiGraph):
         if hasattr(self, 'L'):
             L = self.L
         else:
-            L = self.edge_labels()
+            L = self.Alphabet()
         while W:
             if verb: print "P=%s, W=%s"%(P,W)
             A = W.pop()

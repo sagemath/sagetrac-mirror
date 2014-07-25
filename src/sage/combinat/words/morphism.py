@@ -2494,10 +2494,10 @@ class WordMorphism(SageObject):
         else:
             u = iter(self.periodic_points()[0][0])
         
-        dim_fractal = len(canonical_basis_proj[alphabet[0]])
         
         # Manage various options in function of dimension
         if n is None:
+            dim_fractal = len(canonical_basis_proj[alphabet[0]])
             if dim_fractal == 1:
                 n = 1000
             elif dim_fractal == 2:
@@ -2550,7 +2550,108 @@ class WordMorphism(SageObject):
                 orbit_points[a] = translated_copies[a]
 
         return orbit_points
+    
+    def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None):
+        r"""
+        Returns a dictionary of list of points associated with the pieces
+        of the Rauzy fractal of ``self``.
 
+        INPUT:
+
+            See the method :meth:`rauzy_fractal_plot` for a description
+            of the options and more examples.
+
+        OUTPUT:
+
+            dictionary of list of points
+
+        EXAMPLES:
+
+        The Rauzy fractal of the Tribonacci substitution and the number of
+        points in the piece of the fractal associated with ``'1'``, ``'2'``
+        and ``'3'`` are respectively::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=100)
+            sage: len(D['1'])
+            54
+            sage: len(D['2'])
+            30
+            sage: len(D['3'])
+            16
+
+        TESTS::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=100, exchange=True, translate=[(3,1,-2), (5,-33,8)])
+            sage: len(D['1'])
+            108
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+            Paul Mercat (2014-06-25)
+        """
+        alphabet = self.domain().alphabet()
+        canonical_basis_proj = self.rauzy_fractal_projection_exact(eig=eig)
+
+        # if exchange, set the projection to its opposite
+        if exchange:
+            for a in canonical_basis_proj:
+                canonical_basis_proj[a] = - canonical_basis_proj[a]
+
+        # Compute a fixed point u
+        if exchange:
+            u = iter(self.reversal().periodic_points()[0][0])
+        else:
+            u = iter(self.periodic_points()[0][0])
+
+        # Manage various options in function of dimension
+        if n is None:
+            n = 1000
+        
+        zero = canonical_basis_proj[canonical_basis_proj.keys()[0]].parent().zero()
+
+        # Compute orbit points to plot
+        S = 0
+        orbit_points = dict([(a, [zero]) for a in alphabet])
+        for _ in xrange(n):
+            a = u.next()
+            S += canonical_basis_proj[a]
+            orbit_points[a].append(S)
+
+        # Manage translated copies
+        if translate is not None:
+
+            #if isinstance(translate, dict):
+            #    for a in translate.keys():
+            #        translate[a] = [vector(RealField_prec, v) for v in translate[a]]
+            #
+            #else:
+            #    translate = [vector(RealField_prec, v) for v in translate]
+
+            for a in alphabet:
+                translated_copies = dict([(i,[]) for i in alphabet])
+
+                if isinstance(translate, list):
+                    to_treat = translate
+
+                elif isinstance(translate, dict):
+                    try:
+                        to_treat = translate[a]
+                    except KeyError:
+                        to_treat = []
+
+                for x in to_treat:
+                    v = 0
+                    for i,z in zip(alphabet,x):
+                        v += z*canonical_basis_proj[i]
+                    translated_copies[a] += [v + w for w in orbit_points[a]]
+
+                orbit_points[a] = translated_copies[a]
+
+        return orbit_points
+    
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
                            colormap='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
