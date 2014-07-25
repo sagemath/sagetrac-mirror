@@ -1,5 +1,50 @@
 # cython: profile = True
+r"""
+Implements helper routines for checking existance of a represented minor
 
+A represented minor of a `GF(q)-` representable matroid ``M`` is also a
+`GF(q)-` representable matroid. Its representation matrix can be obtained
+from the representation matrix of ``M`` corresponding to some basis by
+deleting rows (contraction) and deleting columns (deletion) and by permuting
+the leftover rows and columns. We are given a `GF(q)-` representable matroid
+``M``, another `GF(q)` representable matroid ``N`` , a basis ``B_M`` of
+``M`` and basis ``B_N`` of ``N``. We are looking for injective but not
+necessarily surjective maps from the ``B_N`` to ``B_M`` and from ``E(N)-B_N``
+to ``E(M)-B_M``. This extension is designed to find such maps (provided that
+they exist) by reducing the problem to that of induced sungraph isomorphism
+testing. Essentially we would test whether the fundamental graph (see [Oxley]
+pg. 185) of ``N`` corresponding to basis ``B_N`` can be obtained as a vertex
+induced subgraph of the fundamental graph of ``M`` corresponding to basis
+``B_M``. The algorithm used is the one in [Ullman] which employs a depth
+first search like procedure with pruning. While the functions in this
+extension are meant to be used by various childern of LinearMatroid class, one
+can directly access them using:
+
+    sage: from sage.matroids.advanced import *
+
+AUTHORS:
+
+- Jayant Apte (2005-01-03): initial version
+
+EXAMPLES::
+
+<Lots and lots of examples>
+
+REFERENCES
+==========
+..  [Ullman] J. R. Ullmann. 1976. An Algorithm for Subgraph Isomorphism. J. ACM 23, 1 (January 1976), 31-42.
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2013 Jayant Apte <jayant91089@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 include 'sage/misc/bitset.pxi'
 from lean_matrix cimport BinaryMatrix
 from sage.rings.all import GF
@@ -10,6 +55,7 @@ cpdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat):
     """
     Return a list of two matrices [M1_0, M2_0] s.t. [M1_0 0; 0 M2_0] will be
     the bitwise logical OR of all degree preserving isomorphisms
+
     """
     cdef long r1, r2
     cdef BinaryMatrix M1_0, M2_0
@@ -31,6 +77,9 @@ cpdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat):
     return [M1_0, M2_0]
 
 cpdef col_len(BinaryMatrix mat, long c):
+    """
+    Return hamming weight of column ``c`` of ``mat``
+    """
     cdef int r, d
     d = 0
     for r in xrange(mat.nrows()):
@@ -40,6 +89,10 @@ cpdef col_len(BinaryMatrix mat, long c):
 
 cpdef _check_bin_minor(BinaryMatrix M_rmat, BinaryMatrix N_rmat, indices, M,
                        Npcl, long nloops, bint debug=False):
+    """
+    Return True if the bipartite graph corresponding to ``N_rmat`` is vertex
+    induced subgraph of bipartite graph corresponding to ``M_rmat``
+    """
     cdef long i, x
     cdef bitset_t unused_cols
     cdef BinaryMatrix M_rmatT, N_rmatT, M1, M2
@@ -59,8 +112,9 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat, BinaryMatrix N_rmat, indices, M,
         return x == 1
 
 cpdef degrees_are_sane(BinaryMatrix M1, BinaryMatrix M2):
-    """ Check if there is an all-zero row in M1 or M2 and return ``False``
-    if there is one.
+    """
+    Return ``True`` if there is an all-zero row in M1 or M2 and return
+    ``False`` otherwise.
     """
     cdef long i
     for i in xrange(M1.nrows()):
@@ -73,6 +127,10 @@ cpdef degrees_are_sane(BinaryMatrix M1, BinaryMatrix M2):
 
 
 cdef _pcl_have_maps(M, Npcl, iso_map, indices, long nloops):
+    """
+    Return ``True`` if parallel elememts and loops of ``M`` have consistent
+    mapping under ``iso_map`` and ``False`` otherwise.
+    """
     # contract the rows that are unmapped
     M2 = M.contract(set(indices[4]) - set(iso_map.values()))
     if len(M2.loops()) < nloops:
@@ -88,6 +146,9 @@ cdef _pcl_have_maps(M, Npcl, iso_map, indices, long nloops):
     return True
 
 cdef iso_mats_to_dict(BinaryMatrix M1, BinaryMatrix M2, indices):
+    """
+    Return a dictionary corresponding to maps specified by ``M1`` and ``M2``
+    """
     M_R = indices[0]
     M_C = indices[1]
     N_R = indices[2]
@@ -103,6 +164,8 @@ cdef iso_mats_to_dict(BinaryMatrix M1, BinaryMatrix M2, indices):
 cdef recurse(bitset_t unused_cols, long cur_row, BinaryMatrix M_rmat,
              BinaryMatrix N_rmat, BinaryMatrix M_rmatT, BinaryMatrix N_rmatT,
              BinaryMatrix M1, BinaryMatrix M2, indices, M, Npcl, long nloops):
+    """ Return ``True`` if there exists an induced subgraph isomorphism
+    """
     cdef long i, j
     cpdef bitset_t valid_cols
     cpdef bitset_t curr_cols
@@ -180,6 +243,9 @@ cdef recurse(bitset_t unused_cols, long cur_row, BinaryMatrix M_rmat,
     return found
 
 cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat, long cur_row):
+    """
+    Copy ``cur_row`` onwards rows of ``saved mat`` into ``mat``
+    """
     cdef long r
     for r in xrange(cur_row, saved_mat.nrows()):
         bitset_copy(mat._M[r], saved_mat._M[r])
@@ -188,6 +254,9 @@ cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat, long cur_row):
 cpdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
             BinaryMatrix M_rmat, BinaryMatrix N_rmat, BinaryMatrix M_rmatT,
             BinaryMatrix N_rmatT):
+    """
+    Prune the search tree based on consistency of mapping of neighbours
+    """
     global npruned, npruned_not_defined
     if npruned_not_defined:
         npruned = 0
@@ -224,6 +293,9 @@ cpdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
         return False
 
 cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
+    """
+    Return a copy of ``mat``
+    """
     cdef long i
     cdef BinaryMatrix mat_copy
     mat_copy = BinaryMatrix(mat.nrows(), mat.ncols())
@@ -232,6 +304,9 @@ cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
     return mat_copy
 
 cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
+    """
+    Return a list of neighbours of vertex with index ``i``
+    """
     cdef long c
     neighbours = []
     if rc == 1:  # neighbors of lhs , look through ith row
@@ -245,7 +320,9 @@ cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
     return neighbours
 
 cdef full_set(bitset_t bits):
-    "return a set with 0:len - 1 elements"
+    """
+    Return a set with 0:len - 1 elements
+    """
     cdef i
     for i in xrange(bitset_len(bits)):
         bitset_add(bits, i)
@@ -253,6 +330,9 @@ cdef full_set(bitset_t bits):
 cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1, BinaryMatrix M2_1,
                                   BinaryMatrix  M_rmat, BinaryMatrix N_rmat):
     """
+    Return ``True`` if ``M1_1`` and ``M2_1`` specify an induced graph
+    isomorphism
+
     For binary matrices this will in fact answer if M1,M2 specify induced
     subgraph isomorphism whereas for higher fields, this only verifies a
     necessary but not sufficient condition
@@ -289,6 +369,9 @@ cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1, BinaryMatrix M2_1,
     return 1
 
 cdef mat_transpose(BinaryMatrix mat):
+    """
+    Return transpose of matrix ``mat``
+    """
     cdef long i, j
     matT = BinaryMatrix(mat.ncols(), mat.nrows())
     for i in xrange(mat.nrows()):
@@ -297,6 +380,10 @@ cdef mat_transpose(BinaryMatrix mat):
     return matT
 
 cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats):
+    """
+    Return ``True`` if matrix ``cand`` is present in list ``used_rmats``,
+    ``False`` otherwise
+    """
     cdef long i
     for i in xrange(len(used_rmats)):
         if mats_equal(cand, used_rmats[i]):
@@ -304,6 +391,9 @@ cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats):
     return True
 
 cpdef bint mats_equal(BinaryMatrix M1, BinaryMatrix M2):
+    """
+    Return ``True`` if ``M1`` is elementwise equal to ``M2``
+    """
     cdef long i
     for i in xrange(M1.nrows()):
         if not bitset_eq(M1._M[i], M2._M[i]):
