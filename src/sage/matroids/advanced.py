@@ -55,3 +55,4 @@ from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, Ternary
 from utilities import setprint, newlabel, get_nonisomorphic_matroids
 import lean_matrix
 from extension import LinearSubclasses, MatroidExtensions
+import repminor_helpers
