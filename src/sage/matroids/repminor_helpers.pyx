@@ -5,7 +5,8 @@ from lean_matrix cimport BinaryMatrix
 from sage.rings.all import GF
 cdef bint GF2_not_defined = True
 cdef GF2, GF2_one, GF2_zero
-
+cdef bint npruned_not_defined = True
+cdef npruned
 
 
 cpdef search_assgn(Ga,Gb,assgn,cand=None):
@@ -97,7 +98,7 @@ cpdef col_len(BinaryMatrix mat,long c):
     return d
 
 cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,M,Npcl, long nloops):
-    cdef long i
+    cdef long i,x
     cdef bitset_t unused_cols
     cdef BinaryMatrix M_rmatT, N_rmatT,M1,M2
     global GF2
@@ -118,7 +119,9 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,M,Npcl, l
     else:
         #print 'degrees sane'
         #print 'M1',M1,'\n','M2',M2
-        return recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices, M,Npcl,nloops) == 1
+        x= recurse(unused_cols,0,M_rmat,N_rmat,M_rmatT,N_rmatT,M1,M2,indices, M,Npcl,nloops) 
+        #print 'npruned', npruned
+        return x== 1
 
 cpdef degrees_are_sane(BinaryMatrix M1,BinaryMatrix M2):
     """ Check if there is an all-zero row in M1 or M2 and return ``False``
@@ -296,8 +299,12 @@ cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat,long cur_row):
     return
 
 cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, BinaryMatrix N_rmat,BinaryMatrix M_rmatT, BinaryMatrix N_rmatT):
+    global npruned,npruned_not_defined
+    if npruned_not_defined:
+        npruned = 0
+        npruned_not_defined=False
     cdef long r,c,flag
-    cdef long npruned
+    #cdef long npruned = 0
     for r in xrange(max(0,cur_row),M1.nrows()):
         for c in xrange(M1.ncols()):
             if M1.is_nonzero(r,c):
@@ -331,6 +338,7 @@ cpdef prune(long cur_row,BinaryMatrix M1, BinaryMatrix M2, BinaryMatrix M_rmat, 
                         #print 'bad mapping',r+M1.nrows(),'->>',c
                         M2.set_unsafe(r, c, 0)
     # check degree sanity
+    #print 'depth',cur_row,'npruned', npruned
     if degrees_are_sane(M1,M2):
         return True
     else:
@@ -412,3 +420,19 @@ cdef mat_transpose(BinaryMatrix mat):
         for j in xrange(mat.ncols()):
             matT.set_unsafe(j,i,mat.get_unsafe(i,j))
     return matT
+
+cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats):
+    cdef long i
+    for i in xrange(len(used_rmats)):
+        if mats_equal(cand,used_rmats[i]):
+            return False
+    return True
+
+    
+cpdef bint mats_equal(BinaryMatrix M1, BinaryMatrix M2):
+    cdef long i
+    for i in xrange(M1.nrows()):
+        if not bitset_eq(M1._M[i],M2._M[i]):
+            return False
+    return True
+    
