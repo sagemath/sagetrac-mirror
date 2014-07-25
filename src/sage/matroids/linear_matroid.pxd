@@ -78,8 +78,7 @@ cdef class BinaryMatroid(LinearMatroid):
     cpdef _is_isomorphic(self, other)
 
     cpdef _minor(self, contractions, deletions)
-    cpdef _has_binary_minor(self,N=*)
-    cpdef _fundamental_graph(self,B1=*)
+    cpdef _has_binary_minor(self, N=*)
     cpdef _make_invariant(self)
     cpdef _invariant(self)
     cpdef bicycle_dimension(self)

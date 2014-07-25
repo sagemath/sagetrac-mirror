@@ -116,7 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
-from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor,_lp_are_sane,mats_equal,is_new_rmat
+from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor, mats_equal,is_new_rmat
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -2421,7 +2421,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         OUTPUT:
 
         A list of linear matroids represented by rank-preserving single-element extensions of
-        this linear matroid representation. In particular, the extension by a coloop is not 
+        this linear matroid representation. In particular, the extension by a coloop is not
         generated.
 
         If one or more of the above inputs is given, the list is restricted to
@@ -2489,9 +2489,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A list of linear matroids represented by corank-preserving single-element 
-        coextensions of this linear matroid representation. In particular, the coextension 
-        by a loop is not generated. 
+        A list of linear matroids represented by corank-preserving single-element
+        coextensions of this linear matroid representation. In particular, the coextension
+        by a loop is not generated.
 
         If one or more of the above inputs is given, the list is restricted to
         coextensions
@@ -3421,75 +3421,49 @@ cdef class BinaryMatroid(LinearMatroid):
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
         return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
-    ######################################################################
+
     # represented binary minor test
-    cpdef _has_binary_minor(self,N=None):
-        cdef long r,c,nloops,nbases,nused
-        cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
-        Ms=self.simplify()
-        Ns=N.simplify()
-        N_rmat=Ns._reduced_representation()#{2,4,5})
-        Npcl=[k-N.loops() for k in N.flats(1) if len(k-N.loops())>1]
-        nloops=len(N.loops())
-        used_rmats=[]
-        nbases=0
-        nused=0
+    cpdef _has_binary_minor(self, N=None):
+        if self is N:
+            return True
+        rd = self.full_rank() - N.full_rank()
+        cd = self.full_corank() - N.full_corank()
+        if rd < 0 or cd < 0:
+            return False
+        cdef long r, c, nloops, nbases, nused
+        cdef BinaryMatrix M_rmat, N_rmat, M_rmatT
+        Ms = self.simplify()
+        Ns = N.simplify()
+        N_rmat = Ns._reduced_representation()
+        Npcl = [k - N.loops() for k in N.flats(1) if len(k - N.loops()) > 1]
+        nloops = len(N.loops())
+        used_rmats = []
+        nbases = 0
+        nused = 0
         for B1 in Ms.bases():
-            nbases=nbases+1
-            M_rmat=Ms._reduced_representation(B=B1)#B={0,4,5,8,9})
-            if is_new_rmat(M_rmat,used_rmats):
-                nused=nused+1
+            nbases = nbases + 1
+            M_rmat = Ms._reduced_representation(B=B1)
+            if is_new_rmat(M_rmat, used_rmats):
+                nused = nused + 1
                 used_rmats.append(M_rmat)
                 M_R, M_C = Ms._current_rows_cols()
-                M_R1,M_C1 = self._current_rows_cols(B=B1)
-                
-                if M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
+                M_R1, M_C1 = self._current_rows_cols(B=B1)
+                if M_rmat.ncols() == 0 and N_rmat.ncols() > 0:
                     # Ms is uniform while Ns has nonloopy/parallel nonbases
-                    print '0,1'
-                    print nbases ,nused
+                    # print nbases ,nused
                     return False
-                else: 
+                else:
                     # Both Ns and Ms are not uniform
                     N_R, N_C = Ns._current_rows_cols()
-    #                print 'N_R', N_R
-    #                print 'N_C', N_C
-    #                print 'M_R', M_R
-    #                print 'M_C', M_C
-                    if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C,M_R1],self,Npcl,nloops) is True:
-                        print nbases ,nused
+                    if _check_bin_minor(M_rmat, N_rmat,
+                                        [M_R, M_C, N_R, N_C, M_R1],
+                                        self, Npcl, nloops) is True:
+                        # print nbases, nused
                         return True
-        print nbases ,nused
+        # print nbases, nused
         return False
-#        else:
-#            raise ValueError("either N or Nmat1 must be provided")
-    
-    cpdef _fundamental_graph(self, B1=None):
-        """
-        Return the fundamental graph corresponding to the binary matroid
-        """
-        if B1 is None:
-            B1=self.basis()
-        rmat1=list(self.representation(B=B1,reduced=True))
-        rmat=BinaryMatrix(rmat1[0].nrows(),rmat1[0].ncols(),rmat1[0])
-        cdef long i,k
-        G = {}
-        G['S1'] = []
-        G['S2'] = []
-        for i in range(1,rmat._nrows+1):
-            G['S1'].append('r'+str(i))
-        for i in range(1,rmat._ncols+1):
-            G['S2'].append('c'+str(i))
-        # populate degree and neighbours of vertices
-        for k in xrange(len(G['S1'])):
-            j=G['S1'][k]
-            j_neighbours = [G['S2'][i] for i in xrange(Integer(rmat._ncols)) if rmat.is_nonzero(Integer(j[1:])-1, i)]
-            G[j] = [len(j_neighbours), j_neighbours]
-        for k in xrange(len(G['S2'])):
-            j=G['S2'][k]
-            j_neighbours = [G['S1'][i] for i in xrange(Integer(rmat._nrows)) if rmat.is_nonzero(i, Integer(j[1:])-1)]
-            G[j]=[len(j_neighbours), j_neighbours]
-        return G
-    
+
+
     # graphicness test
     cpdef is_graphic(self):
         """
