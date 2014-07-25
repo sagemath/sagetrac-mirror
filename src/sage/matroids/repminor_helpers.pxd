@@ -19,4 +19,7 @@ cpdef _lp_are_sane( M, N)
 cdef iso_mats_to_dict(BinaryMatrix M1, BinaryMatrix M2, indices)
 cdef _pcl_have_maps(M,Npcl,iso_map,indices,long nloops)
 cpdef _check_bin_minor(BinaryMatrix M_rmat,BinaryMatrix N_rmat,indices,M,Npcl,long nloops)
+cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats)
+cpdef bint mats_equal(BinaryMatrix M1, BinaryMatrix M2)
+
 #cpdef mat_transpose(mat)

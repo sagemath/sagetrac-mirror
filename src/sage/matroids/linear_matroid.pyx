@@ -116,7 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
-from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor,_lp_are_sane
+from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor,_lp_are_sane,mats_equal,is_new_rmat
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3424,31 +3424,41 @@ cdef class BinaryMatroid(LinearMatroid):
     ######################################################################
     # represented binary minor test
     cpdef _has_binary_minor(self,N=None):
-        cdef long r,c,nloops
+        cdef long r,c,nloops,nbases,nused
         cdef BinaryMatrix M_rmat,N_rmat, M_rmatT
         Ms=self.simplify()
         Ns=N.simplify()
         N_rmat=Ns._reduced_representation()#{2,4,5})
         Npcl=[k-N.loops() for k in N.flats(1) if len(k-N.loops())>1]
         nloops=len(N.loops())
+        used_rmats=[]
+        nbases=0
+        nused=0
         for B1 in Ms.bases():
+            nbases=nbases+1
             M_rmat=Ms._reduced_representation(B=B1)#B={0,4,5,8,9})
-            M_R, M_C = Ms._current_rows_cols()
-            M_R1,M_C1 = self._current_rows_cols(B=B1)
-            
-            if M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
-                # Ms is uniform while Ns has nonloopy/parallel nonbases
-                print '0,1'
-                return False
-            else: 
-                # Both Ns and Ms are not uniform
-                N_R, N_C = Ns._current_rows_cols()
-#                print 'N_R', N_R
-#                print 'N_C', N_C
-#                print 'M_R', M_R
-#                print 'M_C', M_C
-                if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C,M_R1],self,Npcl,nloops) is True:
-                    return True
+            if is_new_rmat(M_rmat,used_rmats):
+                nused=nused+1
+                used_rmats.append(M_rmat)
+                M_R, M_C = Ms._current_rows_cols()
+                M_R1,M_C1 = self._current_rows_cols(B=B1)
+                
+                if M_rmat.ncols() ==0 and N_rmat.ncols() > 0:
+                    # Ms is uniform while Ns has nonloopy/parallel nonbases
+                    print '0,1'
+                    print nbases ,nused
+                    return False
+                else: 
+                    # Both Ns and Ms are not uniform
+                    N_R, N_C = Ns._current_rows_cols()
+    #                print 'N_R', N_R
+    #                print 'N_C', N_C
+    #                print 'M_R', M_R
+    #                print 'M_C', M_C
+                    if _check_bin_minor(M_rmat, N_rmat,[M_R,M_C,N_R,N_C,M_R1],self,Npcl,nloops) is True:
+                        print nbases ,nused
+                        return True
+        print nbases ,nused
         return False
 #        else:
 #            raise ValueError("either N or Nmat1 must be provided")
