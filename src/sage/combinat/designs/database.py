@@ -64,6 +64,7 @@ Implemented constructions :
   :func:`OA(16,208) <OA_16_208>`,
   :func:`OA(12,210) <OA_12_210>`,
   :func:`OA(15,224) <OA_15_224>`,
+  :func:`OA(10,262) <OA_10_262>`,
   :func:`OA(18,273) <OA_18_273>`,
   :func:`OA(12,276) <OA_12_276>`,
   :func:`OA(12,298) <OA_12_298>`,
@@ -76,6 +77,7 @@ Implemented constructions :
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(15,896) <OA_15_896>`,
+  :func:`OA(14,950) <OA_14_950>`,
   :func:`OA(33,993) <OA_33_993>`,
   :func:`OA(10,1046) <OA_10_1046>`,
   :func:`OA(10,1059) <OA_10_1059>`,
@@ -2731,6 +2733,31 @@ def OA_15_224():
 
     return _helper_function_when_n_is_prime_times_power_of_2(15,224,zip(*A),Y)
 
+def OA_10_262():
+    r"""
+    Returns an OA(10,262)
+
+    Given by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_262
+        sage: OA = OA_10_262()
+        sage: print is_orthogonal_array(OA,10,262,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,262,existence=True)
+        True
+    """
+    return OA_from_Vmt(8,29,[0,1,4,11,94,60,85,16,198])
+
 def OA_18_273():
     r"""
     Returns an OA(18,273)
@@ -3235,6 +3262,31 @@ def OA_15_896():
 
     return _helper_function_when_n_is_prime_times_power_of_2(15,896,zip(*A),Y)
 
+def OA_14_950():
+    r"""
+    Returns an OA(14,950)
+
+    Given by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_14_950
+        sage: OA = OA_14_950()                        # not tested -- around 10s
+        sage: print is_orthogonal_array(OA,14,950,2)  # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(14,950,existence=True)
+        True
+    """
+    return OA_from_Vmt(12,73,[0, 1, 607, 719, 837, 496, 240, 645, 184, 829, 451, 830, 770])
+
 def OA_33_993():
     r"""
     Returns an OA(33,993)
@@ -3490,6 +3542,7 @@ OA_constructions = {
     208 : (16 , OA_16_208),
     210 : (12 , OA_12_210),
     224 : (15 , OA_15_224),
+    262 : (10 , OA_10_262),
     273 : (18 , OA_18_273),
     276 : (12 , OA_12_276),
     298 : (12 , OA_12_298),
@@ -3502,6 +3555,7 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
+    950 : (14 , OA_14_950),
     993 : (33 , OA_33_993),
     1046: (10,  OA_10_1046),
     1059: (10,  OA_10_1059),
