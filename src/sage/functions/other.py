@@ -975,19 +975,25 @@ class Function_gamma_inc(BuiltinFunction):
             -Ei(-2)
             sage: gamma_inc(0,2.)
             0.0489005107080611
-            sage: gamma_inc(3,2).n()
-            1.35335283236613
+            sage: gamma_inc(0,2).n(algorithm='pari')
+            0.0489005107080611
+            sage: gamma_inc(0,2).n(200)
+            0.048900510708061119567239835228...
         """
-        try:
-            return x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma_inc(y)
+        if algorithm == 'pari':
+            try:
+                return x.gamma_inc(y)
+            except AttributeError:
+                if not (is_ComplexNumber(x)):
+                    if is_ComplexNumber(y):
+                        C = y.parent()
+                    else:
+                        C = ComplexField()
+                        x = C(x)
+                return x.gamma_inc(y)
+        R = parent or s_parent(x)
+        import mpmath
+        return mpmath_utils.call(mpmath.gammainc, x, y, parent=R)
 
 # synonym.
 gamma_inc = Function_gamma_inc()
@@ -1073,21 +1079,27 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
             sage: gamma_inc_lower(3,2.)
             0.646647167633873
-            sage: gamma_inc_lower(3,2).n()
+            sage: gamma_inc_lower(3,2).n(algorithm='pari')
             0.646647167633873
+            sage: gamma_inc_lower(3,2.).n(200)
+            0.64664716763387308784416518392...
             sage: gamma_inc_lower(0,2.)
             +Infinity
         """
-        try:
-            return x.gamma() - x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma() - x.gamma_inc(y)
+        if algorithm == 'pari':
+            try:
+                return x.gamma() - x.gamma_inc(y)
+            except AttributeError:
+                if not (is_ComplexNumber(x)):
+                    if is_ComplexNumber(y):
+                        C = y.parent()
+                    else:
+                        C = ComplexField()
+                        x = C(x)
+                return x.gamma() - x.gamma_inc(y)
+        R = parent or s_parent(x)
+        import mpmath
+        return mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R)
 
 # synonym.
 gamma_inc_lower = Function_gamma_inc_lower()
