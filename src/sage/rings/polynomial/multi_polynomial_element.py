@@ -1347,30 +1347,25 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def __eq__(self,right):
         """
+        EXAMPLES::
 
+            sage: x = PolynomialRing(RealField(42), 'x', 2).gens()
+            sage: x[0]^2 - x[1]^2 == SR(0)
+            x0^2 - x1^2 == 0
         """
         if not isinstance(right,MPolynomial_polydict):
-            # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return True
-                else:
-                    return False
             return self._richcmp_(right,2)
         return self._MPolynomial_element__element == right._MPolynomial_element__element
 
     def __ne__(self,right):
         """
+        EXAMPLES::
 
+            sage: x = PolynomialRing(RealField(42), 'x', 2).gens()
+            sage: x[0]^2 - x[1]^2 != SR(0)
+            x0^2 - x1^2 != 0
         """
         if not isinstance(right,MPolynomial_polydict):
-            # we want comparison with zero to be fast
-            if right == 0:
-                if self._MPolynomial_element__element.dict()=={}:
-                    return False
-                else:
-                    return True
-            # maybe add constant elements as well
             return self._richcmp_(right,3)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
