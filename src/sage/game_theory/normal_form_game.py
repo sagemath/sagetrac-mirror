@@ -939,9 +939,8 @@ class NormalFormGame(SageObject, MutableMapping):
         if maximization is False:
 
             for strategy_profile in self.utilities:
-                g[strategy_profile][0] = -1 * self.utilities[strategy_profile][0])
-                g[strategy_profile][1] = int(scalar2 *
-                                               self.utilities[strategy_profile][1])
+                g[strategy_profile][0] = -self.utilities[strategy_profile][0]
+                g[strategy_profile][1] = -self.utilities[strategy_profile][1]
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()
