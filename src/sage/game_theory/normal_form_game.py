@@ -381,9 +381,28 @@ class NormalFormGame(SageObject, MutableMapping):
         ...
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
-    There are however a variety of such algorithms available in gambit,
+        There are however a variety of such algorithms available in gambit,
     further compatibility between Sage and gambit is actively being developed:
     https://github.com/tturocy/gambit/tree/sage_integration.
+
+
+    Note that the Gambit implementation of `LCP` can only handle integer
+    payoffs. If a non integer payoff is used an error will be raised: ::
+
+        sage: A = matrix([[2, 1], [1, 2.5]])
+        sage: B = matrix([[-1, 3], [2, 1]])
+        sage: g = NormalFormGame([A, B])
+        sage: g.obtain_Nash(algorithm='LCP')  # optional - gambit
+        Traceback (most recent call last):
+        ...
+        ValueError: The Gambit implementation of LCP only allows for integer valued payoffs. Please scale your payoff matrices.
+
+    Other algorithms can handle these payoffs: ::
+
+        sage: g.obtain_Nash(algorithm='enumeration')
+        [[(1/5, 4/5), (3/5, 2/5)]]
+        sage: g.obtain_Nash(algorithm='lrs')
+        [[(1/5, 4/5), (3/5, 2/5)]]
 
     It is also possible to generate a Normal Form Game from a gambit Game: ::
 
@@ -789,14 +808,13 @@ class NormalFormGame(SageObject, MutableMapping):
             See the [insert website here] web site.
 
           * ``"LCP"`` - This algorithm is only suited for 2 player games.
-            See the [insert website here] web site. NOTE THAT WE NEED TO
-            GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+            See the [insert website here] web site.
 
           * ``"support enumeration"`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
-        - ``maximization`` - Whether a player is trying to maxize their utility
-                             or miniize it.
+        - ``maximization`` - Whether a player is trying to maximize their utility
+                             or minimize it.
 
           * When set to ``True`` (default) it is assumed that players
             aim to maximise their utility.
@@ -905,12 +923,20 @@ class NormalFormGame(SageObject, MutableMapping):
         if algorithm == "LCP":
             if not is_package_installed('gambit'):
                     raise NotImplementedError("gambit is not installed")
+            for strategy_profile in self.utilities:
+                payoffs = self.utilities[strategy_profile]
+                if payoffs != [int(payoffs[0]), int(payoffs[1])]:
+                    raise ValueError("""The Gambit implementation of LCP only
+                                     allows for integer valued payoffs.
+                                     Please scale your payoff matrices.""")
 
             return self._solve_LCP(maximization)
 
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
+
+
 
             return self._solve_lrs(maximization)
 
@@ -938,11 +964,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
         scalar = 1
         if maximization is False:
-            scalar *= 1
+            scalar *= -1
 
         for strategy_profile in self.utilities:
-            g[strategy_profile][0] = scalar * self.utilities[strategy_profile][0]
-            g[strategy_profile][1] = scalar * self.utilities[strategy_profile][1]
+            g[strategy_profile][0] = int(scalar *
+                                            self.utilities[strategy_profile][0])
+            g[strategy_profile][1] = int(scalar *
+                                            self.utilities[strategy_profile][1])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()
