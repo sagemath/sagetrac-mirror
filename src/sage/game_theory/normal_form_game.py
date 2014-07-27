@@ -474,11 +474,11 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[3,3],[2,5],[0,6]])
         sage: B = matrix([[3,3],[2,6],[3,1]])
         sage: degenerate_game = NormalFormGame([A,B])
-        sage: degenerate_game.obtain_Nash(algorithm='LCP')
+        sage: degenerate_game.obtain_Nash(algorithm='LCP') # optional - gambit
         [[(1.0, 0.0, 0.0), (1.0, 0.0)],
          [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
          [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-        sage: degenerate_game.obtain_Nash(algorithm='lrs')
+        sage: degenerate_game.obtain_Nash(algorithm='lrs') # optional - lrs
         [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
         sage: degenerate_game.obtain_Nash(algorithm='enumeration')
         [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
