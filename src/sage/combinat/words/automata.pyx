@@ -96,7 +96,7 @@ class Automaton (DiGraph):
             P.I = [(u,v) for u in self.I for v in A.I]
         if hasattr(self, 'F') and hasattr(A, 'F'):
             P.F = [(u,v) for u in self.F for v in A.F]
-        P.A = set([a for l in L for la in LA for a in d[(l,la)]])
+        P.A = set([a for l in L for la in LA if d.has_key((l,la)) for a in d[(l,la)]])
         #[u for u in set(d.values()) if u is not None]
         return P
     
@@ -116,18 +116,22 @@ class Automaton (DiGraph):
             P.add_vertex((v, va))
             for v1, v2, l in self.outgoing_edges(v, labels=True):
                 for va1, va2, la in A.outgoing_edges(va, labels=True):
-                    for e in d[(l, la)]:
-                        if verb:
-                            print "ajout de %s, %s, %s"%((v1, va1), (v2, va2), e)
-                        P.add_edge((v1, va1), (v2, va2), e)
-                    if len(d[(l, la)]) > 0 and (v2, va2) not in E:
-                        S.add((v2, va2))
+                    if d.has_key((l, la)):
+                        #print "has_key (%s,%s)"%(l,la)
+                        for e in d[(l, la)]:
+                            if verb:
+                                print "ajout de %s, %s, %s"%((v1, va1), (v2, va2), e)
+                            P.add_edge((v1, va1), (v2, va2), e)
+                        if len(d[(l, la)]) > 0 and (v2, va2) not in E:
+                            S.add((v2, va2))
             E.add((v,va))
         if hasattr(self, 'I') and hasattr(A, 'I'):
             P.I = [(u,v) for u in self.I for v in A.I]
         if hasattr(self, 'F') and hasattr(A, 'F'):
             P.F = [(u,v) for u in self.F for v in A.F]
-        P.A = set([a for l in L for la in LA for a in d[(l,la)]])
+        #print "A=..."
+        P.A = set([a for l in L for la in LA if d.has_key((l,la)) for a in d[(l,la)]])
+        #print P.A
         #[u for u in set(d.values()) if u is not None]
         return P
     
