@@ -813,10 +813,10 @@ class NormalFormGame(SageObject, MutableMapping):
                           this function:
 
           * ``"lrs"`` - This algorithm is only suited for 2 player games.
-            See the [insert website here] web site.
+            See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
           * ``"LCP"`` - This algorithm is only suited for 2 player games.
-            See the [insert website here] web site.
+            See the gambit web site (http://gambit.sourceforge.net/).
 
           * ``"support enumeration"`` - This is a very inefficient
             algorithm (in essence a brute force approach).
