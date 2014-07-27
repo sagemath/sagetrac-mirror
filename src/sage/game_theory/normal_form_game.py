@@ -919,9 +919,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_LCP(self, maximization):
         r"""
-        Solves a NormalFormGame using Gambit's LCP algorithm. Gambit only takes
-        and this method will automatically scale games that don't meet that
-        requirment.
+        Solves a NormalFormGame using Gambit's LCP algorithm.
 
         EXAMPLES:
 
