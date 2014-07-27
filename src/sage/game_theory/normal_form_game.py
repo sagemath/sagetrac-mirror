@@ -936,27 +936,12 @@ class NormalFormGame(SageObject, MutableMapping):
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
 
-        # Scale the matrix if it is not in ZZ
-        denominators = [[1], [1]]
-        for player in range(2):
-            M = self.payoff_matrices()[player]
-            if M.base_ring() not in ZZ:
-                for row in M:
-                    for utility in row:
-                        denominators[player].append(Rational(utility).denom())
-
-        scalar1 = lcm(denominators[0])
-        scalar2 = lcm(denominators[1])
-
         if maximization is False:
-            scalar1 *= -1
-            scalar2 *= -1
 
-        for strategy_profile in self.utilities:
-            g[strategy_profile][0] = int(scalar1 *
-                                           self.utilities[strategy_profile][0])
-            g[strategy_profile][1] = int(scalar2 *
-                                           self.utilities[strategy_profile][1])
+            for strategy_profile in self.utilities:
+                g[strategy_profile][0] = -1 * self.utilities[strategy_profile][0])
+                g[strategy_profile][1] = int(scalar2 *
+                                               self.utilities[strategy_profile][1])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()
