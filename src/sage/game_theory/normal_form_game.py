@@ -944,8 +944,6 @@ class NormalFormGame(SageObject, MutableMapping):
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
 
-
-
             return self._solve_lrs(maximization)
 
         if algorithm == "enumeration":
