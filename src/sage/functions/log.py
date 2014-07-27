@@ -15,6 +15,8 @@ from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 class Function_exp(GinacFunction):
     def __init__(self):
@@ -766,3 +768,267 @@ class Function_lambert_w(BuiltinFunction):
             return r"\operatorname{W_{%s}}(%s)" % (n, z)
 
 lambert_w = Function_lambert_w()
+
+class Function_harmonic_number_generalized(BuiltinFunction):
+    r"""
+    Harmonic and generalized harmonic number functions,
+    defined by
+
+    .. math::
+
+        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k,\qquad H_{n,m}=\sum_{k=1}^n\frac1k^m
+
+    They are also well-defined for complex argument, through:
+     
+    .. math::
+
+        H_{s}=\int_0^1\frac{1-x^s}{1-x}
+
+        H_{s,m}=\zeta(s)-\zeta(s,m-1)
+
+    If called with a single argument, that argument is ``s`` and ``m`` is
+    assumed to be 1 (the normal harmonic numbers ``H_m``).
+
+    ALGORITHM:
+
+    Numerical evaluation is handled using the mpmath and FLINT libraries.
+
+    REFERENCES:
+
+    - :wikipedia:`/Harmonic_number`
+
+    EXAMPLES:
+
+    Evaluation of integer, rational, or complex argument::
+    
+        sage:
+
+    Solutions to certain sums are returned in terms of harmonic numbers::
+
+        sage:
+
+    Check the defining integral. at a random integer::
+
+        sage: n=randint(10,100)
+        sage: integrate((1-x^n)/(1-x),x,0,1)==harmonic_number(n)
+        True
+
+    There are several special values which are automatically simplified::
+
+        sage: harmonic_number(0)
+        0
+        sage: harmonic_number(1)
+        1
+    """
+
+    def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: loads(dumps(harmonic_number(x,5)))
+            harmonic_number(x, 5)
+        """
+        BuiltinFunction.__init__(self, "harmonic_number", nargs=2,
+                                 conversions={'maple':'harmonic',
+                                              'maxima':'gen_harmonic_number'})
+
+    def __call__(self, *args, **kwds):
+        r"""
+        Custom call method allows the user to pass one argument or two. If
+        one argument is passed, we assume it is ``z`` and that ``m=1``.
+
+        EXAMPLES::
+
+            sage: harmonic_number(x)
+            harmonic_number(x)
+            sage: harmonic_number(x,1)
+            harmonic_number(x)
+            sage: harmonic_number(x,2)
+            harmonic_number(x, 2)
+        """
+        if len(args) == 2:
+            return BuiltinFunction.__call__(self, *args, **kwds)
+        elif len(args) == 1:
+            return BuiltinFunction.__call__(self, args[0], 1, **kwds)
+        else:
+            raise TypeError("harmonic_number takes either one or two arguments.")
+
+    def _eval_(self, z, m):
+        """
+        EXAMPLES::
+        
+            sage: harmonic_number(x,0)
+            x
+            sage: harmonic_number(x,1)
+            harmonic_number(x)
+            sage: harmonic_number(5)
+            137/60
+            sage: harmonic_number(3,3)
+            251/216
+            sage: harmonic_number(3,3).n() # this goes from rational to float
+            1.16203703703704
+            sage: harmonic_number(3.,3) # this uses zeta functions
+            1.16203703703704
+            sage: harmonic_number(5,0.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Second argument to harmonic_number must be integer.
+        """
+        if not isinstance(z, Expression):
+            if m == 0:
+                return z
+            elif m == 1:
+                return harmonic_m1._eval_(z)
+            elif m in ZZ:
+                return self._evalf_(z, m, parent=sage_structure_coerce_parent(z))
+            else:
+                raise ValueError('Second argument to harmonic_number must be integer.')
+        elif m == 0:
+            return z
+        return None
+
+    def _evalf_(self, z, m, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: harmonic_number(3.,3).n(200)
+            1.162037037037036979469917...
+            sage: harmonic_number(I,5).n()
+            2.36889632899995 - 3.51181956521611*I
+        """
+        from sage.functions.transcendental import zeta, hurwitz_zeta
+        return zeta(z) - hurwitz_zeta(z,m+1)
+
+    def _print_(self, z, m):
+        """
+        EXAMPLES::
+
+            sage: harmonic_number(x)
+            harmonic_number(x)
+            sage: harmonic_number(x,2)
+            harmonic_number(x, 2)
+        """
+        if m == 1:
+            return "harmonic_number(%s)" % z
+        else:
+            return "harmonic_number(%s, %s)" % (z, m)
+
+    def _print_latex_(self, z, m):
+        """
+        EXAMPLES::
+
+            sage: latex(harmonic_number(x))
+            H_{x}
+            sage: latex(harmonic_number(x,2))
+            H_{{x},{2}}
+        """
+        if m == 1:
+            return r"H_{%s}" % z
+        else:
+            return r"H_{{%s},{%s}}" % (z, m)
+
+harmonic_number = Function_harmonic_number_generalized()
+
+class Function_harmonic_number(BuiltinFunction):
+    r"""
+    Harmonic number function, defined by
+
+    .. math::
+
+        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
+
+        H_{s}=\int_0^1\frac{1-x^s}{1-x}
+
+    See the docstring for :meth:`Function_harmonic_number_generalized`.
+    
+    This class exists as callback for ``harmonic_number`` returned by Maxima.
+    """
+
+    def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: k=var('k')
+            sage: loads(dumps(sum(1/k,k,1,x)))
+            harmonic_number(x)
+        """
+        BuiltinFunction.__init__(self, "harmonic_number", nargs=1,
+                                 conversions={'mathematica':'HarmonicNumber',
+                                              'maple':'harmonic',
+                                              'maxima':'harmonic_number'})
+
+    def _eval_(self, z, **kwds):
+        """
+        EXAMPLES::
+
+            sage: harmonic_number(0)
+            0
+            sage: harmonic_number(1)
+            1
+            sage: harmonic_number(20)
+            55835135/15519504
+            sage: harmonic_number(5/2)
+            -2*log(2) + 46/15
+            sage: harmonic_number(2*x)
+            harmonic_number(2*x)
+        """
+        if not isinstance(z, Expression):
+            R = sage_structure_coerce_parent(z)
+            if R is ZZ:
+                if z == 0:
+                    return Integer(0)
+                elif z == 1:
+                    return Integer(1)
+                elif z < 2**20:
+                    import sage.libs.flint.arith as flint_arith
+                    return flint_arith.harmonic_number(z)
+                # fall through if flint cannot handle argument
+            elif R is QQ:
+                from sage.calculus.calculus import symbolic_sum
+                from sage.symbolic.ring import SR
+                from sage.rings.infinity import infinity
+                x = SR('x')
+                return z*symbolic_sum(1/x/(z+x),x,1,infinity)
+            return self._evalf_(z, **kwds)
+        return None
+
+    def _evalf_(self, z, parent=None, algorithm='mpmath'):
+        """
+        EXAMPLES::
+        
+            sage: harmonic_number(20).n() # this goes from rational to float
+            3.59773965714368
+            sage: harmonic_number(20.) # this computes the integral with mpmath
+            3.59773965714368
+            sage: harmonic_number(20.).n(200)
+            3.59773965714368193502536996...
+            sage: harmonic_number(I)
+            0.671865985524010 + 1.07667404746858*I
+        """
+        import mpmath
+        return mpmath_utils.call(mpmath.harmonic, z)
+
+    def _derivative_(self, z, diff_param=None):
+        """
+        The derivative of `H_x`.
+
+        EXAMPLES::
+
+            sage: k=var('k')
+            sage: sum(1/k,k,1,x).diff(x)
+            1/6*pi^2 - harmonic_number(x, 2)
+        """
+        from sage.functions.transcendental import zeta
+        return zeta(2)-harmonic_number(z,2)
+
+    def _print_latex_(self, z):
+        """
+        EXAMPLES::
+
+            sage: k=var('k')
+            sage: latex(sum(1/k,k,1,x))
+            H_{x}
+        """
+        return r"H_{%s}" % z
+
+harmonic_m1 = Function_harmonic_number()
