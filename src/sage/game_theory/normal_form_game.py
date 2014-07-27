@@ -404,6 +404,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g.obtain_Nash(algorithm='lrs')
         [[(1/5, 4/5), (3/5, 2/5)]]
 
+    It can be shown that linear scaling of the payoff matrices conserves the
+    equilibrium values: ::
+
+        sage: A = 2 * A
+        sage: g = NormalFormGame([A, B])
+        sage: g.obtain_Nash(algorithm='LCP')  # optional - gambit
+        [[(0.2, 0.8), (0.6, 0.4)]]
+
     It is also possible to generate a Normal Form Game from a gambit Game: ::
 
         sage: from gambit import Game
