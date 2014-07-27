@@ -925,8 +925,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
         Simple example. ::
 
-            sage: a = matrix([[1, 0], [1/3, 4]])
-            sage: b = matrix([[2.5, 3], [-0.75, 4]])
+            sage: a = matrix([[1, 0], [1, 4]])
+            sage: b = matrix([[2, 3], [2, 4]])
             sage: c = NormalFormGame([a, b])
             sage: c._solve_LCP(maximization=True) # optional - gambit
             [[(0.0, 1.0), (0.0, 1.0)]]
@@ -936,11 +936,13 @@ class NormalFormGame(SageObject, MutableMapping):
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
 
+        scalar = 1
         if maximization is False:
+            scalar *= 1
 
-            for strategy_profile in self.utilities:
-                g[strategy_profile][0] = -self.utilities[strategy_profile][0]
-                g[strategy_profile][1] = -self.utilities[strategy_profile][1]
+        for strategy_profile in self.utilities:
+            g[strategy_profile][0] = scalar * self.utilities[strategy_profile][0]
+            g[strategy_profile][1] = scalar * self.utilities[strategy_profile][1]
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()
