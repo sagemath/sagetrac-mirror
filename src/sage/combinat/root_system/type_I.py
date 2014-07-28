@@ -9,7 +9,8 @@ Root system data for type I
 #*****************************************************************************
 
 from cartan_type import CartanType_standard_finite, CartanType_simple
-from sage.rings.universal_cyclotomic_field.all import UCF,E
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
+
 class CartanType(CartanType_standard_finite, CartanType_simple):
     def __init__(self, n):
         """
@@ -74,6 +75,8 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         from dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         bond = self.n
+        UCF = UniversalCyclotomicField()
+        #E = UCF.gens()
         if bond % 2 == 0:
             label1 = 1
         else:

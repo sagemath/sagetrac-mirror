@@ -23,7 +23,8 @@ from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
-from sage.rings.all import ZZ, QQ, UCF
+from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
@@ -1209,7 +1210,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.root_system.coroot_lattice()
 
-        def coroot_space(self, base_ring = UCF):
+        def coroot_space(self, base_ring = None):
             """
             Returns the coroot space over ``base_ring``
 
@@ -1226,6 +1227,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Coroot space over the Univariate Polynomial Ring in q over Rational Field of the Root system of type ['A', 2]
 
             """
+            if base_ring is None:
+                base_ring = UniversalCyclotomicField()
             return self.root_system.coroot_space(base_ring = base_ring)
 
 

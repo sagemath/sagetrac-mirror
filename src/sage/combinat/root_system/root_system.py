@@ -42,7 +42,8 @@ See also
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from cartan_type import CartanType
-from sage.rings.all import ZZ, QQ, UCF
+from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.misc.all import cached_method
 from root_space import RootSpace
 from weight_space import WeightSpace
@@ -709,7 +710,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``base_ring`` -- a base ring (default: `\QQ` if crystallographic
-          or the UCF otherwise)
+          or the universal cyclotomic field otherwise)
 
         This is a ``base_ring``-module, endowed with its canonical
         Euclidean scalar product, which admits simultaneous embeddings
@@ -804,7 +805,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             if root_system.cartan_type().is_crystalographic():
                 base_ring = QQ
             else:
-                base_ring = UCF
+                base_ring = UniversalCyclotomicField()
 
         AmbientSpace = self.cartan_type().AmbientSpace
         if not base_ring.has_coerce_map_from(AmbientSpace.smallest_base_ring(self.cartan_type())):

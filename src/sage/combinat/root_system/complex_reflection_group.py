@@ -41,8 +41,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.interfaces.gap3 import GAP3Record, gap3
 from sage.interfaces.gap import gap
 from sage.combinat.words.word import Word
-from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField, E
-UCF = UniversalCyclotomicField()
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.rings.arith import gcd, lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
@@ -1248,7 +1247,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 Basis matrix:
                 [ 1 -1]
             """
-            return (self.as_matrix()-identity_matrix(UCF,self.parent().rank())).right_kernel()
+            return (self.as_matrix()-identity_matrix(UniversalCyclotomicField(), self.parent().rank())).right_kernel()
 
         @cached_in_parent_method
         def reflection_eigenvalues(self,test_class_repr=True):
@@ -1268,6 +1267,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             """
             rk = self.parent().rank()
             M = self.as_matrix()
+            UCF = UniversalCyclotomicField()
             L = [ UCF(x) for x in M.list() ]
             m = lcm([ x.field_order() for x in L ])
             L_gals = [ x.galois_conjugates(m) for x in L ]
@@ -1579,7 +1579,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
-                    M = Matrix(UCF,(self.as_matrix()-E(ev.denom(),ev.numer())*identity_matrix(self.parent().rank())))
+                    M = Matrix(UniversalCycloctomicField(), (self.as_matrix()-E(ev.denom(),ev.numer())*identity_matrix(self.parent().rank())))
                     V = M.right_kernel()
                     if not any( V.is_subspace(H) for H in self.parent().reflecting_hyperplanes() ):
                         return True

@@ -29,7 +29,8 @@ from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
-from sage.rings.all import ZZ, UCF
+from sage.rings.all import ZZ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
@@ -290,7 +291,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 raise ValueError("too many arguments")
 
         if extend:
-            P = MatrixSpace(UCF, n, sparse=True)
+            P = MatrixSpace(UniversalCyclotomicField(), n, sparse=True)
         else:
             P = MatrixSpace(ZZ, n, sparse=True)
         mat = typecall(cls, P, data, cartan_type, index_set)
