@@ -343,11 +343,13 @@ class RootSystem(UniqueRepresentation, SageObject):
             self.dual_side = True
             self.dual = as_dual_of
 
-    def is_crystalographic(self):
+    def is_crystallographic(self):
         r"""
-        Returns True if self is crystallographic.
+        Return ``True`` if ``self`` is crystallographic.
+
+        EXAMPLES::
         """
-        return self._cartan_type.is_crystalographic()
+        return self._cartan_type.is_crystallographic()
 
     def _test_root_lattice_realizations(self, **options):
         """
@@ -364,18 +366,18 @@ class RootSystem(UniqueRepresentation, SageObject):
         options.pop('tester', None)
         from sage.misc.sage_unittest import TestSuite
 
-        is_crystalographic = self.is_crystalographic()
-        if is_crystalographic:
+        is_crystallographic = self.is_crystallographic()
+        if is_crystallographic:
             TestSuite(self.root_lattice()).run(**options)
         TestSuite(self.root_space()).run(**options)
-        if is_crystalographic:
+        if is_crystallographic:
             TestSuite(self.weight_lattice()).run(**options)
         TestSuite(self.weight_space()).run(**options)
         if self.cartan_type().is_affine():
-            if is_crystalographic:
+            if is_crystallographic:
                 TestSuite(self.weight_lattice(extended=True)).run(**options)
             TestSuite(self.weight_space(extended=True)).run(**options)
-        if is_crystalographic and self.ambient_lattice() is not None:
+        if is_crystallographic and self.ambient_lattice() is not None:
             TestSuite(self.ambient_lattice()).run(**options)
         if self.ambient_space() is not None:
             TestSuite(self.ambient_space()).run(**options)
@@ -504,20 +506,27 @@ class RootSystem(UniqueRepresentation, SageObject):
 
     def root_lattice(self):
         """
-        Returns the root lattice associated to self.
+        Return the root lattice associated to ``self``.
 
         EXAMPLES::
 
             sage: RootSystem(['A',3]).root_lattice()
             Root lattice of the Root system of type ['A', 3]
+
+            sage: RootSystem(['H',3]).root_lattice()
+            Traceback (most recent call last):
+            ...
+            blabla
         """
-        assert self.is_crystalographic(), "The root lattice is only defined for crystallographic root systems."
+        if not self.is_crystallographic():
+            raise TypeError("The root lattice is only defined for "
+                            "crystallographic root systems.")
         return self.root_space(ZZ)
 
     @cached_method
     def root_space(self, base_ring=None):
         """
-        Returns the root space associated to self.
+        Return the root space associated to ``self``.
 
         EXAMPLES::
 
@@ -555,7 +564,10 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: Phi.cover_relations()
             [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
         """
-        assert self.is_crystalographic(), "The root lattice is only defined for crystallographic root systems."
+        if not self.is_crystallographic():
+            raise TypeError("The root lattice is only defined for "
+                            "crystallographic root systems.")
+
         return self.root_lattice().root_poset(restricted=restricted,facade=facade)
 
     def coroot_lattice(self):
@@ -567,7 +579,10 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['A',3]).coroot_lattice()
             Coroot lattice of the Root system of type ['A', 3]
         """
-        assert self.is_crystalographic(), "The root lattice is only defined for crystallographic root systems."
+        if not self.is_crystallographic():
+            raise TypeError("The root lattice is only defined for "
+                            "crystallographic root systems.")
+
         return self.dual.root_lattice()
 
     def coroot_space(self, base_ring=None):
@@ -600,7 +615,10 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['A',3,1]).weight_space(extended = True)
             Extended weight space over the Rational Field of the Root system of type ['A', 3, 1]
         """
-        assert self.is_crystalographic(), "The root lattice is only defined for crystallographic root systems."
+        if not self.is_crystallographic():
+            raise TypeError("The root lattice is only defined for "
+                            "crystallographic root systems.")
+
         return WeightSpace(self, ZZ, extended = extended)
 
     @cached_method
@@ -644,7 +662,10 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['A',3,1]).coweight_lattice(extended = True)
             Extended coweight lattice of the Root system of type ['A', 3, 1]
         """
-        assert self.is_crystalographic(), "The root lattice is only defined for crystallographic root systems."
+        if not self.is_crystallographic():
+            raise TypeError("The root lattice is only defined for "
+                            "crystallographic root systems.")
+
         return self.dual.weight_lattice(extended = extended)
 
     def coweight_space(self, base_ring=None, extended = False):
@@ -698,8 +719,9 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: RootSystem(['F',4]).ambient_lattice()
             sage: RootSystem(['G',2]).ambient_lattice()
         """
-        if not self.is_crystalographic():
-            raise TypeError("the root lattice is only defined for crystallographic root systems")
+        if not self.is_crystallographic():
+            raise TypeError("the root lattice is only defined for "
+                            "crystallographic root systems")
         return self.ambient_space(ZZ)
 
     @cached_method
@@ -802,7 +824,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             return None
 
         if base_ring is None:
-            if root_system.cartan_type().is_crystalographic():
+            if root_system.cartan_type().is_crystallographic():
                 base_ring = QQ
             else:
                 base_ring = UniversalCyclotomicField()
