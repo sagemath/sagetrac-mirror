@@ -67,7 +67,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         self.root_system = root_system
         if base_ring is None:
-            if root_system.cartan_type().is_crystalographic():
+            if root_system.cartan_type().is_crystallographic():
                 base_ring = QQ
             else:
                 base_ring = UniversalCyclotomicField()

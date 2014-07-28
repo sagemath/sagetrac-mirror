@@ -277,21 +277,26 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         weak_lattice = weak_poset
 
         @cached_method
-        def cambrian_lattice(self, c, side = "right", facade = False):
+        def cambrian_lattice(self, c, side="right", facade=False):
             """
+            Return the Cambrian lattice for the Coxeter element ``c``.
+
             INPUT:
 
             - ``c`` -- a standard Coxeter element in ``self``
             - ``side`` -- "left", "right", or "twosided" (default: "right")
-            - ``facade`` -- a boolean (default: False)
+            - ``facade`` -- a boolean (default: ``False``)
 
-            Returns the left (resp. right) Cambrian lattice, which is the
+            The left (resp. right) Cambrian lattice is the
             sublattice of the weak lattice containing all
             ``c``-sortable elements.
 
             EXAMPLES::
 
-                tba
+                sage: W = WeylGroup(["A", 2])
+                sage: c = prod(W.simple_reflections())
+                sage: P = W.cambrian_lattice(c); P
+                Finite lattice containing 5 elements
             """
             from sage.combinat.posets.lattices import LatticePoset
             return LatticePoset(self.weak_lattice(side=side,facade=facade).subposet( [ w for w in self if w.is_coxeter_sortable(c) ] ))
