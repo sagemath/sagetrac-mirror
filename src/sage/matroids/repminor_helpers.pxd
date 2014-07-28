@@ -12,7 +12,6 @@ cpdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
             BinaryMatrix M_rmat, BinaryMatrix N_rmat, BinaryMatrix M_rmatT,
             BinaryMatrix N_rmatT)
 cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc)
-cdef full_set(bitset_t bits)
 cpdef degrees_are_sane(BinaryMatrix M1, BinaryMatrix M2)
 cpdef is_weak_induced_isomorphism(BinaryMatrix M1, BinaryMatrix M2,
                                   BinaryMatrix  M_rmat, BinaryMatrix N_rmat)
