@@ -1290,6 +1290,8 @@ class BetaAdicMonoid(Monoid_class):
         #rend l'automate plus simple
         a = a.emonde0_simplify()
         
+        if verb: print "simplification : a=%s"%a
+        
         if verb: print "Determinization..."
         #determinize
         ad = a.determinize2(nof=a.F)

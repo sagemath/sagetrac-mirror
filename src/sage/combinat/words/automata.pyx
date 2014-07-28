@@ -25,6 +25,16 @@ AUTHORS:
 from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 
+#test
+#
+#cdef emonde0_simplify_rec2 (aut, e, a, d, int *n):
+#    keep = False
+#    *n = (*n) + 1
+#    for u,v,l in aut.outgoing_edges(e):
+#        if emonde0_simplify_rec(aut, e=v, a=a, d=d, n=n):
+#            keep = True
+    
+
 class Automaton (DiGraph):
 #    def __init__(self, I, F, **args):
 #        DiGraph.__init__(self, **args)
@@ -249,12 +259,10 @@ class Automaton (DiGraph):
     
     def emonde0_simplify_rec (self, e, a, d):
         keep = False
-        #from sage.sets.set import set
-        O = set([v for u,v,l in self.outgoing_edges(e)])
-        #print "O=%s"%O
-        #d[e] = "a%s"%a.num_verts()
-        #a.add_vertex(d[e])
-        d[e] = a.add_vertex()
+        og = self.outgoing_edges(e)
+        O = set([v for u,v,l in og])
+        cdef int ne = a.add_vertex()
+        d[e] = ne
         for b in O:
             if self.has_vertex(b): #au cas où le sommet ait été supprimé entre-temps
                 if not d.has_key(b):
@@ -264,10 +272,10 @@ class Automaton (DiGraph):
         if not keep:
             a.delete_vertex(d.pop(e))
         else:
-            for u,v,l in self.outgoing_edges(e):
+            for u,v,l in og:
                 if d.has_key(v):
-                    if not a.has_edge(d[u], d[v], l):
-                        a.add_edge(d[u], d[v], l)
+                    if not a.has_edge(ne, d[v], l):
+                        a.add_edge(ne, d[v], l)
     
     def emonde0_simplify (self, I=None): #rend l'automate sans états puits et avec des états plus simples
         if I is None:
@@ -277,7 +285,9 @@ class Automaton (DiGraph):
                 raise ValueError("The set I of initial states must be defined !")
         a = Automaton(loops=True, multiedges=True)
         d = dict()
+        cdef int n = 0
         for e in I:
+            #emonde0_simplify_rec(self, e=e, a=a, d=d, n=&n)
             self.emonde0_simplify_rec(e=e, a=a, d=d)
         a.I = [d[i] for i in I if d.has_key(i)]
         if hasattr(self, 'F'):
@@ -285,7 +295,42 @@ class Automaton (DiGraph):
         if hasattr(self, 'A'):
             a.A = self.A
         return a
-        
+    
+    def emonde0_simplify_ (self, I=None, verb=False): #rend l'automate sans états puits et avec des états plus simples
+        if I is None:
+            if hasattr(self, 'I'):
+                I = self.I
+            if I is None:
+                raise ValueError("The set I of initial states must be defined !")
+        a = Automaton(loops=True, multiedges=True)
+        I = list(set(I))
+        d = {}
+        cdef int n = 0
+        cdef int ni
+        if verb:
+            print "I=%s"%I
+        while len(I) != 0:
+            i = I.pop()
+            if not d.has_key(i):
+                ni = n
+                d[i] = ni
+                a.add_vertex(ni)
+                n += 1
+            else:
+                ni = d[i]
+            for u,v,l in self.outgoing_edges(i):
+                if not d.has_key(v):
+                    d[v] = n
+                    a.add_vertex(n)
+                    I.append(v)
+                    n += 1
+                a.add_edge(ni, d[v], l)
+        a.I = [d[i] for i in self.I]
+        if hasattr(self, 'F'):
+            a.F = [d[f] for f in self.F if d.has_key(f)]
+        if hasattr(self, 'A'):
+            a.A = self.A
+        return a
     
     def emondeI (self, I=None):
         #from sage.sets.set import set
