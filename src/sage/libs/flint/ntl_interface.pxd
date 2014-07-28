@@ -1,5 +1,5 @@
-include "fmpz.pxi"
 
+from sage.libs.flint.fmpz cimport fmpz_t
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 from sage.libs.ntl.ntl_ZZX_decl cimport ZZX_c

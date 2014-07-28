@@ -1,4 +1,4 @@
-include "sage/libs/flint/fq_nmod.pxi"
+from sage.libs.flint.fq_nmod cimport *
 
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 

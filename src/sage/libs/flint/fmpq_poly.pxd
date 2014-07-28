@@ -5,6 +5,7 @@
 #                                                                             #
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef extern from "gmp.h":
     ctypedef void * mpz_t

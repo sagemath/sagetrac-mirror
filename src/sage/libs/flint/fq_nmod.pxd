@@ -1,5 +1,4 @@
-include "sage/libs/flint/fmpz.pxi"
-
+from sage.libs.flint.fmpz cimport fmpz_t
 from sage.libs.flint.nmod_poly cimport *
 
 cdef extern from "flint/fq_nmod.h":

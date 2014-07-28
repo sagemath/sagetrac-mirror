@@ -20,9 +20,10 @@ include "sage/ext/gmp.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 include "sage/ext/cdefs.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/fmpq_poly.pxd"
+
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpq_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 

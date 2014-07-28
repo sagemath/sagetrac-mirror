@@ -16,8 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fq_nmod.pxi"
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fq_nmod cimport *
 
 import sage.rings.integer
 from sage.rings.integer cimport Integer

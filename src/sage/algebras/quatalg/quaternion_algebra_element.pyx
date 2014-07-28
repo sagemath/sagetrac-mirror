@@ -36,9 +36,9 @@ from sage.matrix.all import matrix
 include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/ntl_interface.pxd"
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.ntl_interface cimport *
 
 # variables for holding temporary values computed in
 # QuaternionAlgebraElement_rational_field._mul_()

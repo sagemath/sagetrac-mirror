@@ -1,5 +1,5 @@
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_mod_poly.pxi"
+from sage.libs.flint.fmpz cimport fmpz_t
+from sage.libs.flint.fmpz_mod_poly cimport fmpz_mod_poly_t
 
 cdef extern from "flint/fq.h":
     ctypedef void *fq_ctx_t

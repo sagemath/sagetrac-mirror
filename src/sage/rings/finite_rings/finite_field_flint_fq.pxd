@@ -1,4 +1,4 @@
-include "sage/libs/flint/fq.pxi"
+from sage.libs.flint.fq cimport *
 
 from finite_field_base cimport FiniteField
 

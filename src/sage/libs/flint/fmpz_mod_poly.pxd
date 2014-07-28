@@ -1,4 +1,4 @@
-include "sage/libs/flint/fmpz.pxi"
+from sage.libs.flint.fmpz cimport fmpz_t
 
 cdef extern from "flint/fmpz_mod_poly.h":
     ctypedef void* fmpz_mod_poly_t

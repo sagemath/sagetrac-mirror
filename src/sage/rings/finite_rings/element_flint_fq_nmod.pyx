@@ -18,10 +18,11 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
+
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
