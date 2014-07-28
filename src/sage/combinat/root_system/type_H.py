@@ -9,6 +9,8 @@ Root system data for type H
 #*****************************************************************************
 
 from cartan_type import CartanType_standard_finite, CartanType_simple
+from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import E
+
 class CartanType(CartanType_standard_finite, CartanType_simple):
     def __init__(self, n):
         """
@@ -89,4 +91,46 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         if self.n == 3:
             return 10
         return 30
+
+    def dynkin_diagram(self):
+        """
+        Return the Dynkin diagram of type `H`.
+
+        EXAMPLES::
+
+            sage: a = CartanType(['H',3]).dynkin_diagram()
+            sage: a
+            H3
+            sage: sorted(a.edges())
+        """
+        from dynkin_diagram import DynkinDiagram_class
+        n = self.n
+        g = DynkinDiagram_class(self)
+        g.add_edge(1,2)
+        g.add_edge(2,3)
+        g.add_edge(n-1,n,-E(5)**2-E(5)**3)
+        g.add_edge(n,n-1,-E(5)**2-E(5)**3)
+        return g
+
+    def ascii_art(self, label=lambda x: x):
+        """
+        Return an ascii art representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['A',0]).ascii_art()
+            sage: print CartanType(['A',1]).ascii_art()
+            O
+            1
+            sage: print CartanType(['A',3]).ascii_art()
+            O---O---O
+            1   2   3
+            sage: print CartanType(['A',5]).ascii_art(label = lambda x: x+2)
+            O---O---O---O---O
+            3   4   5   6   7
+        """
+        n = self.n
+        ret  = (n-2)*"O---" + "O=5=O\n"
+        ret += "   ".join("{}".format(label(i)) for i in self.index_set())
+        return ret
 

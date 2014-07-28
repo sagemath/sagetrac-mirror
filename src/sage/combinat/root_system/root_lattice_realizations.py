@@ -24,6 +24,7 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
+from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
@@ -684,9 +685,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                                 import DisjointUnionEnumeratedSets
                 return DisjointUnionEnumeratedSets([self.positive_real_roots(),
                                                     self.positive_imaginary_roots()])
-            if not self.cartan_type().is_finite():
-                raise NotImplementedError("Only implemented for finite and"
-                                          " affine Cartan types")
+            #if not self.cartan_type().is_finite() or self.weyl_group().is_finite():
+            #    raise NotImplementedError("Only implemented for finite and"
+            #                              " affine Cartan types")
             if index_set is None:
                 index_set = tuple(self.cartan_type().index_set())
             return TransitiveIdealGraded(attrcall('pred', index_set=index_set),
@@ -1148,6 +1149,13 @@ class RootLatticeRealizations(Category_over_base_ring):
             return LatticePoset((saturated_chains, is_componentwise_subset),
                                 facade=facade)
 
+        def positive_root_poset(self,facade=False):
+            Phi = self.positive_roots()
+            from sage.combinat.posets.posets import Poset
+            covers = [ (beta,beta.simple_reflection(i)) for beta in Phi
+                       for i in beta.descents() ]
+            return Poset((Phi,covers),cover_relations=True,facade=facade)            
+
         def almost_positive_roots(self):
             r"""
             Returns the almost positive roots of ``self``
@@ -1179,7 +1187,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Algorithm: negate the positive roots
 
             """
-            if not self.cartan_type().is_finite():
+            if not self.cartan_type().is_finite() or self.weyl_group().is_finite():
                 raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
             from sage.combinat.combinat import MapCombinatorialClass
             return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
@@ -1202,7 +1210,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.root_system.coroot_lattice()
 
-        def coroot_space(self, base_ring = QQ):
+        def coroot_space(self, base_ring = None):
             """
             Returns the coroot space over ``base_ring``
 
@@ -1219,6 +1227,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Coroot space over the Univariate Polynomial Ring in q over Rational Field of the Root system of type ['A', 2]
 
             """
+            if base_ring is None:
+                base_ring = UniversalCyclotomicField()
             return self.root_system.coroot_space(base_ring = base_ring)
 
 
@@ -3503,7 +3513,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted([len(x.greater()) for x in L.rho().orbit()])
                 [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
             """
-            return [x for x in TransitiveIdeal(attrcall('succ'), [self])]
+            return [x for x in TransitiveIdealGraded(attrcall('succ'), [self])]
 
         def smaller(self):
             r"""
@@ -3523,7 +3533,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted([len(x.smaller()) for x in L.rho().orbit()])
                 [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
             """
-            return [x for x in TransitiveIdeal(attrcall('pred'), [self])]
+            return [x for x in TransitiveIdealGraded(attrcall('pred'), [self])]
 
         ##########################################################################
         # Level
@@ -3790,6 +3800,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                 index_set = self.parent().cartan_type().index_set()
             alphavee = self.parent().coroot_lattice().basis()
             return [i for i in index_set if self.scalar(alphavee[i]) == 0]
+
+        def to_negative(self):
+            if not self.is_positive_root():
+                return []
+            i = self.first_descent(positive=True)
+            return self.simple_reflection(i).to_negative() + [i]
+
+        def length(self):
+            return len(self.to_negative())
 
         def is_parabolic_root(self, index_set):
             r"""

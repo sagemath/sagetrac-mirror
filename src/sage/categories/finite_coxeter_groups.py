@@ -23,7 +23,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: FiniteCoxeterGroups()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of finite groups, Category of coxeter groups]
+        [Category of coxeter groups,
+         Category of finite well generated complex reflection groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -274,6 +275,26 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 return LatticePoset((self, covers), cover_relations = True, facade = facade)
 
         weak_lattice = weak_poset
+
+        @cached_method
+        def cambrian_lattice(self, c, side = "right", facade = False):
+            """
+            INPUT:
+
+            - ``c`` -- a standard Coxeter element in ``self``
+            - ``side`` -- "left", "right", or "twosided" (default: "right")
+            - ``facade`` -- a boolean (default: False)
+
+            Returns the left (resp. right) Cambrian lattice, which is the
+            sublattice of the weak lattice containing all
+            ``c``-sortable elements.
+
+            EXAMPLES::
+
+                tba
+            """
+            from sage.combinat.posets.lattices import LatticePoset
+            return LatticePoset(self.weak_lattice(side=side,facade=facade).subposet( [ w for w in self if w.is_coxeter_sortable(c) ] ))
 
     class ElementMethods:
 
