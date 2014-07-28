@@ -801,11 +801,24 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     Evaluation of integer, rational, or complex argument::
     
-        sage:
+        sage: harmonic_number(5)
+        137/60
+        sage: harmonic_number(3,3)
+        251/216
+        sage: harmonic_number(5/2)
+        -2*log(2) + 46/15
+        sage: harmonic_number(5/2,2)
+        -hurwitz_zeta(5/2, 3) + zeta(5/2)
+        sage: harmonic_number(1+I,5)
+        -hurwitz_zeta(I + 1, 6) + zeta(I + 1)
+        sage: harmonic_number(1.+I,5)
+        1.57436810798989 - 1.06194728851357*I
 
     Solutions to certain sums are returned in terms of harmonic numbers::
 
-        sage:
+        sage: k=var('k')
+        sage: sum(1/k^7,k,1,x)
+        harmonic_number(x, 7)
 
     Check the defining integral. at a random integer::
 
@@ -819,6 +832,22 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         0
         sage: harmonic_number(1)
         1
+        sage: harmonic_number(x,1)
+        harmonic_number(x)
+        
+    Arguments are swapped with respect to the same functions in
+    Maxima::
+    
+        sage: maxima(harmonic_number(x,2)) # maxima expect interface
+        gen_harmonic_number(2,x)
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('gen_harmonic_number(3,x)')
+        harmonic_number(x, 3)
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c=maxima_lib(harmonic_number(x,2)); c
+        gen_harmonic_number(2,x)
+        sage: max_to_sr(c.ecl())
+        harmonic_number(x, 2)
     """
 
     def __init__(self):
@@ -891,6 +920,8 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: harmonic_number(5/2,2)
+            -hurwitz_zeta(5/2, 3) + zeta(5/2)
             sage: harmonic_number(3.,3).n(200)
             1.162037037037036979469917...
             sage: harmonic_number(I,5).n()
@@ -898,6 +929,15 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         """
         from sage.functions.transcendental import zeta, hurwitz_zeta
         return zeta(z) - hurwitz_zeta(z,m+1)
+
+    def _maxima_init_evaled_(self, n, z):
+        """
+        EXAMPLES:
+
+            sage: maxima(harmonic_number(x,2))
+            gen_harmonic_number(2,x)
+        """
+        return "gen_harmonic_number(%s,%s)" % (z, n) # swap arguments
 
     def _print_(self, z, m):
         """
