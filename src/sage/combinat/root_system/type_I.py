@@ -20,7 +20,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             sage: ct
             ['I', 5]
             sage: ct._repr_(compact = True)
-            'I5'
+            'I2(5)'
             sage: ct.rank()
             2
             sage: ct.index_set()

@@ -179,7 +179,7 @@ class WeightSpace(CombinatorialFreeModule):
 
         self.root_system = root_system
         if base_ring is None:
-            if root_system.cartan_type().is_crystalographic():
+            if root_system.cartan_type().is_crystallographic():
                 base_ring = QQ
             else:
                 base_ring = UniversalCyclotomicField()

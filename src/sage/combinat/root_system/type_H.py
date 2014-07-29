@@ -9,7 +9,8 @@ Root system data for type H
 #*****************************************************************************
 
 from cartan_type import CartanType_standard_finite, CartanType_simple
-from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import E
+from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+
 
 class CartanType(CartanType_standard_finite, CartanType_simple):
     def __init__(self, n):
@@ -44,7 +45,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
 
     def coxeter_diagram(self):
         """
-        Returns a Coxeter diagram for type H.
+        Return a Coxeter diagram for type H.
 
         EXAMPLES::
 
@@ -100,16 +101,21 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
 
             sage: a = CartanType(['H',3]).dynkin_diagram()
             sage: a
+            O---O=5=O
+            1   2   3
             H3
             sage: sorted(a.edges())
+            [(1, 2, 1), (2, 1, 1), (2, 3, -E(5)^2 - E(5)^3),
+            (3, 2, -E(5)^2 - E(5)^3)]
         """
+        E = UniversalCyclotomicField().gen
         from dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
-        g.add_edge(1,2)
-        g.add_edge(2,3)
-        g.add_edge(n-1,n,-E(5)**2-E(5)**3)
-        g.add_edge(n,n-1,-E(5)**2-E(5)**3)
+        g.add_edge(1, 2)
+        g.add_edge(2, 3)
+        g.add_edge(n-1, n, -E(5)**2-E(5)**3)
+        g.add_edge(n, n-1, -E(5)**2-E(5)**3)
         return g
 
     def ascii_art(self, label=lambda x: x):
