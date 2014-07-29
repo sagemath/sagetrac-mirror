@@ -969,6 +969,11 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
 harmonic_number = Function_harmonic_number_generalized()
 
+def swap_harmonic(a,b): return harmonic_number(b,a)
+
+from sage.symbolic.pynac import register_symbol 
+register_symbol(swap_harmonic,{'maxima':'gen_harmonic_number'})
+
 class Function_harmonic_number(BuiltinFunction):
     r"""
     Harmonic number function, defined by

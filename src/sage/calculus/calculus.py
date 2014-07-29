@@ -1752,8 +1752,6 @@ maxima_polygamma = re.compile("psi\[(\d*)\]\(")  # matches psi[n]( where n is a 
 
 maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
 
-maxima_harmonic = re.compile("gen_harmonic_number\(([^,]+),([^,]+)\)")
-
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     """
     Given a string representation of a Maxima expression, parse it and
@@ -1890,7 +1888,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = polylog_ex.sub('polylog(\\1,', s)
     s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
-    s = maxima_harmonic.sub('gen_harmonic_number(\\2,\\1)', s) # swap arguments of gen_harmonic_number 
     
     if equals_sub:
         s = s.replace('=','==')
