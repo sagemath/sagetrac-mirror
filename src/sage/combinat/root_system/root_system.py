@@ -820,11 +820,11 @@ class RootSystem(UniqueRepresentation, SageObject):
             ------------------------------------------------------------
             The following tests failed: _test_root_lattice_realization
         """
-        if not hasattr(self.cartan_type(),"AmbientSpace"):
+        if not hasattr(self.cartan_type(), "AmbientSpace"):
             return None
 
         if base_ring is None:
-            if root_system.cartan_type().is_crystallographic():
+            if self.cartan_type().is_crystallographic():
                 base_ring = QQ
             else:
                 base_ring = UniversalCyclotomicField()
