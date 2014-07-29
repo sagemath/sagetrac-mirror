@@ -1479,7 +1479,7 @@ special_sage_to_max={
     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
-    sage.functions.log.harmonic_number : lambda N,X : [[mqapply],[[max_harmo, max_array],X],N],
+    sage.functions.log.harmonic_number : lambda N,X : [[max_harmo],X,N],
     sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 
