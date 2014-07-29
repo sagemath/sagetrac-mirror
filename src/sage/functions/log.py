@@ -857,9 +857,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             sage: loads(dumps(harmonic_number(x,5)))
             harmonic_number(x, 5)
         """
-        BuiltinFunction.__init__(self, "harmonic_number", nargs=2,
-                                 conversions={'maple':'harmonic',
-                                              'maxima':'gen_harmonic_number'})
+        BuiltinFunction.__init__(self, "harmonic_number", nargs=2)
 
     def __call__(self, *args, **kwds):
         r"""
@@ -969,10 +967,12 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
 harmonic_number = Function_harmonic_number_generalized()
 
-def swap_harmonic(a,b): return harmonic_number(b,a)
+def _swap_harmonic(a,b): return harmonic_number(b,a)
 
 from sage.symbolic.pynac import register_symbol 
-register_symbol(swap_harmonic,{'maxima':'gen_harmonic_number'})
+
+register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
+register_symbol(_swap_harmonic,{'maple':'harmonic'})
 
 class Function_harmonic_number(BuiltinFunction):
     r"""
