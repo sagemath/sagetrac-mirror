@@ -948,6 +948,33 @@ class TamariIntervalPoset(Element):
         new_covers = [[N - i[0], N - i[1]] for i in self._poset.cover_relations_iterator()]
         return TamariIntervalPoset(N - 1, new_covers)
 
+    def toggle(self, i):
+        r"""
+        `i`-toggle of ``self``.
+        """
+        P = self.poset()
+        n = self.size()
+        def tau(j):
+            if j == i:
+                return i + 1
+            elif j == i + 1:
+                return i
+            return j
+        Qdict = {i: [tau(j) for j in P.upper_covers(tau(i))] for i in P}
+        Q = Poset(Qdict)
+        try:
+            return TamariIntervalPoset(n, Q.cover_relations())
+        except ValueError:
+            return self
+
+    def fake_evac(self):
+        n = self.size()
+        T = self
+        for i in range(n):
+            for j in range(1, n-i):
+                T = T.toggle(j)
+        return T
+
     def insertion(self, i):
         """
         Return the Tamari insertion of an integer `i` into the
@@ -2499,6 +2526,8 @@ class TamariIntervalPoset(Element):
         dec = self.lower_contacts_decomposition()
         return TamariIntervalPosets.initial_rise_composition(dec[0].initial_rise_involution(), dec[1].initial_rise_involution(),dec[2])
 
+    iri = initial_rise_involution
+
     def b_composition(self, ip2, r):
         ip1 = self
         size = ip1.size() + ip2.size() +1
@@ -3490,3 +3519,44 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         """
         return self.element_class(self, self._size, relations)
 
+
+def iniints(n):
+    for T in BinaryTrees(n):
+        yield TamariIntervalPosets.initial_forest(T)
+
+def atoms(n):
+    for T in BinaryTrees(n):
+        yield T.tamari_interval(T)
+
+def viv1test(n):
+    for T in BinaryTrees(n):
+        P = T.tamari_interval(T)
+        Q = P.initial_rise_involution()
+        S = T.left_border_symmetry().left_right_symmetry().left_border_symmetry()
+        Q2 = S.tamari_interval(S)
+        if not (Q2 == Q):
+            print Q
+            return False
+    return True
+
+def viv2test(n):
+    for T in BinaryTrees(n):
+        P = TamariIntervalPosets.final_forest(T)
+        Q = P.initial_rise_involution()
+        S = T.left_right_symmetry().left_border_symmetry()
+        Q2 = TamariIntervalPosets.initial_forest(S)
+        if not (Q2 == Q):
+            print Q
+            return False
+    return True
+
+def viv3test(n):
+    for T in BinaryTrees(n):
+        P = TamariIntervalPosets.initial_forest(T)
+        Q = P.initial_rise_involution()
+        S = T.left_border_symmetry().left_right_symmetry()
+        Q2 = TamariIntervalPosets.final_forest(S)
+        if not (Q2 == Q):
+            print Q
+            return False
+    return True
