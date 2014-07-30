@@ -9,7 +9,7 @@ FLINT Arithmetic Functions
 ###########################################################################
 
 include "../../ext/interrupt.pxi"
-include "fmpz.pxi"
+from sage.libs.flint.fmpz cimport *
 
 cdef extern from "flint/fmpq.h":
     ctypedef void * fmpq_t

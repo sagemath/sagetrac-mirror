@@ -673,19 +673,19 @@ ext_modules = [
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-D_XPG6"],
               depends = flint_depends),
 
-    Extension('sage.libs.flint.fmpz_poly',
-              sources = ["sage/libs/flint/fmpz_poly.pyx"],
+    Extension('sage.libs.flint.fmpz_poly_class',
+              sources = ["sage/libs/flint/fmpz_poly_class.pyx"],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.flint.arith',
               sources = ["sage/libs/flint/arith.pyx"],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.fplll.fplll',
@@ -1624,12 +1624,28 @@ ext_modules = [
     Extension('sage.rings.finite_rings.finite_field_base',
               sources = ['sage/rings/finite_rings/finite_field_base.pyx']),
 
+    Extension('sage.rings.finite_rings.finite_field_flint_fq',
+              sources = ['sage/rings/finite_rings/finite_field_flint_fq.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
+    Extension('sage.rings.finite_rings.finite_field_flint_fq_nmod',
+              sources = ['sage/rings/finite_rings/finite_field_flint_fq_nmod.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
     Extension('sage.rings.finite_rings.element_base',
               sources = ['sage/rings/finite_rings/element_base.pyx']),
 
     Extension('sage.rings.finite_rings.integer_mod',
               sources = ['sage/rings/finite_rings/integer_mod.pyx'],
               libraries = ['gmp']),
+
+    Extension('sage.rings.finite_rings.element_flint_fq',
+              sources = ['sage/rings/finite_rings/element_flint_fq.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
+    Extension('sage.rings.finite_rings.element_flint_fq_nmod',
+              sources = ['sage/rings/finite_rings/element_flint_fq_nmod.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
 
     Extension('sage.rings.finite_rings.element_givaro',
               sources = ["sage/rings/finite_rings/element_givaro.pyx"],
