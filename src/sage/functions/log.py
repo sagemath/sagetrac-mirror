@@ -932,10 +932,24 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         """
         EXAMPLES:
 
-            sage: maxima(harmonic_number(x,2))
-            gen_harmonic_number(2,x)
+            sage: maxima_calculus(harmonic_number(x,2))
+            gen_harmonic_number(2,_SAGE_VAR_x)
+            sage: maxima_calculus(harmonic_number(3,harmonic_number(x,3),hold=True)).sage()
+            1/3^gen_harmonic_number(3,_SAGE_VAR_x)+1/2^gen_harmonic_number(3,_SAGE_VAR_x)+1
         """
-        return "gen_harmonic_number(%s,%s)" % (z, n) # swap arguments
+        if isinstance(n,str):
+            maxima_n=n
+        elif hasattr(n,'_maxima_init_'):
+            maxima_n=n._maxima_init_()
+        else:
+            maxima_n=str(n)
+        if isinstance(z,str):
+            maxima_z=z
+        elif hasattr(z,'_maxima_init_'):
+            maxima_z=z._maxima_init_()
+        else:
+            maxima_z=str(z)
+        return "gen_harmonic_number(%s,%s)" % (maxima_z, maxima_n) # swap arguments
 
     def _print_(self, z, m):
         """
