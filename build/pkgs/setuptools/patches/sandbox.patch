@@ -1,0 +1,12 @@
+diff -ur setuptools-5.4.1.orig/setuptools/sandbox.py setuptools-5.4.1/setuptools/sandbox.py
+--- setuptools-5.4.1.orig/setuptools/sandbox.py	2014-07-06 13:59:07.000000000 -0400
++++ setuptools-5.4.1/setuptools/sandbox.py	2014-07-29 23:01:29.823381069 -0400
+@@ -137,7 +137,7 @@
+         _file = _mk_single_path_wrapper('file', _file)
+     _open = _mk_single_path_wrapper('open', _open)
+     for name in [
+-        "stat", "listdir", "chdir", "open", "chmod", "chown", "mkdir",
++        "stat", "listdir", "chdir", "open", "chown", "mkdir",
+         "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
+         "startfile", "mkfifo", "mknod", "pathconf", "access"
+     ]:
