@@ -10,6 +10,7 @@ class MatroidCodes():
     def __init__(self,M=None,pmaps=None):
         self._M=M
         self._C=[]
+        self._parent=None
         if M is not None and pmaps is not None:
             self.add(pmaps)
 
@@ -158,8 +159,8 @@ def init_enum(nc,N):
             Mpcodes=[]
             for pmap in pmaps:
                 if is_pcode(M,pmap,nc):
-                    Mpmaps.append(pmap)
-            size_3_matroidcodes[key].append(MatroidCodes(M,Mpmaps))
+                    Mpcodes.append(pmap)
+            size_3_matroidcodes[key].append(MatroidCodes(M,Mpcodes))
     return size_3_matroidcodes
 
 def ncinstance_vars(nc):
@@ -170,6 +171,17 @@ def ncinstance_vars(nc):
             varset=varset.union(v)
     varset.union(Set(nc[1]))
     return varset
+
+def extend_matroids(Mcodes1):
+    Mcodes2 = {}
+    if len(Mcodes1.keys()) < 1:
+        return Mcodes2
+    n1 = sum(list(Mcodes1.keys()[0]))
+    n2 = n1+1
+    Mcodes1.keys[0]
+    for key in Mcodes1:
+        ext = next2([Mcode._M for M in ]
+        Mcodes2[(list(key)[0],n2-list(key)[0])] =
 
 def applicable_cons(def_vars,nc):
     cons=[]
@@ -204,12 +216,6 @@ def is_pcode(M,pmap,ncinstance):
     return True
 
 
-def see(N,mdict):
-    """
-    Return a dictionary that maps matroids in mdict to their respective extensions
-    The keys are tuples ``(r,index)`` where ``r`` is the rank and ``index`` is the
-    index of parent in the list it was in ``mdict``
-    """
 
 
 def extendpmaps(M,M_codes,M_child):
