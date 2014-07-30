@@ -974,7 +974,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             INPUT:
 
-            - ``index_set`` -- (default:None) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
+            - ``index_set`` -- (default:``None``) the Dynkin node set of the parabolic subsystem. It should be a tuple. The default value implies the entire Dynkin node set
 
             EXAMPLES::
 
@@ -993,11 +993,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             .. WARNING::
 
                 This returns an error if the Cartan type is not finite.
-
             """
 
             if not self.cartan_type().is_finite():
-                raise ValueError("Cartan type %s is not finite"%(self.cartan_type()))
+                raise ValueError("Cartan type %s is not finite" % self.cartan_type())
             if index_set is None or index_set == tuple(self.cartan_type().index_set()):
                 return self.zero()
             return sum(self.positive_roots_nonparabolic(index_set))
@@ -1006,12 +1005,14 @@ class RootLatticeRealizations(Category_over_base_ring):
             r"""
             Returns the (restricted) root poset associated to ``self``.
 
-            The elements are given by the positive roots (resp. non-simple, positive roots), and
-            `\alpha \leq \beta` iff `\beta - \alpha` is a non-negative linear combination of simple roots.
+            The elements are given by the positive roots
+            (resp. non-simple, positive roots), and `\alpha \leq
+            \beta` iff `\beta - \alpha` is a non-negative linear
+            combination of simple roots.
 
             INPUT:
 
-            - ``restricted`` -- (default:False) if True, only non-simple roots are considered.
+            - ``restricted`` -- (default:``False``) if True, only non-simple roots are considered.
             - ``facade`` -- (default:False) passes facade option to the poset generator.
 
             EXAMPLES::
@@ -1044,17 +1045,19 @@ class RootLatticeRealizations(Category_over_base_ring):
             pos_roots = set(self.positive_roots())
             simple_roots = self.simple_roots()
             if restricted:
-                pos_roots = [ beta for beta in pos_roots if beta not in simple_roots ]
+                pos_roots = [beta for beta in pos_roots
+                             if beta not in simple_roots]
             for root in pos_roots:
-                for i in range(1,dim+1):
+                for i in range(1, dim + 1):
                     root_cover = root + simple_roots[i]
                     if root_cover in pos_roots:
-                        rels.append((root,root_cover))
-            return Poset((pos_roots,rels),cover_relations=True,facade=facade)
+                        rels.append((root, root_cover))
+            return Poset((pos_roots, rels), cover_relations=True,
+                         facade=facade)
 
         def nonnesting_partition_lattice(self, facade=False):
             r"""
-            Return the lattice of nonnesting partitions
+            Return the lattice of nonnesting partitions.
 
             This is the lattice of order ideals of the root poset.
 
@@ -1148,13 +1151,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                                 if is_saturated_chain(multichain)]
             return LatticePoset((saturated_chains, is_componentwise_subset),
                                 facade=facade)
-
-        def positive_root_poset(self,facade=False):
-            Phi = self.positive_roots()
-            from sage.combinat.posets.posets import Poset
-            covers = [ (beta,beta.simple_reflection(i)) for beta in Phi
-                       for i in beta.descents() ]
-            return Poset((Phi,covers),cover_relations=True,facade=facade)            
 
         def almost_positive_roots(self):
             r"""
