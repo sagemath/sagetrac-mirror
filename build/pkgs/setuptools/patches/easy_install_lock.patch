@@ -1,15 +1,21 @@
-diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0.1/setuptools/command/easy_install.py
---- setuptools-2.0.1-orig/setuptools/command/easy_install.py	2013-12-13 17:31:51.000000000 +0100
-+++ setuptools-2.0.1/setuptools/command/easy_install.py	2014-02-28 20:03:44.805017754 +0100
-@@ -26,6 +26,7 @@
- import warnings
+diff -ur setuptools-5.4.1.orig/setuptools/command/easy_install.py setuptools-5.4.1/setuptools/command/easy_install.py
+--- setuptools-5.4.1.orig/setuptools/command/easy_install.py	2014-07-06 13:59:07.000000000 -0400
++++ setuptools-5.4.1/setuptools/command/easy_install.py	2014-07-29 23:10:19.924438980 -0400
+@@ -35,6 +35,13 @@
  import site
  import struct
-+import fcntl
- from glob import glob
- from distutils import log, dir_util
  
-@@ -1432,12 +1433,14 @@
++try:
++    import fcntl
++    fcntl.flock
++except (ImportError, AttributeError):
++    print('Error: platform or file system does not support locking')
++    sys.exit(1)
++
+ from setuptools import Command, _dont_write_bytecode
+ from setuptools.sandbox import run_setup
+ from setuptools.py31compat import get_path, get_config_vars
+@@ -1481,12 +1488,14 @@
          for path in yield_lines(self.paths):
              list(map(self.add, find_distributions(path, True)))
  
@@ -20,13 +26,13 @@ diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0
          saw_import = False
          seen = dict.fromkeys(self.sitedirs)
          if os.path.isfile(self.filename):
-             f = open(self.filename,'rt')
+             f = open(self.filename, 'rt')
 +            if lock:
 +                fcntl.flock(f, fcntl.LOCK_SH)
              for line in f:
                  if line.startswith('import'):
                      saw_import = True
-@@ -1465,10 +1468,12 @@
+@@ -1514,10 +1523,12 @@
  
      def save(self):
          """Write changed .pth file back to disk"""
@@ -36,13 +42,13 @@ diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0
 +        fcntl.flock(lock, fcntl.LOCK_EX)
 +        self._load(lock=False, paths=self.paths)
  
--        data = '\n'.join(map(self.make_relative,self.paths))
+-        data = '\n'.join(map(self.make_relative, self.paths))
 +        relative_paths = set(map(self.make_relative,self.paths))
 +        data = '\n'.join(relative_paths)
          if data:
              log.debug("Saving %s", self.filename)
              data = (
-@@ -1486,11 +1491,12 @@
+@@ -1535,11 +1546,12 @@
              f.write(data)
              f.close()
  
@@ -56,3 +62,5 @@ diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0
  
      def add(self, dist):
          """Add `dist` to the distribution map"""
+Only in setuptools-5.4.1/setuptools/command: easy_install.py.orig
+Only in setuptools-5.4.1/setuptools/command: easy_install.py.rej
