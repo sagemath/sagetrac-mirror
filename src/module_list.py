@@ -1648,7 +1648,8 @@ ext_modules = [
               libraries = ['pari', 'gmp']),
 
     Extension('sage.rings.finite_rings.hom_finite_field',
-              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"]),
+              sources = ["sage/rings/finite_rings/hom_finite_field.pyx"],
+              libraries = ['pari', 'gmp']),
 
     Extension('sage.rings.finite_rings.hom_prime_finite_field',
               sources = ["sage/rings/finite_rings/hom_prime_finite_field.pyx"]),

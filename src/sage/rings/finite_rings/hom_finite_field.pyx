@@ -99,8 +99,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+#include "sage/ext/interrupt.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.categories.homset import Hom
 from sage.structure.element cimport Element
@@ -114,6 +117,9 @@ from sage.categories.morphism cimport Morphism
 
 from sage.misc.cachefunc import cached_method
 
+import sage.libs.pari.pari_instance
+from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.gen cimport gen, FpX_ffisom
 
 cdef class SectionFiniteFieldHomomorphism_generic(Section):
     """
@@ -184,7 +190,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
     """
     A class implementing embeddings between finite fields.
     """
-    def __init__(self, parent, im_gens=None, check=True, section_class=None):
+    def __init__(self, parent, im_gens=None, check=True, section_class=None, algorithm=None):
         """
         TESTS::
 
@@ -215,6 +221,8 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             ...
             TypeError: The codomain is not a finite field
         """
+        cdef PariInstance PI = sage.libs.pari.pari_instance.pari
+        cdef gen p, P, Q, R
         domain = parent.domain()
         codomain = parent.codomain()
         if not is_FiniteField(domain):
@@ -224,7 +232,18 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         if domain.characteristic() != codomain.characteristic() or codomain.degree() % domain.degree() != 0:
             raise ValueError("No embedding of %s into %s" % (domain, codomain))
         if im_gens is None:
-            im_gens = domain.modulus().any_root(codomain)
+            if algorithm == "allombert":
+                pari_catch_sig_on()
+                p = PI(domain.characteristic())
+                # PARI wants polynomials with integer coefficients
+                P = PI(domain.modulus().change_ring(ZZ))
+                Q = PI(codomain.modulus().change_ring(ZZ))
+                pari_catch_sig_on()
+                R = PI.new_gen(FpX_ffisom(P.g, Q.g, p.g))
+                pari_catch_sig_off()
+                im_gens = codomain(R.list())
+            else:
+                im_gens = domain.modulus().any_root(codomain)
             check=False
         RingHomomorphism_im_gens.__init__(self, parent, im_gens, check)
         if section_class is None:
