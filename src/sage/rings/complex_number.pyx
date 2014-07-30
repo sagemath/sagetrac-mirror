@@ -1508,7 +1508,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: z = 1 + i
             sage: z.eta(omit_frac=True)
-            0.998129069925959 - 8.12769318...e-22*I
+            0.998129069925959
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.998129069925958 + 4.59099857829247e-19*I
 
@@ -1721,13 +1721,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.agm(b, algorithm="principal")
             0.338175462986180 - 0.0135326969565405*I
             sage: a.agm(b, algorithm="pari")
-            0.0806891850759812 + 0.239036532685557*I
+            -0.371591652351761 + 0.319894660206830*I
             sage: a.agm(b, algorithm="optimal").abs()
             0.490319232466314
             sage: a.agm(b, algorithm="principal").abs()
             0.338446122230459
             sage: a.agm(b, algorithm="pari").abs()
-            0.252287947683910
+            0.490319232466314
 
         TESTS:
 
@@ -2021,7 +2021,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: C, i = ComplexField(30).objgen()
             sage: (1+i).gamma_inc(2 + 3*i)
-            0.0020969149 - 0.059981914*I
+            0.002096914... - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I
             sage: C(2).gamma_inc(1 + i)

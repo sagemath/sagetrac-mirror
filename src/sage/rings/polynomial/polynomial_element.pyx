@@ -3225,9 +3225,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
             sage: K.pari_polynomial('a').nffactor("x^2+1")
-            Traceback (most recent call last):
-            ...
-            PariError: precision too low in floorr (precision loss in truncation)
+            Mat([x^2 + 1, 1])
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -4625,7 +4623,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: variable must have higher priority in gtopoly
+            PariError: incorrect priority in gtopoly: variable x <= a
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::
