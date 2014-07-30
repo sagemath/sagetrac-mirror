@@ -839,13 +839,13 @@ class Function_harmonic_number_generalized(BuiltinFunction):
     Maxima::
     
         sage: maxima(harmonic_number(x,2)) # maxima expect interface
-        gen_harmonic_number(2,x)
+        gen_harmonic_number(2,_SAGE_VAR_x)
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('gen_harmonic_number(3,x)')
         harmonic_number(x, 3)
         sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
         sage: c=maxima_lib(harmonic_number(x,2)); c
-        gen_harmonic_number(2,x)
+        gen_harmonic_number(2,_SAGE_VAR_x)
         sage: max_to_sr(c.ecl())
         harmonic_number(x, 2)
     """
@@ -894,22 +894,22 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             251/216
             sage: harmonic_number(3,3).n() # this goes from rational to float
             1.16203703703704
-            sage: harmonic_number(3.,3) # this uses zeta functions
+            sage: harmonic_number(3.,3) # the following uses zeta functions
             1.16203703703704
             sage: harmonic_number(5,0.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: Second argument to harmonic_number must be integer.
+            zeta(5) - 0.650300133161038
+            sage: harmonic_number(5,0.1).n()
+            0.386627621982332
         """
         if not isinstance(z, Expression):
-            if m == 0:
-                return z
-            elif m == 1:
-                return harmonic_m1._eval_(z)
-            elif m in ZZ:
-                return self._evalf_(z, m, parent=sage_structure_coerce_parent(z))
-            else:
-                raise ValueError('Second argument to harmonic_number must be integer.')
+            if not isinstance(m, Expression):
+                if m == 0:
+                    return z
+                elif m == 1:
+                    return harmonic_m1._eval_(z)
+                else:
+                    return self._evalf_(z, m, parent=sage_structure_coerce_parent(z))
+            return None
         elif m == 0:
             return z
         return None
@@ -934,7 +934,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
             sage: maxima_calculus(harmonic_number(x,2))
             gen_harmonic_number(2,_SAGE_VAR_x)
-            sage: maxima_calculus(harmonic_number(3,harmonic_number(x,3),hold=True)).sage()
+            sage: maxima_calculus(harmonic_number(3,harmonic_number(x,3),hold=True))
             1/3^gen_harmonic_number(3,_SAGE_VAR_x)+1/2^gen_harmonic_number(3,_SAGE_VAR_x)+1
         """
         if isinstance(n,str):
