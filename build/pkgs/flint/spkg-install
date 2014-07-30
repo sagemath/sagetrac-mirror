@@ -28,6 +28,8 @@ if [ "$UNAME" = "CYGWIN" ]; then
     FLINT_CONFIGURE="--disable-static $FLINT_CONFIGURE"
 fi
 
+CUR=`pwd`
+
 cd src
 
 echo "Patching FLINT."
@@ -42,7 +44,8 @@ done
 
 echo "Configuring FLINT."
 ./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
-    --with-mpfr="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" $FLINT_CONFIGURE
+    --with-mpfr="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" $FLINT_CONFIGURE \
+    --extensions="$CUR/ellmul-0.1"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Failed to configure FLINT."
     exit 1
