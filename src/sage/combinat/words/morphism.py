@@ -2254,8 +2254,8 @@ class WordMorphism(SageObject):
         else:
             raise NotImplementedError("The dual map E_k^*" +
                  " is implemented only for k = 1 (not %s)" % k)
-	
-	@cached_method
+    
+    @cached_method
     def rauzy_fractal_projection_exact(self, eig=None):
         r"""
         Returns a dictionary giving the projection of the canonical basis.
@@ -2339,7 +2339,7 @@ class WordMorphism(SageObject):
         canonical_basis = VectorSpace(K,size_alphabet).basis()
 
         return dict([(a, vb*x) for a, x in zip(alphabet, canonical_basis)]) #associe à chaque lettre son projeté (exact)
-	
+    
     @cached_method
     def rauzy_fractal_projection(self, eig=None, prec=53):
         r"""
@@ -2546,7 +2546,7 @@ class WordMorphism(SageObject):
 
         return orbit_points
 
-	def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None):
+    def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None):
         r"""
         Returns a dictionary of list of points associated with the pieces
         of the Rauzy fractal of ``self``.
@@ -2646,7 +2646,7 @@ class WordMorphism(SageObject):
                 orbit_points[a] = translated_copies[a]
 
         return orbit_points
-	
+    
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
                            colormap='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
@@ -3088,7 +3088,7 @@ class WordMorphism(SageObject):
 
         return M._column_ambient_module().change_ring(QQ).subspace(basis)
 
-def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=False):
+    def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=False):
         r"""
         Returns the beta-adic monoid associated to the substitution.
 
@@ -3097,7 +3097,7 @@ def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=Fa
             sage: WordMorphism('a->ab,b->ac,c->a').rauzy_fractal_beta_adic_monoid()
             Monoid of b-adic expansion with b root of x^3-x^2-x-1 and numerals set {0, 1, b-1}
         """
-        alphabet = self.domain().alphabet()
+        alphabet = self.domain().alphabet()    
         
         #Projection of each letter
         C0 = self.rauzy_fractal_projection_exact (eig=eig)
@@ -3138,5 +3138,4 @@ def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=Fa
             res.ss = ss.determinize(noempty=True)
         
         return res
-
 
