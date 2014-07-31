@@ -15,6 +15,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.groups import Groups
 
+
 class ComplexReflectionGroups(Category_singleton):
     r"""
     The category of finite dimensional complex reflection groups.
@@ -257,7 +258,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=ComplexReflectionGroups().example()
+                sage: W = ComplexReflectionGroups().example()
                 sage: W
                 Irreducible finite complex reflection group of rank 3 and type (3,1,3)
                 sage: W.an_element() # random
@@ -274,7 +275,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=ComplexReflectionGroup((1,1,4))
+                sage: W = ComplexReflectionGroup((1,1,4))
                 sage: W.some_elements()
                 [(1,7)(2,4)(5,6)(8,10)(11,12), (1,4)(2,8)(3,5)(7,10)(9,11), (2,5)(3,9)(4,6)(8,11)(10,12), (), (1,7)(2,4)(5,6)(8,10)(11,12)]
                 sage: W.order()    
@@ -348,7 +349,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
+                sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
                 sage: w.apply_simple_reflection_left(0)
@@ -410,7 +411,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
+                sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
                 sage: w.apply_simple_reflection(0, side = "left")
@@ -972,16 +973,16 @@ class ComplexReflectionGroups(Category_singleton):
 
                 EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
-                sage: [ t.as_matrix() for t in W ]
-                [
-                [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
-                [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
-                ]
+                    sage: W = ComplexReflectionGroup((1,1,3))
+                    sage: [ t.as_matrix() for t in W ]
+                    [
+                    [1 0]  [-1  0]  [ 1  1]  [-1 -1]  [ 0  1]  [ 0 -1]
+                    [0 1], [ 1  1], [ 0 -1], [ 1  0], [-1 -1], [-1  0]
+                    ]
 
-                sage: W = ComplexReflectionGroup((3,1,1))
-                sage: [ t.as_matrix() for t in W ]
-                [[1], [E(3)], [E(3)^2]]
+                    sage: W = ComplexReflectionGroup((3,1,1))
+                    sage: [ t.as_matrix() for t in W ]
+                    [[1], [E(3)], [E(3)^2]]
                 """
 
             def character_value(self):
@@ -1011,7 +1012,8 @@ class ComplexReflectionGroups(Category_singleton):
         class Irreducible(CategoryWithAxiom):
             def example(self):
                 r"""
-                Return an example of an irreducible finite complex reflection group.
+                Return an example of an irreducible finite complex
+                reflection group.
 
                 EXAMPLES::
 
@@ -1020,6 +1022,7 @@ class ComplexReflectionGroups(Category_singleton):
                 """
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
                 return ComplexReflectionGroup((4,2,3))
+
 
 class WellGeneratedComplexReflectionGroups(Category_singleton):
     """
@@ -1109,14 +1112,32 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
                     return max(self.degrees())
 
                 def number_of_reflections_of_full_support(self):
+                    """
+                    Return the number of reflection with full support.
+
+                    EXAMPLES::
+
+                        sage: W = ComplexReflectionGroup((1,1,3))
+                        sage: W.number_of_reflections_of_full_support()
+                        ?
+
+                        sage: W = ComplexReflectionGroup((4,1,3))
+                        sage: W.number_of_reflections_of_full_support()
+                        ?
+
+                        sage: W = ComplexReflectionGroup((4,4,3))
+                        sage: W.number_of_reflections_of_full_support()
+                        ?
+                    """
                     n = self.rank()
                     h = self.coxeter_number()
                     l = self.cardinality()
                     codegrees = self.codegrees()[1:]
-                    return n*h/l * prod( codeg for codeg in codegrees )
+                    return n * h / l * prod(codeg for codeg in codegrees)
 
                 @cached_method
-                def fuss_catalan_number(self, m, positive=False, polynomial=False):
+                def fuss_catalan_number(self, m, positive=False,
+                                        polynomial=False):
                     r"""
                     Return the ``m``-th Fuss-Catalan number associated
                     to ``self``.
@@ -1171,22 +1192,28 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
                     else:
                         f = lambda n: n
                     if positive:
-                        num = prod( f(codeg + m*h) for codeg in self.codegrees() if m > 0 or codeg > 0 )
+                        num = prod(f(codeg + m * h)
+                                   for codeg in self.codegrees()
+                                   if m > 0 or codeg > 0)
                     else:
-                        num = prod( f(deg + m*h) for deg in self.degrees() )
-                    den = prod( f(deg) for deg in self.degrees() )
+                        num = prod(f(deg + m * h) for deg in self.degrees())
+                    den = prod(f(deg) for deg in self.degrees())
                     ret = num / den
                     if ret in ZZ:
                         ret = ZZ(ret)
                     return ret
 
-                def catalan_number(self,positive=False):
-                    return self.fuss_catalan_number(1,positive=positive)
+                def catalan_number(self, positive=False):
+                    return self.fuss_catalan_number(1, positive=positive)
 
         # needs to be moved to cartesian product: class CartesianProduct(CartesianProductsCategory):
         class ParentMethods:
 
-            def fuss_catalan_number(self,m):
+            def fuss_catalan_number(self, m):
+                """
+                Return the ``m``-th Fuss-Catalan number associated
+                to ``self``.
+                """
                 return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
 
             def catalan_number(self):
