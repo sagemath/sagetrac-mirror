@@ -21,5 +21,6 @@ from string_monoid_element import (
 
 from free_abelian_monoid_element import is_FreeAbelianMonoidElement
 
+from beta_adic_monoid import BetaAdicMonoid
 
 

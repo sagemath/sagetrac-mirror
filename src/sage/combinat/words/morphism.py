@@ -2254,7 +2254,92 @@ class WordMorphism(SageObject):
         else:
             raise NotImplementedError("The dual map E_k^*" +
                  " is implemented only for k = 1 (not %s)" % k)
+	
+	@cached_method
+    def rauzy_fractal_projection_exact(self, eig=None):
+        r"""
+        Returns a dictionary giving the projection of the canonical basis.
 
+        See the method :meth:`rauzy_fractal_plot` for more details about the projection.
+
+        INPUT:
+
+        - ``eig`` - a real element of ``QQbar`` of degree >= 2 (default: ``None``).
+          The eigenvalue used for the projection.
+          It must be an eigenvalue of ``self.incidence_matrix()``.
+          The one used by default is the maximal eigenvalue of
+          ``self.incidence_matrix()`` (usually a Pisot number),
+          but for substitutions with more than 3 letters
+          other interesting choices are sometimes possible.
+
+        OUTPUT:
+
+            dictionary, letter -> element of ``QQbar``, giving the projection
+
+        EXAMPLES:
+
+        The projection for the Rauzy fractal of the Tribonacci substitution
+        is::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: s.rauzy_fractal_projection_exact()
+            {'1': 1, '3': b^2 - b - 1, '2': b - 1}
+
+        TESTS::
+
+            sage: t = WordMorphism('1->12,2->3,3->45,4->5,5->6,6->7,7->8,8->1')
+            sage: E = t.incidence_matrix().eigenvalues()
+            sage: x = [x for x in E if -0.8 < x < -0.7][0]
+            sage: t.rauzy_fractal_projection(prec=10)
+            {'1': 1, '3': b^2 - b, '2': b - 1, '5': b - 1, '4': -b^2 + 2, '7': -b^2 + b + 1, '6': b^2 - b, '8': b^2 - 1}
+            sage: t.rauzy_fractal_projection(eig=x, prec=10)
+            {'1': 1, '3': b^2 - b, '2': b - 1, '5': b^2 - 2*b + 1, '4': -b^2 + 2*b - 2, '7': -b + 1, '6': -b^2 + b - 1, '8': -b^2 + b}
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+            Paul Mercat (2013-07-18)
+        """
+        alphabet = self.domain().alphabet()
+        size_alphabet = len(alphabet)
+
+        # Eigenvalues
+        if eig is None:
+            pi = max(self.incidence_matrix().eigenvalues(), key=abs).minpoly()
+            #print pi
+            from sage.rings.qqbar import QQbar
+            ro = pi.roots(ring=QQbar)
+            #print ro
+            beta = min([a for a,b in ro], key=abs)
+        else:
+            beta = eig
+
+        # Test is deg(beta) >= 2
+        from sage.rings.qqbar import QQbar
+        if QQbar(beta).degree() < 2:
+            raise ValueError, "The algebraic degree of ``eig`` must be at least two."
+
+        # Algebraic conjugates of beta
+        from sage.rings.qqbar import QQbar
+        beta_conjugates = beta.minpoly().roots(QQbar, multiplicities=False)
+        if not beta.imag():
+            beta_conjugates.remove(beta)
+        for x in beta_conjugates:
+            if x.imag():
+                beta_conjugates.remove(x.conjugate())
+
+        # Left eigenvector vb in the number field Q(beta)
+        from sage.rings.number_field.number_field import NumberField
+        
+        K = NumberField(beta.minpoly(), 'b', embedding = QQbar(beta))
+        vb = (self.incidence_matrix()-K.gen()).kernel().basis()[0]
+
+        # Projections of canonical base vectors from R^size_alphabet to C, using vb
+        from sage.modules.free_module import VectorSpace
+        canonical_basis = VectorSpace(K,size_alphabet).basis()
+
+        return dict([(a, vb*x) for a, x in zip(alphabet, canonical_basis)]) #associe à chaque lettre son projeté (exact)
+	
     @cached_method
     def rauzy_fractal_projection(self, eig=None, prec=53):
         r"""
@@ -2461,6 +2546,107 @@ class WordMorphism(SageObject):
 
         return orbit_points
 
+	def rauzy_fractal_points_exact (self, n=None, exchange=False, eig=None, translate=None):
+        r"""
+        Returns a dictionary of list of points associated with the pieces
+        of the Rauzy fractal of ``self``.
+
+        INPUT:
+
+            See the method :meth:`rauzy_fractal_plot` for a description
+            of the options and more examples.
+
+        OUTPUT:
+
+            dictionary of list of points
+
+        EXAMPLES:
+
+        The Rauzy fractal of the Tribonacci substitution and the number of
+        points in the piece of the fractal associated with ``'1'``, ``'2'``
+        and ``'3'`` are respectively::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=100)
+            sage: len(D['1'])
+            54
+            sage: len(D['2'])
+            30
+            sage: len(D['3'])
+            16
+
+        TESTS::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.rauzy_fractal_points(n=100, exchange=True, translate=[(3,1,-2), (5,-33,8)])
+            sage: len(D['1'])
+            108
+
+        AUTHOR:
+
+            Timo Jolivet (2012-06-16)
+            Paul Mercat (2014-06-25)
+        """
+        alphabet = self.domain().alphabet()
+        canonical_basis_proj = self.rauzy_fractal_projection_exact(eig=eig)
+
+        # if exchange, set the projection to its opposite
+        if exchange:
+            for a in canonical_basis_proj:
+                canonical_basis_proj[a] = - canonical_basis_proj[a]
+
+        # Compute a fixed point u
+        if exchange:
+            u = iter(self.reversal().periodic_points()[0][0])
+        else:
+            u = iter(self.periodic_points()[0][0])
+
+        # Manage various options in function of dimension
+        if n is None:
+            n = 1000
+        
+        zero = canonical_basis_proj[canonical_basis_proj.keys()[0]].parent().zero()
+
+        # Compute orbit points to plot
+        S = 0
+        orbit_points = dict([(a, [zero]) for a in alphabet])
+        for _ in xrange(n):
+            a = u.next()
+            S += canonical_basis_proj[a]
+            orbit_points[a].append(S)
+
+        # Manage translated copies
+        if translate is not None:
+
+            #if isinstance(translate, dict):
+            #    for a in translate.keys():
+            #        translate[a] = [vector(RealField_prec, v) for v in translate[a]]
+            #
+            #else:
+            #    translate = [vector(RealField_prec, v) for v in translate]
+
+            for a in alphabet:
+                translated_copies = dict([(i,[]) for i in alphabet])
+
+                if isinstance(translate, list):
+                    to_treat = translate
+
+                elif isinstance(translate, dict):
+                    try:
+                        to_treat = translate[a]
+                    except KeyError:
+                        to_treat = []
+
+                for x in to_treat:
+                    v = 0
+                    for i,z in zip(alphabet,x):
+                        v += z*canonical_basis_proj[i]
+                    translated_copies[a] += [v + w for w in orbit_points[a]]
+
+                orbit_points[a] = translated_copies[a]
+
+        return orbit_points
+	
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
                            colormap='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
@@ -2901,3 +3087,56 @@ class WordMorphism(SageObject):
                 basis.extend((factor[0])(M).right_kernel().basis())
 
         return M._column_ambient_module().change_ring(QQ).subspace(basis)
+
+def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=False):
+        r"""
+        Returns the beta-adic monoid associated to the substitution.
+
+        EXAMPLES::
+
+            sage: WordMorphism('a->ab,b->ac,c->a').rauzy_fractal_beta_adic_monoid()
+            Monoid of b-adic expansion with b root of x^3-x^2-x-1 and numerals set {0, 1, b-1}
+        """
+        alphabet = self.domain().alphabet()
+        
+        #Projection of each letter
+        C0 = self.rauzy_fractal_projection_exact (eig=eig)
+        
+        if verb: print "C0=%s"%C0
+        
+        K = C0[alphabet[0]].parent()
+                
+        #Projection of prefixs
+        from automata import Automaton
+        ss = Automaton(loops=True, multiedges=True)
+        C = {}
+        i = 0
+        for a in alphabet:
+            s = K.zero() #sum of the projection of firsts letters of the word corresponding to this letter
+            for a2 in self._morph[a]:
+                C[i] = s
+                i=i+1
+                ss.add_edge(a2, a, s)
+                s += C0[a2]
+        
+        if verb: print "C=%s"%C
+        
+        C = Set(C.values()) #ensemble des polynômes en beta qui sont des chiffres
+        
+        from sage.monoids.beta_adic_monoid import BetaAdicMonoid
+        res = BetaAdicMonoid(K.gen(), C)
+        
+        ss.A = C
+        ss.I = ss.vertices()
+        if I is not None:
+            ss.F = I
+        else:
+            ss.F = ss.vertices()
+        if invss:
+            res.ss = ss.transpose()
+        else:
+            res.ss = ss.determinize(noempty=True)
+        
+        return res
+
+
