@@ -3460,9 +3460,51 @@ cdef class BinaryMatroid(LinearMatroid):
                                         self, Npcl, nloops) is True:
                         # print nbases, nused
                         return True
+
         # print nbases, nused
         return False
 
+
+    cpdef _has_binary_minor2(self, N=None):
+        if self is N:
+            return True
+        rd = self.full_rank() - N.full_rank()
+        cd = self.full_corank() - N.full_corank()
+        if rd < 0 or cd < 0:
+            return False
+        cdef long r, c, nloops, nbases, nused
+        cdef BinaryMatrix M_rmat, N_rmat, M_rmatT
+        Ms = self.simplify()
+        Ns = N.simplify()
+        N_rmat = Ns._reduced_representation()
+        Npcl = [k - N.loops() for k in N.flats(1) if len(k - N.loops()) > 1]
+        nloops = len(N.loops())
+        used_rmats = []
+        nbases = 0
+        nused = 0
+        for B1 in Ms.bases():
+            nbases = nbases + 1
+            M_rmat = Ms._reduced_representation(B=B1)
+#            if is_new_rmat(M_rmat, used_rmats):
+#                nused = nused + 1
+#                used_rmats.append(M_rmat)
+            M_R, M_C = Ms._current_rows_cols()
+            M_R1, M_C1 = self._current_rows_cols(B=B1)
+            if M_rmat.ncols() == 0 and N_rmat.ncols() > 0:
+                # Ms is uniform while Ns has nonloopy/parallel nonbases
+                # print nbases ,nused
+                return False
+            else:
+                # Both Ns and Ms are not uniform
+                N_R, N_C = Ns._current_rows_cols()
+                if _check_bin_minor(M_rmat, N_rmat,
+                                    [M_R, M_C, N_R, N_C, M_R1],
+                                    self, Npcl, nloops) is True:
+                    # print nbases, nused
+                    return True
+
+        # print nbases, nused
+        return False
 
     # graphicness test
     cpdef is_graphic(self):

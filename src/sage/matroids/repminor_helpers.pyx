@@ -1,4 +1,4 @@
-# cython: profile = True
+# cython: profile = False
 r"""
 Implements helper routines for checking existance of a represented minor
 
@@ -224,7 +224,8 @@ cdef _pcl_have_maps(M, Npcl, iso_map, indices, long nloops):
 
     """
     # contract the rows that are unmapped
-    M2 = M.contract(set(indices[4]) - set(iso_map.values()))
+    # M2 = M.contract(set(indices[4]) - set(iso_map.values()))
+    M2 = M._minor(contractions=set(indices[4]) - set(iso_map.values()),deletions=set())
     if len(M2.loops()) < nloops:
         return False
     # for each repmap check if it has big enough parallel class
