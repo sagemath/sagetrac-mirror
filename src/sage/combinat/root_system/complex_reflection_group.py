@@ -33,19 +33,16 @@ from sage.categories.complex_reflection_groups import ComplexReflectionGroups, W
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
 from sage.matrix.all import Matrix, identity_matrix
 from sage.matrix.matrix import is_Matrix
-from sage.interfaces.gap3 import GAP3Record, gap3
-from sage.interfaces.gap import gap
+from sage.interfaces.gap3 import gap3
 from sage.combinat.words.word import Word
-from sage.rings.universal_cyclotomic_field.all import UniversalCyclotomicField
-from sage.rings.arith import gcd, lcm
+from sage.rings.arith import lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
 
 
 class FiniteComplexReflectionGroup(UniqueRepresentation,
@@ -68,16 +65,16 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             elif W_type in ZZ:
                 call_str = 'ComplexReflectionGroup({})'.format(W_type)
             elif isinstance(W_type, CartanMatrix):
-                call_str = 'PermRootGroup(IdentityMat(%s),%s)'%(W_type._rank,str(W_type._M._gap_()))
+                call_str = 'PermRootGroup(IdentityMat(%s),%s)' % (W_type._rank,str(W_type._M._gap_()))
             elif is_Matrix(W_type):
-                call_str = 'PermRootGroup(IdentityMat(%s),%s)'%(W_type._rank,str(W_type._gap_()))
+                call_str = 'PermRootGroup(IdentityMat(%s),%s)' % (W_type._rank,str(W_type._gap_()))
             elif is_coxeter_group:
                 if W_type[0] == "I":
-                    call_str = 'CoxeterGroup("I",2,%s)'%W_type[1]
+                    call_str = 'CoxeterGroup("I",2,%s)' % W_type[1]
                 else:
-                    call_str = 'CoxeterGroup("%s",%s)'%W_type
+                    call_str = 'CoxeterGroup("%s",%s)' % W_type
             else:
-                call_str = 'ComplexReflectionGroup%s'%str(W_type)
+                call_str = 'ComplexReflectionGroup%s' % str(W_type)
             W_components.append(gap3(call_str))
             X = list(W_components[-1].ReflectionType())
             if len(X) > 1:
@@ -90,12 +87,12 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             if hasattr(X.ST,"sage"):
                 type_dict["ST"] = X.ST.sage()
             elif hasattr(X.p,"sage") and hasattr(X.q,"sage"):
-                type_dict["ST"] = ( X.p.sage(), X.q.sage(), X.rank.sage() )
+                type_dict["ST"] = (X.p.sage(), X.q.sage(), X.rank.sage())
             elif hasattr(X.bond,"sage"):
                 type_dict["bond"] = X.bond.sage()
             if type_dict["series"] == "B" and X.cartanType.sage() == 1:
                 type_dict["series"] = "C"
-            reflection_type.append( type_dict )
+            reflection_type.append(type_dict)
 
         self._type = reflection_type
         self._gap_group = prod(W_components)
@@ -121,24 +118,24 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         if len(self._type) == 1:
             category = category.Irreducible()
 
-        PermutationGroup_generic.__init__(self, gens = generators, canonicalize=False, category = category)
+        PermutationGroup_generic.__init__(self, gens=generators, canonicalize=False, category=category)
 
         from sage.sets.family import Family
         l_set = range(len(self.gens()))
         if self._index_set is None:
-            self._index_set = Family(dict( (i,i) for i in l_set))
+            self._index_set = Family(dict((i, i) for i in l_set))
         else:
             assert sorted(self._index_set.values()) == l_set
         self._index_set_inverse = self._index_set.inverse_family()
         Nstar_set = range(self.nr_reflecting_hyperplanes())
         if self._hyperplane_index_set is None:
-            self._hyperplane_index_set = Family(dict( (i,i) for i in Nstar_set))
+            self._hyperplane_index_set = Family(dict((i, i) for i in Nstar_set))
         else:
             assert sorted(self._hyperplane_index_set.values()) == Nstar_set
         self._hyperplane_index_set_inverse = self._hyperplane_index_set.inverse_family()
         N_set = range(self.nr_reflections())
         if self._reflection_index_set is None:
-            self._reflection_index_set = Family(dict( (i,i) for i in N_set))
+            self._reflection_index_set = Family(dict((i, i) for i in N_set))
         else:
             assert sorted(self._reflection_index_set.values()) == N_set
         self._reflection_index_set_inverse = self._reflection_index_set.inverse_family()
@@ -172,7 +169,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             type_str += self._irrcomp_repr_(W_type)
             type_str += ' x '
         type_str = type_str[:-3]
-        return 'Reducible finite complex reflection group of rank %s and type %s'%(self._rank,type_str)
+        return 'Reducible finite complex reflection group of rank %s and type %s' % (self._rank,type_str)
 
     def __iter__(self):
         r"""
@@ -194,10 +191,10 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 yield w
         else:
             self._elements = []
-            inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
+            inv_dict = dict((self._index_set[i],i) for i in self._index_set)
             for w,word in self.magma_closure_iter(I=self.gens(),return_word=True):
                 if w._reduced_word is None:
-                    w._reduced_word = Word( inv_dict[i] for i in word )
+                    w._reduced_word = Word(inv_dict[i] for i in word)
                 self._elements.append(w)
                 yield w
 
@@ -220,10 +217,10 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             sage: W.index_set()
             ['a', 'b', 'c']
         """
-        return [ self._index_set_inverse[i] for i in xrange(len(self._index_set)) ]
+        return [self._index_set_inverse[i] for i in xrange(len(self._index_set))]
 
     def series(self):
-        return [ self._type[i]['series'] for i in range(len(self._type)) ]
+        return [self._type[i]['series'] for i in range(len(self._type))]
 
     @cached_method
     def hyperplane_index_set(self):
@@ -242,7 +239,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             sage: W.hyperplane_index_set()
             ['a', 'b', 'c', 'd', 'e', 'f']
         """
-        return [ self._hyperplane_index_set_inverse[i] for i in xrange(len(self._hyperplane_index_set)) ]
+        return [self._hyperplane_index_set_inverse[i] for i in xrange(len(self._hyperplane_index_set))]
 
     @cached_method
     def distinguished_reflections(self):
@@ -273,14 +270,14 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         """
         from sage.sets.family import Family
         # imports all distinguished reflections from gap, the Set is used as every such appears multiple times.
-        T = [ self(str(r)) for r in self._gap_group.Reflections() ]
+        T = [self(str(r)) for r in self._gap_group.Reflections()]
         # makes sure that the simple reflections come first
         gens = self.gens()
-        R = [ t for t in gens ]
+        R = [t for t in gens]
         for t in T:
             if t not in R:
                 R.append(t)
-        return Family(self._hyperplane_index_set.keys(), lambda i: R[self._hyperplane_index_set[i]] )
+        return Family(self._hyperplane_index_set.keys(), lambda i: R[self._hyperplane_index_set[i]])
 
     def distinguished_reflection(self, i):
         r"""
@@ -336,7 +333,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             sage: W.reflection_index_set()
             ['a', 'b', 'c', 'd', 'e', 'f']
         """
-        return [ self._reflection_index_set_inverse[i] for i in xrange(len(self._reflection_index_set)) ]
+        return [self._reflection_index_set_inverse[i] for i in xrange(len(self._reflection_index_set))]
 
     @cached_method
     def reflections(self):
@@ -365,12 +362,12 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         from sage.sets.family import Family
         T = self.distinguished_reflections().values()
         for i in xrange(self.nr_reflecting_hyperplanes()):
-            T.extend( [ T[i]**j for j in range(2,T[i].order()) ] )
-        return Family(self._reflection_index_set.keys(), lambda i: T[self._reflection_index_set[i]] )
+            T.extend([T[i] ** j for j in range(2, T[i].order())])
+        return Family(self._reflection_index_set.keys(), lambda i: T[self._reflection_index_set[i]])
 
     def reflection(self,i):
         r"""
-        Return the ``i``-th reflection of ``self``
+        Return the ``i``-th reflection of ``self``.
 
         EXAMPLES::
 
@@ -432,7 +429,6 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             sage: W.is_crystallographic()
             False
         """
-        from sage.rings.all import QQ
         return all(t.as_matrix().base_ring() is QQ
                    for t in self.simple_reflections())
 
@@ -486,11 +482,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             irr_comps = []
             for W_type in self._type:
                 if W_type["series"] == "A":
-                    W_str = (1,1,W_type["rank"]+1)
+                    W_str = (1, 1, W_type["rank"]+1)
                 elif W_type["series"] == "B":
-                    W_str = (2,1,W_type["rank"])
+                    W_str = (2, 1, W_type["rank"])
                 elif W_type["series"] == "D":
-                    W_str = (2,2,W_type["rank"])
+                    W_str = (2, 2, W_type["rank"])
                 elif W_type["series"] == "E":
                     if W_type["rank"] == 6:
                         W_str = 35
@@ -501,14 +497,14 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 elif W_type["series"] == "F":
                     W_str = 28
                 elif W_type["series"] == "G":
-                    W_str = (6,6,2)
+                    W_str = (6, 6, 2)
                 elif W_type["series"] == "H":
                     if W_type["rank"] == 3:
                         W_str = 23
                     elif W_type["rank"] == 4:
                         W_str = 30
                 elif W_type["series"] == "I":
-                    W_str = (W_type["bond"],W_type["bond"],2)
+                    W_str = (W_type["bond"], W_type["bond"], 2)
                 elif "ST" in W_type:
                     W_str = W_type["ST"]
                 else:
@@ -525,24 +521,24 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         EXAMPLES::
 
             sage: W = ComplexReflectionGroup((1,1,3))
-            sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
+            sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
             [word: , word: 0, word: 01]
 
             sage: W = ComplexReflectionGroup((1,1,4))
-            sage: sorted([ w.reduced_word() for w in W.conjugacy_classes_representatives() ])
+            sage: sorted([w.reduced_word() for w in W.conjugacy_classes_representatives()])
             [word: , word: 0, word: 01, word: 012, word: 20]
 
             sage: W = ComplexReflectionGroup((3,1,2))
-            sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
+            sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
             [word: , word: 0, word: 00, word: 1010, word: 10100, word: 100100, word: 1, word: 01, word: 001]
 
 
             sage: W = ComplexReflectionGroup(23)
-            sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
+            sage: [w.reduced_word() for w in W.conjugacy_classes_representatives()]
             [word: , word: 0, word: 01, word: 20, word: 12, word: 012, word: 0101, word: 01012, word: 012010121, word: 210120101201010]
         """
         if self._conjugacy_classes_representatives is None:
-            S = str(gap3('List(ConjugacyClasses(%s),Representative)'%self._gap_group._name))
+            S = str(gap3('List(ConjugacyClasses(%s),Representative)' % self._gap_group._name))
             exec('self._conjugacy_classes_representatives='+gap_return(S))
         return self._conjugacy_classes_representatives
 
@@ -560,19 +556,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             frozenset([(1,2,6)(3,4,5), (1,6,2)(3,5,4)])
 
             sage: W = ComplexReflectionGroup((1,1,4))
-            sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
+            sage: sum(len(C) for C in  W.conjugacy_classes()) == W.cardinality()
             True
 
             sage: W = ComplexReflectionGroup((3,1,2))
-            sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
+            sage: sum(len(C) for C in  W.conjugacy_classes()) == W.cardinality()
             True
 
             sage: W = ComplexReflectionGroup(23)
-            sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
+            sage: sum(len(C) for C in  W.conjugacy_classes()) == W.cardinality()
             True
        """
         from sage.sets.family import Family
-        return Family(self.conjugacy_classes_representatives(), lambda w: w.conjugacy_class() )
+        return Family(self.conjugacy_classes_representatives(), lambda w: w.conjugacy_class())
 
     def rank(self):
         r"""
@@ -642,7 +638,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             except:
                 return self._gap_group.ReflectionDegrees().sage()
         else:
-            return add( [comp.degrees() for comp in self.irreducible_components()], [] )
+            return add([comp.degrees() for comp in self.irreducible_components()], [])
 
     cardinality = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
 
@@ -677,7 +673,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
             sage: W.codegrees()
             [0, 1, 2, 0, 3]
-            
+
             sage: W = ComplexReflectionGroup((1,1,4),(6,1,12),23) # fails in GAP3
             sage: W.codegrees()
             [0, 1, 2, 0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 0, 4, 8]
@@ -718,7 +714,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         from sage.sets.family import Family
         class_representatives = self.conjugacy_classes_representatives()
         Ev_list = self._gap_group.ReflectionEigenvalues().sage()
-        return Family( class_representatives, lambda w: Ev_list[class_representatives.index(w)] )
+        return Family(class_representatives, lambda w: Ev_list[class_representatives.index(w)])
 
     @cached_method
     def reflection_eigenvalues(self, w, test_class_repr=True):
@@ -750,7 +746,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
     def simple_roots(self):
         r"""
         Return the *simple roots* of ``self``.
-        
+
         These are the roots corresponding to the simple reflections.
 
         EXAMPLES::
@@ -930,13 +926,13 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
         """
         from sage.rings.polynomial.all import PolynomialRing
 
-        I = [str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))' % (self._gap_group._name,self.rank()-1)) ]
-        P = PolynomialRing(QQ, ['x%s'%i for i in range(0,self.rank())])
+        I = [str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))' % (self._gap_group._name, self.rank() - 1))]
+        P = PolynomialRing(QQ, ['x%s' % i for i in range(self.rank())])
         x = P.gens()
         for i in range(len(I)):
             I[i] = I[i].replace('^','**')
             for j in range(len(x)):
-                I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
+                I[i] = I[i].replace('x%s' % j, '*x[%s]' % j)
         I = [eval(p) for p in I]
         return I
 
@@ -1007,10 +1003,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 010 0
             """
             W = self.parent()
-            for w in W._conjugacy_classes.keys():
-                if self in W._conjugacy_classes[w]:
+            conj = W._conjugacy_classes
+            for w in conj:
+                if self in conj[w]:
                     return w
-            return W.conjugacy_classes_representatives()[ gap3("PositionClass(%s,%s)"%(W._gap_group._name,self)).sage()-1 ]
+            return W.conjugacy_classes_representatives()[gap3("PositionClass(%s,%s)" % (W._gap_group._name,self)).sage() - 1]
 
         def conjugacy_class(self):
             r"""
@@ -1030,17 +1027,17 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             W = self.parent()
             if self not in W.conjugacy_classes_representatives():
                 self = self.conjugacy_class_representative()
-            if self in W._conjugacy_classes.keys():
+            if self in W._conjugacy_classes:
                 return W._conjugacy_classes[self]
             gens = W.simple_reflections()
             count = 0
             orbit = [self]
-            orbit_set = set(orbit);
+            orbit_set = set(orbit)
             while count < len(orbit):
                 w = orbit[count]
                 count += 1
                 for s in gens:
-                    w_new = s*w*s**-1
+                    w_new = s * w * s**-1
                     if w_new not in orbit_set:
                         orbit.append(w_new)
                         orbit_set.add(w_new)
@@ -1057,18 +1054,18 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
 
                 sage: W = ComplexReflectionGroup((5,1,1),index_set=['a'],hyperplane_index_set=['x'],reflection_index_set=['A','B','C','D'])
 
-                sage: [ w.reduced_word() for w in W ]
+                sage: [w.reduced_word() for w in W]
                 [word: , word: a, word: aa, word: aaa, word: aaaa]
-            
+
             .. seealso::
 
                 :meth:`reduced_word_in_reflections`
             """
             W = self.parent()
             if self._reduced_word is None:
-                inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )                    
-                gens = [ W.simple_reflection(i) for i in W.index_set() ]
-                word = gap_factorization(self,gens,inv_dict)
+                inv_dict = {W._index_set[i]: i for i in W._index_set}
+                gens = [W.simple_reflection(j) for j in W.index_set()]
+                word = gap_factorization(self, gens, inv_dict)
                 self._reduced_word = Word(word)
             return self._reduced_word
 
@@ -1081,9 +1078,9 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
 
                 sage: W = ComplexReflectionGroup((5,1,1),index_set=['a'],reflection_index_set=['A','B','C','D'])
 
-                sage: [ w.reduced_word_in_reflections() for w in W ]
+                sage: [w.reduced_word_in_reflections() for w in W]
                 [word: , word: A, word: B, word: C, word: D]
-            
+
             .. seealso::
 
                 :meth:`reduced_word`
@@ -1096,25 +1093,28 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 r = self.reflection_length()
                 for i in range(len(R)):
                     t = R[i]
-                    w = t*self
+                    w = t * self
                     if w.reflection_length() < r:
                         return Word([i]) + w.reduced_word_in_reflections()
-            else: 
-                inv_dict = dict( (W._reflection_index_set[i], i) for i in W._reflection_index_set.keys() )
-                gens = [ W.reflection(i) for i in W.reflection_index_set() ]
-                return Word(gap_factorization(self,gens, inv_dict))
+            else:
+                inv_dict = {W._reflection_index_set[i]: i
+                            for i in W._reflection_index_set}
+                gens = [W.reflection(j) for j in W.reflection_index_set()]
+                return Word(gap_factorization(self, gens, inv_dict))
 
         @cached_in_parent_method
         def length(self):
             r"""
-            Return the length of ``self`` in generating reflections. This is
-            the minimal numbers of generating reflections needed to obtain ``self``.
+            Return the length of ``self`` in generating reflections.
+
+            This is the minimal numbers of generating reflections
+            needed to obtain ``self``.
 
             EXAMPLES::
 
                 tba
             """
-            return len( self.reduced_word() )
+            return len(self.reduced_word())
 
         @cached_in_parent_method
         def reflection_length(self, in_unitary_group=False):
@@ -1129,19 +1129,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 2, 2]
 
                 sage: W = ComplexReflectionGroup((2,1,2))
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 2, 2, 2]
 
                 sage: W = ComplexReflectionGroup((2,2,2))
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 2]
 
                 sage: W = ComplexReflectionGroup((3,1,2))
-                sage: sorted([ t.reflection_length() for t in W ])
+                sage: sorted([t.reflection_length() for t in W])
                 [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             """
             W = self.parent()
@@ -1156,13 +1156,6 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 return w.reflection_length(in_unitary_group=in_unitary_group)
 
         @cached_in_parent_method
-        def conjugacy_class_representative(self):
-            conj = self.parent().conjugacy_classes()
-            for w in conj.keys():
-                if self in conj[w]:
-                    return w
-
-        @cached_in_parent_method
         def right_coset_representatives(self):
             r"""
             Return the right coset representatives of ``self``.
@@ -1170,7 +1163,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
-                sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.right_coset_representatives() ]
+                sage: for w in W: print w.reduced_word(), [v.reduced_word() for v in w.right_coset_representatives()]
                  [word: , word: 1, word: 0, word: 10, word: 01, word: 010]
                 0 [word: , word: 1, word: 10]
                 1 [word: , word: 0, word: 01]
@@ -1180,9 +1173,9 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             """
             W = self.parent()
             T = W.reflections()
-            T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
-            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = '+gap_return(S,coerce_obj='W'))
+            T_fix = [i + 1 for i in T if self.fix_space().is_subspace(T[i].fix_space())]
+            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))' % (W._gap_group._name, W._gap_group._name, T_fix)))
+            exec('L = ' + gap_return(S, coerce_obj='W'))
             return L
 
         def left_coset_representatives(self):
@@ -1196,7 +1189,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
-                sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.left_coset_representatives() ]
+                sage: for w in W: print w.reduced_word(), [v.reduced_word() for v in w.left_coset_representatives()]
                  [word: , word: 1, word: 0, word: 01, word: 10, word: 010]
                 0 [word: , word: 1, word: 01]
                 1 [word: , word: 0, word: 10]
@@ -1204,7 +1197,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 10 [word: ]
                 010 [word: , word: 1, word: 0]
             """
-            return [ w**-1 for w in self.right_coset_representatives() ]
+            return [w**-1 for w in self.right_coset_representatives()]
 
         @cached_in_parent_method
         def as_matrix(self):
@@ -1215,8 +1208,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
 
                 sage: W = ComplexReflectionGroup((1,1,3))
                 sage: for w in W:
-                ...       print w.reduced_word()
-                ...       print w.as_matrix()
+                ....:     print w.reduced_word()
+                ....:     print w.as_matrix()
                 [1 0]
                 [0 1]
                 0
@@ -1239,25 +1232,27 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             if W._reflection_representation is None:
                 Delta = W.simple_roots()
                 Phi = W.roots()
-                M = Matrix([ Phi[self(Phi.index(alpha)+1)-1] for alpha in Delta ])
+                M = Matrix([Phi[self(Phi.index(alpha) + 1) - 1] for alpha in Delta])
                 return W.base_change_matrix() * M
             else:
                 refl_repr = W._reflection_representation
-                id_mat = identity_matrix(QQ,refl_repr[W.index_set()[0]].nrows())
-                return prod( [refl_repr[i] for i in self.reduced_word()], id_mat  )
+                id_mat = identity_matrix(QQ, refl_repr[W.index_set()[0]].nrows())
+                return prod([refl_repr[i] for i in self.reduced_word()], id_mat)
 
         @cached_in_parent_method
         def fix_space(self):
             r"""
-            Return the fix space of ``self``. This is the sub vector space of the
-            underlying vector space on which ``self`` acts trivially.
+            Return the fix space of ``self``.
+
+            This is the sub vector space of the underlying vector
+            space on which ``self`` acts trivially.
 
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
                 sage: for w in W:
-                ...       print w.reduced_word()
-                ...       print w.fix_space()                
+                ....:     print w.reduced_word()
+                ....:     print w.fix_space()
                 Vector space of degree 2 and dimension 2 over Universal Cyclotomic Field endowed with the Zumbroich basis
                 Basis matrix:
                 [1 0]
@@ -1283,12 +1278,15 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
                 Basis matrix:
                 [ 1 -1]
             """
-            return (self.as_matrix()-identity_matrix(UniversalCyclotomicField(), self.parent().rank())).right_kernel()
+            UCF = UniversalCyclotomicField()
+            return (self.as_matrix() - identity_matrix(UCF, self.parent().rank())).right_kernel()
 
         @cached_in_parent_method
         def reflection_eigenvalues(self,test_class_repr=True):
             r"""
             Return the reflection eigenvalues of ``self``.
+
+            EXAMPLES::
             """
             return self.parent().reflection_eigenvalues(self,test_class_repr=test_class_repr)
 
@@ -1298,18 +1296,16 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             Return all Galois conjugates of ``self``.
 
             EXAMPLES::
-
-                tba
             """
             rk = self.parent().rank()
             M = self.as_matrix()
             UCF = UniversalCyclotomicField()
-            L = [ UCF(x) for x in M.list() ]
-            m = lcm([ x.field_order() for x in L ])
-            L_gals = [ x.galois_conjugates(m) for x in L ]
+            L = [UCF(x) for x in M.list()]
+            m = lcm([x.field_order() for x in L])
+            L_gals = [x.galois_conjugates(m) for x in L]
             conjugates = []
             for i in range(len(L_gals[0])):
-                conjugates.append( Matrix(rk, [ X[i] for X in L_gals ] ) )
+                conjugates.append(Matrix(rk, [X[i] for X in L_gals]))
             return conjugates
 
         def __cmp__(self, other):
@@ -1318,6 +1314,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation,
             permutation group fails ...
             """
             return super(FiniteComplexReflectionGroup.Element, self).__cmp__(other)
+
 
 class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
@@ -1331,7 +1328,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
             Irreducible finite complex reflection group of rank 2 and type A2
         """
         type_str = self._irrcomp_repr_(self._type[0])
-        return 'Irreducible finite complex reflection group of rank %s and type %s'%(self._rank,type_str)
+        return 'Irreducible finite complex reflection group of rank %s and type %s' % (self._rank, type_str)
 
     @cached_method
     def a_coxeter_element(self):
@@ -1363,8 +1360,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         """
         assert self.is_irreducible()
         assert self.is_well_generated()
-        inverse_index = dict([(self._index_set[i], i) for i in self._index_set.keys()])
-        return self.from_word( inverse_index[i] for i in sorted(self._index_set.values()) )
+        inverse_index = {self._index_set[i]: i for i in self._index_set}
+        return self.from_word(inverse_index[i] for i in sorted(self._index_set.values()))
 
     @cached_method
     def coxeter_elements(self):
@@ -1379,11 +1376,11 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ComplexReflectionGroup((1,1,3))
-            sage: [ c.reduced_word() for c in W.coxeter_elements() ]
+            sage: [c.reduced_word() for c in W.coxeter_elements()]
             [word: 10, word: 01]
 
             sage: W = ComplexReflectionGroup((1,1,4))
-            sage: [ c.reduced_word() for c in W.coxeter_elements() ]
+            sage: [c.reduced_word() for c in W.coxeter_elements()]
             [word: 01201, word: 12010, word: 210, word: 012, word: 201, word: 120]
         """
         return self.a_coxeter_element().conjugacy_class()
@@ -1406,7 +1403,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         assert self.is_irreducible()
         assert self.is_well_generated()
         from sage.combinat.permutation import Permutations
-        return set( self.from_word(w) for w in Permutations(self.index_set()) )
+        return set(self.from_word(w) for w in Permutations(self.index_set()))
 
     def elements_below_coxeter_element(self, c=None):
         r"""
@@ -1426,13 +1423,13 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             sage: W = ComplexReflectionGroup((1,1,3))
 
-            sage: [ w.reduced_word() for w in W.elements_below_coxeter_element() ]
+            sage: [w.reduced_word() for w in W.elements_below_coxeter_element()]
             [word: , word: 0, word: 1, word: 01, word: 010]
 
-            sage: [ w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([1,0])) ]
+            sage: [w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([1,0]))]
             [word: , word: 0, word: 1, word: 10, word: 010]
 
-            sage: [ w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([1])) ]
+            sage: [w.reduced_word() for w in W.elements_below_coxeter_element(W.from_word([1]))]
             [word: , word: 1]
         """
         if c in self:
@@ -1442,17 +1439,19 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         else:
             cs = list(c)
         l = cs[0].reflection_length(in_unitary_group=True)
-        R = self.reflections()
-        f = lambda pi: any( pi.reflection_length(in_unitary_group=True) + (c*pi**-1).reflection_length(in_unitary_group=True) == l for c in cs )
+        # R = self.reflections()
+        f = lambda pi: any(pi.reflection_length(in_unitary_group=True)
+                           + (c * pi**-1).reflection_length(in_unitary_group=True) == l for c in cs)
         # first computing the conjugacy classes only needed if the interaction with gap3 is slow due to a bug
         #self.conjugacy_classes()
-        return filter(f,self)
-        #return set( self.magma_closure_iter(I=R, predicate=lambda pi: pi.reflection_length(in_unitary_group=True) + (c*pi**-1).reflection_length(in_unitary_group=True) == l) )
+        return filter(f, self)
+        #return set(self.magma_closure_iter(I=R, predicate=lambda pi: pi.reflection_length(in_unitary_group=True) + (c*pi**-1).reflection_length(in_unitary_group=True) == l))
 
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None):
         r"""
-        Return the the interval `[1,c]` in the absolute order of ``self`` as a finite lattice.
+        Return the the interval `[1,c]` in the absolute order of
+        ``self`` as a finite lattice.
 
         .. seealso::
 
@@ -1464,21 +1463,21 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         INPUT:
 
-        - c -- (default:None) if an element ``c`` in ``self`` is given, it is used as the maximal element in the interval.
+        - c -- (default:``None``) if an element ``c`` in ``self`` is given, it is used as the maximal element in the interval.
 
-        - L -- (default:None) if a subset ``L`` (must be hashable!) of ``self`` is given, it is used as the underlying set. Only cover relations are checked though.
+        - L -- (default:``None``) if a subset ``L`` (must be hashable!) of ``self`` is given, it is used as the underlying set. Only cover relations are checked though.
 
         EXAMPLES::
 
             sage: W = ComplexReflectionGroup((1,1,3))
 
-            sage: [ w.reduced_word() for w in W.noncrossing_partition_lattice() ]
+            sage: [w.reduced_word() for w in W.noncrossing_partition_lattice()]
             [word: , word: 0, word: 1, word: 010, word: 01]
 
-            sage: [ w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([1,0])) ]
+            sage: [w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([1,0]))]
             [word: , word: 0, word: 1, word: 010, word: 10]
 
-            sage: [ w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([1])) ]
+            sage: [w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_word([1]))]
             [word: , word: 1]
         """
         from sage.combinat.posets.all import Poset, LatticePoset
@@ -1488,7 +1487,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         rels = []
         for pi in L:
             for t in R:
-                tau = pi*t
+                tau = pi * t
                 if tau in L and pi.reflection_length(in_unitary_group=True) + 1 == tau.reflection_length(in_unitary_group=True):
                     rels.append([pi,tau])
         P = Poset(([],rels), cover_relations=True, facade=True)
@@ -1509,24 +1508,24 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         chain = iter.next()
         chain = iter.next()
         while len(chain) <= m:
-            chain.append( c )
-            for i in range(len(chain)-1,0,-1):
-                chain[i] = chain[i-1]**-1 * chain[i]
-            k = m+1 - len(chain)
-            for positions in Combinations(range(m+1),k):
+            chain.append(c)
+            for i in range(len(chain) - 1, 0, -1):
+                chain[i] = chain[i - 1]**-1 * chain[i]
+            k = m + 1 - len(chain)
+            for positions in Combinations(range(m + 1), k):
                 ncm = []
-                for l in range(m+1):
+                for l in range(m + 1):
                     if l in positions:
-                        ncm.append( one )
+                        ncm.append(one)
                     else:
-                        l_prime = l - len( [ i for i in positions if i <= l ] )
-                        ncm.append( chain[l_prime] )
+                        l_prime = l - len([i for i in positions if i <= l])
+                        ncm.append(chain[l_prime])
                 if not positive or prod(ncm[:-1]).has_full_support():
                     NCm.add(tuple(ncm))
             try:
                 chain = iter.next()
             except StopIteration:
-                chain = range(m+1)
+                chain = range(m + 1)
         return NCm
 
     @cached_method
@@ -1544,7 +1543,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
             sage: P = ComplexReflectionGroup((1,1,3)).absolute_poset(); P
             Finite poset containing 6 elements
 
-            sage: [ w.reduced_word() for w in P ]
+            sage: [w.reduced_word() for w in P]
             [word: , word: 0, word: 1, word: 010, word: 01, word: 10]
         """
         return self.noncrossing_partition_lattice(L=self)
@@ -1629,13 +1628,15 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
                 010 False
             """
             assert self.parent().is_well_generated()
+            UCF = UniversalCyclotomicField()
+            E = UCF.gen
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
-                    M = Matrix(UniversalCycloctomicField(), (self.as_matrix()-E(ev.denom(),ev.numer()) * identity_matrix(self.parent().rank())))
+                    M = Matrix(UCF, (self.as_matrix() - E(ev.denom(),ev.numer()) * identity_matrix(self.parent().rank())))
                     V = M.right_kernel()
-                    if not any( V.is_subspace(H) for H in self.parent().reflecting_hyperplanes() ):
+                    if not any(V.is_subspace(H) for H in self.parent().reflecting_hyperplanes()):
                         return True
             return False
 
@@ -1655,7 +1656,7 @@ def ComplexReflectionGroup(*args, **kwds):
     - (c) list containing objects in (a) and (b)
 
     EXAMPLES:
-    
+
     Finite reflection groups can be constructed from
 
     the complex infinite family `G(r,p,n)` with `p` divides `r`::
@@ -1685,7 +1686,7 @@ def ComplexReflectionGroup(*args, **kwds):
             X = tuple(arg)
         else:
             X = arg
-        assert is_Matrix(X) or isinstance(X, CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ), "The input is not valid."
+        assert is_Matrix(X) or isinstance(X, CartanMatrix) or isinstance(X,tuple) or (X in ZZ and 4 <= X <= 37), "The input is not valid."
         if X == (2, 2, 2):
             W_types.extend([(1, 1, 2), (1, 1, 2)])
         else:
@@ -1695,7 +1696,7 @@ def ComplexReflectionGroup(*args, **kwds):
         index_set = kwds.get(index_set_kwd, None)
         if index_set is not None:
             from sage.sets.family import Family
-            if type(index_set) in [list,tuple]:
+            if type(index_set) in [list, tuple]:
                 kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
@@ -1707,8 +1708,8 @@ def ComplexReflectionGroup(*args, **kwds):
     else:
         cls = FiniteComplexReflectionGroup
     return cls(tuple(W_types), index_set=kwds.get('index_set', None),
-                               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
-                               reflection_index_set=kwds.get('reflection_index_set', None) )
+               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
+               reflection_index_set=kwds.get('reflection_index_set', None))
 
 
 def gap_factorization(w, gens, inv_dict):
