@@ -5039,10 +5039,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             pf = self.polynomial(y).leading_coefficient()
             pg = other.polynomial(y).leading_coefficient()
             while len(interpol) <= d:
-                if pf(x) != 0:
-                    if pg(x) != 0:
+                if not pf(i).is_zero():
+                    if not pg(i).is_zero():
                         interpol.append((i, U(self.subs({x:i})).resultant(U(other.subs({x:i})))))
-                        i += 1
+                i += 1
             V = PolynomialRing(QQ, x)
             return self.parent()(V.lagrange_polynomial(interpol))
 
