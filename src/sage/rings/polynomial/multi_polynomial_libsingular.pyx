@@ -4948,7 +4948,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         argument with respect to the variable given as the second
         argument.
 
-        If a second argument is not provide the first variable of
+        If a second argument is not provided, the first variable of
         the parent is chosen.
 
         INPUT:
@@ -5021,6 +5021,23 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return ret.change_ring(ZZ)
         elif not self._parent._base.is_field():
             raise ValueError("Resultants require base fields or integer base ring.")
+
+        if self.base_ring() == RationalField() and self.parent().ngens() == 2 and other.base_ring() == RationalField():
+            resvar = self.variables()[1 - self.variables().index(variable)]
+            interpol = []
+            d1 = self.polynomial(variable).degree()
+            d2 = other.polynomial(variable).degree()
+            d = self.degree()*other.degree()
+            i = 0
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            U = PolynomialRing(RationalField(), variable)
+            while len(interpol) <= d:
+                if self.subs({resvar:i}).polynomial(variable).degree() == d1:
+                    if other.subs({resvar:i}).polynomial(variable).degree() == d2:
+                        interpol.append((i, U(self.subs({resvar:i})).resultant(U(other.subs({resvar:i})))))
+                        i += 1
+            V = PolynomialRing(RationalField(), resvar)
+            return self.parent()(V.lagrange_polynomial(interpol))
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
             + singular_polynomial_length_bounded(other._poly,20)
