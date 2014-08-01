@@ -5022,21 +5022,28 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         elif not self._parent._base.is_field():
             raise ValueError("Resultants require base fields or integer base ring.")
 
-        if self.base_ring() == RationalField() and self.parent().ngens() == 2 and other.base_ring() == RationalField():
-            resvar = self.variables()[1 - self.variables().index(variable)]
-            interpol = []
-            d1 = self.polynomial(variable).degree()
-            d2 = other.polynomial(variable).degree()
-            d = self.degree()*other.degree()
-            i = 0
+        if self.base_ring() == other.base_ring() == RationalField() and self.parent().ngens() == 2:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            U = PolynomialRing(RationalField(), variable)
+            QQ=RationalField()
+            y = variable
+            if self.parent().gens()[0] == y:
+                x = self.parent().gen(1)
+            else:
+                x = self.parent().gen(0)
+            interpol=[]
+            d1 = self.polynomial(y).degree()
+            d2 = other.polynomial(y).degree()
+            d = self.degree()*other.degree()
+            i = QQ(0)
+            U = PolynomialRing(QQ, y)
+            pf = self.polynomial(y).leading_coefficient()
+            pg = other.polynomial(y).leading_coefficient()
             while len(interpol) <= d:
-                if self.subs({resvar:i}).polynomial(variable).degree() == d1:
-                    if other.subs({resvar:i}).polynomial(variable).degree() == d2:
-                        interpol.append((i, U(self.subs({resvar:i})).resultant(U(other.subs({resvar:i})))))
+                if pf(x) != 0:
+                    if pg(x) != 0:
+                        interpol.append((i, U(self.subs({x:i})).resultant(U(other.subs({x:i})))))
                         i += 1
-            V = PolynomialRing(RationalField(), resvar)
+            V = PolynomialRing(QQ, x)
             return self.parent()(V.lagrange_polynomial(interpol))
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
