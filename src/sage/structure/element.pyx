@@ -2864,10 +2864,23 @@ def is_FieldElement(x):
     """
     return IS_INSTANCE(x, FieldElement)
 
+
 cdef class FieldElement(CommutativeRingElement):
 
     def __floordiv__(self, other):
-        return self / other
+        r"""
+        Return the quotient of the division of ``self``
+        by ``other``.
+            
+        TESTS:
+
+        Make sure that :trac:`15260` is fixed::
+
+            sage: (1/2)//2
+            0
+        """
+        from sage.functions.other import floor
+        return floor(self / other)
 
     def is_unit(self):
         """
