@@ -42,6 +42,7 @@ import operator
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from complex_number cimport ComplexNumber
+from sage.misc.cachefunc import cached_function
 
 import complex_interval_field
 from complex_field import ComplexField
@@ -1529,3 +1530,48 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
 
     C = complex_interval_field.ComplexIntervalField(prec=max(bits+pad, min_prec))
     return ComplexIntervalFieldElement(C, s_real, s_imag)
+
+@cached_function(key=lambda s, k:(s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper(), k))
+def binomial_coefficient(s, k):
+    r"""
+    Computes the binomial coefficient and caches the result.
+
+    INPUT:
+
+    - ``s`` -- a :class:`ComplexIntervalElement`.
+
+    - ``k`` -- a non-negative integer.
+
+    OUTPUT:
+
+    The binomial coefficient `\binom{s}{k}` in the same ring as ``s``.
+
+    The result is cached via the :func:`cached_function` decorator.
+
+    EXAMPLES::
+
+        sage: import sage.rings.complex_interval
+        sage: sage.rings.complex_interval.binomial_coefficient(CIF(6), 2)
+        15
+        sage: s = CIF(2*pi*I/log(2))
+        sage: sage.rings.complex_interval.binomial_coefficient(s, 0)
+        1
+        sage: (sage.rings.complex_interval.binomial_coefficient(s, 1) - s).abs()< 10^(-10)
+        True
+        sage: (sage.rings.complex_interval.binomial_coefficient(s, 2) - s*(s-1)/2).abs() < 10^(-10)
+        True
+
+    The first argument must be a :class:`ComplexIntervalElement` because
+    caching will fail otherwise. ::
+
+        sage: sage.rings.complex_interval.binomial_coefficient(6, 2)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute 'lower'
+    """
+    from sage.rings.integer_ring import ZZ
+    if k.is_zero():
+        return s.parent()(1)
+    if k in ZZ and k >= 0:
+        return binomial_coefficient(s, k-1)*(s-k+1)/ZZ(k)
+    raise ValueError("Second argument of binomial coefficient must be a non-negative integer.")
