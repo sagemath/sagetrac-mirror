@@ -47,11 +47,10 @@ REFERENCES
 # *****************************************************************************
 include 'sage/misc/bitset.pxi'
 from lean_matrix cimport BinaryMatrix
-from sage.rings.all import GF
 cdef bint npruned_not_defined = True
 cdef npruned
 
-cpdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat):
+cdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat):
     """
     Return a list of two matrices [M1_0, M2_0] s.t. [M1_0 0; 0 M2_0] will be
     the bitwise logical OR of all degree preserving isomorphisms
@@ -95,7 +94,7 @@ cpdef init_iso_matrices(BinaryMatrix M_rmat, BinaryMatrix N_rmat):
                 M2_0.set(c1, c2)
     return [M1_0, M2_0]
 
-cpdef col_len(BinaryMatrix mat, long c):
+cdef col_len(BinaryMatrix mat, long c):
     """
     Return hamming weight of ``c`` th column of ``mat``.
 
@@ -144,6 +143,32 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat, BinaryMatrix N_rmat, indices, M,
     ``True`` if the bipartite graph corresponding to ``N_rmat`` is vertex
     induced subgraph of bipartite graph corresponding to ``M_rmat``.
 
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import BinaryMatroid
+        sage: from sage.matroids.repminor_helpers import _check_bin_minor
+        sage: A=Matrix([[1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1],
+        ....:         [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0],
+        ....:         [1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
+        ....:         [0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1],
+        ....:         [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0],
+        ....:         [1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+        ....:         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1]])
+        sage: M=BinaryMatroid(A)
+        sage: B=Matrix([[1, 0, 0, 1, 1, 1, 1],[0, 1, 0, 0, 0, 1, 0],
+        ....:         [0, 0, 0, 1, 1, 1, 0],[1, 1, 1, 0, 1, 0, 0],
+        ....:         [1, 1, 1, 1, 1, 1, 0]])
+        sage: N=BinaryMatroid(B)
+        sage: M._has_binary_minor(N)
+        True
+        sage: indices=list(M._current_rows_cols())
+        sage: indices.extend(list(N._current_rows_cols()))
+        sage: indices.append(list(M._current_rows_cols())[0])
+        sage: M_rmat=M._reduced_representation()
+        sage: N_rmat=N._reduced_representation()
+        sage: _check_bin_minor(M_rmat,N_rmat,indices,M,[],0)
+        True
+
     .. WARNING::
 
             Intended for internal use. This method does no checks of any kind.
@@ -166,7 +191,7 @@ cpdef _check_bin_minor(BinaryMatrix M_rmat, BinaryMatrix N_rmat, indices, M,
                     indices, M, Npcl, nloops)
         return x == 1
 
-cpdef degrees_are_sane(BinaryMatrix M1, BinaryMatrix M2):
+cdef degrees_are_sane(BinaryMatrix M1, BinaryMatrix M2):
     """
     Return ``True`` if there is an all-zero row in M1 or M2 and return
     ``False`` otherwise.
@@ -411,7 +436,7 @@ cdef restore_mat(BinaryMatrix mat, BinaryMatrix saved_mat, long cur_row):
         bitset_copy(mat._M[r], saved_mat._M[r])
     return
 
-cpdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
+cdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
             BinaryMatrix M_rmat, BinaryMatrix N_rmat, BinaryMatrix M_rmatT,
             BinaryMatrix N_rmatT):
     """
@@ -473,7 +498,7 @@ cpdef prune(long cur_row, BinaryMatrix M1, BinaryMatrix M2,
     else:
         return False
 
-cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
+cdef BinaryMatrix copy_mat(BinaryMatrix mat):
     """
     Return a copy of ``mat``
 
@@ -496,7 +521,7 @@ cpdef BinaryMatrix copy_mat(BinaryMatrix mat):
         bitset_copy(mat_copy._M[i], mat._M[i])
     return mat_copy
 
-cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
+cdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
     """
     Return a list of neighbours of vertex with index ``i``
 
@@ -530,7 +555,7 @@ cpdef _neighbours(BinaryMatrix rmat, BinaryMatrix rmatT, long i, long rc):
                 neighbours.append(c)
     return neighbours
 
-cpdef is_weak_induced_isomorphism(BinaryMatrix M1_1, BinaryMatrix M2_1,
+cdef is_weak_induced_isomorphism(BinaryMatrix M1_1, BinaryMatrix M2_1,
                                   BinaryMatrix  M_rmat, BinaryMatrix N_rmat):
     """
     Return ``True`` if ``M1_1`` and ``M2_1`` specify an induced graph
@@ -626,6 +651,20 @@ cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats):
     A ``bint`` that is ``True`` if cand is not present in the list
     ``used_rmats``.
 
+    EXAMPLES::
+
+        sage: from sage.matroids.repminor_helpers import is_new_rmat
+        sage: M=matroids.named_matroids.Fano()
+        sage: rmats_list=[]
+        sage: for B in M.bases():
+        ....:             rmat=M._reduced_representation(B)
+        ....:             if is_new_rmat(rmat,rmats_list):
+        ....:                 rmats_list.append(rmat)
+        sage: len(rmats_list)
+        19
+        sage: len(M.bases())
+        28
+
     .. WARNING::
 
             Intended for internal use; does no input checking.
@@ -636,7 +675,7 @@ cpdef bint is_new_rmat(BinaryMatrix cand, used_rmats):
             return False
     return True
 
-cpdef bint mats_equal(BinaryMatrix M1, BinaryMatrix M2):
+cdef bint mats_equal(BinaryMatrix M1, BinaryMatrix M2):
     """
     Return ``True`` if ``M1`` is elementwise equal to ``M2``
 
