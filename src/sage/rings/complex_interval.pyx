@@ -1446,6 +1446,94 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 #     def algebraic_dependancy( self, n ):
 #         return self.algdep( n )
 
+
+    def zeta(self):
+        r"""
+        Compute the Riemann zeta function `\zeta(s)=\sum_{k\ge 1} k^{-s}`,
+        meromorphically continued to the complex plane.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A :class:`ComplexIntervalField` element in the same ring as ``self``.
+
+        The method caches intermediate results via the
+        :func:`cached_function` decorator on the function
+        :func:`binomial_coefficient` and the internal function
+        :func:`_zeta3_`.
+
+        EXAMPLES:
+
+        -   ::
+
+                sage: zeta(CIF(2))
+                1.64493406684823? + 0.?e-16*I
+                sage: (zeta(CIF(2)) - CIF(pi)^2/6).abs()<10^(-13)
+                True
+                sage: zeta(CIF(2*pi*I/log(2)))
+                1.5987345268087? + 0.2783386696391?*I
+
+        -   There is a singularity at `s=1`. ::
+
+                sage: zeta(CIF(RIF(0.9, 1.1), (-0.1, 0.1)))
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: zeta is singular at 1.
+
+        -   Currently, the function is not implemented for non-positive
+            integers::
+
+                sage: zeta(CIF(-1))
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: zeta is currently not implemented
+                for non-positive integers.
+
+        -   Debugging output can be enabled using :func:`~sage.misc.misc.set_verbose`. ::
+
+                sage: set_verbose(2)
+                sage: zeta(CIF(68.5+0.5*I))
+                verbose 1 (<module>) Enter _zeta3_(68.500000000000000? + 0.50000000000000000?*I)
+                verbose 2 (<module>)   s = 68.500000000000000? + 0.50000000000000000?*I, p = 3
+                verbose 2 (<module>)   s = 68.500000000000000? + 0.50000000000000000?*I, N = 2, error = 7.644217851140?e-50, allowed_error = 1.7105694144590?e-49
+                verbose 1 (<module>) return zeta3(68.500000000000000? + 0.50000000000000000?*I) = 1.7704576413292?e-33 - 1.0837873182350?e-33*I (with N = 2)
+                1.000000000000001? - 8.137885933103?e-22*I
+                sage: set_verbose(0)
+
+        -   This example demonstrates how to clear the cache after the
+            computations.  We also clear the cache beforehand in order
+            to have a clean environment for the doctests::
+
+                sage: import sage.rings.complex_interval
+                sage: sage.rings.complex_interval._zeta3_.clear_cache()
+                sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
+                sage: zeta(CIF(66.5+0.5*I))
+                1.000000000000001? - 3.2551543732464?e-21*I
+                sage: len(sage.rings.complex_interval._zeta3_.get_cache())
+                18
+                sage: sorted(sage.rings.complex_interval._zeta3_.get_cache().iteritems())[:5]
+                [((66.5000000000000, 66.5000000000000, 0.500000000000000, 0.500000000000000), 1.5934118802870?e-32 - 9.754085889787?e-33*I),
+                 ((68.5000000000000, 68.5000000000000, 0.500000000000000, 0.500000000000000), 1.7704576413292?e-33 - 1.0837873182350?e-33*I),
+                 ((70.5000000000000, 70.5000000000000, 0.500000000000000, 0.500000000000000), 1.9671751548862?e-34 - 1.2042081295894?e-34*I),
+                 ((72.5000000000000, 72.5000000000000, 0.500000000000000, 0.500000000000000), 2.1857501707543?e-35 - 1.3380090317628?e-35*I),
+                 ((74.5000000000000, 74.5000000000000, 0.500000000000000, 0.500000000000000), 2.4286112999997?e-36 - 1.4866767012623?e-36*I)]
+                sage: len(sage.rings.complex_interval.binomial_coefficient.get_cache())
+                88
+                sage: sorted(sage.rings.complex_interval.binomial_coefficient.get_cache().iteritems())[:5]
+                [((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 0), 1),
+                 ((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 1), -100.50000000000000? - 0.50000000000000000?*I),
+                 ((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 2), 5100.2500000000000? + 50.500000000000000?*I),
+                 ((-98.5000000000000, -98.5000000000000, -0.500000000000000, -0.500000000000000, 0), 1),
+                 ((-98.5000000000000, -98.5000000000000, -0.500000000000000, -0.500000000000000, 1), -98.500000000000000? - 0.50000000000000000?*I)]
+                sage: sage.rings.complex_interval._zeta3_.clear_cache()
+                sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
+        """
+        from sage.rings.integer_ring import ZZ
+        return 1+ZZ(2)**(-self)+_zeta3_(self)
+
 def make_ComplexIntervalFieldElement0( fld, re, im ):
     """
     Construct a :class:`ComplexIntervalFieldElement` for pickling.
@@ -1575,3 +1663,107 @@ def binomial_coefficient(s, k):
     if k in ZZ and k >= 0:
         return binomial_coefficient(s, k-1)*(s-k+1)/ZZ(k)
     raise ValueError("Second argument of binomial coefficient must be a non-negative integer.")
+
+@cached_function(key=lambda s:(s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper()))
+def _zeta3_(s):
+    r"""
+    Compute `\zeta_3(s)=\sum_{k\ge 3} k^{-s}=\zeta(s)-1-2^{-s}`,
+    analytically continued to the complex plane.
+
+    INPUT:
+
+    -   ``s`` -- a :class:`ComplexIntervalField` element
+
+    OUTPUT:
+
+    A :class:`ComplexIntervalField` element in the same ring as ``s``.
+
+    The result is cached via the :func:`cached_function` decorator.
+
+    EXAMPLES:
+
+    -   ::
+
+            sage: import sage.rings.complex_interval
+            sage: (sage.rings.complex_interval._zeta3_(CIF(2))+5/4 - CIF(pi)^2/6).abs()<10^(-13)
+            True
+
+    -   There is a singularity at `s=1`. ::
+
+            sage: sage.rings.complex_interval._zeta3_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: zeta is singular at 1.
+
+    -   Currently, the function is not implemented for non-positive
+        integers::
+
+            sage: sage.rings.complex_interval._zeta3_(CIF(-1))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: zeta is currently not implemented
+            for non-positive integers.
+    """
+    from sage.misc.misc import srange, verbose
+    from sage.rings.integer_ring import ZZ
+
+    if (s - 1).contains_zero():
+        raise ZeroDivisionError("zeta is singular at 1.")
+    verbose("Enter _zeta3_(%s)" % s, level=1)
+    sigma = s.real()
+
+    # Try to find a p such that the denominator is not too close to zero.
+    # A denominator > 1/8 is fine, so take smallest such p.
+    p_choices = []
+    for p in srange(ZZ(3), ZZ(13), ZZ(2)):
+        abs_denominator = (p**(1 - s) - 1).abs()
+        if abs_denominator > 1/8:
+            p_choices = None
+            break
+        p_choices.append((abs_denominator, p))
+    if p_choices is not None:
+        # All denominators <= 1/8, so take largest denominator.
+        p_choices.sort()
+        p = p_choices[-1][1]
+    verbose("  s = %s, p = %d" % (s, p), level=2)
+
+    # Minimal N, will be increased as necessary
+    N = max(2*((1-sigma)/2).floor().unique_integer() + 2, ZZ(2))
+
+    result = sum(k**(-s) for k in srange(ZZ(3), ZZ((5*p+1)/2)))
+    try:
+        result += 2*sum(binomial_coefficient(-s, k) *
+                        p**(-s - k) *
+                        _zeta3_(s + k) *
+                        sum(j**k for j in srange(ZZ(1), ZZ((p+1)/2)))
+                        for k in srange(ZZ(1), N)
+                        if k.mod(2) == 0)
+    except ZeroDivisionError:
+        raise NotImplementedError("zeta is currently not implemented "
+            "for non-positive integers.")
+
+    while True:
+        allowed_error = ZZ(2) ** (max(result.real().abs().log2(),
+                                      result.imag().abs().log2()).floor()
+                                  - result.prec())
+
+        factor = binomial_coefficient(-s, N) * p**(-s - N)
+        error_factor = ZZ(2)**(2 - sigma - N)/(N + sigma - 1)
+        error_factor *= sum(j**N/(1 - (j/(3*p)))**(sigma+N)
+                            for j in srange(ZZ(1), ZZ((p + 1)/2)))
+        error = factor.abs() * error_factor
+        verbose("  s = %s, N = %d, error = %s, allowed_error = %s"
+                % (s, N, error, allowed_error), level=2)
+        if error < allowed_error:
+            real_error = result.real().parent()(-error, error)
+            result += result.parent()(real_error, real_error)
+            result /= (1 - p**(1-s))
+            verbose("return zeta3(%s) = %s (with N = %d)" % (
+                    s, result, N), level=1)
+            return result
+
+        # By definition of the initial N, s + N has real part > 1.
+        result += (2 * factor * _zeta3_(s + N) *
+                   sum(j**N for j in srange(ZZ(1), ZZ((p+1)/2))))
+
+        N += 2
