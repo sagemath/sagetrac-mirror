@@ -2304,6 +2304,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField_class>self._parent).rnd)
         return x
 
+    def __floordiv__(self, other):
+        r"""
+        Return the quotient of the division of ``self``
+        by ``other``.
+        
+        EXAMPLES::
+        
+            sage: RR(3.5) // 2
+            1
+            sage: RR(0.9) // RR(0.2)
+            4
+        """
+        return (self / other).floor()
+
     cpdef ModuleElement _neg_(self):
         """
         Return the negative of ``self``.
