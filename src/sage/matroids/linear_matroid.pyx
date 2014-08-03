@@ -116,7 +116,7 @@ from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix,
 from set_system cimport SetSystem
 from utilities import newlabel
 from sage.rings.integer import Integer
-from repminor_helpers import init_iso_matrices, copy_mat, prune, _neighbours,_check_bin_minor, mats_equal,is_new_rmat
+from repminor_helpers import _check_bin_minor, is_new_rmat
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -3424,6 +3424,35 @@ cdef class BinaryMatroid(LinearMatroid):
 
     # represented binary minor test
     cpdef _has_binary_minor(self, N=None):
+        r"""
+        Check if ``self`` has a minor isomorphic to ``N``.
+
+        INPUT:
+
+        - ``N`` -- (None by default) A BinaryMatroid object.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: from numpy.random import random_integers
+            sage: from sage.matroids.advanced import *
+            sage: N=BinaryMatroid(Matrix(random_integers(0,
+            ....:             high=1,size =[4,7])))
+            sage: M=BinaryMatroid(Matrix(random_integers(0,
+            ....:             high=1,size =[7,15])))
+            sage: M.has_minor(N)
+            True
+            sage: M._has_binary_minor(N)
+            True
+
+        ..NOTE::
+
+            This method is meant for internal use only. ``N`` is assumed to be a
+            BinaryMatroid object.
+        """
         if self is N:
             return True
         rd = self.full_rank() - N.full_rank()
@@ -3460,7 +3489,6 @@ cdef class BinaryMatroid(LinearMatroid):
                                         self, Npcl, nloops) is True:
                         # print nbases, nused
                         return True
-
         # print nbases, nused
         return False
 
@@ -3502,7 +3530,6 @@ cdef class BinaryMatroid(LinearMatroid):
                                     self, Npcl, nloops) is True:
                     # print nbases, nused
                     return True
-
         # print nbases, nused
         return False
 
