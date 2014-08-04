@@ -2,12 +2,14 @@ from sage.rings.finite_rings.finite_field_prime_modn import *
 from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
+from sage.structure.sage_object cimport SageObject
+
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
 #R=None
 GF2=GF(2)
 
 
-def all_1def_pcodes(Mpcode,nc):
+cpdef all_1def_pcodes(Mpcode,nc):
     varset = ncinstance_vars(nc)
     for v in varset:
         new_pmap = {0:v,1:v,2:v}
@@ -15,7 +17,7 @@ def all_1def_pcodes(Mpcode,nc):
              Mpcode._C.append(new_pmap)
     return Mpcode
 
-def all_2def_pcodes(Mpcode,nc):
+cpdef all_2def_pcodes(Mpcode,nc):
     varset = ncinstance_vars(nc)
     pmaps2 = [{0: 1, 1: 0, 2: 1}, {0: 0, 1: 1, 2: 0}, {0: 1, 1: 1, 2: 0},
               {0: 0, 1: 0, 2: 1}, {0: 0, 1: 0, 2: 1}, {0: 1, 1: 1, 2: 0},
@@ -29,7 +31,7 @@ def all_2def_pcodes(Mpcode,nc):
                  Mpcode._C.append(new_pmap)
     return Mpcode
 
-def all_3def_pcodes(Mpcode,nc):
+cpdef all_3def_pcodes(Mpcode,nc):
     n3pcode=0
     varset = ncinstance_vars(nc)
     pmaps3=[{0: 0, 1: 1, 2: 2},
@@ -47,7 +49,7 @@ def all_3def_pcodes(Mpcode,nc):
                  n3pcode+=1
     return Mpcode
 
-def pmap_def2():
+cpdef pmap_def2():
     # return normalized pmaps defining two variables
     pmaps=[]
     p2 = OrderedSetPartitions({0,1,2})[7:-1]
@@ -70,7 +72,7 @@ def pmap_def2():
         pmaps.append(pmap2)
     return pmaps
 
-def pmap_def3():
+cpdef pmap_def3():
     pmaps=[]
     p1 = OrderedSetPartitions({0,1,2})[0:6]
     for p in p1:
@@ -81,7 +83,7 @@ def pmap_def3():
         pmaps.append(pmap)
     return pmaps
 
-class MatroidCodes():
+cdef class MatroidCodes(SageObject):
     def __init__(self,M=None,pmaps=None):
         self._M=M
         self._C=[]
@@ -96,7 +98,7 @@ class MatroidCodes():
 
 
 
-def addpcode(list_of_pcodes,pcode):
+cpdef addpcode(list_of_pcodes,pcode):
     """
     adds p-code to a list of p-codes if there is no p-code in ``list_of_pcodes`` that is extension
     of ``pcode``
@@ -113,7 +115,7 @@ def addpcode(list_of_pcodes,pcode):
     return
 
 
-def is_pmap_deletion(dict1,dict2):
+cpdef is_pmap_deletion(dict1,dict2):
     """
     checks whether $dict1\subseteq dict2$
     """
@@ -131,7 +133,7 @@ def is_pmap_deletion(dict1,dict2):
     return True
 
 
-def invert(m):
+cpdef invert(m):
     """
     Inverts the given network to matroid or matroid to network mapping
     """
@@ -153,27 +155,57 @@ def invert(m):
     else:
         return {}
 
-def add2(R,M):
+cpdef add2(R,M):
     for N in R:
         if M.is_field_isomorphic(N):
             return
     R.append(M)
 
-def extensions2(M):
+cpdef extensions2(M):
     R=[]
     x=len(M)
     for N in M.linear_extensions(len(M)):
         add2(R,N)
     return R
 
-def next2(R):
+cpdef next2(R):
     R2=[]
     for M in R:
         for N in extensions2(M):
             add2(R2,N)
     return R2
 
-def all2(N, R=10):
+cpdef add2_p(R,M):
+    # add2 with parent tracking
+    for N in R:
+        if M.is_field_isomorphic(N):
+            return False
+    R.append(M)
+    return True
+
+cpdef extensions2_p(M):
+    # extensions2 with parent tracking
+    R=[]
+    x=len(M)
+    for N in M.linear_extensions(len(M)):
+        add2(R,N)
+    return R
+
+cpdef next2_p(R):
+    # next2 with parent tracking, returning Mcodes instead of matroids
+    R2=[]
+    parents=[]
+    i=0
+    for M in R:
+        for N in extensions2(M):
+            if add2_p(R2,N) == True:
+                parents.append(i)
+        i=i+1
+    print parents
+    return R2,parents
+
+
+cpdef all2(N, R=10):
     MM={}
     for n in xrange(N+1):
         MM[n,0]=[BinaryMatroid(identity_matrix(GF2,n))]
@@ -183,13 +215,13 @@ def all2(N, R=10):
         #print [len(MM[r,n-r]) for r in xrange(min(n,R)+1)]
     return MM
 
-def ncmatenum(nc,r,N):
+cpdef ncmatenum(nc,r,N):
     n=r
     MM={}
     MM[n]=[BinaryMatroid(identity_matrix(GF(2),n)),{}]
 
 
-def init_enum(nc,N):
+cpdef init_enum(nc,N):
     maxrank = N-(len(ncinstance_vars(nc))-len(nc[1]))
     M3 = all2(3,maxrank)
     for key in M3.keys():
@@ -208,7 +240,7 @@ def init_enum(nc,N):
                 size_3_matroidcodes[key].append(Mpcode)
     return size_3_matroidcodes
 
-def init_enum_3subset(nc,N,subset):
+cpdef init_enum_3subset(nc,N,subset):
     """
     returns matroids on 3 elements and all the p-codes they form
     """
@@ -244,7 +276,7 @@ def init_enum_3subset(nc,N,subset):
     pmaps.extend([{0:varset[0],1:varset[0],2:varset[0]},{0:varset[1],1:varset[1],2:varset[1]},{0:varset[2],1:varset[2],2:varset[2]}])
     return pmaps
 
-def ncinstance_vars(nc):
+cpdef ncinstance_vars(nc):
     varset=Set([])
     for i in nc:
         for j in nc[0]:
@@ -253,19 +285,32 @@ def ncinstance_vars(nc):
     varset.union(Set(nc[1]))
     return varset
 
-def extend_mcodes(Mcodes1):
+cpdef extend_mcodes(Mcodes1,nc,maxgnd,nvars):
     Mcodes2 = {}
     if len(Mcodes1.keys()) < 1:
         return Mcodes2
     n1 = sum(list(Mcodes1.keys()[0]))
     n2 = n1+1
-    Mcodes1.keys[0]
     for key in Mcodes1:
-        #ext = next2([Mcode._M for M in ]
+        print 'extending',key
         Mcodes2[(list(key)[0],n2-list(key)[0])] = []
-        #for Mcode in Mcodes[key]:
+        # create non-isomorphic extensions of given key matroids
+        key_matroids = [Mcode._M for Mcode in Mcodes1[key]]
+        key_ext,parents= next2_p(key_matroids)
+        for i in xrange(len(key_matroids)):
+            children_ind = [k for k in xrange(len(key_ext)) if parents[k]==i]
+            children = [key_ext[k] for k in xrange(len(key_ext)) if parents[k]==i]
+            print 'parent', Mcodes1[key][parents[k]]._M.representation()
+            for k in children_ind:
+                child_Mcode = MatroidCodes(key_ext[k],[])
+                extendpmaps(child_Mcode,Mcodes1[key][parents[k]],nc,maxgnd,nvars)
+                if(len(child_Mcode._C)>0):
+                    Mcodes2[(list(key)[0],n2-list(key)[0])].append(child_Mcode)
+    return Mcodes2
 
-def Mcode_candidates(Mcode,maxgnd,nvars):
+
+
+cpdef Mcode_candidates(Mcode,maxgnd,nvars):
     candidates = []
     for mcode in Mcode._C:
         # loop over all subsets of defined variables and delete them
@@ -278,11 +323,11 @@ def Mcode_candidates(Mcode,maxgnd,nvars):
             # get candidate pmap
             cand = invert(imcode_copy)
             print cand
-            if nvars-len(cand.values()) <=  (maxgnd-len(Mcode._M.groundset())):
+            if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
                 candidates.append(cand)
     return candidates
 
-def applicable_cons(def_vars,nc):
+cpdef applicable_cons(def_vars,nc):
     cons=[]
     for j in nc[0]:
          if all([k in def_vars for k in j[1]]):
@@ -291,7 +336,7 @@ def applicable_cons(def_vars,nc):
 
 
 
-def is_pcode(M,pmap,ncinstance):
+cpdef is_pcode(M,pmap,ncinstance):
     ipmap = invert(pmap)
     def_vars = ipmap.keys()
     nodecons=applicable_cons(def_vars,ncinstance)
@@ -317,18 +362,41 @@ def is_pcode(M,pmap,ncinstance):
 
 
 
-def extendpmaps(M,M_codes,M_child):
+cpdef extendpmaps(child_Mcode,Mcode,nc,maxgnd,nvars):
     """
-    Return a maximal list of p-codes corresponding to a given matroid
+    Populate child._C with maximal pmap extensions that form p-codes
     """
-
+    child_Mcode._C=[]
+    for mcode in Mcode._C:
+        # loop over all subsets of defined variables and delete them
+        imcode = invert(mcode)
+        defvars = set(imcode.keys())
+        for delset in Subsets(defvars):
+            imcode_copy = imcode.copy()
+            for v in delset:
+                imcode_copy.pop(v)
+            # get candidate pmap
+            cand = invert(imcode_copy)
+            q=0
+            if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
+                print 'cand', q
+                q+=1
+                # loop over subsets of unmapped gndset elements of M
+                for U in Subsets(set(Mcode._M.groundset())-set(cand.keys())):
+                    Ue=U|Set(child_Mcode._M.groundset()-Mcode._M.groundset())
+                    # loop over all new variable definitions
+                    for v in imcode_copy.keys():
+                        for e in Ue:
+                            cand[e]=v
+                        if is_pcode(child_Mcode._M,cand,nc):
+                            addpcode(child_Mcode._C,cand)
     return
 
-def naive_candidates(M_ext,list_of_pmaps):
+cpdef naive_candidates(M_ext,list_of_pmaps):
 
     cand = []
 
-def butterfly():
+cpdef butterfly():
  return [[ [[3,4],[1,3,4]],[[5,6],[1,5,6]],[[7],[4,5,7]],[[8,9],[7,8,9]],[[2],[2,3,8]],[[1],[1,6,9]] ] ,[1,2]]
 
 

@@ -1169,6 +1169,8 @@ ext_modules = [
     Extension('sage.matroids.unpickling',
             ['sage/matroids/unpickling.pyx']),
 
+    Extension('sage.matriods.network_coding',
+          sources = ['sage/matroids/network_coding.pyx']),
     ################################
     ##
     ## sage.media
@@ -2074,13 +2076,13 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
-              
+
     ################################
-    ## 
+    ##
     ## sage.schemes
     ##
     ################################
-              
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
