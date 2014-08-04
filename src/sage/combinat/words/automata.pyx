@@ -25,6 +25,13 @@ AUTHORS:
 from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 
+cdef extern from "automata_tools.c":
+    void TikZ (const char *data, const char *graph_name)
+
+def SaveTikZ (data, name):
+    #print len(data), data
+    TikZ(data, name)
+
 #test
 #
 #cdef emonde0_simplify_rec2 (aut, e, a, d, int *n):
@@ -59,6 +66,25 @@ class Automaton (DiGraph):
             ('one', 'zwei', 'trois')
         """
         return DiGraph.plot(self, edge_labels=True)
+    
+    def plot2 (self, name="Automaton"):
+        r"""
+        Plot the automaton.
+        """
+        txt = '{\n'
+        #for e in self.vertices():
+        #    txt += '    "'+str(e)+'"\n'
+        #txt += '\n'
+        for e,f,l in self.edges():
+            txt += '    "'+str(e)+'" -> "'+str(f)+'" [label="'+str(l)+'"];\n'
+        txt += '}\n'
+        SaveTikZ(txt, name)
+    
+    def plot3 (self, name="Automaton"):
+        r"""
+        Plot the automaton.
+        """
+        SaveTikZ(self.graphviz_string(edge_labels=True), name)
     
     def copy (self):
         a = DiGraph.copy(self)
