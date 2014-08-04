@@ -40,6 +40,8 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_5`
     - :func:`construction_3_6`
     - :func:`construction_q_x`
+    - :func:`thwart_lemma_3_5`
+    - :func:`three_factor_product`
 
     INPUT:
 
@@ -63,7 +65,7 @@ def find_recursive_construction(k,n):
         ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
         sage: print count
-        54
+        53
     """
     assert k > 3
 
@@ -74,7 +76,9 @@ def find_recursive_construction(k,n):
                    find_construction_3_4,
                    find_construction_3_5,
                    find_construction_3_6,
-                   find_q_x]:
+                   find_q_x,
+                   find_thwart_lemma_4_1,
+                   find_three_factor_product]:
         res = find_c(k,n)
         if res:
             return res
@@ -924,3 +928,594 @@ def find_q_x(k,n):
             orthogonal_array(k, x+2 ,existence=True)):
             return construction_q_x, (k,q,x)
     return False
+
+def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
+    r"""
+    Returns an `OA(k,nm+a+b+c+d)`
+
+    *(When `d=0`)*
+
+    According to [Thwarts]_ when `n` is a prime power and `a+b+c\leq n+1`, one
+    can build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in
+    such a way that all blocks have size `\leq k+2`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2)`)
+
+    Conversely, by considering the complement of each truncated column, one can
+    build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in such a
+    way that all blocks have size `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    Here is the proof of Lemma 3.5 from [Thwarts]_ enriched with explanations
+    from Julian R. Abel:
+
+        For any prime power `n` one can build `k-1` MOLS by associating to every
+        nonzero `x\in \\mathbb F_n` the latin square:
+
+        .. MATH::
+
+            M_x(i,j) = i+x*j \text{ where }i,j\in \\mathbb F_n`
+
+        In particular `M_1(i,j)=i+j`, whose `n` columns and lines are indexed by
+        the elements of `\\mathbb F_n`. If we order the elements of `\\mathbb
+        F_n` as `0,1,...,n-1,x+0,...,x+n-1,x^2+0,...` and reorder the columns
+        and lines of `M_1` accordingly, the top-left `a\times b` squares
+        contains at most `a+b-1` distinct symbols.
+
+    *(When `d\neq 0`)*
+
+    If there exists an `OA(k+3,n)` with three truncated columns of sizes `a,b,c`
+    in such a way that all blocks have size `\leq k+2`, by truncating
+    arbitrarily another column to size `d` one obtains an `OA` with 4 truncated
+    columns whose blocks miss at least one value. Thus, following the proof
+    again one can build an `OA(k+4)` with four truncated columns of sizes
+    `a,b,c,d` with blocks of size `\leq k+3`.
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    As before, this also shows that one can build an `OA(k+4,n)` with four
+    truncated columns of sizes `a,b,c,d` in such a way that all blocks have size
+    `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,n-a),OA(k,n-b),OA(k,n-c),OA(k,d),OA(k,m+1),OA(k,m+2),OA(k,m+3),OA(k,m+4)`)
+
+    INPUT:
+
+    - ``k,n,m,a,b,c,d`` -- integers which must satisfy the constraints above. In
+      particular, `a+b+c\leq n+1` must hold. By default, `d=0`.
+
+    - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
+      the `n-a,n-b,n-c` variant described above.
+
+    .. WARNING::
+
+        There is no "find" function associated with this recursive construction
+        as I was not able to write one which would not be unnecessarily ugly and
+        tricky (given that only 5 OA are built with it in the original
+        paper). Those designs appear in :mod:`sage.combinat.designs.database`
+        as: :func:`OA(10,1046) <sage.combinat.designs.database.OA_10_1046>`,
+        :func:`OA(10,1059) <sage.combinat.designs.database.OA_10_1059>`,
+        :func:`OA(11,2164) <sage.combinat.designs.database.OA_11_2164>`,
+        :func:`OA(12,3992) <sage.combinat.designs.database.OA_12_3992>`,
+        :func:`OA(12,3994) <sage.combinat.designs.database.OA_12_3994>`.
+
+    EXAMPLES:
+
+    With sets of parameters from [Thwarts]_::
+
+        sage: l = [
+        ....:    [11, 27, 78, 16, 17, 25, 0],
+        ....:    [12, 19, 208, 11, 13, 16, 0],
+        ....:    [12, 19, 208, 13, 13, 16, 0],
+        ....:    [10, 13, 78, 9, 9, 13, 1],
+        ....:    [10, 13, 79, 9, 9, 13, 1]]
+        sage: for k,n,m,a,b,c,d in l:                                       # not tested -- too long
+        ....:     OA = thwart_lemma_3_5(k,n,m,a,b,c,d,complement=True)      # not tested -- too long
+        ....:     assert is_orthogonal_array(OA,k,n*m+a+b+c+d,verbose=True) # not tested -- too long
+
+    REFERENCE:
+
+    .. [Thwarts] Thwarts in transversal designs
+      Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas.
+      Designs, Codes and Cryptography 5, no. 3 (1995): 189-197.
+    """
+    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.combinat.designs.orthogonal_arrays import wilson_construction
+
+    if complement:
+        a,b,c = n-a,n-b,n-c
+
+    assert is_prime_power(n), "n(={}) must be a prime power".format(n)
+    assert a<=n and b<=n and c<=n and d<=n, "a,b,c,d (={},{},{},{}) must be <=n(={})".format(a,b,c,d,n)
+    assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
+    G = GF(n,prefix='x',conway=True)
+    G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    G_to_int = {v:i for i,v in enumerate(G_set)}
+
+    # Builds an OA(n+1,n) whose last n-1 colums are
+    #
+    # \forall x \in G and x!=0, C_x(i,j) = i+x*j
+    #
+    # (only the necessary columns are built)
+    OA = [[G_to_int[i+x*j] for i in G_set for j in G_set] for x in G_set[1:k+2+bool(d)]]
+    # Adding the first two trivial columns
+    OA.insert(0,[j for i in range(n) for j in range(n)])
+    OA.insert(0,[i for i in range(n) for j in range(n)])
+    OA=zip(*OA)
+    OA.sort()
+
+    # Moves the first three columns to the end
+    OA = [list(B[3:]+B[:3]) for B in OA]
+
+    # Set of values in the axb square
+    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+
+    assert n-len(third_complement) >= c
+
+    # The keepers
+    first_set  = range(a)
+    second_set = range(b)
+    third_set  = [x for x in range(n) if x not in third_complement][:c]
+
+    last_sets  = [first_set,second_set,third_set]
+
+    if complement:
+        last_sets = [set(range(n)).difference(s) for s in last_sets]
+
+    sizes = map(len,last_sets)
+    last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
+
+    # Truncating the OA
+    for i,D in enumerate(last_sets_dict):
+        kk = len(OA[0])-3+i
+        for R in OA:
+            R[kk] = D[R[kk]] if R[kk] in D else None
+
+    if d:
+        for R in OA:
+            if R[-4] >= d:
+                R[-4] = None
+        sizes.insert(0,d)
+
+    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+
+def find_thwart_lemma_4_1(k,n):
+    r"""
+    Finds a decomposition for Lemma 4.1 from [Thwarts]_.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`thwart_lemma_4_1`
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_4_1
+        sage: find_thwart_lemma_4_1(10,408)[1]
+        (10, 13, 28)
+        sage: find_thwart_lemma_4_1(10,50)
+        False
+    """
+    from sage.rings.arith import factor
+    #      n  = nn*mm+4(nn-2)
+    # <=> n+8 = nn(mm+4)
+    #
+    # nn is a primepower which divides n+8
+    for nn in [p**i for p,imax in factor(n+8) for i in range(1,imax+1)]:
+        mm = (n+8)//nn-4
+        if (k+4 > nn+1 or
+            mm <= 1 or
+            nn % 3 == 2 or
+            not orthogonal_array(k,nn-2,existence=True) or
+            not orthogonal_array(k,mm+1,existence=True) or
+            not orthogonal_array(k,mm+3,existence=True) or
+            not orthogonal_array(k,mm+4,existence=True)):
+            continue
+
+        return thwart_lemma_4_1,(k,nn,mm)
+
+    return False
+
+def thwart_lemma_4_1(k,n,m):
+    r"""
+    Returns an `OA(k,nm+4(n-2))`.
+
+    Implements Lemma 4.1 from [Thwarts]_.
+
+        If `n\equiv 0,1\pmod{3}` be a prime power, then there exists a truncated
+        `OA(n+1,n)` whose last four columns have size `n-2` and intersect every
+        block on `1,3` or `4` values. Consequently, if there exists an
+        `OA(k,m+1),OA(k,m+3),OA(k,m+4)` and a `OA(k,n-2)` then there
+        exists an `OA(k,nm+4(n-2)`
+
+        Proof: form the transversal design by removing one point of the
+        `AG(2,3)` (Affine Geometry) contained in the Desarguesian Projective
+        Plane `PG(2,n)`.
+
+    The affine geometry on 9 points contained in the projective geometry
+    `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
+    finding the reference !).
+
+    REFERENCES:
+
+    .. [OS64] Finite projective planes with affine subplanes,
+      T. G. Ostrom and F. A. Sherk.
+      Canad. Math. Bull vol7 num.4 (1964)
+    """
+    from sage.combinat.designs.designs_pyx import is_orthogonal_array
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.arith import is_prime_power
+    from block_design import DesarguesianProjectivePlaneDesign
+
+    assert is_prime_power(n), "n(={}) must be a prime power"
+    assert k+4 <= n+1
+
+    q = n
+    K = FiniteField(q, 'x')
+    relabel = {x:i for i,x in enumerate(K)}
+    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks()
+
+    if q % 3 == 0:
+        t = K(1)
+    elif q%3 == 1:
+        t = K.primitive_element()**((q-1)//3)
+    else:
+        assert False, "q(={}) must be congruent to 0 or 1 mod 3"
+
+    # The projective plane is labelled with integer coordinates. This code
+    # relabels to integers the following points (given by homogeneous
+    # coordinates in the projective space):
+    #
+    # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
+    #   (0,1,1), (1,0,-t)
+    points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
+    points = [map(K,t) for t in points] # triples of K^3
+    AG_2_3 = []
+    for x,y,z in points:
+        if z!=0:
+            x,y,z = x/z,y/z,z/z
+            AG_2_3.append(relabel[x]+n*relabel[y])
+        elif y!=0:
+            x,y,z=x/y,y/y,z
+            AG_2_3.append(q**2+relabel[x])
+        else:
+            AG_2_3.append(q**2+q)
+
+    AG_2_3 = set(AG_2_3)
+
+    # All blocks of PG should intersect 'AG_2_3' on !=2 AG_2_3.
+    #return [len(AG_2_3.intersection(B)) for B in PG]
+    assert all(len(AG_2_3.intersection(B))!=2 for B in PG)
+
+    p = list(AG_2_3)[0]
+    # We now build a TD from the PG by removing p, in such a way that the last
+    # two elements of the last 4 columns are elements of AG_2_3
+    blocks = []
+    columns = []
+    for B in PG:
+        if p not in B:
+            blocks.append(B)
+        else:
+            B.remove(p)
+            columns.append(B)
+
+    # The columns containing elements from the AG are the last ones, and those
+    # elements should be the last two
+    columns.sort(key=lambda x:len(AG_2_3.intersection(x)))
+    for i in range(4):
+        columns[-i-1].sort(key=lambda x:int(x in AG_2_3))
+
+    relabel = {v:i for i,v in enumerate(sum(columns,[]))}
+
+    TD = [[relabel[x] for x in B] for B in blocks]
+    for B in TD:
+        B.sort()
+
+    # We build the OA, removing unnecessary columns
+    OA = [[x%q for x in B[-k-4:]] for B in TD]
+    for B in OA:
+        for i in range(4):
+            if B[k+i] >= n-2:
+                B[k+i] = None
+
+    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+
+def find_three_factor_product(k,n):
+    r"""
+    Finds a decomposition for a three-factor product from [DukesLing14]_
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`three_factor_product`
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_three_factor_product
+        sage: find_three_factor_product(10,648)[1]
+        (9, 8, 9, 9)
+        sage: find_three_factor_product(10,50)
+        False
+    """
+    # we want to write n=n1*n2*n3 where n1<=n2<=n3 and we can build:
+    # - a OA(k-1,n1)
+    # - a OA( k ,n2)
+    # - a OA( k ,n3)
+    from sage.rings.arith import divisors
+    for n1 in divisors(n)[1:-1]:
+        if not orthogonal_array(k-1,n1,existence=True):
+            continue
+        for n2 in divisors(n//n1):
+            n3 = n//n1//n2
+            if (n2<n1 or
+                n3<n2 or
+                not orthogonal_array(k,n2,existence=True) or
+                not orthogonal_array(k,n3,existence=True)):
+                continue
+            return three_factor_product,(k-1,n1,n2,n3)
+
+    return False
+
+def three_factor_product(k,n1,n2,n3,check=False):
+    r"""
+    Returns an `OA(k+1,n_1n_2n_3)`
+
+    The three factor product construction from [DukesLing14]_ does the following:
+
+        If `n_1\leq n_2\leq n_3` are such that there exists an
+        `OA(k,n_1),OA(k+1,n_2)` and `OA(k+1,n_3)`, then there exists a
+        `OA(k+1,n_1n_2n_3)`.
+
+    It works with a modified product of orthogonal arrays ([Rees93]_, [Rees00]_)
+    which keeps track of parallel classes in the `OA` (the definition is given
+    for transversal designs).
+
+        A subset of blocks in an `TD(k,n)` is called a `c`-parallel class if
+        every point is covered exactly `c` times. A 1-parallel class is a
+        parallel class.
+
+    The modified product:
+
+        If there exists an `OA(k,n_1)`, and if there exists an `OA(k,n_2)` whose
+        blocks are partitionned into `s` `n_1`-parallel classes and `n_2-sn_1`
+        parallel classes, then there exists an `OA(k,n_1n_2)` whose blocks can
+        be partitionned into `sn_1^2` parallel classes and
+        `(n_1n_2-sn_1^2)/n_1=n_2-sn_1` `n_1`-parallel classes.
+
+        Proof:
+
+        - The product of the blocks of a parallel class with an `OA(k,n_1)`
+          yields an `n_1`-parallel class of an `OA(k,n_1n_2)`.
+
+        - The product of the blocks of a `n_1`-parallel class of `OA(k,n_2)`
+          with an `OA(k,n_1)` can be done in such a way that it yields `n_1n_2`
+          parallel classes of `OA(k,n_1n_2)`. Those classes cover exactly the
+          pairs that woud have been covered with the usual product.
+
+          This can be achieved by simple cyclic permutations. Let us build the
+          product of the `n_1`-parallel class `\mathcal P\subseteq OA(k,n_2)`
+          with `OA(k,n_1)`: when computing the product of `P\in\mathcal P` with
+          `B^1\in OA(k,n_1)` the `i`-th coordinate should not be `(B^1_i,P_i)`
+          but `(B^1_i+r,P_i)` (the sum is mod `n_1`) where `r` is the number of
+          blocks of `\mathcal P` we have already processed whose `i`-th
+          coordinate is equal to `P_i` (note that `r< n_1` as `\mathcal P` is
+          `n_1`-parallel).
+
+    With these tools, one can obtain the designs promised by the three factors
+    construction applied to `k,n_1,n_2,n_3` (thanks to Julian R. Abel's help):
+
+        1) Let `s` be the largest integer `\leq n_3/n_1`. Apply the product
+           construction to `OA(k,n_1)` and a resolvable `OA(k,n_3)` whose blocks
+           are partitionned into `s` `n_1`-parallel classes and `n_3-sn_1`
+           parallel classes. It results in a `OA(k,n_1n_3)` partitionned into
+           `sn_1^2` parallel classes plus `(n_1n_3-sn_1^2)/n_1=n_3-sn_1`
+           `n_1`-parallel classes.
+
+        2) Add `n_3-n_1` parallel classes to every `n_1`-parallel class to turn
+           them into `n_3`-parallel classes. Apply the product construction to
+           this partitionned `OA(k,n_1n_3)` with a resolvable `OA(k,n_2)`.
+
+        3) As `OA(k,n_2)` is resolvable, the `n_2`-parallel classes of
+           `OA(k,n_1n_2n_3)` are actually the union of `n_2` parallel classes,
+           thus the `OA(k,n_1n_2n_3)` is resolvable and can be turned into an
+           `OA(k+1,n_1n_2n_3)`
+
+    INPUT:
+
+    - ``k,n1,n2,n3`` (integers)
+
+    - ``check`` -- (boolean) Whether to check that everything is going smoothly
+      while the design is being built. It is disabled by default, as the
+      constructor of orthogonal arrays checks the final design anyway.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import three_factor_product
+        sage: OA = three_factor_product(9,8,9,9) # long time
+        sage: is_orthogonal_array(OA,10,8*9*9)   # long time
+        True
+
+    REFERENCE:
+
+    .. [DukesLing14] A three-factor product construction for mutually orthogonal latin squares,
+      Peter J. Dukes, Alan C.H. Ling,
+      http://arxiv.org/abs/1401.1466
+
+    .. [Rees00] Truncated Transversal Designs: A New Lower Bound on the Number of Idempotent MOLS of Side,
+      Rolf S. Rees,
+      Journal of Combinatorial Theory, Series A 90.2 (2000): 257-266.
+
+    .. [Rees93] Two new direct product-type constructions for resolvable group-divisible designs,
+      Rolf S. Rees,
+      Journal of Combinatorial Designs 1.1 (1993): 15-26.
+    """
+    from itertools import izip
+    assert n1<=n2 and n2<=n3
+
+    def assert_c_partition(classs,k,n,c):
+        r"""
+        Makes sure that ``classs`` contains blocks `B` of size `k` such that the list of
+        ``B[i]`` covers `[n]` exactly `c` times for every index `i`.
+        """
+        c = int(c)
+        assert all(len(B)==k for B in classs), "A block has length {}!=k(={})".format(len(B),k)
+        assert len(classs) == n*c, "not the right number of blocks"
+        for p in zip(*classs):
+            assert all(x==i//c for i,x in enumerate(sorted(p))), "A class is not c(={})-parallel".format(c)
+
+    def product_with_parallel_classes(OA1,k,g1,g2,g1_parall,parall,check=True):
+        r"""
+        Returns the product of two OA while keeping track of parallel classes
+
+        INPUT:
+
+        - ``OA1`` (an `OA(k,g_1)`
+
+        - ``k,g1,g2`` integers
+
+        - ``g1_parall`` -- list of `g_1`-parallel classes
+
+        - ``parall`` -- list of parallel classes
+
+        .. NOTE::
+
+            The list ``s_parall+parall`` should be a `OA(k,g_2)`
+
+        OUTPUT:
+
+        Two lists of classes ``g1_parall`` and ``parallel`` which are respectively
+        `g_1`-parallel and parallel classes such that ``g1_parall+parallel`` is an
+        `OA(k,g1*g2)``.
+        """
+        if check:
+            for classs in g1_parall:
+                assert_c_partition(classs,k,g2,g1)
+            for classs in parall:
+                assert_c_partition(classs,k,g2,1)
+
+        # New parallel classes, built from a g1-parallel class with shifted copies
+        # of OA1
+
+        new_parallel_classes = []
+        for classs2 in g1_parall:
+
+            # Keep track of how many times we saw each point of [k]x[g2]
+            count = [[0]*g2 for _ in range(k)]
+
+            copies_of_OA1 = []
+            for B2 in classs2:
+                copy_of_OA1 = []
+
+                shift = [count[i][x2] for i,x2 in enumerate(B2)]
+                assert max(shift) < g1
+
+                for B1 in OA1:
+                    copy_of_OA1.append([x2*g1+(x1+sh)%g1 for sh,x1,x2 in izip(shift,B1,B2)])
+
+                copies_of_OA1.append(copy_of_OA1)
+
+                # Update the counts
+                for i,x2 in enumerate(B2):
+                    count[i][x2]+=1
+
+            new_parallel_classes.extend(map(list,zip(*copies_of_OA1)))
+
+        # New g1-parallel classes, each one built from the product of a parallel
+        # class with a OA1
+
+        new_g1_parallel_classes = []
+        for classs2 in parall:
+            disjoint_copies_of_OA1 = []
+            for B2 in classs2:
+                for B1 in OA1:
+                    disjoint_copies_of_OA1.append([x2*g1+x1 for x1,x2 in izip(B1,B2)])
+            new_g1_parallel_classes.append(disjoint_copies_of_OA1)
+
+        # Check our stuff before we return it
+        if check:
+            profile = [i for i in range(g2*g1) for _ in range(g1)]
+            for classs in new_g1_parallel_classes:
+                assert_c_partition(classs,k,g2*g1,g1)
+            profile = range(g2*g1)
+            for classs in new_parallel_classes:
+                assert_c_partition(classs,k,g2*g1,1)
+
+        return new_g1_parallel_classes, new_parallel_classes
+
+    # The three factors product construction begins !
+    #
+    # OA1 and resolvable OA2 and OA3
+    OA1 = orthogonal_array(k,n1)
+    OA3 = orthogonal_array(k+1,n3)
+    OA3.sort()
+    OA3 = [B[1:] for B in OA3]
+    OA2 = orthogonal_array(k+1,n2)
+    OA2.sort()
+    OA2 = [B[1:] for B in OA2]
+
+    # We split OA3 into as many n1-parallel classes as possible, i.e. n3//n1 classes of size n1*n3
+    OA3_n1_parall = [OA3[i*n1*n3:(i+1)*n1*n3] for i in range(n3//n1)]
+
+    # Leftover blocks become parallel classes. We must split them into slices of
+    # length n3
+    OA3_parall    = OA3[len(OA3_n1_parall)*n1*n3:]
+    OA3_parall    = [OA3_parall[i*n3:(i+1)*n3] for i in range(len(OA3_parall)/n3)]
+
+    # First product: OA1 and OA3
+    n1_parall, parall = product_with_parallel_classes(OA1,k,n1,n3,OA3_n1_parall,OA3_parall,check=check)
+
+    if check:
+        OA_13 = [block for classs in parall+n1_parall for block in classs]
+        assert is_orthogonal_array(OA_13,k,n1*n3,2,1)
+
+    # Add parallel classes to turn the n1-parall classes into n2-parallel classes
+    for classs in n1_parall:
+        for i in range(n2-n1):
+            classs.extend(parall.pop())
+
+    n2_parall = n1_parall
+    del n1_parall
+
+    # We compute the product of OA2 with our decomposition of OA1xOA2 into
+    # n2-parallel classes and parallel classes
+    n2_parall, parall = product_with_parallel_classes(OA2,k,n2,n1*n3,n2_parall,parall,check=check)
+    for n2_classs in n2_parall:
+        for i in range(n2):
+            partition = [B for j in range(n1*n3) for B in n2_classs[j*n2**2+i*n2:j*n2**2+(i+1)*n2]]
+            parall.append(partition)
+
+    # That's what we fought for: this design is resolvable, so let's add a last
+    # column to them
+    for i,classs in enumerate(parall):
+        for B in classs:
+            B.append(i)
+
+    OA = [block for classs in parall for block in classs]
+
+    if check:
+        assert is_orthogonal_array(OA,k+1,n1*n2*n3,2,1)
+
+    return OA
