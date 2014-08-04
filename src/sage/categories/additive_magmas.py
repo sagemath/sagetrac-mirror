@@ -674,9 +674,16 @@ class AdditiveMagmas(Category_singleton):
                 See the documentation for :class:`TestSuite` for
                 more information.
 
-                TESTS:
+                .. NOTE::
 
-                Verify that :trac:`16250` has been resolved::
+                    This method also checks that the hash of the zero element
+                    does not change. This test is not performed for elements
+                    which are marked as unhashable, i.e., for elements which do
+                    not inherit from ``collections.Hashable``. Currently, it is
+                    not possible to mark Cython extension classes as being
+                    unhashable (see :trac:`16250`). Therefore, this check must
+                    be skipped manually for unhashable elements implemented in
+                    Cython::
 
                     sage: K.<a> = Qq(9)
                     sage: hash(K.zero())
@@ -684,6 +691,9 @@ class AdditiveMagmas(Category_singleton):
                     ...
                     TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
                     sage: K._test_zero()
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
 
                 """
                 tester = self._tester(**options)
@@ -693,10 +703,10 @@ class AdditiveMagmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x + zero == x)
                 # Check that zero is immutable by asking its hash (if it is hashable)
-                try:
-                    tester.assertEqual(type(zero.__hash__()), int)
-                    tester.assertEqual(zero.__hash__(), zero.__hash__())
-                except TypeError: pass # zero is unhashable
+                import collections
+                if isinstance(zero, collections.Hashable):
+                    tester.assertEqual(type(hash(zero)), int)
+                    tester.assertEqual(hash(zero), hash(zero))
                 # Check that bool behave consistently on zero
                 tester.assertFalse(bool(self.zero()))
 
