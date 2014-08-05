@@ -67,14 +67,32 @@ class Automaton (DiGraph):
         """
         return DiGraph.plot(self, edge_labels=True)
     
-    def plot2 (self, name="Automaton"):
+    def plot2 (self, name="Automaton", verb=False):
         r"""
         Plot the automaton.
         """
+        I = []
+        if hasattr(self, 'I'):
+            I = self.I
+        F = []
+        if hasattr(self, 'F'):
+            F = self.F
+        if verb:
+            print I,F
         txt = '{\n'
-        #for e in self.vertices():
-        #    txt += '    "'+str(e)+'"\n'
-        #txt += '\n'
+        for e in self.vertices():
+            txt += '    "'+str(e)+'" [shape='
+            if e in F:
+                txt += 'doublecircle'
+            else:
+                txt += 'circle'
+            txt += ', style='
+            if e in I:
+                txt += 'bold'
+            else:
+                txt += 'solid'
+            txt += ', fontsize=20, margin=0]\n'    
+        txt += '\n'
         for e,f,l in self.edges():
             txt += '    "'+str(e)+'" -> "'+str(f)+'" [label="'+str(l)+'"];\n'
         txt += '}\n'

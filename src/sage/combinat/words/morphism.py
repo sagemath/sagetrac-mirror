@@ -3088,7 +3088,7 @@ class WordMorphism(SageObject):
 
         return M._column_ambient_module().change_ring(QQ).subspace(basis)
 
-    def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=False, verb=False):
+    def rauzy_fractal_beta_adic_monoid (self, I=None, eig=None, invss=True, det=True, verb=False):
         r"""
         Returns the beta-adic monoid associated to the substitution.
 
@@ -3116,26 +3116,31 @@ class WordMorphism(SageObject):
             for a2 in self._morph[a]:
                 C[i] = s
                 i=i+1
-                ss.add_edge(a2, a, s)
+                ss.add_edge(a, a2, s)
                 s += C0[a2]
         
         if verb: print "C=%s"%C
         
-        C = Set(C.values()) #ensemble des polynômes en beta qui sont des chiffres
+        C = set(C.values()) #ensemble des polynômes en beta qui sont des chiffres
         
         from sage.monoids.beta_adic_monoid import BetaAdicMonoid
         res = BetaAdicMonoid(K.gen(), C)
         
-        ss.A = C
-        ss.I = ss.vertices()
+        ss.F = ss.vertices()
         if I is not None:
-            ss.F = I
+            ss.I = I
         else:
-            ss.F = ss.vertices()
+            ss.I = [ss.vertices()[0]]
+        ss.A = C
         if invss:
-            res.ss = ss.transpose()
-        else:
-            res.ss = ss.determinize(noempty=True)
+            ss = ss.transpose()
         
+        if verb:
+        	print ss
+        
+        if det:
+            ss = ss.determinize(noempty=True)
+        
+        res.ss = ss
         return res
 
