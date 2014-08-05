@@ -16,8 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from contextlib import contextmanager
-import re
-from sage.env import SAGE_ROOT
 
 @contextmanager
 def citation_record(record):
@@ -44,22 +42,28 @@ def citation_record(record):
 
 def cprofile_stats_to_function_string(stat_key):
     if stat_key[0] == '~':
-        object_start = stat_key[0].find("of '") + len("of '")
-        object_end = stat_key[0].find("'", object_start)
-        module_part = stat_key[0][object_start:object_end]
+        if stat_key[2].startswith("<method "):
+            object_start = stat_key[2].find("of '") + len("of '")
+            object_end = stat_key[2].find("'", object_start)
+            module_part = stat_key[2][object_start:object_end]
 
-        function_start = stat_key[0].find("method '") + len("method '")
-        function_end = stat_key[0].find("'", function_start)
-        function_part = stat_key[0][function_start:function_end]
+            function_start = stat_key[2].find("method '") + len("method '")
+            function_end = stat_key[2].find("'", function_start)
+            function_part = stat_key[2][function_start:function_end]
+        else:
+            module_part = None
+            function_part = stat_key[2][1:-1]
     else:
         module_part = (stat_key[0].split("site-packages/")[-1]
                        .split('.')[0]
                        .replace("/", "."))
         function_part = stat_key[2]
 
-    return module_part + "." + function_part
+    if module_part:
+        return module_part + "." + function_part
+    else:
+        return function_part
     
-
 def get_systems(cmd):
     """
     Returns a list of the systems used in running the command
@@ -89,9 +93,12 @@ def get_systems(cmd):
     """
     from sage.misc.superseded import deprecation
     ## TODO: insert ticket number
-    deprecation(0, 'get_sytems is replaced by citation_record')
+    deprecation(1, 'get_sytems is replaced by citation_record')
 
-    import cProfile, pstats, re
+
+    import cProfile, inspect, pstats, re
+    from sage.misc.all import preparse, tmp_filename
+    from sage.env import SAGE_ROOT
     from sage.misc.citation_items.all import citation_items as systems
 
     if not isinstance(cmd, basestring):
@@ -101,7 +108,7 @@ def get_systems(cmd):
 
     #Run the command and get the stats
     filename = tmp_filename()
-    cProfile.runctx(cmd, globals(), {}, filename)
+    cProfile.runctx(cmd, inspect.stack()[1][0].f_globals, {}, filename)
     stats = pstats.Stats(filename)
 
     #Strings is a list of method names and modules which get run
@@ -120,6 +127,7 @@ def get_systems(cmd):
     #Check to see which systems appear in the profiled run
     systems_used = []
     for system in systems:
-        if any([(r in s) or (r.replace('.','/') in s) for r in systems[system] for s in strings]):
-            systems_used.append(system)
+        res = [r.replace("^", "").replace(".*", "") for r in system._re]
+        if any([(r in s) or (r.replace('.','/') in s) for r in res for s in strings]):
+            systems_used.append(repr(system))
     return systems_used
