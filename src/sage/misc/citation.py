@@ -100,9 +100,10 @@ def cprofile_stat_to_function_string(stat_key):
     
 def gperftools_top_to_functions(top):
     split = re.compile("_[0123456789]+").split
+    lines = [l.rstrip().split()[-1] for l in top.splitlines()]
 
     return [".".join(split(l)[1:])
-            for l in top.splitlines()
+            for l in lines
             if l.startswith("__pyx")]
             
 def get_systems(cmd):
