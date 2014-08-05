@@ -6,31 +6,50 @@
 ###########################################################################
 
 from contextlib import contextmanager
+import re
 
 @contextmanager
 def citation_record(record):
     import cProfile, pstats
+    import sage.misc.gperftools as gProfiler
+
     from sage.misc.citation_items.all import citation_items
 
-    profile = cProfile.Profile()
 
-    profile.enable()
+    cprofiler = cProfile.Profile()
+    gprofiler = gProfiler.Profiler()
+
+    cprofiler.enable()
+    try:
+        gprofiler.start()
+    except ImportError:
+        gprofiler = None
+
     yield
-    profile.disable()
 
-    stats = pstats.Stats(profile)
-    calls = map(cprofile_stats_to_function_string, stats.stats.keys())
+    cprofiler.disable()
+    if gprofiler:
+        gprofiler.stop()
+
+    cprofiler_calls = map(cprofile_stat_to_function_string,
+                          pstats.Stats(cprofiler).stats.keys())
+    if gprofiler:
+        gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
+    else:
+        gprofiler_calls = []
+
 
     #Remove trivial functions
-    bad_res = [re.compile(r'is_.*Element')]
-    calls = [c for c in calls
+    bad_res = map(re.compile,
+                  [r'is_.*Element'])
+    calls = [c for c in cprofiler_calls + gprofiler_calls
              if all(r.match(c) is None for r in bad_res)]
 
     #Check to see which citations appear in the profiled run
     record += [item for item in citation_items
                if any(r.match(c) is not None for r in item.re() for c in calls)]
 
-def cprofile_stats_to_function_string(stat_key):
+def cprofile_stat_to_function_string(stat_key):
     if stat_key[0] == '~':
         if stat_key[2].startswith("<method "):
             object_start = stat_key[2].find("of '") + len("of '")
@@ -54,6 +73,13 @@ def cprofile_stats_to_function_string(stat_key):
     else:
         return function_part
     
+def gperftools_top_to_functions(top):
+    split = re.compile("_[0123456789]+").split
+
+    return [".".join(split(l)[1:])
+            for l in top.splitlines()
+            if l.startswith("__pyx")]
+            
 def get_systems(cmd):
     """
     Returns a list of the systems used in running the command
