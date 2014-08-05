@@ -22,7 +22,7 @@ from sage.env import SAGE_ROOT
 @contextmanager
 def citation_record(record):
     import cProfile, pstats
-    from sage.misc.citation_items import citation_items
+    from sage.misc.citation_items.all import citation_items
 
     profile = cProfile.Profile()
 
@@ -81,7 +81,7 @@ def get_systems(cmd):
     deprecation(0, 'get_sytems is replaced by citation_record')
 
     import cProfile, pstats, re
-    from sage.misc.citation_items import citation_items as systems
+    from sage.misc.citation_items.all import citation_items as systems
 
     if not isinstance(cmd, basestring):
         raise TypeError("command must be a string")
