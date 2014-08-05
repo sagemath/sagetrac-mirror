@@ -1,40 +1,73 @@
-citation_items = {}
-citation_items['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']
-citation_items['Singular'] = ['sage.interfaces.singular', '_libsingular',
-                       'sage.libs.singular']
-citation_items['Maxima'] = ['sage.interfaces.maxima']
-citation_items['GAP'] = ['sage.interfaces.gap']
-citation_items['Magma'] = ['sage.interfaces.magma', 'sage.interfaces.magma_free']
-citation_items['Axiom'] = ['sage.interfaces.axiom']
-citation_items['ECM'] = ['sage.interfaces.ecm']
-citation_items['scipy'] = ['scipy']
-citation_items['numpy'] = ['numpy']
-citation_items['ginac'] = ['sage.symbolic']
-citation_items['Maple'] = ['sage.interfaces.maple']
-citation_items['Mathematica'] = ['sage.interfaces.mathematica']
-citation_items['MuPAD'] = ['sage.interfaces.mupad']
-citation_items['Octave'] = ['sage.interfaces.octave']
-citation_items['povray'] = ['sage.interfaces.povray']
-citation_items['qsieve'] = ['sage.interfaces.qsieve']
-citation_items['Macaulay2'] = ['sage.interfaces.macaulay2']
-citation_items['mwrank'] = ['sage.interfaces.mwrank', 'sage.libs.mwrank']
-citation_items['matlab'] = ['sage.interfaces.matlab']
-citation_items['LiE'] = ['sage.interfaces.lie']
-citation_items['Tachyon'] = ['sage.interfaces.tachyon']
-citation_items['Frobby'] = ['sage.interfaces.frobby']
-citation_items['gfan'] = ['sage.interfaces.gfan']
-citation_items['R'] = ['sage.interfaces.r']
-citation_items['KASH'] = ['sage.interfaces.kash']
-citation_items['Linbox'] = ['sage.libs.linbox']
-citation_items['Symmetrica'] = ['sage.libs.symmetrica']
-citation_items['NTL'] = ['sage.libs.ntl',
-                  'sage.rings.finite_rings.element_ntl_gf2e']
-citation_items['FLINT'] = ['_flint']
-citation_items['GMP'] = ['sage.rings.integer.Integer']
-citation_items['MPFR'] = ['sage.rings.real_mpfr',
-                   'sage.rings.complex_number']
-citation_items['MPFI'] = ['sage.rings.real_mpfi',
-                   'sage.rings.complex_interval']
-citation_items['M4RI'] = ['sage.matrix.matrix_mod2_dense']
-citation_items['Givaro'] = ['sage.rings.finite_rings.element_givaro']
-citation_items['PolyBoRi'] = ['sage.rings.polynomial.pbori']
+from sage.misc.citation_items.axiom import Axiom_CitationItem
+from sage.misc.citation_items.ecm import ECM_CitationItem
+from sage.misc.citation_items.flint import FLINT_CitationItem
+from sage.misc.citation_items.frobby import Frobby_CitationItem
+from sage.misc.citation_items.gap import GAP_CitationItem
+from sage.misc.citation_items.gmp import GMP_CitationItem
+from sage.misc.citation_items.givaro import Givaro_CitationItem
+from sage.misc.citation_items.kash import KASH_CitationItem
+from sage.misc.citation_items.lie import LiE_CitationItem
+from sage.misc.citation_items.linbox import Linbox_CitationItem
+from sage.misc.citation_items.m4ri import M4RI_CitationItem
+from sage.misc.citation_items.mpfi import MPFI_CitationItem
+from sage.misc.citation_items.mpfr import MPFR_CitationItem
+from sage.misc.citation_items.macaulay2 import Macaulay2_CitationItem
+from sage.misc.citation_items.magma import Magma_CitationItem
+from sage.misc.citation_items.maple import Maple_CitationItem
+from sage.misc.citation_items.mathematica import Mathematica_CitationItem
+from sage.misc.citation_items.maxima import Maxima_CitationItem
+from sage.misc.citation_items.mupad import MuPAD_CitationItem
+from sage.misc.citation_items.ntl import NTL_CitationItem
+from sage.misc.citation_items.octave import Octave_CitationItem
+from sage.misc.citation_items.pari import PARI_CitationItem
+from sage.misc.citation_items.polybori import PolyBoRi_CitationItem
+from sage.misc.citation_items.r import R_CitationItem
+from sage.misc.citation_items.singular import Singular_CitationItem
+from sage.misc.citation_items.symmetrica import Symmetrica_CitationItem
+from sage.misc.citation_items.tachyon import Tachyon_CitationItem
+from sage.misc.citation_items.gfan import gfan_CitationItem
+from sage.misc.citation_items.ginac import ginac_CitationItem
+from sage.misc.citation_items.matlab import matlab_CitationItem
+from sage.misc.citation_items.mwrank import mwrank_CitationItem
+from sage.misc.citation_items.numpy import numpy_CitationItem
+from sage.misc.citation_items.povray import povray_CitationItem
+from sage.misc.citation_items.qsieve import qsieve_CitationItem
+from sage.misc.citation_items.scipy import scipy_CitationItem
+
+citation_items = [
+    Axiom_CitationItem(),
+    ECM_CitationItem(),
+    FLINT_CitationItem(),
+    Frobby_CitationItem(),
+    GAP_CitationItem(),
+    GMP_CitationItem(),
+    Givaro_CitationItem(),
+    KASH_CitationItem(),
+    LiE_CitationItem(),
+    Linbox_CitationItem(),
+    M4RI_CitationItem(),
+    MPFI_CitationItem(),
+    MPFR_CitationItem(),
+    Macaulay2_CitationItem(),
+    Magma_CitationItem(),
+    Maple_CitationItem(),
+    Mathematica_CitationItem(),
+    Maxima_CitationItem(),
+    MuPAD_CitationItem(),
+    NTL_CitationItem(),
+    Octave_CitationItem(),
+    PARI_CitationItem(),
+    PolyBoRi_CitationItem(),
+    R_CitationItem(),
+    Singular_CitationItem(),
+    Symmetrica_CitationItem(),
+    Tachyon_CitationItem(),
+    gfan_CitationItem(),
+    ginac_CitationItem(),
+    matlab_CitationItem(),
+    mwrank_CitationItem(),
+    numpy_CitationItem(),
+    povray_CitationItem(),
+    qsieve_CitationItem(),
+    scipy_CitationItem()
+]

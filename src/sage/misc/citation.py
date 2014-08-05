@@ -31,23 +31,34 @@ def citation_record(record):
     profile.disable()
 
     stats = pstats.Stats(profile)
-    strings = [a[0].replace(SAGE_ROOT, "") + " " + a[2] for a in stats.stats.keys()]
+    calls = map(cprofile_stats_to_function_string, stats.stats.keys())
 
     #Remove trivial functions
     bad_res = [re.compile(r'is_.*Element')]
-    for bad_re in bad_res:
-        i = 0
-        while i < len(strings):
-            if bad_re.findall(strings[i]):
-                strings.pop(i)
-            else:
-                i += 1
+    calls = [c for c in calls
+             if all(r.match(c) is None for r in bad_res)]
 
     #Check to see which citations appear in the profiled run
-    for item in citation_items:
-        if any([(r in s) or (r.replace('.','/') in s)
-                for r in citation_items[item] for s in strings]):
-            record.append(item)
+    record += [item for item in citation_items
+               if any(r.match(c) is not None for r in item.re() for c in calls)]
+
+def cprofile_stats_to_function_string(stat_key):
+    if stat_key[0] == '~':
+        object_start = stat_key[0].find("of '") + len("of '")
+        object_end = stat_key[0].find("'", object_start)
+        module_part = stat_key[0][object_start:object_end]
+
+        function_start = stat_key[0].find("method '") + len("method '")
+        function_end = stat_key[0].find("'", function_start)
+        function_part = stat_key[0][function_start:function_end]
+    else:
+        module_part = (stat_key[0].split("site-packages/")[-1]
+                       .split('.')[0]
+                       .replace("/", "."))
+        function_part = stat_key[2]
+
+    return module_part + "." + function_part
+    
 
 def get_systems(cmd):
     """
