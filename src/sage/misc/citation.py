@@ -22,7 +22,7 @@ from sage.env import SAGE_ROOT
 @contextmanager
 def citation_record(record):
     import cProfile, pstats
-    from sage.misc.citation_items import systems
+    from sage.misc.citation_items import citation_items
 
     profile = cProfile.Profile()
 
@@ -43,10 +43,11 @@ def citation_record(record):
             else:
                 i += 1
 
-    #Check to see which systems appear in the profiled run
-    for system in systems:
-        if any([(r in s) or (r.replace('.','/') in s) for r in systems[system] for s in strings]):
-            record.append(system)
+    #Check to see which citations appear in the profiled run
+    for item in citation_items:
+        if any([(r in s) or (r.replace('.','/') in s)
+                for r in citation_items[item] for s in strings]):
+            record.append(item)
 
 def get_systems(cmd):
     """
@@ -79,8 +80,8 @@ def get_systems(cmd):
     ## TODO: insert ticket number
     deprecation(0, 'get_sytems is replaced by citation_record')
 
-
     import cProfile, pstats, re
+    from sage.misc.citation_items import citation_items as systems
 
     if not isinstance(cmd, basestring):
         raise TypeError("command must be a string")
