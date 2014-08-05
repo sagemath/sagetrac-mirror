@@ -6,7 +6,7 @@
 ###########################################################################
 
 from contextlib import contextmanager
-import os, re
+import os, re, sys
 
 last_citations = []
 
@@ -35,21 +35,34 @@ def citation_record(record = None):
 
     yield
 
-    cprofiler.disable()
     if gprofiler:
-        gprofiler.stop()
+        fd = sys.stderr.fileno()
+
+        with os.fdopen(os.dup(fd), 'w') as old_stderr:
+            with file(os.devnull, 'w') as devnull:
+                sys.stderr.close()
+                os.dup2(devnull.fileno(), fd)
+                sys.stderr = os.fdopen(fd, 'w')
+                try:
+                    gprofiler.stop()
+                    gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
+                finally:
+
+                    sys.stderr.close()
+                    os.dup2(old_stderr.fileno(), fd)
+                    sys.stderr = os.fdopen(fd, 'w')
+    else:
+        gprofiler_calls = []
+
 
     if old_cpuprofile_frequency:
         os.environ["CPUPROFILE_FREQUENCY"] = old_cpuprofile_frequency
     else:
         del os.environ["CPUPROFILE_FREQUENCY"]
 
+    cprofiler.disable()
     cprofiler_calls = map(cprofile_stat_to_function_string,
                           pstats.Stats(cprofiler).stats.keys())
-    if gprofiler:
-        gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
-    else:
-        gprofiler_calls = []
 
 
     #Remove trivial functions
