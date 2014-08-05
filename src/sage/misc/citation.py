@@ -8,8 +8,10 @@
 from contextlib import contextmanager
 import re
 
+last_citations = []
+
 @contextmanager
-def citation_record(record):
+def citation_record(record = None):
     import cProfile, pstats
     import sage.misc.gperftools as gProfiler
 
@@ -45,9 +47,21 @@ def citation_record(record):
     calls = [c for c in cprofiler_calls + gprofiler_calls
              if all(r.match(c) is None for r in bad_res)]
 
+
     #Check to see which citations appear in the profiled run
-    record += [item for item in citation_items
-               if any(r.match(c) is not None for r in item.re() for c in calls)]
+    called_items = [item for item in citation_items
+                    if any(r.match(c) is not None for r in item.re() for c in calls)]
+
+    if record is None:
+        import sage
+        sage.misc.citation.last_citations = called_items
+
+        print "The computation used the following components."
+        print "They are stored as a list in sage.misc.citation.last_citations."
+        print "  ", ", ".join(map(repr, called_items))
+    else:
+        record.extend(called_items)
+
 
 def cprofile_stat_to_function_string(stat_key):
     if stat_key[0] == '~':
