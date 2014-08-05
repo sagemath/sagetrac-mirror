@@ -6,7 +6,7 @@
 ###########################################################################
 
 from contextlib import contextmanager
-import re
+import os, re
 
 last_citations = []
 
@@ -17,6 +17,12 @@ def citation_record(record = None):
 
     from sage.misc.citation_items.all import citation_items
 
+
+    try:
+        old_cpuprofile_frequency = os.environ['CPUPROFILE_FREQUENCY']
+    except KeyError:
+        old_cpuprofile_frequency = None
+    os.environ["CPUPROFILE_FREQUENCY"] = "1000"
 
     cprofiler = cProfile.Profile()
     gprofiler = gProfiler.Profiler()
@@ -32,6 +38,11 @@ def citation_record(record = None):
     cprofiler.disable()
     if gprofiler:
         gprofiler.stop()
+
+    if old_cpuprofile_frequency:
+        os.environ["CPUPROFILE_FREQUENCY"] = old_cpuprofile_frequency
+    else:
+        del os.environ["CPUPROFILE_FREQUENCY"]
 
     cprofiler_calls = map(cprofile_stat_to_function_string,
                           pstats.Stats(cprofiler).stats.keys())
