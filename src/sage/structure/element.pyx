@@ -2869,8 +2869,14 @@ cdef class FieldElement(CommutativeRingElement):
 
     def __floordiv__(self, other):
         r"""
-        Return the quotient of the division of ``self``
-        by ``other``.
+        Return the quotient of the division of ``self`` by ``other``
+        (without taking the floor).
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: (5*x/(x+1))//x
+            5/(x + 1)
             
         TESTS:
 
@@ -2879,8 +2885,7 @@ cdef class FieldElement(CommutativeRingElement):
             sage: (1/2)//2
             0
         """
-        from sage.functions.other import floor
-        return floor(self / other)
+        return self / other
 
     def is_unit(self):
         """

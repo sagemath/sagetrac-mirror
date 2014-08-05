@@ -229,8 +229,8 @@ def Psi(l, use_stored=True):
     from sage.misc.all import prod
     f = prod( [p for p,e in j.factor() if e==3]
              +[p for p,e in k.factor() if e==2])
-    A4 = -3*t**2*j*k // f**2
-    A6 = -2*t**3*j*k**2 // f**3
+    A4 = -3*t**2*j*k / f**2
+    A6 = -2*t**3*j*k**2 / f**3
     E = EllipticCurve([0,0,0,A4,A6])
     assert E.j_invariant() == j
     return E.division_polynomial(l,X).factor()[0][0]
