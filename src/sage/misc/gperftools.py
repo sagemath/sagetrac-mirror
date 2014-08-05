@@ -169,7 +169,7 @@ class Profiler(SageObject):
         self._t_start = time.time()
         rc = profiler.ProfilerStart(self.filename())
         if rc < 0:
-            raise ValueError('profiler failed to start')
+            raise ValueError('ppprofiler failed to start')
 
     def stop(self):
         """
@@ -268,7 +268,7 @@ class Profiler(SageObject):
         from subprocess import check_call
         check_call([self._pprof()] + list(args), **kwds)
 
-    def top(self, cumulative=False):
+    def top(self, cumulative=False, print_top=True):
         """
         Print text report
 
@@ -292,7 +292,21 @@ class Profiler(SageObject):
         if cumulative:
             args += ['--cum']
         args += ['--text', self._executable(), self.filename()]
-        self._call_pprof(*args)
+
+        if not print_top:
+            from sage.misc.all import tmp_filename
+            tmpf_name = tmp_filename()
+            tmpf = file(tmpf_name, "w")
+            kwds = {"stdout": tmpf}
+        else:
+            kwds = {}
+
+        self._call_pprof(*args, **kwds)
+
+        if not print_top:
+            tmpf.close()
+            with file(tmpf_name) as tmpf:
+                return tmpf.read()
             
     def save(self, filename, cumulative=False, verbose=True):
         """
