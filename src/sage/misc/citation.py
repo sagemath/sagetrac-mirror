@@ -12,6 +12,7 @@ last_citations = []
 
 @contextmanager
 def citation_record(record = None):
+    import warnings
     import cProfile, pstats
     import sage.misc.gperftools as gProfiler
 
@@ -22,7 +23,7 @@ def citation_record(record = None):
         old_cpuprofile_frequency = os.environ['CPUPROFILE_FREQUENCY']
     except KeyError:
         old_cpuprofile_frequency = None
-    os.environ["CPUPROFILE_FREQUENCY"] = "1000"
+    os.environ["CPUPROFILE_FREQUENCY"] = "250"
 
     cprofiler = cProfile.Profile()
     gprofiler = gProfiler.Profiler()
@@ -44,8 +45,12 @@ def citation_record(record = None):
                 os.dup2(devnull.fileno(), fd)
                 sys.stderr = os.fdopen(fd, 'w')
                 try:
-                    gprofiler.stop()
-                    gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
+                    ## Suppress warnings issued by the profiler
+                    ## because of too low frequence
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        gprofiler.stop()
+                        gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
                 finally:
 
                     sys.stderr.close()
