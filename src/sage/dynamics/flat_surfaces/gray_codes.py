@@ -21,13 +21,132 @@ consecutively).
 
 REFERENCES:
 
-- Knuth, "The art of computer programming", fascicule 3A
-Generating
+- Knuth, "The art of computer programming", fascicules 2A (generating all
+  n-tuples) and fascicule 3A (generating all combinations).
 
 - Jenkins McCarthy, Ars Combinatorica, 40, (1995)
 
 - W. H. Payne, ACM Trans. Math Software 5 (1979), 163--172.
 """
+################################
+# Switches for integer vectors #
+################################
+
+class TuplesGraySwitch:
+    r"""
+    Return the switch to perform for the enumeration of tuples of non negative
+    integers up to a certain vector.
+
+    This is an iterator over 2-tuples `(pos,incr)` which corresponds to a
+    sequence of switches to perform in position ``pos`` by increment ``incr``.
+    The increment ``incr`` is either ``+1`` or ``-1``.
+
+    This is algorithm H in TAOCP 2a: loopless reflected mixed-radix Gray
+    generation.
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import TuplesGraySwitch
+        sage: l = [0,0,0]
+        sage: for i,j in TuplesGraySwitch([3,3,3]):
+        ....:     l[i] += j
+        ....:     print l
+        ....:     
+        [1, 0, 0]
+        [2, 0, 0]
+        [2, 1, 0]
+        [1, 1, 0]
+        [0, 1, 0]
+        [0, 2, 0]
+        [1, 2, 0]
+        [2, 2, 0]
+        [2, 2, 1]
+        [1, 2, 1]
+        [0, 2, 1]
+        [0, 1, 1]
+        [1, 1, 1]
+        [2, 1, 1]
+        [2, 0, 1]
+        [1, 0, 1]
+        [0, 0, 1]
+        [0, 0, 2]
+        [1, 0, 2]
+        [2, 0, 2]
+        [2, 1, 2]
+        [1, 1, 2]
+        [0, 1, 2]
+        [0, 2, 2]
+        [1, 2, 2]
+        [2, 2, 2]
+        sage: l = [0,0]
+        sage: for i,j in TuplesGraySwitch([2,1]):
+        ....:     l[i] += j
+        ....:     print l
+        [1, 0]
+
+    TESTS::
+
+        sage: for t in [[2,2,2],[2,1,2],[3,2,1],[2,1,3]]:
+        ....:     assert sum(1 for _ in TuplesGraySwitch(t)) == prod(t)-1
+    """
+    def __init__(self, m):
+        self.m = []     # the limit (static)
+        self.mm = []    # jump over entries with limit 1 that will not change
+                        # during time (static)
+        k = 0
+        for i in m:
+            if i <= 0:
+                raise ValueError("accept only positive integers")
+            if i == 1:
+                k += 1
+            else:
+                self.m.append(i-1)
+                self.mm.append(k)
+        self.n = len(self.m)      # the actual number of elements on which the
+                                  # algorithm perform the iteration (static)
+        self.f = range(self.n+1)  # focus pointer (dynamic)
+        self.o = [1]*self.n       # +1 or -1 for the switch (dynamic)
+        self.a = [0]*self.n       # the current tuple (dynamic)
+        
+    def __iter__(self):
+        r"""
+        Return itself.
+
+        TESTS::
+
+            sage: from sage.dynamics.flat_surfaces.separatrix_diagramimport TuplesGraySwitch
+            sage: G = TuplesGraySwitch([2,3,4])
+            sage: iter(G) is G
+            True
+        """
+        return self
+         
+    def next(self):
+        r"""
+        Return the next switch
+
+        EXAMPLES::
+
+            sage: from sage.dynamics.flat_surfaces.separatrix_diagram import TuplesGraySwitch
+            sage: G = TuplesGraySwitch([2,2,2])
+            sage: G.next()
+            (0, 1)
+            sage: G.next()
+            (0, 1)
+            sage: G.next()
+            (1, 1)
+        """
+        j = self.f[0]
+        if j == self.n: 
+            raise StopIteration
+        self.f[0] = 0            
+        o = self.o[j]            
+        self.a[j] += o
+        if self.a[j] == 0 or self.a[j] == self.m[j]:
+            self.f[j] = self.f[j+1]
+            self.f[j+1] = j+1
+            self.o[j] = -o
+        return j+self.mm[j],o
 
 ###########################################
 # The switches that generate combinations #

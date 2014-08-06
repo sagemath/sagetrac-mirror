@@ -7,3 +7,5 @@ lazy_import("sage.dynamics.flat_surfaces.homology",
             ["RibbonGraph","RibbonGraphWithAngles"])
 lazy_import("sage.dynamics.flat_surfaces.separatrix_diagram",
             ["SeparatrixDiagram","CylinderDiagram"])
+
+from origamis.all import *
