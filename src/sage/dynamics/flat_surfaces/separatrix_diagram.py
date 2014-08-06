@@ -118,14 +118,31 @@ class SeparatrixDiagram(SageObject):
         sage: print s.stratum()
         H_3(4)
     """
-    def __init__(self,bot,top,check=True):
+    def __init__(self,data,top=None,check=True):
         r"""
         TESTS::
 
             sage: s = SeparatrixDiagram('(0,1)(2,3,4)','(0,2,4)(1,3)')
             sage: s == loads(dumps(s))
             True
+            sage: s == SeparatrixDiagram(s)
+            True
+            sage: s == SeparatrixDiagram(str(s))
+            True
         """
+        if top is None:
+            if isinstance(data,SeparatrixDiagram):
+                bot = data.bot()
+                top = data.top()
+            elif isinstance(data,(list,tuple)) and len(data) == 2:
+                bot,top = data
+            elif isinstance(data,str):
+                bot,top = data.split('-')
+            else:
+                raise ValueError, "the argument data is not valid"
+        else:
+            bot = data
+
         self._bot = init_perm(bot)
         self._top = init_perm(top)
         n = equalize_perms((self._bot, self._top))
@@ -224,11 +241,9 @@ class SeparatrixDiagram(SageObject):
 
             sage: d = SeparatrixDiagram('(0,1)(2)','(0)(1,2)')
             sage: repr(d) #indirect doctest
-            'Separatrix diagram\n bot (0,1)(2)\n top (0)(1,2)'
+            '(0,1)(2)-(0)(1,2)'
         """
-        return "Separatrix diagram\n bot %s\n top %s" %(
-                self.bot_cycle_string(),
-                self.top_cycle_string())
+        return self.bot_cycle_string() + "-" + self.top_cycle_string()
 
     #TODO
     def _latex_(self):
@@ -2313,6 +2328,7 @@ class CylinderDiagram(SeparatrixDiagram):
         else:
             return OddASC(stratum)
 
+    @cached_method
     def smallest_integer_lengths(self):
         r"""
         Check if there is a integer solution that satisfy the cylinder
@@ -2523,4 +2539,6 @@ class CylinderDiagram(SeparatrixDiagram):
 #            vertices.append(vertex)
 #
 #        return TranslationSurfaceChainComplex(ring,vertices,edges,angles)
+
+
 
