@@ -1293,6 +1293,155 @@ class AbelianStratumComponent(StratumComponent):
 
         return sum(1 for _ in self.cylinder_diagram_iterator(ncyls))
 
+    def one_origami(self):
+        r"""
+        Returns an origami in this component
+
+        The origami returned has the minimal number of squares and one
+        cylinder. It is obtained from the permutation representative of the 
+        stratum.
+
+        EXAMPLES::
+
+            sage: a = AbelianStratum(2,2).one_connected_component()
+            sage: a.one_origami().stratum()
+            H(2,2)
+        """
+        from sage.dynamics.flat_surfaces.origamis.all import Origami
+        t = self.permutation_representative(reduced=True).to_standard()
+        t.alphabet(range(len(t)))
+        h_perm = range(2,len(t)) + [1]
+        v_perm = t[1][:-1]
+        return Origami(h_perm,v_perm)
+
+    def origami_iterator(self, n, reduced=True, primitive=False):
+        r"""
+        Iterator through the set of origamis with ``n`` squares in this stratum.
+
+        The output origamis are in normal form. But be careful as there may be
+        repetition in the output!
+
+        INPUT:
+
+        - ``n`` - integer - the number of squares
+
+        - ``reduced`` - boolean (default: ``True``)
+
+        - ``primitive`` - boolean (default: ``False``)
+
+        EXAMPLES::
+
+            sage: cc = AbelianStratum(6).even_component()
+            sage: it = cc.origami_iterator()
+            sage: it.next()
+        """
+        reduced = not reduced
+        primitive = not primitive
+        for c in self.cylinder_diagram_iterator():
+            do_h = c.horizontal_symmetry().relabel(inplace=False) != c
+            do_v = c.horizontal_symmetry().relabel(inplace=False) != c
+            do_i = c.inverse().relabel(inplace=False) != c
+            for o in c.origami_iterator(n):
+                if ((reduced or o.is_reduced()) and (primitive or o.is_primitive())):
+                    o.relabel(inplace=True)
+                    yield o
+
+                    if do_h:
+                        oo = o.horizontal_symmetry()
+                        oo.relabel(inplace=True)
+                        yield oo
+
+                    if do_v:
+                        oo = o.vertical_symmetry()
+                        oo.relabel(inplace=True)
+                        yield oo
+
+                    if do_i:
+                        oo = o.inverse()
+                        oo.relabel(inplace=True)
+                        yield oo
+
+    def origamis(self, n, reduced=True, primitive=False):
+        r"""
+        Return the set of origamis with n squares in this stratum.
+
+        INPUT:
+
+        - ``n`` - integer - the number of squares
+
+        - ``reduced`` - boolean (default: True)
+
+        - ``primitive`` - boolean (default: False)
+
+        EXAMPLES::
+
+            sage: H11_hyp = AbelianStratum(1,1).hyperelliptic_component()
+            sage: len(H11_hyp.origamis(6))
+            88
+
+            sage: T6 = H11_hyp.arithmetic_teichmueller_curves(6)
+            sage: len(T6)
+            5
+            sage: sum(t.veech_group().index() for t in T6)
+            88
+
+            sage: H4_odd = AbelianStratum(4).odd_component()
+            sage: len(H4_odd.origamis(6))
+            155
+            sage: T6 = H4_odd.arithmetic_teichmueller_curves(6)
+            sage: sum(t.veech_group().index() for t in T6)
+            155
+        """
+        return set(self.origami_iterator(n, reduced, primitive))
+
+    def arithmetic_teichmueller_curves(self, n, primitive=False):
+        r"""
+        Return the arithmetic Teichmueller curves in that component of stratum.
+
+        EXAMPLES::
+
+            sage: A = AbelianStratum(2).hyperelliptic_component(); A
+            H_2(2)^hyp
+            sage: for i in xrange(3,10):
+            ...       print i,len(A.arithmetic_teichmueller_curves(i))
+            3 1
+            4 1
+            5 2
+            6 1
+            7 2
+            8 1
+            9 2
+
+            sage: A = AbelianStratum(1,1).hyperelliptic_component(); A
+            H_2(1^2)^hyp
+            sage: for i in xrange(4,10):
+            ...      T = A.arithmetic_teichmueller_curves(i)
+            ...      T_prim = filter(lambda :T.origami().is_primitve())
+            ...      print i,len(T),len(T_prim)
+            4 2 1
+            5 1 1
+            6 5 2
+            7 2 2
+            8 4 2
+            9 4 2
+
+            sage: A = AbelianStratum(4).hyperelliptic_component(); A
+            H_3(4)^hyp
+            sage: for i in xrange(5,10):
+            ...      print i,len(A.arithmetic_teichmueller_curves(i))
+            5 2
+            6 4
+            7 3
+            8 3
+            9 4
+        """
+        from origamis.teichmueller_curve import TeichmuellerCurvesOfOrigamis
+        tcurves = TeichmuellerCurvesOfOrigamis(self.origamis(n),assume_normal_form=True)
+        if primitive:
+            return [tcurve for tcurve in tcurves if tcurve.origami().is_primitive()]
+        return tcurves
+
+
 ASC = AbelianStratumComponent
 
 class HypAbelianStratumComponent(ASC):
@@ -2381,7 +2530,6 @@ class OddAbelianStratumComponent(ASC):
             return N - 1
 
         return N
-
 
     def cylinder_diagram_iterator(self, ncyls=None):
         r"""

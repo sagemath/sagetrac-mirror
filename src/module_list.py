@@ -340,6 +340,13 @@ ext_modules = [
               include_dirs = numpy_include_dirs,
               depends = numpy_depends),
 
+    Extension('sage.dynamics.flat_surfaces.origamis.origami_dense',
+              sources = [
+                  'sage/dynamics/flat_surfaces/origamis/origami_dense.pyx',
+                  'sage/dynamics/flat_surfaces/origamis/normal_form.c',
+                  'sage/dynamics/flat_surfaces/origamis/lyapunov_exponents.c'],
+              libraries = ['m'],
+              include_dirs = ['sage/dynamics/flat_surfaces/origamis/']),
 
     ################################
     ##
