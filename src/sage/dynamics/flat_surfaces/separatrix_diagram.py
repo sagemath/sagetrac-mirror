@@ -46,9 +46,7 @@ Separatrix diagrams::
 
     sage: s = SeparatrixDiagram('(0,1,2)(3,4)(5,6,7)','(0,4,1,2)(3,7)(5,6)')
     sage: s
-    Separatrix diagram
-     bot (0,1,2)(3,4)(5,6,7)
-     top (0,4,1,2)(3,7)(5,6)
+    (0,1,2)(3,4)(5,6,7)-(0,4,1,2)(3,7)(5,6)
     sage: s.bot_cycle_tuples()
     [(0, 1, 2), (3, 4), (5, 6, 7)]
     sage: s.top_cycle_tuples()
@@ -60,23 +58,19 @@ Cylinder diagrams::
     sage: print c
     (0)-(4) (1,2)-(0,1,3) (3,4)-(2)
     sage: print c.separatrix_diagram()
-    Separatrix diagram
-     bot (0)(1,2)(3,4)
-     top (0,1,3)(2)(4)
+    (0)(1,2)(3,4)-(0,1,3)(2)(4)
 
 They can also be built from separatrix diagram::
 
     sage: s = SeparatrixDiagram('(0,1,2)(3,4)(5,6,7)','(0,4,1,2)(3,7)(5,6)')
     sage: s
-    Separatrix diagram
-     bot (0,1,2)(3,4)(5,6,7)
-     top (0,4,1,2)(3,7)(5,6)
+    (0,1,2)(3,4)(5,6,7)-(0,4,1,2)(3,7)(5,6)
     sage: s.to_cylinder_diagram([(0,1),(1,0),(2,2)])
     (0,1,2)-(3,7) (3,4)-(0,4,1,2) (5,6,7)-(5,6)
 """
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from gray_codes import GrayCodeSwitch
+from gray_codes import TuplesGraySwitch
 
 import itertools
 import sage.rings.arith as arith
@@ -113,9 +107,7 @@ class SeparatrixDiagram(SageObject):
 
         sage: s = SeparatrixDiagram('(0,2)(1,3,4)','(0,4)(2,1,3)')
         sage: print s
-        Separatrix diagram
-         bot (0,2)(1,3,4)
-         top (0,4)(1,3,2)
+        (0,2)(1,3,4)-(0,4)(1,3,2)
         sage: print s.stratum()
         H_3(4)
     """
@@ -214,6 +206,7 @@ class SeparatrixDiagram(SageObject):
 
         - 'b' neighboor corresponds to the right neighbors on the bottom
           permutation
+
         - 't' edges correspond to the neighbor of the top permutation
 
         EXAMPLES::
@@ -249,6 +242,12 @@ class SeparatrixDiagram(SageObject):
     #TODO
     def _latex_(self):
         r"""
+        Latex representation
+
+        EXAMPLES::
+
+            sage: print "to be done"
+            to be done
         """
         n = self._n
         if len(self.vertices_out().cycle_type()) == 1:
@@ -341,43 +340,27 @@ class SeparatrixDiagram(SageObject):
 
         TESTS::
 
-            sage: s3_0 = SeparatrixDiagram([0,1,2],[0,1,2])
-            sage: S3 = [s3_0]
-
-            sage: s2_0 = SeparatrixDiagram([1,0,2],[1,0,2])
-            sage: s2_1 = SeparatrixDiagram([1,0,2],[2,1,0])
-            sage: s2_2 = SeparatrixDiagram([1,0,2],[0,2,1])
-            sage: s2_3 = SeparatrixDiagram([2,1,0],[1,0,2])
-            sage: s2_4 = SeparatrixDiagram([2,1,0],[2,1,0])
-            sage: s2_5 = SeparatrixDiagram([2,1,0],[0,2,1])
-            sage: s2_6 = SeparatrixDiagram([0,2,1],[1,0,2])
-            sage: s2_7 = SeparatrixDiagram([0,2,1],[2,1,0])
-            sage: s2_8 = SeparatrixDiagram([0,2,1],[0,2,1])
-            sage: S2 = [s2_0,s2_1,s2_2,s2_3,s2_4,s2_5,s2_6,s2_7,s2_8]
-
-            sage: s1_0 = SeparatrixDiagram([1,2,0],[1,2,0])
-            sage: s1_1 = SeparatrixDiagram([1,2,0],[2,0,1])
-            sage: s1_2 = SeparatrixDiagram([2,0,1],[1,2,0])
-            sage: s1_3 = SeparatrixDiagram([2,0,1],[2,0,1])
-            sage: S1 = [s1_0,s1_1,s1_2,s1_3]
-
-            sage: all(cmp(s,s) == 0 for s in S1+S2+S3)
-            True
-            sage: all(cmp(s1,s2) == -1 for s1 in S1 for s2 in S2)
-            True
-            sage: all(cmp(s2,s1) == 1 for s1 in S1 for s2 in S2)
-            True
-            sage: all(cmp(s2,s3) == -1 for s2 in S2 for s3 in S3)
-            True
-            sage: all(cmp(s3,s2) == 1 for s2 in S2 for s3 in S3)
-            True
-            sage: all(cmp(s1,s3) == -1 for s1 in S1 for s3 in S3)
-            True
-            sage: all(cmp(s3,s1) == 1 for s1 in S1 for s3 in S3)
-            True
+            sage: s = ['(0,1,2)-(0,1,2)',
+            ....:      '(0,2,1)-(0,1,2)',
+            ....:      '(0,2,1)-(0,2,1)',
+            ....:      '(0)(1,2)-(0)(1,2)',
+            ....:      '(0)(1,2)-(0,1)(2)',
+            ....:      '(0)(1,2)-(0,2)(1)',
+            ....:      '(0,1)(2)-(0)(1,2)',
+            ....:      '(0,1)(2)-(0,1)(2)',
+            ....:      '(0,1)(2)-(0,2)(1)',
+            ....:      '(0,2)(1)-(0)(1,2)',
+            ....:      '(0,2)(1)-(0,1)(2)',
+            ....:      '(0,2)(1)-(0,2)(1)',
+            ....:      '(0)(1)(2)-(0)(1)(2)']
+            sage: s0 = map(SeparatrixDiagram,s)
+            sage: s1 = s0[:]
+            sage: for _ in xrange(10):
+            ....:     shuffle(s1)
+            ....:     assert sorted(s1) == s0
         """
         if not isinstance(other, SeparatrixDiagram):
-            raise NotImplemented
+            raise ValueError
 
         test = cmp(self.nseps(), other.nseps())
         if test: return test
@@ -385,16 +368,10 @@ class SeparatrixDiagram(SageObject):
         test = cmp(self.ncyls(),other.ncyls())
         if test: return test
 
-        test = cmp(map(len,self.bot_cycle_tuples()),map(len,other.bot_cycle_tuples()))
+        test = cmp(self._bot_cycles, other._bot_cycles)
         if test: return test
 
-        test = cmp(map(len,self.top_cycle_tuples()),map(len,other.top_cycle_tuples()))
-        if test: return test
-
-        test = cmp(self._bot,other._bot)
-        if test: return test
-
-        test = cmp(self._top,other._top)
+        test = cmp(self._top_cycles, other._top_cycles)
         if test: return test
 
         return 0
@@ -408,15 +385,13 @@ class SeparatrixDiagram(SageObject):
             sage: bot = [1,2,0,3]
             sage: top = [1,0,3,2]
             sage: s = SeparatrixDiagram(bot,top); s
-            Separatrix diagram
-             bot (0,1,2)(3)
-             top (0,1)(2,3)
+            (0,1,2)(3)-(0,1)(2,3)
             sage: m = [3,0,1,2]
             sage: bot2 = [0]*4
             sage: top2 = [0]*4
             sage: for i in xrange(4):
-            ...     bot2[m[i]] = m[bot[i]]
-            ...     top2[m[i]] = m[top[i]]
+            ....:     bot2[m[i]] = m[bot[i]]
+            ....:     top2[m[i]] = m[top[i]]
             sage: ss = SeparatrixDiagram(bot2,top2)
             sage: s.is_isomorphic(ss)
             True
@@ -443,10 +418,10 @@ class SeparatrixDiagram(SageObject):
           (default: None) - the permutation used to relabel the separatrix
           diagram. If None, then canonic labels are used.
 
-        - ``return_map`` - boolean (default: False) - whether or not return the
+        - ``return_map`` - boolean (default: ``False``) - whether or not return the
           permutation used to relabel.
 
-        - ``inplace`` - boolean (default: False) - if True modify self if not
+        - ``inplace`` - boolean (default: ``True``) - if True modify self if not
           return a relabeled copy.
 
         EXAMPLES::
@@ -454,17 +429,11 @@ class SeparatrixDiagram(SageObject):
         Perform some renumbering of a separatrix diagram using a permutation::
 
             sage: S=SeparatrixDiagram('(0)(2,3,4)','(0,3,2)(1)'); S
-            Separatrix diagram
-             bot (0)(1)(2,3,4)
-             top (0,3,2)(1)(4)
+            (0)(1)(2,3,4)-(0,3,2)(1)(4)
             sage: S.relabel(perm=[1,0,2,3,4],inplace=False)
-            Separatrix diagram
-             bot (0)(1)(2,3,4)
-             top (0)(1,3,2)(4)
+            (0)(1)(2,3,4)-(0)(1,3,2)(4)
             sage: S.relabel(perm=[1,2,0,3,4],inplace=False)
-            Separatrix diagram
-             bot (0,3,4)(1)(2)
-             top (0,1,3)(2)(4)
+            (0,3,4)(1)(2)-(0,1,3)(2)(4)
 
         Canonical labels::
 
@@ -472,49 +441,40 @@ class SeparatrixDiagram(SageObject):
             sage: top = '(0)(1,2)(3,4,5)(6,7,8,9)'
             sage: s = SeparatrixDiagram(bot,top)
             sage: s.relabel(inplace=False)
-            Separatrix diagram
-             bot (0)(1)(2,3,4,5,6,7)(8,9)
-             top (0,1,2,3)(4,7,9)(5)(6,8)
+            (0)(1)(2,3,4,5,6,7)(8,9)-(0,1,2,3)(4,7,9)(5)(6,8)
 
         TESTS::
 
             sage: top = [1,0,3,4,2]
             sage: bot = [3,2,4,0,1]
             sage: t = [None]*5; b = [None]*5
-            sage: for p in permutations([0,1,2,3,4]):
+            sage: for p in Permutations([0,1,2,3,4]):
             ...       for i in xrange(5):
             ...           t[p[i]] = p[top[i]]
             ...           b[p[i]] = p[bot[i]]
             ...       s = SeparatrixDiagram(b,t)
             ...       s.relabel()
             ...       print s
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
             ...
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2,4)(1,3)
+            (0,1)(2,3,4)-(0,2,4)(1,3)
         """
         if perm is None:
             perm = self._compute_normal_form()
             if inplace:
-                self.__dict__ = self._normal_form.__dict__
+                other = self._normal_form
+                self._bot = other._bot
+                self._top = other._top
+                self._bot_cycles = other._bot_cycles
+                self._top_cycles = other._top_cycles
+                self._bot_to_cycle = other._bot_to_cycle
+                self._top_to_cycle = other._top_to_cycle
+
                 if return_map:
                     raise NotImplementedError
                 return None
@@ -534,14 +494,12 @@ class SeparatrixDiagram(SageObject):
 
         S = SeparatrixDiagram(bot,top)
         if inplace:
-            self._top = S._top
             self._bot = S._bot
-            self._top_cycles = S._top_cycles
+            self._top = S._top
             self._bot_cycles = S._bot_cycles
-            self._top_to_cycle = S._top_to_cycle
+            self._top_cycles = S._top_cycles
             self._bot_to_cycle = S._bot_to_cycle
-            if hasattr('self','_normal_form') and self is self._normal_form:
-                del self._normal_form
+            self._top_to_cycle = S._top_to_cycle
 
             if return_map:
                 return perm
@@ -549,6 +507,61 @@ class SeparatrixDiagram(SageObject):
         if return_map:
             return perm, S
         return S
+
+    def horizontal_symmetry(self):
+        r"""
+        Return the horizontal symmetric of this separatrix diagram.
+
+        EXAMPLES::
+
+            sage: s = SeparatrixDiagram('(0,1,2,3)(4,5)','(1,2,3)(4,5,0)')
+            sage: sh = s.horizontal_symmetry()
+            sage: print sh
+            (0,5,4)(1,3,2)-(0,3,2,1)(4,5)
+
+            sage: sh.cylinder_diagrams()
+            [(0,2,4)-(1,5) (1,3,5)-(0,2,3,4)]
+            sage: [c.horizontal_symmetry().relabel(inplace=False) for c in s.cylinder_diagrams()]
+            [(0,2,4)-(1,5) (1,3,5)-(0,2,3,4)]
+        """
+        return SeparatrixDiagram(tuple(t[::-1] for t in self._top_cycles),
+                                 tuple(b[::-1] for b in self._bot_cycles))
+
+    def vertical_symmetry(self):
+        r"""
+        Return the vertical symmetric of this separatrix diagram.
+
+        EXAMPLES::
+
+            sage: s = SeparatrixDiagram('(0,1,2,3)(4,5)','(1,2,3)(4,5,0)')
+            sage: sv = s.vertical_symmetry()
+            sage: print sv
+            (0,3,2,1)(4,5)-(0,5,4)(1,3,2)
+
+            sage: sv.cylinder_diagrams()
+            [(0,1,3,4)-(2,3,5) (2,5)-(0,1,4)]
+            sage: [c.vertical_symmetry().relabel(inplace=False) for c in sv.cylinder_diagrams()]
+            [(0,1,3,4)-(2,3,5) (2,5)-(0,1,4)]
+        """
+        return SeparatrixDiagram(tuple(b[::-1] for b in self._bot_cycles),
+                                 tuple(t[::-1] for t in self._top_cycles))
+
+    def inverse(self):
+        r"""
+        Return the inverse of this separatrix diagram, that is the one we obtain
+        after application of `-Id`.
+
+        EXAMPLES::
+
+            sage: s = SeparatrixDiagram('(0,1,2)(3,4)(5,6,7,8)-(0,1,3,5,7)(2,4,6,8)')
+            sage: s.inverse()
+            (0,1,3,5,7)(2,4,6,8)-(0,1,2)(3,4)(5,6,7,8)
+            sage: s.horizontal_symmetry().vertical_symmetry() == s.inverse()
+            True
+            sage: s.vertical_symmetry().horizontal_symmetry() == s.inverse()
+            True
+        """
+        return SeparatrixDiagram(tuple(self._top_cycles), tuple(self._bot_cycles))
 
     def _compute_normal_form(self):
         r"""
@@ -566,19 +579,13 @@ class SeparatrixDiagram(SageObject):
 
             sage: s = SeparatrixDiagram('(0,1)(2,3,4)','(0,3,4)(1,2)')
             sage: s.relabel(inplace=False) #indirect doctest
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,2)(1,3,4)
+            (0,1)(2,3,4)-(0,2)(1,3,4)
 
             sage: s = SeparatrixDiagram('(0,5,2)(1,3,4)(6,7,8)','(0,3,7,8)(1,5)(2,4,6)')
             sage: s
-            Separatrix diagram
-             bot (0,5,2)(1,3,4)(6,7,8)
-             top (0,3,7,8)(1,5)(2,4,6)
+            (0,5,2)(1,3,4)(6,7,8)-(0,3,7,8)(1,5)(2,4,6)
             sage: s.relabel(inplace=False) #indirect doctest
-            Separatrix diagram
-             bot (0,1,2)(3,4,5)(6,7,8)
-             top (0,1,3,6)(2,5,7)(4,8)
+            (0,1,2)(3,4,5)(6,7,8)-(0,1,3,6)(2,5,7)(4,8)
         """
         from sage.misc.permutation import perms_canonical_labels, perms_relabel
 
@@ -637,8 +644,7 @@ class SeparatrixDiagram(SageObject):
             sage: s.relabel(inplace=False).is_in_normal_form()
             True
         """
-        self._compute_normal_form()
-        return self == self._normal_form
+        return self == self._compute_normal_form()
 
     #
     # Attributes access
@@ -724,7 +730,7 @@ class SeparatrixDiagram(SageObject):
 
     def stratum(self):
         r"""
-        Return the abelian stratum
+        Return the Abelian stratum this separatrix diagram belongs to.
 
         EXAMPLES::
 
@@ -882,10 +888,12 @@ class SeparatrixDiagram(SageObject):
         EXAMPLES::
 
             sage: S = SeparatrixDiagram('(0,3,1,4,2)','(0,1,2,3,4)')
-            sage: S.automorphism_group(implementation='graph')
-            Permutation Group with generators [(1,2,3,4,5)]
-            sage: S.automorphism_group(implementation='gap')
+            sage: G1 = S.automorphism_group(implementation='graph'); G1
+            Permutation Group with generators [(0,1,2,3,4)]
+            sage: G2 = S.automorphism_group(implementation='gap'); G2
             Subgroup of (Symmetric group of order 5! as a permutation group) generated by [(1,2,3,4,5), (1,4,2,5,3)]
+            sage: G1.is_isomorphic(G2)
+            True
         """
         if implementation == 'graph':
             return self.to_directed_graph().automorphism_group(edge_labels=True)
@@ -996,9 +1004,7 @@ class SeparatrixDiagram(SageObject):
         EXAMPLES::
 
             sage: s = SeparatrixDiagram('(0,1,3)(2,4)','(0,2)(1,4,3)'); s
-            Separatrix diagram
-             bot (0,1,3)(2,4)
-             top (0,2)(1,4,3)
+            (0,1,3)(2,4)-(0,2)(1,4,3)
 
             sage: s.to_cylinder_diagram([(0,0),(1,1)])
             (0,1,3)-(0,2) (2,4)-(1,4,3)
@@ -1045,7 +1051,7 @@ class SeparatrixDiagram(SageObject):
 
         - ``up_to_isomorphism`` - boolean (default: True) - take care of
           isomorphism problem. It is memory efficient and probably faster to set
-          this option to False.
+          this option to ``False``.
 
         EXAMPLES::
 
@@ -1055,7 +1061,7 @@ class SeparatrixDiagram(SageObject):
             (0,3)-(0,5) (1,2)-(1,4) (4,5)-(2,3)
             (0,5)-(3,4) (1,4)-(0,2) (2,3)-(1,5)
             sage: G = s.automorphism_group(); G
-            Permutation Group with generators [(1,3,5)(2,4,6), (1,6)(2,5)(3,4)]
+            Permutation Group with generators [(0,1)(2,5)(3,4), (0,2,4)(1,3,5)]
             sage: G.order()
             6
             sage: sum(1 for _ in s.cylinder_diagram_iterator(up_to_isomorphism=False))
@@ -1067,15 +1073,18 @@ class SeparatrixDiagram(SageObject):
 
         connected = not connected
 
+        # note: here it is not necessary to check for symmtries
+        # (horiz./vert./inverse) because this is done in the iteration of
+        # separatrix diagrams
         if up_to_isomorphism:
             s = set([])
             for ctop in itertools.permutations(ctop0):
                 c = CylinderDiagram(zip(cbot,ctop),check=False)
-                cc = c.relabel(inplace=False)
-                if cc not in s:
-                    s.add(cc)
-                    if (connected or cc.is_connected()) and cc.smallest_integer_lengths():
-                        yield cc
+                c.relabel(inplace=True)
+                if c not in s:
+                    if (connected or c.is_connected()) and c.smallest_integer_lengths():
+                        yield c
+                    s.add(c)
 
         else:
             for ctop in itertools.permutations(ctop0):
@@ -1105,8 +1114,8 @@ class SeparatrixDiagram(SageObject):
             (0)-(2) (1)-(0) (2)-(1)
             sage: for c in s.cylinder_diagrams(connected=False): print c
             (0)-(0) (1)-(1) (2)-(2)
-            (0)-(0) (1)-(2) (2)-(1)
             (0)-(2) (1)-(0) (2)-(1)
+            (0)-(1) (1)-(0) (2)-(2)
 
             sage: s = SeparatrixDiagram('(0,1)(2)','(0)(1,2)')
             sage: for c in s.cylinder_diagrams(): print c
@@ -1118,7 +1127,7 @@ class SeparatrixDiagram(SageObject):
             sage: s = SeparatrixDiagram('(0,3)(1,4,5)(2)','(0)(1,2)(3,4,5)')
             sage: for c in s.cylinder_diagrams(): print c
             (0,1,2)-(0,1,5) (3,5)-(2,4) (4)-(3)
-            (0,2,4)-(2,5) (1,3)-(0,1,4) (5)-(3)
+            (0,2,3)-(2,5) (1,4)-(0,1,3) (5)-(4)
             (0,3,1)-(5) (2,5)-(3,4) (4)-(0,2,1)
             sage: for c in s.cylinder_diagrams(up_to_isomorphism=False): print c
             (0,3)-(3,4,5) (1,4,5)-(1,2) (2)-(0)
@@ -1131,42 +1140,29 @@ class SeparatrixDiagram(SageObject):
             connected=connected,
             up_to_isomorphism=up_to_isomorphism))
 
-class QuadraticSeparatrixDiagram(SageObject):
-    r"""
-    A quadratic separatrix diagram
-
-    sigma  : permutation around vertices
-    twin   : an involution without fixed point
-    cycles : a pair union of cycles
-
-    EXAMPLES::
-
-        sage: s = QuadraticSeparatrixDiagram([(1,1),(2,2)]); s
-        (1,1)-(2,2)
-        sage: s.stratum()
-        Q_0(-1^4)
-
-        sage: s = QuadraticSeparatrixDiagram([(1,1),(2,3,2,3)]); s
-        (1,1)-(2,3,2,3)
-        sage: s.stratum()
-        Q_1(2, -1^2)
-    """
-    def __init__(self,bot,top):
-        pass
-
-    def stratum(self):
-        pass
-
-
 
 def cyclic_direction(x,y,z):
     r"""
     Returns 1 or -1 depending on the cyclic ordering of (x,y,z)
+
+    TESTS::
+
+        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import cyclic_direction
+        sage: cyclic_direction(0,1,2)
+        1
+        sage: cyclic_direction(1,2,0)
+        1
+        sage: cyclic_direction(2,0,1)
+        1
+        sage: cyclic_direction(2,1,0)
+        -1
+        sage: cyclic_direction(1,0,2)
+        -1
+        sage: cyclic_direction(0,2,1)
+        -1
     """
-    if x < y and y < z: return 1
-    if y < z and z < x: return 1
-    if z < x and x < y: return 1
-    return -1
+    if (x < y < z) or (y < z < x) or (z < x < y): return 1
+    else: return -1
 
 # iterators
 
@@ -1272,7 +1268,7 @@ def separatrix_diagram_fast_iterator(profile,ncyls=None):
             for p in Partitions(n,length=k):
                 tops[-1].append((canonical_perm(p),canonical_perm_i(p)))
 
-    for s in conjugacy_class_iterator(part):
+    for s in conjugacy_class_iterator(part,range(n)):
         for k in xrange(len(tops)):
             for top,top_i in tops[k]:
                 bot = range(len(top_i))
@@ -1295,9 +1291,10 @@ def separatrix_diagram_fast_iterator(profile,ncyls=None):
                 if nb_cycles == k:
                     yield (bot,top,s)
 
-def separatrix_diagram_iterator(profile,ncyls=None):
+def separatrix_diagram_iterator(profile, ncyls=None):
     r"""
-    Iterator over separatrix diagram with given ``profile``
+    Iterator over separatrix diagram with given ``profile`` and number of
+    cylinders.
 
     Warning: to prevent isomorphism class to be output twice the function
     implement a cache mechanism. If you intend to iterate through a huge
@@ -1309,64 +1306,41 @@ def separatrix_diagram_iterator(profile,ncyls=None):
         sage: from sage.dynamics.flat_surfaces.separatrix_diagram import separatrix_diagram_iterator
 
         sage: for s in separatrix_diagram_iterator([1,1]): print s
-        Separatrix diagram
-         bot (0,1)
-         top (0,1)
-        Separatrix diagram
-         bot (0)(1)
-         top (0)(1)
+        (0,1)-(0,1)
+        (0)(1)-(0)(1)
 
         sage: for s in separatrix_diagram_iterator([3]): print s
-        Separatrix diagram
-         bot (0)(1,2)
-         top (0,1)(2)
-        Separatrix diagram
-         bot (0,1,2)
-         top (0,1,2)
+        (0)(1,2)-(0,1)(2)
+        (0,1,2)-(0,1,2)
 
         sage: for s in separatrix_diagram_iterator([2,2]): print s
-        Separatrix diagram
-         bot (0)(1,2,3)
-         top (0,1,2)(3)
-        Separatrix diagram
-         bot (0)(1)(2,3)
-         top (0,1)(2)(3)
-        Separatrix diagram
-         bot (0,1,2,3)
-         top (0,1,2,3)
-        Separatrix diagram
-         bot (0,1)(2,3)
-         top (0,2)(1,3)
+        (0)(1,2,3)-(0,1,2)(3)
+        (0)(1)(2,3)-(0,1)(2)(3)
+        (0,1,2,3)-(0,1,2,3)
+        (0,1)(2,3)-(0,2)(1,3)
+
+        sage: sum(1 for s in separatrix_diagram_iterator([3,2,2]))
+        64
     """
     res = set([])
     for bot,top,_ in separatrix_diagram_fast_iterator(profile,ncyls):
         s = SeparatrixDiagram(bot,top)
+
         s.relabel(inplace=True)
         if s not in res:
-            res.add(s)
+            s_sym = [s]
+            s1 = s.horizontal_symmetry()
+            s1.relabel(inplace=True)
+            s_sym.append(s1)
+            s1 = s.vertical_symmetry()
+            s1.relabel(inplace=True)
+            s_sym.append(s1)
+            s1 = s.inverse()
+            s1.relabel(inplace=True)
+            s_sym.append(s1)
+            s = min(s_sym)
+            res.update(s_sym)
             yield s
-
-def separatrix_diagrams(profile,ncyls=None):
-    r"""
-    Return the list of separatrix diagram with given ``profile``.
-
-    EXAMPLES::
-
-        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import separatrix_diagrams
-        sage: for s in separatrix_diagrams([3]): print s
-        Separatrix diagram
-         bot (0,1,2)
-         top (0,1,2)
-        Separatrix diagram
-         bot (0)(1,2)
-         top (0,1)(2)
-    """
-    res = set([])
-    for bot,top,_ in separatrix_diagram_fast_iterator(profile,ncyls):
-        s = SeparatrixDiagram(bot,top)
-        s.relabel(inplace=True)
-        res.add(s)
-    return sorted(res)
 
 #
 # Cylinder diagram
@@ -1374,6 +1348,13 @@ def separatrix_diagrams(profile,ncyls=None):
 #
 
 def string_to_cycle(s):
+    r"""
+    TESTS::
+
+        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import string_to_cycle
+        sage: string_to_cycle('(3,1,2)')
+        (3, 1, 2)
+    """
     if len(s) < 2:
         raise ValueError, "Wrong syntax"
     if s[0] != '(':
@@ -1392,6 +1373,22 @@ def orientation_cover(alpha,phi,a,verbose=0):
     - alpha: the permutation of 1/2-separatrices that describe the separatrices
        (it is a fixed point free involution)
     - phi: the permutation of 1/2-separatrices that describe the cycles.
+
+    INPUT:
+
+    - ``alpha`` -- permutation
+
+    - ``phi`` -- permutation
+
+    - ``a`` -- number of half separatrices
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import orientation_cover
+        sage: alpha = [3, 2, 1, 0, 5, 4, 7, 6]
+        sage: phi = [3, 1, 0, 2, 5, 4, 7, 6]
+        sage: orientation_cover(alpha,phi,3)
+        (0,2)-(0,1) (1)-(2)
     """
     if verbose: print " orientation cover"
     cyls = []
@@ -1427,10 +1424,13 @@ def orientation_cover(alpha,phi,a,verbose=0):
 
     return CylinderDiagram(cyls)
 
+#TODO: do something less stupid for symmetries
 def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
     r"""
     Return an iterator over cylinder diagrams of Abelian differentials that
     double covers Q((a-2), -1^(a+2)).
+
+    The generator is up to isomorphism.
 
     TODO:
 
@@ -1444,6 +1444,19 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
 
     - ``verbose`` - integer (default: 0) - output various information during the
       iteration (mainly for debug).
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.flat_surfaces.separatrix_diagram import hyperelliptic_cylinder_diagram_iterator
+        sage: it = hyperelliptic_cylinder_diagram_iterator(3)
+        sage: c = it.next(); c
+        (0,1)-(0,2) (2)-(1)
+        sage: c.stratum_component()
+        H_2(2)^hyp
+
+        sage: hyp = AbelianStratum(2,2).hyperelliptic_component()
+        sage: all(c.stratum_component() == hyp for c in hyperelliptic_cylinder_diagram_iterator(6))
+        True
     """
     from sage.combinat.plane_tree import admissible_plane_tree_iterator
     from gray_codes import revolving_door_switch_iterator
@@ -1469,7 +1482,7 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
         for k in xrange(1,n+2):
             if verbose: print " k = %d"%k
             for kk in xrange(t[k-1],t[k]-1,-1): # close current loops
-                if not (B[kk] is False):
+                if B[kk] is not False:
                     if verbose:
                         print " close loop from %d to %d"%(B[kk],s)
                     alpha[B[kk]] = s
@@ -1532,7 +1545,15 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
         c = orientation_cover(alpha,phi,a,verbose=verbose)
         c.relabel(inplace=True)
         if c not in cyl_diags:
-            cyl_diags.add(c)
+            c_sym = [c]
+            cc = c.horizontal_symmetry()
+            cc.relabel(inplace=True)
+            c_sym.append(cc)
+
+            cc = c.vertical_symmetry()
+            cc.relabel(inplace=True)
+            c_sym.append(cc)
+            cyl_diags.update(c_sym)
             yield c
 
         # Make the poles vary among the leaves
@@ -1600,7 +1621,15 @@ def hyperelliptic_cylinder_diagram_iterator(a,verbose=False):
                 c = orientation_cover(alpha,phi,a,verbose=verbose)
                 c.relabel(inplace=True)
                 if c not in cyl_diags:
-                    cyl_diags.add(c)
+                    c_sym = [c]
+                    cc = c.horizontal_symmetry()
+                    cc.relabel(inplace=True)
+                    c_sym.append(cc)
+
+                    cc = c.vertical_symmetry()
+                    cc.relabel(inplace=True)
+                    c_sym.append(cc)
+                    cyl_diags.update(c_sym)
                     yield c
 
             # reinitialize sigma
@@ -1686,6 +1715,13 @@ class CylinderDiagram(SeparatrixDiagram):
             #latex.add_to_preamble('\\usetikzlibrary{arrows}')
             #latex.add_to_jsmath_avoid_list('\\begin{tikzpicture}')
 
+    def __hash__(self):
+        r"""
+        Hash value: This is bad since we can modify it inplace!!
+        """
+        return hash(tuple(self._bot_to_cyl + self._top_to_cyl +
+                          self._bot_cycles + self._top_cycles))
+
     def _repr_(self):
         r"""
         String representation
@@ -1707,48 +1743,25 @@ class CylinderDiagram(SeparatrixDiagram):
 
         TESTS::
 
-            sage: s3_0 = SeparatrixDiagram([0,1,2],[0,1,2])
-            sage: S3 = [s3_0]
-
-            sage: s2_0 = SeparatrixDiagram([1,0,2],[1,0,2])
-            sage: s2_1 = SeparatrixDiagram([1,0,2],[2,1,0])
-            sage: s2_2 = SeparatrixDiagram([1,0,2],[0,2,1])
-            sage: s2_3 = SeparatrixDiagram([2,1,0],[1,0,2])
-            sage: s2_4 = SeparatrixDiagram([2,1,0],[2,1,0])
-            sage: s2_5 = SeparatrixDiagram([2,1,0],[0,2,1])
-            sage: s2_6 = SeparatrixDiagram([0,2,1],[1,0,2])
-            sage: s2_7 = SeparatrixDiagram([0,2,1],[2,1,0])
-            sage: s2_8 = SeparatrixDiagram([0,2,1],[0,2,1])
-            sage: S2 = [s2_0,s2_1,s2_2,s2_3,s2_4,s2_5,s2_6,s2_7,s2_8]
-
-            sage: s1_0 = SeparatrixDiagram([1,2,0],[1,2,0])
-            sage: s1_1 = SeparatrixDiagram([1,2,0],[2,0,1])
-            sage: s1_2 = SeparatrixDiagram([2,0,1],[1,2,0])
-            sage: s1_3 = SeparatrixDiagram([2,0,1],[2,0,1])
-            sage: S1 = [s1_0,s1_1,s1_2,s1_3]
-
-            sage: all(cmp(s,s) == 0 for s in S1+S2+S3)
-            True
-            sage: all(cmp(s1,s2) == -1 for s1 in S1 for s2 in S2)
-            True
-            sage: all(cmp(s2,s1) == 1 for s1 in S1 for s2 in S2)
-            True
-            sage: all(cmp(s2,s3) == -1 for s2 in S2 for s3 in S3)
-            True
-            sage: all(cmp(s3,s2) == 1 for s2 in S2 for s3 in S3)
-            True
-            sage: all(cmp(s1,s3) == -1 for s1 in S1 for s3 in S3)
-            True
-            sage: all(cmp(s3,s1) == 1 for s1 in S1 for s3 in S3)
-            True
+            sage: C = AbelianStratum(4).cylinder_diagrams()
+            sage: for c in C:
+            ....:     assert sum(1 for cc in C if cmp(c,cc) == 0) == 1
+            sage: for c1 in C:
+            ....:     for c2 in C:
+            ....:         if c1 != c2:
+            ....:             assert ((c1 < c2) is False) or ((c2 < c1) is False)
+            ....:             assert ((c1 > c2) is False) or ((c2 > c1) is False)
         """
         if not isinstance(other, CylinderDiagram):
-            raise NotImplemented
+            raise ValueError
 
         test = SeparatrixDiagram.__cmp__(self,other)
         if test: return test
 
-        test = cmp(self._bot_to_cyl,other._top_to_cyl)
+        test = cmp(self._bot_to_cyl,other._bot_to_cyl)
+        if test: return test
+
+        test = cmp(self._top_to_cyl,other._top_to_cyl)
         if test: return test
 
         return 0
@@ -1884,9 +1897,7 @@ class CylinderDiagram(SeparatrixDiagram):
         EXAMPLES::
 
             sage: s = SeparatrixDiagram('(0,1)(2,3,4)','(0,3)(1,4,2)'); s
-            Separatrix diagram
-             bot (0,1)(2,3,4)
-             top (0,3)(1,4,2)
+            (0,1)(2,3,4)-(0,3)(1,4,2)
             sage: c = s.to_cylinder_diagram([(0,1),(1,0)]); c
             (0,1)-(1,4,2) (2,3,4)-(0,3)
             sage: c.separatrix_diagram() == s
@@ -1930,6 +1941,14 @@ class CylinderDiagram(SeparatrixDiagram):
     def top_to_cyl(self, j):
         r"""
         Return the cylinder below the separatrix j
+
+        EXAMPLES::
+
+            sage: c = CylinderDiagram('(0,2,4)-(1,3,5) (1,5)-(0) (3)-(2,4)')
+            sage: c.top_to_cyl(0)
+            ((1, 5), (0,))
+            sage: c.top_to_cyl(2)
+            ((3,), (2, 4))
         """
         jb,jt = self._top_to_cyl[j]
         return self.bot_orbit(jb), self.top_orbit(jt)
@@ -1984,6 +2003,20 @@ class CylinderDiagram(SeparatrixDiagram):
             sage: c.inverse()
             (0,2)-(0,1) (1,4,6)-(3,5,4) (3,5)-(2,6)
 
+        The operation can also be defined at the level of the separatrix
+        diagrams and the two operation commutes::
+
+            sage: c.separatrix_diagram().inverse() == c.inverse().separatrix_diagram()
+            True
+
+        The inversion can also be seen as the composition of the horizontal and
+        vertical symmetries::
+
+            sage: c.horizontal_symmetry().vertical_symmetry() == c.inverse()
+            True
+            sage: c.vertical_symmetry().horizontal_symmetry() == c.inverse()
+            True
+
         The inversion is an involution on cylinder diagrams::
 
             sage: all(cc.inverse().inverse() == cc for cc in AbelianStratum(4).cylinder_diagrams()) # long time
@@ -2000,7 +2033,11 @@ class CylinderDiagram(SeparatrixDiagram):
 
             sage: c = CylinderDiagram('(0,3,4)-(0,3,5) (1,2,5)-(1,2,4)')
             sage: c.vertical_symmetry()
-            (0,3,5)-(0,3,4) (1,2,4)-(1,2,5)
+            (0,4,3)-(0,5,3) (1,5,2)-(1,4,2)
+
+            sage: c.separatrix_diagram().vertical_symmetry() == c.vertical_symmetry().separatrix_diagram()
+            True
+
             sage: A = AbelianStratum(2,2)
             sage: all(c.vertical_symmetry().stratum() == A for c in A.cylinder_diagrams())
             True
@@ -2016,6 +2053,11 @@ class CylinderDiagram(SeparatrixDiagram):
 
             sage: c = CylinderDiagram('(0,3,4)-(0,3,5) (1,2,5)-(1,2,4)')
             sage: c.horizontal_symmetry()
+            (0,5,3)-(0,4,3) (1,4,2)-(1,5,2)
+
+            sage: c.separatrix_diagram().horizontal_symmetry() == c.horizontal_symmetry().separatrix_diagram()
+            True
+
             sage: A = AbelianStratum(2,2)
             sage: all(c.horizontal_symmetry().stratum() == A for c in A.cylinder_diagrams())
             True
@@ -2030,27 +2072,14 @@ class CylinderDiagram(SeparatrixDiagram):
 
         - ``order`` - boolean (default: False) - whether or not return the order
           of the group
+
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram('(0,1)-(0,2) (2,3)-(1,3)')
+            sage: cyl.automorphism_group()
+            Permutation Group with generators [(0,3)(1,2)]
         """
         return self.to_directed_graph().automorphism_group(edge_labels=True, order=order)
-
-    # TODO
-    def quotient(self, H=None):
-        r"""
-        Quotient by a subgroup.
-        """
-        if H is None:
-            H = self.automorphism_group()
-
-        elif not H.is_subgroup(self.automorphism_group()):
-            raise ValueError, "H must be a subgroup of the automorphism group"
-
-        e = H.orbits()
-        e_inv = [None]*self.nseps()  # sep -> new nb
-        for i in xrange(len(e)):
-            for j in c:
-                e_inv[j-1] = i
-
-        raise NotImplementedError
 
     def is_hyperelliptic(self,verbose=False):
         r"""
@@ -2070,21 +2099,21 @@ class CylinderDiagram(SeparatrixDiagram):
         In genus 2, strata H(2) and H(1,1), all surfaces are hyperelliptic::
 
             sage: for c in AbelianStratum(2).cylinder_diagrams():
-            ...      print c
-            ...      print c.is_hyperelliptic()
-            (0,1,2)-(0,1,2)
+            ....:     print c
+            ....:     print c.is_hyperelliptic()
+            (0,2,1)-(0,2,1)
             True
             (0,1)-(0,2) (2)-(1)
             True
 
             sage: for c in AbelianStratum(1,1).cylinder_diagrams():
-            ...      print c
-            ...      print c.is_hyperelliptic()
-            (0,1,3,2)-(0,1,3,2)
-            True
-            (0,1,2)-(0,1,3) (3)-(2)
+            ....:     print c
+            ....:     print c.is_hyperelliptic()
+            (0,3,1,2)-(0,3,1,2)
             True
             (0,3)-(0,2) (1,2)-(1,3)
+            True
+            (0,1,2)-(0,1,3) (3)-(2)
             True
             (0,1)-(2,3) (2)-(1) (3)-(0)
             True
@@ -2093,20 +2122,20 @@ class CylinderDiagram(SeparatrixDiagram):
 
             sage: C = AbelianStratum(4).cylinder_diagrams()
             sage: len(C)
-            22
+            15
             sage: len(filter(lambda c: c.is_hyperelliptic(), C))
             5
 
             sage: C = AbelianStratum(2,2).cylinder_diagrams()
             sage: len(C)
-            50
+            41
             sage: len(filter(lambda c: c.is_hyperelliptic(), C))
-            12
+            11
         """
         z = self.stratum().zeros()
         if z == [0] or z == [2] or z == [1,1]: return True
         if 0 in z:
-            raise NotImplementedError, "is_hyperelliptic method not implemented for cylinder diagrams with fake zeros"
+            raise NotImplementedError("is_hyperelliptic method not implemented for cylinder diagrams with fake zeros")
         ns = self.nseps()
         if len(z) == 1: # minimal stratum H(2g-2)
             for cy in self.cylinders():
@@ -2264,10 +2293,26 @@ class CylinderDiagram(SeparatrixDiagram):
 
     def matrix_relation(self):
         r"""
-        Return the matrix of relation on lengths.
+        Return the matrix of relation on the lengths of the separatrices.
 
-        The output matrix has size ncyls x nseps and
-         m[cyl,sep] = (1 if sep in top of cyl 0 else) - (1 if sep in bot of cyl 0 else)
+        The output matrix has size `ncyls \times nseps`.
+
+        EXAMPLES::
+
+        For a one cylinder diagram, there is no relations::
+
+            sage: cyl = CylinderDiagram('(0,1,2,3)-(0,1,2,3)')
+            sage: cyl.matrix_relation()
+            [0 0 0 0]
+
+        Here is an example in the stratum H(2)::
+
+            sage: cyl = CylinderDiagram('(0,1)-(0,2) (2)-(1)')
+            sage: cyl.stratum()
+            H_2(2)
+            sage: cyl.matrix_relation()
+            [ 0  1 -1]
+            [ 0 -1  1]
         """
         from sage.matrix.constructor import matrix
 
@@ -2361,14 +2406,14 @@ class CylinderDiagram(SeparatrixDiagram):
         top = [self.top_orbit(self._bot_to_cyl[b[0]][1]) for b in bot]
 
         p = MixedIntegerLinearProgram(maximization=False)
-        scl = p.new_variable()
+        scl = p.new_variable(nonnegative=True)
         p.set_objective(sum(scl[i] for i in xrange(n)))
         for i in xrange(n):
             p.add_constraint(scl[i],min=1)
         for b,t in itertools.izip(bot,top):
             p.add_constraint(
-                    sum(scl[i] for i in set(b).difference(t)) ==
-                    sum(scl[i] for i in set(t).difference(b))
+                    p.sum(scl[i] for i in set(b).difference(t)) ==
+                    p.sum(scl[i] for i in set(t).difference(b))
                     )
 
         try:
@@ -2427,11 +2472,36 @@ class CylinderDiagram(SeparatrixDiagram):
         angles = [1] * (2*(n+m))
         half = Integer(1)/Integer(2)
         for j,(b,t) in enumerate(self.cylinders()):
-            face = [i for i in b] + [2*(n+j)] + [n+i for i in t] + [2*(n+j)+1]
+            face = [i for i in b] + [2*(n+j)] + [n+i for i in t[1:]+t[:1]] + [2*(n+j)+1]
             faces.append(tuple(face))
             angles[b[0]] = angles[n+t[0]] = angles[2*(n+j)] = angles[2*(n+j)+1] = half
 
         return RibbonGraphWithAngles(edges=edges,faces=faces,angles=angles)
+
+    def to_ribbon_graph_with_holonomies(self, lengths, heights, twists):
+        from homology import RibbonGraphWithHolonomies
+
+        n = self.nseps()
+        m = self.ncyls()
+
+        edges = [(i,n+i) for i in xrange(n)] + [(2*(n+i),2*(n+i)+1) for i in xrange(m)]
+        faces = []
+        half = Integer(1)/Integer(2)
+        for j,(b,t) in enumerate(self.cylinders()):
+            face = [i for i in b] + [2*(n+j)] + [n+i for i in t[1:]+t[:1]] + [2*(n+j)+1]
+            faces.append(tuple(face))
+
+        holonomies = [None] * (2*(n+m))
+        for i in xrange(n):
+            holonomies[i]   = (lengths[i],0)
+            holonomies[n+i] = (-lengths[i],0)
+        for i in xrange(m):
+            holonomies[2*(n+i)]   = (twists[i], heights[i])
+            holonomies[2*(n+i)+1] = (-twists[i], -heights[i])
+
+        return RibbonGraphWithHolonomies(edges=edges,faces=faces,holonomies=holonomies)
+
+
 
     def spin_parity(self):
         r"""
@@ -2458,44 +2528,53 @@ class CylinderDiagram(SeparatrixDiagram):
             return None
         return self.to_ribbon_graph().spin_parity()
 
-    def circumferences_of_cylinders(self,ring=None):
-        r"""
-        Return the set of circumferences of cylinders as cycles in the chain
-        space.
-        """
-        from sage.all import vector
-        if ring is None:
-            from sage.rings.integer_ring import ZZ
-            ring = ZZ
-
-        g = self.to_ribbon_graph()
-        C = g.chain_complex(ring)
-        C1 = C.chain_space(1)
-        Z1 = C.cycle_space(1)
-        n = g.num_edges()
-
-        l = []
-        for (b,t) in self.cylinders():
-            l.append(Z1(vector(ring,n,dict(g.dart_to_edge(i,orientation=True) for i in b))))
-        return l
+#    def circumferences_of_cylinders(self,ring=None):
+#        r"""
+#        Return the set of circumferences of cylinders as cycles in the chain
+#        space.
+#        """
+#        from sage.modules.free_module import FreeModule
+#        from copy import copy
+#
+#        if ring is None:
+#            from sage.rings.integer_ring import ZZ
+#            ring = ZZ
+#
+#        g = self.to_ribbon_graph()
+#        C = g.chain_complex(ring)
+#        C1 = C.chain_space(1)
+#        Z1 = C.cycle_space(1)
+#        n = g.num_edges()
+#
+#        V = FreeModule(ring, n)
+#
+#        l = []
+#        for (b,t) in self.cylinders():
+#            v = copy(V.zero())
+#            for i in b:
+#                v[g.dart_to_edge(i,orientation=True)] = 1
+#            l.append(Z1(V(v)))
+#        return l
 
     #
     # build one or many origamis
     #
 
-    def an_origami(self, verbose=False):
+    def an_origami(self):
         r"""
         Return one origami with this diagram cylinder if any.
+
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram('(0,1)-(0,2) (2,3)-(1,3)')
+            sage: cyl.an_origami()
+            (1,2)(3,4)
+            (1,3,4,2)
         """
         res = self.smallest_integer_lengths()
         if res is False:
-            return Fasle
+            return False
         m,lengths = res
-
-        if verbose:
-            print "objective value", objective
-            for i, v in values.iteritems():
-                print 'x_%s = %s' % (i, int(round(v)))
 
         widths = [sum(lengths[i] for i in bot) for bot in self.bot_cycle_tuples()]
         areas = [widths[i] for i in xrange(self.ncyls())]
@@ -2518,7 +2597,7 @@ class CylinderDiagram(SeparatrixDiagram):
             for j in xrange(v[i], v[i+1], widths[i]):
                 lx[j+widths[i]-1] = j
 
-        # initialization of y except the top 
+        # initialization of y except the top
         ly = []
         for i in xrange(self.ncyls()):
             ly.extend([None]*widths[i])
@@ -2532,15 +2611,31 @@ class CylinderDiagram(SeparatrixDiagram):
 
         # yield the origami without twist
         from origamis.origami import Origami_dense
-        return Origami_dense(tuple(lx), tuple(ly))
+        return Origami_dense(lx, ly)
 
     def origami_iterator(self,n):
         r"""
         Iteration over all origamis with n squares.
- 
+
         INPUT:
 
         - ``n`` - positive integer - the number of squares
+
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram('(0,1,2)-(3,1,2) (3)-(0)')
+            sage: for o in cyl.origami_iterator(4):
+            ....:     print o
+            ....:     print o.stratum(), o.nb_squares()
+            (1,2,3)(4)
+            (1,4)(2,3)
+            H_2(1^2) 4
+            (1,2,3)(4)
+            (1,2,4)(3)
+            H_2(1^2) 4
+            (1,2,3)(4)
+            (1,3,4)(2)
+            H_2(1^2) 4
         """
         for w,h in self.widths_and_heights_iterator(n):
             for o in self.cylcoord_to_origami_iterator(w, h):
@@ -2548,9 +2643,21 @@ class CylinderDiagram(SeparatrixDiagram):
 
     def origamis(self,n=None):
         r"""
-        Return the set of origamis.
+        Return the set of origamis having ``n`` squares.
 
         If ``n`` is None then return the origamis with less number of squares.
+
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram('(0,1,2)-(0,1,3) (3)-(2)')
+            sage: o5 = cyl.origamis(5)
+            sage: o5[0]
+            (1,2,3,4)(5)
+            (1,5,4,2,3)
+            sage: o5[1].nb_squares()
+            5
+            sage: o5[2].stratum_component()
+            H_2(1^2)^hyp
         """
         if n is None:
             res = self.smallest_integer_lengths()
@@ -2562,15 +2669,36 @@ class CylinderDiagram(SeparatrixDiagram):
 
     def widths_and_heights_iterator(self, n):
         """
-        OUTPUT:
+        Iterate over the possible integer widths and heights of the cylinders
+        for which the corresponding translation surface has area ``n``.
 
-        -  ``l`` - the lengths (as many as separatrices)
+        At each iteration, the output is a pair of ``(lengths,heights)``. You
+        can then use :meth:`cylcoord_to_origami` to build the corresponding
+        origami.
 
-        - ``h`` - the heights (as many as cylinders)
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram([((0,1),(0,2)),((2,),(1,))])
+            sage: cyl
+            (0,1)-(0,2) (2)-(1)
+
+            sage: it = cyl.widths_and_heights_iterator(10)
+            sage: l,h = it.next()
+            sage: print l
+            (2, 1, 1)
+            sage: print h
+            [3, 1]
+            sage: cyl.cylcoord_to_origami(l,h)
+            (1,2,3)(4,5,6)(7,8,9)(10)
+            (1,4,7)(2,5,8)(3,6,9,10)
         """
-        from sage.combinat.partition import OrderedPartitions
+        from sage.combinat.integer_list import IntegerListsLex
         from sage.rings.arith import divisors
-        from sage.all import vector
+        from sage.rings.integer_ring import ZZ
+        from sage.modules.free_module import FreeModule
+        from copy import copy
+
+        V = FreeModule(ZZ,self.nseps())
 
         m = self.matrix_relation()
 
@@ -2590,10 +2718,9 @@ class CylinderDiagram(SeparatrixDiagram):
                 sum(min_lengths[j] for j in top),
                 sum(min_lengths[j] for j in bot)))
 
-
         for a in itertools.ifilter(
               lambda x: all(x[i] >= min_widths[i] for i in xrange(self.ncyls())),
-              OrderedPartitions(n, self.ncyls())):
+              IntegerListsLex(n, self.ncyls(), min_part=1)):
             area_div = tuple(filter(lambda d: d >= min_widths[i],divisors(a[i])) for i in xrange(self.ncyls()))
             for w in itertools.product(*area_div):
                 h = [Integer(a[i]/w[i]) for i in xrange(self.ncyls())]
@@ -2602,9 +2729,9 @@ class CylinderDiagram(SeparatrixDiagram):
                 #TODO: program a linear and convex solution
                 seps_b = [c[0] for c in self.cylinders()]
                 nseps_b = map(len, seps_b)
-                lengths = tuple(OrderedPartitions(w[i], nseps_b[i]) for i in xrange(self.ncyls()))
+                lengths = tuple(IntegerListsLex(w[i], nseps_b[i], min_part=1) for i in xrange(self.ncyls()))
                 for l_by_cyl in itertools.product(*lengths):
-                    l = vector([0]*self.nseps())
+                    l = copy(V.zero())
                     for i in xrange(self.ncyls()):
                         for j in xrange(nseps_b[i]):
                             l[seps_b[i][j]] = l_by_cyl[i][j]
@@ -2624,23 +2751,33 @@ class CylinderDiagram(SeparatrixDiagram):
         OUTPUT:
 
         - iterator over all possible origamis with those lengths and heights...
+
+        EXAMPLES::
+
+            sage: cyl = CylinderDiagram('(0,1,2)-(3,1,2) (3)-(0)')
+            sage: for o in cyl.cylcoord_to_origami_iterator((1,1,1,1),(1,1)):
+            ....:     print o
+            (1,2,3)(4)
+            (1,4)(2,3)
+            (1,2,3)(4)
+            (1,2,4)(3)
+            (1,2,3)(4)
+            (1,3,4)(2)
+
+        The number of origamis generated is just the product of the widths::
+
+            sage: sum(1 for _ in cyl.cylcoord_to_origami_iterator((2,1,1,2),(3,2)))
+            8
         """
         from origamis.origami import Origami_dense
 
-        _VERBOSE = False # for debug
-
         widths = [sum(lengths[i] for i in bot) for bot in self.bot_cycle_tuples()]
         areas = [heights[i]*widths[i] for i in xrange(self.ncyls())]
-
-        if _VERBOSE:
-            print "areas of cylinders", areas
 
         # intialization of partial volumes: the set of squares in cylinder i is range(v[i],v[i+1])
         v = [0]
         for a in areas:
             v.append(v[-1] + a)
-        if _VERBOSE:
-            print "partial volumes", v
 
         # initialization of bottom squares: sep_i -> bottom position
         sep_bottom_pos = [None] * self.nseps()
@@ -2650,26 +2787,17 @@ class CylinderDiagram(SeparatrixDiagram):
                 sep_bottom_pos[j] = v[i] + w
                 w += lengths[j]
 
-        if _VERBOSE:
-            print "sep_bottom_pos", sep_bottom_pos
-
         # initialization of sigma_h which remains constant
         lx = range(1, v[-1]+1)
         for i in xrange(self.ncyls()):
             for j in xrange(v[i], v[i+1], widths[i]):
                 lx[j+widths[i]-1] = j
 
-        if _VERBOSE:
-            print "permutation x", lx
-
-        # initialization of y except the top 
+        # initialization of y except the top
         ly = []
         for i in xrange(self.ncyls()):
             ly.extend(range(v[i]+widths[i],v[i+1]))
             ly.extend([None]*widths[i])
-
-        if _VERBOSE:
-            print "permutation y without gluings", ly
 
         # build the top interval without twist
         for i,(_,top_seps) in enumerate(self.cylinders()):
@@ -2679,17 +2807,15 @@ class CylinderDiagram(SeparatrixDiagram):
             ly[v[i+1]-widths[i]:v[i+1]] = top
 
         # yield the one without twist
-        yield Origami_dense(tuple(lx), tuple(ly))
+        yield Origami_dense(lx,ly)
 
-        # yield the others using GrayCodeSwitch
-        for i,o in GrayCodeSwitch(widths):
-            if _VERBOSE: print i,o
+        # yield the others using a Gray code
+        for i,o in TuplesGraySwitch(widths):
             if o == 1:
                 ly.insert(v[i+1]-widths[i],ly.pop(v[i+1]-1))
             else:
                 ly.insert(v[i+1]-1,ly.pop(v[i+1]-widths[i]))
-            if _VERBOSE: print ly
-            yield Origami_dense(tuple(lx),tuple(ly))
+            yield Origami_dense(lx,ly)
 
     def cylcoord_to_origami(self, lengths, heights, twists=None):
         r"""
@@ -2708,15 +2834,15 @@ class CylinderDiagram(SeparatrixDiagram):
 
             sage: c = CylinderDiagram([((0,1),(1,2)),((2,),(0,))])
             sage: c.stratum()
-            H(2)
+            H_2(2)
             sage: c.cylcoord_to_origami([1,1,1],[1,1]).stratum()
-            H(2)
+            H_2(2)
             sage: o1 = c.cylcoord_to_origami([2,1,2],[1,1],[1,0])
-            sage: o1 = o1.standard_form()
+            sage: o1 = o1.relabel()
             sage: o2 = c.cylcoord_to_origami([2,1,2],[1,1],[0,1])
-            sage: o2 = o2.standard_form()
+            sage: o2 = o2.relabel()
             sage: o3 = c.cylcoord_to_origami([2,1,2],[1,1],[1,1])
-            sage: o3 = o3.standard_form()
+            sage: o3 = o3.relabel()
             sage: all(o.stratum() == AbelianStratum(2) for o in [o1,o2,o3])
             True
             sage: o1 == o2 or o1 == o3 or o3 == o1
@@ -2734,7 +2860,7 @@ class CylinderDiagram(SeparatrixDiagram):
 
             sage: c = CylinderDiagram([((0,),(1,)), ((1,2,3),(0,2,3))])
             sage: c
-            Cylinder diagram (0)-(1) (1,2,3)-(0,2,3)
+            (0)-(1) (1,2,3)-(0,2,3)
             sage: lengths = [1,1,1,1]
             sage: heights = [1,1]
             sage: c.cylcoord_to_origami(lengths,heights,[0,0])
@@ -2759,7 +2885,7 @@ class CylinderDiagram(SeparatrixDiagram):
         elif len(twists) != len(widths):
             raise ValueError, "not enough twists"
         else:
-            twists = [(-twists[i])%widths[i] for i in xrange(len(widths))] 
+            twists = [(-twists[i])%widths[i] for i in xrange(len(widths))]
         areas = [heights[i]*widths[i] for i in xrange(self.ncyls())]
 
         # intialization of partial volumes: the set of squares in cylinder i is range(v[i],v[i+1])

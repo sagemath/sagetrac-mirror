@@ -1626,6 +1626,46 @@ class RibbonGraphWithAngles(RibbonGraphDense):
 
         return s
 
+def angle(v):
+    r"""
+    Return the argument of the vector ``v``.
+    """
+    from math import acos,asin,sqrt,pi
+    x = float(v[0])
+    y = float(v[1])
+    r = sqrt(x**2 + y**2)
+    if abs(x) >= abs(y):
+        if x >= 0:
+            return asin(y / r) / pi
+        else:
+            return -asin(y / r) / pi
+    else:
+        if y >= 0:
+            return acos(x / r) / pi
+        else:
+            return -acos(x / r) / pi
+
+class RibbonGraphWithHolonomies(RibbonGraphDense):
+    r"""
+    A Ribbon graph with holonomies.
+
+    For now
+    """
+    def __init__(self, vertices=None, edges=None, faces=None, holonomies=None):
+        r = RibbonGraph(vertices,edges,faces)
+        RibbonGraphDense.__init__(self,r.vertex_perm(),r.edge_perm(),r.face_perm())
+
+        if len(holonomies) != self.num_darts():
+            raise ValueError, "there are %d angles and %d darts" %(len(angles),self.num_darts())
+
+        from sage.modules.free_module import FreeModule
+        V = FreeModule(ZZ,2)
+        self._holonomies = map(V, holonomies)
+
+        #self._angles = map(angle, self._holonomies)
+
+
+
 ##############################
 # Chain complex and homology #
 ##############################
