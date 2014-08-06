@@ -11,7 +11,27 @@ import os, re, sys
 last_citations = []
 
 @contextmanager
-def citation_record(record = None):
+def citations(record = None):
+    r"""
+    Print or append to ``record`` a list of the systems used in
+    running block of statements.  Note that the results can sometimes
+    include systems that did not actually contribute to the
+    computation. Due to caching , it could miss some dependencies as
+    well.
+
+    INPUT:
+
+    - ``record`` -- A list or ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import citations
+        sage: with citations():
+        ...       K = QuadraticField(-7, 'a')
+        The computation used the following components.
+        They are stored as a list in sage.misc.citation.last_citations.
+            GAP, GMP, MPFI, MPFR, NTL
+    """
     import warnings
     import cProfile, pstats
     import sage.misc.gperftools as gProfiler
@@ -87,10 +107,81 @@ def citation_record(record = None):
 
         print "The computation used the following components."
         print "They are stored as a list in sage.misc.citation.last_citations."
-        print "  ", ", ".join(map(repr, called_items))
+        print "    " + ", ".join(map(repr, called_items))
     else:
         record.extend(called_items)
 
+def eval_citations(cmd, locals = None):
+    r"""
+    Returns a list of the systems used in running the command
+    ``cmd``.  Note that the results can sometimes include systems
+    that did not actually contribute to the computation. Due
+    to caching , it could miss some dependencies as well.
+
+    INPUT:
+
+    - ``cmd`` - a string to run
+
+    - ``locals`` - a dictionary of locals.
+
+    OUPUT:
+
+    A list of citation items
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import eval_citations
+        sage: s = eval_citations( "integrate(x^2, x)" ); #priming coercion model
+        sage: eval_citations('integrate(x^2, x)')
+        [ginac, Maxima]
+        sage: R.<x,y,z> = QQ[]
+        sage: I = R.ideal(x^2+y^2, z^2+y)
+        sage: eval_citations( "I.primary_decomposition()" )
+        [Macaulay2, Singular]
+        sage: a = var('a')
+        sage: eval_citations( "((a+1)^2).expand()" )
+        [ginac, GMP]
+    """
+    import inspect
+    from sage.misc.all import sage_eval
+
+    if locals is None:
+        locals = inspect.stack()[1][0].f_globals
+
+    record = list()
+    with citations(record):
+        sage_eval(cmd, locals=locals)
+    return record
+
+def get_systems(cmd):
+    """
+    DEPRECATED:
+
+    Use ``func:eval_citations`` instead.
+
+    Returns a list of the systems used in running the command
+    cmd.  Note that the results can sometimes include systems
+    that did not actually contribute to the computation. Due
+    to caching, it could miss some dependencies as well.
+
+    INPUT:
+
+    - ``cmd`` - a string to run
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import get_systems
+        sage: s = get_systems('integrate(x^2, x)')
+        doctest:...DeprecationWarning: call eval_citations instead of get_systems
+        See http://trac.sagemath.org/1 for details.
+    """
+    from sage.misc.superseded import deprecation
+    ## TODO: insert ticket number
+    deprecation(1, 'call eval_citations instead of get_systems')
+
+    import inspect
+
+    return eval_citations(cmd, locals=inspect.stack()[1][0].f_globals)
 
 def cprofile_stat_to_function_string(stat_key):
     if stat_key[0] == '~':
@@ -123,71 +214,4 @@ def gperftools_top_to_functions(top):
     return [".".join(split(l)[1:])
             for l in lines
             if l.startswith("__pyx")]
-            
-def get_systems(cmd):
-    """
-    Returns a list of the systems used in running the command
-    cmd.  Note that the results can sometimes include systems
-    that did not actually contribute to the computation. Due
-    to caching and the inability to follow all C calls, it
-    could miss some dependencies as well.
 
-    INPUT:
-
-    - ``cmd`` - a string to run
-
-    EXAMPLES::
-
-        sage: from sage.misc.citation import get_systems
-        sage: s = get_systems('integrate(x^2, x)'); #priming coercion model
-        sage: get_systems('integrate(x^2, x)')
-        ['ginac', 'Maxima']
-        sage: R.<x,y,z> = QQ[]
-        sage: I = R.ideal(x^2+y^2, z^2+y)
-        sage: get_systems('I.primary_decomposition()')
-        ['Singular']
-
-        sage: a = var('a')
-        sage: get_systems('((a+1)^2).expand()')
-        ['ginac', 'GMP']
-    """
-    from sage.misc.superseded import deprecation
-    ## TODO: insert ticket number
-    deprecation(1, 'get_sytems is replaced by citation_record')
-
-
-    import cProfile, inspect, pstats, re
-    from sage.misc.all import preparse, tmp_filename
-    from sage.env import SAGE_ROOT
-    from sage.misc.citation_items.all import citation_items as systems
-
-    if not isinstance(cmd, basestring):
-        raise TypeError("command must be a string")
-
-    cmd = preparse(cmd)
-
-    #Run the command and get the stats
-    filename = tmp_filename()
-    cProfile.runctx(cmd, inspect.stack()[1][0].f_globals, {}, filename)
-    stats = pstats.Stats(filename)
-
-    #Strings is a list of method names and modules which get run
-    strings = [a[0].replace(SAGE_ROOT, "") + " " + a[2] for a in stats.stats.keys()]
-
-    #Remove trivial functions
-    bad_res = [re.compile(r'is_.*Element')]
-    for bad_re in bad_res:
-        i = 0
-        while i < len(strings):
-            if bad_re.findall(strings[i]):
-                strings.pop(i)
-            else:
-                i += 1
-
-    #Check to see which systems appear in the profiled run
-    systems_used = []
-    for system in systems:
-        res = [r.replace("^", "").replace(".*", "") for r in system._re]
-        if any([(r in s) or (r.replace('.','/') in s) for r in res for s in strings]):
-            systems_used.append(repr(system))
-    return systems_used
