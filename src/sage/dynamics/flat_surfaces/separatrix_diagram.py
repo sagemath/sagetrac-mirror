@@ -76,6 +76,7 @@ They can also be built from separatrix diagram::
 """
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from gray_codes import GrayCodeSwitch
 
 import itertools
 import sage.rings.arith as arith
@@ -2478,6 +2479,323 @@ class CylinderDiagram(SeparatrixDiagram):
             l.append(Z1(vector(ring,n,dict(g.dart_to_edge(i,orientation=True) for i in b))))
         return l
 
+    #
+    # build one or many origamis
+    #
+
+    def an_origami(self, verbose=False):
+        r"""
+        Return one origami with this diagram cylinder if any.
+        """
+        res = self.smallest_integer_lengths()
+        if res is False:
+            return Fasle
+        m,lengths = res
+
+        if verbose:
+            print "objective value", objective
+            for i, v in values.iteritems():
+                print 'x_%s = %s' % (i, int(round(v)))
+
+        widths = [sum(lengths[i] for i in bot) for bot in self.bot_cycle_tuples()]
+        areas = [widths[i] for i in xrange(self.ncyls())]
+
+        v = [0]
+        for a in areas:
+            v.append(v[-1] + a)
+
+        # initialization of bottom squares: sep_i -> bottom position
+        sep_bottom_pos = [None] * self.nseps()
+        for i,(bot,_) in enumerate(self.cylinders()):
+            w = 0
+            for j in bot:
+                sep_bottom_pos[j] = v[i] + w
+                w += lengths[j]
+
+        # initialization of sigma_h which remains constant
+        lx = range(1, v[-1]+1)
+        for i in xrange(self.ncyls()):
+            for j in xrange(v[i], v[i+1], widths[i]):
+                lx[j+widths[i]-1] = j
+
+        # initialization of y except the top 
+        ly = []
+        for i in xrange(self.ncyls()):
+            ly.extend([None]*widths[i])
+
+        # build the top interval without twist
+        for i,(_,top_seps) in enumerate(self.cylinders()):
+            top = []
+            for k in reversed(top_seps):
+                top.extend(range(sep_bottom_pos[k],sep_bottom_pos[k]+lengths[k]))
+            ly[v[i+1]-widths[i]:v[i+1]] = top
+
+        # yield the origami without twist
+        from origamis.origami import Origami_dense
+        return Origami_dense(tuple(lx), tuple(ly))
+
+    def origami_iterator(self,n):
+        r"""
+        Iteration over all origamis with n squares.
+ 
+        INPUT:
+
+        - ``n`` - positive integer - the number of squares
+        """
+        for w,h in self.widths_and_heights_iterator(n):
+            for o in self.cylcoord_to_origami_iterator(w, h):
+                yield o
+
+    def origamis(self,n=None):
+        r"""
+        Return the set of origamis.
+
+        If ``n`` is None then return the origamis with less number of squares.
+        """
+        if n is None:
+            res = self.smallest_integer_lengths()
+            if res is False:
+                return False
+            n = res[0]
+
+        return list(self.origami_iterator(n))
+
+    def widths_and_heights_iterator(self, n):
+        """
+        OUTPUT:
+
+        -  ``l`` - the lengths (as many as separatrices)
+
+        - ``h`` - the heights (as many as cylinders)
+        """
+        from sage.combinat.partition import OrderedPartitions
+        from sage.rings.arith import divisors
+        from sage.all import vector
+
+        m = self.matrix_relation()
+
+        min_lengths = [1] * self.nseps()
+        for i in xrange(self.ncyls()):
+            pos = m.nonzero_positions_in_row(i)
+            pos_m = filter(lambda j: m[i,j] == -1, pos)
+            pos_p = filter(lambda j: m[i,j] == 1, pos)
+            if len(pos_m) == 1:
+                min_lengths[pos_m[0]] = max(min_lengths[pos_m[0]], len(pos_p))
+            if len(pos_p) == 1:
+                min_lengths[pos_p[0]] = max(min_lengths[pos_m[0]], len(pos_m))
+
+        min_widths = []
+        for bot,top in self.cylinders():
+            min_widths.append(max(
+                sum(min_lengths[j] for j in top),
+                sum(min_lengths[j] for j in bot)))
+
+
+        for a in itertools.ifilter(
+              lambda x: all(x[i] >= min_widths[i] for i in xrange(self.ncyls())),
+              OrderedPartitions(n, self.ncyls())):
+            area_div = tuple(filter(lambda d: d >= min_widths[i],divisors(a[i])) for i in xrange(self.ncyls()))
+            for w in itertools.product(*area_div):
+                h = [Integer(a[i]/w[i]) for i in xrange(self.ncyls())]
+
+                # from here the resolution becomes linear and convex ...
+                #TODO: program a linear and convex solution
+                seps_b = [c[0] for c in self.cylinders()]
+                nseps_b = map(len, seps_b)
+                lengths = tuple(OrderedPartitions(w[i], nseps_b[i]) for i in xrange(self.ncyls()))
+                for l_by_cyl in itertools.product(*lengths):
+                    l = vector([0]*self.nseps())
+                    for i in xrange(self.ncyls()):
+                        for j in xrange(nseps_b[i]):
+                            l[seps_b[i][j]] = l_by_cyl[i][j]
+                    if not m*l:
+                        yield l,h
+
+    def cylcoord_to_origami_iterator(self, lengths, heights):
+        r"""
+        Convert coordinates of the cylinders into an origami.
+
+        INPUT:
+
+        - ``lengths`` - lengths of the separatrices
+
+        - ``heights`` - heights of the cylinders
+
+        OUTPUT:
+
+        - iterator over all possible origamis with those lengths and heights...
+        """
+        from origamis.origami import Origami_dense
+
+        _VERBOSE = False # for debug
+
+        widths = [sum(lengths[i] for i in bot) for bot in self.bot_cycle_tuples()]
+        areas = [heights[i]*widths[i] for i in xrange(self.ncyls())]
+
+        if _VERBOSE:
+            print "areas of cylinders", areas
+
+        # intialization of partial volumes: the set of squares in cylinder i is range(v[i],v[i+1])
+        v = [0]
+        for a in areas:
+            v.append(v[-1] + a)
+        if _VERBOSE:
+            print "partial volumes", v
+
+        # initialization of bottom squares: sep_i -> bottom position
+        sep_bottom_pos = [None] * self.nseps()
+        for i,(bot,_) in enumerate(self.cylinders()):
+            w = 0
+            for j in bot:
+                sep_bottom_pos[j] = v[i] + w
+                w += lengths[j]
+
+        if _VERBOSE:
+            print "sep_bottom_pos", sep_bottom_pos
+
+        # initialization of sigma_h which remains constant
+        lx = range(1, v[-1]+1)
+        for i in xrange(self.ncyls()):
+            for j in xrange(v[i], v[i+1], widths[i]):
+                lx[j+widths[i]-1] = j
+
+        if _VERBOSE:
+            print "permutation x", lx
+
+        # initialization of y except the top 
+        ly = []
+        for i in xrange(self.ncyls()):
+            ly.extend(range(v[i]+widths[i],v[i+1]))
+            ly.extend([None]*widths[i])
+
+        if _VERBOSE:
+            print "permutation y without gluings", ly
+
+        # build the top interval without twist
+        for i,(_,top_seps) in enumerate(self.cylinders()):
+            top = []
+            for k in reversed(top_seps):
+                top.extend(range(sep_bottom_pos[k],sep_bottom_pos[k]+lengths[k]))
+            ly[v[i+1]-widths[i]:v[i+1]] = top
+
+        # yield the one without twist
+        yield Origami_dense(tuple(lx), tuple(ly))
+
+        # yield the others using GrayCodeSwitch
+        for i,o in GrayCodeSwitch(widths):
+            if _VERBOSE: print i,o
+            if o == 1:
+                ly.insert(v[i+1]-widths[i],ly.pop(v[i+1]-1))
+            else:
+                ly.insert(v[i+1]-1,ly.pop(v[i+1]-widths[i]))
+            if _VERBOSE: print ly
+            yield Origami_dense(tuple(lx),tuple(ly))
+
+    def cylcoord_to_origami(self, lengths, heights, twists=None):
+        r"""
+        Convert coordinates of the cylinders into an origami.
+
+        INPUT:
+
+        - ``lengths`` - lengths of the separatrices
+
+        - ``heights`` - heights of the cylinders
+
+        - ``twists`` - twists for cylinders
+
+
+        EXAMPLES::
+
+            sage: c = CylinderDiagram([((0,1),(1,2)),((2,),(0,))])
+            sage: c.stratum()
+            H(2)
+            sage: c.cylcoord_to_origami([1,1,1],[1,1]).stratum()
+            H(2)
+            sage: o1 = c.cylcoord_to_origami([2,1,2],[1,1],[1,0])
+            sage: o1 = o1.standard_form()
+            sage: o2 = c.cylcoord_to_origami([2,1,2],[1,1],[0,1])
+            sage: o2 = o2.standard_form()
+            sage: o3 = c.cylcoord_to_origami([2,1,2],[1,1],[1,1])
+            sage: o3 = o3.standard_form()
+            sage: all(o.stratum() == AbelianStratum(2) for o in [o1,o2,o3])
+            True
+            sage: o1 == o2 or o1 == o3 or o3 == o1
+            False
+
+        If the lengths are not compatible with the cylinder diagram a ValueError
+        is raised::
+
+            sage: c.cylcoord_to_origami([1,2,3],[1,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: lengths are not compatible with cylinder equations
+
+        TESTS::
+
+            sage: c = CylinderDiagram([((0,),(1,)), ((1,2,3),(0,2,3))])
+            sage: c
+            Cylinder diagram (0)-(1) (1,2,3)-(0,2,3)
+            sage: lengths = [1,1,1,1]
+            sage: heights = [1,1]
+            sage: c.cylcoord_to_origami(lengths,heights,[0,0])
+            (1)(2,3,4)
+            (1,2)(3,4)
+            sage: c.cylcoord_to_origami(lengths,heights,[0,1])
+            (1)(2,3,4)
+            (1,2,3)(4)
+            sage: c.cylcoord_to_origami(lengths,heights,[0,2])
+            (1)(2,3,4)
+            (1,2,4)(3)
+        """
+        from origamis.origami import Origami_dense
+
+        widths = [sum(lengths[i] for i in bot) for bot,_ in self.cylinders()]
+
+        if widths != [sum(lengths[i] for i in top) for _,top in self.cylinders()]:
+            raise ValueError, "lengths are not compatible with cylinder equations"
+
+        if twists is None:
+            twists = [0] * len(widths)
+        elif len(twists) != len(widths):
+            raise ValueError, "not enough twists"
+        else:
+            twists = [(-twists[i])%widths[i] for i in xrange(len(widths))] 
+        areas = [heights[i]*widths[i] for i in xrange(self.ncyls())]
+
+        # intialization of partial volumes: the set of squares in cylinder i is range(v[i],v[i+1])
+        v = [0]
+        for a in areas:
+            v.append(v[-1] + a)
+
+        # initialization of bottom squares: sep_i -> bottom position
+        sep_bottom_pos = [None] * self.nseps()
+        for i,(bot,_) in enumerate(self.cylinders()):
+            w = 0
+            for j in bot:
+                sep_bottom_pos[j] = v[i] + w
+                w += lengths[j]
+
+        # build the permutation r
+        lx = range(1, v[-1]+1)
+        for i in xrange(self.ncyls()):
+            for j in xrange(v[i], v[i+1], widths[i]):
+                lx[j+widths[i]-1] = j
+
+        # build permutation u with the given twists
+        ly = []
+        for i,(_,top_seps) in enumerate(self.cylinders()):
+            # everything excepted the top
+            ly.extend(range(v[i]+widths[i],v[i+1]))
+
+            # the top
+            k = top_seps[0]
+            top = range(sep_bottom_pos[k],sep_bottom_pos[k]+lengths[k])
+            for k in reversed(top_seps[1:]):
+                top.extend(range(sep_bottom_pos[k],sep_bottom_pos[k]+lengths[k]))
+            ly.extend(top[twists[i]:] + top[:twists[i]])
+
+        # yield the one without twist
+        return Origami_dense(tuple(lx), tuple(ly))
 
 
     #TODO
