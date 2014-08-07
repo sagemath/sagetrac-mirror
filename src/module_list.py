@@ -1169,7 +1169,7 @@ ext_modules = [
     Extension('sage.matroids.unpickling',
             ['sage/matroids/unpickling.pyx']),
 
-    Extension('sage.matriods.network_coding',
+    Extension('sage.matroids.network_coding',
           sources = ['sage/matroids/network_coding.pyx']),
     ################################
     ##

@@ -2,7 +2,6 @@ from sage.rings.finite_rings.finite_field_prime_modn import *
 from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
-from sage.structure.sage_object cimport SageObject
 
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
 #R=None
@@ -28,7 +27,14 @@ cpdef all_2def_pcodes(Mpcode,nc):
         for pmap in pmaps2:
             new_pmap = {key:sub2_list[pmap[key]] for key in pmap.keys()}
             if is_pcode(Mpcode._M,new_pmap,nc):
-                 Mpcode._C.append(new_pmap)
+                 addpcode(Mpcode._C,new_pmap)
+            else:
+                for var in set(new_pmap.values()):
+                    new_pmap_del = new_pmap.copy()
+                    new_pmap_del = {key:new_pmap[key] for key in new_pmap.keys() if new_pmap[key] != var}
+                    if len(new_pmap_del.keys()) > 1:
+                        if is_pcode(Mpcode._M,new_pmap_del,nc):
+                            addpcode(Mpcode._C,new_pmap_del)
     return Mpcode
 
 cpdef all_3def_pcodes(Mpcode,nc):
@@ -45,8 +51,22 @@ cpdef all_3def_pcodes(Mpcode,nc):
         for pmap in pmaps3:
             new_pmap = {key:sub3_list[pmap[key]] for key in pmap.keys()}
             if is_pcode(Mpcode._M,new_pmap,nc):
-                 Mpcode._C.append(new_pmap)
+                 #Mpcode._C.append(new_pmap)
+                 addpcode(Mpcode._C,new_pmap)
                  n3pcode+=1
+            else:
+                for var in set(new_pmap.values()):
+                    new_pmap_del = {key:new_pmap[key] for key in new_pmap.keys() if new_pmap[key] != var}
+                    if is_pcode(Mpcode._M,new_pmap_del,nc):
+                        addpcode(Mpcode._C,new_pmap_del)
+                    else:
+                        for var2 in set(new_pmap_del.values()):
+                            new_pmap_del2 = new_pmap_del.copy()
+                            for key in new_pmap_del:
+                                if new_pmap_del2[key] == var2:
+                                    new_pmap_del2.pop(key)
+                            if is_pcode(Mpcode._M,new_pmap_del2,nc):
+                                addpcode(Mpcode._C,new_pmap_del2)
     return Mpcode
 
 cpdef pmap_def2():
@@ -83,37 +103,37 @@ cpdef pmap_def3():
         pmaps.append(pmap)
     return pmaps
 
-cdef class MatroidCodes(SageObject):
+class MatroidCodes:
     def __init__(self,M=None,pmaps=None):
         self._M=M
         self._C=[]
         self._parent=None
-        if M is not None and pmaps is not None:
+        if M != None and pmaps != None:
             self.add(pmaps)
 
     def add(self, pmaps):
         for pmap in pmaps:
             addpcode(self._C, pmap)
 
-
-
-
 cpdef addpcode(list_of_pcodes,pcode):
     """
     adds p-code to a list of p-codes if there is no p-code in ``list_of_pcodes`` that is extension
     of ``pcode``
     """
+    #print 'here0'
     for cpcode in list_of_pcodes:
         if is_pmap_deletion(pcode,cpcode):
-            return
+            #print 'here1'
+            return [1,cpcode]
         elif is_pmap_deletion(cpcode,pcode):
             list_of_pcodes.remove(cpcode)
             list_of_pcodes.append(pcode)
-            return
+            #print 'here2'
+            return [2,cpcode]
     # brand new pcode
+    #print 'here3'
     list_of_pcodes.append(pcode)
-    return
-
+    return [0,None]
 
 cpdef is_pmap_deletion(dict1,dict2):
     """
@@ -121,17 +141,16 @@ cpdef is_pmap_deletion(dict1,dict2):
     """
     if len(dict1) > len(dict2):
         return False
-    idict1=invert(dict1)
-    idict2=invert(dict2)
-    # check variable set containment
-    if Set(idict1.keys()).issubset(Set(idict2.keys())) == True:
+    if not set(dict1.values()).issubset(dict2.values()):
+        return False
+    else:
+        idict1=invert(dict1)
+        idict2=invert(dict2)
+        # check variable set containment
         for key in idict1.keys():
             if idict1[key] != idict2[key]: #non-matching variable definitions
                 return False
-    else:
-        return False
-    return True
-
+        return True
 
 cpdef invert(m):
     """
@@ -225,7 +244,7 @@ cpdef init_enum(nc,N):
     maxrank = N-(len(ncinstance_vars(nc))-len(nc[1]))
     M3 = all2(3,maxrank)
     for key in M3.keys():
-        if sum(list(key)) is not 3:
+        if sum(list(key)) != 3:
             M3.pop(key)
     allvars=ncinstance_vars(nc)
     size_3_matroidcodes = {}
@@ -233,9 +252,9 @@ cpdef init_enum(nc,N):
         size_3_matroidcodes[key] = []
         for M in M3[key]:
             Mpcode = MatroidCodes(M,[])
-            Mpcode = all_1def_pcodes(Mpcode,nc)
-            Mpcode = all_2def_pcodes(Mpcode,nc)
             Mpcode = all_3def_pcodes(Mpcode,nc)
+            Mpcode = all_2def_pcodes(Mpcode,nc)
+            Mpcode = all_1def_pcodes(Mpcode,nc)
             if len(Mpcode._C) > 0:
                 size_3_matroidcodes[key].append(Mpcode)
     return size_3_matroidcodes
@@ -312,20 +331,25 @@ cpdef extend_mcodes(Mcodes1,nc,maxgnd,nvars):
 
 cpdef Mcode_candidates(Mcode,maxgnd,nvars):
     candidates = []
+    i=0
     for mcode in Mcode._C:
         # loop over all subsets of defined variables and delete them
         imcode = invert(mcode)
         defvars = set(imcode.keys())
         for delset in Subsets(defvars):
             imcode_copy = imcode.copy()
+            del_e=[]
             for v in delset:
-                imcode_copy.pop(v)
+                del_e.append(imcode_copy.pop(v))
             # get candidate pmap
             cand = invert(imcode_copy)
             print cand
             if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
-                candidates.append(cand)
-    return candidates
+                candidates.append([cand,del_e])
+        i+=1
+    # keep only the unique candidates
+    #unique_ind=list(np.unique(np.array([cand[0] for cand in candidates])))
+    return candidates#[candidates[k] for k in unique_ind]
 
 cpdef applicable_cons(def_vars,nc):
     cons=[]
@@ -367,30 +391,33 @@ cpdef extendpmaps(child_Mcode,Mcode,nc,maxgnd,nvars):
     Populate child._C with maximal pmap extensions that form p-codes
     """
     child_Mcode._C=[]
-    for mcode in Mcode._C:
-        # loop over all subsets of defined variables and delete them
-        imcode = invert(mcode)
-        defvars = set(imcode.keys())
-        for delset in Subsets(defvars):
-            imcode_copy = imcode.copy()
-            for v in delset:
-                imcode_copy.pop(v)
-            # get candidate pmap
-            cand = invert(imcode_copy)
-            q=0
-            if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
-                print 'cand', q
-                q+=1
-                # loop over subsets of unmapped gndset elements of M
-                for U in Subsets(set(Mcode._M.groundset())-set(cand.keys())):
-                    Ue=U|Set(child_Mcode._M.groundset()-Mcode._M.groundset())
-                    # loop over all new variable definitions
-                    for v in imcode_copy.keys():
-                        for e in Ue:
-                            cand[e]=v
-                        if is_pcode(child_Mcode._M,cand,nc):
-                            addpcode(child_Mcode._C,cand)
+    # create a list of unique candidates from all mcodes
+    unique_candidates = Mcode_candidates(Mcode,maxgnd,nvars)
+    for u in unique_candidates:
+        cand=u[0]
+        if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
+            print 'cand', q
+            q+=1
+            # loop over subsets U of unmapped gndset that have >=1 sized
+            # intersection with each subset in u[1]
+            for U in Subsets(set(Mcode._M.groundset())-set(cand.keys())):
+                Ue=U|Set(child_Mcode._M.groundset()-Mcode._M.groundset())
+                # loop over all new variable definitions
+                for v in imcode_copy.keys():
+                    for e in Ue:
+                        cand[e]=v
+                    if is_pcode(child_Mcode._M,cand,nc):
+                        child_Mcode.append(cand)
+                    for e in Ue:
+                        cand.pop(e)
     return
+
+cpdef delset_is_valid(U,delset_maps):
+    #test if delset
+    for mapset in delset_maps:
+        if len(U & mapset) < 1:
+            return False
+    return True
 
 cpdef naive_candidates(M_ext,list_of_pmaps):
 
