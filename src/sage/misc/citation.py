@@ -43,7 +43,7 @@ def citations(record = None):
         old_cpuprofile_frequency = os.environ['CPUPROFILE_FREQUENCY']
     except KeyError:
         old_cpuprofile_frequency = None
-    os.environ["CPUPROFILE_FREQUENCY"] = "250"
+    os.environ["CPUPROFILE_FREQUENCY"] = "1000"
 
     cprofiler = cProfile.Profile()
     gprofiler = gProfiler.Profiler()
@@ -184,6 +184,39 @@ def get_systems(cmd):
     return eval_citations(cmd, locals=inspect.stack()[1][0].f_globals)
 
 def _cprofile_stat_to_function_string(stat_key):
+    r"""
+    Parse the profiling data collected by ``cProfile`` and ``pstat``.
+
+    INPUT:
+
+    - ``stat_key`` -- A triple ``(string, number, string)``, which
+                      occurs as a key in the dictionary ``pstats.Stats.stats``.
+
+    OUTPUT:
+
+    A string.
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import _cprofile_stat_to_function_string
+
+    Modules accessed as site packages are reconstructed using file
+    path information.
+
+    ::
+
+        sage: _cprofile_stat_to_function_string( ("/home/.../sage/local/lib/python2.7/site-packages/sage/rings/number_field/number_field.py", 1178, "_element_constructor_") )
+        'sage.rings.number_field.number_field._element_constructor_'
+
+    Builtin methods are reconstructed from the object clauses, if possible.
+
+    ::
+
+        sage: _cprofile_stat_to_function_string( ('~', 0, "<method 'base' of 'sage.structure.category_object.CategoryObject' objects>") )
+        'sage.structure.category_object.CategoryObject.base'
+        sage: _cprofile_stat_to_function_string( ('~', 0, "<posix.WIFEXITED>") )
+        'posix.WIFEXITED'
+    """
     if stat_key[0] == '~':
         if stat_key[2].startswith("<method "):
             object_start = stat_key[2].find("of '") + len("of '")
@@ -206,8 +239,27 @@ def _cprofile_stat_to_function_string(stat_key):
         return module_part + "." + function_part
     else:
         return function_part
-    
+
+cnt_tmp = True
 def _gperftools_top_to_functions(top):
+    r"""
+    Parse a textual report of gperftools, extracting invoked pyx
+    methods.
+
+    INPUT:
+
+    - ``top`` -- A string.
+
+    OUTPUT:
+
+    A list of strings.
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import _gperftools_top_to_functions
+        sage: _gperftools_top_to_functions( "       0   0.0% 100.0%        1  16.7% __Pyx_PyObject_Call.constprop.81\n       0   0.0% 100.0%        1  16.7% __Pyx_PyObject_Call.constprop.83\n       0   0.0% 100.0%        2  33.3% __libc_start_main\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_10parent_old_6Parent__generic_convert_map\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_11coerce_maps_24DefaultConvertMap_unique__call_\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_6coerce_24CoercionModel_cache_maps_bin_op" )
+        ['sage.structure.parent_old.Parent__generic_convert_map', 'sage.structure.coerce_maps.DefaultConvertMap_unique__call_', 'sage.structure.coerce.CoercionModel_cache_maps_bin_op']
+    """
     split = re.compile("_[0123456789]+").split
     lines = [l.rstrip().split()[-1] for l in top.splitlines()]
 
