@@ -251,11 +251,10 @@ def get_systems(cmd):
         sage: from sage.misc.citation import get_systems
         sage: s = get_systems('integrate(x^2, x)')
         doctest:...DeprecationWarning: call eval_citations instead of get_systems
-        See http://trac.sagemath.org/1 for details.
+        See http://trac.sagemath.org/16777 for details.
     """
     from sage.misc.superseded import deprecation
-    ## TODO: insert ticket number
-    deprecation(1, 'call eval_citations instead of get_systems')
+    deprecation(16777, 'call eval_citations instead of get_systems')
 
     import inspect
 
