@@ -70,7 +70,7 @@ def citations(record = None):
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
                         gprofiler.stop()
-                        gprofiler_calls = gperftools_top_to_functions(gprofiler.top(print_top=False))
+                        gprofiler_calls = _gperftools_top_to_functions(gprofiler.top(print_top=False))
                 finally:
 
                     sys.stderr.close()
@@ -86,7 +86,7 @@ def citations(record = None):
         del os.environ["CPUPROFILE_FREQUENCY"]
 
     cprofiler.disable()
-    cprofiler_calls = map(cprofile_stat_to_function_string,
+    cprofiler_calls = map(_cprofile_stat_to_function_string,
                           pstats.Stats(cprofiler).stats.keys())
 
 
@@ -183,7 +183,7 @@ def get_systems(cmd):
 
     return eval_citations(cmd, locals=inspect.stack()[1][0].f_globals)
 
-def cprofile_stat_to_function_string(stat_key):
+def _cprofile_stat_to_function_string(stat_key):
     if stat_key[0] == '~':
         if stat_key[2].startswith("<method "):
             object_start = stat_key[2].find("of '") + len("of '")
@@ -207,7 +207,7 @@ def cprofile_stat_to_function_string(stat_key):
     else:
         return function_part
     
-def gperftools_top_to_functions(top):
+def _gperftools_top_to_functions(top):
     split = re.compile("_[0123456789]+").split
     lines = [l.rstrip().split()[-1] for l in top.splitlines()]
 
