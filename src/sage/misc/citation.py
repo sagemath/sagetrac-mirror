@@ -1,3 +1,65 @@
+r"""
+Citation management.
+
+Facilities to track (internal and external) components used by specific computations.  This modules provides two different ways, to access citations: A eval like command and a context manager.
+
+EXAMPLES:
+
+The context manager ``citations`` is set up by surounding computations
+by ``with citatitons():``.  The compuations that we want to track may
+contain more than one statement.  They will be evaluated in as if the
+same code was provided without the citations statement.
+
+::
+
+    sage: with citations():
+    ...       var('y')
+    ...       integrate(y^2, y, 0, 1)
+    y
+    1/3
+    The computation used the following components.
+    Access them as a list by calling latest_citations().
+        ginac, Maxima
+
+As the statement tells us, we can access the citation items as a list
+of ``class:sage.misc.citation_items.citation_item.CitationItem``'s.
+Currently, this list has no further purpose, but in the future it will
+allow for automatically generating Bibtex code.
+
+::
+
+    sage: latest_citations()
+    [ginac, Maxima]
+
+For certain purposes, it is desirable to only record citations of some
+parts of the computation.  This can be achieved by passing a list,
+which will be extended by citation items for invoked components.
+
+::
+
+    sage: record = []
+    sage: with citations(record):
+    ...       K = QuadraticField(-3, 'a')
+    sage: record
+    [GAP, GMP, MPFI, MPFR, NTL]
+    sage: with citations(record):
+    ...       integrate(y^2, y, 0, 1)
+    1/3
+    sage: record
+    [GAP, GMP, MPFI, MPFR, NTL, ginac, Maxima]
+
+As an alternative way to access citations, we provide an eval like statement.
+
+::
+
+    sage: eval_citations("integrate(y^2, y, 0, 10)")
+    [ginac, Maxima]
+
+AUTHORS:
+
+- Martin Westerholt-Raum (martin@raum-brothers.eu)
+"""
+
 ###########################################################################
 #       Copyright (C) 2014 Martin Raum <martin@raum-brothers.eu>
 #
@@ -8,7 +70,23 @@
 from contextlib import contextmanager
 import os, re, sys
 
-last_citations = []
+_latest_citations = []
+
+def latest_citations():
+    r"""
+    A list of citations the latest compuation.  See ``meth:citations``.
+
+    EXAMPLE::
+
+        sage: with citations():
+        ...       K = QuadraticField(-2, 'a')
+        The computation used the following components.
+        Access them as a list by calling latest_citations().
+            GAP, GMP, MPFI, MPFR, NTL
+        sage: latest_citations()
+        [GAP, GMP, MPFI, MPFR, NTL]
+    """
+    return _latest_citations
 
 @contextmanager
 def citations(record = None):
@@ -25,12 +103,13 @@ def citations(record = None):
 
     EXAMPLES::
 
-        sage: from sage.misc.citation import citations
         sage: with citations():
         ...       K = QuadraticField(-7, 'a')
         The computation used the following components.
-        They are stored as a list in sage.misc.citation.last_citations.
-            GAP, GMP, MPFI, MPFR, NTL
+        Access them as a list by calling latest_citations().
+            GAP, GMP, MPFI, NTL
+        sage: latest_citations()
+        [GAP, GMP, MPFI, NTL]
     """
     import warnings
     import cProfile, pstats
@@ -103,10 +182,10 @@ def citations(record = None):
 
     if record is None:
         import sage
-        sage.misc.citation.last_citations = called_items
+        sage.misc.citation._latest_citations = called_items
 
         print "The computation used the following components."
-        print "They are stored as a list in sage.misc.citation.last_citations."
+        print "Access them as a list by calling latest_citations()."
         print "    " + ", ".join(map(repr, called_items))
     else:
         record.extend(called_items)
@@ -130,7 +209,6 @@ def eval_citations(cmd, locals = None):
 
     EXAMPLES::
 
-        sage: from sage.misc.citation import eval_citations
         sage: s = eval_citations( "integrate(x^2, x)" ); #priming coercion model
         sage: eval_citations('integrate(x^2, x)')
         [ginac, Maxima]
