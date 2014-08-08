@@ -1664,6 +1664,34 @@ def binomial_coefficient(s, k):
         return binomial_coefficient(s, k-1)*(s-k+1)/ZZ(k)
     raise ValueError("Second argument of binomial coefficient must be a non-negative integer.")
 
+def _binomial_series_error_factor_(N, sigma, x):
+    r"""
+    Return the factor the ``N``th term of the binomial series of
+    `(1+x)^{-s}` has to be multiplied with when bounding the error when
+    truncating after this term.
+
+    INPUT:
+
+    -   ``N`` -- a positive integer
+
+    -   ``sigma`` -- the real part of the negative exponent of the binomial series
+
+    -   ``x`` -- a real number (oder real interval).
+
+    OUTPUT:
+
+    The factor.
+
+    TESTS::
+
+        sage: _binomial_series_error_factor_(3, 0, -1/2)
+        6
+    """
+    lagrange_bound = max(1, (1 + x)**(-sigma - N))
+    cauchy_bound = N*max(1, (1 + x)**(-sigma - 1))
+    return min(lagrange_bound, cauchy_bound)
+
+
 @cached_function(key=lambda s:(s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper()))
 def _zeta3_(s):
     r"""
