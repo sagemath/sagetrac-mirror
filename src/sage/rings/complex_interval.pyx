@@ -1553,6 +1553,29 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                  ((-8.50000000000000, -8.50000000000000, -0.500000000000000, -0.500000000000000, 2), 40.250000000000000? + 4.5000000000000000?*I)]
                 sage: sage.rings.complex_interval._zeta_truncated_.clear_cache()
                 sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
+
+        -   The current implementation does not work well with negative real
+            values, all precision is lost::
+
+                sage: zeta(CIF(-15+I))
+                0.?e5 + 0.?e5*I
+                sage: zeta(ComplexField(200)(-15 + I))
+                0.66621329305522618549073659441004805750538410627754288912677
+                - 0.84614995218731390314834131849322502368334938802936485299779*I
+
+            A work-around is to start with higher precision; however, we have
+            to clear the cache first::
+
+                sage: sage.rings.complex_interval._zeta_truncated_.clear_cache()
+                sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
+                sage: zeta(ComplexIntervalField(200)(-15 + I))
+                0.6662132930552261854907365944100480575054?
+                - 0.846149952187313903148341318493225023684?*I
+
+        .. TODO::
+
+            Implement a version for negative real values of ``s`` avoiding the
+            current excessive loss of precision.
         """
         from sage.misc.misc import srange
         from sage.rings.integer_ring import ZZ
