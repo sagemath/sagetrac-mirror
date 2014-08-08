@@ -2,14 +2,14 @@ r"""
 An abstract class for citable items.
 
 All items in ``sage/misc/citation_items`` should inherit from
-``class:CitationItem``.  See ``sage/misc/citation_items/all`` for a
+:class:`CitationItem`.  See ``sage/misc/citation_items/all`` for a
 list of all of them.
 
 AUTHORS:
 
 - Martin Westerholt-Raum (martin@raum-brothers.eu)
 
-TODO:
+..todo:
 
 At the current stage, functionality is very limited.
 

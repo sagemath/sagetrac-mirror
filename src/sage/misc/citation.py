@@ -22,7 +22,7 @@ same code was provided without the citations statement.
         ginac, Maxima
 
 As the statement tells us, we can access the citation items as a list
-of ``class:sage.misc.citation_items.citation_item.CitationItem``'s.
+of :class:`~sage.misc.citation_items.citation_item.CitationItem`'s.
 Currently, this list has no further purpose, but in the future it will
 allow for automatically generating Bibtex code.
 
@@ -76,17 +76,18 @@ _latest_citations = []
 
 def latest_citations():
     r"""
-    A list of citations the latest compuation.  See ``meth:citations``.
+    A list of citations the latest compuation.  See :meth:`citations`.
 
     EXAMPLE::
 
+        sage: a = var('a')
         sage: with citations():
-        ...       K = QuadraticField(-2, 'a')
+        ...       h = ((a+1)^2).expand()
         The computation used the following components.
         Access them as a list by calling latest_citations().
-            GAP, GMP, MPFI, MPFR, NTL
+            ginac, GMP
         sage: latest_citations()
-        [GAP, GMP, MPFI, MPFR, NTL]
+        [ginac, GMP]
     """
     return _latest_citations
 
@@ -105,13 +106,15 @@ def citations(record = None):
 
     EXAMPLES::
 
+        sage: R.<x,y,z> = QQ[]
+        sage: I = R.ideal(x^2+y^2, z^2+y)
         sage: with citations():
-        ...       K = QuadraticField(-7, 'a')
+        ...       I.primary_decomposition()
         The computation used the following components.
         Access them as a list by calling latest_citations().
-            GAP, GMP, MPFI, NTL
+            Macaulay2, Singular
         sage: latest_citations()
-        [GAP, GMP, MPFI, NTL]
+        [Macaulay2, Singular]
     """
     import warnings
     import cProfile, pstats
@@ -217,13 +220,6 @@ def eval_citations(cmd, locals = None):
         sage: s = eval_citations( "integrate(x^2, x)" ); #priming coercion model
         sage: eval_citations('integrate(x^2, x)')
         [ginac, Maxima]
-        sage: R.<x,y,z> = QQ[]
-        sage: I = R.ideal(x^2+y^2, z^2+y)
-        sage: eval_citations( "I.primary_decomposition()" )
-        [Macaulay2, Singular]
-        sage: a = var('a')
-        sage: eval_citations( "((a+1)^2).expand()" )
-        [ginac, GMP]
     """
     import inspect
     from sage.misc.all import sage_eval
@@ -240,7 +236,7 @@ def get_systems(cmd):
     """
     DEPRECATED:
 
-    Use ``func:eval_citations`` instead.
+    Use :meth:`eval_citations` instead.
 
     Returns a list of the systems used in running the command
     cmd.  Note that the results can sometimes include systems
