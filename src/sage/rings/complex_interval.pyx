@@ -1504,29 +1504,29 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 2, error = 2.7299891557910?e-13, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(10.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 10.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 428
-                verbose 1 (<module>) return zeta3(10.500000000000000? + 0.50000000000000000?*I) = 6.3060929904524?e-11 - 1.33026332665897?e-10*I (with direct summation to 428)
+                verbose 1 (<module>) return _zeta_truncated_(10.500000000000000? + 0.50000000000000000?*I) = 6.3060929904524?e-11 - 1.33026332665897?e-10*I (with direct summation to 428)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 4, error = 4.1329874592951?e-15, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(12.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 12.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 215
-                verbose 1 (<module>) return zeta3(12.500000000000000? + 0.50000000000000000?*I) = 7.1621087022945?e-13 - 1.4796879704511?e-12*I (with direct summation to 215)
+                verbose 1 (<module>) return _zeta_truncated_(12.500000000000000? + 0.50000000000000000?*I) = 7.1621087022945?e-13 - 1.4796879704511?e-12*I (with direct summation to 215)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 6, error = 3.6095275636082?e-17, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(14.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 14.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 133
-                verbose 1 (<module>) return zeta3(14.500000000000000? + 0.50000000000000000?*I) = 8.3051698367911?e-15 - 1.69225339529004?e-14*I (with direct summation to 133)
+                verbose 1 (<module>) return _zeta_truncated_(14.500000000000000? + 0.50000000000000000?*I) = 8.3051698367911?e-15 - 1.69225339529004?e-14*I (with direct summation to 133)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 8, error = 2.3018511034498?e-19, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(16.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 16.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 93
-                verbose 1 (<module>) return zeta3(16.500000000000000? + 0.50000000000000000?*I) = 9.774714006388?e-17 - 1.9725333208609?e-16*I (with direct summation to 93)
+                verbose 1 (<module>) return _zeta_truncated_(16.500000000000000? + 0.50000000000000000?*I) = 9.774714006388?e-17 - 1.9725333208609?e-16*I (with direct summation to 93)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 10, error = 1.1945883635003?e-21, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(18.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 18.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 71
-                verbose 1 (<module>) return zeta3(18.500000000000000? + 0.50000000000000000?*I) = 1.1630114748768?e-18 - 2.3306275032057?e-18*I (with direct summation to 71)
+                verbose 1 (<module>) return _zeta_truncated_(18.500000000000000? + 0.50000000000000000?*I) = 1.1630114748768?e-18 - 2.3306275032057?e-18*I (with direct summation to 71)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 12, error = 5.356679453586?e-24, allowed_error = 8.2718061255303?e-25
                 verbose 1 (<module>) Enter _zeta_truncated_(20.500000000000000? + 0.50000000000000000?*I, 9)
                 verbose 2 (<module>)   s = 20.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 57
-                verbose 1 (<module>) return zeta3(20.500000000000000? + 0.50000000000000000?*I) = 1.3950689833778?e-20 - 2.7812472775263?e-20*I (with direct summation to 57)
+                verbose 1 (<module>) return _zeta_truncated_(20.500000000000000? + 0.50000000000000000?*I) = 1.3950689833778?e-20 - 2.7812472775263?e-20*I (with direct summation to 57)
                 verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 14, error = 2.1534460271014?e-26, allowed_error = 8.2718061255303?e-25
-                verbose 1 (<module>) return zeta3(8.5000000000000000? + 0.50000000000000000?*I) = 5.7214911673431?e-9 - 1.24841349427589?e-8*I (with N = 14)
+                verbose 1 (<module>) return _zeta_truncated_(8.5000000000000000? + 0.50000000000000000?*I) = 5.7214911673431?e-9 - 1.24841349427589?e-8*I (with N = 14)
                 1.002679824577679? - 0.00099015190761022?*I
                 sage: set_verbose(0)
 
@@ -1778,7 +1778,7 @@ def _zeta_truncated_(s, m):
             error_RIF = s.real().parent()(-error, error)
             error_CIF = s.parent()(error_RIF, error_RIF)
             result = sum(k**-s for k in reversed(srange(ZZ(m), ZZ(last + 1)))) + error_CIF
-            verbose("return zeta3(%s) = %s (with direct summation to %d)" % (
+            verbose("return _zeta_truncated_(%s) = %s (with direct summation to %d)" % (
                     s, result, last), level=1)
             return result
 
@@ -1829,7 +1829,7 @@ def _zeta_truncated_(s, m):
             real_error = result.real().parent()(-error, error)
             result += result.parent()(real_error, real_error)
             result /= (1 - p**(1-s))
-            verbose("return zeta3(%s) = %s (with N = %d)" % (
+            verbose("return _zeta_truncated_(%s) = %s (with N = %d)" % (
                     s, result, N), level=1)
             return result
 
