@@ -21,6 +21,8 @@ heavily modified:
 
 - Travis Scrimshaw (2012-10-18): Added documentation to get full coverage.
 
+- Clemens Heuberger (2014-08-08): Implemented Riemann zeta function.
+
 .. TODO::
 
     Implement :class:`ComplexIntervalFieldElement` multiplicative
@@ -1463,18 +1465,18 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         The method caches intermediate results via the
         :func:`cached_function` decorator on the function
         :func:`binomial_coefficient` and the internal function
-        :func:`_zeta3_`.
+        :func:`_zeta_truncated_`.
 
         EXAMPLES:
 
         -   ::
 
                 sage: zeta(CIF(2))
-                1.64493406684823? + 0.?e-16*I
+                1.64493406684823? + 0.?e-17*I
                 sage: (zeta(CIF(2)) - CIF(pi)^2/6).abs()<10^(-13)
                 True
                 sage: zeta(CIF(2*pi*I/log(2)))
-                1.5987345268087? + 0.2783386696391?*I
+                1.598734526809? + 0.278338669639?*I
 
         -   There is a singularity at `s=1`. ::
 
@@ -1495,12 +1497,37 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         -   Debugging output can be enabled using :func:`~sage.misc.misc.set_verbose`. ::
 
                 sage: set_verbose(2)
-                sage: zeta(CIF(68.5+0.5*I))
-                verbose 1 (<module>) Enter _zeta3_(68.500000000000000? + 0.50000000000000000?*I)
-                verbose 2 (<module>)   s = 68.500000000000000? + 0.50000000000000000?*I, p = 3
-                verbose 2 (<module>)   s = 68.500000000000000? + 0.50000000000000000?*I, N = 2, error = 7.644217851140?e-50, allowed_error = 1.7105694144590?e-49
-                verbose 1 (<module>) return zeta3(68.500000000000000? + 0.50000000000000000?*I) = 1.7704576413292?e-33 - 1.0837873182350?e-33*I (with N = 2)
-                1.000000000000001? - 8.137885933103?e-22*I
+                sage: zeta(CIF(8.5+0.5*I))
+                verbose 1 (<module>) Enter _zeta_truncated_(8.5000000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 1237
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, p = 3
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 2, error = 2.7299891557910?e-13, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(10.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 10.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 428
+                verbose 1 (<module>) return zeta3(10.500000000000000? + 0.50000000000000000?*I) = 6.3060929904524?e-11 - 1.33026332665897?e-10*I (with direct summation to 428)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 4, error = 4.1329874592951?e-15, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(12.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 12.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 215
+                verbose 1 (<module>) return zeta3(12.500000000000000? + 0.50000000000000000?*I) = 7.1621087022945?e-13 - 1.4796879704511?e-12*I (with direct summation to 215)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 6, error = 3.6095275636082?e-17, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(14.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 14.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 133
+                verbose 1 (<module>) return zeta3(14.500000000000000? + 0.50000000000000000?*I) = 8.3051698367911?e-15 - 1.69225339529004?e-14*I (with direct summation to 133)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 8, error = 2.3018511034498?e-19, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(16.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 16.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 93
+                verbose 1 (<module>) return zeta3(16.500000000000000? + 0.50000000000000000?*I) = 9.774714006388?e-17 - 1.9725333208609?e-16*I (with direct summation to 93)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 10, error = 1.1945883635003?e-21, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(18.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 18.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 71
+                verbose 1 (<module>) return zeta3(18.500000000000000? + 0.50000000000000000?*I) = 1.1630114748768?e-18 - 2.3306275032057?e-18*I (with direct summation to 71)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 12, error = 5.356679453586?e-24, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) Enter _zeta_truncated_(20.500000000000000? + 0.50000000000000000?*I, 9)
+                verbose 2 (<module>)   s = 20.500000000000000? + 0.50000000000000000?*I. Last summand for direct summation: 57
+                verbose 1 (<module>) return zeta3(20.500000000000000? + 0.50000000000000000?*I) = 1.3950689833778?e-20 - 2.7812472775263?e-20*I (with direct summation to 57)
+                verbose 2 (<module>)   s = 8.5000000000000000? + 0.50000000000000000?*I, N = 14, error = 2.1534460271014?e-26, allowed_error = 8.2718061255303?e-25
+                verbose 1 (<module>) return zeta3(8.5000000000000000? + 0.50000000000000000?*I) = 5.7214911673431?e-9 - 1.24841349427589?e-8*I (with N = 14)
+                1.002679824577679? - 0.00099015190761022?*I
                 sage: set_verbose(0)
 
         -   This example demonstrates how to clear the cache after the
@@ -1508,31 +1535,30 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             to have a clean environment for the doctests::
 
                 sage: import sage.rings.complex_interval
-                sage: sage.rings.complex_interval._zeta3_.clear_cache()
+                sage: sage.rings.complex_interval._zeta_truncated_.clear_cache()
                 sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
-                sage: zeta(CIF(66.5+0.5*I))
-                1.000000000000001? - 3.2551543732464?e-21*I
-                sage: len(sage.rings.complex_interval._zeta3_.get_cache())
-                18
-                sage: sorted(sage.rings.complex_interval._zeta3_.get_cache().iteritems())[:5]
-                [((66.5000000000000, 66.5000000000000, 0.500000000000000, 0.500000000000000), 1.5934118802870?e-32 - 9.754085889787?e-33*I),
-                 ((68.5000000000000, 68.5000000000000, 0.500000000000000, 0.500000000000000), 1.7704576413292?e-33 - 1.0837873182350?e-33*I),
-                 ((70.5000000000000, 70.5000000000000, 0.500000000000000, 0.500000000000000), 1.9671751548862?e-34 - 1.2042081295894?e-34*I),
-                 ((72.5000000000000, 72.5000000000000, 0.500000000000000, 0.500000000000000), 2.1857501707543?e-35 - 1.3380090317628?e-35*I),
-                 ((74.5000000000000, 74.5000000000000, 0.500000000000000, 0.500000000000000), 2.4286112999997?e-36 - 1.4866767012623?e-36*I)]
+                sage: zeta(CIF(8.5+0.5*I))
+                1.002679824577679? - 0.00099015190761022?*I
+                sage: len(sage.rings.complex_interval._zeta_truncated_.get_cache())
+                7
+                sage: sorted(sage.rings.complex_interval._zeta_truncated_.get_cache().iteritems())[:3]
+                [((9, 8.50000000000000, 8.50000000000000, 0.500000000000000, 0.500000000000000), 5.7214911673431?e-9 - 1.24841349427589?e-8*I),
+                 ((9, 10.5000000000000, 10.5000000000000, 0.500000000000000, 0.500000000000000), 6.3060929904524?e-11 - 1.33026332665897?e-10*I),
+                 ((9, 12.5000000000000, 12.5000000000000, 0.500000000000000, 0.500000000000000), 7.1621087022945?e-13 - 1.4796879704511?e-12*I)]
                 sage: len(sage.rings.complex_interval.binomial_coefficient.get_cache())
-                88
-                sage: sorted(sage.rings.complex_interval.binomial_coefficient.get_cache().iteritems())[:5]
-                [((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 0), 1),
-                 ((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 1), -100.50000000000000? - 0.50000000000000000?*I),
-                 ((-100.500000000000, -100.500000000000, -0.500000000000000, -0.500000000000000, 2), 5100.2500000000000? + 50.500000000000000?*I),
-                 ((-98.5000000000000, -98.5000000000000, -0.500000000000000, -0.500000000000000, 0), 1),
-                 ((-98.5000000000000, -98.5000000000000, -0.500000000000000, -0.500000000000000, 1), -98.500000000000000? - 0.50000000000000000?*I)]
-                sage: sage.rings.complex_interval._zeta3_.clear_cache()
+                15
+                sage: sorted(sage.rings.complex_interval.binomial_coefficient.get_cache().iteritems())[:3]
+                [((-8.50000000000000, -8.50000000000000, -0.500000000000000, -0.500000000000000, 0), 1),
+                 ((-8.50000000000000, -8.50000000000000, -0.500000000000000, -0.500000000000000, 1), -8.5000000000000000? - 0.50000000000000000?*I),
+                 ((-8.50000000000000, -8.50000000000000, -0.500000000000000, -0.500000000000000, 2), 40.250000000000000? + 4.5000000000000000?*I)]
+                sage: sage.rings.complex_interval._zeta_truncated_.clear_cache()
                 sage: sage.rings.complex_interval.binomial_coefficient.clear_cache()
         """
+        from sage.misc.misc import srange
         from sage.rings.integer_ring import ZZ
-        return 1+ZZ(2)**(-self)+_zeta3_(self)
+
+        m = ZZ(self.abs().upper().ceil())
+        return sum(k**(-self) for k in reversed(srange(ZZ(1), m)))+_zeta_truncated_(self, m)
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
     """
@@ -1626,7 +1652,7 @@ def binomial_coefficient(s, k):
 
     INPUT:
 
-    - ``s`` -- a :class:`ComplexIntervalElement`.
+    - ``s`` -- a :class:`ComplexIntervalFieldElement`.
 
     - ``k`` -- a non-negative integer.
 
@@ -1649,7 +1675,7 @@ def binomial_coefficient(s, k):
         sage: (sage.rings.complex_interval.binomial_coefficient(s, 2) - s*(s-1)/2).abs() < 10^(-10)
         True
 
-    The first argument must be a :class:`ComplexIntervalElement` because
+    The first argument must be a :class:`ComplexIntervalFieldElement` because
     caching will fail otherwise. ::
 
         sage: sage.rings.complex_interval.binomial_coefficient(6, 2)
@@ -1666,7 +1692,7 @@ def binomial_coefficient(s, k):
 
 def _binomial_series_error_factor_(N, sigma, x):
     r"""
-    Return the factor the ``N``th term of the binomial series of
+    Return the factor the `N` th term of the binomial series of
     `(1+x)^{-s}` has to be multiplied with when bounding the error when
     truncating after this term.
 
@@ -1684,7 +1710,7 @@ def _binomial_series_error_factor_(N, sigma, x):
 
     TESTS::
 
-        sage: _binomial_series_error_factor_(3, 0, -1/2)
+        sage: sage.rings.complex_interval._binomial_series_error_factor_(3, 0, -1/2)
         6
     """
     lagrange_bound = max(1, (1 + x)**(-sigma - N))
@@ -1692,15 +1718,17 @@ def _binomial_series_error_factor_(N, sigma, x):
     return min(lagrange_bound, cauchy_bound)
 
 
-@cached_function(key=lambda s:(s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper()))
-def _zeta3_(s):
+@cached_function(key=lambda s, m:(m, s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper()))
+def _zeta_truncated_(s, m):
     r"""
-    Compute `\zeta_3(s)=\sum_{k\ge 3} k^{-s}=\zeta(s)-1-2^{-s}`,
+    Compute `=\sum_{k\ge m} k^{-s}`,
     analytically continued to the complex plane.
 
     INPUT:
 
     -   ``s`` -- a :class:`ComplexIntervalField` element
+
+    -   ``m`` -- a positive integer, `m \ge 2`
 
     OUTPUT:
 
@@ -1713,12 +1741,12 @@ def _zeta3_(s):
     -   ::
 
             sage: import sage.rings.complex_interval
-            sage: (sage.rings.complex_interval._zeta3_(CIF(2))+5/4 - CIF(pi)^2/6).abs()<10^(-13)
+            sage: (sage.rings.complex_interval._zeta_truncated_(CIF(2), 3)+5/4 - CIF(pi)^2/6).abs()<10^(-13)
             True
 
     -   There is a singularity at `s=1`. ::
 
-            sage: sage.rings.complex_interval._zeta3_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)))
+            sage: sage.rings.complex_interval._zeta_truncated_(CIF(RIF(0.9, 1.1), (-0.1, 0.1)), 10)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: zeta is singular at 1.
@@ -1726,7 +1754,7 @@ def _zeta3_(s):
     -   Currently, the function is not implemented for non-positive
         integers::
 
-            sage: sage.rings.complex_interval._zeta3_(CIF(-1))
+            sage: sage.rings.complex_interval._zeta_truncated_(CIF(-1), -10)
             Traceback (most recent call last):
             ...
             NotImplementedError: zeta is currently not implemented
@@ -1737,8 +1765,22 @@ def _zeta3_(s):
 
     if (s - 1).contains_zero():
         raise ZeroDivisionError("zeta is singular at 1.")
-    verbose("Enter _zeta3_(%s)" % s, level=1)
+    verbose("Enter _zeta_truncated_(%s, %d)" % (s, m), level=1)
     sigma = s.real()
+
+    if sigma > 5:
+        last = (((sigma - 1) * ZZ(m)**(-sigma) * ZZ(2)**(-s.prec()))**(
+                ZZ(1) / (1-sigma))).ceil().unique_integer()
+        verbose("  s = %s. Last summand for direct summation: %d" % (
+                s, last), level=2)
+        if last < max(1024, 9*m):
+            error = last**(1 - sigma) / (sigma - 1)
+            error_RIF = s.real().parent()(-error, error)
+            error_CIF = s.parent()(error_RIF, error_RIF)
+            result = sum(k**-s for k in reversed(srange(ZZ(m), ZZ(last + 1)))) + error_CIF
+            verbose("return zeta3(%s) = %s (with direct summation to %d)" % (
+                    s, result, last), level=1)
+            return result
 
     # Try to find a p such that the denominator is not too close to zero.
     # A denominator > 1/8 is fine, so take smallest such p.
@@ -1758,11 +1800,11 @@ def _zeta3_(s):
     # Minimal N, will be increased as necessary
     N = max(2*((1-sigma)/2).floor().unique_integer() + 2, ZZ(2))
 
-    result = sum(k**(-s) for k in srange(ZZ(3), ZZ((5*p+1)/2)))
+    result = sum(k**(-s) for k in reversed(srange(ZZ(m), ZZ(m*p-(p-1)/2))))
     try:
         result += 2*sum(binomial_coefficient(-s, k) *
                         p**(-s - k) *
-                        _zeta3_(s + k) *
+                        _zeta_truncated_(s + k, m) *
                         sum(j**k for j in srange(ZZ(1), ZZ((p+1)/2)))
                         for k in srange(ZZ(1), N)
                         if k.mod(2) == 0)
@@ -1776,9 +1818,10 @@ def _zeta3_(s):
                                   - result.prec())
 
         factor = binomial_coefficient(-s, N) * p**(-s - N)
-        error_factor = ZZ(2)**(2 - sigma - N)/(N + sigma - 1)
-        error_factor *= sum(j**N/(1 - (j/(3*p)))**(sigma+N)
-                            for j in srange(ZZ(1), ZZ((p + 1)/2)))
+        error_factor = ZZ(m - 1)**(1 - sigma - N)/(N + sigma - 1)
+        error_factor *= sum(j**N * _binomial_series_error_factor_(
+                        N, sigma, j/(m*p))
+                            for j in srange(ZZ(-(p - 1)/2), ZZ((p + 1)/2)))
         error = factor.abs() * error_factor
         verbose("  s = %s, N = %d, error = %s, allowed_error = %s"
                 % (s, N, error, allowed_error), level=2)
@@ -1791,7 +1834,7 @@ def _zeta3_(s):
             return result
 
         # By definition of the initial N, s + N has real part > 1.
-        result += (2 * factor * _zeta3_(s + N) *
+        result += (2 * factor * _zeta_truncated_(s + N, m) *
                    sum(j**N for j in srange(ZZ(1), ZZ((p+1)/2))))
 
         N += 2
