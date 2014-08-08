@@ -75,6 +75,15 @@ void FreeAutomate (Automate a)
 	free(a.e);
 }
 
+void FreeAutomates (Automate* a, int n)
+{
+	int j;
+	for (j=0;j<n;j++)
+	{
+		FreeAutomate(a[j]);
+	}
+}
+
 BetaAdic NewBetaAdic (int n)
 {
 	BetaAdic b;
@@ -86,6 +95,22 @@ BetaAdic NewBetaAdic (int n)
 void FreeBetaAdic (BetaAdic b)
 {
 	free(b.t);
+}
+
+BetaAdic2 NewBetaAdic2 (int n, int na)
+{
+	BetaAdic2 b;
+	b.n = n;
+	b.na = na;
+	b.t = (Complexe *)malloc(sizeof(Complexe)*n);
+	b.a = (Automate *)malloc(sizeof(Automate)*na);
+	return b;
+}
+
+void FreeBetaAdic2 (BetaAdic2 b)
+{
+	free(b.t);
+	free(b.a);
 }
 
 inline Color moy (Color a, Color b, double ratio)
@@ -178,6 +203,54 @@ void Draw_rec2 (BetaAdic b, Surface s, int n, int etat)
 	}
 }
 
+void DrawList_rec (BetaAdic2 b, Surface s, int n, Complexe p, Complexe bn, int *etat)
+{
+	if (etat[0] == -1)
+		return;
+	int i;
+	if (n == 0)
+	{
+		if (!b.a[0].e[etat[0]].final)
+		{
+			return;
+		}
+		if (p.x < mx2)
+			mx2 = p.x;
+		if (p.x > Mx2)
+			Mx2 = p.x;
+		if (p.y < my2)
+			my2 = p.y;
+		if (p.y > My2)
+			My2 = p.y;
+		color = colors[0];
+		for (i=b.na-1;i>0;i--)
+		{
+			if (etat[i] != -1)
+			{
+				if (b.a[i].e[etat[i]].final)
+					color = colors[i];
+			}
+		}
+		set_pix (s, p);
+	}else
+	{
+		int *etat2 = (int *)malloc(sizeof(int)*b.na);
+		int j;
+		for (i=0;i<b.n;i++)
+		{
+			for (j=0;j<b.na;j++)
+			{
+				if (etat[j] != -1)
+					etat2[j] = b.a[j].e[etat[j]].f[i];
+				else
+					etat2[j] = -1;
+			}
+			DrawList_rec (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), etat2);
+		}
+		free(etat2);
+	}
+}
+
 void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 {
 	if (n == 0)
@@ -210,8 +283,8 @@ void Draw_rec (BetaAdic b, Surface s, int n, Complexe p, Complexe bn, int etat)
 		{
 			//if (n == niter-1)
 			//{
-		    //	color = colors[i];
-	        //}
+			//	color = colors[i];
+			//}
 			if (b.a.e[etat].f[i] != -1)
 				Draw_rec (b, s, n-1, add(p, prod(bn, b.t[i])), prod(bn, b.b), b.a.e[etat].f[i]);
 		}
@@ -235,6 +308,13 @@ Color randCol (int a)
 	return c;
 }
 
+double absd (double f)
+{
+	if (f < 0)
+		return -f;
+	return f;
+}
+
 void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 {
 	int auto_n = (n < 0);
@@ -243,12 +323,14 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
-	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	int i;
+	/*
+	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	for (i=0;i<b.a.n;i++)
 	{
 		colors[i] = randCol(255);
 	}
+	*/
 	if (verb)
 	{
 		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
@@ -269,9 +351,13 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		//ajuste le cadre
 		if (auto_n)
 		{
-			//printf("max = %d\n", max(s.sx, s.sy));
-			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-			n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (verb)
+			{
+				printf("max = %d\n", max(s.sx, s.sy));
+				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
+				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
+			}
+			n = -2.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -316,12 +402,14 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
-	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	int i;
+	/*
+	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	for (i=0;i<b.a.n;i++)
 	{
 		colors[i] = randCol(255);
 	}
+	*/
 	if (verb)
 	{
 		printf("%d translations, %d lettres, %d états.\n", b.n, b.a.na, b.a.n);
@@ -385,4 +473,107 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	}
 	pos = zero();
 	Draw_rec2 (b, s, n, b.a.i);
+}
+
+void printAutomate (Automate a)
+{
+	printf("Automate ayant %d sommets, %d lettres.\n", a.n, a.na);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[i].f[j] != -1)
+				printf("%d -(%d)-> %d, ", i, j, a.e[i].f[j]);
+		}
+	}
+	printf("état initial %d.\n", a.i);
+}
+
+void DrawList (BetaAdic2 b, Surface s, int n, int ajust, double alpha, int verb)
+{
+	int auto_n = (n < 0);
+	//set global variables
+	mx2 = 1000000, my2 = 1000000, Mx2 = -1000000, My2 = -1000000; //extremum observés
+	color0.r = color0.g = color0.b = 255;
+	color0.a = 0;
+	colors = (Color *)malloc(sizeof(Color)*b.na);
+	int i;
+	for (i=0;i<b.na;i++)
+	{
+		colors[i] = randCol(255);
+		colors[i].a = alpha*255;
+	}
+	if (verb)
+	{
+		printf("%d translations, %d automates.\n", b.n, b.na);
+		printf("couleur de fond : %d %d %d %d\n", color0.r, color0.g, color0.b, color0.a);
+		printf("translations : ");
+		for (i=0;i<b.n;i++)
+		{
+			printf("(%lf, %lf) ", b.t[i].x, b.t[i].y);
+		}
+		printf("\n");
+		printf("Automates :\n");
+		for (i=0;i<b.na;i++)
+		{
+			printAutomate(b.a[i]);
+		}
+	}
+	int *etat = (int *)malloc(sizeof(int)*b.na);
+	//ajust the window of the drawing
+	if (ajust)
+	{
+		//ajuste le cadre
+		if (auto_n)
+		{
+			//printf("max = %d\n", max(s.sx, s.sy));
+			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
+			n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (verb)
+				printf("n = %d\n", n);
+		}
+		pos = zero();
+		
+		for (i=0;i<b.na;i++)
+		{
+			etat[i] = b.a[i].i;
+		}
+		DrawList_rec (b, s, n, zero(), un(), etat);
+		mx = mx2 - (Mx2 - mx2)/100;
+		my = my2 - (My2 - my2)/100;
+		Mx = Mx2 + (Mx2-mx2)/s.sx + (Mx2 - mx2)/100;;
+		My = My2 + (My2-my2)/s.sy + (My2 - my2)/100;
+		//preserve le ratio
+		double delta = (Mx - mx)*s.sy - (My - my)*s.sx;
+		if (delta > 0)
+		{
+			My = My + delta/(2*s.sx);
+			my = my - delta/(2*s.sx);
+		}else
+		{
+			Mx = Mx - delta/(2*s.sy);
+			mx = mx + delta/(2*s.sy);
+		}
+	}
+	if (verb)
+	{
+		printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+	}
+	Fill(s, color0);
+	if (auto_n)
+	{
+		n = .5 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		if (verb)
+			printf("n = %d\n", n);
+	}
+	pos = zero();
+	for (i=0;i<b.na;i++)
+	{
+		etat[i] = b.a[i].i;
+	}
+	DrawList_rec (b, s, n, zero(), un(), etat);
+	if (verb)
+		printf("Fin de DrawList...\n");
+	free(etat);
 }

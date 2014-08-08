@@ -39,3 +39,13 @@ struct BetaAdic
 	Automate a;
 };
 typedef struct BetaAdic BetaAdic;
+
+struct BetaAdic2
+{
+	Complexe b; //
+	Complexe *t; //liste des translations
+	int n; //nombre de translations
+	Automate *a; //liste des couleurs
+	int na; //nombre d'automates
+};
+typedef struct BetaAdic2 BetaAdic2;

@@ -26,11 +26,11 @@ from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 
 cdef extern from "automata_tools.c":
-    void TikZ (const char *data, const char *graph_name)
+    void TikZ (const char *data, const char *graph_name, double sx, double sy)
 
-def SaveTikZ (data, name):
+def SaveTikZ (data, name, sx, sy):
     #print len(data), data
-    TikZ(data, name)
+    TikZ(data, name, sx, sy)
 
 #test
 #
@@ -67,7 +67,7 @@ class Automaton (DiGraph):
         """
         return DiGraph.plot(self, edge_labels=True)
     
-    def plot2 (self, name="Automaton", verb=False):
+    def plot2 (self, sx=10, sy=8, name="Automaton", verb=False):
         r"""
         Plot the automaton.
         """
@@ -96,7 +96,7 @@ class Automaton (DiGraph):
         for e,f,l in self.edges():
             txt += '    "'+str(e)+'" -> "'+str(f)+'" [label="'+str(l)+'"];\n'
         txt += '}\n'
-        SaveTikZ(txt, name)
+        SaveTikZ(txt, name, sx, sy)
     
     def plot3 (self, name="Automaton"):
         r"""

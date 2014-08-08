@@ -9,7 +9,7 @@ const char *pass (const char *txt)
 	return txt+1;
 }
 
-void TikZ (const char *data, const char *graph_name)
+void TikZ (const char *data, const char *graph_name, double sx, double sy)
 {
 	int verb = 0;
 	const char *name = "/Users/mercat/Desktop/a.dot";
@@ -31,9 +31,9 @@ void TikZ (const char *data, const char *graph_name)
 	"	node[fontsize=20]"\
 	"	edge[fontsize=20]"\
 	"	rankdir = LR;\n"\
-	"	size = \"10,10\";\n"\
+	"	size = \"%lf, %lf\";\n"\
 	"	center = 1;\n"\
-	"	nodesep = \"0.2\"\n", graph_name);
+	"	nodesep = \"0.2\"\n", graph_name, sx, sy);
 //	"	ranksep = \"0.4 equally\";\n", graph_name);
 //	"	rotate = -90\n"\
 //	"	orientation=landscape\n"\
