@@ -1721,7 +1721,7 @@ def _binomial_series_error_factor_(N, sigma, x):
 @cached_function(key=lambda s, m:(m, s.real().lower(), s.real().upper(), s.imag().lower(), s.imag().upper()))
 def _zeta_truncated_(s, m):
     r"""
-    Compute `=\sum_{k\ge m} k^{-s}`,
+    Compute `\sum_{k\ge m} k^{-s}`,
     analytically continued to the complex plane.
 
     INPUT:
