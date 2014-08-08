@@ -68,7 +68,9 @@ AUTHORS:
 ###########################################################################
 
 from contextlib import contextmanager
+from sage.misc.all import tmp_filename
 import os, re, sys
+
 
 _latest_citations = []
 
@@ -149,12 +151,15 @@ def citations(record = None):
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
                         gprofiler.stop()
-                        gprofiler_calls = _gperftools_top_to_functions(gprofiler.top(print_top=False))
+                        gprofiler_file = tmp_filename() + ".txt"
+                        gprofiler.save(gprofiler_file, verbose=False)
                 finally:
-
                     sys.stderr.close()
                     os.dup2(old_stderr.fileno(), fd)
                     sys.stderr = os.fdopen(fd, 'w')
+        
+        with file(gprofiler_file) as gprofiler_output:
+            gprofiler_calls = _gperftools_top_to_functions(gprofiler_output.read())
     else:
         gprofiler_calls = []
 
