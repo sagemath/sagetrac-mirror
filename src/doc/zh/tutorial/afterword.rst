@@ -142,7 +142,3 @@ Python的某些数学方面容易让人弄混，因此Sage在这些方面与Pyth
 可在 ``Sage-devel`` Google讨论组中发贴。
 
 祝使用Sage愉快！
-
-.. [Py] The Python language http://www.python.org/ , Reference Manual http://docs.python.org/ref/ref.html
-
-.. [PyDev] Guido, Some Guys, and a Mailing List: How Python is Developed, http://www.python.org/dev/dev_intro.html.
