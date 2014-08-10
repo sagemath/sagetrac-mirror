@@ -1847,9 +1847,8 @@ class Permutation(CombinatorialObject, Element):
         """
         if k > len(self):
             return 0
-        incr_iterator = itertools.ifilter( lambda pos: all( pos[i] < pos[i+1]
-                                                            for i in range(k-1) ),
-                                           iter(subword.Subwords(self, k)) )
+        incr_iterator = (pos for pos in subword.Subwords(self, k)
+                            if all(pos[i] < pos[i+1] for i in range(k-1)))
         return sum(1 for _ in incr_iterator)
 
     def length(self):
@@ -3566,7 +3565,7 @@ class Permutation(CombinatorialObject, Element):
         if l > n:
             return False
         for pos in subword.Subwords(range(n),l):
-            if to_standard(map(lambda z: p[z] , pos)) == patt:
+            if to_standard([p[z] for z in pos]) == patt:
                 return True
         return False
 
@@ -3597,8 +3596,8 @@ class Permutation(CombinatorialObject, Element):
             [[0, 1, 3], [2, 3, 5], [2, 4, 5]]
         """
         p = self
-
-        return list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
+        return [pos for pos in subword.Subwords(range(len(p)), len(patt))
+                if to_standard([p[z] for z in pos]) == patt]
 
     @combinatorial_map(name='Simion-Schmidt map')
     def simion_schmidt(self, avoid=[1,2,3]):

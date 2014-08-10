@@ -793,7 +793,6 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap
 from collections import defaultdict, OrderedDict
 
 
@@ -3554,7 +3553,7 @@ class FiniteStateMachine(SageObject):
                 sage: T.default_format_transition_label(iter([]))
                 '\\varepsilon'
         """
-        result = " ".join(imap(self.format_letter, word))
+        result = " ".join(map(self.format_letter, word))
         if result:
             return result
         else:
@@ -4542,8 +4541,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_initial_states()]
             ['A']
         """
-        return itertools.ifilter(lambda s:s.is_initial, self.iter_states())
-
+        return (s for s in self.iter_states() if s.is_initial)
 
     def final_states(self):
         """
@@ -4592,8 +4590,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_final_states()]
             ['A', 'C']
         """
-        return itertools.ifilter(lambda s:s.is_final, self.iter_states())
-
+        return (s for s in self.iter_states() if s.is_final)
 
     def state(self, state):
         """
@@ -6734,7 +6731,7 @@ class FiniteStateMachine(SageObject):
              Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if any(itertools.ifilter(
+            if any(filter(
                     lambda transition: not transition.word_out,
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:

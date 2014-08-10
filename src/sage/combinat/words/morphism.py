@@ -1963,7 +1963,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abbab,b->abb,c->').has_left_conjugate()
             True
         """
-        I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
+        I = (x for x in self.images() if not FiniteWord_class.is_empty(x))
 
         try:
             letter = I.next()[0]

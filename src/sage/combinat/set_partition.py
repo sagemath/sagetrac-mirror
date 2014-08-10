@@ -1091,7 +1091,7 @@ class SetPartitions(Parent, UniqueRepresentation):
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), CartesianProduct( *lb )):
+            for x in map(lambda x: _union(x), CartesianProduct( *lb )):
                 yield x
 
     def is_less_than(self, s, t):

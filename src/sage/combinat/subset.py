@@ -696,7 +696,7 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,3).list()
             [{1, 2, 3}]
         """
-        return itertools.imap(self.element_class, self._fast_iterator())
+        return (self.element_class(i) for i in self._fast_iterator())
 
     def random_element(self):
         """

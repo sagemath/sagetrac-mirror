@@ -2843,8 +2843,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
         # list of vertices of odd degree
-        from itertools import izip
-        odd=[x for (x,deg) in izip(g.vertex_iterator(),g.degree_iterator()) if deg%2==1]
+        odd = [x for (x,deg) in zip(g.vertex_iterator(),g.degree_iterator()) if deg%2==1]
 
         # Picks the first vertex, which is preferably an odd one
         if len(odd)>0:
