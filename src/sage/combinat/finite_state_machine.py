@@ -793,6 +793,12 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
+try:
+    # Python 2
+    from itertools import izip_longest as zip_longest
+except ImportError:
+    # Python 3
+    from itertools import zip_longest
 from collections import defaultdict, OrderedDict
 
 
@@ -7403,7 +7409,7 @@ class FiniteStateMachine(SageObject):
             sage: F.state(0).final_word_out
             []
         """
-        from itertools import cycle, izip_longest
+        from itertools import cycle
 
         if not isinstance(letters, list):
             letters = [letters]
@@ -9171,15 +9177,14 @@ class Transducer(FiniteStateMachine):
         def function(*transitions):
             if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
-                        list(itertools.izip_longest(
+                        list(zip_longest(
                             *(t.word_out for t in transitions)
                              )))
             else:
                 raise LookupError
 
         def final_function(*states):
-            return list(itertools.izip_longest(*(s.final_word_out
-                                                 for s in states)))
+            return list(zip_longest(*(s.final_word_out for s in states)))
 
         return self.product_FiniteStateMachine(
             other,

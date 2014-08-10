@@ -246,6 +246,12 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 from combinat import CombinatorialObject, catalan_number
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
@@ -3808,7 +3814,7 @@ class Permutation(CombinatorialObject, Element):
             (6, 5)
             (7, 4)
         """
-        return itertools.izip(xrange(1, len(self)+1), self)
+        return izip(xrange(1, len(self)+1), self)
 
     @combinatorial_map(name='Robinson-Schensted insertion tableau')
     def left_tableau(self):
