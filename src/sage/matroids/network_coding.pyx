@@ -2,7 +2,7 @@ from sage.rings.finite_rings.finite_field_prime_modn import *
 from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
-
+import numpy as np
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
 #R=None
 GF2=GF(2)
@@ -327,6 +327,60 @@ cpdef extend_mcodes(Mcodes1,nc,maxgnd,nvars):
                     Mcodes2[(list(key)[0],n2-list(key)[0])].append(child_Mcode)
     return Mcodes2
 
+cpdef mdcs(config):
+    """Return mdcs instance corresponding to configuration matrix specified as
+    a list of lists"""
+    if mdcs_instance_is_valid(config) == False:
+        raise ValueError('Not a valid MDCS instance')
+
+cpdef mdcs_instance_is_valid(config_list):
+    """
+    Test the validity of a given MDCS instance
+    """
+    if len(config_list) == 0:
+        return False
+    max_dec_per_level=len(config_list[0])
+    for level in xrange(1,len(config_list)):
+        if len(config_list[level]) != max_dec_per_level:
+            return False
+    # test axioms (C1) and (C5)
+    all_levels=[]
+    all_enc = set([])
+    for level in xrange(len(config_list)):
+        lsets_all=[set([len(k.binary())-i for i in xrange(len(k.binary()))
+                   if k.binary()[i]=='1']) for k in level]
+        lsets=[s for s in lsets_all if len(s)>0]
+        all_enc.union(*lsets)
+        # (C5)
+        if len(lsets) == 0:
+            return False
+        all_levels.append(lsets)
+        # (C1)
+        if len(lsets)>1:
+            if any([x >= y or x <= y for x in lsets for y in lsets.copy()-x]):
+                return False
+    # test (C4)
+    all_enc_fans=[]
+    for enc in all_enc:
+        e_dec=set([])
+        for l in all_levels:
+            l_e = set([dec for dec in xrange(len(l)) if enc in l[dec]])
+            e_dec=e_dec.union(l_e)
+        all_enc_fans.append(e_dec)
+    # test axiom (C2)
+    for i in xrange(1,len(all_levels)):
+        # test (C2) for all lower levels
+        l_i=all_levels[i]
+        for j in xrange(len(all_levels)-1):
+            l_j=all_levels[j]
+            for lset_i in l_i:
+                for lset_j in l_i:
+                    if lset_j >= lset_i:
+                        return False
+
+    # print lsets
+    return
+
 
 
 cpdef Mcode_candidates(Mcode,maxgnd,nvars):
@@ -343,7 +397,7 @@ cpdef Mcode_candidates(Mcode,maxgnd,nvars):
                 del_e.append(imcode_copy.pop(v))
             # get candidate pmap
             cand = invert(imcode_copy)
-            print cand
+            #print cand
             if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
                 candidates.append([cand,del_e])
         i+=1
@@ -395,27 +449,27 @@ cpdef extendpmaps(child_Mcode,Mcode,nc,maxgnd,nvars):
     unique_candidates = Mcode_candidates(Mcode,maxgnd,nvars)
     for u in unique_candidates:
         cand=u[0]
-        if nvars-len(set(cand.values())) <=  (maxgnd-len(Mcode._M.groundset())):
-            print 'cand', q
-            q+=1
-            # loop over subsets U of unmapped gndset that have >=1 sized
-            # intersection with each subset in u[1]
-            for U in Subsets(set(Mcode._M.groundset())-set(cand.keys())):
+        # loop over subsets U of unmapped gndset that have >=1 sized
+        # intersection with each subset in u[1]
+        for U in Subsets(set(Mcode._M.groundset())-set(cand.keys())):
+            if U_is_valid(U,u[1]):
                 Ue=U|Set(child_Mcode._M.groundset()-Mcode._M.groundset())
                 # loop over all new variable definitions
-                for v in imcode_copy.keys():
+                for v in set(xrange(1,nvars+1))-set(cand.values()):
                     for e in Ue:
                         cand[e]=v
                     if is_pcode(child_Mcode._M,cand,nc):
-                        child_Mcode.append(cand)
+                        child_Mcode._C.append(cand.copy())
+                        #addpcode(child_Mcode._C,cand.copy())
                     for e in Ue:
                         cand.pop(e)
     return
 
-cpdef delset_is_valid(U,delset_maps):
+cpdef U_is_valid(U,delset_maps):
     #test if delset
     for mapset in delset_maps:
-        if len(U & mapset) < 1:
+        print mapset
+        if mapset != None and len(U & mapset) < 1:
             return False
     return True
 
