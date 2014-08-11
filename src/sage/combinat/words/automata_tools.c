@@ -29,7 +29,7 @@ void TikZ (const char *data, const char *graph_name, double sx, double sy)
 		printf("start...\n");
 	fprintf(f, "digraph %s\n{\n"\
 	"	node[fontsize=20]"\
-	"	edge[fontsize=20]"\
+	"	edge[fontsize=20, arrowhead = open]"\
 	"	rankdir = LR;\n"\
 	"	size = \"%lf, %lf\";\n"\
 	"	center = 1;\n"\

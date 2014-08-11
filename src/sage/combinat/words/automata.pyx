@@ -498,8 +498,11 @@ class Automaton (DiGraph):
         self.allow_multiple_edges(True)
         for u,v,l in self.edges():
             self.delete_edge(u, v, l)
-            for l2 in d[l]:
-                self.add_edge(u, v, l2)
+            if d.has_key(l):
+                for l2 in d[l]:
+                    self.add_edge(u, v, l2)
+            else:
+                print "Key %s not in the dictionary !"%l
         self.A = [a for A in d.values() for a in A]
     
     def determinize_rec (self, S, A, a, nof, noempty, verb):

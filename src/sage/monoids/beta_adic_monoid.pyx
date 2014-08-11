@@ -931,7 +931,7 @@ class BetaAdicMonoid(Monoid_class):
                 di[current_state][e] = c
         return di
     
-    def relations_automaton (self, ext=False, ss=None, noss=False, verb=False, step=100, limit=None, niter=None):
+    def relations_automaton (self, ext=False, ss=None, noss=False, Cd=None, verb=False, step=100, limit=None, niter=None):
         r"""
         Compute the relations automaton of the beta-adic monoid (with or without subshift).
         See http://www.latp.univ-mrs.fr/~paul.mercat/Publis/Semi-groupes%20fortement%20automatiques.pdf for a definition of such automaton (without subshift).
@@ -1066,7 +1066,8 @@ class BetaAdicMonoid(Monoid_class):
         if verb: print "places: "; print parch; print pultra
         
         #calcule les bornes max pour chaque valeur absolue
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        if Cd is None:
+            Cd = Set([c-c2 for c in self.C for c2 in self.C])
         if verb: print "Cd = %s"%Cd
         m = dict([])
         for p in parch:
@@ -1108,7 +1109,7 @@ class BetaAdicMonoid(Monoid_class):
         if verb: print "Avant emondation : %s"%res
         
         res.I = [K.zero()]
-        res.A = Set([c-c2 for c in self.C for c2 in self.C])
+        res.A = Cd #Set([c-c2 for c in self.C for c2 in self.C])
         if verb: print "Emondation..."
         if not ext:
             res.F = [K.zero()]
