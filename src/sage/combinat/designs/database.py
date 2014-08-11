@@ -54,6 +54,8 @@ Implemented constructions :
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
+  :func:`OA(9,120) <OA_9_120>`,
+  :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
   :func:`OA(12,210) <OA_12_210>`,
@@ -70,6 +72,18 @@ Implemented constructions :
   :func:`four MOLS of order 15 <MOLS_15_4>`,
   :func:`three MOLS of order 18 <MOLS_18_3>`
 
+- :func:`DF(21,5,1) <CDF_21_5_1>`
+  :func:`DF(25,4,1) <ADF_5x5_4_1>`
+  :func:`DF(37,4,1) <CDF_37_4_1>`
+  :func:`DF(81,5,1) <CDF_81_5_1>`
+  :func:`DF(91,6,1) <CDF_91_6_1>`
+  :func:`DF(121,5,1) <CDF_121_5_1>`
+  :func:`DF(141,5,1) <CDF_141_5_1>`
+  :func:`DF(161,5,1) <CDF_161_5_1>`
+  :func:`DF(201,5,1) <CDF_201_5_1>`
+  :func:`DF(221,5,1) <CDF_221_5_1>`
+
+- :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
 
 **Dictionaries**
 
@@ -104,7 +118,7 @@ cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
 def TD_6_12():
     r"""
-    Returns a `TD(6,12)` as built in [Hanani75]_.
+    Return a `TD(6,12)` as built in [Hanani75]_.
 
     This design is Lemma 3.21 from [Hanani75]_.
 
@@ -151,7 +165,7 @@ def TD_6_12():
 
 def _MOLS_from_string(s,k):
     r"""
-    Returns MOLS from a string
+    Return MOLS from a string
 
     INPUT:
 
@@ -163,7 +177,7 @@ def _MOLS_from_string(s,k):
 
     EXAMPLES::
 
-        sage: _ = designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+        sage: _ = designs.mutually_orthogonal_latin_squares(2,10) # indirect doctest
     """
     from sage.matrix.constructor import Matrix
     matrices = [[] for _ in range(k)]
@@ -174,7 +188,7 @@ def _MOLS_from_string(s,k):
 
 def MOLS_10_2():
     r"""
-    Returns a pair of MOLS of order 10
+    Return a pair of MOLS of order 10
 
     Data obtained from
     `<http://www.cecm.sfu.ca/organics/papers/lam/paper/html/POLS10/POLS10.html>`_
@@ -189,7 +203,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -217,7 +231,7 @@ def MOLS_10_2():
 
 def MOLS_12_5():
     r"""
-    Returns 5 MOLS of order 12
+    Return 5 MOLS of order 12
 
     These MOLS have been found by Brendan McKay.
 
@@ -248,7 +262,7 @@ def MOLS_12_5():
 
 def MOLS_14_4():
     r"""
-    Returns four MOLS of order 14
+    Return four MOLS of order 14
 
     These MOLS were shared by Ian Wanless.
 
@@ -262,7 +276,7 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(14,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
         True
     """
     M = """
@@ -286,7 +300,7 @@ def MOLS_14_4():
 
 def MOLS_15_4():
     r"""
-    Returns 4 MOLS of order 15.
+    Return 4 MOLS of order 15.
 
     These MOLS were shared by Ian Wanless.
 
@@ -300,7 +314,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(15,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,15,existence=True)
         True
     """
     M = """
@@ -325,7 +339,7 @@ def MOLS_15_4():
 
 def MOLS_18_3():
     r"""
-    Returns 3 MOLS of order 18.
+    Return 3 MOLS of order 18.
 
     These MOLS were shared by Ian Wanless.
 
@@ -339,7 +353,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(18,3,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(3,18,existence=True)
         True
     """
     M = """
@@ -369,7 +383,7 @@ def MOLS_18_3():
 #
 # Associates to n the pair (k,f) where f() is a function that returns k MOLS of order n
 #
-# This dictionary is used by designs.mutually_orthogonal_latin_squares(n,k).
+# This dictionary is used by designs.mutually_orthogonal_latin_squares(k,n).
 
 MOLS_constructions = {
     10 : (2, MOLS_10_2),
@@ -381,7 +395,7 @@ MOLS_constructions = {
 
 def OA_7_18():
     r"""
-    Returns an OA(7,18)
+    Return an OA(7,18)
 
     Proved in [JulianAbel13]_.
 
@@ -435,7 +449,7 @@ def OA_7_18():
 
 def OA_6_20():
     r"""
-    Returns an OA(6,20)
+    Return an OA(6,20)
 
     As explained in the Handbook III.3.49 [DesignHandbook]_.
 
@@ -481,7 +495,7 @@ def OA_6_20():
 
 def OA_7_21():
     r"""
-    Returns an OA(7,21)
+    Return an OA(7,21)
 
     As explained in the Handbook III.3.50 [DesignHandbook]_.
 
@@ -523,7 +537,7 @@ def OA_7_21():
 
 def OA_5_22():
     r"""
-    Returns an OA(5,22)
+    Return an OA(5,22)
 
     As explained in the Handbook III.3.51 [DesignHandbook]_.
 
@@ -575,7 +589,7 @@ def OA_5_22():
 
 def OA_9_24():
     r"""
-    Returns an OA(9,24)
+    Return an OA(9,24)
 
     As explained in the Handbook III.3.52 [DesignHandbook]_.
 
@@ -626,7 +640,7 @@ def OA_9_24():
 
 def OA_6_26():
     r"""
-    Returns an OA(6,26)
+    Return an OA(6,26)
 
     As explained in the Handbook III.3.53 [DesignHandbook]_.
 
@@ -674,7 +688,7 @@ def OA_6_26():
 
 def OA_7_28():
     r"""
-    Returns an OA(7,28)
+    Return an OA(7,28)
 
     As explained in the Handbook III.3.54 [DesignHandbook]_.
 
@@ -726,7 +740,7 @@ def OA_7_28():
 
 def OA_6_30():
     r"""
-    Returns an OA(6,30)
+    Return an OA(6,30)
 
     As explained in the Handbook III.3.55 [DesignHandbook]_.
 
@@ -778,7 +792,7 @@ def OA_6_30():
 
 def OA_7_33():
     r"""
-    Returns an OA(7,33)
+    Return an OA(7,33)
 
     As explained in the Handbook III.3.56 [DesignHandbook]_.
 
@@ -829,7 +843,7 @@ def OA_7_33():
 
 def OA_6_34():
     r"""
-    Returns an OA(6,34)
+    Return an OA(6,34)
 
     As explained in the Handbook III.3.57 [DesignHandbook]_.
 
@@ -881,7 +895,7 @@ def OA_6_34():
 
 def OA_7_35():
     r"""
-    Returns an OA(7,35)
+    Return an OA(7,35)
 
     As explained in the Handbook III.3.58 [DesignHandbook]_.
 
@@ -919,7 +933,7 @@ def OA_7_35():
 
 def OA_10_36():
     r"""
-    Returns an OA(10,36)
+    Return an OA(10,36)
 
     As explained in the Handbook III.3.59 [DesignHandbook]_.
 
@@ -977,7 +991,7 @@ def OA_10_36():
 
 def OA_6_38():
     r"""
-    Returns an OA(6,38)
+    Return an OA(6,38)
 
     As explained in the Handbook III.3.60 [DesignHandbook]_.
 
@@ -1026,7 +1040,7 @@ def OA_6_38():
 
 def OA_7_39():
     r"""
-    Returns an OA(7,39)
+    Return an OA(7,39)
 
     As explained in the Handbook III.3.61 [DesignHandbook]_.
 
@@ -1077,7 +1091,7 @@ def OA_7_39():
 
 def OA_9_40():
     r"""
-    Returns an OA(9,40)
+    Return an OA(9,40)
 
     As explained in the Handbook III.3.62 [DesignHandbook]_.
 
@@ -1151,7 +1165,7 @@ def OA_9_40():
 
 def OA_7_42():
     r"""
-    Returns an OA(7,42)
+    Return an OA(7,42)
 
     As explained in the Handbook III.3.63 [DesignHandbook]_.
 
@@ -1196,7 +1210,7 @@ def OA_7_42():
 
 def OA_7_44():
     r"""
-    Returns an OA(7,44)
+    Return an OA(7,44)
 
     As explained in the Handbook III.3.64 [DesignHandbook]_.
 
@@ -1262,7 +1276,7 @@ def OA_7_44():
 
 def OA_8_45():
     r"""
-    Returns an OA(8,45)
+    Return an OA(8,45)
 
     As explained in the Handbook III.3.65 [DesignHandbook]_.
 
@@ -1324,7 +1338,7 @@ def OA_8_45():
 
 def OA_6_46():
     r"""
-    Returns an OA(6,46)
+    Return an OA(6,46)
 
     As explained in the Handbook III.3.66 [DesignHandbook]_.
 
@@ -1350,7 +1364,7 @@ def OA_6_46():
 
 def OA_10_48():
     r"""
-    Returns an OA(10,48)
+    Return an OA(10,48)
 
     As explained in the Handbook III.3.67 [DesignHandbook]_.
 
@@ -1407,7 +1421,7 @@ def OA_10_48():
 
 def OA_8_50():
     r"""
-    Returns an OA(8,50)
+    Return an OA(8,50)
 
     As explained in the Handbook III.3.68 [DesignHandbook]_.
 
@@ -1433,7 +1447,7 @@ def OA_8_50():
 
 def OA_7_51():
     r"""
-    Returns an OA(7,51)
+    Return an OA(7,51)
 
     As explained in the Handbook III.3.69 [DesignHandbook]_.
 
@@ -1479,7 +1493,7 @@ def OA_7_51():
 
 def OA_7_52():
     r"""
-    Returns an OA(7,52)
+    Return an OA(7,52)
 
     As explained in the Handbook III.3.70 [DesignHandbook]_.
 
@@ -1560,7 +1574,7 @@ def OA_7_52():
 
 def OA_7_54():
     r"""
-    Returns an OA(7,54)
+    Return an OA(7,54)
 
     As explained in the Handbook III.3.71 [DesignHandbook]_.
 
@@ -1606,7 +1620,7 @@ def OA_7_54():
 
 def OA_8_55():
     r"""
-    Returns an OA(8,55)
+    Return an OA(8,55)
 
     As explained in the Handbook III.3.72 [DesignHandbook]_.
 
@@ -1652,7 +1666,7 @@ def OA_8_55():
 
 def OA_9_56():
     r"""
-    Returns an OA(9,56)
+    Return an OA(9,56)
 
     As explained in the Handbook III.3.73 [DesignHandbook]_.
 
@@ -1706,7 +1720,7 @@ def OA_9_56():
 
 def OA_9_57():
     r"""
-    Returns an OA(9,57)
+    Return an OA(9,57)
 
     Given by Julian R. Abel.
 
@@ -1737,7 +1751,7 @@ def OA_9_57():
 
 def OA_7_60():
     r"""
-    Returns an OA(7,60)
+    Return an OA(7,60)
 
     As explained in [JulianAbel13]_.
 
@@ -1793,7 +1807,7 @@ def OA_7_60():
 
 def OA_7_62():
     r"""
-    Returns an OA(7,62)
+    Return an OA(7,62)
 
     As explained in the Handbook III.3.74 [DesignHandbook]_.
 
@@ -1839,7 +1853,7 @@ def OA_7_62():
 
 def OA_9_65():
     r"""
-    Returns an OA(9,65)
+    Return an OA(9,65)
 
     Construction shared by Julian R. Abel
 
@@ -1874,7 +1888,7 @@ def OA_9_65():
 
 def OA_7_66():
     r"""
-    Returns an OA(7,66)
+    Return an OA(7,66)
 
     Construction shared by Julian R. Abel.
 
@@ -1914,7 +1928,7 @@ def OA_7_66():
 
 def OA_7_68():
     r"""
-    Returns an OA(7,68)
+    Return an OA(7,68)
 
     Construction shared by Julian R. Abel.
 
@@ -1954,7 +1968,7 @@ def OA_7_68():
 
 def OA_8_69():
     r"""
-    Returns an OA(8,69)
+    Return an OA(8,69)
 
     Construction shared by Julian R. Abel.
 
@@ -2027,7 +2041,7 @@ def OA_8_69():
 
 def OA_7_74():
     r"""
-    Returns an OA(7,74)
+    Return an OA(7,74)
 
     Construction shared by Julian R. Abel.
 
@@ -2067,7 +2081,7 @@ def OA_7_74():
 
 def OA_9_75():
     r"""
-    Returns an OA(9,75)
+    Return an OA(9,75)
 
     As explained in the Handbook III.3.75 [DesignHandbook]_.
 
@@ -2122,7 +2136,7 @@ def OA_9_75():
 
 def OA_8_76():
     r"""
-    Returns an OA(8,76)
+    Return an OA(8,76)
 
     Construction shared by Julian R. Abel.
 
@@ -2189,7 +2203,7 @@ def OA_8_76():
 
 def OA_11_80():
     r"""
-    Returns an OA(11,80)
+    Return an OA(11,80)
 
     As explained in the Handbook III.3.76 [DesignHandbook]_.
 
@@ -2258,7 +2272,7 @@ def OA_11_80():
 
 def OA_10_82():
     r"""
-    Returns an OA(10,82)
+    Return an OA(10,82)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2285,7 +2299,7 @@ def OA_10_82():
 
 def OA_10_100():
     r"""
-    Returns an OA(10,100)
+    Return an OA(10,100)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2310,9 +2324,143 @@ def OA_10_100():
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
 
+def OA_9_120():
+    r"""
+    Return an OA(9,120)
+
+    Construction shared by Julian R. Abel:
+
+        From a resolvable `(120,8,1)-BIBD`, one can obtain 7 `MOLS(120)` or a
+        resolvable `TD(8,120)` by forming a resolvable `TD(8,8) - 8.TD(8,1)` on
+        `I_8 \times B` for each block `B` in the BIBD.  This gives a `TD(8,120)
+        - 120 TD(8,1)` (which is resolvable as the BIBD is resolvable).
+
+    .. SEEALSO::
+
+        :func:`RBIBD_120_8_1`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_120
+        sage: OA = OA_9_120()
+        sage: print is_orthogonal_array(OA,9,120,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,120,existence=True)
+        True
+    """
+    from incidence_structures import IncidenceStructure
+    RBIBD_120 = RBIBD_120_8_1()
+    equiv = [RBIBD_120[i*15:(i+1)*15] for i in range(17)]
+
+    OA8 = orthogonal_array(9,8)
+    assert all( (len(set(B[:-1])) == 1) == (B[-1] == 0) for B in OA8)
+    OA = []
+
+    for i,classs in enumerate(equiv):
+        for S in classs:
+            for B in OA8:
+                if B[-1] != 0:
+                    OA.append([S[x] for x in B[:-1]]+[i*7+B[-1]])
+
+    for i in range(120):
+        OA.append([i]*8+[0])
+
+    return OA
+
+def OA_9_135():
+    r"""
+    Return an OA(9,135)
+
+    Construction shared by Julian R. Abel:
+
+        This design can be built by Wilson's method (`135 = 8.16 + 7`) applied
+        to an Orthogonal Array `OA(9+7,16)` with 7 groups truncated to size 1 in
+        such a way that a block contain 0, 1 or 3 points of the truncated
+        groups.
+
+        This is possible, because `PG(2,2)` (the projective plane over `GF(2)`)
+        is a subdesign in `PG(2,16)` (the projective plane over `GF(16)`); in a
+        cyclic `PG(2,16)` or `BIBD(273,17,1)` the points `\equiv 0
+        \pmod{39}` form such a subdesign (note that `273=16^2 + 16 +1` and
+        `273 = 39 \times 7` and `7 = 2^2 + 2 + 1`).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_135
+        sage: OA = OA_9_135()
+        sage: print is_orthogonal_array(OA,9,135,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,135,existence=True)
+        True
+
+    As this orthogonal array requires a `(273,17,1)` cyclic difference set, we check that
+    it is available::
+
+        sage: G,D = designs.difference_family(273,17,1)
+        sage: G
+        Ring of integers modulo 273
+    """
+    from bibd import BIBD_from_difference_family
+    from difference_family import singer_difference_set
+    G,B = singer_difference_set(16,2)
+    PG16 = BIBD_from_difference_family(G,B)
+
+    n = 273
+
+    # We consider a PG(2,2) (or a (7,3,1)-design, or a Fano plane) contained in
+    # PG16: it is a set of 7 points such that any block of PG16 intersect on
+    # 0,1, or 3 points. The set of points congruent to 0 mod 39 does the job!
+    #
+    # ... check that it works
+    assert all(sum((x%39 == 0) for x in B) in [0,1,3] for B in PG16)
+
+    # We now build an OA(17,16) from our PG16, in such a way that all points of
+    # our PG(2,2) are in different columns. For this, we need to find a point p
+    # that is not located on any of the lines defined by the points of the
+    # PG(2,2).
+
+    lines = [B for B in PG16 if sum((x%39 == 0) for x in B) == 3]
+    p = set(range(237)).difference(*lines).pop()
+
+    # We can now build a TD from our PG16 by removing p.
+    for B in PG16:
+        B.sort(key=lambda x:int(x%39 != 0))
+    PG16.sort(key=lambda B:sum((x%39 == 0) for x in B))
+
+    r = {}
+    for B in PG16:
+        if p in B:
+            for x in B:
+                if x != p:
+                    r[x] = len(r)
+    r[p] = n-1
+
+    # The columns containing points from PG2 will be the last 7
+    assert all(r[x*39] >= (n-1)-16*7 for x in range(7))
+    # Those points are the first of each column
+    assert all(r[x*39]%16 == 0 for x in range(7))
+
+    PG = [sorted([r[x] for x in B]) for B in PG16]
+    OA = [[x%16 for x in B] for B in PG if n-1 not in B]
+
+    # We truncate the last 7 columns to size 1. We also drop the first column
+    truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
+
+    # And call Wilson's construction
+    from orthogonal_arrays import wilson_construction
+    return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
+
 def OA_12_144():
     r"""
-    Returns an OA(12,144)
+    Return an OA(12,144)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2339,7 +2487,7 @@ def OA_12_144():
 
 def OA_10_154():
     r"""
-    Returns an OA(10,154)
+    Return an OA(10,154)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2366,7 +2514,7 @@ def OA_10_154():
 
 def OA_12_210():
     r"""
-    Returns an OA(12,210)
+    Return an OA(12,210)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2393,7 +2541,7 @@ def OA_12_210():
 
 def OA_18_273():
     r"""
-    Returns an OA(18,273)
+    Return an OA(18,273)
 
     Given by Julian R. Abel.
 
@@ -2424,7 +2572,7 @@ def OA_18_273():
 
 def OA_12_276():
     r"""
-    Returns an OA(12,276)
+    Return an OA(12,276)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2451,7 +2599,7 @@ def OA_12_276():
 
 def OA_12_298():
     r"""
-    Returns an OA(12,298)
+    Return an OA(12,298)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2478,7 +2626,7 @@ def OA_12_298():
 
 def OA_12_342():
     r"""
-    Returns an OA(12,342)
+    Return an OA(12,342)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2505,7 +2653,7 @@ def OA_12_342():
 
 def OA_12_474():
     r"""
-    Returns an OA(12,474)
+    Return an OA(12,474)
 
     Given by Julian R. Abel, using a `V(m,t)` from the Handbook
     [DesignHandbook]_.
@@ -2532,7 +2680,7 @@ def OA_12_474():
 
 def OA_33_993():
     r"""
-    Returns an OA(33,993)
+    Return an OA(33,993)
 
     Given by Julian R. Abel.
 
@@ -2609,6 +2757,8 @@ OA_constructions = {
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
+    120 : (9  , OA_9_120),
+    135 : (9  , OA_9_135),
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
     210 : (12 , OA_12_210),
@@ -2849,7 +2999,7 @@ def CDF_221_5_1():
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     return Zmod(221), D
 
-# Index of the (right now cyclic) difference families constructions
+# Index of the (right now cyclic or Abelian) difference families constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
 # (n,k,lambda)-difference family.
@@ -2866,6 +3016,95 @@ DF_constructions = {
     (141,5,1): CDF_141_5_1,
     (161,5,1): CDF_161_5_1,
     (201,5,1): CDF_201_5_1,
-    (221,5,1): CDF_221_5_1
+    (221,5,1): CDF_221_5_1,
 }
 
+def RBIBD_120_8_1():
+    r"""
+    Return a resolvable `BIBD(120,8,1)`
+
+    This function output a list ``L`` of `17\times 15` blocks such that
+    ``L[i*15:(i+1)*15]`` is a partition of `120`.
+
+    Construction shared by Julian R. Abel:
+
+        Seiden's method: Start with a cyclic `(273,17,1)-BIBD` and let `B` be an
+        hyperoval, i.e. a set which intersects any block of the BIBD in either 0
+        (153 blocks) or 2 points (120 blocks). Dualise this design and take
+        these last 120 blocks as points in the design; blocks in the design will
+        correspond to the `273-18=255` non-hyperoval points.
+
+        The design is also resolvable.  In the original `PG(2,16)` take any
+        point `T` in the hyperoval and consider a block `B1` containing `T`.
+        The `15` points in `B1` that do not belong to the hyperoval correspond
+        to `15` blocks forming a parallel class in the dualised design. The
+        other `16` parallel classes come in a similar way, by using point `T`
+        and the other `16` blocks containing `T`.
+
+    .. SEEALSO::
+
+        :func:`OA_9_120`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import RBIBD_120_8_1
+        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: RBIBD = RBIBD_120_8_1()
+        sage: _ = _check_pbd(RBIBD,120,[8])
+
+    It is indeed resolvable, and the parallel classes are given by 17 slices of
+    consecutive 15 blocks::
+
+        sage: for i in range(17):
+        ....:     assert len(set(sum(RBIBD[i*15:(i+1)*15],[]))) == 120
+
+    The BIBD is available from the constructor::
+
+        sage: _ = designs.balanced_incomplete_block_design(120,8)
+    """
+    from incidence_structures import IncidenceStructure
+    n=273
+
+    # Base block of a cyclic BIBD(273,16,1)
+    B = [1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256]
+    BIBD = [[(x+c)%n for x in B] for c in range(n)]
+
+    # A (precomputed) set that every block of the BIBD intersects on 0 or 2 points
+    hyperoval = [128, 192, 194, 4, 262, 140, 175, 48, 81, 180, 245, 271, 119, 212, 249, 189, 62, 255]
+    #for B in BIBD:
+    #    len_trace = sum(x in hyperoval for x in B)
+    #    assert len_trace == 0 or len_trace == 2
+
+    # Equivalence classes
+    p = hyperoval[0]
+    equiv = []
+    new_BIBD = []
+    for B in BIBD:
+        if any(x in hyperoval for x in B):
+            if p in B:
+                equiv.append([x for x in B if x not in hyperoval])
+        else:
+            new_BIBD.append([x for x in B])
+
+    BIBD = new_BIBD
+
+    r = {v:i for i,v in enumerate(x for x in range(n) if x not in hyperoval)}
+    BIBD  = [[r[x] for x in B] for B in BIBD ]
+    equiv = [[r[x] for x in B] for B in equiv]
+
+    BIBD = IncidenceStructure(range(255),BIBD)
+    M = BIBD.incidence_matrix()
+
+    equiv = [[M.nonzero_positions_in_row(x) for x in S] for S in equiv]
+    return [B for S in equiv for B in S]
+
+# Index of the BIBD constructions
+#
+# Associates to triple (v,k,lambda) a function that return a
+# (n,k,lambda)-BIBD family.
+#
+# This dictionary is used by designs.BalancedIncompleteBlockDesign
+
+BIBD_constructions = {
+    (120,8,1): RBIBD_120_8_1,
+}
