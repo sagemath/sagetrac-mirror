@@ -1174,7 +1174,7 @@ def thwart_lemma_4_1(k,n,m):
     elif q%3 == 1:
         t = K.multiplicative_generator()**((q-1)//3)
     else:
-        raise ValueError("q(={}) must be congruent to 0 or 1 mod 3")
+        raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
 
     # The projective plane is labelled with integer coordinates. This code
     # relabels to integers the following points (given by homogeneous
