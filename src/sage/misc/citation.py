@@ -110,6 +110,7 @@ def citations(record = None):
         sage: I = R.ideal(x^2+y^2, z^2+y)
         sage: with citations():
         ...       I.primary_decomposition()
+        [Ideal (z^2 + y, x^2 + y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
         The computation used the following components.
         Access them as a list by calling latest_citations().
             Macaulay2, Singular
