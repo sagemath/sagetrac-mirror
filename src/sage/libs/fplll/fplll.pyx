@@ -121,7 +121,7 @@ cdef class FP_LLL:
         - ``A`` -- a matrix over the integers
 
         EXAMPLE::
-
+ 
             sage: from sage.libs.fplll.fplll import FP_LLL
             sage: A = random_matrix(ZZ,10,10)
             sage: FP_LLL(A)
@@ -147,11 +147,16 @@ cdef class FP_LLL:
             raise ValueError('fpLLL cannot handle matrices with zero rows.')
 
         self._lattice = new ZZ_mat[mpz_t](A._nrows,A._ncols)
-
-        for i in range(A._nrows):
-            for j in range(A._ncols):
-                t.set(A._matrix[i][j])
-                self._lattice[0][i][j] = t
+        cdef mpz_t tmp
+        cdef Z_NR *t
+        for i from 0 <= i < A._nrows:
+            for j from 0 <= j < A._ncols:
+                t = Z_NR_new()
+                A.get_unsafe_mpz(i,j,tmp)
+                t.set_mpz_t(tmp)
+                self._lattice.Set(i,j,t[0])
+                Z_NR_delete(t)
+        mpz_clear(tmp)
 
     def __dealloc__(self):
         """
@@ -1456,12 +1461,10 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
     - ``A`` -- ZZ_mat
     """
     cdef int i,j
-    cdef mpz_t *t
 
     cdef Matrix_integer_dense B = <Matrix_integer_dense>matrix(ZZ, A.getRows(), A.getCols())
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            t = &B._matrix[i][j]
-            mpz_set(t[0], A[0][i][j].getData())
+            fmpz_set_mpz(fmpz_mat_entry(B._matrix,i,j),A.Get(i,j).GetData())
     return B
