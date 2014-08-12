@@ -21,6 +21,7 @@ from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from functools import reduce
 GaussianField = I.pyobject().parent()
 
 class FakeExpression(object):
@@ -70,7 +71,7 @@ class FakeExpression(object):
             ...
             TypeError: self must be a numeric expression
         """
-        raise TypeError, 'self must be a numeric expression'
+        raise TypeError('self must be a numeric expression')
 
     def operands(self):
         """
@@ -216,6 +217,8 @@ class Converter(object):
             return self.relation(ex, operator)
         elif isinstance(operator, FDerivativeOperator):
             return self.derivative(ex, operator)
+        elif operator == tuple:
+            return self.tuple(ex)
         else:
             return self.composition(ex, operator)
 
@@ -295,7 +298,7 @@ class Converter(object):
             ...
             NotImplementedError: pyobject
         """
-        raise NotImplementedError, "pyobject"
+        raise NotImplementedError("pyobject")
 
     def symbol(self, ex):
         """
@@ -311,7 +314,7 @@ class Converter(object):
             ...
             NotImplementedError: symbol
         """
-        raise NotImplementedError, "symbol"
+        raise NotImplementedError("symbol")
 
     def relation(self, ex, operator):
         """
@@ -331,7 +334,7 @@ class Converter(object):
             ...
             NotImplementedError: relation
         """
-        raise NotImplementedError, "relation"
+        raise NotImplementedError("relation")
 
     def derivative(self, ex, operator):
         """
@@ -348,7 +351,7 @@ class Converter(object):
             ...
             NotImplementedError: derivative
         """
-        raise NotImplementedError, "derivative"
+        raise NotImplementedError("derivative")
 
     def arithmetic(self, ex, operator):
         """
@@ -366,7 +369,7 @@ class Converter(object):
             ...
             NotImplementedError: arithmetic
         """
-        raise NotImplementedError, "arithmetic"
+        raise NotImplementedError("arithmetic")
 
     def composition(self, ex, operator):
         """
@@ -383,7 +386,7 @@ class Converter(object):
             ...
             NotImplementedError: composition
         """
-        raise NotImplementedError, "composition"
+        raise NotImplementedError("composition")
 
 class InterfaceInit(Converter):
     def __init__(self, interface):
@@ -398,7 +401,7 @@ class InterfaceInit(Converter):
             sage: m(sin(a))
             'sin((%pi)+(2))'
             sage: m(exp(x^2) + pi + 2)
-            '(%pi)+(exp((x)^(2)))+(2)'
+            '(%pi)+(exp((_SAGE_VAR_x)^(2)))+(2)'
 
         """
         self.name_init = "_%s_init_"%interface.name()
@@ -412,12 +415,18 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.symbol(x)
-            'x'
+            '_SAGE_VAR_x'
             sage: f(x) = x
             sage: m.symbol(f)
+            '_SAGE_VAR_x'
+            sage: ii = InterfaceInit(gp)
+            sage: ii.symbol(x)
             'x'
         """
-        return repr(SR(ex))
+        if self.interface.name()=='maxima':
+            return '_SAGE_VAR_'+repr(SR(ex))
+        else:
+            return repr(SR(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -452,12 +461,26 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.relation(x==3, operator.eq)
-            'x = 3'
+            '_SAGE_VAR_x = 3'
             sage: m.relation(x==3, operator.lt)
-            'x < 3'
+            '_SAGE_VAR_x < 3'
         """
         return "%s %s %s"%(self(ex.lhs()), self.relation_symbols[operator],
                            self(ex.rhs()))
+
+    def tuple(self, ex):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import InterfaceInit
+            sage: m = InterfaceInit(maxima)
+            sage: t = SR._force_pyobject((3, 4, e^x))
+            sage: m.tuple(t)
+            '[3,4,exp(_SAGE_VAR_x)]'
+        """
+        x = map(self, ex.operands())
+        X = ','.join(x)
+        return str(self.interface._left_list_delim()) + X + str(self.interface._right_list_delim())
 
     def derivative(self, ex, operator):
         """
@@ -469,10 +492,10 @@ class InterfaceInit(Converter):
             sage: a = f(x).diff(x); a
             D[0](f)(x)
             sage: print m.derivative(a, a.operator())
-            diff('f(x), x, 1)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
             sage: print m.derivative(b, b.operator())
-            diff('f(x), x, 2)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a
         variable, but the result is an "at" expression using temporary
@@ -503,19 +526,21 @@ class InterfaceInit(Converter):
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
             subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
-            return "at(diff('%s(%s), %s), [%s])"%(f.name(),
+            outstr = "at(diff('%s(%s), %s), [%s])"%(f.name(),
                 ", ".join(map(repr,temp_args)),
                 ", ".join(params),
-                ", ".join(subs))
-
-        f = operator.function()
-        params = operator.parameter_set()
-        params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
-
-        return "diff('%s(%s), %s)"%(f.name(),
-                                    ", ".join(map(repr, args)),
-                                    ", ".join(params))
-
+                ", ".join(subs))            
+        else:
+            f = operator.function()
+            params = operator.parameter_set()
+            def prep_sage(arg):
+                return '_SAGE_VAR_' + repr(arg)
+            params = ["%s, %s"%(prep_sage(args[i]), params.count(i)) for i in set(params)]
+            outstr = "diff('%s(%s), %s)"%(f.name(),
+                                        ", ".join(map(prep_sage, args)),
+                                        ", ".join(params))
+        return outstr
+    
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::
@@ -524,7 +549,7 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.arithmetic(x+2, operator.add)
-            '(x)+(2)'
+            '(_SAGE_VAR_x)+(2)'
         """
         args = ["(%s)"%self(op) for op in ex.operands()]
         return arithmetic_operators[operator].join(args)
@@ -536,9 +561,9 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.composition(sin(x), sin)
-            'sin(x)'
+            'sin(_SAGE_VAR_x)'
             sage: m.composition(ceil(x), ceil)
-            'ceiling(x)'
+            'ceiling(_SAGE_VAR_x)'
 
             sage: m = InterfaceInit(mathematica)
             sage: m.composition(sin(x), sin)
@@ -748,7 +773,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError, "unable to convert %s to %s"%(ex, self.field)
+        raise TypeError("unable to convert %s to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -780,7 +805,7 @@ class AlgebraicConverter(Converter):
             rat_arg = (operand.imag()/(2*ex.parent().pi()))._rational_()
             if rat_arg == 0:
                 # here we will either try and simplify, or return
-                raise ValueError, "Unable to represent as an algebraic number."
+                raise ValueError("Unable to represent as an algebraic number.")
             real = operand.real()
             if real:
                 mag = exp(operand.real())._algebraic_(QQbar)
@@ -811,7 +836,7 @@ class AlgebraicConverter(Converter):
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
             if cmp(res, ex) == 0:
-                raise TypeError, "unable to convert %s to %s"%(ex, self.field)
+                raise TypeError("unable to convert %s to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -893,7 +918,7 @@ class PolynomialConverter(Converter):
 
         """
         if not (ring is None or base_ring is None):
-            raise TypeError, "either base_ring or ring must be specified, but not both"
+            raise TypeError("either base_ring or ring must be specified, but not both")
         self.ex = ex
 
         if ring is not None:
@@ -901,7 +926,7 @@ class PolynomialConverter(Converter):
             self.varnames = ring.variable_names_recursive()
             for v in ex.variables():
                 if repr(v) not in self.varnames and v not in base_ring:
-                    raise TypeError, "%s is not a variable of %s" %(v, ring)
+                    raise TypeError("%s is not a variable of %s" %(v, ring))
             self.ring = ring
             self.base_ring = base_ring
         elif base_ring is not None:
@@ -913,7 +938,7 @@ class PolynomialConverter(Converter):
             self.ring = PolynomialRing(self.base_ring, names=vars)
             self.varnames = self.ring.variable_names()
         else:
-            raise TypeError, "either a ring or base ring must be specified"
+            raise TypeError("either a ring or base ring must be specified")
 
     def symbol(self, ex):
         """
@@ -981,7 +1006,7 @@ class PolynomialConverter(Converter):
         if op == operator.eq:
             return self(ex.lhs()) - self(ex.rhs())
         else:
-            raise ValueError, "Unable to represent as a polynomial"
+            raise ValueError("Unable to represent as a polynomial")
 
     def arithmetic(self, ex, operator):
         """
@@ -1191,7 +1216,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError, "free variable: %s" % repr(ex)
+            raise ValueError("free variable: %s" % repr(ex))
 
     def arithmetic(self, ex, operator):
         """
@@ -1418,6 +1443,18 @@ class FastCallableConverter(Converter):
         """
         return self.etb.call(function, *ex.operands())
 
+    def tuple(self, ex):
+        r"""
+        Given a symbolic tuple, return its elements as a Python list.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: SR._force_pyobject((2, 3, x^2))._fast_callable_(etb)
+            [2, 3, x^2]
+        """
+        return ex.operands()
 
 def fast_callable(ex, etb):
     """

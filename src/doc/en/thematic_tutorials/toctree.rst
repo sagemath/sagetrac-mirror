@@ -23,6 +23,7 @@ Thematic tutorial document tree
    2012-10-29-CIMPA-Bobo/dynamique.rst
    2012-10-29-CIMPA-Bobo/index.rst
    2012-10-29-CIMPA-Bobo/introduction.rst
+   algebraic_combinatorics
    agregation-option-calcul-formel/algebre_lineaire.rst
    agregation-option-calcul-formel/algebre_lineaire_rapide.rst
    agregation-option-calcul-formel/bibliotheque_tsetlin.rst
@@ -59,8 +60,8 @@ Thematic tutorial document tree
    linear_programming
    numtheory_rsa
    sandpile
-   talks
    toctree
+   talks
    tutorial-comprehensions
    tutorial-editing-sage-sources
    tutorial-first-exercises

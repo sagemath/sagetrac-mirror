@@ -8,6 +8,7 @@ Modules
 
    sage/modules/module
    sage/modules/free_module
+   sage/modules/free_module_integer
    sage/modules/free_module_element
 
    sage/modules/complex_double_vector
@@ -25,5 +26,7 @@ Modules
    sage/modules/fg_pid/fgp_module
    sage/modules/fg_pid/fgp_element
    sage/modules/fg_pid/fgp_morphism
+
+   sage/modules/diamond_cutting
 
 .. include:: ../footer.txt

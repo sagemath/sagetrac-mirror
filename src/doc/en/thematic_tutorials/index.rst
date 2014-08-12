@@ -69,10 +69,12 @@ Combinatorics
 =============
 
 * :ref:`sage.combinat.tutorial`
+* :ref:`algebraic_combinatorics`
 
 Algebraic Combinatorics
 -----------------------
 
+* :ref:`algebraic_combinatorics`
 * :class:`Tutorial: Symmetric Functions <SymmetricFunctions>`
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`
