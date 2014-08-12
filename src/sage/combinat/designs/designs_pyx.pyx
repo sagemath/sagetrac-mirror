@@ -243,13 +243,8 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     # group_to_int[g_i-g_j]
     from difference_family import group_law
     zero, op, inv = group_law(G)
-    cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int))
-    if x_minus_y == NULL:
-        raise MemoryError
-    for i in range(G_card):
-        x_minus_y[i] = <int *> sage_malloc(G_card*sizeof(int))
-        if x_minus_y[i] == NULL:
-            raise MemoryError
+
+    cdef list x_minus_y = [[None]*G_card for _ in range(G_card)]
 
     for j,Gj in enumerate(int_to_group):
         minus_Gj = inv(Gj)
@@ -280,16 +275,10 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
                 if G_seen[ii] != L:
                     if verbose:
                         print "Rows {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
-                    for i in range(G_card):
-                        sage_free(x_minus_y[i])
-                    sage_free(x_minus_y)
                     sage_free(G_seen)
                     sage_free(M_c)
                     return False
 
-    for i in range(G_card):
-        sage_free(x_minus_y[i])
-    sage_free(x_minus_y)
     sage_free(G_seen)
     sage_free(M_c)
     return True
