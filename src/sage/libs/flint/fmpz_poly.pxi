@@ -118,3 +118,5 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_compose(fmpz_poly_t output, fmpz_poly_t f, fmpz_poly_t g)
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)
+
+    void fmpz_poly_get_coeff_fmpz(fmpz_t x, const fmpz_poly_t poly, long n)
