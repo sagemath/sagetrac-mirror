@@ -15,8 +15,6 @@ same code was provided without the citations statement.
     sage: with citations():
     ...       var('y')
     ...       integrate(y^2, y, 0, 1)
-    y
-    1/3
     The computation used the following components.
     Access them as a list by calling latest_citations().
         ginac, Maxima
@@ -44,7 +42,6 @@ which will be extended by citation items for invoked components.
     [GAP, GMP, MPFI, MPFR, NTL]
     sage: with citations(record):
     ...       integrate(y^2, y, 0, 1)
-    1/3
     sage: record
     [GAP, GMP, MPFI, MPFR, NTL, ginac, Maxima]
 
@@ -110,7 +107,6 @@ def citations(record = None):
         sage: I = R.ideal(x^2+y^2, z^2+y)
         sage: with citations():
         ...       I.primary_decomposition()
-        [Ideal (z^2 + y, x^2 + y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
         The computation used the following components.
         Access them as a list by calling latest_citations().
             Macaulay2, Singular
@@ -134,39 +130,30 @@ def citations(record = None):
     gprofiler = gProfiler.Profiler()
 
     cprofiler.enable()
-    try:
-        gprofiler.start()
-    except ImportError:
-        gprofiler = None
 
-    yield
+    ## to prevent pperf to raise SIGTTOU, we redirect stdout and stderr
+    with redirect_std_to_null():
+        with redirect_std_to_null(True):
+            try:
+                gprofiler.start()
+            except ImportError:
+                gprofiler = None
 
-    if gprofiler:
-        fd = sys.stderr.fileno()
+            yield
 
-        with os.fdopen(os.dup(fd), 'w') as old_stderr:
-            with file(os.devnull, 'w') as devnull:
-                sys.stderr.close()
-                os.dup2(devnull.fileno(), fd)
-                sys.stderr = os.fdopen(fd, 'w')
-                try:
-                    ## Suppress warnings issued by the profiler
-                    ## because of too low frequence
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore")
-                        gprofiler.stop()
-                        gprofiler_file = tmp_filename() + ".txt"
-                        gprofiler.save(gprofiler_file, verbose=False)
-                finally:
-                    sys.stderr.close()
-                    os.dup2(old_stderr.fileno(), fd)
-                    sys.stderr = os.fdopen(fd, 'w')
-        
-        with file(gprofiler_file) as gprofiler_output:
-            gprofiler_calls = _gperftools_top_to_functions(gprofiler_output.read())
-    else:
-        gprofiler_calls = []
+            if gprofiler:
+                ## Suppress warnings issued by the profiler
+                ## because of too low frequence
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    gprofiler.stop()
+                    gprofiler_file = tmp_filename() + ".txt"
+                    gprofiler.save(gprofiler_file, verbose=False)
 
+                with file(gprofiler_file) as gprofiler_output:
+                    gprofiler_calls = _gperftools_top_to_functions(gprofiler_output.read())
+            else:
+                gprofiler_calls = []
 
     if old_cpuprofile_frequency:
         os.environ["CPUPROFILE_FREQUENCY"] = old_cpuprofile_frequency
@@ -346,3 +333,44 @@ def _gperftools_top_to_functions(top):
             for l in lines
             if l.startswith("__pyx")]
 
+@contextmanager
+def redirect_std_to_null(redirect_stderr = False):
+    r"""
+    Provisional helper function to redirect ``sys.stdout`` or ``sys.stderr``
+    to ``/dev/null``.
+
+    INPUT:
+
+    - ``redirect_stderr`` -- Bool, default: ``False``, in which case
+                             ``stdout`` will be redirected.
+
+    EXAMPLES::
+
+        sage: from sage.misc.citation import redirect_std_to_null
+        sage: import sys
+        sage: with redirect_std_to_null():
+        ...       print "not printed"
+    """
+    pipe = sys.stderr if redirect_stderr else sys.stdout
+    fd = pipe.fileno()
+
+    with os.fdopen(os.dup(fd), 'w') as old_pipe:
+        with file(os.devnull, 'w') as devnull:
+            pipe.close()
+            os.dup2(devnull.fileno(), fd)
+            if redirect_stderr:
+                sys.stderr = os.fdopen(fd, 'w')
+                pipe = sys.stderr
+            else:
+                sys.stdout = os.fdopen(fd, 'w')
+                pipe = sys.stdout
+
+            try:
+                yield
+            finally:
+                pipe.close()
+                os.dup2(old_pipe.fileno(), fd)
+                if redirect_stderr:
+                    sys.stderr = os.fdopen(fd, 'w')
+                else:
+                    sys.stdout = os.fdopen(fd, 'w')
