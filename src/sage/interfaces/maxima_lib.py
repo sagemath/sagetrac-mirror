@@ -1456,7 +1456,7 @@ def max_harmonic_to_sage(expr):
         sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
         sage: c=maxima_lib(harmonic_number(x,2))
         sage: c.ecl()
-        <ECL: (($GEN_HARMONIC_NUMBER SIMP) 2 $X)>
+        <ECL: (($GEN_HARMONIC_NUMBER SIMP) 2 |$_SAGE_VAR_x|)>
         sage: max_to_sr(c.ecl())
         harmonic_number(x, 2)
     """
