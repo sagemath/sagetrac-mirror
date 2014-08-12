@@ -46,17 +46,114 @@ def group_law(G):
     else:
         raise ValueError("%s does not seem to be a group"%G)
 
-def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
+def block_stabilizer(G, B):
     r"""
-    Check wether ``D`` forms a difference family in ``G``.
+    Compute the stabilizer of the block ``B`` in the group additive group ``G``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import block_stabilizer
+
+        sage: Z8 = Zmod(8)
+        sage: block_stabilizer(Z8, [Z8(0),Z8(2),Z8(4),Z8(6)])
+        [0, 2, 4, 6]
+        sage: block_stabilizer(Z8, [Z8(0),Z8(2)])
+        [0]
+
+        sage: C = cartesian_product([Zmod(4),Zmod(3)])
+        sage: block_stabilizer(C, [C((0,0)),C((2,0)),C((0,1)),C((2,1))])
+        [(0, 0), (2, 0)]
+
+        sage: b = map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44])
+        sage: block_stabilizer(Zmod(45),b)
+        [0]
+    """
+    b0 = -B[0]
+    S = []
+    for b in B:
+        # fun: if we replace +(-b) with -b it completely fails!!
+        if all(b + b0 + c in B for c in B):
+            S.append(b+b0)
+    return S
+
+def orbit_representatives(G,B):
+    r"""
+    Return the orbits of the additive group ``G`` that intersects the set ``B``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import (
+        ....:    block_stabilizer, orbit_representatives)
+
+        sage: Z8 = Zmod(8)
+        sage: b = map(Z8, [0,2,4,6])
+        sage: S = block_stabilizer(Z8,b)
+        sage: orbit_representatives(S, b)
+        [0]
+
+        sage: b = map(Z8, [0,1,4,5])
+        sage: S = block_stabilizer(Z8,b)
+        sage: orbit_representatives(S, b)
+        [0, 1]
+
+        sage: C = cartesian_product([Zmod(4),Zmod(3)])
+        sage: b = [C((0,0)),C((2,0)),C((0,1)),C((2,1))]
+        sage: S = block_stabilizer(C,b)
+        sage: orbit_representatives(S, b)
+        [(0, 1), (2, 0)]
+    """
+    if len(G) == 1:
+        return B
+
+    o = []
+    B = set(B)
+    while B:
+        b = B.pop()
+        o.append(b)
+        for g in G:
+            if not g.is_zero():
+                B.remove(g+b)
+    return o
+
+def partial_differences(G, B):
+    r"""
+    Compute the partial differences of the block ``B``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import partial_differences
+
+        sage: b = map(Zmod(8),[0,2,4,6])
+        sage: partial_differences(Zmod(8),b) 
+        [2, 4, 6]
+
+        sage: b = map(Zmod(8),[0,1,4,5])
+        sage: partial_differences(Zmod(8),b)
+        [1, 3, 4, 4, 5, 7]
+
+        sage: b = [1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44]
+        sage: b = map(Zmod(45),b)
+        sage: d = partial_differences(Zmod(45),b)
+        sage: len(d)
+        110
+    """
+    stab = block_stabilizer(G,B)
+    o = orbit_representatives(stab,B)
+    return sorted(b + (-c) + g for b in o for c in o for g in stab if b+g != c)
+
+def is_difference_family(G, D, v=None, k=None, l=None, short_blocks=True, verbose=False):
+    r"""
+    Check wether ``D`` forms a difference family in the additive Abelian group ``G``.
 
     INPUT:
 
-    - ``G`` - Abelian group of cardinality ``v``
+    - ``G`` - Additive Abelian group of cardinality ``v``
 
     - ``D`` - a set of ``k``-subsets of ``G``
 
     - ``v``, ``k`` and ``l`` - optional parameters of the difference family
+
+    - ``short_blocks`` - whether short blocks are allowed (default is ``True``)
 
     - ``verbose`` - whether to print additional information
 
@@ -75,7 +172,16 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: G = Zmod(41)
         sage: D = [[0,1,4,11,29],[0,2,8,17,21]]
         sage: is_difference_family(G, D, verbose=True)
-        the element 28 in G is obtained more than 1 times
+        Too less:
+          5 is obtained 0 times in blocks []
+          14 is obtained 0 times in blocks []
+          27 is obtained 0 times in blocks []
+          36 is obtained 0 times in blocks []
+        Too much:
+          4 is obtained 2 times in blocks [0, 1]
+          13 is obtained 2 times in blocks [0, 1]
+          28 is obtained 2 times in blocks [0, 1]
+          37 is obtained 2 times in blocks [0, 1]
         False
         sage: D = [[0,1,4,11,29],[0,2,8,17,22]]
         sage: is_difference_family(G, D)
@@ -95,19 +201,45 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: is_difference_family(G, D)
         True
 
-    The function also supports multiplicative groups (non necessarily Abelian)::
+    An example with a short block (i.e. considering restricted difference when a
+    block has a non trivial stabilizer)::
+
+        sage: G = Zmod(15)
+        sage: D = [[0,1,4],[0,2,9],[0,5,10]]
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (15,3,1)-difference family
+        True
+        sage: is_difference_family(G,D,short_blocks=False,verbose=True)
+        bk(k-1) is not 0 mod (v-1)
+        False
+
+    The function also supports multiplicative groups (non necessarily Abelian).
+    In that case, the argument ``short_blocks`` must be set to ``False``::
 
         sage: G = DihedralGroup(8)
         sage: x,y = G.gens()
         sage: D1 = [[1,x,x^4], [1,x^2, y*x], [1,x^5,y], [1,x^6,y*x^2], [1,x^7,y*x^5]]
-        sage: is_difference_family(G, D1, 16, 3, 2)
+        sage: is_difference_family(G, D1, 16, 3, 2, short_blocks=False)
         True
+        sage: is_difference_family(G, D1, 16, 3, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: short blocks are meaningful only for Abelian group that we assume
+        to be additive
     """
+    import operator
+
+    identity, mul, inv = group_law(G)
+    if short_blocks and not (mul is operator.add or inv is operator.neg):
+        raise ValueError("short blocks are meaningful only for Abelian group that we assume to be additive")
+
+    Glist = list(G)
+
     if v is None:
-        v = G.cardinality()
+        v = len(Glist)
     else:
         v = int(v)
-        if G.cardinality() != v:
+        if len(Glist) != v:
             if verbose:
                 print "G must have cardinality v (=%d)"%v
             return False
@@ -119,51 +251,111 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
     b = len(D)
 
-    if any(len(d) != k for d in D):
-        if verbose:
-            print "each element of D must have cardinality k (=%d)"%k
-        return False
-
-    if l is None:
-        if (b*k*(k-1)) % (v-1) != 0:
+    for d in D:
+        if len(d) != k:
             if verbose:
-                print "bk(k-1) is not 0 mod (v-1)"
+                print "the block {} does not have length {}".format(d,k)
             return False
-        l = b*k*(k-1) // (v-1)
+
+    if short_blocks:
+        nb_diff = 0
+        stab_sizes = []
+        for d in D:
+            s = len(block_stabilizer(G,map(G,d)))
+            stab_sizes.append(s)
+            nb_diff += k*(k-1) / s
+        if l is None:
+            if nb_diff % (v-1) != 0:
+                if verbose:
+                    print "sum(1/s_i) k*(k-1) = {} is not a multiple of (v-1) = {} (stabilizer sizes {})".format(
+                            nb_diff, v-1, stab_sizes)
+                return False
+            l = nb_diff // (v-1)
+        else:
+            if nb_diff != l*(v-1):
+                if verbose:
+                    print ("the relation sum(1/s_i) *k*(k-1) == l*(v-1) is not "
+                    "satisfied (where the s_i are the cardinality of the stabilizer "
+                    "for each blocks)")
+                return False
+
     else:
-        l = int(l)
-        if b*k*(k-1) != l*(v-1):
-            if verbose:
-                print "the relation bk(k-1) == l(v-1) is not satisfied with b=%d, k=%d, l=%d, v=%d"%(b,k,l,v)
-            return False
-
-    identity, op, inv = group_law(G)
+        if l is None:
+            if (b*k*(k-1)) % (v-1) != 0:
+                if verbose:
+                    print "bk(k-1) is not 0 mod (v-1)"
+                return False
+            l = b*k*(k-1) // (v-1)
+        else:
+            l = int(l)
+            if b*k*(k-1) != l*(v-1):
+                if verbose:
+                    print "the relation bk(k-1) == l(v-1) is not satisfied with b=%d, k=%d, l=%d, v=%d"%(b,k,l,v)
+                return False
 
     # now we check that every non-identity element of G occurs exactly l-time
     # as a difference
-    counter = {g: 0 for g in G}
+    counter = {g: 0 for g in Glist}
+    where   = {g: [] for g in Glist}
     del counter[identity]
 
-    for d in D:
-        dd = map(G,d)
-        for i in xrange(k):
-            for j in xrange(k):
-                if i == j:
-                    continue
-                g = op(dd[i], inv(dd[j]))
-                if g == identity:
+    if short_blocks:
+        for i,d in enumerate(D):
+            dd = map(G,d)
+            for g in partial_differences(G,dd):
+                if g.is_zero():
                     if verbose:
-                        print "two identical elements in the same block"
+                        print "two identical elements in block {}".format(dd)
                     return False
+                where[g].append(i)
                 counter[g] += 1
-                if counter[g] > l:
-                    if verbose:
-                        print "the element %s in G is obtained more than %s times"%(g,l)
-                    return False
+    else:
+        for i,d in enumerate(D):
+            dd = map(G,d)
+            for ix,x in enumerate(dd):
+                for iy,y in enumerate(dd):
+                    if ix == iy:
+                        continue
+                    if x == y:
+                        if verbose:
+                            print "two identical elements in block {}".format(dd)
+                        return False
+                    g = mul(x,inv(y))
+                    where[g].append(i)
+                    counter[g] += 1
+
+    too_less = []
+    too_much = []
+    for g in Glist:
+        if g == identity:
+            continue
+        if counter[g] < l:
+            if verbose:
+                too_less.append(g)
+            else:
+                return False
+        if counter[g] > l:
+            if verbose:
+                too_much.append(g)
+            else:
+                return False
+
+    if too_less:
+        print "Too less:"
+        for g in too_less:
+            print "  {} is obtained {} times in blocks {}".format(
+                        g,counter[g],where[g])
+    if too_much:
+        print "Too much:"
+        for g  in too_much:
+            print "  {} is obtained {} times in blocks {}".format(
+                        g,counter[g],where[g])
+    if too_less or too_much:
+        return False
+
     if verbose:
         print "It is a ({},{},{})-difference family".format(v,k,l)
     return True
-
 
 def singer_difference_set(q,d):
     r"""
@@ -248,9 +440,9 @@ def singer_difference_set(q,d):
 
     return Zmod((q**(d+1)-1)//(q-1)), [powers]
 
-def difference_family(v, k, l=1, existence=False, check=True):
+def difference_family(v, k, l=1, short_blocks=True, existence=False, check=True):
     r"""
-    Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    Return a (``k``, ``l``)-difference family on an Abelian group of cardinality ``v``.
 
     Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
     `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
@@ -304,9 +496,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
         sage: for q in islice(prime_power_mod(1,30), 60):
         ....:     l6[designs.difference_family(q,6,existence=True)].append(q)
         sage: l6[True]
-        [31, 151, 181, 211, ...,  3061, 3121, 3181]
+        [31, 121, 151, 181, 211, ...,  3061, 3121, 3181]
         sage: l6[Unknown]
-        [61, 121]
+        [61]
         sage: l6[False]
         []
 
@@ -331,34 +523,56 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:                 _ = designs.difference_family(v,k,l)
         ....:     if constructions:
         ....:         print "%2d: %s"%(v, ', '.join('(%d,%d)'%(k,l) for k,l in constructions))
-         4: (3,2)
-         5: (4,3)
-         7: (3,2), (6,5)
-         8: (7,6)
-         9: (4,3), (8,7)
-        11: (5,2), (5,4)
-        13: (3,2), (4,3), (6,5)
-        15: (7,3)
-        16: (3,2), (5,4)
-        17: (4,3), (8,7)
-        19: (3,2), (6,5), (9,4), (9,8)
-        25: (3,2), (4,3), (6,5), (8,7)
-        29: (4,3), (7,6)
-        31: (3,2), (5,4), (6,5)
-        37: (3,2), (4,3), (6,5), (9,2), (9,8)
-        41: (4,3), (5,4), (8,7)
-        43: (3,2), (6,5), (7,6)
-        49: (3,2), (4,3), (6,5), (8,7)
-        53: (4,3)
-        61: (3,2), (4,3), (5,4), (6,5)
-        64: (3,2), (7,6), (9,8)
-        67: (3,2), (6,5)
-        71: (5,4), (7,6)
-        73: (3,2), (4,3), (6,5), (8,7), (9,8)
-        79: (3,2), (6,5)
-        81: (4,3), (5,4), (8,7)
-        89: (4,3), (8,7)
-        97: (3,2), (4,3), (6,5), (8,7)
+         2: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         3: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         4: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         5: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         7: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         8: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         9: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        11: (3,2), (4,3), (4,6), (5,2), (5,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        13: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
+        15: (4,6), (5,6), (7,3)
+        16: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        17: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
+        19: (3,2), (4,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,4), (9,5), (9,6), (9,7), (9,8)
+        21: (4,3), (6,3), (6,5)
+        22: (4,2), (6,5), (7,4), (8,8)
+        23: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        25: (3,2), (4,3), (5,4), (6,5), (7,6), (7,7), (8,7), (9,8)
+        27: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        28: (3,2), (6,5)
+        29: (3,2), (4,3), (5,4), (6,5), (7,3), (7,6), (8,4), (8,6), (8,7), (9,8)
+        31: (3,2), (4,2), (4,3), (5,2), (5,4), (6,5), (7,6), (8,7), (9,8)
+        32: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        33: (5,5), (6,5)
+        34: (4,2)
+        35: (5,2), (8,4)
+        37: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,2), (9,3), (9,8)
+        39: (6,5)
+        40: (3,2)
+        41: (3,2), (4,3), (5,4), (6,3), (6,5), (7,6), (8,7), (9,8)
+        43: (3,2), (4,2), (4,3), (5,4), (6,5), (7,2), (7,3), (7,6), (8,4), (8,7), (9,8)
+        46: (4,2), (6,2)
+        47: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        49: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
+        51: (5,2), (6,3)
+        53: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        55: (9,4)
+        57: (7,3)
+        59: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        61: (3,2), (4,3), (5,4), (6,2), (6,3), (6,5), (7,6), (8,7), (9,8)
+        64: (3,2), (4,3), (5,4), (6,5), (7,2), (7,6), (8,7), (9,8)
+        67: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        71: (3,2), (4,3), (5,2), (5,4), (6,5), (7,3), (7,6), (8,4), (8,7), (9,8)
+        73: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        75: (5,2)
+        79: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        81: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        83: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        85: (7,2), (7,3), (8,2)
+        89: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        97: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
 
     TESTS:
 
@@ -387,28 +601,23 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     .. TODO::
 
-        There is a slightly more general version of difference families where
-        the stabilizers of the blocks are taken into account. A block is *short*
-        if the stabilizer is not trivial. The more general version is called a
-        *partial difference family*. It is still possible to construct BIBD from
-        this more general version (see the chapter 16 in the Handbook
-        [DesignHandbook]_).
-
         Implement recursive constructions from Buratti "Recursive for difference
         matrices and relative difference families" (1998) and Jungnickel
         "Composition theorems for difference families and regular planes" (1978)
     """
-    if (l*(v-1)) % (k*(k-1)) != 0:
+    if not short_blocks and (l*(v-1)) % (k*(k-1)) != 0:
         if existence:
             return False
         raise EmptySetError("A (v,%d,%d)-difference family may exist only if %d*(v-1) = mod %d"%(k,l,l,k*(k-1)))
 
     from block_design import are_hyperplanes_in_projective_geometry_parameters
-    from database import DF_constructions
-    if (v,k,l) in DF_constructions:
+    from database import DF_from_database
+
+    G_df = DF_from_database(v,k,l,short_blocks=short_blocks)
+    if G_df:
         if existence:
             return True
-        return DF_constructions[(v,k,l)]()
+        return G_df
 
     e = k*(k-1)
     t = l*(v-1) // e  # number of blocks
@@ -506,7 +715,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
             return Unknown
         raise NotImplementedError("No constructions for these parameters")
 
-    if check and not is_difference_family(G,D,verbose=False):
+    if check and not is_difference_family(G,D,short_blocks=short_blocks,verbose=False):
         raise RuntimeError
 
     return G, D

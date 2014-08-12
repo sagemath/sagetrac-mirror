@@ -141,9 +141,9 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31, 91]
+        [1, 6, 31, 81, 91, 121]
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
+        [51, 61, 66, 76, 96, 106, 111, 126, 136, 141]
 
     But we know some inexistence results::
 
@@ -466,6 +466,8 @@ def BIBD_from_TD(v,k,existence=False):
 
     return BIBD
 
+
+
 def BIBD_from_difference_family(G, D, check=True):
     r"""
     Return the BIBD associated to the difference family ``D`` on the group ``G``.
@@ -484,7 +486,7 @@ def BIBD_from_difference_family(G, D, check=True):
 
     - ``G`` - a finite additive Abelian group
 
-    - ``D`` - a difference family on ``G``.
+    - ``D`` - a difference family on ``G`` (short blocks are allowed).
 
     - ``check`` - whether or not we check the output (default: ``True``)
 
@@ -519,12 +521,16 @@ def BIBD_from_difference_family(G, D, check=True):
          [19, 20, 2, 12, 14],
          [20, 0, 3, 13, 15]]
     """
-    r = {e:i for i,e in enumerate(G)}
-    bibd = [[r[G(x)+g] for x in d] for d in D for g in r]
+    from difference_family import orbit_representatives, block_stabilizer
+    bibd = []
+    p_to_i = {g:i for i,g in enumerate(G)}
+    for b in D:
+        b = map(G,b)
+        for g in orbit_representatives(block_stabilizer(G,b),G):
+            bibd.append([p_to_i[G(i)+g] for i in b])
     if check:
         assert _check_pbd(bibd, G.cardinality(), [len(D[0])])
     return bibd
-
 
 
 ################
