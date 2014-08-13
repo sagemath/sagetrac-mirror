@@ -239,7 +239,8 @@ class FSMFourier(Transducer):
                      for state in other.fsm.iter_states()])
 
                 def eigenvector(j):
-                    eigenvalue = q * alpha**(j * common_period / self.period)
+                    eigenvalue = q * alpha**(
+                        j * common_period / self.period)
                     S = matrix.block(
                         [[M - eigenvalue*matrix.identity(M.nrows())],
                          [mask]],
@@ -260,7 +261,9 @@ class FSMFourier(Transducer):
 
             @cached_method()
             def left_eigenvectors(self):
-                left_eigenvectors = self.eigenvectors(M.transpose(), components, period)
+                left_eigenvectors = self.eigenvectors(M.transpose(),
+                                                      components,
+                                                      period)
                 return [w/(v*w) for v, w
                         in itertools.izip(self.right_eigenvectors(),
                                           left_eigenvectors)]
