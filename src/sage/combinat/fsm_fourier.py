@@ -40,6 +40,8 @@ class FSMFourier(Transducer):
 
         - ``w`` -- list of lists of vectors `\mathbf{w}_{jk}`.
 
+        - ``coefficient_lambda`` -- list of coefficients `\lambda_j`.
+
         EXAMPLES:
 
         -   Binary sum of digits::
@@ -55,7 +57,8 @@ class FSMFourier(Transducer):
             ....:     f(0) == 0],
             ....:     f, n, 2)
             sage: FSMFourier(T)._fourier_coefficient_data_()
-            FourierCoefficientData(c=1, periods=[1], period=1, T=[1], w=[[(1)]])
+            FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
+            w=[[(1)]], coefficient_lambda=[1])
 
         -   NAF::
 
@@ -69,7 +72,7 @@ class FSMFourier(Transducer):
             (
                        [1/3   1   0]
                        [1/3   0   1]
-            1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]]
+            1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]], [1]
             )
 
         -   Abelian complexity of the paperfolding sequence::
@@ -96,7 +99,8 @@ class FSMFourier(Transducer):
                        [1/10    0    0    0    0    0    0    0    1    0]
                        [1/10    0    0    0    0    0    0    0    0    1]
             1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1],
-            [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]]
+            [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]],
+            [1]
             )
 
         -   Artificial example, one-periodic, 2 states::
@@ -111,7 +115,8 @@ class FSMFourier(Transducer):
             (
                        [1/2   1]
             1, [1], 1, [1/2  -1],
-            [[(1/2, 1/2)]]
+            [[(1/2, 1/2)]],
+            [1]
             )
 
         -   Artificial example, period 3::
@@ -138,7 +143,8 @@ class FSMFourier(Transducer):
                1, [3], 3, [         1/7            4            4            0            0            0            0],
                [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
                  (0, 0, 0, 1/24*zeta3, 1/24*zeta3, -1/12*zeta3 - 1/12, 1/12),
-                 (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]]
+                 (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]],
+               [1]
             )
 
         -   Artificial example, period 2, vanishing w-vector::
@@ -155,7 +161,8 @@ class FSMFourier(Transducer):
                        [1/3   0   1]
                        [1/3   1   0]
             1, [2], 2, [1/3  -1   0],
-            [[(0, 1/2, 1/2), (0, 0, 0)]]
+            [[(0, 1/2, 1/2), (0, 0, 0)]],
+            [1]
             )
 
         -   Artificial example with two final components of periods `2`
@@ -179,7 +186,8 @@ class FSMFourier(Transducer):
             [[(0, 0, 0, 1/6, 1/6, 1/6),
               (0, 0, 0, 1/6, 1/6*zeta6 - 1/6, -1/6*zeta6),
               (0, 0, 0, 1/6, -1/6*zeta6, 1/6*zeta6 - 1/6)],
-             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]]
+             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]],
+            [1/2, 1/2]
             )
         """
         import collections
@@ -188,6 +196,7 @@ class FSMFourier(Transducer):
 
         from sage.matrix.constructor import matrix
         from sage.modules.free_module import VectorSpace
+        from sage.modules.free_module_element import vector
         from sage.rings.arith import lcm
         from sage.rings.integer_ring import ZZ
         from sage.rings.number_field.number_field import CyclotomicField
@@ -195,7 +204,7 @@ class FSMFourier(Transducer):
 
         FourierCoefficientData = collections.namedtuple(
             "FourierCoefficientData",
-            ["c", "periods", "period", "T", "w"])
+            ["c", "periods", "period", "T", "w", "coefficient_lambda"])
 
         positions = dict((state.label(), j)
                          for j, state in enumerate(self.iter_states()))
@@ -250,6 +259,13 @@ class FSMFourier(Transducer):
                         in itertools.izip(self.right_eigenvectors(),
                                           self.left_eigenvectors())]
 
+            @cached_method()
+            def coefficient_lambda(self):
+                ones = vector(1 for _ in range(M.nrows()))
+                products = [w*ones for w in self.vectors_w()]
+                assert all(e.is_zero() for e in products[1:])
+                return products[0]
+
 
         components = [FCComponent(c) for c in self.final_components()]
         period = lcm([c.period for c in components])
@@ -302,4 +318,5 @@ class FSMFourier(Transducer):
             periods=[c.period for c in components],
             period=period,
             T=T,
-            w=[c.vectors_w() for c in components])
+            w=[c.vectors_w() for c in components],
+            coefficient_lambda=[c.coefficient_lambda() for c in components])
