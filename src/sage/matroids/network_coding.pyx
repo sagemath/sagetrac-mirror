@@ -3,6 +3,8 @@ from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
 import numpy as np
+from itertools import izip
+
 msnccons=[  [ [[],[]], [[],[]], [[],[]] ],[] ]
 #R=None
 GF2=GF(2)
@@ -234,11 +236,27 @@ cpdef all2(N, R=10):
         #print [len(MM[r,n-r]) for r in xrange(min(n,R)+1)]
     return MM
 
-cpdef ncmatenum(nc,r,N):
-    n=r
-    MM={}
-    MM[n]=[BinaryMatroid(identity_matrix(GF(2),n)),{}]
+cpdef ncmatenum(nc,maxgnd):
+    nvars = len(ncinstance_vars(nc))
+    mcodes_3 = init_enum(nc,maxgnd)
+    mcodes_parent = mcodes_3
 
+    for g in range(4,maxgnd+1):
+        mcodes_parent=extend_mcodes(mcodes_parent,maxgnd,nvars)
+
+cpdef add_identity_codes(mcode_n_n):
+    """ Return new mcode with to size n+1 rank n+1 matroid
+    that corresponds to coloop extension of size n rank n
+    matroid. The p-codes for this matroid are computed in p-codes
+    of input mcode
+    """
+    return
+
+cpdef max_rank(nc,maxgnd):
+    """
+    Return maximum rank of matroid that must be considered
+    """
+    maxr = min(maxgnd-ncinstance_vars(nc)+len(nc[1]),floor(maxgnd/2))
 
 cpdef init_enum(nc,N):
     maxrank = N-(len(ncinstance_vars(nc))-len(nc[1]))
@@ -332,6 +350,18 @@ cpdef mdcs(config):
     a list of lists"""
     if mdcs_instance_is_valid(config) == False:
         raise ValueError('Not a valid MDCS instance')
+    else:
+        # create constraints from the matrix
+        nc = [[],[]]
+        nc[1].extend(range(1,len(config)+1))
+        for l in xrange(len(config)):
+            level=config[l]
+            lsets_all=[set([len(k.binary())-i+len(config) for i in xrange(len(k.binary()))
+                       if k.binary()[i]=='1']) for k in level]
+            lsets=[s for s in lsets_all if len(s)>0]
+            for lset in lsets:
+                nc[0].append([list(lset),list(lset|set(range(1,l+2)))])
+        return nc
 
 cpdef mdcs_instance_is_valid(config_list):
     """
@@ -346,9 +376,8 @@ cpdef mdcs_instance_is_valid(config_list):
     # test axioms (C1) and (C5)
     all_levels=[]
     all_enc = set([])
-    for level in xrange(len(config_list)):
-        lsets_all=[set([len(k.binary())-i for i in xrange(len(k.binary()))
-                   if k.binary()[i]=='1']) for k in level]
+    for level in config_list:
+        lsets_all=[set([len(k.binary())-i for i in xrange(len(k.binary())) if k.binary()[i]=='1']) for k in level]
         lsets=[s for s in lsets_all if len(s)>0]
         all_enc.union(*lsets)
         # (C5)
@@ -357,8 +386,13 @@ cpdef mdcs_instance_is_valid(config_list):
         all_levels.append(lsets)
         # (C1)
         if len(lsets)>1:
-            if any([x >= y or x <= y for x in lsets for y in lsets.copy()-x]):
-                return False
+            print lsets
+            for x in lsets:
+                lsets2=copy(lsets)
+                lsets2.remove(x)
+                if any([x >= y or x <= y for y in lsets2]):
+                    return False
+    print 'C1,C5 pass'
     # test (C4)
     all_enc_fans=[]
     for enc in all_enc:
@@ -367,19 +401,28 @@ cpdef mdcs_instance_is_valid(config_list):
             l_e = set([dec for dec in xrange(len(l)) if enc in l[dec]])
             e_dec=e_dec.union(l_e)
         all_enc_fans.append(e_dec)
+    for efan in all_enc_fans:
+        others=all_enc_fans.copy()
+        others.remove(efan)
+        for o in others:
+            if efan==o:
+                return False
+    print 'C4 pass'
     # test axiom (C2)
+    print all_levels
     for i in xrange(1,len(all_levels)):
         # test (C2) for all lower levels
         l_i=all_levels[i]
-        for j in xrange(len(all_levels)-1):
+        for j in xrange(i):
             l_j=all_levels[j]
             for lset_i in l_i:
-                for lset_j in l_i:
+                for lset_j in l_j:
                     if lset_j >= lset_i:
+                        print i,j,l_i,l_j,lset_j,lset_i
                         return False
-
-    # print lsets
-    return
+    print 'C2 pass'
+    ## print lsets
+    return True
 
 
 
