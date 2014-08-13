@@ -792,6 +792,8 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             1
             sage: chebyshev_T.eval_algebraic(1, t)
             t
+            sage: chebyshev_T.eval_algebraic(1000, t).coeffs()[2]
+            -500000
             sage: chebyshev_T(7^100, 1/2)
             1/2
             sage: chebyshev_T(7^100, Mod(2,3))
@@ -803,16 +805,18 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: chebyshev_T(10^6+1, t)
             (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
         """
+        P = parent(x)
         if n == 0:
-            return parent(x).one()
-        from sage.symbolic.ring import SR
-        if x.parent() == SR or x <> x.parent().gen():
+            return P.one()
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if (n>10 and is_PolynomialRing(P) and P.base() == ZZ
+            and P.ngens() == 1 and x == P.gen()):
+            import sage.libs.flint.arith as flint_arith
+            return flint_arith.chebyshev_T(n, P.gen())
+        else:
             if n < 0:
                 return self._eval_recursive_(-n, x)[0]
             return self._eval_recursive_(n, x)[0]
-        else:
-            import sage.libs.flint.arith as flint_arith
-            return flint_arith.chebyshev_T(x.parent().gen())
 
     def _eval_recursive_(self, n, x, both=False):
         """
