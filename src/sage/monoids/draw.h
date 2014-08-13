@@ -24,6 +24,8 @@ struct Color
 };
 typedef struct Color Color;
 
+typedef struct Color* ColorList;
+
 struct Surface
 {
 	Color** pix;

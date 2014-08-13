@@ -86,9 +86,13 @@ cdef extern from "draw.c":
         int n        #nombre de translations
         Automate* a
         int na
+    ctypedef Color* ColorList
         
     Surface NewSurface (int sx, int sy)
     void FreeSurface (Surface s)
+    ColorList NewColorList (int n)
+    void FreeColorList (ColorList l)
+    Color randColor (int a)
     Automate NewAutomate (int n, int na)
     void FreeAutomate(Automate a)
     void FreeAutomates(Automate* a, int n)
@@ -98,13 +102,23 @@ cdef extern from "draw.c":
     void FreeBetaAdic2 (BetaAdic2 b)
     void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
     void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
-    void DrawList (BetaAdic2 b, Surface s, int n, int ajust, double alpha, int verb)
+    void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList lc, double alpha, int verb)
     void print_word (BetaAdic b, int n, int etat)
 
 cdef Complexe complex (c):
     cdef Complexe r
     r.x = c.real()
     r.y = c.imag()
+    return r
+
+cdef Color getColor (c):
+    if len(c) < 4:
+        raise ValueError("Colors must be defined by 4 float numbers between 0 and 1.")
+    cdef Color r
+    r.r = c[0]*255
+    r.g = c[1]*255
+    r.b = c[2]*255
+    r.a = c[3]*255
     return r
 
 cdef surface_to_img (Surface s):
@@ -224,7 +238,7 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
     if la is None:
         if tss is None:
             if hasattr(self, 'tss'):
-                ss = self.tss
+                tss = self.tss
         if ss is None:
             if hasattr(self, 'ss'):
                 ss = self.ss
@@ -267,7 +281,9 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
             if verb:
                 print a[v]
         la = [tss]+a.values()
-        
+        if verb:
+            self.la = la
+      
     C = set(self.C)
     if add_letters:
         for a in la:
@@ -674,7 +690,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeAutomate(b.a)
         FreeBetaAdic(b)
         
-    def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colors=None, alpha=1., add_letters=True, verb=False):
+    def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', opacity = 1., add_letters=True, verb=False):
         r"""
         Draw the limit set of the beta-adic monoid with colors.
 
@@ -698,8 +714,11 @@ class BetaAdicMonoid(Monoid_class):
         
         - ``prec`` - precision of returned values (default: ``53``)
         
-        - ``colors`` - list of colors (default: ``None``)
+        - ``colormap`` - list of colors (default: ``hsv``)
           Colors of the drawing.
+        
+        - ``opacity``- float (default: ``1.``)
+          Transparency of the drawing.
         
         - ``verb`` - bool (default: ``False``)
           Print informations for debugging.
@@ -760,7 +779,30 @@ class BetaAdicMonoid(Monoid_class):
         #dessin
         if n is None:
             n = -1
-        DrawList(b, s, n, ajust, alpha, verb)
+        
+        # Manage colors and opacity
+        cdef ColorList cl
+        cl = NewColorList(b.na)
+        if isinstance(colormap, dict):
+            if b.na < len(colormap):
+                raise ValueError("The list of color must contain at least %d elements."%b.na)
+            for i in range(b.na):
+                if i < len(colormap):
+                    cl[i] = getColor(colormap[i])
+                else:
+                    cl[i] = randColor(255)
+        elif isinstance(colormap, str):
+            from matplotlib import cm
+            if not colormap in cm.datad.keys():
+                raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
+            colormap = cm.__dict__[colormap]
+            cl[0] = getColor(colormap(1.))
+            for i in range(b.na-1):
+                cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
+        else:
+            raise TypeError("Type of option colormap (=%s) must be dict or str" % colormap)
+        
+        DrawList(b, s, n, ajust, cl, opacity, verb)
         #enregistrement du résultat
         surface_to_img(s)
         if verb:
@@ -768,6 +810,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeSurface(s)
         FreeAutomates(b.a, b.na)
         FreeBetaAdic2(b)
+        FreeColorList(cl)
         
     def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
         r"""

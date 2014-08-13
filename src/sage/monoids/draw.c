@@ -10,6 +10,17 @@ Color color0; //couleur du fond
 Color color; //couleur de dessin
 Color* colors; //liste de couleurs de dessin
 
+ColorList NewColorList (int n)
+{
+	ColorList l = malloc(sizeof(Color)*n);
+	return l;
+}
+
+void FreeColorList (ColorList l)
+{
+	free(l);
+}
+
 Surface NewSurface (int sx, int sy)
 {
 	Surface s;
@@ -298,7 +309,7 @@ int max (int a, int b)
 	return a;
 }
 
-Color randCol (int a)
+Color randColor (int a)
 {
 	Color c;
 	c.r = rand();
@@ -490,7 +501,7 @@ void printAutomate (Automate a)
 	printf("état initial %d.\n", a.i);
 }
 
-void DrawList (BetaAdic2 b, Surface s, int n, int ajust, double alpha, int verb)
+void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double alpha, int verb)
 {
 	int auto_n = (n < 0);
 	//set global variables
@@ -501,8 +512,8 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, double alpha, int verb)
 	int i;
 	for (i=0;i<b.na;i++)
 	{
-		colors[i] = randCol(255);
-		colors[i].a = alpha*255;
+		colors[i] = cl[i]; //randCol(255);
+		colors[i].a = cl[i].a*alpha;
 	}
 	if (verb)
 	{
