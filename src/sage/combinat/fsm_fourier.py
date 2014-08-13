@@ -362,3 +362,46 @@ class FSMFourier(Transducer):
                                 for c in components],
             e_T=e_T,
             a=[c.a() for a in components])
+
+    @cached_method
+    def _FC_b_direct_(self, r):
+        r"""
+
+        Compute `\mathbf{b}(r)`, whose ``s`` th component is the
+        output of ``self`` when reading the ``q``-ary expansion of
+        ``r`` starting in state ``s``.
+
+        INPUT:
+
+        -   ``r`` -- non-negative integer, the input to read
+
+        OUTPUT:
+
+        A vector whose ``s``-th component is the sum of the output of
+        ``self`` when reading the ``q``-ary expansion of ``r``
+        starting in state ``s`` where ``q`` is the length of the input
+        alphabet.
+
+        EXAMPLES::
+
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: function('f')
+            f
+            sage: var('n')
+            n
+            sage: T = transducers.Recursion([
+            ....:     f(4*n + 1) == f(n) + 1,
+            ....:     f(4*n + 3) == f(n + 1) + 1,
+            ....:     f(2*n) == f(n),
+            ....:     f(0) == 0],
+            ....:     f, n, 2)
+            sage: [FSMFourier(T)._FC_b_direct_(r) for r in range(3)]
+            [(0, 1, 1), (1, 2, 1), (1, 2, 2)]
+        """
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
+
+        q = len(self.input_alphabet)
+        expansion = ZZ(r).digits(q)
+        return vector([sum(self(expansion, initial_state=s))
+                       for s in self.iter_states()])
