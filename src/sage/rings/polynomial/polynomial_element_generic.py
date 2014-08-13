@@ -135,37 +135,6 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = x+x^43+x^72
             sage: f.sparsity()
             3
-            
-        TESTS::
-            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
-            sage: (x+x^43+x^72).sparsity()
-            3
-            sage: R(0).sparsity()
-            0
-            sage: R(1).sparsity()
-            1
-            sage: R.<x> = PolynomialRing(QQ,sparse=True)
-            sage: (1/2*x+x^43+x^72/3).sparsity()
-            3
-            sage: R.<x> = PolynomialRing(QQbar,sparse=True)
-            sage: (1-x^27+x^43+x^72).sparsity()
-            4
-            sage: R.<x> = PolynomialRing(GF(17),sparse=True)
-            sage: (1-x^27+17*x^43+x^72).sparsity()
-            3
-            sage: K.<a> = GF(3^5)
-            sage: R.<x> = PolynomialRing(K,sparse=True)
-            sage: ((a^6-1)+x^27-a*x^43).sparsity()
-            3
-            sage: R.<x> = PolynomialRing(IntegerModRing(10),sparse=True)
-            sage: (1+x^17+10*x^2+12*x^3).sparsity()
-            3
-            sage: S = QuotientRing(R,Ideal(x^2-1))
-            sage: T.<t> = PolynomialRing(S,sparse=True)
-            sage: ((9*x + 8)*t^43 + (5*x + 9)*t^17 + x^2 + 4).sparsity()
-            3
-            sage: ((x^2+9)*t^78).sparsity()
-            0
         """
         return len(self.__coeffs)
 
