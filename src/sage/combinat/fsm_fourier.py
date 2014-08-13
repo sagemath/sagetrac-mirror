@@ -47,6 +47,16 @@ class FSMFourier(Transducer):
 
         - ``a`` -- list of constants `a_j`.
 
+        - ``M`` -- adjacency matrix `M`.
+
+        - ``M_epsilon`` -- list of partial adjacency matrices
+          `M_\varepsilon`.
+
+        - ``Delta`` -- output matrix ``\Delta``.
+
+        - ``Delta_epsilon`` -- list of partial output matrices
+          `\Delta_\varepsilon`.
+
         EXAMPLES:
 
         -   Binary sum of digits::
@@ -63,7 +73,9 @@ class FSMFourier(Transducer):
             ....:     f, n, 2)
             sage: FSMFourier(T)._fourier_coefficient_data_()
             FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
-            w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2])
+            w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
+            M=[2], M_epsilon=[[1], [1]], Delta=[1],
+            Delta_epsilon=[[0], [1]])
 
         -   NAF::
 
@@ -73,7 +85,7 @@ class FSMFourier(Transducer):
             ....:     f(2*n) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
+            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
             (
                        [1/3   1   0]
                        [1/3   0   1]
@@ -93,7 +105,7 @@ class FSMFourier(Transducer):
             ....:     f(1) == 2, f(0) == 0]
             ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
             ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
+            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
             (
                        [1/10    1    0    0    0    0    0    0    0    0]
                        [1/10    0    1    0    0    0    0    0    0    0]
@@ -117,7 +129,7 @@ class FSMFourier(Transducer):
             ....:     f(2*n+1) == f(n),
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
+            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
             (
                        [1/2   1]
             1, [1], 1, [1/2  -1],
@@ -138,7 +150,7 @@ class FSMFourier(Transducer):
             ....:     f(8*n+7) == f(4*n+1),
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
+            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
             (
                           [         1/7            1            1            1            0            0            0]
                           [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
@@ -162,7 +174,7 @@ class FSMFourier(Transducer):
             ....:     f(4*n+3) == f(2*n)-1,
             ....:     f(0) == 0],
             ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
+            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
             (
                        [1/3   0   1]
                        [1/3   1   0]
@@ -181,7 +193,7 @@ class FSMFourier(Transducer):
             ....:     (-3, -1, 0, 3)],
             ....:     initial_states=[0],
             ....:     final_states=[0, 1, 2, -3, -2, -1])
-            sage: T._fourier_coefficient_data_()
+            sage: T._fourier_coefficient_data_()[:8]
             (
                           [        1/7           1           1         1/5           1           1]
                           [          0           0           0         2/5          -2           0]
@@ -215,7 +227,7 @@ class FSMFourier(Transducer):
         FourierCoefficientData = collections.namedtuple(
             "FourierCoefficientData",
             ["c", "periods", "period", "T", "w", "coefficient_lambda",
-             "e_T", "a"])
+             "e_T", "a", "M", "M_epsilon", "Delta", "Delta_epsilon"])
 
         positions = dict((state.label(), j)
                          for j, state in enumerate(self.iter_states()))
@@ -352,6 +364,20 @@ class FSMFourier(Transducer):
         except NotImplementedError:
             pass
 
+        M_epsilon = [self.adjacency_matrix(input=epsilon,
+                                           entry=lambda t: 1)
+                     for epsilon in range(q)]
+        assert self.adjacency_matrix(entry=lambda t: 1) ==\
+            sum(M_epsilon)
+
+        Delta_epsilon = [self.adjacency_matrix(
+                             input=epsilon,
+                             entry=lambda t: sum(t.word_out))
+                         for epsilon in range(q)]
+        Delta = self.adjacency_matrix(
+                             entry=lambda t: sum(t.word_out))
+        assert Delta == sum(Delta_epsilon)
+
         return FourierCoefficientData(
             c=len(components),
             periods=[c.period for c in components],
@@ -361,7 +387,11 @@ class FSMFourier(Transducer):
             coefficient_lambda=[c.coefficient_lambda()
                                 for c in components],
             e_T=e_T,
-            a=[c.a() for a in components])
+            a=[c.a() for a in components],
+            M=M,
+            M_epsilon=M_epsilon,
+            Delta=Delta,
+            Delta_epsilon=Delta_epsilon)
 
     @cached_method
     def _FC_b_direct_(self, r):
