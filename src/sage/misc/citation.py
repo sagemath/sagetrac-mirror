@@ -119,59 +119,15 @@ def citations(record = None):
     """
     import warnings
     import cProfile, pstats
-    import sage.misc.gperftools as gProfiler
 
     from sage.misc.citation_items.all import citation_items
 
 
-    try:
-        old_cpuprofile_frequency = os.environ['CPUPROFILE_FREQUENCY']
-    except KeyError:
-        old_cpuprofile_frequency = None
-    os.environ["CPUPROFILE_FREQUENCY"] = "1000"
-
     cprofiler = cProfile.Profile()
-    gprofiler = gProfiler.Profiler()
 
     cprofiler.enable()
-    try:
-        gprofiler.start()
-    except ImportError:
-        gprofiler = None
 
     yield
-
-    if gprofiler:
-        fd = sys.stderr.fileno()
-
-        with os.fdopen(os.dup(fd), 'w') as old_stderr:
-            with file(os.devnull, 'w') as devnull:
-                sys.stderr.close()
-                os.dup2(devnull.fileno(), fd)
-                sys.stderr = os.fdopen(fd, 'w')
-                try:
-                    ## Suppress warnings issued by the profiler
-                    ## because of too low frequence
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore")
-                        gprofiler.stop()
-                        gprofiler_file = tmp_filename() + ".txt"
-                        gprofiler.save(gprofiler_file, verbose=False)
-                finally:
-                    sys.stderr.close()
-                    os.dup2(old_stderr.fileno(), fd)
-                    sys.stderr = os.fdopen(fd, 'w')
-        
-        with file(gprofiler_file) as gprofiler_output:
-            gprofiler_calls = _gperftools_top_to_functions(gprofiler_output.read())
-    else:
-        gprofiler_calls = []
-
-
-    if old_cpuprofile_frequency:
-        os.environ["CPUPROFILE_FREQUENCY"] = old_cpuprofile_frequency
-    else:
-        del os.environ["CPUPROFILE_FREQUENCY"]
 
     cprofiler.disable()
     cprofiler_calls = map(_cprofile_stat_to_function_string,
@@ -181,7 +137,7 @@ def citations(record = None):
     #Remove trivial functions
     bad_res = map(re.compile,
                   [r'is_.*Element'])
-    calls = [c for c in cprofiler_calls + gprofiler_calls
+    calls = [c for c in cprofiler_calls
              if all(r.match(c) is None for r in bad_res)]
 
 
@@ -318,31 +274,3 @@ def _cprofile_stat_to_function_string(stat_key):
         return module_part + "." + function_part
     else:
         return function_part
-
-cnt_tmp = True
-def _gperftools_top_to_functions(top):
-    r"""
-    Parse a textual report of gperftools, extracting invoked pyx
-    methods.
-
-    INPUT:
-
-    - ``top`` -- A string.
-
-    OUTPUT:
-
-    A list of strings.
-
-    EXAMPLES::
-
-        sage: from sage.misc.citation import _gperftools_top_to_functions
-        sage: _gperftools_top_to_functions( "       0   0.0% 100.0%        1  16.7% __Pyx_PyObject_Call.constprop.81\n       0   0.0% 100.0%        1  16.7% __Pyx_PyObject_Call.constprop.83\n       0   0.0% 100.0%        2  33.3% __libc_start_main\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_10parent_old_6Parent__generic_convert_map\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_11coerce_maps_24DefaultConvertMap_unique__call_\n       0   0.0% 100.0%        1  16.7% __pyx_f_4sage_9structure_6coerce_24CoercionModel_cache_maps_bin_op" )
-        ['sage.structure.parent_old.Parent__generic_convert_map', 'sage.structure.coerce_maps.DefaultConvertMap_unique__call_', 'sage.structure.coerce.CoercionModel_cache_maps_bin_op']
-    """
-    split = re.compile("_[0123456789]+").split
-    lines = [l.rstrip().split()[-1] for l in top.splitlines()]
-
-    return [".".join(split(l)[1:])
-            for l in lines
-            if l.startswith("__pyx")]
-
