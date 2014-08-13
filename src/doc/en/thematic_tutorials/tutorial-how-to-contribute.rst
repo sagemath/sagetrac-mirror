@@ -1,10 +1,10 @@
 .. _tutorial-how-to-contribute:
 
-===================================
-Tutorial: How to contribute to Sage
-===================================
+==============================================
+Tutorial: How to contribute to Sage (outdated)
+==============================================
 
-.. MODULEAUTHOR:: Sébastien Labbé, with improvements by Nicolas M. Thiéry <nthiery at users.sf.net>
+.. MODULEAUTHOR:: Sébastien Labbé, with further edits by Nicolas M. Thiéry <nthiery at users.sf.net>
 
 .. We include <s5defs.txt> for colors and other predefined roles like text size
    and others
@@ -15,6 +15,13 @@ Prerequisites:
 
 * :ref:`tutorial-editing-sage-sources`.
 
+.. WARNING::
+
+    This tutorial is outdated since 2013 (Sage 6.0), when Sage
+    development's workflow was deeply refactored, including a switch
+    to the version control system git instead of Mercurial.
+
+    See instead the `Developers Guide <http://www.sagemath.org/doc/developer/>`_.
 
 GNU General Public Licence
 ==========================
