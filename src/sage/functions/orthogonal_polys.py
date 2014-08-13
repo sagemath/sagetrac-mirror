@@ -812,7 +812,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             return self._eval_recursive_(n, x)[0]
         else:
             import sage.libs.flint.arith as flint_arith
-            return flint_arith.chebyshev_T(n)
+            return flint_arith.chebyshev_T(x.parent().gen())
 
     def _eval_recursive_(self, n, x, both=False):
         """
