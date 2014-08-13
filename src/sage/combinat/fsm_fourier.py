@@ -172,6 +172,7 @@ class FSMFourier(Transducer):
             )
         """
         import collections
+        import itertools
         import operator
 
         from sage.matrix.constructor import matrix
@@ -219,7 +220,7 @@ class FSMFourier(Transducer):
                     else:
                         return kernel.row(0)
 
-                return [eigenvector(j) for j in range(self.period)]
+                return (eigenvector(j) for j in range(self.period))
 
 
         components = [FCComponent(c) for c in self.final_components()]
@@ -229,17 +230,13 @@ class FSMFourier(Transducer):
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
 
-        right_eigenvectors = reduce(
-            operator.add,
-            [c.eigenvectors(M, components, period)
-             for c in components],
-            [])
+        right_eigenvectors = list(itertools.chain(
+                *(c.eigenvectors(M, components, period)
+                  for c in components)))
 
-        left_eigenvectors = reduce(
-            operator.add,
-            [c.eigenvectors(M.transpose(), components, period)
-             for c in components],
-            [])
+        left_eigenvectors = list(itertools.chain(
+            *(c.eigenvectors(M.transpose(), components, period)
+              for c in components)))
 
         annihilated_by_left = matrix(left_eigenvectors).\
             right_kernel_matrix().transpose()
