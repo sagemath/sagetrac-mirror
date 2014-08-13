@@ -10,6 +10,7 @@ FLINT Arithmetic Functions
 
 include "../../ext/interrupt.pxi"
 include "fmpz.pxi"
+include "fmpz_poly.pxi"
 
 cdef extern from "flint/fmpq.h":
     ctypedef void * fmpq_t
@@ -21,6 +22,7 @@ cdef extern from "flint/fmpq.h":
 cdef extern from "flint/arith.h":
     void arith_number_of_partitions(fmpz_t x, unsigned long n)
     void arith_dedekind_sum(fmpq_t, fmpz_t, fmpz_t)
+    void arith_chebyshev_t_polynomial(fmpz_poly_t, unsigned long n)
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -125,3 +127,24 @@ def dedekind_sum(p, q):
 
     return s
 
+def chebyshev_T(unsigned long n, var='x'):
+    """
+    """
+    cdef Integer c_ZZ
+    cdef fmpz_poly_t p
+    cdef long len, i
+    
+    fmpz_poly_init(p)
+    
+    arith_chebyshev_t_polynomial(p, n)
+    
+    coeffs_ZZ = []
+    len = fmpz_poly_length(p)
+    for i from 0 <= i < len:
+        c_ZZ = <Integer>PY_NEW(Integer)
+        fmpz_poly_get_coeff_mpz(c_ZZ.value, p, i)
+        coeffs_ZZ.append(c_ZZ)
+    fmpz_poly_clear(p)
+
+    from sage.rings.all import ZZ
+    return ZZ[var](coeffs_ZZ)

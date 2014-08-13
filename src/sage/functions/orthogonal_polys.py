@@ -805,9 +805,14 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         """
         if n == 0:
             return parent(x).one()
-        if n < 0:
-            return self._eval_recursive_(-n, x)[0]
-        return self._eval_recursive_(n, x)[0]
+        from sage.symbolic.ring import SR
+        if x.parent() == SR or x <> x.parent().gen():
+            if n < 0:
+                return self._eval_recursive_(-n, x)[0]
+            return self._eval_recursive_(n, x)[0]
+        else:
+            import sage.libs.flint.arith as flint_arith
+            return flint_arith.chebyshev_T(n)
 
     def _eval_recursive_(self, n, x, both=False):
         """
