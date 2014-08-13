@@ -220,7 +220,18 @@ class FSMFourier(Transducer):
                     else:
                         return kernel.row(0)
 
-                return (eigenvector(j) for j in range(self.period))
+                return [eigenvector(j) for j in range(self.period)]
+
+            @cached_method()
+            def right_eigenvectors(self):
+                return self.eigenvectors(M, components, period)
+
+            @cached_method()
+            def left_eigenvectors(self):
+                left_eigenvectors = self.eigenvectors(M.transpose(), components, period)
+                return [w/(v*w) for v, w
+                        in itertools.izip(self.right_eigenvectors(),
+                                          left_eigenvectors)]
 
 
         components = [FCComponent(c) for c in self.final_components()]
@@ -231,12 +242,12 @@ class FSMFourier(Transducer):
         standard_basis = VectorSpace(field, M.nrows()).basis()
 
         right_eigenvectors = list(itertools.chain(
-                *(c.eigenvectors(M, components, period)
+                *(c.right_eigenvectors()
                   for c in components)))
 
         left_eigenvectors = list(itertools.chain(
-            *(c.eigenvectors(M.transpose(), components, period)
-              for c in components)))
+                *(c.left_eigenvectors()
+                  for c in components)))
 
         annihilated_by_left = matrix(left_eigenvectors).\
             right_kernel_matrix().transpose()
@@ -259,6 +270,9 @@ class FSMFourier(Transducer):
                 [[matrix.diagonal(eigenvalues), ZZ(0)],
                  [ZZ(0), check_dont_care]],
                      subdivide=False) - check).is_zero()
+
+        assert (T.inverse().submatrix(nrows=len(left_eigenvectors))
+                - matrix(left_eigenvectors)).is_zero()
 
         return FourierCoefficientData(
             c=len(components),
