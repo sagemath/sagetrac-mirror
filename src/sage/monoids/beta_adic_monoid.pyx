@@ -266,23 +266,28 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
             tss = tss.emonde0_simplify()
             if verb:
                 print tss
-        a = {}
-        for v in ss.vertices():
-            a[v] = Automaton(ss)
-            a[v].I = [list(ss.I)[0]]
-            a[v].F = [v]
+        if la is None:
+            if hasattr(self, 'la'):
+                la = self.la
+        if la is None:
+            #compute la
+            a = {}
+            for v in ss.vertices():
+                a[v] = Automaton(ss)
+                a[v].I = [list(ss.I)[0]]
+                a[v].F = [v]
+                if verb:
+                    print "Compute the transposition..."
+                a[v] = a[v].transpose().determinize()
+                if verb:
+                    print a[v]
+                    print "simplify..."
+                a[v] = a[v].emonde0_simplify()
+                if verb:
+                    print a[v]
+            la = [tss]+a.values()
             if verb:
-                print "Compute the transposition..."
-            a[v] = a[v].transpose().determinize()
-            if verb:
-                print a[v]
-                print "simplify..."
-            a[v] = a[v].emonde0_simplify()
-            if verb:
-                print a[v]
-        la = [tss]+a.values()
-        if verb:
-            self.la = la
+                self.la = la
       
     C = set(self.C)
     if add_letters:
@@ -690,7 +695,7 @@ class BetaAdicMonoid(Monoid_class):
         FreeAutomate(b.a)
         FreeBetaAdic(b)
         
-    def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', opacity = 1., add_letters=True, verb=False):
+    def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
         r"""
         Draw the limit set of the beta-adic monoid with colors.
 
@@ -780,7 +785,9 @@ class BetaAdicMonoid(Monoid_class):
         if n is None:
             n = -1
         
-        # Manage colors and opacity
+        # Manage colors
+        if backcolor is None:
+            backcolor = (.5, .5, .5, .5)
         cdef ColorList cl
         cl = NewColorList(b.na)
         if isinstance(colormap, dict):
@@ -796,7 +803,7 @@ class BetaAdicMonoid(Monoid_class):
             if not colormap in cm.datad.keys():
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
             colormap = cm.__dict__[colormap]
-            cl[0] = getColor(colormap(1.))
+            cl[0] = getColor(backcolor)
             for i in range(b.na-1):
                 cl[i+1] = getColor(colormap(float(i)/float(b.na-1)))
         else:
