@@ -129,6 +129,14 @@ def dedekind_sum(p, q):
 
 def chebyshev_T(unsigned long n, var='x'):
     """
+    Return the n-th Chebyshev polynomial T(n,x) in the given variable.
+    
+    EXAMPLES::
+
+        sage: R.<t> = PolynomialRing(ZZ)
+        sage: from sage.libs.flint.arith import chebyshev_T
+        sage: chebyshev_T(5, t)
+        16*t^5 - 20*t^3 + 5*t
     """
     cdef Integer c_ZZ
     cdef fmpz_poly_t p
