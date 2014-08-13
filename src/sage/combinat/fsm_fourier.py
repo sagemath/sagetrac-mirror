@@ -61,152 +61,152 @@ class FSMFourier(Transducer):
 
         -   Binary sum of digits::
 
-            sage: function('f')
-            f
-            sage: var('n')
-            n
-            sage: from fsm_fourier import FSMFourier
-            sage: T = transducers.Recursion([
-            ....:     f(2*n + 1) == f(n) + 1,
-            ....:     f(2*n) == f(n),
-            ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()
-            FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
-            w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
-            M=[2], M_epsilon=[[1], [1]], Delta=[1],
-            Delta_epsilon=[[0], [1]])
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: from fsm_fourier import FSMFourier
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()
+                FourierCoefficientData(c=1, periods=[1], period=1, T=[1],
+                w=[[(1)]], coefficient_lambda=[1], e_T=1/2, a=[1/2],
+                M=[2], M_epsilon=[[1], [1]], Delta=[1],
+                Delta_epsilon=[[0], [1]])
 
         -   NAF::
 
-            sage: T = transducers.Recursion([
-            ....:     f(4*n + 1) == f(n) + 1,
-            ....:     f(4*n + 3) == f(n + 1) + 1,
-            ....:     f(2*n) == f(n),
-            ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-            (
-                       [1/3   1   0]
-                       [1/3   0   1]
-            1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]], [1],
-            1/3, [1/3]
-            )
+                sage: T = transducers.Recursion([
+                ....:     f(4*n + 1) == f(n) + 1,
+                ....:     f(4*n + 3) == f(n + 1) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
+                (
+                           [1/3   1   0]
+                           [1/3   0   1]
+                1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]], [1],
+                1/3, [1/3]
+                )
 
         -   Abelian complexity of the paperfolding sequence::
 
-            sage: T = transducers.Recursion([
-            ....:     f(4*n) == f(2*n),
-            ....:     f(4*n+2) == f(2*n+1)+1,
-            ....:     f(16*n+1) == f(8*n+1),
-            ....:     f(16*n+5) == f(4*n+1)+2,
-            ....:     f(16*n+11) == f(4*n+3)+2,
-            ....:     f(16*n+15) == f(2*n+2)+1,
-            ....:     f(1) == 2, f(0) == 0]
-            ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-            (
-                       [1/10    1    0    0    0    0    0    0    0    0]
-                       [1/10    0    1    0    0    0    0    0    0    0]
-                       [1/10    0    0    1    0    0    0    0    0    0]
-                       [1/10    0    0    0    1    0    0    0    0    0]
-                       [1/10    0    0    0    0    1    0    0    0    0]
-                       [1/10    0    0    0    0    0    1    0    0    0]
-                       [1/10    0    0    0    0    0    0    1    0    0]
-                       [1/10    0    0    0    0    0    0    0    1    0]
-                       [1/10    0    0    0    0    0    0    0    0    1]
-            1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1],
-            [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]],
-            [1], 8/13, [8/13]
-            )
+                sage: T = transducers.Recursion([
+                ....:     f(4*n) == f(2*n),
+                ....:     f(4*n+2) == f(2*n+1)+1,
+                ....:     f(16*n+1) == f(8*n+1),
+                ....:     f(16*n+5) == f(4*n+1)+2,
+                ....:     f(16*n+11) == f(4*n+3)+2,
+                ....:     f(16*n+15) == f(2*n+2)+1,
+                ....:     f(1) == 2, f(0) == 0]
+                ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
+                (
+                           [1/10    1    0    0    0    0    0    0    0    0]
+                           [1/10    0    1    0    0    0    0    0    0    0]
+                           [1/10    0    0    1    0    0    0    0    0    0]
+                           [1/10    0    0    0    1    0    0    0    0    0]
+                           [1/10    0    0    0    0    1    0    0    0    0]
+                           [1/10    0    0    0    0    0    1    0    0    0]
+                           [1/10    0    0    0    0    0    0    1    0    0]
+                           [1/10    0    0    0    0    0    0    0    1    0]
+                           [1/10    0    0    0    0    0    0    0    0    1]
+                1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1],
+                [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]],
+                [1], 8/13, [8/13]
+                )
 
         -   Artificial example, one-periodic, 2 states::
 
-            sage: T = transducers.Recursion([
-            ....:     f(4*n) == f(2*n)+0,
-            ....:     f(4*n+2) == f(n)+1,
-            ....:     f(2*n+1) == f(n),
-            ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-            (
-                       [1/2   1]
-            1, [1], 1, [1/2  -1],
-            [[(1/2, 1/2)]],
-            [1], 1/4, [1/4]
-            )
+                sage: T = transducers.Recursion([
+                ....:     f(4*n) == f(2*n)+0,
+                ....:     f(4*n+2) == f(n)+1,
+                ....:     f(2*n+1) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
+                (
+                           [1/2   1]
+                1, [1], 1, [1/2  -1],
+                [[(1/2, 1/2)]],
+                [1], 1/4, [1/4]
+                )
 
         -   Artificial example, period 3::
 
-            sage: T = transducers.Recursion([
-            ....:     f(8*n) == f(4*n+3)+3,
-            ....:     f(8*n+4) == f(4*n+3)+1,
-            ....:     f(8*n+2) == f(4*n+3)+2,
-            ....:     f(8*n+6) == f(4*n+3)-1,
-            ....:     f(8*n+1) == f(4*n)+5,
-            ....:     f(8*n+5) == f(4*n+2)+1,
-            ....:     f(8*n+3) == f(4*n+1)+2,
-            ....:     f(8*n+7) == f(4*n+1),
-            ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-            (
-                          [         1/7            1            1            1            0            0            0]
-                          [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
-                          [         1/7     -2*zeta3  2*zeta3 + 2            0            0            1            0]
-                          [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0            1]
-                          [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0           -1]
-                          [         1/7      4*zeta3 -4*zeta3 - 4            0            0            0            0]
-               1, [3], 3, [         1/7            4            4            0            0            0            0],
-               [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
-                 (0, 0, 0, 1/24*zeta3, 1/24*zeta3, -1/12*zeta3 - 1/12, 1/12),
-                 (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]],
-               [1], 7/4, [7/4]
-            )
+                sage: T = transducers.Recursion([
+                ....:     f(8*n) == f(4*n+3)+3,
+                ....:     f(8*n+4) == f(4*n+3)+1,
+                ....:     f(8*n+2) == f(4*n+3)+2,
+                ....:     f(8*n+6) == f(4*n+3)-1,
+                ....:     f(8*n+1) == f(4*n)+5,
+                ....:     f(8*n+5) == f(4*n+2)+1,
+                ....:     f(8*n+3) == f(4*n+1)+2,
+                ....:     f(8*n+7) == f(4*n+1),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
+                (
+                              [         1/7            1            1            1            0            0            0]
+                              [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
+                              [         1/7     -2*zeta3  2*zeta3 + 2            0            0            1            0]
+                              [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0            1]
+                              [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0           -1]
+                              [         1/7      4*zeta3 -4*zeta3 - 4            0            0            0            0]
+                   1, [3], 3, [         1/7            4            4            0            0            0            0],
+                   [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
+                     (0, 0, 0, 1/24*zeta3, 1/24*zeta3, -1/12*zeta3 - 1/12, 1/12),
+                     (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]],
+                   [1], 7/4, [7/4]
+                )
 
         -   Artificial example, period 2, vanishing w-vector::
 
-            sage: T = transducers.Recursion([
-            ....:     f(4*n) == f(2*n+1)+1,
-            ....:     f(4*n+1) == f(2*n)+2,
-            ....:     f(4*n+2) == f(2*n+1)+3,
-            ....:     f(4*n+3) == f(2*n)-1,
-            ....:     f(0) == 0],
-            ....:     f, n, 2)
-            sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
-            (
-                       [1/3   0   1]
-                       [1/3   1   0]
-            1, [2], 2, [1/3  -1   0],
-            [[(0, 1/2, 1/2), (0, 0, 0)]],
-            [1], 5/4, [5/4]
-            )
+                sage: T = transducers.Recursion([
+                ....:     f(4*n) == f(2*n+1)+1,
+                ....:     f(4*n+1) == f(2*n)+2,
+                ....:     f(4*n+2) == f(2*n+1)+3,
+                ....:     f(4*n+3) == f(2*n)-1,
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: FSMFourier(T)._fourier_coefficient_data_()[:8]
+                (
+                           [1/3   0   1]
+                           [1/3   1   0]
+                1, [2], 2, [1/3  -1   0],
+                [[(0, 1/2, 1/2), (0, 0, 0)]],
+                [1], 5/4, [5/4]
+                )
 
         -   Artificial example with two final components of periods `2`
             and `3`, respectively::
 
-            sage: T = FSMFourier([(0, 1, 0, 1), (1, 2, 0, 1),
-            ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
-            ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
-            ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
-            ....:     (-3, -1, 0, 3)],
-            ....:     initial_states=[0],
-            ....:     final_states=[0, 1, 2, -3, -2, -1])
-            sage: T._fourier_coefficient_data_()[:8]
-            (
-                          [        1/7           1           1         1/5           1           1]
-                          [          0           0           0         2/5          -2           0]
-                          [          0           0           0         2/5           2           0]
-                          [        2/7           2           2           0           0           0]
-                          [        2/7    -2*zeta6 2*zeta6 - 2           0           0           0]
-            2, [3, 2], 6, [        2/7 2*zeta6 - 2    -2*zeta6           0           0           0],
-            [[(0, 0, 0, 1/6, 1/6, 1/6),
-              (0, 0, 0, 1/6, 1/6*zeta6 - 1/6, -1/6*zeta6),
-              (0, 0, 0, 1/6, -1/6*zeta6, 1/6*zeta6 - 1/6)],
-             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]],
-            [1/2, 1/2], 11/8, [5/4, 5/4]
-            )
+                sage: T = FSMFourier([(0, 1, 0, 1), (1, 2, 0, 1),
+                ....:     (2, 1, 0, 2), (1, 2, 1, 0), (2, 1, 1, 2),
+                ....:     (0, -1, 1, 1), (-1, -2, 1, 1), (-2, -3, 1, 1),
+                ....:     (-3, -1, 1, 1), (-1, -2, 0, 2), (-2, -3, 0, 1),
+                ....:     (-3, -1, 0, 3)],
+                ....:     initial_states=[0],
+                ....:     final_states=[0, 1, 2, -3, -2, -1])
+                sage: T._fourier_coefficient_data_()[:8]
+                (
+                              [        1/7           1           1         1/5           1           1]
+                              [          0           0           0         2/5          -2           0]
+                              [          0           0           0         2/5           2           0]
+                              [        2/7           2           2           0           0           0]
+                              [        2/7    -2*zeta6 2*zeta6 - 2           0           0           0]
+                2, [3, 2], 6, [        2/7 2*zeta6 - 2    -2*zeta6           0           0           0],
+                [[(0, 0, 0, 1/6, 1/6, 1/6),
+                  (0, 0, 0, 1/6, 1/6*zeta6 - 1/6, -1/6*zeta6),
+                  (0, 0, 0, 1/6, -1/6*zeta6, 1/6*zeta6 - 1/6)],
+                 [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]],
+                [1/2, 1/2], 11/8, [5/4, 5/4]
+                )
         """
         import collections
         import itertools
