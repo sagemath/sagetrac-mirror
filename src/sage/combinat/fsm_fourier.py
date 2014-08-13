@@ -17,7 +17,7 @@ class FSMFourier(Transducer):
 
     @cached_method
     def _fourier_coefficient_data_(self):
-        """
+        r"""
         Return the common data needed for the computation of all
         Fourier coefficients of the periodic fluctuation of the sum of
         output.
@@ -38,6 +38,8 @@ class FSMFourier(Transducer):
 
         - ``T`` -- eigenvector matrix.
 
+        - ``w`` -- list of lists of vectors `\mathbf{w}_{jk}`.
+
         EXAMPLES:
 
         -   Binary sum of digits::
@@ -53,7 +55,7 @@ class FSMFourier(Transducer):
             ....:     f(0) == 0],
             ....:     f, n, 2)
             sage: FSMFourier(T)._fourier_coefficient_data_()
-            FourierCoefficientData(c=1, periods=[1], period=1, T=[1])
+            FourierCoefficientData(c=1, periods=[1], period=1, T=[1], w=[[(1)]])
 
         -   NAF::
 
@@ -67,10 +69,10 @@ class FSMFourier(Transducer):
             (
                        [1/3   1   0]
                        [1/3   0   1]
-            1, [1], 1, [1/3  -1  -1]
+            1, [1], 1, [1/3  -1  -1], [[(1/3, 1/3, 1/3)]]
             )
 
-        -   Abelian complexity of the paperfolding squence::
+        -   Abelian complexity of the paperfolding sequence::
 
             sage: T = transducers.Recursion([
             ....:     f(4*n) == f(2*n),
@@ -93,9 +95,9 @@ class FSMFourier(Transducer):
                        [1/10    0    0    0    0    0    0    1    0    0]
                        [1/10    0    0    0    0    0    0    0    1    0]
                        [1/10    0    0    0    0    0    0    0    0    1]
-            1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1]
+            1, [1], 1, [1/10    0    0   -3   -2   -2   -2   -1   -1   -1],
+            [[(0, 0, 3/13, 2/13, 2/13, 2/13, 1/13, 1/13, 1/13, 1/13)]]
             )
-            
 
         -   Artificial example, one-periodic, 2 states::
 
@@ -108,7 +110,8 @@ class FSMFourier(Transducer):
             sage: FSMFourier(T)._fourier_coefficient_data_()
             (
                        [1/2   1]
-            1, [1], 1, [1/2  -1]
+            1, [1], 1, [1/2  -1],
+            [[(1/2, 1/2)]]
             )
 
         -   Artificial example, period 3::
@@ -126,16 +129,19 @@ class FSMFourier(Transducer):
             ....:     f, n, 2)
             sage: FSMFourier(T)._fourier_coefficient_data_()
             (
-                       [         1/7            1            1            1            0            0            0]
-                       [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
-                       [         1/7     -2*zeta3  2*zeta3 + 2            0            0            1            0]
-                       [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0            1]
-                       [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0           -1]
-                       [         1/7      4*zeta3 -4*zeta3 - 4            0            0            0            0]
-            1, [3], 3, [         1/7            4            4            0            0            0            0]
+                          [         1/7            1            1            1            0            0            0]
+                          [         1/7      4*zeta3 -4*zeta3 - 4            0            1            0            0]
+                          [         1/7     -2*zeta3  2*zeta3 + 2            0            0            1            0]
+                          [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0            1]
+                          [         1/7 -4*zeta3 - 4      4*zeta3            0            0            0           -1]
+                          [         1/7      4*zeta3 -4*zeta3 - 4            0            0            0            0]
+               1, [3], 3, [         1/7            4            4            0            0            0            0],
+               [[(0, 0, 0, 1/6, 1/6, 1/3, 1/3),
+                 (0, 0, 0, 1/24*zeta3, 1/24*zeta3, -1/12*zeta3 - 1/12, 1/12),
+                 (0, 0, 0, -1/24*zeta3 - 1/24, -1/24*zeta3 - 1/24, 1/12*zeta3, 1/12)]]
             )
 
-        -   Artificial example, period 2, vanishing vector::
+        -   Artificial example, period 2, vanishing w-vector::
 
             sage: T = transducers.Recursion([
             ....:     f(4*n) == f(2*n+1)+1,
@@ -148,7 +154,8 @@ class FSMFourier(Transducer):
             (
                        [1/3   0   1]
                        [1/3   1   0]
-            1, [2], 2, [1/3  -1   0]
+            1, [2], 2, [1/3  -1   0],
+            [[(0, 1/2, 1/2), (0, 0, 0)]]
             )
 
         -   Artificial example with two final components of periods `2`
@@ -168,7 +175,11 @@ class FSMFourier(Transducer):
                           [          0           0           0         2/5           2           0]
                           [        2/7           2           2           0           0           0]
                           [        2/7    -2*zeta6 2*zeta6 - 2           0           0           0]
-            2, [3, 2], 6, [        2/7 2*zeta6 - 2    -2*zeta6           0           0           0]
+            2, [3, 2], 6, [        2/7 2*zeta6 - 2    -2*zeta6           0           0           0],
+            [[(0, 0, 0, 1/6, 1/6, 1/6),
+              (0, 0, 0, 1/6, 1/6*zeta6 - 1/6, -1/6*zeta6),
+              (0, 0, 0, 1/6, -1/6*zeta6, 1/6*zeta6 - 1/6)],
+             [(0, 1/4, 1/4, 0, 0, 0), (0, -1/4, 1/4, 0, 0, 0)]]
             )
         """
         import collections
@@ -184,7 +195,7 @@ class FSMFourier(Transducer):
 
         FourierCoefficientData = collections.namedtuple(
             "FourierCoefficientData",
-            ["c", "periods", "period", "T"])
+            ["c", "periods", "period", "T", "w"])
 
         positions = dict((state.label(), j)
                          for j, state in enumerate(self.iter_states()))
@@ -233,6 +244,12 @@ class FSMFourier(Transducer):
                         in itertools.izip(self.right_eigenvectors(),
                                           left_eigenvectors)]
 
+            @cached_method()
+            def vectors_w(self):
+                return [(initial_vector*v)*w for v, w
+                        in itertools.izip(self.right_eigenvectors(),
+                                          self.left_eigenvectors())]
+
 
         components = [FCComponent(c) for c in self.final_components()]
         period = lcm([c.period for c in components])
@@ -240,6 +257,12 @@ class FSMFourier(Transducer):
         alpha = field.gen()
         M = self.adjacency_matrix(entry=lambda t: 1)
         standard_basis = VectorSpace(field, M.nrows()).basis()
+
+        if len(self.initial_states()) != 1:
+            raise NotImplementedError(
+                "Transducer does not have a unique initial state.")
+        initial_vector = standard_basis[positions[
+                self.initial_states()[0].label()]]
 
         right_eigenvectors = list(itertools.chain(
                 *(c.right_eigenvectors()
@@ -278,4 +301,5 @@ class FSMFourier(Transducer):
             c=len(components),
             periods=[c.period for c in components],
             period=period,
-            T=T)
+            T=T,
+            w=[c.vectors_w() for c in components])
