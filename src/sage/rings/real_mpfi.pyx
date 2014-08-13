@@ -2629,6 +2629,35 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_mul(x.value, self.value, (<RealIntervalFieldElement>right).value)
         return x
 
+    def __floordiv__(self, other):
+        """
+        Return the floor of ``self`` divided by ``other``.
+
+        EXAMPLES::
+
+            sage: RIF('8.2') // RIF('2.7')
+            3
+            sage: RIF(0,2) // 3
+            0
+            sage: 3 // RIF(0,1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Floor division by zero
+
+        In this case, the floor division is not well-defined,
+        since the result of the division could be just below or
+        just above `1`::
+
+            sage: RIF(5/3) // RIF(5/3)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique floor
+        """
+        # Check that the interval does not contain 0 in a way which is
+        # compatible with non-interval types.
+        if not other != 0:
+            raise ZeroDivisionError("Floor division by zero")
+        return (self / other).unique_floor()
 
     cpdef RingElement _div_(self, RingElement right):
         """

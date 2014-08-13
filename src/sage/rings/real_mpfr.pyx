@@ -2306,8 +2306,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def __floordiv__(RealNumber self, other):
         r"""
-        Return the floor of the quotient of the division of ``self``
-        by ``other``.
+        Return the floor of ``self`` divided by ``other``.
         
         EXAMPLES::
         
@@ -2315,21 +2314,21 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1
             sage: RR(0.9) // RR(0.2)
             4
-        
-        TESTS::
-
             sage: RR(1) // RR(0)
             Traceback (most recent call last):
             ...
-            ValueError: Calling floor() on infinity or NaN
+            ZeroDivisionError: Floor division by zero
 
-        Rounding is always downwards::
+        Rounding is always downwards (the rounding mode of the parent
+        does not matter)::
 
             sage: RR(3*2^53-4) // RR(2^53-1)
             2
             sage: RR(3*2^53-4) // RR(1-2^53)
             -3
         """
+        if not other != 0:
+            raise ZeroDivisionError("Floor division by zero")
         cdef RealNumber x = self._new()
         cdef RealNumber right = self.parent()(other)
         mpfr_div(x.value, self.value, right.value, GMP_RNDD)
