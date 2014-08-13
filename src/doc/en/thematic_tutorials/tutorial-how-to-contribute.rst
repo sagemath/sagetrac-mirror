@@ -6,6 +6,11 @@ Tutorial: How to contribute to Sage
 
 .. MODULEAUTHOR:: Sébastien Labbé, with improvements by Nicolas M. Thiéry <nthiery at users.sf.net>
 
+.. We include <s5defs.txt> for colors and other predefined roles like text size
+   and others
+
+.. include:: <s5defs.txt>
+
 Prerequisites:
 
 * :ref:`tutorial-editing-sage-sources`.
@@ -26,33 +31,27 @@ All users of Sage make use of the first freedom. In
 * :ref:`tutorial-editing-sage-sources` we used the second and
 third. Here we will see :red:`how to use the last one`.
 
-Twenty Two Easy Steps
-=====================
+Sixteen Easy Steps
+==================
 
-.. class:: borderless
+.. class:: borderlesstable
 
     +-----------------------------------+-----------------------------------+
-    | 1. Find a bug                     | 12. Build the documentation       |
+    | 1. Find a bug                     | 9. Verify the content the patch   |
     +-----------------------------------+-----------------------------------+
-    | 2. Sage trac server               | 13. Update the current patch      |
+    | 2. Sage trac server               | 10. Upload the patch on Sage trac |
     +-----------------------------------+-----------------------------------+
-    | 3. Create a ticket                | 14. Export a patch                |
+    | 3. Create a ticket                | 11. More on Mercurial queues      |
     +-----------------------------------+-----------------------------------+
-    | 4. Clone your Sage                | 15. Verify the patch              |
+    | 4. Edit the sage sources          | 12. Download a patch              |
     +-----------------------------------+-----------------------------------+
-    | 5. Mercurial                      | 16. Upload the patch              |
+    | 5. Enable Mercurial queues        | 13. Edit the series file          |
     +-----------------------------------+-----------------------------------+
-    | 6. Enable Mercurial queues        | 17. More on Mercurial queues      |
+    | 6. Create a patch                 | 14. Reviewing a patch             |
     +-----------------------------------+-----------------------------------+
-    | 7. Create an empty patch          | 18. Dowload a patch               |
+    | 7. Update the current patch       | 15. Positive review or Needs work |
     +-----------------------------------+-----------------------------------+
-    | 8. Fix the bug                    | 19. Edit the series file          |
-    +-----------------------------------+-----------------------------------+
-    | 9. View your changes              | 20. Reviewing a patch             |
-    +-----------------------------------+-----------------------------------+
-    | 10. Test the changes              | 21. Positive review or Needs work |
-    +-----------------------------------+-----------------------------------+
-    | 11. Run tests                     | 22. Do some cleaning              |
+    | 8. Export a patch                 | 16. Advanced tricks               |
     +-----------------------------------+-----------------------------------+
 
 .. container:: incremental center
@@ -134,7 +133,7 @@ If you plan on joining the Sage-Combinat community, you may as well
 create at once `a full featured .hgrc <http://wiki.sagemath.org/combinat/MercurialStepByStep#Mercurialconfiguration>`_
 
 
-7. Create a patch
+6. Create a patch
 =================
 
 Create a patch::
@@ -155,7 +154,7 @@ Modifications are now in the patch. See **hg qstatus** or **hg qdiff**::
     > **hg qstatus**
     > **hg qdiff**
 
-8. Update the current patch
+7. Update the current patch
 ============================
 
 Anytime one is happy with the current modifications, one may *update
@@ -166,7 +165,7 @@ the current patch* with **hg qrefresh** to reflect the changes::
 After that, **hg status** and **hg diff** will report changes with
 respect to the last **hg qrefresh**.
 
-9. Export a patch
+8. Export a patch
 ==================
 
 When the bug is fixed, once we made sure every tests pass and that the
@@ -187,7 +186,7 @@ The command **hg export** also adds informations in the patch (author name, date
 
         alias qtoptotmp='hg export `hg qtop` > ~/Documents/tmp/`hg qtop`'
 
-10. Verify the content the patch
+9. Verify the content the patch
 ================================
 
 Here is an example of a patch exported by ``Mercurial`` for the ticket
@@ -230,7 +229,7 @@ Here is an example of a patch exported by ``Mercurial`` for the ticket
 	     """
 
 
-11. Upload the patch on Sage trac
+10. Upload the patch on Sage trac
 =================================
 
 From the `ticket page
@@ -246,7 +245,7 @@ directly on the web page.
 You may ask somebody to review your ticket, typically by adding his
 trac login in the CC field.
 
-12. More on Mercurial queues
+11. More on Mercurial queues
 ============================
 
 Other useful Mercurial commands when managing several patches:
@@ -295,7 +294,7 @@ Other useful Mercurial commands when managing several patches:
     Update the repository's working directory to the specified changeset.
 
 
-13. Download a patch
+12. Download a patch
 ====================
 
 .. todo:: move this just before uploading to trac
@@ -320,7 +319,7 @@ qimport**, and then apply it with **hg qpush**::
     Do :red:`NOT` use the command **hg import** as it will import the
     changes in the current patch.
 
-14. Edit the series file
+13. Edit the series file
 ========================
 
 You can change the order in which the patches are applied. To do so,
@@ -343,7 +342,7 @@ Make sure the patch you are reviewing is :red:`the first patch` to be applied::
     exact same line. If conflicts occur after editing the series file
     and doing **hg qpush**, simply edit the series file and try again.
 
-15. Reviewing a patch
+14. Reviewing a patch
 =====================
 
 Visit the `Reviewing a patch
@@ -366,9 +365,6 @@ Run tests on the affected files::
 
     > sage -t <affected_files>
 
-16. Reviewing a patch
-=====================
-
 Test the entire Sage library.
 
     > sage --testall --long
@@ -385,9 +381,9 @@ Once you’ve tested the patch, report any failures on the Trac page for the tic
 Make suggestions about simplifying the code or fixing typos you noticed.
 
 .. note:: The experimental `Sage patch buildbot <http://wiki.sagemath.org/buildbot>`_
-   can take care of those for you.
+   automatizes some of the steps.
 
-17. Positive review or Needs work
+15. Positive review or Needs work
 =================================
 
 Three cases may happen:
@@ -408,15 +404,12 @@ Three cases may happen:
 
     Feedback on tickets is always useful!
 
-18. Positive review or Needs work
-=================================
-
 .. note::
 
    In Sage, a **negative review** :red:`does not` exist!
    There is always room for work and improvement!
 
-19. Advanced tricks
+16. Advanced tricks
 ===================
 
 19.1 Clone your version of Sage
@@ -443,7 +436,7 @@ This creates a :red:`new directory` called ``sage-slabbe`` in the ``devel`` repo
 
     > cd /opt/sage/devel/sage-slabbe
 
-.. class:: borderless
+.. class:: borderlesstable
 
 .. list-table::
     :widths: 200 200 200
@@ -461,6 +454,13 @@ This creates a :red:`new directory` called ``sage-slabbe`` in the ``devel`` repo
     * - ``sage -br``
       -
       -
+
+19.2. Do some cleaning
+----------------------
+
+Delete an (unapplied) patch from the queue::
+
+    > hg qdelete trac_65321-nice-feature-AA.patch
 
 Erase your branch. Of course, do this only if you don't care about
 your local changes::
