@@ -994,6 +994,8 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             1
             sage: chebyshev_U.eval_algebraic(1, t)
             2*t
+            sage: chebyshev_U(1000, t).coeffs()[4]
+            41833166000
             sage: n = 97; x = RIF(pi/n)
             sage: chebyshev_U(n-1, cos(x)).contains_zero()
             True
@@ -1001,11 +1003,18 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U(10^6+1, t)
             (2 + O(2^6))*t + (O(2^6))
         """
+        P = parent(x)
         if n == -1:
             return parent(x).zero()
-        if n < 0:
-            return -self._eval_recursive_(-n-2, x)[0]
-        return self._eval_recursive_(n, x)[0]
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if (n>10 and is_PolynomialRing(P) and P.base() == ZZ
+            and P.ngens() == 1 and x == P.gen()):
+            import sage.libs.flint.arith as flint_arith
+            return flint_arith.chebyshev_T(n+1, P.gen()).derivative()/(n+1)
+        else:
+            if n < 0:
+                return -self._eval_recursive_(-n-2, x)[0]
+            return self._eval_recursive_(n, x)[0]
 
     def _eval_recursive_(self, n, x, both=False):
         """
