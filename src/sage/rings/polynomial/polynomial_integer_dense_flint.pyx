@@ -52,6 +52,9 @@ cdef extern from "limits.h":
 cdef extern from "flint/flint.h":
     int FLINT_BITS
 
+cdef extern from "flint/arith.h":
+    void arith_chebyshev_t_polynomial(fmpz_poly_t, unsigned long n)
+
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
@@ -1471,3 +1474,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
 
         return res
+
+    def chebyshev_T(self, n, Parent P):
+        r"""
+        Return the n-th Chebyshev T polynomial in parent P.
+
+        EXAMPLE::
+
+            sage: R.<x> = ZZ[]
+            sage: x.chebyshev_T(5,R)
+            16*x^5 - 20*x^3 + 5*x
+        """
+        cdef Polynomial_integer_dense_flint x = self._new()
+        x._parent = P
+        x._is_gen = 0
+        if not PY_TYPE_CHECK(n, Integer) or n < 0:
+            raise ValueError("argument n must be a non-negative integer, got %s" % str(n))
+        sig_on()
+        arith_chebyshev_t_polynomial(x.__poly, n)
+        sig_off()
+        return x

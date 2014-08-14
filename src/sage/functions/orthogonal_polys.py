@@ -812,7 +812,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         if (n>10 and is_PolynomialRing(P) and P.base() == ZZ
             and P.ngens() == 1 and x == P.gen()):
             import sage.libs.flint.arith as flint_arith
-            return flint_arith.chebyshev_T(n, P.gen())
+            return x.chebyshev_T(n, P)
         else:
             if n < 0:
                 return self._eval_recursive_(-n, x)[0]
