@@ -809,9 +809,10 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         if n == 0:
             return P.one()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if (n>10 and is_PolynomialRing(P) and P.base() == ZZ
+        if (is_PolynomialRing(P) and P.base() == ZZ
             and P.ngens() == 1 and x == P.gen()):
-            import sage.libs.flint.arith as flint_arith
+            if n<0:
+                n = -n
             return x.chebyshev_T(n, P)
         else:
             if n < 0:
@@ -1005,12 +1006,15 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         """
         P = parent(x)
         if n == -1:
-            return parent(x).zero()
+            return P.zero()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if (n>10 and is_PolynomialRing(P) and P.base() == ZZ
+        if (is_PolynomialRing(P) and P.base() == ZZ
             and P.ngens() == 1 and x == P.gen()):
-            import sage.libs.flint.arith as flint_arith
-            return flint_arith.chebyshev_T(n+1, P.gen()).derivative()/(n+1)
+            if n<0:
+                n = - n - 2
+                return -x.chebyshev_T(n+1, P).derivative()/(n+1)
+            else:
+                return x.chebyshev_T(n+1, P).derivative()/(n+1)
         else:
             if n < 0:
                 return -self._eval_recursive_(-n-2, x)[0]
