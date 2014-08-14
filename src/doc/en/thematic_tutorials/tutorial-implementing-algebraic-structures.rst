@@ -75,6 +75,8 @@ case::
     sage: A.category()
     Category of vector spaces with basis over Rational Field
 
+.. TODO:: how to use a proper link here and below?
+
 We can look at the available categories from the documentation in the
 reference manual: http://sagemath.com/doc/reference/categories.html
 
