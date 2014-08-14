@@ -17,7 +17,8 @@ This tutorial will discuss five concepts:
 At the end of this tutorial, the reader should be able to reimplement
 by himself the example of algebra with several realizations::
 
-    sage: Sets().WithRealizations()
+    sage: Sets().WithRealizations().example()
+    The subset algebra of {1, 2, 3} over Rational Field
 
 Namely, we consider an algebra `A(S)` whose basis is indexed by the
 subsets `s` of a given set `S`. `A(S)` is endowed with three natural
@@ -190,20 +191,20 @@ on our algebra for us::
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
 
-For more information on categories, see::
+For more information on categories, see :ref:`sage.categories.primer`::
 
     sage: sage.categories.primer?
 
 Review
 ------
 
-We wanted to create an algebra, so we::
+We wanted to implement an algebra, so we:
 
-# Created the underlying vector space using :class:`CombinatorialFreeModule`
-# Looked at ``sage.categories.<tab>`` to find an appropriate category
-# Loaded an example of that category to see what methods we needed to write
-# Added the category information and other necessary methods to our class
-# Ran :class:`TestSuite` to catch potential discrepancies
+#.  Created the underlying vector space using :class:`CombinatorialFreeModule`
+#.  Looked at ``sage.categories.<tab>`` to find an appropriate category
+#.  Loaded an example of that category to see what methods we needed to write
+#.  Added the category information and other necessary methods to our class
+#.  Ran :class:`TestSuite` to catch potential discrepancies
 
 Exercises
 ---------
@@ -449,7 +450,7 @@ implement a new basis of the algebra of symmetric functions::
     sage: h  = SF.homogeneous()         # A particular basis, indexed by partitions (with some additional magic)
 
 `h` is a graded algebra whose basis is indexed by partitions. Namely
-``h([i])`` represents the sum of all monomials of degree `i`:
+``h([i])`` represents the sum of all monomials of degree `i`::
 
     sage: h([2]).expand(4)
     x0^2 + x0*x1 + x1^2 + x0*x2 + x1*x2 + x2^2 + x0*x3 + x1*x3 + x2*x3 + x3^2
