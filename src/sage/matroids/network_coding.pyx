@@ -240,17 +240,63 @@ cpdef ncmatenum(nc,maxgnd):
     nvars = len(ncinstance_vars(nc))
     mcodes_3 = init_enum(nc,maxgnd)
     mcodes_parent = mcodes_3
-
     for g in range(4,maxgnd+1):
         mcodes_parent=extend_mcodes(mcodes_parent,maxgnd,nvars)
 
-cpdef add_identity_codes(mcode_n_n):
+cpdef add_identity_codes(mcode_n_n,nc,maxgnd):
     """ Return new mcode with to size n+1 rank n+1 matroid
     that corresponds to coloop extension of size n rank n
     matroid. The p-codes for this matroid are computed in p-codes
     of input mcode
     """
-    return
+    child_Mcode = MatroidCodes(BinaryMatroid(identity_matrix(GF2,n)),[])
+    extendpmaps(child_Mcode,mcode_n_n,nc,maxgnd,len(ncinstance_vars(nc)))
+    return child_Mcode
+
+cpdef dfz_matroidal_network(M):
+    """
+    Create a matroidal network based on Dougherty, Freiling and Zeger's
+    Construction
+    """
+    nodes=[]
+    msgs=[]
+    dag={}
+    f={}
+    g={}
+    allB=M.bases()
+    B1=list(allB[0])
+    j=0 # edge count
+    # STEP 1: map B1 to source variables
+    for i in xrange(len(B1)):
+        nodes.append(i)
+        msgs.append(i)
+        f[i]=B1[i]
+        g[B1[i]] = i
+    i+=1
+    # STEP 2: find circuit with 1 undefined (in terms of g) element
+    # create empty dag
+    for x in M.groundset():
+        dag[x]=[]
+    while True:
+        c = candidate_circuit(M.circuits(),g)
+        if c == None:
+            break
+        else:
+            g[list(set(c)-set(g.keys()))[0]]=i
+            nodes.append[i]
+            msgs.append[i]
+            f[i]=list(set(c)-set(g.keys()))[0]
+            i+=1
+            for cx in set(c)-set(set(c)-set(g.keys())):
+                dag[cx].append(list(set(c)-set(g.keys()))[0])
+
+    #
+
+cpdef candidate_circuit(circuits,g):
+    for c in circuits:
+        if len(set(c)-set(g.keys())):
+            return c
+    return None
 
 cpdef max_rank(nc,maxgnd):
     """
