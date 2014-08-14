@@ -68,15 +68,15 @@ efficacement dans des constructions algébriques avancées::
 Example: factorisation dans les anneaux de polynômes
 ====================================================
 
-Cette modélisation permet par ailleurs d'y traiter rigoureusement, par
+Cette modélisation permet aussi de traiter rigoureusement, par
 exemple, les questions de factorisation::
 
     sage: p = 54*x^4+36*x^3-102*x^2-72*x-12
     sage: p.factor()
     6*(x^2 - 2)*(3*x + 1)^2
 
-    sage: for A in [ZZ, QQ, ComplexField(16), QQ[sqrt(2)], GF(5)]:
-    ...       print A, ":"; print A['x'](p).factor()
+    sage: for K in [ZZ, QQ, ComplexField(16), QQ[sqrt(2)], GF(5)]:
+    ...       print K, ":"; print K['x'](p).factor()
     Integer Ring :
     2 * 3 * (3*x + 1)^2 * (x^2 - 2)
     Rational Field :
@@ -111,7 +111,8 @@ relativement grosses matrices::
     sage: M.rank()                                        # random
     9278
 
-.. .. todo:: demonstration de M.visualize_structure()
+    sage: M.visualize_structure('/tmp/structure.png)      # not tested
+    sage: os.system(sage.misc.viewer.png_viewer()+' '+'/tmp/structure.png') # not tested
 
 Définissons donc une matrice à coefficients dans `\ZZ/7\ZZ`::
 
