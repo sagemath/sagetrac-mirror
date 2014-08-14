@@ -90,10 +90,10 @@ Monoids, representation Theory
 Combinatorics
 =============
 
-* :ref:`sage.combinat`
 * :ref:`sage.combinat.demo_short`
 * :ref:`sage.combinat.demo`
 * :ref:`sage.combinat.tutorial`
+* :ref:`sage.combinat.tutorial_enumerated_sets`
 
 Algebraic Combinatorics
 -----------------------
