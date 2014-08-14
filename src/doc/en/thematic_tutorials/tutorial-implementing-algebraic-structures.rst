@@ -4,6 +4,8 @@
 Tutorial: Implementing Algebraic Structures
 ===========================================
 
+.. linkall
+
 .. MODULEAUTHOR:: Nicolas M. Thiéry <nthiery at users.sf.net> et al.
 
 This tutorial will discuss five concepts:
@@ -56,14 +58,14 @@ We reproduce the same, but by deriving a subclass of
 :class:`CombinatorialFreeModule`::
 
     sage: class MyCyclicGroupModule(CombinatorialFreeModule):
-    ...       """An absolutely minimal implementation of a module whose basis is a cyclic group"""
-    ...       def __init__(self, R, n, *args, **kwargs):
-    ...           CombinatorialFreeModule.__init__(self, R, Zmod(n), *args, **kwargs)
+    ....:     """An absolutely minimal implementation of a module whose basis is a cyclic group"""
+    ....:     def __init__(self, R, n, *args, **kwargs):
+    ....:         CombinatorialFreeModule.__init__(self, R, Zmod(n), *args, **kwargs)
 
     sage: A = MyCyclicGroupModule(QQ, 6, prefix='a') # or 4 or 5 or 11     ...
     sage: a = A.basis()
     sage: A.an_element()
-    a[0] + 3*a[1] + 3*a[2]
+    2*a[0] + 2*a[1] + 3*a[2]
 
 We now want to endow `A` with its natural product structure, to get
 the desired group algebra. To define a multiplication, we should be in
@@ -71,14 +73,15 @@ a category where multiplication makes sense, which is not yet the
 case::
 
     sage: A.category()
-    Category of modules with basis over Rational Field
+    Category of vector spaces with basis over Rational Field
 
 We can look at the available categories from the documentation in the
 reference manual: http://sagemath.com/doc/reference/categories.html
 
-Or we can use introspection::
+Or we can use introspection to look through the list of categories to
+pick one we want::
 
-    sage: sage.categories.  # Look through the list of categories to pick one we want
+    sage: sage.categories.<tab>                   # not tested
 
 Once we have chosen an appropriate category (here
 :class:`AlgebrasWithBasis`), one can look at one example::
@@ -86,11 +89,11 @@ Once we have chosen an appropriate category (here
     sage: E = AlgebrasWithBasis(QQ).example(); E
     An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
     sage: e = E.an_element(); e
-    B[word: ] + 2*B[word: a] + 3*B[word: b]
+    2*B[word: ] + 2*B[word: a] + 3*B[word: b]
 
 and browse through its code::
 
-    sage: E??
+    sage: E??                                     # not tested
 
 This code is meant as a template from which to start implementing a
 new algebra. In particular it suggests that we need to implement the
@@ -100,9 +103,9 @@ ask the category (TODO: find a slicker idiom for this)::
 
     sage: from sage.misc.abstract_method import abstract_methods_of_class
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).element_class)
-    {'required': [], 'optional': ['_add_', '_mul_']}
+    {'required': ['__nonzero__'], 'optional': ['_add_', '_mul_']}
     sage: abstract_methods_of_class(AlgebrasWithBasis(QQ).parent_class)
-    {'required': ['__contains__'], 'optional': ['one_basis', 'product_on_basis']}
+    {'required': ['__contains__'], 'optional': ['algebra_generators', 'one_basis', 'product_on_basis']}
 
 .. WARNING::
 
@@ -114,31 +117,31 @@ ask the category (TODO: find a slicker idiom for this)::
 Here is the obtained implementation of the group algebra::
 
     sage: class MyCyclicGroupAlgebra(CombinatorialFreeModule):
-    ...       #
-    ...       def __init__(self, R, n, **keywords):
-    ...           self._group = Zmod(n)
-    ...           CombinatorialFreeModule.__init__(self, R, self._group,
-    ...               category=AlgebrasWithBasis(R), **keywords)
-    ...       #
-    ...       def product_on_basis(self, left, right):
-    ...           return self.monomial( left + right )
-    ...       #
-    ...       def one_basis(self):
-    ...           return self._group.zero()
-    ...
-    ...       def algebra_generators(self):
-    ...           return Family( [self.monomial( self._group(1) ) ] )
-    ...
-    ...       def _repr_(self):
-    ...           return "Jason's group algebra of %s over %s"%(self._group, self.base_ring())
+    ....:     #
+    ....:     def __init__(self, R, n, **keywords):
+    ....:         self._group = Zmod(n)
+    ....:         CombinatorialFreeModule.__init__(self, R, self._group,
+    ....:             category=AlgebrasWithBasis(R), **keywords)
+    ....:     #
+    ....:     def product_on_basis(self, left, right):
+    ....:         return self.monomial( left + right )
+    ....:     #
+    ....:     def one_basis(self):
+    ....:         return self._group.zero()
+    ....:
+    ....:     def algebra_generators(self):
+    ....:         return Family( [self.monomial( self._group(1) ) ] )
+    ....:
+    ....:     def _repr_(self):
+    ....:         return "Jason's group algebra of %s over %s"%(self._group, self.base_ring())
 
 Some notes about this implementation:
 
 * Alternatively, we could have defined ``product`` instead of
   ``product_on_basis``::
 
-   ...       # def product(self, left, right):
-   ...       #     return ## something ##
+   ....:     # def product(self, left, right):
+   ....:     #     return ## something ##
 
 * For the sake of readability in this tutorial, we have stripped out
   all the documentation strings. Of course all of those should be
@@ -154,10 +157,10 @@ Let us do some calculations::
     sage: a = A.basis();
     sage: f = A.an_element();
     sage: A, f
-    (Jason's group algebra of the cyclic group Zmod(2) over Rational Field, a[0] + 3*a[1])
+    (Jason's group algebra of Ring of integers modulo 2 over Rational Field, 2*a[0] + 2*a[1])
     sage: f * f
-    10*a[0] + 6*a[1]
-    sage: f.
+    8*a[0] + 8*a[1]
+    sage: f.<tab>                                 # not tested
     sage: f.is_idempotent()
     False
     sage: A.one()
@@ -171,19 +174,38 @@ Let us do some calculations::
 This seems to work fine, but we would like to put more stress on our
 implementation to shake potential bugs out of it. To this end, we will
 use :class:`TestSuite`, a tool which will perform many routine tests
-on our algebra for us::
+on our algebra for us.
+
+Since we defined the class interactively, instead of in a Python
+module, those tests would complain about "pickling". We silence this
+error by faking the class being defined in a module. We could also
+just ignore those failing tests for now::
+
+    sage: import __main__
+    sage: __main__.MyCyclicGroupAlgebra = MyCyclicGroupAlgebra
+
+Ok, let's run the tests::
 
     sage: TestSuite(A).run(verbose=True)
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
     running ._test_category() . . . pass
+    running ._test_characteristic() . . . pass
+    running ._test_distributivity() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
+      running ._test_eq() . . . pass
+      running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
       pass
+    running ._test_elements_eq_reflexive() . . . pass
+    running ._test_elements_eq_symmetric() . . . pass
+    running ._test_elements_eq_transitive() . . . pass
+    running ._test_elements_neq() . . . pass
+    running ._test_eq() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -193,7 +215,7 @@ on our algebra for us::
 
 For more information on categories, see :ref:`sage.categories.primer`::
 
-    sage: sage.categories.primer?
+    sage: sage.categories.primer?                 # not tested
 
 Review
 ------
@@ -209,7 +231,7 @@ We wanted to implement an algebra, so we:
 Exercises
 ---------
 
-#. Make a tiny modification to product_on_basis in
+#. Make a tiny modification to ``product_on_basis`` in
    "MyCyclicGroupAlgebra" to implement the *dual* of the group algebra
    of the cyclic group instead of its group algebra (product given by
    `b_fb_g=\delta_{f,g}bf`).
@@ -245,30 +267,29 @@ Exercises
    and where the product is defined by `b_s b_t = b_{s\cup t}`.
 
 
-
 Morphisms
 =========
 
 To better understand relationships between algebraic spaces, one wants
 to consider morphisms between them::
 
-    sage: A.module_morphism?
+    sage: A.module_morphism?                      # not tested
     sage: A = MyCyclicGroupAlgebra(QQ, 2, prefix='a')
     sage: B = MyCyclicGroupAlgebra(QQ, 6, prefix='b')
     sage: A, B
-    (Jason's group algebra of the cyclic group Zmod(2) over Rational Field, Jason's group algebra of the cyclic group Zmod(6) over Rational Field)
+    (Jason's group algebra of Ring of integers modulo 2 over Rational Field, Jason's group algebra of Ring of integers modulo 6 over Rational Field)
 
 ::
 
     sage: def func_on_basis(g):
-    ...       r"""
-    ...       This function is the 'brain' of a (linear) morphism
-    ...       from A --> B.  The input is the index of basis
-    ...       element of the domain (A).  The output is an element of the
-    ...       codomain (B).
-    ...       """
-    ...       if g==1: return B.monomial(Zmod(6)(3))
-    ...       else:    return B.one()
+    ....:     r"""
+    ....:     This function is the 'brain' of a (linear) morphism
+    ....:     from A --> B.
+    ....:     The input is the index of basis element of the domain (A).
+    ....:     The output is an element of the codomain (B).
+    ....:     """
+    ....:     if g==1: return B.monomial(Zmod(6)(3))
+    ....:     else:    return B.one()
 
 We can now define a morphism which extends this function to `A` by
 linearity::
@@ -276,9 +297,9 @@ linearity::
     sage: phi = A.module_morphism(func_on_basis, codomain=B)
     sage: f = A.an_element()
     sage: f
-    a[0] + 3*a[1]
+    2*a[0] + 2*a[1]
     sage: phi(f)
-    b[0] + 3*b[3]
+    2*b[0] + 2*b[3]
 
 
 Exercise
@@ -308,18 +329,18 @@ the index of a basis element of the domain, and whose output is the
 coefficient of the corresponding basis element of the codomain::
 
     sage: def diag_func(p):
-    ...       if len(p)==0: return 1
-    ...       else: return p[0]
-    ...
-    ...
+    ....:     if len(p)==0: return 1
+    ....:     else: return p[0]
+    ....:
+    ....:
     sage: diag_func(Partition([3,2,1]))
     3
     sage: X_to_Y = X.module_morphism(diagonal=diag_func, codomain=Y)
     sage: f = X.an_element();
     sage: f
-    x[[]] + 2*x[[1]] + 3*x[[2]]
+    2*x[[]] + 2*x[[1]] + 3*x[[2]]
     sage: X_to_Y(f)
-    y[[]] + 2*y[[1]] + 6*y[[2]]
+    2*y[[]] + 2*y[[1]] + 6*y[[2]]
 
 Python fun-fact: ``~`` is the inversion operator (but be careful with
 int's!)::
@@ -347,8 +368,8 @@ function as representing the columns of the matrix of the linear
 transformation::
 
     sage: def triang_on_basis(p):
-    ...       return Y.sum_of_monomials(mu for mu in Partitions(sum(p)) if mu >= p)
-    ...
+    ....:     return Y.sum_of_monomials(mu for mu in Partitions(sum(p)) if mu >= p)
+    ....:
     sage: triang_on_basis([3,2])
     y[[3, 2]] + y[[4, 1]] + y[[5]]
     sage: X_to_Y = X.module_morphism(triang_on_basis, triangular='lower', unitriangular=True, codomain=Y)
@@ -374,7 +395,7 @@ For details, see
 :meth:`ModulesWithBasis.ParentMethods.module_morphism` (and also
 :class:`sage.categories.modules_with_basis.TriangularModuleMorphism`)::
 
-    sage: A.module_morphism?
+    sage: A.module_morphism?                      # not tested
 
 Exercise
 --------
@@ -385,22 +406,22 @@ morphism. You may want to use the following comparison function as
 ``cmp`` argument to ``modules_morphism``::
 
     sage: def subset_cmp(s, t):
-    ...       """
-    ...       A comparison function on sets which gives a linear extension
-    ...       of the inclusion order.
-    ...
-    ...       INPUT:
-    ...
-    ...        - ``x``, ``y`` -- sets
-    ...       EXAMPLES::
-    ...
-    ...           sage: sorted(Subsets([1,2,3]), subset_cmp)
-    ...           [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
-    ...       """
-    ...       s = cmp(len(x), len(y))
-    ...       if s != 0:
-    ...           return s
-    ...       return cmp(list(x), list(y))
+    ....:     """
+    ....:     A comparison function on sets which gives a linear extension
+    ....:     of the inclusion order.
+    ....:
+    ....:     INPUT:
+    ....:
+    ....:      - ``x``, ``y`` -- sets
+    ....:     EXAMPLES::
+    ....:
+    ....:         sage: sorted(Subsets([1,2,3]), subset_cmp)
+    ....:         [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+    ....:     """
+    ....:     s = cmp(len(x), len(y))
+    ....:     if s != 0:
+    ....:         return s
+    ....:     return cmp(list(x), list(y))
 
 
 Coercions
@@ -414,21 +435,21 @@ information. As a training step, let us first define a morphism `X` to
 `h`, and register it as a coercion::
 
     sage: def triang_on_basis(p):
-    ...       return h.sum_of_monomials(mu for mu in Partitions(sum(p)) if mu >= p)
-    ...
+    ....:     return Y.sum_of_monomials(mu for mu in Partitions(sum(p)) if mu >= p)
+
     sage: triang_on_basis([3,2])
-    h[3, 2] + h[4, 1] + h[5]
-    sage: X_to_h = X.module_morphism(triang_on_basis, triangular='lower', unitriangular=True, codomain=h)
-    sage: X_to_h.
-    sage: X_to_h.register_as_coercion()
+    y[[3, 2]] + y[[4, 1]] + y[[5]]
+    sage: X_to_Y = X.module_morphism(triang_on_basis, triangular='lower', unitriangular=True, codomain=Y)
+    sage: X_to_Y.<tab>                            # not tested
+    sage: X_to_Y.register_as_coercion()
 
-Now we can convert elements from `X` to `h`, but also do mixed
-arithmetic with them::
+Now we can not only convert elements from `X` to `Y`, but also do
+mixed arithmetic with them::
 
-    sage: h(x[Partition([3,2])])
-    h[3, 2] + h[4, 1] + h[5]
-    sage: h([2,2,1]) + x[Partition([2,2,1])]
-    2*h[2, 2, 1] + h[3, 1, 1] + h[3, 2] + h[4, 1] + h[5]
+    sage: Y(x[Partition([3,2])])
+    y[[3, 2]] + y[[4, 1]] + y[[5]]
+    sage: Y([2,2,1]) + x[Partition([2,2,1])]
+    2*y[[2, 2, 1]] + y[[3, 1, 1]] + y[[3, 2]] + y[[4, 1]] + y[[5]]
 
 
 Exercise
@@ -463,38 +484,38 @@ and ``h(\mu) = prod( h(p) for p in mu )``::
 ::
 
     sage: class MySFBasis(CombinatorialFreeModule):
-    ...       r"""
-    ...       Note: We would typically use SymmetricFunctionAlgebra_generic
-    ...       for this. This is as an example only.
-    ...       """
-    ...
-    ...       def __init__(self, R, *args, **kwargs):
-    ...           """ TODO: Informative doc-string and examples """
-    ...           CombinatorialFreeModule.__init__(self, R, Partitions(), category=AlgebrasWithBasis(R), *args, **kwargs)
-    ...           self._h = SymmetricFunctions(R).homogeneous()
-    ...           self._to_h = self.module_morphism( self._to_h_on_basis, triangular='lower', unitriangular=True, codomain=self._h)
-    ...           self._from_h = ~(self._to_h)
-    ...           self._to_h.register_as_coercion()
-    ...           self._from_h.register_as_coercion()
-    ...
-    ...       def _to_h_on_basis(self, la):
-    ...           return self._h.sum_of_monomials(mu for mu in Partitions(sum(la)) if mu >= la)
-    ...
-    ...       def product(self, left, right):
-    ...           return self( self._h(left) * self._h(right) )
-    ...
-    ...       def _repr_(self):
-    ...           return "Jason's basis for symmetric functions over %s"%self.base_ring()
-    ...
-    ...       @cached_method
-    ...       def one_basis(self):
-    ...           r""" Returns the index of the basis element which is equal to '1'."""
-    ...           return Partition([])
+    ....:     r"""
+    ....:     Note: We would typically use SymmetricFunctionAlgebra_generic
+    ....:     for this. This is as an example only.
+    ....:     """
+    ....:
+    ....:     def __init__(self, R, *args, **kwargs):
+    ....:         """ TODO: Informative doc-string and examples """
+    ....:         CombinatorialFreeModule.__init__(self, R, Partitions(), category=AlgebrasWithBasis(R), *args, **kwargs)
+    ....:         self._h = SymmetricFunctions(R).homogeneous()
+    ....:         self._to_h = self.module_morphism( self._to_h_on_basis, triangular='lower', unitriangular=True, codomain=self._h)
+    ....:         self._from_h = ~(self._to_h)
+    ....:         self._to_h.register_as_coercion()
+    ....:         self._from_h.register_as_coercion()
+    ....:
+    ....:     def _to_h_on_basis(self, la):
+    ....:         return self._h.sum_of_monomials(mu for mu in Partitions(sum(la)) if mu >= la)
+    ....:
+    ....:     def product(self, left, right):
+    ....:         return self( self._h(left) * self._h(right) )
+    ....:
+    ....:     def _repr_(self):
+    ....:         return "Jason's basis for symmetric functions over %s"%self.base_ring()
+    ....:
+    ....:     @cached_method
+    ....:     def one_basis(self):
+    ....:         r""" Returns the index of the basis element which is equal to '1'."""
+    ....:         return Partition([])
     sage: X = MySFBasis(QQ, prefix='x'); x = X.basis(); h = SymmetricFunctions(QQ).homogeneous()
     sage: f = X(h([2,1,1]) - 2*h([2,2]))  # Note the capital X
     sage: f
-    sage: h(f)
     x[[2, 1, 1]] - 3*x[[2, 2]] + 2*x[[3, 1]]
+    sage: h(f)
     h[2, 1, 1] - 2*h[2, 2]
     sage: f*f*f
     x[[2, 2, 2, 1, 1, 1, 1, 1, 1]] - 7*x[[2, 2, 2, 2, 1, 1, 1, 1]] + 18*x[[2, 2, 2, 2, 2, 1, 1]] - 20*x[[2, 2, 2, 2, 2, 2]] + 8*x[[3, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
@@ -505,50 +526,43 @@ As a final example, we implement a quotient of the algebra of
 symmetric functions::
 
     sage: class MySFQuotient(CombinatorialFreeModule):
-    ...       r"""
-    ...       The quotient of the ring of symmetric functions by the ideal generated
-    ...       by those monomial symmetric functions whose part is larger than some fixed
-    ...       number ``k``.
-    ...       """
-    ...
-    ...       def __init__(self, R, k, prefix=None, *args, **kwargs):
-    ...
-    ...           #  Note: Setting self._prefix is equivalent to using the prefix keyword
-    ...           #  in CombinatorialFreeModule.__init__
-    ...
-    ...           if prefix is not None:
-    ...               self._prefix = prefix
-    ...           else:
-    ...               self._prefix = 'mm'
-    ...
-    ...           CombinatorialFreeModule.__init__(self, R,
-    ...               Partitions(NonNegativeIntegers(), max_part=k),
-    ...               category = GradedHopfAlgebrasWithBasis(R), *args, **kwargs)
-    ...
-    ...           self._k = k
-    ...           self._m = SymmetricFunctions(R).monomial()
-    ...
-    ...           self.lift = self.module_morphism(self._m.monomial)
-    ...           self.retract = self._m.module_morphism(self._retract_on_basis, codomain=self)
-    ...
-    ...           self.lift.register_as_coercion()
-    ...           self.retract.register_as_coercion()
-    ...
-    ...       def _retract_on_basis(self, mu):
-    ...           r""" Takes the index of a basis element of a monomial
-    ...           symmetric function, and returns the projection of that
-    ...           element to the quotient."""
-    ...
-    ...           if len(mu) > 0 and mu[0] > self._k:
-    ...               return self.zero()
-    ...           return self.monomial(mu)
-    ...
-    ...       @cached_method
-    ...       def one_basis(self):
-    ...           return Partition([])
-    ...
-    ...       def product(self, left, right):
-    ...           return self( self._m(left) * self._m(right) )
+    ....:     r"""
+    ....:     The quotient of the ring of symmetric functions by the ideal generated
+    ....:     by those monomial symmetric functions whose part is larger than some fixed
+    ....:     number ``k``.
+    ....:     """
+    ....:
+    ....:     def __init__(self, R, k, prefix=None, *args, **kwargs):
+    ....:
+    ....:         CombinatorialFreeModule.__init__(self, R,
+    ....:             Partitions(NonNegativeIntegers(), max_part=k),
+    ....:             prefix = 'mm',
+    ....:             category = GradedHopfAlgebrasWithBasis(R), *args, **kwargs)
+    ....:
+    ....:         self._k = k
+    ....:         self._m = SymmetricFunctions(R).monomial()
+    ....:
+    ....:         self.lift = self.module_morphism(self._m.monomial)
+    ....:         self.retract = self._m.module_morphism(self._retract_on_basis, codomain=self)
+    ....:
+    ....:         self.lift.register_as_coercion()
+    ....:         self.retract.register_as_coercion()
+    ....:
+    ....:     def _retract_on_basis(self, mu):
+    ....:         r""" Takes the index of a basis element of a monomial
+    ....:         symmetric function, and returns the projection of that
+    ....:         element to the quotient."""
+    ....:
+    ....:         if len(mu) > 0 and mu[0] > self._k:
+    ....:             return self.zero()
+    ....:         return self.monomial(mu)
+    ....:
+    ....:     @cached_method
+    ....:     def one_basis(self):
+    ....:         return Partition([])
+    ....:
+    ....:     def product(self, left, right):
+    ....:         return self( self._m(left) * self._m(right) )
     sage: MM = MySFQuotient(QQ, 3)
     sage: mm = MM.basis()
     sage: m = SymmetricFunctions(QQ).monomial()
