@@ -143,6 +143,7 @@ Design and Categories
 * :ref:`demo-modelling-mathematics`
 * :ref:`demo-constructions-categories-short`
 * :ref:`tutorial-implementing-algebraic-structures`
+* :ref:`coercion_and_categories`
 * :ref:`sage.categories.primer`
 * :ref:`sage.categories.tutorial`
 
