@@ -55,6 +55,27 @@ class CitationItem( SageObject, UniqueRepresentation ):
         """
         return [re.compile(s) for s in self._re]
 
+    def bibtex(self):
+        r"""
+        Bibtex code that can be used to cite this item in LaTeX/BibTeX.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.misc.citation_items.axiom import *
+            sage: Axiom_CitationItem().bibtex()
+            ???
+
+        .. TODO:
+
+        Use optional parsing to generate bibitems for those who prefer
+        this variant.
+        """
+        return self._bibtex
+
     def _repr_(self):
         r"""
         EXAMPLES::
