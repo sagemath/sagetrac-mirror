@@ -2143,8 +2143,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise IndexError("matrix column index out of range")
 
     def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
-        """
-        Swap columns c1 and c2 of self.
+        r"""
+        Swap columns ``c1`` and ``c2`` of self.
 
         EXAMPLES: We create a rational matrix::
 
@@ -2237,7 +2237,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. SEEALSO::
 
             - :meth:`permute_rows`, :meth:`with_permuted_rows`
-            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`with_permuted_columns`
             - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
 
         EXAMPLES:
@@ -2257,6 +2257,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
+            sage: sigma
+            (0,1,2)(3,4)
             sage: M.permute_columns(sigma)
             sage: M
             [1 0 1 0 0]
@@ -2271,7 +2273,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             For backward compatibility, if a permutation group element
             acts on the integers `\{1,\hdots,n\}` or a subset thereof,
-            the columns are considered as being numbered from `1`:
+            the columns are considered as being numbered from `1`::
 
                 sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
                 sage: sigma, tau = G.gens()
@@ -2358,26 +2360,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return temp
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
-        r"""
-        Swap columns r1 and r2 of self.
-
-        EXAMPLES: We create a rational matrix::
-
-            sage: M = MatrixSpace(QQ,3,3)
-            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
-            sage: A
-            [  1   9  -7]
-            [4/5   4   3]
-            [  6   4   3]
-
-        Since the first column is numbered zero, this swaps the first
-        and third columns::
-
-            sage: A.swap_columns(0,2); A
-            [ -7   9   1]
-            [  3   4 4/5]
-            [  3   4   6]
-        """
+        # tested by swap_columns
         cdef Py_ssize_t r
         for r from 0 <= r < self._nrows:
             a = self.get_unsafe(r, c2)
@@ -2386,9 +2369,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def swap_rows(self, r1, r2):
         r"""
-        Swap rows r1 and r2 of self.
+        Swap rows ``r1`` and ``r2`` of self.
 
-        EXAMPLES: We create a rational matrix::
+        EXAMPLES:
+
+        We create a rational matrix::
 
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
@@ -2499,6 +2484,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
+            sage: sigma
+            (0,1,2)(3,4)
             sage: M.permute_rows(sigma)
             sage: M
             [0 2 2 0 0]
@@ -2513,7 +2500,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             For backward compatibility, if a permutation group element
             acts on the integers `\{1,\hdots,n\}` or a subset thereof,
-            the rows are considered as being numbered from `1`:
+            the rows are considered as being numbered from `1`::
 
                 sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
                 sage: sigma, tau = G.gens()
@@ -2600,6 +2587,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return temp
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
+        # tested by swap_rows
         cdef Py_ssize_t c
         for c from 0 <= c < self._ncols:
             a = self.get_unsafe(r2, c)
@@ -2643,6 +2631,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
+            sage: sigma, tau
+            ((0,1,2)(3,4), (0,1,2,3,4))
             sage: M.permute_rows_and_columns(sigma,tau)
             sage: M
             [2 2 0 0 0]
@@ -2670,12 +2660,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             For backward compatibility, if a permutation group element
             acts on the integers `\{1,\hdots,n\}` or a subset thereof,
             the rows and/or columns are considered accordingly as
-            being numbered from `1`:
+            being numbered from `1`::
 
                 sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
-                sage: _, tau = G.gens()
+                sage: sigma, tau = G.gens()
                 sage: sigma, tau
-                ((0,1,2)(3,4), (1,2,3,4,5))
+                ((1,2,3)(4,5), (1,2,3,4,5))
                 sage: M = copy(N)
                 sage: M.permute_rows_and_columns(sigma, tau)
                 sage: M
@@ -2725,6 +2715,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: G = PermutationGroup(['(0,1,2)(3,4)', '(0,1,2,3,4)'])
             sage: sigma, tau = G.gens()
+            sage: sigma, tau
+            ((0,1,2)(3,4), (0,1,2,3,4))
             sage: M.with_permuted_rows_and_columns(sigma, tau)
             [2 2 0 0 0]
             [0 3 3 0 0]
@@ -2747,6 +2739,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
             sage: sigma, tau = G.gens()
+            sage: sigma, tau
+            ((1,2,3)(4,5), (1,2,3,4,5))
             sage: M.with_permuted_rows_and_columns(sigma, tau)
             [2 2 0 0 0]
             [0 3 3 0 0]
