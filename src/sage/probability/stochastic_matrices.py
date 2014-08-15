@@ -2,7 +2,8 @@ r"""
 Stochastic Matrices
 """
 #*****************************************************************************
-#  Copyright (C) 2014 Anne Schilling <anne at math.ucdavis.edu>
+#  Copyright (C) 2014 Arvind Ayyer <arvind at math.iisc.ernet.in> 
+#                 and Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -23,9 +24,10 @@ class StochasticMatrix(ElementWrapper):
         """
         EXAMPLES::
 
-            sage: C = sage.categories.examples.crystals.HighestWeightCrystalOfTypeA(n=4)
-            sage: C == Crystals().example(n=4)
-            True
+            sage: M = Matrix([[1/2,1/2],[1,0]])
+            sage: StochasticMatrix(M)
+            [1/2 1/2]
+            [  1   0]
         """
         assert M.is_square()
 
