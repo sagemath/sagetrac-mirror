@@ -30,11 +30,14 @@ Et leurs propriétés::
     sage: ZZ.category()
     Category of euclidean domains
 
-    sage:: ZZ.axioms()
+    sage: sorted( ZZ.category().axioms() )
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital',
+     'Associative', 'Commutative',
+     'Distributive', 'NoZeroDivisors', 'Unital']
 
     sage: G = ZZ.category().category_graph()
     sage: G.set_latex_options(format="dot2tex")
-    sage: view(G, tightpage=True)                         # not tested
+    sage: view(G, viewer="pdf", tightpage=True)           # not tested
 
 Cette modélisation permet tout d'abord de travailler naturellement et
 efficacement dans des constructions algébriques avancées::
@@ -64,6 +67,24 @@ efficacement dans des constructions algébriques avancées::
 
     sage: m.det().parent()
     Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+
+    sage: Z2.coerce_map_from(ZZ)
+    Natural morphism:
+      From: Integer Ring
+      To:   Finite Field of size 2
+
+    sage: P.coerce_map_from(Z2)
+    Polynomial base injection morphism:
+      From: Finite Field of size 2
+      To:   Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+    sage: M.coerce_map_from(P)
+    Call morphism:
+      From: Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+      To:   Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+    sage: M.coerce_map_from(QQ)
 
 Example: factorisation dans les anneaux de polynômes
 ====================================================
