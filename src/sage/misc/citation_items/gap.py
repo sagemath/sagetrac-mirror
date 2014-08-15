@@ -10,4 +10,14 @@ from sage.misc.citation_items.citation_item import CitationItem
 class GAP_CitationItem( CitationItem ):
     _name = "GAP"
 
+    ## provided by GAP homepage
+    _bibtex = r"""
+ @manual{software-gap,
+    title        = {{GAP -- Groups, Algorithms, and Programming}}
+    organization = {The GAP~Group},
+    year         = {2014},
+    note  = {{Version~4.7.5, \url{http://www.gap-system.org}}},
+}
+    """
+
     _re = [r"^sage.interfaces.gap"]

@@ -10,4 +10,12 @@ from sage.misc.citation_items.citation_item import CitationItem
 class ginac_CitationItem( CitationItem ):
     _name = "ginac"
 
+    _bibtex = r"""
+@misc{software-ginac,
+    author = {Kreckel, Richard and others},
+    title = {{GiNaC}},
+    howpublished = {{\url{http://www.ginac.de}}}
+}
+    """
+
     _re = [r"^sage.symbolic"]

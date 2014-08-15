@@ -10,6 +10,15 @@ from sage.misc.citation_items.citation_item import CitationItem
 class Singular_CitationItem( CitationItem ):
     _name = "Singular"
 
+    _bibtex = r"""
+@misc {software-singular,
+    title = {{Singular -- A computer algebra system for polynomial computations}},
+    author = {Decker, Wolfram and Greuel, Gert-Martin and Pfister, Gerhard and Sch\"onemann, Hans},
+    note = {{Version~3.1.6}},
+    howpublished = {{\url{http://www.singular.uni-kl.de}}},
+}
+    """
+
     _re = [r"^sage.interfaces.singular",
            "_libsingular",
            "^sage.libs.singular"]

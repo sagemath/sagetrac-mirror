@@ -8,6 +8,14 @@
 from sage.misc.citation_items.citation_item import CitationItem
 
 class qsieve_CitationItem( CitationItem ):
-    _name = "qsieve"
+    _name = "Qsieve"
+
+    _bibtex = r"""
+ @misc{software-qsieve,
+    title        = {{Qsieve}}
+    author = {{Reinecke, Thorsten}},
+    howpublished          = {{\url{http://www.thorstenreinecke.de/qsieve}}},
+}
+"""
 
     _re = [r"^sage.interfaces.qsieve"]

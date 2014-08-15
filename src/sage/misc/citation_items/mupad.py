@@ -10,4 +10,12 @@ from sage.misc.citation_items.citation_item import CitationItem
 class MuPAD_CitationItem( CitationItem ):
     _name = "MuPAD"
 
+    _bibtex = r"""
+@misc{software-mupad,
+    title = {{MuPAD}},
+    organization = {{The MathWorks, Inc.}},
+    howpublished = {{\url{http://www.mathworks.de/discovery/mupad.html}}},
+}
+    """
+
     _re = [r"^sage.interfaces.mupad"]

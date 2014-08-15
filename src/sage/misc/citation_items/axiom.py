@@ -10,4 +10,14 @@ from sage.misc.citation_items.citation_item import CitationItem
 class Axiom_CitationItem( CitationItem ):
     _name = "Axiom"
 
+    _bitex = r"""
+@Book{software-axiom,
+    Author = {Jenks, Richard D. and Sutor, Robert S.},
+    Title = {{Axiom. The scientific computation system.}},
+    Pages = {xxiv + 742},
+    Year = {1992},
+    Publisher = {Springer-Verlag, Berlin},
+}
+    """
+
     _re = [r"^sage.interfaces.axiom"]

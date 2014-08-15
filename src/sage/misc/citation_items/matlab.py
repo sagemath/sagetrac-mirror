@@ -10,4 +10,12 @@ from sage.misc.citation_items.citation_item import CitationItem
 class matlab_CitationItem( CitationItem ):
     _name = "matlab"
 
+    _bibtex = r"""
+@misc{software-matlab,
+    title = {{MATLAB}},
+    organization = {{The MathWorks, Inc.}},
+    howpublished = {{\url{http://www.mathworks.com/products/matlab}}},
+}
+    """
+
     _re = [r"^sage.interfaces.matlab"]

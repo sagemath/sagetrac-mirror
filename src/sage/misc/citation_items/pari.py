@@ -10,5 +10,15 @@ from sage.misc.citation_items.citation_item import CitationItem
 class PARI_CitationItem( CitationItem ):
     _name = "PARI"
 
+    _bibtex = r"""
+ @misc{software-pari,
+    title        = {{Pari/GP}}
+    author = {{Cohen, Henri and Belabas, Karim and others}},
+    organization = {The Pari~Group},
+    note = {{Version~2.5.5}},
+    howpublished          = {{\url{http://pari.math.u-bordeaux.fr}}},
+}
+    """
+
     _re = [r"^sage.libs.pari",
            "^sage.interfaces.gp"]

@@ -10,5 +10,14 @@ from sage.misc.citation_items.citation_item import CitationItem
 class mwrank_CitationItem( CitationItem ):
     _name = "mwrank"
 
+    _bibtex = r"""
+@misc{software-mwrank,
+    author = {{Cremona, John E.}},
+    title = {{mwrank}},
+    note = {{Version~12.12.1}},
+    howpublished = {{\url{http://homepages.warwick.ac.uk/staff/J.E.Cremona/mwrank}}},
+}
+    """
+
     _re = [r"^sage.interfaces.mwrank",
            "^sage.libs.mwrank"]

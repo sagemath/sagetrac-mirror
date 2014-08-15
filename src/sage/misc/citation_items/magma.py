@@ -10,5 +10,19 @@ from sage.misc.citation_items.citation_item import CitationItem
 class Magma_CitationItem( CitationItem ):
     _name = "Magma"
 
+    _bibtex = r"""
+@article{software-magma,
+    Author = {Bosma, Wieb and Cannon, John and Playoust, Catherine},
+    Title = {{The Magma algebra system. I: The user language.}},
+    FJournal = {{Journal of Symbolic Computation}},
+    Journal = {{J. Symb. Comput.}},
+    Volume = {24},
+    Number = {3-4},
+    Pages = {235--265},
+    Year = {1997},
+    Publisher = {Elsevier Science, London},
+}
+    """
+
     _re = [r"^sage.interfaces.magma",
            "^sage.interfaces.magma_free"]

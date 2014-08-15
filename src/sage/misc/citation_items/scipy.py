@@ -10,4 +10,13 @@ from sage.misc.citation_items.citation_item import CitationItem
 class scipy_CitationItem( CitationItem ):
     _name = "scipy"
 
+    _bibtex = r"""
+ @misc{software-scipy,
+    organization = {The SciPy~Group},
+    title        = {{SciPy}},
+    note = {{Version~0.14}},
+    howpublished          = {{\url{http://www.scipy.org}}},
+}
+    """
+
     _re = [r"scipy"]

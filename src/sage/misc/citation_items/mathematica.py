@@ -10,4 +10,13 @@ from sage.misc.citation_items.citation_item import CitationItem
 class Mathematica_CitationItem( CitationItem ):
     _name = "Mathematica"
 
+    ## based on http://support.wolfram.com/kb/472
+    _bibtex = r"""
+@misc{software-mathematica,
+    title = {{Mathematica}},
+    organization = {{Wolfram Research, Inc.}},
+    howpublished = {{\url{www.wolfram.com/mathematica}}},
+}
+    """
+
     _re = [r"^sage.interfaces.mathematica"]

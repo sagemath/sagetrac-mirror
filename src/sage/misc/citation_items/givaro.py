@@ -10,4 +10,13 @@ from sage.misc.citation_items.citation_item import CitationItem
 class Givaro_CitationItem( CitationItem ):
     _name = "Givaro"
 
+    _bibtex = r"""
+@Misc{software-givaro,
+    author = {{Gautier, Thierry and Roch, Jean-Louis and Villard, Gilles and others}},
+    title = {{Givaro}},
+    note = {{Version~3.7.1}},
+    howpublished = {{\url{http://ljk.imag.fr/CASYS/LOGICIELS/givaro}}},
+}
+    """
+
     _re = [r"^sage.rings.finite_rings.element_givaro"]
