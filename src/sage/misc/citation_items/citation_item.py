@@ -74,7 +74,7 @@ class CitationItem( SageObject, UniqueRepresentation ):
         Use optional parsing to generate bibitems for those who prefer
         this variant.
         """
-        return self._bibtex
+        return self._bibtex or ""
 
     def _repr_(self):
         r"""
