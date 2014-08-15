@@ -111,7 +111,7 @@ relativement grosses matrices::
     sage: M.rank()                                        # random
     9278
 
-    sage: M.visualize_structure('/tmp/structure.png)      # not tested
+    sage: M.visualize_structure('/tmp/structure.png')      # not tested
     sage: os.system(sage.misc.viewer.png_viewer()+' '+'/tmp/structure.png') # not tested
 
 Définissons donc une matrice à coefficients dans `\ZZ/7\ZZ`::
