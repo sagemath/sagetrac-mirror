@@ -36,3 +36,8 @@ class CitationRecord( SageObject, list ):
         print "LaTeX \cite:  (print BibTeX code by calling method print_bibtex())"
         print self.latex_citation()
 
+    def _repr_(self):
+        return repr(list(self))
+
+    def _latex_(self):
+        return latex(list(self))

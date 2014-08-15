@@ -66,7 +66,7 @@ class CitationItem( SageObject, UniqueRepresentation ):
         if not self._bibtex:
             return ""
 
-        start = self._bibtex.find('{')
+        start = self._bibtex.find('{') + 1
         end = self._bibtex.find(',', start)
         return self._bibtex[start:end]
 
@@ -89,7 +89,10 @@ class CitationItem( SageObject, UniqueRepresentation ):
         Use optional parsing to generate bibitems for those who prefer
         this variant.
         """
-        return self._bibtex or ""
+        if not self._bibtex:
+            return ""
+
+        return self._bibtex.strip(" \n")
 
     def _repr_(self):
         r"""
