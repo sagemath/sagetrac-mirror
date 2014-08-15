@@ -49,6 +49,27 @@ class CitationItem( SageObject, UniqueRepresentation ):
         """
         return [re.compile(s) for s in self._re]
 
+    def _latex_citation_label(self):
+        r"""
+        A LaTeX citation label which can be used in combination with
+        BibTeX code given by :meth:`bibtex` to cite the present item.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.misc.citation_items.axiom import *
+            sage: Axiom_CitationItem()._latex_citation_label()
+        """
+        if not self._bibtex:
+            return ""
+
+        start = self._bibtex.find('{')
+        end = self._bibtex.find(',', start)
+        return self._bibtex[start:end]
+
     def bibtex(self):
         r"""
         Bibtex code that can be used to cite this item in LaTeX/BibTeX.
