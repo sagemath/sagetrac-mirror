@@ -7736,6 +7736,55 @@ cdef class Matrix(matrix1.Matrix):
                 row_sums == len(row_sums) * [col_sums[0]] and\
                 ((not normalized) or col_sums[0] == self.base_ring()(1))
 
+    def is_stochastic(self, side='row', normalized = True):
+        r"""
+        Returns ``True`` if this matrix is row (or column) stochastic.
+
+        A matrix is said to be row (resp. column) stochastic if the sum of the
+        entries of each row (resp. column) is equal to 1.
+
+        INPUT:
+
+        - ``side`` -- (default: 'row') if set to ``row`` checks whether row sums
+          satisfy the condition; if set to ``column`` checks whether column sums
+          satisfy the condition.
+
+        - ``normalized`` -- if set to ``True`` (default), checks that
+          the sums are equal to 1. When set to ``False``, checks that
+          the row (resp. column) sums are all equal to some constant
+          possibly different from 1.
+
+        EXAMPLES:
+
+        The identity matrix is clearly row stochastic::
+
+            sage: Matrix(5,5,1).is_stochastic()
+            True
+
+        The same matrix, multiplied by 2, is not stochastic anymore,
+        though is verifies the constraints of ``normalized == False``::
+
+            sage: (2 * Matrix(5,5,1)).is_stochastic()
+            False
+            sage: (2 * Matrix(5,5,1)).is_stochastic(normalized = False)
+            True
+
+        TESTS::
+
+            sage: m = matrix([[-1,2],[2,-1]])
+            sage: m.is_stochastic()
+            False
+        """
+        if side == 'row':
+            sums = map(sum, self.rows())
+        else:
+            sums = map(sum, self.columns())
+
+        return self.is_square() and\
+                all(a == sums[0] for a in sums) and\
+                all(i>=0 for row in self for i in row) and\
+                ((not normalized) or sums[0] == self.base_ring()(1))
+
     def is_normal(self):
         r"""
         Returns ``True`` if the matrix commutes with its conjugate-transpose.
