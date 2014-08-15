@@ -8,12 +8,6 @@ list of all of them.
 AUTHORS:
 
 - Martin Westerholt-Raum (martin@raum-brothers.eu)
-
-..todo:
-
-At the current stage, functionality is very limited.
-
-- Include bibliographic information.
 """
 
 ###########################################################################
