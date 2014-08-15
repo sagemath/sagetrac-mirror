@@ -2312,7 +2312,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. SEEALSO::
 
             - :meth:`permute_rows`, :meth:`with_permuted_rows`
-            - :meth:`permute_columns`, :meth:`with_permuted_columns`
+            - :meth:`permute_columns`
             - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
 
         EXAMPLES:
@@ -2463,7 +2463,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         .. SEEALSO::
 
-            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`with_permuted_rows`
             - :meth:`permute_columns`, :meth:`with_permuted_columns`
             - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
 
@@ -2538,7 +2538,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         .. SEEALSO::
 
-            - :meth:`permute_rows`, :meth:`with_permuted_rows`
+            - :meth:`permute_rows`
             - :meth:`permute_columns`, :meth:`with_permuted_columns`
             - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
 
@@ -2612,7 +2612,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             - :meth:`permute_rows`, :meth:`with_permuted_rows`
             - :meth:`permute_columns`, :meth:`with_permuted_columns`
-            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+            - :meth:`with_permuted_rows_and_columns`
 
         EXAMPLES:
 
@@ -2697,7 +2697,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             - :meth:`permute_rows`, :meth:`with_permuted_rows`
             - :meth:`permute_columns`, :meth:`with_permuted_columns`
-            - :meth:`permute_rows_and_columns`, :meth:`with_permuted_rows_and_columns`
+            - :meth:`permute_rows_and_columns`
 
         EXAMPLES:
 
