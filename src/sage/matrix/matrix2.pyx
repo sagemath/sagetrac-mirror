@@ -7774,6 +7774,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: m = matrix([[-1,2],[2,-1]])
             sage: m.is_stochastic()
             False
+            sage: m = matrix([[1,1],[0,0]])
+            sage: m.is_stochastic()
+            False
+            sage: m.is_stochastic(side='column')
+            True
         """
         if side == 'row':
             sums = map(sum, self.rows())
