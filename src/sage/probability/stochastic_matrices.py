@@ -20,7 +20,7 @@ class StochasticMatrix(ElementWrapper):
 
      """
 
-    def __init__(self,  M, side='row'):
+    def __init__(self,  M, side='row',normalized = False):
         """
         EXAMPLES::
 
@@ -28,8 +28,21 @@ class StochasticMatrix(ElementWrapper):
             sage: StochasticMatrix(M)
             [1/2 1/2]
             [  1   0]
+
+        TESTS::
+
+        sage: M = matrix([[1, 1],[2,2]])
+        sage: StochasticMatrix(M)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input matrix is not stochastic
+        sage: StochasticMatrix(M,side='column')
+        [1 1]
+        [2 2]
+
         """
-        assert M.is_square()
+        if not M.is_stochastic(side = side,normalized = normalized):
+            raise ValueError("Input matrix is not stochastic")
 
         ElementWrapper.__init__(self,  M.parent(), M)
 
