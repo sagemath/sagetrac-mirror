@@ -25,6 +25,13 @@ AUTHORS:
 from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
 
+cdef extern from "automata_tools.c":
+    void TikZ (const char *data, const char *graph_name, double sx, double sy)
+
+def SaveTikZ (data, name, sx, sy):
+    #print len(data), data
+    TikZ(data, name, sx, sy)
+
 #test
 #
 #cdef emonde0_simplify_rec2 (aut, e, a, d, int *n):
@@ -59,6 +66,43 @@ class Automaton (DiGraph):
             ('one', 'zwei', 'trois')
         """
         return DiGraph.plot(self, edge_labels=True)
+    
+    def plot2 (self, sx=10, sy=8, name="Automaton", verb=False):
+        r"""
+        Plot the automaton.
+        """
+        I = []
+        if hasattr(self, 'I'):
+            I = self.I
+        F = []
+        if hasattr(self, 'F'):
+            F = self.F
+        if verb:
+            print I,F
+        txt = '{\n'
+        for e in self.vertices():
+            txt += '    "'+str(e)+'" [shape='
+            if e in F:
+                txt += 'doublecircle'
+            else:
+                txt += 'circle'
+            txt += ', style='
+            if e in I:
+                txt += 'bold'
+            else:
+                txt += 'solid'
+            txt += ', fontsize=20, margin=0]\n'    
+        txt += '\n'
+        for e,f,l in self.edges():
+            txt += '    "'+str(e)+'" -> "'+str(f)+'" [label="'+str(l)+'"];\n'
+        txt += '}\n'
+        SaveTikZ(txt, name, sx, sy)
+    
+    def plot3 (self, name="Automaton"):
+        r"""
+        Plot the automaton.
+        """
+        SaveTikZ(self.graphviz_string(edge_labels=True), name)
     
     def copy (self):
         a = DiGraph.copy(self)
@@ -454,8 +498,11 @@ class Automaton (DiGraph):
         self.allow_multiple_edges(True)
         for u,v,l in self.edges():
             self.delete_edge(u, v, l)
-            for l2 in d[l]:
-                self.add_edge(u, v, l2)
+            if d.has_key(l):
+                for l2 in d[l]:
+                    self.add_edge(u, v, l2)
+            else:
+                print "Key %s not in the dictionary !"%l
         self.A = [a for A in d.values() for a in A]
     
     def determinize_rec (self, S, A, a, nof, noempty, verb):
