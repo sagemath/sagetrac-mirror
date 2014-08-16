@@ -28,6 +28,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
+from sage.rings.integer import Integer
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, \
   RiggedPartitionTypeB
 
@@ -44,9 +45,9 @@ class RiggedConfigurationElement(ClonableArray):
     non-simply-laced types, use :class:`RCNonSimplyLacedElement`.
 
     Typically to create a specific rigged configuration, the user will pass in
-    the optional argument **partition_list** and if the user wants to specify
-    the rigging values, give the optional argument **rigging_list** as well.
-    If **rigging_list** is not passed, the rigging values are set to the
+    the optional argument ``partition_list`` and if the user wants to specify
+    the rigging values, give the optional argument ``rigging_list`` as well.
+    If ``rigging_list`` is not passed, the rigging values are set to the
     corresponding vacancy numbers.
 
     INPUT:
@@ -778,7 +779,14 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: La = RootSystem(['B',2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1]+La[2])
+            sage: I = RC.index_set()
+            sage: matrix([[rc.epsilon(i) for i in I] for rc in RC[:4]])
+            [0 0]
+            [1 0]
+            [0 1]
+            [0 2]
         """
         a = self.parent()._rc_index.index(a)
         if not self[a]:
@@ -791,11 +799,18 @@ class RiggedConfigurationElement(ClonableArray):
 
         Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
         `\nu^{(a)} = \emptyset`, then we have
-        `\varepsilon_a = p_{\infty}^{(a)} - min(0, x_{\ell})`.
+        `\varepsilon_a = p_{\infty}^{(a)} - \min(0, x_{\ell})`.
 
         EXAMPLES::
 
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: La = RootSystem(['B',2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1]+La[2])
+            sage: I = RC.index_set()
+            sage: matrix([[rc.phi(i) for i in I] for rc in RC[:4]])
+            [1 1]
+            [0 3]
+            [0 2]
+            [1 1]
         """
         a = self.parent()._rc_index.index(a)
         p_inf = self.parent()._calc_vacancy_number(self, a, None)
@@ -972,7 +987,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
                            -2[ ]-1
             sage: ascii_art(elt.f(1))
             -1[ ][ ]0  -2[ ][ ]-2  -1[ ][ ]0
-                       -2[ ]-1   
+                       -2[ ]-1
             sage: ascii_art(elt.f(2))
             -2[ ][ ]-1  -2[ ]-1  -4[ ][ ][ ]-2
                         -2[ ]-1
@@ -1146,10 +1161,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     EXAMPLES:
 
-    We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
-    and tensor products of
-    :mod:`KR tableaux <sage.combinat.crystals.kirillov_reshetikhin>`::
+    We can go between :class:`rigged configurations <RiggedConfigurations>`
+    and tensor products of :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
         sage: rc_elt = RC(partition_list=[[1], [1,1], [1], [1]])
@@ -1357,10 +1371,6 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         r"""
         Return `\varepsilon_a` of ``self``.
 
-        Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
-        `\nu^{(a)} = \emptyset`, then we have
-        `\varepsilon_a = -\min(0, x_{\ell})`.
-
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
@@ -1372,19 +1382,11 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(a)
-
-        a = self.parent()._rc_index.index(a)
-        if not self[a]:
-            return 0
-        return -min(0, min(self[a].rigging))
+        return RiggedConfigurationElement.epsilon(self, a)
 
     def phi(self, a):
         r"""
         Return `\varphi_a` of ``self``.
-
-        Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
-        `\nu^{(a)} = \emptyset`, then we have
-        `\varepsilon_a = p_{\infty}^{(a)} - min(0, x_{\ell})`.
 
         EXAMPLES::
 
@@ -1397,12 +1399,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
-
-        a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
-        if not self[a]:
-            return p_inf
-        return p_inf - min(0, min(self[a].rigging))
+        return RiggedConfigurationElement.phi(self, a)
 
     def weight(self):
         """
@@ -1414,7 +1411,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             sage: map(lambda x: x.weight(), RC.module_generators)
             [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
             sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
-            sage: map(lambda x: x.weight(), KR.module_generators)
+            sage: map(lambda x: x.weight(), KR.module_generators) # long time
             [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
 
             sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
@@ -1464,16 +1461,11 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         TESTS:
 
         We check the classical weights agree in an entire crystal::
-        
+
             sage: RC = RiggedConfigurations(['A',2,1], [[2,1], [1,1]])
-            sage: passed_test = True
             sage: for x in RC:
             ....:     y = x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-            ....:     if x.classical_weight() != y.classical_weight():
-            ....:         passed_test = False
-            ....:         break
-            sage: passed_test
-            True
+            ....:     assert x.classical_weight() == y.classical_weight()
         """
         F = self.cartan_type().classical().root_system()
         if F.ambient_space() is None:
@@ -1508,7 +1500,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to print each step in the algorithm
-        - ``build_graph` -- (default: ``False``) boolean which indicates
+        - ``build_graph`` -- (default: ``False``) boolean which indicates
           if we want to construct and return a graph of the bijection whose
           vertices are rigged configurations obtained at each step and edges
           are labeled by either the return value of `\delta` or the
@@ -1594,7 +1586,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to print each step in the algorithm
-        - ``build_graph` -- (default: ``False``) boolean which indicates
+        - ``build_graph`` -- (default: ``False``) boolean which indicates
           if we want to construct and return a graph of the bijection whose
           vertices are rigged configurations obtained at each step and edges
           are labeled by either the return value of `\delta` or the
@@ -1956,14 +1948,14 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         sage: TestSuite(elt).run()
     """
     def e(self, a):
-        """
+        r"""
         Return the action of `e_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying
 
         .. MATH::
 
-            \hat{e}_a = \prod_{j \in \iota(a)} e_j^{\gamma_j}
+            e^v_a = \prod_{j \in \iota(a)} \hat{e}_j^{\gamma_j}
 
         and pulling back.
 
@@ -1988,30 +1980,29 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             <BLANKLINE>
         """
         if a == self.parent()._cartan_type.special_node():
-            return KRRiggedConfigurationElement.e(self, a)
+            try:
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().e(a)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except (NotImplementedError, TypeError):
+                # We haven't implemented the bijection yet, so try by lifting
+                #   to the simply-laced case
+                return RCNonSimplyLacedElement.e(self, a)
 
         if not self.epsilon(a):
             return None
-
-        vct = self.parent()._folded_ct
-        L = []
-        gamma = vct.scaling_factors()
-        for i in vct.folding_orbit()[a]:
-            L.extend([i]*gamma[a])
-        virtual_rc = self.parent().to_virtual(self).e_string(L)
-        if virtual_rc is None:
-            return None
-        return self.parent().from_virtual(virtual_rc)
+        return RCNonSimplyLacedElement.e(self, a)
 
     def f(self, a):
-        """
+        r"""
         Return the action of `f_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying
 
         .. MATH::
 
-            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+            f^v_a = \prod_{j \in \iota(a)} \hat{f}_j^{\gamma_j}
 
         and pulling back.
 
@@ -2036,20 +2027,19 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             <BLANKLINE>
         """
         if a == self.parent()._cartan_type.special_node():
-            return KRRiggedConfigurationElement.f(self, a)
+            try:
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().f(a)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except (NotImplementedError, TypeError):
+                # We haven't implemented the bijection yet, so try by lifting
+                #   to the simply-laced case
+                return RCNonSimplyLacedElement.f(self, a)
 
         if not self.phi(a):
             return None
-
-        vct = self.parent()._folded_ct
-        L = []
-        gamma = vct.scaling_factors()
-        for i in vct.folding_orbit()[a]:
-            L.extend([i]*gamma[a])
-        virtual_rc = self.parent().to_virtual(self).f_string(L)
-        if virtual_rc is None:
-            return None
-        return self.parent().from_virtual(virtual_rc)
+        return RCNonSimplyLacedElement.f(self, a)
 
     @cached_method
     def cocharge(self):
@@ -2087,4 +2077,67 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         return cc / 2 + rigging_sum
 
     cc = cocharge
+
+class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
+    r"""
+    `U_q^{\prime}(\mathfrak{g})` rigged configurations in type
+    `A_{2n}^{(2)\dagger}`.
+    """
+    def epsilon(self, a):
+        r"""
+        Return the value of `\varepsilon_a` of ``self``.
+
+        Here we need to modify the usual definition by
+        `\varepsilon_n^{\prime} := 2 \varepsilon_n`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[1,1], [2,2]])
+            sage: def epsilon(x, i):
+            ....:     x = x.e(i)
+            ....:     eps = 0
+            ....:     while x is not None:
+            ....:         x = x.e(i)
+            ....:         eps = eps + 1
+            ....:     return eps
+            sage: all(epsilon(rc, 2) == rc.epsilon(2) for rc in RC)
+            True
+        """
+        if a == self.parent()._cartan_type.special_node():
+            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(a)
+
+        epsilon = KRRCNonSimplyLacedElement.epsilon(self, a)
+        n = self.parent().cartan_type().classical().rank()
+        if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
+            epsilon *= 2
+        return Integer(epsilon)
+
+    def phi(self, a):
+        r"""
+        Return the value of `\varphi_a` of ``self``.
+
+        Here we need to modify the usual definition by
+        `\varphi_n^{\prime} := 2 \varphi_n`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[1,1], [2,2]])
+            sage: def phi(x, i):
+            ....:     x = x.f(i)
+            ....:     ph = 0
+            ....:     while x is not None:
+            ....:         x = x.f(i)
+            ....:         ph = ph + 1
+            ....:     return ph
+            sage: all(phi(rc, 2) == rc.phi(2) for rc in RC)
+            True
+        """
+        if a == self.parent()._cartan_type.special_node():
+            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
+
+        phi = KRRCNonSimplyLacedElement.phi(self, a)
+        n = self.parent().cartan_type().classical().rank()
+        if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
+            phi *= 2
+        return Integer(phi)
 
