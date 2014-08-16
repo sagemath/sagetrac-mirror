@@ -873,18 +873,14 @@ class AdditiveMagmas(Category_singleton):
                     Return the negation of ``self``, if it exists.
 
                     The inverse is computed by negating each cartesian
-                    factor and attempting to convert the result back
-                    to the original parent.
+                    factor and converting the result back to the original parent.
 
-                    For example, if one of the cartesian factor is an
-                    element ``x`` of `\NN`, the result of ``-x`` is in
-                    `\ZZ`. So we need to convert it back to `\NN`. As
-                    a side effect, this checks that ``x`` indeed has a
-                    negation in `\NN`.
-
-                    If needed an optimized version without this
-                    conversion could be implemented in
-                    :class:`AdditiveMagmas.AdditiveUnital.AdditiveInverse.ElementMethods`.
+                    Occasionally, this can lead to inverses that lie actually
+                    outside of the current parent: for example, if one of the
+                    cartesian factor is an element ``x`` of `\NN`, the result of
+                    ``-x`` will be in `\ZZ`. If this is a problem the parent must
+                    implement a special ``_neg_`` method that adds extra sanity
+                    checks.
 
                     EXAMPLES::
 
@@ -900,10 +896,9 @@ class AdditiveMagmas(Category_singleton):
 
                         sage: c = C.an_element(); c
                         (1, 42, 1.00000000000000)
+                        sage: # the following is an example where -c lies outside the parent:
                         sage: -c
-                        Traceback (most recent call last):
-                        ...
-                        ValueError: Value -42 in not in Non negative integers.
+                        (-1, -42, -1.00000000000000)
 
                     .. TODO::
 
@@ -918,8 +913,8 @@ class AdditiveMagmas(Category_singleton):
                             ...
                             AssertionError
                     """
-                    return self.parent()(
-                        -x for x in self.cartesian_factors())
+                    return self.parent()._cartesian_product_of_elements(
+                        [-x for x in self.cartesian_factors()])
 
         class Algebras(AlgebrasCategory):
 
