@@ -1475,22 +1475,22 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         return res
 
-    def chebyshev_T(self, n, Parent P):
+    @classmethod
+    def chebyshev_T(cls, n, parent, gen0):
         r"""
         Return the n-th Chebyshev T polynomial in parent P.
 
         EXAMPLE::
 
             sage: R.<x> = ZZ[]
-            sage: x.chebyshev_T(5,R)
+            from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+            sage: Polynomial_integer_dense_flint.chebyshev_T(5,x)
             16*x^5 - 20*x^3 + 5*x
         """
-        cdef Polynomial_integer_dense_flint x = self._new()
-        x._parent = P
-        x._is_gen = 0
+        cdef Polynomial_integer_dense_flint pol = cls(parent, x=gen0)
         if not PY_TYPE_CHECK(n, Integer) or n < 0:
             raise ValueError("argument n must be a non-negative integer, got %s" % str(n))
         sig_on()
-        arith_chebyshev_t_polynomial(x.__poly, n)
+        arith_chebyshev_t_polynomial(pol.__poly, n)
         sig_off()
-        return x
+        return pol

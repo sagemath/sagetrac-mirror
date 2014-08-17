@@ -767,7 +767,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         res *= n/2
         return res
 
-    def eval_algebraic(self, n, x):
+    def eval_algebraic(self, n, arg):
         """
         Evaluate :class:`chebyshev_T` as polynomial, using a recursive
         formula.
@@ -804,20 +804,34 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: R.<t> = Zp(2, 8, 'capped-abs')[]
             sage: chebyshev_T(10^6+1, t)
             (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
+            sage: R.<t> = GF(3)[]
+            sage: chebyshev_T(15,t)
+            t^15 + t^9 + 2*t^3
+            sage: R.<x> = ZZ[]
+            sage: chebyshev_T(5,x+1)
+            16*x^5 + 80*x^4 + 140*x^3 + 100*x^2 + 25*x + 1
+            sage: R.<x,y> = ZZ[]
+            sage: chebyshev_T(5,x*y)
+            16*x^5*y^5 - 20*x^3*y^3 + 5*x*y
         """
-        P = parent(x)
+        P = parent(arg)
         if n == 0:
             return P.one()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if (is_PolynomialRing(P) and P.base() == ZZ
-            and P.ngens() == 1 and x == P.gen()):
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        if (is_PolynomialRing(P)):
+            from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
             if n<0:
                 n = -n
-            return x.chebyshev_T(n, P)
+            gen0 = str(P.gens()[0])
+            R = PolynomialRing(ZZ, gen0)
+            pol = Polynomial_integer_dense_flint.chebyshev_T(n, R, R.gen())
+            pol = pol.subs({pol.parent().gen():arg})
+            return pol.change_ring(P.base_ring())
         else:
             if n < 0:
-                return self._eval_recursive_(-n, x)[0]
-            return self._eval_recursive_(n, x)[0]
+                return self._eval_recursive_(-n, arg)[0]
+            return self._eval_recursive_(n, arg)[0]
 
     def _eval_recursive_(self, n, x, both=False):
         """
@@ -960,7 +974,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             res += (-1)**j * (2*x)**(n-2*j) * f
         return res
 
-    def eval_algebraic(self, n, x):
+    def eval_algebraic(self, n, arg):
         """
         Evaluate :class:`chebyshev_U` as polynomial, using a recursive
         formula.
@@ -1004,21 +1018,20 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: chebyshev_U(10^6+1, t)
             (2 + O(2^6))*t + (O(2^6))
         """
-        P = parent(x)
+        P = parent(arg)
         if n == -1:
             return P.zero()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if (is_PolynomialRing(P) and P.base() == ZZ
-            and P.ngens() == 1 and x == P.gen()):
+        if (is_PolynomialRing(P)):
             if n<0:
                 n = - n - 2
-                return -x.chebyshev_T(n+1, P).derivative()/(n+1)
+                return -chebyshev_T(n+1, arg).derivative()/(n+1)
             else:
-                return x.chebyshev_T(n+1, P).derivative()/(n+1)
+                return chebyshev_T(n+1, arg).derivative()/(n+1)
         else:
             if n < 0:
-                return -self._eval_recursive_(-n-2, x)[0]
-            return self._eval_recursive_(n, x)[0]
+                return -self._eval_recursive_(-n-2, arg)[0]
+            return self._eval_recursive_(n, arg)[0]
 
     def _eval_recursive_(self, n, x, both=False):
         """
