@@ -58,15 +58,21 @@ cdef extern from "complex.h":
     cdef cppclass Complexe:
         double x,y
 
+cimport sage.combinat.words.cautomata
+from sage.combinat.words.cautomata cimport Automate, FastAutomaton
+from sage.combinat.words.cautomata import FastAutomaton
+
+#cdef extern from "Automaton.h":
+#    cdef cppclass Etat:
+#        int* f
+#        int final
+#    cdef cppclass Automate:
+#        int n
+#        int na
+#        Etat* e
+#        int i
+
 cdef extern from "draw.h":
-    cdef cppclass Etat:
-        int* f
-        int final
-    cdef cppclass Automate:
-        int n
-        int na
-        Etat* e
-        int i
     ctypedef unsigned char uint8
     cdef cppclass Color:
         uint8 r
@@ -145,6 +151,11 @@ cdef surface_to_img (Surface s):
 cdef Automate getAutomate (a, d, iss=None, verb=False):
     if verb:
         print "getAutomate %s..."%a
+    cdef FastAutomaton fa
+    if isinstance(a, FastAutomaton):
+        fa = a
+        return fa.a[0]
+    #assume in the following that a is a Automaton
     lv = a.vertices()
     if hasattr(a, 'F'):
         F = a.F

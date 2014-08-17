@@ -1,21 +1,4 @@
 
-//typedef int *Etat;
-struct Etat
-{
-	int* f; //liste des na fils indexés par les lettres
-	int final; //l'état est final ?
-};
-typedef struct Etat Etat;
-
-struct Automate
-{
-	Etat* e; //liste des états (l'état initial est le premier)
-	int n; //nombre d'états
-	int na; //nombre de lettres différentes
-	int i; //état initial
-};
-typedef struct Automate Automate;
-
 typedef unsigned char uint8;
 
 struct Color

@@ -24,10 +24,7 @@ AUTHORS:
 
 from libc.stdlib cimport malloc, free
 
-#from cautomata cimport bool, Etat, Automate, Automaton
-#cimport cautomata
 cimport sage.combinat.words.cautomata
-#import cautomata
 
 #ctypedef Automate Automaton
 

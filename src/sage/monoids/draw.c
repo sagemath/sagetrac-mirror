@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "complex.c"
+#include "Automaton.h"
 #include "draw.h"
 
 double mx = -2, my = -2, Mx = 2, My = 2; //zone de dessin
