@@ -803,9 +803,10 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: n = 97; x = RIF(pi/2/n)
             sage: chebyshev_T(n, cos(x)).contains_zero()
             True
-            sage: R.<t> = Zp(2, 8, 'capped-abs')[]
-            sage: chebyshev_T(10^6+1, t)
-            (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
+            sage: T.<x> = PowerSeriesRing(ZZ); T
+            Power Series Ring in x over Integer Ring
+            sage: chebyshev_T(555, x+O(x^6))
+            -555*x + 28492220*x^3 - 438802981776*x^5 + O(x^6)
             sage: R.<t> = GF(3)[]
             sage: chebyshev_T(15,t)
             t^15 + t^9 + 2*t^3
@@ -825,8 +826,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
             if n<0:
                 n = -n
-            gen0 = str(P.gens()[0])
-            R = PolynomialRing(ZZ, gen0)
+            R = PolynomialRing(ZZ, 'x')
             pol = Polynomial_integer_dense_flint.chebyshev_T(n, R, R.gen())
             pol = pol.subs({pol.parent().gen():arg})
             return pol.change_ring(P.base_ring())
@@ -1016,9 +1016,6 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: n = 97; x = RIF(pi/n)
             sage: chebyshev_U(n-1, cos(x)).contains_zero()
             True
-            sage: R.<t> = Zp(2, 6, 'capped-abs')[]
-            sage: chebyshev_U(10^6+1, t)
-            (2 + O(2^6))*t + (O(2^6))
         """
         P = parent(arg)
         if n == -1:
