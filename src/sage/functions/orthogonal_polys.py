@@ -510,7 +510,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
         if n in ZZ and not kwds.get('hold', False):
             try:
                 return self._eval_(n, *args)
-            except Exception:
+            except TypeError:
                 pass
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
