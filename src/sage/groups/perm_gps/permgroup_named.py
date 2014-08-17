@@ -207,6 +207,35 @@ class PermutationGroup_symalt(PermutationGroup_unique):
 
 
 class SymmetricGroup(PermutationGroup_symalt):
+    @staticmethod
+    def __classcall_private__(cls, domain, implementation = "gap"):
+        """
+        Return the symmetric group as a permutation group if implementation is
+        "gap" and return a combinatorial version, which uses algorithms
+        specific to symmetric groups if implementation is "combinatorial".
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5, implementation = "gap")
+            sage: G.conjugacy_classes()
+            [Conjugacy class of () in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2) in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2)(3,4) in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2,3) in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2,3)(4,5) in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2,3,4) in Symmetric group of order 5! as a permutation group,
+             Conjugacy class of (1,2,3,4,5) in Symmetric group of order 5! as a permutation group]
+            sage: G = SymmetricGroup(5000, implementation = "combinatorial")
+            sage: G.conjugacy_classes()
+            Partitions of the integer 5000
+        """
+        if implementation == "gap":
+            return super(SymmetricGroup, cls).__classcall__(cls, domain)
+        elif implementation == "combinatorial":
+            from sage.groups.perm_gps.combinatorial_symmetric_group import SymmetricGroupCombinatorial
+            return SymmetricGroupCombinatorial(domain)
+        else:
+            raise ValueError("invalid implementation")
     def __init__(self, domain=None):
         r"""
         The full symmetric group of order `n!`, as a permutation group.
@@ -267,7 +296,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         self._deg = len(self._domain)
         self._domain_to_gap = {key: i+1 for i, key in enumerate(self._domain)}
         self._domain_from_gap = {i+1: key for i, key in enumerate(self._domain)}
-
+        
         #Create the generators for the symmetric group
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
