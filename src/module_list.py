@@ -258,6 +258,10 @@ ext_modules = [
     Extension('sage.combinat.words.automata',
               sources=['sage/combinat/words/automata.pyx']),
     
+    Extension('sage.combinat.words.cautomata',
+              sources=['sage/combinat/words/cautomata.pyx', 'sage/combinat/words/automataC.c'],
+              depends=['sage/combinat/words/automataC.h']),
+    
     ################################
     ##
     ## sage.crypto
@@ -1381,8 +1385,10 @@ ext_modules = [
     ################################
     
     Extension('sage.monoids.beta_adic_monoid',
-              sources = ['sage/monoids/beta_adic_monoid.pyx'],
-              libraries=[]),
+              sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c'],
+              libraries=[],
+              include_dirs=['sage/combinat/words'],
+              depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h']),
     
     ################################
     ##

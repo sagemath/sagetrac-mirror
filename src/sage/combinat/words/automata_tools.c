@@ -46,6 +46,6 @@ void TikZ (const char *data, const char *graph_name, double sx, double sy)
 	fclose(f);
 	if (verb)
 		printf("draw...\n");
-	sprintf(tamp, "dot %s -Gname -Tsvg > output.svg", name);
+	sprintf(tamp, "dot %s -Gname -Tsvg > output%s%s.svg", name, time(NULL), clock());
 	system(tamp);
 }
