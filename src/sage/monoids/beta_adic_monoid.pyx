@@ -54,7 +54,11 @@ def emonde (a, K):
         if K.zero() in s:
             return s
 
-cdef extern from "draw.c":
+cdef extern from "complex.h":
+    cdef cppclass Complexe:
+        double x,y
+
+cdef extern from "draw.h":
     cdef cppclass Etat:
         int* f
         int final
