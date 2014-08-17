@@ -1,5 +1,5 @@
 from sage.rings.finite_rings.finite_field_prime_modn import *
-from sage.matroids.advanced import *
+#from sage.matroids.advanced import *
 from sage.sets.set import Set
 from sage.all import *
 import numpy as np
@@ -241,7 +241,7 @@ cpdef ncmatenum(nc,maxgnd):
     mcodes_3 = init_enum(nc,maxgnd)
     mcodes_parent = mcodes_3
     for g in range(4,maxgnd+1):
-        mcodes_parent=extend_mcodes(mcodes_parent,maxgnd,nvars)
+        mcodes_parent=extend_mcodes(mcodes_parent,nc,maxgnd,nvars)
 
 cpdef add_identity_codes(mcode_n_n,nc,maxgnd):
     """ Return new mcode with to size n+1 rank n+1 matroid
@@ -266,31 +266,94 @@ cpdef dfz_matroidal_network(M):
     allB=M.bases()
     B1=list(allB[0])
     j=0 # edge count
-    # STEP 1: map B1 to source variables
+    # STEP 1: create source nodes in dag and assign them msgs and B1 elements
     for i in xrange(len(B1)):
-        nodes.append(i)
+        dag[i] = []
         msgs.append(i)
         f[i]=B1[i]
         g[B1[i]] = i
-    i+=1
-    # STEP 2: find circuit with 1 undefined (in terms of g) element
-    # create empty dag
-    for x in M.groundset():
-        dag[x]=[]
+    nsrc = i+1
+    i+=1 # current node index
+    j = i # msg/edge index
+    print 'dag',dag
+    print 'f',f
+    print 'g',g
+    # STEP 2: find circuits with 1 undefined (in terms of g) element
     while True:
         c = candidate_circuit(M.circuits(),g)
         if c == None:
             break
         else:
-            g[list(set(c)-set(g.keys()))[0]]=i
-            nodes.append[i]
-            msgs.append[i]
-            f[i]=list(set(c)-set(g.keys()))[0]
-            i+=1
+            print 'define',list(set(c)-set(g.keys()))[0]
+            # Step 2.(i)
+            dag[i]=[]
+            msgs.append(i)
             for cx in set(c)-set(set(c)-set(g.keys())):
-                dag[cx].append(list(set(c)-set(g.keys()))[0])
+                f[(g[cx],i)]=cx
+                j+=1
+                dag[g[cx]].append(i)
+            i+=1
+            # Step 2.(ii)
+            dag[i]=[]
+            dag[i-1].append(i)
+            f[(i-1,i)] = list(set(c)-set(g.keys()))[0]
+            g[list(set(c)-set(g.keys()))[0]] = i
+            j+=1
+            i+=1
+    print 'dag',dag
+    print 'f',f
+    print 'g',g
+    # STEP 3: for every source msg-containing circuit pair add a receiver
+    demands = {}
+    used_ckts=set([])
+    for x in M.groundset():
+        if g[x] < nsrc:
+            for ckt in M.circuits():
+                if x in ckt:
+                    used_ckts.add(ckt)
+                    demands[i] = [g[x]]
+                    for y in set(ckt)-set([x]):
+                        dag[g[y]].append(i)
+                        f[(g[y],i)]=y
+                        j+=1
+                    i+=1
+    # STEP 4:
+    for ckt in M.circuits():
+        if ckt not in used_ckts:
+            # encorce dependency
+            B = M.basis()
+            for b in B:
+                dag[g[b]].append(i)
+                f[(g[b],i)] = b
+                j+=1
+            demands[i] = range(nsrc)
+            i+=1
+    return (dag,f,g,demands)
 
-    #
+cpdef dfz_ncinstance(M):
+    """ return ncinstance corresponding to dfz matroidal network
+    """
+    dag,f,g,demands = dfz_matroidal_network(M)
+    srcs = [s+1 for s in f.keys() if isinstance(s,type(1))]
+    print srcs
+    nc = [[],[]]
+    nc[1].extend(srcs)
+    print 'here'
+    for src in srcs:
+        in_set = set([src])
+        out_set = set([ i+1 for i in dag[src]])
+        nc[0].append([list(in_set),list(in_set|out_set)])
+    for node in set(dag.keys())-set([s-1 for s in srcs]):
+        in_set = set([i+1 for i in dag.keys() if  node in dag[i]])
+        out_set = set([i+1 for i in dag[node]])
+        nc[0].append([list(in_set),list(in_set|out_set)])
+        print 'node',node+1,[list(in_set),list(in_set|out_set)]
+    for d in demands.keys():
+        in_set = set([i+1 for i in dag.keys() if  d in dag[i]])
+        out_set= set([i+1 for i in demands[d]])
+        nc[0].append([list(in_set),list(in_set|out_set)])
+        print 'd',d,[list(in_set),list(in_set|out_set)]
+    return nc
 
 cpdef candidate_circuit(circuits,g):
     for c in circuits:
