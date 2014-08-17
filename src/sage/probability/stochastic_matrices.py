@@ -2,7 +2,7 @@ r"""
 Stochastic Matrices
 """
 #*****************************************************************************
-#  Copyright (C) 2014 Arvind Ayyer <arvind at math.iisc.ernet.in> 
+#  Copyright (C) 2014 Arvind Ayyer <arvind at math.iisc.ernet.in>
 #                 and Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -15,7 +15,7 @@ from sage.structure.element_wrapper import ElementWrapper
 
 class StochasticMatrix(ElementWrapper):
     r"""
- 
+
     EXAMPLES::
 
      """
@@ -69,29 +69,29 @@ class StochasticMatrix(ElementWrapper):
             return getattr(self.value,name)
         except AttributeError:
             return super(StochasticMatrix, self).__getattr__(name)
-        
+
     def stationary_distribution(self, irreducible = True):
         r"""
         Returns the stationary distribution of the stochastic matrix
-        
+
         EXAMPLES::
-        
+
             sage: M = Matrix([[1/2,1/2],[1,0]])
             sage: StochasticMatrix(M)
             [1/2 1/2]
             [  1   0]
 
         TESTS::
-            
+
         """
-            
+
         if self.side == 'row':
             sums = map(sum, self.rows())[0]
             K = (self.value-sums).kernel()
         else:
             sums = map(sum, self.columns())[0]
             K = (self.value-sums).transpose().kernel()
-            
+
         if not irreducible:
             return K
         else:
@@ -100,4 +100,23 @@ class StochasticMatrix(ElementWrapper):
             else:
                 V = K.basis()[0]
                 return V/sum(V)
-                    
+
+    def to_digraph(self):
+        r"""
+        Returns the graph of the stochastic matrix. The Markov chain 
+        of the stochastic matrix corresponds
+        to a random walk on this directed graph.
+
+        EXAMPLES::
+
+            sage: M = Matrix([[1/2,1/2],[1,0]])
+            sage: StochasticMatrix(M)
+            [1/2 1/2]
+            [  1   0]
+
+        TESTS::
+
+        """
+        return DiGraph(self, format = 'weighted_adjacency_matrix', loops = 'true')
+
+
