@@ -552,6 +552,8 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
             True
         """
+        if type(x).__module__ == 'numpy':
+            return self._eval_numpy_(n, x)
         # n is an integer => evaluate algebraically (as polynomial)
         if n in ZZ:
             n = ZZ(n)
