@@ -70,7 +70,7 @@ Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool 
 Automaton Duplicate (Automaton a, InvertDict id, int na2, bool verb);
 
 //retire tous les états à partir desquels il n'y a pas de chemin infini
-Automaton emonde_inf (Automaton a);
+Automaton emonde_inf (Automaton a, bool verb);
 
 //Compute the transposition, assuming it is deterministic
 Automaton Transpose (Automaton a);

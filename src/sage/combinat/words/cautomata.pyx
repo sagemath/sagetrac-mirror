@@ -25,6 +25,7 @@ AUTHORS:
 from libc.stdlib cimport malloc, free
 
 cimport sage.combinat.words.cautomata
+include "sage/ext/interrupt.pxi"
 
 #ctypedef Automate Automaton
 
@@ -44,7 +45,7 @@ cdef extern from "automataC.h":
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
     Automaton Product(Automaton a1, Automaton a2, Dict d)
     Automaton Determinise (Automaton a, Dict d, bool noempty, bool onlyfinals, bool nof, bool verb)
-    Automaton emonde_inf (Automaton a)
+    Automaton emonde_inf (Automaton a, bool verb)
     Automaton emonde (Automaton a, bool verb)
     Automaton emondeI (Automaton a, bool verb)
     bool equalsAutomaton (Automaton a1, Automaton a2)
@@ -214,7 +215,7 @@ def TestEmonde (a, noempty=True, verb=True):
     if verb:
         print "Avant émondation :"
         printAutomaton(au)
-    cdef Automaton r = emonde_inf(au)
+    cdef Automaton r = emonde_inf(au, verb)
     if verb:
         print "Après émondation :"
         printAutomaton(r)
@@ -325,8 +326,10 @@ cdef class FastAutomaton:
     
     def __dealloc__ (self):
         #print "free"
+        sig_on()
         FreeAutomaton(self.a[0])
         free(self.a)
+        sig_off()
     
     def __repr__ (self):
         return "FastAutomaton with %d states and an alphabet of %d letters"%(self.a.n, self.a.na)
@@ -335,6 +338,7 @@ cdef class FastAutomaton:
         return AutomatonGet(self.a[0], self.A)
     
     def plot (self, int sx=10, int sy=8):
+        sig_on()
         cdef char** ll
         ll = <char **>malloc(sizeof(char*)*self.a.na)
         cdef int i
@@ -344,7 +348,7 @@ cdef class FastAutomaton:
             ll[i] = strA[i]
         plotTikZ(self.a[0], ll, "Automaton", sx, sy)
         free(ll);
-        
+        sig_off()
         #self.Automaton().plot2()
     
     def Alphabet (self):
@@ -360,35 +364,34 @@ cdef class FastAutomaton:
                 l.append(i)
         return l
     
-    def emonde_inf (self):
-        #sig_on()
+    def emonde_inf (self, verb=False):
+        sig_on()
         cdef Automaton a
         r = FastAutomaton(None)
-        a = emonde_inf(self.a[0])
-        #FreeAutomaton(self.a[0])
+        a = emonde_inf(self.a[0], verb)
         r.a[0] = a
         r.A = self.A
-        #sig_off()
+        sig_off()
         return r
     
     def emonde_i (self, verb=False):
-        #sig_on()
+        sig_on()
         cdef Automaton a
         r = FastAutomaton(None)
         a = emondeI(self.a[0], verb)
         r.a[0] = a
         r.A = self.A
-        #sig_off()
+        sig_off()
         return r
     
     def emonde (self, verb=False):
-        #sig_on()
+        sig_on()
         cdef Automaton a
         r = FastAutomaton(None)
         a = emonde(self.a[0], verb)
         r.a[0] = a
         r.A = self.A
-        #sig_off()
+        sig_off()
         return r
     
     def equals (self, FastAutomaton b):
@@ -396,7 +399,7 @@ cdef class FastAutomaton:
     
     #assume that the dictionnary d is injective !!!
     def product (self, FastAutomaton b, dict d, verb=False):
-        #sig_on()
+        sig_on()
         cdef Automaton a
         cdef Dict dC
         r = FastAutomaton(None)
@@ -413,7 +416,7 @@ cdef class FastAutomaton:
         FreeDict(dC)
         r.a[0] = a
         r.A = Av
-        #sig_off()
+        sig_off()
         return r
     
     def intersection (self, FastAutomaton a, verb=False):
@@ -426,7 +429,7 @@ cdef class FastAutomaton:
         return self.product(a, d, verb=verb)
         
     def determinise_proj (self, dict d, noempty=True, onlyfinals=False, nof=False, verb=False):
-        #sig_on()
+        sig_on()
         cdef Automaton a
         cdef Dict dC
         r = FastAutomaton(None)
@@ -440,13 +443,13 @@ cdef class FastAutomaton:
         #FreeAutomaton(self.a[0])
         r.a[0] = a
         r.A = A2
-        #sig_off()
+        sig_off()
         return r
     
     #change les lettres selon d, en dupliquant les arêtes si nécessaire
     #the result is assumed deterministic !!!
     def duplicate (self, dict d, verb=False):
-        #sig_on()
+        sig_on()
         cdef Automaton a
         cdef InvertDict dC
         r = FastAutomaton(None)
@@ -463,19 +466,19 @@ cdef class FastAutomaton:
         FreeInvertDict(dC)
         r.a[0] = a
         r.A = A2
-        #sig_off()
+        sig_off()
         return r
     
     def transpose (self):
-        #sig_on()
+        sig_on()
         r = FastAutomaton(None)
         r.a[0] = Transpose(self.a[0])
         r.A = self.A
-        #sig_off()
+        sig_off()
         return r
     
     def strongly_connected_components (self):
-        #sig_on()
+        sig_on()
         cdef int* l = <int*>malloc(sizeof(int)*self.a.n)
         cdef int ncc = StronglyConnectedComponents(self.a[0], l)
         #inverse la liste
@@ -486,14 +489,14 @@ cdef class FastAutomaton:
                 l2[l[i]] = []
             l2[l[i]].append(i)
         free(l)
-        #sig_off()
+        sig_off()
         return l2.values()
     
     def sub_automaton (self, l, verb=False):
-        #sig_on()
+        sig_on()
         r = FastAutomaton(None)
         r.a[0] = SubAutomaton(self.a[0], list_to_Dict(l), verb)
         r.A = self.A
-        #sig_off()
+        sig_off()
         return r
         

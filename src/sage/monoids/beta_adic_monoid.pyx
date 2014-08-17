@@ -705,7 +705,8 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print "Free..."
         FreeSurface(s)
-        FreeAutomate(b.a)
+        if not isinstance(tss, FastAutomaton):
+            FreeAutomate(b.a)
         FreeBetaAdic(b)
         
     def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
@@ -824,7 +825,12 @@ class BetaAdicMonoid(Monoid_class):
         if verb:
             print "Free..."
         FreeSurface(s)
-        FreeAutomates(b.a, b.na)
+        if la is None:
+            FreeAutomates(b.a, b.na)
+        else:
+            for i,a in enumerate(la):
+                if not isinstance(a, FastAutomaton):
+                    FreeAutomate(b.a[i])
         FreeBetaAdic2(b)
         FreeColorList(cl)
         
@@ -1692,6 +1698,8 @@ class BetaAdicMonoid(Monoid_class):
                 a.delete_edge(f, d, l)
         
         if step == 2:
+            a.I = ['O']
+            a.F = Set([K.zero()])
             return ("automate des relations ordonnées", a)
         
         a.emondeI(I=['O'])
