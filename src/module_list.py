@@ -2116,6 +2116,16 @@ ext_modules = [
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
 
+    ################################
+    ## 
+    ## sage.ffisom
+    ##
+    ################################
+
+    Extension('sage.ffisom.xz_coordinates',
+              sources = ['sage/ffisom.xz_coordinates.pyx']),
+    ]
+
 # Optional extensions :
 # These extensions are to be compiled only if the
 # corresponding packages have been installed

@@ -5,11 +5,12 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import sqrt
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
-import xz_coordinates
+import xz_coordinates 
 
-def elliptic_rains(k1, k2, k = None, bound = None):
+def isom_elliptic(k1, k2, k = None, bound = None):
     '''
     INPUT : 
+
     - ``k1`` -- a finite field, extension of degree n of k.
 
     - ``k2`` -- a finite field, extension of degree n of k; k1 != k2.
@@ -36,7 +37,7 @@ def elliptic_rains(k1, k2, k = None, bound = None):
 
         sage : k2 = GF(5**19, name = 'y', modulus = g)
 
-        sage : tuple = elliptic_rains(k1, k2)
+        sage : tuple = isom_elliptic(k1, k2)
 
         sage : tuple[0].minpoly() == tuple[1].minpoly()
 
@@ -49,28 +50,26 @@ def elliptic_rains(k1, k2, k = None, bound = None):
     with an unique orbit under the action of the Galois group. The algorithm is
     as follows :
 
-        - First we have to find an integer m with the following properties :
-
-            - We want to have n | phi(m) and (phi(m)/n, n) = 1.
-            - We need m such that there exist an eigenvalue of the Frobenius of
-              order n in (Z/m)* and for that egeinvalue to be of minimal order. 
-              From there we can construct a good class for the trace of the 
-              Frobenius, if we have one or more of those classes, we select 
-              this m (note : for now, m is just a prime or a prime power).
-
-          This is done by the function find_m.
+    #. First we have to find an integer m with the following properties :
+        #. We want to have n | phi(m) and (phi(m)/n, n) = 1.
+        #. We need m such that there exist an eigenvalue of the Frobenius of
+           order n in (Z/m)* and for that egeinvalue to be of minimal order. 
+           From there we can construct a good class for the trace of the 
+           Frobenius, if we have one or more of those classes, we select 
+           this m (note : for now, m is just a prime or a prime power).
+       This is done by the function find_m.
     
-        - After that, we need to pick a good elliptic curve. Which is an 
-          elliptic curve defined over GF(q) with its trace of Frobenius has its 
-          class modulo m equal to one of the good candidates, the one returned 
-          by the function find_m. The properties on m ensure that the elliptic 
-          curve over GF(q^n) has points of order m and that the abscissas of 
-          such points span GF(q^n). The function doing that is 
-          find_elliptic_curve.
+    #. After that, we need to pick a good elliptic curve. Which is an 
+       elliptic curve defined over GF(q) with its trace of Frobenius has its 
+       class modulo m equal to one of the good candidates, the one returned 
+       by the function find_m. The properties on m ensure that the elliptic 
+       curve over GF(q^n) has points of order m and that the abscissas of 
+       such points span GF(q^n). The function doing that is 
+       find_elliptic_curve.
 
-        - Finally, we compute the elliptic periods u1 and u2 on both E/k1 and 
-          E/k2 using the abscissas of a point of order m on each curves, 
-          the isomorphism we are looking for is the one sending u1 on u2. 
+    #. Finally, we compute the elliptic periods u1 and u2 on both E/k1 and 
+       E/k2 using the abscissas of a point of order m on each curves, 
+       the isomorphism we are looking for is the one sending u1 on u2. 
     '''
     if k is None:
 	    k = k1.base_ring()
@@ -104,10 +103,10 @@ def find_unique_orbit_elliptic(E, m, case = 0):
     '''
     INPUT : 
     
-    - ``E`` -- an elliptic curve with the properties given in elliptic_rains 
+    - ``E`` -- an elliptic curve with the properties given in isom_elliptic 
       and/or find_elliptic_curve.
 
-    - ``m`` -- an integer with the properties given in elliptic_rains and/or in 
+    - ``m`` -- an integer with the properties given in isom_elliptic and/or in 
       find_m.
 
     - ``case`` -- integer (default : 0) depends on the j-invariant's value :
@@ -185,7 +184,7 @@ def find_unique_orbit_elliptic(E, m, case = 0):
     '''
     n = E.base_ring().degree()
 
-    # Looking for a point of order exactly m.
+    # Loking for a point of order exactly m.
     P = xz_coordinates.find_ordm(E, m)
 
     if case == 0:
@@ -194,18 +193,21 @@ def find_unique_orbit_elliptic(E, m, case = 0):
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)//(2*n)
 
-        return sum((ZZ(gen_G**i)*P)[0] for i in range(order))
+        return sum(xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0] for i in 
+                range(order))
     elif case == 1:
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)/(4*n)
         
-        return sum(((ZZ(gen_G**i)*P)[0])**2 for i in range(order))
+        return sum((xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0])**2 for i in 
+                range(order))
 
     elif case == 2:
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)/(6*n)
 
-        return sum(((ZZ(gen_G**i)*P)[0])**3 for i in range(order))
+        return sum((xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0])**3 for i in
+            range(order))
 
 def find_elliptic_curve(k, K, m_t):
     '''
@@ -242,7 +244,7 @@ def find_elliptic_curve(k, K, m_t):
     ALGORITHM:
 
     The goal is to pick an elliptic curve of which the trace of its Frobenius 
-    t is among the right class modulo m, the ones in S_t. We do that in order to 
+    t is among the right class modulo m, the ones in S_t. We do that in order to
     have point of order m only on E/GF(q^n) or above, since then the abscissas 
     of a point of order m will span GF(q^n) and we'll be able to compute the 
     elliptic periods as it was planned.
@@ -269,7 +271,6 @@ def find_elliptic_curve(k, K, m_t):
     '''
     p = k.characteristic()
     q = k.cardinality()
-    n = K.degree()
     m = m_t[0]
     S_t = m_t[1]
 
@@ -288,7 +289,7 @@ def find_elliptic_curve(k, K, m_t):
         g = k.unit_gens()[0]
         c = g**((q-1)/4)
         t = E_j1728.trace_of_frobenius()
-        L = [(t*(c**i).lift(), g**i) for i in range(4)]
+        L = [(t*(c**i).centerlift(), g**i) for i in range(4)]
 
         for i in range(4):
             if Integers(m)(L[i][0]) in S_t:
@@ -308,7 +309,7 @@ def find_elliptic_curve(k, K, m_t):
         g = k.unit_gens()[0]
         c = g**((q-1)/6)
         t = E_j0.trace_of_frobenius()
-        L = [(t*(c**i).lift(), g**i) for i in range(6)]
+        L = [(t*(c**i).centerlift(), g**i) for i in range(6)]
 
         for l in L:
             if Integers(m)(l[0]) in S_t:
@@ -381,7 +382,7 @@ def find_trace(n,m,k):
     sq = sqrt(float(2*q))
     q_m = Zm(q)
 
-    # This test may be obsolete if the function is used inside 'elliptic_rains'.
+    # This test may be obsolete if the function is used inside 'isom_elliptic'.
     if not m.is_prime_power():
         raise NotImplementedError
     # If m is a power of p, then we just need the trace to be of order 
@@ -458,7 +459,7 @@ def find_m(n, k, bound = None):
     ALGORITHM :
     
     First and foremost we are looking for an integer m for which n | phi(m). A 
-    good way to obtain such integers is to look for a prime power of  the form 
+    good way to obtain such integers is to look for prime power of  the form 
 
     m = an + 1, 
 
