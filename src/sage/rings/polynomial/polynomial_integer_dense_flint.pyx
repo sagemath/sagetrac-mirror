@@ -1483,8 +1483,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLE::
 
             sage: R.<x> = ZZ[]
-            from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
-            sage: Polynomial_integer_dense_flint.chebyshev_T(5,x)
+            sage: from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+            sage: Polynomial_integer_dense_flint.chebyshev_T(5, ZZ, x)
             16*x^5 - 20*x^3 + 5*x
         """
         cdef Polynomial_integer_dense_flint pol = cls(parent, x=gen0)
