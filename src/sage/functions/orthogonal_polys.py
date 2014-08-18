@@ -506,16 +506,19 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             ...
             TypeError: Symbolic function chebyshev_T takes exactly 2 arguments (3 given)
         """
+        if len(args) <> 1:
+            raise TypeError('Symbolic function chebyshev_T takes exactly 2 arguments (%s given)'
+                            % str(len(args)+1))
         # If n is an integer: consider the polynomial as an algebraic (not symbolic) object
         if n in ZZ and not kwds.get('hold', False):
             try:
-                return self._eval_(n, *args)
+                return self._eval_(n, *args, **kwds)
             except TypeError:
                 pass
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
 
-    def _eval_(self, n, x):
+    def _eval_(self, n, x, *args, **kwds):
         """
         The :meth:`_eval_()` method decides which evaluation suits best
         for the given input, and returns a proper value.
@@ -560,7 +563,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             # Expanded symbolic expression only for small values of n
             if is_Expression(x) and n.abs() < 32:
                 return self.eval_formula(n, x)
-            return self.eval_algebraic(n, x)
+            return self.eval_algebraic(n, x, *args, **kwds)
 
         if is_Expression(x) or is_Expression(n):
             # Check for known identities
@@ -769,7 +772,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         res *= n/2
         return res
 
-    def eval_algebraic(self, n, arg):
+    def eval_algebraic(self, n, arg, algorithm='flint'):
         """
         Evaluate :class:`chebyshev_T` as polynomial, using a recursive
         formula.
@@ -816,13 +819,16 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: R.<x,y> = ZZ[]
             sage: chebyshev_T(5,x*y)
             16*x^5*y^5 - 20*x^3*y^3 + 5*x*y
+            sage: R.<t> = Zp(2, 8, 'capped-abs')[]
+            sage: chebyshev_T(10^6+1, t, algorithm='recursive')
+            (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
         """
         P = parent(arg)
         if n == 0:
             return P.one()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        if (is_PolynomialRing(P)):
+        if (is_PolynomialRing(P) and algorithm == 'flint'):
             from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
             if n<0:
                 n = -n
