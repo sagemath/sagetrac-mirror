@@ -2290,9 +2290,9 @@ class WordMorphism(SageObject):
             sage: t = WordMorphism('1->12,2->3,3->45,4->5,5->6,6->7,7->8,8->1')
             sage: E = t.incidence_matrix().eigenvalues()
             sage: x = [x for x in E if -0.8 < x < -0.7][0]
-            sage: t.rauzy_fractal_projection(prec=10)
+            sage: t.rauzy_fractal_projection_exact()
             {'1': 1, '3': b^2 - b, '2': b - 1, '5': b - 1, '4': -b^2 + 2, '7': -b^2 + b + 1, '6': b^2 - b, '8': b^2 - 1}
-            sage: t.rauzy_fractal_projection(eig=x, prec=10)
+            sage: t.rauzy_fractal_projection_exact(eig=x)
             {'1': 1, '3': b^2 - b, '2': b - 1, '5': b^2 - 2*b + 1, '4': -b^2 + 2*b - 2, '7': -b + 1, '6': -b^2 + b - 1, '8': -b^2 + b}
 
         AUTHOR:
@@ -3095,7 +3095,7 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: WordMorphism('a->ab,b->ac,c->a').rauzy_fractal_beta_adic_monoid()
-            Monoid of b-adic expansion with b root of x^3-x^2-x-1 and numerals set {0, 1, b-1}
+            Monoid of b-adic expansion with b root of x^3 - x^2 - x - 1 and numerals set {0, 1} with subshift of 3 states
         """
         alphabet = self.domain().alphabet()    
         

@@ -59,6 +59,8 @@ cdef extern from "automataC.h":
     Automaton Transpose (Automaton a)
     int StronglyConnectedComponents (Automaton a, int *res)
     Automaton SubAutomaton (Automaton a, Dict d, bool verb)
+    Automaton Permut (Automaton a, int *l, int na, bool verb)
+    void PermutOP (Automaton a, int *l, int na, bool verb)
 
 #dictionnaire numérotant l'alphabet projeté
 cdef imagDict (dict d, list A, list A2=[]):
@@ -354,6 +356,9 @@ cdef class FastAutomaton:
     def Alphabet (self):
         return self.A
     
+    def setAlphabet (self, list A):
+        self.A = A
+    
     def initial_state (self):
         return self.a.i
     
@@ -363,6 +368,11 @@ cdef class FastAutomaton:
             if self.a.e[i].final:
                 l.append(i)
         return l
+    
+    def succ (self, int i, int j):
+        if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
+            return -1
+        return self.a.e[i].f[j]
     
     def emonde_inf (self, verb=False):
         sig_on()
@@ -468,6 +478,70 @@ cdef class FastAutomaton:
         r.A = A2
         sig_off()
         return r
+    
+    #change les lettres
+    #le dictionnaire est supposé bijectif de A dans le nouvel alphabet
+    #opération sur place !
+    def relabel (self, dict d):
+        self.A = [d[c] for c in self.A] 
+       
+    #permute les lettres
+    #A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
+    def permut (self, list A, verb=False):
+        if verb:
+            print "A=%s"%A
+        sig_on()
+        cdef Automaton a
+        r = FastAutomaton(None)
+        cdef int *l = <int*>malloc(sizeof(int)*len(A))
+        cdef int i
+        for i in range(self.a.na):
+            l[i] = -1
+        d = {}
+        for i,c in enumerate(self.A):
+            d[c] = i
+        for i,c in enumerate(A):
+            if d.has_key(c):
+                l[i] = d[c] #l gives the old index from the new one
+        if verb:
+            str = "l=["
+            for i in range(len(A)):
+                str+=" %s"%l[i]
+            str+=" ]"
+            print str 
+        a = Permut (self.a[0], l, len(A), verb)
+        free(l)
+        r.a[0] = a
+        r.A = A
+        sig_off()
+        return r
+    
+    #permute les lettres SUR PLACE
+    #A = liste des lettres dans le nouvel ordre (il peut y en avoir moins)
+    def permut_op (self, list A, verb=False):
+        if verb:
+            print "A=%s"%A
+        sig_on()
+        cdef int *l = <int*>malloc(sizeof(int)*len(A))
+        cdef int i
+        for i in range(self.a.na):
+            l[i] = -1
+        d = {}
+        for i,c in enumerate(self.A):
+            d[c] = i
+        for i,c in enumerate(A):
+            if d.has_key(c):
+                l[i] = d[c] #l gives the old index from the new one
+        if verb:
+            str = "l=["
+            for i in range(len(A)):
+                str+=" %s"%l[i]
+            str+=" ]"
+            print str 
+        PermutOP (self.a[0], l, len(A), verb)
+        free(l)
+        self.A = A
+        sig_off()
     
     def transpose (self):
         sig_on()

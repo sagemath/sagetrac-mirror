@@ -43,6 +43,7 @@ from sage.combinat.words.automata import Automaton
 
 #from sage.structure.factory import UniqueFactory
 #from sage.misc.cachefunc import cached_method
+include "sage/ext/interrupt.pxi"
 
 #calcul de la valeur absolue p-adique (car non encore implémenté autrement)
 def absp (c, p, d):
@@ -148,12 +149,15 @@ cdef surface_to_img (Surface s):
     img.save("/Users/mercat/Desktop/output.png")
     img.save("output.png")
 
-cdef Automate getAutomate (a, d, iss=None, verb=False):
+cdef Automate getAutomate (a, d, list C, iss=None, verb=False):
+    cdef int i
     if verb:
         print "getAutomate %s..."%a
     cdef FastAutomaton fa
     if isinstance(a, FastAutomaton):
         fa = a
+        fa.permut_op(C, verb=verb)
+        #fa = fa.permut(C, verb=verb)
         return fa.a[0]
     #assume in the following that a is a Automaton
     lv = a.vertices()
@@ -165,7 +169,6 @@ cdef Automate getAutomate (a, d, iss=None, verb=False):
     cdef Automate r = NewAutomate(a.num_verts(), len(a.Alphabet()))
     #réindice les sommets
     dv = {}
-    cdef int i
     for u,i in zip(lv, range(len(lv))):
         dv[u] = i
         if u in F:
@@ -230,9 +233,11 @@ cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose
     else:
         a = ss
         
-    C = set(self.C)
     if add_letters:
+        C = set(self.C)
         C.update(a.Alphabet())
+    C = list(C)
+    
     b = NewBetaAdic(len(C))
     b.b = complex(CC(self.b))
     d = {}
@@ -240,7 +245,9 @@ cdef BetaAdic getBetaAdic (self, prec=53, ss=None, tss=None, iss=None, transpose
         b.t[i] = complex(CC(c))
         d[c] = i
     #automaton
-    b.a = getAutomate(a, d, iss=iss, verb=verb)
+    #if isinstance(a, FastAutomaton):
+    #    a = a.permut(C, verb=verb)
+    b.a = getAutomate(a, d, C=C, iss=iss, verb=verb)
     return b
 
 cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_letters=True, verb=False):
@@ -253,10 +260,12 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
     if la is None:
         la = self.get_la(ss=ss, tss=tss, verb=verb)
       
-    C = set(self.C)
     if add_letters:
+        C = set(self.C)
         for a in la:
             C.update(a.Alphabet())
+    C = list(C)
+    
     b = NewBetaAdic2(len(C), len(la))
     b.b = complex(CC(self.b))
     d = {}
@@ -265,7 +274,9 @@ cdef BetaAdic2 getBetaAdic2 (self, la=None, ss=None, tss=None, prec=53, add_lett
         d[c] = i
     #automata
     for i in range(len(la)):
-        b.a[i] = getAutomate(la[i], d, iss=None, verb=verb);
+        #if isinstance(la[i], FastAutomaton):
+        #    la[i] = la[i].permut(C, verb=verb)
+        b.a[i] = getAutomate(la[i], d, C=C, iss=None, verb=verb);
     return b
 
 def PrintWord (m, n):
@@ -680,9 +691,12 @@ class BetaAdicMonoid(Monoid_class):
             sage: m.plot2(19)                                   # long time
         
         """
+        sig_on()
         cdef Surface s = NewSurface (sx, sy)
         cdef BetaAdic b
         b = getBetaAdic(self, prec=prec, tss=tss, ss=ss, iss=iss, add_letters=add_letters, transpose=True, verb=verb)
+        #if verb:
+        #    printAutomaton(b.a)
         #dessin
         cdef Color col
         col.r = color[0]
@@ -708,6 +722,7 @@ class BetaAdicMonoid(Monoid_class):
         if not isinstance(tss, FastAutomaton):
             FreeAutomate(b.a)
         FreeBetaAdic(b)
+        sig_off()
         
     def plot3 (self, n=None, la=None, ss=None, tss=None, sx=800, sy=600, ajust=True, prec=53, colormap = 'hsv', backcolor=None, opacity = 1., add_letters=True, verb=False):
         r"""
@@ -788,6 +803,7 @@ class BetaAdicMonoid(Monoid_class):
             sage: m.plot2(19)                                   # long time
         
         """
+        sig_on()
         cdef Surface s = NewSurface (sx, sy)
         cdef BetaAdic2 b
         b = getBetaAdic2(self, la=la, ss=ss, tss=tss, prec=prec, add_letters=add_letters, verb=verb)
@@ -833,6 +849,7 @@ class BetaAdicMonoid(Monoid_class):
                     FreeAutomate(b.a[i])
         FreeBetaAdic2(b)
         FreeColorList(cl)
+        sig_off()
         
     def plot (self, n=None, place=None, ss=None, iss=None, prec=53, point_size=None, color='blue', verb=False):
         r"""
@@ -1357,7 +1374,7 @@ class BetaAdicMonoid(Monoid_class):
 
             sage: m = BetaAdicMonoid(3, {0,1,3})
             sage: m.complexity()
-            7.06858347...
+            3.0...
         """
         K = self.C[0].parent()
         b = self.b

@@ -335,7 +335,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
-	int i;
+	int i, j;
 	/*
 	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	for (i=0;i<b.a.n;i++)
@@ -354,6 +354,15 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		{
 			if (b.a.e[i].final)
 				printf("%d ", i);
+		}
+		printf("\n");
+		for (i=0;i<b.a.n;i++)
+		{
+			for (j=0;j<b.a.na;j++)
+			{
+				if (b.a.e[i].f[j] != -1)
+					printf("%d --%d--> %d, ", i, j, b.a.e[i].f[j]);
+			}
 		}
 		printf("\n");
 	}
@@ -398,7 +407,7 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = .5 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		n = .75 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
 		if (verb)
 			printf("n = %d\n", n);
 	}
@@ -414,7 +423,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	color0.r = color0.g = color0.b = 255;
 	color0.a = 0;
 	color = col;
-	int i;
+	int i, j;
 	/*
 	colors = (Color *)malloc(sizeof(Color)*b.a.n);
 	for (i=0;i<b.a.n;i++)
@@ -439,6 +448,15 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		for (i=0;i<b.n;i++)
 		{
 			printf("(%lf, %lf) ", b.t[i].x, b.t[i].y);
+		}
+		printf("\n");
+		for (i=0;i<b.a.n;i++)
+		{
+			for (j=0;j<b.a.na;j++)
+			{
+				if (b.a.e[i].f[j] != -1)
+					printf("%d --%d--> %d, ", i, j, b.a.e[i].f[j]);
+			}
 		}
 		printf("\n");
 	}
@@ -479,7 +497,7 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = .5 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		n = .75 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
 		if (verb)
 			printf("n = %d\n", n);
 	}
