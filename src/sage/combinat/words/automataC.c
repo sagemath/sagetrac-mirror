@@ -1427,12 +1427,6 @@ Automaton emondeI (Automaton a, bool verb)
 	return r;
 }
 
-/////////////////////////
-// 
-//  Tout le code qui suit est à tester !!!!!!!!!!!!!!!!!!!
-//
-/////////////////////////
-
 Automaton SubAutomaton (Automaton a, Dict d, bool verb)
 {
 	if (verb)
@@ -1491,4 +1485,75 @@ Automaton SubAutomaton (Automaton a, Dict d, bool verb)
 	}
 	free(l);
 	return r;
+}
+
+/////////////////////////
+// 
+//  Tout le code qui suit est à tester !!!!!!!!!!!!!!!!!!!
+//
+/////////////////////////
+
+//permute les labels des arêtes
+//l donne les anciens indices à partir des nouveaux
+Automaton Permut (Automaton a, int *l, int na, bool verb)
+{
+	if (verb)
+	{
+		int i;
+		printf("l = [ ");
+		for (i=0;i<na;i++)
+		{
+			printf("%d ", l[i]);
+		}
+		printf("]\n");
+	}
+	Automaton r = NewAutomaton(a.n, na);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<na;j++)
+		{		
+			if (l[j] != -1)
+				r.e[i].f[j] = a.e[i].f[l[j]];
+			else
+				r.e[i].f[j] = -1;
+		}
+		r.e[i].final = a.e[i].final;
+	}
+	r.i = a.i;
+	return r;
+}
+
+//permute les labels des arêtes SUR PLACE
+//l donne les anciens indices à partir des nouveaux
+void PermutOP (Automaton a, int *l, int na, bool verb)
+{
+	if (verb)
+	{
+		int i;
+		printf("l = [ ");
+		for (i=0;i<na;i++)
+		{
+			printf("%d ", l[i]);
+		}
+		printf("]\n");
+	}
+	int *lf = (int*)malloc(sizeof(int)*a.na);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		//sauvegarde les arêtes
+		for (j=0;j<a.na;j++)
+		{
+			lf[j] = a.e[i].f[j];
+			a.e[i].f[j] = -1;
+		}
+		//met les nouvelles
+		for (j=0;j<na;j++)
+		{		
+			if (l[j] != -1)
+				a.e[i].f[j] = lf[l[j]];
+		}
+	}
+	free(lf);
 }

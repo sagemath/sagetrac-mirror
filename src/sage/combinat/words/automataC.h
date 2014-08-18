@@ -86,3 +86,8 @@ Automaton emondeI (Automaton a, bool verb);
 
 Automaton SubAutomaton (Automaton a, Dict d, bool verb);
 
+//permute les labels des arêtes
+//l donne les anciens indices à partir des nouveaux
+Automaton Permut (Automaton a, int *l, int na, bool verb);
+//idem mais SUR PLACE
+void PermutOP (Automaton a, int *l, int na, bool verb);
