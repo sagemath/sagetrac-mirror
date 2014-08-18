@@ -2116,7 +2116,6 @@ ext_modules = [
               
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
-    ]
 
     ################################
     ## 
