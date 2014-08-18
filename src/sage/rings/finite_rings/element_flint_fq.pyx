@@ -227,7 +227,7 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
                         self.construct_from(Rational(x))
                 else:
                     pari_catch_sig_off()
-                    raise TypeError("no coercion defined")
+                raise TypeError("no coercion defined")
 
 
         elif (isinstance(x, FreeModuleElement)
