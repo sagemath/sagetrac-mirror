@@ -72,4 +72,6 @@ citation_items = [
     Tachyon_CitationItem()
 ]
 
-__all__ = [citation_items]
+from citation_record import citation_record
+
+__all__ = [citation_items, citation_record]
