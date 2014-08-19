@@ -1,4 +1,4 @@
-cdef point(object P):
+cpdef point(object P):
     if P[1] == 0:
         return (0,0)
     else:
@@ -57,7 +57,7 @@ cpdef ladder(object P, object m, object a, object b):
             S = dadd(S, R, P, a, b)
             R = doubling(R, a, b)
 
-    return point(S)
+    return S
 
 cpdef find_ordm(object E, object m):
     cofactor = E.cardinality()//m

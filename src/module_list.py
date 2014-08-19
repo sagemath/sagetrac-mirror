@@ -2125,6 +2125,14 @@ ext_modules = [
 
     Extension('sage.ffisom.xz_coordinates',
               sources = ['sage/ffisom/xz_coordinates.pyx']),
+
+    Extension('sage.ffisom.xz_coordinates_flint_fq',
+              sources = ['sage/ffisom/xz_coordinates_flint_fq.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
+    Extension('sage.ffisom.xz_coordinates_flint_fq_nmod',
+              sources = ['sage/ffisom/xz_coordinates_flint_fq_nmod.pyx'],
+              libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
     ]
 
 # Optional extensions :

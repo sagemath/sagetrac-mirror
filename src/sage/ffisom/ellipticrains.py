@@ -5,7 +5,6 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import sqrt
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
-import xz_coordinates 
 
 def isom_elliptic(k1, k2, k = None, bound = None):
     '''
@@ -182,8 +181,17 @@ def find_unique_orbit_elliptic(E, m, case = 0):
         - u = sum_{i \in S} (([i]P)[0])^4, for j = 1728,
         - u = sum_{i \in S} (([i]P)[0])^6, for j = 0.
     '''
-    n = E.base_ring().degree()
+    from sage.rings.finite_rings.finite_field_flint_fq import FiniteField_flint_fq
+    from sage.rings.finite_rings.finite_field_flint_fq_nmod import FiniteField_flint_fq_nmod
+    K = E.base_ring()
+    n = K.degree()
 
+    if isinstance(K, FiniteField_flint_fq):
+        import xz_coordinates_flint_fq as xz_coordinates
+    elif isinstance(K, FiniteField_flint_fq_nmod):
+        import xz_coordinates_flint_fq_nmod as xz_coordinates
+    else:
+        import xz_coordinates as xz_coordinates
     # Loking for a point of order exactly m.
     P = xz_coordinates.find_ordm(E, m)
 
