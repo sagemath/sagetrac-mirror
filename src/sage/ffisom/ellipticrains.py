@@ -6,6 +6,12 @@ from sage.rings.integer_ring import ZZ
 from sage.functions.other import sqrt
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
+def affine_point(P):
+    if P[1] == 0:
+        return (0,0)
+    else:
+        return (P[0]/P[1], 1)
+
 def isom_elliptic(k1, k2, k = None, bound = None):
     '''
     INPUT : 
@@ -201,20 +207,20 @@ def find_unique_orbit_elliptic(E, m, case = 0):
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)//(2*n)
 
-        return sum(xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0] for i in 
+        return sum(affine_point(xz_coordinates.mul_ltr(P, ZZ(gen_G**i), E.a4(), E.a6()))[0] for i in 
                 range(order))
     elif case == 1:
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)/(4*n)
         
-        return sum((xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0])**2 for i in 
+        return sum((affine_point(xz_coordinates.mul_ltr(P, ZZ(gen_G**i), E.a4(), E.a6()))[0])**2 for i in 
                 range(order))
 
     elif case == 2:
         gen_G = Integers(m).unit_gens()[0]**n
         order = euler_phi(m)/(6*n)
 
-        return sum((xz_coordinates.ladder(P, ZZ(gen_G**i), E.a4(), E.a6())[0])**3 for i in
+        return sum((affine_point(xz_coordinates.mul_ltr(P, ZZ(gen_G**i), E.a4(), E.a6()))[0])**3 for i in
             range(order))
 
 def find_elliptic_curve(k, K, m_t):

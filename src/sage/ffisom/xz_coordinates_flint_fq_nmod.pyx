@@ -7,7 +7,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_flint_fq_nmod cimport FiniteField_flint_fq_nmod
 from sage.rings.finite_rings.element_flint_fq_nmod cimport FiniteFieldElement_flint_fq_nmod
 
-cpdef ladder(tuple P, Integer m, FiniteFieldElement_flint_fq_nmod a, FiniteFieldElement_flint_fq_nmod b):
+cpdef mul_ltr(tuple P, Integer m, FiniteFieldElement_flint_fq_nmod a, FiniteFieldElement_flint_fq_nmod b):
     cdef fq_nmod_weierstrass_xz_t E
     cdef fq_nmod_ctx_struct *K
     cdef FiniteFieldElement_flint_fq_nmod x, z
@@ -33,15 +33,20 @@ cpdef find_ordm(object E, object m):
     cdef FiniteField_flint_fq_nmod K
     K = <FiniteField_flint_fq_nmod>(E.base_ring())
     cofactor = E.cardinality()//m
+    #cofactor = E.cardinality().divide_knowing_divisible_by(m)
     coprime = m.prime_divisors()
 
     while True:
-        P = ladder((E.random_point()[0], K(1)), cofactor, E.a4(), E.a6())
+        x = K.random_element()
+        if not E.is_x_coord(x):
+            continue
+        P = mul_ltr((x, K(1)), cofactor, E.a4(), E.a6())
         if P[1] == 0:
             continue
         for a in coprime:
             m_a = m//a
-            if ladder((P[0], K(1)), m_a, E.a4(), E.a6())[1] == 0:
+            #m_a = m.divide_knowing_divisible_by(a)
+            if mul_ltr((P[0], K(1)), m_a, E.a4(), E.a6())[1] == 0:
                 break
         else:
             return P

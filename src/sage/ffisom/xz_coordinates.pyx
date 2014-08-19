@@ -1,9 +1,3 @@
-cpdef point(object P):
-    if P[1] == 0:
-        return (0,0)
-    else:
-        return (P[0]/P[1], 1)
-
 # Using dbl-2002-bj
 cdef doubling(object P, object a, object b):
     Z1 = P[1]
@@ -43,7 +37,7 @@ cdef dadd(object P, object Q, object diff, object a, object b):
 
         return X5, Z5
 
-cpdef ladder(object P, object m, object a, object b):
+cpdef mul_ltr(object P, object m, object a, object b):
     S = (0, 0)
 
     R = P
@@ -60,24 +54,23 @@ cpdef ladder(object P, object m, object a, object b):
     return S
 
 cpdef find_ordm(object E, object m):
+    K = E.base_ring()
     cofactor = E.cardinality()//m
+    #cofactor = E.cardinality().divide_knowing_divisible_by(m)
     coprime = m.prime_divisors()
-    size = len(coprime)
 
-    P = (0,0)
-
-    while(1):
-        count = 0
+    while True:
+        x = K.random_element()
+        if not E.is_x_coord(x):
+            continue
+        P = mul_ltr((x, K(1)), cofactor, E.a4(), E.a6())
+        if P[1] == 0:
+            continue
         for a in coprime:
             m_a = m//a
-            if ladder(P, m_a, E.a4(), E.a6())[1] == 0:
-                continue
-            else:
-                count += 1
-
-        if count != size:
-            temp = E.random_point()
-            P = ladder((temp[0], 1), cofactor, E.a4(), E.a6())
+            #m_a = m.divide_knowing_divisible_by(a)
+            if mul_ltr((P[0], K(1)), m_a, E.a4(), E.a6())[1] == 0:
+                break
         else:
             return P
 
