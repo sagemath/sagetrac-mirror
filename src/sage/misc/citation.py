@@ -69,10 +69,11 @@ AUTHORS:
 
 from contextlib import contextmanager
 from sage.misc.all import tmp_filename
+from sage.misc.citation_items.all import CitationRecord
 import os, re, sys
 
 
-_latest_citations = []
+_latest_citations = CitationRecord()
 
 def latest_citations():
     r"""
@@ -147,7 +148,7 @@ def citations(record = None):
 
     if record is None:
         import sage
-        sage.misc.citation._latest_citations = called_items
+        sage.misc.citation._latest_citations = CitationRecord(called_items)
 
         print "The computation used the following components."
         print "Access them as a list by calling latest_citations()."
