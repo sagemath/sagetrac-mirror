@@ -835,10 +835,10 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
             sage: gp(k(0)).type()
             t_FFELT
         """
-        ffgen = "ffgen(%s,a)" % self._parent.modulus()._pari_init_()
+        ffgen = "ffgen(%s,%s)" % (self._parent.modulus()._pari_init_(), self._parent.variable_name())
         # Add this "zero" to ensure that the polynomial is not constant
-        zero = "%s*a" % self._parent.characteristic()
-        return "subst(%s+%s,a,%s)" % (self, zero, ffgen)
+        zero = "%s*%s" % (self._parent.characteristic(), self._parent.variable_name())
+        return "subst(%s+%s,%s,%s)" % (self, zero, self._parent.variable_name(), ffgen)
 
     def _magma_init_(self, magma):
         """
