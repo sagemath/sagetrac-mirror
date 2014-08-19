@@ -30,6 +30,9 @@ allow for automatically generating Bibtex code.
 
     sage: latest_citations()
     [ginac, Maxima]
+    sage: latest_citations().print_latex_citation()
+    Print BibTeX code by calling method print_bibtex().
+    \cite{software-ginac, software-maxima}
 
 For certain purposes, it is desirable to only record citations of some
 parts of the computation.  This can be achieved by passing a list,
@@ -37,11 +40,14 @@ which will be extended by citation items for invoked components.
 
 ::
 
-    sage: record = []
+    sage: record = CitationRecord()
     sage: with citations(record):
     ...       K = QuadraticField(-3, 'a')
     sage: record
     [GAP, GMP, MPFI, MPFR, NTL]
+    sage: record.print_latex_citation()
+    Print BibTeX code by calling method print_bibtex().
+    \cite{software-gap, software-gmp, software-mpfi, software-mpfr, software-ntl}
     sage: with citations(record):
     ...       integrate(y^2, y, 0, 1)
     1/3
