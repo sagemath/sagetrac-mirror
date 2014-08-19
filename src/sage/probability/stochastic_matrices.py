@@ -11,6 +11,8 @@ Stochastic Matrices
 
 #from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
+from sage.calculus.all import symbolic_expression
+from sage.graphs.digraph import DiGraph
 #from sage.matrix.matrix_rational_dense import Matrix_rational_dense
 
 class StochasticMatrix(ElementWrapper):
@@ -99,7 +101,7 @@ class StochasticMatrix(ElementWrapper):
                 raise ValueError("The stochastic matrix is not irreducible")
             else:
                 V = K.basis()[0]
-                return V/sum(V)
+                return map(lambda x:x.full_simplify(),map(symbolic_expression,V/sum(V)))
 
     def to_digraph(self):
         r"""
@@ -117,6 +119,32 @@ class StochasticMatrix(ElementWrapper):
         TESTS::
 
         """
-        return DiGraph(self, format = 'weighted_adjacency_matrix', loops = 'true')
+        return DiGraph(self.value, format = 'weighted_adjacency_matrix', loops = 'true')
 
 
+    def generators(self, symbols):
+        r"""
+        Returns the generators of the stochastic matrix
+        as a list of matrices corresponding to each entry in symbols
+
+        EXAMPLES::
+
+            sage: M = Matrix([[1/2,1/2],[1,0]])
+            sage: StochasticMatrix(M)
+            [1/2 1/2]
+            [  1   0]
+
+        TESTS::
+
+        """
+        L = []
+        for b in symbols:
+            D = {}
+            for a in symbols:
+                D[a] = 0
+            D[b] = 1
+            M = self.value
+            M.set_immutable()
+            L += [M.subs(D)]
+
+        return L
