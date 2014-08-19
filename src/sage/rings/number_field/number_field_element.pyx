@@ -3560,7 +3560,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: f = Qi.embeddings(K)[0]
             sage: a = f(2+3*i) * (2-zeta)^2
             sage: a.descend_mod_power(Qi,2)
-            [-3*i - 2, 2*i - 3]
+            [-3*i - 2, -2*i + 3]
 
         An absolute example::
 

@@ -845,7 +845,7 @@ if( DEBUGLEVEL_ell >= 5, print("     end of nfqp_soluble"));
 }
 {nflocallysoluble( nf, pol, r=0,a=1,b=1) =
 \\ Test whether Y^2 = pol is Everywhere Locally Soluble
-local(pol0,plist,add,ff,p,Delta,vecpol,vecpolr,Sturmr);
+local(pol0,plist,add,ff,p,Delta,c,s,t);
 
 if( DEBUGLEVEL_ell >= 4, print("    starting nflocallysoluble ",[pol,r,a,b]));
   pol0 = pol;
@@ -880,17 +880,20 @@ if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
 \\ places reelles 
 
   if( nf.r1,
-    Delta = poldisc(pol); vecpol = Vec(pol);
+    c = pollead(pol);
+    pol /= c;
+    pol = subst(pol, 'x, 'x - polcoeff(pol, 3)/4);
+    s = polcoeff(pol, 2);
+    t = 2*s^3 - 8*s*polcoeff(pol, 0) + 9*polcoeff(pol, 1)^2;
+    Delta = poldisc(pol);
     for( i = 1, nf.r1,
-      if( nfrealsign(nf,pollead(pol),i) > 0, next);
-      if( nfrealsign(nf,polcoeff(pol,0),i) > 0, next);
+      if( nfrealsign(nf,c,i) > 0, next);
       if( nfrealsign(nf,Delta,i) < 0, next);
-      vecpolr = vector(#vecpol,j,mysubst(vecpol[j],nf.roots[i]));
-      Sturmr = polsturm(Pol(vecpolr));
-      if( Sturmr == 0, 
+      \\ Sturm => 4 roots if s < 0 and t < 0, otherwise 0 roots
+      if( nfrealsign(nf,s,i) < 0 && nfrealsign(nf,t,i) < 0, next);
 if( DEBUGLEVEL_ell >= 2, print("  not ELS at infinity"));
 if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
-        return(0));
+      return(0);
   ));
 if( DEBUGLEVEL_ell >= 2, print("  quartic ELS "));
 if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
