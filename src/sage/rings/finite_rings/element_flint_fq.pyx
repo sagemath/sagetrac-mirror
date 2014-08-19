@@ -204,31 +204,33 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
                     x = (<PariInstance>pari).new_gen(FF_p(x_GEN))
                     pari_catch_sig_on()
                     y = FF_f(x_GEN)
+                    R = modulus.parent()
                     pari_catch_sig_on()
-                    z = (<PariInstance>pari).new_gen(FF_mod(x_GEN))
+                    z = R((<PariInstance>pari).new_gen(FF_mod(x_GEN)))
                     if x == p and y == f and z == modulus:
                         # The following calls pari_catch_sig_off()
                         x = (<PariInstance>pari).new_gen(FF_to_FpXQ(x_GEN))
-                        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                        R = PolynomialRing(ZZ, 'x')
                         self.construct_from(R(x))
+                        return
                 elif t == t_INT:
                     pari_catch_sig_off()
                     self.construct_from(Integer(x))
+                    return
                 elif t == t_INTMOD:
                     # The following calls pari_catch_sig_off()
                     x = (<PariInstance>pari).new_gen(gel(x_GEN, 1))
                     if x % p == 0:
                         self.construct_from(Integer(x))
+                        return
                 elif t == t_FRAC:
                     # The following calls pari_catch_sig_off()
                     x = (<PariInstance>pari).new_gen(gel(x_GEN, 2))
                     if x % p != 0:
                         self.construct_from(Rational(x))
+                        return
                 else:
                     pari_catch_sig_off()
                 raise TypeError("no coercion defined")
-
 
         elif (isinstance(x, FreeModuleElement)
               and x.parent() is self._parent.vector_space()):
@@ -842,10 +844,10 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
             sage: gp(k(0)).type()
             t_FFELT
         """
-        ffgen = "ffgen(%s,a)" % self._parent.modulus()._pari_init_()
+        ffgen = "ffgen(%s,%s)" % (self._parent.modulus()._pari_init_(), self._parent.variable_name())
         # Add this "zero" to ensure that the polynomial is not constant
-        zero = "%s*a" % self._parent.characteristic()
-        return "subst(%s+%s,a,%s)" % (self, zero, ffgen)
+        zero = "%s*%s" % (self._parent.characteristic(), self._parent.variable_name())
+        return "subst(%s+%s,%s,%s)" % (self, zero, self._parent.variable_name(), ffgen)
 
     def _magma_init_(self, magma):
         """
