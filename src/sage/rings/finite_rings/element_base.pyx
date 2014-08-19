@@ -555,20 +555,22 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ...
             ValueError: must be a perfect square.
         """
-        if extend:
-            raise NotImplementedError
-        R = self.parent()['x']
-        f = R([-self, 0, 1])
-        g = f.factor()
-        if len(g) == 2 or g[0][1] == 2:
-            if all:
-                return [-g[0][0][0], g[0][0][0]]
-            else:
-                return -g[0][0][0]
-        if all:
-            return []
-        else:
-            raise ValueError("must be a perfect square.")
+        return self.nth_root(2, extend=extend, all=all)
+        # The following which calls PARI is utterly slower.
+#        if extend:
+#            raise NotImplementedError
+#        R = self.parent()['x']
+#        f = R([-self, 0, 1])
+#        g = f.factor()
+#        if len(g) == 2 or g[0][1] == 2:
+#            if all:
+#                return [-g[0][0][0], g[0][0][0]]
+#            else:
+#                return -g[0][0][0]
+#        if all:
+#            return []
+#        else:
+#            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """
