@@ -145,7 +145,7 @@ cdef class FiniteField_flint_fq(FiniteField):
         self._degree = n
         self._kwargs = {}
 
-        self.__hash = hash((p**n, name, modulus, 'flint_fq'))
+        self.__hash = hash((p**n, name, modulus))
 
         # Cannot be done in cinit as we need modulus
         cdef Integer ci
@@ -212,7 +212,7 @@ cdef class FiniteField_flint_fq(FiniteField):
         """
         return self._factory_data[0].reduce_data(self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare ``self`` to ``other``.
 
