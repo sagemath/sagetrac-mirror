@@ -58,7 +58,6 @@ version information.
      \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
 
-
    They are named after Pafnuty Chebyshev (alternative
    transliterations: Tchebyshef or Tschebyscheff).
 
@@ -477,25 +476,109 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
 
     EXAMPLES::
 
-        sage: chebyshev_T(3,x)
-        4*x^3 - 3*x
+        sage: from sage.functions.orthogonal_polys import Func_chebyshev_T
+        sage: from sage.functions.orthogonal_polys import Func_chebyshev_U
+        sage: Func_chebyshev_T.__bases__==Func_chebyshev_U.__bases__
+        True
+
+    The implementation of Chebyshev polynomials allows for a variety of
+    arguments::
+
+        sage: import numpy
+        sage: z = numpy.array([1,2])
+        sage: chebyshev_T(z,0.1)
+        array([ 0.1 , -0.98])
+        
+    ::
+
+        sage: var('n,x')
+        (n, x)
+        sage: chebyshev_T(5, x)
+        16*x^5 - 20*x^3 + 5*x
+        sage: chebyshev_T(-7,x)
+        64*x^7 - 112*x^5 + 56*x^3 - 7*x
+        sage: chebyshev_T(64, x, algorithm='recursive')
+        2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
+        sage: n = 97; x = RIF(pi/2/n)
+        sage: chebyshev_T(n, cos(x)).contains_zero()
+        True
+        
+    ::
+
+        sage: R.<t> = ZZ[]
+        sage: chebyshev_T(1000, t).coeffs()[2]
+        -500000
+        sage: chebyshev_T(5, t+1)
+        16*t^5 + 80*t^4 + 140*t^3 + 100*t^2 + 25*t + 1
+        sage: R.<v,w> = ZZ[]
+        sage: chebyshev_T(5,v*w)
+        16*v^5*w^5 - 20*v^3*w^3 + 5*v*w
+        
+    ::
+
+        sage: n = var('n')
+        sage: chebyshev_T(n,-1)
+        (-1)^n
+        sage: chebyshev_T(n,0)
+        1/2*(-1)^(1/2*n)*((-1)^n + 1)
+        
+    ::
+
+        sage: x = var('x')
+        sage: chebyshev_T(3/2,x)
+        chebyshev_T(3/2, x)
+        sage: chebyshev_T(5,2,hold=True)
+        chebyshev_T(5, 2)
+        
+    ::
+
+        sage: chebyshev_T(10.,3).n()
+        2.26195370000000e7
+        sage: chebyshev_T(10.,3).n(75)
+        2.261953700000000000000e7
+        sage: chebyshev_U(5,-4+3.*I)
+        98280.0000000000 - 11310.0000000000*I
+
+    ::
+
+        sage: parent(chebyshev_T(4, RIF(5)))
+        Real Interval Field with 53 bits of precision
+        sage: RR2 = RealField(5)
+        sage: chebyshev_T(100000,RR2(2))
+        8.9e57180
+        sage: chebyshev_T(5,Qp(3)(2))
+        2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
+        sage: chebyshev_T(100001/2, 2)
+        doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
+        chebyshev_T(100001/2, 2)
+        sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
+        True
+        sage: K.<a> = NumberField(x^3-x-1)
+        sage: chebyshev_T(5, a)
+        16*a^2 + a - 4
+        sage: chebyshev_T(5,MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
+        [-40799  44162]
+        [-88324  91687]
+        sage: T.<x> = PowerSeriesRing(ZZ); T
+        Power Series Ring in x over Integer Ring
+        sage: chebyshev_T(555, x+O(x^6))
+        -555*x + 28492220*x^3 - 438802981776*x^5 + O(x^6)
+        sage: R.<t> = GF(3)[]
+        sage: chebyshev_T(15,t)
+        t^15 + t^9 + 2*t^3
+        sage: R.<t> = Zp(2, 8, 'capped-abs')[]
+        sage: chebyshev_T(10^6+1, t, algorithm='recursive')
+        (2^7 + O(2^8))*t^5 + (O(2^8))*t^4 + (2^6 + O(2^8))*t^3 + (O(2^8))*t^2 + (1 + 2^6 + O(2^8))*t + (O(2^8))
     """
     def __call__(self, n, *args, **kwds):
         """
-        This overides the call method from SageObject to avoid problems with coercions,
-        since the _eval_ method is able to handle more data types than symbolic functions
+        Override the call method from SageObject to avoid problems with coercions.
+
+        This method is able to handle more data types than symbolic functions
         would normally allow.
-        Thus we have the distinction between algebraic objects (if n is an integer),
-        and else as symbolic function.
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3-x-1)
-            sage: chebyshev_T(5, a)
-            16*a^2 + a - 4
-            sage: chebyshev_T(5,MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
-            [-40799  44162]
-            [-88324  91687]
             sage: R.<x> = QQ[]
             sage: parent(chebyshev_T(5, x))
             Univariate Polynomial Ring in x over Rational Field
@@ -511,51 +594,44 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
                             % str(len(args)+1))
         # If n is an integer: consider the polynomial as an algebraic (not symbolic) object
         if n in ZZ and not kwds.get('hold', False):
-            try:
-                return self._eval_(n, *args, **kwds)
-            except TypeError:
-                pass
+            return self._eval_(n, *args, **kwds)
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
 
     def _eval_(self, n, x, *args, **kwds):
         """
-        The :meth:`_eval_()` method decides which evaluation suits best
-        for the given input, and returns a proper value.
+        Decide which evaluation suits best for the given input, and return a proper value.
+        
+        For example, this method calls helpers to handle numpy objects,
+        expansions into polynomials, special values, requests for unevaluated
+        symbols, and floating point evaluation, respectively::
 
-        EXAMPLES::
-
-            sage: var('n,x')
-            (n, x)
+            sage: import numpy
+            sage: z = numpy.array([1,2])
+            sage: chebyshev_T(z,0.1)
+            array([ 0.1 , -0.98])
+            sage: var('x')
+            x
             sage: chebyshev_T(5,x)
             16*x^5 - 20*x^3 + 5*x
-            sage: chebyshev_T(64, x)
-            2*(2*(2*(2*(2*(2*x^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1)^2 - 1
+            sage: R.<t> = ZZ[]
+            sage: chebyshev_T.eval_algebraic(1000, t).coeffs()[2]
+            -500000
+            sage: n = var('n')
             sage: chebyshev_T(n,-1)
             (-1)^n
-            sage: chebyshev_T(-7,x)
-            64*x^7 - 112*x^5 + 56*x^3 - 7*x
+            sage: chebyshev_T(n,0)
+            1/2*(-1)^(1/2*n)*((-1)^n + 1)
             sage: chebyshev_T(3/2,x)
             chebyshev_T(3/2, x)
-            sage: R.<t> = QQ[]
-            sage: chebyshev_T(2,t)
-            2*t^2 - 1
-            sage: chebyshev_U(2,t)
-            4*t^2 - 1
-            sage: parent(chebyshev_T(4, RIF(5)))
-            Real Interval Field with 53 bits of precision
-            sage: RR2 = RealField(5)
-            sage: chebyshev_T(100000,RR2(2))
-            8.9e57180
-            sage: chebyshev_T(5,Qp(3)(2))
-            2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
-            sage: chebyshev_T(100001/2, 2)
-            doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
-            chebyshev_T(100001/2, 2)
-            sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
-            True
+            sage: chebyshev_T(5,2,hold=True)
+            chebyshev_T(5, 2)
+            sage: chebyshev_T._evalf_(10,3)
+            2.26195370000000e7
+            sage: chebyshev_T._evalf_(10,3,parent=RealField(75))
+            2.261953700000000000000e7
         """
-        if type(x).__module__ == 'numpy':
+        if 'numpy' in type(x).__module__:
             return self._eval_numpy_(n, x)
         # n is an integer => evaluate algebraically (as polynomial)
         if n in ZZ:
@@ -784,6 +860,9 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         - ``x`` -- a value to evaluate the polynomial at (this can be
           any ring element)
 
+        - ``algorithm`` (optional) the method how to compute the polynomial,
+          possible values are ``flint`` (default) and ``recursive``.
+
         EXAMPLES::
 
             sage: chebyshev_T.eval_algebraic(5, x)
@@ -982,7 +1061,7 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             res += (-1)**j * (2*x)**(n-2*j) * f
         return res
 
-    def eval_algebraic(self, n, arg):
+    def eval_algebraic(self, n, arg, algorithm='flint'):
         """
         Evaluate :class:`chebyshev_U` as polynomial, using a recursive
         formula.
@@ -993,6 +1072,9 @@ class Func_chebyshev_U(ChebyshevPolynomial):
 
         - ``x`` -- a value to evaluate the polynomial at (this can be
           any ring element)
+
+        - ``algorithm`` (optional) the method how to compute the polynomial,
+          possible values are ``flint`` (default) and ``recursive``.
 
         EXAMPLES::
 
