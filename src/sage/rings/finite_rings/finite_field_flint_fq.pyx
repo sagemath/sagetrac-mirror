@@ -145,6 +145,8 @@ cdef class FiniteField_flint_fq(FiniteField):
         self._degree = n
         self._kwargs = {}
 
+        self.__hash = hash((p**n, name, modulus, 'flint_fq'))
+
         # Cannot be done in cinit as we need modulus
         cdef Integer ci
         cdef fmpz_t cflint, pflint
@@ -194,11 +196,7 @@ cdef class FiniteField_flint_fq(FiniteField):
             sage: {GF(9, 'b', impl='flint_fq'): 1} # indirect doctest
             {Finite Field in b of size 3^2: 1}
         """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.cardinality(), self.variable_name(), self._modulus))
-            return self.__hash
+        return self.__hash
 
     def __reduce__(self):
         """

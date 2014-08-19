@@ -128,7 +128,7 @@ cdef class FiniteField_flint_fq_nmod(FiniteField):
             or (proof and not pint.is_prime())
             or (not proof and not pint.is_pseudoprime())):
             raise ArithmeticError("p must be a prime number")
-        if (p > sys.maxint):
+        if (pint > sys.maxint):
             raise ValueError("p must fit in a machine word")
         Fp = GF(pint)
 
@@ -145,6 +145,8 @@ cdef class FiniteField_flint_fq_nmod(FiniteField):
         self._modulus = modulus
         self._degree = n
         self._kwargs = {}
+
+        self.__hash = hash((pint**n, name, modulus, 'flint_fq_nmod'))
 
         # Cannot be done in cinit as we need modulus
         cdef Integer ci
@@ -193,11 +195,7 @@ cdef class FiniteField_flint_fq_nmod(FiniteField):
             sage: {GF(9, 'b', impl='flint_fq_nmod'): 1} # indirect doctest
             {Finite Field in b of size 3^2: 1}
         """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.cardinality(), self.variable_name(), self._modulus))
-            return self.__hash
+        return self.__hash
 
     def __reduce__(self):
         """
