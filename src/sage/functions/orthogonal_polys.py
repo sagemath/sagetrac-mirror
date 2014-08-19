@@ -60,6 +60,8 @@ version information.
 
    They are named after Pafnuty Chebyshev (alternative
    transliterations: Tchebyshef or Tschebyscheff).
+   
+   See :class:`sage.functions.orthogonal_polys.ChebyshevPolynomial`.
 
 -  The Hermite polynomials are defined either by
 
@@ -87,6 +89,8 @@ version information.
 
 
    They are named in honor of Charles Hermite.
+
+   See :meth:`sage.functions.orthogonal_polys.hermite`.
 
 -  Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
    It may be expressed using Rodrigues' formula:
@@ -143,6 +147,17 @@ version information.
 
    They are named after Adrien-Marie Legendre.
 
+   See 
+   
+   - :meth:`sage.functions.orthogonal_polys.legendre_P`
+   
+   - :meth:`sage.functions.orthogonal_polys.legendre_Q`
+   
+   - :meth:`sage.functions.orthogonal_polys.gen_legendre_P`
+   
+   - :meth:`sage.functions.orthogonal_polys.gen_legendre_Q`
+   
+
 -  Laguerre polynomials may be defined by the Rodrigues formula
 
    .. math::
@@ -181,6 +196,13 @@ version information.
 
    They are named after Edmond Laguerre.
 
+   See
+   
+   - :meth:`sage.functions.orthogonal_polys.laguerre`
+   
+   - :meth:`sage.functions.orthogonal_polys.gen_laguerre`
+   
+
 -  Jacobi polynomials are a class of orthogonal polynomials. They
    are obtained from hypergeometric series in cases where the series
    is in fact finite:
@@ -202,6 +224,8 @@ version information.
 
 
    They are named after Carl Jacobi.
+
+   See :meth:`sage.functions.orthogonal_polys.jacobi_P`.
 
 -  Ultraspherical or Gegenbauer polynomials are given in terms of
    the Jacobi polynomials `P_n^{(\alpha,\beta)}(x)` with
@@ -233,6 +257,8 @@ version information.
    Abramowitz and Stegun p561)
 
    They are named for Leopold Gegenbauer (1849-1903).
+
+   See :meth:`sage.functions.orthogonal_polys.gegenbauer`.
 
 
 For completeness, the Pochhammer symbol, introduced by Leo August
