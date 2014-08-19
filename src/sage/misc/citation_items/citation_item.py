@@ -62,6 +62,7 @@ class CitationItem( SageObject, UniqueRepresentation ):
 
             sage: from sage.misc.citation_items.axiom import *
             sage: Axiom_CitationItem()._latex_citation_label()
+            'software-axiom'
         """
         if not self._bibtex:
             return ""
@@ -81,8 +82,14 @@ class CitationItem( SageObject, UniqueRepresentation ):
         EXAMPLES::
 
             sage: from sage.misc.citation_items.axiom import *
-            sage: Axiom_CitationItem().bibtex()
-            ???
+            sage: print Axiom_CitationItem().bibtex()
+            @Book{software-axiom,
+                Author = {Jenks, Richard D. and Sutor, Robert S.},
+                Title = {{Axiom. The scientific computation system.}},
+                Pages = {xxiv + 742},
+                Year = {1992},
+                Publisher = {Springer-Verlag, Berlin},
+                }
 
         .. TODO:
 
@@ -92,7 +99,7 @@ class CitationItem( SageObject, UniqueRepresentation ):
         if not self._bibtex:
             return ""
 
-        return self._bibtex.strip(" \n")
+        return "\n    ".join(s.strip() for s in self._bibtex.splitlines() if s.strip() != "")
 
     def _repr_(self):
         r"""
