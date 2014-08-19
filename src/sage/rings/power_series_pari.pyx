@@ -908,7 +908,7 @@ cdef class PowerSeries_pari(PowerSeries):
             sage: f.reversion()
             Traceback (most recent call last):
             ...
-            PariError: valuation not equal to 1 in serreverse
+            PariError: domain error in serreverse: valuation != 1
 
         """
         cdef PowerSeries_pari f
