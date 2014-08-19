@@ -951,6 +951,29 @@ cdef class FiniteField(Field):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
+
+        There exists a coercion map between any two implementations of
+        a finite field with given cardinality, modulus and variable
+        name (see :trac:`16855`)::
+
+            sage: F0 = FiniteField(29^3, 'a', implementation='givaro')
+            sage: F1 = FiniteField(29^3, 'a', implementation='ext_pari')
+            sage: F2 = FiniteField(29^3, 'a', implementation='pari_ffelt')
+            sage: F1.coerce_map_from(F0)
+            Ring morphism:
+              From: Finite Field in a of size 29^3
+              To:   Finite Field in a of size 29^3
+              Defn: a |--> a
+            sage: F2.coerce_map_from(F1)
+            Ring morphism:
+              From: Finite Field in a of size 29^3
+              To:   Finite Field in a of size 29^3
+              Defn: a |--> a
+            sage: F0.coerce_map_from(F2)
+            Ring morphism:
+              From: Finite Field in a of size 29^3
+              To:   Finite Field in a of size 29^3
+              Defn: a |--> a
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -968,6 +991,9 @@ cdef class FiniteField(Field):
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
                     return R.hom((self.one_element(),), check=False)
+                elif (R.modulus() == self.modulus() and
+                      R.variable_name() == self.variable_name()):
+                    return R.hom((self.gen(),))
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
