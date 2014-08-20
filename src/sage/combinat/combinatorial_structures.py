@@ -70,8 +70,8 @@ class PlaneBinaryTrees(CombinatorialStructure):
         super(PlaneBinaryTrees, self).__init__(size=size)
 
         # T = z + z T^2
-        T = CSConstructionUnlabelled()
-        Z = CSAtomUnlabelled()
+        T = CombinatorialExpressionConstructionUnlabelled()
+        Z = CombinatorialExpressionAtomUnlabelled()
         T.assign(disjoint_union(Z, cartesian_product(Z, T, T)))
         #T.assign(Z + Z * T * T)
 
@@ -82,11 +82,11 @@ class NonAdjacentForms(CombinatorialStructure):
         super(PlaneBinaryTrees, self).__init__(size=size)
 
         # NAF = (0 + P0 + M0)* (P + M + e)  with (P = 1, M = -1)
-        zero = CSAtomUnlabelled('0')
-        pone = CSAtomUnlabelled('P')
-        mone = CSAtomUnlabelled('M')
-        empty = CSEmptyUnlabelled('')
-        NAF = CSConstructionUnlabelled((pone + mone + empty) \
+        zero = CombinatorialExpressionAtomUnlabelled('0')
+        pone = CombinatorialExpressionAtomUnlabelled('P')
+        mone = CombinatorialExpressionAtomUnlabelled('M')
+        empty = CombinatorialExpressionEmptyUnlabelled('')
+        NAF = CombinatorialExpressionConstructionUnlabelled((pone + mone + empty) \
                                        * sequence(zero + zero*pone + zero*mone))
 
         self.structure = NAF
@@ -95,8 +95,8 @@ class NonAdjacentForms(CombinatorialStructure):
 # Data Structures -- Base
 #*****************************************************************************
 
-# TODO: find suitable name instead of CSBase
-class CSBase(SageObject):
+# TODO: find suitable name instead of CombinatorialExpressionBase
+class CombinatorialExpressionBase(SageObject):
     """
     Abstact base class.
 
@@ -148,8 +148,8 @@ class CSBase(SageObject):
 
             sage: TODO  # not tested
         """
-        if is_CSBase(other):
-            #if is_CSDisjointUnion(self):
+        if is_CombinatorialExpressionBase(other):
+            #if is_CombinatorialExpressionDisjointUnion(self):
             #    # make copy here and add
                 
             return disjoint_union(self, other)
@@ -164,7 +164,7 @@ class CSBase(SageObject):
 
             sage: TODO  # not tested
         """
-        if is_CSBase(other):
+        if is_CombinatorialExpressionBase(other):
             return cartesian_product(self, other)
         else:
             raise TypeError, "Operation not supported."
@@ -173,29 +173,29 @@ class CSBase(SageObject):
 # Data Structures -- Flavor
 #*****************************************************************************
 
-class CSFlavor(SageObject):
+class CombinatorialExpressionFlavor(SageObject):
     pass
 
 # ----------------------------------------------------------------------------
 
 def has_unlabelled_flavor(CS):
     """
-    Tests whether ``CS`` inherits from :class:`CSUnlabelled` or not.
+    Tests whether ``CS`` inherits from :class:`CombinatorialExpressionUnlabelled` or not.
     """
-    return isinstance(CS, CSUnlabelled)
+    return isinstance(CS, CombinatorialExpressionUnlabelled)
 
-class CSUnlabelled(CSFlavor):
+class CombinatorialExpressionUnlabelled(CombinatorialExpressionFlavor):
     pass
 
 # ----------------------------------------------------------------------------
 
 def has_labelled_flavor(CS):
     """
-    Tests whether ``CS`` inherits from :class:`CSLabelled` or not.
+    Tests whether ``CS`` inherits from :class:`CombinatorialExpressionLabelled` or not.
     """
-    return isinstance(CS, CSLabelled)
+    return isinstance(CS, CombinatorialExpressionLabelled)
 
-class CSLabelled(CSFlavor):
+class CombinatorialExpressionLabelled(CombinatorialExpressionFlavor):
     pass
 
 # ----------------------------------------------------------------------------
@@ -270,21 +270,21 @@ def _process_flavor_(kwargs):
 # TODO maybe change the word "construction" to something else
 
 def construction(*args, **kwargs):
-    return CSConstructionUnlabelled(*args, **kwargs)  # TODO
+    return CombinatorialExpressionConstructionUnlabelled(*args, **kwargs)  # TODO
 
 # ----------------------------------------------------------------------------
 
-class CSConstruction(CSBase):
+class CombinatorialExpressionConstruction(CombinatorialExpressionBase):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSConstructionUnlabelled(CSBase, CSUnlabelled):
+class CombinatorialExpressionConstructionUnlabelled(CombinatorialExpressionBase, CombinatorialExpressionUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSConstructionLabelled(CSBase, CSLabelled):
+class CombinatorialExpressionConstructionLabelled(CombinatorialExpressionBase, CombinatorialExpressionLabelled):
     pass
 
 
@@ -293,17 +293,17 @@ class CSConstructionLabelled(CSBase, CSLabelled):
 #*****************************************************************************
 
 # not sure if needed
-class CSFiniteSetBase(CSBase):
+class CombinatorialExpressionFiniteSetBase(CombinatorialExpressionBase):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSFiniteSetUnlabelled(CSBase, CSUnlabelled):
+class CombinatorialExpressionFiniteSetUnlabelled(CombinatorialExpressionBase, CombinatorialExpressionUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSFiniteSetLabelled(CSBase, CSLabelled):
+class CombinatorialExpressionFiniteSetLabelled(CombinatorialExpressionBase, CombinatorialExpressionLabelled):
     pass
 
 
@@ -322,17 +322,17 @@ def singleton(*args, **kwargs):
         sage: from sage.combinat.combinatorial_structures import singleton
         sage: su = singleton('Z', size=2)
         sage: type(su)
-        <class 'sage.combinat.combinatorial_structures.CSSingletonUnlabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionSingletonUnlabelled'>
         sage: sl = singleton('Z', size=2, labelled=True)
         sage: type(sl)
-        <class 'sage.combinat.combinatorial_structures.CSSingletonLabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionSingletonLabelled'>
     """
     flavor = _process_flavor_(kwargs)
-    return globals()['CSSingleton' + flavor](*args, **kwargs)
+    return globals()['CombinatorialExpressionSingleton' + flavor](*args, **kwargs)
 
 # ----------------------------------------------------------------------------
 
-class CSSingletonBase(CSFiniteSetBase):
+class CombinatorialExpressionSingletonBase(CombinatorialExpressionFiniteSetBase):
     """
 
     """
@@ -359,12 +359,12 @@ class CSSingletonBase(CSFiniteSetBase):
 
 # ----------------------------------------------------------------------------
 
-class CSSingletonLabelled(CSSingletonBase, CSFiniteSetLabelled):
+class CombinatorialExpressionSingletonLabelled(CombinatorialExpressionSingletonBase, CombinatorialExpressionFiniteSetLabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSSingletonUnlabelled(CSSingletonBase, CSFiniteSetUnlabelled):
+class CombinatorialExpressionSingletonUnlabelled(CombinatorialExpressionSingletonBase, CombinatorialExpressionFiniteSetUnlabelled):
     pass
 
 
@@ -383,17 +383,17 @@ def empty(*args, **kwargs):
         sage: from sage.combinat.combinatorial_structures import empty
         sage: eu = empty('E')
         sage: type(eu)
-        <class 'sage.combinat.combinatorial_structures.CSEmptyUnlabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionEmptyUnlabelled'>
         sage: el = empty('E', labelled=True)
         sage: type(el)
-        <class 'sage.combinat.combinatorial_structures.CSEmptyLabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionEmptyLabelled'>
     """
     flavor = _process_flavor_(kwargs)
-    return globals()['CSEmpty' + flavor](*args, **kwargs)
+    return globals()['CombinatorialExpressionEmpty' + flavor](*args, **kwargs)
 
 # ----------------------------------------------------------------------------
 
-class CSEmptyBase(CSSingletonBase):
+class CombinatorialExpressionEmptyBase(CombinatorialExpressionSingletonBase):
     def __init__(self, empty=[]):
         """
         TODO
@@ -406,12 +406,12 @@ class CSEmptyBase(CSSingletonBase):
 
 # ----------------------------------------------------------------------------
 
-class CSEmptyUnlabelled(CSEmptyBase, CSSingletonUnlabelled):
+class CombinatorialExpressionEmptyUnlabelled(CombinatorialExpressionEmptyBase, CombinatorialExpressionSingletonUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSEmptyLabelled(CSEmptyBase, CSSingletonLabelled):
+class CombinatorialExpressionEmptyLabelled(CombinatorialExpressionEmptyBase, CombinatorialExpressionSingletonLabelled):
     pass
 
 
@@ -430,17 +430,17 @@ def atom(*args, **kwargs):
         sage: from sage.combinat.combinatorial_structures import atom
         sage: au = atom('A')
         sage: type(au)
-        <class 'sage.combinat.combinatorial_structures.CSAtomUnlabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionAtomUnlabelled'>
         sage: al = atom('A', labelled=True)
         sage: type(al)
-        <class 'sage.combinat.combinatorial_structures.CSAtomLabelled'>
+        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionAtomLabelled'>
     """
     flavor = _process_flavor_(kwargs)
-    return globals()['CSAtom' + flavor](*args, **kwargs)
+    return globals()['CombinatorialExpressionAtom' + flavor](*args, **kwargs)
 
 # ----------------------------------------------------------------------------
 
-class CSAtomBase(CSSingletonBase):
+class CombinatorialExpressionAtomBase(CombinatorialExpressionSingletonBase):
     def __init__(self, atom=[[]]):
         """
         TODO
@@ -453,12 +453,12 @@ class CSAtomBase(CSSingletonBase):
 
 # ----------------------------------------------------------------------------
 
-class CSAtomUnlabelled(CSAtomBase, CSSingletonUnlabelled):
+class CombinatorialExpressionAtomUnlabelled(CombinatorialExpressionAtomBase, CombinatorialExpressionSingletonUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSAtomLabelled(CSAtomBase, CSSingletonLabelled):
+class CombinatorialExpressionAtomLabelled(CombinatorialExpressionAtomBase, CombinatorialExpressionSingletonLabelled):
     pass
 
 
@@ -469,15 +469,15 @@ class CSAtomLabelled(CSAtomBase, CSSingletonLabelled):
 def disjoint_union(*args, **kwargs):
     # TODO: make here the decision if labelled or unlabelled is used
     # (depending on args)
-    return CSDisjointUnionUnlabelled(*args, **kwargs)  # TODO
+    return CombinatorialExpressionDisjointUnionUnlabelled(*args, **kwargs)  # TODO
 
-class CSDisjointUnionBase(CSBase):
+class CombinatorialExpressionDisjointUnionBase(CombinatorialExpressionBase):
     pass
 
-class CSDisjointUnionUnlabelled(CSDisjointUnionBase, CSUnlabelled):
+class CombinatorialExpressionDisjointUnionUnlabelled(CombinatorialExpressionDisjointUnionBase, CombinatorialExpressionUnlabelled):
     pass
 
-class CSDisjointUnionLabelled(CSDisjointUnionBase, CSLabelled):
+class CombinatorialExpressionDisjointUnionLabelled(CombinatorialExpressionDisjointUnionBase, CombinatorialExpressionLabelled):
     pass
 
 
@@ -488,21 +488,21 @@ class CSDisjointUnionLabelled(CSDisjointUnionBase, CSLabelled):
 def cartesian_product(*args, **kwargs):
     # TODO: make here the decision if labelled or unlabelled is used
     # (depending on args)
-    return CSCartesianProductUnlabelled(*args, **kwargs)  # TODO
+    return CombinatorialExpressionCartesianProductUnlabelled(*args, **kwargs)  # TODO
 
 # ----------------------------------------------------------------------------
 
-class CSCartesianProductBase(CSBase):
+class CombinatorialExpressionCartesianProductBase(CombinatorialExpressionBase):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSCartesianProductUnlabelled(CSCartesianProductBase, CSUnlabelled):
+class CombinatorialExpressionCartesianProductUnlabelled(CombinatorialExpressionCartesianProductBase, CombinatorialExpressionUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSCartesianProductLabelled(CSCartesianProductBase, CSLabelled):
+class CombinatorialExpressionCartesianProductLabelled(CombinatorialExpressionCartesianProductBase, CombinatorialExpressionLabelled):
     pass
 
 
@@ -513,21 +513,21 @@ class CSCartesianProductLabelled(CSCartesianProductBase, CSLabelled):
 def sequence(*args, **kwargs):
     # TODO: make here the decision if labelled or unlabelled is used
     # (depending on args)
-    return CSSequenceUnlabelled(*args, **kwargs)  # TODO
+    return CombinatorialExpressionSequenceUnlabelled(*args, **kwargs)  # TODO
 
 # ----------------------------------------------------------------------------
 
-class CSSequenceBase(CSBase):
+class CombinatorialExpressionSequenceBase(CombinatorialExpressionBase):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSSequenceUnlabelled(CSSequenceBase, CSUnlabelled):
+class CombinatorialExpressionSequenceUnlabelled(CombinatorialExpressionSequenceBase, CombinatorialExpressionUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSSequenceLabelled(CSSequenceBase, CSLabelled):
+class CombinatorialExpressionSequenceLabelled(CombinatorialExpressionSequenceBase, CombinatorialExpressionLabelled):
     pass
 
 
@@ -538,21 +538,21 @@ class CSSequenceLabelled(CSSequenceBase, CSLabelled):
 def multi_set(*args, **kwargs):
     # TODO: make here the decision if labelled or unlabelled is used
     # (depending on args)
-    return CSMultiSetUnlabelled(*args, **kwargs)  # TODO
+    return CombinatorialExpressionMultiSetUnlabelled(*args, **kwargs)  # TODO
 
 # ----------------------------------------------------------------------------
 
-class CSMultiSetBase(CSBase):
+class CombinatorialExpressionMultiSetBase(CombinatorialExpressionBase):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSMultiSetUnlabelled(CSMultiSetBase, CSUnlabelled):
+class CombinatorialExpressionMultiSetUnlabelled(CombinatorialExpressionMultiSetBase, CombinatorialExpressionUnlabelled):
     pass
 
 # ----------------------------------------------------------------------------
 
-class CSMultiSetLabelled(CSMultiSetBase, CSLabelled):
+class CombinatorialExpressionMultiSetLabelled(CombinatorialExpressionMultiSetBase, CombinatorialExpressionLabelled):
     pass
 
 
