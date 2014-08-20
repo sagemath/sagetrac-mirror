@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+echo "Building Javad's ffisom shared library."
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: Failed to build Javad's ffisom shared library."
+    exit 1
+fi
+
+cp lib*.so $SAGE_LOCAL/lib/
+cp nmod_poly_isom/ff_isom.h $SAGE_LOCAL/include/javad_nmod.h
+cp fmpz_mod_poly_isom/ff_isom.h $SAGE_LOCAL/include/javad_fmpz_mod.h
+
