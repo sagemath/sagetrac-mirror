@@ -267,8 +267,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Join of Category of unique factorization domains and
-                    Category of commutative algebras over euclidean domains
+            Join of Category of unique factorization domains
+                and Category of commutative algebras over
+                        (euclidean domains and infinite enumerated sets)
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains and
                     Category of commutative algebras over (finite fields and
@@ -470,6 +471,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
+
+    def some_elements(self):
+        r"""
+        Return a list of polynomials.
+
+        This is typically used for running generic tests.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.some_elements()
+            [x, 0, 1, 1/2, x^2 + 2*x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+        """
+        # the comments in the following lines describe the motivation for
+        # adding these elements, they are not accurate over all rings and in
+        # all contexts
+        R = self.base_ring()
+        # Doing things this way is a little robust against rings where
+        #    2 might not convert in
+        one = R.one()
+        return [self.gen(),
+            self.zero(), self(one), self(R.an_element()), # elements of the base ring
+            self([one,2*one,one]), # a square
+            self([0,0,0,one]), # a power but not a square
+            self([-one,0,one]), # a reducible element
+            self([one,0,one]), # an irreducible element
+            self([2*one,0,2*one]), # an element with non-trivial content
+        ]
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor

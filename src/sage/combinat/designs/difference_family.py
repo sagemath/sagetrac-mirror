@@ -1,10 +1,29 @@
 r"""
 Difference families
 
+This module gathers everything related to difference families. One can build a
+difference family (or check that it can be built) with :func:`difference_family`::
+
+    sage: G,F = designs.difference_family(13,4,1)
+
+It defines the following functions:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`is_difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
+    :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+
 REFERENCES:
 
 .. [Wi72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.
+
+Functions
+---------
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -124,7 +143,7 @@ def partial_differences(G, B):
         sage: from sage.combinat.designs.difference_family import partial_differences
 
         sage: b = map(Zmod(8),[0,2,4,6])
-        sage: partial_differences(Zmod(8),b) 
+        sage: partial_differences(Zmod(8),b)
         [2, 4, 6]
 
         sage: b = map(Zmod(8),[0,1,4,5])

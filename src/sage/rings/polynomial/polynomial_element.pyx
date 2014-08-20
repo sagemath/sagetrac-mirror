@@ -1413,10 +1413,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Also check that such computations can be interrupted::
 
-            sage: K.<a> = GF(2**8)
+            sage: K.<a> = GF(2^8)
             sage: x = polygen(K)
-            sage: alarm(1)
-            sage: (x**1000000+x+a).any_root()
+            sage: pol = x^1000000 + x + a
+            sage: alarm(0.5); pol.any_root()
             Traceback (most recent call last):
             ...
             AlarmInterrupt
@@ -2518,6 +2518,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - Naqi Jaffery (2006-01-24): examples
         """
+        raise NotImplementedError
+
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this polynomial is defined over a field, this is simply its :meth:`degree`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: x.euclidean_degree()
+            1
+            sage: R.<x> = ZZ[]
+            sage: x.euclidean_degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        from sage.categories.fields import Fields
+        if self.base_ring() in Fields():
+            return self.degree()
         raise NotImplementedError
 
     def denominator(self):
