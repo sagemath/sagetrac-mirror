@@ -746,14 +746,15 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             ...
             ValueError: no special value found
         """
-        if x == 1:
-            return x
-
-        if x == -1:
-            return x**n
-
-        if x == 0:
-            return (1+(-1)**n)*(-1)**(n/2)/2
+        if not is_Expression(x):
+            if x == 1:
+                return x
+    
+            if x == -1:
+                return x**n
+    
+            if x == 0:
+                return (1+(-1)**n)*(-1)**(n/2)/2
 
         raise ValueError("no special value found")
 
