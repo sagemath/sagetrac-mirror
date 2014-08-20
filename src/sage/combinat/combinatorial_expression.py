@@ -17,10 +17,35 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+import sage
 from sage.structure.sage_object import SageObject
 
 
+# ----------------------------------------------------------------------------
 
+
+class CombinatorialExpressionRing(
+    sage.structure.unique_representation.UniqueRepresentation,
+    sage.rings.ring.Ring):
+    """
+    EXAMPLES::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing)
+        sage: CombinatorialExpressionRing(SR)
+        Combinatorial Expression Ring (over Symbolic Ring)
+    """
+    def __init__(self, base):
+        if base != sage.symbolic.ring.SR:
+            raise NotImplementedError("%s not allowed as base ring." % (base,))
+        super(CombinatorialExpressionRing, self).__init__(base=base)
+
+    def _repr_(self):
+        return "Combinatorial Expression Ring (over %s)" % (self.base_ring(),)
+
+    def base_ring(self):
+        return self.base().base_ring()
 
 
 # ----------------------------------------------------------------------------
@@ -58,7 +83,7 @@ class PlaneBinaryTrees(CombinatorialStructure):
     
     EXAMPLES::
 
-        sage: from sage.combinat.combinatorial_structures import PlaneBinaryTrees
+        sage: from sage.combinat.combinatorial_expression import PlaneBinaryTrees
         sage: len([T for T in PlaneBinaryTrees(4)])  # not tested
         
 
@@ -214,7 +239,7 @@ def _process_flavor_(kwargs):
 
     TESTS::
 
-        sage: from sage.combinat.combinatorial_structures import _process_flavor_
+        sage: from sage.combinat.combinatorial_expression import _process_flavor_
         sage: _process_flavor_({})
         'Unlabelled'
         sage: _process_flavor_({'labelled': True})
@@ -319,13 +344,13 @@ def singleton(*args, **kwargs):
 
     TESTS::
 
-        sage: from sage.combinat.combinatorial_structures import singleton
+        sage: from sage.combinat.combinatorial_expression import singleton
         sage: su = singleton('Z', size=2)
         sage: type(su)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionSingletonUnlabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionSingletonUnlabelled'>
         sage: sl = singleton('Z', size=2, labelled=True)
         sage: type(sl)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionSingletonLabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionSingletonLabelled'>
     """
     flavor = _process_flavor_(kwargs)
     return globals()['CombinatorialExpressionSingleton' + flavor](*args, **kwargs)
@@ -380,13 +405,13 @@ def empty(*args, **kwargs):
 
     TESTS::
 
-        sage: from sage.combinat.combinatorial_structures import empty
+        sage: from sage.combinat.combinatorial_expression import empty
         sage: eu = empty('E')
         sage: type(eu)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionEmptyUnlabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionEmptyUnlabelled'>
         sage: el = empty('E', labelled=True)
         sage: type(el)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionEmptyLabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionEmptyLabelled'>
     """
     flavor = _process_flavor_(kwargs)
     return globals()['CombinatorialExpressionEmpty' + flavor](*args, **kwargs)
@@ -427,13 +452,13 @@ def atom(*args, **kwargs):
 
     TESTS::
 
-        sage: from sage.combinat.combinatorial_structures import atom
+        sage: from sage.combinat.combinatorial_expression import atom
         sage: au = atom('A')
         sage: type(au)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionAtomUnlabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionAtomUnlabelled'>
         sage: al = atom('A', labelled=True)
         sage: type(al)
-        <class 'sage.combinat.combinatorial_structures.CombinatorialExpressionAtomLabelled'>
+        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionAtomLabelled'>
     """
     flavor = _process_flavor_(kwargs)
     return globals()['CombinatorialExpressionAtom' + flavor](*args, **kwargs)
