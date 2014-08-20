@@ -13,8 +13,8 @@ same code was provided without the citations statement.
 ::
 
     sage: with citations():
-    ...       var('y')
-    ...       integrate(y^2, y, 0, 1)
+    ....:     var('y')
+    ....:     integrate(y^2, y, 0, 1)
     y
     1/3
     The computation used the following components.
@@ -39,11 +39,11 @@ which will be extended by citation items for invoked components.
 
     sage: record = []
     sage: with citations(record):
-    ...       K = QuadraticField(-3, 'a')
+    ....:     K = QuadraticField(-3, 'a')
     sage: record
     [GAP, GMP, MPFI, MPFR, NTL]
     sage: with citations(record):
-    ...       integrate(y^2, y, 0, 1)
+    ....:     integrate(y^2, y, 0, 1)
     1/3
     sage: record
     [GAP, GMP, MPFI, MPFR, NTL, ginac, Maxima]
@@ -82,7 +82,7 @@ def latest_citations():
 
         sage: a = var('a')
         sage: with citations():
-        ...       h = ((a+1)^2).expand()
+        ....:     h = ((a+1)^2).expand()
         The computation used the following components.
         Access them as a list by calling latest_citations().
             ginac, GMP
@@ -109,7 +109,7 @@ def citations(record = None):
         sage: R.<x,y,z> = QQ[]
         sage: I = R.ideal(x^2+y^2, z^2+y)
         sage: with citations():
-        ...       I.primary_decomposition()
+        ....:     I.primary_decomposition()
         [Ideal (z^2 + y, x^2 + y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
         The computation used the following components.
         Access them as a list by calling latest_citations().
