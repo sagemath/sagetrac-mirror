@@ -1061,7 +1061,7 @@ class BetaAdicMonoid(Monoid_class):
         """
         
         if not noss:
-            a = self.relations_automaton(ext=ext, ss=None, noss=True, verb=verb, step=step, limit=limit)
+            a = self.relations_automaton(ext=ext, ss=None, noss=True, Cd=Cd, verb=verb, step=step, limit=limit)
             if not step:
                 return a
             step = step-1

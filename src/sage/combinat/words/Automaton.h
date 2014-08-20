@@ -16,5 +16,7 @@ struct Automate
 	int n; //nombre d'états
 	int na; //nombre de lettres
 	int i; //état initial
+	//
+//	int nalloc; //usage interne, mémoire allouée
 };
 typedef struct Automate Automate;

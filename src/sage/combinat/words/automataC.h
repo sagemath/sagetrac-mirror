@@ -13,7 +13,7 @@ void FreeDict (Dict d);
 void printDict (Dict d);
 void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il était déjà présent)
 Automaton NewAutomaton (int n, int na);
-void FreeAutomaton (Automaton a);
+void FreeAutomaton (Automaton *a);
 void init (Automaton a);
 void printAutomaton (Automaton a);
 void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy);
@@ -91,3 +91,10 @@ Automaton SubAutomaton (Automaton a, Dict d, bool verb);
 Automaton Permut (Automaton a, int *l, int na, bool verb);
 //idem mais SUR PLACE
 void PermutOP (Automaton a, int *l, int na, bool verb);
+
+//minimisation par l'algo d'Hopcroft
+//voir "Around Hopcroft’s Algorithm" de Manuel BACLET and Claire PAGETTI
+Automaton Minimise (Automaton a, bool verb);
+
+void DeleteVertexOP (Automaton *a, int e);
+Automaton DeleteVertex (Automaton a, int e);
