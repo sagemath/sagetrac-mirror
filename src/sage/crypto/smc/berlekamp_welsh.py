@@ -4,8 +4,8 @@ Berlekamp-Welsh algorithm
 
 The Berlekamp-Welsh algorithm serves for the purpose of reconstructing
 polynomials with erroneous points.
-The algorithm is well explained at
-`Wikipedia <https://en.wikipedia.org/wiki/Berlekamp–Welch_algorithm>`_.
+
+The algorithm is well explained at :wikipedia:`Berlekamp-Welch_algorithm`.
 
 AUTHORS:
 

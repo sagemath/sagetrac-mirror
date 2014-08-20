@@ -13,7 +13,7 @@ AUTHORS:
 REFERENCES:
 
 .. [Shamir1979] Shamir, A. (1979). How to share a secret.
-   Communications of the ACM, 22(11), 612–613. :doi:`10.1145/359168.359176`
+   Communications of the ACM, 22(11), 612-613. :doi:`10.1145/359168.359176`
 """
 ###############################################################################
 # Copyright 2013, Thomas Loruenser <thomas.loruenser@ait.ac.at>

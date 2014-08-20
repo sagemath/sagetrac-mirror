@@ -16,7 +16,7 @@ AUTHORS:
 REFERENCES:
 
 .. [Rabin1989] Rabin, M. O. (1989). Efficient dispersal of information for security,
-   load balancing, and fault tolerance. Journal of the ACM, 36(2), 335–348.
+   load balancing, and fault tolerance. Journal of the ACM, 36(2), 335-348.
    :doi:`10.1145/62044.62050`
 """
 ###############################################################################
