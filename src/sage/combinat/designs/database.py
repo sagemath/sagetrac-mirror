@@ -3161,9 +3161,11 @@ def OA_17_560():
     k     = 17
     m     = 16
     n     = p**alpha
+    p_pow_beta = p**beta
 
     G = GF(p**alpha,prefix='x',conway=True)
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
     # Builds an OA(n+1,n) whose last n-1 colums are
     #
@@ -3180,19 +3182,14 @@ def OA_17_560():
     # We remove all elements except those from F_{p^alpha} in the last three
     # columns
 
-    elements_of_subgroup = set([x for x in G_set if x.polynomial().degree() < beta])
-    relabel = {G_to_int[v]:i for i,v in enumerate(elements_of_subgroup)}
-    for x in range(p**alpha):
-        if x not in relabel:
-            relabel[x] = None
-
     for C in OA[-3:]:
         for i,x in enumerate(C):
-            C[i] = relabel[x]
+            if x >= p_pow_beta:
+                C[i] = None
 
-    OA=zip(*OA)
+    OA = zip(*OA)
 
-    return wilson_construction(OA,k,n,m,3,[p**beta]*3,check=False)
+    return wilson_construction(OA,k,n,m,3,[p_pow_beta]*3,check=False)
 
 def OA_11_640():
     r"""
