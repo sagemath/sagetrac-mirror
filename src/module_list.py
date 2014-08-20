@@ -2128,6 +2128,16 @@ ext_modules = [
     Extension('sage.ffisom.xz_coordinates_flint_fq_nmod',
               sources = ['sage/ffisom/xz_coordinates_flint_fq_nmod.pyx'],
               libraries = ['flint', 'ntl', 'gmpxx', 'mpfr', 'gmp']),
+
+    Extension('sage.ffisom.javad_nmod',
+              sources = ['sage/ffisom/javad_nmod.pyx'],
+              libraries = ['javad_nmod', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp'],
+              language = 'c++'),
+
+    Extension('sage.ffisom.javad_fmpz_mod',
+              sources = ['sage/ffisom/javad_fmpz_mod.pyx'],
+              libraries = ['javad_fmpz_mod', 'flint', 'ntl', 'gmpxx', 'mpfr', 'gmp'],
+              language = 'c++'),
     ]
 
 # Optional extensions :
