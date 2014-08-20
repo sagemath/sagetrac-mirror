@@ -684,7 +684,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             warnings.warn("mpmath failed, keeping expression unevaluated",
                           RuntimeWarning)
             return None
-        except Exception:
+        except TypeError:
             # Numerical evaluation failed => keep symbolic
             return None
 
