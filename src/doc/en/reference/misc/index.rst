@@ -52,6 +52,14 @@ Miscellaneous
    sage/misc/viewer
    sage/misc/session
 
+Citation of Components
+----------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/misc/citation
+   sage/misc/citation_items/citation_item
 
 Profiling and Performance Testing
 ---------------------------------
