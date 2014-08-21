@@ -203,6 +203,176 @@ cpdef bint is_SymbolicEquation(x):
     return isinstance(x, Expression) and is_a_relational((<Expression>x)._gobj)
 
 cdef class Expression(CommutativeRingElement):
+
+    property __doc__:
+        def __get__(self):
+            """
+            Dynamically generate a docstring for instances of Expression.
+
+            EXAMPLES::
+
+                sage: print(pi.__doc__)
+                A symbolic expression.
+                <BLANKLINE>
+                This particular expression consists of a constant.
+                <BLANKLINE>
+                Some methods of interest
+                ------------------------
+                <BLANKLINE>
+                :meth:`.pyobject`
+                    Get the underlying Python object.
+                <BLANKLINE>
+                :meth:`.numerical_approx`
+                    Return a numerical approximation this symbolic expression as
+                    either a real or complex number with at least the requested
+                    number of bits or digits of precision.
+                <BLANKLINE>
+                Docstring of the return value of :meth:`.pyobject`
+                --------------------------------------------------
+                <BLANKLINE>
+                The return value does not have a docstring.
+            """
+
+            # Figure out what kind of expression we're dealing with.
+            kind = None
+            # These were ordered as in grep "bint is_a" ginac.pxd.
+            # is_exactly_a is used instead of is_a for exprseq and function.
+            if            is_a_numeric(self._gobj): kind = 'numeric_val'
+            elif           is_a_series(self._gobj): kind = 'series'
+            elif       is_a_relational(self._gobj): kind = 'relational'
+            elif         is_a_constant(self._gobj): kind = 'constant'
+            elif         is_a_infinity(self._gobj): kind = 'infinity'
+            elif           is_a_symbol(self._gobj): kind = 'symbol'
+            elif  is_exactly_a_exprseq(self._gobj): kind = 'exprseq'
+            elif              is_a_add(self._gobj): kind = 'add'
+            elif              is_a_mul(self._gobj): kind = 'mul'
+            elif            is_a_power(self._gobj): kind = 'power'
+            elif      is_a_fderivative(self._gobj): kind = 'fderivative'
+            elif is_exactly_a_function(self._gobj): kind = 'function'
+            elif            is_a_ncmul(self._gobj): kind = 'ncmul'
+            else:
+                #TODO: different kinds of expressions
+                pass
+
+            # Create a list of categories for this kind of expression.
+            if kind is None:
+                cats = []
+            else:
+                cats = dict(
+                    numeric_val = ['numeric', 'constantish'],
+                    series      = ['series', 'numeric', 'open_term', 'open'],
+                    relational  = ['relational', 'open'],
+                    constant    = ['constant', 'constantish', 'numeric'],
+                    infinity    = ['constantish'],
+                    symbol      = ['open'],
+                    exprseq     = ['open'],
+                    add         = ['numeric', 'open', 'open_term', 'operation'],
+                    mul         = ['numeric', 'open', 'open_term', 'operation'],
+                    power       = ['numeric', 'open', 'open_term', 'operation'],
+                    fderivative = ['numeric', 'open', 'open_term', 'operation'],
+                    function    = ['numeric', 'open', 'open_term', 'operation'],
+                    ncmul       = ['numeric', 'open', 'open_term', 'operation'],
+                )[kind]
+
+            # Figure out what we want to print.
+            def chain(it, table):
+                res = []
+                for x in it:
+                    try:
+                        res += table[x]
+                    except KeyError:
+                        pass
+                return res
+            interesting_methods = chain(
+                cats,
+                dict(
+                    numeric     = ['numerical_approx'],
+                    constantish = ['pyobject'],
+                    series      = ['truncate', 'is_terminating_series',
+                                   'operands'],
+                    open_term   = ['function'],
+                    open        = ['substitute', 'variables'],
+                    relational  = ['assume', 'forget', 'operator',
+                                   'left_hand_side', 'right_hand_side'],
+                    operation   = ['operator', 'operands'],
+                ))
+            retval_docstring_methods = chain(
+                cats,
+                dict(
+                    constant    = ['pyobject']
+                ))
+
+            # the generic part of the docstring
+            parts = ["""A symbolic expression."""]
+
+            # the part introducing the expression kind
+            a_single = dict(
+                numeric_val = 'a numeric value',
+                series      = 'a power series',
+                relational  = 'an equation',
+                constant    = 'a constant',
+                infinity    = 'an infinity',
+                symbol      = 'a symbol',
+                exprseq     = 'a sequence of expressions',
+                add         = 'an addition',
+                mul         = 'a multiplication',
+                power       = 'an exponentiation',
+                fderivative = 'a derivative',
+                function    = 'a function application',
+                ncmul       = 'a non-commutative multiplication'
+            )
+            if kind is not None:
+                fmt = """This particular expression consists of {}."""
+                parts.append(fmt.format(a_single[kind]))
+
+            # the methods of interest section
+            def first_interesting_part(docstring):
+                if docstring[:5] == "File:":
+                    docstring = docstring.split("\n\n", 1)[1]
+                from inspect import cleandoc
+                docstring = cleandoc(docstring)
+                return docstring.split("\n\n", 1)[0]
+            if interesting_methods != []:
+                parts.append(
+                    """
+                    Some methods of interest
+                    ------------------------
+                    """)
+                for method in interesting_methods:
+                    definition = getattr(self, method).__doc__
+                    if definition is None:
+                        definition = "A method without a docstring."
+                    else:
+                        definition = first_interesting_part(definition)
+                    part = "\n:meth:`.{method}`".format(method=method)
+                    for line in definition.splitlines():
+                        part += "\n    " # indent
+                        part += line
+                    parts.append(part)
+
+            # the docstrings of return values section
+            for method in retval_docstring_methods:
+                fmt = """
+                    Docstring of the return value of :meth:`.{method}`
+                    -----------------------------------------{fillll}-
+                    """
+                parts.append(fmt.format(method=method,
+                                        fillll="-"*len(method)))
+                try:
+                    v = getattr(self, method)()
+                except:
+                    fmt = """Calling :meth:`.{method}` raises an exception."""
+                    part = fmt.format(method=method)
+                else:
+                    part = v.__doc__
+                    if part is None:
+                        part = """The return value does not have a docstring."""
+                parts.append(part)
+
+            # paste it all together
+            from inspect import cleandoc
+            return "\n\n".join([cleandoc(part) for part in parts])
+
     cpdef object pyobject(self):
         """
         Get the underlying Python object.
@@ -210,7 +380,7 @@ cdef class Expression(CommutativeRingElement):
         OUTPUT:
 
         The Python object corresponding to this expression, assuming
-        this expression is a single numerical value or an infinity
+        this expression is a constant, a single numerical value or an infinity
         representable in Python. Otherwise, a ``TypeError`` is raised.
 
         EXAMPLES::
@@ -237,7 +407,6 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: Python infinity cannot have complex phase.
         """
-        cdef GConstant* c
         if is_a_constant(self._gobj):
             from sage.symbolic.constants import constants_name_table
             return constants_name_table[GEx_to_str(&self._gobj)]
@@ -4113,6 +4282,8 @@ cdef class Expression(CommutativeRingElement):
 
     def substitute(self, in_dict=None, **kwds):
         """
+        Perform a substitution and return the result.
+
         EXAMPLES::
 
             sage: var('x,y,z,a,b,c,d,f,g')
