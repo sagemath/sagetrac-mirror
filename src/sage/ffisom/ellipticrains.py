@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from sage.misc.misc import cputime, walltime
 from sage.rings.arith import euler_phi
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.integer_ring import ZZ
-from sage.functions.other import sqrt
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 def affine_point(P):
@@ -14,7 +12,7 @@ def affine_point(P):
 
 def isom_elliptic(k1, k2, k = None, bound = None):
     '''
-    INPUT : 
+    INPUT:
 
     - ``k1`` -- a finite field, extension of degree n of k.
 
@@ -25,27 +23,21 @@ def isom_elliptic(k1, k2, k = None, bound = None):
 
     - ``bound`` -- (default : None) a positive integer used as the max for m.
 
-    OUTPUT : 
+    OUTPUT:
     
     - A tuple of unique elements with the same minimal polynomial in k1 and k2 
       respectively
 
-    EXAMPLES :
+    EXAMPLES::
 
-        sage : R.<X> = PolynomialRing(GF(5))
-
-        sage : f = X^19 + X^16 + 3*X^15 + 4*X^14 + 3*X^12 + 3*X^9 + 2*X^8 + 2*X^7 + 2*X^4 + X^3 + 4*X^2 + 4*X + 2)
-        
-        sage : g = X^19 + 2*X^18 + 2*X^17 + 4*X^16 + X^15 + 3*X^14 + 2*X^13 + X^12 + 2*X^11 + 2*X^10 + 2*X^9 + X^8 + 4*X^6 + X^5 + 3*X^4 + 2*X^2 + 4*X + 4
-
-        sage : k1 = GF(5**19, name = 'x', modulus = f)
-
-        sage : k2 = GF(5**19, name = 'y', modulus = g)
-
-        sage : tuple = isom_elliptic(k1, k2)
-
-        sage : tuple[0].minpoly() == tuple[1].minpoly()
-
+        sage: from sage.ffisom.ellipticrains import isom_elliptic
+        sage: R.<X> = PolynomialRing(GF(5))
+        sage: f = X^19 + X^16 + 3*X^15 + 4*X^14 + 3*X^12 + 3*X^9 + 2*X^8 + 2*X^7 + 2*X^4 + X^3 + 4*X^2 + 4*X + 2
+        sage: g = X^19 + 2*X^18 + 2*X^17 + 4*X^16 + X^15 + 3*X^14 + 2*X^13 + X^12 + 2*X^11 + 2*X^10 + 2*X^9 + X^8 + 4*X^6 + X^5 + 3*X^4 + 2*X^2 + 4*X + 4
+        sage: k1 = GF(5**19, name = 'x', modulus = f)
+        sage: k2 = GF(5**19, name = 'y', modulus = g)
+        sage: tuple = isom_elliptic(k1, k2)
+        sage: tuple[0].minpoly() == tuple[1].minpoly()
         True
 
     ALGORITHM:
@@ -53,7 +45,7 @@ def isom_elliptic(k1, k2, k = None, bound = None):
     Given two extensions of the same degree defined by two different
     polynomials, we want to find, with the help of elliptic period, two elements
     with an unique orbit under the action of the Galois group. The algorithm is
-    as follows :
+    as follows:
 
     #. First we have to find an integer m with the following properties :
         #. We want to have n | phi(m) and (phi(m)/n, n) = 1.
@@ -77,7 +69,7 @@ def isom_elliptic(k1, k2, k = None, bound = None):
        the isomorphism we are looking for is the one sending u1 on u2. 
     '''
     if k is None:
-	    k = k1.base_ring()
+        k = k1.base_ring()
     p = k.characteristic()
     n = k1.degree()  
     q = k.cardinality()
@@ -106,7 +98,7 @@ def isom_elliptic(k1, k2, k = None, bound = None):
 
 def find_unique_orbit_elliptic(E, m, case = 0):
     '''
-    INPUT : 
+    INPUT:
     
     - ``E`` -- an elliptic curve with the properties given in isom_elliptic 
       and/or find_elliptic_curve.
@@ -119,59 +111,44 @@ def find_unique_orbit_elliptic(E, m, case = 0):
         - ``1`` means j is 1728,
         - ``2`` means j is 0.
 
-    OUPUT : 
+    OUPUT:
     
     - An element in the field K_E over which E is defined, with a unique orbit 
       under the action of the Galois group  K_E/k.
 
-    EXAMPLES :
+    EXAMPLES:
 
-    - Case j != 0, 1728
+    - Case j != 0, 1728::
 
+        sage: from sage.ffisom.ellipticrains import find_unique_orbit_elliptic
         sage: E = EllipticCurve(j = GF(5)(1))
-
-        sage: EK = E.change_ring(GF(5**19, prefix = 'z', conway = True)
-
+        sage: EK = E.change_ring(GF(5**19, prefix = 'z', conway = True))
         sage: m = 229
-
         sage: elem1 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem2 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem1.minpoly() == elem2.minpoly()
-
         True
 
-    - Case j = 1728 and trace != 0
+    - Case j = 1728 and trace != 0::
 
-        sage : E = EllipticCurve(j = GF(5)(1728))
-
-        sage: EK = E.change_ring(GF(5**19, prefix = 'z', conway = True)
-
+        sage: from sage.ffisom.ellipticrains import find_unique_orbit_elliptic
+        sage: E = EllipticCurve(j = GF(5)(1728))
+        sage: EK = E.change_ring(GF(5**19, prefix = 'z', conway = True))
         sage: m = 229
-
         sage: elem1 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem2 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem1.minpoly() == elem2.minpoly()
-
         True
 
-    - Case j = 0 and trace != 0
+    - Case j = 0 and trace != 0::
 
+        sage: from sage.ffisom.ellipticrains import find_unique_orbit_elliptic
         sage: E = EllipticCurve(j = GF(7)(0))
-
-        sage: EK = E.change_ring(GF(7**23, prefix = 'z', conway = True)
-
+        sage: EK = E.change_ring(GF(7**23, prefix = 'z', conway = True))
         sage: m = 139
-
         sage: elem1 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem2 = find_unique_orbit_elliptic(EK,m)
-
         sage: elem1.minpoly() == elem2.minpoly()
-
         True
 
     ALGORITHM:
@@ -181,7 +158,7 @@ def find_unique_orbit_elliptic(E, m, case = 0):
     periods of the Galois action. The trace of the elliptic curve we are using 
     is of the form t = a + q/a, with a of order n in (Z/m)*. So for S a subgroup
     of the Galois groupe, we have (Z/m)* = <a> x S. To compute the elliptic
-    periods, we use the formulas :
+    periods, we use the formulas:
 
         - u = sum_{i \in S} (([i]P)[0])^2, for j not 0 nor 1728 or t = 0,
         - u = sum_{i \in S} (([i]P)[0])^4, for j = 1728,
@@ -225,7 +202,7 @@ def find_unique_orbit_elliptic(E, m, case = 0):
 
 def find_elliptic_curve(k, K, m_t):
     '''
-    INPUT: 
+    INPUT:
 
     - ``k`` -- a base field,
 
@@ -234,26 +211,22 @@ def find_elliptic_curve(k, K, m_t):
     - ``m_t`` -- a list of tuple containing an integer and a set of candidates 
       for the trace.
 
-    OUTPUT: 
+    OUTPUT:
     
     - An elliptic curve defined over k with the required properties.
 
     - An integer case, depending on the value of the j-invariant or the 
       the supersingularity of said elliptic curve.
 
-    EXAMPLES:
+    EXAMPLES::
     
-    sage: R.<X> = PolynomialRing(GF(5))
-
-    sage: f = R.irreducible_element(19, algorithm = 'random')
-
-    sage: K = GF(5**19, names = 'x', modulus = f)
-
-    sage: m_t = (229,{2})
-
-    sage: find_elliptic_curve(GF(5), K, m_t)
-
-    (Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 5, 1)
+        sage: from sage.ffisom.ellipticrains import find_elliptic_curve
+        sage: R.<X> = PolynomialRing(GF(5))
+        sage: f = R.irreducible_element(19, algorithm = 'random')
+        sage: K = GF(5**19, names = 'x', modulus = f)
+        sage: m_t = (229,{2})
+        sage: find_elliptic_curve(GF(5), K, m_t)
+        (Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 5, 1)
 
     ALGORITHM:
 
@@ -345,9 +318,9 @@ def find_elliptic_curve(k, K, m_t):
     # If no elliptic curve has been found.
     return None, -1
 
-def find_trace(n,m,k):
+def find_traces(n,m,k):
     '''
-    INPUT :
+    INPUT:
 
     - ``n`` -- an integer, the degree of the extension,
 
@@ -355,23 +328,20 @@ def find_trace(n,m,k):
 
     - ``k`` -- a finite field, the base field.
 
-    OUTPUT : 
+    OUTPUT:
 
     - A list of integer modulo m with the good properties.
 
-    EXAMPLES :
+    EXAMPLES::
 
-    sage: n = 281
+        sage: from sage.ffisom.ellipticrains import find_traces
+        sage: n = 281
+        sage: m = 3373
+        sage: k = GF(1747)
+        sage: find_traces(n,m,k)
+        set([4, 14, 18, 43, 57, 3325, 3337, 3348, 3354, 3357, 3364])
 
-    sage: m = 3373
-
-    sage: k = GF(1747)
-
-    sage: find_trace(n,m,k)
-
-    {4, 14, 18, 43, 57, 3325, 3337, 3348, 3354, 3357, 3364}
-
-    ALGORITHM :
+    ALGORITHM:
 
     The algorithm is pretty straightforward. We select all the elements of 
     order n and look for some properties of their class modulo m and add 
@@ -390,6 +360,7 @@ def find_trace(n,m,k):
 
     - If m is composite, we raise a NotImplementedError.
     '''
+    from sage.functions.other import sqrt
     Zm = Integers(m)
     p = k.characteristic()
     q = k.cardinality()
@@ -448,7 +419,7 @@ def find_trace(n,m,k):
 
 def find_m(n, k, bound = None):
     '''
-    INPUT :
+    INPUT:
 
     - ``n`` -- an integer, the degree,
 
@@ -456,21 +427,19 @@ def find_m(n, k, bound = None):
 
     - ``bound`` -- (default : None) a positive integer used as the max for m.
 
-    OUTPUT :
+    OUTPUT:
 
     - A tuple containing an integer and a set of class modulo m.
 
-    EXAMPLES :
+    EXAMPLES::
 
-    sage: find_m(281, GF(1747))
+        sage: from sage.ffisom.ellipticrains import find_m
+        sage: find_m(281, GF(1747))
+        (3373, set([4, 14, 18, 43, 57, 3325, 3337, 3348, 3354, 3357, 3364]))
+        sage: find_m(23, GF(11))
+        (47, set([0, 1, 2, 3, 44, 45, 46]))
 
-    (3373, {4, 14, 18, 43, 57, 3325, 3337, 3348, 3354, 3357, 3364})
-
-    sage: find_m(23, GF(11))
-
-    (47, {0, 1, 2, 3, 44, 45, 46})
-
-    ALGORITHM :
+    ALGORITHM:
     
     First and foremost we are looking for an integer m for which n | phi(m). A 
     good way to obtain such integers is to look for prime power of  the form 
@@ -504,7 +473,7 @@ def find_m(n, k, bound = None):
         elif (euler_phi(m)/n).gcd(n) != 1:
             continue
         else:
-            S_t = find_trace(n, m, k)
+            S_t = find_traces(n, m, k)
             # Some time in the future we'd like to have a 
             # better bound than just 1.
             if len(S_t) < 1:   
