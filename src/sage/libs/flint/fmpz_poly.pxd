@@ -120,5 +120,7 @@ cdef extern from "flint/fmpz_poly.h":
 
     void fmpz_poly_reverse(fmpz_poly_t output, fmpz_poly_t input,
             unsigned long length)
+    void fmpz_poly_revert_series(fmpz_poly_t output, fmpz_poly_t input,
+            unsigned long length)
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)
