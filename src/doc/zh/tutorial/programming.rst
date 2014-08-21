@@ -560,7 +560,7 @@ Sage也有自己的集合类型，多数情况下是用Python内置的集合类�
 ::
 
     sage: for i in range(5):
-    ...       print(i)  # now hit enter twice
+    ....:     print(i)  # now hit enter twice
     0
     1
     2
@@ -574,8 +574,8 @@ Sage也有自己的集合类型，多数情况下是用Python内置的集合类�
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
     1
     2
     4
@@ -590,11 +590,11 @@ Sage也有自己的集合类型，多数情况下是用Python内置的集合类�
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
              
     sage: legendre(2,7)
     1

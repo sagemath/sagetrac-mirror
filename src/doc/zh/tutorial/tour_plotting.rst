@@ -92,7 +92,7 @@ Sage可以绘制二维或三维图像。
 ::
 
     sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
-    ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+    ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
 
@@ -103,7 +103,7 @@ Sage可以绘制二维或三维图像。
 ::
 
     sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),\
-    ...   6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+    ....: 6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
     sage: t = text("hypotrochoid", (5,4), rgbcolor=(1,0,0))
     sage: show(p+t)
@@ -179,7 +179,7 @@ Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
     sage: fy = u
     sage: fz = v^2
     sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1),
-    ...   frame=False, color="yellow")
+    ....: frame=False, color="yellow")
 
 `Cross cap <http://en.wikipedia.org/wiki/Cross-cap>`__:
 
@@ -190,7 +190,7 @@ Sage中第三种绘制三维图像的方法是 ``implicit_plot3d``,
     sage: fy = (1+cos(v))*sin(u)
     sage: fz = -tanh((2/3)*(u-pi))*sin(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
-    ...   frame=False, color="red")
+    ....: frame=False, color="red")
 
 Twisted torus:
 
@@ -201,7 +201,7 @@ Twisted torus:
     sage: fy = (3+sin(v)+cos(u))*sin(2*v)
     sage: fz = sin(u)+2*cos(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
-    ...   frame=False, color="red")
+    ....: frame=False, color="red")
 
 Lemniscate:
 
