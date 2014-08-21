@@ -6387,7 +6387,7 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=True,implementation=None):
+    def weak_popov_form(self, ascend=True,implementation=None,transposition=False):
         """
         This function computes a weak Popov form of a matrix over a rational
         function field `k(x)`, for `k` a field.
@@ -6402,6 +6402,10 @@ cdef class Matrix(matrix1.Matrix):
          implementation that should be used. If None the original implementation
          is used, if "cython" a cython implementation of mulders-storjohann
          is used.
+
+         - `transposition` - Boolean (default: False) indicating if a
+         matrix U such that U*self = self.weak_popov_form() should be
+         computed. This is only used for implementation "cython".
 
         OUTPUT:
 
@@ -6544,7 +6548,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         if implementation=="cython":
             from sage.matrix.weak_popov import mulders_storjohann
-            return mulders_storjohann(self)
+            return mulders_storjohann(self,transposition)
         import sage.matrix.matrix_misc
         return sage.matrix.matrix_misc.weak_popov_form(self)
 
