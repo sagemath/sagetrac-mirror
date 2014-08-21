@@ -870,4 +870,3 @@ type ``cmd?`` and now hit ``<esc>`` (not ``<shift-enter>``).
 
 关于notebook快捷键的帮助，请点击 ``Help`` 链接。
 
-.. [Py] The Python language http://www.python.org/ , Reference Manual http://docs.python.org/ref/ref.html
