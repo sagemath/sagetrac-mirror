@@ -795,9 +795,10 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         """
         return self.parent().kirillov_reshetikhin_tableaux()(self)
 
-    def lusztig_involution(self):
-        """
-        Return the classical Lusztig involution on ``self``.
+    @cached_method
+    def to_tableau(self):
+        r"""
+        Return the :class:`Tableau` corresponding to ``self``.
 
         EXAMPLES::
 
@@ -3282,7 +3283,7 @@ class PMDiagram(CombinatorialObject):
 
             sage: pm = sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
             sage: pm.__repr__(pretty_printing=True)
-            doctest:1: DeprecationWarning: pretty_printing is deprecated. Use instead pp()
+            doctest:...: DeprecationWarning: pretty_printing is deprecated. Use instead pp()
             See http://trac.sagemath.org/15913 for details.
             .  .  .  +
             .  .  -  -
