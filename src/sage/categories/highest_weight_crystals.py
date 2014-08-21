@@ -13,6 +13,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals, CrystalHomset, \
     CrystalMorphismByGenerators, TwistedCrystalMorphismByGenerators, \
     VirtualCrystalMorphismByGenerators
+from sage.categories.tensor import TensorProductsCategory
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -375,6 +376,93 @@ class HighestWeightCrystals(Category_singleton):
                 ret = P(ret, prec)
             return ret
 
+    class ElementMethods:
+        pass
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of highest weight crystals constructed by tensor
+        product of highest weight crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: HighestWeightCrystals().TensorProducts().extra_super_categories()
+                [Category of highest weight crystals]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            """
+            Implements operations on tensor products of crystals.
+            """
+            @cached_method
+            def highest_weight_vectors(self):
+                r"""
+                Return the highest weight vectors of ``self``.
+
+                This works by using a backtracing algorithm since if
+                `b_2 \otimes b_1` is highest weight then `b_1` is
+                highest weight.
+
+                EXAMPLES::
+
+                    sage: C = crystals.Tableaux(['D',4], shape=[2,2])
+                    sage: D = crystals.Tableaux(['D',4], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.highest_weight_vectors()
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                    sage: L = filter(lambda x: x.is_highest_weight(), T)
+                    sage: tuple(L) == T.highest_weight_vectors()
+                    True
+
+                TESTS:
+
+                We check this works with Kashiwara's convention for
+                tensor products::
+
+                    sage: C = crystals.Tableaux(['B',3], shape=[2,2])
+                    sage: D = crystals.Tableaux(['B',3], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.global_options(convention='Kashiwara')
+                    sage: T.highest_weight_vectors()
+                    ([[[1, 1], [2, 2]], [[1]]],
+                     [[[1, 1], [2, 2]], [[3]]],
+                     [[[1, 1], [2, 2]], [[-2]]])
+                    sage: T.global_options.reset()
+                    sage: T.highest_weight_vectors()
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                """
+                n = len(self.crystals)
+                it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
+                path = []
+                ret = []
+                while it:
+                    try:
+                        x = it[-1].next()
+                    except StopIteration:
+                        it.pop()
+                        if path:
+                            path.pop(0)
+                        continue
+
+                    b = self.element_class(self, [x] + path)
+                    if not b.is_highest_weight():
+                        continue
+                    path.insert(0, x)
+                    if len(path) == n:
+                        ret.append(b)
+                        path.pop(0)
+                    else:
+                        it.append( iter(self.crystals[-len(path)-1]) )
+                return tuple(ret)
+
         # TODO: This is not correct if a factor has multiple heads (i.e., we
         #   should have a category for uniqueness of highest/lowest weights)
         connected_components_generators = highest_weight_vectors
@@ -415,9 +503,6 @@ class HighestWeightCrystals(Category_singleton):
             if Y not in Crystals():
                 raise TypeError("{} is not a crystal".format(Y))
             return HighestWeightCrystalHomset(self, Y, category=category, **options)
-
-    class ElementMethods:
-        pass
 
 ###############################################################################
 ## Morphisms
