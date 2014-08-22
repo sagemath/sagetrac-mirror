@@ -639,18 +639,16 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
             sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        cdef long clong
-        cdef Integer cint
+        cdef unsigned long clong
         cdef int i, n
         cdef FiniteField_flint_fq_nmod K
         cdef list clist
-        cint = Integer.__new__(Integer)
         K = self._parent
         n = K.degree()
         clist = []
         for i in xrange(n):
             clong = nmod_poly_get_coeff_ui(<nmod_poly_struct*> self.val, i)
-            clist.append(Integer(clong))
+            clist.append(clong)
         return K.polynomial_ring()(clist)
 
     # No FLINT implementation yet
