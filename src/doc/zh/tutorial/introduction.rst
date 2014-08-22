@@ -125,9 +125,4 @@ Sage的长期目标
 -  **用户友好：** 给定对象所提供的功能应该是清晰易懂的，
    文档和源码应该易于查看。用户支持要达到比较高的水平。
 
-.. [Dive] Dive into Python, Freely available online at 
-          http://diveintopython.org
-
-.. [PyT] The Python Tutorial, http://www.python.org/
-
 .. [Sage] Sage, http://www.sagemath.org

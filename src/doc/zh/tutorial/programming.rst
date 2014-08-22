@@ -780,4 +780,3 @@ Sage中比较两个不同类型的对象时，
 
 .. [Pyrex] Pyrex, http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
 
-.. [PyT] The Python Tutorial, http://www.python.org/
