@@ -315,4 +315,3 @@ Maxima还了解很多特殊函数，能够通过gnuplot绘图，进行矩阵运�
     ....: "[y, -%pi, %pi]", "['grid, 40, 40]",\
     ....: '[plot_format, openmath]') # not tested
 
-.. [GAPkg] GAP Packages, http://www.gap-system.org/Packages/packages.html
