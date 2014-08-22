@@ -575,3 +575,27 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         if all(v_i == 0 for v_i in v):
             v[0] = R.one()
         return self(v)
+
+    def complete_intersection(self, *degrees):
+        """
+        Return complete intersection defined by degrees.
+
+        INPUT:
+
+        - ``degrees`` - list/tuple/iterable of length equals to the
+          number of factors. Each entry is either an integer or a
+          list/tuple/iterables of integer. The degree(s) of the
+          equation(s) in the corresponding projective space factor.
+
+        EXAMPLES::
+
+            sage: P2xP2.<x,y> = ProductProjectiveSpaces([2, 2], QQ)
+            sage: P2xP2.complete_intersection(3, 3)
+            Complete intersection in Product of projective spaces P^2 x P^2 over Rational Field
+              P^2   |   3
+              P^2   |   3
+        """
+        from sage.schemes.product_projective.complete_intersection \
+            import GenericCompleteIntersection
+        return GenericCompleteIntersection(self, degrees)
+        

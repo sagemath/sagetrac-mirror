@@ -234,7 +234,7 @@ class AlgebraicScheme(scheme.Scheme):
             Category of schemes over Integer Ring
         """
         if not ambient_space.is_AmbientSpace(A):
-            raise TypeError("A (=%s) must be an ambient space")
+            raise TypeError("must be an ambient space")
         self.__A = A
         self.__divisor_group = {}
         scheme.Scheme.__init__(self, A.base_scheme())
