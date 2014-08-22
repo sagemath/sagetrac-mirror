@@ -210,6 +210,3 @@ Lemniscate:
     sage: x, y, z = var('x,y,z')
     sage: f(x, y, z) = 4*x^2 * (x^2 + y^2 + z^2 + z) + y^2 * (y^2 + z^2 - 1)
     sage: implicit_plot3d(f, (x, -0.5, 0.5), (y, -1, 1), (z, -1, 1))
-
-
-.. [Jmol] Jmol: an open-source Java viewer for chemical structures in 3D http://www.jmol.org/
