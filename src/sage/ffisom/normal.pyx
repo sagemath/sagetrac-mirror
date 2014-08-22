@@ -81,6 +81,9 @@ def normal_basis_coordinates(z, v, normal_basis = None):
     For more details, consult:
     https://github.com/brieulle/Rains-pinch/blob/master/latex/complexity.tex 
     '''
+    cdef int i, j
+    cdef int n
+    cdef list trz, inv, zfrob
     n = v.parent().degree()
     p = v.parent().characteristic()
     k = v.parent().prime_subfield()
@@ -97,7 +100,7 @@ def normal_basis_coordinates(z, v, normal_basis = None):
 
     # We compute the inverse of the image of the circulant matrix B in the 
     # cyclotomic ring  GF(p^n)[U]/(U^n - 1) 
-    inv = R(B).inverse_mod(U**n - 1)
+    inv = list(R(B).inverse_mod(U**n - 1))
 
     zfrob = [z]
     for i in xrange(n-1):

@@ -29,7 +29,7 @@ cpdef mul_ltr(tuple P, Integer m, FiniteFieldElement_flint_fq_nmod a, FiniteFiel
 
     return (x, z)
 
-cpdef find_ordm(object E, object m):
+def find_ordm(object E, object m):
     cdef FiniteField_flint_fq_nmod K
     K = <FiniteField_flint_fq_nmod>(E.base_ring())
     cofactor = E.cardinality()//m
