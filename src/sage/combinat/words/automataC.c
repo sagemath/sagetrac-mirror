@@ -81,17 +81,24 @@ void dictAdd (Dict *d, int e)
 	d->e[d->n-1] = e;
 }
 
+#define DISP_MEMORY	false
+
 Automaton NewAutomaton (int n, int na)
 {
+#if DISP_MEMORY
+	printf("New %d...\n", n);
+#endif
 	Automaton a;
 	a.n = n;
 	a.na = na;
 	if (n == 0)
 	{
 		a.i = -1;
+		a.e = NULL;
 		return a;
 	}
 	a.e = (Etat *)malloc(sizeof(Etat)*n);
+	//a.nalloc = n;
 	if (!a.e)
 	{
 		printf("Out of memory !");
@@ -110,16 +117,95 @@ Automaton NewAutomaton (int n, int na)
 	return a;
 }
 
-void FreeAutomaton (Automaton a)
+void FreeAutomaton (Automaton *a)
 {
-	if (a.n == 0)
+#if DISP_MEMORY
+	printf("Free %d ...\n", a->n);
+#endif
+	//if (a.nalloc == 0 || a.n==0)
+	if (a->n == 0)
 		return;
 	int i;
-	for (i=0;i<a.n;i++)
+	for (i=0;i<a->n;i++)
 	{
-		free(a.e[i].f);
+		free(a->e[i].f);
 	}
-	free(a.e);
+	free(a->e);
+	//a.nalloc = 0;
+	a->n = 0;
+}
+
+void ReallocAutomaton (Automaton *a, int n)
+{	//////////////////fonction BUGUéE !!!!!!!!!!!!!!!!!!!
+	int i;
+	if (a->n > n)
+	{ //libère les états à supprimmer
+		printf("dealloc %d -> %d...\n", a->n, n);
+		for (i=n;a->n;i++)
+		{
+			free(a->e[i].f);
+		}
+		a->e = (Etat*)realloc(a->e, n);
+		if (!a->e)
+		{
+			printf("Out of memory !");
+			exit(29);
+		}
+	}else
+	{ //aloue les nouveaux états
+		printf("realloc %d -> %d...\n", a->n, n);
+		a->e = (Etat*)realloc(a->e, n);
+		if (!a->e)
+		{
+			printf("Out of memory !");
+			exit(27);
+		}
+		for (i=a->n;i<n;i++)
+		{
+			a->e[i].f = malloc(sizeof(int)*a->na);
+		}
+	}
+	if (a->i >= n)
+		a->i = -1;
+	a->n = n;
+	/*
+	int i;
+	if (n > a->n)
+	{
+		if (n > a->nalloc)
+		{
+			a->e = (Etat *)realloc(a->e, sizeof(Etat)*n*2);
+			if (!a->e)
+			{
+				printf("Out of memory !");
+				exit(29);
+			}
+			a->nalloc = 2*n;
+		}
+		
+		for (i=a->n;i<n;i++)
+		{
+			a->e[i].f = (int *)malloc(sizeof(int)*a->na);
+			if (!a->e[i].f)
+			{
+				printf("Out of memory !");
+				exit(27);
+			}
+		}
+	}else
+	{
+		if (n < a->nalloc/2)
+		{
+			for (i=n;i<a->n;i++)
+			{
+				free(a->e[i].f);
+			}
+			a->e = (Etat *)realloc(a->e, sizeof(Etat)*n);
+			a->nalloc = n;
+		}
+	}
+	a->n = n;
+	*/
 }
 
 void init (Automaton a)
@@ -310,6 +396,7 @@ Automaton Product(Automaton a1, Automaton a2, Dict d)
 
 void AddEtat (Automaton *a, bool final)
 {
+	/**/
 	a->n++;
 	a->e = (Etat *)realloc(a->e, sizeof(Etat)*a->n);
 	if (!a->e)
@@ -323,6 +410,8 @@ void AddEtat (Automaton *a, bool final)
 		printf("Out of memory !");
 		exit(3);
 	}
+	/**/
+	//ReallocAutomaton(a, a->n+1);
 	int i;
 	for (i=0;i<a->na;i++)
 	{
@@ -605,7 +694,7 @@ void putEtat (Etats *f, int ef)
 }
 
 //Etats : liste d'états de a
-void Determinise_rec (Automaton a, InvertDict id, Automaton* r, ListEtats* l, bool onlyfinals, bool nof, int niter)
+void Determinise_rec (Automaton a, InvertDict id, Automaton *r, ListEtats* l, bool onlyfinals, bool nof, int niter)
 {
 	int current = l->n-1;
 	Etats c = l->e[current];
@@ -1556,4 +1645,453 @@ void PermutOP (Automaton a, int *l, int na, bool verb)
 		}
 	}
 	free(lf);
+}
+
+/////////////////////// the following is an implementation of Hopcroft's algorithm
+
+typedef int Couple[2];
+
+int *partition; //état --> indice
+int *partitioni; //indice --> état
+int *class; //classe de chaque état
+Couple *class_indices; //intervalle d'indices de la classe
+int nclass = 0; //nb de classes
+Dict **transitioni; //inverse des transitions de l'automate : état, lettre --> liste d'états
+int *L; //liste des classes par rapport auxquelles il faut raffiner
+int nL; //nb d'éléments de L
+int *pt_visited_class; //premier indice non rencontré dans la classe
+int *visited_class; //liste des classes visitées dernièrement (utilisé dans split)
+int *etats; //états à parcourir
+
+int global_n = 0;
+void print_partition ()
+{
+	int i;
+	printf("partition = [");
+	for (i=0;i<global_n+1;i++)
+	{
+		printf(" %d", partition[i]);
+	}
+	printf(" ]\n");
+	printf("partitioni = [");
+	for (i=0;i<global_n+1;i++)
+	{
+		printf(" %d", partitioni[i]);
+	}
+	printf(" ]\n");
+}
+
+void print_classes ()
+{
+	//affiche la liste des classes
+	int l,h,i,j;
+	for (i=0;i<nclass;i++)
+	{
+		printf("classe %d : ", i);
+		l = class_indices[i][0];
+		h = class_indices[i][1];
+		for (j=l;j<h;j++)
+		{
+			printf("%d ", partitioni[j]);
+		}
+		printf("\n");
+	}
+}
+
+//échange les états i et j
+inline void swap (int i, int j)
+{
+	if (i == j)
+		return;
+	int k = partition[i];
+	partition[i] = partition[j];
+	partition[j] = k;
+	partitioni[k] = j;
+	partitioni[partition[i]] = i;
+}
+
+void split (int C, int a, bool verb)
+{
+	//compute the préimage of C
+	int i,j,l,h, e, p, lp, ep, cp;
+	int nrc = 0; //nombre de classes rencontrées
+	l = class_indices[C][0];
+	h = class_indices[C][1];
+	//copie la liste des sommets à parcourir (au cas où celle-ci soit modifiée pendant le parcours)
+	for (i=l;i<h;i++)
+	{ //parcours la classe C
+		etats[i] = partitioni[i]; //état d'indice i
+	}
+	for (i=l;i<h;i++)
+	{ //parcours la classe C
+		e = etats[i]; //état d'indice i
+		for (j=0;j<transitioni[e][a].n;j++)
+		{ //parcours l'image inverse de l'état e par la lettre a
+			p = transitioni[e][a].e[j]; //parent
+			cp = class[p]; //classe de p
+			if (!pt_visited_class[cp])
+			{ //la classe de p n'a pas encore été vue dans cet appel de split
+				if (verb)
+					printf("nouvelle classe visitée : %d (%d parent de %d)\n", cp, p, e);
+				visited_class[nrc] = cp;
+				pt_visited_class[cp] = class_indices[cp][0]; //lowest indice of the class of p
+				nrc++;
+			}else
+			{
+				if (verb)
+					printf("classe revisitée : %d (%d parent de %d)\n", cp, p, e);
+			}
+			ep = pt_visited_class[cp]; //indice de l'élément à permuter avec p
+			if (ep > partition[p])
+			{
+				if (verb)
+					printf("sommet %d déjà vu\n", p);
+				continue; //on a déjà vu l'état p
+			}
+			ep = partitioni[ep]; //élément à permuter avec p
+			swap(ep, p);
+			pt_visited_class[cp]++;
+			//if (verb)
+			//	print_partition();
+		}
+	}
+	
+	if (verb)
+	{
+		//print_partition();
+		print_classes();
+		printf("%d classes rencontrées\n", nrc);
+	}
+	
+	//create new classes
+	for (i=0;i<nrc;i++)
+	{
+		cp = visited_class[i];
+		
+		/////only for verification : to be avoided
+		if (pt_visited_class[cp] > class_indices[cp][1])
+		{
+			printf("***********\nError !!!\n***********\n");
+		}
+		////
+		
+		l = class_indices[cp][0];
+		h = class_indices[cp][1];
+		j = pt_visited_class[cp];
+		
+		if (verb)
+			printf("classe %d : l = %d %d %d = h\n", cp, l, j, h);
+		
+		if (j < h)
+		{ //on doit ajouter une nouvelle classe
+			//choisi la plus petite classe
+			if (h - j > j - l)
+			{ //on choisi la partie gauche
+				class_indices[cp][0] = j; //l'ancienne classe devient la partie droite
+				class_indices[nclass][0] = l;
+				class_indices[nclass][1] = j;
+			}else
+			{ //on choisit la partie droite
+				class_indices[cp][1] = j; //l'ancienne classe devient la partie gauche
+				class_indices[nclass][0] = j;
+				class_indices[nclass][1] = h;
+			}
+			//met à jour les classes des sommets
+			for (j=class_indices[nclass][0];j<class_indices[nclass][1];j++)
+			{
+				class[partitioni[j]] = nclass;
+			}
+			L[nL] = nclass; //ajoute la nouvelle classe à L
+			nL++;
+			nclass++;
+		}
+		
+		pt_visited_class[cp] = 0; //remet à 0
+	}
+}
+
+//minimisation par l'algo d'Hopcroft
+//voir "Around Hopcroft’s Algorithm" de Manuel BACLET and Claire PAGETTI
+Automaton Minimise (Automaton a, bool verb)
+{
+	if (verb)
+		global_n = a.n;
+	//allocations
+	transitioni = (Dict **)malloc(sizeof(Dict *)*(a.n+1)); //inverse des partitions
+	partition = (int *)malloc(sizeof(int)*(a.n+1));
+	partitioni = (int *)malloc(sizeof(int)*(a.n+1));
+	class = (int *)malloc(sizeof(int)*(a.n+1)); //classe d'un état
+	nclass = 0;
+	class_indices = (Couple *)malloc(sizeof(Couple)*(a.n+1));
+	visited_class = (int *)malloc(sizeof(int)*(a.n+1));
+	pt_visited_class = (int *)malloc(sizeof(int)*(a.n+1));
+	etats = (int *)malloc(sizeof(int)*(a.n+1));
+	L = (int *)malloc(sizeof(int)*(a.n+1));	 //liste des classes à partir desquelles raffiner
+	nL = 0;
+	int i,j,f;
+	//initialise
+	for (i=0;i<a.n+1;i++)
+	{
+		partition[i] = i;
+		partitioni[i] = i;
+		pt_visited_class[i] = 0;
+	}
+	
+	//if (verb)
+	//	print_partition();
+	
+	//initialise l'inverse des transitions
+	for (i=0;i<a.n+1;i++)
+	{
+		transitioni[i] = (Dict *)malloc(sizeof(Dict)*a.na);
+		for (j=0;j<a.na;j++)
+		{
+			transitioni[i][j].e = NULL;
+			transitioni[i][j].n = 0;
+		}
+	}
+	for (i=0;i<a.n;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i].f[j];
+			if (f != -1)
+			{
+				dictAdd(&transitioni[f][j], i);
+			}else
+			{
+				dictAdd(&transitioni[a.n][j], i); //état puits
+			}
+		}
+	}
+	for (j=0;j<a.na;j++)
+	{
+		dictAdd(&transitioni[a.n][j], a.n); //transitions de l'état puits
+	}
+	
+	/**/
+	if (verb)
+	{
+		for (i=0;i<a.n+1;i++)
+		{
+			for (j=0;j<a.na;j++)
+			{
+				printf("transitioni[%d][%d] = [", i, j);
+				for (f=0;f<transitioni[i][j].n;f++)
+				{
+					printf(" %d", transitioni[i][j].e[f]);
+				}
+				printf(" ]\n");
+			}
+		}
+	}
+	/**/
+	
+	//commence par séparer états finaux et non-finaux
+	f = 0; //compteur du nombre d'états finaux
+	for (i=0;i<a.n;i++)
+	{
+		if (a.e[i].final)
+		{
+			class[i] = 0;
+			//printf("swap %d %d\n", partitioni[f], i);
+			swap(partitioni[f], i);
+			f++;
+			/*
+			if (verb)
+			{
+				printf("%d final\n", i);
+				print_partition();
+			}
+			
+			*/
+		}else
+			class[i] = 1;
+	}
+	class[a.n] = 1;
+	//classe 0 : états finaux, classe 1 : le reste
+	class_indices[0][0] = 0;
+	class_indices[0][1] = f;
+	class_indices[1][0] = f;
+	class_indices[1][1] = a.n+1;
+	visited_class[0] = 0;
+	visited_class[1] = 0;
+	nclass = 2;
+	
+	if (verb)
+		print_partition();
+	
+	if (verb)
+	{
+		printf("Partition initiale :\n");
+		print_classes();
+	}
+	
+	//choisi la classe la plus petite
+	if (f <= (a.n+1)/2)
+		L[0] = 0;
+	else
+		L[0] = 1;
+	nL = 1;
+	
+	//algo
+	int C; //current class
+	while (nL)
+	{
+		//retire la première classe de la liste L
+		nL--;
+		C = L[nL];
+		//partionne selon cette classe
+		for (j=0;j<a.na;j++)
+		{
+			if (verb)
+				printf("split %d %d...\n", C, j);
+			split(C, j, verb);
+		}
+	}
+	
+	if (verb)
+	{
+		printf("Partition finale :\n");
+		print_classes();
+	}
+	
+	//créé le nouvel automate
+	int e;
+	Automate r = NewAutomaton(nclass, a.na);
+	for (i=0;i<nclass;i++)
+	{
+		e = partitioni[class_indices[i][0]]; //un état de la classe
+		if (e >= a.n)
+		{ //état puits
+			for (j=0;j<a.na;j++)
+				r.e[i].f[j] = -1;
+			r.e[i].final = false;
+			continue;
+		}
+		for (j=0;j<a.na;j++)
+		{
+			if (a.e[e].f[j] != -1)
+			{
+				f = class[a.e[e].f[j]];
+				r.e[i].f[j] = f;
+			}else
+				r.e[i].f[j] = -1;
+		}
+		r.e[i].final = a.e[e].final;
+	}
+	
+	if (verb)
+	{
+		printf("a.i = %d", a.i);
+		if (a.i != -1)
+		{
+			printf(" classe %d", class[a.i]);
+		}
+		printf("\n");
+	}
+	
+	if (a.i != -1)
+		r.i = class[a.i];
+	else
+		r.i = -1;
+	
+	//retire l'état puits si pas présent dans l'automate initial
+	i = class[a.n];
+	if (class_indices[i][1] == class_indices[i][0]+1)
+	{ //il faut retirer l'état puits
+		if (verb)
+			printf("retire l'état puits %d...\n", i);
+		DeleteVertexOP(&r, i);
+	}
+	
+	//libère la mémoire
+	free(transitioni);
+	free(partition);
+	free(partitioni);
+	free(class);
+	free(class_indices);
+	free(visited_class);
+	free(pt_visited_class);
+	free(etats);
+	free(L);
+	
+	return r;
+}
+
+///////////////////////////////////////////
+
+/*
+int sign (int a)
+{
+	if (a > 0)
+		return 1;
+	if (a < 0)
+		return -1;
+	return 0;
+}
+
+int delta (int a)
+{
+	if (a)
+		return 1;
+	return 0;
+}
+*/
+
+void DeleteVertexOP (Automaton *a, int e)
+{
+	if (e < 0 || e >= a->n)
+		printf("L'état %d n'est pas dans l'automate !\n", e);
+	int i,j,f;
+	a->n--;
+	if (!a->n)
+	{
+		free(a->e);
+		a->e = NULL;
+		return;
+	}
+	for (i=0;i<a->n;i++)
+	{
+		for (j=0;j<a->na;j++)
+		{
+			f = a->e[i+(i>=e)].f[j];
+			if (f != e)
+				a->e[i].f[j] = f-(f>=e);
+			else
+				a->e[i].f[j] = -1;
+		}
+		a->e[i].final = a->e[i+(i>=e)].final;
+	}
+	if (e == a->i)
+		a->i = -1;
+	else
+		a->i = a->i - (a->i>=e);
+}
+
+Automaton DeleteVertex (Automaton a, int e)
+{
+	if (e < 0 || e >= a.n)
+		printf("L'état %d n'est pas dans l'automate !\n", e);
+	Automaton r = NewAutomaton(a.n-1, a.na);
+	int i,j,f;
+	for (i=0;i<a.n-1;i++)
+	{
+		for (j=0;j<a.na;j++)
+		{
+			f = a.e[i+(i>=e)].f[j];
+			if (f != e)
+				r.e[i].f[j] = f-(f>=e);
+			else
+				r.e[i].f[j] = -1;
+		}
+		r.e[i].final = a.e[i+(i>=e)].final;
+	}
+	r.i = a.i - (a.i>=e);
+	return r;
+}
+
+void Test ()
+{
+	printf("sizeof(Automaton)=%d\n", sizeof(Automaton));
 }

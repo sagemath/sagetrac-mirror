@@ -39,7 +39,7 @@ cdef extern from "automataC.h":
         int n
     
     Automaton NewAutomaton (int n, int na)
-    void FreeAutomaton (Automaton a)
+    void FreeAutomaton (Automaton *a)
     void init (Automaton a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
@@ -61,6 +61,10 @@ cdef extern from "automataC.h":
     Automaton SubAutomaton (Automaton a, Dict d, bool verb)
     Automaton Permut (Automaton a, int *l, int na, bool verb)
     void PermutOP (Automaton a, int *l, int na, bool verb)
+    Automaton Minimise (Automaton a, bool verb)
+    void DeleteVertexOP (Automaton* a, int e)
+    Automaton DeleteVertex (Automaton a, int e)
+    void Test ()
 
 #dictionnaire numérotant l'alphabet projeté
 cdef imagDict (dict d, list A, list A2=[]):
@@ -229,6 +233,7 @@ def TestEmonde (a, noempty=True, verb=True):
     
 
 cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
+    sig_on()
     d = {}
     da = {}
     if F is None:
@@ -250,6 +255,11 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
         r.e[i].final = 0
         d[V[i]] = i
     for v in F:
+        if not d.has_key(v):
+            FreeAutomaton(&r)
+            r = NewAutomaton(0,0)
+            print "Error : Incorrect set of final states."
+            return r;
         r.e[d[v]].final = 1
     if initial is None:
         if not hasattr(a, 'I'):
@@ -267,6 +277,7 @@ cdef Automaton getAutomaton (a, initial=None, F=None, A=None):
         r.i = initial
     for e,f,l in a.edges():
         r.e[d[e]].f[da[l]] = d[f]
+    sig_off()
     return r
 
 cdef AutomatonGet (Automaton a, A=None):
@@ -308,7 +319,7 @@ cdef class FastAutomaton:
         self.a[0].i = -1
         self.A = []
     
-    def __init__(self, a, i=None, F=None, A=None):
+    def __init__(self, a, i=None, final_states=None, A=None):
         #print "init"
         if a is None:
             return
@@ -322,14 +333,16 @@ cdef class FastAutomaton:
                 else:
                     A = list(set(a.edge_labels()))
             self.A = A
-            self.a[0] = getAutomaton(a, initial=i, F=F, A=self.A)
+            sig_on()
+            self.a[0] = getAutomaton(a, initial=i, F=final_states, A=self.A)
+            sig_off()
         else:
             raise ValueError("Cannot convert the input to FastAutomaton.")
     
     def __dealloc__ (self):
         #print "free"
         sig_on()
-        FreeAutomaton(self.a[0])
+        FreeAutomaton(self.a)
         free(self.a)
         sig_off()
     
@@ -573,4 +586,76 @@ cdef class FastAutomaton:
         r.A = self.A
         sig_off()
         return r
+    
+    def minimise (self, verb=False):
+        sig_on()
+        r = FastAutomaton(None)
+        r.a[0] = Minimise(self.a[0], verb)
+        r.A = self.A
+        sig_off()
+        return r
+    
+    def adjacency_matrix (self, sparse=None):
+        if sparse is None:
+            if self.a.n <= 128:
+                sparse=False
+            else:
+                sparse=True
         
+        d = {}
+        cdef int i,j,f
+        for i in range(self.a.n):
+            for j in range(self.a.na):
+                f = self.a.e[i].f[j]
+                if f != -1:
+                    if d.has_key((i,f)):
+                        d[(i,f)] += 1
+                    else:
+                        d[(i,f)] = 1
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import IntegerRing
+        return matrix(IntegerRing(), self.a.n, self.a.n, d, sparse=sparse)
+    
+    def delete_vertex (self, int i):
+        sig_on()
+        r = FastAutomaton(None)
+        r.a[0] = DeleteVertex(self.a[0], i)
+        r.A = self.A
+        sig_off()
+        return r
+    
+    def delete_vertex_op (self, int i):
+        sig_on()
+        DeleteVertexOP(self.a, i)
+        sig_off()
+    
+    def spectral_radius (self, verb=False):
+        sig_on()
+        a = self.minimise()
+        if verb:
+            print "Automate minimal : %s"%a
+        l = a.strongly_connected_components()
+        if verb:
+            print "%s composantes fortement connexes."%len(l)
+        r = 0 #valeur propre maximale trouvée
+        for c in l:
+            if len(c) > 1:
+                if verb:
+                    print "composante ayant %s états..."%len(c)
+                b = a.sub_automaton(c)
+                m = b.adjacency_matrix()
+                cp = m.charpoly()
+                fs = cp.factor()
+                if verb:
+                    print fs
+                for f in fs:
+                    if verb:
+                        print f
+                    from sage.functions.other import real_part
+                    from sage.rings.qqbar import AlgebraicRealField
+                    r = max([ro[0] for ro in f[0].roots(ring=AlgebraicRealField())]+[r])
+        sig_off()
+        return r
+        
+    def test (self):
+        Test()
