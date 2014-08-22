@@ -83,28 +83,32 @@ def normal_basis_coordinates(z, v, normal_basis = None):
     '''
     n = v.parent().degree()
     p = v.parent().characteristic()
-    R = PolynomialRing(GF(p), 'U')
+    k = v.parent().prime_subfield()
+    R = PolynomialRing(k, 'U')
     U = R.gen()
 
     if normal_basis is None:
         normal_basis = [v]
-        for i in range(n-1):
+        for i in xrange(n-1):
             normal_basis.append(normal_basis[-1]**p)
 
     # We need only to compute Tr(v*v^(p^(n-i))) since the matrix is circulant.
-    B = [(v*normal_basis[-i]).trace() for i in range(n)]
+    B = [(v*normal_basis[-i]).trace() for i in xrange(n)]
 
     # We compute the inverse of the image of the circulant matrix B in the 
     # cyclotomic ring  GF(p^n)[U]/(U^n - 1) 
-    inv = R(B).inverse_mod(U**n - 1)    
-    
-    val_trz = [(v*(z**p**(n-i))).trace() for i in range(n)]
-    
+    inv = R(B).inverse_mod(U**n - 1)
+
+    zfrob = [z]
+    for i in xrange(n-1):
+        zfrob.append(zfrob[-1]**p)
+    trz = [(v*zfrob[(n-i)%n]).trace() for i in xrange(n)]
+
     # We will now compute the coefficients c_i while keeping in mind that they 
     # are computed from each rows of the matrix B. So we need to take that into 
     # account and push the coefficient of inv "to the right". Practically, we 
     # just need to index them with (j-i)%n.
-    return tuple(sum(inv[(j-i)%n]*val_trz[j] for j in range(n)) for i in range(n))
+    return tuple(sum(inv[(j-i)%n]*trz[j] for j in xrange(n)) for i in xrange(n))
 
 def isom_normal(v, w, F, G, normal_basis_w = None, normal_basis_v = None):
     '''

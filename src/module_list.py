@@ -2118,6 +2118,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.ffisom.normal',
+              sources = ['sage/ffisom/normal.pyx']),
+
     Extension('sage.ffisom.xz_coordinates',
               sources = ['sage/ffisom/xz_coordinates.pyx']),
 
