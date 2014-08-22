@@ -343,11 +343,16 @@ AUTHORS:
 import warnings
 
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, CC
+from sage.rings.all import ZZ, QQ, RR, CC
+from sage.symbolic.ring import SR
+from sage.rings.integer import Integer
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.symbolic.ring import is_SymbolicExpressionRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
 from sage.calculus.calculus import maxima
-
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
@@ -545,9 +550,9 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
         sage: n = var('n')
         sage: chebyshev_T(n,-1)
         (-1)^n
-        sage: chebyshev_T(n,0)
-        1/2*(-1)^(1/2*n)*((-1)^n + 1)
-        
+        sage: chebyshev_U(n,-1)
+        (-1)^n*(n + 1)
+
     ::
 
         sage: x = var('x')
@@ -620,7 +625,9 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
                             % str(len(args)+1))
         # If n is an integer: consider the polynomial as an algebraic (not symbolic) object
         if n in ZZ and not kwds.get('hold', False):
-            return self._eval_(n, *args, **kwds)
+            ret = self._eval_(n, *args, **kwds)
+            if ret is not None:
+                return ret
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
 
@@ -646,8 +653,6 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             sage: n = var('n')
             sage: chebyshev_T(n,-1)
             (-1)^n
-            sage: chebyshev_T(n,0)
-            1/2*(-1)^(1/2*n)*((-1)^n + 1)
             sage: chebyshev_T(3/2,x)
             chebyshev_T(3/2, x)
             sage: chebyshev_T(5,2,hold=True)
@@ -657,35 +662,35 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             sage: chebyshev_T._evalf_(10,3,parent=RealField(75))
             2.261953700000000000000e7
         """
+        algorithm = kwds.get('algorithm', None)
+        if algorithm == 'formula':
+            return self.eval_formula(n, x)
+        elif algorithm == 'recursive':
+            return self.eval_recursive(n, x)
+        elif algorithm == 'flint':
+            return self.eval_algebraic(n, x)
+
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
         if 'numpy' in type(x).__module__:
-            return self._eval_numpy_(n, x)
-        # n is an integer => evaluate algebraically (as polynomial)
-        if n in ZZ:
-            n = ZZ(n)
-            # Expanded symbolic expression only for small values of n
-            if is_Expression(x) and n.abs() < 32:
-                return self.eval_formula(n, x)
-            return self.eval_algebraic(n, x, *args, **kwds)
+            return self._eval_numpy_(n, x)        
+        if isinstance(n, Integer):
+            if (is_Polynomial(x) or
+                (is_Expression(x) and not x.is_numeric())):
+                return self.eval_algebraic(n, x)
+            else:
+                return self.eval_recursive(n, x)
 
-        if is_Expression(x) or is_Expression(n):
-            # Check for known identities
+        if SR(x).is_numeric() and SR(n).is_numeric():
             try:
-                return self._eval_special_values_(n, x)
-            except ValueError:
-                # Don't evaluate => keep symbolic
-                return None
-
-        # n is not an integer and neither n nor x is symbolic.
-        # We assume n and x are real/complex and evaluate numerically
-        try:
-            import sage.libs.mpmath.all as mpmath
-            return self._evalf_(n, x)
-        except mpmath.NoConvergence:
-            warnings.warn("mpmath failed, keeping expression unevaluated",
-                          RuntimeWarning)
-            return None
-        except TypeError:
-            # Numerical evaluation failed => keep symbolic
+                import sage.libs.mpmath.all as mpmath
+                return self._evalf_(n, x)
+            except mpmath.NoConvergence:
+                warnings.warn("mpmath failed, keeping expression unevaluated",
+                              RuntimeWarning)
+            except TypeError:
+                pass
             return None
 
     
@@ -733,30 +738,24 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             n
             sage: chebyshev_T(n,1)
             1
-            sage: chebyshev_T(n,0)
-            1/2*(-1)^(1/2*n)*((-1)^n + 1)
             sage: chebyshev_T(n,-1)
             (-1)^n
-            sage: chebyshev_T._eval_special_values_(3/2,x)
-            Traceback (most recent call last):
-            ...
-            ValueError: no special value found
-            sage: chebyshev_T._eval_special_values_(n, 0.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: no special value found
         """
-        if not is_Expression(x):
+        if x in QQ:
             if x == 1:
                 return x
     
             if x == -1:
                 return x**n
     
-            if x == 0:
-                return (1+(-1)**n)*(-1)**(n/2)/2
-
-        raise ValueError("no special value found")
+            if n in ZZ:
+                if x == 0:
+                    return (1+(-1)**n)*(-1)**(n/2)/2
+    
+                if x == QQ(1)/2:
+                    return QQ([2,1,-1,-2,-1,1][n%6])/2
+        
+        return None
 
     def _evalf_(self, n, x, **kwds):
         """
@@ -875,7 +874,7 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         res *= n/2
         return res
 
-    def eval_algebraic(self, n, arg, algorithm='flint'):
+    def eval_algebraic(self, n, arg):
         """
         Evaluate :class:`chebyshev_T` as polynomial, using a recursive
         formula.
@@ -892,8 +891,6 @@ class Func_chebyshev_T(ChebyshevPolynomial):
 
         EXAMPLES::
 
-            sage: chebyshev_T.eval_algebraic(5, x)
-            2*(2*(2*x^2 - 1)*x - x)*(2*x^2 - 1) - x
             sage: chebyshev_T(-7, x) - chebyshev_T(7,x)
             0
             sage: R.<t> = ZZ[]
@@ -932,22 +929,37 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         P = parent(arg)
         if n == 0:
             return P.one()
-        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        if (is_PolynomialRing(P) and algorithm == 'flint'):
+        if is_PolynomialRing(P) or is_SymbolicExpressionRing(P):
             from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
             if n<0:
                 n = -n
             R = PolynomialRing(ZZ, 'x')
             pol = Polynomial_integer_dense_flint.chebyshev_T(n, R, R.gen())
-            pol = pol.subs({pol.parent().gen():arg})
-            return pol.change_ring(P.base_ring())
+            if is_PolynomialRing(P):
+                pol = pol.subs({pol.parent().gen():arg})
+                pol = pol.change_ring(P.base_ring())
+            else:
+                pol = sum([b*arg**a for (a,b) in enumerate(pol)])
+            return pol
         else:
-            if n < 0:
-                return self._eval_recursive_(-n, arg)[0]
-            return self._eval_recursive_(n, arg)[0]
+            raise TypeError("arg: %s, parent: %s" % (type(arg), type(P)))
 
-    def _eval_recursive_(self, n, x, both=False):
+    def eval_recursive(self, n, x):
+        """
+        EXAMPLES::
+
+            sage: chebyshev_T(5, x, algorithm='recursive')
+            2*(2*(2*x^2 - 1)*x - x)*(2*x^2 - 1) - x
+        """
+        if n<0:
+            n = -n
+        if n == 1:
+            return x
+
+        assert n >= 2
+        return self._eval_recursive_helper_(n, x)[0]
+
+    def _eval_recursive_helper_(self, n, x, both=False):
         """
         If ``both=True``, compute ``(T(n,x), T(n-1,x))`` using a
         recursive formula.
@@ -955,21 +967,19 @@ class Func_chebyshev_T(ChebyshevPolynomial):
 
         EXAMPLES::
 
-            sage: chebyshev_T._eval_recursive_(5, x)
+            sage: chebyshev_T._eval_recursive_helper_(5, x)
             (2*(2*(2*x^2 - 1)*x - x)*(2*x^2 - 1) - x, False)
-            sage: chebyshev_T._eval_recursive_(5, x, True)
+            sage: chebyshev_T._eval_recursive_helper_(5, x, True)
             (2*(2*(2*x^2 - 1)*x - x)*(2*x^2 - 1) - x, 2*(2*x^2 - 1)^2 - 1)
         """
         if n == 1:
             return x, parent(x).one()
 
-        assert n >= 2
-        a, b = self._eval_recursive_((n+1)//2, x, both or n % 2)
+        a, b = self._eval_recursive_helper_((n+1)//2, x, both or n % 2)
         if n % 2 == 0:
             return 2*a*a - 1, both and 2*a*b - x
         else:
             return 2*a*b - x, both and 2*b*b - 1
-
 
     def _eval_numpy_(self, n, x):
         """
@@ -1105,8 +1115,8 @@ class Func_chebyshev_U(ChebyshevPolynomial):
 
         EXAMPLES::
 
-            sage: chebyshev_U.eval_algebraic(5,x)
-            -2*((2*x + 1)*(2*x - 1)*x - 4*(2*x^2 - 1)*x)*(2*x + 1)*(2*x - 1)
+            sage: chebyshev_U(5,x)
+            32*x^5 - 32*x^3 + 6*x
             sage: parent(chebyshev_U(3, Mod(8,9)))
             Ring of integers modulo 9
             sage: parent(chebyshev_U(3, Mod(1,9)))
@@ -1135,19 +1145,31 @@ class Func_chebyshev_U(ChebyshevPolynomial):
         P = parent(arg)
         if n == -1:
             return P.zero()
-        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if (is_PolynomialRing(P)):
-            if n<0:
-                n = - n - 2
-                return -chebyshev_T(n+1, arg).derivative()/(n+1)
-            else:
-                return chebyshev_T(n+1, arg).derivative()/(n+1)
+        if n<0:
+            n = - n - 2
+            return -chebyshev_T(n+1, arg).derivative()/(n+1)
         else:
-            if n < 0:
-                return -self._eval_recursive_(-n-2, arg)[0]
-            return self._eval_recursive_(n, arg)[0]
+            return chebyshev_T(n+1, arg).derivative()/(n+1)
 
-    def _eval_recursive_(self, n, x, both=False):
+    def eval_recursive(self, n, x):
+        """
+        Compute ``U(n,x)`` using a recursive formula.
+
+        EXAMPLES::
+
+            sage: chebyshev_U(5,x,algorithm='recursive')
+            -2*((2*x + 1)*(2*x - 1)*x - 4*(2*x^2 - 1)*x)*(2*x + 1)*(2*x - 1)
+        """
+        if n == -1:
+            return parent(x).zero()
+        if n < 0:
+            n = -n-2
+        if n == 0:
+            return parent(x).one()
+        assert n >= 1
+        return self._eval_recursive_helper_(n, x)[0]
+
+    def _eval_recursive_helper_(self, n, x, both=False):
         """
         If ``both=True``, compute ``(U(n,x), U(n-1,x))`` using a
         recursive formula.
@@ -1155,16 +1177,16 @@ class Func_chebyshev_U(ChebyshevPolynomial):
 
         EXAMPLES::
 
-            sage: chebyshev_U._eval_recursive_(3, x)
+            sage: chebyshev_U._eval_recursive_helper_(3, x)
             (4*((2*x + 1)*(2*x - 1) - 2*x^2)*x, False)
-            sage: chebyshev_U._eval_recursive_(3, x, True)
+            sage: chebyshev_U._eval_recursive_helper_(3, x, True)
             (4*((2*x + 1)*(2*x - 1) - 2*x^2)*x, ((2*x + 1)*(2*x - 1) + 2*x)*((2*x + 1)*(2*x - 1) - 2*x))
         """
         if n == 0:
             return parent(x).one(), 2*x
 
         assert n >= 1
-        a, b = self._eval_recursive_((n-1)//2, x, True)
+        a, b = self._eval_recursive_helper_((n-1)//2, x, True)
         if n % 2 == 0:
             return (b+a)*(b-a), both and 2*b*(x*b-a)
         else:
@@ -1235,25 +1257,26 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             n
             sage: chebyshev_U(n,1)
             n + 1
-            sage: chebyshev_U(n,0)
-            1/2*(-1)^(1/2*n)*((-1)^n + 1)
             sage: chebyshev_U(n,-1)
             (-1)^n*(n + 1)
-            sage: chebyshev_U._eval_special_values_(n, 2)
-            Traceback (most recent call last):
-            ...
-            ValueError: no special value found
+            sage: chebyshev_U(7^100, 1/2)
+            1
         """
-        if x == 1:
-            return x*(n+1)
+        if x in QQ:
+            if x == 1:
+                return x*(n+1)
+    
+            if x == -1:
+                return x**n*(n+1)
+    
+            if  n in ZZ:
+                if x == 0:
+                    return (1+(-1)**n)*(-1)**(n/2)/2
+                
+                if x == QQ(1)/2:
+                    return [1, 1, 0, -1, -1, 0][n%6]
 
-        if x == -1:
-            return x**n*(n+1)
-
-        if x == 0:
-            return (1+(-1)**n)*(-1)**(n/2)/2
-
-        raise ValueError("no special value found")
+        return None
 
     def _eval_numpy_(self, n, x):
         """
