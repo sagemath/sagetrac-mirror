@@ -26,3 +26,4 @@
    tour_groups
    tour_numtheory
    tour_advanced
+   tour_advanced-zh

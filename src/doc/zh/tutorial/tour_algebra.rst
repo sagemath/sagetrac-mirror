@@ -389,7 +389,3 @@ Equations, 6th ed, Addison-Wesley, 2004. (见 § 5.5).
     'bessel_y(v,w)'
     sage: maxima.eval("diff(f,w)")
     '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
-
-.. [GAP] The GAP Group, ``GAP - Groups, Algorithms, and Programming``, http://www.gap-system.org
-
-.. [Max] Maxima, http://maxima.sf.net/
