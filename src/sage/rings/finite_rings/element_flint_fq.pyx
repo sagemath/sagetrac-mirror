@@ -668,6 +668,71 @@ cdef class FiniteFieldElement_flint_fq(FinitePolyExtElement):
     #def sqrt(FiniteFieldElement_flint_fq self, extend=False, all=False):
     #def multiplicative_order(FiniteFieldElement_flint_fq self):
 
+    def norm(self):
+        """
+        Return the norm of self down to the prime subfield.
+
+        This is the product of the Galois conjugates of self.
+
+        EXAMPLES::
+
+            sage: S.<b> = GF(5^2, impl="flint_fq"); S
+            Finite Field in b of size 5^2
+            sage: b.norm()
+            2
+
+        Next we consider a cubic extension::
+
+            sage: S.<a> = GF(5^3, impl="flint_fq"); S
+            Finite Field in a of size 5^3
+            sage: a.norm()
+            2
+            sage: a * a^5 * (a^25)
+            2
+        """
+        cdef fmpz_t t
+        cdef mpz_t tgmp
+        cdef Integer tint
+        fmpz_init(t)
+        tint = Integer.__new__(Integer)
+        fq_norm(t, self.val, self._cparent)
+        flint_mpz_init_set_readonly(tgmp, t)
+        tint.set_from_mpz(tgmp)
+        flint_mpz_clear_readonly(tgmp)
+        fmpz_clear(t)
+        return self.parent().prime_subfield()(tint)
+
+    def trace(self):
+        """
+        Return the trace of this element, which is the sum of the
+        Galois conjugates.
+
+        EXAMPLES::
+
+            sage: S.<a> = GF(5^3, impl="flint_fq"); S
+            Finite Field in a of size 5^3
+            sage: a.trace()
+            0
+            sage: a + a^5 + a^25
+            0
+            sage: z = a^2 + a + 1
+            sage: z.trace()
+            2
+            sage: z + z^5 + z^25
+            2
+        """
+        cdef fmpz_t t
+        cdef mpz_t tgmp
+        cdef Integer tint
+        fmpz_init(t)
+        tint = Integer.__new__(Integer)
+        fq_trace(t, self.val, self._cparent)
+        flint_mpz_init_set_readonly(tgmp, t)
+        tint.set_from_mpz(tgmp)
+        flint_mpz_clear_readonly(tgmp)
+        fmpz_clear(t)
+        return self.parent().prime_subfield()(tint)
+
     # JPF: the following should definitely go into element_base.pyx.
     def log(FiniteFieldElement_flint_fq self, FiniteFieldElement_flint_fq base):
         """

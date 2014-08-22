@@ -239,13 +239,11 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
             if n == 0:
                 fq_nmod_zero(self.val, self._cparent)
             else:
-                fmpz_poly_zero(self.val)
+                p = mpz_get_ui((<Integer>self._parent.characteristic()).value)
+                nmod_poly_zero(<nmod_poly_struct*>self.val)
                 for i in xrange(n):
-                    x_INT = Integer(x[i])
-                    fmpz_init_set_readonly(x_flint, <void*>x_INT + mpz_t_offset)
-                    fmpz_poly_set_coeff_fmpz(self.val, i, x_flint)
-                    fmpz_clear_readonly(x_flint)
-                fq_nmod_reduce(self.val, self._cparent)
+                    x_ui = mpz_fdiv_ui(Integer(x[i]).value, p)
+                    nmod_poly_set_coeff_ui(<nmod_poly_struct*>self.val, i, x_ui)
 
         elif isinstance(x, Rational):
             self.construct_from(x % self._parent.characteristic())
@@ -660,6 +658,63 @@ cdef class FiniteFieldElement_flint_fq_nmod(FinitePolyExtElement):
     #def is_square(FiniteFieldElement_flint_fq_nmod self):
     #def sqrt(FiniteFieldElement_flint_fq_nmod self, extend=False, all=False):
     #def multiplicative_order(FiniteFieldElement_flint_fq_nmod self):
+
+    def norm(self):
+        """
+        Return the norm of self down to the prime subfield.
+
+        This is the product of the Galois conjugates of self.
+
+        EXAMPLES::
+
+            sage: S.<b> = GF(5^2, impl="flint_fq_nmod"); S
+            Finite Field in b of size 5^2
+            sage: b.norm()
+            2
+
+        Next we consider a cubic extension::
+
+            sage: S.<a> = GF(5^3, impl="flint_fq_nmod"); S
+            Finite Field in a of size 5^3
+            sage: a.norm()
+            2
+            sage: a * a^5 * (a^25)
+            2
+        """
+        cdef fmpz_t t
+        cdef unsigned long tulong
+        fmpz_init(t)
+        fq_nmod_norm(t, self.val, self._cparent)
+        tulong = fmpz_get_ui(t)
+        fmpz_clear(t) 
+        return self.parent().prime_subfield()(tulong)
+
+    def trace(self):
+        """
+        Return the trace of this element, which is the sum of the
+        Galois conjugates.
+
+        EXAMPLES::
+
+            sage: S.<a> = GF(5^3, impl="flint_fq_nmod"); S
+            Finite Field in a of size 5^3
+            sage: a.trace()
+            0
+            sage: a + a^5 + a^25
+            0
+            sage: z = a^2 + a + 1
+            sage: z.trace()
+            2
+            sage: z + z^5 + z^25
+            2
+        """
+        cdef fmpz_t t
+        cdef unsigned long tulong
+        fmpz_init(t)
+        fq_nmod_trace(t, self.val, self._cparent)
+        tulong = fmpz_get_ui(t)
+        fmpz_clear(t) 
+        return self.parent().prime_subfield()(tulong)
 
     # JPF: the following should definitely go into element_base.pyx.
     def log(FiniteFieldElement_flint_fq_nmod self, FiniteFieldElement_flint_fq_nmod base):
