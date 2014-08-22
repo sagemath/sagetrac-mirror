@@ -2448,9 +2448,10 @@ def OA_10_205():
         and a point `p\in B`. Among the `4^2+1=17` lines of `PG(2,4^2)`
         containing `p`:
 
-        * `4+1=5` lines intersect `B` on `5` points
+        * `4+1=5` lines intersect `B` on `5` points (the lines of the `PG(2,4)`
+        incident to `p`)
 
-        * `4^2-4=12` lines intersect `B` on `1` point
+        * `4^2-4=12` lines intersect `B` on `1` point (and this point is `p`)
 
         As those lines are disjoint outside of `B` we can use them as groups to
         build a GDD on `16^2+16+1-(4^4+4+1)=252` points. By keeping only 9 lines
@@ -2508,13 +2509,13 @@ def OA_10_205():
 
     OA = OA_from_PBD(10,205,[B for B in GDD if len(B)!=9],check=False)[:-205]
 
-    OA.extend([[B[xx] for xx in R]
-               for R in orthogonal_array(10,9)
-               for B in blocks_of_size_9])
+    OA.extend([B[xx] for xx in R]
+              for R in orthogonal_array(10,9)
+              for B in blocks_of_size_9)
 
     # The missing [i,i,...] blocks
-    OA.extend([[i]*10
-               for i in set(range(205)).difference(blocks_of_size_9_union)])
+    OA.extend([i]*10
+              for i in set(range(205)).difference(blocks_of_size_9_union))
 
     return OA
 
@@ -3059,7 +3060,7 @@ def OA_10_796():
     OA = OA_relabel(OA,17,47,blocks=[OA[0]]) # making sure [46]*17 is a block
     PBD = [[i*47+x for i,x in enumerate(B) if (x<46 or i<13)] for B in OA]
     extra_point = 10000
-    PBD.extend([range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)]) # Adding the columns
+    PBD.extend(range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)) # Adding the columns
 
     rel = {v:i for i,v in enumerate(set(range(17*47)).difference([(i+1)*47-1 for i in range(13,17)]))}
     rel[extra_point] = len(rel)
@@ -3266,7 +3267,7 @@ def OA_10_520():
     # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
     new_point = 31*17
     PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+    PBD.extend(range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)) # extended (+truncated) groups
 
     relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
     PBD = [[relabel[xx] for xx in B] for B in PBD]
@@ -3281,8 +3282,7 @@ def OA_10_520():
 
     OA = []
     for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
+        OA.extend([B[xx] for xx in R] for R in subdesigns[len(B)])
 
     OA.append([relabel[new_point]]*k)
     return OA
@@ -3342,7 +3342,7 @@ def OA_12_522():
     # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
     new_point = 31*17
     PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+    PBD.extend(range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)) # extended (+truncated) groups
 
     relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
     PBD = [[relabel[xx] for xx in B] for B in PBD]
@@ -3357,8 +3357,7 @@ def OA_12_522():
 
     OA = []
     for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
+        OA.extend([B[xx] for xx in R] for R in subdesigns[len(B)])
 
     OA.append([relabel[new_point]]*k)
     return OA
@@ -3418,7 +3417,7 @@ def OA_14_524():
     # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
     new_point = 31*17
     PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+    PBD.extend(range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)) # extended (+truncated) groups
 
     relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
     PBD = [[relabel[xx] for xx in B] for B in PBD]
@@ -3433,8 +3432,7 @@ def OA_14_524():
 
     OA = []
     for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
+        OA.extend([B[xx] for xx in R] for R in subdesigns[len(B)])
 
     OA.append([relabel[new_point]]*k)
     return OA
