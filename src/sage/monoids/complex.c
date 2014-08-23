@@ -8,6 +8,14 @@ Complexe prod (Complexe a, Complexe b)
 	return r;
 }
 
+Complexe mul_i (Complexe a, int i)
+{
+	Complexe r;
+	r.x = a.x*i;
+	r.y = a.y*i;
+	return r;
+}
+
 Complexe zero ()
 {
 	Complexe r;
@@ -30,6 +38,13 @@ Complexe add (Complexe a, Complexe b)
 	r.x = a.x + b.x;
 	r.y = a.y + b.y;
 	return r;
+}
+
+void addOP (Complexe *a, Complexe b)
+{
+	double r = a->x + b.x;
+	a->y = a->y + b.y;
+	a->x = r;
 }
 
 inline double carre (double x)

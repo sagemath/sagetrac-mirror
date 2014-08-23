@@ -73,6 +73,127 @@ from sage.combinat.words.cautomata import FastAutomaton
 #        Etat* e
 #        int i
 
+cdef extern from "Automaton.h":
+    ctypedef char bool
+
+cdef extern from "relations.h":
+    cdef cppclass Element:
+        int *c    #liste des n coeffs
+    
+    cdef cppclass PlaceArch:
+        Complexe *c    #1, b, b^2, ... pour cette place
+
+    #structure contenant les infos nécessaires pour calculer l'automate des relations
+    cdef cppclass InfoBetaAdic:
+        int n        #degré
+        Element bn   #expression de b^n comme un polynome en b de degré < n
+        Element *c   #liste des chiffres utilisés pour le calcul de l'automate des relations
+        int nc       #nombre de chiffre
+        int ncmax    #nombre de chiffres alloués
+        PlaceArch *p #liste des na places
+        double *cM   #carré des valeurs absolues max
+        int na         #nombre de va
+    
+    InfoBetaAdic allocInfoBetaAdic (int n, int na, int ncmax, bool verb)
+    void freeInfoBetaAdic (InfoBetaAdic iba)
+    Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
+
+cdef getElement (e, Element r, int n):
+    cdef j
+    p = e.lift()
+    for j in range(n):
+        r.c[j] = p[j]
+
+cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
+    #compute all the data in sage
+    b = self.b
+    K = b.parent()
+    
+    if verb: print K
+    
+    #détermine les places qu'il faut considérer
+    parch = []
+    for p in K.places(): #places archimédiennes
+        if p(b).abs() > 1:
+            parch += [p]
+    pi = K.defining_polynomial()
+    from sage.rings.arith import gcd
+    pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
+    lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
+    pultra = [] #liste des places ultramétriques considérées
+    for p in lp:
+        #détermine toutes les places au dessus de p dans le corps de nombres K
+        k = Qp(p)
+        Kp = k['a']
+        a = Kp.gen()
+        for f in pi(a).factor():
+            kp = f[0].root_field('e')
+            if kp == k:
+                c = f[0].roots(kp)[0][0]
+            else:
+                c = kp.gen()
+            if verb: print "c=%s (abs=%s)"%(c, (c.norm().abs())**(1/f[0].degree()))
+            if (c.norm().abs())**(1/f[0].degree()) > 1:
+                pultra += [(c, f[0].degree())]
+    
+    if verb: print "places: "; print parch; print pultra
+    
+    self.parch = parch
+    
+    if (len(pultra) > 0):
+        raise ValueError("Not implemented for b algebraic non-integer.")
+    
+    #calcule les bornes max pour chaque valeur absolue
+    if Cd is None:
+        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+    if verb: print "Cd = %s"%Cd
+    m = dict([])
+    for p in parch:
+        m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+    for p, d in pultra:
+        m[p] = max([absp(c, p, d) for c in Cd])
+        
+    #convert the data in C
+    n = K.degree()
+    na = len(parch)
+    ncmax = 100
+    cdef InfoBetaAdic i
+    if verb: print "alloc..."
+    i = allocInfoBetaAdic(n, na, ncmax, verb)
+    cdef int j
+    #initialise bn
+    if verb: print "init bn..."
+    getElement(b**n, i.bn, n)
+    #initialise les places
+    if verb: print "init places..."
+    for k in range(na):
+        for j in range(n):
+            i.p[k].c[j] = complex(parch[k](b**j))
+    #initialise les chiffres et bornes
+    if verb: print "init chiffres..."
+    initCdInfoBetaAdic(self, i, Cd=Cd, verb=verb)
+    return i
+
+cdef initCdInfoBetaAdic (self, InfoBetaAdic i, Cd=None, verb=False):
+    #recalcule les bornes max pour chaque valeur absolue
+    if Cd is None:
+        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+    Cd = list(Cd)
+    if verb: print "Cd = %s"%Cd
+    m = dict([])
+    for p in self.parch:
+        m[p] = max([p(c).abs() for c in Cd])/abs(1-p(p.domain().gen()).abs())
+#    for p, d in self.pultra:
+#        m[p] = max([absp(c, p, d) for c in Cd])
+    #conversion en C
+    i.nc = len(Cd)
+    if i.nc > i.ncmax:
+        raise ValueError("Trop de chiffres : %d > %d max."%(i.nc, i.ncmax))
+    for j,c in enumerate(Cd):
+        getElement(c, i.c[j], i.n)
+    for j,p in enumerate(self.parch):
+        i.cM[j] = m[p]**2
+
 cdef extern from "draw.h":
     ctypedef unsigned char uint8
     cdef cppclass Color:
@@ -1339,6 +1460,20 @@ class BetaAdicMonoid(Monoid_class):
         if verb: print "Emondation..."
         res.emonde()
         return res
+    
+    def relations_automaton3 (self, isvide=False, Cd=None, verb=False):
+        if Cd is None:
+            Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        Cd = list(Cd)
+        cdef InfoBetaAdic ib
+        ib = initInfoBetaAdic(self, Cd=Cd, verb=verb)
+        cdef Automate a
+        a = RelationsAutomaton(ib, isvide, verb)
+        r = FastAutomaton(None)
+        r.a[0] = a
+        r.A = Cd
+        freeInfoBetaAdic(ib)
+        return r
     
     def critical_exponent_aprox (self, niter=10, verb=False):
         b = self.b

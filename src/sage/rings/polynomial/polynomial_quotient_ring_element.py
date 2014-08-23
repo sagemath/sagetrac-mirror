@@ -631,7 +631,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             a = R(1)
             d = R.degree()
             for _ in xrange(d):
-                v += (a*self).list()
+                v += (a*self).list()[0:d]
                 a *= x
             S = R.base_ring()
             import sage.matrix.matrix_space

@@ -1385,10 +1385,10 @@ ext_modules = [
     ################################
     
     Extension('sage.monoids.beta_adic_monoid',
-              sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c'],
+              sources = ['sage/monoids/beta_adic_monoid.pyx', 'sage/monoids/draw.c', 'sage/monoids/relations.c', 'sage/monoids/complex.c'],
               libraries=[],
               include_dirs=['sage/combinat/words'],
-              depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h']),
+              depends = ['sage/monoids/draw.h', 'sage/combinat/words/Automaton.h', 'sage/monoids/relations.h', 'sage/monoids/complex.h']),
     
     ################################
     ##

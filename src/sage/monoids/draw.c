@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "complex.c"
+#include "complex.h"
 #include "Automaton.h"
 #include "draw.h"
 
