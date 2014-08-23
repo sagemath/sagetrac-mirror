@@ -1,0 +1,22 @@
+= Database Of CICYs =
+
+== Description ==
+
+This package contains the database of Complete Intersection Calabi-Yau
+Manifolds in Products of Projective Spaces (CICY) for thee- and
+fourfolds.
+
+== License ==
+
+Acknowledgement in publications requested.
+
+== SPKG Maintainers ==
+
+* Volker Braun <vbraun.name@gmail.com>
+
+== Upstream Contact ==
+
+* Philip Candelas for the list of threefolds.
+
+* Fourfolds at http://www-thphys.physics.ox.ac.uk/projects/CalabiYau/Cicy4folds/index.html
+

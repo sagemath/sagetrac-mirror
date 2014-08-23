@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DST_DIR="$SAGE_SHARE/complete_intersection_calabi_yau"
+mkdir -p "$DST_DIR"
+cp cicy/cicy3list.txt "$DST_DIR/"
+cp cicy/cicy4list.zip "$DST_DIR/"
