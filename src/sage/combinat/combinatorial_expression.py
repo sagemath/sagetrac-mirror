@@ -1,9 +1,53 @@
 # -*- coding: utf-8 -*-
 r"""
 
+Examples
+========
+
+::
+
+    sage: from sage.combinat.combinatorial_expression import (
+    ....:     CombinatorialExpressionRing)
+    sage: R = CombinatorialExpressionRing(SR); R
+    Combinatorial Expression Ring (over Symbolic Ring)
+
+
+Non-adjacent Forms
+------------------
+
+::
+
+    sage: # NAF = (0 + P0 + M0)* (P + M + e)  with (P = 1, M = -1)
+
+
+Plane/Ordered Binary Trees
+--------------------------
+
+::
+
+    sage: from sage.combinat.combinatorial_expression import (
+    ....:     UnlabeledExpression, LabeledExpression)
+    sage: # T = R(var('T'), expression=True)
+    sage: T = UnlabeledExpression(R, var('T')); T  # TODO: simplify this (see previous line)
+    T == None
+    sage: z = R(var('z')); z
+    z
+    sage: e = R(SR(1)); e
+    1
+    sage: T.assign(e + z * T * T); T
+    T == 1 + z*T*T
+
+.. NOTE::
+
+    be aware: there is sage.combinat.binary_tree.BinaryTrees
+
+
+
+
 AUTHORS:
 
 - Daniel Krenn (2014-04-01): initial version
+- Daniel Krenn (2014-08-24): rewritten to parent/element structure
 
 """
 
