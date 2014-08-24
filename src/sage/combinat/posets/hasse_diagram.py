@@ -1337,6 +1337,39 @@ class HasseDiagram(DiGraph):
         else:
             return True
 
+    def is_lattice(self):
+        r"""
+        Return ``True`` if ``self`` has both join and meet operation, and
+        ``False`` otherwise. XX dokumentaatio.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2,3],1:[4,5],2:[4,6],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: H.is_lattice()
+            True
+
+            sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4],3:[5],4:[5]})
+            sage: H.is_lattice()
+            True
+
+        .. TODO::
+
+            Is it faster to try to construct both join and meet matrix
+            in one loop?
+
+        """
+        try:
+            self.join_matrix()
+        except ValueError:
+            return False
+        else:
+            try:
+                self.meet_matrix()
+            except ValueError:
+                return False
+        return True
+
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
         Returns ``True`` if ``self`` is the Hasse diagram of a

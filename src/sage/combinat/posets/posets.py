@@ -57,6 +57,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_greater_than` | Returns ``True`` if `x` is greater than but not equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_isomorphic` | Returns True if both posets are isomorphic.
     :meth:`~FinitePoset.is_join_semilattice` | Returns True is the poset has a join operation, and False otherwise.
+    :meth:`~FinitePoset.is_lattice` | Return ``True`` is the poset has both join and meet operation, and ``False`` otherwise.
     :meth:`~FinitePoset.is_lequal` | Returns ``True`` if `x` is less than or equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_less_than` | Returns ``True`` if `x` is less than but not equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_linear_extension` | Returns whether ``l`` is a linear extension of ``self``
@@ -2614,6 +2615,27 @@ class FinitePoset(UniqueRepresentation, Parent):
             False
         """
         return self._hasse_diagram.is_join_semilattice()
+
+    def is_lattice(self):
+        """
+        Return ``True`` is the poset is lattice, i.e. every pair of elements have a unique meet and join. Otherwise return ``False``.
+
+        EXAMPLES::
+
+            sage: P = Poset(([1,2,3], [[1,2], [1,3]]))
+            sage: P.is_lattice()
+            False
+
+            sage: P = Poset(([1,2,3,4,5,6], [[1,2],[1,3],[2,4],[2,5],[3,5],[4,6],[5,6]]))
+            sage: P.is_lattice()
+            True
+
+            sage: P = Poset(([1,2,3,4,5,6], [[1,2],[1,3],[2,4],[2,5],[3,5],[4,6],[5,6],[3,4]]))
+            sage: P.is_lattice()
+            False
+
+        """
+        return self._hasse_diagram.is_lattice()
 
     def is_isomorphic(self,other):
         """
