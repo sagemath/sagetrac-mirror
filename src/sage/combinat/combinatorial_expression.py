@@ -24,315 +24,255 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.sage_object import SageObject  # TODO löschen
 from itertools import izip
 
-
-# ----------------------------------------------------------------------------
-
-
-class CombinatorialExpressionRing(
-    sage.structure.unique_representation.UniqueRepresentation,
-    sage.rings.ring.Ring):
-    """
-    EXAMPLES::
-
-        sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing)
-        sage: CombinatorialExpressionRing(SR)
-        Combinatorial Expression Ring (over Symbolic Ring)
-    """
-    def __init__(self, base):
-        if base != sage.symbolic.ring.SR:
-            raise NotImplementedError("%s not allowed as base ring." % (base,))
-        super(CombinatorialExpressionRing, self).__init__(base=base)
-
-    def _repr_(self):
-        return "Combinatorial Expression Ring (over %s)" % (self.base_ring(),)
-
-    def base_ring(self):
-        return self.base().base_ring()
-
-
-# ----------------------------------------------------------------------------
-
-
-class CombinatorialStructure(SageObject):
-    """
-    Abstact base class.
-
-    """
-    def __init__(self, size=None):
-        """
-
-        """
-        self.structure = None
-        self.size = size
-
-    def __iter__(self):
-        """
-        Returns an iterator of this combinatorial structure.
-        """
-        raise NotImplementedError
-
-    def random_element(self):
-        """
-        Returns a random element of this combinatorial structure.
-        """
-        raise NotImplementedError
-
-
-# be aware: there is sage.combinat.binary_tree.BinaryTrees
-class PlaneBinaryTrees(CombinatorialStructure):
-    """
-
-    
-    EXAMPLES::
-
-        sage: from sage.combinat.combinatorial_expression import PlaneBinaryTrees
-        sage: len([T for T in PlaneBinaryTrees(4)])  # not tested
-        
-
-    """
-    def __init__(self, size=None):
-        """
-
-        """
-        super(PlaneBinaryTrees, self).__init__(size=size)
-
-        # T = z + z T^2
-        T = CombinatorialExpressionConstructionUnlabelled()
-        Z = CombinatorialExpressionAtomUnlabelled()
-        T.assign(disjoint_union(Z, cartesian_product(Z, T, T)))
-        #T.assign(Z + Z * T * T)
-
-        self.structure = T
-
-class NonAdjacentForms(CombinatorialStructure):
-    def __init__(self):
-        super(PlaneBinaryTrees, self).__init__(size=size)
-
-        # NAF = (0 + P0 + M0)* (P + M + e)  with (P = 1, M = -1)
-        zero = CombinatorialExpressionAtomUnlabelled('0')
-        pone = CombinatorialExpressionAtomUnlabelled('P')
-        mone = CombinatorialExpressionAtomUnlabelled('M')
-        empty = CombinatorialExpressionEmptyUnlabelled('')
-        NAF = CombinatorialExpressionConstructionUnlabelled((pone + mone + empty) \
-                                       * sequence(zero + zero*pone + zero*mone))
-
-        self.structure = NAF
-
 #*****************************************************************************
-# Data Structures -- Base
+# Flavor
 #*****************************************************************************
 
-# TODO: find suitable name instead of CombinatorialExpressionBase
-class CombinatorialExpressionBase(SageObject):
-    """
-    Abstact base class.
+class _GenericFlavor_(sage.structure.sage_object.SageObject):
 
-    """
-    def __init__(self, *operands):
+q    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``True`` if labeled, ``False`` if unlabeled, ``None`` otherwise.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: F = _GenericFlavor_()
+            sage: F.is_labeled() is None
+            True
+        """
+        return None
+
+
+    def is_unlabeled(self):
+        """
+        Returns whether combinatorial expression is unlabeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``True`` if unlabeled, ``False`` if labeled, ``None`` otherwise.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: F = _GenericFlavor_()
+            sage: F.is_unlabeled() is None
+            True
+        """
+        return None
+
+
+    @staticmethod
+    def _class_with_prefix_(prefix, classname):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self.assign(*operands)
+        return globals()[prefix + classname]
 
-    def assign(self, *operands):
+
+    @classmethod
+    def class_generic(cls, classname):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self.operands = operands
-        
-    def add_operand(self, operand):
-        """
-        TODO
+        return cls._class_with_prefix_('Generic', classname)
 
-        EXAMPLES::
 
-            sage: TODO  # not tested
-        """
-        self.operands.append(operand)
-    
-    def __iter__(self):
-        """
-        TODO
+    @classmethod
+    def class_unlabeled(cls, classname):
+        return cls._class_with_prefix_('Unlabeled', classname)
 
-        EXAMPLES::
 
-            sage: TODO  # not tested
-        """
- 
-    def __add__(self, other):
-        """
-        TODO
+    @classmethod
+    def class_labeled(cls, classname):
+        return cls._class_with_prefix_('Labeled', classname)
 
-        EXAMPLES::
-
-            sage: TODO  # not tested
-        """
-        if is_CombinatorialExpressionBase(other):
-            #if is_CombinatorialExpressionDisjointUnion(self):
-            #    # make copy here and add
-                
-            return disjoint_union(self, other)
-        else:
-            raise TypeError, "Operation not supported."
-
-    def __mul__(self, other):
-        """
-        TODO
-
-        EXAMPLES::
-
-            sage: TODO  # not tested
-        """
-        if is_CombinatorialExpressionBase(other):
-            return cartesian_product(self, other)
-        else:
-            raise TypeError, "Operation not supported."
-
-#*****************************************************************************
-# Data Structures -- Flavor
-#*****************************************************************************
-
-class CombinatorialExpressionFlavor(SageObject):
-    pass
 
 # ----------------------------------------------------------------------------
 
-def has_unlabelled_flavor(CS):
-    """
-    Tests whether ``CS`` inherits from :class:`CombinatorialExpressionUnlabelled` or not.
-    """
-    return isinstance(CS, CombinatorialExpressionUnlabelled)
 
-class CombinatorialExpressionUnlabelled(CombinatorialExpressionFlavor):
-    pass
+class _UnlabeledFlavor_(_GenericFlavor_):
+
+    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``False`` since this instance is unlabeled.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _UnlabeledFlavor_)
+            sage: F = _UnlabeledFlavor_()
+            sage: F.is_labeled()
+            False
+        """
+        return False
+
+
+    def is_unlabeled(self):
+        """
+        Returns whether combinatorial expression is unlabeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``True`` since this instance is unlabeled.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _UnlabeledFlavor_)
+            sage: F = _UnlabeledFlavor_()
+            sage: F.is_unlabeled()
+            True
+        """
+        return True
+
 
 # ----------------------------------------------------------------------------
 
-def has_labelled_flavor(CS):
-    """
-    Tests whether ``CS`` inherits from :class:`CombinatorialExpressionLabelled` or not.
-    """
-    return isinstance(CS, CombinatorialExpressionLabelled)
 
-class CombinatorialExpressionLabelled(CombinatorialExpressionFlavor):
-    pass
+class _LabeledFlavor_(_GenericFlavor_):
+
+    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``True`` since this instance is labeled.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _LabeledFlavor_)
+            sage: F = _LabeledFlavor_()
+            sage: F.is_labeled()
+            True
+        """
+        return True
+
+
+    def is_unlabeled(self):
+        """
+        Returns whether combinatorial expression is unlabeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``False`` since this instance is labeled.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _LabeledFlavor_)
+            sage: F = _LabeledFlavor_()
+            sage: F.is_unlabeled()
+            False
+        """
+        return False
+
 
 # ----------------------------------------------------------------------------
 
-def _process_flavor_(kwargs):
-    """
-    Returns the flavor (``Labelled`` or ``Unlabelled``) encoded ``kwargs``.
 
-    INPUT:
+class _EmptyFlavor_(_GenericFlavor_):
 
-    - kwargs -- a dictionary
+    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
 
-    OUTPUT:
+        INPUT:
 
-    A string ``Labelled`` or ``Unlabelled``.
+        Nothing
 
-    TESTS::
+        OUTPUT:
 
-        sage: from sage.combinat.combinatorial_expression import _process_flavor_
-        sage: _process_flavor_({})
-        'Unlabelled'
-        sage: _process_flavor_({'labelled': True})
-        'Labelled'
-        sage: _process_flavor_({'labelled': False})
-        'Unlabelled'
-        sage: _process_flavor_({'unlabelled': True})
-        'Unlabelled'
-        sage: _process_flavor_({'unlabelled': False})
-        'Labelled'
-        sage: _process_flavor_({'labelled': True, 'unlabelled': True})
-        Traceback (most recent call last):
-        ...
-        ValueError: Arguments incompatible.
-        sage: _process_flavor_({'labelled': False, 'unlabelled': True})
-        'Unlabelled'
-        sage: _process_flavor_({'labelled': True, 'unlabelled': False})
-        'Labelled'
-        sage: _process_flavor_({'labelled': False, 'unlabelled': False})
-        Traceback (most recent call last):
-        ...
-        ValueError: Arguments incompatible.
-    """
-    labelled = 'Labelled'
-    unlabelled = 'Unlabelled'
-    flavor = None
+        ``True`` since this instance is labeled.
 
-    def assign_flavor(flavor, flavor_new):
-        if flavor is not None and flavor_new != flavor:
-            raise ValueError, "Arguments incompatible."
-        return flavor_new
+        TESTS::
 
-    if kwargs.has_key('unlabelled'):
-        flavor = assign_flavor(flavor, unlabelled if kwargs['unlabelled'] else labelled)
-    if kwargs.has_key('labelled'):
-        flavor = assign_flavor(flavor, labelled if kwargs['labelled'] else unlabelled)
-
-    try:
-        del kwargs['labelled']
-        del kwargs['unlabelled']
-    except KeyError:
-        pass
-
-    if flavor is None:
-        flavor = unlabelled  # default
-    return flavor
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _EmptyFlavor_)
+            sage: F = _EmptyFlavor_()
+            sage: F.is_labeled()
+            True
+        """
+        return True
 
 
-#*****************************************************************************
-# Data Structures -- Construction
-#*****************************************************************************
+    def is_unlabeled(self):
+        """
+        Returns whether combinatorial expression is unlabeled or not.
 
-# TODO maybe change the word "construction" to something else
+        INPUT:
 
-def construction(*args, **kwargs):
-    return CombinatorialExpressionConstructionUnlabelled(*args, **kwargs)  # TODO
+        Nothing
 
-# ----------------------------------------------------------------------------
+        OUTPUT:
 
-class CombinatorialExpressionConstruction(CombinatorialExpressionBase):
-    pass
+        ``True`` since this instance is unlabeled.
 
-# ----------------------------------------------------------------------------
+        TESTS::
 
-class CombinatorialExpressionConstructionUnlabelled(CombinatorialExpressionBase, CombinatorialExpressionUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionConstructionLabelled(CombinatorialExpressionBase, CombinatorialExpressionLabelled):
-    pass
-
-
-#*****************************************************************************
-# Data Structures -- FiniteSet
-#*****************************************************************************
-
-# not sure if needed
-class CombinatorialExpressionFiniteSetBase(CombinatorialExpressionBase):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionFiniteSetUnlabelled(CombinatorialExpressionBase, CombinatorialExpressionUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionFiniteSetLabelled(CombinatorialExpressionBase, CombinatorialExpressionLabelled):
-    pass
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _EmptyFlavor_)
+            sage: F = _EmptyFlavor_()
+            sage: F.is_unlabeled()
+            True
+        """
+        return True
 
 
 #*****************************************************************************
