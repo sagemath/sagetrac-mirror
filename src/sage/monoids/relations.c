@@ -205,17 +205,38 @@ void copy (Element f, Element d)
 	}
 }
 
+void printElement (Element e)
+{
+	int i;
+	for (i=0;i<iba.n;i++)
+	{
+		printf("%d ", e.c[i]);
+	}
+}
+
 int compteur = 0; //nombre d'états de l'automate
 bool vide = 1;
 
 bool inHash (Element e)
 {
 	int h = hash(e);
+	/*
+	printf("hash ");
+	printElement(e);
+	printf(": %d\n", h);
+	*/
 	int i;
 	for (i=0;i<thash[h].n;i++)
 	{
+		/*
+		printf("equals ");
+		printElement(e);
+		printElement(thash[h].e[i]);
+		printf("...\n");
+		*/
 		if (equalsElements(e, thash[h].e[i]))
 		{
+			//printf(" -> equals !\n");
 			//if (!thash[h].ne[i])
 			//	compteur++;
 			vide = false; //l'automate n'est pas trivial
@@ -227,11 +248,17 @@ bool inHash (Element e)
 	thash[h].e = (Element *)realloc(thash[h].e, thash[h].n+1);
 	//thash[h].ne = (int *)realloc(thash[h].ne, thash[h].n+1);
 	thash[h].ind = (int *)realloc(thash[h].ind, thash[h].n+1);
+	if (!thash[h].e || !thash[h].ind)
+	{
+		printf("Out of memory !!!\n");
+		exit(-2);
+	}
 	thash[h].e[thash[h].n] = NewElement(iba.n);
 	copy(e, thash[h].e[thash[h].n]);
 	//thash[h].ne = 0;
-	thash[h].ind = compteur;
+	thash[h].ind[thash[h].n] = compteur;
 	thash[h].n++;
+	compteur++;
 	return false;
 }
 
@@ -250,22 +277,33 @@ int indElement (Element e)
 	return -1;
 }
 
-void printElement (Element e)
-{
-	int i;
-	for (i=0;i<iba.n;i++)
-	{
-		printf("%d ", e.c[i]);
-	}
-}
-
 //calcule l'automate des relations
 Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 {
+	int i,j;
+	
 	iba = iba2;
 	
-	////afficher les données : chiffres, places, bornes, etc... pour vérif
-	
+	////affiche les données : chiffres, places, bornes pour vérif
+	if (verb)
+	{
+		for (i=0;i<iba.nc;i++)
+		{
+			printf("chiffre %d : ", i);
+			printElement(iba.c[i]);
+			printf("\n");
+		}
+		for (i=0;i<iba.na;i++)
+		{
+			printf("place %d : ", i);
+			for (j=0;j<iba.n;j++)
+			{
+				printf("(%lf, %lf) ", iba.p[i].c[j].x, iba.p[i].c[j].y);
+			}
+			printf("borne %lf\n", iba.cM[i]);
+		}
+	}
+
 	if (verb)
 		printf("init hash...\n");
 	//table de hachage servant à repérer les éléments déjà rencontrés
@@ -274,9 +312,10 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 	if (verb)
 		printf("parcours...\n");
 	int n = 1; //nombre d'éléments sur la pile
-	compteur = 1; //nombre d'états de l'automate
-	int i,j;
+	compteur = 0; //nombre d'états de l'automate
+	//état initial
 	pile[0] = zeroElement();
+	inHash(pile[0]); //ajoute l'élément à la table de hachage
 	Element e = NewElement(iba.n);
 	Element s = NewElement(iba.n); //fils
 	vide = true;
@@ -292,29 +331,28 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 			printElement(e);
 			printf("vu\n");
 		}
-		for (i=0;i<iba.na;i++)
+		for (i=0;i<iba.nc;i++)
 		{
 			succ(e, i, &s);
 			if (verb)
 			{
-				printf("succ %d : ", i);
-				printElement(e);
+				printf("succ %d/%d : ", i, iba.nc);
+				printElement(s);
 				printf("\n");
 			}
 			if (keep(s))
 			{ //l'élément est dans l'automate
 				//teste si l'élément a déjà été vu et l'ajoute si non
-				if (inHash(s))
+				if (!inHash(s))
 				{ //l'élement est nouveau et a été ajouté à la table de hachage
-					if (!vide)
+					if (isvide && !vide)
 					{ //l'automate n'est pas trivial
 						return NewAutomaton(1,0);
 					}
 					//empile
 					pile[n] = NewElement(iba.n);
-					copy(e, pile[n]);
+					copy(s, pile[n]);
 					n++;
-					compteur++;
 					if (n > npile)
 					{
 						printf("Erreur : dépassement de la pile !!!\n");
@@ -342,31 +380,54 @@ Automate RelationsAutomaton (InfoBetaAdic iba2, bool isvide, bool verb)
 	int k, ind;
 	for (i=0;i<nhash;i++)
 	{
+		if (verb)
+		{
+			if (thash[i].n > 0)
+				printf("hash %d : %d éléments.\n", i, thash[i].n);
+		}
 		for (j=0;j<thash[i].n;j++)
 		{
 			e = thash[i].e[j];
+			if (verb)
+			{
+				printf("Element ");
+				printElement(e);
+				printf("indice %d\n", thash[i].ind[j]);			
+			}
 			r.e[thash[i].ind[j]].final = false;
-			for (k=0;k<iba.na;k++)
+			for (k=0;k<iba.nc;k++)
 			{
 				succ(e, k, &s);
 				ind = indElement(s);
+				/*
+				printf("indice de ");
+				printElement(s);
+				printf(": %d\n", ind);
+				*/
 				if (ind != -1)
 				{ //ajoute la transition
 					r.e[thash[i].ind[j]].f[k] = ind;
 				}
 			}
-			FreeElement(e);
 		}
 	}
-	if (verb)
-		printf("free...\n");
-	FreeElement(s);
 	//états initiaux et finaux : zéro
 	e = zeroElement();
 	ind = indElement(e);
-	FreeElement(e);
 	r.i = ind;
 	r.e[ind].final = true;
+	if (verb)
+		printf("free...\n");
+	//libère les éléments de la table de hachage
+	for (i=0;i<nhash;i++)
+	{
+		for (j=0;j<thash[i].n;j++)
+		{
+			FreeElement(thash[i].e[j]);
+		}
+	}
+	FreeElement(s);
+	FreeElement(e);
 	return r;
 }
 

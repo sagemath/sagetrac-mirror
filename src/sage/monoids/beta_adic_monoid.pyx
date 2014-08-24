@@ -171,10 +171,10 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
             i.p[k].c[j] = complex(parch[k](b**j))
     #initialise les chiffres et bornes
     if verb: print "init chiffres..."
-    initCdInfoBetaAdic(self, i, Cd=Cd, verb=verb)
+    initCdInfoBetaAdic(self, &i, Cd=Cd, verb=verb)
     return i
 
-cdef initCdInfoBetaAdic (self, InfoBetaAdic i, Cd=None, verb=False):
+cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd=None, verb=False):
     #recalcule les bornes max pour chaque valeur absolue
     if Cd is None:
         Cd = Set([c-c2 for c in self.C for c2 in self.C])

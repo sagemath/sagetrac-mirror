@@ -526,7 +526,8 @@ ext_modules = [
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
     Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
-              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx'],
+              extra_compile_args = ['-Wall']),
 
         ###################################
         ##
