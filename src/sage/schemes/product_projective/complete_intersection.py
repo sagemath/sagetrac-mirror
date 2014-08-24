@@ -193,6 +193,40 @@ class GenericCompleteIntersection(AlgebraicScheme):
         """
         return tuple(deg[col] for deg in self._deg)
 
+    def __cmp__(left, right):
+        """
+        Compare two complete intersections.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        ``-1``, ``1``, or ``+1`` depending how ``left`` and ``right``
+        compare.
+
+        EXAMPLES::
+
+            sage: P.<a,b> = ProductProjectiveSpaces([3, 1], QQ)
+            sage: X = P.complete_intersection(2, 2)
+            sage: P.complete_intersection(2, 2) == X
+            True
+            sage: loads(dumps(X)) == X
+            True
+            sage: X == P.complete_intersection(2, 3)
+            False
+        """
+        if not isinstance(right, GenericCompleteIntersection):
+            return -1
+        c = cmp(left.ambient_space(), right.ambient_space())
+        if c != 0:
+            return c
+        c = cmp(left._codim, right._codim)
+        if c != 0:
+            return c
+        return cmp(left._deg, right._deg)
+
     def projective_space_permutations(self):
         """
         Return the row permutation symmetries.
@@ -221,9 +255,9 @@ class GenericCompleteIntersection(AlgebraicScheme):
         ambient = self.ambient_space()
         n = ambient.num_factors()
         # Necessary condition: A permutation must preserve the ambient
-        # space factors and total degrees
+        # space factors, total degrees, and degrees up to permutation
         projective_spaces = tuple(
-            (ambient.factor_dim(i), sum(self.degree(i)))
+            (ambient.factor_dim(i), sum(self.degree(i)), tuple(sorted(self.degree(i))))
             for i in range(n))
         # Sufficient condition: the action on the columns (equations)
         # preserves the set of equations.

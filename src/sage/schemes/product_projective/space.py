@@ -392,6 +392,17 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def __cmp__(left, right):
         """
+        Compare two products of projective spaces.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        ``-1``, ``1``, or ``+1`` depending how ``left`` and ``right``
+        compare.
+
         EXAMPLES::
 
             sage: ProductProjectiveSpaces([3, 1], QQ, ['a', 'b']) \

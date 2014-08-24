@@ -563,5 +563,5 @@ class Database(SageObject):
             [[6]]
         """
         for conf, data in self._iter():
-            yield conf
+            yield self._output(conf)
         
