@@ -1860,3 +1860,73 @@ class Operators(SageObject):
                                     *operands,
                                     parent=parent)
 
+
+#*****************************************************************************
+# Helpers
+#*****************************************************************************
+
+# TODO: do we need the following function?
+def _process_flavor_(kwargs):
+    """
+    Returns the flavor (``Labelled`` or ``Unlabelled``) encoded ``kwargs``.
+
+    INPUT:
+
+    - kwargs -- a dictionary
+
+    OUTPUT:
+
+    A string ``Labelled`` or ``Unlabelled``.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import _process_flavor_
+        sage: _process_flavor_({})
+        'Unlabelled'
+        sage: _process_flavor_({'labelled': True})
+        'Labelled'
+        sage: _process_flavor_({'labelled': False})
+        'Unlabelled'
+        sage: _process_flavor_({'unlabelled': True})
+        'Unlabelled'
+        sage: _process_flavor_({'unlabelled': False})
+        'Labelled'
+        sage: _process_flavor_({'labelled': True, 'unlabelled': True})
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments incompatible.
+        sage: _process_flavor_({'labelled': False, 'unlabelled': True})
+        'Unlabelled'
+        sage: _process_flavor_({'labelled': True, 'unlabelled': False})
+        'Labelled'
+        sage: _process_flavor_({'labelled': False, 'unlabelled': False})
+        Traceback (most recent call last):
+        ...
+        ValueError: Arguments incompatible.
+    """
+    labelled = 'Labelled'
+    unlabelled = 'Unlabelled'
+    flavor = None
+
+    def assign_flavor(flavor, flavor_new):
+        if flavor is not None and flavor_new != flavor:
+            raise ValueError, "Arguments incompatible."
+        return flavor_new
+
+    if kwargs.has_key('unlabelled'):
+        flavor = assign_flavor(flavor, unlabelled if kwargs['unlabelled'] else labelled)
+    if kwargs.has_key('labelled'):
+        flavor = assign_flavor(flavor, labelled if kwargs['labelled'] else unlabelled)
+
+    try:
+        del kwargs['labelled']
+        del kwargs['unlabelled']
+    except KeyError:
+        pass
+
+    if flavor is None:
+        flavor = unlabelled  # default
+    return flavor
+
+# ----------------------------------------------------------------------------
+
