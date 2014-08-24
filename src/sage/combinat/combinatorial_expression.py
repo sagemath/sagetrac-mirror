@@ -897,3 +897,132 @@ class LabeledBase(
     pass
 
 
+#*****************************************************************************
+# Element: Expression
+#*****************************************************************************
+
+
+class GenericExpression(GenericBase):
+    """
+    A class representing a combinatorial expression.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A new combinatorial expression.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericExpression)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: GenericExpression(R, var('T'))
+        T == None
+    """
+    def __init__(self, parent, expression, *operands):
+        super(GenericExpression, self).__init__(parent, *operands)
+        self._expression_ = expression
+
+
+    def _repr_(self):
+        memo = {}
+        s = repr(self._expression_) + ' == '
+        if self._operands_:
+            return s + self._repr_recursive_(memo)
+        else:
+            return s + 'None'
+
+
+    def _repr_main_(self, memo):
+        self._update_memo_(memo)
+        return repr(self._expression_)
+
+
+    def _repr_join_(self, reprs_of_operands):
+        """
+        Joins the given representation strings together.
+
+        INPUT:
+
+        - ``reprs_of_operands`` -- an iterable of strings.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return ', '.join(o for o in reprs_of_operands)
+
+# ----------------------------------------------------------------------------
+
+
+class UnlabeledExpression(
+    GenericExpression,
+    UnlabeledBase):
+    """
+    A class representing a unlabeled combinatorial expression.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A new unlabeled combinatorial expression.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     UnlabeledExpression)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: T = UnlabeledExpression(R, var('T')); T
+        T == None
+        sage: T.is_unlabeled()
+        True
+        sage: T.is_labeled()
+        False
+    """
+    pass
+
+
+# ----------------------------------------------------------------------------
+
+class LabeledExpression(
+    GenericExpression,
+    LabeledBase):
+    """
+    A class representing a labeled combinatorial expression.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A new labeled combinatorial expression.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     LabeledExpression)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: LabeledExpression(R, var('T'))
+        T == None
+    """
+    pass
+
