@@ -18,6 +18,9 @@ import re
 import os
 from sage.env import SAGE_SHARE
 from sage.structure.sage_object import SageObject
+from sage.rings.all import ZZ, QQ
+from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_method
 
 
 MMA_TEST_1 = """
@@ -47,7 +50,6 @@ MMA_TEST_2 = """
  {4, 1, 3, {{2, 2, 4}}, 1632, False, 1, 0, 263, 1100, True}, 
  {5, 1, 3, {{2, 3, 3}}, 1206, False, 1, 0, 192, 816, True}}
 """
-
 
 
 class MMaList(SageObject):
@@ -333,7 +335,6 @@ class MMaList(SageObject):
 
         EXAMPLES::
 
-
             sage: from sage.schemes.product_projective.cicy import MMaList
             sage: iter(MMaList('{{foo -> {bar ->\n -123}}, 1}')).next()
             {'foo': {'bar': -123}}        
@@ -350,9 +351,30 @@ class Database(SageObject):
     DATABASE_3D = os.path.join(SAGE_SHARE, 'complete_intersection_calabi_yau', 'cicy3list.txt')
     DATABASE_4D = os.path.join(SAGE_SHARE, 'complete_intersection_calabi_yau', 'cicy4list.zip')
 
-    def __init__(self, dimension):
-        """
+    def __init__(self, dimension, output='complete_intersection', base_ring=QQ):
+        r"""
         Read a database of CICYs
+
+        INPUT:
+
+        - ``dimension`` -- integer. The Calabi-Yau dimension of
+          interest.
+
+        - ``output`` -- string. How to output each CICY. Allowed
+          values are
+
+          * ``'complete_intersection'`` -- (default). Output
+            :class:`~sage.schemes.product_projective.complete_intersection.GenericCompleteIntersection`
+            objects.
+
+          * ``'matrix'`` -- output matrix. Standard notation: rows are
+            projective space factors and columns are equations.
+
+          * ``'list'`` -- output list of list of integers. Fastest
+            output.
+
+        - ``base_ring`` -- commutative ring (default: `\QQ`). The base
+          ring if ``output`` is ``'complete_intersection'``.
 
         EXAMPLES::
 
@@ -372,6 +394,13 @@ class Database(SageObject):
             self._iter = self._iter_4d
         else:
             raise ValueError('only have databases for 3d and 4d')
+        if output == 'complete_intersection':
+            self._output = self._output_complete_intersection
+        elif output == 'list':
+            self._output = self._output_list
+        elif output == 'matrix':
+            self._output = self._output_matrix
+        self._base_ring = base_ring
 
     def _iter_3d(self):
         """
@@ -417,7 +446,107 @@ class Database(SageObject):
         for cicy in MMaList(db):
             yield cicy[3], cicy
         db.close()
-        
+    
+    def _output_list(self, listlist):
+        """
+        Construct ``'list'``-style output.
+
+        INPUT:
+
+        - ``listlist`` -- list of lists of integers. The CICY
+          configuration.
+
+        OUTPUT:
+
+        Same.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.product_projective.cicy import Database
+            sage: db = Database(3)                       # optional - database_cicy
+            sage: db._output_list([[1,2,3], [3,4,5]])    # optional - database_cicy
+            [[1, 2, 3], [3, 4, 5]]
+        """
+        return listlist
+
+    def _output_matrix(self, listlist):
+        """
+        Construct ``'matrix'``-style output.
+
+        INPUT:
+
+        - ``listlist`` -- list of lists of integers. The CICY
+          configuration.
+
+        OUTPUT:
+
+        Matrix.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.product_projective.cicy import Database
+            sage: db = Database(3)                         # optional - database_cicy
+            sage: db._output_matrix([[1,2], [2,1]])    # optional - database_cicy
+            [1 2]
+            [2 1]
+        """
+        return matrix(ZZ, listlist)
+
+    @cached_method
+    def _product_projective_spaces(self, dimensions):
+        """
+        Construct product of projective spaces.
+
+        INPUT:
+
+        - ``dimensions`` -- tuple of integers. The projective space
+          dimensions.
+
+        OUTPUT:
+
+        A
+        :class:`~sage.schemes.product_projective.space.ProductProjectiveSpaces_ring`
+        instance.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.product_projective.cicy import Database
+            sage: db = Database(3)                          # optional - database_cicy
+            sage: db._product_projective_spaces((1,2,3))    # optional - database_cicy
+            Product of projective spaces P^1 x P^2 x P^3 over Rational Field
+        """
+        assert isinstance(dimensions, tuple)
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces(dimensions, self._base_ring)
+
+    def _output_complete_intersection(self, listlist):
+        """
+        Construct ``'complete_intersection'``-style output.
+
+        INPUT:
+
+        - ``listlist`` -- list of lists of integers. The CICY
+          configuration.
+
+        OUTPUT:
+
+        A
+        :class:`~sage.schemes.product_projective.complete_intersection.GenericCompleteIntersection`
+        instance.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.product_projective.cicy import Database
+            sage: db = Database(3)                                    # optional - database_cicy
+            sage: db._output_complete_intersection([[1,2], [2,1]])    # optional - database_cicy
+            Complete intersection in Product of projective spaces P^2 x P^2 over Rational Field
+              P^2   |   1   2
+              P^2   |   2   1
+        """
+        dims = tuple(sum(degrees) - 1 for degrees in listlist)
+        ambient = self._product_projective_spaces(dims)
+        return ambient.complete_intersection(*listlist)
+
     def __iter__(self):
         """
         Iterate over the entries of the database.
