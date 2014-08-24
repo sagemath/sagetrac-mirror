@@ -1026,3 +1026,209 @@ class LabeledExpression(
     """
     pass
 
+
+#*****************************************************************************
+# Element: Singleton
+#*****************************************************************************
+
+class GenericSingleton(GenericBase):
+    """
+    A class representing a singleton of given size.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``singleton`` -- the singleton.
+
+    - ``size`` -- the size of the singleton.
+
+    OUTPUT:
+
+    A new singleton.
+
+    EXAMPLES::
+
+        sage: TODO  # not tested
+    """
+
+    def __init__(self, parent, singleton, size):
+        """
+        TODO
+
+        TESTS::
+
+            sage: TODO  # not tested
+        """
+        super(GenericSingleton, self).__init__(parent)
+        self._set_singleton_(singleton, size)
+
+
+    def _set_singleton_(self, singleton, size):
+        """
+        TODO
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        self._singleton_ = singleton
+        self._size_ = size
+
+
+    def size(self):
+        return self._size_
+
+
+    def _repr_main_(self, memo):
+        self._update_memo_(memo)
+        return repr(self._singleton_)
+
+
+# ----------------------------------------------------------------------------
+
+
+class UnlabeledSingleton(
+    GenericSingleton,
+    UnlabeledBase):
+    pass
+
+
+# ----------------------------------------------------------------------------
+
+
+class LabeledSingleton(
+    GenericSingleton,
+    LabeledBase):
+    pass
+
+
+#*****************************************************************************
+# Element: Atom
+#*****************************************************************************
+
+
+class GenericAtom(GenericSingleton):
+    """
+    A class representing an atom (a singleton of size 1).
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``atom`` -- the atom.
+
+    OUTPUT:
+
+    A new atom.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: GenericAtom(R, var('z'))
+        z
+        sage: GenericAtom(R, SR(1))
+        1
+        sage: y = R(var('y')); y
+        y
+        sage: type(y)
+        <class 'sage.combinat.combinatorial_expression.GenericAtom_with_category'>
+    """
+    def __init__(self, parent, atom):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        super(GenericAtom, self).__init__(parent, atom, Integer(1))
+
+
+# ----------------------------------------------------------------------------
+
+
+class UnlabeledAtom(
+    GenericAtom,
+    UnlabeledSingleton):
+    pass
+
+
+# ----------------------------------------------------------------------------
+
+
+class LabeledAtom(
+    GenericAtom,
+    LabeledSingleton):
+    pass
+
+
+#*****************************************************************************
+# Element: Empty
+#*****************************************************************************
+
+
+class GenericEmpty(_EmptyFlavor_, GenericSingleton):
+    """
+    A class representing an empty singleton (a singleton of size 0).
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``empty`` -- the empty singleton.
+
+    OUTPUT:
+
+    A new empty singleton.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericEmpty)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: GenericEmpty(R, var('z'))
+        z
+        sage: GenericEmpty(R, SR(1))
+        1
+        sage: type(R(SR(1)))
+        <class 'sage.combinat.combinatorial_expression.GenericEmpty_with_category'>
+        sage: type(R(SR(1), unlabeled=True))
+        <class 'sage.combinat.combinatorial_expression.GenericEmpty_with_category'>
+        sage: type(R(SR(1), labeled=True))
+        <class 'sage.combinat.combinatorial_expression.GenericEmpty_with_category'>
+        sage: R(SR(1)) == R(SR(1), unlabeled=True) == R(SR(1), labeled=True)
+    """
+    def __init__(self, parent, empty):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        super(GenericEmpty, self).__init__(parent, empty, Integer(0))
+
+
+# ----------------------------------------------------------------------------
+
+
+UnlabeledEmpty = GenericEmpty
+LabeledEmpty = GenericEmpty
+
