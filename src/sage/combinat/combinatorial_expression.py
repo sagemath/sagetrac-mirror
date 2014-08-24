@@ -1232,3 +1232,273 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
 UnlabeledEmpty = GenericEmpty
 LabeledEmpty = GenericEmpty
 
+
+#*****************************************************************************
+# Element: DisjointUnion
+#*****************************************************************************
+
+
+class GenericDisjointUnion(GenericBase):
+    """
+    A class representing a disjoint union of combinatorial expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A disjoint union of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericDisjointUnion,
+        ....:     GenericAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: GenericDisjointUnion(
+        ....:     R, GenericAtom(R, SR(1)), GenericAtom(R, var('z')))
+        1 + z
+    """
+    def _repr_join_(self, reprs_of_operands):
+        """
+        Joins the given representation strings together.
+
+        INPUT:
+
+        - ``reprs_of_operands`` -- an iterable of strings.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return ' + '.join(reprs_of_operands)
+
+    def _repr_need_parenthesis_(self, operand):
+        """
+        Returns if parenthesis are needed around the representation string
+        of the given operand.
+
+        INPUT:
+
+        - ``operand`` -- the (inner) operand.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+        """
+        return isinstance(operand, GenericDisjointUnion)
+
+
+# ----------------------------------------------------------------------------
+
+
+class UnlabeledDisjointUnion(
+    GenericDisjointUnion,
+    UnlabeledBase):
+    """
+    A class representing an unlabeled disjoint union of combinatorial
+    expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    An unlabeled disjoint union of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     UnlabeledDisjointUnion,
+        ....:     UnlabeledAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: UnlabeledDisjointUnion(
+        ....:     R, UnlabeledAtom(R, SR(1)), UnlabeledAtom(R, var('z')))
+        1 + z
+    """
+    pass
+
+
+# ----------------------------------------------------------------------------
+
+
+class LabeledDisjointUnion(
+    GenericDisjointUnion,
+    LabeledBase):
+    """
+    A class representing a labeled disjoint union of combinatorial
+    expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A labeled disjoint union of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     LabeledDisjointUnion,
+        ....:     LabeledAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: LabeledDisjointUnion(
+        ....:     R, LabeledAtom(R, SR(1)), LabeledAtom(R, var('z')))
+        1 + z
+    """
+    pass
+
+
+#*****************************************************************************
+# Element: CartesianProduct
+#*****************************************************************************
+
+
+class GenericCartesianProduct(GenericBase):
+    """
+    A class representing a cartesian product of combinatorial expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A cartesian product of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericCartesianProduct,
+        ....:     GenericDisjointUnion,
+        ....:     GenericAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: GenericCartesianProduct(
+        ....:     R, GenericAtom(R, SR(1)), GenericAtom(R, var('z')))
+        1*z
+        sage: GenericCartesianProduct(
+        ....:     R, GenericAtom(R, SR(1)), GenericDisjointUnion(
+        ....:         R, GenericAtom(R, var('y')), GenericAtom(R, var('z'))))
+        1*(y + z)
+    """
+    def _repr_join_(self, reprs_of_operands):
+        """
+        Joins the given representation strings together.
+
+        INPUT:
+
+        - ``reprs_of_operands`` -- an iterable of strings.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return '*'.join(reprs_of_operands)
+
+
+    def _repr_need_parenthesis_(self, operand):
+        """
+        Returns if parenthesis are needed around the representation string
+        of the given operand.
+
+        INPUT:
+
+        - ``operand`` -- the (inner) operand.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+        """
+        return isinstance(operand, GenericDisjointUnion)
+
+
+# ----------------------------------------------------------------------------
+
+
+class UnlabeledCartesianProduct(
+    GenericCartesianProduct,
+    UnlabeledBase):
+    """
+    A class representing an unlabeled cartesian product of
+    combinatorial expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    An unlabeled cartesian product of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     UnlabeledCartesianProduct,
+        ....:     UnlabeledAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: UnlabeledCartesianProduct(
+        ....:     R, UnlabeledAtom(R, SR(1)), UnlabeledAtom(R, var('z')))
+        1*z
+    """
+    pass
+
+
+# ----------------------------------------------------------------------------
+
+
+class LabeledCartesianProduct(
+    GenericCartesianProduct,
+    LabeledBase):
+    """
+    A class representing a labeled cartesian product of
+    combinatorial expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A labeled cartesian product of the operands.
+
+    TESTS::
+
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     LabeledCartesianProduct,
+        ....:     LabeledAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: LabeledCartesianProduct(
+        ....:     R, LabeledAtom(R, SR(1)), LabeledAtom(R, var('z')))
+        1*z
+    """
+    pass
+
