@@ -19,7 +19,10 @@ AUTHORS:
 
 
 import sage
-from sage.structure.sage_object import SageObject
+from sage.rings.integer import Integer
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.structure.sage_object import SageObject  # TODO löschen
+from itertools import izip
 
 
 # ----------------------------------------------------------------------------
