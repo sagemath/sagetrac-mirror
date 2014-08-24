@@ -1764,3 +1764,99 @@ class CombinatorialExpressionRing(
     def _an_element_(self):
         return GenericAtom(self, self.base_ring().an_element())
 
+
+#*****************************************************************************
+# Operators
+#*****************************************************************************
+
+class Operators(SageObject):
+    """
+    This class contains a collection of operators used to create
+    combinatorial expressions.
+    """
+    @staticmethod
+    def _apply_operator_(operatorname, *operands, **kwargs):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        parent = kwargs.pop('parent', None)  # Python 2.x workaround,
+                                             # since parent=None
+                                             # CANNOT be used AFTER
+                                             # *operands.
+        if not operands:
+            raise NotImplementedError('Operands must be given.')
+        # TODO: do coercion here
+        return getattr(operands[0], operatorname)(*operands[1:])
+
+
+    @classmethod
+    def disjoint_union(cls, *operands, **kwargs):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing, Operators)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: a = R(var('a'))
+            sage: b = R(var('b'))
+            sage: c = Operators.disjoint_union(a, b); c
+            a + b
+            sage: type(c)
+            <class 'sage.combinat.combinatorial_expression.GenericDisjointUnion'>
+            sage: a + b == c
+            True
+        """
+        parent = kwargs.pop('parent', None)
+        return cls._apply_operator_('_disjoint_union_',
+                                    *operands,
+                                    parent=parent)
+
+
+    @classmethod
+    def cartesian_product(cls, *operands, **kwargs):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing, Operators)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: a = R(var('a'))
+            sage: b = R(var('b'))
+            sage: c = Operators.cartesian_product(a, b); c
+            a*b
+            sage: type(c)
+            <class 'sage.combinat.combinatorial_expression.GenericCartesianProduct'>
+            sage: a*b == c
+            True
+        """
+        parent = kwargs.pop('parent', None)
+        return cls._apply_operator_('_cartesian_product_',
+                                    *operands,
+                                    parent=parent)
+
