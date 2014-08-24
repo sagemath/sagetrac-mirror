@@ -276,253 +276,624 @@ class _EmptyFlavor_(_GenericFlavor_):
 
 
 #*****************************************************************************
-# Data Structures -- Singleton
+# Element: Base
 #*****************************************************************************
 
-def singleton(*args, **kwargs):
-    """
-    Returns the encapsulated (in TODO) singleton of specified size.
 
-    TODO
+class GenericBase(
+    sage.structure.element.RingElement,
+    _GenericFlavor_):
+    """
+    Abstract base class for all combinatorial expressions.
+
+    INPUT:
+
+    - ``parent`` -- the parent of the new object.
+
+    - ``*operands`` -- the operands of the operation defined by this class.
+
+    OUTPUT:
+
+    A new (abstract) combinatorial expression.
+
+    .. NOTE::
+
+        This should not be used directly. Use a derived class.
 
     TESTS::
 
-        sage: from sage.combinat.combinatorial_expression import singleton
-        sage: su = singleton('Z', size=2)
-        sage: type(su)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionSingletonUnlabelled'>
-        sage: sl = singleton('Z', size=2, labelled=True)
-        sage: type(sl)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionSingletonLabelled'>
+        sage: from sage.combinat.combinatorial_expression import (
+        ....:     CombinatorialExpressionRing,
+        ....:     GenericExpression,
+        ....:     GenericDisjointUnion,
+        ....:     GenericCartesianProduct,
+        ....:     GenericAtom)
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: z = GenericAtom(R, var('z'))
+        sage: z
+        z
+        sage: eps = GenericAtom(R, SR(1))
+        sage: eps
+        1
+        sage: T = GenericExpression(R, var('T')); T
+        T == None
+        sage: A = GenericCartesianProduct(R, z, T, T); A
+        z*T*T
+        sage: B = GenericDisjointUnion(R, eps, A); B
+        1 + z*T*T
+        sage: T.assign(B)
+        sage: T
+        T == 1 + z*T*T
     """
-    flavor = _process_flavor_(kwargs)
-    return globals()['CombinatorialExpressionSingleton' + flavor](*args, **kwargs)
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSingletonBase(CombinatorialExpressionFiniteSetBase):
-    """
-
-    """
-    def __init__(self, singleton, size):
+    def __init__(self, parent, *operands):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self._set_singleton_(singleton, size)
-        
-    def _set_singleton_(self, singleton, size):
+        self.assign(*operands)
+        super(GenericBase, self).__init__(parent)
+
+
+    # ------------------------------------------------------------------------
+
+
+    def assign(self, *operands):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self.singleton = singleton
-        self.size = size
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSingletonLabelled(CombinatorialExpressionSingletonBase, CombinatorialExpressionFiniteSetLabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSingletonUnlabelled(CombinatorialExpressionSingletonBase, CombinatorialExpressionFiniteSetUnlabelled):
-    pass
+        self._operands_ = tuple(operands)
 
 
-#*****************************************************************************
-# Data Structures -- Empty
-#*****************************************************************************
-
-def empty(*args, **kwargs):
-    """
-    Returns the encapsulated (in TODO) empty (i.e. singleton of size `0`).
-
-    TODO
-
-    TESTS::
-
-        sage: from sage.combinat.combinatorial_expression import empty
-        sage: eu = empty('E')
-        sage: type(eu)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionEmptyUnlabelled'>
-        sage: el = empty('E', labelled=True)
-        sage: type(el)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionEmptyLabelled'>
-    """
-    flavor = _process_flavor_(kwargs)
-    return globals()['CombinatorialExpressionEmpty' + flavor](*args, **kwargs)
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionEmptyBase(CombinatorialExpressionSingletonBase):
-    def __init__(self, empty=[]):
+    def operands(self):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self._set_singleton_(singleton=empty, size=0)
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionEmptyUnlabelled(CombinatorialExpressionEmptyBase, CombinatorialExpressionSingletonUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionEmptyLabelled(CombinatorialExpressionEmptyBase, CombinatorialExpressionSingletonLabelled):
-    pass
+        return self._operands_
 
 
-#*****************************************************************************
-# Data Structures -- Atom
-#*****************************************************************************
-
-def atom(*args, **kwargs):
-    """
-    Returns the encapsulated (in TODO) atom (i.e. singleton of size `1`).
-
-    TODO
-
-    TESTS::
-
-        sage: from sage.combinat.combinatorial_expression import atom
-        sage: au = atom('A')
-        sage: type(au)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionAtomUnlabelled'>
-        sage: al = atom('A', labelled=True)
-        sage: type(al)
-        <class 'sage.combinat.combinatorial_expression.CombinatorialExpressionAtomLabelled'>
-    """
-    flavor = _process_flavor_(kwargs)
-    return globals()['CombinatorialExpressionAtom' + flavor](*args, **kwargs)
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionAtomBase(CombinatorialExpressionSingletonBase):
-    def __init__(self, atom=[[]]):
+    def iter_operands(self):
         """
         TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
 
         EXAMPLES::
 
             sage: TODO  # not tested
         """
-        self._set_singleton_(singleton=atom, size=1)
+        return iter(self._operands_)
+
+
+    #------------------------------------------------------------------------
+
+
+    def _name_(self):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return self.__class__.__name__
+
+
+    #------------------------------------------------------------------------
+
+
+    def _update_memo_(self, memo):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        #if not memo:
+        #    memo = {}
+        key = id(self)
+        m = memo.get(key)
+        memo[key] = True
+        return m is None
+
+
+    #------------------------------------------------------------------------
+
+
+    def _repr_(self):
+        """
+        Returns a representation string.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        memo = {}
+        return self._repr_main_(memo)
+
+
+    def _repr_main_(self, memo):
+        """
+        Returns a repesentation string.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return self._repr_recursive_(memo)
+
+
+    def _repr_recursive_(self, memo):
+        """
+        Recursively builds the representation string
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        if not self._update_memo_(memo):
+            return self._repr_recursion_()
+        return self._repr_join_(
+            self._repr_make_parenthesis_(
+                o._repr_main_(memo), self._repr_need_parenthesis_(o))
+            for o in self.operands())
+
+
+    @staticmethod
+    def _repr_make_parenthesis_(s, make=True):
+        """
+        Makes parenthesis around a string.
+
+        INPUT:
+
+        - ``s`` -- a string.
+
+        - ``make`` -- a boolean indicating whether to make parenthesis
+          or not.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericBase)
+            sage: GenericBase._repr_make_parenthesis_(
+            ....:     '42', False)
+            '42'
+            sage: GenericBase._repr_make_parenthesis_(
+            ....:     '42', True)
+            '(42)'
+            """
+        if make:
+            return '(' + s + ')'
+        else:
+            return s
+
+
+    def _repr_need_parenthesis_(self, operand):
+        """
+        Returns if parenthesis are needed around the representation string
+        of the given operand.
+
+        INPUT:
+
+        - ``operand`` -- the (inner) operand.
+
+        OUTPUT:
+
+        ``False``.
+        """
+        return False
+
+
+    def _repr_join_(self, reprs_of_operands):
+        """
+        Joins the given representation strings together.
+
+        INPUT:
+
+        - ``reprs_of_operands`` -- an iterable of strings.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return (self._name_() +
+                self._repr_make_parenthesis_(
+                ', '.join(o for o in reprs_of_operands)))
+
+
+    def _repr_recursion_(self):
+        """
+        Returns a string signalling that an recursion was encountered.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return 'REC'
+
+
+    #------------------------------------------------------------------------
+
+
+    def __cmp__(left, right, memo=None):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        if not memo:
+            memo = {}
+        key = (id(left), id(right))
+        m = memo.get(key)
+        if m is not None:
+            return m
+        memo[key] = True
+
+        if left.__class__ != right.__class__:
+            result = False
+        else:
+            S = left.operands()
+            O = right.operands()
+            if len(S) != len(O):
+                result = False
+            else:
+                result = all(s.__cmp__(o, memo) for s, o in izip(S, O))
+
+        memo[key] = result
+        return result
+
+
+    #------------------------------------------------------------------------
+
+
+    def _apply_operator_(self, operatorclassname, *operands):
+        """
+        Returns an instance of the specified class (as operator) with
+        given operands.
+
+        INPUT:
+
+        - ``operatorclassname`` -- the name of the class (without flavor).
+
+        - ``*operands`` -- the operands of the operation.
+
+        OUTPUT:
+
+        A new combinatorial expression.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing, Operators)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: g = R(var('g'))
+            sage: u = R(var('u'), unlabeled=True)
+            sage: l = R(var('l'), labeled=True)
+            sage: a = g + g  # indirect doctest
+            sage: a.is_unlabeled(), a.is_labeled()
+            (None, None)
+            sage: b = u + u  # indirect doctest
+            sage: b.is_unlabeled(), b.is_labeled()
+            (True, False)
+            sage: c = l + l  # indirect doctest
+            sage: c.is_unlabeled(), c.is_labeled()
+            (False, True)
+            sage: d = g + u  # indirect doctest
+            sage: d.is_unlabeled(), d.is_labeled()
+            (None, None)
+            sage: e = u + l  # indirect doctest
+            sage: e.is_unlabeled(), e.is_labeled()
+            (None, None)
+            sage: f = l + g  # indirect doctest
+            sage: f.is_unlabeled(), f.is_labeled()
+            (None, None)
+        """
+        if all(o.is_unlabeled() for o in operands):
+            flavor = 'Unlabeled'
+        elif all(o.is_labeled() for o in operands):
+            flavor = 'Labeled'
+        else:
+            flavor = 'Generic'
+
+        return globals()[flavor + operatorclassname](
+            operands[0].parent(), *operands)
+
+
+    #------------------------------------------------------------------------
+
+
+    def disjoint_union(self, *others):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return Operators.disjoint_union(self, *others)
+
+
+    def _disjoint_union_(self, *others):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return self._apply_operator_('DisjointUnion', self, *others)
+
+
+    def _add_(left, right):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return left.disjoint_union(right)
+
+
+    #------------------------------------------------------------------------
+
+
+    def cartesian_product(self, *others):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return Operators.cartesian_product(self, *others)
+
+
+    def _cartesian_product_(self, *others):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return self._apply_operator_('CartesianProduct', self, *others)
+
+
+    def _mul_(left, right):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return left.cartesian_product(right)
+
+
+    #------------------------------------------------------------------------
+
+
+    def iter_elements(self, size):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        # do preprocessing of size here
+        return self._iter_elements_(size)
+
+
+    def _iter_elements_(self, size):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return NotImplementedError('Iteration for an instance of %s is '
+                                   'not implemented.' % (self._name_(),))
+
+
+    #------------------------------------------------------------------------
+
+
+    def random_element(self, size):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        # do preprocessing of size here
+        return self._random_element_(size)
+
+
+    def _random_element_(self, size):
+        """
+        TODO
+
+        INPUT:
+
+        - ```` --
+
+        OUTPUT:
+
+        EXAMPLES::
+
+            sage: TODO  # not tested
+        """
+        return NotImplementedError('Generation of an random element '
+                                   'for an instance of %s '
+                                   'not implemented.' % (self._name_(),))
+
 
 # ----------------------------------------------------------------------------
 
-class CombinatorialExpressionAtomUnlabelled(CombinatorialExpressionAtomBase, CombinatorialExpressionSingletonUnlabelled):
+
+class UnlabeledBase(
+    GenericBase,
+    _UnlabeledFlavor_):
     pass
+
 
 # ----------------------------------------------------------------------------
 
-class CombinatorialExpressionAtomLabelled(CombinatorialExpressionAtomBase, CombinatorialExpressionSingletonLabelled):
+
+class LabeledBase(
+    GenericBase,
+    _LabeledFlavor_):
     pass
 
-
-#*****************************************************************************
-# Data Structures -- DisjointUnion
-#*****************************************************************************
-
-def disjoint_union(*args, **kwargs):
-    # TODO: make here the decision if labelled or unlabelled is used
-    # (depending on args)
-    return CombinatorialExpressionDisjointUnionUnlabelled(*args, **kwargs)  # TODO
-
-class CombinatorialExpressionDisjointUnionBase(CombinatorialExpressionBase):
-    pass
-
-class CombinatorialExpressionDisjointUnionUnlabelled(CombinatorialExpressionDisjointUnionBase, CombinatorialExpressionUnlabelled):
-    pass
-
-class CombinatorialExpressionDisjointUnionLabelled(CombinatorialExpressionDisjointUnionBase, CombinatorialExpressionLabelled):
-    pass
-
-
-#*****************************************************************************
-# Data Structures -- CartesianProduct
-#*****************************************************************************
-
-def cartesian_product(*args, **kwargs):
-    # TODO: make here the decision if labelled or unlabelled is used
-    # (depending on args)
-    return CombinatorialExpressionCartesianProductUnlabelled(*args, **kwargs)  # TODO
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionCartesianProductBase(CombinatorialExpressionBase):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionCartesianProductUnlabelled(CombinatorialExpressionCartesianProductBase, CombinatorialExpressionUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionCartesianProductLabelled(CombinatorialExpressionCartesianProductBase, CombinatorialExpressionLabelled):
-    pass
-
-
-#*****************************************************************************
-# Data Structures -- Sequence
-#*****************************************************************************
-
-def sequence(*args, **kwargs):
-    # TODO: make here the decision if labelled or unlabelled is used
-    # (depending on args)
-    return CombinatorialExpressionSequenceUnlabelled(*args, **kwargs)  # TODO
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSequenceBase(CombinatorialExpressionBase):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSequenceUnlabelled(CombinatorialExpressionSequenceBase, CombinatorialExpressionUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionSequenceLabelled(CombinatorialExpressionSequenceBase, CombinatorialExpressionLabelled):
-    pass
-
-
-#*****************************************************************************
-# Data Structures -- MultiSet
-#*****************************************************************************
-
-def multi_set(*args, **kwargs):
-    # TODO: make here the decision if labelled or unlabelled is used
-    # (depending on args)
-    return CombinatorialExpressionMultiSetUnlabelled(*args, **kwargs)  # TODO
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionMultiSetBase(CombinatorialExpressionBase):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionMultiSetUnlabelled(CombinatorialExpressionMultiSetBase, CombinatorialExpressionUnlabelled):
-    pass
-
-# ----------------------------------------------------------------------------
-
-class CombinatorialExpressionMultiSetLabelled(CombinatorialExpressionMultiSetBase, CombinatorialExpressionLabelled):
-    pass
-
-
-#*****************************************************************************
 
