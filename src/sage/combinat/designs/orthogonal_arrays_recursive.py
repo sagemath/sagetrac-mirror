@@ -172,6 +172,31 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
 
     return False
 
+@cached_function
+def _cache_m_zero_one_two(k,m):
+    r"""
+    Return whether we can build `OA(k,m)`,`OA(k,m+1)` and `OA(k,m+2)`.
+
+    This is a helper function useful to improve the performances of several
+    "find" functions.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    EXAMPLE:
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import _cache_m_zero_one_two
+        sage: _cache_m_zero_one_two(8,7)
+        True
+        sage: _cache_m_zero_one_two(8,9)
+        False
+    """
+    return (orthogonal_array(k,m  ,existence=True) is True and
+            orthogonal_array(k,m+1,existence=True) is True and
+            orthogonal_array(k,m+2,existence=True) is True)
+
+
 def find_wilson_decomposition_with_two_truncated_groups(k,n):
     r"""
     Helper function for Wilson's construction with two trucated columns.
@@ -210,10 +235,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         for m in m_values:
             r1_p_r2 = n-r*m # the sum of r1+r2
                             # it is automatically >= 2 since m <= m_max
-            if (r1_p_r2 > 2*r-2 or
-                not orthogonal_array(k,m  ,existence=True) or
-                not orthogonal_array(k,m+1,existence=True) or
-                not orthogonal_array(k,m+2,existence=True)):
+            if (r1_p_r2 > 2*r-2 or not _cache_m_zero_one_two(k,m)):
                 continue
 
             r1_min = r1_p_r2 - (r-1)
@@ -380,9 +402,7 @@ def find_construction_3_4(k,n):
         sage: find_construction_3_4(9,24)
     """
     for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
+        if not _cache_m_zero_one_two(k,mm):
             continue
 
         for nn in range(2,n//mm+1):
@@ -487,10 +507,7 @@ def find_construction_3_5(k,n):
     from sage.combinat.integer_list import IntegerListsLex
 
     for mm in range(2,n//2+1):
-        if (mm+3 >= n or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True) or
-            not orthogonal_array(k,mm+3,existence=True)):
+        if (mm+3 >= n or not _cache_m_zero_one_two(k,mm+1)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -611,9 +628,7 @@ def find_construction_3_6(k,n):
     from sage.rings.arith import is_prime_power
 
     for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
+        if not _cache_m_zero_one_two(k,mm):
             continue
 
         for nn in range(2,n//mm+1):
@@ -997,9 +1012,7 @@ def find_thwart_lemma_3_5(k,N):
         # 1. look for m,a,b,c,d with complement=False
         # (we restrict to a >= b >= c)
         for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
-            if not (orthogonal_array(k,m+0,existence=True) and
-                    orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True)):
+            if not _cache_m_zero_one_two(k,m):
                 continue
 
             NN = N - n*m
@@ -1025,9 +1038,7 @@ def find_thwart_lemma_3_5(k,N):
         # 2. look for m,a,b,c,d with complement=True
         # (we restrict to a >= b >= c)
         for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
-            if not (orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True) and
-                    orthogonal_array(k,m+3,existence=True)):
+            if not _cache_m_zero_one_two(k,m+1):
                 continue
 
             NN = N - n*m

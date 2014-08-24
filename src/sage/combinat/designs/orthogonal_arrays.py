@@ -937,8 +937,10 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     if k < t:
         raise ValueError("undefined for k<t")
 
-    if existence and _OA_cache_get(k,n) is not None and t == 2:
-        return _OA_cache_get(k,n)
+    if existence and t == 2:
+        cache = _OA_cache_get(k,n)
+        if cache is not None:
+            return cache
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
