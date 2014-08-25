@@ -721,6 +721,7 @@ def _OA_cache_construction_available(k,n):
         False
     """
     ans = _OA_cache.get(n,None)
+
     if ans is not None:
         max_true, min_unknown, max_unknown, min_false = ans
         if k <= max_true:
@@ -731,6 +732,45 @@ def _OA_cache_construction_available(k,n):
             return Unknown
     else:
         return Unknown
+
+def orthogonal_array_available(k,n,mult=1):
+    r"""
+    Return whether Sage can build `OA(k,n)`.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``mult`` (positive integer) -- test ``mult`` consecutive values of ``n``
+      (default is `1`)
+
+    EXAMPLE:
+
+        sage: from sage.combinat.designs.orthogonal_arrays import orthogonal_array_available
+        sage: orthogonal_array_available(8,7)
+        True
+        sage: orthogonal_array_available(10,10)
+        False
+    """
+    global _OA_cache
+
+    k = int(k)
+    n = int(n)
+
+    for n in range(n,n+mult):
+        if n in _OA_cache:
+            max_true, min_unknown, max_unknown, min_false = _OA_cache[n]
+            if k <= max_true:
+                continue
+            elif min_unknown is not None and k >= min_unknown:
+                return False
+            elif not orthogonal_array(k,n,existence=True):
+                return False
+
+        elif not orthogonal_array(k,n,existence=True):
+            return False
+
+    return True
 
 def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     r"""
