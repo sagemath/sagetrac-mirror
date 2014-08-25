@@ -6,8 +6,6 @@ Examples
 
 ::
 
-    sage: from sage.combinat.combinatorial_expression import (
-    ....:     CombinatorialExpressionRing)
     sage: R = CombinatorialExpressionRing(SR); R
     Combinatorial Expression Ring (over Symbolic Ring)
 
@@ -392,7 +390,6 @@ class GenericExpression(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericFunction,
         ....:     GenericDisjointUnion,
         ....:     GenericCartesianProduct,
@@ -421,7 +418,6 @@ class GenericExpression(
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericExpression)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = GenericExpression(R); z  # indirect doctest
@@ -450,8 +446,6 @@ class GenericExpression(
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: R = CombinatorialExpressionRing(SR)
             sage: T = R(var('T'), function=True); T
             T = None
@@ -476,8 +470,6 @@ class GenericExpression(
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: R = CombinatorialExpressionRing(SR)
             sage: c = R(var('a')) + R(var('b')); c
             a + b
@@ -501,8 +493,6 @@ class GenericExpression(
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: R = CombinatorialExpressionRing(SR)
             sage: c = R(var('a')) + R(var('b')); c
             a + b
@@ -534,7 +524,6 @@ class GenericExpression(
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericExpression)
             sage: R = CombinatorialExpressionRing(SR)
             sage: R(var('z'))._name_()
@@ -790,7 +779,7 @@ class GenericExpression(
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing, Operators)
+            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: g = R(var('g'))
             sage: u = R(var('u'), unlabeled=True)
@@ -1052,7 +1041,6 @@ class GenericFunction(GenericExpression):
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericFunction)
         sage: R = CombinatorialExpressionRing(SR)
         sage: GenericFunction(R, var('T'))
@@ -1065,7 +1053,6 @@ class GenericFunction(GenericExpression):
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericFunction)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = GenericFunction(R, var('z')); z  # indirect doctest
@@ -1129,7 +1116,6 @@ class UnlabeledFunction(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     UnlabeledFunction)
         sage: R = CombinatorialExpressionRing(SR)
         sage: T = UnlabeledFunction(R, var('T')); T
@@ -1163,7 +1149,6 @@ class LabeledFunction(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     LabeledFunction)
         sage: R = CombinatorialExpressionRing(SR)
         sage: LabeledFunction(R, var('T'))
@@ -1204,7 +1189,6 @@ class GenericSingleton(GenericExpression):
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericSingleton)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = GenericSingleton(R, var('z'), size=2); z  # indirect doctest
@@ -1275,7 +1259,6 @@ class GenericAtom(GenericSingleton):
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericAtom)
         sage: R = CombinatorialExpressionRing(SR)
         sage: GenericAtom(R, var('z'))
@@ -1294,7 +1277,6 @@ class GenericAtom(GenericSingleton):
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericAtom)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = GenericAtom(R, var('z')); z  # indirect doctest
@@ -1348,7 +1330,6 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericEmpty)
         sage: R = CombinatorialExpressionRing(SR)
         sage: GenericEmpty(R, var('z'))
@@ -1370,7 +1351,6 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing,
             ....:     GenericEmpty)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = GenericEmpty(R, SR(1)); z  # indirect doctest
@@ -1408,7 +1388,6 @@ class GenericDisjointUnion(GenericExpression):
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericDisjointUnion,
         ....:     GenericAtom)
         sage: R = CombinatorialExpressionRing(SR)
@@ -1473,7 +1452,6 @@ class UnlabeledDisjointUnion(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     UnlabeledDisjointUnion,
         ....:     UnlabeledAtom)
         sage: R = CombinatorialExpressionRing(SR)
@@ -1507,7 +1485,6 @@ class LabeledDisjointUnion(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     LabeledDisjointUnion,
         ....:     LabeledAtom)
         sage: R = CombinatorialExpressionRing(SR)
@@ -1540,7 +1517,6 @@ class GenericCartesianProduct(GenericExpression):
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     GenericCartesianProduct,
         ....:     GenericDisjointUnion,
         ....:     GenericAtom)
@@ -1611,7 +1587,6 @@ class UnlabeledCartesianProduct(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     UnlabeledCartesianProduct,
         ....:     UnlabeledAtom)
         sage: R = CombinatorialExpressionRing(SR)
@@ -1645,7 +1620,6 @@ class LabeledCartesianProduct(
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing,
         ....:     LabeledCartesianProduct,
         ....:     LabeledAtom)
         sage: R = CombinatorialExpressionRing(SR)
@@ -1686,8 +1660,6 @@ class CombinatorialExpressionRing(
 
     EXAMPLES::
 
-        sage: from sage.combinat.combinatorial_expression import (
-        ....:     CombinatorialExpressionRing)
         sage: R = CombinatorialExpressionRing(SR); R
         Combinatorial Expression Ring (over Symbolic Ring)
         sage: R(var('z'))
@@ -1699,8 +1671,6 @@ class CombinatorialExpressionRing(
 
         TESTS::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: R = CombinatorialExpressionRing(SR); R
             Combinatorial Expression Ring (over Symbolic Ring)
             sage: type(R)
@@ -1729,8 +1699,6 @@ class CombinatorialExpressionRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: repr(CombinatorialExpressionRing(SR))  # indirect doctest
             'Combinatorial Expression Ring (over Symbolic Ring)'
         """
@@ -1751,8 +1719,6 @@ class CombinatorialExpressionRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: CombinatorialExpressionRing(SR).base_ring()
             Symbolic Ring
         """
@@ -1846,8 +1812,6 @@ class CombinatorialExpressionRing(
 
         TESTS::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing)
             sage: R = CombinatorialExpressionRing(SR)
             sage: z = R._from_base_ring_(var('z'), 'labeled', size=1); z
             z
@@ -1998,7 +1962,7 @@ class Operators(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing, Operators)
+            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: a = R(var('a'))
             sage: b = R(var('b'))
@@ -2029,7 +1993,7 @@ class Operators(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     CombinatorialExpressionRing, Operators)
+            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: a = R(var('a'))
             sage: b = R(var('b'))
