@@ -391,14 +391,11 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
-# manual states that its result is always prime up to this 2^64.
-# As 2^64 does not necessarily fits into an unsigned long we
-# set set the limit to min(2^64, ULONG_MAX).
+# manual states that its result is always prime up to this 2^64
+# (which is 10000000000000000 in base 16).
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
 mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000000", 16)
-if not mpz_fits_uint_p(PARI_PSEUDOPRIME_LIMIT):
-    mpz_set_ui(PARI_PSEUDOPRIME_LIMIT, ULONG_MAX)
 
 def is_Integer(x):
     """
@@ -4557,11 +4554,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return False
         elif mpz_cmp_ui(self.value, 1) == 0:
             return True
+
+        cdef unsigned long p
+        if mpz_fits_ulong_p(self.value):
+            return bool(uisprimepower(mpz_get_ui(self.value), &p))
+
         if self.is_prime():
             return True
-        cdef unsigned long m,p
-        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
-            return bool(uisprimepower(mpz_get_ui(self.value), &p))
         if not self.is_perfect_power():
             return False
         k, g = self._pari_().ispower()
@@ -4630,7 +4629,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             return False
         
-        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+        if mpz_fits_ulong_p(self.value):
             return bool(uisprime(mpz_get_ui(self.value)))
 
         if proof is None:
