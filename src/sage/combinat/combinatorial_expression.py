@@ -438,51 +438,78 @@ class GenericExpression(
 
     def assign(self, *operands):
         """
-        TODO
+        Assign operands.
 
         INPUT:
 
-        - ```` --
+        - ``*operands`` -- the operands of the operation defined by this class.
 
         OUTPUT:
 
+        Nothing.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True); T
+            T = None
+            sage: T.assign(R(SR(1)))
+            sage: T
+            T = 1
         """
         self._operands_ = tuple(operands)
 
 
     def operands(self):
         """
-        TODO
+        Return the operands.
 
         INPUT:
 
-        - ```` --
+        Nothing.
 
         OUTPUT:
 
+        A tuple of operands.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: c = R(var('a')) + R(var('b')); c
+            a + b
+            sage: c.operands()
+            (a, b)
         """
         return self._operands_
 
 
     def iter_operands(self):
         """
-        TODO
+        Return an iterator of the operands.
 
         INPUT:
 
-        - ```` --
+        Nothing.
 
         OUTPUT:
 
+        An iterator.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: c = R(var('a')) + R(var('b')); c
+            a + b
+            sage: for o in c.iter_operands():
+            ....:     print o, type(o)
+            a <class 'sage.combinat.combinatorial_expression.GenericAtom_with_category'>
+            b <class 'sage.combinat.combinatorial_expression.GenericAtom_with_category'>
         """
         return iter(self._operands_)
 
@@ -492,19 +519,35 @@ class GenericExpression(
 
     def _name_(self):
         """
-        TODO
+        Return the name (the name of the class) of ``self``.
 
         INPUT:
 
-        - ```` --
+        Nothing.
 
         OUTPUT:
 
-        EXAMPLES::
+        A string.
 
-            sage: TODO  # not tested
+        This function strips of a trailing ``_with_category``.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R(var('z'))._name_()
+            'GenericAtom'
+            sage: y = GenericExpression(R); y  # indirect doctest
+            GenericExpression()
         """
-        return self.__class__.__name__
+        s = self.__class__.__name__
+        i = s.rfind('_with_category')
+        if i >= 0:
+            return s[:i]
+        else:
+            return s
 
 
     #------------------------------------------------------------------------
