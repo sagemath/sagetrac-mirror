@@ -1,4 +1,4 @@
-.. _section-plot:
+.. _section-functions-issues:
 
 函数的一些常见问题
 =================================
