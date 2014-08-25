@@ -544,20 +544,31 @@ class GenericExpression(
 
     def _update_memo_(self, memo):
         """
-        TODO
+        Update the memo during recursive evaluation.
 
         INPUT:
 
-        - ```` --
+        - ``memo`` -- a dictionary.
 
         OUTPUT:
 
-        EXAMPLES::
+        ``True`` if ``self`` was not already in memo, otherwise ``False``.
 
-            sage: TODO  # not tested
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = GenericExpression(R)
+            sage: memo = {}; memo
+            {}
+            sage: y._update_memo_(memo)
+            True
+            sage: memo
+            {...: True}
+            sage: memo.popitem() == (id(y), True)
+            True
         """
-        #if not memo:
-        #    memo = {}
         key = id(self)
         m = memo.get(key)
         memo[key] = True
@@ -569,7 +580,7 @@ class GenericExpression(
 
     def _repr_(self):
         """
-        Returns a representation string.
+        Return a representation string.
 
         INPUT:
 
@@ -579,9 +590,13 @@ class GenericExpression(
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._repr_()
+            'GenericExpression()'
         """
         memo = {}
         return self._repr_main_(memo)
@@ -589,7 +604,7 @@ class GenericExpression(
 
     def _repr_main_(self, memo):
         """
-        Returns a repesentation string.
+        Returns a representation string.
 
         INPUT:
 
@@ -599,16 +614,22 @@ class GenericExpression(
 
         A string.
 
-        EXAMPLES::
+        This function is usually overridden in a derived class.
 
-            sage: TODO  # not tested
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._repr_main_({})
+            'GenericExpression()'
         """
         return self._repr_recursive_(memo)
 
 
     def _repr_recursive_(self, memo):
         """
-        Recursively builds the representation string
+        Recursively build the representation string.
 
         INPUT:
 
@@ -618,9 +639,17 @@ class GenericExpression(
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._repr_recursive_({})
+            'GenericExpression()'
+            sage: z = GenericExpression(R)
+            sage: z.assign(z)
+            sage: z
+            GenericExpression(REC)
         """
         if not self._update_memo_(memo):
             return self._repr_recursion_()
@@ -633,7 +662,7 @@ class GenericExpression(
     @staticmethod
     def _repr_make_parenthesis_(s, make=True):
         """
-        Makes parenthesis around a string.
+        Make parenthesis around a string.
 
         INPUT:
 
@@ -665,7 +694,7 @@ class GenericExpression(
 
     def _repr_need_parenthesis_(self, operand):
         """
-        Returns if parenthesis are needed around the representation string
+        Return if parenthesis are needed around the representation string
         of the given operand.
 
         INPUT:
@@ -675,13 +704,24 @@ class GenericExpression(
         OUTPUT:
 
         ``False``.
+
+        This function is usually overridden in a derived class.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._repr_need_parenthesis_(
+            ....:     GenericExpression(R))
+            False
         """
         return False
 
 
     def _repr_join_(self, reprs_of_operands):
         """
-        Joins the given representation strings together.
+        Join the given representation strings together.
 
         INPUT:
 
@@ -691,9 +731,14 @@ class GenericExpression(
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._repr_join_(
+            ....:     str(i) for i in srange(4))
+            'GenericExpression(0, 1, 2, 3)'
         """
         return (self._name_() +
                 self._repr_make_parenthesis_(
@@ -702,7 +747,7 @@ class GenericExpression(
 
     def _repr_recursion_(self):
         """
-        Returns a string signalling that an recursion was encountered.
+        Return a string signaling that a recursion was encountered.
 
         INPUT:
 
@@ -712,9 +757,15 @@ class GenericExpression(
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericExpression(R)
+            sage: z.assign(z)
+            sage: z  # indirect doctest
+            GenericExpression(REC)
         """
         return 'REC'
 
