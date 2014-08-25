@@ -1462,6 +1462,10 @@ class GenericFunction(GenericExpression):
             z = None
         """
         super(GenericFunction, self).__init__(parent, *operands)
+
+        if expression not in self.parent().base_ring():
+            raise ValueError('%s is not in %s' % (expression,
+                                                  self.parent().base_ring()))
         self._expression_ = expression
 
 
@@ -1630,7 +1634,19 @@ class GenericSingleton(GenericExpression):
 
     EXAMPLES::
 
-        sage: TODO  # not tested
+        sage: R = CombinatorialExpressionRing(SR)
+        sage: y = R(var('y'), size=2); y
+        y
+        sage: y.size()
+        2
+        sage: z = R(var('z')); z
+        z
+        sage: z.size()
+        1
+        sage: e = R(SR(1)); e
+        1
+        sage: e.size()
+        0
     """
 
     def __init__(self, parent, singleton, size):
@@ -1649,25 +1665,111 @@ class GenericSingleton(GenericExpression):
         self._set_singleton_(singleton, size)
 
 
+    #------------------------------------------------------------------------
+
+
     def _set_singleton_(self, singleton, size):
         """
-        TODO
+        Set data.
+
+        INPUT:
+
+        - ``singleton`` -- an element of the base ring.
+
+        - ``size`` -- the size of the singleton.
+
+        OUTPUT:
+
+        Nothing.
 
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = R(var('z')); z  # indirect doctest
+            z
+            sage: z.size()
+            1
+            sage: R(Automaton())
+            Traceback (most recent call last):
+            ...
+            TypeError
         """
+        if singleton not in self.parent().base_ring():
+            raise ValueError('%s is not in %s' % (singleton,
+                                                  self.parent().base_ring()))
         self._singleton_ = singleton
         self._size_ = size
 
 
+    def singleton(self):
+        """
+        Return the singleton (element of the base ring).
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of the base ring.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = R(var('z'))
+            sage: z.singleton()
+            z
+            sage: z.singleton().parent()
+            Symbolic Ring
+        """
+        return self._singleton_
+
+
     def size(self):
+        """
+        Return the size of the singleton.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The size of ``self``.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = R(var('z'))
+            sage: z.size()
+            1
+        """
         return self._size_
 
 
+    #------------------------------------------------------------------------
+
+
     def _repr_main_(self, memo):
+        """
+        Returns a representation string.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R(var('z'))._repr_main_({})
+            'z'
+        """
         self._update_memo_(memo)
-        return repr(self._singleton_)
+        return repr(self.singleton())
 
 
     #------------------------------------------------------------------------
@@ -1735,6 +1837,12 @@ class GenericSingleton(GenericExpression):
 class UnlabeledSingleton(
     GenericSingleton,
     UnlabeledExpression):
+    """
+    A class representing an unlabeled singleton.
+
+    For details see :class:`GenericSingleton`.
+
+    """
     pass
 
 
@@ -1744,6 +1852,12 @@ class UnlabeledSingleton(
 class LabeledSingleton(
     GenericSingleton,
     LabeledExpression):
+    """
+    A class representing a labeled singleton.
+
+    For details see :class:`GenericSingleton`.
+
+    """
     pass
 
 
@@ -1801,6 +1915,11 @@ class GenericAtom(GenericSingleton):
 class UnlabeledAtom(
     GenericAtom,
     UnlabeledSingleton):
+    """
+    A class representing an unlabeled singleton.
+
+    For details see :class:`GenericAtom`.
+    """
     pass
 
 
@@ -1810,6 +1929,12 @@ class UnlabeledAtom(
 class LabeledAtom(
     GenericAtom,
     LabeledSingleton):
+    """
+    A class representing a labeled singleton.
+
+    For details see :class:`GenericAtom`.
+
+    """
     pass
 
 
