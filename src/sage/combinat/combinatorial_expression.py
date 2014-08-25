@@ -393,6 +393,19 @@ class GenericExpression(
 
         This should not be used directly. Use a derived class.
 
+    .. SEEALSO::
+
+        :class:`UnlabeledExpression`,
+        :class:`LabeledExpression'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -1404,6 +1417,19 @@ class UnlabeledExpression(
     Abstract base class for all unlabeled combinatorial expressions.
 
     For details see :class:`GenericExpression`.
+
+    .. SEEALSO::
+
+        :class:`GenericExpression`,
+        :class:`LabeledExpression'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
     """
     pass
 
@@ -1418,6 +1444,19 @@ class LabeledExpression(
     Abstract base class for all labeled combinatorial expressions.
 
     For details see :class:`GenericExpression`.
+
+    .. SEEALSO::
+
+        :class:`GenericExpression`,
+        :class:`UnlabeledExpression`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
     """
     pass
 
@@ -1440,6 +1479,20 @@ class GenericFunction(GenericExpression):
     OUTPUT:
 
     A new combinatorial function.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledFunction`,
+        :class:`LabeledFunction'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
@@ -1568,6 +1621,19 @@ class UnlabeledFunction(
 
     A new unlabeled combinatorial expression.
 
+    .. SEEALSO::
+
+        :class:`GenericFunction`,
+        :class:`LabeledFunction',
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericSingleton`.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -1601,6 +1667,19 @@ class LabeledFunction(
 
     A new labeled combinatorial expression.
 
+    .. SEEALSO::
+
+        :class:`GenericFunction`,
+        :class:`UnlabeledFunction`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericSingleton`.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -1631,6 +1710,19 @@ class GenericSingleton(GenericExpression):
     OUTPUT:
 
     A new singleton.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledSingleton`,
+        :class:`LabeledSingleton'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`.
 
     EXAMPLES::
 
@@ -1842,6 +1934,18 @@ class UnlabeledSingleton(
 
     For details see :class:`GenericSingleton`.
 
+    .. SEEALSO::
+
+        :class:`GenericSingleton`,
+        :class:`LabeledSingleton'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`.
     """
     pass
 
@@ -1857,6 +1961,18 @@ class LabeledSingleton(
 
     For details see :class:`GenericSingleton`.
 
+    .. SEEALSO::
+
+        :class:`GenericSingleton`,
+        :class:`UnlabeledSingleton`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`.
     """
     pass
 
@@ -1879,6 +1995,19 @@ class GenericAtom(GenericSingleton):
     OUTPUT:
 
     A new atom.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledAtom`,
+        :class:`LabeledAtom'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`,
 
     TESTS::
 
@@ -1919,6 +2048,19 @@ class UnlabeledAtom(
     A class representing an unlabeled singleton.
 
     For details see :class:`GenericAtom`.
+
+    .. SEEALSO::
+
+        :class:`GenericAtom`,
+        :class:`LabeledAtom'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
     """
     pass
 
@@ -1934,6 +2076,18 @@ class LabeledAtom(
 
     For details see :class:`GenericAtom`.
 
+    .. SEEALSO::
+
+        :class:`GenericAtom`,
+        :class:`UnlabeledAtom`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
     """
     pass
 
@@ -1961,6 +2115,19 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
 
         The empty expression has all flavors, i.e., it is unlabeled,
         as well as labeled at the same time.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledEmpty`,
+        :class:`LabeledEmpty'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
@@ -2020,6 +2187,19 @@ class GenericDisjointUnion(GenericExpression):
     OUTPUT:
 
     A disjoint union of the operands.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledDisjointUnion`,
+        :class:`LabeledDisjointUnion'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
@@ -2085,6 +2265,19 @@ class UnlabeledDisjointUnion(
 
     An unlabeled disjoint union of the operands.
 
+    .. SEEALSO::
+
+        :class:`GenericDisjointUnion`,
+        :class:`LabeledDisjointUnion'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -2118,6 +2311,19 @@ class LabeledDisjointUnion(
 
     A labeled disjoint union of the operands.
 
+    .. SEEALSO::
+
+        :class:`GenericDisjointUnion`,
+        :class:`UnlabeledDisjointUnion`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -2149,6 +2355,19 @@ class GenericCartesianProduct(GenericExpression):
     OUTPUT:
 
     A cartesian product of the operands.
+
+    .. SEEALSO::
+
+        :class:`UnlabeledCartesianProduct`,
+        :class:`LabeledCartesianProduct'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
@@ -2220,6 +2439,19 @@ class UnlabeledCartesianProduct(
 
     An unlabeled cartesian product of the operands.
 
+    .. SEEALSO::
+
+        :class:`GenericCartesianProduct`,
+        :class:`LabeledCartesianProduct'.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`,
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -2252,6 +2484,19 @@ class LabeledCartesianProduct(
     OUTPUT:
 
     A labeled cartesian product of the operands.
+
+    .. SEEALSO::
+
+        :class:`GenericCartesianProduct`,
+        :class:`UnlabeledCartesianProduct`.
+
+        :class:`CombinatorialExpressionRing`,
+        :class:`GenericAtom`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
