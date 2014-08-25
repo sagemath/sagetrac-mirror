@@ -520,6 +520,63 @@ class GenericExpression(
     #------------------------------------------------------------------------
 
 
+    def iter_all_expressions(self, memo=None):
+        """
+        Return an iterator of all expressions contained in ``self``
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        .. NOTE::
+
+            Each element is returned exactly once.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True)
+            sage: z = R(var('z'))
+            sage: e = R(SR(1))
+            sage: T.assign(e + z * T * T); T
+            T = 1 + z*T*T
+            sage: for expr in T.iter_all_expressions():
+            ....:     print expr
+            T = 1 + z*T*T
+            1 + z*T*T
+            1
+            z*T*T
+            z*T
+            z
+
+        TESTS::
+
+            sage: [expr for expr in (z*z*z).iter_all_expressions()]
+            [z*z*z, z*z, z]
+            sage: [expr for expr in
+            ....:  R.Operators.cartesian_product(z, z, z).iter_all_expressions()]
+            [z*z*z, z]
+        """
+        if memo is None:
+            memo = {}
+
+        if not self._update_memo_(memo):
+            return
+
+        yield self
+
+        for o in self.iter_operands():
+            for e in o.iter_all_expressions(memo):
+                yield e
+
+
+    #------------------------------------------------------------------------
+
+
     def _name_(self):
         """
         Return the name (the name of the class) of ``self``.
