@@ -147,12 +147,12 @@ from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
 from libc.stdint cimport uint64_t
+from libc.limits cimport LONG_MAX, ULONG_MAX
+
+
 include "sage/ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
-
-cdef extern from "limits.h":
-    long LONG_MAX
 
 cdef extern from "math.h":
     double sqrt_double "sqrt"(double)
@@ -172,9 +172,6 @@ cdef extern from "mpz_longlong.h":
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
-
-cdef extern from "pari/pari.h":
-    int uisprime(unsigned long)
 
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
@@ -394,10 +391,14 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
-# manual states that its result is always prime up to this 10^13.
+# manual states that its result is always prime up to this 2^64.
+# As 2^64 does not necessarily fits into an unsigned long we
+# set set the limit to min(2^64, ULONG_MAX).
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
-mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000", 10)
+mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000000", 16)
+if not mpz_fits_uint_p(PARI_PSEUDOPRIME_LIMIT):
+    mpz_set_ui(PARI_PSEUDOPRIME_LIMIT, ULONG_MAX)
 
 def is_Integer(x):
     """
@@ -4261,7 +4262,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-64).perfect_power()
             (-4, 3)
         """
-        parians = self._pari_c().ispower()
+        parians = self._pari_().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
     def global_height(self, prec=None):
@@ -4558,9 +4559,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return True
         if self.is_prime():
             return True
+        cdef unsigned long m,p
+        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+            return bool(uisprimepower(mpz_get_ui(self.value), &p))
         if not self.is_perfect_power():
             return False
-        k, g = self._pari_c().ispower()
+        k, g = self._pari_().ispower()
         if k == 1:
             raise RuntimeError("Inconsistent results between GMP and PARI")
         return g.isprime(flag=flag)
@@ -4633,9 +4637,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if proof:
-            return bool(self._pari_c().isprime())
+            return bool(self._pari_().isprime())
         else:
-            return bool(self._pari_c().ispseudoprime())
+            return bool(self._pari_().ispseudoprime())
 
     def is_irreducible(self):
         r"""
@@ -4658,7 +4662,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef Integer n = self if self >= 0 else -self
-        return bool(n._pari_c().isprime())
+        return bool(n._pari_().isprime())
 
     def is_pseudoprime(self):
         r"""
@@ -4678,7 +4682,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_pseudoprime()
             False
         """
-        return bool(self._pari_c().ispseudoprime())
+        return bool(self._pari_().ispseudoprime())
 
     def is_perfect_power(self):
         r"""
@@ -4966,7 +4970,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 144168.next_probable_prime()
             144169
         """
-        return Integer( self._pari_c().nextprime(True) )
+        return Integer( self._pari_().nextprime(True) )
 
     def next_prime(self, proof=None):
         r"""
@@ -4995,12 +4999,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1009
         """
         if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
-            return Integer( self._pari_c().nextprime(True) )
+            return Integer( self._pari_().nextprime(True) )
         if proof is None:
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if not proof:
-            return Integer( self._pari_c().nextprime(True) )
+            return Integer( self._pari_().nextprime(True) )
         n = self
         if n % 2 == 0:
             n += 1
@@ -5062,9 +5066,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(0).is_squarefree()
             False
         """
-        return self._pari_c().issquarefree()
+        return self._pari_().issquarefree()
 
-    def _pari_(self):
+    cpdef _pari_(self):
         """
         Returns the PARI version of this integer.
 
@@ -5082,10 +5086,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n._pari_() ## crash from trac 875
             sage: m % 1234567
             1041334
-        """
-        return self._pari_c()
 
-    cdef _pari_c(self):
+        """
         return pari.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
@@ -5948,7 +5950,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sig_off()
             return x
         elif algorithm == 'pari':
-            return the_integer_ring(self._pari_c().binomial(m))
+            return the_integer_ring(self._pari_().binomial(m))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
