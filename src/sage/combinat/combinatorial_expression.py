@@ -65,7 +65,6 @@ AUTHORS:
 import sage
 from sage.rings.integer import Integer
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.structure.sage_object import SageObject  # TODO löschen
 from itertools import izip
 
 #*****************************************************************************
@@ -1813,7 +1812,7 @@ class CombinatorialExpressionRing(
 # Operators
 #*****************************************************************************
 
-class Operators(SageObject):
+class Operators(sage.structure.sage_object.SageObject):
     """
     This class contains a collection of operators used to create
     combinatorial expressions.
