@@ -775,38 +775,77 @@ class GenericExpression(
 
     def __cmp__(left, right, memo=None):
         """
-        TODO
+        Return whether operators are equal or not.
 
         INPUT:
 
-        - ```` --
+        - ``left`` -- left expression.
+
+        - ``right`` -- right expression.
+
+        - ``memo`` -- a dictionary.
 
         OUTPUT:
 
+        ``0`` if operands are equal, otherwise ``-1``.
+
+        The keys of the dictionary ``memo`` are identifiers of
+        combinatorial expressions, their values are ``True`` if they
+        compare equal, otherwise ``False``.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: B = R(var('B'), function=True)
+            sage: T = R(var('T'), function=True)
+            sage: B == T
+            True
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: y == z
+            True
+            sage: e = R(SR(1))
+            sage: f = R(SR(1))
+            sage: e == f
+            True
+            sage: B.assign(f + y * B * B); B
+            B = 1 + y*B*B
+            sage: B == T
+            False
+            sage: T.assign(e + z * T * T); T
+            T = 1 + z*T*T
+            sage: B == T
+            True
+            sage: T == B
+            True
         """
         if not memo:
             memo = {}
         key = (id(left), id(right))
-        m = memo.get(key)
-        if m is not None:
-            return m
+
+        result = memo.get(key)
+        if result is not None:
+            return 0 if result else -1
+        m = memo.get((key[1], key[0]))
+        if result is not None:
+            return 0 if result else -1
+
         memo[key] = True
 
         if left.__class__ != right.__class__:
             result = False
         else:
-            S = left.operands()
-            O = right.operands()
-            if len(S) != len(O):
+            L = left.operands()
+            R = right.operands()
+            if len(L) != len(R):
                 result = False
             else:
-                result = all(s.__cmp__(o, memo) for s, o in izip(S, O))
+                result = all(l.__cmp__(r, memo) == 0 for l, r in izip(L, R))
 
         memo[key] = result
-        return result
+        # result is True if equal, otherwise False; convert it to be
+        # compatible with cmp(...)
+        return 0 if result else -1
 
 
     #------------------------------------------------------------------------
@@ -1392,6 +1431,7 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
         sage: type(R(SR(1), labeled=True))
         <class 'sage.combinat.combinatorial_expression.GenericEmpty_with_category'>
         sage: R(SR(1)) == R(SR(1), unlabeled=True) == R(SR(1), labeled=True)
+        True
     """
     def __init__(self, parent, empty):
         """
