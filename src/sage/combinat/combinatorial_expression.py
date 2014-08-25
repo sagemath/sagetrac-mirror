@@ -26,16 +26,16 @@ Plane/Ordered Binary Trees
 ::
 
     sage: from sage.combinat.combinatorial_expression import (
-    ....:     UnlabeledExpression, LabeledExpression)
+    ....:     UnlabeledFunction, LabeledFunction)
     sage: # T = R(var('T'), expression=True)
-    sage: T = UnlabeledExpression(R, var('T')); T  # TODO: simplify this (see previous line)
-    T == None
+    sage: T = UnlabeledFunction(R, var('T')); T  # TODO: simplify this (see previous line)
+    T = None
     sage: z = R(var('z')); z
     z
     sage: e = R(SR(1)); e
     1
     sage: T.assign(e + z * T * T); T
-    T == 1 + z*T*T
+    T = 1 + z*T*T
 
 .. NOTE::
 
@@ -372,7 +372,7 @@ class _EmptyFlavor_(_GenericFlavor_):
 #*****************************************************************************
 
 
-class GenericBase(
+class GenericExpression(
     sage.structure.element.RingElement,
     _GenericFlavor_):
     """
@@ -396,7 +396,7 @@ class GenericBase(
 
         sage: from sage.combinat.combinatorial_expression import (
         ....:     CombinatorialExpressionRing,
-        ....:     GenericExpression,
+        ....:     GenericFunction,
         ....:     GenericDisjointUnion,
         ....:     GenericCartesianProduct,
         ....:     GenericAtom)
@@ -407,33 +407,33 @@ class GenericBase(
         sage: eps = GenericAtom(R, SR(1))
         sage: eps
         1
-        sage: T = GenericExpression(R, var('T')); T
-        T == None
+        sage: T = GenericFunction(R, var('T')); T
+        T = None
         sage: A = GenericCartesianProduct(R, z, T, T); A
         z*T*T
         sage: B = GenericDisjointUnion(R, eps, A); B
         1 + z*T*T
         sage: T.assign(B)
         sage: T
-        T == 1 + z*T*T
+        T = 1 + z*T*T
     """
     def __init__(self, parent, *operands):
         """
-        See :class:`GenericBase` for more information.
+        See :class:`GenericExpression` for more information.
 
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
             ....:     CombinatorialExpressionRing,
-            ....:     GenericBase)
+            ....:     GenericExpression)
             sage: R = CombinatorialExpressionRing(SR)
-            sage: z = GenericBase(R); z  # indirect doctest
-            GenericBase()
+            sage: z = GenericExpression(R); z  # indirect doctest
+            GenericExpression()
             sage: z.parent()
             Combinatorial Expression Ring (over Symbolic Ring)
         """
         self.assign(*operands)
-        super(GenericBase, self).__init__(parent)
+        super(GenericExpression, self).__init__(parent)
 
 
     # ------------------------------------------------------------------------
@@ -620,11 +620,11 @@ class GenericBase(
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
-            ....:     GenericBase)
-            sage: GenericBase._repr_make_parenthesis_(
+            ....:     GenericExpression)
+            sage: GenericExpression._repr_make_parenthesis_(
             ....:     '42', False)
             '42'
-            sage: GenericBase._repr_make_parenthesis_(
+            sage: GenericExpression._repr_make_parenthesis_(
             ....:     '42', True)
             '(42)'
             """
@@ -975,8 +975,8 @@ class GenericBase(
 # ----------------------------------------------------------------------------
 
 
-class UnlabeledBase(
-    GenericBase,
+class UnlabeledExpression(
+    GenericExpression,
     _UnlabeledFlavor_):
     pass
 
@@ -984,20 +984,20 @@ class UnlabeledBase(
 # ----------------------------------------------------------------------------
 
 
-class LabeledBase(
-    GenericBase,
+class LabeledExpression(
+    GenericExpression,
     _LabeledFlavor_):
     pass
 
 
 #*****************************************************************************
-# Element: Expression
+# Element: Function
 #*****************************************************************************
 
 
-class GenericExpression(GenericBase):
+class GenericFunction(GenericExpression):
     """
-    A class representing a combinatorial expression.
+    A class representing a combinatorial function.
 
     INPUT:
 
@@ -1007,37 +1007,37 @@ class GenericExpression(GenericBase):
 
     OUTPUT:
 
-    A new combinatorial expression.
+    A new combinatorial function.
 
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
         ....:     CombinatorialExpressionRing,
-        ....:     GenericExpression)
+        ....:     GenericFunction)
         sage: R = CombinatorialExpressionRing(SR)
-        sage: GenericExpression(R, var('T'))
-        T == None
+        sage: GenericFunction(R, var('T'))
+        T = None
     """
     def __init__(self, parent, expression, *operands):
         """
-        See :class:`GenericExpression` for more information.
+        See :class:`GenericFunction` for more information.
 
         TESTS::
 
             sage: from sage.combinat.combinatorial_expression import (
             ....:     CombinatorialExpressionRing,
-            ....:     GenericExpression)
+            ....:     GenericFunction)
             sage: R = CombinatorialExpressionRing(SR)
-            sage: z = GenericExpression(R, var('z')); z  # indirect doctest
-            z == None
+            sage: z = GenericFunction(R, var('z')); z  # indirect doctest
+            z = None
         """
-        super(GenericExpression, self).__init__(parent, *operands)
+        super(GenericFunction, self).__init__(parent, *operands)
         self._expression_ = expression
 
 
     def _repr_(self):
         memo = {}
-        s = repr(self._expression_) + ' == '
+        s = repr(self._expression_) + ' = '
         if self._operands_:
             return s + self._repr_recursive_(memo)
         else:
@@ -1070,9 +1070,9 @@ class GenericExpression(GenericBase):
 # ----------------------------------------------------------------------------
 
 
-class UnlabeledExpression(
-    GenericExpression,
-    UnlabeledBase):
+class UnlabeledFunction(
+    GenericFunction,
+    UnlabeledExpression):
     """
     A class representing a unlabeled combinatorial expression.
 
@@ -1090,10 +1090,10 @@ class UnlabeledExpression(
 
         sage: from sage.combinat.combinatorial_expression import (
         ....:     CombinatorialExpressionRing,
-        ....:     UnlabeledExpression)
+        ....:     UnlabeledFunction)
         sage: R = CombinatorialExpressionRing(SR)
-        sage: T = UnlabeledExpression(R, var('T')); T
-        T == None
+        sage: T = UnlabeledFunction(R, var('T')); T
+        T = None
         sage: T.is_unlabeled()
         True
         sage: T.is_labeled()
@@ -1104,9 +1104,9 @@ class UnlabeledExpression(
 
 # ----------------------------------------------------------------------------
 
-class LabeledExpression(
-    GenericExpression,
-    LabeledBase):
+class LabeledFunction(
+    GenericFunction,
+    LabeledExpression):
     """
     A class representing a labeled combinatorial expression.
 
@@ -1124,10 +1124,10 @@ class LabeledExpression(
 
         sage: from sage.combinat.combinatorial_expression import (
         ....:     CombinatorialExpressionRing,
-        ....:     LabeledExpression)
+        ....:     LabeledFunction)
         sage: R = CombinatorialExpressionRing(SR)
-        sage: LabeledExpression(R, var('T'))
-        T == None
+        sage: LabeledFunction(R, var('T'))
+        T = None
     """
     pass
 
@@ -1136,7 +1136,7 @@ class LabeledExpression(
 # Element: Singleton
 #*****************************************************************************
 
-class GenericSingleton(GenericBase):
+class GenericSingleton(GenericExpression):
     """
     A class representing a singleton of given size.
 
@@ -1200,7 +1200,7 @@ class GenericSingleton(GenericBase):
 
 class UnlabeledSingleton(
     GenericSingleton,
-    UnlabeledBase):
+    UnlabeledExpression):
     pass
 
 
@@ -1209,7 +1209,7 @@ class UnlabeledSingleton(
 
 class LabeledSingleton(
     GenericSingleton,
-    LabeledBase):
+    LabeledExpression):
     pass
 
 
@@ -1351,7 +1351,7 @@ LabeledEmpty = GenericEmpty
 #*****************************************************************************
 
 
-class GenericDisjointUnion(GenericBase):
+class GenericDisjointUnion(GenericExpression):
     """
     A class representing a disjoint union of combinatorial expressions.
 
@@ -1415,7 +1415,7 @@ class GenericDisjointUnion(GenericBase):
 
 class UnlabeledDisjointUnion(
     GenericDisjointUnion,
-    UnlabeledBase):
+    UnlabeledExpression):
     """
     A class representing an unlabeled disjoint union of combinatorial
     expressions.
@@ -1449,7 +1449,7 @@ class UnlabeledDisjointUnion(
 
 class LabeledDisjointUnion(
     GenericDisjointUnion,
-    LabeledBase):
+    LabeledExpression):
     """
     A class representing a labeled disjoint union of combinatorial
     expressions.
@@ -1483,7 +1483,7 @@ class LabeledDisjointUnion(
 #*****************************************************************************
 
 
-class GenericCartesianProduct(GenericBase):
+class GenericCartesianProduct(GenericExpression):
     """
     A class representing a cartesian product of combinatorial expressions.
 
@@ -1553,7 +1553,7 @@ class GenericCartesianProduct(GenericBase):
 
 class UnlabeledCartesianProduct(
     GenericCartesianProduct,
-    UnlabeledBase):
+    UnlabeledExpression):
     """
     A class representing an unlabeled cartesian product of
     combinatorial expressions.
@@ -1587,7 +1587,7 @@ class UnlabeledCartesianProduct(
 
 class LabeledCartesianProduct(
     GenericCartesianProduct,
-    LabeledBase):
+    LabeledExpression):
     """
     A class representing a labeled cartesian product of
     combinatorial expressions.
@@ -1719,7 +1719,7 @@ class CombinatorialExpressionRing(
         return self.base().base_ring()
 
 
-    Element = GenericBase
+    Element = GenericExpression
 
     #------------------------------------------------------------------------
 
@@ -1866,7 +1866,7 @@ class CombinatorialExpressionRing(
         if data in self.base_ring():
             return self._from_base_ring_(data, flavor, size)
 
-        if isinstance(data, GenericBase):
+        if isinstance(data, GenericExpression):
             raise NotImplementedError('TODO')
 
         raise NotImplementedError('Cannot convert or decode given '
