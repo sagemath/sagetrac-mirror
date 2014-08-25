@@ -778,8 +778,6 @@ class GenericExpression(
 
         TESTS::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: g = R(var('g'))
             sage: u = R(var('u'), unlabeled=True)
@@ -1684,6 +1682,8 @@ class CombinatorialExpressionRing(
             raise NotImplementedError("%s not allowed as base ring." % (base,))
         super(CombinatorialExpressionRing, self).__init__(base=base)
 
+        self.Operators = Operators  # this should be static, no idea how...
+
 
     def _repr_(self):
         """
@@ -1918,6 +1918,7 @@ class CombinatorialExpressionRing(
 # Operators
 #*****************************************************************************
 
+
 class Operators(sage.structure.sage_object.SageObject):
     """
     This class contains a collection of operators used to create
@@ -1961,12 +1962,10 @@ class Operators(sage.structure.sage_object.SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: a = R(var('a'))
             sage: b = R(var('b'))
-            sage: c = Operators.disjoint_union(a, b); c
+            sage: c = R.Operators.disjoint_union(a, b); c
             a + b
             sage: type(c)
             <class 'sage.combinat.combinatorial_expression.GenericDisjointUnion'>
@@ -1992,12 +1991,10 @@ class Operators(sage.structure.sage_object.SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     Operators)
             sage: R = CombinatorialExpressionRing(SR)
             sage: a = R(var('a'))
             sage: b = R(var('b'))
-            sage: c = Operators.cartesian_product(a, b); c
+            sage: c = R.Operators.cartesian_product(a, b); c
             a*b
             sage: type(c)
             <class 'sage.combinat.combinatorial_expression.GenericCartesianProduct'>
