@@ -261,6 +261,7 @@ ext_modules = [
               sources=['sage/combinat/crystals/letters.pyx']),
 
     Extension('sage.combinat.designs.designs_pyx',
+              extra_compile_args = ['-g'],
               sources=['sage/combinat/designs/designs_pyx.pyx']),
 
     ################################
