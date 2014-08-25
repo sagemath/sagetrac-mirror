@@ -814,7 +814,7 @@ class GenericExpression(
 
     def _apply_operator_(self, operatorclassname, *operands):
         """
-        Returns an instance of the specified class (as operator) with
+        Return an instance of the specified class (as operator) with
         given operands.
 
         INPUT:
@@ -1127,7 +1127,7 @@ class GenericFunction(GenericExpression):
 
     def _repr_join_(self, reprs_of_operands):
         """
-        Joins the given representation strings together.
+        Join the given representation strings together.
 
         INPUT:
 
@@ -1580,7 +1580,7 @@ class GenericCartesianProduct(GenericExpression):
     """
     def _repr_join_(self, reprs_of_operands):
         """
-        Joins the given representation strings together.
+        Join the given representation strings together.
 
         INPUT:
 
@@ -1599,7 +1599,7 @@ class GenericCartesianProduct(GenericExpression):
 
     def _repr_need_parenthesis_(self, operand):
         """
-        Returns if parenthesis are needed around the representation string
+        Return if parenthesis are needed around the representation string
         of the given operand.
 
         INPUT:
@@ -1738,7 +1738,7 @@ class CombinatorialExpressionRing(
 
     def _repr_(self):
         """
-        Returns a representation string.
+        Return a representation string.
 
         INPUT:
 
@@ -1758,7 +1758,7 @@ class CombinatorialExpressionRing(
 
     def base_ring(self):
         """
-        Returns the base ring.
+        Return the base ring.
 
         INPUT:
 
@@ -1843,7 +1843,7 @@ class CombinatorialExpressionRing(
 
     def _from_base_ring_(self, data, flavor, size=None, function=False):
         """
-        Converts an expression from the base ring to a combinatorial
+        Convert an expression from the base ring to a combinatorial
         expression.
 
         INPUT:
@@ -2065,7 +2065,7 @@ class Operators(sage.structure.sage_object.SageObject):
 # TODO: do we need the following function?
 def _process_flavor_(kwargs):
     """
-    Returns the flavor (``Labelled`` or ``Unlabelled``) encoded ``kwargs``.
+    Return the flavor (``Labelled`` or ``Unlabelled``) encoded ``kwargs``.
 
     INPUT:
 
