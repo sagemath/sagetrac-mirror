@@ -268,7 +268,7 @@ class Profiler(SageObject):
         from subprocess import check_call
         check_call([self._pprof()] + list(args), **kwds)
 
-    def top(self, cumulative=False):
+    def top(self, cumulative=True):
         """
         Print text report
 
