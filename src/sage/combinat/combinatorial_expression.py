@@ -1400,6 +1400,11 @@ class GenericExpression(
 class UnlabeledExpression(
     GenericExpression,
     _UnlabeledFlavor_):
+    """
+    Abstract base class for all unlabeled combinatorial expressions.
+
+    For details see :class:`GenericExpression`.
+    """
     pass
 
 
@@ -1409,6 +1414,11 @@ class UnlabeledExpression(
 class LabeledExpression(
     GenericExpression,
     _LabeledFlavor_):
+    """
+    Abstract base class for all labeled combinatorial expressions.
+
+    For details see :class:`GenericExpression`.
+    """
     pass
 
 
@@ -1455,7 +1465,31 @@ class GenericFunction(GenericExpression):
         self._expression_ = expression
 
 
+    #------------------------------------------------------------------------
+
+
     def _repr_(self):
+        """
+        Return a representation string.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True)
+            sage: T._repr_()
+            'T = None'
+            sage: T.assign(R(var('z')))
+            sage: T._repr_()
+            'T = z'
+        """
         memo = {}
         s = repr(self._expression_) + ' = '
         if self._operands_:
@@ -1465,6 +1499,25 @@ class GenericFunction(GenericExpression):
 
 
     def _repr_main_(self, memo):
+        """
+        Returns a representation string.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True)
+            sage: T.assign(R(var('z')) * T)
+            sage: T._repr_()
+            'T = z*T'
+        """
         self._update_memo_(memo)
         return repr(self._expression_)
 
@@ -1481,11 +1534,16 @@ class GenericFunction(GenericExpression):
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True)
+            sage: T.assign(R(var('z')), T)
+            sage: T._repr_()  # result looks weired...
+            'T = z, T'
         """
         return ', '.join(o for o in reprs_of_operands)
+
 
 # ----------------------------------------------------------------------------
 
@@ -1494,7 +1552,7 @@ class UnlabeledFunction(
     GenericFunction,
     UnlabeledExpression):
     """
-    A class representing a unlabeled combinatorial expression.
+    A class representing a unlabeled combinatorial function.
 
     INPUT:
 
@@ -1527,7 +1585,7 @@ class LabeledFunction(
     GenericFunction,
     LabeledExpression):
     """
-    A class representing a labeled combinatorial expression.
+    A class representing a labeled combinatorial function.
 
     INPUT:
 
