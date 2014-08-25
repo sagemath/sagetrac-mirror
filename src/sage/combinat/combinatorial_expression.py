@@ -122,17 +122,25 @@ class _GenericFlavor_(sage.structure.sage_object.SageObject):
     @staticmethod
     def _class_with_prefix_(prefix, classname):
         """
-        TODO
+        Returns a combinatorial expression class specified by input
+        parameters.
 
         INPUT:
 
-        - ```` --
+        - ``prefix`` -- a string.
+
+        - ``classname`` -- a string.
 
         OUTPUT:
 
+        A class.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: _GenericFlavor_._class_with_prefix_('Generic', 'Atom')
+            <class 'sage.combinat.combinatorial_expression.GenericAtom'>
         """
         return globals()[prefix + classname]
 
@@ -140,28 +148,69 @@ class _GenericFlavor_(sage.structure.sage_object.SageObject):
     @classmethod
     def class_generic(cls, classname):
         """
-        TODO
+        Returns a combinatorial expression class with generic flavor.
 
         INPUT:
 
-        - ```` --
+        - ``classname`` -- a string.
 
         OUTPUT:
 
+        A class
+
         EXAMPLES::
 
-            sage: TODO  # not tested
-        """
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: _GenericFlavor_.class_generic('Atom')
+            <class 'sage.combinat.combinatorial_expression.GenericAtom'>
+         """
         return cls._class_with_prefix_('Generic', classname)
 
 
     @classmethod
     def class_unlabeled(cls, classname):
+        """
+        Returns a combinatorial expression class with generic flavor.
+
+        INPUT:
+
+        - ``classname`` -- a string.
+
+        OUTPUT:
+
+        A class
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: _GenericFlavor_.class_unlabeled('Atom')
+            <class 'sage.combinat.combinatorial_expression.UnlabeledAtom'>
+         """
         return cls._class_with_prefix_('Unlabeled', classname)
 
 
     @classmethod
     def class_labeled(cls, classname):
+        """
+        Returns a combinatorial expression class with generic flavor.
+
+        INPUT:
+
+        - ``classname`` -- a string.
+
+        OUTPUT:
+
+        A class
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: _GenericFlavor_.class_labeled('Atom')
+            <class 'sage.combinat.combinatorial_expression.LabeledAtom'>
+            """
         return cls._class_with_prefix_('Labeled', classname)
 
 
@@ -176,7 +225,7 @@ class _UnlabeledFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
@@ -199,7 +248,7 @@ class _UnlabeledFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
@@ -227,7 +276,7 @@ class _LabeledFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
@@ -250,7 +299,7 @@ class _LabeledFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
@@ -278,7 +327,7 @@ class _EmptyFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
@@ -301,7 +350,7 @@ class _EmptyFlavor_(_GenericFlavor_):
 
         INPUT:
 
-        Nothing
+        Nothing.
 
         OUTPUT:
 
