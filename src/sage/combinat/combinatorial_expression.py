@@ -726,7 +726,7 @@ class GenericExpression(
         return self._repr_join_(
             self._repr_make_parenthesis_(
                 o._repr_main_(memo), self._repr_need_parenthesis_(o))
-            for o in self.operands())
+            for o in self.iter_operands())
 
 
     @staticmethod
