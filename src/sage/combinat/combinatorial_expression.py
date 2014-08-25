@@ -419,17 +419,18 @@ class GenericBase(
     """
     def __init__(self, parent, *operands):
         """
-        TODO
+        See :class:`GenericBase` for more information.
 
-        INPUT:
+        TESTS::
 
-        - ```` --
-
-        OUTPUT:
-
-        EXAMPLES::
-
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericBase)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericBase(R); z  # indirect doctest
+            GenericBase()
+            sage: z.parent()
+            Combinatorial Expression Ring (over Symbolic Ring)
         """
         self.assign(*operands)
         super(GenericBase, self).__init__(parent)
@@ -1018,6 +1019,18 @@ class GenericExpression(GenericBase):
         T == None
     """
     def __init__(self, parent, expression, *operands):
+        """
+        See :class:`GenericExpression` for more information.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericExpression(R, var('z')); z  # indirect doctest
+            z == None
+        """
         super(GenericExpression, self).__init__(parent, *operands)
         self._expression_ = expression
 
@@ -1146,11 +1159,16 @@ class GenericSingleton(GenericBase):
 
     def __init__(self, parent, singleton, size):
         """
-        TODO
+        See :class:`GenericSingleton` for more information.
 
         TESTS::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericSingleton)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericSingleton(R, var('z'), size=2); z  # indirect doctest
+            z
         """
         super(GenericSingleton, self).__init__(parent)
         self._set_singleton_(singleton, size)
@@ -1231,17 +1249,16 @@ class GenericAtom(GenericSingleton):
     """
     def __init__(self, parent, atom):
         """
-        TODO
+        See :class:`GenericAtom` for more information.
 
-        INPUT:
+        TESTS::
 
-        - ```` --
-
-        OUTPUT:
-
-        EXAMPLES::
-
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericAtom)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericAtom(R, var('z')); z  # indirect doctest
+            z
         """
         super(GenericAtom, self).__init__(parent, atom, Integer(1))
 
@@ -1283,6 +1300,11 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
 
     A new empty singleton.
 
+    .. NOTE::
+
+        The empty expression has all flavors, i.e., it is unlabeled,
+        as well as labeled at the same time.
+
     TESTS::
 
         sage: from sage.combinat.combinatorial_expression import (
@@ -1303,17 +1325,16 @@ class GenericEmpty(_EmptyFlavor_, GenericSingleton):
     """
     def __init__(self, parent, empty):
         """
-        TODO
+        See :class:`GenericEmpty` for more information.
 
-        INPUT:
+        TESTS::
 
-        - ```` --
-
-        OUTPUT:
-
-        EXAMPLES::
-
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRing,
+            ....:     GenericEmpty)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: z = GenericEmpty(R, SR(1)); z  # indirect doctest
+            1
         """
         super(GenericEmpty, self).__init__(parent, empty, Integer(0))
 
@@ -1634,7 +1655,7 @@ class CombinatorialExpressionRing(
     """
     def __init__(self, base):
         """
-        See :class:`CombinatorialExpressionRing` for details.
+        See :class:`CombinatorialExpressionRing` for more information.
 
         TESTS::
 
