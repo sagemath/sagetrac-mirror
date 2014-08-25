@@ -391,11 +391,10 @@ import integer_ring
 the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
-# manual states that its result is always prime up to this 2^64
-# (which is 10000000000000000 in base 16).
+# manual states that its result is always prime up to this 2^64.
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
-mpz_set_str(PARI_PSEUDOPRIME_LIMIT, "10000000000000000", 16)
+mpz_ui_pow_ui(PARI_PSEUDOPRIME_LIMIT, 2, 64)
 
 def is_Integer(x):
     """
