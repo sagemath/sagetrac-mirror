@@ -921,6 +921,64 @@ class GenericExpression(
     #------------------------------------------------------------------------
 
 
+    def is_singleton(self):
+        """
+        Return whether ``self`` is a singleton.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: B = R(var('B'), function=True)
+            sage: B.is_singleton()
+            False
+            sage: y = R(var('y'))
+            sage: y.is_singleton()
+            True
+            sage: e = R(SR(1))
+            sage: e.is_singleton()
+            True
+        """
+        return False
+
+
+    def is_empty_singleton(self):
+        """
+        Return whether ``self`` is the empty singleton.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: B = R(var('B'), function=True)
+            sage: B.is_empty_singleton()
+            False
+            sage: y = R(var('y'))
+            sage: y.is_empty_singleton()
+            False
+            sage: e = R(SR(1))
+            sage: e.is_empty_singleton()
+            True
+        """
+        return False
+
+    #------------------------------------------------------------------------
+
+
     def _apply_operator_(self, operatorclassname, *operands):
         """
         Return an instance of the specified class (as operator) with
@@ -1473,6 +1531,65 @@ class GenericSingleton(GenericExpression):
     def _repr_main_(self, memo):
         self._update_memo_(memo)
         return repr(self._singleton_)
+
+
+    #------------------------------------------------------------------------
+
+
+    def is_singleton(self):
+        """
+        Return whether ``self`` is a singleton.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: B = R(var('B'), function=True)
+            sage: B.is_singleton()
+            False
+            sage: y = R(var('y'))
+            sage: y.is_singleton()
+            True
+            sage: e = R(SR(1))
+            sage: e.is_singleton()
+            True
+        """
+        return True
+
+
+    def is_empty_singleton(self):
+        """
+        Return whether ``self`` is the empty singleton.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: B = R(var('B'), function=True)
+            sage: B.is_empty_singleton()
+            False
+            sage: y = R(var('y'))
+            sage: y.is_empty_singleton()
+            False
+            sage: e = R(SR(1))
+            sage: e.is_empty_singleton()
+            True
+        """
+        return self.is_singleton() and self.size() == Integer(0)
 
 
 # ----------------------------------------------------------------------------
