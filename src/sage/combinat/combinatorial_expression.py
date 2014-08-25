@@ -1290,40 +1290,55 @@ class GenericExpression(
 
 
     #------------------------------------------------------------------------
+
+
     def iter_elements(self, size):
         """
-        TODO
+        Return an iterator over all elements described by this
+        combinatorial expression.
 
         INPUT:
 
-        - ```` --
+        - ``size`` -- the desired size of each of the elements.
 
         OUTPUT:
 
+        An iterator.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: TODO  # not tested -- add a lot of examples here
         """
-        # do preprocessing of size here
-        return self._iter_elements_(size)
+        return self._iter_elements_(self._preprocess_size_(size))
 
 
     def _iter_elements_(self, size):
         """
-        TODO
+        Return the actual iterator.
 
         INPUT:
 
-        - ```` --
+        - ``size`` -- a dictionary.
 
         OUTPUT:
 
+        An iterator.
+
+        This method should be overridden in derived class.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._iter_elements_({})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Iteration for an instance of
+            GenericExpression is not implemented.
         """
-        return NotImplementedError('Iteration for an instance of %s is '
-                                   'not implemented.' % (self._name_(),))
+        raise NotImplementedError('Iteration for an instance of %s is '
+                                  'not implemented.' % (self._name_(),))
 
 
     #------------------------------------------------------------------------
@@ -1331,39 +1346,52 @@ class GenericExpression(
 
     def random_element(self, size):
         """
-        TODO
+        Return a random element described by this
+        combinatorial expression.
 
         INPUT:
 
-        - ```` --
+        - ``size`` -- the desired size of the element.
 
         OUTPUT:
 
+        An element.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: TODO  # not tested -- add a lot of examples here
         """
-        # do preprocessing of size here
-        return self._random_element_(size)
+        return self._random_element_(self._preprocess_size_(size))
 
 
     def _random_element_(self, size):
         """
-        TODO
+        Return the actual random element.
 
         INPUT:
 
-        - ```` --
+        - ``size`` -- a dictionary.
 
         OUTPUT:
 
+        An element.
+
+        This method should be overridden in derived class.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericExpression)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: GenericExpression(R)._random_element_({})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Generation of an random element for
+            an instance of GenericExpression not implemented.
         """
-        return NotImplementedError('Generation of an random element '
-                                   'for an instance of %s '
-                                   'not implemented.' % (self._name_(),))
+        raise NotImplementedError('Generation of an random element '
+                                  'for an instance of %s '
+                                  'not implemented.' % (self._name_(),))
 
 
 # ----------------------------------------------------------------------------
