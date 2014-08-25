@@ -410,6 +410,10 @@ class GenericExpression(
         sage: T.assign(B)
         sage: T
         T = 1 + z*T*T
+
+    .. automethod:: _add_
+
+    .. automethod:: _mul_
     """
     def __init__(self, parent, *operands):
         """
@@ -907,51 +911,100 @@ class GenericExpression(
 
     def disjoint_union(self, *others):
         """
-        TODO
+        Returns the disjoint union of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: a = y.disjoint_union(z); a
+            y + z
+            sage: b = R.Operators.disjoint_union(y, z); b
+            y + z
+            sage: c = y + z; c
+            y + z
+            sage: a == b == c
+            True
+
+        .. SEEALSO::
+
+            :meth:`_add_`,
+            :meth:`Operators.disjoint_union`.
+
+            :meth:`cartesian_product`.
         """
         return Operators.disjoint_union(self, *others)
 
 
     def _disjoint_union_(self, *others):
         """
-        TODO
+        Returns the disjoint union of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
+        This helper function does the actual operation. It can be
+        assumed that all operands have the same parent.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: y._disjoint_union_(z)
+            y + z
+
+        .. SEEALSO::
+
+            :meth:`_add_`,
+            :meth:`disjoint_union`,
+            :meth:`Operators.disjoint_union`.
         """
         return self._apply_operator_('DisjointUnion', self, *others)
 
 
     def _add_(left, right):
         """
-        TODO
+        Returns the disjoint union of the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``left`` -- left operand.
+
+        - ``right`` -- right operand.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: y + z
+            y + z
+
+        .. SEEALSO::
+
+            :meth:`disjoint_union`,
+            :meth:`Operators.disjoint_union`.
+
+            :meth:`cartesian_product`.
         """
         return left.disjoint_union(right)
 
@@ -961,51 +1014,100 @@ class GenericExpression(
 
     def cartesian_product(self, *others):
         """
-        TODO
+        Returns the cartesian product of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: a = y.cartesian_product(z); a
+            y*z
+            sage: b = R.Operators.cartesian_product(y, z); b
+            y*z
+            sage: c = y * z; c
+            y*z
+            sage: a == b == c
+            True
+
+        .. SEEALSO::
+
+            :meth:`_mul_`,
+            :meth:`Operators.cartesian_product`.
+
+            :meth:`disjoint_union`.
         """
         return Operators.cartesian_product(self, *others)
 
 
     def _cartesian_product_(self, *others):
         """
-        TODO
+        Returns the cartesian product of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
+        This helper function does the actual operation. It can be
+        assumed that all operands have the same parent.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: y._cartesian_product_(z)
+            y*z
+
+        .. SEEALSO::
+
+            :meth:`_mul_`,
+            :meth:`cartesian_product`,
+            :meth:`Operators.cartesian_product`.
         """
         return self._apply_operator_('CartesianProduct', self, *others)
 
 
     def _mul_(left, right):
         """
-        TODO
+        Returns the cartesian product of the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``left`` -- left operand.
+
+        - ``right`` -- right operand.
 
         OUTPUT:
 
+        A new combinatorial expression.
+
         EXAMPLES::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: y * z
+            y*z
+
+        .. SEEALSO::
+
+            :meth:`cartesian_product`,
+            :meth:`Operators.cartesian_product`.
+
+            :meth:`disjoint_union`.
         """
         return left.cartesian_product(right)
 
@@ -2043,25 +2145,36 @@ class Operators(sage.structure.sage_object.SageObject):
     @classmethod
     def disjoint_union(cls, *operands, **kwargs):
         """
-        TODO
+        Returns the disjoint union of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
+
+        A new combinatorial expression.
 
         EXAMPLES::
 
             sage: R = CombinatorialExpressionRing(SR)
-            sage: a = R(var('a'))
-            sage: b = R(var('b'))
-            sage: c = R.Operators.disjoint_union(a, b); c
-            a + b
-            sage: type(c)
-            <class 'sage.combinat.combinatorial_expression.GenericDisjointUnion'>
-            sage: a + b == c
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: a = y.disjoint_union(z); a
+            y + z
+            sage: b = R.Operators.disjoint_union(y, z); b
+            y + z
+            sage: c = y + z; c
+            y + z
+            sage: a == b == c
             True
+
+        .. SEEALSO::
+
+            :meth:`GenericExpression._mul_`,
+            :meth:`GenericExpression.disjoint_union`.
+
+            :meth:`disjoint_union`.
         """
         parent = kwargs.pop('parent', None)
         return cls._apply_operator_('_disjoint_union_',
@@ -2072,25 +2185,36 @@ class Operators(sage.structure.sage_object.SageObject):
     @classmethod
     def cartesian_product(cls, *operands, **kwargs):
         """
-        TODO
+        Returns the cartesian product of ``self`` and the given operands.
 
         INPUT:
 
-        - ```` --
+        - ``*others`` -- operands.
 
         OUTPUT:
+
+        A new combinatorial expression.
 
         EXAMPLES::
 
             sage: R = CombinatorialExpressionRing(SR)
-            sage: a = R(var('a'))
-            sage: b = R(var('b'))
-            sage: c = R.Operators.cartesian_product(a, b); c
-            a*b
-            sage: type(c)
-            <class 'sage.combinat.combinatorial_expression.GenericCartesianProduct'>
-            sage: a*b == c
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: a = y.cartesian_product(z); a
+            y*z
+            sage: b = R.Operators.cartesian_product(y, z); b
+            y*z
+            sage: c = y * z; c
+            y*z
+            sage: a == b == c
             True
+
+        .. SEEALSO::
+
+            :meth:`GenericExpression._mul_`,
+            :meth:`GenericExpression.cartesian_product`.
+
+            :meth:`disjoint_union`.
         """
         parent = kwargs.pop('parent', None)
         return cls._apply_operator_('_cartesian_product_',
