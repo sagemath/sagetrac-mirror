@@ -2211,6 +2211,7 @@ class GenericDisjointUnion(GenericExpression):
         ....:     R, GenericAtom(R, SR(1)), GenericAtom(R, var('z')))
         1 + z
     """
+
     def _repr_join_(self, reprs_of_operands):
         """
         Joins the given representation strings together.
@@ -2223,11 +2224,14 @@ class GenericDisjointUnion(GenericExpression):
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R(var('a')) + R(var('b'))  # indirect doctest
+            a + b
         """
         return ' + '.join(reprs_of_operands)
+
 
     def _repr_need_parenthesis_(self, operand):
         """
@@ -2241,6 +2245,14 @@ class GenericDisjointUnion(GenericExpression):
         OUTPUT:
 
         ``True`` or ``False``.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: (R(var('a')) * R(var('b'))) + R(var('c'))  # indirect doctest
+            a*b + c
+            sage: (R(var('a')) + R(var('b'))) * R(var('c'))  # indirect doctest
+            (a + b)*c
         """
         return isinstance(operand, GenericDisjointUnion)
 
@@ -2384,6 +2396,7 @@ class GenericCartesianProduct(GenericExpression):
         ....:         R, GenericAtom(R, var('y')), GenericAtom(R, var('z'))))
         1*(y + z)
     """
+
     def _repr_join_(self, reprs_of_operands):
         """
         Join the given representation strings together.
@@ -2396,9 +2409,11 @@ class GenericCartesianProduct(GenericExpression):
 
         A string.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: TODO  # not tested
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R(var('a')) * R(var('b'))  # indirect doctest
+            a*b
         """
         return '*'.join(reprs_of_operands)
 
@@ -2415,6 +2430,14 @@ class GenericCartesianProduct(GenericExpression):
         OUTPUT:
 
         ``True`` or ``False``.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: (R(var('a')) * R(var('b'))) + R(var('c'))  # indirect doctest
+            a*b + c
+            sage: (R(var('a')) + R(var('b'))) * R(var('c'))  # indirect doctest
+            (a + b)*c
         """
         return isinstance(operand, GenericDisjointUnion)
 
