@@ -6397,15 +6397,16 @@ cdef class Matrix(matrix1.Matrix):
          - `ascend` - if True, rows of output matrix `W` are sorted so
            degree (= the maximum of the degrees of the elements in
            the row) increases monotonically, and otherwise degrees decrease.
+           This is ignored if implementation is "cython".
 
          - `implementation` - String (default: None) indicating the 
-         implementation that should be used. If None the original implementation
-         is used, if "cython" a cython implementation of mulders-storjohann
-         is used.
+           implementation that should be used. If None the original implementation
+           is used, if "cython" a cython implementation of mulders-storjohann
+           is used.
 
          - `transposition` - Boolean (default: False) indicating if a
-         matrix U such that U*self = self.weak_popov_form() should be
-         computed. This is only used for implementation "cython".
+           matrix U such that U*self = self.weak_popov_form() should be
+           computed. This is only used for implementation "cython".
 
         OUTPUT:
 
