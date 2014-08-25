@@ -25,10 +25,7 @@ Plane/Ordered Binary Trees
 
 ::
 
-    sage: from sage.combinat.combinatorial_expression import (
-    ....:     UnlabeledFunction, LabeledFunction)
-    sage: # T = R(var('T'), expression=True)
-    sage: T = UnlabeledFunction(R, var('T')); T  # TODO: simplify this (see previous line)
+    sage: T = R(var('T'), flavor='unlabeled', function=True); T
     T = None
     sage: z = R(var('z')); z
     z
@@ -1724,6 +1721,20 @@ class CombinatorialExpressionRing(
     #------------------------------------------------------------------------
 
     @lazy_attribute
+    def element_class_generic_function(self):
+        return self.__make_element_class__(GenericFunction)
+
+    @lazy_attribute
+    def element_class_unlabeled_function(self):
+        return self.__make_element_class__(UnlabeledFunction)
+
+    @lazy_attribute
+    def element_class_labeled_function(self):
+        return self.__make_element_class__(LabeledFunction)
+
+    #------------------------------------------------------------------------
+
+    @lazy_attribute
     def element_class_generic_empty(self):
         return self.__make_element_class__(GenericEmpty)
 
@@ -1770,7 +1781,7 @@ class CombinatorialExpressionRing(
 
     #------------------------------------------------------------------------
 
-    def _from_base_ring_(self, data, flavor, size):
+    def _from_base_ring_(self, data, flavor, size=None, function=False):
         """
         Converts an expression from the base ring to a combinatorial
         expression.
@@ -1781,7 +1792,10 @@ class CombinatorialExpressionRing(
 
         - ``flavor`` -- a string representing a flavor.
 
-        - ``size`` -- an integer or ``None``
+        - ``size`` -- an integer or ``None`` (default)
+
+        - ``function`` -- a boolean (default: ``True``) indicating
+          whether result should be a combinatorial function or not.
 
         OUTPUT:
 
@@ -1810,9 +1824,15 @@ class CombinatorialExpressionRing(
             <class 'sage.combinat.combinatorial_expression.GenericSingleton_with_category'>
             sage: y.size()
             2
+            sage: R(var('T'), function=True)
+            T = None
         """
 
         # at the moment only self.base_ring() == SR is allowed (see __init__)
+
+        if function and size is not None:
+            raise ValueError('A combinatorial function does not have a size, '
+                             'but size=%s given' % (size,))
 
         if size is None:
             if data.is_numeric():
@@ -1821,6 +1841,11 @@ class CombinatorialExpressionRing(
                 size = 1
 
         if data.operator() is None:
+
+            if function:
+                return self._get_element_class_('function', flavor)(
+                    self, data)
+
             if size == Integer(0):
                 return self._get_element_class_('empty', flavor)(
                     self, data)
@@ -1852,6 +1877,8 @@ class CombinatorialExpressionRing(
 
         size = kwargs.pop('size', None)
 
+        function = kwargs.pop('function', False)
+
         if not args:
             raise NotImplementedError('TODO')
         if len(args) > 1:
@@ -1864,7 +1891,9 @@ class CombinatorialExpressionRing(
             data = self.base_ring()(data)
 
         if data in self.base_ring():
-            return self._from_base_ring_(data, flavor, size)
+            return self._from_base_ring_(data, flavor,
+                                         size=size,
+                                         function=function)
 
         if isinstance(data, GenericExpression):
             raise NotImplementedError('TODO')
