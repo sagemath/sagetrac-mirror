@@ -2473,7 +2473,7 @@ class UnlabeledCartesianProduct(
         :class:`GenericEmpty`,
         :class:`GenericExpression`,
         :class:`GenericFunction`,
-        :class:`GenericSingleton`,
+        :class:`GenericSingleton`.
 
     TESTS::
 
@@ -2568,6 +2568,16 @@ class CombinatorialExpressionRing(
         Combinatorial Expression Ring (over Symbolic Ring)
         sage: R(var('z'))
         z
+
+    .. SEEALSO::
+
+        :class:`GenericAtom`,
+        :class:`GenericCartesianProduct`,
+        :class:`GenericDisjointUnion`,
+        :class:`GenericEmpty`,
+        :class:`GenericExpression`,
+        :class:`GenericFunction`,
+        :class:`GenericSingleton`.
     """
     def __init__(self, base):
         """
@@ -2631,70 +2641,220 @@ class CombinatorialExpressionRing(
         return self.base().base_ring()
 
 
+    #------------------------------------------------------------------------
+
+
     Element = GenericExpression
 
+
     #------------------------------------------------------------------------
+
 
     @lazy_attribute
     def element_class_generic_function(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_generic_function.__name__
+            'GenericFunction_with_category'
+        """
         return self.__make_element_class__(GenericFunction)
+
 
     @lazy_attribute
     def element_class_unlabeled_function(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_unlabeled_function.__name__
+            'UnlabeledFunction_with_category'
+        """
         return self.__make_element_class__(UnlabeledFunction)
+
 
     @lazy_attribute
     def element_class_labeled_function(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_labeled_function.__name__
+            'LabeledFunction_with_category'
+        """
         return self.__make_element_class__(LabeledFunction)
 
+
     #------------------------------------------------------------------------
+
 
     @lazy_attribute
     def element_class_generic_empty(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_generic_empty.__name__
+            'GenericEmpty_with_category'
+        """
         return self.__make_element_class__(GenericEmpty)
+
 
     @lazy_attribute
     def element_class_unlabeled_empty(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_unlabeled_empty.__name__
+            'GenericEmpty_with_category'
+        """
         return self.__make_element_class__(UnlabeledEmpty)
+
 
     @lazy_attribute
     def element_class_labeled_empty(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_labeled_empty.__name__
+            'GenericEmpty_with_category'
+        """
         return self.__make_element_class__(LabeledEmpty)
 
+
     #------------------------------------------------------------------------
+
 
     @lazy_attribute
     def element_class_generic_atom(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_generic_atom.__name__
+            'GenericAtom_with_category'
+        """
         return self.__make_element_class__(GenericAtom)
+
 
     @lazy_attribute
     def element_class_unlabeled_atom(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_unlabeled_atom.__name__
+            'UnlabeledAtom_with_category'
+        """
         return self.__make_element_class__(UnlabeledAtom)
+
 
     @lazy_attribute
     def element_class_labeled_atom(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_labeled_atom.__name__
+            'LabeledAtom_with_category'
+        """
         return self.__make_element_class__(LabeledAtom)
 
+
     #------------------------------------------------------------------------
+
 
     @lazy_attribute
     def element_class_generic_singleton(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_generic_singleton.__name__
+            'GenericSingleton_with_category'
+        """
         return self.__make_element_class__(GenericSingleton)
+
 
     @lazy_attribute
     def element_class_unlabeled_singleton(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_unlabeled_singleton.__name__
+            'UnlabeledSingleton_with_category'
+        """
         return self.__make_element_class__(UnlabeledSingleton)
+
 
     @lazy_attribute
     def element_class_labeled_singleton(self):
+        """
+        The class of the specified element.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R.element_class_labeled_singleton.__name__
+            'LabeledSingleton_with_category'
+        """
         return self.__make_element_class__(LabeledSingleton)
 
+
     #------------------------------------------------------------------------
+
 
     def _get_element_class_(self, what, flavor):
+        """
+        Helper function for getting the element class.
+
+        INPUT:
+
+        - ``what`` -- classname.
+
+        - ``flavor`` -- the desired flavor.
+
+        OUTPUT:
+
+        A class.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R._get_element_class_('singleton', 'labeled')
+            <class 'sage.combinat.combinatorial_expression.LabeledSingleton_with_category'>
+        """
         return getattr(self, 'element_class_' + flavor + '_' + what)
 
+
     #------------------------------------------------------------------------
+
 
     def _from_base_ring_(self, data, flavor, size=None, function=False):
         """
@@ -2714,7 +2874,7 @@ class CombinatorialExpressionRing(
 
         OUTPUT:
 
-        An combinatorial expression element.
+        A combinatorial expression element.
 
         TESTS::
 
@@ -2776,8 +2936,34 @@ class CombinatorialExpressionRing(
                                       'combinatorial expressions directly.')
 
 
-    def _element_constructor_(self, *args, **kwargs):
+    #------------------------------------------------------------------------
 
+
+    def _element_constructor_(self, *args, **kwargs):
+        """
+        Returns a combinatorial expression out of the given data.
+
+        INPUT:
+
+        - ``data`` -- an element of the base ring.
+
+        - ``flavor`` -- a string representing a flavor.
+
+        - ``size`` -- an integer or ``None`` (default)
+
+        - ``function`` -- a boolean (default: ``True``) indicating
+          whether result should be a combinatorial function or not.
+
+        OUTPUT:
+
+        A combinatorial expression.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: R(var('T'), function=True)  # indirect doctest
+            T = None
+        """
         unlabeled = kwargs.pop('unlabeled', None)
         labeled = kwargs.pop('labeled', None)
 
@@ -2815,8 +3001,31 @@ class CombinatorialExpressionRing(
                                   'data %s' % (data,))
 
 
+    #------------------------------------------------------------------------
+
 
     def _an_element_(self):
+        """
+        Returns a combinatorial expression.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A combinatorial expression.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: s = R._an_element_(); s
+            some_variable
+            sage: type(s)
+            <class 'sage.combinat.combinatorial_expression.GenericAtom'>
+            sage: s.parent() == R
+            True
+        """
         return GenericAtom(self, self.base_ring().an_element())
 
 
