@@ -3039,20 +3039,34 @@ class Operators(sage.structure.sage_object.SageObject):
     This class contains a collection of operators used to create
     combinatorial expressions.
     """
+
     @staticmethod
     def _apply_operator_(operatorname, *operands, **kwargs):
         """
-        TODO
+        Calls the operator of the first operand with other operands as
+        arguments.
 
         INPUT:
 
-        - ```` --
+        - ``operatorname`` -- a string.
+
+        - ``*operands`` -- the arguments.
+
+        - ``parent`` -- the desired parent of the result. If this is
+          ``None``, then the parent is determined automatically.
 
         OUTPUT:
 
-        EXAMPLES::
+        A combinatorial expression.
 
-            sage: TODO  # not tested
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: y = R(var('y'))
+            sage: z = R(var('z'))
+            sage: R.Operators._apply_operator_(
+            ....:     '_disjoint_union_', y, z)
+            y + z
         """
         parent = kwargs.pop('parent', None)  # Python 2.x workaround,
                                              # since parent=None
@@ -3062,6 +3076,9 @@ class Operators(sage.structure.sage_object.SageObject):
             raise NotImplementedError('Operands must be given.')
         # TODO: do coercion here
         return getattr(operands[0], operatorname)(*operands[1:])
+
+
+    #------------------------------------------------------------------------
 
 
     @classmethod
@@ -3102,6 +3119,9 @@ class Operators(sage.structure.sage_object.SageObject):
         return cls._apply_operator_('_disjoint_union_',
                                     *operands,
                                     parent=parent)
+
+
+    #------------------------------------------------------------------------
 
 
     @classmethod
