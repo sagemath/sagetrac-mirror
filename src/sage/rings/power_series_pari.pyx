@@ -309,12 +309,12 @@ cdef class PowerSeries_pari(PowerSeries):
             sage: f(1 + t)
             Traceback (most recent call last):
             ...
-            PariError: non positive valuation in a series substitution
+            ValueError: can only substitute elements of positive valuation
 
             sage: f(t^-2)
             Traceback (most recent call last):
             ...
-            PariError: non positive valuation in a series substitution
+            ValueError: can only substitute elements of positive valuation
 
             sage: f(2 + O(5^3))
             Traceback (most recent call last):
@@ -378,7 +378,12 @@ cdef class PowerSeries_pari(PowerSeries):
                 raise ValueError("can only substitute elements of positive valuation")
             return Q(self.polynomial()(a)).add_bigoh(t * self._prec)
         elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing_generic)):
-            pass
+            # In Sage, we want an error to be raised when trying to
+            # substitute a series of non-positive valuation, but PARI
+            # (as of version 2.7.1) does not do this.  For example,
+            # subst(1 + O(x), x, 1/y) yields O(y^-1).
+            if a.valuation() <= 0:
+                raise ValueError("can only substitute elements of positive valuation")
         elif isinstance(Q, PolynomialRing_general):
             Q = Q.completion(Q.gen())
         elif Q.is_exact() and not a:
