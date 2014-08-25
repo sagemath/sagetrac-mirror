@@ -68,6 +68,29 @@ from itertools import izip
 
 class _GenericFlavor_(sage.structure.sage_object.SageObject):
 
+    def is_unlabeled(self):
+        """
+        Returns whether combinatorial expression is unlabeled or not.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        ``True`` if unlabeled, ``False`` if labeled, ``None`` otherwise.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _GenericFlavor_)
+            sage: F = _GenericFlavor_()
+            sage: F.is_unlabeled() is None
+            True
+        """
+        return None
+
+
     def is_labeled(self):
         """
         Returns whether combinatorial expression is labeled or not.
@@ -91,27 +114,7 @@ class _GenericFlavor_(sage.structure.sage_object.SageObject):
         return None
 
 
-    def is_unlabeled(self):
-        """
-        Returns whether combinatorial expression is unlabeled or not.
-
-        INPUT:
-
-        Nothing
-
-        OUTPUT:
-
-        ``True`` if unlabeled, ``False`` if labeled, ``None`` otherwise.
-
-        TESTS::
-
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     _GenericFlavor_)
-            sage: F = _GenericFlavor_()
-            sage: F.is_unlabeled() is None
-            True
-        """
-        return None
+    # ------------------------------------------------------------------------
 
 
     @staticmethod
@@ -138,6 +141,9 @@ class _GenericFlavor_(sage.structure.sage_object.SageObject):
             <class 'sage.combinat.combinatorial_expression.GenericAtom'>
         """
         return globals()[prefix + classname]
+
+
+    # ------------------------------------------------------------------------
 
 
     @classmethod
@@ -214,29 +220,6 @@ class _GenericFlavor_(sage.structure.sage_object.SageObject):
 
 class _UnlabeledFlavor_(_GenericFlavor_):
 
-    def is_labeled(self):
-        """
-        Returns whether combinatorial expression is labeled or not.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        ``False`` since this instance is unlabeled.
-
-        TESTS::
-
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     _UnlabeledFlavor_)
-            sage: F = _UnlabeledFlavor_()
-            sage: F.is_labeled()
-            False
-        """
-        return False
-
-
     def is_unlabeled(self):
         """
         Returns whether combinatorial expression is unlabeled or not.
@@ -247,7 +230,7 @@ class _UnlabeledFlavor_(_GenericFlavor_):
 
         OUTPUT:
 
-        ``True`` since this instance is unlabeled.
+        ``True`` if unlabeled, ``False`` if labeled, ``None`` otherwise.
 
         TESTS::
 
@@ -258,6 +241,29 @@ class _UnlabeledFlavor_(_GenericFlavor_):
             True
         """
         return True
+
+
+    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` if labeled, ``False`` if unlabeled, ``None`` otherwise.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _UnlabeledFlavor_)
+            sage: F = _UnlabeledFlavor_()
+            sage: F.is_labeled()
+            False
+        """
+        return False
 
 
 # ----------------------------------------------------------------------------
@@ -265,29 +271,6 @@ class _UnlabeledFlavor_(_GenericFlavor_):
 
 class _LabeledFlavor_(_GenericFlavor_):
 
-    def is_labeled(self):
-        """
-        Returns whether combinatorial expression is labeled or not.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        ``True`` since this instance is labeled.
-
-        TESTS::
-
-            sage: from sage.combinat.combinatorial_expression import (
-            ....:     _LabeledFlavor_)
-            sage: F = _LabeledFlavor_()
-            sage: F.is_labeled()
-            True
-        """
-        return True
-
-
     def is_unlabeled(self):
         """
         Returns whether combinatorial expression is unlabeled or not.
@@ -298,7 +281,7 @@ class _LabeledFlavor_(_GenericFlavor_):
 
         OUTPUT:
 
-        ``False`` since this instance is labeled.
+        ``True`` if unlabeled, ``False`` if labeled, ``None`` otherwise.
 
         TESTS::
 
@@ -309,6 +292,29 @@ class _LabeledFlavor_(_GenericFlavor_):
             False
         """
         return False
+
+
+    def is_labeled(self):
+        """
+        Returns whether combinatorial expression is labeled or not.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` if labeled, ``False`` if unlabeled, ``None`` otherwise.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     _LabeledFlavor_)
+            sage: F = _LabeledFlavor_()
+            sage: F.is_labeled()
+            True
+        """
+        return True
 
 
 # ----------------------------------------------------------------------------
@@ -458,6 +464,9 @@ class GenericExpression(
             T = 1
         """
         self._operands_ = tuple(operands)
+
+
+    # ------------------------------------------------------------------------
 
 
     def operands(self):
