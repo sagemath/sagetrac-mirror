@@ -6532,6 +6532,10 @@ cdef class Matrix(matrix1.Matrix):
            extend this code to produce a Popov form (see section 1.2 of [V]).  The
            latter is canonical, but more work to produce.
 
+        .. SEEALSO::
+
+            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
+        
         REFERENCES:
 
         .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
