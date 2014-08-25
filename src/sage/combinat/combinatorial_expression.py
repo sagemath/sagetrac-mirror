@@ -649,7 +649,7 @@ class GenericExpression(
             sage: z = GenericExpression(R)
             sage: z.assign(z)
             sage: z
-            GenericExpression(REC)
+            GenericExpression(REC(GenericExpression))
         """
         if not self._update_memo_(memo):
             return self._repr_recursion_()
@@ -765,9 +765,9 @@ class GenericExpression(
             sage: z = GenericExpression(R)
             sage: z.assign(z)
             sage: z  # indirect doctest
-            GenericExpression(REC)
+            GenericExpression(REC(GenericExpression))
         """
-        return 'REC'
+        return 'REC' + self._repr_make_parenthesis_(self._name_())
 
 
     #------------------------------------------------------------------------
