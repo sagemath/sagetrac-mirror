@@ -74,7 +74,7 @@ from itertools import izip
 
 class _GenericFlavor_(sage.structure.sage_object.SageObject):
 
-q    def is_labeled(self):
+    def is_labeled(self):
         """
         Returns whether combinatorial expression is labeled or not.
 
