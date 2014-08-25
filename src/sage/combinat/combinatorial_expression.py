@@ -1239,6 +1239,57 @@ class GenericExpression(
     #------------------------------------------------------------------------
 
 
+    def _preprocess_size_(self, size):
+        """
+        Determine the size and return it as dictionary.
+
+        INPUT:
+
+        - ``size`` -- either a dictionary (keys are singletons, values
+          are their sizes) or a (single) size. If the latter, then it
+          is assumed that ``self`` has a unique singleton of size at
+          least `1`.
+
+        OUTPUT:
+
+        The size as dictionary.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: T = R(var('T'), function=True)
+            sage: z = R(var('z'))
+            sage: e = R(SR(1))
+            sage: T.assign(e + z * T * T); T
+            T = 1 + z*T*T
+            sage: T._preprocess_size_(42)
+            {z: 42}
+            sage: T._preprocess_size_({z: 73})
+            {z: 73}
+            sage: T._preprocess_size_({T: 666})
+            Traceback (most recent call last):
+            ...
+            TypeError: Parameter size is not well formed.
+        """
+        if isinstance(size, dict):
+            if not all(k in self.parent() and
+                       hasattr(k, 'size')
+                       for k, _ in size.iteritems()):
+                raise TypeError('Parameter size is not well formed.')
+            return size
+
+        # at this point we interpret size as a size
+
+        singletons = tuple(s for s in self.iter_all_expressions()
+                           if s.is_singleton() and not s.is_empty_singleton())
+        if len(singletons) != 1:
+            raise ValueError('Do not know to which singleton the '
+                             'size %s should be associated (found %s '
+                             'singletons).' % (size, len(singletons)))
+        return {singletons[0]: size}
+
+
+    #------------------------------------------------------------------------
     def iter_elements(self, size):
         """
         TODO
