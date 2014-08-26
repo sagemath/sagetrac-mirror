@@ -1469,7 +1469,7 @@ class QuaternionOrder(Algebra):
                     else:
                         M2 = A.basis_for_quaternion_lattice(basis+[x*y for x in basis for y in basis])
                     if M1 != M2:
-                        raise ValueError, "given lattice must be a ring"
+                        raise ValueError("given lattice must be a ring")
                 if len(M1) == 2:
                     if M1[0][0] != 1 or M1[1][0] != A.base_ring().ideal(1):
                         raise ValueError("lattice must contain 1")
@@ -1479,7 +1479,7 @@ class QuaternionOrder(Algebra):
                     self.__pseudobasis = [basis,ideal_list]
                 else:
                     if M1[0] != 1:
-                        raise ValueError, "lattice must contain 1"
+                        raise ValueError("lattice must contain 1")
                     self.__basis = M1
         else:
             self.__basis = basis
