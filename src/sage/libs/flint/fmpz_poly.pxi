@@ -354,9 +354,6 @@ cdef extern from "flint/fmpz_poly.h":
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)
 
-<<<<<<< HEAD
-    void fmpz_poly_get_coeff_fmpz(fmpz_t x, const fmpz_poly_t poly, long n)
-=======
     long fmpz_poly_max_bits(fmpz_poly_t poly)
 
     void fmpz_poly_height(fmpz_t res, fmpz_poly_t poly)
@@ -861,4 +858,4 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_set_coeff_mpz(fmpz_poly_t poly, long n, mpz_t x)
 
     void fmpz_poly_get_coeff_mpz(mpz_t x,  fmpz_poly_t poly, long n)
->>>>>>> 3bda21c... cleanup of fmpz_t and fmpz_poly_t to avoid Cython warnings about referencing before assignment
+

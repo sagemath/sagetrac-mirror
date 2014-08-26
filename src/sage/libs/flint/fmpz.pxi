@@ -339,4 +339,4 @@ cdef extern from "flint/fmpz.h":
     int fmpz_is_probabprime(fmpz_t p)
 
     int fmpz_is_prime_pseudosquare(fmpz_t n)
->>>>>>> 3bda21c... cleanup of fmpz_t and fmpz_poly_t to avoid Cython warnings about referencing before assignment
+
