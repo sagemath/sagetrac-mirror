@@ -3431,7 +3431,7 @@ class NumberField_generic(number_field_base.NumberField):
                 self.__pari_bnf = f.bnfinit()
             bnf = self.__pari_bnf
         # Certify if needed
-        if proof and not getattr(self, "__pari_bnf_certified", False):
+        if proof and not getattr(self, "_NumberField_generic__pari_bnf_certified", False):
             if bnf.bnfcertify() != 1:
                 raise ValueError("The result is not correct according to bnfcertify")
             self.__pari_bnf_certified = True
