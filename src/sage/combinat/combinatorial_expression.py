@@ -866,15 +866,9 @@ class GenericExpression(
 
         - ``right`` -- right expression.
 
-        - ``memo`` -- a dictionary.
-
         OUTPUT:
 
         ``0`` if operands are equal, otherwise ``-1``.
-
-        The keys of the dictionary ``memo`` are identifiers of
-        combinatorial expressions, their values are ``True`` if they
-        compare equal, otherwise ``False``.
 
         EXAMPLES::
 
@@ -901,34 +895,127 @@ class GenericExpression(
             True
             sage: T == B
             True
+
+        TESTS::
+
+            sage: a = R(SR('a'), size=3)
+            sage: b = R(SR('b'), size=2)
+            sage: a == b
+            False
+            sage: j = R(SR('j'))
+            sage: k = R(SR('k'))
+            sage: j * k == j * j
+            False
+            sage: j * j == j * k
+            False
+            sage: j * k == k * j
+            True
         """
-        if not memo:
-            memo = {}
-        key = (id(left), id(right))
+        memo = {}
+        # _cmp_main_ is True if equal, otherwise False; convert it to
+        # be compatible with cmp(...)
+        return 0 if left._cmp_main_(right, memo) else -1
 
-        result = memo.get(key)
-        if result is not None:
-            return 0 if result else -1
-        m = memo.get((key[1], key[0]))
-        if result is not None:
-            return 0 if result else -1
 
-        memo[key] = True
+    def _cmp_main_(left, right, memo):
+        """
+        Return whether operators are equal or not.
 
-        if left.__class__ != right.__class__:
+        INPUT:
+
+        - ``left`` -- left expression.
+
+        - ``right`` -- right expression.
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        ``True`` if operands are equal, otherwise ``False``.
+
+        The keys of the dictionary ``memo`` are identifiers of the
+        left combinatorial expressions, their values are pairs of
+        identifiers of the right combinatorial expression and ``True``
+        if they compare equal, otherwise ``False``.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: a = R(SR('a'), size=3)
+            sage: b = R(SR('b'), size=2)
+            sage: a == b  # indirect doctest
+            False
+            sage: j = R(SR('j'))
+            sage: k = R(SR('k'))
+            sage: j * k == j * j  # indirect doctest
+            False
+            sage: j * j == j * k  # indirect doctest
+            False
+            sage: j * k == k * j  # indirect doctest
+            True
+        """
+        # keys for memo
+        idleft = id(left)
+        idright = id(right)
+
+        # look if we already worked with one of the operands
+        lookup = memo.get(idleft)
+        if lookup is not None:
+            idr, result = lookup
+            if idr == idright:
+                return result
+            return False
+        elif memo.get(idright) is not None:
+            # we worked with right, but not with left, so switch operands
+            return right._cmp_main_(left, memo)
+
+        # add to memo to prevent cycling
+        memo[idleft] = (idright, True)
+        memo[idright] = (idleft, True)
+
+        # check if equal
+        if not left._cmp_without_operands_(right):
             result = False
         else:
+            # check operands
             L = left.operands()
             R = right.operands()
             if len(L) != len(R):
                 result = False
             else:
-                result = all(l.__cmp__(r, memo) == 0 for l, r in izip(L, R))
+                result = all(l._cmp_main_(r, memo) for l, r in izip(L, R))
 
-        memo[key] = result
-        # result is True if equal, otherwise False; convert it to be
-        # compatible with cmp(...)
-        return 0 if result else -1
+        # store result in memo
+        memo[idleft] = (idright, result)
+        memo[idright] = (idleft, result)
+
+        return result
+
+
+    def _cmp_without_operands_(left, right):
+        """
+        Return whether operators are equal or not (but without
+        comparing the operands).
+
+        INPUT:
+
+        - ``left`` -- left expression.
+
+        - ``right`` -- right expression.
+
+        OUTPUT:
+
+        ``True`` if operators are equal, otherwise ``False``.
+
+        TESTS::
+
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: S = R(SR('S'), function=True)
+            sage: T = R(SR('T'), function=True)
+            sage: S._cmp_without_operands_(T)
+            True
+        """
+        return left.__class__ == right.__class__
 
 
     #------------------------------------------------------------------------
@@ -1862,6 +1949,60 @@ class GenericSingleton(GenericExpression):
         """
         self._update_memo_(memo)
         return repr(self.singleton())
+
+
+    #------------------------------------------------------------------------
+
+
+    def _cmp_without_operands_(left, right):
+        """
+        Return whether operators are equal or not (but without
+        comparing the operands).
+
+        INPUT:
+
+        - ``left`` -- left expression.
+
+        - ``right`` -- right expression.
+
+        OUTPUT:
+
+        ``True`` if operators are equal, otherwise ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     GenericSingleton)
+            sage: R = CombinatorialExpressionRing(SR)
+            sage: a = R(SR('a'))
+            sage: b = R(SR('b'))
+            sage: c = R(SR('c'), size=2)
+            sage: d = GenericSingleton(R, SR('d'), size=1)
+            sage: e = GenericSingleton(R, SR('e'), size=0)
+            sage: f = R(SR('1'), size=0)
+            sage: a == b  # indirect doctest
+            True
+            sage: a == c  # indirect doctest
+            False
+            sage: a == d  # indirect doctest
+            True
+            sage: a == e  # indirect doctest
+            False
+            sage: a == f  # indirect doctest
+            False
+            sage: c == d  # indirect doctest
+            False
+            sage: c == e  # indirect doctest
+            False
+            sage: c == f  # indirect doctest
+            False
+            sage: d == e  # indirect doctest
+            False
+            sage: e == f  # indirect doctest
+            True
+        """
+        return (left.is_singleton() == right.is_singleton() and
+                left.size() == right.size())
 
 
     #------------------------------------------------------------------------
