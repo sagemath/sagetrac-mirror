@@ -367,8 +367,7 @@ class FSMFourier(Transducer):
         M_epsilon = [self.adjacency_matrix(input=epsilon,
                                            entry=lambda t: 1)
                      for epsilon in range(q)]
-        assert self.adjacency_matrix(entry=lambda t: 1) ==\
-            sum(M_epsilon)
+        assert M == sum(M_epsilon)
 
         Delta_epsilon = [self.adjacency_matrix(
                              input=epsilon,
