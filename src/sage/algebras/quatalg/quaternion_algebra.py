@@ -335,7 +335,7 @@ class QuaternionAlgebra_abstract(Algebra):
             self.__basis = tuple([self(1)] + list(self.gens()))
             return self.__basis
 
-    def basis_for_quaternion_lattice(self, gens, ideal_list = None, reverse = False):
+    def basis_for_quaternion_lattice(self, gens, ideal_list=None, reverse=False):
         """
         Return a basis for the `\\ZZ_F`-lattice in a quaternion algebra
         spanned by the given gens.
@@ -1122,7 +1122,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                                               self._a._magma_init_(magma),
                                               self._b._magma_init_(magma))
 
-    def quaternion_order(self, basis,ideal_list = None, check=True):
+    def quaternion_order(self, basis, ideal_list=None, check=True):
         """
         Return the order of this quaternion order with given basis.
 
@@ -1144,7 +1144,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: Q.quaternion_order([i,j,k], check=False)
             Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [i, j, k]
         """
-        return QuaternionOrder(self, basis, ideal_list = ideal_list, check=check)
+        return QuaternionOrder(self, basis, ideal_list=ideal_list, check=check)
 
     def ideal(self, gens, left_order=None, right_order=None, check=True, **kwds):
         r"""
@@ -1343,7 +1343,7 @@ class QuaternionOrder(Algebra):
         sage: type(QuaternionAlgebra(-1,-7).maximal_order())
         <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder'>
     """
-    def __init__(self, A, basis,ideal_list = None, check=True):
+    def __init__(self, A, basis, ideal_list=None, check=True):
         """
         INPUT:
 
@@ -1417,7 +1417,7 @@ class QuaternionOrder(Algebra):
             Traceback (most recent call last):
             ...
             ValueError: lattice must contain 1
-            sage: A.quaternion_order([1,i,j,k],ideal_list = [A.discriminant(), A.discriminant(), A.discriminant(), A.discriminant()])
+            sage: A.quaternion_order([1,i,j,k], ideal_list=[A.discriminant(), A.discriminant(), A.discriminant(), A.discriminant()])
             Traceback (most recent call last):
             ...
             ValueError: lattice must contain 1
@@ -1463,7 +1463,7 @@ class QuaternionOrder(Algebra):
                 except AttributeError:
                     pass
                 if O:
-                    M1 = A.basis_for_quaternion_lattice(basis, ideal_list = ideal_list)
+                    M1 = A.basis_for_quaternion_lattice(basis, ideal_list=ideal_list)
                     if ideal_list:
                         M2 = A.basis_for_quaternion_lattice(basis+[x*y for x in basis for y in basis], ideal_list+[I*J for I in ideal_list for J in ideal_list])
                     else:
@@ -1476,7 +1476,7 @@ class QuaternionOrder(Algebra):
                     basis = M1[0]
                     ideal_list = M1[1]
                     self.__basis = None
-                    self.__pseudobasis = [basis,ideal_list]
+                    self.__pseudobasis = [basis, ideal_list]
                 else:
                     if M1[0] != 1:
                         raise ValueError("lattice must contain 1")
