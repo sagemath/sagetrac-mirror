@@ -31,6 +31,7 @@ include "sage/ext/stdsage.pxi"
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer cimport Integer
+from sage.rings.number_field.number_field import NumberField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
