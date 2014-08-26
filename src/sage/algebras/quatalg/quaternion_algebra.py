@@ -334,7 +334,7 @@ class QuaternionAlgebra_abstract(Algebra):
         except AttributeError:
             self.__basis = tuple([self(1)] + list(self.gens()))
             return self.__basis
-            
+
     def basis_for_quaternion_lattice(self, gens, ideal_list = None, reverse = False):
         """
         Return a basis for the `\\ZZ_F`-lattice in a quaternion algebra
@@ -358,12 +358,12 @@ class QuaternionAlgebra_abstract(Algebra):
 
             sage: A.basis_for_quaternion_lattice([A(1),i,j,k])
             [1, i, j, k]
-            
+
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.basis_for_quaternion_lattice([1,i+2*j,j,i+j+3*k])
             [1, i, j, 3*k]
-            
+
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: A.basis_for_quaternion_lattice([1,(b+5)*i,10*i,j,k])
@@ -378,7 +378,7 @@ class QuaternionAlgebra_abstract(Algebra):
         F = self.base_ring()
         gens = [self(g) for g in gens]
         if len(gens) == 0: return []
-        
+
         #if over a number field
         if F != QQ:
             try:
@@ -388,20 +388,20 @@ class QuaternionAlgebra_abstract(Algebra):
                     Ipari = [pari.pari(ids) for ids in ideal_list]
                 else:
                     Ipari = [pari.pari(F.ideal(1)) for elt in gens]
-                
+
                 #pari version of number field F
                 Fp = pari.pari(F)
-                
+
                 #use pari's nfhnf to find a pseudo-basis
                 M1,I1 = Fp.nfhnf([Mpari,Ipari])
-                
-                #convert back to sage 
+
+                #convert back to sage
                 M = matrix([[F(M1[i][j]) for i in range(len(M1))] for j in range(len(M1[0]))])
                 I = [F.ideal(id) for id in I1]
 
                 #and back to sage quaternion algebra elements
                 basis_elts = [sum([M[n][l]*self.basis()[l] for l in range(M.nrows())]) for n in range(M.ncols())]
-                
+
                 #if each ideal in I is principal, there is a basis:
                 #check
                 IT = [id.is_principal() for id in I]
@@ -1390,7 +1390,7 @@ class QuaternionOrder(Algebra):
             Traceback (most recent call last):
             ...
             ValueError: given lattice must be a ring
-            
+
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.quaternion_order([1,i+2*j,j,i+j+3*k])
@@ -1411,7 +1411,7 @@ class QuaternionOrder(Algebra):
             ValueError: basis must have length 4
             sage: bas = A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             sage: A.quaternion_order(bas[0],bas[1])
-            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis 
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis
             [[1, i, j, k], [Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)]]
             sage: A.quaternion_order([2,2*i,2*j,2*k])
             Traceback (most recent call last):
@@ -1421,10 +1421,10 @@ class QuaternionOrder(Algebra):
             Traceback (most recent call last):
             ...
             ValueError: lattice must contain 1
-            
+
         """
         basis = [A(e) for e in basis]
-        
+
         if check:
             # right data type
             if not isinstance(basis, (list, tuple)):
@@ -1459,7 +1459,7 @@ class QuaternionOrder(Algebra):
             if A.base_ring() != QQ:     # slow code over number fields (should eventually use PARI's nfhnf)
                 O = None
                 try:
-                    O = A.base_ring().maximal_order() 
+                    O = A.base_ring().maximal_order()
                 except AttributeError:
                     pass
                 if O:
@@ -1469,7 +1469,7 @@ class QuaternionOrder(Algebra):
                     else:
                         M2 = A.basis_for_quaternion_lattice(basis+[x*y for x in basis for y in basis])
                     if M1 != M2:
-                        raise ValueError, "given lattice must be a ring"                    
+                        raise ValueError, "given lattice must be a ring"
                 if len(M1) == 2:
                     if M1[0][0] != 1 or M1[1][0] != A.base_ring().ideal(1):
                         raise ValueError("lattice must contain 1")
@@ -1483,7 +1483,7 @@ class QuaternionOrder(Algebra):
                     self.__basis = M1
         else:
             self.__basis = basis
-                    
+
         self.__quaternion_algebra = A
         ParentWithGens.__init__(self, ZZ, names=None)
 
@@ -1562,7 +1562,7 @@ class QuaternionOrder(Algebra):
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().basis()
             [1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k]
-            
+
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: O = A.quaternion_order([1,i,j,k])
@@ -1571,22 +1571,22 @@ class QuaternionOrder(Algebra):
 
         """
         return self.__basis
-    
+
     def pseudobasis(self):
         """
         Return fix choice of basis for this quaternion order.
-        
+
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().pseudobasis()
             [1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k]
-            
+
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: O = A.quaternion_order([1,i,j,k],[K.ideal(1),A.discriminant(), K.ideal(1),K.ideal(1)])
             sage: O.pseudobasis()
             [[1, i, j, k], [Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (1)]]
-            
+
         """
         if self.basis():
             return self.basis()
@@ -1614,17 +1614,17 @@ class QuaternionOrder(Algebra):
             'Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k]'
             sage: QuaternionAlgebra(-11,-1).maximal_order()
             Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k]
-            
+
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: O = A.quaternion_order([1,i,j,k],[K.ideal(1),A.discriminant(), K.ideal(1),K.ideal(1)])
             sage: O._repr_()
-            'Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis 
+            'Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis
             [[1, i, j, k], [Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (1)]]'
             sage: O
-            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis 
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis
             [[1, i, j, k], [Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (1)]]
-            
+
         """
         if self.basis():
             return 'Order of %s with basis %s'%(self.quaternion_algebra(), self.basis())
@@ -2789,8 +2789,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 #######################################################################
 # Some utility functions that are needed here and are too
 # specialized to go elsewhere.
-#######################################################################    
-    
+#######################################################################
+
 
 
 def intersection_of_row_modules_over_ZZ(v):
