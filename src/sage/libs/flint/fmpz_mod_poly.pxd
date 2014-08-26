@@ -2,6 +2,8 @@ from sage.libs.flint.fmpz cimport fmpz_t
 
 cdef extern from "flint/fmpz_mod_poly.h":
     ctypedef void* fmpz_mod_poly_t
+    ctypedef struct fmpz_mod_poly_struct:
+        pass
 
     void fmpz_mod_poly_init(fmpz_mod_poly_t poly, const fmpz_t p)
     void fmpz_mod_poly_clear(fmpz_mod_poly_t poly)
