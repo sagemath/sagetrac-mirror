@@ -36,5 +36,6 @@ def change_basis_javad_nmod(FiniteFieldElement_flint_fq_nmod x, FiniteFieldEleme
     for i in xrange(n):
         l.append(nmod_poly_get_coeff_ui(<nmod_poly_struct*> x_image, i))
     del bc
+    fq_nmod_clear(x_image, x._cparent)
     return tuple(l)
-    
+
