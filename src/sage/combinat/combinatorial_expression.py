@@ -3159,6 +3159,216 @@ class CombinatorialExpressionRing(
         return GenericAtom(self, self.base_ring().an_element())
 
 
+    #------------------------------------------------------------------------
+
+
+    def build_element_step(self, *parts, **kwargs):
+        """
+        Does one step in building an element satisfying a
+        combinatorial expression.
+
+        INPUT:
+
+        - ``*parts`` -- the parts of the future element, which should
+          be glued together.
+
+        OUTPUT:
+
+        The new element.
+
+        The new element is simply a tuple of all of the given parts.
+
+        EXAMPLES::
+
+            sage: R = CombinatorialExpressionRing()
+
+        We create an atom representing an inner vertex of a tree by::
+
+            sage: z = R(SR('z'))
+
+        We need another atom, namely an empty one::
+
+            sage: e = R(SR('1'), empty=True)
+            sage: E = R.build_element_step(e); E
+            (1,)
+
+        We construct a tree with one root and two leaves. The
+        following represents such a tree in tuple-form::
+
+            sage: T = R.build_element_step(z, E, E); T
+            (z, (1,), (1,))
+
+        We can build tree with more vertices like the following::
+
+            sage: R.build_element_step(z, T, E)
+            (z, (z, (1,), (1,)), (1,))
+
+        .. SEEALSO::
+
+            :meth:`GenericExpression.iter_elements`,
+            :meth:`GenericExpression.random_element`.
+        """
+        return tuple(p for p in parts)
+
+
+#*****************************************************************************
+# Derived Rings
+#*****************************************************************************
+
+
+class CombinatorialExpressionRingForTuples(CombinatorialExpressionRing):
+    """
+    The combinatorial expressions in this ring represent tuples.
+
+    See :class:`CombinatorialExpressionRing` for general information.
+    """
+
+    def build_element_step(self, *parts, **kwargs):
+        """
+        Does one step in building an element satisfying a
+        combinatorial expression.
+
+        INPUT:
+
+        - ``*parts`` -- the parts of the future element, which should
+          be glued together.
+
+        OUTPUT:
+
+        The new element.
+
+        The new element is a tuple, which joins all parts (flat)
+        together.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRingForTuples)
+            sage: R = CombinatorialExpressionRingForTuples()
+
+        We create an atom representing an inner vertex of a tree by::
+
+            sage: z = R(SR('z'))
+
+        We need another atom, namely an empty one::
+
+            sage: e = R(SR('1'), empty=True)
+            sage: E = R.build_element_step(e); E
+            (1,)
+
+        We construct a tree with one root and two leaves. The
+        following represents such a tree in a flat tuple-form::
+
+            sage: T = R.build_element_step(z, E, E); T
+            (z, 1, 1)
+
+        We can build tree with more vertices like the following::
+
+            sage: B = R.build_element_step(z, T, E); B
+            (z, z, 1, 1, 1)
+
+        .. SEEALSO::
+
+            :meth:`GenericExpression.iter_elements`,
+            :meth:`GenericExpression.random_element`.
+        """
+        return sum((p if isinstance(p, tuple) else (p,) for p in parts),
+                   tuple())
+
+
+# ----------------------------------------------------------------------------
+
+
+class CombinatorialExpressionRingForRootedTrees(CombinatorialExpressionRing):
+    """
+    The combinatorial expressions in this ring represent rooted trees.
+
+    See :class:`CombinatorialExpressionRing` for general information.
+    """
+
+    def build_element_step(self, *parts, **kwargs):
+        """
+        Does one step in building an element satisfying a
+        combinatorial expression.
+
+        INPUT:
+
+        - ``*parts`` -- the parts of the future element, which should
+          be glued together.
+
+        OUTPUT:
+
+        The new element.
+
+        The new element is rooted tree (graph), where the first part
+        either acts as an inner vertex as root for all the other given
+        parts or acts as leaf.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinatorial_expression import (
+            ....:     CombinatorialExpressionRingForRootedTrees)
+            sage: R = CombinatorialExpressionRingForRootedTrees()
+
+        We create an atom representing an inner vertex of a tree by::
+
+            sage: z = R(SR('z'))
+
+        We need another atom, namely an empty one::
+
+            sage: e = R(SR('1'), empty=True)
+            sage: E = R.build_element_step(e); E
+            Graph on 1 vertex
+            sage: E.am()
+            [0]
+
+        We construct a tree with one root and two leaves. The
+        following represents such a tree::
+
+            sage: T = R.build_element_step(z, E, E); T
+            Graph on 3 vertices
+            sage: T.am()
+            [0 1 1]
+            [1 0 0]
+            [1 0 0]
+
+        We can build tree with more vertices like the following::
+
+            sage: B = R.build_element_step(z, T, E); B
+            Graph on 5 vertices
+            sage: B.am()
+            [0 1 0 0 1]
+            [1 0 1 1 0]
+            [0 1 0 0 0]
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+
+        .. SEEALSO::
+
+            :meth:`GenericExpression.iter_elements`,
+            :meth:`GenericExpression.random_element`.
+        """
+        if not parts:
+            raise ValueError('Nothing given.')
+
+        # get new root
+        root = parts[0]
+        if not root.is_singleton():
+            raise ValueError('%s is not a singleton, therefore cannot create '
+                             'a vertex out of it.' % (root,))
+        G = sage.graphs.graph.Graph()
+        root_label = Integer(0)
+        G.add_vertex(root_label)
+
+        # glue together
+        for n, t in enumerate(parts[1:]):
+            f = lambda v: (Integer(n+1), v)
+            G = G.union(t.relabel(f, inplace=False))
+            G.add_edge((root_label, f(root_label)))
+
+        return G
+
+
 #*****************************************************************************
 # Operators
 #*****************************************************************************
