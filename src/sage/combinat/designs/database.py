@@ -2238,7 +2238,7 @@ def OA_10_520():
 
     The consruction shared by Julian R. Abel works for :func:`OA(10,520)
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
-    <OA_10_524>`.
+    <OA_14_524>`.
 
     Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
     contained in a common block, add a new point `p` and create a block `g_i\cup
@@ -2314,7 +2314,7 @@ def OA_12_522():
 
     The consruction shared by Julian R. Abel works for :func:`OA(10,520)
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
-    <OA_12_524>`.
+    <OA_14_524>`.
 
     Let `n=520+x` and `k=12+x`. Build a `TD(17,31)`. Remove `8-x` points
     contained in a common block, add a new point `p` and create a block `g_i\cup
