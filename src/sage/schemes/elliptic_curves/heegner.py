@@ -4755,8 +4755,8 @@ class HeegnerQuatAlg(SageObject):
         EXAMPLES::
 
             sage: heegner_points(11).reduce_mod(3).left_orders()
-            [Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis [1/2 + 1/2*j + 7*k, 1/2*i + 13/2*k, j + 3*k, 11*k],
-             Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis [1/2 + 1/2*j + 7*k, 1/4*i + 1/2*j + 63/4*k, j + 14*k, 22*k]]
+            [Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis (1/2 + 1/2*j + 7*k, 1/2*i + 13/2*k, j + 3*k, 11*k),
+             Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis (1/2 + 1/2*j + 7*k, 1/4*i + 1/2*j + 63/4*k, j + 14*k, 22*k)]
         """
         return [I.left_order() for I in self.right_ideals()]
 
@@ -5851,7 +5851,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
             sage: H.optimal_embeddings(-7, 2, R)[0].codomain()
-            Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis [1/2 + 1/2*j + 7*k, 1/2*i + 13/2*k, j + 3*k, 11*k]
+            Order of Quaternion Algebra (-1, -3) with base ring Rational Field with basis (1/2 + 1/2*j + 7*k, 1/2*i + 13/2*k, j + 3*k, 11*k)
         """
         return self.__R
 
