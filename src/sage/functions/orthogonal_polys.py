@@ -912,6 +912,8 @@ class Func_chebyshev_T(ChebyshevPolynomial):
         P = parent(arg)
         if n == 0:
             return P.one()
+        if n > 10000 or n < -10000:
+            return self.eval_recursive(n,arg)            
         if is_PolynomialRing(P) or is_SymbolicExpressionRing(P):
             from sage.rings.polynomial.polynomial_integer_dense_flint import Polynomial_integer_dense_flint
             if n<0:
