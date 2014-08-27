@@ -358,8 +358,10 @@ class QuaternionAlgebra_abstract(Algebra):
             sage: A.basis_for_quaternion_lattice([i+j, i-j, 2*k, A(1/3)])
             [1/3, i + j, 2*j, 2*k]
 
-            sage: A.basis_for_quaternion_lattice([A(1),i,j,k])
+            sage: A.basis_for_quaternion_lattice([1,i,j,k])
             [1, i, j, k]
+            sage: A.basis_for_quaternion_lattice([1,i,j,k], [ZZ.ideal(2)]*4)
+            [2, 2*i, 2*j, 2*k]
 
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
@@ -415,6 +417,11 @@ class QuaternionAlgebra_abstract(Algebra):
             except NotImplementedError:
                 print "Not implemented for quaternion algebras over rings other than QQ or number fields."
         else:
+            if ideal_list is not None:
+                # fix gens taking ideal_list into account
+                if len(gens) != len(ideal_list):
+                    raise ValueError,("gens and ideal_list must have the same lenght")
+                gens = [g*ids.gen() for g,ids in zip(gens,ideal_list)]
             Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens, reverse)
             H = Z._hnf_pari(0, include_zero_rows=False)
             return quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(self, H, d, reverse)
@@ -1383,6 +1390,8 @@ class QuaternionOrder(Algebra):
             Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
             sage: type(R)
             <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder'>
+            sage: sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,i,j,k], map(ZZ.ideal,[1,2,2,2]))
+            Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
 
             Over QQ and number fields it is checked whether the given
             basis actually gives a an order (as a module over the maximal order):
@@ -1475,7 +1484,7 @@ class QuaternionOrder(Algebra):
                     raise ValueError("given lattice must be a ring")
                 self.__basis = basis
 
-            if A.base_ring() != QQ:     # slow code over number fields (should eventually use PARI's nfhnf)
+            if A.base_ring() != QQ or ideal_list is not None:
                 O = None
                 try:
                     O = A.base_ring().maximal_order()
@@ -1485,7 +1494,7 @@ class QuaternionOrder(Algebra):
                     M1 = A.basis_for_quaternion_lattice(basis, ideal_list=ideal_list)
                     if ideal_list:
                         M2 = A.basis_for_quaternion_lattice(basis+tuple(x*y for x in basis for y in basis),
-                                                            ideal_list+tuple(I*J for I in ideal_list for J in ideal_list))
+                                                            tuple(ideal_list)+tuple(I*J for I in ideal_list for J in ideal_list))
                     else:
                         M2 = A.basis_for_quaternion_lattice(basis+tuple(x*y for x in basis for y in basis))
                     if M1 != M2:
