@@ -345,6 +345,8 @@ class QuaternionAlgebra_abstract(Algebra):
 
         - ``gens`` -- list of elements of the quaternion algebra
 
+        - ``ideal_list`` -- list of `\\ZZ_F`-ideals (optional, for a pseudo-basis)
+
         - ``reverse`` -- (when A is over the rationals) when computing the HNF do it on the basis
                          (k,j,i,1) instead of (1,i,j,k). This ensures
                          that if ``gens`` are the generators for an order,
@@ -1129,6 +1131,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         INPUT:
 
         - ``basis`` - list of 4 elements of ``self``
+        - ``ideal_list`` -- list of 4 `\\ZZ_F`-ideals (optional, for a pseudo-basis)
         - ``check`` - bool (default: ``True``)
 
         EXAMPLES::
@@ -1136,6 +1139,21 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: Q.<i,j,k> = QuaternionAlgebra(-11,-1)
             sage: Q.quaternion_order([1,i,j,k])
             Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1, i, j, k)
+
+            sage: K.<b> = NumberField(x^2+5)
+            sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
+            sage: A.quaternion_order([1,i,j,k])
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with basis (1, i, j, k)
+            sage: id1 = K.ideal(1)
+            sage: id2 = K.ideal(2)
+            sage: A.quaternion_order([1,i,j,k], [id1,id1,id1,id1])
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with basis (1, i, j, k)
+            sage: A.quaternion_order([1,i,j,k/2], [id1,id1,id1,id2])
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with basis (1, i, j, k)
+
+            sage: idD = A.discriminant()
+            sage: A.quaternion_order([1,i,j,k], [id1,idD,id1,idD])
+            Order of Quaternion Algebra (b, 2*b) with base ring Number Field in b with defining polynomial x^2 + 5 with pseudo-basis ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
 
         We test out ``check=False``::
 
@@ -1349,6 +1367,7 @@ class QuaternionOrder(Algebra):
 
         - ``A`` - a quaternion algebra
         - ``basis`` - list of 4 integral quaternions in ``A``
+        - ``ideal_list`` -- list of 4 `\\ZZ_F`-ideals (optional, for a pseudo-basis)
         - ``check`` - whether to do type and other consistency checks
 
         .. WARNING::
