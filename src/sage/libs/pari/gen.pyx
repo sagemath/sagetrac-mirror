@@ -6744,6 +6744,31 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(idealappr0(self.g, t0.g, flag))
 
     def idealchinese(self, x, y):
+        """
+
+        INPUT:
+
+        - ``x`` : prime ideal factorization
+        - ``y`` : vector of elements
+
+        OUTPUT:
+
+        An elementbb such that v_p(b-y_p)>=v_p(x) for all
+        prime ideals p dividing x, and v_p(b)>=0 for all other p.
+
+        EXAMPLES::
+
+            sage: F = QuadraticField(5, 'alpha')
+[-6*a - 40, 1] [Fractional ideal (25), Fractional ideal (4)]
+            sage: nf = F._pari_()
+            sage: P = F.ideal(F.gen())
+            sage: Q = F.ideal(2)
+            sage: ans = F(nf.idealchinese(pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4]),pari.vector(2,[0,1])))
+            sage: ans.valuation(P) >= 4
+            True
+            sage: (ans-1).valuation(Q) >= 2
+            True
+        """
         cdef gen tx = objtogen(x)
         cdef gen ty = objtogen(y)
         pari_catch_sig_on()
