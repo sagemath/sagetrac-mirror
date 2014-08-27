@@ -356,25 +356,25 @@ class QuaternionAlgebra_abstract(Algebra):
 
             sage: A.<i,j,k> = QuaternionAlgebra(-1,-7)
             sage: A.basis_for_quaternion_lattice([i+j, i-j, 2*k, A(1/3)])
-            [1/3, i + j, 2*j, 2*k]
+            (1/3, i + j, 2*j, 2*k)
 
             sage: A.basis_for_quaternion_lattice([A(1),i,j,k])
-            [1, i, j, k]
+            (1, i, j, k)
 
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.basis_for_quaternion_lattice([1,i+2*j,j,i+j+3*k])
-            [1, i, j, 3*k]
+            (1, i, j, 3*k)
 
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: A.basis_for_quaternion_lattice([1,(b+5)*i,10*i,j,k])
-            ([1, i, j, k], [Fractional ideal (1), Fractional ideal (10, b + 5),
-            Fractional ideal (1), Fractional ideal (1)])
+            ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5),
+            Fractional ideal (1), Fractional ideal (1))
             sage: A.basis_for_quaternion_lattice([1,i,j,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
-            ([1, i, j, k], [Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)])
+            ((1, i, j, k), ((Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5))
             sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
-            ([1, i + 3*j, j, k], [Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)])
+            ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5))
 
         """
         F = self.base_ring()
@@ -408,9 +408,12 @@ class QuaternionAlgebra_abstract(Algebra):
                 #check
                 IT = [id.is_principal() for id in I]
                 if sum(IT) == len(I):
-                    return [basis_elts[k]*I[k].gens_reduced()[0] for k in range(len(basis_elts))]
+                    bas_tup = tuple(basis_elts[k]*I[k].gens_reduced()[0] for k in range(len(basis_elts)))
+                    return bas_tup
                 #otherwise we only have a pseudo-basis
                 else:
+                    basis_tup = tuple(basis_elts)
+                    I_tup = tuple(I)
                     return basis_elts, I
             except NotImplementedError:
                 print "Not implemented for quaternion algebras over rings other than QQ or number fields."
