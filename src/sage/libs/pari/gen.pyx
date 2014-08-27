@@ -6743,6 +6743,12 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(idealappr0(self.g, t0.g, flag))
 
+    def idealchinese(self, x, y):
+        cdef gen tx = objtogen(x)
+        cdef gen ty = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(idealchinese(self.g, tx.g, ty.g))
+
     def idealcoprime(self, x, y):
         """
         Given two integral ideals x and y of a pari number field self,
