@@ -357,22 +357,16 @@ class QuaternionAlgebra_abstract(Algebra):
             sage: A.<i,j,k> = QuaternionAlgebra(-1,-7)
             sage: A.basis_for_quaternion_lattice([i+j, i-j, 2*k, A(1/3)])
             (1/3, i + j, 2*j, 2*k)
-
-<<<<<<< HEAD
             sage: A.basis_for_quaternion_lattice([A(1),i,j,k])
             (1, i, j, k)
-=======
             sage: A.basis_for_quaternion_lattice([1,i,j,k])
             [1, i, j, k]
             sage: A.basis_for_quaternion_lattice([1,i,j,k], [ZZ.ideal(2)]*4)
             [2, 2*i, 2*j, 2*k]
->>>>>>> FETCH_HEAD
-
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.basis_for_quaternion_lattice([1,i+2*j,j,i+j+3*k])
             (1, i, j, 3*k)
-
             sage: K.<b> = NumberField(x^2+5)
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: A.basis_for_quaternion_lattice([1,(b+5)*i,10*i,j,k])
