@@ -662,8 +662,6 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             sage: chebyshev_T(5,2,hold=True)
             chebyshev_T(5, 2)
             sage: T = chebyshev_T(100000000000,x)
-            sage: 
-
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'formula':
