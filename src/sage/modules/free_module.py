@@ -164,7 +164,10 @@ import free_module_element
 
 import module
 
+from sage.libs.pari.all import pari, pari_gen
+
 import sage.matrix.matrix_space
+import sage.matrix.matrix2 as matrix2
 
 import sage.misc.latex as latex
 
@@ -1278,7 +1281,7 @@ done from the right side.""")
 
         ::
 
-            sage: M = FreeModule(GF(7),3).span([[2,3,4],[1,1,1]]); M
+            sage: M = FreeModule(GF(7),3).spang([[2,3,4],[1,1,1]]); M
             Vector space of degree 3 and dimension 2 over Finite Field of size 7
             Basis matrix:
             [1 0 6]
@@ -1333,8 +1336,8 @@ done from the right side.""")
             ...
             NotImplementedError
         """
-        raise NotImplementedError
-
+        raise NoteImplementedError
+        
     def matrix(self):
         """
         Return the basis matrix of this module, which is the matrix whose
@@ -5354,6 +5357,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if c: return c
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
+        from sage.rings.number_field.order import is_NumberFieldOrder
+        if is_NumberFieldOrder(self.base_ring()) and self.base_ring() != ZZ:
+                Mat,Ids = self._pseudo_hermite_matrix()
+                Omat,OIds = other._pseudo_hermite_matrix()
+                if Mat == Omat and Ids == OIds:
+                    return True
+                else:
+                    return False
         return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
 
     def _denominator(self, B):
@@ -5462,6 +5473,29 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             False
         """
         return self.__ambient_module
+
+    def _pseudo_hermite_matrix(self,ideal_list = None):
+        r"""
+        This returns the pseudo basis as a matrix in hermite form and a list of ideals.
+        
+        It is here for now, but could be used more generally, e.g., for non-PIDs.
+        """
+        ZF = self._base_ring
+        assert is_NumberFieldOrder(ZF)
+        if ZF == ZZ:
+            return self._basis_matrix.hermite_form()
+        F = ZF.number_field()
+        PF=pari(F)
+        BM = self._basis_matrix
+        if ideal_list == None:
+            ideal_list = [F.ideal(1) for id in range(BM.nrows())]
+        pari_ideal_list = [pari(id) for id in ideal_list]
+        HM,HI = PF.nfhnf([pari(BM),pari_ideal_list])
+        M = matrix([[F(HM[i][j]) for i in range(len(HM))] for j in range(len(HM[0]))])
+        I = [F.ideal(id) for id in HI]
+        return M, I
+
+
 
     def echelon_coordinates(self, v, check=True):
         r"""
