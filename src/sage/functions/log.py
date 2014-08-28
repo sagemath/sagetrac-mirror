@@ -122,8 +122,6 @@ class Function_exp(GinacFunction):
             sage: t.prec()
             100
 
-        TESTS::
-
         Ensure that :trac:`13608` is fixed::
 
             sage: import mpmath

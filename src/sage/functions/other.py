@@ -753,27 +753,7 @@ class Function_gamma(GinacFunction):
             sage: t.prec()
             100
         """
-        # this is a kludge to keep
-        #     sage: Q.<i> = NumberField(x^2+1)
-        #     sage: gamma(i)
-        # working, since number field elements cannot be coerced into SR
-        # without specifying an explicit embedding into CC any more
-        try:
-            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError as err:
-            # the __call__() method returns a TypeError for fast float arguments
-            # as well, we only proceed if the error message says that
-            # the arguments cannot be coerced to SR
-            if not str(err).startswith("cannot coerce"):
-                raise
-
-            try:
-                x = RR(x)
-            except (ValueError, TypeError):
-                x = RR.complex_field()(x)
-            res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-
-        return res
+        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
 
 gamma1 = Function_gamma()
 
@@ -1013,7 +993,9 @@ def gamma(a, *args, **kwds):
 
             sage: Q.<i> = NumberField(x^2+1)
             sage: gamma(i)
-            -0.154949828301811 - 0.498015668118356*I
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Symbolic Ring
 
         We make an exception for elements of AA or QQbar, which cannot be
         coerced into symbolic expressions to allow this usage::
