@@ -360,9 +360,9 @@ class QuaternionAlgebra_abstract(Algebra):
             sage: A.basis_for_quaternion_lattice([A(1),i,j,k])
             (1, i, j, k)
             sage: A.basis_for_quaternion_lattice([1,i,j,k])
-            [1, i, j, k]
+            (1, i, j, k)
             sage: A.basis_for_quaternion_lattice([1,i,j,k], [ZZ.ideal(2)]*4)
-            [2, 2*i, 2*j, 2*k]
+            (2, 2*i, 2*j, 2*k)
             sage: F.<a> = NumberField(x^2-x-1)
             sage: B.<i,j,k> = QuaternionAlgebra(F, 2*a,F(-1))
             sage: B.basis_for_quaternion_lattice([1,i+2*j,j,i+j+3*k])
@@ -371,11 +371,11 @@ class QuaternionAlgebra_abstract(Algebra):
             sage: A.<i,j,k> = QuaternionAlgebra(K,b,2*b)
             sage: A.basis_for_quaternion_lattice([1,(b+5)*i,10*i,j,k])
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5),
-            Fractional ideal (1), Fractional ideal (1))
+            Fractional ideal (1), Fractional ideal (1)))
             sage: A.basis_for_quaternion_lattice([1,i,j,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
-            ((1, i, j, k), ((Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5))
+            ((1, i, j, k), ((Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
             sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
-            ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5))
+            ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)))
 
         """
         F = self.base_ring()
