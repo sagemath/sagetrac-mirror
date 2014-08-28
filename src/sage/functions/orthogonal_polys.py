@@ -677,7 +677,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             return self._eval_numpy_(n, x)        
         if isinstance(n, Integer):
             if ((is_Polynomial(x) and x.parent().base_ring().is_exact()) or
-                (is_Expression(x) and not x.is_numeric())):
+                (is_Expression(x) and (not x.is_numeric()) and (n > 10000 or n < -10000)):
                 return self.eval_algebraic(n, x)
             else:
                 return self.eval_recursive(n, x)
