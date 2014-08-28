@@ -2275,22 +2275,9 @@ cdef class Q_to_quadratic_field_element(Morphism):
 
 ###################################################################
 #                                                                 #
-#                                                                 #
 # Calculate the continued fraction expansion in a real quadratic  #
 #                                                                 #
-# Main Reference:                                                 #
-# G.E.Cooke, "A weakening of the euclidean property               #
-#            for integral domains and applications                #
-#             to algebraic number theory I"                       #
-#                                                                 #
-# We implement an algorithm that automates the method of proof    #
-# laid out in the above paper. Other than computing continued     #
-# fractions, we obtain certificates of the fact that a real       #
-# quadratic field of class number one is two-stage Euclidean.     #
-# This a theorem conditional on some GRH.                         #
-#                                                                 #
 # Authors: Xevi Guitart and Marc Masdeu                           #
-#                                                                 #
 #                                                                 #
 ###################################################################
 
@@ -2328,13 +2315,25 @@ cdef class Q_to_quadratic_field_element(Morphism):
             sage: v = x.quadratic_continued_fraction()
             sage: len(v)
             10
+
+        We implement an algorithm that automates the method of proof
+        laid out in [Cooke]_. Other than computing continued
+        fractions, we obtain certificates of the fact that a real
+        quadratic field of class number one is two-stage Euclidean.
+        This a theorem conditional on some GRH.
+
+        REFERENCES:
+
+        .. [Cooke] G. E. Cooke, "A weakening of the euclidean property for
+           integral domains and applications to algebraic number
+           theory I"
         """
         try:
             F = self._parent
         except:
             raise ValueError("The argument must belong to a real "
                              "quadratic field of class number one.")
-        if (not F.degree() == 2 or F.class_number()!=1 or
+        if (not F.degree() == 2 or F.class_number() != 1 or
             not F.is_totally_real()):
             raise ValueError("The argument must belong to a real "
                              "quadratic field of class number one.")
