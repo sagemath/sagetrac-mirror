@@ -661,6 +661,9 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             chebyshev_T(3/2, x)
             sage: chebyshev_T(5,2,hold=True)
             chebyshev_T(5, 2)
+            sage: T = chebyshev_T(100000000000,x)
+            sage: 
+
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'formula':
@@ -677,7 +680,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             return self._eval_numpy_(n, x)        
         if isinstance(n, Integer):
             if ((is_Polynomial(x) and x.parent().base_ring().is_exact()) or
-                (is_Expression(x) and (not x.is_numeric()) and (n > 10000 or n < -10000)):
+                (is_Expression(x) and (not x.is_numeric()) and ((n <= 10000) and (n >= -10000)))):
                 return self.eval_algebraic(n, x)
             else:
                 return self.eval_recursive(n, x)
