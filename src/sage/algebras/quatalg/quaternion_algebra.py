@@ -380,7 +380,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         F = self.base_ring()
         gens = [self(g) for g in gens]
-        if len(gens) == 0: return []
+        if len(gens) == 0: return tuple()
 
         #if over a number field
         if F != QQ:
@@ -415,7 +415,7 @@ class QuaternionAlgebra_abstract(Algebra):
                 else:
                     basis_tup = tuple(basis_elts)
                     I_tup = tuple(I)
-                    return basis_elts, I
+                    return basis_tup, I_tup
             except NotImplementedError:
                 print "Not implemented for quaternion algebras over rings other than QQ or number fields."
         else:
