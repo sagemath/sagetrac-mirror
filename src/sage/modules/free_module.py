@@ -167,10 +167,10 @@ import module
 from sage.libs.pari.all import pari, pari_gen
 
 import sage.matrix.matrix_space
-import sage.matrix.matrix2 as matrix2
 
 import sage.misc.latex as latex
 
+import sage.rings.number_field.order as nf_order
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
@@ -1281,7 +1281,7 @@ done from the right side.""")
 
         ::
 
-            sage: M = FreeModule(GF(7),3).spang([[2,3,4],[1,1,1]]); M
+            sage: M = FreeModule(GF(7),3).span([[2,3,4],[1,1,1]]); M
             Vector space of degree 3 and dimension 2 over Finite Field of size 7
             Basis matrix:
             [1 0 6]
@@ -1336,7 +1336,7 @@ done from the right side.""")
             ...
             NotImplementedError
         """
-        raise NoteImplementedError
+        raise NotImplementedError
         
     def matrix(self):
         """
@@ -5343,6 +5343,34 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             Free module of degree 1 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1]
+            
+        We now generalize this to class number one rings of integers.
+        
+        ::
+        
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: ZF = F.ring_of_integers()
+            sage: A = matrix(ZF,[[1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: B = identity_matrix(ZF,4)
+            sage: VA = (ZF^4).span(A)
+            sage: VB = (ZF^4).span(B)
+            sage: VB == VA
+            True
+            
+        Now we check an example with the same _pseudo_hermite_matrix matrices, 
+        but different ideal lists::
+        
+            sage: C = matrix(ZF,[[3,0,3,0],[0,3,6,9],[0,0,3,0],[12,0,0,3]])
+            sage: VC = (ZF^4).span(C)
+            sage: VC == VA
+            False
+            
+        And finally and example where they have different _pseudo_hermite_matrix matrices::
+        
+            sage: D = matrix(ZF,[[1+a,1,12*a,1],[1+a,1+a,1+a,1+a],[2*a+3,1+a,4*a+5,0],[1,0,1,1]])
+            sage: VD = (ZF^4).span(D)
+            sage: VA == VD
+            False
 
         """
         if self is other:
@@ -5357,14 +5385,16 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if c: return c
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
-        from sage.rings.number_field.order import is_NumberFieldOrder
-        if is_NumberFieldOrder(self.base_ring()) and self.base_ring() != ZZ:
-                Mat,Ids = self._pseudo_hermite_matrix()
-                Omat,OIds = other._pseudo_hermite_matrix()
-                if Mat == Omat and Ids == OIds:
-                    return True
-                else:
-                    return False
+        
+        if nf_order.is_NumberFieldOrder(self.base_ring()) and self.base_ring() != ZZ:
+            Mat,Ids = self._pseudo_hermite_matrix()
+            Omat,OIds = other._pseudo_hermite_matrix()
+            #if the ideals are the same, compare the matrices
+            if Ids == OIds:
+                return cmp(Mat,Omat)
+            #otherwise, compare the ideals.
+            else:
+                return cmp(Ids,OIds)
         return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
 
     def _denominator(self, B):
@@ -5478,20 +5508,138 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         r"""
         This returns the pseudo basis as a matrix in hermite form and a list of ideals.
         
-        It is here for now, but could be used more generally, e.g., for non-PIDs.
+        It is here for now, but could be used more generally, e.g., for non-PIDs, more specifically,
+        for non class number one rings of integers.
+        
+        INPUT:
+        
+        - `self` -- a free module over a PID, specifically a class number one ring of integers.
+        
+        - `ideal_list` -- a list of ideals used to generate the pseudo basis.
+        
+        OUTPUT:
+        
+        A pseudo basis matrix in Hermite normal form and the list of pseodo basis ideals.
+        
+        We start with an example of free modules that are equal, but due to extra units in the 
+        number field ring of integers, Echelon form cannot tell them apart.
+        
+        ::
+        
+            sage: F.<a> = NumberField(x^2-x-1)
+            sage: ZF = F.ring_of_integers()
+            sage: A = matrix(ZF,[[1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: B = identity_matrix(ZF,4)
+            sage: VA = (ZF^4).span(A)
+            sage: VA._pseudo_hermite_matrix()
+            (
+            [1 0 0 0]                                                                                          
+            [0 1 0 0]                                                                                          
+            [0 0 1 0]                                                                                          
+            [0 0 0 1], [Fractional ideal (1), Fractional ideal (1), Fractional ideal (1), Fractional ideal (1)]
+            )
+            sage: VA._pseudo_hermite_matrix([F.ideal(1)])
+            Traceback (most recent call last):
+            ...
+            ValueError: gens and ideal_list must have the same lenghth
+            sage: VB = (ZF^4).span(B)
+            sage: VB._pseudo_hermite_matrix()
+            (
+            [1 0 0 0]                                                                                          
+            [0 1 0 0]                                                                                          
+            [0 0 1 0]                                                                                          
+            [0 0 0 1], [Fractional ideal (1), Fractional ideal (1), Fractional ideal (1), Fractional ideal (1)]
+            )
+            
+        Now we check an example with non-trivial ideal list returned::
+        
+            sage: C = matrix(ZF,[[3,0,3,0],[0,3,6,9],[0,0,3,0],[12,0,0,3]])
+            sage: VC = (ZF^4).span(C)
+            sage: VC._pseudo_hermite_matrix()
+            (
+            [1 0 0 0]                                                                                          
+            [0 1 0 0]                                                                                          
+            [0 0 1 0]                                                                                          
+            [0 0 0 1], [Fractional ideal (3), Fractional ideal (3), Fractional ideal (3), Fractional ideal (3)]
+            )
+            
+        An example with a more interesting _pseudo_hermite_matrix matrix::
+        
+            sage: D = matrix(ZF,[[1+a,1,12*a,1],[1+a,1+a,1+a,1+a],[2*a+3,1+a,4*a+5,0],[1,0,1,1]])
+            sage: VD = (ZF^4).span(D)
+            sage: VD._pseudo_hermite_matrix()
+            (
+            [                    1                     0                     0 618/1279*a + 551/1279]                                                                                                   
+            [                    0                     1                     0                     0]                                                                                                   
+            [                    0                     0                     1 -50/1279*a - 533/1279]                                                                                                   
+            [                    0                     0                     0                     1], [Fractional ideal (1), Fractional ideal (1), Fractional ideal (1), Fractional ideal (-32*a + 15)]
+            )
+            
+        An example with a non-trivial ideal_list input::
+            
+            sage: IC = [F.fractional_ideal(1), F.fractional_ideal(2), F.fractional_ideal(2), F.fractional_ideal(2)]
+            sage: VA._pseudo_hermite_matrix(ideal_list = IC)
+            (
+            [1 0 0 0]                                                                                          
+            [0 1 0 0]                                                                                          
+            [0 0 1 0]                                                                                          
+            [0 0 0 1], [Fractional ideal (1), Fractional ideal (2), Fractional ideal (2), Fractional ideal (2)]
+            )
+            
+        We can also handle ideal_lists over ZZ::
+        
+            sage: M = identity_matrix(ZZ,10)
+            sage: ID = [ideal(ZZ(p)) for p in prime_range(30)]
+            sage: VZ = (ZZ^10).span(M)
+            sage: VZ._pseudo_hermite_matrix(ID)
+            [ 2  0  0  0  0  0  0  0  0  0]
+            [ 0  3  0  0  0  0  0  0  0  0]
+            [ 0  0  5  0  0  0  0  0  0  0]
+            [ 0  0  0  7  0  0  0  0  0  0]
+            [ 0  0  0  0 11  0  0  0  0  0]
+            [ 0  0  0  0  0 13  0  0  0  0]
+            [ 0  0  0  0  0  0 17  0  0  0]
+            [ 0  0  0  0  0  0  0 19  0  0]
+            [ 0  0  0  0  0  0  0  0 23  0]
+            [ 0  0  0  0  0  0  0  0  0 29]
+            sage: ID = [ideal(ZZ(p)) for p in prime_range(10)]
+            sage: VZ._pseudo_hermite_matrix(ID)
+            Traceback (most recent call last):
+            ...
+            ValueError: gens and ideal_list must have the same lenghth
+            sage: M=matrix([[ZZ(i+j^2) for i in range(10)] for j in range(3,13)])
+            sage: VZ = (ZZ^10).span(M)
+            sage: VZ._pseudo_hermite_matrix()
+            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
+            [ 0  1  2  3  4  5  6  7  8  9]
+
+        
         """
-        ZF = self._base_ring
-        assert is_NumberFieldOrder(ZF)
-        if ZF == ZZ:
-            return self._basis_matrix.hermite_form()
+        import sage.matrix.constructor
+        ZF = self._base
+        #do ZZ first
+        if ZF == ZZ and ideal_list == None:
+            return self.basis_matrix().hermite_form()
+        elif ZF == ZZ:
+            if len(self.gens()) != len(ideal_list):
+                raise ValueError("gens and ideal_list must have the same lenghth")
+            gens = [g*ids.gen() for g,ids in zip(self.gens(),ideal_list)]
+            M = sage.matrix.constructor.matrix(gens).hermite_form()
+            return M
+        #otherwise, it'd better be a number field maximal order.
+        #in this case we use Pari for pseudo bases.
+        assert nf_order.is_NumberFieldOrder(ZF)
         F = ZF.number_field()
         PF=pari(F)
-        BM = self._basis_matrix
+        BM = self.basis_matrix()
         if ideal_list == None:
-            ideal_list = [F.ideal(1) for id in range(BM.nrows())]
+            ideal_list = [F.ideal(1) for id in range(len(self.gens()))]
+        elif len(self.gens()) != len(ideal_list):
+            raise ValueError("gens and ideal_list must have the same lenghth")
         pari_ideal_list = [pari(id) for id in ideal_list]
         HM,HI = PF.nfhnf([pari(BM),pari_ideal_list])
-        M = matrix([[F(HM[i][j]) for i in range(len(HM))] for j in range(len(HM[0]))])
+
+        M = sage.matrix.constructor.matrix([[F(HM[i][j]) for i in range(len(HM))] for j in range(len(HM[0]))])
         I = [F.ideal(id) for id in HI]
         return M, I
 
