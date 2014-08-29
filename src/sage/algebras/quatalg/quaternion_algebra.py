@@ -420,7 +420,7 @@ class QuaternionAlgebra_abstract(Algebra):
             if ideal_list is not None:
                 # fix gens taking ideal_list into account
                 if len(gens) != len(ideal_list):
-                    raise ValueError,("gens and ideal_list must have the same lenght")
+                    raise ValueError,("gens and ideal_list must have the same length")
                 gens = [g*ids.gen() for g,ids in zip(gens,ideal_list)]
             Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens, reverse)
             H = Z._hnf_pari(0, include_zero_rows=False)
