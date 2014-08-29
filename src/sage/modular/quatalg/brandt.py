@@ -393,9 +393,9 @@ def basis_for_left_ideal(R, gens):
 
         sage: B = BrandtModule(17); A = B.quaternion_algebra(); i,j,k = A.gens()
         sage: sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [i+j,i-j,2*k,A(3)])
-        [1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k]
+        (1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k)
         sage: sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [3*(i+j),3*(i-j),6*k,A(3)])
-        [3/2 + 1/2*j + 2*k, 3/2*i + 3/2*k, j + k, 3*k]
+        (3/2 + 1/2*j + 2*k, 3/2*i + 3/2*k, j + k, 3*k)
     """
     A = R.quaternion_algebra()
     return A.basis_for_quaternion_lattice([b*g for b in R.basis() for g in gens])
@@ -421,7 +421,7 @@ def right_order(R, basis):
         sage: sage.modular.quatalg.brandt.right_order(B.maximal_order(), basis)
         Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k)
         sage: basis
-        [1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k]
+        (1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k)
 
         sage: B = BrandtModule(17); A = B.quaternion_algebra(); i,j,k = A.gens()
         sage: basis = sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [i*j-j])
