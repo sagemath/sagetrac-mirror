@@ -373,7 +373,7 @@ class QuaternionAlgebra_abstract(Algebra):
             ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5),
             Fractional ideal (1), Fractional ideal (1)))
             sage: A.basis_for_quaternion_lattice([1,i,j,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
-            ((1, i, j, k), ((Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
+            ((1, i, j, k), (Fractional ideal (1), Fractional ideal (10, b + 5), Fractional ideal (1), Fractional ideal (10, b + 5)))
             sage: A.basis_for_quaternion_lattice([1,i+j+2*k,j+3*i,k],[K.ideal(1),A.discriminant(),K.ideal(1),A.discriminant()])
             ((1, i + 3*j, j, k), (Fractional ideal (1), Fractional ideal (20, 2*b + 10), Fractional ideal (1), Fractional ideal (10, b + 5)))
 
@@ -426,7 +426,8 @@ class QuaternionAlgebra_abstract(Algebra):
                 gens = [g*ids.gen() for g,ids in zip(gens,ideal_list)]
             Z, d = quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions(gens, reverse)
             H = Z._hnf_pari(0, include_zero_rows=False)
-            return quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(self, H, d, reverse)
+            bas = quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(self, H, d, reverse)
+            return tuple(bas)
 
     def inner_product_matrix(self):
         """
