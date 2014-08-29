@@ -69,16 +69,8 @@ The following patches are applied:
 
  * infodir.patch: Correct the path to the Info directory.
 
- * limit-replace-logs.patch: Fix for Maxima bug #2621 (gamma limit
-   error).  Introduced in Trac #15033 (Wrong limit value of expression
-   involving gamma function).
-
  * matrixexp.patch: Fix matrixexp(matrix([%i*%pi])), which broke after
    Maxima 5.29.1.  Introduced in Trac #13973.
-
- * maxima_bug_2526.patch: Fix for Maxima bug #2526 (abs_integrate
-   fails on integrate(sqrt(x + sqrt(x)), x)).  Introduced in Trac
-   #13364 (Upgrade Maxima to 5.29.1).
 
  * maxima.system.patch: Set c::*compile-in-constants* to t.
 

@@ -244,11 +244,12 @@ class MaximaAbstract(Interface):
 
         EXAMPLES::
 
-            sage: maxima.demo('array') # not tested
-            batching /opt/sage/local/share/maxima/5.16.3/demo/array.dem
+            sage: maxima.demo('cf') # not tested
+            read and interpret file: .../local/share/maxima/5.34.0/demo/cf.dem
 
-        At the _ prompt, type ';' followed by enter to get next demo
-        subscrmap : true _
+            At the '_' prompt, type ';' and <enter> to get next demonstration.
+            frac1:cf([1,2,3,4])
+            ...
         """
         # Should this be implemented without launching a new Maxima session
         # i.e. using eval_line ?
@@ -368,8 +369,8 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.console()             # not tested (since we can't)
-            Maxima 5.13.0 http://maxima.sourceforge.net
-            Using Lisp CLISP 2.41 (2006-10-13)
+            Maxima 5.34.0 http://maxima.sourceforge.net
+            Using Lisp ECL 12.12.1
             Distributed under the GNU Public License. See the file COPYING.
             Dedicated to the memory of William Schelter.
             This is a development version of Maxima. The function bug_report()
@@ -420,7 +421,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.33.0'
+            '5.34.0'
         """
         return maxima_version()
 
@@ -2349,7 +2350,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.33.0'
+        '5.34.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 
@@ -2361,7 +2362,7 @@ def maxima_console():
 
         sage: from sage.interfaces.maxima_abstract import maxima_console
         sage: maxima_console()                    # not tested
-        Maxima 5.29.1 http://maxima.sourceforge.net
+        Maxima 5.34.0 http://maxima.sourceforge.net
         ...
     """
     os.system('maxima')
