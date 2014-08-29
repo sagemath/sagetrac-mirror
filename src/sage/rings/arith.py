@@ -517,17 +517,13 @@ def is_pseudoprime(n, flag=0):
 
 def is_prime_power(n, flag=0):
     r"""
-    Returns True if `n` is a prime power, and False otherwise.  The
-    result is proven correct - *this is NOT a pseudo-primality test!*.
+    Returns True if `n` is a prime power, and False otherwise.
 
     INPUT:
 
-        -  ``n`` - an integer or rational number
-        -  ``flag (for primality testing)`` - int
-        - ``0`` (default): use a combination of algorithms.
-        - ``1``: certify primality using the Pocklington-Lehmer Test.
-        - ``2``: certify primality using the APRCL test.
+    - ``n`` -- an integer
 
+    - ``flag`` -- deprecated
 
     EXAMPLES::
 
@@ -542,32 +538,19 @@ def is_prime_power(n, flag=0):
         sage: is_prime_power(-1)
         False
         sage: is_prime_power(1)
-        True
-        sage: is_prime_power(997^100)
+        False
+        sage: is_prime_power(QQ(997^100))
         True
         sage: is_prime_power(1/2197)
-        True
-        sage: is_prime_power(1/100)
-        False
-        sage: is_prime_power(2/5)
-        False
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+        sage: is_prime_power("foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert x (=foo) to an integer
     """
-    try:
-        n = ZZ(n)
-    except TypeError:
-        # n might be a nonintegral rational number, in which case it is a
-        # prime power iff the integer 1/n is a prime power
-        r = QQ(1/n)
-        if not r.is_integral():
-            return False
-        n = ZZ(r)
-
-    from sage.structure.proof.all import arithmetic
-    proof = arithmetic()
-    if proof:
-        return n.is_prime_power(flag=flag)
-    else:
-        return is_pseudoprime_small_power(n)
+    return ZZ(n).is_prime_power(flag=flag)
 
 def is_pseudoprime_small_power(n, bound=1024, get_data=False):
     r"""
@@ -1013,11 +996,9 @@ def next_prime_power(n):
     EXAMPLES::
 
         sage: next_prime_power(-10)
-        1
-        sage: is_prime_power(1)
-        True
+        2
         sage: next_prime_power(0)
-        1
+        2
         sage: next_prime_power(1)
         2
         sage: next_prime_power(2)
@@ -1029,12 +1010,10 @@ def next_prime_power(n):
         sage: next_prime_power(99)
         101
     """
-    if n < 0:   # negatives are not prime.
-        return ZZ(1)
-    if n == 2:
-        return ZZ(3)
     n = ZZ(n) + 1
-    while not is_prime_power(n):  # pari isprime is provably correct
+    if n <= 2:   # negatives are not prime.
+        return ZZ(2)
+    while not n.is_prime_power():
         n += 1
     return n
 
@@ -1156,8 +1135,8 @@ def previous_prime_power(n):
 
     EXAMPLES::
 
-        sage: previous_prime_power(2)
-        1
+        sage: previous_prime_power(3)
+        2
         sage: previous_prime_power(10)
         9
         sage: previous_prime_power(7)
@@ -1167,11 +1146,11 @@ def previous_prime_power(n):
 
     ::
 
-        sage: previous_prime_power(0)
+        sage: previous_prime_power(2)
         Traceback (most recent call last):
         ...
         ValueError: no previous prime power
-        sage: previous_prime_power(1)
+        sage: previous_prime_power(-10)
         Traceback (most recent call last):
         ...
         ValueError: no previous prime power
@@ -1180,12 +1159,12 @@ def previous_prime_power(n):
 
         sage: n = previous_prime_power(2^16 - 1)
         sage: while is_prime(n):
-        ...    n = previous_prime_power(n)
+        ....:  n = previous_prime_power(n)
         sage: factor(n)
         251^2
     """
-    n = ZZ(n)-1
-    if n <= 0:
+    n = ZZ(n) - 1
+    if n <= 1:
         raise ValueError("no previous prime power")
     while not is_prime_power(n):
         n -= 1
@@ -3719,6 +3698,8 @@ def primitive_root(n, check=True):
         0
         sage: primitive_root(2)
         1
+        sage: primitive_root(3)
+        2
         sage: primitive_root(4)
         3
 
@@ -3745,9 +3726,11 @@ def primitive_root(n, check=True):
     if not check:
         return ZZ(pari(n).znprimroot())
     n = ZZ(n).abs()
-    if n == 4:
-        return ZZ(3)
-    if n%2: # n odd
+    if n <= 4:
+        if n:
+            # n-1 is a primitive root for n in {1,2,3,4}
+            return n-1
+    elif n%2: # n odd
         if n.is_prime_power():
             return ZZ(pari(n).znprimroot())
     else:   # n even

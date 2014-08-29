@@ -4510,17 +4510,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, flag=0):
+    def is_prime_power(self, long flag=0):
         r"""
         Returns True if this integer is a prime power, and False otherwise.
 
         INPUT:
 
-        - ``flag`` (for primality testing) - int. Values are:
-
-          - ``0`` (default): use a combination of algorithms.
-          - ``1``: certify primality using the Pocklington-Lehmer test.
-          - ``2``: certify primality using the APRCL test.
+        - ``flag`` -- deprecated
 
         .. seealso::
 
@@ -4532,16 +4528,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: (-10).is_prime_power()
+            sage: 17.is_prime_power()
+            True
+            sage: 10.is_prime_power()
             False
-            sage: (10).is_prime_power()
-            False
-            sage: (64).is_prime_power()
+            sage: 64.is_prime_power()
             True
             sage: (3^10000).is_prime_power()
             True
-            sage: (10000).is_prime_power(flag=1)
+            sage: (10000).is_prime_power()
             False
+            sage: (-3).is_prime_power()
+            False
+            sage: 0.is_prime_power()
+            False
+            sage: 1.is_prime_power()
+            False
+            sage: p = next_prime(10^20); p
+            100000000000000000039
+            sage: p.is_prime_power()
+            True
+            sage: (p^97).is_prime_power()
+            True
 
         We check that :trac:`4777` is fixed::
 
@@ -4549,23 +4557,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.is_prime_power()
             True
         """
+        if flag:
+            from sage.misc.superseded import deprecation
+            deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
         if mpz_sgn(self.value) <= 0:
             return False
-        elif mpz_cmp_ui(self.value, 1) == 0:
-            return True
 
         cdef unsigned long p
         if mpz_fits_ulong_p(self.value):
+            # Call PARI function uisprimepower()
             return bool(uisprimepower(mpz_get_ui(self.value), &p))
-
-        if self.is_prime():
-            return True
-        if not self.is_perfect_power():
-            return False
-        k, g = self._pari_().ispower()
-        if k == 1:
-            raise RuntimeError("Inconsistent results between GMP and PARI")
-        return g.isprime(flag=flag)
+        else:
+            return bool(self._pari_().isprimepower()[0])
 
     def is_prime(self, proof=None):
         r"""
@@ -4638,6 +4641,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return bool(self._pari_().isprime())
         else:
             return bool(self._pari_().ispseudoprime())
+
+    cdef bint _pseudoprime_is_prime(Integer self, proof) except -1:
+        """
+        Given a pseudoprime, return ``self.is_prime(proof)``.
+
+        INPUT:
+
+        - ``self`` -- A PARI pseudoprime
+
+        - ``proof`` -- Mandatory proof flag (True, False or None)
+
+        OUTPUT:
+
+        - The result of ``self.is_prime(proof)`` but faster
+        """
+        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
+            return True
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+        if proof:
+            return self._pari_().isprime()
+        else:
+            return True
 
     def is_irreducible(self):
         r"""
@@ -4982,12 +5009,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: Integer(100).next_prime()
+            sage: 100.next_prime()
             101
+            sage: (10^50).next_prime()
+            100000000000000000000000000000000000000000000000151
 
-        Use Proof = False, which is way faster::
+        Use ``proof=False``, which is way faster since it does not need
+        a primality proof::
 
             sage: b = (2^1024).next_prime(proof=False)
+            sage: b - 2^1024
+            643
 
         ::
 
@@ -4996,21 +5028,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(1001).next_prime()
             1009
         """
-        if mpz_cmp(self.value, PARI_PSEUDOPRIME_LIMIT) < 0:
-            return Integer( self._pari_().nextprime(True) )
-        if proof is None:
-            from sage.structure.proof.proof import get_flag
-            proof = get_flag(proof, "arithmetic")
-        if not proof:
-            return Integer( self._pari_().nextprime(True) )
-        n = self
-        if n % 2 == 0:
-            n += 1
-        else:
-            n += 2
-        while not n.is_prime(True):  # PARI's isprime() is provably correct
-            n += 2
-        return integer_ring.ZZ(n)
+        # Use PARI to compute the next *pseudo*-prime
+        p = Integer(self._pari_().nextprime(True))
+        while not p._pseudoprime_is_prime(proof):
+            p = Integer(p._pari_().nextprime(True))
+        return p
 
     def additive_order(self):
         """

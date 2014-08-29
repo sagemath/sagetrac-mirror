@@ -1682,6 +1682,45 @@ cdef class gen(sage.structure.element.RingElement):
             else:
                 return k, P.new_gen(x)
 
+    def isprimepower(gen self):
+        r"""
+        Check whether ``self`` is a prime power (with an exponent >= 1).
+
+        INPUT:
+
+        - ``self`` - A PARI integer
+
+        OUTPUT:
+
+        A tuple ``(k, p)`` where `k` is a Python integer and `p` a PARI
+        integer.
+
+        - If the input was a prime power, `p` is the prime and `k` the
+          power.
+        - Otherwise, `k = 0` and `p` equals ``self``.
+
+        EXAMPLES::
+
+            sage: pari(9).isprimepower()
+            (2, 3)
+            sage: pari(17).isprimepower()
+            (1, 17)
+            sage: pari(18).isprimepower()
+            (0, 18)
+            sage: pari(3^12345).isprimepower()
+            (12345, 3)
+        """
+        cdef GEN x
+        cdef long n
+
+        pari_catch_sig_on()
+        n = isprimepower(self.g, &x)
+        if n == 0:
+            pari_catch_sig_off()
+            return 0, self
+        else:
+            return n, P.new_gen(x)
+
     ###########################################
     # 1: Standard monadic or dyadic OPERATORS
     ###########################################

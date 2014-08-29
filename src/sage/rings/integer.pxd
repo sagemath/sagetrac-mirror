@@ -28,6 +28,8 @@ cdef class Integer(EuclideanDomainElement):
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right)
     cdef bint _is_power_of(Integer self, Integer n)
 
+    cdef bint _pseudoprime_is_prime(Integer self, proof) except -1
+
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
 
 cdef Integer smallInteger(long value)
