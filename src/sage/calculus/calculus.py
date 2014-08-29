@@ -1737,8 +1737,7 @@ _inverse_laplace = function_factory('ilt',
 # Conversion dict for special maxima objects
 # c,k1,k2 are from ode2()
 symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
-            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2', 
-            'e':'_e', 'i':'_i', 'I':'_I'}
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2'}
 
 import re
 
@@ -1837,10 +1836,21 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         _i^2
         sage: sefms('I')^2
         _I^2
-        sage: sefms('ln(e)')
-        ln(_e)
+        sage: ln(sefms('e'))
+        log(_e)
         sage: sefms('%inf')
         +Infinity
+        
+    Only some Maxima variables should get the pre-underscore (:trac:`16898`)::
+        
+        sage: e = var('e')
+        sage: e == maxima(e)._sage_()
+        e == e
+        sage: reset()
+        sage: e == maxima(e)._sage_()
+        e == e
+        sage: e == maxima('e')._sage_()
+        e == _e
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1852,6 +1862,11 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
+    
+    for m in maxima_var.finditer(s):
+        if m.group(0) == 'e' or m.group(0) == 'i' or m.group(0) == 'I':
+            s = s[:m.start()-1] + '_' + s[m.start()]
+
     s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
@@ -2097,7 +2112,7 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
 
         sage: y = var('y')
         sage: sage.calculus.calculus.symbolic_expression_from_string('[sin(0)*x^2,3*spam+e^pi]',syms={'spam':y},accept_sequence=True)
-        [0, 3*y + e^pi]
+        [0, e^pi + 3*y]
     """
     global _syms
     _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
