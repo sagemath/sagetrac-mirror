@@ -515,13 +515,17 @@ def is_pseudoprime(n, flag=0):
     n = ZZ(n)
     return pari(n).ispseudoprime()
 
-def is_prime_power(n, flag=0):
+def is_prime_power(n, flag=0, certificate=False):
     r"""
-    Returns True if `n` is a prime power, and False otherwise.
+    Return ``True`` if ``n`` is a prime power, and ``False`` otherwise.
 
     INPUT:
 
     - ``n`` -- an integer
+
+    - ``certificate`` -- if set to ``True``, return a pair ``(n,p)`` such that
+      this integer equals ``p^n`` instead of ``True`` or ``(0,self)`` instead of
+      ``False``
 
     - ``flag`` -- deprecated
 
@@ -535,6 +539,9 @@ def is_prime_power(n, flag=0):
         True
         sage: is_prime_power(1024)
         True
+        sage: is_prime_power(1024, certificate=True)
+        (10, 2)
+
         sage: is_prime_power(-1)
         False
         sage: is_prime_power(1)
@@ -550,7 +557,7 @@ def is_prime_power(n, flag=0):
         ...
         TypeError: unable to convert x (=foo) to an integer
     """
-    return ZZ(n).is_prime_power(flag=flag)
+    return ZZ(n).is_prime_power(flag=flag, certificate=certificate)
 
 def is_pseudoprime_small_power(n, bound=1024, get_data=False):
     r"""

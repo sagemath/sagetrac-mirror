@@ -4510,11 +4510,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, long flag=0):
+    def is_prime_power(self, long flag=0, bint certificate=False):
         r"""
-        Returns True if this integer is a prime power, and False otherwise.
+        Return ``True`` if this integer is a prime power, and ``False`` otherwise.
+
+        A prime power is a prime number raised to a positive power. Hence `1` is
+        not a prime power.
 
         INPUT:
+
+        - ``certificate`` -- (default ``False``), if ``True`` return a pair
+          ``(n,p)`` such that this integer equals ``p**n`` with ``p`` a prime
+          and ``n`` a positive integer or the pair ``(0,self)`` otherwise.
 
         - ``flag`` -- deprecated
 
@@ -4551,6 +4558,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (p^97).is_prime_power()
             True
 
+        With the ``certificate`` keyword set to ``True``::
+
+            sage: (3^100).is_prime_power(certificate=True)
+            (100, 3)
+            sage: 12.is_prime_power(certificate=True)
+            (0, 12)
+            sage: (p^97).is_prime_power(certificate=True)
+            (97, 100000000000000000039)
+            sage: q = p.next_prime(); q
+            100000000000000000129
+            sage: (p*q).is_prime_power(certificate=True)
+            (0, 10000000000000000016800000000000000005031)
+
         We check that :trac:`4777` is fixed::
 
             sage: n = 150607571^14
@@ -4561,14 +4581,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.misc.superseded import deprecation
             deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
         if mpz_sgn(self.value) <= 0:
-            return False
+            return (zero,self) if certificate else False
 
-        cdef unsigned long p
+        cdef unsigned long p,n
+        cdef pari_gen pari_p
         if mpz_fits_ulong_p(self.value):
             # Call PARI function uisprimepower()
-            return bool(uisprimepower(mpz_get_ui(self.value), &p))
+            n = uisprimepower(mpz_get_ui(self.value), &p)
+            if n:
+                return (smallInteger(n),smallInteger(p)) if certificate else True
+            else:
+                return (zero,self) if certificate else False
         else:
-            return bool(self._pari_().isprimepower()[0])
+            # the output is a pair made of a long and a PARI GEN
+            n,pari_p = self._pari_().isprimepower()
+            if pari_p:
+                return (smallInteger(n),Integer(pari_p)) if certificate else True
+            else:
+                return (zero,self) if certificate else False
 
     def is_prime(self, proof=None):
         r"""
