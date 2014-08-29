@@ -2272,7 +2272,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. WARNING::
 
             For backward compatibility, if a permutation group element
-            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            acts on the integers `\{1,\ldots,n\}` or a subset thereof,
             the columns are considered as being numbered from `1`::
 
                 sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
@@ -2499,7 +2499,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. WARNING::
 
             For backward compatibility, if a permutation group element
-            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            acts on the integers `\{1,\ldots,n\}` or a subset thereof,
             the rows are considered as being numbered from `1`::
 
                 sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
@@ -2658,7 +2658,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. WARNING::
 
             For backward compatibility, if a permutation group element
-            acts on the integers `\{1,\hdots,n\}` or a subset thereof,
+            acts on the integers `\{1,\ldots,n\}` or a subset thereof,
             the rows and/or columns are considered accordingly as
             being numbered from `1`::
 
