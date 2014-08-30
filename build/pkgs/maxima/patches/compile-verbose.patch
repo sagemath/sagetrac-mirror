@@ -1,0 +1,20 @@
+diff --git a/src/commac.lisp b/src/commac.lisp
+index 74c3843..9cc58e0 100644
+--- a/src/commac.lisp
++++ b/src/commac.lisp
+@@ -376,10 +376,11 @@ values")
+       (or (strip-float-zeros string) string)
+       string)))
+ 
+-(defparameter trailing-zeros-regex-f-0 (compile nil (maxima-nregex::regex-compile "^(.*\\.[0-9]*[1-9])00*$")))
+-(defparameter trailing-zeros-regex-f-1 (compile nil (maxima-nregex::regex-compile "^(.*\\.0)00*$")))
+-(defparameter trailing-zeros-regex-e-0 (compile nil (maxima-nregex::regex-compile "^(.*\\.[0-9]*[1-9])00*([^0-9][+-][0-9]*)$")))
+-(defparameter trailing-zeros-regex-e-1 (compile nil (maxima-nregex::regex-compile "^(.*\\.0)00*([^0-9][+-][0-9]*)$")))
++(let ((*compile-verbose* nil))
++  (defparameter trailing-zeros-regex-f-0 (compile nil (maxima-nregex::regex-compile "^(.*\\.[0-9]*[1-9])00*$")))
++  (defparameter trailing-zeros-regex-f-1 (compile nil (maxima-nregex::regex-compile "^(.*\\.0)00*$")))
++  (defparameter trailing-zeros-regex-e-0 (compile nil (maxima-nregex::regex-compile "^(.*\\.[0-9]*[1-9])00*([^0-9][+-][0-9]*)$")))
++  (defparameter trailing-zeros-regex-e-1 (compile nil (maxima-nregex::regex-compile "^(.*\\.0)00*([^0-9][+-][0-9]*)$"))))
+ 
+ ;; Return S with trailing zero digits stripped off, or NIL if there are none.
+ 
