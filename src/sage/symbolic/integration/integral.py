@@ -236,8 +236,6 @@ class DefiniteIntegral(BuiltinFunction):
             sage: f = function('f')
             sage: print_latex(f(x),x,0,1)
             '\\int_{0}^{1} f\\left(x\\right)\\,{d x}'
-            sage: latex(integrate(1/(1+sqrt(x)),x,0,1))
-            \int_{0}^{1} \frac{1}{\sqrt{x} + 1}\,{d x}
         """
         from sage.misc.latex import latex
         if not is_SymbolicVariable(x):
@@ -456,7 +454,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
-        x*y^z + 1/8*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))
+        x*y^z + 1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
@@ -590,12 +588,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         ...
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
 
-    Note that this used to be the test, but it is
-    actually divergent (though Maxima as yet does
-    not say so)::
+    Note that this used to be the test, but it is actually divergent
+    (though Maxima currently returns the principal value)::
 
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        integrate(t*cos(t*theta), t, -Infinity, +Infinity)
+        0
 
     Check if :trac:`6189` is fixed::
 
