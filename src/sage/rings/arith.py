@@ -523,11 +523,11 @@ def is_prime_power(n, flag=0, certificate=False):
 
     - ``n`` -- an integer
 
-    - ``certificate`` -- if set to ``True``, return a pair ``(n,p)`` such that
-      this integer equals ``p^n`` instead of ``True`` or ``(0,self)`` instead of
-      ``False``
-
     - ``flag`` -- deprecated
+
+    - ``certificate`` -- if set to ``True``, return a pair ``(k,p)`` such that
+      this integer equals ``p^k`` instead of ``True`` or ``(0,self)`` instead of
+      ``False``
 
     EXAMPLES::
 

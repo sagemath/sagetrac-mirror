@@ -4519,11 +4519,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        - ``certificate`` -- (default ``False``), if ``True`` return a pair
-          ``(n,p)`` such that this integer equals ``p**n`` with ``p`` a prime
-          and ``n`` a positive integer or the pair ``(0,self)`` otherwise.
-
         - ``flag`` -- deprecated
+
+        - ``certificate`` -- (default ``False``), if ``True`` return a pair
+          ``(k,p)`` such that this integer equals ``p^k`` with ``p`` a prime
+          and ``k`` a positive integer or the pair ``(0,self)`` otherwise.
 
         .. seealso::
 
@@ -4557,6 +4557,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: (p^97).is_prime_power()
             True
+            sage: (p+1).is_prime_power()
+            False
 
         With the ``certificate`` keyword set to ``True``::
 
@@ -4583,7 +4585,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             return (zero,self) if certificate else False
 
-        cdef unsigned long p,n
+        cdef unsigned long p, n
         cdef pari_gen pari_p
         if mpz_fits_ulong_p(self.value):
             # Call PARI function uisprimepower()
@@ -4594,8 +4596,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return (zero,self) if certificate else False
         else:
             # the output is a pair made of a long and a PARI GEN
-            n,pari_p = self._pari_().isprimepower()
-            if pari_p:
+            n, pari_p = self._pari_().isprimepower()
+            if n:
                 return (smallInteger(n),Integer(pari_p)) if certificate else True
             else:
                 return (zero,self) if certificate else False
