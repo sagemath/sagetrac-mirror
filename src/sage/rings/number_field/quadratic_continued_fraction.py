@@ -93,6 +93,9 @@ class Regions(SageObject):
 
 class Hole(SageObject):
     def __init__(self, parent, v, depth=0):
+        """
+        Rectangular hole.
+        """
         self._parent = parent
         if isinstance(v, list):
             #Input in as [xmin,ymin,xmax,ymax]
@@ -111,9 +114,15 @@ class Hole(SageObject):
         self._depth = depth
 
     def depth(self):
+        """
+        Return the depth of the hole.
+        """
         return self._depth
 
     def corners(self):
+        """
+        Return the corners of the hole.
+        """
         if self._corners is None:
             Pt = self._parent.Pointxy
             self._corners = [Pt(self.xmin, self.ymin),
@@ -123,13 +132,22 @@ class Hole(SageObject):
         return self._corners
 
     def plot(self, color='blue'):
+        """
+        Plot the hole as a rectangular polygon.
+        """
         return plot(polygon(self.corners()))
 
     def overlaps_fundamental_domain(self):
+        """
+        Return ``True`` if the hole overlaps the fundamental domain.
+        """
         return any([self._parent.in_fundamental_domain(x)
                     for x in self.corners()])
 
     def _repr_(self):
+        """
+        Return the string representation of the hole.
+        """
         return 'Hole with corners = ({},{}),({},{})'.format(self.xmin,
                                                             self.ymin,
                                                             self.xmax,
@@ -138,25 +156,41 @@ class Hole(SageObject):
 
 class Region(SageObject):
     def __init__(self, center, radius):
-        #assert(isinstance(center, Pointxy))
+        """
+        Diamond-shaped region.
+        """
         self._center = center
         radius = abs(radius)
         if radius > 1:
-            print radius
-            print center
-            assert(0)
+            raise ValueError('radius {} not smaller than 1'.format(radius))
         self._radius = radius
 
     def radius(self):
+        """
+        Return the radius of the region.
+        """
         return self._radius
 
     def center(self):
+        """
+        Return the center of the region.
+        """
         return self._center
 
     def plot_center(self, color='red'):
+        """
+        Plot the center of the region.
+        """
         return plot(point(self._center, color=color))
 
     def plot(self, color='red'):
+        """
+        Plot the region as a diamond-shaped polygon.
+
+        INPUT:
+
+        - color -- which color to use
+        """
         r = 2 * self._radius
         a = self._center[0]
         b = self._center[1]
@@ -164,15 +198,24 @@ class Region(SageObject):
         return plot(polygon(Pts), color=color)
 
     def contains_point(self, P):
+        """
+        Return ``True`` if the region contains the point `P`.
+        """
         return (abs((P.x - self._center.x) * (P.y - self._center.y)) <
                 self._radius)
 
     def contains_hole(self, h):
+        """
+        Return ``True`` if the region contains the hole `h`.
+        """
         return all([self.contains_point(P) for P in h.corners()])
 
 
 class QuadraticContinuedFraction(SageObject):
     def __init__(self, F, Nbound=50, Tbound=5):
+        """
+        Class for quadratic continued fractions.
+        """
         self._F = F
         self._solved = False
         self._disc = self._F.discriminant()
@@ -240,7 +283,9 @@ class QuadraticContinuedFraction(SageObject):
         return rangea
 
     def in_fundamental_domain(self, P):
-        #assert(isinstance(P,Pointxy))
+        """
+        Return ``True`` if the point `P` is in the fundamental domain.
+        """
         A = self._M * Matrix(RR, 2, 1, [P.x, P.y])
         return A[0, 0] >= 0 and A[0, 0] < 1 and A[1, 0] >= 0 and A[1, 0] < 1
 
@@ -284,12 +329,18 @@ class QuadraticContinuedFraction(SageObject):
                                                ymin + (jj + 1) * dy]))
 
     def plot_holes(self):
+        """
+        Plot the holes of ``self``.
+        """
         myplot = plot([])
         for h in self._holes:
             myplot += h.plot()
         return myplot
 
     def remaining_holes(self):
+        """
+        Return the number of holes.
+        """
         return len(self._holes)
 
     def test_regions(self, corners, at_least_one, embed_coords,
@@ -323,10 +374,10 @@ class QuadraticContinuedFraction(SageObject):
 
     def evaluate_hole(self, h, verifying=False, maxdepth=-1):
         """
-        # Given a hole, returns:
-        #  -2 if at least one of the points is not covered by the regions
-        #  -1 if no region covers all the points
-        #  0 if the a region can cover all the points
+        Given a hole, returns:
+        -2 if at least one of the points is not covered by the regions
+        -1 if no region covers all the points
+        0 if the a region can cover all the points
         """
         if not h.overlaps_fundamental_domain():
             return 0
