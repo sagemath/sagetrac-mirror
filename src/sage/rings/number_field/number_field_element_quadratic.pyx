@@ -2272,3 +2272,106 @@ cdef class Q_to_quadratic_field_element(Morphism):
               To:   Cyclotomic Field of order 6 and degree 2
         """
         return "Natural"
+
+###################################################################
+#                                                                 #
+# Calculate the continued fraction expansion in a real quadratic  #
+#                                                                 #
+# Authors: Xevi Guitart and Marc Masdeu                           #
+#                                                                 #
+###################################################################
+
+    def quadratic_continued_fraction(self, Nbound=50, Tbound=5):
+        r"""
+        Return a list of elements in the ring of integers of the ring
+        of integers of F representing a continued fraction expansion
+        for x.
+
+        INPUT: an element x of a real quadratic number field F of
+        class number one.
+
+        When first called, the function does enough precomputation to
+        show that the field is E_2 (in the sense of Cooke), and stores
+        the data needed to efficiently compute continued
+        fractions. Subsequent calls for other elements of the same
+        number field are very fast. The optional arguments are
+        parameters passed to the algorithm. If working with large
+        discriminants (larger than 1000), then Nbound should be
+        increased to 100. For discriminants up to 8000, the function
+        will return when Nbound is at least 200. We do not have
+        examples of number fields for which Tbound has to be changed
+        from the default.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(53)
+            sage: x = 18/5*a2/5
+            sage: v = x.quadratic_continued_fraction()
+            sage: y = v[0]+1/(v[1]+1/(v[2]+1/v[3]))
+            sage: x == y
+            True
+
+            sage: x = 9/5*a+3/10
+            sage: v = x.quadratic_continued_fraction()
+            sage: len(v)
+            10
+
+        We implement an algorithm that automates the method of proof
+        laid out in [Cooke]_. Other than computing continued
+        fractions, we obtain certificates of the fact that a real
+        quadratic field of class number one is two-stage Euclidean.
+        This a theorem conditional on some GRH.
+
+        REFERENCES:
+
+        .. [Cooke] G. E. Cooke, "A weakening of the euclidean property for
+           integral domains and applications to algebraic number
+           theory I"
+        """
+        try:
+            F = self._parent
+        except:
+            raise ValueError("The argument must belong to a real "
+                             "quadratic field of class number one.")
+        if (not F.degree() == 2 or F.class_number() != 1 or
+            not F.is_totally_real()):
+            raise ValueError("The argument must belong to a real "
+                             "quadratic field of class number one.")
+        try:
+            P = F.__continued_fraction_cache
+        except:
+            from quadratic_continued_fraction import QuadraticContinuedFraction
+            P = QuadraticContinuedFraction(F, Nbound, Tbound)
+            P.solve()
+            F.__continued_fraction_cache = P
+        v = []
+        knm1 = self
+        kn = 1
+        while True:
+            div = P.evaluate_number(knm1 / kn)
+            if div[1] == 1:
+                div = [div[0] + 1]
+                r = knm1 - kn * div[0]
+                div.append(r)
+                an = div[0]
+                knp1 = div[1]
+            else:
+                r = kn - (knm1 - kn * div[0]) * div[1]
+                div.append(r)
+                an = div[0]
+                knp1 = knm1 - kn * an
+                v.append(an)
+                if knp1 == 0:
+                    break
+                knm1 = kn
+                kn = knp1
+
+                an = div[1]
+                knp1 = div[2]
+
+            v.append(an)
+            if knp1 == 0:
+                break
+            knm1 = kn
+            kn = knp1
+        return v
