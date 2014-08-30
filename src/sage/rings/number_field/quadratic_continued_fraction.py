@@ -11,6 +11,7 @@ from sage.misc.all import union
 from sage.plot import plot, polygon, point
 from sage.rings.all import ZZ, QQ, RR
 from sage.structure.sage_object import SageObject
+from sage.rings.real_mpfr import RealField
 
 
 class Regions(SageObject):
@@ -26,13 +27,16 @@ class Regions(SageObject):
         self._area = self._parent._Rw
 
     def get_regions(self, B):
+        """
+        B is an integer ?
+        """
         regions = self._regions
         if B > self._N:
             eps = self._eps
-            newelts = {(ZZ(nv[0]), [I.gens_reduced()[0]
-                                    for I in nv[1] if I.is_principal()])
-                       for nv in self._F.ideals_of_bdd_norm(B - 1).iteritems()
-                       if nv[0] >= self._N}
+            newelts = {ZZ(n): [I.gens_reduced()[0]
+                               for I in v if I.is_principal()]
+                       for n, v in self._F.ideals_of_bdd_norm(B - 1).iteritems()
+                       if n >= self._N}
             self._N = B
             for nn in range(len(self._epsto), B):
                 self._epsto.append(self._epsto[nn - 1] * eps)
