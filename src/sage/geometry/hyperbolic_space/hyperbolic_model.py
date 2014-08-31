@@ -46,7 +46,7 @@ not::
    False
 
 The isometry groups of UHP and PD are projective, while that of HM is
-linear:
+linear::
     
     sage: U.isometry_group_is_projective
     True
@@ -55,7 +55,7 @@ linear:
 
 The models are responsible for determining if the coordinates of points
 and the matrix of linear maps are appropriate for constructing points
-and isometries in hyperbolic space:
+and isometries in hyperbolic space::
   
     sage: U.point_in_model(2 + I)
     True
@@ -207,7 +207,7 @@ def mobius_transform(A, z):
         sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
         x + I*y
 
-    The matrix must be square and `2`x`2`::
+    The matrix must be square and `2 \times 2`::
 
         sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
         Traceback (most recent call last):

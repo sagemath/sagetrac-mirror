@@ -41,6 +41,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
 
    sage/geometry/linear_expression
 
+
 Hyperbolic Geometry
 -------------------
 
@@ -54,6 +55,7 @@ Hyperbolic Geometry
    sage/geometry/hyperbolic_space/hyperbolic_model
    sage/geometry/hyperbolic_space/hyperbolic_interface
    sage/geometry/hyperbolic_space/hyperbolic_methods
+
 
 Backends for Polyhedral Computations
 ------------------------------------
