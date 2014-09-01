@@ -845,7 +845,7 @@ if( DEBUGLEVEL_ell >= 5, print("     end of nfqp_soluble"));
 }
 {nflocallysoluble( nf, pol, r=0,a=1,b=1) =
 \\ Test whether Y^2 = pol is Everywhere Locally Soluble
-local(pol0,plist,add,ff,p,Delta,vecpol,vecpolr,Sturmr);
+local(pol0,plist,add,ff,p,Delta,c,s,t);
 
 if( DEBUGLEVEL_ell >= 4, print("    starting nflocallysoluble ",[pol,r,a,b]));
   pol0 = pol;
@@ -879,18 +879,51 @@ if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
 
 \\ places reelles 
 
+/*
+  Peter Bruin, August 2014: code adapted to fix precision problems.
+
+  We want to count the number of real roots of a polynomial of the
+  form x^4 + s*x^2 + a*x + b.  The action of complex conjugation on
+  the complex roots determines the sign of the discriminant Delta:
+
+    cycle type () or (1 2)(3 4), i.e. 4 or 0 real roots: Delta > 0
+    cycle type (1 2), i.e. exactly 2 real roots: Delta < 0
+
+  We may assume Delta > 0 and have to decide whether there are 0 or 4
+  real roots.  We apply Sturm's theorem to the following sequence
+  (with t = 2*s^3 - 8*b*s + 9*a^2):
+
+    p0 = x^4 + s*x^2 + a*x + b
+    p1 = 4*x^3 + 2*s*x + a
+    p2 = x*p1 - 4*p0
+       = -2*s*x^2 - 3*a*x - 4*b
+    p3 = (3*a - 2*s*x)*p2 - s^2*p1
+       = -t*x - a*(s^2 + 12*b)
+    p4 = Delta
+
+  Note that the case of 4 real roots can only occur if both s and t
+  are non-zero, otherwise the Sturm sequence is shorter than this one.
+  By Sturm's theorem, the number of roots equals
+
+    (sign changes in [1, -4, -2*s, t, Delta]) -
+    (sign changes in [1, 4, -2*s, -t, Delta]).
+
+  Hence the only way to have 4 real roots is if s < 0 and t < 0.
+*/
   if( nf.r1,
-    Delta = poldisc(pol); vecpol = Vec(pol);
+    c = pollead(pol);
+    pol /= c;
+    pol = subst(pol, 'x, 'x - polcoeff(pol, 3)/4);
+    s = polcoeff(pol, 2);
+    t = 2*s^3 - 8*s*polcoeff(pol, 0) + 9*polcoeff(pol, 1)^2;
+    Delta = poldisc(pol);
     for( i = 1, nf.r1,
-      if( nfrealsign(nf,pollead(pol),i) > 0, next);
-      if( nfrealsign(nf,polcoeff(pol,0),i) > 0, next);
+      if( nfrealsign(nf,c,i) > 0, next);
       if( nfrealsign(nf,Delta,i) < 0, next);
-      vecpolr = vector(#vecpol,j,mysubst(vecpol[j],nf.roots[i]));
-      Sturmr = polsturm(Pol(vecpolr));
-      if( Sturmr == 0, 
+      if( nfrealsign(nf,s,i) < 0 && nfrealsign(nf,t,i) < 0, next);
 if( DEBUGLEVEL_ell >= 2, print("  not ELS at infinity"));
 if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
-        return(0));
+      return(0);
   ));
 if( DEBUGLEVEL_ell >= 2, print("  quartic ELS "));
 if( DEBUGLEVEL_ell >= 4, print("    end of nflocallysoluble"));
