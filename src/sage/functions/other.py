@@ -973,12 +973,20 @@ class Function_gamma_inc(BuiltinFunction):
 
             sage: gamma_inc(0,2)
             -Ei(-2)
-            sage: gamma_inc(0,2.)
-            0.0489005107080611
             sage: gamma_inc(0,2).n(algorithm='pari')
             0.0489005107080611
             sage: gamma_inc(0,2).n(200)
             0.048900510708061119567239835228...
+            
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: R = RealField(1024)
+            sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
+            40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
+            sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
+            -1.110111564516556704267183273042450876294e-28
         """
         if algorithm == 'pari':
             try:
@@ -1820,7 +1828,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
-        from sage.rings.all import RealField, ComplexField
         if prec:
             if x >= 0:
                  return RealField(prec)(x).sqrt(all=all)
@@ -2058,7 +2065,6 @@ class Function_arg(BuiltinFunction):
         try:
             parent = parent.complex_field()
         except AttributeError:
-            from sage.rings.complex_field import ComplexField
             try:
                 parent = ComplexField(x.prec())
             except AttributeError:
