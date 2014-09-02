@@ -208,6 +208,22 @@ void ReallocAutomaton (Automaton *a, int n)
 	*/
 }
 
+Automaton CopyAutomaton (Automaton a)
+{
+	Automaton r = NewAutomaton(a.n, a.na);
+	int i,j;
+	for (i=0;i<a.n;i++)
+	{
+		r.e[i].final = a.e[i].final;
+		for (j=0;j<a.na;j++)
+		{
+			r.e[i].f[j] = a.e[i].f[j];
+		}
+	}
+	r.i = a.i;
+	return r;
+}
+
 void init (Automaton a)
 {
 	int i,j;
@@ -1289,6 +1305,9 @@ void emonde_rec3 (Automaton a, Automaton r, int *l, int etat)
 */
 
 //retire tous les états non accessible ou non co-accessible
+//
+// fonction pas très éfficace : à revoir !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
 Automaton emonde (Automaton a, bool verb)
 {
 	int i,j,f;
@@ -1364,14 +1383,18 @@ Automaton emonde (Automaton a, bool verb)
 		}
 		printf(" ]\n");
 		
-		printf("create the new automaton...\n");
+		printf("create the new automaton %d %d...\n", cpt, a.na);
 	}
 	//créé le nouvel automate
 	Automaton r = NewAutomaton(cpt, a.na);
 	for (i=0;i<a.n;i++)
 	{
 		if (l[i] == -1)
+		{
+			if (verb)
+				printf("pass %d\n", i);
 			continue;
+		}
 		for (j=0;j<a.na;j++)
 		{
 			f = a.e[i].f[j];
@@ -1387,7 +1410,10 @@ Automaton emonde (Automaton a, bool verb)
 	
 	//remet les états finaux de a
 	if (verb)
+	{
 		printf("Etats supprimés : [");
+		fflush(stdout);
+	}
 	for (i=0;i<a.n;i++)
 	{
 		if (verb)
@@ -1403,7 +1429,8 @@ Automaton emonde (Automaton a, bool verb)
 			}
 		}
 		a.e[i].final &= 1;
-		r.e[l[i]].final = a.e[i].final;
+		if (l[i] != -1)
+			r.e[l[i]].final = a.e[i].final;
 	}
 	if (verb)
 		printf(" ]\n");
@@ -1647,7 +1674,7 @@ void PermutOP (Automaton a, int *l, int na, bool verb)
 	free(lf);
 }
 
-/////////////////////// the following is an implementation of Hopcroft's algorithm
+/////////////////////// the following is an implementation of Hopcroft's algorithm minimization
 
 typedef int Couple[2];
 
@@ -2019,7 +2046,7 @@ Automaton Minimise (Automaton a, bool verb)
 	return r;
 }
 
-///////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
 int sign (int a)

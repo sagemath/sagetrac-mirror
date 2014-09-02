@@ -104,10 +104,13 @@ cdef getElement (e, Element r, int n):
     for j in range(n):
         r.c[j] = p[j]
 
-cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
+cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False) except *:
     #compute all the data in sage
-    b = self.b
-    K = b.parent()
+    K = NumberField((1/self.b).minpoly(), 'b')
+    b = K.gen()
+    C = [c.lift()(1/b) for c in self.C]
+    if verb:
+        print "C = %s"%C
     
     if verb: print K
     
@@ -119,7 +122,9 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
     pi = K.defining_polynomial()
     from sage.rings.arith import gcd
     pi = pi/gcd(pi.list()) #rend le polynôme à coefficients entiers et de contenu 1
+    if verb: print "pi=%s"%pi
     lp = (Integer(pi.list()[0])).prime_divisors() #liste des nombres premiers concernés
+    if verb: print "lp=%s"%lp
     pultra = [] #liste des places ultramétriques considérées
     for p in lp:
         #détermine toutes les places au dessus de p dans le corps de nombres K
@@ -145,7 +150,9 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
     
     #calcule les bornes max pour chaque valeur absolue
     if Cd is None:
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+        Cd = Set([c-c2 for c in C for c2 in C])
+    else:
+        Cd = [c.lift()(1/b) for c in Cd]
     if verb: print "Cd = %s"%Cd
     m = dict([])
     for p in parch:
@@ -174,10 +181,10 @@ cdef InfoBetaAdic initInfoBetaAdic (self, Cd=None, verb=False):
     initCdInfoBetaAdic(self, &i, Cd=Cd, verb=verb)
     return i
 
-cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd=None, verb=False):
+cdef initCdInfoBetaAdic (self, InfoBetaAdic *i, Cd, verb=False):
     #recalcule les bornes max pour chaque valeur absolue
-    if Cd is None:
-        Cd = Set([c-c2 for c in self.C for c2 in self.C])
+#    if Cd is None:
+#        Cd = Set([c-c2 for c in self.C for c2 in self.C])
     Cd = list(Cd)
     if verb: print "Cd = %s"%Cd
     m = dict([])
@@ -1690,6 +1697,58 @@ class BetaAdicMonoid(Monoid_class):
             return ssd
         return p
     
+    def intersection2 (self, ss1, ss2, verb = False): #calcule le sous-shift correspondant à l'intersection des deux monoïdes avec sous-shifts, utilise des FastAutomaton
+        r"""
+        Compute the intersection of two beta-adic monoid with subshifts given by FastAutomaton
+        
+        INPUT:
+
+        - ``ss``- FastAutomaton (default: ``None``)
+          The first subshift to associate to the beta-adic monoid for this operation.
+        
+        - ``ss2``- FastAutomaton (default: ``None``)
+          The second subshift to associate to the beta-adic monoid for this operation.
+        
+        - ``verb``- bool (default: ``False``)
+          If True, print informations for debugging.
+        
+        OUTPUT:
+
+        A FastAutomaton.
+
+        EXAMPLES:
+            
+            #. Compute the boundary of the dragon fractal (see intersection_words for a easier way) ::
+
+                sage: m = BetaAdicMonoid(1/(1+I), {0,1})
+                sage: import sage.combinat.words.cautomata
+				sage: from sage.combinat.words.cautomata import FastAutomaton
+				sage: ss0 = FastAutomaton([(0,1,0)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
+                sage: ss1 = FastAutomaton([(0,1,1)]+[(1,1,l) for l in m.C], i=0, final_states=[1])
+                sage: ssi = m.intersection2(ss0, ss1)
+                sage: m.plot2(tss = ssi)     # long time
+        """
+        a = self.relations_automaton3()
+        a = a.emonde_inf()
+        a.set_final_states(a.states())
+        ssp = ss1.product(ss2)
+        ssp = ssp.emonde()
+        d = {}
+        for (la1,la2) in ssp.Alphabet():
+            for lb in a.Alphabet():
+                if lb == la1-la2:
+                    d[((la1,la2), lb)] = (la1,la2)
+        ssi = ssp.product(a, d)
+        ssi = ssi.emonde_inf()
+        ssi = ssi.emonde()
+        d = {}
+        for (l1,l2) in ssi.Alphabet():
+            d[(l1,l2)] = l1
+        ssi = ssi.determinise_proj(d)
+        ssi = ssi.emonde_inf()
+        ssi = ssi.emonde()
+        return ssi.minimise()
+        
     def intersection_words (self, w1, w2, ss=None, iss=None):
         r"""
         Compute the intersection of two beta-adic monoid with subshifts corresponding to two prefix

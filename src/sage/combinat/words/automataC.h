@@ -14,6 +14,7 @@ void printDict (Dict d);
 void dictAdd (Dict *d, int e); //ajoute un élément au dictionnaire (même s'il était déjà présent)
 Automaton NewAutomaton (int n, int na);
 void FreeAutomaton (Automaton *a);
+Automaton CopyAutomaton (Automaton a);
 void init (Automaton a);
 void printAutomaton (Automaton a);
 void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy);

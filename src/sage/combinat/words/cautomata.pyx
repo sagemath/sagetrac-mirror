@@ -40,6 +40,7 @@ cdef extern from "automataC.h":
     
     Automaton NewAutomaton (int n, int na)
     void FreeAutomaton (Automaton *a)
+    Automaton CopyAutomaton (Automaton a)
     void init (Automaton a)
     void printAutomaton (Automaton a)
     void plotTikZ (Automaton a, const char **labels, const char *graph_name, double sx, double sy)
@@ -375,12 +376,27 @@ cdef class FastAutomaton:
     def initial_state (self):
         return self.a.i
     
+    def set_initial_state (self, int i):
+        self.a.i = i
+    
     def final_states (self):
         l = []
         for i in range(self.a.n):
             if self.a.e[i].final:
                 l.append(i)
         return l
+    
+    def states (self):
+        return range(self.a.n)
+    
+    def set_final_states (self, lf):
+        cdef int f
+        for f in range(self.a.n):
+            self.a.e[f].final = 0
+        for f in lf:
+            if f < 0 or f >= self.a.n:
+                raise ValueError("%d is not a state !"%f)
+            self.a.e[f].final = 1
     
     def succ (self, int i, int j):
         if i<0 or i>=self.a.n or j<0 or j>=self.a.na:
@@ -421,7 +437,12 @@ cdef class FastAutomaton:
         return Bool(equalsAutomaton(self.a[0], b.a[0]))
     
     #assume that the dictionnary d is injective !!!
-    def product (self, FastAutomaton b, dict d, verb=False):
+    def product (self, FastAutomaton b, dict d=None, verb=False):
+        if d is None:
+            d = {}
+            for la in self.A:
+                for lb in b.A:
+                    d[(la,lb)] = (la,lb)
         sig_on()
         cdef Automaton a
         cdef Dict dC
@@ -659,3 +680,12 @@ cdef class FastAutomaton:
         
     def test (self):
         Test()
+    
+    def copy (self):
+        sig_on()
+        r = FastAutomaton(None)
+        r.a[0] = CopyAutomaton(self.a[0])
+        r.A = self.A
+        sig_off()
+        return r
+    

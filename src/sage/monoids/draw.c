@@ -378,7 +378,10 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 				printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
 				printf("abs(b) = %lf\n", sqrt(cnorm(b.b)));
 			}
-			n = -2.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (cnorm(b.b) < 1)
+				n = -2.*log(max(s.sx, s.sy)*absd(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			else
+				n = 2.*log(max(s.sx, s.sy)*absd(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -407,7 +410,22 @@ void Draw (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = .75 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		if (cnorm(b.b) < 1)
+			n = .75 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+		else
+		{
+			double ratio = pow(cnorm(b.b), n/2);
+			n = .75 + 2.*absd(log(ratio*max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+			ratio = pow(cnorm(b.b), n/2)/ratio;
+			Mx = Mx*ratio;
+			mx = mx*ratio;
+			My = My*ratio;
+			my = my*ratio;
+			if (verb)
+			{
+				printf("Zone de dessin : (%lf, %lf) (%lf, %lf)\n", mx, my, Mx, My);
+			}
+		}
 		if (verb)
 			printf("n = %d\n", n);
 	}
@@ -468,7 +486,10 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 		{
 			//printf("max = %d\n", max(s.sx, s.sy));
 			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-			n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (cnorm(b.b) < 1)
+				n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			else
+				n = 2.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -497,7 +518,10 @@ void Draw2 (BetaAdic b, Surface s, int n, int ajust, Color col, int verb)
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = .75 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		if (cnorm(b.b) < 1)
+			n = .75 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+		else
+			n = .75 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
 		if (verb)
 			printf("n = %d\n", n);
 	}
@@ -559,7 +583,10 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 		{
 			//printf("max = %d\n", max(s.sx, s.sy));
 			//printf("maj = %lf\n", (1.-sqrt(cnorm(b.b))));
-			n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			if (cnorm(b.b) < 1)
+				n = -2.*log(max(s.sx, s.sy)*(1.-sqrt(cnorm(b.b))))/log(cnorm(b.b));
+			else
+				n = 2.*log(max(s.sx, s.sy)*(1.-1./sqrt(cnorm(b.b))))/log(cnorm(b.b));
 			if (verb)
 				printf("n = %d\n", n);
 		}
@@ -593,7 +620,10 @@ void DrawList (BetaAdic2 b, Surface s, int n, int ajust, ColorList cl, double al
 	Fill(s, color0);
 	if (auto_n)
 	{
-		n = .5 - 2.*log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b));
+		if (cnorm(b.b) < 1)
+			n = .5 + 2.*absd(log(max(3.*s.sx/(Mx-mx), 3.*s.sy/(My-my)))/log(cnorm(b.b)));
+		else
+			n = .5 + 2.*absd(log(max(.3*s.sx/(Mx-mx), .3*s.sy/(My-my)))/log(cnorm(b.b)));
 		if (verb)
 			printf("n = %d\n", n);
 	}
