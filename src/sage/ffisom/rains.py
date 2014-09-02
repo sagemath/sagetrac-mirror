@@ -81,13 +81,24 @@ def find_gens_cyclotomic(k1, k2):
     if (o > 1):
         print "Using auxiliary extension, this might be slow"
         P = GF(p**o, 'z').polynomial()
-        k1, k2 = [k.extension(P) for k in (k1, k2)]
+        from sage.ffisom.embed import computeR
+        P1, P2 = [computeR(k.polynomial(), P) for k in (k1, k2)]
+        k1ext, k2ext = [GF(p**(n*o), 'zext', modulus=P) for P in (P1, P2)]
+        #k1, k2 = [k.extension(P) for k in (k1, k2)]
         
     # Return the unique (up to Galois action) elements, descended to
     # k₁ and k₂, if needed.
-    return map(lambda x: x if P is None else x[0],
-               [find_unique_orbit(k, G) for k in (k1, k2)])
+    from sage.ffisom.embed import inverse_embed
+#    return map(lambda x: x if P is None else x[0],
+#               [find_unique_orbit(k, G) for k in (k1, k2)])
 
+    if o == 1:
+        return [find_unique_orbit(k, G) for k in (k1, k2)]
+    else:
+        u, v = [find_unique_orbit(k, G) for k in (k1ext, k2ext)]
+        R1, R2 = [k.polynomial_ring() for k in (k1, k2)]
+        return [inverse_embed(R1(u), k1.polynomial(), R1(P), R1(k1ext.polynomial())),
+                inverse_embed(R2(v), k2.polynomial(), R2(P), R2(k2ext.polynomial()))]
 
 
 def find_root_order(p, n):
