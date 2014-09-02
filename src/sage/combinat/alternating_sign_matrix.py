@@ -258,7 +258,7 @@ class AlternatingSignMatrix(Element):
         triangle = [None]*n
         prev = [0]*n
         for j, row in enumerate(self._matrix):
-            add_row = [a+b for (a,b) in itertools.izip(row, prev)]
+            add_row = [a+b for (a,b) in zip(row, prev)]
             line = [i+1 for (i,val) in enumerate(add_row) if val==1]
             triangle[n-1-j] = list(reversed(line))
             prev = add_row
@@ -1338,7 +1338,7 @@ def _is_a_cover(mt0, mt1):
         False
     """
     diffs = 0
-    for (a,b) in itertools.izip(flatten(mt0), flatten(mt1)):
+    for (a,b) in zip(flatten(mt0), flatten(mt1)):
         if a != b:
             if a+1 == b:
                 diffs += 1

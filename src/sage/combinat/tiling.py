@@ -219,6 +219,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc import prod
@@ -1407,7 +1413,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, it.next()
             common_prefix = []
-            for a, b in itertools.izip(A, B):
+            for a, b in izip(A, B):
                 if a == b:
                     common_prefix.append(a)
                 else:
@@ -1465,7 +1471,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, it.next()
             common_prefix = 0
-            for a, b in itertools.izip(A, B):
+            for a, b in izip(A, B):
                 if a == b:
                     common_prefix += 1
                 else:

@@ -827,7 +827,14 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap, ifilter, izip
+try:
+    # Python 2
+    from itertools import izip_longest as zip_longest
+    from itertools import izip as zip
+except ImportError:
+    # Python 3
+    from itertools import zip
+
 import collections
 from collections import defaultdict, OrderedDict
 import heapq
@@ -3920,7 +3927,7 @@ class FiniteStateMachine(SageObject):
                 sage: T.default_format_transition_label(iter([]))
                 '\\varepsilon'
         """
-        result = " ".join(imap(self.format_letter, word))
+        result = " ".join(map(self.format_letter, word))
         if result:
             return result
         else:
@@ -4908,8 +4915,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_initial_states()]
             ['A']
         """
-        return itertools.ifilter(lambda s:s.is_initial, self.iter_states())
-
+        return (s for s in self.iter_states() if s.is_initial)
 
     def final_states(self):
         """
@@ -4958,8 +4964,7 @@ class FiniteStateMachine(SageObject):
             sage: [s.label() for s in F.iter_final_states()]
             ['A', 'C']
         """
-        return itertools.ifilter(lambda s:s.is_final, self.iter_states())
-
+        return (s for s in self.iter_states() if s.is_final)
 
     def state(self, state):
         """
@@ -7467,7 +7472,7 @@ class FiniteStateMachine(SageObject):
              Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if any(itertools.ifilter(
+            if any(filter(
                     lambda transition: not transition.word_out,
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:
@@ -8139,7 +8144,7 @@ class FiniteStateMachine(SageObject):
             sage: F.state(0).final_word_out
             []
         """
-        from itertools import cycle, izip_longest
+        from itertools import cycle
 
         if not isinstance(letters, list):
             letters = [letters]
@@ -10106,15 +10111,14 @@ class Transducer(FiniteStateMachine):
         def function(*transitions):
             if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
-                        list(itertools.izip_longest(
+                        list(zip_longest(
                             *(t.word_out for t in transitions)
                              )))
             else:
                 raise LookupError
 
         def final_function(*states):
-            return list(itertools.izip_longest(*(s.final_word_out
-                                                 for s in states)))
+            return list(zip_longest(*(s.final_word_out for s in states)))
 
         return self.product_FiniteStateMachine(
             other,
@@ -11097,7 +11101,7 @@ class _FSMTapeCache_(SageObject):
 
         if self.is_multitape:
             increments = tuple(length(word) for word in
-                               itertools.izip(*transition.word_in))
+                               zip(*transition.word_in))
         else:
             increments = (length(transition.word_in),)
 
@@ -11384,7 +11388,7 @@ def tupleofwords_to_wordoftuples(tupleofwords):
         ....:     ([1, 2], [3, 4, 5, 6], [7]))
         [(1, 3, 7), (2, 4, None), (None, 5, None), (None, 6, None)]
     """
-    return list(itertools.izip_longest(*tupleofwords, fillvalue=None))
+    return list(zip_longest(*tupleofwords, fillvalue=None))
 
 
 def wordoftuples_to_tupleofwords(wordoftuples):
@@ -11414,7 +11418,7 @@ def wordoftuples_to_tupleofwords(wordoftuples):
     def remove_empty_letters(word):
         return [letter for letter in word if letter is not None]
     return tuple(remove_empty_letters(word)
-                 for word in itertools.izip(*wordoftuples))
+                 for word in zip(*wordoftuples))
 
 
 #*****************************************************************************
@@ -12136,7 +12140,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                      for _ in srange(len(next_transitions) - 1)])
 
             # process transitions
-            for transition, (tape, out) in izip(next_transitions, new_currents):
+            for transition, (tape, out) in zip(next_transitions, new_currents):
                 if hasattr(transition, 'hook'):
                     transition.hook(transition, self)
                 write_word(out, transition.word_out)

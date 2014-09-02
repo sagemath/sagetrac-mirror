@@ -92,9 +92,15 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
+
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
-from itertools import izip
 from sage.misc.superseded import deprecated_function_alias
 
 def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):

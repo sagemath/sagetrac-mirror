@@ -707,7 +707,7 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         b a c
         *****
     """
-    from itertools import imap, ifilter, product
+    from itertools import product
     from sage.combinat.permutation import Permutations
 
     if not irreducible:
@@ -724,11 +724,10 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         alphabet = Alphabet(alphabet)
         g = lambda x: [alphabet.unrank(k-1) for k in x]
         P = map(g, Permutations(nintervals))
-        return imap(f,product(P,P))
+        return (f(i) for i in product(P,P))
     else:
-        return ifilter(
-            lambda x: x.is_irreducible(),
-            LabelledPermutationsIET_iterator(nintervals,False,alphabet))
+        return (x for x in LabelledPermutationsIET_iterator(nintervals,False,alphabet)
+            if x.is_irreducible())
 
 class LabelledPermutationIET(LabelledPermutation, PermutationIET):
     """
@@ -2313,15 +2312,9 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
-
         g = self.path(start)
-
-        ifull = ifilter(
-            lambda x: x.is_loop() and x.is_full(),
-            self._all_path_extension(g,max_length))
-
-        return imap(copy,ifull)
+        return (copy(x) for x in self._all_path_extension(g,max_length)
+                    if x.is_loop() and x.is_full())
 
     def full_nloop_iterator(self, start=None, length=1):
         r"""
@@ -2350,15 +2343,9 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
-
         g = self.path(start)
-
-        ifull = ifilter(
-            lambda x: x.is_loop() and x.is_full(),
-            self._all_npath_extension(g,length))
-
-        return imap(copy, ifull)
+        return (copy(x) for x in self._all_npath_extension(g,length)
+                    if x.is_loop and x.is_full())
 
     def _permutation_to_vertex(self, p):
         r"""

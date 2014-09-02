@@ -123,7 +123,7 @@ from sage.structure.proof.proof import get_flag
 import maps
 import structure
 import number_field_morphisms
-from itertools import count, izip
+from itertools import count
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -10083,4 +10083,4 @@ def refine_embedding(e, prec=None):
     # relies on the fact that coercing a high-precision root into a
     # field with lower precision will equal the lower-precision root!
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
-    return elist[min(izip(diffs,count()))[1]]
+    return elist[min(zip(diffs,count()))[1]]
