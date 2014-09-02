@@ -833,7 +833,7 @@ try:
     from itertools import izip as zip
 except ImportError:
     # Python 3
-    from itertools import zip
+    from itertools import zip, zip_longest
 
 import collections
 from collections import defaultdict, OrderedDict
@@ -11106,7 +11106,7 @@ class _FSMTapeCache_(SageObject):
             increments = (length(transition.word_in),)
 
         for track_number, (track_cache, inc) in \
-                enumerate(izip(self.cache, increments)):
+                enumerate(zip(self.cache, increments)):
             for _ in range(inc):
                 if not track_cache:
                     if not self.read(track_number)[0]:
