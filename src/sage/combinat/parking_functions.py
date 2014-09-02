@@ -77,7 +77,8 @@ from sage.combinat.dyck_word import DyckWord
 from sage.combinat.combinatorial_map import combinatorial_map
 
 class ParkingFunction_class(CombinatorialObject, Element):
-    def __init__(self, parent, lst):
+
+    def __init__(self, parent = None, lst = None):
         """
         TESTS::
 
@@ -86,6 +87,8 @@ class ParkingFunction_class(CombinatorialObject, Element):
         """
         if not is_a(lst):
             raise ValueError("%s is not a parking function." % lst)
+        if parent is None:
+            parent = ParkingFunction_n
         CombinatorialObject.__init__(self, lst)
         Element.__init__(self, parent)
 
@@ -1601,7 +1604,7 @@ def from_labelling_and_area_sequence(L, D):
         sage: from_labelling_and_area_sequence([1, 2, 4, 3], [0, 1, 2, 1])
         [1, 1, 3, 1]
     """
-    return ParkingFunction_class([L.index(i) + 1 - D[L.index(i)]
+    return ParkingFunction([L.index(i) + 1 - D[L.index(i)]
                                   for i in range(1, len(L) + 1)])
 
 
