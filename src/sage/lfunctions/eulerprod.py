@@ -38,8 +38,11 @@ TODO:
 
 import copy, math, types
 
+from sage.structure.parent import Parent
+
 from sage.all import prime_range, cached_method, sqrt, SR, vector
-from sage.rings.all import is_RationalField, ZZ, Integer, QQ, O, ComplexField, CDF, primes, infinity as oo
+from sage.rings.rational_field import is_RationalField
+from sage.rings.all import ZZ, Integer, QQ, O, ComplexField, CDF, primes, infinity as oo
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 from sage.misc.all import prod
 from sage.modular.abvar.abvar import is_ModularAbelianVariety
@@ -249,7 +252,7 @@ class LSeriesDerivative(object):
             return self
         return LSeriesDerivative(self._lseries, self._k + k)
 
-class LSeriesParentClass(object):
+class LSeriesParentClass(Parent):
     def __contains__(self, x):
         return isinstance(x, (LSeriesAbstract, LSeriesProduct))
         
@@ -742,7 +745,7 @@ class LSeriesAbstract(object):
             sage: LSeries(Newforms(6,4)[0]).epsilon()
             1
             sage: LSeries(DirichletGroup(7).0).epsilon()
-            1/7*I*((((((e^(2/21*I*pi) + 1)*e^(2/21*I*pi) + 1)*e^(1/21*I*pi) - 1)*e^(1/21*I*pi) - 1)*e^(2/21*I*pi) - 1)*e^(1/21*I*pi) - 1)*sqrt(7)*e^(1/21*I*pi)
+            1/7*I*sqrt(7)*((((((e^(2/21*I*pi) + 1)*e^(2/21*I*pi) + 1)*e^(1/21*I*pi) - 1)*e^(1/21*I*pi) - 1)*e^(2/21*I*pi) - 1)*e^(1/21*I*pi) - 1)*e^(1/21*I*pi)
             sage: LSeries(DirichletGroup(7).0).epsilon(prec=53)
             0.386513572759156 + 0.922283718859307*I
 
@@ -793,12 +796,12 @@ class LSeriesAbstract(object):
             sage: L(0)
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to determine epsilon from functional equation working to precision 53, since we get epsilon=0.806362085925390 - 0.00491051026156292*I, which is not sufficiently close to 1
+            RuntimeError: unable to determine epsilon from functional equation working to precision 53, since we get epsilon=0.806362085925390 - 0.00491051026156280*I, which is not sufficiently close to 1
 
         However, when we evaluate to 100 bits of precision it works::
         
             sage: L(RealField(100)(0))
-            0
+            0.00000000000000000000000000000
 
         The epsilon factor is *not* known to infinite precision::
             
@@ -1090,7 +1093,7 @@ class LSeriesAbstract(object):
             [3]
             sage: L = LSeriesAbstract(conductor=1, hodge_numbers=[0], weight=1, epsilon=1, poles=[1], residues=[-1], base_field=QQ[sqrt(-1)])
             sage: L._primes_above(5)
-            [Fractional ideal (I + 2), Fractional ideal (-I + 2)]
+            [Fractional ideal (-I - 2), Fractional ideal (I - 2)]
             sage: L._primes_above(3)
             [Fractional ideal (3)]
         """
@@ -1238,9 +1241,9 @@ class LSeriesAbstract(object):
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries(EllipticCurve('37a'))
             sage: SR(L)
-            -2/2^s - 3/3^s + 2/4^s - 2/5^s + 6/6^s - 1/7^s + 6/9^s + 4/10^s + 1            
+            4/10^s + 6/9^s - 1/7^s + 6/6^s - 2/5^s + 2/4^s - 3/3^s - 2/2^s + 1
             sage: L._symbolic_(SR, 20)
-            -2/2^s - 3/3^s + 2/4^s - 2/5^s + 6/6^s - 1/7^s + 6/9^s + 4/10^s - 5/11^s - 6/12^s - 2/13^s + 2/14^s + 6/15^s - 4/16^s - 12/18^s - 4/20^s + 1
+            -4/20^s - 12/18^s - 4/16^s + 6/15^s + 2/14^s - 2/13^s - 6/12^s - 5/11^s + 4/10^s + 6/9^s - 1/7^s + 6/6^s - 2/5^s + 2/4^s - 3/3^s - 2/2^s + 1
         """
         s = R.var('s')
         a = self.anlist(bound, prec)
@@ -1259,7 +1262,7 @@ class LSeriesAbstract(object):
             sage: from sage.lfunctions.eulerprod import LSeries
             sage: L = LSeries(EllipticCurve('37a'))
             sage: L(1)
-            0
+            0.000000000000000
             sage: L(2)
             0.381575408260711
             sage: z = L(RealField(100)(2)); z
@@ -2292,7 +2295,7 @@ class LSeriesModularAbelianVariety(LSeriesProduct):
 
     Different check that totally avoids using Dokchitser::
     
-        sage: prod(EllipticCurve(lbl).lseries().at1()[0] for lbl in ['54a', '54b', '27a', '27a'])
+        sage: prod(EllipticCurve(lbl).lseries().at1(prec=53)[0] for lbl in ['54a', '54b', '27a', '27a'])
         0.250848605530185
     """
     def __init__(self, A):
@@ -2452,7 +2455,7 @@ def LSeries(X, *args, **kwds):
 
     We check the above computation of L(1) via independent methods (and implementations)::
     
-        sage: prod(EllipticCurve(lbl).lseries().at1()[0] for lbl in ['11a', '11a', '33a'])
+        sage: prod(EllipticCurve(lbl).lseries().at1(prec=53)[0] for lbl in ['11a', '11a', '33a'])
         0.0481135342926321
         sage: prod(EllipticCurve(lbl).lseries()(1) for lbl in ['11a', '11a', '33a'])
         0.0481553138900504
@@ -2463,9 +2466,9 @@ def LSeries(X, *args, **kwds):
         sage: L
         L-series attached to Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
         sage: L(1)
-        0
+        0.000000000000000
         sage: L.taylor_series()
-        0.196399786632435*z + 0.314922741074845*z^2 - 0.0797083673829092*z^3 - 0.161630566287135*z^4 + 0.123939472976207*z^5 + O(z^6)
+        0.000000000000000 + 0.196399786632435*z + 0.314922741074845*z^2 - 0.0797083673829092*z^3 - 0.161630566287135*z^4 + 0.123939472976207*z^5 + O(z^6)
         sage: L.factor()
         (L-series of a degree 1 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2) * (L-series of a degree 2 newform of level 43 and weight 2)        
         sage: L.analytic_rank()
@@ -2473,7 +2476,7 @@ def LSeries(X, *args, **kwds):
         sage: D = ModularSymbols(43,sign=1).cuspidal_subspace().decomposition()
         sage: L0 = LSeries(D[0]); L1 = LSeries(D[1])
         sage: L0.taylor_series() * L1.taylor_series()
-        0.196399786632435*z + 0.314922741074845*z^2 - 0.0797083673829091*z^3 - 0.161630566287135*z^4 + 0.123939472976207*z^5 + O(z^6)
+        0.000000000000000 + 0.196399786632435*z + 0.314922741074845*z^2 - 0.0797083673829091*z^3 - 0.161630566287135*z^4 + 0.123939472976207*z^5 + O(z^6)
         sage: L0.factor()
         L-series of a degree 1 newform of level 43 and weight 2
         sage: L1.factor()
